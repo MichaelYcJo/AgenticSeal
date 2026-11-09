@@ -1145,8 +1145,12 @@ def analyse(calls, turns, delegated=()):
 
     by_family = defaultdict(lambda: [0, 0.0])
     unnamed = defaultdict(float)
+    # Each call's family, kept beside it for `slowest`, where a posted body
+    # names a call by its family because it carries no command text (#1439).
+    kinds = []
     for call in calls:
         key = family(call["ran"]) if call["tool"] == "Bash" else call["tool"]
+        kinds.append(key)
         seconds = (call["end"] - call["start"]).total_seconds()
         by_family[key][0] += 1
         by_family[key][1] += seconds
@@ -1196,8 +1200,9 @@ def analyse(calls, turns, delegated=()):
                 {
                     "seconds": (c["end"] - c["start"]).total_seconds(),
                     "command": c["command"][:110],
+                    "family": kind,
                 }
-                for c in calls
+                for c, kind in zip(calls, kinds, strict=True)
                 if c["tool"] not in delegated
             ),
             key=lambda d: -d["seconds"],
@@ -2099,7 +2104,15 @@ def share(part, whole):
     return f"{part / whole * 100:.0f}%" if whole > 0 else "—"
 
 
-def report(data):
+def report(data, commands=True):
+    """The plain reading. With `commands` false it prints no command text:
+    the `slowest` list gives each call's seconds and family, and the `other`
+    note keeps its sentence without the command it would quote. `main` asks
+    for that form where the reading is posted, because a command can hold a
+    path, a heredoc's body or a prompt, and `CONTRIBUTING.md` *House rules*
+    keeps all three on the machine (#1439). These two lines are the only
+    ones in the module that print a command, and the printed reading keeps
+    both."""
     print(f"span          {minutes(data['span_s'])}   ({data['calls']} tool calls)")
     if data["span_s"] == 0:
         print(
@@ -2162,13 +2175,18 @@ def report(data):
         print(
             "              `other` is the largest family and names nothing, so "
             "a runner\n              these patterns do not know reads as no "
-            "such run at all.\n              Slowest command charged there: "
-            f"{data['unnamed'][:76]}"
+            "such run at all."
+            + (
+                f"\n              Slowest command charged there: {data['unnamed'][:76]}"
+                if commands
+                else ""
+            )
         )
 
     print("\nslowest")
     for row in data["slowest"]:
-        print(f"  {row['seconds']:6.0f}s  {row['command'][:88]}")
+        named = row["command"][:88] if commands else row["family"]
+        print(f"  {row['seconds']:6.0f}s  {named}")
 
     print("\nwhere the time could go instead")
     exact, same = data["repeat_exact_s"], data["repeat_same_work_s"]
@@ -2970,8 +2988,16 @@ def post(reading, says, label):
     return 0
 
 
-def emit(args, render, path=None):
+def emit(args, render, path=None, read_from=()):
     """Print the report, or capture it and post it. Returns the exit code.
+
+    **A posted body names each transcript it was read from, on a
+    `# <file name>` line of its own, before the report** (#1439). `path` is
+    the transcript given and `read_from` the others a row was measured from,
+    each `--segments` row's file among them. A file is named once however
+    many rows it gave, and by its name alone. The release reads those lines on
+    the open log to leave out what a session already posted, so the line is
+    written in this one spelling. The printed report carries no such line.
 
     **What is printed locally and what is posted are not the same text, and
     the transcript's path is the difference.** A transcript lives at
@@ -3030,6 +3056,12 @@ def emit(args, render, path=None):
         short = os.path.basename(str(path))
         for form in (os.path.abspath(str(path)), str(path)):
             body = body.replace(form, short)
+    names = [] if path is None else [os.path.basename(str(path))]
+    for transcript in read_from:
+        name = os.path.basename(str(transcript))
+        if name not in names:
+            names.append(name)
+    body = "".join(f"# {name}\n" for name in names) + body
     return post(body, says, args.label)
 
 
@@ -3142,7 +3174,12 @@ def main():
     # the six rows are a reading somebody asked for by name.
     segments = measure_segments(path, calls) if args.segments or args.json else None
     if args.segments and not args.json:
-        return emit(args, lambda: report_segments(segments, path), path)
+        return emit(
+            args,
+            lambda: report_segments(segments, path),
+            path,
+            [row["transcript"] for row in segments["rows"]],
+        )
     # The whole run, not the transcript that was named: a token count covering
     # one segment is not comparable with one that covered a run, and #170 asks
     # for the row to be one command rather than one command per transcript.
@@ -3195,7 +3232,7 @@ def main():
                     "work and the waits between them — `--segments` prints one "
                     "row\nper stretch\n"
                 )
-            report(data)
+            report(data, commands=not args.post)
         else:
             print(
                 "no paired tool call in this transcript, so there is no time to "

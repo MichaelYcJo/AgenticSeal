@@ -399,8 +399,11 @@ segment that just finished, not as a follow-up someone might do later:
 2. Post what the numbers say. `--post` does it: the orchestrator's sentence
    first, the reading fenced beneath it, on the issue the label resolved to,
    the rolling log's for the segment's own numbers and the durable one's for
-   a reading that spans versions. By hand it is `gh issue comment <n>
-   --body-file <file>`, where `<n>` is the issue number the lookup above
+   a reading that spans versions. The fence opens with one
+   `# <file name>` line for each transcript the reading was taken from: the
+   file given and, for `--segments`, each agent file a row was measured
+   from, by its name and never by its path. By hand it is `gh issue comment
+   <n> --body-file <file>`, where `<n>` is the issue number the lookup above
    returned, and that is the command `--post` composes.
 
 The orchestrator does this before the next segment spawns, or at the latest

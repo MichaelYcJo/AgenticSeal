@@ -4852,6 +4852,121 @@ class Test_emit:
         assert module.main() == 0
         assert os.path.dirname(str(transcript)) not in bodies["text"]
 
+    @staticmethod
+    def posted_body(monkeypatch, tmp_path, argv):
+        """The body `main` posts for ARGV, read from the `--body-file` it hands
+        `gh`, with one open log and a sentence to post under."""
+        module = _cost()
+        says = tmp_path / "says.md"
+        says.write_text("what the numbers say\n", encoding="utf-8")
+        _gh(monkeypatch, module, listing=_listing((42, "OPEN")))
+        bodies = {}
+        stub = module.run_gh
+
+        def capture(args):
+            if args[:2] == ["issue", "comment"]:
+                with open(
+                    args[args.index("--body-file") + 1], encoding="utf-8"
+                ) as handle:
+                    bodies["text"] = handle.read()
+            return stub(args)
+
+        monkeypatch.setattr(module, "run_gh", capture)
+        monkeypatch.setattr(
+            module.sys,
+            "argv",
+            ["session_cost.py", *argv, "--post", "--says", str(says)],
+        )
+        assert module.main() == 0
+        return bodies["text"]
+
+    @staticmethod
+    def named_in_fence(body):
+        """The `# <file name>` lines inside the body's fence, in order."""
+        fence = body.split("```\n", 1)[1].rsplit("```", 1)[0]
+        return [line[2:] for line in fence.splitlines() if line.startswith("# ")]
+
+    @pytest.mark.parametrize("mode", [[], ["--spawns"]], ids=["plain", "spawns"])
+    def test_a_posted_reading_opens_its_fence_with_the_transcripts_name(
+        self, monkeypatch, tmp_path, transcript, mode
+    ):
+        """#1439. A posted reading names the transcript it was read from on a
+        `# <file name>` line of its own, the first line inside the fence, so the
+        release can tell which segments a comment already holds. The plain
+        reading named no file at all before this. The line holds the name and
+        never the path, and no line of the body carries the directory."""
+        body = self.posted_body(monkeypatch, tmp_path, [*mode, str(transcript)])
+        fence = body.split("```\n", 1)[1]
+        assert fence.splitlines()[0] == "# t.jsonl", body
+        assert self.named_in_fence(body) == ["t.jsonl"], body
+        assert str(tmp_path) not in body, body
+
+    def test_a_posted_segments_reading_names_the_run_and_each_agent_file(
+        self, monkeypatch, tmp_path, run_with_segments
+    ):
+        """#1439. A `--segments` reading is taken from the run's transcript and
+        from each agent file a row was measured from, so the fence names all
+        three, one `# ` line each, by name and never by the path relative to
+        the run that the rows' labels carry."""
+        body = self.posted_body(
+            monkeypatch, tmp_path, ["--segments", str(run_with_segments)]
+        )
+        assert self.named_in_fence(body) == [
+            "main.jsonl",
+            "agent-crafter.jsonl",
+            "agent-proofer.jsonl",
+        ], body
+        assert "# main/subagents/" not in body, body
+
+    def test_a_resumed_agent_file_is_named_once_and_not_once_per_slice(
+        self, monkeypatch, tmp_path, resumed_segment
+    ):
+        """#1439. A resumed agent's file is two rows and one transcript, so the
+        fence names it once. A name per row would post the same file twice,
+        and the release's reader would count it twice."""
+        body = self.posted_body(
+            monkeypatch, tmp_path, ["--segments", str(resumed_segment)]
+        )
+        assert "1/2" in body and "2/2" in body, body
+        assert self.named_in_fence(body) == ["main.jsonl", "agent-crafter.jsonl"], body
+
+    def test_a_posted_body_carries_no_command_text(self, monkeypatch, tmp_path):
+        """#1439, *Scope* item 7. A command can hold a path, a heredoc's body
+        or a prompt, and `CONTRIBUTING.md` *House rules* puts all three off the
+        table for anything that leaves the machine. So the posted `slowest`
+        list gives each call's seconds and family, and the `other` note keeps
+        its sentence without the command it quoted. The printed report is
+        untouched: a person at the terminal still reads the commands.
+
+        The slowest call is a test run and the costliest `other` command is a
+        different call, and both carry the same absolute directory, so a body
+        that kept either one carries it."""
+        private = "/opt/private-x"
+        lines = []
+        lines += call("a", 0, 50, f"{private}/bin/deploy --wait")
+        lines += call("b", 60, 90, f"{private}/bin/report")
+        lines += call("c", 100, 170, f"pytest {private}/tests -q")
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        body = self.posted_body(monkeypatch, tmp_path, [str(path)])
+        assert private not in body, body
+        assert "bin/deploy" not in body and "pytest" not in body, body
+        assert "`other` is the largest family and names nothing" in body, body
+        assert "Slowest command charged there" not in body, body
+        slowest = body.split("\nslowest\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        assert [line.split() for line in slowest] == [
+            ["70s", "test"],
+            ["50s", "other"],
+            ["30s", "other"],
+        ], body
+
+        printed = run([str(path)]).stdout
+        assert f"Slowest command charged there: {private}/bin/deploy --wait" in (
+            " ".join(printed.split())
+        ), printed
+        assert f"pytest {private}/tests -q" in printed, printed
+
     def test_refuses_an_empty_reading_rather_than_posting_it(
         self, monkeypatch, capsys, tmp_path, transcript
     ):
