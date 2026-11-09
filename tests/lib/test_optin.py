@@ -260,8 +260,44 @@ class Test_home_paths:
             str(tmp_path), ".git", "seal"
         )
 
+    @pytest.mark.parametrize(
+        "seal, second, shared",
+        [
+            ("marked", "marked", "seal"),
+            ("marked", "absent", "seal"),
+            ("foreign", "marked", "agentic-seal"),
+            ("absent", "marked", "agentic-seal"),
+            ("absent", "absent", "seal"),
+            ("foreign", "absent", "agentic-seal"),
+            ("a file", "absent", "agentic-seal"),
+            ("foreign", "foreign", "agentic-seal"),
+        ],
+    )
+    def test_accepts_the_shared_place_the_tree_leaves_free(
+        self, optin, repo, seal, second, shared
+    ):
+        """S2 of #1059. The shared entry is a marked `seal/`, else a marked
+        `agentic-seal/`, else `seal/` where nothing stands at that path, else
+        `agentic-seal/`; the local entry stays `seal` under the common
+        directory in every state."""
+        for name, state in (("seal", seal), ("agentic-seal", second)):
+            if state == "marked":
+                mark_root(repo / name)
+            elif state == "foreign":
+                readme_at(repo / name, FOREIGN)
+            elif state == "a file":
+                (repo / name).write_text("", encoding="utf-8")
+        assert optin.home_paths(str(repo)) == (
+            os.path.join(str(repo), shared),
+            os.path.join(str(repo), ".git", "seal"),
+        )
+
     def test_refuses_an_empty_root(self, optin):
         assert optin.home_paths("") == ("", "")
+
+
+# The README a project keeps in a `seal/` of its own, which carries no marker.
+FOREIGN = "# seal\n\nThis package's own notes.\n"
 
 
 def readme_at(root, data):
@@ -354,6 +390,85 @@ class Test_home_at:
         readme_at(repo / "seal", "# seal\n")
         readme_at(repo / ".git" / "seal", optin.MARKER + "\n")
         assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "seal")
+
+    @pytest.mark.parametrize(
+        "seal, second, local, found",
+        [
+            ("marked", "marked", False, "seal"),
+            ("foreign", "marked", True, "agentic-seal"),
+            ("foreign", "foreign", True, ".git/seal"),
+        ],
+        ids=[
+            "a marked seal over a marked agentic-seal",
+            "a marked agentic-seal over the local root",
+            "the local root where both are the project's own",
+        ],
+    )
+    def test_accepts_the_three_places_in_their_order(
+        self, optin, repo, seal, second, local, found
+    ):
+        """S2 of #1059: a marked `seal/`, then a marked `agentic-seal/`, then
+        the local root."""
+        for name, state in (("seal", seal), ("agentic-seal", second)):
+            if state == "marked":
+                mark_root(repo / name)
+            else:
+                readme_at(repo / name, FOREIGN)
+        if local:
+            local_home(repo)
+        assert optin.home_at(str(repo)) == os.path.join(str(repo), *found.split("/"))
+
+
+class Test_home_name_in:
+    def test_accepts_the_first_name_whose_readme_opens_with_the_marker(self, optin):
+        """The tree is read through a callable, as `chain_check.py` reads one
+        at a commit: `seal` where its README carries the marker, else
+        `agentic-seal`, and either line end."""
+        both = {
+            "seal/README.md": optin.MARKER + "\n",
+            "agentic-seal/README.md": optin.MARKER + "\n",
+        }
+        assert optin.home_name_in(both.get) == "seal"
+        second = {
+            "seal/README.md": FOREIGN,
+            "agentic-seal/README.md": optin.MARKER + "\r\n\r\nWhat it holds.\r\n",
+        }
+        assert optin.home_name_in(second.get) == "agentic-seal"
+
+    def test_refuses_a_tree_where_neither_readme_opens_with_the_marker(self, optin):
+        """No README, a project's own and the marker on line two are no root,
+        and the answer is "" rather than a guess."""
+        tree = {
+            "seal/README.md": FOREIGN,
+            "agentic-seal/README.md": "\n" + optin.MARKER + "\n",
+        }
+        assert optin.home_name_in(tree.get) == ""
+        assert optin.home_name_in({}.get) == ""
+
+
+class Test_home_name:
+    @pytest.mark.parametrize("name", ["seal", "agentic-seal"])
+    def test_accepts_the_shared_root_in_force_by_its_name(self, optin, repo, name):
+        """The name a reader classifying paths as git prints them takes:
+        `agentic-seal` beside a project's own `seal/`, and `seal` where that
+        one carries the marker."""
+        if name == "agentic-seal":
+            readme_at(repo / "seal", FOREIGN)
+        mark_root(repo / name)
+        local_home(repo)
+        assert optin.home_name(str(repo)) == name
+
+    @pytest.mark.parametrize("shape", ["local", "absent", "scratch"])
+    def test_refuses_a_root_that_is_not_the_shared_one(self, optin, repo, shape):
+        """A local root, no root and a repository marked throwaway have no
+        repository-relative name, so the answer is ""."""
+        readme_at(repo / "seal", FOREIGN)
+        if shape == "local":
+            local_home(repo)
+        elif shape == "scratch":
+            mark_root(repo / "agentic-seal")
+            scratch(repo)
+        assert optin.home_name(str(repo)) == ""
 
 
 class Test_home:
