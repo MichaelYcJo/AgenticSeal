@@ -604,16 +604,25 @@ def policy_root(home):
 # `seal/pact.md` in the repository that holds it. Every repository of such a
 # work item is a SIGNER, the pact's repository included. A signer other
 # than the pact's repository names the pact here, by the origin remote URL of
-# the repository that holds it, and the pact's repository needs no key: it is
-# identified by holding `seal/pact.md` (`docs/layout/the-pact.md`).
+# the repository that holds it, and the pact's repository needs no `Pact`
+# key: it is identified by holding `seal/pact.md` (`docs/layout/the-pact.md`).
+# The pact's repository lists every other signer in a `Pact signers` key, in
+# the grammar of `Pact`.
 #
-# One command asks this key, through THIS reader:
+# One command asks the two keys, through THESE readers:
 # `skills/verify/scripts/pact_check.py`, run as `seal pact`, which reads
 # every signer from the pact's repository and refuses what will not parse. A
 # signer's CI reads nothing of the pact (`docs/layout/the-pact.md`).
 
 PACT_KEY = "Pact"
+SIGNERS_KEY = "Pact signers"
 PACT_SEPARATOR = ";"
+# The sentence a pact no `Pact signers` key signs is refused in.
+NO_SIGNER = (
+    f"no `{SIGNERS_KEY}` key names a signer, and a pact nobody signs is not a "
+    "pact — write the origin remote URL of every other signer into that key, "
+    f"separated by `{PACT_SEPARATOR}`"
+)
 
 
 def normalise_remote(url):
@@ -727,9 +736,38 @@ def pact_declaration(pairs):
         return [], [refused]
     if not value:
         return [], []
+    return remote_list(PACT_KEY, value)
+
+
+def signer_declaration(pairs):
+    """(signers, refusals) for the `Pact signers` key among PAIRS, the
+    pact's repository's config members as `config_pairs` gives them, None
+    for no file.
+
+      signers   [(as written, normalised)] for every entry that parsed, in
+                the order the key lists them
+      refusals  one sentence per thing that would not parse, naming it
+
+    **An absent or empty key is a refusal**, `NO_SIGNER`, unlike an absent
+    `Pact` key: its one reader, `seal pact`, reads it only in the repository
+    that holds `seal/pact.md`, and a pact nobody signs is not a pact. A key
+    written twice or holding no string has no value, by `config_value`'s
+    rule and in its sentence (#867), so it lists no signer. Each entry is
+    read as `Pact`'s are."""
+    value, refused = config_value(pairs, SIGNERS_KEY)
+    if refused:
+        return [], [refused]
+    if not value:
+        return [], [NO_SIGNER]
+    return remote_list(SIGNERS_KEY, value)
+
+
+def remote_list(key, value):
+    """`remote_entries` over VALUE, KEY's value split at `PACT_SEPARATOR`,
+    with the sentence an empty entry is refused in."""
     return remote_entries(
         value.split(PACT_SEPARATOR),
-        f"the `{PACT_KEY}` value `{value}` holds an empty entry — one remote "
+        f"the `{key}` value `{value}` holds an empty entry — one remote "
         f"URL between each `{PACT_SEPARATOR}`",
     )
 
@@ -754,9 +792,8 @@ def declared_pacts(home):
 
 # --- one GFM table walker (#647) --------------------------------------------
 #
-# Tables are read out of markdown by name: a record's, the pact's
-# `| Signer |`, and an earlier release's `config.md`, which `seal mode`
-# converts. One walker reads them all, because two walkers are two break
+# Tables are read out of markdown by name: a record's, and an earlier
+# release's `config.md`, which `seal mode` converts. One walker reads them all, because two walkers are two break
 # lists to keep in step, and round 3 of #735 measured exactly that drift in
 # the one there was: an autolink row ended the table, and a signer written
 # as one was read by nobody at exit 0.
@@ -987,10 +1024,9 @@ def gfm_table(text, header, beside=False):
                    a table of its own (`opens_table`): the walk steps over
                    that table, its delimiter row and every line under it up
                    to its end, and goes on refusing a `| … |` line after it.
-                   A caller whose file holds one table, an old `config.md`
-                   or the machine-local pact map, leaves BESIDE false; the
-                   anchor table's reader sets it, because a frame's section
-                   holds other tables
+                   A caller whose file holds one table, an old `config.md`,
+                   leaves BESIDE false; the anchor table's reader sets it,
+                   because a frame's section holds other tables
       a row        written `| … |` with the header's width
       anything     refused, saying what it is: a delimiter row out of place,
         else       a row of another width or without its outer pipes, or a
@@ -1015,7 +1051,7 @@ def gfm_table(text, header, beside=False):
     none over 600,000 documents.
 
     Each refusal reads after a noun naming the file, as `seal pact` prints
-    `pact_signers`' after "the pact ".
+    the anchor table's after "the frame ".
     """
     name = " | ".join(header)
     width = len(header)
@@ -1147,108 +1183,6 @@ def _stops_at(name, line, why):
     )
 
 
-# The pact's own table: every OTHER signer, by origin remote URL, one per
-# row under a `| Signer |` header (`templates/setup/pact.md`).
-SIGNER_HEADER = ("Signer",)
-
-
-def read_table(text, header):
-    """(rows, refusals, header read) for the table of TEXT headed HEADER,
-    or, where TEXT holds none, headed as HEADER was written before 0.19.0
-    (`renamed_header`). A text holding a HEADER table is read from it alone,
-    and an old header it also holds is refused, wherever that table stands:
-    its rows would otherwise go unread at exit 0 (round 1 of #822, yellow 1).
-    The refusal is not added where the walk's stray-row refusal already names
-    the old header, compared by the cells the refusal quotes, so a header
-    written without its spaces is named once too (round 2 of #822, white 5).
-    An old header with no blank line above it is one of the HEADER table's
-    rows as GFM renders it; that row is not read, so it is named as the old
-    header and not also as an entry (#830), quoted as the line is written so
-    a person searching the file for it finds it (#831).
-    Where neither is there, the refusal names HEADER and the
-    header read is None, so a caller tells the old header from the new one
-    without reading the text again (#822)."""
-    rows, refusals = gfm_table(text, header)
-    old = renamed_header(header)[0]
-    old_rows, old_refusals = gfm_table(text, old) if old else ([], [])
-    holds_old = old is not None and not (
-        old_refusals and old_refusals[0].startswith("holds no ")
-    )
-    if not (refusals and refusals[0].startswith("holds no ")):
-        named = f"`| {' | '.join(old)} |`" if old else None
-        glued = [
-            # exempt from splitlines: the line gfm_table numbered, split as it was
-            text.splitlines()[line - 1].strip()
-            for line, cells in rows
-            if holds_old and cells == old
-        ]
-        if holds_old:
-            # An old header with no blank line above it is one of this
-            # table's rows to GFM; it is the old header, named below or by
-            # the walk's stray-row refusal, never an entry (#830).
-            rows = [(line, cells) for line, cells in rows if cells != old]
-        if holds_old and not any(
-            table_cells(quoted) == old
-            for r in refusals
-            for quoted in re.findall(r"`([^`]*)`", r)
-        ):
-            new = f"`| {' | '.join(header)} |`"
-            refusals = [
-                *refusals,
-                (
-                    f"holds a `{glued[0]}` line inside its {new} table, the word "
-                    f"before {RENAMED_IN}, which GFM reads as one of that "
-                    "table's rows — delete the line"
-                )
-                if glued
-                else (
-                    f"also holds a {named} header, the word before {RENAMED_IN}, "
-                    f"and nothing under it is read while the {new} table "
-                    "stands — move its rows into that table and delete it"
-                ),
-            ]
-        return rows, refusals, header
-    if holds_old:
-        return old_rows, old_refusals, old
-    return rows, refusals, None
-
-
-def pact_signers(text):
-    """(signers, refusals, header) for the `| Signer |` table of a pact's
-    TEXT. `signers` is `remote_entries`' parsed list, and a table that is
-    absent or empty is a refusal, because a pact nobody signs is not a pact.
-    `header` is the header the table was read under, `SIGNER_HEADER` or the
-    one 0.18.x wrote (`read_table`), or None where the text holds neither;
-    every refusal names the header it was read under.
-
-    The table is read by `gfm_table`, so it is read as cmark-gfm renders it
-    or refused, and no signer is dropped while the table reads as complete
-    (round 3 of #735). On top of the walk: a row with an empty cell is
-    refused by `remote_entries`, and so is every entry that is not one
-    remote URL.
-    """
-    rows, refusals, header = read_table(text, SIGNER_HEADER)
-    if header is None:
-        return [], [refusals[0] + ", so it names no signer"], None
-    values = [cells[0] for _line, cells in rows]
-    # `seal pact` prints each refusal after "the pact ", so an entry's own
-    # sentence gets a lead-in that reads after those words (round 2 of #647,
-    # white 14); `remote_entries` keeps the sentences the `Pact` row prints.
-    signers, entry_refusals = remote_entries(values, "an empty row")
-    word = header[0]
-    out = [f"has a `{word}` entry that will not read: {r}" for r in entry_refusals]
-    out.extend(_signer(refusal) for refusal in refusals)
-    if not values and not any("renders no table" in r for r in refusals):
-        out.append(f"has a `{word}` table that lists nobody")
-    return signers, out, header
-
-
-def _signer(refusal):
-    """A walk refusal, in the words `seal pact` has always printed for the
-    pact's table: a row it leaves unread is a signer."""
-    return refusal.replace("every row below it", "every signer below it")
-
-
 # --- the migration config's baseline (#988) --------------------------------
 #
 # `seal/parity.json` is written from `templates/setup/parity.json`, one JSON
@@ -1314,29 +1248,4 @@ def unconverted_parity(path):
         f"reads now — write {path} from `templates/setup/parity.json`, one "
         f"JSON object holding {keys} and `{PARITY_KEYS[-1]}`, with "
         f"`{BASELINE_KEY}` the SHA alone, then delete the old file"
-    )
-
-
-# --- the word 0.18.x wrote (#822) ------------------------------------------
-#
-# Until 0.19.0 every repository of a work item that keeps a pact had another
-# name, and the pact's one-column table carried it into a file nobody
-# regenerates. It still reads (`read_table`), and `seal pact` prints the
-# sentence below where it reads one. This unit is the one place the old word
-# is written, and it spells the old header in order to read it, which
-# `docs/layout/the-pact.md` *The words* says names no signer another way.
-RENAMED_IN = "0.19.0"
-
-
-def renamed_header(header):
-    """(old, sentence) for HEADER: the header as written before
-    `RENAMED_IN`, and the sentence naming the rename, reading after a file's
-    name. (None, None) for a header the rename never touched."""
-    if "Signer" not in header:
-        return None, None
-    old = tuple("Signatory" if cell == "Signer" else cell for cell in header)
-    return old, (
-        f"heads its table `| {' | '.join(old)} |`, the word before "
-        f"{RENAMED_IN} — `| {' | '.join(header)} |` is the header now; rename "
-        "it when the file is next edited"
     )

@@ -10,8 +10,8 @@ own `seal/config.json`:
 
 The key has one reader, `lib/config.py#pact_declaration`, which
 `pact_check.py` asks, run as `seal pact`, and refuses on. That reader's
-cases (S1-S3 of the work item's `frame/design.md`) and the `Signer` table's are in
-`tests/lib/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
+cases (S1-S3 of the work item's `frame/design.md`) and those of the `Pact
+signers` key's reader are in `tests/lib/test_config.py`, and `seal.py`'s re-export of
 its normaliser is in `tests/skills/test_seal.py`. What stays here reads the configs
 and templates this plugin ships through the reader, and the routing step's
 pinned sentences (S4).
@@ -66,6 +66,18 @@ def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
     assert template.count("Pact notify") == 1, "the template says it once"
 
 
+def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
+    """S7. `templates/setup/config.md` *Pact* documents the `Pact signers`
+    key the pact's repository lists its signers in, and `/agentic:config`
+    shows it; the template a pact begins from holds no `| Signer |` table,
+    which no command reads."""
+    template = flat("templates", "setup", "config.md")
+    skill = flat("skills", "config", "SKILL.md")
+    assert f"**`{config.SIGNERS_KEY}`**" in template
+    assert f"| `{config.SIGNERS_KEY}` |" in skill
+    assert "| Signer |" not in flat("templates", "setup", "pact.md")
+
+
 # --- S4: the routing step across repositories -------------------------------
 
 # In a file of its own since #1148, opened only where a work item commits in
@@ -93,6 +105,8 @@ def test_the_routing_step_mints_one_id_and_declares_only_in_gated_repositories()
         "absolute path written out after `git -C`",
         "A sentence is contract when another repository's code would be wrong "
         "if it changed.",
-        "The pact's repository needs no row",
+        "The pact's repository needs no `Pact` key",
+        "the orchestrator writes into its `seal/config.json` a `Pact signers` "
+        "key, the origin remote URL of every other signer, separated by `;`.",
     ):
         assert sentence in section, sentence

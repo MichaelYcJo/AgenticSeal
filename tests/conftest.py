@@ -1216,10 +1216,11 @@ def parity_file(sha):
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
-# and the cases of `tests/lib/test_config.py` that run it over a table the walker
-# refuses share one world: the pact's repository, whose `seal/pact.md` carries
-# one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
-# does not hold, and a signer beside it, which names the pact in its
+# and the cases of `tests/lib/test_config.py` that run it over a signer's config
+# share one world: the pact's repository, whose `seal/config.json` lists the
+# signer in its `Pact signers` key and whose `seal/pact.md` carries one clause
+# committed as v1 and then v2 on `main` and v3 on a side branch HEAD does not
+# hold, and the signer beside it, which names the pact in its
 # `seal/config.json`.
 
 
@@ -1249,17 +1250,15 @@ ORDERS = [(URL, "example.com/org/orders-api")]
 ANCHOR_LINE = 3
 
 
-def pact(fields, signers=(SIGNER_URL,)):
-    rows = "".join(f"| {s} |\n" for s in signers)
-    return (
-        "# Pact\n\n| Signer |\n|---|\n"
-        + rows
-        + f"\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
-    )
+def pact(fields):
+    """The pact's text, its one clause holding FIELDS."""
+    return f"# Pact\n\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
 
 
-def old_header(text):
-    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
+def pact_config(*signers):
+    """The pact's repository's `seal/config.json`: `Mode`, then a `Pact
+    signers` key listing SIGNERS separated by `;`."""
+    return config_json(("Mode", "shared"), ("Pact signers", "; ".join(signers)))
 
 
 def clause(fields):
@@ -1302,6 +1301,7 @@ def _template(tmp_path_factory):
     api = base / "work" / "orders-api"
     init(api, PACT_URL)
     write(api, PACT, pact(V1))
+    write(api, "seal/config.json", pact_config(SIGNER_URL))
     mark_root(api / "seal")
     commit(api, "pact v1")
     write(api, PACT, pact(V2))
@@ -1342,12 +1342,16 @@ class World:
         code = pc.check(str(root or self.api), out=out, home_dir=str(self.home))
         return code, " ".join(out.getvalue().split())
 
-    def map(self, *rows):
+    def sign(self, *signers):
+        """Write the pact's repository's config listing SIGNERS."""
+        write(self.api, "seal/config.json", pact_config(*signers))
+
+    def map(self, *entries):
+        """Write the machine-local map, one member per `(remote, path)`."""
         write(
             self.home,
-            ".claude/agentic/pact-paths.md",
-            "| Remote | Path |\n|---|---|\n"
-            + "".join(f"| {r} | {p} |\n" for r, p in rows),
+            ".claude/agentic/pact-paths.json",
+            config_json(*((remote, str(path)) for remote, path in entries)),
         )
 
 

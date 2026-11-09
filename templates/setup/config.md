@@ -418,30 +418,38 @@ so the next reader can open the same file.
 
 ## Pact
 
-One row, written in a signer of a pact held in another repository
-(`docs/layout/the-pact.md`). A work item that commits in more than one repository,
-where those repositories keep a contract together, keeps the one copy of that
-contract in `seal/pact.md` in one of them. Every repository of the work item
-is a signer, and every one except the pact's repository names the pact
-here. The pact's repository needs no row: it is identified by holding
-`seal/pact.md`.
+Two keys, each written in one repository of a pact
+(`docs/layout/the-pact.md`). A work item that commits in more than one
+repository, where those repositories keep a contract together, keeps the one
+copy of that contract in `seal/pact.md` in one of them, the pact's
+repository. Every repository of the work item is a signer. Every one except
+the pact's repository names the pact in a `Pact` key. The pact's repository
+needs no `Pact` key, because it is identified by holding `seal/pact.md`, and
+lists every other signer in a `Pact signers` key.
 
 - **`Pact`**: the origin remote URL of the pact's repository, such as
   `git@example.com:org/orders-api.git`; a signer of pacts held in more
   than one repository lists them separated by `;`. Absent: no pact is held
   elsewhere.
+- **`Pact signers`**: in the pact's repository, the origin remote URL of
+  every other signer, separated by `;`, such as
+  `https://example.com/org/orders-web; git@example.com:org/orders-mobile.git`.
+  The pact's repository does not list itself: it cites its own clauses as
+  it cites any other heading of its own. Absent or empty: `seal pact`
+  refuses the pact at exit 2, because a pact nobody signs is not a pact.
 
 **The URL is compared normalised**, so `git@example.com:org/orders-api.git`
 and `https://example.com/org/orders-api` name one repository. A pact anchor
 names the pact by the same URL, in the `Pact` cell of a
 `| Pact | Clause | Hash |` row of a work item's `frame/design.md`.
 
-**A row that will not parse is refused in a sentence**, never read as absent.
-`seal pact`, run at the pact's repository, reads the row through
-`lib/config.py#pact_declaration` and exits 2 on it; a signer's CI
-reads nothing of the pact. A `Pact`
-row the table does not hold is no row: `seal pact` then reads the signer as
-naming no pact and exits 2 on a relationship recorded on one side only.
+**A key that will not parse is refused in a sentence**, never read as
+absent. `seal pact`, run at the pact's repository, reads its `Pact signers`
+through `lib/config.py#signer_declaration` and each signer's `Pact` through
+`lib/config.py#pact_declaration`, and exits 2 on either; a signer's CI reads
+nothing of the pact. A signer whose config holds no `Pact` key naming the
+pact is read as naming no pact, and `seal pact` exits 2 on a relationship
+recorded on one side only.
 
 **A `Pact notify` row is read by nobody.** No command refuses it, prints it
 or names it, like any item no reader asks for, and whoever next edits the

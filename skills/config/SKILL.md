@@ -46,6 +46,7 @@ present hides exactly those.
 | `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
+| `Pact signers` | *none: in a repository holding `seal/pact.md`, `seal pact` refuses the pact without it* | in the pact's repository, the origin remote URL of every other signer, separated by `;` |
 | `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
 | `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a row in any other repository changes nothing |
 
@@ -145,11 +146,12 @@ pins. No row records that; the file is the record.
   each accepts and what an absent one means, rather than restating it. A
   value `seal fold` will not parse makes it exit 2 naming the row, so run it
   once after the edit.
-- **`Reference specs` or `Pact`** is only a row too. Edit or add it in
-  place, and point at `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md`
-  *Reference specs* or *Pact* for what each accepts and what an absent one
-  means. A `Pact` row is read strictly by `seal pact` at the pact's
-  repository, so a value it will not parse is named there.
+- **`Reference specs`, `Pact` or `Pact signers`** is only a row too. Edit
+  or add it in place, and point at
+  `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *Reference specs* or *Pact*
+  for what each accepts and what an absent one means. `Pact` and `Pact
+  signers` are read strictly by `seal pact` at the pact's repository, so a
+  value it will not parse is named there.
 - **The mode row moves files.** Run `seal mode local` or `seal mode shared`.
   It moves the root, stages the change and writes the row, so the file and
   the folder agree afterwards, and it leaves `.github/` alone. Do not do any

@@ -1,7 +1,8 @@
 """One table walker, held to cmark-gfm over an enumerated corpus (#647).
 
-`lib/config.py#gfm_table` reads two tables out of markdown: the pact's
-`| Signer |` and `seal/config.md`'s `| Item | Value |`. This module holds it
+`lib/config.py#gfm_table` reads the tables of records out of markdown, and
+an earlier release's `seal/config.md`'s `| Item | Value |`, which `seal mode`
+converts. This module holds it, over a one-cell header and a two-cell one,
 to GitHub's renderer, `cmarkgfm`, through
 `tests/gfm_table_oracle.py`, and the property is S1 of the work item's
 `frame/design.md`: **on every shape, the walker's cells equal cmark-gfm's, or the walker
@@ -49,6 +50,8 @@ from conftest import imported_roots, load_lib_module
 config = load_lib_module("config.py", "config_for_the_table_walker")
 
 HEADERS = {
+    # A one-cell table; the header's word is the corpus's, and no reader
+    # asks for it.
     "signer": ("Signer",),
     # An earlier release's `seal/config.md` table, read by this walker since
     # #871 and, since #1454, only by `seal mode`'s conversion through
@@ -563,33 +566,6 @@ def test_the_config_pass_is_the_config_readers_header():
     pass over a header no reader uses would hold nothing. Seen red before
     the header was a name of `lib/config.py`, as an `AttributeError`."""
     assert HEADERS["config"] == config.OLD_TABLE
-
-
-@pytest.mark.parametrize(
-    "above", ["", "<div>\n\n", "- x\n\n"], ids=["plain", "div", "list"]
-)
-def test_the_old_header_is_read_through_the_second_attempt(above):
-    """#822: a pact written in 0.18.x heads its table `| Signatory |`. The
-    walker reads it as cmark-gfm renders it, through `pact_signers`' second
-    attempt, and says which header it read. Where a `Signer` table stands
-    above it, under a heading of its own, the old table is not read, and it
-    is refused rather than left unread (round 1's yellow 1)."""
-    u = "https://example.com/org/a"
-    text = f"# Pact\n\n{above}| Signatory |\n|---|\n| {u} |\n"
-    assert oracle.rows_under(text, ("Signatory",)) == [(u,)], text
-    signers, refusals, header = config.pact_signers(text)
-    assert refusals == [] and [s[0] for s in signers] == [u], (text, refusals)
-    assert header == ("Signatory",)
-    v = "https://example.com/org/b"
-    both = (
-        f"# Pact\n\n| Signer |\n|---|\n| {v} |\n\n## Before\n\n"
-        + text.split("\n\n", 1)[1]
-    )
-    signers, refusals, header = config.pact_signers(both)
-    assert header == ("Signer",), (both, header)
-    assert [s[0] for s in signers] == [v], (both, signers)
-    assert len(refusals) == 1, (both, refusals)
-    assert "also holds a `| Signatory |` header" in refusals[0], (both, refusals)
 
 
 def test_a_half_written_tag_does_not_hide_the_table_from_the_oracle():
