@@ -41,3 +41,35 @@ The owner's README request is read from the issue's comment of 2026-11-09, poste
 target: f830c345 against c0bf670d
 Verdict: sealed
 ```
+
+## Re-audit from f830c345 to 5aa76418
+
+HEAD moved past the sealed commit. This run audits HEAD `5aa76418` against `c0bf670d`, resolved again through `release/v0.37.0@{upstream}`. Five commits follow `f830c345` (executed: `git log f830c345..HEAD`). `174350d0` adds `guarantee.md`. `24259b20` changes `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py` alone, in the two S6 cases. `6af3e5da` adds `trail/rounds/round-3.md`. `d57599c2` drops `gaps.md`'s Windows row and the `pr.md` quote of it. `5aa76418` adds the second `run:` block to `trail/gate.md`. No code under `lib/`, `skills/` or `.github/` changed (executed: `git diff --stat f830c345 HEAD`). The rows above still cover those coordinates, so this run re-ran only the claims whose coordinates the five commits touched, and read every party again. The clone this run used was removed once its runs were done.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run stands at HEAD: `trail/gate.md`'s newest `run:` is `d57599c2 against c0bf670d`, and only the work item's records follow it | `trail/gate.md` | `git log --no-merges --name-only d57599c2..HEAD ^c0bf670d`; `git merge-base --is-ancestor d57599c2 HEAD` | holds (executed): `5aa76418` alone follows it, touching `trail/gate.md`; ancestor exit 0. The suite's figures (6062 passed, 8 skipped) are the orchestrator's account and were not re-run (rule 2) |
+| The new body file is `pr.md` above the line `pr_body.py#HEADING` holds, and the records' text below it | the coordinator's body file `body.md` | `seal pr-body seal/threads/1794200905-a-foreign-seal-dir-keeps-the-records-shared --body <file> --check`, with the tree's `bin/seal` and with the installed 0.36.0 `seal` | holds (executed): exit 0 both times, "matches" |
+| The two S6 cases `24259b20` changed pass at HEAD on this platform, and stay red at the code before the change | `24259b20`; `trail/rounds/round-3.md` *Confirmations* | in a `git clone --no-local` at `5aa76418`: `pytest -p no:xdist tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`; then the 19 changed code files restored from `c0bf670d` and `-k "moves_agentic_seal_under or copy_travels"` | holds (executed): 34 passed at HEAD. At the base's code both failed. The move case failed at `seal mode` exiting 1, before its comparisons. The copy case failed on its new comparison with `KeyError: 'follow-up.md'`: nothing landed under `agentic-seal/`. That the new comparisons catch a move or an import that rewrites line ends rests on round 3's probes, which this run did not repeat (read) |
+| CI's Windows leg answered the row `d57599c2` drops | `gaps.md` before `d57599c2`; the commit's subject naming run 42583246130 | `gh run view 42583246130 --json headSha,conclusion,jobs` | holds (executed): head `24259b20`, conclusion `success`, all four `windows-latest` groups `success`. `24259b20` differs from HEAD only by the work item's records |
+| `gaps.md` and `pr.md` no longer state the Windows row, and every quote left in `pr.md` stands in its record | `d57599c2`; `pr.md` | `grep -c Windows` of both files; the `python3 -I` quote script | holds (executed): no `Windows` line in either; eight of eight quotes found |
+| Round 3 raised no finding and confirmed round 2 finding 1 | `trail/rounds/round-3.md` | read whole | holds (read): no finding; `confirms: round-2#1`; its *Not judged* rows are the suite and `Closes #1059` with Q1 open, both carried from round 2 |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since `f830c345` (executed: `git diff --stat f830c345 HEAD` lists no frame file) | as in the earlier run's row | none |
+| the build | `24259b20`: the two S6 cases compare the bytes written before the move or the export with the bytes that landed, and the `config.md` check compares its last line without the line end | `frame/design.md` S6, which asks that the records move and land, not for their line ends (read); `seal.py#write_row` keeps a file's line ends (read in round 3, not re-read here); the cases pass at HEAD and fail at the base (executed) | none |
+| the last round | `trail/rounds/round-3.md`: no finding, round 2 finding 1 confirmed, the Windows row answerable by run 42583246130 | the tree at HEAD and the CI run (executed, rows above) | none |
+| the changelog | unchanged since `f830c345` | as in the earlier run's row | none |
+| the orchestrator's part of the pull request body | `pr.md`: eight quotes and `Closes #1059` | the records it quotes (executed); the body file (executed) | none. `Closes #1059` still stands with Q1's measurement open and named owed in `gaps.md`, as in the earlier run's row |
+
+Not re-run, and who answers: the full suite, the lint and the typecheck at HEAD, the orchestrator's broad run at `d57599c2` (`unverified` here, rule 2). The S10 measurement of `frame/questions.md` Q1, the orchestrator's, as `gaps.md` names.
+
+```seal
+target: 5aa76418 against c0bf670d
+Verdict: sealed
+```
