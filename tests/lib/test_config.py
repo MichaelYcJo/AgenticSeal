@@ -361,7 +361,8 @@ class Test_reference_roots:
         the root, by the name its caller reads from `lib/optin.py`, or
         anything under it is dropped, and the default never reaches its
         `threads/` either. Beside a root named `agentic-seal`, the project's
-        own `seal/` is outside it, so its `specs/` is a reference root."""
+        own `seal/` is outside it, so a `specs/` under it is a reference
+        root."""
         home = str(tmp_path / name)
         write_config(home, table(("Reference specs", f"{name}/threads, {name}, specs")))
         roots = config.reference_roots(home, name)
@@ -372,15 +373,15 @@ class Test_reference_roots:
         assert not config.under_reference_root(
             f"{name}/threads/1790000000-x/design.md", None, name
         )
-        assert config.under_reference_root("seal/specs/x.md", None, name) == (
+        assert config.under_reference_root("seal/vendor/specs/x.md", None, name) == (
             name != "seal"
         )
 
     def test_local_mode_reads_the_row_under_the_git_directory(self, tmp_path):
         """In local mode the root sits under the common git directory and nothing
         of it is in the tree, so its name in the tree is "", with no row every
-        tree `specs` is a reference root, a `seal/specs/` among them, and a row
-        there is read like any other."""
+        tree `specs` is a reference root, a `seal/vendor/specs/` among them,
+        and a row there is read like any other."""
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
@@ -391,9 +392,9 @@ class Test_reference_roots:
         assert optin.home_at(str(repo), common) == home, "the fixture is not local mode"
         assert config.reference_roots(home, "") is None
         assert config.under_reference_root("specs/x/design.md", None, "")
-        assert config.under_reference_root("seal/specs/x.md", None, "")
-        write_config(home, table(("Reference specs", "docs/adr, seal/specs")))
-        assert config.reference_roots(home, "") == ("docs/adr", "seal/specs")
+        assert config.under_reference_root("seal/vendor/specs/x.md", None, "")
+        write_config(home, table(("Reference specs", "docs/adr, seal/vendor/specs")))
+        assert config.reference_roots(home, "") == ("docs/adr", "seal/vendor/specs")
 
 
 class Test_normalise_remote:

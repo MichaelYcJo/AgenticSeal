@@ -669,10 +669,10 @@ def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
     shared, capsys, monkeypatch
 ):
     """`seal unverified .` reads the closing memo under `agentic-seal/` and
-    takes the package's `seal/specs/` for what it is beside a root of the
-    second name, a directory named `specs` outside the root, which no
-    `Reference specs` row keeps and the walk passes over: its memo, which
-    does not read, is never opened."""
+    takes the package's `seal/vendor/specs/` for what it is beside a root
+    of the second name, a directory named `specs` outside the root, which
+    no `Reference specs` row keeps and the walk passes over: its memo,
+    which does not read, is never opened."""
     write(
         shared / "agentic-seal" / "threads" / ITEM,
         "gaps.md",
@@ -680,7 +680,7 @@ def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
     )
     write(
         shared,
-        "seal/specs/1794200003-theirs/gaps.md",
+        "seal/vendor/specs/1794200003-theirs/gaps.md",
         "# theirs\n\n## Not verified\n\nnot a table, and not a none line either\n",
     )
     monkeypatch.chdir(shared)
