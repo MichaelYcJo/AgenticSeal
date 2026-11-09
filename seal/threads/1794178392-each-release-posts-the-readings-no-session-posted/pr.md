@@ -4,7 +4,7 @@
 - "In the posted body, the `slowest` list gives each call's seconds and family, and the `other` note keeps its sentence without the command it quoted, because a command can hold a path, a heredoc's body or a prompt." (`changelog.md` *Changed*, the first item)
 - "**`skills/verify/orchestration.md` *Measure the segment, and feed the flow log* says that the release posts what no session posted, through `--work-item`.**" (`changelog.md` *Changed*, the second item)
 - "The pull request's title takes `feat:`, and the kind that came closest is `fix:`." (`frame/plan.md` *Judgments of the run*, the prefix row)
-- "`seal cost --work-item <dir> --post` against the real tracker: a real comment posted, and `gh api --paginate` read over a log whose comments span more than one page." (`gaps.md` *Not verified*, the fourth row)
+- "`seal cost --work-item <dir> --post` against the real tracker: a real comment posted, and `gh api --paginate` read over a log whose comments span more than one page." (`gaps.md` *Not verified*, the fifth row)
 
 Closes #1439.
 
