@@ -1850,9 +1850,13 @@ def root_name(routing, root, fork):
     name the root had. Where neither has one, or FORK is None, it is
     `lib/optin.py#HOME`: a committed `seal/` with no marker is read as this
     check read it before the marker decided the root, and a repository
-    whose root is local has nothing committed under any name. A root that
-    carries the marker under one name at the merge base and under the other
-    at HEAD is read under HEAD's, the limit `home_paths` states."""
+    whose root is local has nothing committed under any name.
+
+    A pull request that renames the root, the marker under one name at the
+    merge base and under the other at HEAD, is read under the new name, and
+    a declaration it deletes under the old name without moving it is not
+    judged. That is the limit `home_paths` states for a root renamed between
+    commits."""
     optin = routing.optin
     name = optin.home_name_in(lambda rel: read_record(root, rel))
     if not name and fork:
