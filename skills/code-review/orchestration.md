@@ -263,7 +263,12 @@ the body file the sealer read, and open the pull request with it,
 `gh pr create --body-file <that file>`. That run changes no copied line and
 writes the seal mark where the repository turns it on
 (`docs/forms/the-guarantee.md` *The guarantee*). CI runs then, and again on
-every push to it.
+every push to it. The pull request's check reads the body against what
+`seal pr-body` composes at HEAD and refuses a ready pull request at each
+line where they differ (`skills/code-review/scripts/chain_check.py#body`).
+Such a refusal asks for `seal pr-body` once more on the body file, and the
+file sent to the open pull request with the `gh api -X PATCH` call below.
+No sealer runs for it, since the body is not a record.
 
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and
@@ -439,7 +444,8 @@ whatever the file held. On exit 1 its `refused:` lines name a record's file
 and line, `pr.md` among the records: repair that record, commit it, and run
 the command again. Edit nothing in the file; the sealer's
 `seal pr-body --check` withholds on a part above the line that is not
-`pr.md` and on a part below it that is not the records' text at HEAD.
+`pr.md` and on a part below it that is not the records' text at HEAD, and
+the pull request's check refuses the body sent from it on the same lines.
 **Run the command again before every later spawn of the sealer and before
 every `gh api -X PATCH` of the body**, so the body holds `pr.md` and the
 records as the repair left them.

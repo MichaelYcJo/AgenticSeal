@@ -441,7 +441,10 @@ pact's repository over it.
 ## The seal mark
 
 A row per surface the seal mark is shown on beside the terminal stamp. Each
-is off unless its row turns it on, and none of them stops anything.
+is off unless its row turns it on, and no row stops anything by itself. The
+pull request's check reads the body against what `seal pr-body` composes, so
+there a body whose mark line differs from the composition fails a ready pull
+request, as any other differing line does.
 
 ```markdown
 | Pull request seal mark | yes |
@@ -456,14 +459,17 @@ is off unless its row turns it on, and none of them stops anything.
 
 **`Pull request seal mark`** is read by `seal pr-body`
 (`skills/code-review/scripts/pr_body.py#seal_mark`). Under `yes` it writes
-one line, the plugin's icon at the tag of the plugin's version, between the
-line `skills/code-review/scripts/pr_body.py#HEADING` holds and the fold,
+one line, the plugin's icon at the default branch of the plugin's
+repository, between the line
+`skills/code-review/scripts/pr_body.py#HEADING` holds and the fold,
 where the newest verdict block of the work item's `guarantee.md` reads
 `sealed` at a commit that only the closing records, `trail/gate.md` and
 `guarantee.md`, follow. A work item not sealed at HEAD gets no mark, and the
 sealer and the pull request's check name why. The mark's address is the
-plugin's repository, so a body carrying it shows the image while that
-repository stays public and the version's tag exists.
+plugin's repository and names no version, so the installed plugin and the
+copy the pull request's check runs compose one line whatever release each
+is. A body carrying it shows the image while that repository stays public
+and the icon stays at its path on the default branch.
 
 **`Release note seal mark`** is read by the `seal` job of this plugin's own
 release workflow, at the release's tag. Under `yes` the job attaches the

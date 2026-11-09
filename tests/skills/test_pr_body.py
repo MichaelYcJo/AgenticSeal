@@ -272,15 +272,16 @@ def unsourced(text, texts):
     ]
 
 
-# #1204: a manifest with the three fields the mark's address is built from,
-# and the line `seal pr-body` writes from it.
+# #1204: a manifest with the two fields the mark's address is built from and
+# a `version`, which the address does not read (#1452), and the line `seal
+# pr-body` writes from it.
 MANIFEST = {
     "repository": "https://github.com/owner/plugin",
     "version": "1.2.3",
     "icon": "./.claude-plugin/icon.png",
 }
 MARK_LINE = (
-    '<img src="https://github.com/owner/plugin/raw/v1.2.3/.claude-plugin/icon.png" '
+    '<img src="https://github.com/owner/plugin/raw/HEAD/.claude-plugin/icon.png" '
     'alt="Sealed" width="128">'
 )
 ROW = "| Pull request seal mark | yes |\n"
@@ -619,17 +620,38 @@ class Test_seal_mark:
     def test_accepts_a_seal_only_its_guarantee_follows(self, repo, tmp_path):
         """S1. The row reads `yes`, the newest block reads `sealed` at a
         commit only the guarantee's own commit follows, and the line is the
-        manifest's `repository`, `/raw/v`, `version` and `icon` path."""
+        manifest's `repository`, `/raw/HEAD/` and `icon` path."""
         item = sealed_item(repo)
         manifest = manifest_of(tmp_path, MANIFEST)
         assert PR.seal_mark(str(item), str(repo), manifest) == (MARK_LINE, None)
+
+    def test_accepts_one_mark_line_from_two_releases_of_the_plugin(
+        self, repo, tmp_path
+    ):
+        """#1452, *Scope* item 6 and S10. The installed plugin writes the
+        body and the check's copy composes it again, and the two can be
+        different releases. A manifest with a `version` and one with none
+        give one mark line, the icon at the repository's default branch, so
+        the address reads no version and the manifest need not hold one
+        (round-1#4). Seen red with `version` put back into `MARK_FIELDS`,
+        where the second manifest gave no line and the set held None."""
+        item = sealed_item(repo)
+        (tmp_path / "older").mkdir()
+        (tmp_path / "newer").mkdir()
+        older = manifest_of(tmp_path / "older", MANIFEST)
+        newer = manifest_of(
+            tmp_path / "newer",
+            {key: value for key, value in MANIFEST.items() if key != "version"},
+        )
+        lines = {PR.seal_mark(str(item), str(repo), m)[0] for m in (older, newer)}
+        assert lines == {MARK_LINE}
 
     def test_accepts_the_plugins_own_manifest(self, repo):
         """S1's address read from the manifest three directories above the
         script, the plugin's own, which this reads and never writes."""
         with open(PR.MANIFEST, encoding="utf-8") as handle:
             own = json.load(handle)
-        src = f"{own['repository']}/raw/v{own['version']}/{own['icon'][2:]}"
+        src = f"{own['repository']}/raw/HEAD/{own['icon'][2:]}"
         item = sealed_item(repo)
         assert PR.seal_mark(str(item), str(repo)) == (
             f'<img src="{src}" alt="Sealed" width="128">',
@@ -744,7 +766,7 @@ class Test_seal_mark:
         manifest = manifest_of(tmp_path, MANIFEST)
         assert PR.seal_mark(str(item), str(repo), manifest) == (None, said)
 
-    @pytest.mark.parametrize("field", ["repository", "version", "icon"])
+    @pytest.mark.parametrize("field", ["repository", "icon"])
     def test_refuses_a_manifest_lacking_a_field(self, repo, tmp_path, field):
         """S5. A manifest the address cannot be built from: no mark, and
         the field named."""
@@ -917,8 +939,26 @@ class Test_main:
                 b"\n",
                 "refused: pr-body.md:3: lacks `Closes #1.`, which pr.md gives\n",
             ),
+            (
+                b"\nCloses #1.\n",
+                b"\nCloses #1.\nA sentence of its own.\nAnother of its own.\n",
+                "refused: pr-body.md:4: reads `A sentence of its own.`, then "
+                "`Another of its own.`, which pr.md does not give\n",
+            ),
+            (
+                b"\r\n\nCloses #1.\n",
+                b"\r\n",
+                "refused: pr-body.md:2: lacks ``, then `Closes #1.`, which pr.md "
+                "gives\n",
+            ),
         ],
-        ids=["a line changed", "a line added", "a line taken out"],
+        ids=[
+            "a line changed",
+            "a line added",
+            "a line taken out",
+            "two lines added",
+            "two lines taken out",
+        ],
     )
     def test_refuses_a_first_part_that_is_not_pr_md_naming_its_line(
         self, tmp_path, capsys, old, new, said
@@ -929,7 +969,9 @@ class Test_main:
         that line of the body, counted from its first line, and the line
         `pr.md` gives where it gives one; the file is left as it stood. Seen
         red with the comparison of the first part removed, where the check
-        exited 0."""
+        exited 0. A run of lines added or taken out is one `refused:` line
+        naming every line of the run (#1452, *Scope* item 2); seen red
+        against the comparison that named the run's first line alone."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         assert PR.main([str(item), "--body", str(body)]) == 0
@@ -977,6 +1019,48 @@ class Test_main:
         assert out.startswith("refused: pr-body.md:13: ")
         assert "`changelog.md:1`" in out
         assert body.read_bytes() == (OWN + edited).encode("utf-8")
+
+    @pytest.mark.parametrize(
+        "old, new, said",
+        [
+            (
+                f"## From the records\n\n{MARK_LINE}\n\n",
+                "## From the records\n\n",
+                f"refused: pr-body.md:5: lacks ``, a fixed line, then "
+                f"`{MARK_LINE}`, a fixed line\n",
+            ),
+            (
+                "From `changelog.md`.\n",
+                "From `changelog.md`.\nA line.\nAnother line.\n",
+                "refused: pr-body.md:14: reads `A line.`, then `Another line.`, "
+                "which the records do not give\n",
+            ),
+        ],
+        ids=["the mark and its blank line taken out", "two lines added"],
+    )
+    def test_refuses_a_run_of_lines_in_the_copy_naming_every_line_of_it(
+        self, repo, tmp_path, monkeypatch, capsys, old, new, said
+    ):
+        """#1452, *Scope* item 2, and the design's G12. A body of a sealed
+        work item written before the seal lacks the mark and the blank line
+        under it, and the comparison aligns the body's blank line with the
+        composition's second one, so the run it lacks is the blank line and
+        the mark. The check exits 1 on one `refused:` line naming every line
+        of the run, the mark among them, at the body's line; a run of lines
+        added is named the same way. Seen red against the comparison that
+        named the run's first line alone, which named the blank line and not
+        the mark."""
+        item = sealed_item(repo)
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        monkeypatch.chdir(repo)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        text = body.read_bytes().decode("utf-8")
+        assert old in text
+        body.write_bytes(text.replace(old, new, 1).encode("utf-8"))
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 1
+        assert capsys.readouterr().out == said
 
     def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
         """The sealer copies the first `refused:` line into a committed
