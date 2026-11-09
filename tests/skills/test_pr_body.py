@@ -240,8 +240,9 @@ From `frame/questions.md`.
 </details>
 """
 
-# The work item's `pr.md`, the body's first part: a quote of a record with
-# its coordinate, a CRLF line among them, and the `Closes` line.
+# The work item's `pr.md`, the body's first part where the two language rows
+# name one language: a quote of a record with its coordinate, a CRLF line
+# among them, and the `Closes` line.
 OWN = '"`seal pr-body` writes it (#1)." (`changelog.md`, line 1)\r\n\nCloses #1.\n'
 # #1453: `config.md`'s table head, and the two language rows the body's
 # first part is composed from, as a repository of one language writes them.
@@ -585,8 +586,8 @@ class Test_read_item:
 
 class Test_read_own:
     def test_accepts_pr_md_as_its_bytes_stand(self, tmp_path):
-        """The body's first part is `pr.md`'s text with its line ends as
-        they stand, and a file whose last line has no line end gets one, so
+        """`pr.md`, a file of the body's first part, is read as its text
+        with its line ends as they stand, and a file whose last line has no line end gets one, so
         the heading after it stands on its own line. Seen red with the line
         end's addition alone removed, where the heading joined the last
         line."""

@@ -399,13 +399,15 @@ and writes `guarantee.md` (`docs/forms/the-guarantee.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
-**The pull request body's first part is the work item's `pr.md`, which
-the orchestrator writes once the build's last phase has closed and commits
-before it spawns the first round.** Where no round runs, the orchestrator
-writes it before the broad run. Every round reads `pr.md` at its target,
-so no sentence of the body reaches the sealer unread. `pr.md` holds the
-`Closes` and `Part of` lines, quotes of the work item's records, and the
-attribution line. A quote stands on its own line, in a list item or in a
+**The pull request body's first part is the work item's `pr.md`, opened by
+its `pr.<lang>.md` where the two language rows differ, as the paragraph on
+`pr.<lang>.md` below says. The orchestrator writes `pr.md` once the build's
+last phase has closed and commits it before it spawns the first round.**
+Where no round runs, the orchestrator writes it before the broad run.
+Every round reads `pr.md` at its target, so no sentence of the body
+reaches the sealer unread. `pr.md` holds the `Closes` and `Part of` lines,
+quotes of the work item's records, and the attribution line. A quote stands
+on its own line, in a list item or in a
 table cell, and its coordinate follows it: the record's path, then the
 heading, row, finding or line that holds the sentence. The orchestrator
 opens that record when it writes the quote. `pr.md` holds no sentence of

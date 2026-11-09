@@ -235,8 +235,9 @@ structure that came out wrong is not recovered by fixing sentences.
 
 **A work item routed through the review chain has a body in two parts, and
 the orchestrator's comes first.** The first part is the work item's
-`pr.md`, which the orchestrator commits before the first round, and
-`seal pr-body` writes it above the line
+`pr.md`, opened by its mirror where the two rows name different languages
+(below). The orchestrator commits `pr.md` before the first round, and
+`seal pr-body` writes the first part above the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the second part
 under that line from the work item's other records, inside one `<details>`
 fold (`skills/code-review/orchestration.md` *Orchestrator: the pull request

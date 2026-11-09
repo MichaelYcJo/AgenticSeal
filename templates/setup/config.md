@@ -90,9 +90,10 @@ value is a language's English name, such as `English`, `Korean` or
 `Japanese`, because the reader is a model choosing prose, not a lookup table.
 
 In the body of a pull request routed through the review chain, the row
-governs the lines of the body's first part, the work item's `pr.md` above
-the line `skills/code-review/scripts/pr_body.py#HEADING` holds, that quote
-no record: its `Closes`, `Part of` and attribution lines. A quote in
+governs the lines of the work item's `pr.md` that quote no record: its
+`Closes`, `Part of` and attribution lines. `pr.md` stands in the body's
+first part, above the line `skills/code-review/scripts/pr_body.py#HEADING`
+holds. A quote in
 `pr.md` is its record's sentence as it stands, and the part below that line
 is the records' own text, copied by `seal pr-body`, so both are in
 `Record language`. Where this row and `Record language` name different

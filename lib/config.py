@@ -554,8 +554,8 @@ def declared_mode(home):
                  more than once, or the walk refused the table without
                  reading the row (#871); VALUE is `declared_value`'s sentence
 
-    **There is no default.** Every other item in `config.md` falls back to
-    what every repository got before the row existed; for the mode that is
+    **There is no default.** An item with a default falls back to what
+    every repository got before the row existed; for the mode that is
     *the folder decides*, so an absent row is filled in from the folder by
     `seal mode` rather than assumed here. A default of `shared` would report
     every undeclared local-mode repository as lying.
