@@ -19,7 +19,7 @@ names none of them, so the list has one home. Each act is one row of
 re-judge the design or the code's quality.
 check: tests/behaviour/test_the_sealer_guarantees.py
 
-**The pull request body opens with the orchestrator's part, the work item's `pr.md`, and the records' copy follows it in one fold; the sealer reads only the orchestrator's part.** `seal pr-body` writes `pr.md` above the line `skills/code-review/scripts/pr_body.py#HEADING` holds, as its bytes stand, and below that line the copy of the work item's records inside one `<details>` block whose `<summary>` names the copy and is followed by a blank line, with nothing inside it folded again. `pr.md` holds the `Closes` lines, in the pull request's language, and quotes of the records, in the records' language, each with its coordinate, and no sentence of the orchestrator's own account; the orchestrator commits it before the first round, so every round reads it (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*). A reader who stops after the first screen has the orchestrator's part, and the squash commit keeps the block's tags as text. The sealer runs `seal pr-body --check` on the body file before it compares the parties, and withholds where the part above the line is not `pr.md` or the part below it is not what the records give. The copy then gives it nothing to compare: the records it copies are what the sealer audits.
+**The pull request body opens with the orchestrator's part, the work item's `pr.md`, and the records' copy follows it in one fold; the sealer reads only the orchestrator's part.** `seal pr-body` writes above the line `skills/code-review/scripts/pr_body.py#HEADING` holds the work item's `pr.<lang>.md`, where `seal/config.json`'s `Commit and pull request language` and `Record language` keys name different languages, and then `pr.md`, each as its bytes stand; where the two keys name one language, `pr.md` comes first and any `pr.<lang>.md` follows it. Below that line it writes the copy of the work item's records inside one `<details>` block whose `<summary>` names the copy and is followed by a blank line, with nothing inside it folded again. `pr.md` holds the `Closes` lines, in the pull request's language, and quotes of the records, in the records' language, each with its coordinate, and no sentence of the orchestrator's own account; `pr.<lang>.md` holds those quotes rendered in the pull request's language, each with the same coordinate, and nothing else. The orchestrator commits them before the first round, so every round reads them (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*). `seal pr-body` refuses where either language key is absent, so a body is composed only for a repository that declared its languages. A reader who stops after the first screen has the orchestrator's part, and the squash commit keeps the block's tags as text. The sealer runs `seal pr-body --check` on the body file before it compares the parties, and withholds where the part above the line is not what `pr.md` and, where the keys differ, `pr.<lang>.md` give, or the part below it is not what the records give. The copy then gives it nothing to compare: the records it copies are what the sealer audits.
 check: tests/skills/test_pr_body.py tests/behaviour/test_the_sealer_guarantees.py
 
 **Its verdict is `guarantee.md`, from `templates/records/sdd-guarantee.md`**: the claims re-run and the parties compared, in tables for people, and one `seal` block per run of the sealer, appended below the blocks of earlier runs and never edited after its run. A verdict block holds `target: <sha> against <base>`, each one word, the `original:` line where `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* owes one, and one `Verdict:` line, `sealed`, `withheld reason: <the claim, its party, its coordinate>` or `undecided question: <the question, for the owner>`, written exactly so. The last block is the newest run and the others are the earlier runs, which the stamp reads. A guarantee with no verdict block, or with a line of a block that does not parse, is refused naming the file and the line. An undecided question is the owner's: the answer goes on a line below the newest block, and the sealer runs again at the new HEAD and appends its block.
@@ -37,8 +37,8 @@ is missed.
 
 **A pull request body carries the seal mark only where the
 repository turns it on and the work item is sealed at HEAD.**
-`seal pr-body` writes the mark, the plugin's icon at the tag of the
-plugin's version, as the first line under the line
+`seal pr-body` writes the mark, the plugin's icon at the default
+branch of the plugin's repository, as the first line under the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds. It writes it
 where `seal/config.md`'s `Pull request seal mark` row reads `yes` and
 the newest verdict block of `guarantee.md` reads `sealed` at a commit
@@ -54,5 +54,9 @@ values, and what the mark's address ties a body to, are
 `seal pr-body --check` runs before its own verdict exists, so the copy
 it checks carries no mark from that run. The orchestrator runs
 `seal pr-body` once more after it commits a `sealed` guarantee, and that
-run changes no copied line, because the copy reads no `guarantee.md`.
+run changes no copied line, because the copy reads no `guarantee.md`. The
+pull request's check reads the body against what `seal pr-body` composes
+at HEAD, so a body sent before that run fails a ready pull request on the
+mark's line (`docs/checks/the-pull-request-check.md` *What the check reads
+at the pull request*).
 check: tests/skills/test_pr_body.py

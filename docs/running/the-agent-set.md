@@ -66,7 +66,11 @@ check: tests/skills/test_chain_check.py
 what it finds is settled with the framer in one exchange, the framer's judgment standing
 after it.** The framer judges what the work should be and the orchestrator holds the
 issue, so a frame weaker than the issue asks is found by the party that holds the issue
-and decided by the party that drew the frame, and the orchestrator edits no frame file.
+and decided by the party that drew the frame, and the orchestrator edits no frame file
+in that exchange. A decision made later in the run is folded by the framer too, so each
+sentence of the frame that says what the work is or why is the framer's; the
+orchestrator folds only the statements a crafter's hand-back names as contradicted by
+HEAD.
 One exchange bounds it, so neither a loop nor the orchestrator overriding the framer can
 start. It is guidance and no check reads it. The procedure is
 `skills/implement/orchestration.md` *The frame is read against the issue at the spawn*,
@@ -99,9 +103,9 @@ check: tests/behaviour/test_the_sealer_guarantees.py
 reaches the next phase only if somebody retypes it into the next spawn prompt. So a
 phase writes what building it found that the next phase needs, beside the plan whose
 Delivers cell holds what the phase was asked and whose Status cell carries the commit. A
-scope a spawn gives beyond the plan's row is a decision the orchestrator folds into the
-plan before the spawn (`skills/implement/orchestration.md` *Orchestrator: the order
-inside a ticket*), never a section of the record. What a work item removes is named
+scope a spawn gives beyond the plan's row reaches the plan through the framer's fold,
+before that spawn (`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*), and is never a section of the record. What a work item removes is named
 once, in the frame's `## Removes` (`templates/records/sdd-design.md`), which the review
 reads against the diff, and a removal the frame did not name, like every departure from
 the frame, is written in the phase record that made it.
