@@ -402,8 +402,8 @@ def _seal_at_head(item, root, base=None):
     base commit is reachable. NOTE names what ROOT cannot read the seal
     against: a base it cannot resolve, where `follows` would list no later
     commit, and a sealed commit its HEAD does not hold, as in a checkout
-    other than the work item's. Every other way of not being sealed is the sealer's and
-    the pull request check's to name."""
+    other than the work item's. Every other way of not being sealed is the
+    sealer's and the pull request check's to name."""
     try:
         with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
             text = handle.read()
@@ -469,8 +469,8 @@ def seal_mark(item, root, manifest=None, base=None):
     The mark is written where `MARK_ROW` in the root's `config.md`, read
     through `lib/config.py#declared_value`, reads `MARK_ON` exactly
     and the work item is sealed at HEAD against BASE where it is given, and
-    otherwise against the guarantee's own base (`_seal_at_head`). An absent or
-    empty row, and a work item not sealed at HEAD, write no mark and say
+    otherwise against the guarantee's own base (`_seal_at_head`). An absent
+    or empty row, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused row, a base that does not resolve,
     a sealed commit HEAD does not hold, and a manifest the address cannot be
     built from, at MANIFEST or the
@@ -844,8 +844,8 @@ def compared(item, body, root, manifest=None, base=None):
     there is none, against what `seal pr-body` composes for the work item's
     directory ITEM in the repository at ROOT: `pr.md`, `HEADING`, the seal
     mark `seal_mark` gives from MANIFEST or the plugin's own, read against
-    BASE where it is given, and the records' copy. NOTE is `seal_mark`'s sentence, or None; CAUSES are the
-    `(where, line, why)` of `Refused`, a record's or the body's, empty where
+    BASE where it is given, and the records' copy. NOTE is `seal_mark`'s
+    sentence, or None; CAUSES are the `(where, line, why)` of `Refused`, a record's or the body's, empty where
     BODY is that composition. `main --check` and the pull request's check,
     `chain_check.py#body`, both call this, so the body is read by one code
     path at the sealer and at the pull request (#1452)."""

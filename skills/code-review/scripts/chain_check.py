@@ -1788,8 +1788,8 @@ def body(root, items, text, why, base=None):
     the one of ITEMS holding `pr.md`, or the one of ITEMS where it is alone
     and holds none, which `compared` refuses at `pr.md`; where more than one
     holds a `pr.md`, or none does among several, the body is named as not
-    read for each, in the sentence for that shape. A line of the body is refused on the work item's
-    directory, naming the body's line; a record `compared` refuses is
+    read for each, in the sentence for that shape. A line of the body is
+    refused on the work item's directory, naming the body's line; a record `compared` refuses is
     refused at its line under the work item; `seal_mark`'s sentence is a
     notice. Unreadable where `pr_body.py` will not load."""
     if text is None:
