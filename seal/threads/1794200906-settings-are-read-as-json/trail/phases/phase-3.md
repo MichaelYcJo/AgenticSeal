@@ -80,4 +80,4 @@ One mutant went red by an error, not an assertion. With the guard for a path tha
 - each test file outside `tests/text` and `tests/behaviour` that names a changed path: `lib/config.py`, `pact_check.py`, `conftest.py`'s pact helpers, the pact and config templates, `skills/config/SKILL.md` and `skills/implement/multi-repository.md`;
 - `tests/text tests/behaviour`.
 
-`ruff check` and `ruff format --check` passed over the seven changed Python files (executed). `seal layout --check` and `seal layout --pairs` over the changed test files exited 0 (executed).
+`ruff check` and `ruff format --check` passed over the seven changed Python files (executed). `seal layout --check` and `seal layout --pairs` over the changed test files exited 0 (executed). Reading the range whole after the build found two comments the build left wrong. `a2fbe61c` wraps a comment line of `lib/config.py` that ran to 113 characters. It also rewrites the docstring of `tests/lib/test_config.py`, which still counted seven `seal pact` cases where one stands. The plan row's command passed after it (executed, exit 0, 319 passed).
