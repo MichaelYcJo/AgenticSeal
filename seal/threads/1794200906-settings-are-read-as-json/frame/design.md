@@ -482,6 +482,39 @@ An exception is an object with `Path`, `Why it needs re-verification` and `Notic
     half a repair.
     check: tests/lib/test_config.py tests/skills/test_seal.py tests/skills/test_broad_gate.py
 - change
+  file: docs/running/the-broad-gate.md
+  section: One act, one owner, and the owner is the orchestrator
+  from: has not passed, whatever the row's exit.**
+  to: has not passed, whatever the command's exit.**
+- change
+  file: docs/running/the-broad-gate.md
+  section: One act, one owner, and the owner is the orchestrator
+  from: runs after the loop can change the row's exit and not that one. So an
+    exit of 0 from the row does not say that nothing the session ran
+    failed.
+  to: runs after the loop can change the command's exit and not that one. So
+    an exit of 0 from the command does not say that nothing the session ran
+    failed.
+- change
+  file: docs/running/the-broad-gate.md
+  section: One act, one owner, and the owner is the orchestrator
+  from: Where the row exited 0, its failure form says so
+  to: Where the command exited 0, its failure form says so
+- change
+  file: docs/running/the-broad-gate.md
+  section: One act, one owner, and the owner is the orchestrator
+  from: names the acts after the run loop that can turn the
+    row's exit into 0,
+  to: names the acts after the run loop that can turn the
+    command's exit into 0,
+- change
+  file: docs/checks/the-fold.md
+  section: The fold, and what tells it from a deletion
+  from: and no configuration row names such a
+    directory.
+  to: and no configuration key names such a
+    directory.
+- change
   file: docs/running/the-review-and-parity-arms.md
   section: The two arms
   from: The migration config lives at `seal/parity.md`, so declaring it
