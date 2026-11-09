@@ -766,14 +766,24 @@ class Test_check:
             f"`| {MOBILE_URL}`"
         ) in out, out
 
-    @pytest.mark.parametrize("side", ["no seal root", "no Pact row"])
+    @pytest.mark.parametrize(
+        "side", ["no seal root", "no Pact row", "no Pact row under agentic-seal"]
+    )
     def test_refuses_a_relationship_recorded_on_one_side(self, world, side):
+        """The third side is #1059's: a signer whose own `seal/` is a package
+        keeps its root at `agentic-seal/`, and the line names its config
+        there, not under the pact's root's name."""
         if side == "no seal root":
             shutil.rmtree(world.web / "seal")
             where, said = posix(world.web), "it has no seal/ root to name this pact in"
         else:
-            write(world.web, "seal/config.md", signer_config())
-            where = "seal/config.md"
+            home = "seal"
+            if side.endswith("agentic-seal"):
+                home = "agentic-seal"
+                shutil.move(str(world.web / "seal"), str(world.web / home))
+                write(world.web, "seal/__init__.py", "VERSION = 1\n")
+            write(world.web, f"{home}/config.md", signer_config())
+            where = f"{home}/config.md"
             said = f"its config names no `Pact` row for {PACT_URL}"
         code, out = world.run()
         assert code == 2, out
