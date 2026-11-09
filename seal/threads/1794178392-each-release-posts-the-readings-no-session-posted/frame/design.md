@@ -112,15 +112,17 @@ In:
    through `--work-item`. Step 2 states scope item 1's line. The paragraph
    opening "The orchestrator does this before the next segment spawns" keeps
    "never as a question" and loses its deadline. `README.md` *What runs on
-   your machine*: the `seal cost --post` row's `When` cell names the release
-   step, and the command table gains a `seal cost --work-item <dir>` row. Both
-   are direct edits, because neither file is in the policy root.
+   your machine* and the same table of `README.ko.md`, which
+   `CONTRIBUTING.md` asks to move with it: the `seal cost --post` row's
+   `When` cell names the release step, and the command table gains a
+   `seal cost --work-item <dir>` row. These are direct edits, because none of
+   the files is in the policy root.
 7. **A posted body carries no command text.** In the body `--post` captures,
    the `slowest` list gives each call's seconds and its family (`git`,
    `test`, `read` and the rest), and leaves out the command. The `other` note
    keeps its sentence and leaves out the quoted command. What is printed
-   locally does not change. The `seal cost --post` row of `README.md` says the
-   comment holds no command text. This closes the path leak the frame found
+   locally does not change. The `seal cost --post` row of `README.md` and
+   of `README.ko.md` says the comment holds no command text. This closes the path leak the frame found
    in #1414's posted comments, which this work would otherwise post at every
    release. Leaving the text out is chosen over removing paths from it,
    because a path is one spelling among many, and command text also carries
@@ -154,10 +156,11 @@ batching advice in `session_cost.py#report`. Scope item 4 reuses
 Scope item 7 edits `report`'s `slowest` list and `other` note. Those sit just
 above the batching advice #1440 removes. So phase 1 starts from a branch that
 has merged `release/v0.36.0` after #1440 landed there. Both items add cases
-to `tests/skills/test_session_cost.py`, and a `.test_durations` refresh after
-the merge is #1444's subject. #1441, #1442 and #1443 touch no file this item
-touches (`unverified`: their frames are being drawn now; the orchestrator
-answers it).
+to `tests/skills/test_session_cost.py`. Since #1444 (`c7bb14ca`), no work
+item commits `.test_durations`; the release refresh does. #1443
+(`e244aa49`) and #1444 have merged and touch no file this item touches, and
+the branches of #1441 and #1442 change none either (executed on 2026-11-09:
+`git diff --name-only` of each branch against `release/v0.36.0`).
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -196,8 +199,10 @@ added to `skills/verify/scripts/session_cost.py#main`.
 `emit` gains the `# <file name>` lines in the captured body only. For the
 plain reading and `--spawns`, that is the file given. For `--segments`, it is
 the file given plus each row's transcript. `report` gains a way to render the
-`slowest` list and the `other` note without command text, and `emit` uses it
-for the captured body alone.
+`slowest` list and the `other` note without command text, and `main` passes
+it for the captured body alone, because `emit`'s render function takes no
+arguments and only `report` prints commands. `analyse` gives each `slowest`
+row its `family`, which `--json` then carries as one more key.
 
 ## Rule changes
 

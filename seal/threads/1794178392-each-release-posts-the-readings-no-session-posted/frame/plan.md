@@ -77,4 +77,4 @@ What breaks in six months:
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | Phase 1's hand-back named four frame statements as contradicted by HEAD. The orchestrator read the frame against HEAD and rewrote three in `frame/design.md`: *Scope* items 6 and 7 now name `README.ko.md` beside `README.md`; *Data & interfaces* says `main` passes the command-free form and `analyse` adds `family`; and the overlap paragraph says #1443 and #1444 have merged, and that neither the #1441 branch nor the #1442 branch touches this item's files. The fourth, the function line numbers in *Technical context*, stays. | `CONTRIBUTING.md` asks both READMEs to move together. Phase 1 chose `main` for the switch (`trail/phases/phase-1.md`). `git diff --name-only` of each sibling branch was executed. *Technical context* is dated to `1f7aaa66`, and its line numbers hold there (`report` at 2108, `emit` at 3106, executed). | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
