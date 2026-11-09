@@ -72,13 +72,15 @@ pins. No row records that; the file is the record.
 
 - **A language row, or the `Broad gate` row,** is only a row. Edit the value
   in place, leaving the rest of the file as it is. Where the file carries no
-  such row at all (the stub `seal mode` writes has only `Mode`, and that is
-  every repository that has set its mode), copy from
+  such row at all (the stub `seal mode` writes has only `Mode`), a language
+  row is added to the table as a row alone, `| <row> | <value> |`, because
+  the comment at the stub's head already names the template as the
+  documentation of every row. For the `Broad gate` row, copy from
   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` the row **with its `## Broad
   gate` section, stopping where its `### What is refused, and what stays
-  allowed` subsection starts**, rather than writing a bare row. The documentation beside it is the half a
-  person reads, and a repository that reached this file through `seal mode`
-  has none of it.
+  allowed` subsection starts**, rather than writing a bare row. The
+  documentation beside it is the half a person reads, and a repository that
+  reached this file through `seal mode` has none of it.
 
   **The copied block lands BELOW the live table, and its fenced example row
   is not a row.** That block carries a fenced `| Broad gate | … |` line as an
