@@ -66,10 +66,11 @@ No code interface changes.
   file: docs/running/the-agent-set.md
   section: One contract every agent receives, and one definition each
   to: **Contract rule 21 writes out the command forms Claude Code's parser
-    refuses beside the forms it reads, and nothing reads an agent's command.**
-    Whether a command line is readable is Claude Code's judgment, and that
-    judgment moves with its version. A script that re-encoded it would refuse
-    commands Claude Code reads, or pass commands it refuses. So the rule names
+    holds for a person beside the forms it reads, and nothing reads an
+    agent's command.** Whether a command line is readable is Claude Code's
+    judgment, and that judgment moves with its version. A script that
+    re-encoded it would refuse commands Claude Code reads, or pass commands
+    it holds for a person. So the rule names
     its forms as examples and leaves the rest to the agent that writes the
     command. A prompt the work did not need costs the most expensive step
     `skills/core/SKILL.md` names, and a party under automation, the
