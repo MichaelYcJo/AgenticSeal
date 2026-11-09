@@ -318,7 +318,12 @@ as checked.
 branch, never by a rebase.** A work item's branch is not rebased for any
 reason, because a rebase orphans the commits every round record names on
 its `target:` line. The orchestrator merges once, after the branch whose
-changes conflict with this one has landed on the base. Where the merge
+changes conflict with this one has landed on the base. Where a work item's
+`frame/plan.md` *Overlap with the release* orders this branch after another
+work item, the orchestrator merges the base into this branch once that item
+has landed, before this branch's next round, or before its broad run where
+its rounds have ended. So a round already owed reads the resolution, and
+the broad run and the sealer read the merged tree once. Where the merge
 resolved a conflict in a file outside the work item's records, the
 orchestrator spawns a verifying round on that resolution, because the chain
 check lists the branch's commits with `--no-merges` and reads no merge commit
