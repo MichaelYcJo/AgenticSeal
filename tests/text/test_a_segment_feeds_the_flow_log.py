@@ -192,6 +192,23 @@ def test_the_section_says_it_happens_without_asking():
     )
 
 
+def test_the_section_says_the_release_posts_what_no_session_posted():
+    """#1439. A segment whose reading no session posted stays unposted
+    unless something posts it later. The section names the command that
+    does, and the `# <file name>` line it reads on the log to tell a posted
+    reading from one nobody posted."""
+    body = section_body()
+    assert "seal cost --work-item" in body, (
+        "the section never names `seal cost --work-item`, so a reading a "
+        "session did not post has no way onto the log"
+    )
+    assert "`# <file name>` line inside its fence" in body, (
+        "the section never says `--work-item` reads the `# <file name>` line "
+        "inside a comment's fence, which is how it leaves out what a session "
+        "posted"
+    )
+
+
 def test_the_section_names_the_durable_logs_label():
     body = section_body()
     assert "flow-baseline" in body, (

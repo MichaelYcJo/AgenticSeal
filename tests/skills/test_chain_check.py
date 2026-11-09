@@ -3110,6 +3110,419 @@ class Test_broad_gate:
         assert notices == [(rel, line, chain.FIELDS.NEAR.format(line="```Seal"))]
 
 
+# --- the pull request's body (#1452) ------------------------------------------------
+
+PR_BODY = load(
+    str(ROOT / "skills" / "code-review" / "scripts" / "pr_body.py"),
+    "pr_body_for_chain_tests",
+)
+# The seal mark both `seal pr-body` and the arm build from the plugin's
+# manifest, the one beside `pr_body.py`.
+MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
+CHANGED_LINE = "- The body is the records'."
+SECOND_ITEM = "seal/threads/1791999998-another-work-item"
+# #1453: `config.md`'s table, holding the two language rows the body's
+# first part is composed from; a case adds the mark row below them.
+LANGUAGES = (
+    "| Commit and pull request language | English |\n| Record language | English |\n"
+)
+CONFIG = "| Item | Value |\n|---|---|\n" + LANGUAGES
+
+
+def composed_body(root, item=ITEM):
+    """The body `seal pr-body` writes for ITEM in ROOT as it stands: the
+    first part the language rows ask for, the heading, the mark where the
+    item is sealed at HEAD, and the copy."""
+    path = str(root / item)
+    mark, _note = PR_BODY.seal_mark(path, str(root))
+    name = os.path.basename(item)
+    own = "".join(text for _name, text in PR_BODY.first_part(path, str(root)))
+    return own + PR_BODY.compose(name, PR_BODY.read_item(path), mark)
+
+
+def payload(tmp_path, monkeypatch, body, draft=False):
+    """The event payload of a pull request holding BODY, written where
+    `GITHUB_EVENT_PATH` names it; no `body` field where BODY is `...`."""
+    pr = {"draft": draft}
+    if body is not ...:
+        pr["body"] = body
+    path = tmp_path / "event.json"
+    path.write_text(json.dumps({"pull_request": pr}), encoding="utf-8")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(path))
+    return path
+
+
+def body_lines(out):
+    """The lines of OUT the body arm printed."""
+    return [ln for ln in out.splitlines() if "the pull request's body" in ln]
+
+
+@pytest.fixture
+def bodied(tmp_path):
+    """A branch that went straight to the pull request with a `pr.md` and a
+    changelog, in a shared root whose two language rows read `English` and
+    whose `Pull request seal mark` row reads `yes`, sealed at HEAD. Returns
+    `(root, early, late)`: the body `seal pr-body` wrote before the
+    guarantee was committed, and the one it wrote after."""
+    d = tmp_path / "b"
+    init(d)
+    write(d, "f.txt", "one\n")
+    commit(d, "base")
+    git(d, "switch", "-q", "-c", "feature/g")
+    mark_root(d / "seal")
+    write(d, "seal/config.md", CONFIG + "| Pull request seal mark | yes |\n")
+    write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
+    write(d, f"{ITEM}/pr.md", "Closes #1.\n")
+    write(d, f"{ITEM}/changelog.md", CHANGED_LINE + "\n")
+    write(d, "f.txt", "two\n")
+    audited = commit(d, "the work")
+    write(d, f"{ITEM}/trail/gate.md", gate_file(audited))
+    commit(d, "the broad run")
+    early = composed_body(d)
+    write(d, f"{ITEM}/guarantee.md", guarantee(audited, "sealed"))
+    commit(d, "the seal")
+    return d, early, composed_body(d)
+
+
+@pytest.mark.rule("body-is-what-pr-body-composes")
+class Test_body:
+    def test_refuses_a_body_sent_before_the_seal_at_the_mark(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S1. The body `seal pr-body` wrote before the guarantee was
+        committed lacks the mark and the blank line under it, and a ready
+        pull request fails on one refusal naming both at the body's line,
+        on the work item's directory. Nothing else is refused. Seen red with
+        the arm absent, where the check exited 0."""
+        root, early, _late = bodied
+        assert MARK not in early
+        payload(tmp_path, monkeypatch, early)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert body_lines(out) == [
+            f"{ITEM}:0  the pull request's body, line 3: lacks ``, a fixed line, "
+            f"then `{MARK}`, a fixed line"
+        ], out
+
+    def test_accepts_the_body_composed_after_the_seal(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S2. The body written after the guarantee is the composition, and
+        the arm prints nothing."""
+        root, _early, late = bodied
+        assert MARK in late
+        payload(tmp_path, monkeypatch, late)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [], out
+
+    def test_accepts_the_body_at_a_merge_past_a_later_base_commit(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S2 at the checkout CI makes (round-1#1). The sealer writes the
+        guarantee's base as a SHA, and CI checks out the pull request's
+        merge commit, which reaches a commit another pull request landed on
+        the base after the seal. The mark is read against the base the check
+        runs against, as the guarantee arm reads it, so the body `seal
+        pr-body` wrote at the branch head passes. Seen red with `body`
+        calling `compared` with no base, where the composition held no mark
+        and the body's mark run was refused."""
+        root, _early, _late = bodied
+        fork = git(root, "rev-parse", "main")
+        audited = git(root, "rev-parse", "HEAD~2")
+        sealed = guarantee(audited, "sealed").replace("against main", f"against {fork}")
+        write(root, f"{ITEM}/guarantee.md", sealed)
+        commit(root, "the seal, its base a SHA")
+        written = composed_body(root)
+        assert MARK in written
+        git(root, "switch", "-q", "main")
+        write(root, "g.txt", "another pull request\n")
+        commit(root, "another pull request lands on the base")
+        git(root, "switch", "-q", "--detach", "main")
+        git(root, "merge", "-q", "--no-ff", "feature/g", "-m", "the CI merge")
+        monkeypatch.setenv("GITHUB_HEAD_REF", "feature/g")
+        payload(tmp_path, monkeypatch, written)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [], out
+
+    @pytest.mark.parametrize(
+        "row, said",
+        [
+            ("", None),
+            (
+                "| Pull request seal mark | Yes |\n",
+                "`Pull request seal mark` reads `Yes`, not `yes`, so the row is not "
+                "read and the body carries no seal mark",
+            ),
+        ],
+        ids=["the row absent", "a row other than yes"],
+    )
+    def test_refuses_the_mark_where_the_row_gives_none(
+        self, bodied, tmp_path, monkeypatch, capsys, row, said
+    ):
+        """S6. Where the row is absent or reads other than `yes`, the
+        composition holds no mark, so a body carrying one is refused at the
+        mark's run as lines the records do not give, and a row other than
+        `yes` is named on a notice in `seal pr-body`'s words. Seen red with
+        the arm's call in `main` removed."""
+        root, _early, _late = bodied
+        write(root, "seal/config.md", CONFIG + row)
+        commit(root, "the row, changed")
+        head = git(root, "rev-parse", "HEAD")
+        write(root, f"{ITEM}/trail/gate.md", gate_file(head))
+        write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
+        commit(root, "the closing records, again")
+        plain = composed_body(root)
+        heading = f"{PR_BODY.HEADING}\n\n"
+        assert MARK not in plain
+        payload(tmp_path, monkeypatch, plain.replace(heading, f"{heading}{MARK}\n\n"))
+        code, out = check(root, capsys)
+        assert code == 1, out
+        refusal = (
+            f"{ITEM}:0  the pull request's body, line 3: reads ``, then "
+            f"`{MARK}`, which the records do not give"
+        )
+        notice = [f"{ITEM}:0  the pull request's body: {said}"] if said else []
+        assert body_lines(out) == [*notice, refusal], out
+        payload(tmp_path, monkeypatch, plain)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == notice, out
+
+    def test_refuses_a_drifted_body_at_its_line(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S3. A line of the copy edited on GitHub is refused at the body's
+        line, naming the record's line it should read. Seen red with the arm
+        absent."""
+        root, _early, late = bodied
+        drifted = late.replace(CHANGED_LINE, "- The body is anyone's.")
+        payload(tmp_path, monkeypatch, drifted)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert body_lines(out) == [
+            f"{ITEM}:0  the pull request's body, line 13: reads `- The body is "
+            f"anyone's.`; the records give `{CHANGED_LINE}` at `changelog.md:1`"
+        ], out
+
+    def test_refuses_a_null_body_as_an_empty_one(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """*Data & interfaces*: GitHub sends `null` for an empty body, which
+        the comparison refuses for having no heading line. Seen red with the
+        arm absent."""
+        root, _early, _late = bodied
+        payload(tmp_path, monkeypatch, None)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        [line] = body_lines(out)
+        assert line.startswith(
+            f"{ITEM}:0  the pull request's body: no line reads `{PR_BODY.HEADING}`"
+        ), line
+
+    def test_prints_the_refusal_on_a_draft_and_exits_0(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S4. Seen red with the arm absent, where nothing was printed."""
+        root, early, _late = bodied
+        payload(tmp_path, monkeypatch, early, draft=True)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        [line] = body_lines(out)
+        assert line.startswith(f"{ITEM}:0  the pull request's body, line 3: lacks")
+
+    @pytest.mark.parametrize(
+        "body, why",
+        [
+            (..., "the event payload holds no `pull_request.body`"),
+            (5, "the event payload's `body` is int, not text"),
+        ],
+        ids=["no body field", "a body that is no text"],
+    )
+    def test_names_the_body_as_not_read_where_the_payload_gives_none(
+        self, bodied, tmp_path, monkeypatch, capsys, body, why
+    ):
+        """S5, a payload with no body to read: the body is named as not read
+        on one notice and the exit code is the other arms'. Seen red with
+        the arm absent."""
+        root, _early, _late = bodied
+        payload(tmp_path, monkeypatch, body)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [f"not read: the pull request's body, since {why}"]
+
+    def test_names_the_body_as_not_read_with_no_payload(
+        self, bodied, monkeypatch, capsys
+    ):
+        """S5, a run outside CI, which `seal gate` under `--sealing` shares.
+        Seen red with the arm absent."""
+        root, _early, _late = bodied
+        monkeypatch.delenv("GITHUB_EVENT_PATH", raising=False)
+        for extra in ((), ("--sealing",)):
+            code, out = check(root, capsys, *extra)
+            assert code == 0, out
+            assert body_lines(out) == [
+                "not read: the pull request's body, since there is no "
+                "pull-request event payload"
+            ], out
+
+    def test_names_the_body_as_not_read_under_worktree(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S5, `--worktree`: the working tree is not the tree the body is
+        read against, so a body before the seal is named as not read and
+        refuses nothing. Seen red with the arm absent."""
+        root, early, _late = bodied
+        payload(tmp_path, monkeypatch, early)
+        code, out = check(root, capsys, "--worktree")
+        assert code == 0, out
+        assert body_lines(out) == [
+            "not read: the pull request's body, since the check reads the "
+            "working tree (--worktree), and CI reads the body against HEAD"
+        ], out
+
+    def test_prints_a_difference_as_a_notice_under_sealing(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S5, `--sealing`: the guarantee the mark stands on is not written
+        yet, so a difference prints as a notice and fails nothing. Seen red
+        with the arm absent."""
+        root, early, _late = bodied
+        payload(tmp_path, monkeypatch, early)
+        code, out = check(root, capsys, "--sealing")
+        assert code == 0, out
+        [line] = body_lines(out)
+        assert line.startswith(f"{ITEM}:0  {chain.BODY_SEALING_SAYS}: ")
+        assert line.endswith(f"then `{MARK}`, a fixed line"), line
+
+    def test_names_the_body_as_not_read_for_two_work_items_with_pr_md(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S8. One body is one work item's, so where the pull request
+        carries two judged work items each holding a `pr.md`, the body is
+        named as not read for each and refused for neither. Seen red with
+        the arm absent."""
+        root, early, _late = bodied
+        write(root, f"{SECOND_ITEM}/routing.md", SEALED_ROUTING)
+        write(root, f"{SECOND_ITEM}/pr.md", "Closes #2.\n")
+        commit(root, "a second work item")
+        payload(tmp_path, monkeypatch, early)
+        _code, out = check(root, capsys)
+        said = (
+            "not read: the pull request's body, since the pull request carries "
+            "more than one judged work item holding `pr.md`, and one body is "
+            "one work item's"
+        )
+        assert body_lines(out) == [f"{SECOND_ITEM}:0  {said}", f"{ITEM}:0  {said}"], out
+
+    def test_names_the_body_as_not_read_for_two_work_items_without_pr_md(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """*Scope* item 1 (round-1#3): where several judged work items hold
+        no `pr.md`, the body is named as not read for each, in a sentence
+        that says none holds one. Seen red against the sentence for two
+        holders of `pr.md`."""
+        root, early, _late = bodied
+        git(root, "rm", "-q", f"{ITEM}/pr.md")
+        write(root, f"{SECOND_ITEM}/routing.md", SEALED_ROUTING)
+        commit(root, "a second work item, and no pr.md")
+        payload(tmp_path, monkeypatch, early)
+        _code, out = check(root, capsys)
+        said = (
+            "not read: the pull request's body, since the pull request carries "
+            "more than one judged work item and none holds `pr.md`, and one "
+            "body is one work item's"
+        )
+        assert body_lines(out) == [f"{SECOND_ITEM}:0  {said}", f"{ITEM}:0  {said}"], out
+
+    def test_refuses_a_missing_pr_md_at_its_path(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """*Scope* item 1 (round-1#3): a cause `compared` places at a record,
+        here a `pr.md` that is not there, is refused at that record's path
+        under the work item, as every other arm refuses a record. Seen red
+        with the record's cause placed on the work item's directory."""
+        root, _early, late = bodied
+        git(root, "rm", "-q", f"{ITEM}/pr.md")
+        commit(root, "pr.md taken out")
+        payload(tmp_path, monkeypatch, late)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert f"{ITEM}/pr.md:0  {PR_BODY.NO_OWN_PART}" in out.splitlines(), out
+
+    def test_refuses_a_repository_without_a_language_row_at_its_config(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """#1453, *Scope* item 3: `seal pr-body` composes no body for a
+        repository whose `config.md` lacks a language row, so the arm, which
+        reads the body through the same function, refuses at the root's
+        `config.md`, as it refuses a record `compared` places at a path.
+        Seen red with `compared` reading `pr.md` alone, where no line named
+        `config.md`."""
+        root, _early, late = bodied
+        write(
+            root,
+            "seal/config.md",
+            "| Item | Value |\n|---|---|\n"
+            "| Commit and pull request language | English |\n"
+            "| Pull request seal mark | yes |\n",
+        )
+        commit(root, "the record row taken out")
+        payload(tmp_path, monkeypatch, late)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert (
+            "seal/config.md:0  names no language in a `Record language` row; "
+            "`templates/setup/config.md` *Record language* says what the row "
+            "governs, and the orchestrator asks for it before the first edit"
+        ) in out.splitlines(), out
+
+    def test_reads_the_translation_as_the_bodys_first_lines(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """#1453, *Scope* item 3, the scenario *The pull request's arm passes
+        the composed body*. Where the rows differ, the body `seal pr-body`
+        composes opens with the work item's `pr.<lang>.md`, and the arm
+        passes it; a body whose first part is `pr.md` alone is refused at its
+        first line, naming the translation. Seen red with `compared` reading
+        `pr.md` alone, where the composed body was refused at its first
+        line. The lines are compared without their ends and the translation
+        is taken out as the first line the body holds, because `write` ends
+        each line with CRLF on Windows and `seal pr-body` copies the files'
+        line ends as they stand."""
+        root, _early, _late = bodied
+        write(
+            root,
+            "seal/config.md",
+            CONFIG.replace("| English |\n", "| Korean |\n", 1)
+            + "| Pull request seal mark | yes |\n",
+        )
+        write(root, f"{ITEM}/pr.ko.md", "닫는다 #1.\n")
+        commit(root, "the team's language, and its translation")
+        head = git(root, "rev-parse", "HEAD")
+        write(root, f"{ITEM}/trail/gate.md", gate_file(head))
+        write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
+        commit(root, "the closing records, again")
+        composed = composed_body(root)
+        lines = composed.splitlines(keepends=True)
+        assert [line.rstrip("\r\n") for line in lines[:2]] == [
+            "닫는다 #1.",
+            "Closes #1.",
+        ], composed
+        payload(tmp_path, monkeypatch, composed)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [], out
+        payload(tmp_path, monkeypatch, "".join(lines[1:]))
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert body_lines(out) == [
+            f"{ITEM}:0  the pull request's body, line 1: lacks `닫는다 #1.`, "
+            "which pr.ko.md gives"
+        ], out
+
+
 # --- the declaration for this branch, in local mode (#225) --------------------------
 
 CHECK = str(CHAIN)
@@ -3474,6 +3887,17 @@ class Test_routing_trailers:
 # --- main: the arms over a pull request ----------------------------------------------
 
 
+def unread_lines(out):
+    """The `not read` lines of OUT, the body arm's left out: the `ready` and
+    `draft` payloads hold no body, which that arm names on a line of its
+    own (`Test_body`)."""
+    return [
+        ln
+        for ln in out.splitlines()
+        if "not read" in ln and "the pull request's body" not in ln
+    ]
+
+
 @pytest.mark.rule("routing-read-first")
 class Test_main:
     @pytest.mark.rule("old-table-shape-refused")
@@ -3785,15 +4209,11 @@ class Test_main:
         assert said.startswith("not read: "), said
         code, out = check(root, capsys)
         assert code == 0, out
-        assert [ln for ln in out.splitlines() if "not read" in ln] == [
-            f"{rel}:{number}  {said}"
-        ], out
+        assert unread_lines(out) == [f"{rel}:{number}  {said}"], out
         monkeypatch.setenv("GITHUB_ACTIONS", "true")
         code, out = check(root, capsys)
         assert code == 0, out
-        assert [ln for ln in out.splitlines() if "not read" in ln] == [
-            f"::notice file={rel},line={number}::{said}"
-        ], out
+        assert unread_lines(out) == [f"::notice file={rel},line={number}::{said}"], out
         monkeypatch.delenv("GITHUB_ACTIONS")
         only = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
             f"{FENCE}seal\nseverity:", f"{near}\nseverity:"
@@ -3823,7 +4243,7 @@ class Test_main:
         seal(root)
         code, out = check(root, capsys)
         assert code == 0, out
-        assert [ln for ln in out.splitlines() if "not read" in ln] == [], out
+        assert unread_lines(out) == [], out
 
     def test_names_a_record_under_another_name_and_keeps_the_exit(
         self, branch, ready, capsys

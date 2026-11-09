@@ -48,6 +48,28 @@ def test_the_skill_names_every_row_the_template_ships(row):
     assert row in flat(*TEMPLATE), f"the template no longer ships `{row}`"
 
 
+LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
+
+
+@pytest.mark.parametrize("row", LANGUAGE_ROWS)
+def test_the_door_gives_a_language_row_no_default(row):
+    """#1453. `seal pr-body` refuses without either language row, so the
+    door no longer shows `English` as its default, and the sentence that
+    gave every row but `Mode` and `Broad gate` a default is gone. What the
+    Default cell says instead is the proofer's to read."""
+    text = read(*SKILL)
+    cells = [
+        line.split("|")[2].strip()
+        for line in text.splitlines()
+        if line.startswith(f"| `{row}` |")
+    ]
+    assert len(cells) == 1, f"the table holds {len(cells)} rows for `{row}`"
+    assert cells[0] != "English", f"the door still gives `{row}` the default English"
+    assert "Every row but `Mode` and `Broad gate` has a default" not in flat(*SKILL), (
+        "the door still says the language rows have a default"
+    )
+
+
 def test_the_mode_row_is_routed_to_seal_mode():
     """S2 and S3. `seal mode` is what the pull-request checks run, so the
     skill hands the move to it."""

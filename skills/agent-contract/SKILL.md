@@ -113,9 +113,7 @@ trips and never the investigation: an axis you skipped is not a pass, and
 the requirements read, where every file the handoff names can be opened in
 one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
-independent things, which is where batching pays most. The bar each kind of
-segment is judged by is `docs/running/the-run.md` *The per-segment bars*,
-and no definition states a second copy of it.
+independent things, which is where batching pays most.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## 11 Where the plugin's paths and the `seal/` root resolve, and the record language

@@ -398,8 +398,105 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "the orchestrator hands it to a fix pass before it spawns the next "
         "round or phase. The fix pass is the crafter that wrote the work "
         "item's last build or fix commit",
+        # #1442, Scope item 1: a fold the orchestrator wrote passed the next
+        # fix pass unread four times, so a decision's fold is the framer's,
+        # resumed or spawned fresh, and the orchestrator's row of the plan is
+        # written before the framer reads `plan.md`. A statement a crafter
+        # names stays the orchestrator's to fold.
+        "A decision is anything that changes what the frame says the work is or why",
+        "The framer writes a decision's fold, as `agents/framer.md` *Rules* states",
+        "the orchestrator sends every decision then pending to the framer in "
+        "one message, each with its grounds and the coordinates it stands on",
+        "The orchestrator resumes the work item's framer while that session "
+        "still exists",
+        "otherwise spawns a fresh framer and hands it the decisions and the "
+        "commit at which the frame was last written",
+        "and leaves the row uncommitted, so the framer reads the row when it "
+        "reads `plan.md` whole",
+        "so the orchestrator folds it in a commit of its own and spawns no framer",
+        "Where that reading, or the framer's hand-back, finds a statement in "
+        "a file the crafter writes",
+        # Round 1 of #1442, finding 1: a rejected decision had no route, and
+        # the row written before the exchange recorded a fold that did not
+        # happen. Round 2 of #1442, finding 1: only this lead was pinned, so
+        # the row rewrite, the `pr.md` quote and the decisions no rejection
+        # can stand on each went with the suite green.
+        "A decision the framer rejects stands as its judgment, as a proposal "
+        "left after the exchange of *The frame is read against the issue at "
+        "the spawn* does",
+        "the orchestrator rewrites its row of *Judgments of the run* to "
+        "record the rejection and what the decision's source takes instead, "
+        "a finding's route or the next spawn's scope,",
+        "and quotes the framer's *Alternatives considered* row in the work "
+        "item's `pr.md`.",
+        "The version move and a prevention home are folded as an owner's "
+        "decision is, because another rule gives each to the orchestrator to "
+        "decide: the move by *Orchestrator: how the work is routed*, and the "
+        "home by the paragraph opening *A problem that recurs within a run "
+        "gets a prevention home at once*.",
+        # The same round's class: the other sentences #1442 added to this
+        # paragraph that no case held, each deletable with only the
+        # line-wrap check, if anything, going red.
+        "A crafter reads the frame and not the issue's comments, so the "
+        "decision has to stand in the frame.",
+        "a round finding whose route changes the frame, a round finding "
+        "located in a frame file, an owner's remark, an issue comment, a "
+        "prevention home, a scope a spawn gives beyond a plan row, or the "
+        "version move. These are examples of the rule, not a closed list.",
+        "The orchestrator corrects its row where the framer's hand-back names "
+        "a defect in it.",
+        "The orchestrator then commits the frame files the framer changed and "
+        "its own rows in one commit, before the spawn that reads them.",
+        "The framer's hand-back names each statement the fold contradicts in "
+        "a file the framer does not write, and a statement in `routing.md` or "
+        "`pr.md` is the orchestrator's to repair.",
+        "a decision's fold is read by the framer that writes it",
     ):
         assert said in order, f"the order no longer says {said!r}"
+
+
+def test_the_framer_folds_a_decision_it_is_sent():
+    """#1442, Scope item 5. The framer is resumed or spawned again with the
+    decisions made after its frame was committed, answers each, opens what
+    each cites, rewrites its three files in place read whole, reads the
+    orchestrator's uncommitted row with `plan.md`, and writes no mark, Status
+    cell or judgment row. The regression route keeps its own half of the
+    rule, which rule 16 of `RULES` reads."""
+    text = flat(*FRAMER)
+    lead = "You have two routes back: a decision's fold, and the review chain's regression."
+    start = text.index(lead)
+    rule = text[start : text.index("check:", start)]
+    for said in (
+        "the orchestrator resumes you, or spawns you again, with every "
+        "decision then pending",
+        "Answer each decision with agree, agree with a change, or reject with grounds",
+        "write each rejected decision as one row of `plan.md`'s "
+        "*Alternatives considered*",
+        # Round 1 of #1442, finding 1: the version move and a prevention
+        # home are the orchestrator's to choose by other rules, so the
+        # framer folds them as they were made.
+        "A decision the owner made, the version move and a prevention home "
+        "are folded as they were made",
+        "where you judge that one of them conflicts with the tree, your "
+        "hand-back names the conflict.",
+        "Before you write what a decision says, open each coordinate it cites",
+        "rewrite in place every sentence of your three files that the "
+        "decision changes, reading each file whole, as rule 12 asks of the "
+        "party that fixes",
+        "Read the orchestrator's *Judgments of the run* row for each decision "
+        "with `plan.md`, where it stands written and not yet committed, and "
+        "name any defect in it in your hand-back.",
+        "You write no line under your mark, no Status cell and no *Judgments "
+        "of the run* row",
+        "a section dated to the commit you read keeps its date",
+        "Spawned fresh for a fold, you read the three frame files, the "
+        "coordinates the decisions cite, and the diff since the frame's "
+        "commit over the paths the decisions name, and you do not repeat the "
+        "wide reading of step 4.",
+        "Your hand-back names each sentence you changed, by coordinate, and "
+        "each statement the fold contradicts in a file you do not write.",
+    ):
+        assert said in rule, f"the framer's fold no longer says {said!r}"
 
 
 def test_a_handoff_file_is_written_only_to_move_the_work():
@@ -427,6 +524,10 @@ def test_a_recurring_problem_gets_a_prevention_home():
         "recurring act is read from",
         "The work item in progress builds that home.",
         "records the home in a comment on the issue of the work item in progress",
+        # #1442, Scope item 2: the home is a decision, so the framer folds it.
+        "The home is a decision, so the framer folds it into that work item's "
+        "frame as the paragraph opening *A decision made after the frame is "
+        "committed is folded* states",
     ):
         assert said in order, f"the order no longer says {said!r}"
 

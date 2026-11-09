@@ -620,12 +620,12 @@ def segment_report(path, args=()):
     return proc.stdout
 
 
-# --- the grade: each row against its kind's bar (#640) ----------------------
+# --- the ratio on the segments page, with no verdict (#1440) ----------------
 #
-# The bars are `docs/running/the-run.md`'s, per segment kind, and until
-# #640 they were nowhere on the page that prints the ratio they judge. A row's
-# kind is the `subagent_type` of the spawn it was joined to, so `--segments`
-# can grade where the plain reading cannot: a lone transcript carries no kind.
+# `--segments` prints each row's tools per turn in its `t/turn` column, and
+# neither the page nor a `--json` row holds the ratio against a bar: a
+# segment that chains its reads inside one shell call reads low on it however
+# many files each turn opens.
 
 
 def batched(start, sizes, prefix):
@@ -651,7 +651,7 @@ def batched(start, sizes, prefix):
     return lines
 
 
-def graded_run(tmp_path, segments):
+def spawned_run(tmp_path, segments):
     """A run whose spawns each open one segment file of the given turn sizes.
 
     `segments` is `[(subagent_type, sizes), ...]`; spawn `i` is made at
@@ -664,22 +664,6 @@ def graded_run(tmp_path, segments):
         main += spawn(f"S{index}", made, made + 600, agent, f"segment {index}")
         files[f"agent-{index}.jsonl"] = batched(made + 600, sizes, f"g{index}")
     return write_run(tmp_path, main, files)
-
-
-def grade_lines(out):
-    """The page's per-row grade lines, each flattened to single spaces."""
-    return [
-        " ".join(line.split())
-        for line in out.splitlines()
-        if "tools per turn against the" in line
-    ]
-
-
-# 15 calls over 14 turns, 1.07; three single calls, 1.00.
-UNDER_PROOFER = [1] * 13 + [2]
-
-
-SINGLES = [1, 1, 1]
 
 
 # --- the resume slice: one row is one segment, not one file ----------------
@@ -1567,9 +1551,27 @@ class Test_main:
         data = json.loads(run(["--json", str(path)]).stdout)
         assert data["by_family"]["test"]["seconds"] == 60
 
-    def test_the_report_names_batching_when_every_turn_sent_one_call(self, transcript):
-        out = run([str(transcript)]).stdout
-        assert "batching" in out and "1.00 tools per turn" in out
+    def test_the_report_names_no_batching_when_every_turn_sent_one_call(self, tmp_path):
+        """Three turns of one call each, and no check re-run. The plain reading
+        prints no batching line, since a turn that chains its reads inside one
+        shell call reads 1.00 here however many files it opens, and the
+        `nothing obvious` line prints on the repeats alone."""
+        lines = (
+            call("a", 0, 5, "ls src")
+            + call("b", 10, 15, "cat README.md")
+            + call("c", 20, 25, "git log --oneline -3")
+        )
+        path = tmp_path / "s.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        data = json.loads(run(["--json", str(path)]).stdout)
+        assert (data["calls"], data["call_turns"], data["repeat_same_work_s"]) == (
+            3,
+            3,
+            0,
+        ), data
+        out = run([str(path)]).stdout
+        assert "batching" not in out, out
+        assert "nothing obvious" in out, out
 
     def test_a_malformed_line_does_not_stop_the_read(self, tmp_path):
         path = tmp_path / "b.jsonl"
@@ -1715,63 +1717,6 @@ class Test_main:
         )
         assert data["model_s"] == 7
 
-    def test_the_report_stops_claiming_one_at_a_time_above_a_ratio_of_one(
-        self, tmp_path
-    ):
-        """A run at 1.1 mostly sends single calls, but `independent calls are
-        going out one at a time` is a claim the number no longer supports — and
-        under per-block counting the ratio could never rise to contradict it."""
-        lines = [
-            message(0, [use("a0", "ls src"), use("a1", "ls tests")], message_id="m0"),
-            result(1, "a0"),
-            result(2, "a1"),
-        ]
-        for i in range(1, 6):
-            lines += [
-                message(i * 10, [use(f"b{i}", f"cat file{i}")], message_id=f"m{i}"),
-                result(i * 10 + 1, f"b{i}"),
-            ]
-        path = tmp_path / "w.jsonl"
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        out = run([str(path)]).stdout
-        assert "batching" in out
-        assert "one at a time" not in out
-        assert "most turns send a single call" in out
-
-    def test_a_plain_reading_printed_at_the_advisory_is_not_flagged(self, tmp_path):
-        """Round 2's 🟡 8, round 1's 🟡 1 in the plain reading. 241 calls over
-        201 turns is 1.199, which prints as 1.20. The advisory sits below 1.2, so
-        a batching line printing 1.20 contradicts the rule that printed it, and
-        the `nothing obvious` line went missing beside it.
-
-        Comparing the printed figure moves the verdict only for a ratio in
-        [1.195, 1.2), so every reading outside that band reads as it did and
-        stays comparable with the readings published since 0.9.4."""
-        lines = []
-        for i in range(40):
-            lines += [
-                message(
-                    i * 10,
-                    [use(f"d{i}a", f"ls a{i}"), use(f"d{i}b", f"ls b{i}")],
-                    message_id=f"md{i}",
-                ),
-                result(i * 10 + 1, f"d{i}a"),
-                result(i * 10 + 2, f"d{i}b"),
-            ]
-        for i in range(161):
-            second = 400 + i * 10
-            lines += [
-                message(second, [use(f"s{i}", f"cat f{i}")], message_id=f"ms{i}"),
-                result(second + 1, f"s{i}"),
-            ]
-        path = tmp_path / "p.jsonl"
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        data = json.loads(run(["--json", str(path)]).stdout)
-        assert (data["calls"], data["call_turns"]) == (241, 201), data
-        out = run([str(path)]).stdout
-        assert "batching" not in out, out
-        assert "nothing obvious" in out, out
-
     def test_a_transcript_with_no_tool_calls_says_so(self, tmp_path):
         path = tmp_path / "e.jsonl"
         path.write_text("{}\n", encoding="utf-8")
@@ -1870,12 +1815,10 @@ class Test_main:
         assert (totals["transcripts"], totals["output"]) == (2, 41)
 
     def test_the_token_turns_and_tools_per_turn_count_different_things(self, tmp_path):
-        """`tools_per_turn`'s denominator counts messages carrying a tool call,
-        and the per-segment bars in `docs/running/the-run.md` are
-        calibrated against that ratio. The token line's turn count is assistant
-        messages carrying `usage` — a turn that only thought is still a turn the
-        run paid for. This fixture separates them: two turns sent a call, a third
-        only spoke."""
+        """`tools_per_turn`'s denominator counts messages carrying a tool call.
+        The token line's turn count is assistant messages carrying `usage` — a
+        turn that only thought is still a turn the run paid for. This fixture
+        separates them: two turns sent a call, a third only spoke."""
         path = write_run(
             tmp_path,
             [
@@ -2126,8 +2069,9 @@ class Test_main:
         into the other — 1.08 tools per turn printed beside 659 turns and 211
         calls, which divides to 0.32.
 
-        So each count now says what it counts and over what. The numbers are
-        unchanged; what changes is that they can no longer be read as one."""
+        So the token line says what it counts and over what. The ratio and its
+        denominator are `--json`'s keys `tools_per_turn` and `call_turns`, and
+        the plain reading prints neither."""
         path = write_run(
             tmp_path,
             [
@@ -2140,9 +2084,6 @@ class Test_main:
         out = run([str(path)]).stdout
         assert re.search(r"^tokens\s+2 transcripts, 4 turns$", out, re.M), out
         assert "a turn is any assistant message, in every transcript counted" in out, (
-            out
-        )
-        assert "2 calls over 2 turns that sent one, in this transcript alone" in out, (
             out
         )
 
@@ -2521,8 +2462,7 @@ class Test_main:
         # `nothing obvious` line is gated on there being no repeat time, and a
         # negative repeat time reads as falsey — so the report went silent on a
         # transcript it had nothing to say about, which is the same defect as
-        # the repeats line one gate over. Two calls in ONE message put tools per
-        # turn above the threshold that line also needs.
+        # the repeats line one gate over.
         batched = [
             at(
                 "2026-08-24T10:00:00Z",
@@ -2988,9 +2928,8 @@ class Test_main:
         without getting anything else wrong.
 
         Cycle 2 sent three calls over three turns, so its ratio is 1.00. Divided
-        by the run's seven turns it reads 0.43 — under every threshold the
-        printed advisory has — and every other number in the row stays right,
-        which is what would make it survive a reading."""
+        by the run's seven turns it reads 0.43, and every other number in the
+        row stays right, which is what would make it survive a reading."""
         cycles = [
             row for row in spawns_of(orchestrator)["rows"] if row["kind"] == "cycle"
         ]
@@ -3251,8 +3190,7 @@ class Test_main:
 
         Compared raw against 60, a spawn paired in 59.6 s printed `1.0m` in the
         column and, under it, *never reaches a minute here — 60s at most* (#701;
-        #640's round 3, 🟡 10). That is the cause #640 fixed twice for the
-        tools-per-turn ratio, on a duration.
+        #640's round 3, 🟡 10).
 
         Both edges of the band, and the cell asserted beside the note at each, so
         the case ties the decision to what the column prints rather than to the
@@ -3805,214 +3743,48 @@ class Test_main:
         assert "named by nobody" not in spawns, spawns
         assert "2 spawns found" in spawns, spawns
 
-    def test_a_proofer_row_under_its_bar_is_named_with_the_bar(self, tmp_path):
-        """S4. The ratio, the kind's bar and the protocol's name for the kind, on
-        one line a reader can post. The prefixed name and the bare one are one
-        kind, so a framer spawned as `framer` is graded the way
-        `agentic:framer` would be."""
-        out = segment_report(
-            graded_run(
-                tmp_path, [("agentic:proofer", UNDER_PROOFER), ("framer", SINGLES)]
-            )
-        )
-        assert grade_lines(out) == [
-            "agentic:proofer 1.07 tools per turn against the reviewing bar of 1.8",
-            "framer 1.00 tools per turn against the framing bar of 1.4",
-        ], out
-        flat_out = " ".join(out.split())
-        assert "every graded row meets its kind's bar" not in flat_out, flat_out
-        assert "2 graded, 0 exempt, 0 ungraded" in flat_out, flat_out
-
-    def test_a_framer_row_under_its_bar_is_named(self, tmp_path):
-        """S5. 4 calls over 3 turns is 1.33, under the framing bar of 1.4 and
-        over the plain reading's 1.2 -- so this row is one only the grade names."""
-        out = segment_report(graded_run(tmp_path, [("agentic:framer", [2, 1, 1])]))
-        assert grade_lines(out) == [
-            "agentic:framer 1.33 tools per turn against the framing bar of 1.4"
-        ], out
-
-    def test_a_crafter_row_is_never_graded_and_the_page_says_why(self, tmp_path):
-        """S6. An edit-test loop is serial, and the protocol judges it on
-        `repeats = 0` and never on tools per turn. A crafter at the floor beside a
-        proofer under its bar: the proofer is named and the crafters are not.
-
-        Two crafters, one of them bare, because with one crafter and one proofer the
-        mutation pass found that counting the PROOFER as exempt instead gives the
-        same three numbers."""
-        out = segment_report(
-            graded_run(
-                tmp_path,
-                [
-                    ("agentic:crafter", SINGLES),
-                    ("crafter", SINGLES),
-                    ("agentic:proofer", UNDER_PROOFER),
-                ],
-            )
-        )
-        lines = grade_lines(out)
-        assert not any("crafter" in line for line in lines), lines
-        assert len(lines) == 1, lines
-        flat_out = " ".join(out.split())
-        assert "1 graded, 2 exempt, 0 ungraded" in flat_out, flat_out
-        assert (
-            "A crafter row is exempt: an edit-test loop is serial, and the protocol "
-            "judges it on `repeats = 0` rather than on this ratio." in flat_out
-        ), flat_out
-
-    def test_a_row_at_its_bar_is_silent_and_the_counts_print(self, tmp_path):
-        """S7. Exactly at the bar is meeting it: 9 calls over 5 turns is 1.8 and
-        7 over 5 is 1.4, both exact in binary arithmetic. A grade that read the
-        bar as a floor to clear rather than to reach names both."""
-        out = segment_report(
-            graded_run(
-                tmp_path,
-                [
-                    ("agentic:proofer", [2, 2, 2, 2, 1]),
-                    ("agentic:framer", [2, 1, 2, 1, 1]),
-                ],
-            )
-        )
-        assert grade_lines(out) == [], out
-        flat_out = " ".join(out.split())
-        assert "every graded row meets its kind's bar" in flat_out, flat_out
-        assert "2 graded, 0 exempt, 0 ungraded" in flat_out, flat_out
-
-    def test_a_row_printed_at_its_bar_meets_it(self, tmp_path):
-        """Round 1's 🟡 1. 79 calls over 44 turns is 1.7955 and 67 over 48 is
-        1.3958: the table prints both as 1.80 and 1.40, so a line naming either
-        under 1.8 or 1.4 contradicts the row printed above it. The grade compares
-        the figure a reader sees."""
-        out = segment_report(
-            graded_run(
-                tmp_path,
-                [
-                    ("agentic:proofer", [2] * 35 + [1] * 9),
-                    ("agentic:framer", [2] * 19 + [1] * 29),
-                ],
-            )
-        )
-        assert re.search(r"agentic:proofer\s+\S+\s+79\s+1\.80\s", out), out
-        assert re.search(r"agentic:framer\s+\S+\s+67\s+1\.40\s", out), out
-        assert grade_lines(out) == [], out
-        assert "every graded row meets its kind's bar" in " ".join(out.split()), out
-
-    def test_a_row_with_no_kind_is_counted_as_ungraded(self, tmp_path):
-        """S8. A kind the table does not know, and a row the parent could not
-        name. Neither is named under a bar, the proofer beside them still is, and
-        the ungraded count holds both -- the counted silence rather than the
-        silent one."""
-        path = graded_run(
-            tmp_path, [("agentic:tracer", SINGLES), ("agentic:proofer", UNDER_PROOFER)]
-        )
-        deep = tmp_path / "main" / "subagents" / "inner" / "agent-deep.jsonl"
-        deep.parent.mkdir(parents=True)
-        deep.write_text("\n".join(batched(5000, SINGLES, "d")) + "\n", encoding="utf-8")
-        out = segment_report(path)
-        assert grade_lines(out) == [
-            "agentic:proofer 1.07 tools per turn against the reviewing bar of 1.8"
-        ], out
-        flat_out = " ".join(out.split())
-        assert "1 graded, 0 exempt, 2 ungraded" in flat_out, flat_out
-        assert "a kind not listed, a row no spawn named" in flat_out, flat_out
-        rows = segments_of(path)["rows"]
-        assert [(row["kind"], row["bar"]) for row in rows] == [
-            ("tracer", None),
-            ("proofer", 1.8),
-            ("", None),
-        ], rows
-
-    def test_a_row_with_no_paired_call_is_ungraded(self, tmp_path):
-        """S8, the fourth shape. A proofer segment that read and thought and
-        called nothing has a kind and a bar and no ratio, so there is nothing to
-        hold against the bar; it is counted as ungraded, never as meeting it."""
-        main = call("a", 0, 10, "git status --short") + spawn(
-            "W", 25, 625, "agentic:proofer", "Review round 1"
-        )
-        path = write_run(
-            tmp_path, main, {"agent-w.jsonl": [spend(625, output=5, message_id="t")]}
-        )
-        out = segment_report(path)
-        assert "no paired call" in out, out
-        assert grade_lines(out) == [], out
-        flat_out = " ".join(out.split())
-        assert "0 graded, 0 exempt, 1 ungraded" in flat_out, flat_out
-        assert "no row here has a bar to be graded against" in flat_out, flat_out
-        # Round 1's ⬜ 5. This row HAS a bar; the counts sentence listed a
-        # segment that made no call among the rows with none.
-        assert (
-            "A row with no bar — a kind not listed, a row no spawn named — is "
-            "ungraded, and so is a graded kind's segment that made no call." in flat_out
-        ), flat_out
-        assert [(r["kind"], r["bar"]) for r in segments_of(path)["rows"]] == [
-            ("proofer", 1.8)
-        ]
-
-    def test_an_own_files_rows_are_ungraded(self, resumed_segment):
-        """S8, the third shape. An agent's own file was joined to no spawn, so no
-        row of it has a kind, and the page grades none while saying so."""
-        out = segment_report(own_file(resumed_segment))
-        assert grade_lines(out) == [], out
-        flat_out = " ".join(out.split())
-        assert "no row here has a bar to be graded against" in flat_out, flat_out
-        assert "0 graded, 0 exempt, 2 ungraded" in flat_out, flat_out
-        assert "every graded row meets" not in flat_out, flat_out
-
-    def test_the_grade_carries_the_protocols_caveats(self, run_with_segments):
-        """S9. One case per sentence, each seen red with that sentence deleted.
-        A bar printed without them reads as a threshold the round failed."""
-        flat_out = " ".join(segment_report(run_with_segments).split())
-        assert (
-            "The bar is a lens for rounds of ordinary size and never a refusal "
-            "threshold, so this page refuses nothing and exits 0." in flat_out
-        ), flat_out
-        assert "A small round has few independent batches to rise on." in flat_out, (
-            flat_out
-        )
-        assert (
-            "A proofer's verifying round is exempt by the protocol, and this page "
-            "cannot tell one from a finding round, so a reader applies that "
-            "exemption by hand." in flat_out
-        ), flat_out
-
-    def test_the_grade_sits_between_the_table_and_the_section_six_block(
-        self,
-        segment_that_spawned,
-    ):
-        """Spec I5: under the table and before the contract rule 6 block, so the grade reads
-        against the rows just above it."""
-        out = segment_report(segment_that_spawned)
-        table = out.index("t/turn")
-        grade = out.index("Tools per turn against each kind's bar")
-        breach = out.index("Contract rule 6 — an agent spawned another agent")
-        assert table < grade < breach, out
-
-    def test_the_plain_reading_and_spawns_carry_no_grade(self, tmp_path):
-        """S10. The grade is the segments page's alone. The plain reading of the
-        same run keeps its own advisory and gains nothing, and `--spawns` gains
-        nothing."""
-        path = graded_run(tmp_path, [("agentic:proofer", UNDER_PROOFER)])
-        for args in ([str(path)], ["--spawns", str(path)]):
-            out = run(args).stdout
-            assert "against each kind's bar" not in out, (args, out)
-            assert "tools per turn against the" not in out, (args, out)
-
-    def test_every_json_row_carries_its_kind_and_bar(self, tmp_path):
-        """S11. Two keys added and nothing else moved: `kind` is the basename,
-        `bar` the number or null. The page's named rows are exactly the rows
-        with a bar and a ratio under it."""
-        path = graded_run(
+    def test_the_segments_page_prints_each_rows_ratio_and_grades_none(self, tmp_path):
+        """Each row's tools per turn stands in the `t/turn` column, and nothing
+        under the table holds it against a bar or counts rows as graded,
+        exempt or ungraded. A framer, a proofer and a crafter, one of each kind
+        a bar once graded or exempted, and the page exits 0."""
+        path = spawned_run(
             tmp_path,
             [
-                ("agentic:crafter", SINGLES),
-                ("proofer", UNDER_PROOFER),
+                ("agentic:framer", [2, 1, 1]),
+                ("agentic:proofer", [1] * 13 + [2]),
+                ("agentic:crafter", [1, 1, 1]),
+            ],
+        )
+        out = segment_report(path)
+        assert "t/turn" in out, out
+        assert re.search(r"agentic:framer\s+\S+\s+4\s+1\.33\s", out), out
+        assert re.search(r"agentic:proofer\s+\S+\s+15\s+1\.07\s", out), out
+        assert re.search(r"agentic:crafter\s+\S+\s+3\s+1\.00\s", out), out
+        flat_out = " ".join(out.split())
+        assert "Tools per turn against each kind's bar" not in flat_out, flat_out
+        assert "tools per turn against the" not in flat_out, flat_out
+        assert not re.search(r"\d+ graded, \d+ exempt, \d+ ungraded", flat_out), (
+            flat_out
+        )
+
+    def test_a_json_segment_row_carries_the_ratio_and_no_grade(self, tmp_path):
+        """A `--json` row keeps `numbers.tools_per_turn` and the keys every
+        segment row carries, and holds no `kind` or `bar` key, because nothing
+        reads a row against a bar."""
+        path = spawned_run(
+            tmp_path,
+            [
+                ("agentic:crafter", [1, 1, 1]),
+                ("proofer", [1] * 13 + [2]),
                 ("agentic:framer", [2, 2]),
             ],
         )
         rows = segments_of(path)["rows"]
-        assert [(row["kind"], row["bar"]) for row in rows] == [
-            ("crafter", None),
-            ("proofer", 1.8),
-            ("framer", 1.4),
+        assert [row["numbers"]["tools_per_turn"] for row in rows] == [
+            1.0,
+            15 / 14,
+            2.0,
         ], rows
         for row in rows:
             assert {
@@ -4026,14 +3798,9 @@ class Test_main:
                 "spawns",
                 "numbers",
                 "tokens",
-            } < set(row), row
-        under = [
-            row["agent"]
-            for row in rows
-            if row["bar"] is not None
-            and round(row["numbers"]["tools_per_turn"], 2) < row["bar"]
-        ]
-        assert [line.split()[0] for line in grade_lines(segment_report(path))] == under
+            } <= set(row), row
+            assert "kind" not in row, row
+            assert "bar" not in row, row
 
     def test_a_resumed_segment_is_one_row_per_slice_not_one_per_file(
         self, resumed_segment
@@ -4564,10 +4331,7 @@ class Test_main:
         the spawn that names it."""
 
         def numbers(rows):
-            # `kind` and `bar` are labels too (#640): derived from `agent`, so
-            # the own file's rows carry `""` and None where the walk's carry the
-            # spawn's kind, for the same reason `agent` differs.
-            labels = ("agent", "description", "named", "transcript", "kind", "bar")
+            labels = ("agent", "description", "named", "transcript")
             return [{k: v for k, v in row.items() if k not in labels} for row in rows]
 
         walked = segments_of(resumed_segment)["rows"]
@@ -5088,6 +4852,121 @@ class Test_emit:
         assert module.main() == 0
         assert os.path.dirname(str(transcript)) not in bodies["text"]
 
+    @staticmethod
+    def posted_body(monkeypatch, tmp_path, argv):
+        """The body `main` posts for ARGV, read from the `--body-file` it hands
+        `gh`, with one open log and a sentence to post under."""
+        module = _cost()
+        says = tmp_path / "says.md"
+        says.write_text("what the numbers say\n", encoding="utf-8")
+        _gh(monkeypatch, module, listing=_listing((42, "OPEN")))
+        bodies = {}
+        stub = module.run_gh
+
+        def capture(args):
+            if args[:2] == ["issue", "comment"]:
+                with open(
+                    args[args.index("--body-file") + 1], encoding="utf-8"
+                ) as handle:
+                    bodies["text"] = handle.read()
+            return stub(args)
+
+        monkeypatch.setattr(module, "run_gh", capture)
+        monkeypatch.setattr(
+            module.sys,
+            "argv",
+            ["session_cost.py", *argv, "--post", "--says", str(says)],
+        )
+        assert module.main() == 0
+        return bodies["text"]
+
+    @staticmethod
+    def named_in_fence(body):
+        """The `# <file name>` lines inside the body's fence, in order."""
+        fence = body.split("```\n", 1)[1].rsplit("```", 1)[0]
+        return [line[2:] for line in fence.splitlines() if line.startswith("# ")]
+
+    @pytest.mark.parametrize("mode", [[], ["--spawns"]], ids=["plain", "spawns"])
+    def test_a_posted_reading_opens_its_fence_with_the_transcripts_name(
+        self, monkeypatch, tmp_path, transcript, mode
+    ):
+        """#1439. A posted reading names the transcript it was read from on a
+        `# <file name>` line of its own, the first line inside the fence, so the
+        release can tell which segments a comment already holds. The plain
+        reading named no file at all before this. The line holds the name and
+        never the path, and no line of the body carries the directory."""
+        body = self.posted_body(monkeypatch, tmp_path, [*mode, str(transcript)])
+        fence = body.split("```\n", 1)[1]
+        assert fence.splitlines()[0] == "# t.jsonl", body
+        assert self.named_in_fence(body) == ["t.jsonl"], body
+        assert str(tmp_path) not in body, body
+
+    def test_a_posted_segments_reading_names_the_run_and_each_agent_file(
+        self, monkeypatch, tmp_path, run_with_segments
+    ):
+        """#1439. A `--segments` reading is taken from the run's transcript and
+        from each agent file a row was measured from, so the fence names all
+        three, one `# ` line each, by name and never by the path relative to
+        the run that the rows' labels carry."""
+        body = self.posted_body(
+            monkeypatch, tmp_path, ["--segments", str(run_with_segments)]
+        )
+        assert self.named_in_fence(body) == [
+            "main.jsonl",
+            "agent-crafter.jsonl",
+            "agent-proofer.jsonl",
+        ], body
+        assert "# main/subagents/" not in body, body
+
+    def test_a_resumed_agent_file_is_named_once_and_not_once_per_slice(
+        self, monkeypatch, tmp_path, resumed_segment
+    ):
+        """#1439. A resumed agent's file is two rows and one transcript, so the
+        fence names it once. A name per row would post the same file twice,
+        and the release's reader would count it twice."""
+        body = self.posted_body(
+            monkeypatch, tmp_path, ["--segments", str(resumed_segment)]
+        )
+        assert "1/2" in body and "2/2" in body, body
+        assert self.named_in_fence(body) == ["main.jsonl", "agent-crafter.jsonl"], body
+
+    def test_a_posted_body_carries_no_command_text(self, monkeypatch, tmp_path):
+        """#1439, *Scope* item 7. A command can hold a path, a heredoc's body
+        or a prompt, and `CONTRIBUTING.md` *House rules* puts all three off the
+        table for anything that leaves the machine. So the posted `slowest`
+        list gives each call's seconds and family, and the `other` note keeps
+        its sentence without the command it quoted. The printed report is
+        untouched: a person at the terminal still reads the commands.
+
+        The slowest call is a test run and the costliest `other` command is a
+        different call, and both carry the same absolute directory, so a body
+        that kept either one carries it."""
+        private = "/opt/private-x"
+        lines = []
+        lines += call("a", 0, 50, f"{private}/bin/deploy --wait")
+        lines += call("b", 60, 90, f"{private}/bin/report")
+        lines += call("c", 100, 170, f"pytest {private}/tests -q")
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        body = self.posted_body(monkeypatch, tmp_path, [str(path)])
+        assert private not in body, body
+        assert "bin/deploy" not in body and "pytest" not in body, body
+        assert "`other` is the largest family and names nothing" in body, body
+        assert "Slowest command charged there" not in body, body
+        slowest = body.split("\nslowest\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        assert [line.split() for line in slowest] == [
+            ["70s", "test"],
+            ["50s", "other"],
+            ["30s", "other"],
+        ], body
+
+        printed = run([str(path)]).stdout
+        assert f"Slowest command charged there: {private}/bin/deploy --wait" in (
+            " ".join(printed.split())
+        ), printed
+        assert f"pytest {private}/tests -q" in printed, printed
+
     def test_refuses_an_empty_reading_rather_than_posting_it(
         self, monkeypatch, capsys, tmp_path, transcript
     ):
@@ -5354,6 +5233,344 @@ class Test_post:
             assert _opened(seen) == [], listing
 
 
+class Test_work_item:
+    """`--work-item <dir>`: the release posts the segment readings of one work
+    item that no comment on the open log names (#1439).
+
+    Each case lays out a config directory under `tmp_path`, named by
+    `CLAUDE_CONFIG_DIR`, with agent transcripts under
+    `projects/<project>/<session>/subagents/`, and a work item directory whose
+    `routing.md` names `BRANCH`. `gh` is the stub below, which answers the
+    log lookup, the comment pages and the comment itself."""
+
+    NAME = "1790000000-a-work-item"
+    BRANCH = "feat/12-a-work-item"
+    SAYS = "the release's sentence on these readings"
+
+    @pytest.fixture
+    def item(self, tmp_path, monkeypatch):
+        """The work item directory, with the config directory set beside it."""
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+        item = tmp_path / "repo" / "seal" / "threads" / self.NAME
+        item.mkdir(parents=True)
+        (item / "routing.md").write_text(
+            "# Routing\n\n| Axis | Answer |\n|---|---|\n"
+            "| Review | through the review chain |\n"
+            "| Destination | open the pull request |\n"
+            f"| Branch | {self.BRANCH} |\n",
+            encoding="utf-8",
+        )
+        return item
+
+    @staticmethod
+    def agent(tmp_path, name, prompt, session="s1", second=0):
+        """An agent transcript whose first `type: user` entry is PROMPT, with
+        one paired call after it."""
+        path = (
+            tmp_path / "config" / "projects" / "-x-repo" / session / "subagents"
+        ) / f"{name}.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        opening = json.dumps(
+            {
+                "type": "user",
+                "timestamp": stamp_at(second),
+                "message": {"role": "user", "content": prompt},
+            }
+        )
+        path.write_text(
+            "\n".join([opening, *worked(second + 5, f"{name}-1")]) + "\n",
+            encoding="utf-8",
+        )
+        return path
+
+    @staticmethod
+    def gh(monkeypatch, module, listing, pages=("[]",), list_code=0, api_code=0):
+        """Replace `run_gh`; return the argvs it saw and the bodies it posted."""
+        seen, bodies = [], []
+
+        def fake(args):
+            seen.append(list(args))
+            if args[:2] == ["issue", "list"]:
+                return list_code, listing, "" if list_code == 0 else "HTTP 401"
+            if args[:1] == ["api"]:
+                return api_code, "\n".join(pages), "" if api_code == 0 else "HTTP 502"
+            if args[:2] == ["issue", "comment"]:
+                with open(
+                    args[args.index("--body-file") + 1], encoding="utf-8"
+                ) as handle:
+                    bodies.append(handle.read())
+                return 0, "", ""
+            raise AssertionError(f"no case expects `gh {' '.join(args)}`")
+
+        monkeypatch.setattr(module, "run_gh", fake)
+        return seen, bodies
+
+    def main(self, monkeypatch, tmp_path, module, item, post=False):
+        """`main` over `--work-item ITEM`, posting where POST asks."""
+        argv = ["session_cost.py", "--work-item", str(item)]
+        if post:
+            says = tmp_path / "says.md"
+            says.write_text(self.SAYS + "\n", encoding="utf-8")
+            argv += ["--post", "--says", str(says)]
+        monkeypatch.setattr(module.sys, "argv", argv)
+        return module.main()
+
+    @staticmethod
+    def comment(*lines):
+        """A posted comment's JSON, its body a sentence and a fence of LINES."""
+        body = "a sentence\n\n```\n" + "\n".join(lines) + "\n```\n"
+        return {"body": body}
+
+    def by_dir_and_by_branch(self, tmp_path):
+        """Two agents: one prompt names the directory, one names the branch."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/\n")
+        self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
+
+    def test_accepts_both_segments_and_posts_them_in_one_comment(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """Nothing was posted for the work item. A prompt naming the
+        directory and one naming the branch are both its segments, so both
+        rows print. With `--post` one comment holds both `# <file name>`
+        lines, under the session's sentence, and no path."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert "2 segment transcripts walked on this machine, 2 naming" in out, out
+        assert "0 already in the log, 2 in this reading" in out, out
+        assert re.search(r"^  agent-a\.jsonl\s", out, re.M), out
+        assert re.search(r"^  agent-b\.jsonl\s", out, re.M), out
+
+        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        assert bodies[0].startswith(self.SAYS), bodies[0]
+        assert Test_emit.named_in_fence(bodies[0]) == ["agent-a.jsonl", "agent-b.jsonl"]
+        assert str(tmp_path) not in bodies[0], bodies[0]
+        assert _posted(seen)[0][2] == "42"
+        # One lookup: the answer that found the log is the one the post uses.
+        assert len([a for a in seen if a[:2] == ["issue", "list"]]) == 1, seen
+
+    def test_a_segment_a_comment_already_names_is_left_out(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """Part of it was posted. A comment whose fence holds
+        `# agent-a.jsonl` names that transcript, so only the other row prints
+        and the counts say one is already in the log. The same name in a
+        comment's prose, outside a fence, names nothing, and neither does a
+        fenced line that holds more than `# <file name>`."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        prose = {"body": "# agent-b.jsonl\n\nquoted in prose, not a reading\n"}
+        fenced = self.comment("# agent-a.jsonl", "see # agent-b.jsonl too")
+        page = json.dumps([fenced, prose])
+        self.gh(monkeypatch, module, _listing((42, "OPEN")), pages=(page,))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert "1 already in the log, 1 in this reading" in out, out
+        assert not re.search(r"^  agent-a\.jsonl\s", out, re.M), out
+        assert re.search(r"^  agent-b\.jsonl\s", out, re.M), out
+
+    def test_reads_every_page_of_the_logs_comments(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """`frame/questions.md` Q1. `gh api --paginate` writes one JSON array
+        per page, one after the other, so a name on the second page counts as
+        much as one on the first."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        pages = (
+            json.dumps([self.comment("# agent-a.jsonl")]),
+            json.dumps([self.comment("# agent-b.jsonl")]),
+        )
+        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")), pages=pages)
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert bodies == [], bodies
+        out = capsys.readouterr().out
+        assert "already named on #42, so nothing was posted" in out, out
+        api = [a for a in seen if a[:1] == ["api"]]
+        assert api and "--paginate" in api[0], seen
+        assert api[0][-1].endswith("/issues/42/comments"), api
+
+    def test_every_segment_already_named_posts_nothing_and_exits_0(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """All of it was posted, so there is nothing due: the mode says so,
+        posts nothing, and exits 0."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        page = json.dumps([self.comment("# agent-a.jsonl", "# agent-b.jsonl")])
+        seen, bodies = self.gh(
+            monkeypatch, module, _listing((42, "OPEN")), pages=(page,)
+        )
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert bodies == [] and _posted(seen) == [], seen
+        out = capsys.readouterr().out
+        assert "already named on #42, so nothing was posted" in out, out
+
+    def test_a_prompt_naming_neither_whole_is_not_counted(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """A key matches as a whole token. A prompt naming a longer branch or
+        a longer directory name that starts with the key names neither, and a
+        key in a later entry than the first `type: user` one is not the spawn
+        prompt."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-c", f"Branch {self.BRANCH}-b, not ours.")
+        self.agent(tmp_path, "agent-d", f"seal/threads/{self.NAME}-two/")
+        self.agent(tmp_path, "agent-f", f"seal/threads/2{self.NAME}/")
+        later = self.agent(tmp_path, "agent-e", "Build something else.")
+        with open(later, "a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "type": "user",
+                        "timestamp": stamp_at(60),
+                        "message": {"role": "user", "content": self.BRANCH},
+                    }
+                )
+                + "\n"
+            )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert "5 segment transcripts walked on this machine, 1 naming" in out, out
+        for other in ("agent-c", "agent-d", "agent-e", "agent-f"):
+            assert f"{other}.jsonl" not in out, out
+
+    @pytest.mark.parametrize("given, inside", [(".", ""), ("..", "trail")])
+    def test_a_relative_directory_is_keyed_by_its_own_name(
+        self, monkeypatch, capsys, tmp_path, item, given, inside
+    ):
+        """`--work-item .` from inside the directory, or `..` from a
+        subdirectory, keys on the directory's own name. Keyed on `.` or `..`,
+        a prompt holding `./bin/test` or `../` would name the work item."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-x", "Run ./bin/test, then read ../README.md.")
+        (item / inside).mkdir(exist_ok=True)
+        monkeypatch.chdir(item / inside)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, given) == 0
+        out = capsys.readouterr().out
+        assert f"1 naming {self.NAME} or {self.BRANCH}" in out, out
+        assert "agent-x.jsonl" not in out, out
+
+    def test_no_transcript_on_this_machine_posts_that_it_found_none(
+        self, monkeypatch, tmp_path, item
+    ):
+        """Done-when (2). Where no segment transcript on this machine names the
+        work item, the comment says so under the session's sentence, so the
+        log does not close empty because a session forgot."""
+        self.agent(tmp_path, "agent-x", "Build something else.")
+        module = _cost()
+        _seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        assert bodies[0].startswith(self.SAYS), bodies[0]
+        said = " ".join(bodies[0].split())
+        assert (
+            f"no segment transcript on this machine names {self.NAME} or "
+            f"{self.BRANCH}" in said
+        ), said
+        assert "1 segment transcript walked on this machine, 0 naming" in said, said
+
+    @pytest.mark.parametrize(
+        "listing, list_code, code, said",
+        [
+            ("[]", 0, 0, "does not run that log"),
+            ("", 1, 0, "could not run"),
+            (_listing((41, "CLOSED")), 0, 1, "nothing is open"),
+            (_listing((41, "OPEN"), (42, "OPEN")), 0, 1, "exactly one may"),
+        ],
+        ids=["no history", "unreadable", "closed", "many open"],
+    )
+    def test_the_logs_states_end_as_post_ends_them(
+        self, monkeypatch, capsys, tmp_path, item, listing, list_code, code, said
+    ):
+        """The log's states are answered as `post` answers them: two post
+        nothing and exit 0, and two are named and exit 1. None of them posts
+        or opens an issue."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        seen, bodies = self.gh(monkeypatch, module, listing, list_code=list_code)
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == code
+        assert said in capsys.readouterr().out
+        assert bodies == [] and _posted(seen) == [] and _opened(seen) == [], seen
+
+    def test_without_post_an_unreadable_log_leaves_nothing_out_and_says_so(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """Without `--post`, a log that cannot be read is no reason to print
+        nothing: every segment that names the work item prints, and the
+        reading says nothing was left out."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")), api_code=1)
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = " ".join(capsys.readouterr().out.split())
+        assert "so nothing was left out" in out, out
+        assert "agent-a.jsonl" in out and "agent-b.jsonl" in out, out
+
+    def test_a_comment_page_that_cannot_be_read_posts_nothing(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """With `--post`, comments that cannot be read would make every
+        segment look unposted, and a second post of a reading is a comment a
+        person deletes. So the mode names it and exits 1."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")), api_code=1)
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 1
+        assert bodies == [] and _posted(seen) == [], seen
+        assert "comments on #42 could not be read" in capsys.readouterr().out
+
+    def test_refuses_a_directory_whose_routing_names_no_branch(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """The branch is one of the two keys, and a guess at it would count
+        another work item's segments. A `routing.md` that names none is
+        refused before anything is walked or looked up."""
+        (item / "routing.md").write_text("# Routing\n\nno table\n", encoding="utf-8")
+        module = _cost()
+        seen, _bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        with pytest.raises(SystemExit) as exit_info:
+            self.main(monkeypatch, tmp_path, module, item)
+        assert "names no branch" in str(exit_info.value.code), exit_info.value
+        assert seen == [], seen
+
+    @pytest.mark.parametrize(
+        "extra, flag",
+        [
+            (["--json"], "--json"),
+            (["--segments"], "--segments"),
+            (["--spawns"], "--spawns"),
+            (["--latest"], "--latest"),
+            (["t.jsonl"], "a transcript"),
+        ],
+        ids=["json", "segments", "spawns", "latest", "transcript"],
+    )
+    def test_refuses_a_work_item_beside_another_reading(
+        self, monkeypatch, capsys, tmp_path, extra, flag
+    ):
+        """`--work-item` is a reading of its own, over transcripts it finds
+        itself, so the parser refuses it beside another and names both."""
+        module = _cost()
+        monkeypatch.setattr(
+            module.sys,
+            "argv",
+            ["session_cost.py", "--work-item", str(tmp_path), *extra],
+        )
+        with pytest.raises(SystemExit) as exit_info:
+            module.main()
+        assert exit_info.value.code == 2
+        said = capsys.readouterr().err
+        assert f"--work-item and {flag}" in said, said
+
+
 class Test_newest:
     @staticmethod
     def slug_of(directory):
@@ -5537,9 +5754,9 @@ class Test_report:
         assert "repeats" not in out, out
 
     def test_refuses_nothing_obvious_beside_a_repeat(self, tmp_path):
-        """The ratio clears the batching advisory, and a check re-run for a
-        result already in hand is still time that could go elsewhere, so the
-        page names it and does not also say nothing is obvious."""
+        """A check re-run for a result already in hand is time that could go
+        elsewhere, so the page names it and does not also say nothing is
+        obvious."""
         out = self.two_turns_of_two(tmp_path, "pytest -q")
         assert "repeats" in out, out
         assert "nothing obvious" not in out, out

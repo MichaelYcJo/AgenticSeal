@@ -4,8 +4,9 @@ file at a time (#942).
 A module file runs every census over its own target: its last line is
 `test_census = census_case(TARGET)`, from `tests/conftest.py`, so the run a
 contributor makes of the module they touched judges that module too.
-`tests/test_censuses.py` runs them once more over every tracked file no
-module file declares as its `TARGET`, and holds each census's own cases.
+`tests/behaviour/test_every_tracked_file_meets_every_census.py` runs them
+once more over every tracked file no module file declares as its `TARGET`,
+and `tests/test_censuses.py` holds each census's own cases.
 
 Each census is `<name>(rel, root=None)` and returns one line per problem,
 `<rel>:<line>: <name>: <what and the repair>`. REL is the file's path from
@@ -895,7 +896,7 @@ def heading_rule(rel, root=None):
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.
-# `tests/lib/test_launch.py` derives the set
+# `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` derives the set
 # and holds the table to it; this census holds each file the table names to
 # its version.
 

@@ -29,7 +29,8 @@ here is a write you do not make.
    of the repository at the target SHA.
 3. Read the work item whose `routing.md` names the branch: `routing.md`,
    `frame/design.md`, `frame/plan.md`, `frame/questions.md`, `gaps.md`,
-   `changelog.md` and `pr.md`, each whole at the target, then
+   `changelog.md`, `pr.md` and, where one stands, `pr.<lang>.md`, each whole
+   at the target, then
    `trail/phases/`, and every earlier `trail/rounds/round-*.md` for its
    coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
@@ -118,14 +119,17 @@ lists its path under coordinate-trust exceptions.
 
 **Every round reads the work item's records that state the present, whole,
 against its target.** A finding round and a verifying round alike open
-`routing.md`, the three frame files, `gaps.md`, `changelog.md` and `pr.md`
-at the commit the target names and read each to its end. A frame section
-dated to the commit the framer read states that commit, and the target does
-not contradict it. Every other sentence the target contradicts is a finding
-located in the file that holds it. So is a quote of `pr.md` that you do not
-find, word for word with runs of whitespace collapsed, at the source its
-coordinate names. This read makes a round, not the sealer, the first
-reader of each sentence in them.
+`routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md`
+and, where one stands, `pr.<lang>.md` at the commit the target names and
+read each to its end. A frame section dated to the commit the framer read
+states that commit, and the target does not contradict it. Every other
+sentence the target contradicts is a finding located in the file that
+holds it. So is a quote of `pr.md` that you do not find, word for word with
+runs of whitespace collapsed, at the source its coordinate names. So is a
+line of `pr.<lang>.md` that does not render, in `Commit and pull request
+language`, the quote of `pr.md` at the same coordinate, and so is a quote
+of `pr.md` that it leaves without a rendering. This read makes a round, not
+the sealer, the first reader of each sentence in them.
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before

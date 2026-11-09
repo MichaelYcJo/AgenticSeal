@@ -61,13 +61,13 @@ SHARED_GUARD = "on_disk"
 APPLIES_THE_SHARED_GUARD = {
     # #942's sweep of every census over each tracked file no module file
     # declares. It judges what it finds, so it skips the missing half.
-    "tests/test_censuses.py#test_every_file_no_module_file_declares_meets_every_census": 1,
+    "tests/behaviour/test_every_tracked_file_meets_every_census.py#test_every_file_no_module_file_declares_meets_every_census": 1,
     "tests/behaviour/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/behaviour/test_release_hygiene.py#tracked": 1,
-    "tests/lib/test_launch.py#floor_carriers": 1,
+    "tests/behaviour/test_every_entry_point_runs_at_the_floor.py#floor_carriers": 1,
     # #929's census of what runs before any floor: it returns the missing
     # half, and its liveness half hands that to `decline_if_shrunken`.
-    "tests/lib/test_launch.py#before_any_floor": 1,
+    "tests/behaviour/test_every_entry_point_runs_at_the_floor.py#before_any_floor": 1,
     # The reader itself. It lists the modules it is about to parse, and a
     # module listed and not on disk would end the enumeration at it --
     # this case reporting no offender because it read almost nothing.

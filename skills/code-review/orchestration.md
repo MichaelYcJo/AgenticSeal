@@ -112,7 +112,7 @@ So a run ends with a **verifying round**, and three things define it.
 | Property | What |
 |---|---|
 | When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
-| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule. Beside that diff, the round reads `routing.md`, the three frame files, `gaps.md`, `changelog.md` and `pr.md` whole at its target commit, as a finding round does (`agents/proofer.md` *Rules*, the rule opening **Every round reads the work item's records that state the present**) |
+| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule. Beside that diff, the round reads `routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md` and, where one stands, `pr.<lang>.md` whole at its target commit, as a finding round does (`agents/proofer.md` *Rules*, the rule opening **Every round reads the work item's records that state the present**) |
 | Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
 The new units in that diff are the exception: they have been reviewed by
@@ -263,7 +263,12 @@ the body file the sealer read, and open the pull request with it,
 `gh pr create --body-file <that file>`. That run changes no copied line and
 writes the seal mark where the repository turns it on
 (`docs/forms/the-guarantee.md` *The guarantee*). CI runs then, and again on
-every push to it.
+every push to it. The pull request's check reads the body against what
+`seal pr-body` composes at HEAD and refuses a ready pull request at each
+line where they differ (`skills/code-review/scripts/chain_check.py#body`).
+Such a refusal asks for `seal pr-body` once more on the body file, and the
+file sent to the open pull request with the `gh api -X PATCH` call below.
+No sealer runs for it, since the body is not a record.
 
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and
@@ -318,7 +323,12 @@ as checked.
 branch, never by a rebase.** A work item's branch is not rebased for any
 reason, because a rebase orphans the commits every round record names on
 its `target:` line. The orchestrator merges once, after the branch whose
-changes conflict with this one has landed on the base. Where the merge
+changes conflict with this one has landed on the base. Where a work item's
+`frame/plan.md` *Overlap with the release* orders this branch after another
+work item, the orchestrator merges the base into this branch once that item
+has landed, before this branch's next round, or before its broad run where
+its rounds have ended. So a round already owed reads the resolution, and
+the broad run and the sealer read the merged tree once. Where the merge
 resolved a conflict in a file outside the work item's records, the
 orchestrator spawns a verifying round on that resolution, because the chain
 check lists the branch's commits with `--no-merges` and reads no merge commit
@@ -389,13 +399,15 @@ and writes `guarantee.md` (`docs/forms/the-guarantee.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
-**The pull request body's first part is the work item's `pr.md`, which
-the orchestrator writes once the build's last phase has closed and commits
-before it spawns the first round.** Where no round runs, the orchestrator
-writes it before the broad run. Every round reads `pr.md` at its target,
-so no sentence of the body reaches the sealer unread. `pr.md` holds the
-`Closes` and `Part of` lines, quotes of the work item's records, and the
-attribution line. A quote stands on its own line, in a list item or in a
+**The pull request body's first part is the work item's `pr.md`, opened by
+its `pr.<lang>.md` where the two language rows differ, as the paragraph on
+`pr.<lang>.md` below says. The orchestrator writes `pr.md` once the build's
+last phase has closed and commits it before it spawns the first round.**
+Where no round runs, the orchestrator writes it before the broad run.
+Every round reads `pr.md` at its target, so no sentence of the body
+reaches the sealer unread. `pr.md` holds the `Closes` and `Part of` lines,
+quotes of the work item's records, and the attribution line. A quote stands
+on its own line, in a list item or in a
 table cell, and its coordinate follows it: the record's path, then the
 heading, row, finding or line that holds the sentence. The orchestrator
 opens that record when it writes the quote. `pr.md` holds no sentence of
@@ -413,31 +425,49 @@ and the table goes to the flow log's comment alone
 (`skills/verify/orchestration.md` *Measure the segment, and feed the flow
 log*).
 
+**Where `config.md`'s `Commit and pull request language` and `Record
+language` rows name different languages, the orchestrator writes
+`pr.<lang>.md` beside `pr.md` and commits the two together.** It holds each
+quote of `pr.md` rendered in `Commit and pull request language`, in
+`pr.md`'s order, each followed by the coordinate the quote carries in
+`pr.md`, and nothing else: no `Closes`, `Part of` or attribution line,
+which `pr.md` already holds in that language, and no sentence of the
+orchestrator's own. `<lang>` is the orchestrator's spelling for the file's
+own language, the commit language, such as `ko`. `seal pr-body` writes it
+above `pr.md`, so the body opens in the team's language, and every round
+reads it whole beside `pr.md`. Where the two rows name one language, no
+`pr.<lang>.md` is written.
+
 **Where a fix pass or a fold changes a sentence that `pr.md` quotes, the
-orchestrator rewrites the quote and commits it before it spawns the next
-round.** A round finding located in `pr.md` is the orchestrator's to
-repair, since no crafter writes `pr.md`: the orchestrator commits the
+orchestrator rewrites the quote, and its rendering in `pr.<lang>.md` where
+one stands, and commits both before it spawns the next round.** A round
+finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's to
+repair, since no crafter writes either: the orchestrator commits the
 repair before the fix pass, and the pass's close block reads
 `fixed <that commit>`, as for a finding located in a frame file. Before each
 spawn of the sealer, the orchestrator opens each quote's source at HEAD and
 finds the quote there verbatim, runs of whitespace collapsed. A quote it
-does not find there is rewritten from its source and committed before the
-spawn.
+does not find there is rewritten from its source, with its rendering where
+one stands, and committed before the spawn.
 
 **You write the pull request body after `trail/gate.md` is committed,
 because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
-`<item>` is the work item's directory. It writes `pr.md`, then the line
+`<item>` is the work item's directory. It writes `pr.<lang>.md` where the
+two language rows differ, then `pr.md`, then the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the records'
 copy, as `docs/forms/the-guarantee.md` *The guarantee* states, and replaces
 whatever the file held. On exit 1 its `refused:` lines name a record's file
-and line, `pr.md` among the records: repair that record, commit it, and run
+and line, `pr.md` and `pr.<lang>.md` among the records, or a language row
+`config.md` lacks: repair that record or write that row, commit it, and run
 the command again. Edit nothing in the file; the sealer's
 `seal pr-body --check` withholds on a part above the line that is not
-`pr.md` and on a part below it that is not the records' text at HEAD.
+`pr.<lang>.md` and `pr.md` as the rows ask for them, and on a part below it
+that is not the records' text at HEAD, and the pull request's check refuses
+the body sent from it on the same lines.
 **Run the command again before every later spawn of the sealer and before
-every `gh api -X PATCH` of the body**, so the body holds `pr.md` and the
-records as the repair left them.
+every `gh api -X PATCH` of the body**, so the body holds `pr.md`, its
+`pr.<lang>.md` where one stands, and the records as the repair left them.
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
 language each part is in.
 

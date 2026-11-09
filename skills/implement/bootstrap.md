@@ -40,11 +40,13 @@ orchestrator writes nothing into it and offers neither shared option, because
 directory, at `$(git rev-parse --git-common-dir)/seal/`, as the local option
 below creates it, and the orchestrator says so in one line: *"`<repo>/seal/` is this
 project's own, so the plugin keeps its root under the git directory, in local
-mode"*. The one call of step 1 then carries the `Broad gate` question.
+mode"*. The one call of step 1 then carries the `Broad gate` question and
+the two language questions.
 
-1. The orchestrator asks once, with one `AskUserQuestion` carrying **two
-   questions**: the mode and the `Broad gate` row. The mode's three options
-   come first, in this order:
+1. The orchestrator asks once, with one `AskUserQuestion` carrying **four
+   questions**: the mode, the `Broad gate` row, `Commit and pull request
+   language` and `Record language`. The mode's three options come first, in
+   this order:
 
    - **shared, records only** (the default, listed first) creates
      `<repo>/seal/` in the tree; the routing commit made before the first
@@ -125,6 +127,17 @@ mode"*. The one call of step 1 then carries the `Broad gate` question.
    refusal lands after the review rounds have settled. `/agentic:config`
    fills the row in at any point before then.
 
+   **The third and fourth questions are the two language rows, with the
+   recent titles beside them.** `seal pr-body` refuses to compose a pull
+   request body where either row is absent, so first setup asks for both
+   while the session is already stopped. Beside the two questions the
+   orchestrator shows the titles `gh pr list --state all --limit 10`
+   returned and names the language it reads them in; where the list is
+   empty or `gh` cannot read it, it says so. The option listed first in
+   each question is the titles' language where one was read, and `English`
+   otherwise. Each question says in one line what its row governs, taken
+   from that row's section of `templates/setup/config.md`.
+
    **Then record the answer: run `seal mode`, with no argument.** It writes
    the `Mode` row from where the folder is and moves nothing. The row is the
    only trace that anybody was asked: left unwritten, a root somebody chose
@@ -135,9 +148,16 @@ mode"*. The one call of step 1 then carries the `Broad gate` question.
    runs `seal pr-checks install` and relays the line it prints; an exit 1 is
    that line's refusal, and the setup goes on without the checks.
 
-   **Then the `Broad gate` row, where a command was chosen.** `seal mode` has
-   just written a config file carrying `Mode` and nothing else, so the
-   orchestrator adds the row the way `/agentic:config` step 3 adds one: the
+   **Then the two language rows.** `seal mode` has just written a config
+   file carrying `Mode` and nothing else, and the comment at its head
+   already names `templates/setup/config.md` as the documentation of every
+   row. So the orchestrator adds the two rows to that file's table, each
+   as `| <row> | <answer> |`, as rows alone with no prose copied beside
+   them.
+
+   **Then the `Broad gate` row, where a command was chosen.** The file
+   carries `Mode` and the two language rows, so the orchestrator adds the
+   `Broad gate` row the way `/agentic:config` step 3 adds one: the
    row **and the prose under `## Broad gate` down to but not including
    `### What is refused, and what stays allowed`**, taken from
    `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md`. The two lists and the criterion
@@ -175,4 +195,8 @@ answers a question in a batch has no reason to expect a way back to it.
 Ask only here. A repository that has a `seal/` carrying the marker at either
 place, `<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been
 through this: the mode is read from where the folder is, and asking again is the
-nagging this plugin exists to avoid.
+nagging this plugin exists to avoid. The two language rows are the one
+exception, and only where either is missing: the batch of
+`skills/implement/orchestration.md` *Orchestrator: what needs a person is
+asked in one batch, before the first edit* asks for them before a work
+item's first edit.

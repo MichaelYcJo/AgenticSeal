@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""seal pr-body: a pull request body, the work item's `pr.md` and then the
-part its other records hold, copied from them.
+"""seal pr-body: a pull request body, the work item's first part, its
+`pr.<lang>.md` where the two language rows differ and its `pr.md`, and then
+the part its other records hold, copied from them.
 
   seal pr-body <item> --body <file>           write the body
   seal pr-body <item> --body <file> --check   say whether it is still theirs
@@ -17,11 +18,12 @@ section opens with a line of `FIXED` naming its source, and a record that is
 not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
-the plugin's icon at the tag of the plugin's version, stands between
-`HEADING` and the fold where `seal/config.md`'s `Pull request seal mark`
+the plugin's icon at the default branch of the plugin's repository, stands
+between `HEADING` and the fold where `seal/config.md`'s `Pull request seal mark`
 row reads `yes` and the work item's `guarantee.md` reads `sealed` at HEAD,
 as `seal_mark` reads them. Its address is built from the plugin's manifest,
-which is read and never written. It carries no record text, and `--check`
+which is read and never written, and names no version, so two releases of
+the plugin compose one line (#1452). It carries no record text, and `--check`
 composes it the same way, so the sealer's check, run before its own
 verdict exists, reads a part with no mark from that run. The row and HEAD
 are read in the work item's own checkout, and in the working directory's
@@ -30,12 +32,21 @@ where the item sits under the common git directory. A row other than
 address cannot be built from are named on one line opening
 `seal pr-body:` and change no exit code.
 
-The body opens with the work item's `pr.md`, the orchestrator's part,
-written as its bytes stand, and `HEADING` follows it on its own line. The
-orchestrator commits `pr.md` before the first round, so every round reads
-it, and a body file's earlier text is replaced whole; a line of `pr.md`
-equal to `HEADING` is refused at its line, and so is a work item with no
-`pr.md`. The copy stands below that line in one
+The body opens with the orchestrator's part, its files written as their
+bytes stand, and `HEADING` follows it on its own line (#1453). The part is
+composed from `seal/config.md`'s `Commit and pull request language` and
+`Record language` rows, read as the mark row is and compared with case
+folded. Where they name different languages, the part is the work item's
+one file matching `pr.*.md` beside `pr.md`, the quotes of `pr.md` rendered
+in the commit language, then `pr.md`; where they name one language, it is
+`pr.md`, then any such file in name order. The file's middle part names its
+language for a person and is read by nothing here. The orchestrator commits
+the files before the first round, so every round reads them, and a body
+file's earlier text is replaced whole. Both forms refuse at `config.md`
+where either row is absent, empty or refused, at the work item's directory
+where the rows differ and it holds no such file or more than one, at a
+file's line where it equals `HEADING`, and at `pr.md` where it is not
+there. The copy stands below that line in one
 `<details>` fold, whose `<summary>` names the copy and is followed by a
 blank line so the Markdown inside renders, and nothing inside it is folded
 again. The squash commit keeps the fold's tags as text. `frame/design.md`
@@ -68,7 +79,10 @@ Limits, stated here and not guarded:
 - In local mode the records sit under the git directory, so a reader of the
   pull request cannot open the paths the generated part names. The copied
   text still stands in the body.
-- A body edited on GitHub after the pull request opens is read by nobody.
+- A body edited on GitHub after the pull request opens is read by the pull
+  request's check, `chain_check.py#body`, through `compared`, where the
+  workflow runs on `edited`. In local mode nothing is committed for that
+  check to read, so nothing reads such a body.
 - The `details` tag reading reads characters, not GitHub's rendering. A tag
   GitHub renders as text is refused too where it is spelt as a tag outside a
   code span and a comment: in a table cell, after a backslash, in an indented
@@ -84,20 +98,23 @@ Limits, stated here and not guarded:
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
 
-Exit: 0 written, or under `--check` the part above the heading is `pr.md`'s
-lines and the part below it what the records give; 1 refused and nothing
-written, each cause on a line that opens
-with `refused:` naming the body file by its name, or a record by its path
-under the `seal/` root, and the line; 2 the arguments are unusable,
+Exit: 0 written, or under `--check` the part above the heading is the lines
+of the files the rows ask for, in their order, and the part below it what
+the records give; 1 refused and nothing written, each cause on a line that
+opens with `refused:` naming the body file by its name, or a record or
+`config.md` by its path under the `seal/` root, and the line; 2 the
+arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
 """
 
 import argparse
 import difflib
+import fnmatch
 import html
 import importlib.util
 import json
 import os
+import posixpath
 import re
 import sys
 
@@ -159,8 +176,8 @@ except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
 READER = CHAIN.SHARED_READER
 OPTIN = ROUTING.optin
 
-# The line that ends the orchestrator's part, `pr.md`, and opens the
-# generated one.
+# The line that ends the orchestrator's part, `first_part`'s files, and
+# opens the generated one.
 HEADING = "## From the records"
 # The fold the generated part's sections stand in, opened under `HEADING`
 # and ended on the part's last line.
@@ -188,9 +205,35 @@ ROUND_DIR = OPTIN.ROUNDS
 GATE = OPTIN.GATE
 GAPS = OPTIN.GAPS
 QUESTIONS = OPTIN.QUESTIONS
-# The body's first part, which `read_own` reads and no section copies.
+# The orchestrator's own file of the body's first part, which `read_own`
+# reads and no section copies.
 OWN_PART = OPTIN.PR
 NO_OWN_PART = "is not there; the orchestrator writes it before the first round"
+
+# #1453: the two rows `first_part` composes the first part from, read through
+# `lib/config.py#declared_value` as `MARK_ROW` is, and the translated file
+# beside `pr.md` the rows ask for where they name different languages: a
+# file matching `TRANSLATED`, whose middle part nothing reads.
+COMMIT_ROW = "Commit and pull request language"
+RECORD_ROW = "Record language"
+TRANSLATED = "pr.*.md"
+# The root's `config.md` by its path from a work item's directory, which
+# stands at `<root>/threads/<id>`: where a cause about a row stands.
+ROOT_CONFIG = "../../" + CONFIG.CONFIG
+NO_ROW = (
+    "names no language in a `{row}` row; `templates/setup/config.md` *{row}* "
+    "says what the row governs, and the orchestrator asks for it before the "
+    "first edit"
+)
+NO_TRANSLATION = (
+    f"`{COMMIT_ROW}` reads `{{commit}}` and `{RECORD_ROW}` reads `{{record}}`, "
+    f"and no `pr.<lang>.md` stands beside `{OWN_PART}`; the orchestrator writes "
+    "it before the first round"
+)
+TRANSLATIONS = (
+    f"holds {{count}} files matching `{TRANSLATED}`, {{names}}, and one body has "
+    "one translation"
+)
 # The phase records' names, in the shape of `routing.py#ROUND_RE`.
 PHASE_RE = re.compile(r"phase-(\d+)\.md")
 # What a table line opens with: a line outside a fence whose first
@@ -232,7 +275,7 @@ MARK_ROW = "Pull request seal mark"
 MARK_ON = "yes"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
 MANIFEST_NAME = ".claude-plugin/plugin.json"
-MARK_FIELDS = ("repository", "version", "icon")
+MARK_FIELDS = ("repository", "icon")
 MARK = '<img src="{src}" alt="{alt}" width="{width}">'
 MARK_ALT = "Sealed"
 MARK_WIDTH = 128
@@ -292,7 +335,8 @@ FIXED = (
 class Refused(ValueError):
     """What the generator will not copy or write, as `causes`: one
     `(where, line, why)` each, `where` a record's path under the work item,
-    `""` for the work item's directory or None for the body file, and `line`
+    `ROOT_CONFIG` for the root's `config.md`, `""` for the work item's
+    directory or None for the body file, and `line`
     1-based, or 0 where the cause is the whole file."""
 
     def __init__(self, causes):
@@ -351,28 +395,27 @@ def read_item(item):
     return texts
 
 
-def read_own(item):
-    """The text of `pr.md` in the work item's directory ITEM, the body's
-    first part, as its bytes stand, with a line end after its last line
-    where it has none, so `HEADING` after it stands on its own line.
-    Refused at `pr.md` where it is not there or not UTF-8 text, and at its
-    line where a line equals `HEADING`, since the body would split there."""
-    path = os.path.join(item, OWN_PART)
+def read_own(item, name=OWN_PART):
+    """The text of NAME, `pr.md` where none is given, in the work item's
+    directory ITEM, a file of the body's first part, as its bytes stand,
+    with a line end after its last line where it has none, so what follows
+    it stands on its own line. Refused at NAME where it is not there or not
+    UTF-8 text, and at its line where a line equals `HEADING`, since the
+    body would split there."""
+    path = os.path.join(item, name)
     if not os.path.isfile(path):
-        raise Refused([(OWN_PART, 0, NO_OWN_PART)])
+        raise Refused([(name, 0, NO_OWN_PART)])
     try:
         with open(path, encoding="utf-8", newline="") as handle:
             text = handle.read()
     except (OSError, UnicodeDecodeError) as exc:
-        raise Refused(
-            [(OWN_PART, 0, f"cannot be read as UTF-8 text ({exc})")]
-        ) from None
+        raise Refused([(name, 0, f"cannot be read as UTF-8 text ({exc})")]) from None
     for i, line in enumerate(READER.gfm_lines(text)):
         if line == HEADING:
             raise Refused(
                 [
                     (
-                        OWN_PART,
+                        name,
                         i + 1,
                         f"reads `{HEADING}`, the line the body's two parts split at",
                     )
@@ -383,18 +426,82 @@ def read_own(item):
     return text
 
 
-def _seal_at_head(item, root):
+def first_part(item, root):
+    """`[(name, text)]`, the files of the body's part above `HEADING` for the
+    work item's directory ITEM in the repository at ROOT, in their order,
+    each as `read_own` reads it (#1453).
+
+    The two language rows are read from the root's `config.md` through
+    `lib/config.py#declared_value`, in the same checkout `seal_mark` reads,
+    and compared with case folded. Where they name different languages,
+    the work item's one file matching `TRANSLATED` comes first, then
+    `pr.md`; where they name one language, `pr.md` comes first, then each
+    such file in name order. Refused at the root's `config.md`, one cause
+    per row, where a row is absent, empty or refused, a file no row can be
+    read from among them; and on the work item's directory where the rows
+    differ and it holds no such file, or more than one."""
+    home = OPTIN.home_at(root)
+    values, causes = [], []
+    for row in (COMMIT_ROW, RECORD_ROW):
+        value, refused = CONFIG.declared_value(home, row)
+        if refused is not None:
+            # A file that will not read is named once, by the path `_place`
+            # gives, not by this machine's.
+            path = CONFIG.config_path(home) + " "
+            cause = (
+                ROOT_CONFIG,
+                0,
+                refused[len(path) :] if refused.startswith(path) else refused,
+            )
+        elif not value:
+            cause = (ROOT_CONFIG, 0, NO_ROW.format(row=row))
+        else:
+            values.append(value)
+            continue
+        if cause not in causes:
+            causes.append(cause)
+    if causes:
+        raise Refused(causes)
+    own = read_own(item)
+    found = sorted(
+        name
+        for name in os.listdir(item)
+        if fnmatch.fnmatchcase(name, TRANSLATED)
+        and os.path.isfile(os.path.join(item, name))
+    )
+    commit, record = values
+    if commit.casefold() == record.casefold():
+        return [(OWN_PART, own)] + [(name, read_own(item, name)) for name in found]
+    if not found:
+        raise Refused([("", 0, NO_TRANSLATION.format(commit=commit, record=record))])
+    if len(found) > 1:
+        names = ", ".join(f"`{name}`" for name in found[:-1]) + f" and `{found[-1]}`"
+        raise Refused([("", 0, TRANSLATIONS.format(count=len(found), names=names))])
+    return [(found[0], read_own(item, found[0])), (OWN_PART, own)]
+
+
+def _names(parts):
+    """The files of PARTS, `first_part`'s, in order, for a line a person reads."""
+    return " then ".join(f"`{name}`" for name, _text in parts)
+
+
+def _seal_at_head(item, root, base=None):
     """`(sealed, note)`: whether `guarantee.md` in the work item's directory
     ITEM is sealed at HEAD of the repository at ROOT, the way
     `chain_check.py#guarantee` asks it. Its blocks are read through
     `lib/fields.py` with no refusal, the newest reads `sealed`, and
     `chain_check.py#follows` finds the commit its `target:` names to be
-    HEAD or followed only by the closing records, against the base the same
-    line names. NOTE names what ROOT cannot read the seal against: a base
-    it cannot resolve, where `follows` would list no later commit, and a
-    sealed commit its HEAD does not hold, as in a checkout other than the
-    work item's. Every other way of not being sealed is the sealer's and
-    the pull request check's to name."""
+    HEAD or followed only by the closing records. The base `follows` reads
+    against is BASE where it is given, the base the pull request's check
+    runs against and its guarantee arm reads, so a commit the base gained
+    after the seal, which the merge commit CI checks out reaches, is not
+    read as following the seal (#1452); and otherwise the base the same
+    `target:` line names, which is right at the branch head, where no later
+    base commit is reachable. NOTE names what ROOT cannot read the seal
+    against: a base it cannot resolve, where `follows` would list no later
+    commit, and a sealed commit its HEAD does not hold, as in a checkout
+    other than the work item's. Every other way of not being sealed is the
+    sealer's and the pull request check's to name."""
     try:
         with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
             text = handle.read()
@@ -407,7 +514,7 @@ def _seal_at_head(item, root):
     if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.SEALED:
         return False, None
     target = newest.fields[CHAIN.FIELDS.TARGET].match
-    base = target["base"]
+    base = base or target["base"]
     if (
         CHAIN.git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
         is None
@@ -425,9 +532,12 @@ def _seal_at_head(item, root):
 
 def _mark_line(manifest):
     """`(line, note)`: the mark built from the plugin's manifest at MANIFEST,
-    its `repository`, `/raw/v`, its `version`, `/` and its `icon` with a
-    leading `./` dropped, escaped; or None and the sentence naming what the
-    manifest lacks."""
+    its `repository`, `/raw/HEAD/` and its `icon` with a leading `./`
+    dropped, escaped; or None and the sentence naming what the manifest
+    lacks. The address names no version: the installed plugin writes the
+    body and the pull request check's copy composes it again, and the two
+    can be different releases, so the line reads nothing they differ in
+    (#1452). GitHub resolves `HEAD` to the repository's default branch."""
     try:
         with open(manifest, encoding="utf-8") as handle:
             fields = json.load(handle)
@@ -443,21 +553,22 @@ def _mark_line(manifest):
     icon = fields["icon"]
     if icon.startswith("./"):
         icon = icon[2:]
-    src = f"{fields['repository']}/raw/v{fields['version']}/{icon}"
+    src = f"{fields['repository']}/raw/HEAD/{icon}"
     return MARK.format(
         src=html.escape(src), alt=html.escape(MARK_ALT), width=MARK_WIDTH
     ), None
 
 
-def seal_mark(item, root, manifest=None):
+def seal_mark(item, root, manifest=None, base=None):
     """`(line, note)` for the work item's directory ITEM in the repository
     at ROOT: the mark `_composed` writes under `HEADING`, or None, and the
     one sentence `seal pr-body` prints about it, or None (#1204).
 
     The mark is written where `MARK_ROW` in the root's `config.md`, read
     through `lib/config.py#declared_value`, reads `MARK_ON` exactly
-    and the work item is sealed at HEAD (`_seal_at_head`). An absent or
-    empty row, and a work item not sealed at HEAD, write no mark and say
+    and the work item is sealed at HEAD against BASE where it is given, and
+    otherwise against the guarantee's own base (`_seal_at_head`). An absent
+    or empty row, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused row, a base that does not resolve,
     a sealed commit HEAD does not hold, and a manifest the address cannot be
     built from, at MANIFEST or the
@@ -470,7 +581,7 @@ def seal_mark(item, root, manifest=None):
         return None, None
     if value != MARK_ON:
         return None, ROW_NOT_YES.format(value=value)
-    sealed, note = _seal_at_head(item, root)
+    sealed, note = _seal_at_head(item, root, base)
     if not sealed:
         return None, note
     return _mark_line(manifest or MANIFEST)
@@ -766,31 +877,56 @@ def _source(pair):
     return f"`{line}` at `{source[0]}:{source[1]}`"
 
 
-def _first_part(head, own):
+def _run(named):
+    """The lines NAMED, a run a differ added or took out, each as it is
+    named, in one phrase: a refusal names every line of the run, so a body
+    lacking the mark and the blank line under it names the mark (#1452)."""
+    return ", then ".join(named)
+
+
+def _givers(names):
+    """`(files, one)`: NAMES, the files a run of lines comes from, each once
+    in order and joined by `and`, and whether they are one file, which the
+    verb after them agrees with."""
+    named = list(dict.fromkeys(names))
+    return " and ".join(named), len(named) == 1
+
+
+def _first_part(head, parts):
     """`(None, line, why)` for each line where HEAD, the part of the body
-    above `HEADING`, is not OWN's lines, `pr.md`'s, counted from the body's
-    first line."""
+    above `HEADING`, is not the lines of PARTS, `first_part`'s files in
+    order, counted from the body's first line; each line PARTS give is
+    named with the file that gives it."""
     said = READER.gfm_lines(head)
-    given = READER.gfm_lines(own)
+    given, owner = [], []
+    for name, text in parts:
+        lines = READER.gfm_lines(text)
+        given += lines
+        owner += [name] * len(lines)
     causes = []
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
-    for tag, i1, _i2, j1, _j2 in matcher.get_opcodes():
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == "replace":
-            why = f"reads `{said[i1]}`; {OWN_PART} gives `{given[j1]}`"
+            why = f"reads `{said[i1]}`; {owner[j1]} gives `{given[j1]}`"
         elif tag == "delete":
-            why = f"reads `{said[i1]}`, which {OWN_PART} does not give"
+            run = _run(f"`{line}`" for line in said[i1:i2])
+            files, one = _givers(name for name, _text in parts)
+            why = f"reads {run}, which {files} {'does' if one else 'do'} not give"
         elif tag == "insert":
-            why = f"lacks `{given[j1]}`, which {OWN_PART} gives"
+            run = _run(f"`{line}`" for line in given[j1:j2])
+            files, one = _givers(owner[j1:j2])
+            why = f"lacks {run}, which {files} {'gives' if one else 'give'}"
         else:
             continue
         causes.append((None, i1 + 1, why))
     return causes
 
 
-def _check(below, body, own):
+def _check(below, body, parts):
     """Refused, at each line where it differs, counted from BODY's first
-    line, where the part of BODY above `HEADING` is not OWN's lines, the
-    text `read_own` gives, or the part below it is not BELOW's lines."""
+    line, where the part of BODY above `HEADING` is not the lines of PARTS,
+    the files `first_part` gives, or the part below it is not BELOW's
+    lines."""
     if body is None:
         raise Refused(
             [(None, 0, "is not there; `seal pr-body <item> --body <file>` writes it")]
@@ -798,17 +934,18 @@ def _check(below, body, own):
     head, generated = split(body)
     said = READER.gfm_lines(generated)
     given = [line for line, _source in below]
-    # The lines above the part: `pr.md`'s, and `HEADING`'s own.
+    # The lines above the part: the first part's, and `HEADING`'s own.
     offset = len(READER.gfm_lines(head, keepends=True)) + 1
-    causes = _first_part(head, own)
+    causes = _first_part(head, parts)
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
-    for tag, i1, _i2, j1, _j2 in matcher.get_opcodes():
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == "replace":
             why = f"reads `{said[i1]}`; the records give {_source(below[j1])}"
         elif tag == "delete":
-            why = f"reads `{said[i1]}`, which the records do not give"
+            run = _run(f"`{line}`" for line in said[i1:i2])
+            why = f"reads {run}, which the records do not give"
         elif tag == "insert":
-            why = f"lacks {_source(below[j1])}"
+            why = f"lacks {_run(_source(pair) for pair in below[j1:j2])}"
         else:
             continue
         causes.append((None, offset + i1 + 1, why))
@@ -816,32 +953,59 @@ def _check(below, body, own):
         raise Refused(causes)
 
 
+def compared(item, body, root, manifest=None, base=None):
+    """`(note, causes)` for BODY, a pull request body's text or None where
+    there is none, against what `seal pr-body` composes for the work item's
+    directory ITEM in the repository at ROOT: the first part `first_part`
+    gives from the two language rows, `HEADING`, the seal mark `seal_mark`
+    gives from MANIFEST or the plugin's own, read against BASE where it is
+    given, and the records' copy. NOTE is `seal_mark`'s sentence, or None;
+    CAUSES are the `(where, line, why)` of `Refused`, a record's, the root's
+    `config.md`'s or the body's, empty where BODY is that composition.
+    `main --check` and the pull request's check, `chain_check.py#body`, both
+    call this, so the body is read by one code path at the sealer and at
+    the pull request (#1452)."""
+    mark, note = seal_mark(item, root, manifest, base)
+    name = os.path.basename(os.path.normpath(os.path.abspath(item)))
+    try:
+        below = _composed(name, read_item(item), mark)
+        _check(below, body, first_part(item, root))
+    except Refused as refused:
+        return note, refused.causes
+    return note, []
+
+
 def _place(where, line, item, body):
     """Where a cause stands, with no machine path in it: the body file BODY
     by its name, and a record by its path under the `seal/` root, whatever
-    path the work item ITEM was given by. The sealer copies the first
-    `refused:` line into a `guarantee.md` that is committed."""
+    path the work item ITEM was given by, `ROOT_CONFIG` as the root's
+    `config.md`. The sealer copies the first `refused:` line into a
+    `guarantee.md` that is committed."""
     if where is None:
         path = os.path.basename(body)
     else:
         name = os.path.basename(os.path.normpath(os.path.abspath(item)))
-        path = "/".join(p for p in (OPTIN.HOME, OPTIN.WORK_ITEMS, name, where) if p)
+        path = posixpath.normpath(
+            "/".join(p for p in (OPTIN.HOME, OPTIN.WORK_ITEMS, name, where) if p)
+        )
     return f"{path}:{line}" if line else path
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="seal pr-body",
-        description=f"Write a pull request body: the work item's `{OWN_PART}`, "
-        f"the line `{HEADING}`, and the part its other records hold; or check it.",
+        description="Write a pull request body: the work item's `pr.<lang>.md` "
+        f"where the two language rows differ, its `{OWN_PART}`, the line "
+        f"`{HEADING}`, and the part its other records hold; or check it.",
     )
     parser.add_argument("item", help="the work item's directory")
     parser.add_argument("--body", required=True, metavar="FILE", help="the body file")
     parser.add_argument(
         "--check",
         action="store_true",
-        help=f"write nothing; exit 1 where the part above the heading is not "
-        f"`{OWN_PART}`'s or the part below it not the records'",
+        help="write nothing; exit 1 where the part above the heading is not "
+        "the files the language rows ask for or the part below it not the "
+        "records'",
     )
     args = parser.parse_args(argv)
     if not os.path.isdir(args.item):
@@ -854,28 +1018,44 @@ def main(argv=None):
     # where git finds no checkout and `repo_root` answers "", so its
     # checkout is the working directory's.
     root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
+    if args.check:
+        try:
+            note, causes = compared(args.item, _body(args.body), root)
+            # The files the part above the heading was compared with, named
+            # on the line that says it matches.
+            parts = [] if causes else first_part(args.item, root)
+        except Refused as refused:
+            note, causes = None, refused.causes
+        for where, line, why in causes:
+            print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
+        if causes:
+            return 1
+        said = f"seal pr-body: {note}\n" if note else ""
+        print(
+            f"{said}matches: {args.body} is {_names(parts)} above `{HEADING}` "
+            "and the records' text below it"
+        )
+        return 0
     mark, note = seal_mark(args.item, root)
     said = f"seal pr-body: {note}\n" if note else ""
     try:
         below = _composed(name, read_item(args.item), mark)
-        own = read_own(args.item)
-        if args.check:
-            _check(below, _body(args.body), own)
-            print(
-                f"{said}matches: {args.body} is `{OWN_PART}` above `{HEADING}` "
-                "and the records' text below it"
-            )
-            return 0
+        parts = first_part(args.item, root)
         try:
             with open(args.body, "w", encoding="utf-8", newline="") as handle:
-                handle.write(own + HEADING + "\n" + _joined(below))
+                handle.write(
+                    "".join(text for _name, text in parts)
+                    + HEADING
+                    + "\n"
+                    + _joined(below)
+                )
         except OSError as exc:
             raise Refused([(None, 0, f"cannot be written ({exc})")]) from None
     except Refused as refused:
         for where, line, why in refused.causes:
             print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
         return 1
-    print(f"{said}wrote: {args.body} from {args.item}'s `{OWN_PART}` and records")
+    print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0
 
 

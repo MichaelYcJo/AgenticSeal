@@ -281,7 +281,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
 | `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame's `## Removes` names once, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
-| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, which `seal pr-body` writes above the records' copy: the `Closes` and `Part of` lines, quotes of the other records, each with its coordinate, and the attribution line | once the build's last phase has closed, before the first round; rewritten where a fix pass or a fold changes a sentence it quotes |
+| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.md`'s two language rows differ, which `seal pr-body` writes above the records' copy: the `Closes` and `Part of` lines, quotes of the other records, each with its coordinate, and the attribution line. `pr.<lang>.md` beside it holds each of those quotes rendered in `Commit and pull request language` | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the rows differ; both rewritten where a fix pass or a fold changes a sentence it quotes |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped
@@ -307,8 +307,9 @@ decision settled while writing the code, a constraint found only by trying,
 each `seen red` and mutation claim, every departure from the frame, a
 removal the frame's `## Removes` did not name among them, and anything the
 next phase needs. What the phase was asked is the plan's Delivers cell, and
-a scope a spawn gives beyond it is a decision the orchestrator folds into
-the plan before the spawn, so the record copies neither. A discovery reaches
+a scope a spawn gives beyond it is a decision the framer folds into the
+plan before the spawn (`skills/implement/orchestration.md` *Orchestrator:
+the order inside a ticket*), so the record copies neither. A discovery reaches
 the next phase only through that section or through the orchestrator
 retyping it into the next spawn prompt, and the second goes missing without
 a trace when the orchestrator does not.

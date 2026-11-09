@@ -204,9 +204,11 @@ class Test_main:
         """Guards #1044 S14 and #1148 S6: each sealer case's pull request
         body, its placeholders filled as its scaffold fills its records, is
         what `seal pr-body --check` accepts over the records that scaffold
-        writes, its `pr.md` among them; the part above `HEADING` ends with
-        `Closes #101.` and holds the README sentence the tree lacks in the
-        untrue-body case alone."""
+        writes, its `pr.md` among them, in a repository holding the
+        scaffold's `seal/` root, whose `config.md` gives the language rows
+        the first part is composed from (#1453); the part above `HEADING`
+        ends with `Closes #101.` and holds the README sentence the tree
+        lacks in the untrue-body case alone."""
         rc = load_script("rule_cases")
         sealer = [(n, c) for n, c in rc.cases() if c["agent"] == "sealer"]
         assert sealer
@@ -216,10 +218,11 @@ class Test_main:
             folder = "/".join(folder.split("/")[:3])
             work_item = folder.split("/")[-1]
             body = files[rc.EVIDENCE.format(item=work_item) + "/pr-body.md"]
-            item = tmp_path / name / work_item
+            subprocess.run(["git", "init", "-q", str(tmp_path / name)], check=True)
+            item = tmp_path / name / folder
             for path, text in files.items():
-                if path.startswith(folder + "/"):
-                    record = item / path[len(folder) + 1 :]
+                if path.startswith("seal/"):
+                    record = tmp_path / name / path
                     record.parent.mkdir(parents=True, exist_ok=True)
                     record.write_text(text, encoding="utf-8")
             path = tmp_path / name / "pr-body.md"

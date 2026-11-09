@@ -147,8 +147,8 @@ def test_the_broad_command_rides_the_question_that_already_stops_the_session():
         "the bootstrap opens more than one AskUserQuestion, which is the "
         "second wait this rides the first to avoid"
     )
-    assert "two questions" in flat(boot), (
-        "the one call is not said to carry both questions"
+    assert "four questions" in flat(boot), (
+        "the one call is not said to carry all four questions"
     )
     # #1430: the plugin's `Stop` hook draws the stamp, so the call carries no
     # third question and no command installs a hook.
@@ -157,6 +157,29 @@ def test_the_broad_command_rides_the_question_that_already_stops_the_session():
     assert BROAD_ROW in boot, "the bootstrap does not ask for the row at all"
     assert boot.index(BROAD_ROW) > boot.index("**local**"), (
         "the row is asked before the mode's options are even laid out"
+    )
+
+
+LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
+
+
+def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them():
+    """#1453. `seal pr-body` refuses a repository without either language
+    row, so first setup asks for both in the call that already stops the
+    session, with the recent pull request titles shown beside the question,
+    and writes the answers into the stub `seal mode` wrote. What each option
+    says its row governs is the proofer's to read."""
+    boot = flat(bootstrap())
+    for row in LANGUAGE_ROWS:
+        assert f"`{row}`" in boot, f"first setup does not ask for `{row}`"
+    # The command whose titles the orchestrator shows beside the question,
+    # the one `skills/commit-pr-convention/SKILL.md` opens with.
+    assert "gh pr list --state all --limit 10" in boot, (
+        "the language questions show no history to answer them from"
+    )
+    # The paragraph that writes the answered rows into the stub.
+    assert "**Then the two language rows.**" in boot, (
+        "nothing writes the answered rows into the file `seal mode` wrote"
     )
 
 

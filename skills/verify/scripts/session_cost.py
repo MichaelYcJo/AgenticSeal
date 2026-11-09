@@ -29,6 +29,9 @@ Usage:
   session_cost.py --segments <t> --post --says <path|->
                                          post that reading, and what it says,
                                          to the repository's measurement log
+  session_cost.py --work-item <dir> [--post --says <path|->]
+                                         one row per segment of that work item
+                                         no comment on the open log names
 
 **Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
 *Measure the segment, and feed the flow log* wrote the posting procedure out in full —
@@ -68,6 +71,7 @@ import argparse
 import bisect
 import contextlib
 import datetime as dt
+import importlib
 import io
 import itertools
 import json
@@ -1145,8 +1149,12 @@ def analyse(calls, turns, delegated=()):
 
     by_family = defaultdict(lambda: [0, 0.0])
     unnamed = defaultdict(float)
+    # Each call's family, kept beside it for `slowest`, where a posted body
+    # names a call by its family because it carries no command text (#1439).
+    kinds = []
     for call in calls:
         key = family(call["ran"]) if call["tool"] == "Bash" else call["tool"]
+        kinds.append(key)
         seconds = (call["end"] - call["start"]).total_seconds()
         by_family[key][0] += 1
         by_family[key][1] += seconds
@@ -1179,12 +1187,12 @@ def analyse(calls, turns, delegated=()):
         "command_s": command_time,
         "model_s": model_time,
         "calls": len(calls),
-        # `call_turns` is `tools_per_turn`'s own denominator, returned so the
-        # printed report can name it. It is NOT the token line's turn count:
-        # that one is every assistant message carrying `usage`, over the whole
-        # run, where this one is the messages of THIS transcript that sent a
-        # call. Printing the two without saying so let a reader divide one
-        # into the other — 1.08 tools per turn beside 659 turns and 211 calls.
+        # `call_turns` is `tools_per_turn`'s own denominator, returned beside
+        # it in `--json`. It is NOT the token line's turn count: that one is
+        # every assistant message carrying `usage`, over the whole run, where
+        # this one is the messages of THIS transcript that sent a call.
+        # Printing the two without saying so let a reader divide one into the
+        # other — 1.08 tools per turn beside 659 turns and 211 calls.
         "call_turns": len(turns),
         "tools_per_turn": len(calls) / max(len(turns), 1),
         "gap_mean_s": (sum(gaps) / len(gaps)) if gaps else 0.0,
@@ -1196,8 +1204,9 @@ def analyse(calls, turns, delegated=()):
                 {
                     "seconds": (c["end"] - c["start"]).total_seconds(),
                     "command": c["command"][:110],
+                    "family": kind,
                 }
-                for c in calls
+                for c, kind in zip(calls, kinds, strict=True)
                 if c["tool"] not in delegated
             ),
             key=lambda d: -d["seconds"],
@@ -1873,10 +1882,6 @@ def measure_segments(path, calls):
             },
         )
         reading["own_file"] = True
-    # #640. Every row carries its kind and its bar, in both branches above,
-    # so the page grades from the same rows `--json` prints.
-    for row in reading["rows"]:
-        row.update(segment_kind(row["agent"]))
     return reading
 
 
@@ -1885,12 +1890,10 @@ def token_totals(paths):
 
     A TURN here is an assistant message carrying a `usage` block, whether or
     not it carries a tool call. That is NOT `tools_per_turn`'s denominator,
-    which counts only messages carrying a tool_use: the per-segment bars in
-    `docs/running/the-run.md` are calibrated against that ratio, and
-    widening it would move a published threshold without saying so. Two
-    counters, on purpose — a turn that only thought spent tokens the run paid
-    for, and a turn that sent no call is not a turn the batching advisory can
-    read anything into.
+    which counts only messages carrying a tool_use, so the ratio printed
+    since 0.9.4 stays comparable. Two counters, on purpose — a turn that only
+    thought spent tokens the run paid for, and a turn that sent no call adds
+    nothing to how many calls a turn sent.
 
     A message's usage counts ONCE however many rows it is split across, at
     the LARGEST count each field reached: a harness writes one message as one
@@ -2105,7 +2108,15 @@ def share(part, whole):
     return f"{part / whole * 100:.0f}%" if whole > 0 else "—"
 
 
-def report(data):
+def report(data, commands=True):
+    """The plain reading. With `commands` false it prints no command text:
+    the `slowest` list gives each call's seconds and family, and the `other`
+    note keeps its sentence without the command it would quote. `main` asks
+    for that form where the reading is posted, because a command can hold a
+    path, a heredoc's body or a prompt, and `CONTRIBUTING.md` *House rules*
+    keeps all three on the machine (#1439). These two lines are the only
+    ones in the module that print a command, and the printed reading keeps
+    both."""
     print(f"span          {minutes(data['span_s'])}   ({data['calls']} tool calls)")
     if data["span_s"] == 0:
         print(
@@ -2168,13 +2179,18 @@ def report(data):
         print(
             "              `other` is the largest family and names nothing, so "
             "a runner\n              these patterns do not know reads as no "
-            "such run at all.\n              Slowest command charged there: "
-            f"{data['unnamed'][:76]}"
+            "such run at all."
+            + (
+                f"\n              Slowest command charged there: {data['unnamed'][:76]}"
+                if commands
+                else ""
+            )
         )
 
     print("\nslowest")
     for row in data["slowest"]:
-        print(f"  {row['seconds']:6.0f}s  {row['command'][:88]}")
+        named = row["command"][:88] if commands else row["family"]
+        print(f"  {row['seconds']:6.0f}s  {named}")
 
     print("\nwhere the time could go instead")
     exact, same = data["repeat_exact_s"], data["repeat_same_work_s"]
@@ -2188,29 +2204,6 @@ def report(data):
             f"  repeats            {minutes(same)}  a check re-run for a result "
             f"already produced"
             + (f" ({minutes(exact)} of it identical)" if exact > 0 else "")
-        )
-    # Compared at the two places the ratio is printed to, as `report_grades`
-    # does (#640, round 2's 🟡 8): unrounded, 241 calls over 201 turns (1.199)
-    # printed `batching 1.20 tools per turn` under an advisory the protocol
-    # states as below 1.2, and the `nothing obvious` line went missing beside
-    # it. The verdict moves only for a ratio in [1.195, 1.2), so every reading
-    # outside that band reads as it did and stays comparable with the readings
-    # published since 0.9.4.
-    if round(data["tools_per_turn"], 2) < 1.2:
-        # Above 1 the one-at-a-time claim is one the number no longer
-        # supports — and under per-block counting it never could rise to
-        # contradict it, which is how the claim printed on five straight runs.
-        shape = (
-            "independent calls are going out one at a time"
-            if data["tools_per_turn"] <= 1.0
-            else "most turns send a single call"
-        )
-        print(
-            f"  batching           {data['tools_per_turn']:.2f} tools per turn — "
-            f"{data['calls']:,} calls over "
-            f"{plural(data['call_turns'], 'turn')} that sent one, in this "
-            f"transcript alone; {shape}, and each turn costs "
-            f"{data['gap_mean_s']:.0f}s of model time on top of the command"
         )
     growth = data["context_growth"]
     # `growth[0]` is 0 either because the file could not compute that third --
@@ -2228,7 +2221,7 @@ def report(data):
             f"  context            {growth[0]:,} → {growth[2]:,} input tokens; "
             f"later calls cost more than the same call would have earlier"
         )
-    if same <= 0 and round(data["tools_per_turn"], 2) >= 1.2:
+    if same <= 0:
         print("  nothing obvious — the command time is the command's own cost")
 
 
@@ -2323,8 +2316,7 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
     # Compared at what the `delegated` column prints, `minutes` to one place,
     # so the note never says a minute is not reached beside a `1.0m` cell
     # (#701). Raw against 60, a spawn paired in 59.6 s printed `1.0m` above
-    # *never reaches a minute here — 60s at most*: the cause #640 fixed twice
-    # for the tools-per-turn ratio, on a duration. The note's presence moves
+    # *never reaches a minute here — 60s at most*. The note's presence moves
     # only for a maximum in (57.0, 60) seconds, so it prints at most `57s`.
     if round(delegated_max / 60, 1) < 1.0:
         print(
@@ -2445,39 +2437,6 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
             print(f"  {cycle_label(row):<{LABEL_WIDTH}} {row['description'][:70]}")
 
 
-# #640. Each segment kind's bar on tools per turn, keyed by the basename of
-# the spawn's `subagent_type` after its last `:`, so `agentic:proofer` and
-# `proofer` are one kind. The values are `docs/running/the-run.md`
-# *The per-segment bars*: the protocol's name for the kind,
-# and its bar, or None where the protocol exempts the kind from this ratio.
-#
-# Constants rather than read from the protocol at run time, because this
-# script runs from the installed plugin in repositories that have no such
-# document. `tests/text/test_the_handoff_before_round_one.py` reads both files and
-# turns red when one moves alone.
-#
-# A kind missing from the table has no bar and is UNGRADED, which is not the
-# same as exempt: `sealer` and `tracer` have no measured band, and a number
-# nobody produced is not one to grade them against. The page counts them.
-SEGMENT_BARS = {
-    "proofer": ("reviewing", 1.8),
-    "framer": ("framing", 1.4),
-    "crafter": ("implementing", None),
-}
-
-
-def segment_kind(agent):
-    """A segment's kind and bar, as the two keys every segment row carries.
-
-    `kind` is `""` where no spawn named the row, and `bar` is None for an
-    exempt kind and for a kind the table does not know alike. The page tells
-    those two apart through `SEGMENT_BARS`; a program holding only `--json`
-    cannot, because the table is this script's and not the reading's."""
-    kind = agent.rsplit(":", 1)[-1]
-    _, bar = SEGMENT_BARS.get(kind, ("", None))
-    return {"kind": kind, "bar": bar}
-
-
 def segment_label(row):
     """A segment's name in the printed table.
 
@@ -2593,75 +2552,6 @@ def report_breaches(segments):
         "it. Where the counts\n  part, a child's transcript is missing or a "
         "segment is unnamed for the other\n  reason, and nothing here can tell "
         "which; both numbers print so a reader can."
-    )
-
-
-def report_grades(rows):
-    """#640: each row against its kind's bar, under the table.
-
-    **The bars were policy and nowhere on the page that prints the ratio
-    they judge.** `docs/running/the-run.md` holds one per segment
-    kind, and the one advisory this script printed was the plain reading's
-    blanket `< 1.2` — which reads 1.00 on every well-behaved implementer
-    forever, so nobody acted on it (#197). A segment row knows its kind,
-    because it was joined to a spawn, so this page can do what the plain
-    reading cannot.
-
-    **A line per row under its bar, and the counts always.** At the bar is
-    meeting it, and the ratio compared is the one printed, to two places, in
-    the table above and on the line: compared unrounded, 79 calls over 44
-    turns (1.7955) printed `1.80 tools per turn against the reviewing bar of
-    1.8`, a line contradicting the row above it (round 1's 🟡 1). Every
-    count prints even when nothing is under, which is `report_segments`' own
-    rule: a grade that silently matched nothing reads exactly like a run
-    whose rows all met their bars. Exempt and ungraded are counted apart,
-    because one is the protocol's judgment and the other is a kind nobody has
-    measured a band for.
-
-    It refuses nothing and the exit code stays 0. The bar is a lens, and a
-    grade that failed a run would be the refusal threshold the protocol says
-    it never is."""
-    graded = [row for row in rows if row["bar"] is not None and row["numbers"]]
-    under = [
-        row for row in graded if round(row["numbers"]["tools_per_turn"], 2) < row["bar"]
-    ]
-    exempt = [
-        row
-        for row in rows
-        if row["kind"] in SEGMENT_BARS and SEGMENT_BARS[row["kind"]][1] is None
-    ]
-    ungraded = len(rows) - len(graded) - len(exempt)
-    print("\n  Tools per turn against each kind's bar")
-    for row in under:
-        name, bar = SEGMENT_BARS[row["kind"]]
-        print(
-            f"    {segment_label(row).strip()}  "
-            f"{row['numbers']['tools_per_turn']:.2f} tools per turn against the "
-            f"{name} bar of {bar:g}"
-        )
-    if not graded:
-        print("    no row here has a bar to be graded against")
-    elif not under:
-        print("    every graded row meets its kind's bar")
-    known = " and ".join(
-        f"{kind} {bar:g} ({name})"
-        for kind, (name, bar) in SEGMENT_BARS.items()
-        if bar is not None
-    )
-    print(
-        f"\n  {len(graded)} graded, {len(exempt)} exempt, {ungraded} ungraded.\n"
-        f"  The bars are {known}. A crafter row is\n  exempt: an edit-test loop is "
-        "serial, and the protocol judges it on `repeats = 0`\n  rather than on "
-        "this ratio. A row with no bar — a kind not listed, a row no spawn\n  "
-        "named — is ungraded, and so is a graded kind's segment that made no "
-        "call."
-    )
-    print(
-        "\n  The bar is a lens for rounds of ordinary size and never a refusal "
-        "threshold, so\n  this page refuses nothing and exits 0. A small round "
-        "has few independent batches\n  to rise on. A proofer's verifying round "
-        "is exempt by the protocol, and this page\n  cannot tell one from a "
-        "finding round, so a reader applies that exemption by hand."
     )
 
 
@@ -2789,44 +2679,7 @@ def report_segments(segments, path):
             "fifteen minutes or more.\n  Read such a span as a stretch of work "
             "plus a wait, never as work."
         )
-    print(
-        f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}"
-        f"{'tokens':>14}{'context':>12}"
-    )
-    for row in rows:
-        numbers, tokens = row["numbers"], row["tokens"]
-        # A dash, not a zero. A later slice of a resumed file has no token
-        # figure of its own -- the file's rides its first slice -- and a zero
-        # there reads as a stretch that spent nothing.
-        spent = (
-            f"{tokens['output'] + tokens['cache_write'] + tokens['cache_read']:,}"
-            if tokens
-            else "—"
-        )
-        # A dash for a slice that holds no assistant message, for the same
-        # reason: there is no turn, and a zero would read as one that sent
-        # nothing.
-        largest = row["largest_context"]
-        read = f"{largest:,}" if largest is not None else "—"
-        if not numbers:
-            # A real reading, not a gap in the table: a segment that read and
-            # thought and called nothing has no span and still spent what the
-            # run paid for. `report_tokens` was split out for the same shape.
-            print(
-                f"  {segment_label(row):<{LABEL_WIDTH}}"
-                f"{'no paired call':>30}{spent:>14}{read:>12}"
-            )
-            continue
-        print(
-            f"  {segment_label(row):<{LABEL_WIDTH}}"
-            f"{minutes(numbers['span_s']):>8}"
-            f"{numbers['calls']:>7}"
-            f"{numbers['tools_per_turn']:>8.2f}"
-            f"{numbers['gap_mean_s']:>6.0f}s"
-            f"{spent:>14}"
-            f"{read:>12}"
-        )
-    report_grades(rows)
+    segment_table(rows)
     report_breaches(segments)
     # A column that looks summable and is not is #200's failure shape in a
     # new place, so the page says which of the two it is rather than leaving
@@ -2884,6 +2737,49 @@ def report_segments(segments, path):
         "or listed a directory was\n  charged to `other`, and there was no "
         "`read` row. The repeats lines did not\n  move."
     )
+
+
+def segment_table(rows):
+    """The per-segment table: its column header, then one line per row.
+    `report_segments` prints it under a run's counts, and `report_work_item`
+    under one work item's (#1439)."""
+    print(
+        f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}"
+        f"{'tokens':>14}{'context':>12}"
+    )
+    for row in rows:
+        numbers, tokens = row["numbers"], row["tokens"]
+        # A dash, not a zero. A later slice of a resumed file has no token
+        # figure of its own -- the file's rides its first slice -- and a zero
+        # there reads as a stretch that spent nothing.
+        spent = (
+            f"{tokens['output'] + tokens['cache_write'] + tokens['cache_read']:,}"
+            if tokens
+            else "—"
+        )
+        # A dash for a slice that holds no assistant message, for the same
+        # reason: there is no turn, and a zero would read as one that sent
+        # nothing.
+        largest = row["largest_context"]
+        read = f"{largest:,}" if largest is not None else "—"
+        if not numbers:
+            # A real reading, not a gap in the table: a segment that read and
+            # thought and called nothing has no span and still spent what the
+            # run paid for. `report_tokens` was split out for the same shape.
+            print(
+                f"  {segment_label(row):<{LABEL_WIDTH}}"
+                f"{'no paired call':>30}{spent:>14}{read:>12}"
+            )
+            continue
+        print(
+            f"  {segment_label(row):<{LABEL_WIDTH}}"
+            f"{minutes(numbers['span_s']):>8}"
+            f"{numbers['calls']:>7}"
+            f"{numbers['tools_per_turn']:>8.2f}"
+            f"{numbers['gap_mean_s']:>6.0f}s"
+            f"{spent:>14}"
+            f"{read:>12}"
+        )
 
 
 def newest(directory):
@@ -3028,8 +2924,12 @@ def read_says(source):
         return handle.read()
 
 
-def post(reading, says, label):
+def post(reading, says, label, found=None):
     """Post `reading` and `says` to the one open issue carrying `label`.
+
+    `found` is `open_log(label)`'s answer where the caller has already asked
+    it, as `--work-item` has to before it reads the log's comments, so the
+    log is looked up once.
 
     Returns the exit code, and the direction of every refusal is the same one
     `plan.md` states: it refuses rather than posts. A wrong refusal costs one
@@ -3045,7 +2945,7 @@ def post(reading, says, label):
     document beside it, which is the one thing that makes people stop running
     a check.
     """
-    state, payload = open_log(label)
+    state, payload = found or open_log(label)
     if state == UNREADABLE:
         print(
             f"the `{label}` lookup could not run ({payload}), so nothing was "
@@ -3103,8 +3003,34 @@ def post(reading, says, label):
     return 0
 
 
-def emit(args, render, path=None):
+def said(args):
+    """The sentence `--says` names, or None after saying it gave none.
+
+    An empty reading posts a fence with nothing above it, so it is refused
+    the way a missing `--says` is."""
+    says = read_says(args.says)
+    if not says.strip():
+        print(
+            f"`--says {args.says}` gave no reading, so nothing was posted. "
+            f"The numbers are this script's and what they say is not, and an "
+            f"empty reading posts a fence with nothing above it — which is "
+            f"the judgment nobody made that `--says` exists to refuse"
+        )
+        return None
+    return says
+
+
+def emit(args, render, path=None, read_from=()):
     """Print the report, or capture it and post it. Returns the exit code.
+
+    **A posted body names each transcript it was read from, on a
+    `# <file name>` line of its own, before the report** (#1439). `path` is
+    the transcript given and `read_from` the others a row was measured from,
+    each `--segments` row's file among them. A file is named once however
+    many rows it gave, and by its name alone. Those lines are what tells a
+    reader of the open log which transcripts a comment already holds, so the
+    line is written in this one spelling. The printed report carries no such
+    line.
 
     **What is printed locally and what is posted are not the same text, and
     the transcript's path is the difference.** A transcript lives at
@@ -3136,24 +3062,21 @@ def emit(args, render, path=None):
 
     **The residual, stated rather than left to be found:** this replaces the
     ONE path the reading was taken over. A future report line printing some
-    other absolute path would not be covered, and today none does — a segment
-    row's transcript is stored by `measure_segments` as `os.path.relpath`
-    against the file it was measured beside, or as its basename where it is
-    the agent's own file, so every row label is already relative.
+    other absolute path would not be covered. Today none reaches the body: a
+    segment row's transcript is stored by `measure_segments` as
+    `os.path.relpath` against the file it was measured beside, or as its
+    basename where it is the agent's own file, so every row label is already
+    relative. The plain reading's `slowest` list and `other` note print
+    command text, with whatever path a command names, so `main` asks `report`
+    for the form without it wherever the reading is posted (#1439).
     """
     if not args.post:
         render()
         return 0
     # Before the render, because a refusal that renders first spends the work
     # to throw it away, and `--says -` answers at EOF either way.
-    says = read_says(args.says)
-    if not says.strip():
-        print(
-            f"`--says {args.says}` gave no reading, so nothing was posted. "
-            f"The numbers are this script's and what they say is not, and an "
-            f"empty reading posts a fence with nothing above it — which is "
-            f"the judgment nobody made that `--says` exists to refuse"
-        )
+    says = said(args)
+    if says is None:
         return 1
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
@@ -3163,7 +3086,276 @@ def emit(args, render, path=None):
         short = os.path.basename(str(path))
         for form in (os.path.abspath(str(path)), str(path)):
             body = body.replace(form, short)
+    names = [] if path is None else [os.path.basename(str(path))]
+    for transcript in read_from:
+        name = os.path.basename(str(transcript))
+        if name not in names:
+            names.append(name)
+    body = "".join(f"# {name}\n" for name in names) + body
     return post(body, says, args.label)
+
+
+# --- one work item's readings, posted by the release (#1439) -----------------
+#
+# A segment's reading is posted by the session that watched it finish, and a
+# session forgets. The transcript stays on the machine that ran the segment,
+# so the release can post what no session posted: it finds the work item's
+# segments by their spawn prompts, leaves out each one a comment on the open
+# log already names on a `# <file name>` line, and posts the rest as one
+# comment. Where no transcript on the machine names the work item, the
+# comment says so, so the log does not close empty because a session forgot.
+
+# The line `emit` writes into a posted fence, in its one spelling.
+POSTED_NAME = re.compile(r"# (\S+\.jsonl)")
+
+# The characters a key may not touch on either side, so `fix/12-a` is not
+# found inside `fix/12-a-b` and a directory name is not found inside a longer
+# one. A `/`, a space or a full stop may touch it.
+KEY_EDGE = "A-Za-z0-9_-"
+
+
+def lib_module(name):
+    """`lib/<name>.py` beside this plugin's `skills/`, imported on first use,
+    so a reading that is not `--work-item` imports nothing from `lib/`."""
+    lib = os.path.normpath(
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib"
+        )
+    )
+    if lib not in sys.path:
+        sys.path.insert(0, lib)
+    return importlib.import_module(name)
+
+
+def work_item_keys(directory):
+    """`(name, branch)`: the directory's own name and the `Branch` row its
+    `routing.md` answers, read through `lib/routing.py`. A directory whose
+    `routing.md` names no branch is refused, because a guessed key would
+    count another work item's segments."""
+    name = os.path.basename(os.path.abspath(directory))
+    try:
+        with open(
+            os.path.join(directory, "routing.md"), encoding="utf-8", errors="replace"
+        ) as handle:
+            declared = lib_module("routing").parse(handle.read())
+    except OSError:
+        declared = None
+    if not declared:
+        sys.exit(
+            f"{os.path.join(name, 'routing.md')} names no branch, so the "
+            f"segments of {name} cannot be told from another work item's. "
+            f"Nothing was read"
+        )
+    return name, declared["branch"]
+
+
+def segment_transcripts():
+    """Every `*.jsonl` under a `subagents/` directory beneath `projects_dir()`,
+    in every project directory, sorted."""
+    root = projects_dir()
+    found = []
+    for directory, _dirs, files in os.walk(root):
+        if "subagents" in os.path.relpath(directory, root).split(os.sep):
+            found += [os.path.join(directory, f) for f in files if f.endswith(".jsonl")]
+    return sorted(found)
+
+
+def spawn_prompt(path):
+    """The text of a transcript's first `type: user` entry, which is the
+    prompt its agent was spawned with, or "" where there is none. The file is
+    read up to that entry and no further."""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                try:
+                    row = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(row, dict) or row.get("type") != "user":
+                    continue
+                message = row.get("message")
+                content = message.get("content") if isinstance(message, dict) else None
+                if isinstance(content, str):
+                    return content
+                if isinstance(content, list):
+                    return "\n".join(
+                        block["text"]
+                        for block in content
+                        if isinstance(block, dict)
+                        and isinstance(block.get("text"), str)
+                    )
+                return ""
+    except OSError:
+        return ""
+    return ""
+
+
+def names_key(text, key):
+    """Whether TEXT names KEY as a whole token."""
+    pattern = rf"(?<![{KEY_EDGE}]){re.escape(key)}(?![{KEY_EDGE}])"
+    return re.search(pattern, text) is not None
+
+
+def log_comments(number):
+    """`(bodies, None)` for every comment on issue NUMBER, every page, or
+    `(None, why)` where they could not be read.
+
+    `gh api --paginate` writes each page's JSON array after the last one
+    rather than one merged array, so the arrays are decoded one after
+    another (`frame/questions.md` Q1)."""
+    code, out, err = run_gh(
+        ["api", "--paginate", f"repos/{{owner}}/{{repo}}/issues/{number}/comments"]
+    )
+    if code != 0:
+        where = "`gh` is not on PATH" if code is None else f"exit {code}"
+        # exempt from splitlines: a tool's output
+        first = (err or out or "").strip().splitlines()
+        return None, where + (f": {first[0]}" if first else "")
+    decoder, text, at, bodies = json.JSONDecoder(), out or "", 0, []
+    while True:
+        while at < len(text) and text[at].isspace():
+            at += 1
+        if at >= len(text):
+            return bodies, None
+        try:
+            page, at = decoder.raw_decode(text, at)
+        except ValueError as exc:
+            return None, f"a page is not the JSON it asked for: {exc}"
+        if not isinstance(page, list):
+            return None, "a page is not a list of comments"
+        bodies += [
+            c["body"]
+            for c in page
+            if isinstance(c, dict) and isinstance(c.get("body"), str)
+        ]
+
+
+def posted_names(bodies):
+    """The transcript names the comments already hold: each line inside a
+    fenced block that is exactly `# <name>.jsonl`. A comment without such a
+    line names nothing, and a name in a comment's prose names nothing either:
+    only the line `emit` writes is read."""
+    blocks = lib_module("blocks")
+    names = set()
+    for body in bodies:
+        lines = blocks.gfm_lines(body)
+        fenced, _open = blocks.fence_only(lines)
+        for index in fenced:
+            matched = POSTED_NAME.fullmatch(lines[index])
+            if matched:
+                names.add(matched.group(1))
+    return names
+
+
+def report_work_item(reading):
+    """One work item's reading: the counts, then the `# <file name>` line of
+    each transcript in it, then one row per segment, one per slice for a
+    resumed agent. A row is named by its file, as `--segments` names an
+    agent's own file, because no spawn is in view to name it."""
+    name, branch = reading["name"], reading["branch"]
+    print(
+        f"{plural(reading['walked'], 'segment transcript')} walked on this "
+        f"machine, {len(reading['named'])} naming {name} or {branch}"
+    )
+    print(
+        f"  {len(reading['in_log'])} already in the log, "
+        f"{len(reading['left'])} in this reading"
+    )
+    if reading["log_note"]:
+        print(f"  {reading['log_note']}")
+    if not reading["named"]:
+        print(
+            f"\nno segment transcript on this machine names {name} or "
+            f"{branch}: its segments ran on another machine, or their "
+            "transcripts are gone"
+        )
+        return
+    if not reading["left"]:
+        print("\nevery segment transcript that names it is already in the log")
+        return
+    print()
+    for transcript in reading["left"]:
+        print(f"# {os.path.basename(transcript)}")
+    segment_table(reading["rows"])
+
+
+def work_item(args):
+    """`--work-item <dir>`: print, or post, the readings of the work item's
+    segments that no comment on the open log names. Returns the exit code,
+    which is `post`'s, and 0 where nothing is due."""
+    name, branch = work_item_keys(args.work_item)
+    says = None
+    if args.post:
+        says = said(args)
+        if says is None:
+            return 1
+    found = open_log(args.label)
+    state, payload = found
+    in_log, log_note = set(), None
+    if state == ONE_OPEN:
+        bodies, why = log_comments(payload)
+        if bodies is None:
+            if args.post:
+                print(
+                    f"the comments on #{payload} could not be read ({why}), so "
+                    f"nothing was posted: every segment would read as unposted, "
+                    f"and a reading posted twice is a comment a person deletes"
+                )
+                return 1
+            log_note = (
+                f"the comments on #{payload} could not be read ({why}), so "
+                f"nothing was left out"
+            )
+        else:
+            in_log = posted_names(bodies)
+    else:
+        # With `--post`, `post` answers this state below and posts nothing.
+        log_note = (
+            f"no open `{args.label}` log was read ({state}), so nothing was left out"
+        )
+    walked = segment_transcripts()
+    named = [
+        t
+        for t in walked
+        if (prompt := spawn_prompt(t))
+        and (names_key(prompt, name) or names_key(prompt, branch))
+    ]
+    left = [t for t in named if os.path.basename(t) not in in_log]
+    if args.post and named and not left:
+        print(
+            f"every one of the {plural(len(named), 'segment transcript')} naming "
+            f"{name} or {branch} is already named on #{payload}, so nothing was "
+            f"posted"
+        )
+        return 0
+    rows = []
+    for transcript in left:
+        rows += segment_slices(
+            transcript,
+            {
+                "agent": "",
+                "description": "",
+                "named": False,
+                "transcript": os.path.basename(transcript),
+            },
+        )
+    reading = {
+        "name": name,
+        "branch": branch,
+        "walked": len(walked),
+        "named": named,
+        "in_log": [t for t in named if t not in left],
+        "left": left,
+        "log_note": log_note,
+        "rows": rows,
+    }
+    if not args.post:
+        report_work_item(reading)
+        return 0
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        report_work_item(reading)
+    return post(buffer.getvalue(), says, args.label, found)
 
 
 def main():
@@ -3192,7 +3384,31 @@ def main():
         f"{ROLLING_LABEL}). The durable cross-version log is reachable the "
         f"same way, under its own label",
     )
+    parser.add_argument(
+        "--work-item",
+        metavar="DIR",
+        help="the readings of the segments whose spawn prompt names this work "
+        "item directory or its routing.md's branch, leaving out each one a "
+        "comment on the open log already names",
+    )
     args = parser.parse_args()
+
+    if args.work_item:
+        # A reading of its own, over transcripts it finds itself, so beside
+        # another reading one of the two would be silently dropped.
+        for given, flag in (
+            (args.transcript, "a transcript"),
+            (args.latest, "--latest"),
+            (args.spawns, "--spawns"),
+            (args.segments, "--segments"),
+            (args.json, "--json"),
+        ):
+            if given:
+                parser.error(
+                    f"--work-item and {flag} ask for different readings: "
+                    f"--work-item finds the work item's transcripts itself. "
+                    f"Run them separately"
+                )
 
     if args.post and not args.says:
         parser.error(
@@ -3207,6 +3423,8 @@ def main():
             "to the log, the other prints it for a program to read. Run them "
             "separately"
         )
+    if args.work_item:
+        return work_item(args)
 
     path = args.transcript
     if args.latest:
@@ -3275,7 +3493,12 @@ def main():
     # the six rows are a reading somebody asked for by name.
     segments = measure_segments(path, calls) if args.segments or args.json else None
     if args.segments and not args.json:
-        return emit(args, lambda: report_segments(segments, path), path)
+        return emit(
+            args,
+            lambda: report_segments(segments, path),
+            path,
+            [row["transcript"] for row in segments["rows"]],
+        )
     # The whole run, not the transcript that was named: a token count covering
     # one segment is not comparable with one that covered a run, and #170 asks
     # for the row to be one command rather than one command per transcript.
@@ -3328,7 +3551,7 @@ def main():
                     "work and the waits between them — `--segments` prints one "
                     "row\nper stretch\n"
                 )
-            report(data)
+            report(data, commands=not args.post)
         else:
             print(
                 "no paired tool call in this transcript, so there is no time to "
