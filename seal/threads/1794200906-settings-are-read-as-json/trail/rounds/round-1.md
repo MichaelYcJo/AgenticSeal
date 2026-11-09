@@ -66,6 +66,11 @@ frame/design.md:326-327, inside the `to:` value:
     을 쓰고 지웁니다.
 ```
 
+```seal
+verdict: fixed f8d33094
+answer: Applied the paste-ready text at changelog.md:4 and :10, pr.md:8's quote, README.md, README.ko.md, templates/setup/config.md's conversion paragraph, skills/implement/bootstrap.md, frame/plan.md *Operational impact* and both design `to:` values. Before applying it I checked the list of commands that stop: `seal pact` was not among the round's probes, so I ran the tree's `bin/seal pact` in a scratch pact repository holding an unconverted `config.md`, and it exited 2 naming `seal mode` (executed). `git grep` for the same claim found three more statements of it, fixed in the same commit. `frame/plan.md:11` said a trailing comma makes "every `seal` command" exit 2. The template's paragraph on an unreadable file listed four commands as "a command a person runs" and now names the five that stop and the three that read defaults. `skills/config/SKILL.md:108-111` said "a command prints it and runs or writes nothing"; it now points at the template, because restating the list there failed `tests/text/test_no_passage_is_pasted_into_a_second_file.py` against README.md. `1577b86e` rewraps that paragraph. `lib/config.py:358-373` is unchanged: its docstrings state the defaults the code reads, and the finding's fix rewrites only the sentences that overreached.
+```
+
 ### 2. Four shipped texts an agent reads still call a setting a row
 
 ```seal
@@ -95,6 +100,11 @@ skills/writing-style/outside-the-review.md:34:
 
 skills/settle/SKILL.md:296:
 such a directory on its own, and no configuration key names one. Which
+```
+
+```seal
+verdict: fixed b5715ae5
+answer: Applied the four lines as given. I then listed every "row" and "행" word in shipped markdown with `git grep -nwE 'rows?|행'` over agents, skills, templates, both READMEs, seal/README.md, CONTRIBUTING.md, CLAUDE.md and hooks, 361 lines, and read each one. One more line meant a setting: `agents/sealer.md:84`, "the quotes rendered in the commit language where the rows differ", which now says keys. Every other hit names a table that still exists, such as routing.md, a plan's phases, a panel or the anchor table. I listed every "row" word in the shipped Python under lib, skills, .github and hooks (891 lines) and read the hits in the files that read a setting. Each names a panel row, an anchor row or a row of an old `config.md`. Three test docstrings and one comment said "where the rows differ" or "naming the two rows" for the language keys, in `tests/skills/test_pr_body.py`, `tests/skills/test_chain_check.py` and `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`, and now say keys. The Python list is a sample: I read hits only in the settings readers, and test identifiers such as `test_seal.py`'s ids "no row" and "two rows" stay, as gaps.md *Not done* says of identifiers.
 ```
 
 ### 3. Design *Rule changes* leaves six `docs/` lines that call a setting a row, five of them in `docs/running/the-broad-gate.md`
@@ -145,6 +155,11 @@ On the wording, the five lines speak of the exit status of the command the gate 
     directory.
 ```
 
+```seal
+verdict: fixed 97b56c17
+answer: Added the five operations after the last `docs/running/the-broad-gate.md` entry, and removed gaps.md's third *Not done* paragraph in the same commit. To check that each `from:` stands in its section, I ran the tree's `bin/seal settle --draft --released-at HEAD` in a scratch worktree at `97b56c17`, and it placed 98 of 99 operations (executed). The five new ones were placed: the drafted `docs/running/the-broad-gate.md` holds no "row" meaning the command, and `docs/checks/the-fold.md` reads "no configuration key names such a". The one unplaced operation is another work item's, `1794188289-the-body-reads-in-the-teams-language/frame/design.md:226`. The scratch worktree was then removed.
+```
+
 ### 4. Both READMEs send a person upgrading to an unnamed release note for the three hand-written files, and name none of their targets
 
 ```seal
@@ -176,6 +191,11 @@ README.ko.md:110-112:
 
 The fix pass applies this after finding 1's README edit, which rewrites the sentence before it.
 
+```seal
+verdict: fixed 0ed9487e
+answer: Applied both READMEs' text after finding 1's edit. The English text begins at "Three files no command converts", because finding 1's sentence now ends the paragraph's first part, and the Korean text is as given. `templates/setup/parity.json` stands in the tree (read), and `tests/behaviour/test_release_hygiene.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/text` pass over both READMEs (executed).
+```
+
 ### 5. A byte order mark reads in `config.json` and is refused in `parity.json` and `pact-paths.json`
 
 ```seal
@@ -205,6 +225,11 @@ BOM = chr(0xFEFF)  # NAME NOT IN TREE: added by this fix
     except ValueError as exc:
 ```
 
+```seal
+verdict: fixed 9d094d40
+answer: Added `lib/config.py#BOM` and took it off the text before the parse in `baseline_commit` and in `pact_check.py#path_map`, as the paste-ready code gives. Each fix has a new case, `tests/lib/test_config.py#Test_baseline_commit::test_reads_past_a_byte_order_mark_an_editor_wrote` and `tests/skills/test_pact_check.py#Test_path_map::test_reads_past_a_byte_order_mark_an_editor_wrote`. Both were run before the fix and failed on "Unexpected UTF-8 BOM" (executed). After the commit, `bin/seal mutate` put back the unstripped parse in each unit, and each verdict was red, exit 0 (executed). The two docstrings and `skills/legacy-parity/SKILL.md` *The migration config* now say the mark reads. The first commit wrote the mark as an invisible literal character. `1577b86e` spells it `chr(0xFEFF)` in the constant and in both cases, and both mutation runs were repeated after it, red again (executed).
+```
+
 ### 6. The changelog says the walker "reads records only", and two of its callers read policy documents and rule files
 
 ```seal
@@ -225,6 +250,11 @@ split it reads through. Its callers read records and policy documents: the pact 
 ```
 
 The `lib/tables.py` line is reflowed to the file's width when it is applied.
+
+```seal
+verdict: fixed c239f2ad
+answer: Applied the changelog item and `pr.md:6`'s quote as given, and reflowed the `lib/tables.py` docstring to its width. `git grep` for the same claim found `frame/plan.md` A12, "the walker's lines ..., which read records", which now says they read records and policy documents and no setting. Every quote in `pr.md` stands word for word in `changelog.md` after the fix (executed: a substring check of each quote).
+```
 
 ## Confirmations
 
