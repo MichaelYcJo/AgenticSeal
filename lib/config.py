@@ -50,6 +50,10 @@ import os
 import re
 
 CONFIG = "config.json"
+# The byte order mark an editor may write first. `config_pairs` reads past it
+# by decoding `utf-8-sig`; `baseline_commit` and `pact_check.py#path_map` are
+# handed text already decoded, and take it off before they parse.
+BOM = "﻿"
 # The file an earlier release wrote, a `| Item | Value |` table: refused
 # where it stands without a `config.json`, and converted by `seal mode`.
 OLD_CONFIG = "config.md"
@@ -596,9 +600,10 @@ def baseline_commit(text):
     Text that will not parse as JSON, a top level that is not an object, no
     such key, the key written twice, a value that is not a string, and a
     string that is not a SHA alone, the template's `<SHA>` among them, are
-    each a `why` that reads after the file's name."""
+    each a `why` that reads after the file's name. A byte order mark an
+    editor wrote reads, as it does in `config.json`."""
     try:
-        parsed = json.loads(text, object_pairs_hook=Members)
+        parsed = json.loads(text.removeprefix(BOM), object_pairs_hook=Members)
     except ValueError as exc:
         return None, f"does not parse as JSON ({exc})"
     if not isinstance(parsed, Members):

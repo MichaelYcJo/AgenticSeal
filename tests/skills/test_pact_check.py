@@ -257,6 +257,17 @@ class Test_path_map:
     def test_accepts_no_map_as_an_empty_one(self, world):
         assert pc.path_map(config, str(world.home)) == ({}, [])
 
+    def test_reads_past_a_byte_order_mark_an_editor_wrote(self, world):
+        """S2's byte order mark, for the map as for `config.json`: the map
+        is read as `utf-8`, so the mark reaches the parser, and a mark an
+        editor wrote refuses no entry. Seen red before the fix: "does not
+        parse as JSON (Unexpected UTF-8 BOM ...)"."""
+        write(world.home, MAP, "﻿" + config_json((MAP_B, "/x/b")))
+        assert pc.path_map(config, str(world.home)) == (
+            {"example.com/org/b": "/x/b"},
+            [],
+        )
+
     @pytest.mark.parametrize(
         "members, read, said",
         [

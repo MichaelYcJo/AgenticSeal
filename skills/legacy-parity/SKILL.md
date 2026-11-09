@@ -30,7 +30,8 @@ A migrating repository declares itself in `seal/parity.json`, written from
 root is `<repo>/seal/`; in local mode nothing under the root is committed.
 The file's presence is the declaration: it turns on the three-way judgment
 below and lets the tracer fetch what the original does, and deleting it
-makes the project greenfield again.
+makes the project greenfield again. A byte order mark an editor wrote at
+its head reads, as it does in `config.json`.
 
 `Original repo` and `Module` name the original and the path within it, or
 `whole repo`. `Baseline commit` holds the SHA the original's coordinates

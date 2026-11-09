@@ -678,6 +678,17 @@ class Test_baseline_commit:
         reads = chain.parity_readers()[0]
         assert reads.baseline_commit(parity_file(sha)) == (sha, None)
 
+    def test_reads_past_a_byte_order_mark_an_editor_wrote(self):
+        """S2's byte order mark, for `parity.json` as for `config.json`:
+        the parity arm reads the file as `utf-8`, so the mark reaches the
+        parser, and a mark an editor wrote is no refusal of every ready pull
+        request. Seen red before the fix: "does not parse as JSON
+        (Unexpected UTF-8 BOM ...)"."""
+        assert config.baseline_commit("﻿" + parity_file(BASELINE)) == (
+            BASELINE,
+            None,
+        )
+
     @pytest.mark.parametrize(
         "text, why",
         [

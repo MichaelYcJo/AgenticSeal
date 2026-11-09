@@ -385,7 +385,8 @@ def path_map(config, home_dir):
     is empty or not a string, and a remote written as two keys, compared
     normalised, of which neither is read. The parse keeps every member
     (`lib/config.py#Members`), so a key written twice is seen twice. The
-    entries it can use are used."""
+    entries it can use are used. A byte order mark an editor wrote reads,
+    as it does in `config.json`."""
     where = os.path.join(home_dir, MAP)
     if not os.path.lexists(where):
         return {}, []
@@ -393,7 +394,9 @@ def path_map(config, home_dir):
     if text is None:
         return {}, ["is there and could not be read"]
     try:
-        parsed = json.loads(text, object_pairs_hook=config.Members)
+        parsed = json.loads(
+            text.removeprefix(config.BOM), object_pairs_hook=config.Members
+        )
     except ValueError as exc:
         return {}, [f"does not parse as JSON ({exc}), so no entry of it is read"]
     if not isinstance(parsed, config.Members):
