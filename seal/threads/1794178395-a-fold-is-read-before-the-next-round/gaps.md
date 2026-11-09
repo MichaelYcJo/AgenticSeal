@@ -8,4 +8,4 @@
 
 ## Not done
 
-nothing
+The version-move clause of `skills/implement/orchestration.md` *Orchestrator: how the work is routed*, in the paragraph opening *Which branch the pull request lands on is decided with the routing question*, "move is a decision the framer folds into that section" (*Scope* item 3), is held by no case: put back to "orchestrator folds the move into that section", it leaves every module that names the file green (executed, `seal mutate`, round 2's fix pass). No case reads that paragraph at all, #1443's sentences in it included, so a pin there starts a case for the paragraph rather than joining a group, which the frame's *Scope* item 6 does not ask for. Who answers: the orchestrator, by a route of its choosing.
