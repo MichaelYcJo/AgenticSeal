@@ -197,9 +197,10 @@ one row each.
 ends with one `Seal-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
 directory's name under `seal/threads/`, the one the branch's `routing.md` sits
-in; `no work item` is the value where the ladder judged the change belongs
-to no work item. The trailer stands in the message's last paragraph, beside any
-other trailer, so git's trailer parser reads it:
+in; `no work item` is the value a commit carries where it belongs to no
+work item, as under the routing answer `direct`. The trailer stands in the
+message's last paragraph, beside any other trailer, so git's trailer parser
+reads it:
 
 ```
 feat: the orchestrator writes the declaration before the first edit
