@@ -428,6 +428,28 @@ def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
     assert any(ln.startswith(f"{other}/frame/design.md:") for ln in out.splitlines())
 
 
+@pytest.mark.parametrize("package_left", [False, True], ids=["kept", "removed"])
+def test_s3_the_pull_request_that_adds_agentic_seal_is_judged_under_it(
+    package, tmp_path, monkeypatch, capsys, package_left
+):
+    """A merge base with no root reads under the name HEAD gives, so the
+    pull request that adds `agentic-seal/` has its declaration judged,
+    and so it does where the same pull request takes the package's `seal/`
+    out of the tree."""
+    git(package, "switch", "-qc", "feature")
+    mark_root(package / "agentic-seal")
+    write(package, f"{DECLARED}/routing.md", DECLARATION)
+    if package_left:
+        git(package, "rm", "-rq", "seal")
+    commit_everything_as_e(package, "the root")
+    event = tmp_path / "event.json"
+    event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
+    code, out = checked(capsys, package)
+    assert code == 1, out
+    assert NO_GUARANTEE in out, out
+
+
 def test_s3_a_branch_nothing_declares_is_told_to_add_it_under_agentic_seal(
     shared, capsys
 ):
