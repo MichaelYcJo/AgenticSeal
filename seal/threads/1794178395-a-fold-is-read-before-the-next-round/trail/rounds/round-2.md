@@ -90,6 +90,11 @@ seen-red showing of each new pin by contract rule 15.
         assert said in order, f"the order no longer says {said!r}"
 ```
 
+```seal
+verdict: fixed 3f894d7e
+answer: The finding holds. In tests/text/test_the_rules_have_one_owner.py, test_a_decision_after_the_frame_is_folded_into_it now pins each clause of the rejected-decision text. The paste-ready pins were taken with three changes. The lead pin is extended to cover "as a proposal left after the exchange of *The frame is read against the issue at the spawn* does". The row-rewrite pin goes on to "a finding's route or the next spawn's scope,". The version-move pin goes on to the end of the sentence, so the two citations of the rules that give the move and the home to the orchestrator are held too. Each clause was deleted alone by seal mutate after the commit, and each mutant was red on its own pin's assertion message. Round 2's mutants 2 and 3 were re-run word for word, and both are now red (executed). The class was then listed by deleting each sentence this work item added to skills/implement/orchestration.md and skills/implement/SKILL.md, or putting it back to the wording it replaced, run against every module that names those files (executed). Nine sentences had no case reading their meaning; four of the nine went red only on tests/behaviour/test_docs_line_wrap.py, because the mutant left a long line. a4704032 pins eight of them. Six are other clauses of the fold paragraph: its reason, the open list of examples, the orchestrator correcting its row, the one commit, the framer's hand-back sending routing.md and pr.md to the orchestrator, and "a decision's fold is read by the framer that writes it". The seventh is the prevention-home sentence, pinned in test_a_recurring_problem_gets_a_prevention_home. The eighth is the SKILL.md scope sentence, pinned in tests/behaviour/test_a_phase_hands_the_next_one_a_record.py#test_the_skill_names_the_records_one_section. Each of the eight was shown red with only its sentence removed or put back to the removed wording (executed). agents/framer.md's conflict clause from round 1 was also shown red alone (executed). The ninth sentence, the version-move clause of *Orchestrator: how the work is routed*, has no case reading its paragraph. 3989a6a0 records it in gaps.md *Not done*. 82c46f10 corrects a comment of the class pins.
+```
+
 ### 2. The frame's *Out* item says `session_cost.py` grades a fold exchange, and since the merge of #1440 it grades no segment
 
 ```seal
@@ -113,6 +118,11 @@ frame fold.
 
 ```markdown
 - **A grade for a fold exchange's cost.** `session_cost.py` grades no segment since #1440 (`74211b76`), so a fold exchange is read as a framer row of `seal cost --segments`, and this work adds no grade for it.
+```
+
+```seal
+verdict: fixed 70c464cf
+answer: The orchestrator folded this finding before the fix pass. At 70c464cf, frame/design.md *Out* carries the round's replacement item word for word, and frame/plan.md *Judgments of the run* gains the fold's row. The replacement holds against HEAD. grep -n -i grade over skills/verify/scripts/session_cost.py matches only "degrades" at :926 and :1897 (executed). seal cost --segments labels each segment by the subagent_type of the spawn it opened at, and labels each slice of a resumed agent's transcript by that same agent (skills/verify/scripts/session_cost.py segment_label and segment_slices, read). So a fold exchange is a framer row, whether the framer is resumed or spawned fresh. The fix pass edited no frame file.
 ```
 
 ## Confirmations
