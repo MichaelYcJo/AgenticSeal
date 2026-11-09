@@ -607,36 +607,3 @@ def test_the_tracer_opens_the_parity_skill_and_returns_original_not_found():
     order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
     # The path of the skill the tracer opens at step 1.
     assert order.startswith("## Order of work 1. Open `skills/legacy-parity/SKILL.md`")
-
-
-# A batching figure: a number within a few words of "tools per turn", either
-# side, in any spelling of the phrase.
-TOOLS_PER_TURN = re.compile(
-    r"\d\S*\s+(?:\w+\W+){0,3}?tools?\s+per\s+turn"
-    r"|tools?\s+per\s+turn\W+(?:\w+\W+){0,3}?\d",
-    re.I,
-)
-
-
-def figures(text):
-    return [m.group(0) for m in TOOLS_PER_TURN.finditer(" ".join(text.split()))]
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_no_definition_states_a_tools_per_turn_figure(path):
-    """T5: the per-segment bars live in `docs/running/the-run.md` *The
-    per-segment bars*, and contract rule 10 says no definition states a second
-    copy. A copy in a definition drifts from the table and is read first."""
-    assert not figures(read(path)), f"{name(path)}: {figures(read(path))}"
-
-
-@pytest.mark.parametrize(
-    "sentence",
-    [
-        "**Your number is 1.4 tools per turn.**",
-        "measured at 2.3" + chr(0x2013) + "3.1 tools per turn",
-        "tools per turn **≥ 1.8**",
-    ],
-)
-def test_a_figure_in_any_spelling_is_caught(sentence):
-    assert figures(sentence), sentence

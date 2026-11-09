@@ -144,7 +144,8 @@ CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
 on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
 shards that `pytest-split` divides from the one committed `.test_durations`,
 and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
-job; `durations`, which unions what the Windows shards measured;
+job; `durations`, which unions what the Windows shards measured and, on a
+pull request into `main`, fails where the committed file is stale;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
 hygiene workflow that guards releases. A change to any gate needs a test
@@ -161,9 +162,9 @@ file is where that shows. Each `pytest` leg in `test.yml` carries a
 `timeout-minutes`, and the comment beside the values says which runs they
 were set from.
 
-`.test_durations` goes stale as cases are added, which unbalances the
-Windows and macOS shards and drops no case. The file is the Windows leg's,
-and it divides the macOS leg too, because every leg collects the same
+`.test_durations` goes stale as cases are added, renamed or removed, which
+unbalances the Windows and macOS shards and drops no case. The file is the
+Windows leg's, and it divides the macOS leg too, because every leg collects the same
 cases under the same ids: a parametrized path takes `ids=posix_id` from
 `tests/conftest.py`, and no id carries the interpreter's path, which
 `test_no_collected_id_carries_the_interpreters_path` holds. It prices each
@@ -174,23 +175,27 @@ again. Every `tests` run measures the file: each Windows shard runs with
 `--store-durations --clean-durations` and uploads the part it wrote, and
 the `durations` job unions the parts into the `test-durations` artifact,
 kept for the days `test.yml` sets, and writes each shard's measured seconds
-and their spread to its summary. When to commit it is
-`test_the_durations_file_prices_the_suite`'s to say: it fails when more
-than one collected case in twenty (`STALE_SHARE`) has no price in the
-file, or when more than one second in twenty of the file's belongs to
-entries the suite no longer collects.
-`bin/test tests -q -k test_the_durations_file_prices_the_suite` runs that
-case alone against the whole collection, and naming one module skips it.
-The contributor refreshes the file from the artifact of the branch's latest
-`tests` run: `gh run download <run id> -n test-durations -D <dir>`, then
-moves `<dir>/.test_durations` over the committed file and commits it. Its
-line ends are already LF. The download goes to a directory of its own
-because `gh` will not write over a file that is already there. Where the
-run's artifact has expired, the contributor re-runs it first, with
-`gh run rerun <run id>`. A branch
-with no pull request has no `tests` run until one is dispatched, and neither
-has a branch whose run is too old to re-run:
-`gh workflow run test.yml --ref <branch>` starts one.
+and their spread to its summary, beside two shares of the committed file:
+the union's cases it gives no price, and its seconds held by entries no
+shard ran. A work item never commits `.test_durations`, so a refresh costs
+no review round and no broad run. When to refresh it is the release pull
+request's `durations` job's to say: on a pull request into `main`, and on
+no other run, the job is red when more than one case in twenty
+(`STALE_SHARE` in `.github/scripts/durations_union.py`) has no price in
+the file, or when more than one second in twenty of the file's belongs to
+entries no shard ran, and the red run still uploads the union. Whoever
+prepares the release refreshes the file from that run's artifact:
+`gh run download <run id> -n test-durations -D <dir>`, then moves
+`<dir>/.test_durations` over the committed file and commits it alone, with
+the trailer `Seal-Routing: no work item`, on a branch cut from
+`release/vX.Y.Z`. The file's line ends are already LF, and the download
+goes to a directory of its own because `gh` will not write over a file that
+is already there. A pull request merges that branch into `release/vX.Y.Z`,
+and the release pull request's next run reads the refreshed file. A shard
+that runs past its `timeout` during the release because the file is stale
+is answered by the same refresh, taken from the newest run whose
+`durations` job wrote the union, since a shard killed at its timeout
+uploads no part.
 
 **The suite runs with `gh` logged out, on a contributor's machine as on
 CI.** CI's pytest job has no token, so `tests/conftest.py` makes the same
