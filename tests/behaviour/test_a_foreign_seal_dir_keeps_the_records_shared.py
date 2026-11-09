@@ -449,6 +449,24 @@ def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
         assert refused == [], out
 
 
+def test_s3_an_earlier_releases_parity_md_under_agentic_seal_is_refused_there(
+    declared, capsys
+):
+    """#1454 beside #1059: an `agentic-seal/parity.md` git carries with no
+    `agentic-seal/parity.json` beside it is refused once, at its path under
+    the root's own name, naming the file to write, where a change reaches
+    the package. Red with `chain_check.py#originals_of` reading the old
+    file at `optin.HOME`."""
+    write(declared, "agentic-seal/parity.md", "# Migration config\n")
+    write(declared, "seal/__init__.py", "VERSION = 2\n")
+    commit_everything_as_e(declared, "the change")
+    _code, out = checked(capsys, declared)
+    refused = [ln for ln in out.splitlines() if ln.startswith("agentic-seal/parity")]
+    (line,) = refused
+    assert line.startswith("agentic-seal/parity.md:0  "), line
+    assert "agentic-seal/parity.json" in line, line
+
+
 def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
     declared, capsys
 ):
