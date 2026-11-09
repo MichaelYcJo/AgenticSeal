@@ -3487,7 +3487,10 @@ class Test_body:
         passes it; a body whose first part is `pr.md` alone is refused at its
         first line, naming the translation. Seen red with `compared` reading
         `pr.md` alone, where the composed body was refused at its first
-        line."""
+        line. The lines are compared without their ends and the translation
+        is taken out as the first line the body holds, because `write` ends
+        each line with CRLF on Windows and `seal pr-body` copies the files'
+        line ends as they stand."""
         root, _early, _late = bodied
         write(
             root,
@@ -3502,12 +3505,16 @@ class Test_body:
         write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
         commit(root, "the closing records, again")
         composed = composed_body(root)
-        assert composed.startswith("닫는다 #1.\nCloses #1.\n"), composed
+        lines = composed.splitlines(keepends=True)
+        assert [line.rstrip("\r\n") for line in lines[:2]] == [
+            "닫는다 #1.",
+            "Closes #1.",
+        ], composed
         payload(tmp_path, monkeypatch, composed)
         code, out = check(root, capsys)
         assert code == 0, out
         assert body_lines(out) == [], out
-        payload(tmp_path, monkeypatch, composed.replace("닫는다 #1.\n", "", 1))
+        payload(tmp_path, monkeypatch, "".join(lines[1:]))
         code, out = check(root, capsys)
         assert code == 1, out
         assert body_lines(out) == [
