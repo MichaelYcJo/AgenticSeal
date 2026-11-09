@@ -3323,8 +3323,7 @@ class Test_module:
         """#688's D3: the constant this command's walk of work items rests on,
         held under `seal/`. Widening it to a top-level `specs/` turns this red,
         which is the probe that work item's plan names for `SPECS`.
-        `tests/lib/test_routing.py` holds `lib/routing.py#WORK_ITEMS` to the
-        same, and `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
+        `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""
         assert settle.SPECS == "seal/threads"

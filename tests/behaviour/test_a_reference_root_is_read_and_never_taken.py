@@ -37,14 +37,15 @@ SEAL = load_module(
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
 # the constant it rests on, which its module's file holds under `seal/`:
-# `settle.py#SPECS` in `tests/skills/test_settle.py` and `lib/routing.py#WORK_ITEMS`
-# in `tests/lib/test_routing.py`, each a case of one module, which #942's round 9
-# fix pass moved there from this file. The checks that walk work items are
-# held off a team's `specs/` in their modules' files:
+# `settle.py#SPECS` in `tests/skills/test_settle.py`, a case of one module,
+# which #942's round 9 fix pass moved there from this file. The checks that
+# walk work items are held off a team's `specs/` in their modules' files:
 # `tests/skills/test_unverified_check.py`'s walk from the root over a team's
 # unreadable overview, `tests/skills/test_settle.py`'s apply beside a team directory
 # of the removed work item's id, and `tests/skills/test_chain_check.py`'s
-# `Test_changed_routing`, which takes a declaration only under `seal/threads/`.
+# `Test_changed_routing`, which takes a declaration only under the directory
+# of the work items it is given, and `Test_declared_for_this_branch`, which
+# takes the one under `seal/threads/` beside a team's `specs/`.
 
 PREDICATE = "asks lib/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"

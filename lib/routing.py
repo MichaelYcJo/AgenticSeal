@@ -94,11 +94,6 @@ AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
 AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 
-# Repository-relative, `/`-joined, for the readers that classify paths as git
-# prints them — `chain_check.py` lists a tree under it. The readers below never
-# join it under the root: they join `optin.WORK_ITEMS` under `optin.home_at`,
-# so a root under the git directory (#80) is read by the same code.
-WORK_ITEMS = f"{optin.HOME}/{optin.WORK_ITEMS}"
 FILENAME = "routing.md"
 
 

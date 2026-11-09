@@ -4,13 +4,15 @@ under `agentic-seal/` (#1059).
 Each case builds a repository whose `seal/` is a Python package with no
 marker in its `README.md`, and runs a command of the plugin in it, in the
 process. The cases are named by the scenario of the work item's
-`frame/design.md` they hold: S1, first setup beside the package, and S6,
-moving the root between its two places and carrying a copy to another
-clone. The case of `seal pr-checks install`, which *Scope* item 6 names and
-no scenario row holds, is named by its command. The resolver's order
-itself is `tests/lib/test_optin.py`'s.
+`frame/design.md` they hold: S1, first setup beside the package, S3, the
+pull request's check, S4, the stamp, S5, every other check, and S6, moving
+the root between its two places and carrying a copy to another clone. The
+case of `seal pr-checks install`, which *Scope* item 6 names and no
+scenario row holds, is named by its command. The resolver's order itself is
+`tests/lib/test_optin.py`'s.
 """
 
+import json
 import os
 import shutil
 import zipfile
@@ -23,14 +25,36 @@ from conftest import (
     load_module,
     local_home,
     mark_root,
+    parity_file,
     symlink_or_skip,
     write,
 )
+from test_pr_body import (
+    EXPECTED,
+    LANGUAGES,
+    MANIFEST,
+    MARK_LINE,
+    OWN,
+    TABLE,
+    manifest_of,
+)
+from test_pr_body import NAME as BODIED
+from test_pr_body import PR as PR_BODY
+from test_pr_body import RECORDS as BODY_RECORDS
+from test_pr_body import ROW as MARK_ROW
 from test_seal import status, unanswered
+from test_seal_stamp import ITEM_ID as STAMPED_ID
+from test_seal_stamp import ITEM_NAME as STAMPED
+from test_seal_stamp import closing_records, queued, routing_text
+from test_seal_stamp import stamp as STAMP
 
 SEAL = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
     "seal_beside_a_foreign_seal_dir",
+)
+CHAIN = load_module(
+    os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
+    "chain_check_beside_a_foreign_seal_dir",
 )
 
 ITEM = "1794200000-a-work-item"
@@ -310,3 +334,158 @@ def test_s6_an_import_names_what_blocks_it_in_the_root_by_the_roots_own_name(
     assert code == 1, out
     assert out.startswith(f"agentic-seal/threads in this clone {said_of_it}"), out
     assert list(outside.iterdir()) == []
+
+
+# --- S3: the pull request's check -------------------------------------------
+
+DECLARED = "agentic-seal/threads/1794200001-a-declared-item"
+# A declaration naming `feature`, straight to the pull request, so the
+# check's guarantee arm names its missing `guarantee.md` once it is judged.
+DECLARATION = (
+    "| Axis | Answer |\n|---|---|\n| Review | straight to the PR |\n"
+    "| Destination | open the pull request |\n| Planning | the session |\n"
+    "| Branch | feature |\n"
+)
+NO_GUARANTEE = f"{DECLARED}/guarantee.md:0  git carries no guarantee file"
+
+
+@pytest.fixture
+def declared(shared, tmp_path, monkeypatch):
+    """SHARED with DECLARATION committed on `main` under `agentic-seal/`,
+    and `feature` checked out from it, which the check reads as a ready pull
+    request."""
+    write(shared, f"{DECLARED}/routing.md", DECLARATION)
+    commit_everything_as_e(shared, "the declaration")
+    git(shared, "switch", "-qc", "feature")
+    event = tmp_path / "event.json"
+    event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
+    return shared
+
+
+def checked(capsys, repo):
+    """(exit code, stdout) of `chain_check.py` run on REPO against `main`."""
+    code = CHAIN.main(["--baseline", "main", "--root", str(repo)])
+    return code, capsys.readouterr().out
+
+
+@pytest.mark.parametrize("removed", [None, "agentic-seal/README.md"])
+def test_s3_the_check_judges_the_declaration_under_agentic_seal(
+    declared, capsys, removed
+):
+    """The declaration naming the branch under `agentic-seal/threads/` is
+    judged, and so it stays where the pull request deletes only the
+    marker: the merge base's root is still an entry at HEAD."""
+    write(declared, "docs/a.md", "# a\n")
+    if removed:
+        git(declared, "rm", "-q", removed)
+    commit_everything_as_e(declared, "the change")
+    code, out = checked(capsys, declared)
+    assert code == 1, out
+    assert NO_GUARANTEE in out, out
+    assert "so nothing is declared" not in out, out
+
+
+@pytest.mark.parametrize("outside", [True, False], ids=["the package", "records"])
+def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
+    declared, capsys, outside
+):
+    """With the migration config at `agentic-seal/parity.md`, a change to
+    the package's `seal/__init__.py` owes the comparison, so the config's
+    placeholder baseline is refused; a change confined to `agentic-seal/`
+    owes none."""
+    write(declared, "agentic-seal/parity.md", parity_file(None))
+    write(declared, "agentic-seal/follow-up.md", "# follow-up, again\n")
+    if outside:
+        write(declared, "seal/__init__.py", "VERSION = 2\n")
+    commit_everything_as_e(declared, "the change")
+    _code, out = checked(capsys, declared)
+    refused = [ln for ln in out.splitlines() if ln.startswith("agentic-seal/parity")]
+    if outside:
+        (line,) = refused
+        assert line.startswith("agentic-seal/parity.md:0  "), line
+        assert "`Baseline commit`" in line, line
+    else:
+        assert refused == [], out
+
+
+def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(declared, capsys):
+    """The pull request that takes `agentic-seal/` out of the tree deletes
+    the declaration with it, and the package's `seal/` standing at HEAD is
+    not the root that stayed."""
+    git(declared, "rm", "-rq", "agentic-seal")
+    commit_everything_as_e(declared, "the root leaves the tree")
+    code, out = checked(capsys, declared)
+    assert code == 0, out
+    assert (
+        "the tree the check reads has no top-level `agentic-seal` entry, so "
+        "nothing is declared"
+    ) in out, out
+    assert NO_GUARANTEE not in out, out
+
+
+# --- S4: the stamp -----------------------------------------------------------
+
+
+def test_s4_the_stamp_queues_a_sealed_guarantee_under_agentic_seal(package, capsys):
+    """`seal stamp --guarantee` given `agentic-seal/threads/<id>/guarantee.md`,
+    written and not yet committed, queues the work item's stamp in the
+    clone, as it does under `seal/`."""
+    mark_root(package / "agentic-seal")
+    commit_everything_as_e(package, "the root")
+    git(package, "switch", "-qc", "feat/x")
+    write(package, "work.txt", "the work\n")
+    commit_everything_as_e(package, "the work")
+    target = git(package, "rev-parse", "--short", "HEAD").stdout.strip()
+    base = git(package, "rev-parse", "--short", "main").stdout.strip()
+    item = package / "agentic-seal" / "threads" / STAMPED
+    closing_records(item, target, base)
+    write(item, "routing.md", routing_text())
+    code = STAMP.main(["--guarantee", str(item / "guarantee.md")])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert out.startswith(f"agentic: the stamp for {STAMPED_ID} is queued in "), out
+    assert len(queued(package / ".git")) == 1
+
+
+# --- S5: every other check ---------------------------------------------------
+
+
+def test_s5_pr_body_check_reads_the_seal_and_the_records_under_agentic_seal(
+    package, tmp_path, monkeypatch, capsys
+):
+    """`seal pr-body` reads the rows of `agentic-seal/config.md` and a
+    guarantee sealed at the commit before its own, so the body carries the
+    mark and names the records where they stand; `--check` on that body
+    exits 0. A refusal names the record by its path under `agentic-seal/`."""
+    git(package, "switch", "-qc", "feature")
+    home = mark_root(package / "agentic-seal")
+    write(home, "config.md", TABLE + LANGUAGES + MARK_ROW)
+    item = home / "threads" / BODIED
+    for rel, text in BODY_RECORDS.items():
+        write(item, rel, text)
+    (item / "pr.md").write_bytes(OWN.encode("utf-8"))
+    sha = commit_everything_as_e(package, "the build")
+    write(
+        item,
+        "guarantee.md",
+        f"# Guarantee: {BODIED}\n\n```seal\ntarget: {sha} against main\n"
+        "Verdict: sealed\n```\n",
+    )
+    commit_everything_as_e(package, "the seal")
+    monkeypatch.setattr(PR_BODY, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+    monkeypatch.chdir(package)
+    body = tmp_path / "pr-body.md"
+    assert PR_BODY.main([str(item), "--body", str(body)]) == 0
+    marked = EXPECTED.replace(
+        "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
+    ).replace(f" seal/threads/{BODIED}/ ", f" agentic-seal/threads/{BODIED}/ ", 1)
+    assert body.read_bytes() == (OWN + marked).encode("utf-8")
+    capsys.readouterr()
+    assert PR_BODY.main([str(item), "--body", str(body), "--check"]) == 0
+    assert "seal pr-body:" not in capsys.readouterr().out
+    (item / "pr.md").unlink()
+    assert PR_BODY.main([str(item), "--body", str(body), "--check"]) == 1
+    assert capsys.readouterr().out.startswith(
+        f"refused: agentic-seal/threads/{BODIED}/pr.md: is not there"
+    )

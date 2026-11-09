@@ -241,10 +241,10 @@ PHASE_RE = re.compile(r"phase-(\d+)\.md")
 TABLE = "|"
 
 # Every fixed line the generated part can hold, beside the seal mark,
-# `MARK`. `{name}` is the work item's directory name and `{path}` a record's
-# path under it.
+# `MARK`. `{name}` is the work item's directory name, `{path}` a record's
+# path under it, and `{home}` the root's name, `_in_tree`'s.
 SUMMARY = (
-    f"<summary>Copied from the records in {OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{{name}}/ "
+    f"<summary>Copied from the records in {{home}}/{OPTIN.WORK_ITEMS}/{{name}}/ "
     "by seal pr-body.</summary>"
 )
 CHANGED = "## What changed"
@@ -485,6 +485,15 @@ def _names(parts):
     return " then ".join(f"`{name}`" for name, _text in parts)
 
 
+def _in_tree(root):
+    """The `/`-joined name the records stand under in the repository at
+    ROOT: the shared root's name in the tree, `lib/optin.py#home_name`'s,
+    which is `seal` or, beside a project's own `seal/`, the second name
+    (#1059); and `lib/optin.py#HOME` where the root is local or absent,
+    the name the text gives the root, since no path in the tree holds it."""
+    return OPTIN.home_name(root) or OPTIN.HOME
+
+
 def _seal_at_head(item, root, base=None):
     """`(sealed, note)`: whether `guarantee.md` in the work item's directory
     ITEM is sealed at HEAD of the repository at ROOT, the way
@@ -521,7 +530,7 @@ def _seal_at_head(item, root, base=None):
     ):
         return False, BASE_UNSEEN.format(base=base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
-    rel = f"{OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{name}"
+    rel = f"{_in_tree(root)}/{OPTIN.WORK_ITEMS}/{name}"
     behind = CHAIN.follows(
         root, target["commit"], base, rel, only=CHAIN.CLOSING_RECORDS
     )
@@ -754,11 +763,12 @@ def _claims(rel, line, seen):
     ]
 
 
-def _composed(name, texts, mark=None):
+def _composed(name, texts, mark=None, home=OPTIN.HOME):
     """`[(line, source)]` for the generated part below `HEADING`, that line
     left out: a blank line, the line MARK and a blank line where it is
-    given, `FOLD`, the summary naming the copy, a blank line, each section
-    followed by a blank line, and `FOLD_END`. `source`
+    given, `FOLD`, the summary naming the copy under HOME, the root's name
+    as `_in_tree` gives it, a blank line, each section followed by a blank
+    line, and `FOLD_END`. `source`
     is `(path, line)` for a copied line and None for a fixed one. Refused at
     the record's line where a copied line is equal to `HEADING`, which would
     stand inside the fold as a second boundary line, or begins with a `<!--`
@@ -780,7 +790,7 @@ def _composed(name, texts, mark=None):
     below = [("", None)]
     if mark:
         below += [(mark, None), ("", None)]
-    below += [(FOLD, None), (SUMMARY.format(name=name), None), ("", None)]
+    below += [(FOLD, None), (SUMMARY.format(home=home, name=name), None), ("", None)]
     for block in blocks:
         if block:
             below += [*block, ("", None)]
@@ -829,12 +839,12 @@ def _joined(below):
     return "\n".join(line for line, _source in below) + "\n"
 
 
-def compose(name, texts, mark=None):
+def compose(name, texts, mark=None, home=OPTIN.HOME):
     """The generated part of the body for the work item called NAME, from
     `read_item`'s mapping TEXTS: `HEADING`, then `_composed`'s lines, the
-    seal mark MARK first where `seal_mark` gave one, the fold's end the
-    last."""
-    return HEADING + "\n" + _joined(_composed(name, texts, mark))
+    seal mark MARK first where `seal_mark` gave one, the summary naming the
+    copy under HOME, the fold's end the last."""
+    return HEADING + "\n" + _joined(_composed(name, texts, mark, home))
 
 
 def split(body):
@@ -968,25 +978,25 @@ def compared(item, body, root, manifest=None, base=None):
     mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     try:
-        below = _composed(name, read_item(item), mark)
+        below = _composed(name, read_item(item), mark, _in_tree(root))
         _check(below, body, first_part(item, root))
     except Refused as refused:
         return note, refused.causes
     return note, []
 
 
-def _place(where, line, item, body):
+def _place(where, line, item, body, home):
     """Where a cause stands, with no machine path in it: the body file BODY
-    by its name, and a record by its path under the `seal/` root, whatever
-    path the work item ITEM was given by, `ROOT_CONFIG` as the root's
-    `config.md`. The sealer copies the first `refused:` line into a
-    `guarantee.md` that is committed."""
+    by its name, and a record by its path under HOME, the root's name as
+    `_in_tree` gives it, whatever path the work item ITEM was given by,
+    `ROOT_CONFIG` as the root's `config.md`. The sealer copies the first
+    `refused:` line into a `guarantee.md` that is committed."""
     if where is None:
         path = os.path.basename(body)
     else:
         name = os.path.basename(os.path.normpath(os.path.abspath(item)))
         path = posixpath.normpath(
-            "/".join(p for p in (OPTIN.HOME, OPTIN.WORK_ITEMS, name, where) if p)
+            "/".join(p for p in (home, OPTIN.WORK_ITEMS, name, where) if p)
         )
     return f"{path}:{line}" if line else path
 
@@ -1018,6 +1028,7 @@ def main(argv=None):
     # where git finds no checkout and `repo_root` answers "", so its
     # checkout is the working directory's.
     root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
+    home = _in_tree(root)
     if args.check:
         try:
             note, causes = compared(args.item, _body(args.body), root)
@@ -1027,7 +1038,7 @@ def main(argv=None):
         except Refused as refused:
             note, causes = None, refused.causes
         for where, line, why in causes:
-            print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
+            print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         if causes:
             return 1
         said = f"seal pr-body: {note}\n" if note else ""
@@ -1039,7 +1050,7 @@ def main(argv=None):
     mark, note = seal_mark(args.item, root)
     said = f"seal pr-body: {note}\n" if note else ""
     try:
-        below = _composed(name, read_item(args.item), mark)
+        below = _composed(name, read_item(args.item), mark, home)
         parts = first_part(args.item, root)
         try:
             with open(args.body, "w", encoding="utf-8", newline="") as handle:
@@ -1053,7 +1064,7 @@ def main(argv=None):
             raise Refused([(None, 0, f"cannot be written ({exc})")]) from None
     except Refused as refused:
         for where, line, why in refused.causes:
-            print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
+            print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         return 1
     print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0

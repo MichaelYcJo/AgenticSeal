@@ -1265,10 +1265,11 @@ def _read(path):
 
 
 def written_root(routing, seal):
-    """`(common, top)` where SEAL, a real path named `seal`, is the root in
-    force of a repository, else None. TOP is the worktree whose `seal/` it
-    is in shared mode, and "" in local mode, where SEAL sits under COMMON,
-    the git common dir, and no worktree holds it."""
+    """`(common, top)` where SEAL, a real path, is the root in force of a
+    repository, `optin.home_at`'s answer, else None. TOP is the worktree
+    whose root it is in shared mode, under either of the names `home_at`
+    reads, and "" in local mode, where SEAL sits under COMMON, the git
+    common dir, and no worktree holds it."""
     optin = routing.optin
     parent = os.path.dirname(seal)
     # Shared mode: the parent is a worktree's top, main or linked. Inside a
@@ -1303,8 +1304,10 @@ def queue_for_written_guarantee(path, now=None):
     committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
-    `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local
-    mode. It then queues where `lib/fields.py`, the reader the pull
+    `written_root`): `<repo>/seal/`, or the second name
+    `lib/optin.py#SECOND_HOME` gives it beside a project's own `seal/`, in
+    shared mode, `<common>/seal/` in local mode.
+    It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
     fence nobody closed and a line that begins with `<!--` among them
     (#1122), its newest verdict block reads `sealed`, no earlier block reads
@@ -1323,8 +1326,10 @@ def queue_for_written_guarantee(path, now=None):
     item = os.path.dirname(real)
     specs = os.path.dirname(item)
     seal = os.path.dirname(specs)
-    names = (os.path.basename(real), os.path.basename(specs), os.path.basename(seal))
-    if names != ("guarantee.md", "threads", "seal"):
+    # The root's own name is not compared here: `written_root` asks the
+    # resolver whether SEAL is the root in force, under whichever name it
+    # has (#1059).
+    if (os.path.basename(real), os.path.basename(specs)) != ("guarantee.md", "threads"):
         return []
     chain = _chain_check()
     routing = chain.load(chain.ROUTING, "agentic_routing_for_the_stamp")
