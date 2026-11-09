@@ -82,6 +82,23 @@ later". It still holds for the in-run post, which the plan keeps (*Alternatives
 considered*, the "Replace the in-run post" row). The release step catches
 what the in-run post missed, and does not replace it.
 
+**Both READMEs say that `--work-item` reads the log's comments.** I read the
+range whole after the closing commit, and found that the `seal cost --post`
+row's Sends cell listed only `gh issue list` and `gh issue comment`. But
+`--work-item` also sends `gh api --paginate` for the open issue's comments,
+whether or not it posts. The cell now says so in both editions. Judged
+against `CONTRIBUTING.md` *House rules*: both READMEs move together, and
+`README.md` *What runs on your machine* names what each command that
+reaches a network sends.
+`tests/behaviour/test_both_editions_carry_the_same_folds.py`,
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py`,
+`tests/behaviour/test_docs_line_wrap.py`,
+`tests/text/test_a_segment_feeds_the_flow_log.py`,
+`tests/behaviour/test_the_release_check_watches_what_ships.py`,
+`tests/behaviour/test_chain_hooks_hardening.py` and
+`tests/behaviour/test_a_declared_label_reaches_the_tracker.py` passed after
+the change: 155 passed.
+
 **Seen red.** The 18 new items in `tests/skills/test_session_cost.py::Test_work_item`
 and the new case in `tests/text/test_a_segment_feeds_the_flow_log.py` ran
 against `7bd317e9`: `bin/test tests/skills/test_session_cost.py
