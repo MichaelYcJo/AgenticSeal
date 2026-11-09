@@ -506,7 +506,7 @@ HOME = "seal"
 
 def inside_the_root(rel):
     """True when the `/`-joined repository-relative `rel` is the plugin's own
-    root or under it — never a reference root, whatever a row says."""
+    root or under it — never a reference root, whatever a key says."""
     return rel == HOME or rel.startswith(HOME + "/")
 
 
@@ -644,7 +644,7 @@ def normalise_remote(url):
     (#647), the arrangement this module's docstring records for the `Mode`
     reader. The `Pact` reader below needs it, and this module cannot import
     `seal.py`: that file imports this one, and a reader must not load a
-    two-thousand-line command to read a row. One normaliser, reached by the
+    two-thousand-line command to read a key. One normaliser, reached by the
     name each caller already spells.
     """
     if not isinstance(url, str):
