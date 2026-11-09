@@ -647,11 +647,11 @@ def resolve_base(root, given):
 
 
 def seal_home(root):
-    """`<root>/seal/` where it is the root, else `<git-common-dir>/seal/`,
-    else None — the two places every `seal/…` path in this plugin resolves
-    to (contract rule 11), read in that order. Each is the root only where
-    `lib/optin.py#marked` finds the marker, so a `seal/` the project keeps
-    for itself is never read for a command. The places and the marker are
+    """The shared place `optin.home_paths` gives where it is the root, else
+    `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
+    this plugin resolves to (contract rule 11), read in that order. Each is
+    the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
+    the project keeps for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
     optin = load(OPTIN, "agentic_optin_for_broad_gate")
