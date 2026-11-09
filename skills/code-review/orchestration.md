@@ -530,9 +530,10 @@ key is read and its command is not run. It takes seconds where the broad
 run takes a suite, so a refusal on a record arm, which the broad run would
 return after that suite, arrives before it. Read its exit code directly and
 take the broad run only on 0. On 1 its `PREFLIGHT FAILED` lines name each
-failing arm with its first lines and the file holding the rest: correct the record, commit, and run it again. On 2
-it refused before anything ran, and a refusal about the key goes to a person,
-as *A refusal about the `Broad gate` key* below says. It writes no file and
+failing arm with its first lines and the file holding the rest: correct the
+record, commit, and run it again. On 2 it refused before anything ran, and
+a refusal about the key goes to a person, as
+*A refusal about the `Broad gate` key* below says. It writes no file and
 prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
 A line the check names as not read, a fence near the opener of a `seal`
 block, changes no exit code, and its lines are fields of nothing. Where the
