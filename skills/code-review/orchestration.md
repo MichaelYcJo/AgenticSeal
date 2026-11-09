@@ -416,14 +416,14 @@ and no heading or bold lead-in of the orchestrator's stands in it. What
 the owner must see before the fold is quoted from the record that holds
 it, such as a default taken where `routing.md` reads `Automation` `yes`,
 from its `frame/questions.md` row, the framer's judgment left after the
-exchange from its `frame/plan.md` *Alternatives considered* row, and why the title takes its prefix from the
-orchestrator's row of `frame/plan.md` *Judgments of the run*, which it
-writes before `pr.md`. The broad run's printed figures, a CI run taken
-after the rounds and the run's comparison table come after the last round,
-so none stands in `pr.md`: the copy carries `trail/gate.md`'s `run:` line,
-and the table goes to the flow log's comment alone
-(`skills/verify/orchestration.md` *Measure the segment, and feed the flow
-log*).
+exchange from its `frame/plan.md` *Alternatives considered* row, and why
+the title takes its prefix from the orchestrator's row of `frame/plan.md`
+*Judgments of the run*, which it writes before `pr.md`. The broad run's
+printed figures, a CI run taken after the rounds and the run's comparison
+table come after the last round, so none stands in `pr.md`: the copy
+carries `trail/gate.md`'s `run:` line, and the table goes to the flow log's
+comment alone (`skills/verify/orchestration.md` *Measure the segment, and
+feed the flow log*).
 
 **Where `config.md`'s `Commit and pull request language` and `Record
 language` rows name different languages, the orchestrator writes
