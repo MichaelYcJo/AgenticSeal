@@ -3122,7 +3122,7 @@ MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
 SECOND_ITEM = "seal/threads/1791999998-another-work-item"
 # #1453: `config.md`'s table, holding the two language rows the body's
-# first part is composed from, and the mark row.
+# first part is composed from; a case adds the mark row below them.
 LANGUAGES = (
     "| Commit and pull request language | English |\n| Record language | English |\n"
 )
@@ -3458,8 +3458,8 @@ class Test_body:
         repository whose `config.md` lacks a language row, so the arm, which
         reads the body through the same function, refuses at the root's
         `config.md`, as it refuses a record `compared` places at a path.
-        Seen red against `pr_body.py` as the merged base left it, where the
-        body passed."""
+        Seen red with `compared` reading `pr.md` alone, where no line named
+        `config.md`."""
         root, _early, late = bodied
         write(
             root,
