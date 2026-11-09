@@ -48,6 +48,19 @@ def test_the_config_template_ships_the_row_with_no_value():
     assert "## Mode" in text
 
 
+def test_the_template_says_an_absent_mode_key_stops_nothing():
+    """`hooks/hooks.json` registers a `Stop` and a `SessionStart` hook and no
+    `PreToolUse` gate since #1416, and `seal mode --check` exits 0 on an
+    absent key, so the template states no denied Bash call. Seen red against
+    the template before the fix, which said the first Bash call of a session
+    is denied and the second asked."""
+    text = " ".join(read("templates", "setup", "config.md").split())
+    assert "first Bash call" not in text, "the template still names a denied call"
+    assert "an absent one stops nothing" in text, (
+        "the template does not say what an absent `Mode` key costs"
+    )
+
+
 @pytest.mark.parametrize(
     "parts",
     [(".github", "workflows", "hygiene.yml"), ("templates", "setup", "hygiene.yml")],

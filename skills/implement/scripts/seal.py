@@ -1414,11 +1414,10 @@ def write_members(archive, into):
 # guess (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal is the root
 # itself").
 
-# The config is READ in `lib/config.py` and WRITTEN here. The reader moved
-# because a `PreToolUse` gate needs the `Mode` key and must not import this
-# file to get it (#151), and these aliases are what keeps the move from
-# becoming a second parser: one implementation, reached by the name each
-# caller already spells. The writer -- `write_mode`, `serialized` -- and the
+# The config is READ in `lib/config.py` and WRITTEN here. Every script that
+# reads a setting imports that module and never this command, and these
+# aliases keep one implementation, reached by the name each caller already
+# spells. The writer -- `write_mode`, `serialized` -- and the
 # converter of an earlier release's `config.md` -- `convert` -- stay here,
 # because writing the file is this command's job and nothing else does it.
 CONFIG = repo_config.CONFIG

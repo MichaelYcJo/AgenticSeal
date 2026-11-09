@@ -19,11 +19,10 @@ otherwise, such as `Policy Root`, names no item, so the item reads as
 absent.
 
 **`Mode` has no default.** An absent one is filled in from where the folder
-is, by `seal mode` (*Mode* below). It is not silent while absent: a root with
-no `Mode` key is a root nobody chose a mode for, so the first Bash call of a
-session in that repository is denied and the second is asked, until
-`seal mode` writes the key. Two prompts per session per repository, then
-nothing once the key exists.
+is, by `seal mode` (*Mode* below). Nothing else reads the key, so an absent
+one stops nothing: every script finds the root by where the folder is,
+`seal mode --check` reports the key as not declared and exits 0, and the
+next bare `seal mode` writes it.
 
 **An absent `Broad gate` is a refusal, not a prompt:** `seal gate` names the
 key and exits 2 with nothing run, because a run over a command nobody chose
