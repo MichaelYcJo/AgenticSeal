@@ -107,8 +107,8 @@ pins. No key records that; the file is the record.
   **The file is read by a JSON parser, or refused.** A file that does not
   parse, such as one with a trailing comma, is refused for every key, and a
   key written twice or holding no string is refused for that key; each
-  refusal names the file, and a command prints it and runs or writes
-  nothing. Read the refusal to the person in plain words, and correct the
+  refusal names the file, and `templates/setup/config.md` says which
+  commands print it and stop and which read their defaults. Read the refusal to the person in plain words, and correct the
   JSON rather than any key the refusal did not name.
 
   **The `Broad gate` key is looked at before it is run**, and a value that

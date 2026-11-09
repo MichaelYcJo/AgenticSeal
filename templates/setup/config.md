@@ -44,17 +44,23 @@ key is read. A file that is there and cannot be read as UTF-8 text, does
 not parse as JSON (a trailing comma, a quote left open), or whose top level
 is not one object is refused for every key, naming its path and the
 parser's message; a file that is absent still declares nothing, and a byte
-order mark an editor wrote reads. A command a person runs (`seal fold`,
-`seal gate`, `seal mode`, `seal pact`) prints the refusal and exits 2 with
-nothing judged, as it does for a value it cannot parse. Whoever writes the
-file repairs it by deleting the extra key or by correcting the JSON.
+order mark an editor wrote reads. `seal fold`, `seal gate`, `seal mode`,
+`seal pact` and `seal pr-body` print the refusal and exit 2 with nothing
+judged, as they do for a value they cannot parse. `seal rules`,
+`seal settle` and `seal unverified` read the `Policy root` and
+`Reference specs` defaults instead, as they do for a key written twice.
+Whoever writes the file repairs it by deleting the extra key or by
+correcting the JSON.
 
 **An earlier release's `config.md` is converted once, by `seal mode`.**
 Earlier releases kept these items in `config.md`, a `| Item | Value |`
-table. Where the root holds `config.md` and no `config.json`, every reader
-refuses it and names `seal mode`, and bare `seal mode` writes `config.json`
-from the table's rows, in their order, and removes `config.md`. A table it
-cannot read whole, or a row written twice, writes nothing and prints why.
+table. Where the root holds `config.md` and no `config.json`, every command
+that refuses a config it cannot read (`seal fold`, `seal gate`, `seal mode`,
+`seal pact`, `seal pr-body`) refuses it and names `seal mode`, and the
+readers of `Policy root` and `Reference specs` read their defaults. Bare
+`seal mode` writes `config.json` from the table's rows, in their order, and
+removes `config.md`. A table it cannot read whole, or a row written twice,
+writes nothing and prints why.
 Where both files stand, `config.json` is read and `seal mode` names
 `config.md` as left in place.
 

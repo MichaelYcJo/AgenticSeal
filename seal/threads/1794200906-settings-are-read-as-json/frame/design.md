@@ -257,9 +257,10 @@ An exception is an object with `Path`, `Why it needs re-verification` and `Notic
     whose value is not a string, has no value, and every other key is read.
     Each value is a string in the grammar `templates/setup/config.md` gives
     its key, so a shell command carries a pipe as written. A `config.md` that
-    stands in the root without a `config.json` is refused by every reader,
-    and `seal mode` writes `config.json` from its `| Item | Value |` table and
-    removes it.
+    stands in the root without a `config.json` is refused by every reader that
+    refuses a file it cannot read, and read as no file by the readers of
+    `Policy root` and `Reference specs`, and `seal mode` writes `config.json`
+    from its `| Item | Value |` table and removes it.
 - change
   file: docs/layout/one-root-by-lifetime.ko.md
   section: 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
@@ -323,8 +324,10 @@ An exception is an object with `Path`, `Why it needs re-verification` and `Notic
     객체가 아닌 파일은 통째로 거절합니다. 두 번 적힌 키와 값이 문자열이 아닌 키는
     값이 없고, 나머지 키는 읽습니다. 값은 모두 `templates/setup/config.md` 가 그
     키에 정한 문법의 문자열이므로, 셸 명령은 파이프를 적힌 그대로 담습니다.
-    `config.json` 없이 루트에 서 있는 `config.md` 는 모든 읽는 쪽이 거절하고,
-    `seal mode` 가 그 `| Item | Value |` 표에서 `config.json` 을 쓰고 지웁니다.
+    `config.json` 없이 루트에 서 있는 `config.md` 는 읽지 못하는 파일을 거절하는
+    읽는 쪽이 모두 거절하고 `Policy root` 와 `Reference specs` 를 읽는 쪽은 파일이
+    없는 것으로 읽으며, `seal mode` 가 그 `| Item | Value |` 표에서 `config.json`
+    을 쓰고 지웁니다.
 - change
   file: docs/layout/the-record-layout.md
   section: Every kind of record, at a glance

@@ -105,8 +105,10 @@ claude plugin update agentic@agenticseal
 이전 릴리스는 저장소의 설정을 마크다운 표인 `seal/config.md` 에 두었고,
 지금 플러그인은 JSON 객체 하나인 `seal/config.json` 에서 읽습니다.
 `seal/config.md` 가 있는 저장소마다 `seal mode` 를 한 번 실행합니다. 이 명령은
-그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 그 전까지는 설정을
-읽는 `seal` 명령이 모두 종료 코드 2 로 멈추고 `seal mode` 를 짚습니다.
+그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 그 전까지는
+`seal gate`, `seal pr-body`, `seal fold`, `seal pact`, `seal mode --check` 가
+종료 코드 2 로 멈추고 `seal mode` 를 짚으며, `seal rules`, `seal settle`,
+`seal unverified` 는 정책 루트와 참고 루트를 기본값으로 읽습니다.
 `seal/parity.md`, `seal/pact.md` 의 `| Signer |` 표,
 `~/.claude/agentic/pact-paths.md` 는 이 변경을 낸 릴리스의 노트가 말하는 대로
 손으로 다시 씁니다.

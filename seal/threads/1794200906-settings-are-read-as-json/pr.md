@@ -5,7 +5,7 @@
 - "**A pact's signers stand in a `Pact signers` key of the pact repository's `seal/config.json`, and the checkout map is `~/.claude/agentic/pact-paths.json`.**" (`changelog.md` *Changed*, the fourth item)
 - "**The table walker lives in `lib/tables.py` and reads records only.**" (`changelog.md` *Changed*, the fifth item)
 - "**Every shipped text calls a setting a key and names `config.json`.**" (`changelog.md` *Changed*, the sixth item)
-- "Updating: run `seal mode` once in each repository that holds `seal/config.md`. It writes `seal/config.json` from the table and removes the old file, and until then every `seal` command that reads a setting exits 2." (`changelog.md`)
+- "Updating: run `seal mode` once in each repository that holds `seal/config.md`. It writes `seal/config.json` from the table and removes the old file, and until then `seal gate`, `seal pr-body`, `seal fold`, `seal pact` and `seal mode --check` exit 2, and `seal rules`, `seal settle` and `seal unverified` read the default policy root and reference roots." (`changelog.md`)
 - "Rewrite three files by hand from the old ones, since no command converts them." (`changelog.md`)
 
 Closes #1454.

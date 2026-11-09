@@ -111,8 +111,9 @@ the two language questions.
    or `\\`**, because the key's value is a JSON string, and a CI `run:`
    step is where one is likeliest to come from. Offer it that way rather
    than dropping the character or moving to the next candidate. Say why: a
-   bare `"` ends the string, so the file no longer parses and every `seal`
-   command that reads it refuses, and a bare `\` before `t` or `n` reads as
+   bare `"` ends the string, so the file no longer parses and `seal gate`,
+   `seal pr-body` and every other command that refuses an unreadable config
+   refuses it, and a bare `\` before `t` or `n` reads as
    a tab or a new line, so the gate runs a command nobody wrote. A `|`
    stays as written. `templates/setup/config.md` *Broad gate* carries the
    rule.
