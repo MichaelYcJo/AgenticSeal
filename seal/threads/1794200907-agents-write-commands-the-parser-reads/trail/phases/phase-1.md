@@ -86,8 +86,11 @@ which hold the five files the plan row names, in one command: `bin/test
 tests/text tests/behaviour -q`. Its first run, at `b58bd082` before this
 record and `gaps.md` were written, exited 1. The only failure was
 `test_every_spec_directory_that_reached_the_ladder_has_an_overview`,
-naming this work item's missing `gaps.md` (executed). The run after the
-records were written is in the hand-back.
+naming this work item's missing `gaps.md` (executed). Run again on the
+tree committed as `77e93ac7`, with this record and `gaps.md` written, it
+exited 0, with 1811 passed and 8 skipped (executed). `df508485` then
+rewrapped the docstring paragraph the entry for 21 had changed, and
+nothing else, and the module passed again (executed).
 
 **The policy root keeps one section the settle writes.**
 `docs/running/the-agent-set.md` *One contract every agent receives, and

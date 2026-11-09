@@ -31,7 +31,7 @@ The chosen approach's failure scenario, six months out: Claude Code changes whic
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1, 2, 3, 4 and 5 | The entry for 21 in `FACTS` seen red before rule 21 is written, then green. Then the phase boundary set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* in one command, which holds at least `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `tests/text/test_every_agent_reads_the_contract.py`, `tests/text/test_a_moved_rule_leaves_its_definition.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` | b58bd082 |
+| 1 | *Scope* items 1, 2, 3, 4 and 5 | The entry for 21 in `FACTS` seen red before rule 21 is written, then green. Then the phase boundary set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* in one command, which holds at least `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `tests/text/test_every_agent_reads_the_contract.py`, `tests/text/test_a_moved_rule_leaves_its_definition.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` | df508485 |
 
 ## Overlap with the release
 
