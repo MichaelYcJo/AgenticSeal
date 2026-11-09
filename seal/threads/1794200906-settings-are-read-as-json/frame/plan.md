@@ -38,7 +38,7 @@ The constraint is the installed plugin (design G13). The orchestrator's `seal` a
 | 2 | design *Scope* item 4 | `bin/test tests/skills/test_chain_check.py tests/lib/test_optin.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_first_setup_asks_once.py` | |
 | 3 | design *Scope* item 5 | `bin/test tests/skills/test_pact_check.py tests/behaviour/test_a_signer_declares_its_pact.py tests/lib/test_config.py` | |
 | 4 | design *Scope* item 6 | `bin/test tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py tests/skills/test_settle.py tests/skills/test_pact_check.py tests/lib/test_config.py tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py` and the `.github/scripts/rules.py` cases | |
-| 5 | design *Scope* item 7, item 8 for the eval scaffolds, and item 9 | `bin/test tests/text tests/evals/test_rule_cases.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`, and design *Scope* item 7's `git grep` read whole | |
+| 5 | design *Scope* items 7 and 9 (item 8's eval scaffolds were converted in phase 1, `c3495c85`, because phase 1's reader turned `tests/evals/test_rule_cases.py` red) | `bin/test tests/text tests/evals/test_rule_cases.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`, and design *Scope* item 7's `git grep` read whole | |
 
 ## Overlap with the release
 
@@ -53,7 +53,7 @@ This work meets both other items the spawn names. Where both change is from #105
 
 **A compatibility break.** A repository that holds `seal/config.md` runs `seal mode` once after updating to 0.37.0. Until it does, every `seal` command that reads a setting exits 2 and names `seal mode`, and nothing runs. `seal/parity.md`, a `pact.md` signer table and `~/.claude/agentic/pact-paths.md` are rewritten by hand into `seal/parity.json`, a `Pact signers` key and `~/.claude/agentic/pact-paths.json`; the changelog fragment's *Updating* line says so (design *Scope* item 9), and `frame/questions.md` Q1 holds whether a converter should do it.
 
-**This repository during the run.** From phase 1's commit this branch holds `seal/config.json` and no `seal/config.md`, and the installed 0.36.0 `seal` reads no setting on it: `seal gate` finds no `Broad gate`, and `seal pr-body` refuses for want of the language rows. On this branch the orchestrator runs the tree's command, `/Users/michael/Documents/GitHub/SpecSeal-worktrees/chore/1454-settings-are-read-as-json/bin/seal`, for `gate`, `pr-body` and `mode`, and names it in the sealer's spawn prompt. After this item merges into `release/v0.37.0` the same holds there until 0.37.0 is installed, which is why it merges last (*Overlap with the release*). Agents spawned from 0.36.0 read `Record language` in `config.md`, find none and write English, which is this repository's record language, so nothing changes for them.
+**This repository during the run.** From phase 1's commit this branch holds `seal/config.json` and no `seal/config.md`, and the installed 0.36.0 `seal` reads no setting on it: `seal gate` finds no `Broad gate`, and `seal pr-body` refuses for want of the language rows. On this branch the orchestrator runs the tree's command, the worktree's own `bin/seal`, for `gate`, `pr-body` and `mode`, and names it in the sealer's spawn prompt. After this item merges into `release/v0.37.0` the same holds there until 0.37.0 is installed, which is why it merges last (*Overlap with the release*). Agents spawned from 0.36.0 read `Record language` in `config.md`, find none and write English, which is this repository's record language, so nothing changes for them.
 
 No new dependency: `json` is in the standard library. No environment variable. This pull request does not move the version; #1445 does.
 
@@ -61,4 +61,4 @@ No new dependency: `json` is in the standard library. No environment variable. T
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | Phase 5 reads `README.md` and `README.ko.md` whole for settings sentences beyond *Scope* item 7's patterns (design *Scope* item 7) | The owner asked on 2026-11-09 that the READMEs state everything this release changes; the patterns catch `seal/config.md` at `README.md:182`, `:271` and the Korean lines, and a sentence calling a setting a row without a pattern word would stand | `skills/implement/orchestration.md` *A decision made after the frame is committed is folded, in place, into `frame/design.md` or `plan.md` before the next crafter spawns.* |
