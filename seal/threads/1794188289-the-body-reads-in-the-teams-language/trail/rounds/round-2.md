@@ -74,6 +74,11 @@ say "where one stands" do not state an order: `agents/sealer.md` in its
 `description` and step 2, and `skills/code-review/orchestration.md:468-470`.
 They need no change.
 
+```seal
+verdict: fixed 847ab81e
+answer: Both trees were rewritten alike with the paste-ready lines, read first against `pr_body.py#first_part` at lines 473-480, where one language puts `pr.md` first and any `pr.*.md` after it and differing rows put the one translated file first, and against `frame/design.md` *Scope* item 3. The other statements of the order were listed with `git grep -i` for "after `pr.<lang>.md`", "above `pr.md`", "then `pr.md`" and "where one stands" outside `seal/threads` and `docs/`: `skills/code-review/orchestration.md:436-437` and `:456-457`, `skills/commit-pr-convention/SKILL.md:267-268` and `:322-324`, `templates/setup/config.md:179-182` and the `pr_body.py` module docstring each condition the order on the rows, and the "where one stands" lines in `agents/proofer.md`, `agents/sealer.md` and `skills/code-review/orchestration.md:470` list what is read and state no order, so none was changed. The search is a sample of wordings.
+```
+
 ## Confirmations
 
 ```seal
