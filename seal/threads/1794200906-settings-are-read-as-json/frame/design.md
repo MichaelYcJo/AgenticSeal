@@ -642,6 +642,81 @@ An exception is an object with `Path`, `Why it needs re-verification` and `Notic
   section: What this does not see
   from: `seal pact` reads and the signer's `Pact` row,
   to: `seal pact` reads and the signer's `Pact` key,
+- change
+  file: docs/checks/the-pull-request-check.md
+  section: What the check reads at the pull request
+  from: the seal mark where the `Pull request seal mark`
+    row reads `yes` and the work item is sealed at HEAD,
+  to: the seal mark where the `Pull request seal mark`
+    key reads `yes` and the work item is sealed at HEAD,
+- change
+  file: docs/checks/the-pull-request-check.md
+  section: What the check reads at the pull request
+  from: Where `seal/config.md`'s two language rows differ, the body the check
+    compares opens with the work item's `pr.<lang>.md` and then `pr.md`, as
+    `seal pr-body` composes it, and where either row is absent the check
+    refuses on `seal/config.md`, as `seal pr-body` does.
+  to: Where `seal/config.json`'s two language keys differ, the body the
+    check compares opens with the work item's `pr.<lang>.md` and then
+    `pr.md`, as `seal pr-body` composes it, and where either key is absent
+    the check refuses on `seal/config.json`, as `seal pr-body` does.
+- change
+  file: docs/forms/the-guarantee.md
+  section: The guarantee
+  from: `pr.<lang>.md`, where `seal/config.md`'s
+    `Commit and pull request language` and `Record language` rows name
+    different languages,
+  to: `pr.<lang>.md`, where `seal/config.json`'s
+    `Commit and pull request language` and `Record language` keys name
+    different languages,
+- change
+  file: docs/forms/the-guarantee.md
+  section: The guarantee
+  from: `seal pr-body` refuses where either language row is absent,
+  to: `seal pr-body` refuses where either language key is absent,
+- change
+  file: docs/forms/the-guarantee.md
+  section: The guarantee
+  from: where the rows differ, `pr.<lang>.md` give,
+  to: where the keys differ, `pr.<lang>.md` give,
+- change
+  file: docs/layout/one-root-by-lifetime.md
+  section: What the repository decides for itself, and how it is read
+  from: The two language rows are required:
+  to: The two language keys are required:
+- change
+  file: docs/layout/one-root-by-lifetime.md
+  section: What the repository decides for itself, and how it is read
+  from: Where the two rows differ,
+    the pull request body opens with `pr.<lang>.md`,
+  to: Where the two keys differ,
+    the pull request body opens with `pr.<lang>.md`,
+- change
+  file: docs/layout/the-record-layout.md
+  section: seal/threads/<work-item-id>/
+  from: `pr.<lang>.md` where the two language rows differ: the `Closes` lines
+  to: `pr.<lang>.md` where the two language keys differ: the `Closes` lines
+- change
+  file: docs/layout/the-record-layout.md
+  section: seal/threads/<work-item-id>/
+  from: where that row and `Record language` name different languages;
+  to: where that key and `Record language` name different languages;
+- change
+  file: docs/layout/the-record-layout.md
+  section: seal/threads/<work-item-id>/
+  from: where the two language rows differ) go with the directory, whole,
+  to: where the two language keys differ) go with the directory, whole,
+- change
+  file: docs/running/the-run.md
+  section: The run
+  from: `pr.<lang>.md` where the two language rows differ, where the owner can
+  to: `pr.<lang>.md` where the two language keys differ, where the owner can
+- change
+  file: docs/running/what-a-script-gates.md
+  section: The checks
+  from: the records and the mark the row and the guarantee at HEAD give |
+  to: the records and the mark the `Pull request seal mark` key and the
+    guarantee at HEAD give |
 
 ## Removes
 
