@@ -54,6 +54,8 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 |---|---|
 | Mode | shared |
 | Broad gate | python3 -m unittest discover -s tests -t . -q |
+| Commit and pull request language | English |
+| Record language | English |
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-untrue-body/routing.md')"
 cat > 'seal/threads/1790000030-guarantee-untrue-body/routing.md' <<'AGENTIC_EOF'

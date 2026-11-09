@@ -1,12 +1,15 @@
 """Shared reader: what does this repository say about itself?
 
 `config.md` sits in the root `lib/optin.py` resolves, in the same shape as
-`parity.md` -- a markdown table of `| Item | Value |`. The file is optional,
-and every absent row but two has a default, which is what every repository
-got before that row existed. An absent `Broad gate` is one exception:
-`seal gate` names the row and exits 2 with nothing run.
+`parity.md` -- a markdown table of `| Item | Value |`. Every absent row but
+four has a default, which is what every repository got before that row
+existed. An absent `Broad gate` is one exception: `seal gate` names the row
+and exits 2 with nothing run. `Commit and pull request language` and
+`Record language` are two more: `seal pr-body` refuses to compose a pull
+request body without either (#1453), and a commit is never refused for
+them.
 
-`Mode` is the other, and it is why this module exists. What
+`Mode` is the fourth, and it is why this module exists. What
 every repository got before that row was *the folder decides*, which is not a
 value, so an absent one has no default at all -- it is filled in from where the
 folder actually is, by `seal mode`. Until somebody runs that command, a root
