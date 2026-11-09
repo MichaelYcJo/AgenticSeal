@@ -1257,8 +1257,8 @@ def import_(args, cwd):
             return 1
 
         # The root's own name in this clone, which a person finds the path
-        # under: `agentic-seal` where the project's own `seal/` stands. The
-        # zip's members keep `optin.HOME`, the archive's own prefix.
+        # under: `optin.SECOND_HOME` where the project's own `seal/` stands.
+        # The zip's members keep `optin.HOME`, the archive's own prefix.
         root_name = os.path.basename(into)
         linked = linked_path(into, archive)
         if linked:
@@ -2404,7 +2404,7 @@ def refusals(repo, home, shared, local, wanted):
     source = shared if wanted == LOCAL else local
     destination = local if wanted == LOCAL else shared
     # The shared root's name in the tree, which every pathspec here stages
-    # or reads: `agentic-seal` where the project's own `seal/` stands.
+    # or reads: `optin.SECOND_HOME` where the project's own `seal/` stands.
     name = display(repo, shared)
     found = []
 

@@ -186,6 +186,11 @@ local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저
 잃는지는 `docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 에
 다 있습니다.
 
+저장소에 이미 자기 `seal/` 이 있으면(Python 패키지가 그 예입니다) 플러그인은
+그 디렉터리를 건드리지 않습니다. 그때 두 shared 답은 루트를
+`<repo>/agentic-seal/` 에 두고, 이 README 가 말하는 `seal/` 은 모두 그 폴더를
+뜻합니다. 그 이름도 이미 쓰이고 있으면 local 만 고를 수 있습니다.
+
 **바꾸는 것은 명령 하나입니다.** 명령은 루트를 옮기고 그 이동을 스테이지까지
 하며, 커밋은 사용자가 합니다.
 
@@ -278,7 +283,8 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 ### 기록이 남는 곳
 
 기록은 세션이 아니라 저장소에 남으므로, 다음 세션은 그 기록에서 시작합니다.
-`seal/` 에는 `seal/config.md` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
+`seal/`(위의 *shared 인가 local 인가* 가 자리를 정하는 폴더)에는
+`seal/config.md` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
 항목마다 그 전부가 `seal/threads/<id>/` 아래에 있습니다. 라우팅 답, 프레임,
 단계와 회차의 기록, 마무리 메모, 보증서입니다. 파일 하나하나는
 `docs/layout/the-record-layout.md` *seal/* 와 *seal/threads/<work-item-id>/* 에

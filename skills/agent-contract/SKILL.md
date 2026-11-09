@@ -129,7 +129,8 @@ directory exists and its `README.md` opens with the marker
 `$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key
-decides it. The prose in the records follows `Record language` in
+decides it. Each `seal/` here is the root's name, defined in the opening
+paragraph of `skills/core/SKILL.md`. The prose in the records follows `Record language` in
 `config.md` under that root — English when the row is absent. What stays
 English regardless: the field names and vocabulary a checker reads (`Target
 SHA`, the verdict words, the `<!-- -->` markers), and all code. The

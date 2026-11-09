@@ -20,7 +20,10 @@ doing other work is not bound by it to start the workflow. Each path this
 file cites is relative to the plugin's root, the directory holding this file's
 `skills/`, never to the session's repository, except `seal/`, the records
 root `skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes* places.
+lifetimes* places. `seal/` is that root's name in every text this plugin
+ships. Where the repository's own `seal/` belongs to something else, the
+root is `agentic-seal/`, recognised by the same marker, `lib/optin.py#MARKER`,
+as the first line of its `README.md`.
 
 ## The first value: efficient development through the workflow
 

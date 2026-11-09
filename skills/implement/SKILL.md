@@ -90,7 +90,9 @@ step, and any party may open any group.
 tells the gates this repository runs the workflow. **Every `seal/…` path in
 this plugin's skills and agents means `<repo>/seal/` where that directory
 exists with the marker, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise.** The first is
+`$(git rev-parse --git-common-dir)/seal/` otherwise.** `seal/` there is
+the records root's name, as the opening paragraph of `skills/core/SKILL.md`
+defines it. The first is
 shared mode: committed, because gitignored files do not follow worktrees or
 other machines. The second is local mode: under the common git directory, so
 every linked worktree of the clone shares it, and never a commit candidate.

@@ -43,6 +43,10 @@ to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/seal"`,
 `mv "$(git rev-parse --show-toplevel)/seal" "$(git rev-parse --git-common-dir)/seal"`
 and a commit of the removal.
 
+Where this root has the second name the marker paragraph below gives, each
+`--show-toplevel` path in those commands ends in that name in place of
+`seal`.
+
 **`seal export` and `seal import` are the way across between machines**, and
 the only one there is: local mode's records reach no other clone by
 themselves. `seal export` zips this root alone; `seal import` merges a zip
@@ -56,13 +60,15 @@ this directory and nothing else, which is why the root has to be its own.
 **The first line of this file is the marker.** `lib/optin.py#MARKER` holds
 the same line, and every gate passes over a `seal/` whose `README.md` does not
 open with it: such a directory is the project's own, as a package named `seal`
-has one. First setup that meets such a directory writes nothing into it and
-keeps the root under the git directory. The line is compared whole, with only
-its line end taken off, so a space after it, a byte order mark before it or a
-blank line above it makes it another line. The gates then read the root under
-the git directory where its `README.md` opens with the marker, and read the
-repository as one that never opted in where none does. Leave the line as it
-is.
+has one. First setup that meets such a directory leaves it alone. A shared
+root then sits at the second name `skills/core/SKILL.md` defines, carrying
+this file, and where the project keeps a directory of its own at that name
+too, the root goes under the git directory. The line is compared whole, with
+only its line end taken off, so a space after it, a byte order mark before it
+or a blank line above it makes it another line. The gates then read the root
+at the second name, and then under the git directory, where its `README.md`
+opens with the marker, and read the repository as one that never opted in
+where none does. Leave the line as it is.
 
 **The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that
