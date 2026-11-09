@@ -89,8 +89,7 @@ import re
 # spaces of indentation, then a run of three or more backticks or three or
 # more tildes, then the info string. Four or more spaces is an indented code
 # block instead and never a fence, and reading one as a delimiter inverts the
-# fence state for the rest of the file (#491). This is the pattern
-# `lib/config.py#FENCE` held until #667 moved it here.
+# fence state for the rest of the file (#491).
 #
 # **Three or more, and tildes as well as backticks, is a decision with
 # grounds.** This repository's own records wrap a fenced example in FOUR

@@ -180,9 +180,10 @@ TABLE = {
     "tables.py#hidden_lines": (
         tables_hidden_lines,
         EXCUSES,
-        # The statement names the reader where it stood before #1454 moved
-        # it to `lib/tables.py`; `docs/` is written at the settle.
-        "`lib/config.py#hidden_lines`",
+        # The name alone: the statement spells the module the reader stood
+        # in before #1454 moved it to `lib/tables.py`, and `docs/` is
+        # written at the settle.
+        "#hidden_lines`",
         (N, N, N, R, R, R, N, N, N, N),
     ),
     "unverified_check.py#readable": (
