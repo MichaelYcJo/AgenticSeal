@@ -105,9 +105,13 @@ object. Run `seal mode` once in each repository that holds a
 the old file. Until then `seal gate`, `seal pr-body`, `seal fold`, `seal pact`
 and `seal mode --check` exit 2 and name `seal mode`, and `seal rules`,
 `seal settle` and `seal unverified` read the default policy root and
-reference roots. A `seal/parity.md`, the `| Signer |` table of a
-`seal/pact.md` and `~/.claude/agentic/pact-paths.md` are rewritten by hand,
-as the release note of the release that made the change says.
+reference roots. Three files no command converts are rewritten by hand.
+`seal/parity.md` becomes `seal/parity.json`, written from
+`templates/setup/parity.json`. The `| Signer |` table of a `seal/pact.md`
+becomes a `Pact signers` key in that repository's `seal/config.json`, the
+remote URLs separated by `;`. `~/.claude/agentic/pact-paths.md` becomes
+`~/.claude/agentic/pact-paths.json`, one JSON object from remote URL to
+checkout path.
 
 ## Your first work item
 

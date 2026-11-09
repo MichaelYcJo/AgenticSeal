@@ -109,9 +109,12 @@ claude plugin update agentic@agenticseal
 `seal gate`, `seal pr-body`, `seal fold`, `seal pact`, `seal mode --check` 가
 종료 코드 2 로 멈추고 `seal mode` 를 짚으며, `seal rules`, `seal settle`,
 `seal unverified` 는 정책 루트와 참고 루트를 기본값으로 읽습니다.
-`seal/parity.md`, `seal/pact.md` 의 `| Signer |` 표,
-`~/.claude/agentic/pact-paths.md` 는 이 변경을 낸 릴리스의 노트가 말하는 대로
-손으로 다시 씁니다.
+어떤 명령도 바꿔 주지 않는 세 파일은 손으로 다시 씁니다. `seal/parity.md` 는
+`templates/setup/parity.json` 에서 시작해 `seal/parity.json` 으로 씁니다.
+`seal/pact.md` 의 `| Signer |` 표는 그 저장소 `seal/config.json` 의
+`Pact signers` 키가 되고, 원격 URL 은 `;` 로 구분합니다.
+`~/.claude/agentic/pact-paths.md` 는 원격 URL 에서 체크아웃 경로로 가는 JSON
+객체 하나인 `~/.claude/agentic/pact-paths.json` 이 됩니다.
 
 ## 첫 작업 항목
 
