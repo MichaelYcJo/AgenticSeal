@@ -1,11 +1,10 @@
-"""`tests/censuses.py`'s cases, and the sweep of every file no module file
-declares (#942).
+"""`tests/censuses.py`'s cases (#942).
 
 Each census judges one file. A module file runs every census over its own
-target through `test_census = census_case(TARGET)`, and `Test_module` here
-runs them over every other tracked file. Each census's cases write a file
-into a temporary root and judge it there, so none of them runs git; the
-sweep lists the tracked files once.
+target through `test_census = census_case(TARGET)`, and
+`tests/behaviour/test_every_tracked_file_meets_every_census.py` runs them over
+every other tracked file. Each census's cases write a file into a temporary
+root and judge it there, so none of them runs git.
 
 The cases came from the modules that held each census whole:
 `test_every_file_the_plugin_reads_or_writes_names_its_encoding.py` (#741,
@@ -26,22 +25,14 @@ swept: 231 lines in 75 files.
 """
 
 import ast
-import importlib.util
 import inspect
-import os
 
 import censuses
 import pytest
-from conftest import ROOT, census_case, git_listing, load_lib_module, on_disk
+from conftest import census_case, load_lib_module
 
 TARGET = "tests/censuses.py"
 
-_LAYOUT = importlib.util.spec_from_file_location(
-    "agentic_layout_for_censuses",
-    os.path.join(ROOT, "skills", "verify", "scripts", "test_layout.py"),
-)
-layout = importlib.util.module_from_spec(_LAYOUT)
-_LAYOUT.loader.exec_module(layout)
 
 SIGN = "\N{SECTION SIGN}"
 # Built from halves, so this file holds neither whole: RFC 2606 reserves the
@@ -1185,29 +1176,6 @@ class Test_slash_in_join:
 
 
 class Test_module:
-    def test_every_file_no_module_file_declares_meets_every_census(self):
-        """The censuses over every tracked file whose module file does not run
-        them itself: the documents, and every module not yet in the layout."""
-        tracked, _missing = on_disk(ROOT, git_listing(ROOT, "ls-files", check=True))
-        assert tracked, (
-            "git ls-files listed no tracked file, so the sweep judged nothing"
-        )
-        declared = set()
-        for directory, _dirs, names in os.walk(os.path.join(ROOT, "tests")):
-            for name in names:
-                if name.startswith("test_") and name.endswith(".py"):
-                    with open(os.path.join(directory, name), encoding="utf-8") as f:
-                        source = f.read()
-                    # Only a file that runs the censuses takes its target out
-                    # of the sweep: one that declares and runs none leaves it
-                    # here, judged.
-                    if layout.runs_the_censuses(ast.parse(source)):
-                        declared.add(layout.declared_target(source))
-        found = [
-            p for rel in tracked if rel not in declared for p in censuses.judge(rel)
-        ]
-        assert not found, "\n".join(found)
-
     def test_no_method_is_matched_by_its_dotted_name(self):
         """#762: a method called on its class takes the path first, and only
         the `.open` branch of `judge_call` moves the positions for it. A

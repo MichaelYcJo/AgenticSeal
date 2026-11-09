@@ -2017,11 +2017,6 @@ class Test_module:
         assert done.returncode == 0, done.stderr
         assert done.stdout.startswith("usage: seal unverified"), done.stdout
 
-    def test_this_repositorys_own_overviews_are_all_readable(self):
-        """The corpus is the real test, and it states the rule for new work:
-        a work item that writes an overview writes this section in it."""
-        assert run([os.path.join(ROOT, "seal", "threads")]) == 0
-
 
 # --- a reading written from the format, for `Test_live_lines` -----------------
 

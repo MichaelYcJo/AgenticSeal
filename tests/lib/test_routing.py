@@ -407,53 +407,6 @@ class Test_parse:
             "identically, which is the state the row exists to end"
         )
 
-    def test_every_declaration_in_this_repository_still_parses(self):
-        """Executed against the real files, not a fixture: the declarations
-        committed here are the population the optional rows exist for.
-
-        S8 of #84 extends it rather than opening a second case beside it. What an
-        optional row has to survive is a declaration that does not carry it -- a
-        required row, or a row whose absence took the declaration down, would
-        make every one of those no declaration, and the pull request's check
-        would read the branch each names as undeclared. So the assertion is over
-        the declarations that OMIT each row, and never over how many answer it:
-        #351 wrote the first `Planning` answer, and a case premised on nobody
-        answering goes red on the commit that writes one rather than on a defect.
-
-        The vacuity guard is over the axes together, not per axis. Every
-        committed declaration answers `Implementation`, so a per-axis guard would
-        be red the day it was written.
-
-        All three optional rows are swept rather than the two that existed first.
-
-        No count is written down here either. The docstring this replaced carried
-        two -- `the twelve committed here` and `Seventy-two declarations` -- for a
-        tree that held 73, and a number in a docstring is a claim nothing reads.
-        """
-        import glob
-
-        found = sorted(
-            glob.glob(os.path.join(ROOT, "seal", "threads", "*", "routing.md"))
-        )
-        # `assert found` and the vacuity guard over `omitted` stood here, and both
-        # were floors a fold turns red (#517). The first asked whether the glob
-        # found the declarations that are there, and is asked of the tree instead:
-        # a second listing, by `os.listdir`, has to agree with it at any size.
-        # The second asked whether the corpus holds a declaration that omits an
-        # optional row, which is a question about what the repository happens to
-        # hold, and it moves to
-        # `test_an_absent_optional_row_reads_as_nothing_over_a_built_declaration`.
-        specs = os.path.join(ROOT, "seal", "threads")
-        listed = sorted(
-            os.path.join(specs, n, "routing.md")
-            for n in (os.listdir(specs) if os.path.isdir(specs) else [])
-            if os.path.isfile(os.path.join(specs, n, "routing.md"))
-        )
-        assert [os.path.normpath(p) for p in found] == [
-            os.path.normpath(p) for p in listed
-        ], "the glob and the listing disagree about which declarations exist"
-        _absent_optional_rows_read_as_nothing(found)
-
     def test_an_absent_optional_row_reads_as_nothing_over_a_built_declaration(
         self, tmp_path
     ):

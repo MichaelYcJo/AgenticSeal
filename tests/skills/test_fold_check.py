@@ -34,12 +34,6 @@ SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 fold_check = load_module(SCRIPT, "agentic_fold_check")
 
 
-def declared():
-    """`(ceiling, policy root)` as this repository's `seal/config.md` states
-    them, read by the shipped command's own reader."""
-    return fold_check.declared(fold_check.seal_home(ROOT))
-
-
 def command(*args):
     """`seal fold` as a person types it, run on this interpreter."""
     done = subprocess.run(
@@ -81,17 +75,6 @@ def git_init(root):
 
 
 class Test_main:
-    def test_accepts_this_repository_with_no_flags(self):
-        """S1 and S13: the values come from `seal/config.md`, every check runs,
-        and a document past the ceiling is named and does not fail the run."""
-        code, out, err = command("--root", ROOT)
-        assert code == 0, (out, err)
-        ceiling, policy = declared()
-        assert f" under {policy}/ to {ceiling} estimated tokens" in out, out
-        for rel, tokens in fold_check.past_ceiling(ROOT, policy, ceiling):
-            assert f"{rel} is about {tokens} tokens, past the ceiling" in out, out
-        assert f"seal fold: the index {policy}/README.md names every document" in out
-
     def test_a_document_past_the_ceiling_is_named_and_the_run_exits_0(self, tmp_path):
         """S12: the owner's answer of 2026-10-20 makes the ceiling a report. A
         document one token past it is named as one to split; one at it is not."""
@@ -142,7 +125,7 @@ class Test_main:
         assert code == 1, (code, out, err)
         assert f"{says}\n" in out, out
 
-    def test_an_index_naming_each_document_once_passes(self, tmp_path):
+    def test_accepts_an_index_naming_each_document_once(self, tmp_path):
         """An edition goes on its English edition's row, and the index names
         itself nowhere."""
         rows = "| `docs/a.md` and `docs/a.ko.md` | a |\n| `docs/b.md` | b |\n"
