@@ -26,6 +26,11 @@ frame/plan.md:25, the Verdict cell of row A9:
 rejected: `seal mode` converts, and `seal gate`, `seal pr-body`, `seal fold`, `seal pact` and `seal mode --check` refuse an unconverted file (design Scope item 2 and S3)
 ```
 
+```seal
+verdict: fixed 4b99e2d3
+answer: Applied the A9 cell as given. Before committing it I read the work item's records for every other statement of the claim. The method was a grep of `routing.md`, the three frame files, `gaps.md`, `changelog.md` and `pr.md` for "every reader", "every command", "every script", "refuses an unconverted", "exits 2" and the Korean "모든 ... 거절" forms, and I read each hit. No other line says every reader or every command refuses. `frame/plan.md:11` and `:54`, `changelog.md:10` and `pr.md:8` name the five commands that stop and the three that read defaults. `frame/design.md:37` and S3 (`:61`) name `seal mode --check` and the four commands. The two design `to:` values at `:260` and `:327` say a `config.md` "is refused by every reader that refuses a file it cannot read, and read as no file by the readers of `Policy root` and `Reference specs`", which holds at HEAD. `frame/design.md:38` (Scope item 3) says every script that reads a setting reads it through the one reader, which is a different claim and holds.
+```
+
 ### 2. *Rule changes* misses twelve `docs/` sentences that the settle writes from earlier items and that name `seal/config.md` or call a setting a row
 
 ```seal
@@ -129,6 +134,11 @@ gaps.md, Not done, after the paragraph at :13:
 `seal settle --draft` does not place the operation at `seal/threads/1794188289-the-body-reads-in-the-teams-language/frame/design.md:226`, because 1794187229's operation rewrites the `seal pr-body --check` row of `docs/running/what-a-script-gates.md` *The checks* before it. Its `to:` names `config.md`'s two language rows. The settling session that places it by hand writes `config.json`'s two language keys and calls each a key.
 ```
 
+```seal
+verdict: fixed 66b462d7
+answer: Added the twelve operations after the last entry of *Rule changes*, and added the gaps.md sentence after the paragraph at :13, in one commit. Before applying them I read the unplaced operation at `seal/threads/1794188289-the-body-reads-in-the-teams-language/frame/design.md:226-230` and the `seal pr-body --check` row at `docs/running/what-a-script-gates.md:66`, and the gaps.md sentence states both as they stand. I ran `chain_check.py --baseline origin/release/v0.37.0 --worktree` after applying the operations. It printed the same twelve test-pin notices at `frame/design.md:358` and `:477` that this round weighed, and none at the new operations (executed). I then ran the tree's `bin/seal settle --draft --released-at HEAD` in a scratch worktree at `66b462d7`. It placed 112 of 113 operations, and the one not placed is 1794188289's at `:226` (executed). Each of the twelve `to:` texts stands once in the drafted `docs/` (executed: `git grep -F` of each). The drafted `docs/` names `config.md` only in this item's two converter sentences, `docs/layout/one-root-by-lifetime.md:269` and its Korean edition at `:246`. Its other added lines holding "row" name `routing.md` rows, the pact anchor's rows or a plan's row (read). The scratch worktree was then removed with `git worktree remove`.
+```
+
 The fix pass runs `chain_check.py --worktree` after applying the operations, and weighs any test-pin or copy notice they raise.
 
 ### 3. No case holds the take-in's reading of an unconverted `parity.md` under `agentic-seal/`
@@ -160,6 +170,11 @@ def test_s3_an_earlier_releases_parity_md_under_agentic_seal_is_refused_there(
     (line,) = refused
     assert line.startswith("agentic-seal/parity.md:0  "), line
     assert "agentic-seal/parity.json" in line, line
+```
+
+```seal
+verdict: fixed 1b04534c2
+answer: Added the case as given, after `test_s3_a_change_to_the_package_reaches_outside_the_document_roots`. `bin/seal layout --pairs` over the module names no pair (executed: "1 files read, 0 pairs"). I showed it red with `bin/seal mutate skills/code-review/scripts/chain_check.py`, replacing `old = f"{home}/{routing.optin.OLD_PARITY_CONFIG}"` with `old = f"{routing.optin.HOME}/{routing.optin.OLD_PARITY_CONFIG}"`. The new case failed at `(line,) = refused` with "not enough values to unpack (expected 1, got 0)", because no refusal names a path under `agentic-seal/` once the old file is read under `seal/` (executed). `seal mutate` restored the file, and `chain_check.py:1611` reads `{home}` again (read). The case then passed, with the rest of its module and `tests/skills/test_chain_check.py`: 242 passed (executed).
 ```
 
 ## Confirmations
