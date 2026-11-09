@@ -58,11 +58,15 @@ GUARANTEE = "guarantee.md"
 CHANGELOG = "changelog.md"
 # The work item's own file of the pull request body's first part, which
 # `seal pr-body` writes above the copy of the records, after the work item's
-# `pr.<lang>.md` where the two language rows differ.
+# `pr.<lang>.md` where the two language keys differ.
 PR = "pr.md"
 # The migration config, directly under the root: `parity_config` below opens
 # it, and `chain_check.py` reads it at HEAD under the shared root (#988).
-PARITY_CONFIG = "parity.md"
+PARITY_CONFIG = "parity.json"
+# The migration config an earlier release read, a `| Field | Value |` table:
+# `chain_check.py` refuses it where git carries it without `PARITY_CONFIG`,
+# and `seal mode` names it where it stands without one (#1454).
+OLD_PARITY_CONFIG = "parity.md"
 # An empty FILE under the common git directory; its existence is the whole
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory
@@ -115,7 +119,7 @@ def repo_root(cwd):
     # someone who has to recognise their own repository in it. git answers
     # with forward slashes on every platform, so on Windows the root arrived
     # in one dialect and was joined in another -- `C:/proj` and then
-    # `C:/proj\seal\parity.md`. Both halves work; neither
+    # `C:/proj\seal\parity.json`. Both halves work; neither
     # equals a path the caller built, and the address is the whole point of a
     # module named for having ONE.
     #

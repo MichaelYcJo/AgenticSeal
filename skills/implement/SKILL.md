@@ -31,21 +31,21 @@ orchestrator's alike.
 
 ## The language the records are written in
 
-**Read `Record language` in `config.md` before writing any of the documents
-below**, the same way `commit-pr-convention` reads its own row before a commit
+**Read `Record language` in `config.json` before writing any of the documents
+below**, the same way `commit-pr-convention` reads its own key before a commit
 or a pull request. The root is resolved the way every path in this skill is.
 
-```markdown
-| Item | Value |
-|---|---|
-| Record language | Korean |
+```json
+{
+  "Record language": "Korean"
+}
 ```
 
 It governs the **prose** in `frame/design.md`, `plan.md`, `gaps.md`,
 `questions.md`, `changelog.md`, the cell contents of `trail/rounds/round-N.md` and
 `trail/phases/phase-N.md` and the text beneath their tables.
 
-**Every way of not naming one lands on English** — no file, no such row, an
+**Every way of not naming one lands on English** — no file, no such key, an
 empty value, a file that cannot be read. A config nobody can read must not
 stop the work.
 
@@ -55,7 +55,7 @@ decides for itself, and how it is read* gives the reasons.
 
 **What stays English whatever it says**, because these are read literally
 rather than by a person: every field name, section heading and vocabulary
-word the checkers match, listed in `templates/setup/config.md` under *What no row
+word the checkers match, listed in `templates/setup/config.md` under *What no key
 governs* — that list is derived from the checkers' own constants, so it
 cannot drift from them; the `<!-- -->` markers; the `closed` that opens a
 closed row; and all code — identifiers, comments,
@@ -69,7 +69,7 @@ laid out by **lifetime**, not by who wrote it:
 
 | Root | Lifetime | Test | Authority |
 |---|---|---|---|
-| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline. A work item whose subject is the policy root itself, its structure or its documents' text, edits the policy root directly in its pull request, as the settle does, and re-points in that pull request every unsettled design's `## Rule changes` operation that names a document or a section it moved. A work item whose subject is the code states the rules its work changes in `## Rule changes`, for the settle, so that work items running side by side do not each rewrite the same section. Which subject a work item has is the framer's judgment, read by the proofer at review. The settle after the release writes each section as the latest decision the released designs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled designs' rule changes state at each section, in merge order |
+| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.json`'s `Policy root` names another) is the baseline. A work item whose subject is the policy root itself, its structure or its documents' text, edits the policy root directly in its pull request, as the settle does, and re-points in that pull request every unsettled design's `## Rule changes` operation that names a document or a section it moved. A work item whose subject is the code states the rules its work changes in `## Rule changes`, for the settle, so that work items running side by side do not each rewrite the same section. Which subject a work item has is the framer's judgment, read by the proofer at review. The settle after the release writes each section as the latest decision the released designs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled designs' rule changes state at each section, in merge order |
 | `seal/threads/<work-item-id>/` | One work item | Its role ends when this work ships (the frame, the trail, the closing memo) | The contract this work executes against. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
 | `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines |
 
@@ -286,7 +286,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
 | `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame's `## Removes` names once, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
-| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.md`'s two language rows differ, which `seal pr-body` writes above the records' copy: the `Closes` and `Part of` lines, quotes of the other records, each with its coordinate, and the attribution line. `pr.<lang>.md` beside it holds each of those quotes rendered in `Commit and pull request language` | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the rows differ; both rewritten where a fix pass or a fold changes a sentence it quotes |
+| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `seal pr-body` writes above the records' copy: the `Closes` and `Part of` lines, quotes of the other records, each with its coordinate, and the attribution line. `pr.<lang>.md` beside it holds each of those quotes rendered in `Commit and pull request language` | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ; both rewritten where a fix pass or a fold changes a sentence it quotes |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped

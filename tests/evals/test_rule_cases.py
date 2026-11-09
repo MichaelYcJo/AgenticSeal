@@ -205,7 +205,7 @@ class Test_main:
         body, its placeholders filled as its scaffold fills its records, is
         what `seal pr-body --check` accepts over the records that scaffold
         writes, its `pr.md` among them, in a repository holding the
-        scaffold's `seal/` root, whose `config.md` gives the language rows
+        scaffold's `seal/` root, whose `config.json` gives the language keys
         the first part is composed from (#1453); the part above `HEADING`
         ends with `Closes #101.` and holds the README sentence the tree
         lacks in the untrue-body case alone."""

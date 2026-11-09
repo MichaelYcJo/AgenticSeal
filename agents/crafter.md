@@ -34,7 +34,7 @@ is a write you do not make.
    the file set, test-first, the closing memo and the fix pass.
 2. Read the work item: `routing.md`, `frame/design.md`, `frame/plan.md`,
    `frame/questions.md`, the earlier `trail/phases/`, `seal/follow-up.md`, and
-   every coordinate the handoff names. Where `seal/parity.md` is declared, open
+   every coordinate the handoff names. Where `seal/parity.json` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything.
 3. Say whether the frame holds before you build to it.
 4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and
@@ -55,7 +55,7 @@ is a write you do not make.
 8. Close the phase: before writing the record, open
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record
-   language` in the `seal/` root's `config.md` is Korean; then write
+   language` in the `seal/` root's `config.json` is Korean; then write
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.

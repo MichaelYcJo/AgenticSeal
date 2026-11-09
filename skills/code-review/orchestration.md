@@ -367,7 +367,7 @@ after this repair, a merge from the base or any other repair, run
 `seal pr-body` on the file once more and send it the same way. The body
 sent before that verdict carries no seal mark, since the seal it stood on
 no longer held at HEAD, and only a run after the verdict can write the mark
-the `Pull request seal mark` row asks for.
+the `Pull request seal mark` key asks for.
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s
@@ -400,7 +400,7 @@ runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
 **The pull request body's first part is the work item's `pr.md`, opened by
-its `pr.<lang>.md` where the two language rows differ, as the paragraph on
+its `pr.<lang>.md` where the two language keys differ, as the paragraph on
 `pr.<lang>.md` below says. The orchestrator writes `pr.md` once the build's
 last phase has closed and commits it before it spawns the first round.**
 Where no round runs, the orchestrator writes it before the broad run.
@@ -425,8 +425,8 @@ carries `trail/gate.md`'s `run:` line, and the table goes to the flow log's
 comment alone (`skills/verify/orchestration.md` *Measure the segment, and
 feed the flow log*).
 
-**Where `config.md`'s `Commit and pull request language` and `Record
-language` rows name different languages, the orchestrator writes
+**Where `config.json`'s `Commit and pull request language` and `Record
+language` keys name different languages, the orchestrator writes
 `pr.<lang>.md` beside `pr.md` and commits the two together.** It holds each
 quote of `pr.md` rendered in `Commit and pull request language`, in
 `pr.md`'s order, each followed by the coordinate the quote carries in
@@ -435,7 +435,7 @@ which `pr.md` already holds in that language, and no sentence of the
 orchestrator's own. `<lang>` is the orchestrator's spelling for the file's
 own language, the commit language, such as `ko`. `seal pr-body` writes it
 above `pr.md`, so the body opens in the team's language, and every round
-reads it whole beside `pr.md`. Where the two rows name one language, no
+reads it whole beside `pr.md`. Where the two keys name one language, no
 `pr.<lang>.md` is written.
 
 **Where a fix pass or a fold changes a sentence that `pr.md` quotes, the
@@ -454,15 +454,15 @@ one stands, and committed before the spawn.
 because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
 `<item>` is the work item's directory. It writes `pr.<lang>.md` where the
-two language rows differ, then `pr.md`, then the line
+two language keys differ, then `pr.md`, then the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the records'
 copy, as `docs/forms/the-guarantee.md` *The guarantee* states, and replaces
 whatever the file held. On exit 1 its `refused:` lines name a record's file
-and line, `pr.md` and `pr.<lang>.md` among the records, or a language row
-`config.md` lacks: repair that record or write that row, commit it, and run
+and line, `pr.md` and `pr.<lang>.md` among the records, or a language key
+`config.json` lacks: repair that record or write that key, commit it, and run
 the command again. Edit nothing in the file; the sealer's
 `seal pr-body --check` withholds on a part above the line that is not
-`pr.<lang>.md` and `pr.md` as the rows ask for them, and on a part below it
+`pr.<lang>.md` and `pr.md` as the keys ask for them, and on a part below it
 that is not the records' text at HEAD, and the pull request's check refuses
 the body sent from it on the same lines.
 **Run the command again before every later spawn of the sealer and before
@@ -481,8 +481,8 @@ part-way, at exit 0 too, had a pytest session at `HEAD` stop before its
 end: `records/` in the kept output says what stopped it, and a stop the
 branch added is this work's to repair.
 Review a repair where it touched a file outside the work item's records, and
-run the gate again. On the broad run's exit 2 nothing ran; a refusal about the row goes
-to a person, as *A refusal about the `Broad gate` row* below says.
+run the gate again. On the broad run's exit 2 nothing ran; a refusal about the key goes
+to a person, as *A refusal about the `Broad gate` key* below says.
 
 **Pass the base as a plain branch name, and quote the lines only the gate can
 tell.** The gate resolves the base to the ref CI reads: the base's upstream
@@ -524,15 +524,16 @@ whose block stands below the refused verdict's block, draws the work item's
 stamp (`docs/checks/the-stamp.md` *The stamp*).
 
 **The preflight is yours, and it is not the broad gate.** It runs every
-arm of the gate except the `Broad gate` row, in the gate's order and over the
-same resolved base, once every refusal of the row has been applied; the row is
-read and not run. It takes seconds where the broad run takes a suite, so a
-refusal on a record arm, which the broad run would return after that suite,
-arrives before it. Read its exit code directly and take the broad run only on 0. On
-1 its `PREFLIGHT FAILED` lines name each failing arm with its first lines and
-the file holding the rest: correct the record, commit, and run it again. On 2
-it refused before anything ran, and a refusal about the row goes to a person,
-as *A refusal about the `Broad gate` row* below says. It writes no file and
+arm of the gate except the `Broad gate` command, in the gate's order and over
+the same resolved base, once every refusal of the key has been applied; the
+key is read and its command is not run. It takes seconds where the broad
+run takes a suite, so a refusal on a record arm, which the broad run would
+return after that suite, arrives before it. Read its exit code directly and
+take the broad run only on 0. On 1 its `PREFLIGHT FAILED` lines name each
+failing arm with its first lines and the file holding the rest: correct the
+record, commit, and run it again. On 2 it refused before anything ran, and
+a refusal about the key goes to a person, as
+*A refusal about the `Broad gate` key* below says. It writes no file and
 prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
 A line the check names as not read, a fence near the opener of a `seal`
 block, changes no exit code, and its lines are fields of nothing. Where the
@@ -571,15 +572,15 @@ directory outside the clone. Where the hand-back carries no such line,
 no stamp was queued and none is drawn, and the pull request's check is what
 says the work item was sealed.
 
-**A refusal about the `Broad gate` row goes to a person, and the run stops
+**A refusal about the `Broad gate` key goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are
-about the row rather than about the work: the repository declares no row, or
-its row is one the gate would not run as the command it reads as. Neither is
-yours to settle, and no agent's: the row is the one value in this flow only
-a person may write, because there is no default and the broad run covers
-exactly what a person wrote. Put the gate's own sentence in front of
+about the key rather than about the work: the repository declares no key, or
+its key holds a command the gate would not run as the command it reads as.
+Neither is yours to settle, and no agent's: the key is the one value in this
+flow only a person may write, because there is no default and the broad run
+covers exactly what a person wrote. Put the gate's own sentence in front of
 whoever owns the repository, name `/agentic:config` as where they answer it, and
-open no pull request until they have. A row filled in to get past the
+open no pull request until they have. A key filled in to get past the
 refusal makes the broad run cover a command the person never saw.
 
 **A session that has compacted hands the next round to a fresh one, and the

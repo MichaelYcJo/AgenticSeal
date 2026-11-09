@@ -18,7 +18,7 @@ import json
 import os
 
 import pytest
-from conftest import ROOT, census_case, mark_root, write
+from conftest import ROOT, census_case, config_json, mark_root, write
 
 TARGET = ".github/scripts/release_report.py"
 
@@ -183,17 +183,13 @@ class Test_documents:
         self, tmp_path
     ):
         """#1059: beside a project's own `seal/`, a package with no marker,
-        the `Policy root` row is read from the marked `agentic-seal/`, so the
+        the `Policy root` key is read from the marked `agentic-seal/`, so the
         rows are the documents under the root it names."""
         root = tree(tmp_path / "t", "", {"t::a": 1.0}, {})
         write(root, "seal/__init__.py", "VERSION = 1\n")
-        write(root, "seal/config.md", "| Item | Value |\n|---|---|\n")
+        write(root, "seal/config.json", config_json())
         mark_root(os.path.join(root, "agentic-seal"))
-        write(
-            root,
-            "agentic-seal/config.md",
-            "| Item | Value |\n|---|---|\n| Policy root | policy |\n",
-        )
+        write(root, "agentic-seal/config.json", config_json(("Policy root", "policy")))
         write(root, "policy/README.md", INDEX.replace("docs/", "policy/"))
         write(root, "policy/g/x.md", "abc\n")
         assert sorted(report.documents(root)) == [

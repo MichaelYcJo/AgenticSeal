@@ -9,6 +9,7 @@ import atexit
 import functools
 import importlib.util
 import io
+import json
 import os
 import pathlib
 import re
@@ -628,10 +629,10 @@ POSIX_ROW_PROBE = "echo one; echo $(echo two)"
 
 def posix_row_shell_or_skip():
     """Skip unless the shell behind `shell=True` here separates commands with
-    `;` and substitutes `$(…)` — the two things a `Broad gate` row's fixture
+    `;` and substitutes `$(…)` — the two things a `Broad gate` key's fixture
     can be ABOUT.
 
-    `broad_gate.run` hands the row to `subprocess(shell=True)`, which is
+    `broad_gate.run` hands the command to `subprocess(shell=True)`, which is
     `/bin/sh` on POSIX and `%COMSPEC%` — normally `cmd.exe` — on Windows.
     `cmd.exe` has neither: `echo a; echo b` is one `echo` that succeeds, and
     `$(echo x)` is a literal argument. So a fixture row written to fail, or
@@ -976,7 +977,8 @@ def git_repo(where):
     return where
 
 
-# A `config.md` text with its `Item | Value` table; `{rows}` takes the rows.
+# An earlier release's `config.md` text with its `Item | Value` table;
+# `{rows}` takes the rows.
 TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 
@@ -985,10 +987,11 @@ def config():
     return load_lib_module("config.py", "agentic_config_for_tests")
 
 
-# The config texts the reader's cases in `tests/lib/test_config.py` and the
-# writer's in `tests/skills/test_seal.py` both read. A row
-# that parses comes first in the piped table, because the walker stops at the
-# first line it refuses (#415, #871).
+# Earlier releases' `config.md` texts, which the table walker's cases in
+# `tests/lib/test_tables.py` and `seal mode`'s converter's in
+# `tests/skills/test_seal.py` both read. A row that parses comes first in the
+# piped table, because the walker stops at the first line it refuses (#415,
+# #871).
 PIPED_TABLE = (
     "# Repository config\n\n"
     "| Item | Value |\n|---|---|\n"
@@ -1064,23 +1067,31 @@ def opt_in_shared(repo):
 
 
 def write_config(home, text):
-    """TEXT written as `<home>/config.md`, HOME made where it is missing."""
+    """TEXT written as `<home>/config.json`, HOME made where it is missing."""
+    os.makedirs(str(home), exist_ok=True)
+    with open(os.path.join(str(home), "config.json"), "w", encoding="utf-8") as f:
+        f.write(text)
+
+
+def write_old_config(home, text):
+    """TEXT written as `<home>/config.md`, the file an earlier release read,
+    HOME made where it is missing."""
     os.makedirs(str(home), exist_ok=True)
     with open(os.path.join(str(home), "config.md"), "w", encoding="utf-8") as f:
         f.write(text)
 
 
 def write_unreadable(home, shape):
-    """`<home>/config.md` in one of the two unreadable shapes that hold on
+    """`<home>/config.json` in one of the two unreadable shapes that hold on
     macOS, Linux and Windows alike: a directory of that name, and bytes that
     do not decode as UTF-8. A permission bit is left out on purpose: Windows
     and a root user both read through it."""
-    path = os.path.join(str(home), "config.md")
+    path = os.path.join(str(home), "config.json")
     if shape == "directory":
         os.mkdir(path)
     else:
         with open(path, "wb") as f:
-            f.write(b"| Item | Value |\n|---|---|\n| Mode | \xff\xfe shared |\n")
+            f.write(b'{\n  "Mode": "\xff\xfe shared"\n}\n')
     return path
 
 
@@ -1175,35 +1186,42 @@ def imported_roots(path):
     return roots
 
 
-def config_table(*rows):
-    """A `seal/config.md` holding one row per `(item, value)` in ROWS."""
-    return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
-        f"| {item} | {value} |\n" for item, value in rows
+def config_json(*pairs):
+    """A `seal/config.json` holding one member per `(key, value)` in PAIRS,
+    in order, written as `seal mode` writes one; a key given twice is
+    written twice, which a dict could not hold."""
+    members = ",\n".join(
+        f"  {json.dumps(key, ensure_ascii=False)}: "
+        f"{json.dumps(value, ensure_ascii=False)}"
+        for key, value in pairs
     )
+    return "{\n" + members + ("\n" if pairs else "") + "}\n"
 
 
-# A full commit id for a migration config's `Baseline commit` row.
+# A full commit id for a migration config's `Baseline commit` key.
 BASELINE = "0123456789abcdef0123456789abcdef01234567"
 
 
 def parity_file(sha):
-    """`templates/setup/parity.md` with its `Baseline commit` placeholder
-    replaced by SHA, or left standing where SHA is None."""
-    text = pathlib.Path(ROOT, "templates", "setup", "parity.md").read_text(
+    """`templates/setup/parity.json` with its `Baseline commit` placeholder
+    replaced by SHA, written as a JSON string, or left standing where SHA is
+    None."""
+    text = pathlib.Path(ROOT, "templates", "setup", "parity.json").read_text(
         encoding="utf-8"
     )
-    assert text.count("`<SHA>`") == 1
-    return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
+    assert text.count('"<SHA>"') == 1
+    return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
 
 
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
-# and the cases of `tests/lib/test_config.py` that run it over a table the walker
-# refuses share one world: the pact's repository, whose `seal/pact.md` carries
-# one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
-# does not hold, and a signer beside it, which names the pact in its
-# `seal/config.md`.
+# and the cases of `tests/lib/test_config.py` that run it over a signer's config
+# share one world: the pact's repository, whose `seal/config.json` lists the
+# signer in its `Pact signers` key and whose `seal/pact.md` carries one clause
+# committed as v1 and then v2 on `main` and v3 on a side branch HEAD does not
+# hold, and the signer beside it, which names the pact in its
+# `seal/config.json`.
 
 
 @functools.cache
@@ -1224,7 +1242,7 @@ CLAUSE_PATH = "## Order response shape / ### Fields"
 PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
-# The pact a signer's `Pact` row names in the reader's cases, and what
+# The pact a signer's `Pact` key names in the reader's cases, and what
 # `lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
 ORDERS = [(URL, "example.com/org/orders-api")]
@@ -1232,17 +1250,15 @@ ORDERS = [(URL, "example.com/org/orders-api")]
 ANCHOR_LINE = 3
 
 
-def pact(fields, signers=(SIGNER_URL,)):
-    rows = "".join(f"| {s} |\n" for s in signers)
-    return (
-        "# Pact\n\n| Signer |\n|---|\n"
-        + rows
-        + f"\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
-    )
+def pact(fields):
+    """The pact's text, its one clause holding FIELDS."""
+    return f"# Pact\n\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
 
 
-def old_header(text):
-    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
+def pact_config(*signers):
+    """The pact's repository's `seal/config.json`: `Mode`, then a `Pact
+    signers` key listing SIGNERS separated by `;`."""
+    return config_json(("Mode", "shared"), ("Pact signers", "; ".join(signers)))
 
 
 def clause(fields):
@@ -1252,10 +1268,9 @@ def clause(fields):
     return digest
 
 
-def signer_config(*rows):
-    return "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n" + "".join(
-        f"| {item} | {value} |\n" for item, value in rows
-    )
+def signer_config(*pairs):
+    """A signer's `seal/config.json`: `Mode` and then each of PAIRS."""
+    return config_json(("Mode", "shared"), *pairs)
 
 
 def anchor_table(*rows):
@@ -1286,6 +1301,7 @@ def _template(tmp_path_factory):
     api = base / "work" / "orders-api"
     init(api, PACT_URL)
     write(api, PACT, pact(V1))
+    write(api, "seal/config.json", pact_config(SIGNER_URL))
     mark_root(api / "seal")
     commit(api, "pact v1")
     write(api, PACT, pact(V2))
@@ -1296,7 +1312,7 @@ def _template(tmp_path_factory):
     git(api, "switch", "-q", "main")
     web = base / "work" / "orders-web"
     init(web, SIGNER_URL)
-    write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
+    write(web, "seal/config.json", signer_config(("Pact", PACT_URL)))
     mark_root(web / "seal")
     commit(web, "signer")
     return base
@@ -1326,12 +1342,16 @@ class World:
         code = pc.check(str(root or self.api), out=out, home_dir=str(self.home))
         return code, " ".join(out.getvalue().split())
 
-    def map(self, *rows):
+    def sign(self, *signers):
+        """Write the pact's repository's config listing SIGNERS."""
+        write(self.api, "seal/config.json", pact_config(*signers))
+
+    def map(self, *entries):
+        """Write the machine-local map, one member per `(remote, path)`."""
         write(
             self.home,
-            ".claude/agentic/pact-paths.md",
-            "| Remote | Path |\n|---|---|\n"
-            + "".join(f"| {r} | {p} |\n" for r, p in rows),
+            ".claude/agentic/pact-paths.json",
+            config_json(*((remote, str(path)) for remote, path in entries)),
         )
 
 

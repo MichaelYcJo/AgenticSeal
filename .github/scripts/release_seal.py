@@ -2,15 +2,16 @@
 """Put the release's seal in the note: the stamp's results, and the seal's
 PNG beside them where the repository turns the image on (#718, #1204).
 
-**The image is one row's to turn on** (#1204). `MARK_ROW` in the `config.md`
-of the tree's `seal/` root, read through `lib/config.py`, turns it on
-where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is attached as
-`ASSET` and the note's header becomes a table of two cells, the image beside
-the results. Under any other answer nothing is drawn or attached, and the
-header becomes a table of the results' cell alone. An absent or empty row
-says nothing; any other value, and a row the reader refuses, are named on a
-`::warning::` line, and the results still go in. The plugin ships no release
-workflow, so the row is read in this repository alone.
+**The image is one key's to turn on** (#1204). `MARK_KEY` in the
+`config.json` of the tree's `seal/` root, read through `lib/config.py`,
+turns it on where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is
+attached as `ASSET` and the note's header becomes a table of two cells, the
+image beside the results. Under any other answer nothing is drawn or
+attached, and the header becomes a table of the results' cell alone. An
+absent or empty key says nothing; any other value, and a key the reader
+refuses, are named on a `::warning::` line, and the results still go in.
+The plugin ships no release workflow, so the key is read in this repository
+alone.
 
 **The seal is the page form of the stamp's mark** (#857). The mark has two
 forms: a sprite the terminal stamp draws
@@ -399,40 +400,40 @@ def chain_counts(root, pulls):
 # The asset's name on the release, and so the last part of its URL.
 ASSET = "seal.png"
 
-# #1204: the row of the tree's `seal/config.md` that turns the image on, and
-# the one value that does. What `mark_on` says where a row is written and
-# does not turn it on, printed after `IMAGE_WARNING`.
-MARK_ROW = "Release note seal mark"
+# #1204: the key of the tree's `seal/config.json` that turns the image on,
+# and the one value that does. What `mark_on` says where a key is written
+# and does not turn it on, printed after `IMAGE_WARNING`.
+MARK_KEY = "Release note seal mark"
 MARK_ON = "yes"
 IMAGE_WARNING = "::warning::release seal image: "
 NO_IMAGE = "the note's header holds the results without the seal's image"
-ROW_NOT_YES = (
-    f"`{MARK_ROW}` reads `{{value}}`, not `{MARK_ON}`, so the row is not read "
+KEY_NOT_YES = (
+    f"`{MARK_KEY}` reads `{{value}}`, not `{MARK_ON}`, so the key is not read "
     f"and {NO_IMAGE}"
 )
-ROW_REFUSED = f"`{MARK_ROW}` is not read: {{why}}; {NO_IMAGE}"
+KEY_REFUSED = f"`{MARK_KEY}` is not read: {{why}}; {NO_IMAGE}"
 
 
 def mark_on(root):
-    """`(on, note)`: whether `MARK_ROW` in the `config.md` of the `seal/`
+    """`(on, note)`: whether `MARK_KEY` in the `config.json` of the `seal/`
     root of the tree at ROOT reads `MARK_ON` exactly, and the sentence
-    naming a row that is written and does not, or None.
+    naming a key that is written and does not, or None.
 
-    The root is `lib/optin.py#home_at`'s, and the row is read through
-    `lib/config.py#declared_value`, the one reader of a row, which
-    reads a tree with no root as no file. A tree with no root, an absent row
+    The root is `lib/optin.py#home_at`'s, and the key is read through
+    `lib/config.py#declared_value`, the one reader of a key, which
+    reads a tree with no root as no file. A tree with no root, an absent key
     and an empty one are off and say nothing; any other value, and a
     refusal the reader returns, are off and named. Nothing here refuses:
-    the image is a picture, and the results go in whatever the row says."""
+    the image is a picture, and the results go in whatever the key says."""
     home = module("agentic_optin_for_release_seal", "lib", "optin.py").home_at(root)
     config = module("agentic_config_for_release_seal", "lib", "config.py")
-    value, refused = config.declared_value(home, MARK_ROW)
+    value, refused = config.declared_value(home, MARK_KEY)
     if refused is not None:
-        return False, ROW_REFUSED.format(why=refused)
+        return False, KEY_REFUSED.format(why=refused)
     if not value:
         return False, None
     if value != MARK_ON:
-        return False, ROW_NOT_YES.format(value=value)
+        return False, KEY_NOT_YES.format(value=value)
     return True, None
 
 

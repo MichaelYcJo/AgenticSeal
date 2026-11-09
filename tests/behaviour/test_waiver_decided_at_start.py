@@ -838,7 +838,7 @@ BATCH = (
 
 
 def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recorded():
-    """#1453. A repository whose `config.md` lacks either language row is
+    """#1453. A repository whose `config.json` lacks either language key is
     asked for both in the batch before the first edit, with the recent pull
     request titles beside the question, and a start with nobody to ask
     writes them as a default that `routing.md` records. The case reads the

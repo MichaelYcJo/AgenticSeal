@@ -1,13 +1,13 @@
-"""`/agentic:config` — the door to `seal/config.md`.
+"""`/agentic:config` — the door to `seal/config.json`.
 
-Issue #105. Three rows existed when this module was written (#113), and the
-only way to see them was to open a file nobody had a reason to open. The
+Issue #105. Three settings existed when this module was written (#113), and
+the only way to see them was to open a file nobody had a reason to open. The
 skill is instructions rather than a program, so what is pinned here is what
-a reader of it acts on: the rows it names, the commands it routes a change
-to, the spelling of a cell's value, and the paths that resolve the root. Whether its sentences say the rest is the
-proofer's to read.
+a reader of it acts on: the keys it names, the commands it routes a change
+to, the spelling of a value, and the paths that resolve the root. Whether
+its sentences say the rest is the proofer's to read.
 
-**The skill routes rather than reimplements.** A row that moves files is
+**The skill routes rather than reimplements.** A key that moves files is
 `seal mode`'s work, and a second implementation inside a skill is one
 nothing can mutation-test.
 """
@@ -53,9 +53,9 @@ LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
 
 @pytest.mark.parametrize("row", LANGUAGE_ROWS)
 def test_the_door_gives_a_language_row_no_default(row):
-    """#1453. `seal pr-body` refuses without either language row, so the
+    """#1453. `seal pr-body` refuses without either language key, so the
     door no longer shows `English` as its default, and the sentence that
-    gave every row but `Mode` and `Broad gate` a default is gone. What the
+    gave every key but `Mode` and `Broad gate` a default is gone. What the
     Default cell says instead is the proofer's to read."""
     text = read(*SKILL)
     cells = [
@@ -92,7 +92,7 @@ def test_the_way_back_from_shared_is_spelled():
 def test_the_root_is_resolved_rather_than_spelled():
     """The two places, in that order — the rule every other reader follows."""
     text = flat(*SKILL)
-    assert "<repo>/seal/config.md" in text
+    assert "<repo>/seal/config.json" in text
     assert "git rev-parse --git-common-dir" in text
 
 
@@ -106,18 +106,21 @@ def test_the_bootstrap_names_the_way_back_to_its_own_questions():
 
 
 def test_the_skill_says_how_a_value_carrying_a_pipe_is_written():
-    """#415. This file is where a person is told to edit the value in place,
-    so it is where they meet a value that needs a pipe. The criterion and the
-    two lists stay pointed at rather than copied down; this is not one of
-    them — it is how to write the cell at all, which the person editing it
-    cannot read off the template's own tables.
+    """#415, as #1454 leaves it. This file is where a person is told to edit
+    the value in place, so it is where they meet a value that needs a
+    character JSON escapes. The criterion and the two lists stay pointed at
+    rather than copied down; this is not one of them — it is how to write
+    the value at all. A pipe, which a table cell had to escape, stays as
+    written in a JSON string.
     """
     text = flat(*SKILL)
-    # The escape `\|` a person writes into a cell, which the config reader
-    # turns back into a pipe; the code spans are the fact.
-    assert "A value carrying a `|` is written `\\|`" in text, (
-        "the front door does not say how a pipe is written into the cell"
+    # The escapes `\"` and `\\` a person writes into the value, which the
+    # parser turns back into the characters; the code spans are the fact.
+    assert '**A `"` or a `\\` in a value is written `\\"` or `\\\\`.**' in text, (
+        "the front door does not say how a quote or a backslash is written"
     )
+    assert "a pipe is written as it stands" in text
+    assert "A value carrying a `|` is written `\\|`" not in text
 
 
 @pytest.mark.parametrize("parts", [("README.md",), ("README.ko.md",)])

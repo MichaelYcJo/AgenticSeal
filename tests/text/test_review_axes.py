@@ -161,7 +161,7 @@ def test_the_resolution_order_ends_with_the_caller_asking():
     assert heading in text, "`legacy-parity` lost its migration-config section"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
-        "it lives in `~/.claude/agentic/parity-paths.md`",
+        "it lives in `~/.claude/agentic/parity-paths.json`",
         "the caller asks the user and records the answer",
         "a reader that cannot ask returns `original not found` with what it tried",
         "A comparison against a guessed original proves nothing.",

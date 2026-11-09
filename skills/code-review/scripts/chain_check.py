@@ -54,10 +54,12 @@ judged (`carried_by`). The arms are nine:
                 (`records_only`), which the sealer reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      where git carries `seal/parity.md` at HEAD and the pull
+  original      where git carries `seal/parity.json` at HEAD and the pull
                 request changes a path outside the document roots
                 `lib/gate.py#touches_code` reads: the config's `Baseline
-                commit` row names a SHA (`lib/config.py#baseline_commit`),
+                commit` key names a SHA (`lib/config.py#baseline_commit`),
+                an earlier release's `seal/parity.md` carried without it is
+                refused naming the keys to write,
                 and one `original:` line naming it stands in the round block
                 of every round record under `Review | through the review
                 chain`, and in
@@ -75,15 +77,15 @@ judged (`carried_by`). The arms are nine:
   body          where the event payload holds `pull_request.body`, that
                 body is what `seal pr-body` composes at HEAD for the one
                 judged work item that is not retired: its first part, the
-                `pr.<lang>.md` and `pr.md` the two language rows ask for,
+                `pr.<lang>.md` and `pr.md` the two language keys ask for,
                 the heading, the seal mark where the `Pull request seal mark`
-                row and the guarantee, read against `--baseline` as the
+                key and the guarantee, read against `--baseline` as the
                 guarantee arm reads it, give one, and the records' copy,
                 compared through `pr_body.py#compared`, the function `seal
                 pr-body --check` calls; each differing line is refused on
                 the work item's directory naming the body's line, and a
                 record that function refuses at its line, the root's
-                `config.md` lacking a language row among them; a payload with no
+                `config.json` lacking a language key among them; a payload with no
                 body, `--worktree`, and a pull request carrying more than
                 one judged work item holding `pr.md`, or several none of
                 which holds one, name the body as not read (`body`)
@@ -1601,11 +1603,15 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here; a guarantee's line is its newest
     verdict block's (`guarantee_original`). A config whose `Baseline commit`
-    names no SHA is one refusal naming it. None where `lib/` would not
-    load, said on stderr."""
+    names no SHA is one refusal naming it, and so is an earlier release's
+    `parity.md` git carries with no `parity.json` beside it, naming the
+    keys to write (#1454). None where `lib/` would not load, said on
+    stderr."""
     config = f"{home}/{routing.optin.PARITY_CONFIG}"
+    old = f"{home}/{routing.optin.OLD_PARITY_CONFIG}"
     text = read_record(root, config)
-    if text is None or not (items or direct):
+    unconverted = text is None and read_record(root, old) is not None
+    if (text is None and not unconverted) or not (items or direct):
         return []
     try:
         reads, gate = parity_readers()
@@ -1616,6 +1622,8 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
         return None
     if not gate.touches_code(paths, home):
         return []
+    if unconverted:
+        return [(old, 0, reads.unconverted_parity(config))]
     sha, why = reads.baseline_commit(text)
     if sha is None:
         return [(config, 0, NO_BASELINE.format(why=why))]
@@ -1796,7 +1804,7 @@ def body(root, items, text, why, base=None):
     read for each, in the sentence for that shape. A line of the body is
     refused on the work item's directory, naming the body's line; a record
     `compared` refuses is refused at its line, by its path from the work
-    item's directory, which names the root's `config.md` for a language row
+    item's directory, which names the root's `config.json` for a language key
     (#1453); `seal_mark`'s sentence is a notice. Unreadable where
     `pr_body.py` will not load."""
     if text is None:

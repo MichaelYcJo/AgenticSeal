@@ -46,14 +46,12 @@ mkdir -p "$(dirname 'seal/README.md')"
 cat > 'seal/README.md' <<'AGENTIC_EOF'
 # What AgenticSeal maintains in seal/
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/config.md')"
-cat > 'seal/config.md' <<'AGENTIC_EOF'
-# Repository config
-
-| Item | Value |
-|---|---|
-| Mode | shared |
-| Broad gate | python3 -m unittest discover -s tests -t . -q |
+mkdir -p "$(dirname 'seal/config.json')"
+cat > 'seal/config.json' <<'AGENTIC_EOF'
+{
+  "Mode": "shared",
+  "Broad gate": "python3 -m unittest discover -s tests -t . -q"
+}
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000012-count-words/routing.md')"
 cat > 'seal/threads/1790000012-count-words/routing.md' <<'AGENTIC_EOF'

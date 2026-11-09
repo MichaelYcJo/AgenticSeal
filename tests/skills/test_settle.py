@@ -46,6 +46,7 @@ from conftest import (
     DOC,
     ROOT,
     census_case,
+    config_json,
     line_of,
     load_module,
     mark_root,
@@ -141,10 +142,7 @@ OPEN = (
 
 
 def configure(repo, *rows):
-    table = "".join(f"| {item} | {value} |\n" for item, value in rows)
-    (repo / "seal" / "config.md").write_text(
-        f"| Item | Value |\n|---|---|\n{table}", encoding="utf-8"
-    )
+    (repo / "seal" / "config.json").write_text(config_json(*rows), encoding="utf-8")
 
 
 def no_rule(repo, work_item_id):
@@ -1122,7 +1120,7 @@ class Test_main:
         self, repo, capfd
     ):
         """#1167, *Scope* item 12: each released plan's *Judgments of the
-        run*, read through `lib/config.py#gfm_table`, grouped by the
+        run*, read through `lib/tables.py#gfm_table`, grouped by the
         `Judged against` cell in the order the work items are listed, with
         each work item's round count and each row's line. The template's
         empty row is no judgment, and a plan with no such section prints
@@ -3206,7 +3204,7 @@ class Test_module:
                 "it is what reads the branch a local work item's `routing.md` "
                 "names and counts a work item's round records",
             ),
-            ("CONFIG", "it is what reads a plan's *Judgments of the run* table"),
+            ("TABLES", "it is what reads a plan's *Judgments of the run* table"),
             ("RULES", "it is what reads a design's `## Rule changes`"),
             (
                 "FOLD_CHECK",

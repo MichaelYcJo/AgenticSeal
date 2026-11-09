@@ -50,7 +50,7 @@ under the git directory, in local mode"*. The one call of step 1 then
 carries the `Broad gate` question and the two language questions.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **four
-   questions**: the mode, the `Broad gate` row, `Commit and pull request
+   questions**: the mode, the `Broad gate` key, `Commit and pull request
    language` and `Record language`. The mode's three options come first, in
    this order:
 
@@ -82,15 +82,15 @@ carries the `Broad gate` question and the two language questions.
 
    **The answer is not a door that shuts.** `seal mode` reports where the
    root is, and `seal mode local` or `seal mode shared` moves it, writing the
-   mode into `seal/config.md` on the way and leaving `.github/` alone.
+   mode into `seal/config.json` on the way and leaving `.github/` alone.
    `seal pr-checks` reports whether the checks are installed, and
    `seal pr-checks install` and `seal pr-checks remove` put them in and take
    them out. The orchestrator says so in one line when it creates the root,
    because the question is asked once and the person answering it does not
    yet know what they will want.
 
-   **The second question is the `Broad gate` row, and it is a proposal
-   rather than a blank.** That row is the one value in this flow only a
+   **The second question is the `Broad gate` key, and it is a proposal
+   rather than a blank.** That key is the one value in this flow only a
    person can write (`templates/setup/config.md` *Broad gate* says why it has no
    default). Unasked, it reaches the person as the gate's refusal after the
    review rounds have settled. A repository being opted in may not yet know
@@ -111,18 +111,19 @@ carries the `Broad gate` question and the two language questions.
    `templates/setup/config.md` *The criterion for choosing a value* says to compose
    one, and name the file it came from: a candidate whose source is named is
    one the person can correct. Where nothing is findable, say so rather than
-   inventing one: a guessed row is what `templates/setup/config.md` *Broad gate*
-   argues against by name.
+   inventing one: a guessed command is what `templates/setup/config.md`
+   *Broad gate* argues against by name.
 
-   **A candidate carrying a `|` is written with the pipe escaped, `\|`**, and
-   a CI `run:` step is where one is likeliest to come from. Offer it that way
-   rather than dropping the pipe or moving to the next candidate: the cell is
-   markdown's, and the reader reduces `\|` to a plain pipe before any shell
-   sees it. Say why, because a bare one is refused: GitHub shows the row cut
-   off at the pipe, the gate quotes that line back with the edit instead of
-   reporting the row as absent, and every row written below it goes unread
-   with it. `templates/setup/config.md` *What is refused, and what stays allowed*
-   carries the rule.
+   **A candidate carrying a `"` or a `\` is written with it escaped, `\"`
+   or `\\`**, because the key's value is a JSON string, and a CI `run:`
+   step is where one is likeliest to come from. Offer it that way rather
+   than dropping the character or moving to the next candidate. Say why: a
+   bare `"` ends the string, so the file no longer parses and `seal gate`,
+   `seal pr-body` and every other command that refuses an unreadable config
+   refuses it, and a bare `\` before `t` or `n` reads as
+   a tab or a new line, so the gate runs a command nobody wrote. A `|`
+   stays as written. `templates/setup/config.md` *Broad gate* carries the
+   rule.
 
    **Name the criterion; do not restate it.** `templates/setup/config.md`
    *The criterion for choosing a value* owns the criterion, three rules with
@@ -132,55 +133,54 @@ carries the `Broad gate` question and the two language questions.
    one written to get past a question is worse than none. The cost is one
    sentence: the first `seal gate` run refuses with nothing run, and that
    refusal lands after the review rounds have settled. `/agentic:config`
-   fills the row in at any point before then.
+   fills the key in at any point before then.
 
-   **The third and fourth questions are the two language rows, with the
+   **The third and fourth questions are the two language keys, with the
    recent titles beside them.** `seal pr-body` refuses to compose a pull
-   request body where either row is absent, so first setup asks for both
+   request body where either key is absent, so first setup asks for both
    while the session is already stopped. Beside the two questions the
    orchestrator shows the titles `gh pr list --state all --limit 10`
    returned and names the language it reads them in; where the list is
    empty or `gh` cannot read it, it says so. The option listed first in
    each question is the titles' language where one was read, and `English`
-   otherwise. Each question says in one line what its row governs, taken
-   from that row's section of `templates/setup/config.md`.
+   otherwise. Each question says in one line what its key governs, taken
+   from that key's section of `templates/setup/config.md`.
 
    **Then record the answer: run `seal mode`, with no argument.** It writes
-   the `Mode` row from where the folder is and moves nothing. The row is the
+   the `Mode` key from where the folder is and moves nothing. The key is the
    only trace that anybody was asked: left unwritten, a root somebody chose
    and a root that appeared because a session followed the routing rule are
    the same bytes. Nothing asks the question again later: `seal mode --check`
-   reports a row that is absent or disagrees with the folder, and writes
+   reports a key that is absent or disagrees with the folder, and writes
    nothing. Under **shared, with pull-request checks**, the orchestrator then
    runs `seal pr-checks install` and relays the line it prints; an exit 1 is
    that line's refusal, and the setup goes on without the checks.
 
-   **Then the two language rows.** `seal mode` has just written a config
-   file carrying `Mode` and nothing else, and the comment at its head
-   already names `templates/setup/config.md` as the documentation of every
-   row. So the orchestrator adds the two rows to that file's table, each
-   as `| <row> | <answer> |`, as rows alone with no prose copied beside
+   **Then the two language keys.** `seal mode` has just written
+   `config.json` holding `Mode` and nothing else, and the root's
+   `README.md` already names `templates/setup/config.md` as the
+   documentation of every key. So the orchestrator adds the two keys to
+   that file's object, each as `"<key>": "<answer>"`, with nothing beside
    them.
 
-   **Then the `Broad gate` row, where a command was chosen.** The file
-   carries `Mode` and the two language rows, so the orchestrator adds the
-   `Broad gate` row the way `/agentic:config` step 3 adds one: the
-   row **and the prose under `## Broad gate` down to but not including
-   `### What is refused, and what stays allowed`**, taken from
-   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md`. The two lists and the criterion
-   are pointed at rather than copied down, because a frozen copy in
-   somebody's `seal/config.md` says something false at the plugin's next
-   release. No command does this and none is being added:
-   `skills/implement/scripts/seal.py`'s writer is the `Mode` row's, and
-   `skills/config/SKILL.md` *What this does not do* refuses a generic setter
-   for a file people edit by hand.
+   **Then the `Broad gate` key, where a command was chosen.** The file
+   holds `Mode` and the two language keys, so the orchestrator adds the
+   `Broad gate` key the way `/agentic:config` step 3 adds one: the key
+   alone, `"Broad gate": "<command>"`. A JSON file carries no prose, so the
+   two lists and the criterion are read in
+   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *Broad gate* and never
+   copied into the config, where a frozen copy would say something false
+   at the plugin's next release. No command does this and none is being
+   added: `skills/implement/scripts/seal.py`'s writer is the `Mode` key's,
+   and `skills/config/SKILL.md` *What this does not do* refuses a generic
+   setter for a file people edit by hand.
 
-   **A decline writes nothing at all.** No row, no sentinel, no note. A
+   **A decline writes nothing at all.** No key, no sentinel, no note. A
    repository that declined and one that was never asked meet the same
    refusal at the same moment and are told the same correct thing, so a trace
-   would separate two states nothing treats differently. The mode row is the
-   opposite: its absence makes a root somebody chose and a root nobody chose
-   the same bytes.
+   would separate two states nothing treats differently. The `Mode` key is
+   the opposite: its absence makes a root somebody chose and a root nobody
+   chose the same bytes.
 2. The orchestrator says in three lines what it created, that its presence
    at that place with the marker as its README's first line is the opt-in,
    and what each part of the root is for. The
@@ -195,14 +195,14 @@ carries the `Broad gate` question and the two language questions.
      does not re-run, so the question does not either.
 
 Nothing else is asked. **`/agentic:config` is how any of it is changed
-later**: it shows every row with its value and routes a change to whatever
-owns that row. The orchestrator says so once, here, because a person who
+later**: it shows every key with its value and routes a change to whatever
+owns that key. The orchestrator says so once, here, because a person who
 answers a question in a batch has no reason to expect a way back to it.
 
 Ask only here. A repository that has a `seal/` carrying the marker at either
 place, `<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been
 through this: the mode is read from where the folder is, and asking again is the
-nagging this plugin exists to avoid. The two language rows are the one
+nagging this plugin exists to avoid. The two language keys are the one
 exception, and only where either is missing: the batch of
 `skills/implement/orchestration.md` *Orchestrator: what needs a person is
 asked in one batch, before the first edit* asks for them before a work

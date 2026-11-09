@@ -55,7 +55,7 @@ import subprocess
 import sys
 
 # `lib/` beside this script, from which the fence rule, the line split,
-# the `Reference specs` row's reader and the root's resolver are loaded by
+# the `Reference specs` key's reader and the root's resolver are loaded by
 # path (#688, #1005).
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
@@ -595,7 +595,7 @@ def live_lines(lines, comments=True):
     then whichever of a comment opener and a backtick run comes first wins.
     Reference definitions, link destinations, raw HTML blocks and entity
     references are not modelled and none can hold a declaring line, such as
-    a `seal/config.md` row, on a line of its own. Markdown's indented code
+    a `routing.md` row, on a line of its own. Markdown's indented code
     block is the one deliberate omission with a shape that could.
 
     **What this may not touch.** `blank_fences` and `readable` keep no
@@ -968,7 +968,7 @@ def config_at(top):
 
 def references_at(top):
     """`(lib/config.py, roots, name)` for the repository at `top` — the
-    module holding `under_reference_root`, what the row names under the root
+    module holding `under_reference_root`, what the key names under the root
     `lib/optin.py#home_at` resolves, and that root's name in the tree
     (`config_at`) — or None for a copy of this script with no `lib/` beside
     it.
@@ -1019,7 +1019,7 @@ def git_path(path):
 
     Every repo-relative path in this file is built by `os.path.relpath` and
     then read beside what git prints or handed to a reader of git's paths:
-    `repo_relative`'s answer is matched against the `Reference specs` row,
+    `repo_relative`'s answer is matched against the `Reference specs` key,
     `tree_at` lists a directory on disk in the form `ls-tree` lists it at a
     ref, and `annotate` names a file to GitHub. git answers and accepts `/`
     on every platform, so on Windows a path built by `os.sep` would match

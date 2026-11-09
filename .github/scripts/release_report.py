@@ -210,7 +210,7 @@ def documents(root):
         for pattern in DOCUMENTS
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
     ]
-    config = script(CONFIG, "agentic_release_config", "reads the policy root row")
+    config = script(CONFIG, "agentic_release_config", "reads the policy root key")
     optin = script(OPTIN, "agentic_release_optin", "names the seal/ root in the tree")
     # The shared root's name, or `optin.HOME` where none is marked, as an
     # unmarked `seal/` was read before the second name.

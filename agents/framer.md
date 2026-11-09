@@ -78,7 +78,7 @@ write, and a write not named here is a write you do not make.
    line goes into `## Grounding` as the orchestrator's finding, and a spawn
    with no such line is reported, as a missing `routing.md` is. No row of
    `frame/questions.md` asks whether a comment changes the request.
-   `seal/parity.md` where it is declared, which puts the original between
+   `seal/parity.json` where it is declared, which puts the original between
    the ticket and the code, and with it `skills/legacy-parity/SKILL.md`
    *The original's coordinates*, whose list of the original's output
    surface your `## Grounding` holds. The release's other open work items
@@ -103,7 +103,7 @@ write, and a write not named here is a write you do not make.
    `skills/feature-planner/SKILL.md`. Most frames need neither.
 6. Before writing, open `skills/writing-style/SKILL.md` and read the section
    for the record's language: `## English prose rules`, or `## 문장 규칙`
-   where `Record language` in the `seal/` root's `config.md` is Korean.
+   where `Record language` in the `seal/` root's `config.json` is Korean.
 7. Write `frame/design.md`, then `plan.md`, then `questions.md`.
 8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, a probe, is

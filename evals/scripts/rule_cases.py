@@ -113,20 +113,21 @@ class ShoutTest(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 """
-CONFIG = """# Repository config
-
-| Item | Value |
-|---|---|
-| Mode | shared |
-| Broad gate | python3 -m unittest discover -s tests -t . -q |
+CONFIG = """{
+  "Mode": "shared",
+  "Broad gate": "python3 -m unittest discover -s tests -t . -q"
+}
 """
-# A sealer case's config: the two language rows `seal pr-body` refuses a
+# A sealer case's config: the two language keys `seal pr-body` refuses a
 # body without (#1453), naming one language, so the body's first part is
 # the case's `pr.md` alone.
-SEALER_CONFIG = (
-    CONFIG
-    + "| Commit and pull request language | English |\n| Record language | English |\n"
-)
+SEALER_CONFIG = """{
+  "Mode": "shared",
+  "Broad gate": "python3 -m unittest discover -s tests -t . -q",
+  "Commit and pull request language": "English",
+  "Record language": "English"
+}
+"""
 CONTRIBUTING = """# Contributing
 
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
@@ -206,7 +207,7 @@ def base_project(item, branch, planning, implementation, extra_files=None):
         "CONTRIBUTING.md": CONTRIBUTING,
         # The marker is what makes `seal/` the plugin's root to every gate.
         "seal/README.md": optin.MARKER + "\n",
-        "seal/config.md": CONFIG,
+        "seal/config.json": CONFIG,
         f"seal/threads/{item}/routing.md": routing(
             item, branch, planning, implementation
         ),
@@ -907,7 +908,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     folder = f"seal/threads/{item}"
     evidence = EVIDENCE.format(item=item)
     lines = base_project(
-        item, branch, "framer", "crafter", {"seal/config.md": SEALER_CONFIG}
+        item, branch, "framer", "crafter", {"seal/config.json": SEALER_CONFIG}
     )
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"

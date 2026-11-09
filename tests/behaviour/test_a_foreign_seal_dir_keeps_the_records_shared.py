@@ -25,11 +25,13 @@ from conftest import (
     ROOT,
     V2,
     commit_everything_as_e,
+    config_json,
     git,
     load_module,
     local_home,
     mark_root,
     pact,
+    pact_config,
     parity_file,
     symlink_or_skip,
     write,
@@ -40,7 +42,6 @@ from test_pr_body import (
     MANIFEST,
     MARK_LINE,
     OWN,
-    TABLE,
     manifest_of,
 )
 from test_pr_body import NAME as BODIED
@@ -86,8 +87,8 @@ RECORDS = {
     "follow-up.md": "# follow-up\n",
     f"threads/{ITEM}/routing.md": "# routing\n",
 }
-# A committed config with no `Mode` row, which `seal mode` fills in.
-ROWLESS = "# Repository config\n\n| Item | Value |\n|---|---|\n| Record language | English |\n"
+# A committed config with no `Mode` key, which `seal mode` fills in.
+MODELESS = config_json(("Record language", "English"))
 
 
 def files_under(path):
@@ -144,7 +145,7 @@ def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
 ):
     """`seal mode` with no root prints `agentic-seal` as the shared place,
     and a root made there from the template reads as shared mode, writes its
-    row there, and passes `--check`, with the package as it was. Switched to
+    key there, and passes `--check`, with the package as it was. Switched to
     local before anything is committed, it says nothing under it was
     tracked."""
     before = files_under(package / "seal")
@@ -163,8 +164,8 @@ def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
     )
     code, out = said(capsys, package, "mode")
     assert code == 0, out
-    with open(os.path.join(places[0], "config.md"), encoding="utf-8") as handle:
-        assert "| Mode | shared |" in handle.read()
+    with open(os.path.join(places[0], "config.json"), encoding="utf-8") as handle:
+        assert json.load(handle)["Mode"] == "shared"
     code, out = said(capsys, package, "mode", "--check")
     assert code == 0, out
     assert files_under(package / "seal") == before
@@ -177,10 +178,10 @@ def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
 def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, capsys):
     """`seal mode local` moves `agentic-seal/` to the common directory's
     `seal/` and stages its removal, and `seal mode shared` moves it back to
-    `agentic-seal/` and stages it, the package untouched both ways. The row
-    `seal mode` wrote into the committed `agentic-seal/config.md` and an
+    `agentic-seal/` and stages it, the package untouched both ways. The key
+    `seal mode` wrote into the committed `agentic-seal/config.json` and an
     untracked file there do not stop the move, as they do not under `seal/`."""
-    write(shared / "agentic-seal", "config.md", ROWLESS)
+    write(shared / "agentic-seal", "config.json", MODELESS)
     commit_everything_as_e(shared, "the config")
     assert said(capsys, shared, "mode")[0] == 0
     write(shared / "agentic-seal", "notes.md", "# notes\n")
@@ -206,10 +207,10 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     assert out.count("`git reset -- :/agentic-seal`") == 2, out
     assert not (shared / ".git" / "seal").exists()
     back = files_under(shared / "agentic-seal")
-    # `write_row` keeps the file's own line ends, which `write` made this
-    # platform's, so the last line is compared without its end.
-    assert back.pop("config.md").splitlines()[-1] == b"| Mode | shared |"
-    local.pop("config.md")
+    # The config is the one file `seal mode shared` rewrites, so it is
+    # compared by the key it wrote rather than by its bytes.
+    assert json.loads(back.pop("config.json"))["Mode"] == "shared"
+    local.pop("config.json")
     assert back == local
     assert status(shared) and all(
         line.startswith("A  agentic-seal/") for line in status(shared)
@@ -429,11 +430,11 @@ def test_s3_the_check_judges_the_declaration_under_agentic_seal(
 def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
     declared, capsys, outside
 ):
-    """With the migration config at `agentic-seal/parity.md`, a change to
+    """With the migration config at `agentic-seal/parity.json`, a change to
     the package's `seal/__init__.py` owes the comparison, so the config's
     placeholder baseline is refused; a change confined to `agentic-seal/`
     owes none."""
-    write(declared, "agentic-seal/parity.md", parity_file(None))
+    write(declared, "agentic-seal/parity.json", parity_file(None))
     write(declared, "agentic-seal/follow-up.md", "# follow-up, again\n")
     if outside:
         write(declared, "seal/__init__.py", "VERSION = 2\n")
@@ -442,10 +443,28 @@ def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
     refused = [ln for ln in out.splitlines() if ln.startswith("agentic-seal/parity")]
     if outside:
         (line,) = refused
-        assert line.startswith("agentic-seal/parity.md:0  "), line
+        assert line.startswith("agentic-seal/parity.json:0  "), line
         assert "`Baseline commit`" in line, line
     else:
         assert refused == [], out
+
+
+def test_s3_an_earlier_releases_parity_md_under_agentic_seal_is_refused_there(
+    declared, capsys
+):
+    """#1454 beside #1059: an `agentic-seal/parity.md` git carries with no
+    `agentic-seal/parity.json` beside it is refused once, at its path under
+    the root's own name, naming the file to write, where a change reaches
+    the package. Red with `chain_check.py#originals_of` reading the old
+    file at `optin.HOME`."""
+    write(declared, "agentic-seal/parity.md", "# Migration config\n")
+    write(declared, "seal/__init__.py", "VERSION = 2\n")
+    commit_everything_as_e(declared, "the change")
+    _code, out = checked(capsys, declared)
+    refused = [ln for ln in out.splitlines() if ln.startswith("agentic-seal/parity")]
+    (line,) = refused
+    assert line.startswith("agentic-seal/parity.md:0  "), line
+    assert "agentic-seal/parity.json" in line, line
 
 
 def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
@@ -558,13 +577,13 @@ def test_s4_the_stamp_queues_a_sealed_guarantee_under_agentic_seal(package, caps
 def test_s5_pr_body_check_reads_the_seal_and_the_records_under_agentic_seal(
     package, tmp_path, monkeypatch, capsys
 ):
-    """`seal pr-body` reads the rows of `agentic-seal/config.md` and a
+    """`seal pr-body` reads the keys of `agentic-seal/config.json` and a
     guarantee sealed at the commit before its own, so the body carries the
     mark and names the records where they stand; `--check` on that body
     exits 0. A refusal names the record by its path under `agentic-seal/`."""
     git(package, "switch", "-qc", "feature")
     home = mark_root(package / "agentic-seal")
-    write(home, "config.md", TABLE + LANGUAGES + MARK_ROW)
+    write(home, "config.json", config_json(*LANGUAGES, *MARK_ROW))
     item = home / "threads" / BODIED
     for rel, text in BODY_RECORDS.items():
         write(item, rel, text)
@@ -609,38 +628,34 @@ def tool(cwd, name, *args):
     return done.returncode, done.stdout, done.stderr
 
 
-def configured(home, *rows):
-    """HOME's `config.md` holding ROWS, each `(item, value)`."""
-    table = "".join(f"| {item} | {value} |\n" for item, value in rows)
-    write(home, "config.md", f"# Repository config\n\n{TABLE_HEAD}{table}")
+def configured(home, *pairs):
+    """HOME's `config.json` holding PAIRS, each `(key, value)`."""
+    write(home, "config.json", config_json(*pairs))
 
 
-TABLE_HEAD = "| Item | Value |\n|---|---|\n"
-
-
-def test_s5_gate_reads_its_row_from_agentic_seal_and_names_it_where_none_is(
+def test_s5_gate_reads_its_key_from_agentic_seal_and_names_it_where_none_is(
     package, tmp_path
 ):
     """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
     the shared place a root would stand, not the package's `seal/`; with
-    the root there, it reads the `Broad gate` row of `agentic-seal/config.md`."""
+    the root there, it reads the `Broad gate` key of `agentic-seal/config.json`."""
     top = os.path.realpath(package)
     code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
     assert code == 2, err
     shared = os.path.join(top, "agentic-seal")
     assert f"at either place a root lives (`{shared}`, `" in err, err
-    row = f"{sys.executable} -c pass"
-    configured(records_at(package / "agentic-seal"), ("Broad gate", row))
+    command = f"{sys.executable} -c pass"
+    configured(records_at(package / "agentic-seal"), ("Broad gate", command))
     commit_everything_as_e(package, "the root")
     _code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
-    assert f"seal gate: `Broad gate` says: {row} — read, and not run" in err, err
+    assert f"seal gate: `Broad gate` says: {command} — read, and not run" in err, err
 
 
 def test_s5_rules_check_excuses_a_section_a_design_under_agentic_seal_removes(
     shared, capsys
 ):
     """`seal rules --check` reads the designs under `agentic-seal/threads/`
-    and the `Policy root` row of `agentic-seal/config.md`: a refused `check:`
+    and the `Policy root` key of `agentic-seal/config.json`: a refused `check:`
     line in a section a design there removes is excused and named by its
     path under the root."""
     configured(shared / "agentic-seal", ("Policy root", "policy"))
@@ -692,7 +707,7 @@ def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
     """`seal unverified .` reads the closing memo under `agentic-seal/` and
     takes the package's `seal/vendor/specs/` for what it is beside a root
     of the second name, a directory named `specs` outside the root, which
-    no `Reference specs` row keeps and the walk passes over: its memo,
+    no `Reference specs` key keeps and the walk passes over: its memo,
     which does not read, is never opened."""
     write(
         shared / "agentic-seal" / "threads" / ITEM,
@@ -721,23 +736,26 @@ def test_s5_settle_shows_a_work_item_released_under_agentic_seal(shared):
     assert "local mode" not in out, out
 
 
-def test_s5_pact_names_the_pact_under_agentic_seal(shared, tmp_path):
-    """`seal pact` reads `agentic-seal/pact.md` and names it by that path: a
-    pact that lists its own repository is refused at it."""
-    write(shared / "agentic-seal", "pact.md", pact(V2, (REMOTE,)))
+def test_s5_pact_names_the_signers_key_under_agentic_seal(shared, tmp_path):
+    """`seal pact` reads `agentic-seal/pact.md` and the `Pact signers` key of
+    `agentic-seal/config.json`, and names the config by that path: a key
+    that lists the pact's own repository is refused at it."""
+    write(shared / "agentic-seal", "pact.md", pact(V2))
+    write(shared / "agentic-seal", "config.json", pact_config(REMOTE))
     commit_everything_as_e(shared, "the pact")
     out = io.StringIO()
     code = PACT.check(str(shared), out=out, home_dir=str(tmp_path))
     assert code == 2, out.getvalue()
     assert (
-        f"REFUSED {REMOTE} agentic-seal/pact.md — the pact lists its own repository"
+        f"REFUSED {REMOTE} agentic-seal/config.json — the `Pact signers` key "
+        "lists the pact's own repository"
     ) in out.getvalue(), out.getvalue()
 
 
-def test_s5_fold_reads_its_rows_from_agentic_seal(shared):
+def test_s5_fold_reads_its_keys_from_agentic_seal(shared):
     """`seal fold` reads `Policy root` and `Document token ceiling` from
-    `agentic-seal/config.md`, so the documents it holds to the ceiling are
-    the ones under the root that row names."""
+    `agentic-seal/config.json`, so the documents it holds to the ceiling are
+    the ones under the root that key names."""
     configured(
         shared / "agentic-seal",
         ("Policy root", "policy"),

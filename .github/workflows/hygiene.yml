@@ -160,7 +160,7 @@ jobs:
           python3 .github/scripts/release_completeness_check.py
 
       # One source: `templates/setup/hygiene.yml`, the workflow the plugin ships.
-      - name: the mode the row declares is the mode the folder is in
+      - name: the mode the key declares is the mode the folder is in
         shell: bash
         run: |
           python3 skills/implement/scripts/seal.py mode --check

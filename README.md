@@ -98,6 +98,22 @@ the file up and takes the block out, and an update from such a release may
 first leave the empty marker pair `templates/setup/claude-md-block.md`
 holds, which the next update removes (`skills/update/SKILL.md`).
 
+Earlier releases kept a repository's settings in `seal/config.md`, a
+markdown table; the plugin now reads them from `seal/config.json`, one JSON
+object. Run `seal mode` once in each repository that holds a
+`seal/config.md`: it writes `seal/config.json` from the table and removes
+the old file. Until then `seal gate`, `seal fold`, `seal pact` and
+`seal mode --check` exit 2 and name `seal mode`, `seal pr-body` refuses
+with the same sentence and exits 1, and `seal rules`, `seal settle` and
+`seal unverified` read the default policy root and reference roots. Three
+files no command converts are rewritten by hand.
+`seal/parity.md` becomes `seal/parity.json`, written from
+`templates/setup/parity.json`. The `| Signer |` table of a `seal/pact.md`
+becomes a `Pact signers` key in that repository's `seal/config.json`, the
+remote URLs separated by `;`. `~/.claude/agentic/pact-paths.md` becomes
+`~/.claude/agentic/pact-paths.json`, one JSON object from remote URL to
+checkout path.
+
 ## Your first work item
 
 Open Claude Code in your repository and ask for a change in your own words,
@@ -193,7 +209,7 @@ offered.
 commit it.
 
 ```bash
-seal mode            # where the root is, and whether seal/config.md agrees
+seal mode            # where the root is, and whether seal/config.json agrees
 seal mode local      # move the root out of the tree
 seal mode shared     # move the root into the tree
 seal mode --check    # write nothing; exit non-zero when the two disagree
@@ -248,7 +264,7 @@ cost of inference.
 | **framer** (subagent) | `core`, `agent-contract` | Writes the work item's design, plan and questions before anybody builds, and writes no code ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (subagent) | `core`, `agent-contract` | Builds one phase against the frame, or runs one fix pass over a review round ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.md` ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
@@ -282,7 +298,7 @@ whose last fixes no round read (`docs/checks/the-pull-request-check.md`).
 
 The records live in the repository, not in the session, so the next session
 starts from them. `seal/`, the folder *Shared or local* above places, holds
-what outlives a work item, such as `seal/config.md`, and each work item
+what outlives a work item, such as `seal/config.json`, and each work item
 whole under `seal/threads/<id>/`: its
 routing answer, its frame, the trail of its phases and rounds, its closing
 memo and its guarantee. `docs/layout/the-record-layout.md` *seal/* and
@@ -297,13 +313,13 @@ not exist.
 ### Migrations
 
 A repository that ports behaviour from an existing codebase declares
-`seal/parity.md`, naming the original and its baseline commit. Each
+`seal/parity.json`, naming the original and its baseline commit. Each
 judgment then weighs the policy, the original and the new code, and the
 original's behaviour is kept where the policy says nothing. The tracer
 fetches the original's facts. Your session asks about it once, the first
 time it sets up a repository, and `/agentic:parity-setup` decides it later.
 Your checkout path of the original stays out of the committed file, in
-`~/.claude/agentic/parity-paths.md`. `skills/legacy-parity/SKILL.md` is the
+`~/.claude/agentic/parity-paths.json`. `skills/legacy-parity/SKILL.md` is the
 method.
 
 ## What runs on your machine

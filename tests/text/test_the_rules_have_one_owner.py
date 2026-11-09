@@ -25,7 +25,7 @@ IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
 # runs in landed here in #351.
 ORCH_IMPL = ("skills", "implement", "orchestration.md")
-# The bootstrap, which proposes the `Broad gate` row, in its own file since
+# The bootstrap, which proposes the `Broad gate` key, in its own file since
 # #1046.
 BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 VERIFY = ("skills", "verify", "SKILL.md")
@@ -86,12 +86,12 @@ RULES = {
         "whole project is the sealer's `guarantee.md`.",
         {SEALER: ONE_SEAL_IS_FINAL},
     ),
-    # From #401: the `Broad gate` row is the one value only a person can
+    # From #401: the `Broad gate` key is the one value only a person can
     # write, and the criterion for it is folded into one owner.
     "12 the criterion for choosing a Broad gate value": (
         CONFIG_TEMPLATE,
         "A check that is red repository-wide for reasons unrelated to any "
-        "branch does not belong in the row",
+        "branch does not belong in the command",
         {CONFIG_SKILL: CRITERION_OWNER, BOOTSTRAP: CRITERION_OWNER},
     ),
     # From #493: filing a finding ran at 100% and acting on one at 47%, so a

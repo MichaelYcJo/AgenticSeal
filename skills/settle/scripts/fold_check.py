@@ -5,18 +5,18 @@
 `skills/settle/rule-changes.md` gives the policy root one index. This is the
 reader of both, shipped (#566, #953).
 
-  seal fold                      every check, with the values seal/config.md states
+  seal fold                      every check, with the values seal/config.json states
   seal fold --ceiling N          report documents past N estimated tokens, this run
   seal fold --root DIR           a repository other than this one
 
-The policy root is `seal/config.md`'s `Policy root` row, `docs` when absent,
+The policy root is `seal/config.json`'s `Policy root` key, `docs` when absent,
 read through `lib/config.py#policy_root`. Every check reads its top
 level and each of its groups: a directory directly in it that a row of the
 index names a document of (`groups`). A directory the index names nothing
 of, and anything below a group, is not read.
 
 **One read.** Each document whose estimate (`tokens`) is past the `Document
-token ceiling` row is named as one to split by who opens each section and at
+token ceiling` key is named as one to split by who opens each section and at
 which step. That is a report and never a failure: the estimate is a guess from bytes, and a
 document past one tool's per-call cap is still read in more calls (the
 owner's answer of 2026-10-20).
@@ -27,12 +27,12 @@ is named on exactly one row of its tables, and every row names one.
 **What it cannot read.** Size and naming are all it checks. Whether a
 document is true, or whether two contradict each other, stays review's.
 
-**It sets no value.** The repository states the values as rows of
-`seal/config.md`, read through `lib/config.py#config_rows`, and
-`templates/setup/config.md` *The fold's values* states each row once. An absent
-row means *not declared*, as every optional row of that file does: the check
-it governs is not run, and the output says so in one line rather than
-refusing. A flag overrides its row for one run.
+**It sets no value.** The repository states the values as keys of
+`seal/config.json`, read through `lib/config.py#config_value`, and
+`templates/setup/config.md` *The fold's values* states each key once. An
+absent key means *not declared*, as every optional key of that file does:
+the check it governs is not run, and the output says so in one line rather
+than refusing. A flag overrides its key for one run.
 
 Live lines and table rows come from
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `gfm_lines`,
@@ -62,13 +62,12 @@ READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.p
 CONFIG_READER = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
 
-CONFIG = "config.md"
+CONFIG = "config.json"
 INDEX = "README.md"
 
-# The `seal/config.md` rows this reads, each optional.
-CEILING_ROW = "Document token ceiling"
-POLICY_ROW = "Policy root"
-ROWS = (CEILING_ROW, POLICY_ROW)
+# The `seal/config.json` keys this reads, each optional.
+CEILING_KEY = "Document token ceiling"
+POLICY_KEY = "Policy root"
 WHOLE = re.compile(r"[0-9]+")
 # The estimate's one constant, a token taken as two bytes of UTF-8;
 # `templates/setup/config.md` *The fold's values* states it.
@@ -115,7 +114,7 @@ def reader():
 
 
 class Unusable(Exception):
-    """A row whose value will not parse, or a file the run had to read and
+    """A key whose value will not parse, or a file the run had to read and
     could not (exit 2, no result printed)."""
 
 
@@ -240,7 +239,7 @@ def index_problems(root, policy):
     return problems
 
 
-# --- the rows --------------------------------------------------------------
+# --- the keys --------------------------------------------------------------
 
 
 def optin():
@@ -256,7 +255,7 @@ def optin():
 
 def located(root):
     """`(home, where)`: the `seal/` root of the repository at `root`, or ""
-    where it has none, and the words that name where its rows were read.
+    where it has none, and the words that name where its keys were read.
 
     Through `lib/optin.py#home_at`, the way `settle.py#main` reaches it:
     the places `home_at` reads, in its order. `home_at`
@@ -272,7 +271,7 @@ def located(root):
     if common and os.path.isfile(os.path.join(common, resolver.SCRATCH)):
         return "", (
             f"{root}, which has opted out — `{resolver.SCRATCH}` is under its "
-            "git directory, so its seal/config.md is not read"
+            "git directory, so its seal/config.json is not read"
         )
     return "", f"{root}, which has no seal/ root at either place"
 
@@ -284,71 +283,44 @@ def seal_home(root):
 
 
 def config_reader():
-    """`lib/config.py`, the one reader of `seal/config.md`, or exit 2."""
+    """`lib/config.py`, the one reader of `seal/config.json`, or exit 2."""
     return load(
         CONFIG_READER,
         "agentic_config_for_folds",
-        "it is what reads the rows of seal/config.md",
+        "it is what reads the keys of seal/config.json",
     )
 
 
-def config_rows(home):
-    """Every `| Item | Value |` row of `<home>/config.md` the table walker
-    read, through the one table reader, `lib/config.py#config_table`. No
-    root and no file are no row at all; a file that is there and will not
-    read is `Unusable`, in the reader's own sentence (#867), because reading
-    it as no row turned every check this command runs off at exit 0.
-
-    **A table the walker refused is `Unusable` where it did not read one of
-    the rows this command reads** (#871), in the walker's sentence: an
-    unread row may be written below the line it stopped at, so it is not
-    absent, and reading it as absent is the same exit 0 an unreadable file
-    gave. A refusal below all of them touches none of them, unless one of
-    them is written again below it: `config_value` gives that row no value,
-    and neither does this command."""
-    if not home:
-        return []
+def declared(home):
+    """`(ceiling, policy root)` as the root's `config.json` states them,
+    None for a ceiling key that is absent or empty, or `Unusable` naming
+    what will not read. No root and no file are no key at all; a file
+    `lib/config.py#config_pairs` refuses is `Unusable` in the reader's own
+    sentence (#867), because reading it as no key turned every check this
+    command runs off at exit 0. Each value is the reader's own answer,
+    `lib/config.py#config_value`, so a key written twice is `Unusable`
+    rather than one of the two; the policy root is
+    `lib/config.py#policy_root`'s."""
     reader = config_reader()
-    text, refused = reader.config_text(home)
+    pairs, refused = reader.config_pairs(home)
     if refused is not None:
         raise Unusable(refused)
-    if text is None:
-        return []
-    rows, refusals = reader.config_table(text)
-    read = {item for _index, item, _value in rows}
-    if refusals and not set(ROWS) <= read:
-        raise Unusable(f"the file {refusals[0]}")
-    for item in ROWS if refusals else ():
-        refused = reader.config_value(text, item)[1]
-        if refused is not None:
-            raise Unusable(refused)
-    return [(item, value) for _index, item, value in rows]
 
-
-def declared(home):
-    """`(ceiling, policy root)` as the root's `config.md` states them, None
-    for a ceiling row that is absent or empty, or `Unusable` naming the row.
-    Each value is the reader's own answer, `lib/config.py#value_of`, so a
-    row written twice is `Unusable` rather than its first (#867); the policy
-    root is `lib/config.py#policy_root`'s."""
-    rows = config_rows(home)
-    reader = config_reader()
-
-    def stated(item):
-        value, refused = reader.value_of(rows, item)
+    def stated(key):
+        value, refused = reader.config_value(pairs, key)
         if refused is not None:
             raise Unusable(refused)
         return value or None
 
-    ceiling = stated(CEILING_ROW)
+    ceiling = stated(CEILING_KEY)
     if ceiling is not None:
         if not WHOLE.fullmatch(ceiling) or int(ceiling) < 1:
             raise Unusable(
-                f"the `{CEILING_ROW}` row holds `{ceiling}`, which is not a "
+                f"the `{CEILING_KEY}` key holds `{ceiling}`, which is not a "
                 "positive whole number of tokens"
             )
         ceiling = int(ceiling)
-    stated(POLICY_ROW)
+    stated(POLICY_KEY)
     return ceiling, reader.policy_root(home)
 
 
@@ -375,7 +347,7 @@ def run(root, values, where, out):
     names = documents(root, policy)
     if ceiling is None:
         out.write(
-            f"seal fold: `{CEILING_ROW}` is not declared in {where}, so no "
+            f"seal fold: `{CEILING_KEY}` is not declared in {where}, so no "
             "document's length was checked\n"
         )
     else:
@@ -398,7 +370,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="seal fold",
         description="Hold the policy root's documents to one read and one "
-        "index, with the values seal/config.md states.",
+        "index, with the values seal/config.json states.",
     )
     ap.add_argument("--root", help="the repository to read (default: cwd)")
     ap.add_argument(
@@ -407,7 +379,7 @@ def main(argv=None):
         metavar="N",
         help=f"report each document of the policy root or of one of its "
         f"groups past N estimated tokens, for "
-        f"this run only, over the `{CEILING_ROW}` row",
+        f"this run only, over the `{CEILING_KEY}` key",
     )
     args = ap.parse_args(argv)
 
@@ -435,7 +407,7 @@ def main(argv=None):
     index = os.path.join(root, *policy.split("/"), INDEX)
     if ceiling is None and not os.path.isfile(index):
         sys.stdout.write(
-            f"seal fold: `{CEILING_ROW}` is not declared in {where}, and there "
+            f"seal fold: `{CEILING_KEY}` is not declared in {where}, and there "
             f"is no {policy}/{INDEX}, so nothing was checked\n"
         )
         return 0

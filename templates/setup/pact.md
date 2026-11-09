@@ -10,13 +10,10 @@ would be wrong if it changed. A sentence only this repository's code depends
 on belongs in this repository's own documents, and a pact that collects those
 is a pact every signer has to re-read for changes that were never theirs.
 
-**The table below lists every OTHER signer** by its origin remote URL. The
-pact's repository does not list itself: it cites its own clauses as it cites
-any other heading of its own. Each signer listed here names this repository in
-its own `seal/config.md`, in a `Pact` row (`templates/setup/config.md` *Pact*).
-`seal pact` refuses a relationship recorded on one side only.
+**The signers are listed in this repository's `seal/config.json`**, in its
+`Pact signers` key (`templates/setup/config.md` *Pact*).
 
-**Every `##` heading below the table is a clause**, and a `###` under it
+**Every `##` heading is a clause**, and a `###` under it
 narrows inside it. A signer cites a clause as one row of an anchor table in
 a work item's `frame/design.md`, each cell written bare:
 
@@ -35,10 +32,6 @@ change every one of them sees as `BROKEN`, and each has to re-coordinate.
 
 The pact is written by the build at this repository, framed by a work
 item's design in this repository, the way a policy document is edited. -->
-
-| Signer |
-|---|
-| <the origin remote URL of another signer, one per row> |
 
 ## <a clause: what another repository's code depends on>
 

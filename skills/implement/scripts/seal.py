@@ -21,14 +21,16 @@ person had to find, and a repository arriving from the 0.3.x layout was
 never asked which mode it wanted (#104). `seal mode` is that section made
 runnable, and the section on the mode below this one is its reasoning:
 
-  seal mode                   the folder, the row, and whether they agree
+  seal mode                   the folder, the `Mode` key, and whether they
+                              agree; first converts an earlier release's
+                              seal/config.md into seal/config.json
   seal mode --check           the same, writing nothing; exit 1 when they
                               disagree. This is what CI runs
-  seal mode local|shared      switch, and write the row
-  seal mode --apply           switch to whatever the row says
+  seal mode local|shared      switch, and write the key
+  seal mode --apply           switch to whatever the key says
 
 The switch moves the root and nothing else. Whether CI checks pull requests
-is a second answer, and its record is the workflow file itself, so no row
+is a second answer, and its record is the workflow file itself, so no key
 says it (#952):
 
   seal pr-checks              whether .github/workflows/hygiene.yml is this
@@ -178,11 +180,12 @@ TOOLS = {
 # `ModuleNotFoundError` traceback at exit 1 (#610) -- and a search for
 # by-path loaders cannot see this shape, which is how #590 missed it.
 LIB_PURPOSES = {
-    "config.py": "it is what reads the root's config.md, whose Mode row this "
-    "command keeps",
+    "config.py": "it is what reads the root's config.json, whose Mode key "
+    "this command keeps",
     "optin.py": "it is what finds the repository's seal/ root",
-    # `config.py` imports it, so a `lib/` without it fails that import.
-    "blocks.py": "it is the walk config.py reads config.md through, which "
+    "tables.py": "it is the walker seal mode reads an old config.md through",
+    # `tables.py` imports it, so a `lib/` without it fails that import.
+    "blocks.py": "it is the walk tables.py reads a table through, which "
     "tells a live row from one quoted in a fence or parked in a comment",
     "gitcmd.py": "it is what builds the `git status` this command reads, the "
     "same under any git configuration",
@@ -219,6 +222,7 @@ sys.path.insert(0, LIB)
 import config as repo_config  # noqa: E402
 import gitcmd  # noqa: E402
 import optin  # noqa: E402
+import tables  # noqa: E402
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -1396,36 +1400,35 @@ def write_members(archive, into):
     return counts, collisions, refused
 
 
-# --- the mode: a row that is declared, and a folder that decides ------------
+# --- the mode: a key that is declared, and a folder that decides ------------
 #
 # `README.md`'s *Shared or local* section carried both directions as two shell
 # lines, a `mv` and a commit. They are correct, and a person who has not read
 # that section has no way to arrive at them. This is that section made
 # runnable, plus the three things a `mv` cannot do: refuse when the other
 # root is already there, refuse when the tree is dirty under what it is about
-# to stage, and write the row so the file and the folder agree afterwards.
+# to stage, and write the key so the file and the folder agree afterwards.
 # The workflow file is not among them: `.github/` is `seal pr-checks`'s
 # (#952).
 #
-# **Nothing at runtime reads the row.** Every script resolves the root through
+# **Nothing at runtime reads the key.** Every script resolves the root through
 # `lib/optin.py#home_at`, which reads the places `home_paths` gives in
-# order, and that stays the only signal. The row says what
+# order, and that stays the only signal. The key says what
 # the repository WANTS; the folder's location says what it HAS. A gate that
-# trusted the row would go looking in a place with no folder, and everything
+# trusted the key would go looking in a place with no folder, and everything
 # in `optin` is documented to fail toward "not opted in" rather than toward a
 # guess (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal is the root
 # itself").
 
-# The config table is READ in `lib/config.py` and WRITTEN here. The reader
-# moved because a `PreToolUse` gate needs the `Mode` row and must not import
-# this file to get it (#151), and these aliases are what keeps the move from
-# becoming a second parser: one implementation, reached by the name each
-# caller already spells. Everything below the writer's own line -- `with_row`,
-# `write_row`, `NEW_CONFIG` -- stays here, because writing the row is this
-# command's job and nothing else does it; where to write it is the reader's
-# walk, `config_table`, and nothing here walks the table again (#871).
+# The config is READ in `lib/config.py` and WRITTEN here. Every script that
+# reads a setting imports that module and never this command, and these
+# aliases keep one implementation, reached by the name each caller already
+# spells. The writer -- `write_mode`, `serialized` -- and the
+# converter of an earlier release's `config.md` -- `convert` -- stay here,
+# because writing the file is this command's job and nothing else does it.
 CONFIG = repo_config.CONFIG
-ROW_ITEM = repo_config.ROW_ITEM
+OLD_CONFIG = repo_config.OLD_CONFIG
+MODE_KEY = repo_config.MODE_KEY
 LOCAL, SHARED = repo_config.LOCAL, repo_config.SHARED
 MODES = repo_config.MODES
 
@@ -1456,27 +1459,6 @@ PLUGIN_ROOT = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 )
 
-# The table walk and the fence rule, taken from the reader rather than
-# written again here: one implementation, reached by the name each caller
-# already spells. `config_table` is the one walk of the table (#871), and
-# `with_row` overwrites and inserts at the lines it names. `fence_map` is the
-# fence walk with the state it ENDS in kept, which is what lets `write_row`
-# tell an unclosed fence from every other reason a row would not read back.
-config_table = repo_config.config_table
-unfenced = repo_config.unfenced
-fence_map = repo_config.fence_map
-
-NEW_CONFIG = """# Repository config
-
-<!-- What this repository says about itself, one row per item. This file was
-created by `seal mode`; `templates/setup/config.md` in the plugin documents
-every row and what an absent one means. -->
-
-| Item | Value |
-|---|---|
-| {item} | {value} |
-"""
-
 
 def under(root, rel):
     """The disk path of a `/`-joined repository-relative path.
@@ -1488,206 +1470,150 @@ def under(root, rel):
 
 
 config_path = repo_config.config_path
-config_rows = repo_config.config_rows
+old_config_path = repo_config.old_config_path
 
 
 declared = repo_config.declared_mode
 
 
-def ending_of(line, fallback):
-    """The line's own ending, or FALLBACK where it has none."""
-    bare = line.rstrip("\r\n")
-    return line[len(bare) :] or fallback
+def plain(value):
+    """VALUE as `json.dumps` writes it back: a `Members` object as a dict in
+    its order, and every value inside it the same way."""
+    if isinstance(value, repo_config.Members):
+        return {key: plain(inner) for key, inner in value}
+    if isinstance(value, list):
+        return [plain(inner) for inner in value]
+    return value
 
 
-def line_ending(lines):
-    """The first ending in the file, so a CRLF file stays CRLF."""
-    for line in lines:
-        found = ending_of(line, "")
-        if found:
-            return found
-    return "\n"
+def serialized(pairs):
+    """PAIRS, a config's members with no key written twice, as the file
+    `write_mode` and `convert` write: the standard library's serializer,
+    two spaces of indentation, every character as written, one `\\n` at the
+    end."""
+    members = plain(repo_config.Members(pairs))
+    return json.dumps(members, indent=2, ensure_ascii=False) + "\n"
 
 
-def doubled_modes(lines):
-    """The sentence a file holding more than one `Mode` row is refused in,
-    naming each line by its number and as written, or "" where it holds one
-    or none. LINES keep their endings, and their join is the file the walk
-    reads. It opens lower-case and ends with no full stop, so it reads after
-    the path.
-
-    **Every `Mode` row the walk read, not the first** (#867). A row written
-    twice has no value (`lib/config.py#config_value`), so the writer has no
-    row to overwrite, and this sentence names each line from the walk's own
-    line numbers (#871)."""
-    rows, _refusals = config_table("".join(lines))
-    modes = [index for index, item, _value in rows if item == ROW_ITEM]
-    if len(modes) < 2:
+def doubled_keys(pairs):
+    """The sentence a config whose PAIRS write a key twice is refused in, or
+    "": serializing it keeps one of the two, which is a write that drops an
+    answer somebody wrote. It opens lower-case and ends with no full stop,
+    so it reads after the path."""
+    seen, doubled = set(), []
+    for key, _value in pairs:
+        if key in seen and key not in doubled:
+            doubled.append(key)
+        seen.add(key)
+    if not doubled:
         return ""
-    named = ", ".join(f"line {i + 1} `{lines[i].strip()}`" for i in modes)
+    named = ", ".join(f"`{key}`" for key in doubled)
     return (
-        f"holds {len(modes)} `{ROW_ITEM}` rows ({named}), and a row written "
-        "twice has no value, so writing over one of them would leave the file "
-        "saying two things — delete all but one and run this command again"
+        f"writes {named} more than once, and a key written twice has no "
+        "value, so writing the file again would keep one of them — delete all "
+        "but one and run this command again"
     )
 
 
-def with_row(text, value):
-    """(TEXT with the `Mode` row set to VALUE, every other line's bytes kept,
-    "") — or (None, the refusal) where TEXT holds more than one `Mode` row,
-    or a table the walker refused.
-
-    Three cases, and the file is a person's in all three: an existing row is
-    replaced where it stands, a table with no such row gains one at its end,
-    and a file with no such table at all gets one appended after a blank
-    line. Nothing is re-wrapped, re-ordered, or re-ended. A fourth, two rows
-    or more, is refused rather than resolved (#867): no row of them is the
-    answer, so there is none to replace, and adding one more is a third.
-
-    **Where to write is the reader's walk, `config_table`, and nothing
-    else** (#871). The line overwritten is the one the walk read as the
-    `Mode` row; a new row goes after the last row the walk read, or under
-    the delimiter row where it read none, the header being the first line
-    `unfenced` shows whose cells are the config header -- the line the walk
-    itself starts at. A writer with a walk of its own is the file two rows
-    deep (#429, #415): a `Mode` row it adds under a line its walk reads past
-    is a second `Mode` row to a reader that stops there. **A table the
-    walker refused is refused here** in the
-    shape a doubled row takes, with the walker's sentence: a row the walk
-    did not read may be the `Mode` row, so there is none to replace, and
-    adding one may make two.
-    """
-    row = f"| {ROW_ITEM} | {value} |"
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines(keepends=True)
-    ending = line_ending(lines)
-    doubled = doubled_modes(lines)
-    if doubled:
-        return None, doubled
-    rows, refused = config_table(text)
-    if refused:
-        return None, refused[0]
-    modes = [index for index, item, _value in rows if item == ROW_ITEM]
-    if rows:
-        end = rows[-1][0] + 1
-    else:
-        header = next(
-            (
-                index
-                for index, line in unfenced(lines, text)
-                if repo_config.table_cells(line) == repo_config.CONFIG_TABLE
-            ),
-            None,
-        )
-        end = -1 if header is None else header + 2
-
-    if modes:
-        lines[modes[0]] = row + ending_of(lines[modes[0]], ending)
-        return "".join(lines), ""
-    if end >= 0:
-        # **The line above the insertion point may carry no ending.** Where
-        # the first table's last row is the file's last line and the file
-        # ends without a newline, the inserted row is concatenated onto it:
-        # `| Record language | Korean || Mode | shared |` is one line of four
-        # cells, no walk of that table reads either row, and the person's own
-        # row is gone. The third arm below has terminated the last line all
-        # along; this one has to as well. Before this repair the same shape
-        # was written silently and cost the row that was already there (#429,
-        # round 2).
-        if end == len(lines) and lines and not lines[-1].endswith(("\n", "\r")):
-            lines[-1] += ending
-        lines.insert(end, row + ending)
-        return "".join(lines), ""
-
-    if lines and not lines[-1].endswith(("\n", "\r")):
-        lines[-1] += ending
-    if lines:
-        lines.append(ending)
-    lines.extend([f"| Item | Value |{ending}", f"|---|---|{ending}", row + ending])
-    return "".join(lines), ""
-
-
-def write_row(home, value):
-    """Write `| Mode | value |` into the root's `config.md`; "" or why not.
+def write_file(path, text):
+    """TEXT written at PATH with `\\n` endings; "" or why not.
 
     Refused rather than followed: a symbolic link at that name is a write
     that leaves the root, which is the one way out of a structure the export
     walks (`root_files`), and a directory is `IsADirectoryError` arriving as
-    a traceback.
-    """
-    path = config_path(home)
+    a traceback."""
     if os.path.islink(path):
         return f"{path} is a symbolic link"
     if os.path.isdir(path):
         return f"{path} is a directory"
     try:
-        # `newline=""` on both sides, so a CRLF file is read and written back
-        # as one: with translation on, every line of somebody's file would be
-        # rewritten by an edit to one row of it.
-        with open(path, encoding="utf-8", newline="") as handle:
-            text = handle.read()
-    except FileNotFoundError:
-        text = None
-    except (OSError, ValueError) as exc:
-        return f"{path} could not be read: {exc}"
-
-    new, doubled = (
-        (NEW_CONFIG.format(item=ROW_ITEM, value=value), "")
-        if text is None
-        else with_row(text, value)
-    )
-    if doubled:
-        return f"{path} {doubled}. Nothing was written"
-    # **The row is not written until it reads back.** The walk skips
-    # fenced lines, so a file whose table is swallowed by a fence nobody
-    # closed has no table this walk can see -- and `with_row` then appends
-    # one at the END of the file, which is inside that fence. The write
-    # succeeds, `declared_mode` still answers "none", and `seal mode` reports
-    # a row that no walk reads: the next `seal mode` writes it again and the
-    # file grows by a table a run. Measured over two fixtures, three runs
-    # each: 9 -> 13 -> 17 -> 21 lines with `('none', '')` throughout.
-    # Checked here rather than after the write, so a refusal leaves the
-    # person's file exactly as it was (#429).
-    if not any(item == ROW_ITEM for item, _value in config_rows(new)):
-        # **The message names the cause it CHECKED, never one it inferred.**
-        # This guard is about the row not reading back, and an unclosed fence
-        # is one way for that to happen rather than the only one -- a file
-        # whose last line carries no ending reached it too, and telling that
-        # person to close a fence is the wrong-cause shape this work item is
-        # about (#429, round 2). That shape is repaired above; the branch
-        # stays because the next member of the class must not be misdescribed
-        # either.
-        # exempt from splitlines: lines the GFM walk numbers
-        if fence_map(new.splitlines(), new)[1] is not None:
-            return (
-                f"{path} has a fenced code block that is never closed, and "
-                "everything under it -- the table this command would have "
-                f"written the `{ROW_ITEM}` row into -- is inside it, where no "
-                "walk of that table reads it. Nothing was written. Close the "
-                "fence and run this command again."
-            )
-        # The table walker refuses what this write would leave -- a table
-        # appended under an HTML block nobody closed, for one -- and its
-        # sentence names the cause and the edit.
-        walked = config_table(new)[1]
-        if walked:
-            return (
-                f"{path}, with the `{ROW_ITEM}` row written into it, "
-                f"{walked[0]}. Nothing was written and your file is exactly "
-                "as it was"
-            )
-        return (
-            f"{path} would not read the `{ROW_ITEM}` row back after this "
-            "write, so the row would land where no walk of that table reads "
-            "it. Nothing was written and your file is exactly as it was. "
-            "This is a defect in this command rather than in your file: "
-            "please report it with the file's first lines."
-        )
-    try:
-        with open(path, "w", encoding="utf-8", newline="") as handle:
-            handle.write(new)
+        with open(path, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
     except (OSError, ValueError) as exc:
         return f"{path} could not be written: {exc}"
+    return ""
+
+
+def write_mode(home, value):
+    """Write the `Mode` key into the root's `config.json`; "" or why not.
+
+    The file is read by `lib/config.py#config_pairs` and written by
+    `serialized`, so where the key lands is the serializer's and no line of
+    the file is searched for it (#1454, which retired the table writer of
+    #429). An existing key keeps its place, a file without one gains it
+    last, and no file gets `{"Mode": VALUE}`; every other key keeps its
+    value and its order. A file `config_pairs` refuses, and one writing a
+    key twice, is refused: no write can make either agree.
+    """
+    path = config_path(home)
+    pairs, refused = repo_config.config_pairs(home)
+    if refused:
+        return f"{refused}. Nothing was written"
+    pairs = list(pairs or [])
+    doubled = doubled_keys(pairs)
+    if doubled:
+        return f"{path} {doubled}. Nothing was written"
+    at = next((k for k, (key, _v) in enumerate(pairs) if key == MODE_KEY), None)
+    if at is None:
+        pairs.append((MODE_KEY, value))
+    else:
+        pairs[at] = (MODE_KEY, value)
+    return write_file(path, serialized(pairs))
+
+
+def converted(text):
+    """(pairs, refusal) for TEXT, an earlier release's `config.md`: every
+    row of its `| Item | Value |` table, as `lib/tables.py#gfm_table` reads
+    it, in order, or the sentence nothing is written for.
+
+    A text holding no such table converts to no key. A table the walker
+    refuses converts to nothing, in the walker's sentence: a row it did not
+    read may be any key, so a file written without it drops an answer. A
+    row written twice converts to nothing too, because no one of the two is
+    the answer (#867). A value comes as the walker reads it, stripped and
+    with `\\|` reduced to a plain pipe, so a JSON string carries it as
+    written."""
+    rows, refusals = tables.gfm_table(text, repo_config.OLD_TABLE)
+    if refusals and refusals[0].startswith("holds no "):
+        return [], ""
+    if refusals:
+        return None, refusals[0]
+    pairs = [(item, value) for _line, (item, value) in rows]
+    doubled = [item for k, (item, _v) in enumerate(pairs) if item in dict(pairs[:k])]
+    if doubled:
+        return None, (
+            f"has a `{doubled[0]}` row written more than once, and a row written "
+            "twice has no value — delete all but one"
+        )
+    return pairs, ""
+
+
+def convert(home):
+    """Write `<home>/config.json` from `<home>/config.md`'s table and remove
+    `config.md`; "" or why not, where the root holds `config.md` and no
+    `config.json`, and "" with nothing done otherwise.
+
+    Nothing is written where the table does not convert (`converted`), and
+    `config.md` is removed only once `config.json` is written, so a refusal
+    or a failed write leaves the person's file exactly as it was."""
+    path, old = config_path(home), old_config_path(home)
+    if os.path.lexists(path) or not os.path.lexists(old):
+        return ""
+    try:
+        with open(old, encoding="utf-8-sig") as handle:
+            text = handle.read()
+    except (OSError, ValueError) as exc:
+        return f"{old} could not be read ({exc}). Nothing was written"
+    pairs, refused = converted(text)
+    if refused:
+        return f"{old} {refused}. Nothing was written and {CONFIG} was not made"
+    failed = write_file(path, serialized(pairs))
+    if failed:
+        return f"{failed}. {OLD_CONFIG} was left as it was"
+    try:
+        os.remove(old)
+    except OSError as exc:
+        return f"{path} was written, and {old} could not be removed ({exc})"
     return ""
 
 
@@ -1732,7 +1658,7 @@ def indexed(line, name, moved=False):
     the root going to local, staged by `git add` going to shared. Refusing
     over one was not a stricter version of the same rule, it was a different
     rule with no grounds, and it made the ordinary first run refuse: `seal
-    mode` writes an absent row, and the switch a person runs next met the
+    mode` writes an absent key, and the switch a person runs next met the
     file it had just written.
 
     **A pure deletion is not, once the move has already happened.** That is
@@ -1744,13 +1670,13 @@ def indexed(line, name, moved=False):
     else — `MD` and `AD` still refuse, because a staged edit is precisely
     what `git rm -r --cached` drops without a word.
 
-    **The row this command wrote itself is not, either.** `seal mode` fills
-    an absent row in from the folder, so the switch a person runs next meets
+    **The key this command wrote itself is not, either.** `seal mode` fills
+    an absent key in from the folder, so the switch a person runs next meets
     a worktree-only modification of the one file the switch rewrites anyway.
     The `??` exception above was written for this and reached half of it: an
-    untracked `config.md` passed and a TRACKED one still refused, which is
-    every shared root that commits its `config.md`. Measured 2026-09-03:
-    `seal mode` then `seal mode local` exits 1.
+    untracked config passed and a TRACKED one still refused, which is every
+    shared root that commits its config. Measured 2026-09-03: `seal mode`
+    then `seal mode local` exits 1.
 
     A STAGED edit to it still refuses, for the reason every staged edit does:
     `git rm -r --cached` drops it without a word.
@@ -2247,71 +2173,94 @@ def say_report(repo, home, shared, local, current, kind, value):
     """The report both `seal mode` and `seal mode --check` print."""
     print(f"  folder: {current:<7}{display(repo, home)}/")
     if kind == "mode":
-        print(f"  row:    {value:<7}{display(repo, config_path(home))}")
+        print(f"  key:    {value:<7}{display(repo, config_path(home))}")
     elif kind == "unknown":
         print(
-            f"  row:    {value} — which is not a mode. The two values are "
+            f"  key:    {value} — which is not a mode. The two values are "
             f"`{LOCAL}` and `{SHARED}`."
         )
     elif kind == "refused":
-        print(f"  row:    refused  ({display(repo, config_path(home))})")
+        print(f"  key:    refused  ({display(repo, config_path(home))})")
     else:
-        print(f"  row:    not declared  ({display(repo, config_path(home))})")
+        print(f"  key:    not declared  ({display(repo, config_path(home))})")
 
 
 def mode_refusal(home):
-    """The sentence `seal mode` refuses the root's `config.md` in, or "":
-    the reader's own sentence for a file that will not read, for a `Mode`
-    row written twice the writer's, which names each line (#867), and for a
-    table the walker refused the walker's, after the path (#871) -- the
-    three things `with_row` would refuse, so a switch is refused before
-    anything moves. Read through `lib/config.py#config_text`, the one
-    place the file is opened to tell absent from unreadable."""
-    text, refused = repo_config.config_text(home)
+    """The sentence `seal mode` refuses the root's `config.json` in, or "":
+    `lib/config.py#config_pairs`' own sentence for a file it refuses, a
+    `config.md` standing alone among them, and for a key written twice the
+    writer's (`doubled_keys`) -- the two things `write_mode` would refuse,
+    so a switch is refused before anything moves."""
+    pairs, refused = repo_config.config_pairs(home)
     if refused:
         return refused
-    if text is None:
-        return ""
-    # exempt from splitlines: lines the GFM walk numbers
-    doubled = doubled_modes(text.splitlines(keepends=True))
-    if doubled:
-        return f"{config_path(home)} {doubled}"
-    walked = config_table(text)[1]
-    return f"{config_path(home)} {walked[0]}" if walked else ""
+    doubled = doubled_keys(pairs or [])
+    return f"{config_path(home)} {doubled}" if doubled else ""
 
 
 def mode_report(args, repo, home, shared, local, current):
-    """`seal mode` and `seal mode --check`: the folder, the row, and whether
+    """`seal mode` and `seal mode --check`: the folder, the key, and whether
     they agree. The folder is never moved here.
 
-    An absent row is written from the folder — the state every repository
-    with a `config.md` is in today, since the pull-request language shipped
-    as its only row. The value is an observation this command just made, so
-    it cannot be wrong; nothing falls back to a default, because there is
-    none. `--check` writes nothing at all: it runs in CI, and a check that
-    mutates the tree it checks is not a check.
+    **Bare `seal mode` converts an earlier release's `config.md` first**
+    (#1454), where the root holds it and no `config.json`: `convert` writes
+    `config.json` from its table and removes it, or writes nothing and the
+    command exits 2 with the sentence. A `config.md` standing beside a
+    `config.json` is named and left alone: the JSON is the file read.
+
+    An absent key is written from the folder. The value is an observation
+    this command just made, so it cannot be wrong; nothing falls back to a
+    default, because there is none. `--check` writes nothing at all: it runs
+    in CI, and a check that mutates the tree it checks is not a check.
 
     **A refused file is reported and exits 2, with or without `--check`**
-    (#867): a `config.md` that is there and will not read, or a `Mode` row
-    written twice. The folder is still reported, because where things stand
-    does not need the row; nothing is written, because a row written into a
-    file nobody can read, or beside one that already disagrees, cannot make
-    it agree.
+    (#867): a `config.json` that will not read or parse, a `config.md`
+    standing without one, or a `Mode` key written twice or holding no
+    string. The folder is still reported, because where things stand does
+    not need the key; nothing is written, because a key written into a file
+    nobody can read, or beside one that already disagrees, cannot make it
+    agree.
+
+    **An earlier release's `parity.md` is named, never converted** (#1454):
+    where it stands without a `parity.json`, a note names the keys to write
+    (`lib/config.py#unconverted_parity`), and the exit is what the mode
+    gives. Its prose and its exceptions table are a person's to move.
     """
+    parity = os.path.join(home, optin.PARITY_CONFIG)
+    old_parity = os.path.join(home, optin.OLD_PARITY_CONFIG)
+    if os.path.lexists(old_parity) and not os.path.lexists(parity):
+        said = repo_config.unconverted_parity(display(repo, parity))
+        print(f"note: {display(repo, old_parity)} {said}")
+    old, path = old_config_path(home), config_path(home)
+    if os.path.lexists(old) and os.path.lexists(path):
+        print(
+            f"note: {display(repo, old)} stands beside {CONFIG}, and nothing "
+            f"reads it — delete it once {CONFIG} holds what it says"
+        )
+    elif os.path.lexists(old) and not args.check:
+        failed = convert(home)
+        if failed:
+            print(f"{failed}.")
+            return 2
+        print(
+            f"{display(repo, old)} was converted: {display(repo, path)} holds "
+            f"its rows as keys, and {OLD_CONFIG} was removed"
+        )
     kind, value = declared(home)
     if kind == "refused":
         say_report(repo, home, shared, local, current, kind, value)
-        print(f"\n{mode_refusal(home) or value}. Nothing was written.")
+        refused = mode_refusal(home) or f"{config_path(home)}: {value}"
+        print(f"\n{refused}. Nothing was written.")
         return 2
     if kind == "none" and not args.check:
-        failed = write_row(home, current)
+        failed = write_mode(home, current)
         if failed:
-            print(f"the `{ROW_ITEM}` row could not be written: {failed}")
+            print(f"the `{MODE_KEY}` key could not be written: {failed}")
             print("The folder is still the answer, and it is:")
         else:
             print(
-                f"no `{ROW_ITEM}` row was declared, so one was written from "
-                f"where the folder is: `| {ROW_ITEM} | {current} |` in "
+                f"no `{MODE_KEY}` key was declared, so one was written from "
+                f'where the folder is: `"{MODE_KEY}": "{current}"` in '
                 f"{display(repo, config_path(home))}"
             )
             kind, value = "mode", current
@@ -2320,9 +2269,9 @@ def mode_report(args, repo, home, shared, local, current):
 
     if kind == "unknown":
         print(
-            f"\nThe row names no mode, so nothing can be applied from it. "
+            f"\nThe key names no mode, so nothing can be applied from it. "
             f"`seal mode {current}` writes what the folder says; editing the "
-            f"row to `{LOCAL}` or `{SHARED}` and running `seal mode --apply` "
+            f"key to `{LOCAL}` or `{SHARED}` and running `seal mode --apply` "
             "moves the folder."
         )
         return 1 if args.check else 0
@@ -2332,11 +2281,11 @@ def mode_report(args, repo, home, shared, local, current):
         print("\nThey agree.")
         return 0
     print(
-        f"\nThey disagree: the row says `{value}` and the folder is "
+        f"\nThey disagree: the key says `{value}` and the folder is "
         f"{current}. Two commands end it —"
     )
-    print(f"  seal mode --apply     move the folder to {value}, as the row says")
-    print(f"  seal mode {current:<11}correct the row to {current}, as the folder is")
+    print(f"  seal mode --apply     move the folder to {value}, as the key says")
+    print(f"  seal mode {current:<11}correct the key to {current}, as the folder is")
     return 1 if args.check else 0
 
 
@@ -2412,9 +2361,9 @@ def refusals(repo, home, shared, local, wanted):
     name = display(repo, shared)
     found = []
 
-    # The row this switch ends by writing is refused before anything moves
-    # (#867): a `config.md` that will not read, or one holding two `Mode`
-    # rows, would stop `write_row` after the folder had already gone.
+    # The key this switch ends by writing is refused before anything moves
+    # (#867): a config `config_pairs` refuses, or one writing a key twice,
+    # would stop `write_mode` after the folder had already gone.
     refused = mode_refusal(home)
     if refused:
         found.append(refused)
@@ -2463,22 +2412,22 @@ def refusals(repo, home, shared, local, wanted):
 
     config = config_path(home)
     if os.path.islink(config):
-        found.append(f"{config} is a symbolic link, and the row is written there")
+        found.append(f"{config} is a symbolic link, and the key is written there")
     elif os.path.isdir(config):
-        found.append(f"{config} is a directory, and the row is written there")
+        found.append(f"{config} is a directory, and the key is written there")
     elif os.path.isfile(config):
         try:
             with open(config, encoding="utf-8", newline="") as handle:
                 handle.read()
         except (OSError, ValueError) as exc:
             found.append(
-                f"{config} could not be read ({exc}), and the row is written there"
+                f"{config} could not be read ({exc}), and the key is written there"
             )
     return found
 
 
 def switch(args, repo, home, shared, local, current, wanted):
-    """Move the root, write the row, and stage the index; `.github/` is left
+    """Move the root, write the key, and stage the index; `.github/` is left
     alone, and the pull-request checks are `seal pr-checks`'s.
 
     In the order of `frame/design.md` *Order, and what a stopped run leaves*: the
@@ -2525,7 +2474,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     for line in porcelain(repo, name):
         # `??` itself, not `indexed`. That function has three exceptions now
         # and only this one means untracked — reading its answer as the
-        # question called a tracked, modified `config.md` untracked, in a
+        # question called a tracked, modified `config.json` untracked, in a
         # note whose whole subject is what the index can lose.
         if line[:2] == "??":
             print(
@@ -2558,11 +2507,11 @@ def switch(args, repo, home, shared, local, current, wanted):
     else:
         print(f"  {display(repo, destination)} is already the root")
 
-    failed = write_row(destination, wanted)
+    failed = write_mode(destination, wanted)
     if failed:
-        print(f"  the `{ROW_ITEM}` row was NOT written: {failed}")
+        print(f"  the `{MODE_KEY}` key was NOT written: {failed}")
     else:
-        print(f"  wrote `| {ROW_ITEM} | {wanted} |` in {CONFIG}")
+        print(f'  wrote `"{MODE_KEY}": "{wanted}"` in {CONFIG}')
 
     if wanted == LOCAL:
         if tracked(repo, name):
@@ -2648,7 +2597,7 @@ def mode(args, cwd):
                 # a gate that cannot tell reads exactly like an allow — the
                 # shape issue #28 was opened on. `optin.repo_root` answers ""
                 # for a timeout or a git that is not on PATH, and a shared
-                # root committed beside a row saying `local` is what CI is
+                # root committed beside a key saying `local` is what CI is
                 # here to catch.
                 print(
                     "no git repository could be resolved here, so the mode "
@@ -2682,12 +2631,12 @@ def mode(args, cwd):
                 if kind == "unknown"
                 else "is not declared"
             )
-            print(f"the `{ROW_ITEM}` row {named}, so there is nothing to apply.")
+            print(f"the `{MODE_KEY}` key {named}, so there is nothing to apply.")
             print(
                 f"Write one in {display(repo, config_path(home))} —\n"
-                f"  | {ROW_ITEM} | {LOCAL} |\n"
+                f'  "{MODE_KEY}": "{LOCAL}"\n'
                 f"or run `seal mode {LOCAL}` / `seal mode {SHARED}` to switch "
-                "and write the row in one step."
+                "and write the key in one step."
             )
             return 1
 
@@ -2820,11 +2769,11 @@ def main(argv=None, cwd=None):
     md.add_argument(
         "--check",
         action="store_true",
-        help="report, write nothing, and exit 1 when the row and the folder "
+        help="report, write nothing, and exit 1 when the key and the folder "
         "disagree. This is what CI runs",
     )
     md.add_argument(
-        "--apply", action="store_true", help="switch to whatever the `Mode` row says"
+        "--apply", action="store_true", help="switch to whatever the `Mode` key says"
     )
 
     pc = sub.add_parser(

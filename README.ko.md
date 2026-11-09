@@ -102,6 +102,21 @@ claude plugin update agentic@agenticseal
 `templates/setup/claude-md-block.md` 가 담은 빈 표시 한 쌍이 남을 수 있고,
 다음 업데이트가 그것을 지웁니다(`skills/update/SKILL.md`).
 
+이전 릴리스는 저장소의 설정을 마크다운 표인 `seal/config.md` 에 두었고,
+지금 플러그인은 JSON 객체 하나인 `seal/config.json` 에서 읽습니다.
+`seal/config.md` 가 있는 저장소마다 `seal mode` 를 한 번 실행합니다. 이 명령은
+그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 그 전까지는
+`seal gate`, `seal fold`, `seal pact`, `seal mode --check` 가 종료 코드 2 로
+멈추고 `seal mode` 를 짚습니다. `seal pr-body` 는 같은 문장으로 거절하고 종료
+코드 1 로 끝납니다. `seal rules`, `seal settle`,
+`seal unverified` 는 정책 루트와 참고 루트를 기본값으로 읽습니다.
+어떤 명령도 바꿔 주지 않는 세 파일은 손으로 다시 씁니다. `seal/parity.md` 는
+`templates/setup/parity.json` 에서 시작해 `seal/parity.json` 으로 씁니다.
+`seal/pact.md` 의 `| Signer |` 표는 그 저장소 `seal/config.json` 의
+`Pact signers` 키가 되고, 원격 URL 은 `;` 로 구분합니다.
+`~/.claude/agentic/pact-paths.md` 는 원격 URL 에서 체크아웃 경로로 가는 JSON
+객체 하나인 `~/.claude/agentic/pact-paths.json` 이 됩니다.
+
 ## 첫 작업 항목
 
 저장소에서 Claude Code 를 열고 "#42 고쳐줘" 처럼 바꾸고 싶은 것을 평소 말로
@@ -196,7 +211,7 @@ local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저
 하며, 커밋은 사용자가 합니다.
 
 ```bash
-seal mode            # 루트가 어디 있는지, seal/config.md 와 맞는지
+seal mode            # 루트가 어디 있는지, seal/config.json 과 맞는지
 seal mode local      # 루트를 트리 밖으로 옮긴다
 seal mode shared     # 루트를 트리 안으로 옮긴다
 seal mode --check    # 아무것도 쓰지 않고, 둘이 어긋나면 0 이 아닌 값으로 끝난다
@@ -251,7 +266,7 @@ pull request 의 검사로 돕니다.
 | **framer** (서브에이전트) | `core`, `agent-contract` | 아무도 만들기 전에 작업 항목의 설계, 계획, 질문을 쓰고, 코드는 쓰지 않는다 ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (서브에이전트) | `core`, `agent-contract` | 프레임에 맞춰 단계 하나를 만들거나, 리뷰 회차 하나를 놓고 fix pass 를 한 번 돈다 ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.md` 를 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
 | 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
@@ -285,7 +300,7 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 
 기록은 세션이 아니라 저장소에 남으므로, 다음 세션은 그 기록에서 시작합니다.
 `seal/`(위의 *shared 인가 local 인가* 가 자리를 정하는 폴더)에는
-`seal/config.md` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
+`seal/config.json` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
 항목마다 그 전부가 `seal/threads/<id>/` 아래에 있습니다. 라우팅 답, 프레임,
 단계와 회차의 기록, 마무리 메모, 보증서입니다. 파일 하나하나는
 `docs/layout/the-record-layout.md` *seal/* 와 *seal/threads/<work-item-id>/* 에
@@ -299,12 +314,12 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 
 ### 마이그레이션
 
-기존 코드베이스의 동작을 옮겨 오는 저장소는 `seal/parity.md` 에 원본과 기준
+기존 코드베이스의 동작을 옮겨 오는 저장소는 `seal/parity.json` 에 원본과 기준
 커밋을 적어 선언합니다. 그러면 판단할 때마다 정책서와 원본, 새 코드를 나란히
 놓고 보며, 정책서가 말하지 않는 곳에서는 원본의 동작을 지킵니다. 원본의 사실은
 tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 물어보고, 나중에
 정하려면 `/agentic:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
-커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.md` 에
+커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.json` 에
 저장됩니다. 방법은 `skills/legacy-parity/SKILL.md` 에 있습니다.
 
 ## 내 컴퓨터에서 도는 것

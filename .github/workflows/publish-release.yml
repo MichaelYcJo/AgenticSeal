@@ -28,7 +28,7 @@ name: publish the release note
 # suite at the tag and replaces the note's header with a table of the
 # stamp's results as badges, each with its result as alt text (#1153,
 # #1299, `.github/scripts/release_seal.py`). Where
-# `seal/config.md`'s `Release note seal mark` row reads `yes` at the tag
+# `seal/config.json`'s `Release note seal mark` key reads `yes` at the tag
 # (#1204), it first attaches the page form of the stamp's mark, the PNG
 # `.claude-plugin/plugin.json` names as its `icon` (#857), as `seal.png`, and
 # the table opens with the image beside the results; under any other value

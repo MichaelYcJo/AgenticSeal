@@ -24,7 +24,7 @@ hands them, for `chain_check.py` to name as notices (#1216); a copy is read
 through `passages.py`, the paste check's reader, loaded by path.
 `apply_op` places one operation in one document's text as the grammar
 places it, for `settle --draft` to write (#1217); it reads a table row
-through `lib/config.py`, loaded by path.
+through `lib/tables.py`, loaded by path.
 `settle` prints what they read and writes what `apply_op` returns; nothing
 here writes a file.
 
@@ -49,7 +49,7 @@ import subprocess
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 PASSAGES = os.path.join(HERE, "passages.py")
-CONFIG = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
+TABLES = os.path.join(HERE, "..", "..", "..", "lib", "tables.py")
 GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
 
 HEADING = "Rule changes"
@@ -80,7 +80,7 @@ NEAR_HEADING = (
 
 _reader = None
 _passages = None
-_config = None
+_tables = None
 _gitcmd = None
 
 
@@ -103,15 +103,15 @@ def passages():
     return _passages
 
 
-def config():
-    """`lib/config.py`, the reader of a GFM table row held to
+def tables():
+    """`lib/tables.py`, the reader of a GFM table row held to
     cmark-gfm, loaded by path once."""
-    global _config
-    if _config is None:
-        spec = importlib.util.spec_from_file_location("agentic_rules_config", CONFIG)
-        _config = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_config)
-    return _config
+    global _tables
+    if _tables is None:
+        spec = importlib.util.spec_from_file_location("agentic_rules_tables", TABLES)
+        _tables = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_tables)
+    return _tables
 
 
 def gitcmd():
@@ -365,19 +365,19 @@ def _cut(text, s, e):
 
 def _last_row(lines, first, stop, new):
     """The index in LINES of the last row of the last table in
-    LINES[first:stop], where NEW is one line `config.py#table_cells` reads
-    as a row; else None. A table opens where `config.py#opens_table` finds a
+    LINES[first:stop], where NEW is one line `tables.py#table_cells` reads
+    as a row; else None. A table opens where `tables.py#opens_table` finds a
     header over its delimiter row, on a line outside a fence or a comment,
     and its rows run to the first blank line, as GFM ends a table."""
-    cfg = config()
-    if "\n" in new or cfg.table_cells(new) is None:
+    walker = tables()
+    if "\n" in new or walker.table_cells(new) is None:
         return None
     bare = [line.rstrip("\r\n") for line in lines]
     live = [flag for _, flag in reader().live_lines(bare)]
     last, n = None, first
     while n < stop:
         under = [(n + 1, bare[n + 1])] if n + 1 < stop else []
-        if not (live[n] and cfg.opens_table(n, bare[n], under)):
+        if not (live[n] and walker.opens_table(n, bare[n], under)):
             n += 1
             continue
         n += 1

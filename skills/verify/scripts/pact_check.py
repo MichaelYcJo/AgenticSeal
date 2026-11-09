@@ -26,7 +26,7 @@ reads nothing of the pact.
 
 The anchor table is the first table whose header is
 `| Pact | Clause | Hash |`, cell for cell. It is read by
-`lib/config.py#gfm_table`, and the cells are written bare. A header
+`lib/tables.py#gfm_table`, and the cells are written bare. A header
 whose cells, each case folded after one emphasis run wrapping the whole
 cell is removed (`header_key`), are those words and that is not the anchor
 header, such as `| pact | clause | hash |` or `| **Pact** | Clause | Hash |`,
@@ -35,9 +35,9 @@ heads a table no row of which is read: it is named at its line,
 and is in no exit class. Whether it meant the anchor table is the judgment
 of the person reading the report and of the proofer reading the frame. A row is graded where its `Pact` cell, compared normalised, is the
 origin URL of this repository; a row naming another pact the signer's
-`Pact` row declares is passed over, for that pact's `seal pact` to grade.
+`Pact` key declares is passed over, for that pact's `seal pact` to grade.
 Refused at the row's line: a `Pact` cell that is not one remote URL, or
-that names a pact the signer's `Pact` row does not declare, which no
+that names a pact the signer's `Pact` key does not declare, which no
 `seal pact` grades, because another pact's reports the signer `ONE-SIDED`
 and reads none of its frames; and, in a row naming this pact, a `Clause`
 cell that opens with no heading or a `Hash` cell that is not eight
@@ -62,23 +62,29 @@ that spelling as an anchor.
 
 ## Where the signers are
 
-The pact's `| Signer |` table lists them by origin remote URL, and a
-checkout is found for each, in this order and with nothing guessed:
+The `Pact signers` key of the pact's repository's `seal/config.json` lists
+them by origin remote URL, separated by `;`, and is read through
+`lib/config.py#signer_declaration`. An absent or empty key is refused at
+exit 2, because a pact nobody signs is not a pact, and so is an entry that
+is not one remote URL. A checkout is found for each signer, in this order
+and with nothing guessed:
 
-  1. `~/.claude/agentic/pact-paths.md`, a `| Remote | Path |` table kept per
-     machine and never committed, keyed by remote URL compared normalised;
+  1. `~/.claude/agentic/pact-paths.json`, one JSON object from origin remote
+     URL to checkout path, kept per machine and never committed, keyed by
+     remote URL compared normalised;
   2. every sibling directory of the pact's repository whose origin remote
      normalises to the signer's -- exactly one of them.
 
-A signer neither finds is reported with the map line to add.
+A signer neither finds is reported with the map entry to add.
 
-The map is read by `lib/config.py#gfm_table`, as every other table
-here is, and a line it does not read is refused at exit 2, printed as
-`REFUSED ~/.claude/agentic/pact-paths.md — the map <sentence>`: a map that
-is there and will not read, one holding no `| Remote | Path |` table, every
-refusal of the walk, a row with an empty cell, a remote on two rows, of
-which neither is read, and a second header. A row nobody reads would report
-its signer as not found. The rows the walk did read are used.
+The map is read by the standard library's JSON parser, and an entry it
+cannot use is refused at exit 2, printed as
+`REFUSED ~/.claude/agentic/pact-paths.json — the map <sentence>`: a map
+that is there and will not read or parse, one whose top level is not an
+object, an entry whose remote or path is empty or whose path is not a
+string, and a remote written as two keys, compared normalised, of which
+neither is read. An entry nobody reads would report its signer as not
+found. The entries it can use are used.
 
 ## What each anchor reads
 
@@ -105,27 +111,21 @@ A pact under local mode has no history, so every mismatch there reads
   1  a `SUPERSEDED`, `NOT TAKEN` or `UNMATCHED` anchor, or a signer not
      found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
-     line of the machine-local map it does not read, a `BROKEN` anchor,
-     an anchor row it cannot grade or does not read, a row naming a pact
-     the signer does not declare, a `pact:` token, a `Pact` row that will
-     not parse, a relationship recorded on one side only, or a pact's
-     repository with no origin remote
+     `Pact signers` key that is absent, empty or will not parse, an entry
+     of the machine-local map it cannot use, a `BROKEN` anchor, an anchor
+     row it cannot grade or does not read, a row naming a pact the signer
+     does not declare, a `pact:` token, a `Pact` key that will not parse,
+     a relationship recorded on one side only, or a pact's repository with
+     no origin remote
 
 `BROKEN` is exit 2 and a mismatch is exit 1. A `NOT READ` line is in no
 exit class. Nothing is ever written.
-
-## A header written through 0.18.x
-
-A pact whose table is headed with the word 0.18.x used is read exactly as
-one headed `Signer`, and one line before
-that file's other lines names the file, both headers and the release that
-renamed them (`lib/config.py#renamed_header`). The line is in no exit
-class: the exit is what it would be under the new header (#822).
 """
 
 import argparse
 import glob
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -135,11 +135,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
 CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
-CONFIG_FILE = "config.md"
-MAP_PARTS = (".claude", "agentic", "pact-paths.md")
+CONFIG_FILE = "config.json"
+MAP_PARTS = (".claude", "agentic", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
-# `~/.claude\agentic\pact-paths.md`.
+# `~/.claude\agentic\pact-paths.json`.
 MAP = os.path.join(*MAP_PARTS)
 MAP_SHOWN = "~/" + "/".join(MAP_PARTS)
 
@@ -151,11 +151,12 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     separator.
 
     **Every path this command prints goes through here** (#647, the separator
-    note). The `UNREADABLE` sentence used to join a native absolute path with
-    `/`, so a Windows run printed `C:\\Users\\x\\orders-web\\seal/config.md`,
-    and every other path line printed whatever separators the platform gave
-    it. One function, so the class is closed by construction rather than one
-    sentence at a time.
+    note). A sentence that joins a native absolute path with `/` prints
+    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, as the
+    `UNREADABLE` sentence once did, and a path line printed without this
+    function carries whatever separators the platform gave it. One function,
+    so the class is closed by construction rather than one sentence at a
+    time.
 
     The comparison is by whole segment and literal: nothing is case-folded,
     resolved or normalised, so a path reached by another spelling of the
@@ -190,9 +191,6 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
         rest = rest.replace(sep, "/")
     return drive + rest
 
-
-# The machine-local map's header, as the cells `gfm_table` matches a header by.
-MAP_TABLE = ("Remote", "Path")
 
 OK, SUPERSEDED, NOT_TAKEN, UNMATCHED, BROKEN = (
     "OK",
@@ -235,7 +233,7 @@ INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)", re.IGNORECASE)
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
     "host and path — write the origin URL of the pact's repository, bare, as "
-    "the signer's `Pact` row writes it"
+    "the signer's `Pact` key writes it"
 )
 NO_HEADING = (
     "the `Clause` cell opens with no heading — write the clause's heading "
@@ -248,10 +246,10 @@ NOT_A_HASH = (
 # `{cell}` is the `Pact` cell as written, bare: `one_remote` refuses one
 # holding a backtick before this sentence is reached.
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.md` "
-    "does not declare in its `Pact` row, so no `seal pact` grades the row — "
-    "write the origin URL of a pact that row declares, or add `{cell}` to "
-    "that row"
+    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
+    "does not declare in its `Pact` key, so no `seal pact` grades the row — "
+    "write the origin URL of a pact that key declares, or add `{cell}` to "
+    "that key"
 )
 INLINE = (
     "a `pact:` token is the inline pact anchor `seal pact` read through "
@@ -312,7 +310,7 @@ def origin(root):
 
 
 def header_key(cell):
-    """CELL, one header cell as `config.table_cells` gives it, with one
+    """CELL, one header cell as `tables.table_cells` gives it, with one
     emphasis run removed where such a run wraps the whole cell
     (`EMPHASIS_RUN`), then case folded: the net `near_headers` names a
     header near the anchor header with. It reads no table: the anchor table
@@ -330,7 +328,7 @@ def header_key(cell):
     return (match.group(2) if match else cell).casefold()
 
 
-def near_headers(config, text):
+def near_headers(tables, text):
     """`[(line, header)]` for each line of TEXT outside a fence whose cells,
     each through `header_key`, are the anchor header's and that is not the
     anchor header: a table no row of which is read. Whether it meant the
@@ -341,16 +339,16 @@ def near_headers(config, text):
     want = tuple(map(header_key, ANCHOR_TABLE))
     return [
         (index + 1, lines[index].strip())
-        for index, line in config.unfenced(lines, text)
-        if (cells := config.table_cells(line)) is not None
+        for index, line in tables.unfenced(lines, text)
+        if (cells := tables.table_cells(line)) is not None
         and cells != ANCHOR_TABLE
         and tuple(map(header_key, cells)) == want
     ]
 
 
-def first_table(config, text, header, beside=False):
+def first_table(tables, text, header, beside=False):
     """(rows, refusals) for the first table of TEXT headed HEADER, its cells
-    exactly, read by `lib/config.py#gfm_table`: its rows and its
+    exactly, read by `lib/tables.py#gfm_table`: its rows and its
     refusals, and, where the walk refused nothing, one refusal per further
     HEADER outside a fence, at its line, because the walk reads the first
     table only. A refusal of the walk already says every row below it goes
@@ -360,10 +358,10 @@ def first_table(config, text, header, beside=False):
     lines = text.splitlines()
     headers = [
         index + 1
-        for index, line in config.unfenced(lines, text)
-        if config.table_cells(line) == header
+        for index, line in tables.unfenced(lines, text)
+        if tables.table_cells(line) == header
     ]
-    rows, walked = config.gfm_table(text, header, beside=beside)
+    rows, walked = tables.gfm_table(text, header, beside=beside)
     if walked:
         return rows, list(walked)
     named = f"`| {' | '.join(header)} |`"
@@ -377,43 +375,64 @@ def first_table(config, text, header, beside=False):
 
 def path_map(config, home_dir):
     """({normalised remote: path}, refusals) from the machine-local map
-    under HOME_DIR, each refusal a sentence that reads after the words `the
-    map`.
+    under HOME_DIR, one JSON object from origin remote URL to checkout path,
+    each refusal a sentence that reads after the words `the map`.
 
-    No map is an empty one. Every other line the map's reader does not read
-    is a refusal, because a row nobody reads reports its signer as not
-    found: a map that is there and will not read, one holding no
-    `| Remote | Path |` table, every refusal of the walk
-    (`lib/config.py#gfm_table`), a row with an empty cell, a remote on
-    two rows, compared normalised, of which neither is read, and a second
-    header, because the walk reads the first table only. The rows the walk
-    did read are used, as `pact_signers`' are."""
+    No map is an empty one. Everything else the map's reader cannot use is
+    a refusal, because an entry nobody reads reports its signer as not
+    found: a map that is there and will not read or parse, one whose top
+    level is not an object, an entry whose remote is empty, one whose path
+    is empty or not a string, and a remote written as two keys, compared
+    normalised, of which neither is read. The parse keeps every member
+    (`lib/config.py#Members`), so a key written twice is seen twice. The
+    entries it can use are used. A byte order mark an editor wrote reads,
+    as it does in `config.json`."""
     where = os.path.join(home_dir, MAP)
     if not os.path.lexists(where):
         return {}, []
     text = read(where)
     if text is None:
         return {}, ["is there and could not be read"]
-    rows, refusals = first_table(config, text, MAP_TABLE)
-    places = {}
-    for line, cells in rows:
-        remote, path = cells
-        if not remote or not path:
+    try:
+        parsed = json.loads(
+            text.removeprefix(config.BOM), object_pairs_hook=config.Members
+        )
+    except ValueError as exc:
+        return {}, [f"does not parse as JSON ({exc}), so no entry of it is read"]
+    if not isinstance(parsed, config.Members):
+        return {}, [
+            f"holds a JSON {config.json_type(parsed)} where the map is one object "
+            "from remote URL to checkout path, so no entry of it is read"
+        ]
+    refusals, places = [], {}
+    for remote, value in parsed:
+        if not remote.strip():
             refusals.append(
-                f"has a row at line {line} with an empty cell — write the remote "
-                "and the path of its checkout, or delete the row"
+                "has an entry whose remote is empty — write the origin remote URL "
+                "of the checkout at its path, or delete the entry"
             )
             continue
-        places.setdefault(config.normalise_remote(remote), []).append((line, path))
-    found = {}
-    for remote, held in places.items():
-        if len(held) == 1:
-            found[remote] = os.path.expanduser(held[0][1])
+        if not isinstance(value, str) or not value.strip():
+            held = (
+                "an empty string"
+                if isinstance(value, str)
+                else f"a JSON {config.json_type(value)}"
+            )
+            refusals.append(
+                f"has `{remote}` holding {held}, which is no path — write the path "
+                "of its checkout as a JSON string, or delete the entry"
+            )
             continue
-        lines = [str(line) for line, _path in held]
+        places.setdefault(config.normalise_remote(remote), []).append((remote, value))
+    found = {}
+    for normalised, held in places.items():
+        if len(held) == 1:
+            found[normalised] = os.path.expanduser(held[0][1])
+            continue
+        keys = [f"`{remote}`" for remote, _value in held]
         refusals.append(
-            f"has rows at lines {', '.join(lines[:-1])} and {lines[-1]} naming one "
-            f"repository, `{remote}`, so "
+            f"has keys {', '.join(keys[:-1])} and {keys[-1]} naming one "
+            f"repository, `{normalised}`, so "
             f"{'neither' if len(held) == 2 else 'none of them'} is read — keep one"
         )
     return found, refusals
@@ -453,16 +472,16 @@ def checkout(config, signer, root, mapped, home_dir=None):
             hits.append(path)
     if len(hits) == 1:
         return hits[0], None
-    line = f"`| {written} | <the path of its checkout> |`"
+    entry = f'`{json.dumps(written, ensure_ascii=False)}: "<the path of its checkout>"`'
     if hits:
         return None, (
             f"{len(hits)} sibling directories have its origin "
             f"({', '.join(shown(h, home_dir=home_dir) for h in hits)}), "
-            f"and nothing here guesses which: add {line} to {MAP_SHOWN}"
+            f"and nothing here guesses which: add {entry} to {MAP_SHOWN}"
         )
     return (
         None,
-        f"no checkout of it was found on this machine: add {line} to {MAP_SHOWN}",
+        f"no checkout of it was found on this machine: add {entry} to {MAP_SHOWN}",
     )
 
 
@@ -608,6 +627,7 @@ def grade(checker, pact_text, history, clause, want):
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
     config = load(os.path.join(LIB, "config.py"), "agentic_config_for_pact")
+    tables = load(os.path.join(LIB, "tables.py"), "agentic_tables_for_pact")
     optin = load(os.path.join(LIB, "optin.py"), "agentic_optin_for_pact")
     checker = load(CHECKER, "agentic_evidence_for_pact")
     home_dir = home_dir or os.path.expanduser("~")
@@ -665,16 +685,22 @@ def check(root, out=sys.stdout, home_dir=None):
             else f"{status} {signer} — {detail}"
         )
 
-    signers, refusals, header = config.pact_signers(pact_text)
-    # The pact as a person finds it, under the root's own name: `seal/`, or
-    # the second name `lib/optin.py#home_paths` gives beside a project's own.
-    pact_shown = f"{os.path.basename(home)}/{PACT_FILE}"
-    renamed(config, pact_shown, header, config.SIGNER_HEADER, say)
+    pairs, refused = config.config_pairs(home)
+    if refused is not None:
+        config_file = config.config_path(home)
+        say(
+            f"{UNREADABLE} {shown(config_file, repo, home_dir)} — "
+            f"{after_path(config_file, refused)}"
+        )
+        return 2
+    # The pact's config as a person finds it, under the root's own name:
+    # `seal/`, or the second name `lib/optin.py#home_paths` gives beside a
+    # project's own.
+    config_here = f"{os.path.basename(home)}/{CONFIG_FILE}"
+    signers, refusals = config.signer_declaration(pairs)
     for refusal in refusals:
-        found(REFUSED, pact_shown, "", f"the pact {refusal}")
-    # The table's own word in the lines below, so a refusal about a pact
-    # headed the old way names the header the pact holds.
-    table = f"`{(header or config.SIGNER_HEADER)[0]}` table"
+        found(REFUSED, config_here, "", refusal)
+    key = f"`{config.SIGNERS_KEY}` key"
     mapped, map_refusals = path_map(config, home_dir)
     for refusal in map_refusals:
         found(REFUSED, MAP_SHOWN, "", f"the map {refusal}")
@@ -691,9 +717,9 @@ def check(root, out=sys.stdout, home_dir=None):
             found(
                 REFUSED,
                 written,
-                pact_shown,
-                f"the pact lists its own repository; the {table} lists every "
-                "OTHER signer, so take this row out",
+                config_here,
+                f"the {key} lists the pact's own repository, and that key lists "
+                "every OTHER signer — take this entry out",
             )
             continue
         path, why = checkout(config, signer, repo, mapped, home_dir)
@@ -713,27 +739,28 @@ def check(root, out=sys.stdout, home_dir=None):
             continue
         declared = config.declared_pacts(their_home)
         if declared is None:
+            path = config.config_path(their_home)
             found(
                 UNREADABLE,
                 written,
-                shown(config.config_path(their_home), their_repo, home_dir),
-                "could not be read",
+                shown(path, their_repo, home_dir),
+                after_path(path, config.config_pairs(their_home)[1] or ""),
             )
             continue
-        pacts, row_refusals = declared
-        # The signer's config under its root's own name, as `pact_shown`.
+        pacts, key_refusals = declared
+        # The signer's config under its root's own name, as `config_here`.
         config_shown = f"{os.path.basename(their_home)}/{CONFIG_FILE}"
-        for refusal in row_refusals:
+        for refusal in key_refusals:
             found(REFUSED, written, config_shown, refusal)
         if not any(n == ours for _w, n in pacts):
             found(
                 ONE_SIDED,
                 written,
                 config_shown,
-                f"the pact lists it, and its config names no `{config.PACT_ROW}` "
-                f"row for {mine}: the relationship is recorded on one side "
-                f"only. Add `| {config.PACT_ROW} | {mine} |` there, or take it "
-                f"out of the pact's {table}",
+                f"the pact lists it, and its config names no `{config.PACT_KEY}` "
+                f"key for {mine}: the relationship is recorded on one side "
+                f'only. Add `"{config.PACT_KEY}": "{mine}"` there, or take it '
+                f"out of the {key} of the pact's repository",
             )
             continue
         # Every pact the signer declares, this one among them: a row naming
@@ -749,13 +776,13 @@ def check(root, out=sys.stdout, home_dir=None):
             if body is None:
                 found(UNREADABLE, written, where, "could not be read")
                 continue
-            rows, table_refusals = first_table(config, body, ANCHOR_TABLE, beside=True)
+            rows, table_refusals = first_table(tables, body, ANCHOR_TABLE, beside=True)
             if table_refusals and table_refusals[0].startswith("holds no "):
                 # A frame that cites no pact holds no anchor table.
                 table_refusals = []
             for refusal in table_refusals:
                 found(REFUSED, written, where, f"the frame {refusal}")
-            for line, near in near_headers(config, body):
+            for line, near in near_headers(tables, body):
                 found(
                     NOT_READ,
                     written,
@@ -810,13 +837,14 @@ def check(root, out=sys.stdout, home_dir=None):
     return 0
 
 
-def renamed(config, where, header, current, say):
-    """Print the line naming the rename where HEADER, the header a file at
-    WHERE was read under, is the one CURRENT was written as through 0.18.x.
-    In no exit class: the file reads exactly as under CURRENT (#822)."""
-    old, sentence = config.renamed_header(current)
-    if header is not None and header == old:
-        say(f"seal pact: {where} {sentence}")
+def after_path(path, sentence):
+    """SENTENCE, a refusal `lib/config.py#config_pairs` opens with the
+    machine path PATH, with that path taken off, so the line prints the path
+    through `shown` instead; "could not be read" for a sentence that does
+    not open with it."""
+    if sentence.startswith(path):
+        return sentence[len(path) :].strip()
+    return "could not be read"
 
 
 def main(argv=None):
