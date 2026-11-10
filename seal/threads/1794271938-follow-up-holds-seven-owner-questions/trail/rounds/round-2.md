@@ -53,6 +53,11 @@ An argv that takes one of its first three words from anything but a plain string
 
 This snippet does not reach three frame sentences, and the orchestrator owes them. They are `frame/design.md:31`, *Scope* item 1's "keeps every claim it made", `frame/design.md:42`, the *Out* item that calls the escape "a name in one of an argv's first three positions", and `frame/plan.md:50`, "hold the same claims". Each should name the prefixed first word as a claim the conversion gave up.
 
+```seal
+verdict: fixed af63472e5
+answer: The words changed and the reader did not, as the orchestrator directed. `argv_words`' docstring (`tests/github/test_close_issues_on_release.py:84-120`) now says the reader reads the plain string literals of a list, a tuple or a call's positional arguments, and nothing else. It says that an argv writing one of its first three words as a module-level name, an f-string or a bytes literal passes every case that reads through it, and that the fold matched `f"gh"` and `b"gh"` where this reader drops them. It no longer claims to close every argv the fold closed. The round's docstring snippet was read against the code and written in my own words. Two sentences outside it read an f-string as caught, so they changed too: the first line now says "plain string-literal words", and the middle paragraph says "a word that is not a plain string literal" and "`ast.Constant` values of type `str`". The parse was checked directly: `f"gh"` is an `ast.JoinedStr` and `b"gh"` is a `Constant` holding `bytes` (executed, `python3 -I -c` over `ast.parse`, interpreter 3.15.0). The changelog's *Changed* second item takes the round's sentence word for word (`changelog.md:4`). The three modules pass, 113 passed (executed). `frame/design.md:68` quotes the old first line of the docstring, and `pr.md:4` quotes the old changelog sentence. Both are for the orchestrator to fold.
+```
+
 ### 2. `argv_words`' `ast.Tuple` half has no case, so removing it leaves every module green and round 1's defect can come back unseen
 
 ```seal
@@ -85,6 +90,11 @@ The case goes in `Test_module`, after the closer's case, which ends at `tests/gi
 ```
 
 `gaps.md:12` then states a gap that no longer stands, and it leaves in the same commit.
+
+```seal
+verdict: fixed af63472e5
+answer: The round's case was added word for word as `Test_module::test_argv_words_reads_a_tuple_argv_as_it_reads_a_list` (`tests/github/test_close_issues_on_release.py:1246-1256`), after the closer's case. It was shown red with only the `ast.Tuple` half removed: `seal mutate` replaced `isinstance(node, (ast.List, ast.Tuple))` with `isinstance(node, ast.List)`, and the case failed on its assertion for `subprocess.run(("gh", "issue", "edit", str(n)))`, with `argv_words` returning `[[], []]`. The verdict was red, exit 0, and the tree was clean after the restore (executed). The `gaps.md` *Not done* paragraph on the missing case left in the same commit. The paragraph on the `isinstance(a.value, str)` filter stays, because the new case does not exercise that filter. The three modules pass, 113 passed, and `bin/seal layout --pairs` names no pair involving the new case (executed). `frame/design.md` *Removes* closes with "This work adds one assertion to an existing case", and HEAD now also adds this case. That sentence is for the orchestrator to fold.
+```
 
 ## Confirmations
 
