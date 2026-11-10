@@ -2,7 +2,7 @@
 
 ## What this phase found
 
-**The frame's coordinates held against the tree, and two of its claims did
+**The frame's coordinates held against the tree, and three of its claims did
 not.** Before the build, each coordinate `frame/design.md` *Scope* names was
 opened at `8d988e1a3` (`read`): `README.md:95-99`, `:101-115` and
 `:368-372`; `README.ko.md:99-118` and `:365-369`;
@@ -10,13 +10,13 @@ opened at `8d988e1a3` (`read`): `README.md:95-99`, `:101-115` and
 **4b. The launcher an earlier release wrote.** in `skills/update/SKILL.md`.
 Issue #1376's comment 6675898172 was read through `gh api` (`executed`),
 and its section *The terminal stamp* holds the four facts *Scope* item 5
-lists. The two claims that did not hold are the next two paragraphs.
+lists. The three claims that did not hold are the next three paragraphs.
 
 **The acceptance grep of *User scenarios & acceptance* row 1 cannot print
 nothing.** `git grep -n -e 'agentic:start' -e 'claude-md-block' -e
 'stamp.py' -- README.md README.ko.md` matches `seal_stamp.py --stop` at
-`README.md:356` and `README.ko.md:352`, the plugin's own `Stop` hook, which
-the design keeps (`executed`). The grep that asks what the row means, with
+`README.md:356` and `README.ko.md:351` at `03a172de4`, the plugin's own
+`Stop` hook, which the design keeps (`executed`). The grep that asks what the row means, with
 the launcher's file name as a code span,
 ``git grep -n -F -e '`stamp.py`' -e 'agentic:start' -e 'claude-md-block' -- README.md README.ko.md``,
 printed nothing and exited 1 at `b0cb62de0` (`executed`). Judged against the row's
