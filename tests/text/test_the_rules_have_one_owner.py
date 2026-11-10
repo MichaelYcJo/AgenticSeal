@@ -58,6 +58,19 @@ THE_CORES_ROW = (
     "the row *No fix that no round reads* of `skills/core/SKILL.md` "
     "*Judgment is not licence to skip a party*"
 )
+PR_FILES_OWNER = (
+    "What `pr.md` and `pr.<lang>.md` hold is stated in "
+    "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
+    "opens once the sealer seals*"
+)
+# The Korean carrier's link, in the language its file is written in.
+PR_FILES_OWNER_KO = (
+    "`pr.md` 와 `pr.<lang>.md` 가 무엇을 담는지는 "
+    "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
+    "opens once the sealer seals* 가 정한다"
+)
+CONVENTION = ("skills", "commit-pr-convention", "SKILL.md")
+OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
 
 
 # rule → (owner, the sentence the owner states, {link carrier: how it names
@@ -193,6 +206,24 @@ RULES = {
             ORCH: THE_CORES_ROW,
             PR_CHECK: THE_CORES_ROW,
             ORCH_IMPL: THE_CORES_ROW,
+        },
+    ),
+    # #1478: four findings and one withheld verdict of 0.37.0 named a
+    # changelog sentence a second time at its quote in `pr.md`. `seal
+    # pr-body` writes the fragment above the fold, so `pr.md` quotes none of
+    # it, and the files that said what `pr.md` holds name the owner.
+    "23 pr.md quotes no sentence of changelog.md": (
+        ORCH,
+        "`pr.md` quotes no sentence of `changelog.md`, because `seal pr-body` "
+        "writes the fragment whole under the line "
+        "`skills/code-review/scripts/pr_body.py#HEADING` holds, above the "
+        "fold, so the reader meets it there and a fix to a changelog sentence "
+        "touches no `pr.md`.",
+        {
+            CONVENTION: PR_FILES_OWNER,
+            IMPLEMENT: PR_FILES_OWNER,
+            CONFIG_TEMPLATE: PR_FILES_OWNER,
+            OUTSIDE_THE_REVIEW: PR_FILES_OWNER_KO,
         },
     ),
 }

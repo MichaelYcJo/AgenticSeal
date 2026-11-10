@@ -175,10 +175,12 @@ every repository, whatever either key says:
 
 Where the two language keys name different languages, the pull request body
 opens with a mirror: the work item's own folder holds `pr.<lang>.md` beside
-`pr.md`, holding each quote of `pr.md` rendered in `Commit and pull request
-language`, and `seal pr-body` writes it above `pr.md`. It is named for
-**its own** language, the commit key's: a repository whose records are
-English and whose commits are Korean keeps `pr.ko.md`. A record has no
+`pr.md`, written in `Commit and pull request language`, and `seal pr-body`
+writes it above `pr.md`. It is named for **its own** language, the commit
+key's: a repository whose records are English and whose commits are Korean
+keeps `pr.ko.md`. What `pr.md` and `pr.<lang>.md` hold is stated in
+`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
+once the sealer seals*. A record has no
 mirror: there is one file and a checker reads it, so its prose is whatever
 `Record language` says and nothing else.
 

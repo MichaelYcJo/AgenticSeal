@@ -400,7 +400,11 @@ last phase has closed and commits it before it spawns the first round.**
 Where no round runs, the orchestrator writes it before the broad run.
 Every round reads `pr.md` at its target, so no sentence of the body
 reaches the sealer unread. `pr.md` holds the `Closes` and `Part of` lines,
-quotes of the work item's records, and the attribution line. A quote stands
+quotes of the work item's records, and the attribution line. `pr.md` quotes
+no sentence of `changelog.md`, because `seal pr-body` writes the fragment
+whole under the line `skills/code-review/scripts/pr_body.py#HEADING` holds,
+above the fold, so the reader meets it there and a fix to a changelog
+sentence touches no `pr.md`. A quote stands
 on its own line, in a list item or in a
 table cell, and its coordinate follows it: the record's path, then the
 heading, row, finding or line that holds the sentence. The orchestrator
@@ -421,10 +425,15 @@ feed the flow log*).
 
 **Where `config.json`'s `Commit and pull request language` and `Record
 language` keys name different languages, the orchestrator writes
-`pr.<lang>.md` beside `pr.md` and commits the two together.** It holds each
-quote of `pr.md` rendered in `Commit and pull request language`, in
-`pr.md`'s order, each followed by the coordinate the quote carries in
-`pr.md`, and nothing else: no `Closes`, `Part of` or attribution line,
+`pr.<lang>.md` beside `pr.md` and commits the two together.** It holds
+sentences rendered in `Commit and pull request language`, each followed by
+its coordinate in the shape a quote of `pr.md` carries one. First comes the
+sentence that opens each list item of the work item's `changelog.md`, in
+the fragment's order. Then comes each quote of `pr.md`, in `pr.md`'s order,
+with the coordinate the quote carries in `pr.md`. It holds nothing else. It
+renders no other sentence of the fragment, which stands whole in `Record
+language` under the line `skills/code-review/scripts/pr_body.py#HEADING`
+holds, above the fold. It holds no `Closes`, `Part of` or attribution line,
 which `pr.md` already holds in that language, and no sentence of the
 orchestrator's own. `<lang>` is the orchestrator's spelling for the file's
 own language, the commit language, such as `ko`. `seal pr-body` writes it
@@ -432,25 +441,22 @@ above `pr.md`, so the body opens in the team's language, and every round
 reads it whole beside `pr.md`. Where the two keys name one language, no
 `pr.<lang>.md` is written.
 
-**Where a fix pass or a fold changes a sentence that `pr.md` quotes, the
-orchestrator rewrites the quote, and its rendering in `pr.<lang>.md` where
-one stands, and commits both before it spawns the next round.** A round
-finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's to
-repair, since no crafter writes either: the orchestrator commits the
-repair before the fix pass, and the pass's close block reads
-`fixed <that commit>`, as for a finding located in a frame file. Before each
-spawn of the sealer, the orchestrator opens each quote's source at HEAD and
-finds the quote there verbatim, runs of whitespace collapsed. A quote it
-does not find there is rewritten from its source, with its rendering where
-one stands, and committed before the spawn.
+**Where a fix pass or a fold changes a sentence that `pr.md` quotes or
+`pr.<lang>.md` renders, the orchestrator rewrites each quote and each
+rendering that stood on it, and commits them before it spawns the next
+round.** A round finding located in `pr.md` or `pr.<lang>.md` is the
+orchestrator's to repair, since no crafter writes either: the orchestrator
+commits the repair before the fix pass, and the pass's close block reads
+`fixed <that commit>`, as for a finding located in a frame file.
 
 **You write the pull request body after `trail/gate.md` is committed,
 because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
 `<item>` is the work item's directory. It writes `pr.<lang>.md` where the
 two language keys differ, then `pr.md`, then the line
-`skills/code-review/scripts/pr_body.py#HEADING` holds, then the records'
-copy, as `docs/forms/the-guarantee.md` *The guarantee* states, and replaces
+`skills/code-review/scripts/pr_body.py#HEADING` holds, then the changelog
+fragment, then the rest of the records' copy in one fold, as
+`docs/forms/the-guarantee.md` *The guarantee* states, and replaces
 whatever the file held. On exit 1 its `refused:` lines name a record's file
 and line, `pr.md` and `pr.<lang>.md` among the records, or a language key
 `config.json` lacks: repair that record or write that key, commit it, and run

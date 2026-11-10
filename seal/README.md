@@ -105,8 +105,8 @@ seal/
     ├── pr.md              the pull request body's first part, after
     │                      pr.<lang>.md where the two language keys differ;
     │                      read by every round
-    ├── pr.<lang>.md       pr.md's quotes in the commit language, opening the
-    │                      first part where the two language keys differ
+    ├── pr.<lang>.md       the first part's opening in the commit language,
+    │                      where the two language keys differ
     └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 
