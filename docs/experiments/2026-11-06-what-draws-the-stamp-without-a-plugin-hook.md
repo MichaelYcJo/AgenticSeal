@@ -11,8 +11,9 @@ comment 6675898172 of 2026-11-06, its section *The terminal stamp*.
 marketplace's pre-submission check refused one. The sealer's stamp was drawn
 through command hooks the plugin shipped, `Stop` among them: in colour,
 after the turn's final text, without anyone asking for it, and as the exact
-bytes the script wrote. Whether any other place could draw it that way is a property of the
-harness at run time, so reading the plugin's code could not settle it.
+bytes the script wrote. Whether any other place could draw it that way is a
+property of the harness at run time, so reading the plugin's code could not
+settle it.
 
 ## What it established
 
