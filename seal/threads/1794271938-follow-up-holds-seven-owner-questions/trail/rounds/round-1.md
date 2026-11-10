@@ -46,6 +46,11 @@ def argv_words(text):
 
 The `...` stands for the docstring's two paragraphs that stay as they are. "Closes what a fold closed, and more" holds only once tuples are read. If the fix pass names the tuple escape in the docstring instead of closing it, the changelog's *Changed* second item owes the same sentence, and `pr.md` line 4 quotes that item.
 
+```seal
+verdict: fixed 3a0054d24
+answer: `argv_words` reads `ast.Tuple` beside `ast.List` (`tests/github/test_close_issues_on_release.py:116-118`). A tuple spread whole, `run(*("gh", …))`, is read through the same half, because the spread tuple is its own node; a mixed spread such as `run("gh", *("issue", "close"))` stays unread, as the fold left it. The docstring names the tuple and the whole spread, and says the reader closes every argv a fold closed, a list, a tuple and call arguments, and more. Seen red with `seal mutate` planting, in each of the three scripts, one forbidden argv as a tuple and one as a whole-spread tuple: all six stayed green at `a5e6c5038` and all six went red at `3a0054d24`, each on its forbidden-verb assertion (executed). `changelog.md` *Changed* second item now says the reader reads a list, a tuple or call arguments, and that any first-three word that is not a string literal escapes. Removing the `ast.Tuple` half leaves the three `Test_module` groups green at HEAD, since no script holds a tuple argv (executed, `SURVIVED`); `gaps.md` *Not done* records it. `frame/design.md:69`, the docstring's first line in *Data & interfaces*, and `pr.md` line 4 are the orchestrator's to fold.
+```
+
 ### 2. The release note says the owner decided row 5 and that `--worktree` keeps reading routing from HEAD, and the issue and `chain_check.py` say otherwise
 
 ```seal
@@ -70,6 +75,11 @@ Rows 1, 4 and 5 close with no change to the tree. `chain_check.py --worktree` st
 
 ```markdown
 The owner decided row 2 in the issue's *Decided*, row 5 closed by the orchestrator's default reported to the owner, and the tree or a probe answered the rest.
+```
+
+```seal
+verdict: fixed 3a0054d24
+answer: `changelog.md` *Removed* first item carries the round's sentences word for word, read first against #1493 *Decided* (executed, `gh issue view 1493`) and `skills/code-review/scripts/chain_check.py:362-381`, `:495-506` and `:2085-2093` at HEAD (read): `--worktree` diffs the working tree and its untracked files, and a local-mode root under the common git directory is in neither. Its last clause now says the measurements are in #1493's body, as `frame/design.md` *Scope* item 8 reads after `a5e6c5038`. `frame/questions.md` and `routing.md` were folded at `a5e6c5038` and read whole at HEAD agree with the issue. `pr.md` line 7 still quotes the old sentence and is the orchestrator's to rewrite.
 ```
 
 ## Confirmations
