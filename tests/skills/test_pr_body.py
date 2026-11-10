@@ -840,8 +840,8 @@ class Test_main:
     ):
         """S1 through the command, run in the repository: the part opens
         with a blank line, the mark, a blank line and the changelog's
-        section, `--check`
-        on that body exits 0, and nothing is said about the mark."""
+        section, `--check` on that body exits 0, and nothing is said about
+        the mark."""
         item = sealed_item(repo)
         monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
         monkeypatch.chdir(repo)

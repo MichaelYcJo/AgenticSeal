@@ -21,15 +21,15 @@ One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
 between `HEADING` and the changelog's section where `seal/config.json`'s
 `Pull request seal mark` key reads `yes` and the work item's `guarantee.md`
-reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built from the plugin's
-manifest, which is read and never written, and names no version, so two
-releases of the plugin compose one line (#1452). It carries no record text,
-and `--check` composes it the same way, so the sealer's check, run before
-its own verdict exists, reads a part with no mark from that run. The key and
-HEAD are read in the work item's own checkout, and in the working
-directory's where the item sits under the common git directory. A value
-other than `yes`, a seal that checkout cannot be read against, and a
-manifest the address cannot be built from are named on one line opening
+reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built
+from the plugin's manifest, which is read and never written, and names no
+version, so two releases of the plugin compose one line (#1452). It carries
+no record text, and `--check` composes it the same way, so the sealer's
+check, run before its own verdict exists, reads a part with no mark from
+that run. The key and HEAD are read in the work item's own checkout, and in
+the working directory's where the item sits under the common git directory.
+A value other than `yes`, a seal that checkout cannot be read against, and
+a manifest the address cannot be built from are named on one line opening
 `seal pr-body:` and change no exit code.
 
 The body opens with the orchestrator's part, its files written as their
@@ -188,8 +188,9 @@ FOLD_END = "</details>"
 # A `details` tag on a copied line, as GitHub reads one (#1218): `<details`
 # or `</details`, in any case and anywhere in the line, followed by
 # whitespace, `/`, `>` or the line's end, read once fences and code spans
-# are blanked. It opens a second fold or ends the copy's one fold early,
-# whether the line is a sentence, a list item or indented. The form a
+# are blanked. It opens a second fold, or, on a line inside the copy's one
+# fold, ends that fold early, whether the line is a sentence, a list item
+# or indented. The form a
 # record gives such a tag is a code span, the one spelling that passes;
 # what follows the lookahead, up to a `>`, only names the tag as read.
 TAG = re.compile(r"</?details(?=[\s/>]|$)[^>]*>?", re.IGNORECASE)
@@ -785,8 +786,8 @@ def _composed(name, texts, mark=None, home=OPTIN.HOME):
     that no `-->` closes on the line, as `CLOSER.COMMENT`'s second arm
     matches it at the line's start, since GitHub would hide the lines after
     it and the fold's end among them, or holds a `TAG` outside a fence, a
-    comment and a code span, which would fold a part again or end the fold
-    early, or holds a closing keyword outside a fence, a comment and a code
+    comment and a code span, which would fold a part again or, inside the
+    fold, end it early, or holds a closing keyword outside a fence, a comment and a code
     span, since GitHub and the release's closer would close the issue it
     names. The tag and the keyword are read on one line, blanked one way, by
     `CLOSER.HIDDEN`."""
