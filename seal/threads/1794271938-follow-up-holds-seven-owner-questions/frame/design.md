@@ -66,7 +66,7 @@ Out:
 ```python
 def argv_words(text):
     """The string-literal words of every argv in TEXT, a script's source:
-    each list literal's elements and each call's positional arguments."""
+    each list or tuple literal's elements and each call's positional arguments."""
 ```
 
 It returns one list of strings per `ast.List`, per `ast.Tuple` and per `ast.Call` in the parsed source, keeping only `ast.Constant` strings, as `words` does today. A case selects the argvs it judges by their first three words, such as `words[:3] == ["gh", "issue", verb]`. The two other modules import it as `tests/github/test_label_merged_on_release_branch.py` already imports `load` from the same module.
