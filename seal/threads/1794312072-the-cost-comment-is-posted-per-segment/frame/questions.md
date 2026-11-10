@@ -5,6 +5,7 @@ grounds stand where each line points, and none is reopened here.
 
 - Whether this work item edits `docs/` or states its rule changes: `frame/design.md` *Grounding* G1.
 - Which command the run's one post is: `frame/plan.md` *Alternatives considered* rows A to D.
+- Why the run's end reads before it posts: `frame/design.md` *Grounding* G18 and D1 item 3, and `frame/plan.md` *Alternatives considered* row M.
 - Where the meter's internals go, and which statement of each repeated fact stays: `frame/design.md` *Data & interfaces* D2, and `frame/plan.md` *Alternatives considered* rows E and I.
 - Which sentences are the history sentences, and where they go: `frame/design.md` *Grounding* G4 and *Scope* item 3.
 - Where the observation a session wrote after a segment goes: `frame/design.md` *Grounding* G3 and G9 and *Scope* item 6, and `frame/plan.md` *Alternatives considered* row J.
