@@ -676,7 +676,8 @@ def test_the_framer_folds_a_decision_it_is_sent():
 
     #1473 moved the rule to `skills/implement/fold-and-reframe.md`, so a first
     frame does not preload it, and `agents/framer.md` names that file. Its
-    four citations of the definition's own rules now name their files."""
+    four citations that resolved only inside the definition now name
+    `agents/framer.md` or the contract."""
     path = "/".join(FOLD)
     assert f"`{path}`" in flat(*FRAMER), (
         f"`agents/framer.md` no longer names `{path}`, so a framer sent a "
