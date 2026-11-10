@@ -152,8 +152,9 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 - **direct** 는 세션이 에이전트도 프레임도 리뷰도 seal 도 없이 직접 고치는
   길입니다.
 
-답마다 무엇이 정해지는지와, 그 답이 `seal/threads/<id>/routing.md` 에 쓰는
-행은 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
+답마다 무엇이 정해지는지는 `skills/implement/routing-question.md` 에 있고,
+그 답이 `seal/threads/<id>/routing.md` 에 쓰는 행은
+`skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 에 있습니다. pull request 의 검사는 이 파일을 읽고 브랜치가 어떤 길로
 보내졌는지 압니다. `complete` 는 이 파일의 `Automation` 행을 늘 `yes` 로 쓰고,
 `agentic` 은 항목에 따라 `yes` 를 고를 수 있습니다. 이 행이 `yes` 인
@@ -299,8 +300,8 @@ sealer 는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
 `withheld`, 사용자에게 묻는 질문을 단 `undecided` 가운데 하나입니다. pull
 request 는 작업 항목이 `sealed` 를 받은 뒤에 열리고, `Pull request seal mark`
 키가 `yes` 이면 본문에 seal 표시가 붙습니다. 두 언어 키가 서로 다른 언어를
-가리키면 본문은 `pr.md` 의 인용을 pull request 언어로 옮긴 `pr.<lang>.md` 로
-시작합니다. pull request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request
+가리키면 본문은 pull request 언어로 쓴 `pr.<lang>.md` 로 시작합니다. pull
+request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request
 라도 맨 위 커밋에 seal 이 없거나, 마지막 수정을 어느 회차도 읽지 않았거나,
 본문이 그 커밋에서 `seal pr-body` 가 만드는 본문과 다르면 검사가 실패합니다
 (`skills/core/SKILL.md` *Judgment is not licence to skip a party*). **체인은
@@ -389,7 +390,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 | 무엇이 | 어디로 | 무엇을 보내나 | 언제 |
 |---|---|---|---|
 | `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
-| `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | crafter 나 proofer 가 보고를 돌려줄 때마다 orchestrator 가 돌린다. `--work-item` 을 붙이면 릴리스 때, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
+| `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
 | `seal gate`, 곧 broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `chain_check.py` 를 돌리는 단계가 `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `chain_check.py` 를 따로 돌려도 똑같이 묻는다 | GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
 | 워크플로 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
@@ -413,7 +414,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 | `seal unverified .` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | 세션의 시간이 어디에 쓰였는지 트랜스크립트에서 읽어 알려 준다 (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |
-| `seal cost --work-item <디렉터리>` | 작업 항목의 세그먼트 가운데 열린 측정 기록 이슈의 어느 댓글도 이름을 적지 않은 것마다 행을 하나씩 찍는다. 세그먼트는 그 에이전트를 띄운 프롬프트가 작업 항목의 디렉터리나 브랜치를 적었는지로 찾는다. `--post --says <파일>` 을 붙이면 그 행들을 올린다 (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*) |
+| `seal cost --work-item <디렉터리>` | 작업 항목의 세그먼트 가운데 열린 측정 기록 이슈의 어느 댓글도 이름을 적지 않은 것마다 행을 하나씩 찍는다. 세그먼트는 그 에이전트를 띄운 프롬프트가 작업 항목의 디렉터리나 브랜치를 적었는지로 찾는다. `--post --says <파일>` 을 붙이면 그 행들을 올린다 (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
 | `seal settle [--apply]` | 릴리스된 작업 항목의 `frame/design.md` 가 적은 `## Rule changes` 를 절마다 보여 주고, `--apply` 를 주면 정리가 끝난 디렉터리를 지운다 (`skills/settle/SKILL.md` *The settling session's procedure*) |
 | `seal fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `seal/config.json` 의 `Document token ceiling` 키와 `Policy root` 키에 견주어 확인한다 (`templates/setup/config.md` *The fold's values*) |
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |

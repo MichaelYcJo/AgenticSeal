@@ -7,8 +7,8 @@ rest of starting a work item.
 ## Orchestrator: a work item that commits in more than one repository
 
 The routing question is still asked once, in the shape
-`skills/implement/orchestration.md` *Orchestrator: how the work is routed*
-states, and every answer it writes goes into every repository the work item
+`skills/implement/routing-question.md` states, and every answer it writes
+goes into every repository the work item
 commits in. Asking it again per repository is the mid-run question this
 section exists to remove, arriving once per checkout.
 
