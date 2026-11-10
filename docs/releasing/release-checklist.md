@@ -272,10 +272,9 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
 - [ ] **A GitHub Release exists at `vX.Y.Z`**, by `gh release view vX.Y.Z`.
       The merge's push to `main` fires
       `.github/workflows/publish-release.yml`, which tags the merge commit
-      `vX.Y.Z` and then, in the same run, builds the note from the changelog
-      fragments the release's commits added and the previous version tag
-      does not already hold, with the title taken from the
-      `release: X.Y.Z symptoms: <symptoms>` line step 5 prescribes. **This
+      `vX.Y.Z` and publishes the note in the same run. What a published
+      note holds, and where its title comes from, is
+      `docs/releasing/branch-and-release.md` *Cutting a release*. **This
       box confirms the workflow fired; it is not where the note gets
       written.** Nothing there means the job went red or never ran, and
       `gh run list --workflow publish-release.yml` says which. A run that
@@ -285,28 +284,23 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       where GitHub refuses the tag; for a tag whose range added no changelog
       fragment the previous version tag does not already hold; for a `v*`
       tag that is not `vX.Y.Z`; and when a `gh` call it makes fails. A
-      missing title line is not one of them: it falls back to the tag name.
-      The note opens with a header of the release's counts and the theme
-      line under it, then the release's pull requests, one fold per
-      conventional-commit type under its name and count, and a
-      `### 🙌 Thanks to` line for each outside contributor, over the
-      fragments folded; where the job log says the pull requests could not
-      be listed, the note went out as the theme line and the fragments
-      alone, which one `gh release edit` repairs. After the note, the same
-      workflow's `seal` job attaches `seal.png` and puts it in the header,
-      beside the results the stamp states as badges, where
-      `seal/config.json`'s `Release note seal mark` key reads `yes`; under any
-      other value it attaches nothing and puts the results in the header
-      alone. Where the header still shows the counts as text, the `seal`
-      job's log says why on a `::warning::` line: the suite at the tag did
-      not pass or its counts could not be read, the icon could not be
-      copied, a `gh` call failed, or the header was not in the note as
-      generated: edited before the job reached it, already replaced by an
-      earlier run of the job, published without one, or the pull requests
-      moved between the two lists. A row written with a value other than
+      title that is the bare tag name is not one of them: the tagged commit
+      held no `release:` line the job could read, and its log gives the
+      shape it expected and the line it found. Where the job log says the
+      pull requests could not be listed, the note went out as the theme line
+      and the fragments alone, which one `gh release edit` repairs. After
+      the note, the same workflow's `seal` job attaches `seal.png` and
+      rewrites the header, as that section says. Where the header still
+      shows the counts as text, the `seal` job's log says why on a
+      `::warning::` line: the suite at the tag did not pass or its counts
+      could not be read, the icon could not be copied, a `gh` call failed,
+      or the header was not in the note as generated: edited before the job
+      reached it, already replaced by an earlier run of the job, published
+      without one, or the pull requests moved between the two lists. A
+      value of `seal/config.json`'s `Release note seal mark` key other than
       `yes` is named on a `::warning::` line of its own, and the results go
-      in without the image. That job never
-      fails the release. To seal one by hand, from a checkout at the tag,
+      in without the image. That job never fails the release. To seal one
+      by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
@@ -326,24 +320,15 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       are not the directory,
       the catalog people browse inside Claude, and the directory is readable from
       nowhere a script can reach, so the command ends by saying it was not read and
-      printing the address of the page that answers. A portal listing is answered on
-      the portal's Submissions page, with its status and the version that is live. It
-      picks up each new version from its tracked branch, `dist`, without a
-      resubmission, and a version that passes goes live by the listing's publish
-      setting, which by default waits for somebody to select Publish
-      (`claude.com/docs/plugins/submit`, *Publish a passing version*). A Console
-      listing is answered on the Console page, and takes no new version until a
-      person moves it to the portal (`claude.com/docs/directory/publish`, *Move an
-      earlier submission to the developer portal*). The plugin's listing is a portal
-      listing, by the owner's reading of the submission of the repository's `@dist`
-      on 2026-11-05, and the portal reads `dist` on a schedule, about every six
-      hours (#1383). Once
-      the publish workflow's `dist` job has run, `git log -1 --format=%s origin/dist`
-      names the release as `dist: vX.Y.Z`. A red `dist` job is a release the
-      directory did not get, and a re-run of the workflow adds the commit. Whether it
-      shows up at all is what a search for the plugin inside Claude answers. Neither
-      that search nor the Submissions page, which sits behind the owner's login, is
-      open to a script or a case here: both answers are the owner's reading.
+      printing the address of the page that answers for each kind of listing: the
+      portal's Submissions page, and the Console page. The
+      Submissions page sits behind the owner's login, and neither page is open to a
+      script or a case here: their answer is the owner's reading. The listing is on
+      hold, and the box runs all the same, as
+      `docs/releasing/branch-and-release.md` *Cutting a release* says. Once the
+      publish workflow's `dist` job has run, `git log -1 --format=%s origin/dist`
+      names the release as `dist: vX.Y.Z`. A red `dist` job added no commit, and a
+      re-run of the workflow adds it.
 
 **A notice telling somebody an update landed names the move it costs them.**
 An installed copy is what a session loads, so an update that has landed on

@@ -143,8 +143,16 @@ cancels, is GitHub's behaviour. No case here can start a run, so
 
 **The plugin directory reads `dist`, a branch that holds what the
 installed plugin runs, and the publish workflow adds one commit to it at
-each release.** The directory's form does not answer in time for this
-repository's whole tree, and answers for the tree without its suites and
+each release.** The listing has been on hold since 2026-11-08, by the
+owner's decision, and the `dist` job and the checklist's directory box keep
+running while it holds, so that nothing has to be turned back on when it
+resumes. The directory refuses every file other than Markdown from an
+organization that is not Verified, and refused v0.34.0 on 2026-11-07
+(#1420), so no change in this tree can make the plugin listable today. The
+issues that wait for the listing are in the milestone
+`backlog: marketplace listing (on hold)`. The directory's form does not
+answer in time for this repository's whole tree, and answers for the tree
+without its suites and
 records (#1374). The paths that leave are marked `export-ignore` in
 `.gitattributes`, and the tree of each commit of `dist` is `git archive`
 of the release's tag. So the list lives in that one file and the workflow
@@ -171,7 +179,7 @@ archiving it, since an archive leaves the marked paths out. GitHub's
 source archives of a release leave them out too. `marketplace.json`'s
 `source` is `./`, so `/plugin marketplace add` installs the whole tree from
 the default branch, `main`.
-check: tests/github/test_dist_branch.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
+check: tests/github/test_dist_branch.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py
 
 ### Work accumulates on a release branch
 
