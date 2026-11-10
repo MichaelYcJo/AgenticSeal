@@ -76,12 +76,16 @@ def test_the_header_says_a_rider_carries_no_stamp_and_no_checker():
 def test_the_header_stops_the_answerer_that_is_really_a_condition():
     """The file already forbade a deferral to nobody, and every one of its
     seventeen rows read `repository owner, next time X is opened` — a
-    condition wearing a person's clothes. Issue #34 is that pair."""
+    condition wearing a person's clothes. Issue #34 is that pair.
+
+    The case pins the header's two sentences and reads no row. Whether a
+    row's answerer carries a condition is the reading of whoever writes or
+    reviews the row, as `skills/core/SKILL.md` *The rule a mechanism is kept
+    against* has it: a condition has as many spellings as English does, and
+    no script carries a list of them (#1493)."""
     text = read(FOLLOW_UP)
     assert "no condition attached" in text
     assert "condition wearing a person's clothes" in text
-    for row in rows("Schedulable items with nowhere else to go"):
-        assert "next time" not in " ".join(row), row
 
 
 def test_the_file_records_what_the_move_costs_and_that_it_can_be_overturned():

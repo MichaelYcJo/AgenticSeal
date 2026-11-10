@@ -292,11 +292,10 @@ def shrunken_corpus(missing, what):
     """The reason a case gives when its verdict needs the whole corpus.
 
     Every path by name rather than a count. A claim removed from a corpus
-    without a word is the direction `seal/follow-up.md`'s first row calls the
-    one a checker of claims must not fail in, and a bare number is that
-    silence with a digit in front of it -- the reader cannot tell which entry
-    went unjudged, which is the one thing they need in order to judge it by
-    hand.
+    without a word is the direction a checker of claims must not fail in,
+    and a bare number is that silence with a digit in front of it -- the
+    reader cannot tell which entry went unjudged, which is the one thing
+    they need in order to judge it by hand.
     """
     return (
         f"{len(missing)} tracked path(s) are listed by git and not on disk, so "
