@@ -290,7 +290,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       pull requests could not be listed, the note went out as the theme line
       and the fragments alone, which one `gh release edit` repairs. After
       the note, the same workflow's `seal` job attaches `seal.png` and
-      rewrites the header, as that section says. Where the header still
+      rewrites the header, as `docs/releasing/branch-and-release.md`
+      *Cutting a release* says. Where the header still
       shows the counts as text, the `seal` job's log says why on a
       `::warning::` line: the suite at the tag did not pass or its counts
       could not be read, the icon could not be copied, a `gh` call failed,
