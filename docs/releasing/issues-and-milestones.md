@@ -189,7 +189,7 @@ check: tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py
 ## Closing one of these by hand breaks the next release
 
 The invariant above is what makes `log: measurement` dangerous to tidy. A
-milestone holding two issues that never close looks exactly like a milestone
+milestone holding two issues that stay open looks exactly like a milestone
 somebody abandoned. **Closing the open `flow-measurement` issue leaves zero
 open, and the next release fails on it**, which is the loud failure working
 as designed, at the worst possible moment.
