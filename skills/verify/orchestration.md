@@ -182,24 +182,35 @@ repository has no durable log, and a cross-version reading stays in the
 record that would have cited it.
 
 **The run ends when the work item's last segment has handed back**, the
-sealer's where one runs. The orchestrator then runs one command:
+sealer's where one runs. The orchestrator first reads the run, and the read
+posts nothing:
+
+```
+seal cost --work-item <the work item's directory>
+```
+
+It prints the rows the post will carry, any `Contract rule 6` line below
+them, and the log's state. The orchestrator writes the `--says` file from
+that reading, then posts it with the same command:
 
 ```
 seal cost --work-item <the work item's directory> --post --says <file>
 ```
 
-The `--says` file holds the orchestrator's sentence on what the readings
-say, read against the work item's records, then the run's table below, then
-the counts of the frame exchange. What each segment cost goes into this one
-comment, and no segment gets a comment of its own. The command finds the
-work item's segments by their spawn prompts naming its directory or the
-branch its `routing.md` names. It posts one row per segment that no comment
-on the open log names, each segment's file named on a `# <file name>` line
-inside its fence, and where no segment transcript on the machine names the
-work item, the comment says so. A reading that spans versions takes
-`--label flow-baseline` on the same command.
+The read comes first because the posting form sends the reading into the
+comment and shows the terminal only one state line. The `--says` file holds
+the orchestrator's sentence on what the readings say, read against the work
+item's records, then the run's table below, then the counts of the frame
+exchange. What each segment cost goes into this one comment, and no segment
+gets a comment of its own. The command finds the work item's segments by
+their spawn prompts naming its directory or the branch its `routing.md`
+names. It posts one row per segment that no comment on the open log names,
+each segment's file named on a `# <file name>` line inside its fence, and
+where no segment transcript on the machine names the work item, the comment
+says so. A reading that spans versions takes `--label flow-baseline` on both
+the read and the post.
 
-The release runs the same command for each work item it ships
+The release runs the posting command for each work item it ships
 (`docs/releasing/release-checklist.md` *The release pull request*), and for
 this work item it then posts nothing, except a segment that ran after this
 comment. The table is not a third destination: it goes into this comment,
@@ -211,15 +222,16 @@ The meter's other modes, `--latest`, `--spawns`, `--segments` and `--json`,
 and how to read their columns, are stated in `session_cost.py`'s module
 docstring and on the pages they print.
 
-**Each exit prints one line naming its state, and its code says what the
-orchestrator does next.**
+**Each exit of the posting command prints one line naming its state, and
+its code says what the orchestrator does next.**
 
 - **Exit 0**: one comment was posted, or nothing was due. Nothing is due
   where every segment of the work item is already named on the log, where
   no issue has ever carried the label, or where `gh` could not run. No issue
   ever carrying the label is the case most installed repositories meet, and
-  there this section is a no-op: nothing is posted, nothing fails, and
-  nothing asks. Exit 0 needs nothing more.
+  there the post is a no-op: nothing is posted, nothing fails, and nothing
+  asks. The read still runs there, because it is where the orchestrator
+  sees a `Contract rule 6` line. Exit 0 needs nothing more.
 - **Exit 1**: nothing was posted. The label has a history and nothing is
   open, more than one log is open, the log's comments could not be read,
   the comment failed, or `--says` gave an empty reading. An empty reading is
@@ -235,8 +247,9 @@ orchestrator does next.**
 
 **A `Contract rule 6` line in the reading means an agent spawned another
 agent**, which contract rule 6 withholds from every agent whatever its own
-definition says. The reading prints it where a segment's own transcript
-holds an `Agent` call, and names that segment's file and its count. The line
+definition says. The read without `--post` prints it where a segment's own
+transcript holds an `Agent` call, and names that segment's file and its
+count, and the posted comment carries the same line inside its fence. The line
 is about the agent's conduct rather than its cost, so the orchestrator gives
 it the home that `skills/implement/orchestration.md` *Orchestrator: where a
 decision or a lesson is written* gives a lesson about how an act is done.

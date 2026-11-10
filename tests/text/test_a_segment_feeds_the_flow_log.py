@@ -53,7 +53,8 @@ the next run fills in by feel.
 Issue #1479 ends the per-segment post. The section is *Measure the run, and
 feed the flow log*: the orchestrator posts once when a work item's run ends,
 with `seal cost --work-item`, the command the release already ran for what
-no session posted, and the run's table goes into that one comment. The
+no session posted, after reading the same command without `--post`, and the
+run's table goes into that one comment. The
 by-hand lookups and post leave the section, because the command takes each
 and the section states each outcome as an exit code; so do the per-segment
 mode and the description of how the meter computes its columns, which
@@ -418,11 +419,29 @@ def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
     """#343, and #1479. The reading a run ends with, `seal cost
     --work-item`, prints the `Contract rule 6` line for a segment that
     spawned an agent, as `--segments` does, and the section is where the
-    orchestrator learns what the line means and where it goes."""
+    orchestrator learns what the line means and where it goes.
+
+    Round 1's finding 1. With `--post` the reading goes into the comment and
+    the terminal shows one state line, so the line reaches the orchestrator
+    only through the read without `--post`. The section states that read as
+    a command of its own and names it as the form that prints the line."""
     body = section_body()
     # The label of the line `session_cost.py` prints for a spawn inside a
     # segment, which the orchestrator matches to this section.
     assert "`Contract rule 6` line" in body, (
         "the section names the command and not the one finding it can print "
         "that is about the agent's own conduct rather than its cost"
+    )
+    # The read the orchestrator runs before it posts, a fenced line of its
+    # own with no `--post` on it.
+    assert "seal cost --work-item <the work item's directory>" in (
+        section_text().splitlines()
+    ), (
+        "the section states only the posting command, whose terminal shows a "
+        "state line and no `Contract rule 6` line, so the orchestrator never "
+        "sees the line it is told to give a home"
+    )
+    assert "The read without `--post` prints it" in body, (
+        "the section never says which form of the command prints the "
+        "`Contract rule 6` line, and the posting form does not"
     )

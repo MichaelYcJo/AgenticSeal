@@ -5359,8 +5359,10 @@ class Test_work_item:
         self, monkeypatch, capsys, tmp_path, item
     ):
         """#1479. The run's one reading is `--work-item`'s, so a segment whose
-        own transcript holds an `Agent` call is named there, with and without
-        `--post`, as `--segments` names it for an agent's own file: by the
+        own transcript holds an `Agent` call is named there, printed without
+        `--post` and in the posted body with it (with `--post` the terminal
+        shows only the post's state line), as `--segments` names it for an
+        agent's own file: by the
         segment's file and its count, and with no pair of counts against
         unnamed segments, since no parent transcript is in view. A segment
         that spawned nothing is not named."""
