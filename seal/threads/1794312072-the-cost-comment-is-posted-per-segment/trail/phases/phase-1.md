@@ -4,7 +4,7 @@
 
 **The frame holds against the tree for this phase's part.** The frame names `98a0fa824`. The one commit after it, `55820fa06`, changes only the frame files, so the coordinates in `skills/verify/scripts/session_cost.py` and `tests/skills/test_session_cost.py` stood when this phase started (executed, `git diff --stat 98a0fa824 HEAD` over the two files prints nothing). I opened each line that *Scope* items 2 to 5, D2, D4 and D5 name for this phase, and each held: the five citations of the old heading, `report_breaches`' sentence and docstring, `post`'s three lines, the comment at `:2813`, the `analyse` sentence at `:1089-1090`, the pins at test `:4701` and `:5158`, and the early return for an agent's own file at `:2538-2539`. The departures are listed below, each with its grounds.
 
-**D2, each paragraph and the line where its statement stands.** The lines below are those of `session_cost.py` at `593264519`. The phase's docstring edits moved every line after `:67` by eight, so a line here is the frame's line plus about eight (read, every line opened).
+**D2, each paragraph and the line where its statement stands.** The lines below are those of `session_cost.py` at `593264519`. The phase's edits moved the frame's lines by between minus one and plus thirteen, so each one here was found by its words and opened (read).
 
 | Paragraph of the section at `98a0fa824` | Where its statement stands |
 |---|---|
