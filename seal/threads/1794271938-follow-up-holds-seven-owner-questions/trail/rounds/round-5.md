@@ -84,6 +84,11 @@ After: the same cases, reading through `argv_words`, assert the same verbs over 
 
 These snippets reach every sentence this round found that counts the escapes or says every claim reads the first three words. The new judgment row's first clause, "the cases judge an argv by its first three words" (`frame/plan.md:73`), states the decision in the same words. It holds once "an argv" reads "each verb". Its grounds are finding 2. The fix pass owes that clause too.
 
+```seal
+verdict: fixed 46e6d49e0
+answer: The docstring and changelog snippets were applied in `46e6d49e0` as the round wrote them except for one phrase, which is untrue of `words[:3]` at HEAD. The rule sentence said a verb claim judges no argv "whose first three kept words are not `gh` and the two after it", and its own `--repo` example falls outside that class: in `gh issue --repo R close` the first three kept words are `gh`, `issue` and `--repo`, which are `gh` and the two words after it. In the changelog, which says "first three words" with no "kept", the module-level-name example also falls outside it: `run("gh", ISSUE, "close")` as written has `gh` and the two words after it first. So the docstring (`tests/github/test_close_issues_on_release.py:113-128`) now says "not `gh`, its noun and its verb" in both places, and `changelog.md:4` says each verb is looked for in an argv's first three words "as it reads them", that an argv "whose first three words as read are not `gh`, its noun and its verb" is judged by none of those claims, and that `argv_words` drops a module-level name. Every other word is the round's, the `--add-label` sentence and the `--repo` example among them. The docstring's last clause holds at HEAD: an `ast` scan of every script in `.github/scripts/` found every `gh issue` and `gh label` argv with `gh`, its noun and its verb as its first three literal words, and the `gh(*args)` wrapper of `release_seal.py` called with `release` only (executed). The three modules passed, 114, and `uvx ruff check` and `uvx ruff format --check` passed on the changed file (executed). `gaps.md:6` names this pass. The orchestrator applied the frame parts in `2a059f2a9`: `frame/design.md:31` and `:42`, `frame/plan.md:50`, and the first clause of `frame/plan.md:73`. Of those, `frame/design.md:31`, `:42` and `frame/plan.md:50` carry the same phrase, "`gh` and the two after it", and are the orchestrator's to fold to "`gh`, its noun and its verb". `pr.md:4` and `pr.md:5` still quote the old changelog sentences, and the orchestrator rewrites them from `changelog.md:4` as it now stands, not from the round's snippet.
+```
+
 ### 2. The newest judgment row cites #1493 row 7 for keeping every escape open, and row 7 keeps one
 
 ```seal
@@ -105,6 +110,11 @@ Why it matters: `skills/core/SKILL.md` *The first value* asks that a judgment be
 
 ```markdown
 and #1493 row 7 keeps the constant-valued escape open; this row leaves the other argvs the verb claims do not judge open with it
+```
+
+```seal
+verdict: fixed 2a059f2a9
+answer: The orchestrator applied the round's clause in `2a059f2a9`: the grounds of `frame/plan.md:73` now end "#1493 row 7 keeps the constant-valued escape open; this row leaves the other argvs the verb claims do not judge open with it", which agrees with `frame/design.md:42`, "The issue keeps the first open" (read at HEAD). The same commit changed the row's first clause to "the cases judge each verb by an argv's first three words", the clause finding 1 owed. This pass changed nothing for this finding.
 ```
 
 ## Confirmations
