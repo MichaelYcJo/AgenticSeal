@@ -96,11 +96,10 @@ claude plugin update agentic@agenticseal
 최신이라고 답합니다. 릴리스는 `plugin.json` 의 버전이 바뀔 때만 사용자에게
 닿습니다.
 
-이전 릴리스에서 업데이트하면 할 일이 남을 수 있는데, 그 일은
-`/agentic:update` 가 맡습니다. 그 릴리스가 사용자에게 요구하는 것을 알려 주고,
-이전 릴리스가 `CLAUDE.md` 에 써 넣은 것을 들어내며, 이전 릴리스가 남긴 것
-가운데 사용자만 지울 수 있는 것을 짚어
-줍니다([`skills/update/SKILL.md`](skills/update/SKILL.md)). 손으로
+이전 릴리스에서 업데이트하면 할 일이 남을 수 있습니다. `/agentic:update` 는
+그 릴리스가 사용자에게 요구하는 것을 알려 주고, 이전 릴리스가 `CLAUDE.md`
+에 써 넣은 것을 들어내며, 이전 릴리스가 남긴 것 가운데 사용자만 지울 수 있는
+것을 짚어 줍니다([`skills/update/SKILL.md`](skills/update/SKILL.md)). 손으로
 업데이트한다면 두 가지는 직접 합니다. 이전 릴리스가 설정 표로 쓰던
 `seal/config.md` 가 아직 있는 저장소마다 `seal mode` 를 한 번 실행합니다. 이
 명령은 그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 어떤 명령도
