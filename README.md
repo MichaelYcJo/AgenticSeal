@@ -151,8 +151,9 @@ The question has four answers, and `agentic` is the one marked:
 - **direct**: the session makes the change itself, with no agent, no frame,
   no review and no seal.
 
+`skills/implement/routing-question.md` gives each answer, and
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
-gives each answer and the rows it writes into
+gives the rows an answer writes into
 `seal/threads/<id>/routing.md`, the file the pull request's check reads to
 learn how the branch was routed. Where that file's `Automation` row reads
 `yes`, as `complete` always writes it and `agentic` may choose it, the

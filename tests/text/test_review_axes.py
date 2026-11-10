@@ -217,15 +217,17 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
     question reads and no crafter spawn preloads. Until #1177 the preset
     block stated the rules beside it and this case held the two together;
     the block is retired, so what it carried is held here, in the home
-    alone."""
+    alone. Since #1477 the question the person is asked stands in
+    `routing-question.md`, which the orchestrator opens when it puts the
+    batch, and the rows an answer writes stay in `orchestration.md`; each
+    phrase is read in the file it stands in."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
+    question = " ".join(read("skills", "implement", "routing-question.md").split())
     for only in (
         "through the review chain",
         "straight to the PR",
         "open the pull request",
         "stop before the pull request",
-        "What is checked is the answer",
-        "each box is a row of",
         # The third axis. A document still saying two would send a session to
         # a template whose row it never asked about.
         "`the session`",
@@ -237,6 +239,11 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
         # cannot check for itself, because a batched write leaves nothing on
         # disk to look at.
         "in a command of its own",
+    ):
+        assert said in implement, f"the skill lost `{said}`"
+    for asked in (
+        "What is checked is the answer",
+        "each box is a row of",
         # The SHAPE of the asking, not just its vocabulary.
         #
         # The shape moved (#88): three checkboxes in one question became two
@@ -257,5 +264,6 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
         # of the per-command waiver (#1027), which the block named until #1177.
         "`Seal-Routing: no work item`",
     ):
-        assert said in implement, f"the skill lost `{said}`"
-    assert "[no-review]" not in implement and "[no-parity]" not in implement
+        assert asked in question, f"the routing question's file lost `{asked}`"
+    for text in (implement, question):
+        assert "[no-review]" not in text and "[no-parity]" not in text

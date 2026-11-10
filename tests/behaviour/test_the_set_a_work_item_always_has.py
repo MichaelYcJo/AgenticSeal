@@ -261,8 +261,8 @@ def test_the_plan_template_carries_the_overlap_table():
     """#1443, *Scope* items 1 and 6. The framer writes where its work meets
     the release's other work items and which merges first, and the
     orchestrator merges in the order these sections state
-    (`skills/implement/orchestration.md` *Orchestrator: how the work is
-    routed*), so the shipped template carries the heading and the header,
+    (`skills/implement/merge-order.md` *Orchestrator: the order the work
+    items of a release merge in*), so the shipped template carries the heading and the header,
     immediately before `## Operational impact`, where the orchestrator reads
     the version move beside it."""
     tpl = read("templates", "records", "sdd-plan.md")

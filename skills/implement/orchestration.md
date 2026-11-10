@@ -2,24 +2,21 @@
 
 This file is the orchestrator's: the session that starts a work item, asks
 the person what only the person can answer, and spawns the agents. It holds
-the procedure for **starting** a work item: the order of the parties, the
-one batch of questions with the routing question among them, asked before
-the first edit, the ladder that says whether a work item has a frame, and
-the guidance by which the orchestrator chooses each item's route, the
-ladder among what it weighs, where the person answered `agentic`.
-It also holds the drain of the rows still open before the broad run. Where
-no `seal/` whose `README.md` opens with the marker exists at
-`<repo>/seal/` or at `$(git rev-parse --git-common-dir)/seal/`, the
-orchestrator reads `skills/implement/bootstrap.md` first.
+the order of the parties, the fold of a decision made after the frame, the
+one batch of questions asked before the first edit, the rows of the routing
+declaration, the route chosen under `agentic`, the ladder that says whether
+a work item has a frame, the drain before the broad run, and where a
+decision or a lesson is written. Where no `seal/` whose `README.md` opens
+with the marker exists at `<repo>/seal/` or at
+`$(git rev-parse --git-common-dir)/seal/`, the orchestrator reads
+`skills/implement/bootstrap.md` first.
 
-`skills/implement/SKILL.md` is the other half: the record language, the
-document layout, the procedure that reads the documents before the code, the
-test-first cadence, the SDD file set, the closing memo and the review
-incorporation. The orchestrator reads both. The crafter opens that one at
-its first step and never this one, because asking a person and writing
-`routing.md` are acts `agents/crafter.md` leaves to the orchestrator. Every
-`seal/…` path here resolves as `skills/implement/SKILL.md` *Document layout
-— two roots, three lifetimes* states (contract rule 11).
+`skills/implement/SKILL.md` is the other half, and the orchestrator reads
+both. The crafter opens that one at its first step and never this one,
+because asking a person and writing `routing.md` are acts
+`agents/crafter.md` leaves to the orchestrator. Every `seal/…` path here
+resolves as `skills/implement/SKILL.md` *Document layout — two roots, three
+lifetimes* states (contract rule 11).
 
 ## Orchestrator: the order inside a ticket
 
@@ -59,72 +56,81 @@ in the frame. A decision is anything that changes what the frame says the
 work is or why: a round finding whose route changes the frame, a round
 finding located in a frame file, an owner's remark, an issue comment, a
 prevention home, a scope a spawn gives beyond a plan row, or the version
-move. These are examples of the rule, not a closed list. The framer writes
-a decision's fold, as `agents/framer.md` *Rules* states, because the
-framer judges what the work should be (`skills/core/SKILL.md` *Each agent
-judges its own target, independently of the others*). Before the spawn
-that will read the decisions, the orchestrator sends every decision then
-pending to the framer in one message, each with its grounds and the
+move. These are examples of the rule, not a closed list.
+
+**The framer writes a decision's fold, because the framer judges what the
+work should be.** `agents/framer.md` *Rules* states the fold, and
+`skills/core/SKILL.md` *Each agent judges its own target, independently of
+the others* the reason. A statement the framer's hand-back names in
+`routing.md` or `pr.md` is the orchestrator's to repair. A statement a
+crafter's hand-back names in a frame file or `routing.md` records what the
+build changed rather than what the work is, so the orchestrator folds it in
+a commit of its own and spawns no framer. A statement found in a file the
+crafter writes, `gaps.md` or `changelog.md`, goes to a fix pass before the
+orchestrator spawns the next round or phase. The fix pass is the crafter
+that wrote the work item's last build or fix commit, resumed or spawned
+fresh as `skills/code-review/orchestration.md` *Orchestrator: a phase is a
+fresh crafter, and a fix pass resumes the implementer* states.
+
+**One fold reaches every statement of the fact it changes.** Before the
+spawn that will read the decisions, the orchestrator sends every decision
+then pending to the framer in one message, each with its grounds and the
 coordinates it stands on: the finding, the comment or the owner's words.
-The orchestrator resumes the work item's framer while that session still
-exists, as a fix pass resumes the implementer
-(`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
-crafter, and a fix pass resumes the implementer*), and otherwise spawns a
-fresh framer and hands it the decisions and the commit at which the frame
-was last written. Before it sends, the orchestrator writes each decision,
-its grounds and the document it judged against as one row of
-`frame/plan.md` *Judgments of the run* and leaves the row uncommitted, so
-the framer reads the row when it reads `plan.md` whole: the rewritten
-sentence keeps no reason for itself, and the settle reads the row. The
-orchestrator corrects its row where the framer's hand-back names a defect
-in it. A decision the framer rejects stands as its judgment, as a proposal
-left after the exchange of *The frame is read against the issue at the
-spawn* does: the orchestrator rewrites its row of *Judgments of the run* to
+The fact a decision changes often stands in sections the decision does not
+name, such as *Scope*, *Removes*, *Alternatives considered*, *Judgments of
+the run*, *Grounding* and *Technical context*, so the message names the
+fact and says that its coordinates are the statements the orchestrator has
+seen, not the whole list. The statements a crafter's hand-back names are
+its reading of a file it does not write, so the orchestrator reads each
+file that holds one whole against HEAD, not only the named line, and
+rewrites every statement HEAD contradicts. In a section the frame dates to
+the commit it read, a statement of the tree is not folded, and a sentence
+that says what the work does or concludes is folded with the fact it
+states; a section that states the tree with no date gets the date and keeps
+its text (`skills/implement/SKILL.md` *Document layout — two roots, three
+lifetimes*). After a fold commit of its own, the
+orchestrator reads that commit and each file of the work item's directory
+that states the present whole against HEAD, as contract rule 12 asks of the
+party that fixes; a decision's fold is read by the framer that writes it.
+
+**The orchestrator writes its row before it sends a decision, and commits
+the fold before the spawn.** Until a decision is folded, the orchestrator
+keeps one line of its own in `plan.md` naming the comments to fold, below
+the title, and deletes that line in the commit that folds them. Before it
+sends, the orchestrator writes each decision, its grounds and the document
+it judged against as one row of `frame/plan.md` *Judgments of the run* and
+leaves the row uncommitted, so the framer reads the row when it reads
+`plan.md` whole: the rewritten sentence keeps no reason for itself, and the
+settle reads the row. The orchestrator resumes the work item's framer while
+that session still exists, as a fix pass resumes the implementer, and
+otherwise spawns a fresh framer and hands it the decisions and the commit
+at which the frame was last written. It corrects its row where the framer's
+hand-back names a defect in it, then commits the frame files the framer
+changed and its own rows in one commit, before the spawn that reads them.
+
+**A decision the framer rejects stands as its judgment, as a proposal left
+after the exchange of *The frame is read against the issue at the spawn*
+does.** The orchestrator rewrites its row of *Judgments of the run* to
 record the rejection and what the decision's source takes instead, a
 finding's route or the next spawn's scope, and quotes the framer's
 *Alternatives considered* row in the work item's `pr.md`. The version move
-and a prevention home are folded as an owner's decision is, because
-another rule gives each to the orchestrator to decide: the move by
-*Orchestrator: how the work is routed*, and the home by the paragraph
-opening *A problem that recurs within a run gets a prevention home at
-once*. The
-orchestrator then commits the frame files the framer changed and its own
-rows in one commit, before the spawn that reads them. The framer's
-hand-back names each statement the fold contradicts in a file the framer
-does not write, and a statement in `routing.md` or `pr.md` is the
-orchestrator's to repair. Where a crafter's hand-back names a statement
-its work contradicts in a file the crafter does not write, a frame file or
-`routing.md`, the orchestrator reads each such file whole against HEAD,
-not only the named line, and rewrites every statement HEAD contradicts:
-the crafter's list is its reading of a file it does not write. Such a
-statement records what the build changed rather than what the work is, so
-the orchestrator folds it in a commit of its own and spawns no framer. A
-statement of a section the
-frame dates to the commit it read, *Grounding* or *Technical context*, is
-a claim about that commit, so it is not folded, and a section that states
-the tree with no date gets the date and keeps its text
-(`skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes*). After the fold commit, the orchestrator reads that commit and
-each file of the work item's directory that states the present whole
-against HEAD, as contract rule 12 asks of the party that fixes; a
-decision's fold is read by the framer that writes it. Where that reading,
-or the framer's hand-back, finds a statement in a file the crafter writes,
-`gaps.md` or `changelog.md`, the orchestrator hands it to a fix pass
-before it spawns the next round or phase. The fix pass is the crafter that
-wrote the work item's last build or fix commit, resumed or spawned fresh as
-`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
-crafter, and a fix pass resumes the implementer* states.
-Until the decision is folded, the orchestrator keeps one line of its own
-in `plan.md` naming the comments to fold, below the title, and deletes that
-line in the commit that folds them. Before the
-frame is committed, the orchestrator folds the decision into the issue body
-instead, in place, and the comment that carried it records why. A body that
-contradicts a comment leaves the reader to work out which is current, and a
-block of updates written above the old text leaves two versions to choose
-between. GitHub keeps the body's edit history, so rewriting it loses
-nothing. The orchestrator's prompt that spawns the framer hands it the
-issue whole: the body as folded, and one line naming the comments the issue
-has, none or each comment's link, with the command that read them,
+and a prevention home are folded as an owner's decision is, because another
+rule gives each to the orchestrator to decide: the move by *Orchestrator:
+how the work is routed*, and the home by the paragraph opening *A problem
+that recurs within a run gets a prevention home at once*. Where a crafter
+builds the work item that carries the move and its `frame/plan.md`
+*Operational impact* does not name it, the framer folds the move into that
+section before the orchestrator spawns the last phase, because the crafter
+reads its version write there.
+
+**Before the frame is committed, the orchestrator folds a decision into the
+issue body instead, in place.** The comment that carried it records why. A
+body that contradicts a comment, or a block of updates written above the
+old text, leaves the reader two versions to choose between, and GitHub
+keeps the body's edit history, so rewriting it loses nothing. The
+orchestrator's prompt that spawns the framer hands it the issue whole: the
+body as folded, and one line naming the comments the issue has, none or
+each comment's link, with the command that read them,
 `gh issue view <N> --json body,comments`, and the date it ran.
 
 **Where a work item stands is read from `plan.md`'s Status column,
@@ -202,39 +208,6 @@ Something a session cannot do for itself belongs on the same list — widening
 its own permissions, for one, which the harness blocks by design. Better
 found in the first minute than at the commit.
 
-**The two language keys join the batch wherever either is missing.** Before
-the routing commit, the orchestrator reads `Commit and pull request
-language` and `Record language` in `config.json` under the `seal/` root.
-Where both stand, nothing is asked. Where either is absent in any of the
-four ways `skills/commit-pr-convention/SKILL.md` *Every way of not naming a
-language lands on English* names, the batch asks for both, as
-`skills/implement/bootstrap.md` step 1 asks for them at first setup: the
-recent titles from `gh pr list --state all --limit 10` stand beside the
-question, and the language read from them is the option listed first. The
-routing commit writes both keys into the file's object, each as
-`"<key>": "<answer>"`. Where the batch reaches no person, because
-the routing answer was given for the release and the run is unattended, the
-orchestrator writes both keys as the language it reads the titles in, and
-as `English` where the list gives none. `routing.md` *Why this way* then
-says in one sentence that the two keys were written as a default taken
-until answered, naming the language and what it was read from, and `pr.md`
-quotes that sentence. A repository whose `config.json` predates the keys is
-caught here, at its next work item, because `seal pr-body` refuses to
-compose a body without them.
-
-**A question in this batch names its answers, and every answer continues.**
-"Should I release this?" and "should the proofer review it?" both have a `no`
-that leads nowhere — the session that answers it is holding finished work with
-no destination, which is a gate wearing the shape of a question. A yes/no is
-the tell. Ask which of two named paths instead, and say what each one does.
-
-**The first edit waits for the routing answer, and the orchestrator holds
-that.** The orchestrator writes `routing.md` and commits it before it edits
-any other file, following step 1 of *Orchestrator: the order inside a
-ticket*. No check refuses an earlier edit; the pull request's check judges
-the declared work item, and a session that declares nothing is the limit
-`docs/checks/the-routing-check.md` states.
-
 **Once the batch is answered, the session runs to the pull request.** What
 surfaces after it is written down rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
@@ -242,108 +215,18 @@ can make goes to `questions.md`, a finding you neither fixed nor answered to
 "someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
 answerer has to exist*) — and what was deliberately left goes to the closing
 memo's Not done section. Each is named in the PR body, because a leftover
-nobody can find was not handed over. On a branch whose `routing.md` answers
-`Automation` with `yes`, the rule for a question that arises mid-run is the
-paragraph of `docs/running/the-run.md` *The run* that opens **On a run whose
-`routing.md` reads `Automation` `yes`**.
-
-The test for whether something is a question or a row: would a different
-answer change what you build *now*? If it would not, raising it spends a
-person's attention on something that was never blocking, and the session that
-waits for the reply spends more.
+nobody can find was not handed over.
 
 ## Orchestrator: how the work is routed
 
-**The routing question is one of the questions *Orchestrator: what needs a
-person is asked in one batch, before the first edit* above has the
-orchestrator ask in one batch before the first edit.** It is one decision
-about where the work goes, and asking a part of it later is the mid-run
-question the batch exists to remove. Opening a pull request is an
-outward-facing act, not a detail that can wait for the end. Routing asked at
-the start, the reviewer in the middle and the pull request at the end would
-be three waits where one is due.
-
-**Ask question 1 alone; the boxes in a second call only under `manual`.**
-The orchestrator puts both. Question 1 goes in one call of its own, and
-three of its four answers settle everything: under `agentic` the
-orchestrator writes every row, `complete` writes every row, and `direct`
-opens nothing, so under any of them the boxes mean nothing and are not
-shown. The harness shows every question of a call at once, so boxes put
-beside question 1 would be shown under the three answers they mean nothing
-for. Under `manual` the second call follows the first at once, before the
-first edit. `AskUserQuestion` allows at most four options per question, and
-three presets beside the four boxes would be seven, which is why the shape
-is two questions rather than one.
-
-### Question 1
-
-A single-select question, put alone:
-
-| Order | Label | Description |
-|---|---|---|
-| 1 | **agentic** | The orchestrator reads each work item's issue and the tree and chooses that item's route: which of the framer, `crafter` and `proofer` run, and whether the run may stop to ask you. Where it judges a change small enough, such as a two-line fix, it takes `direct` for it. It writes each choice down with its grounds, and you are not asked the route again. |
-| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
-| 3 | **manual** | You set each part: the four boxes below are the answer. |
-| 4 | **direct** | This session writes the change itself: no agent, no work item, no frame, no review, no seal and no `routing.md`. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
-
-**A label names no destination, and its description says what it turns
-off.** A label that names a destination is read as what runs:
-`straight to the PR` reads as *call no agents at all*, where that answer
-turns off `proofer` alone. So each label names a mode, each description
-says what its answer does, and the exit's description names every party and
-record that does not run or is not written.
-
-**The exit is last.** It is the least-verified path and one click, so it
-sits where a reader's eye lands last, and its description states the cost.
-It stays visible in use where the root is shared: every commit it covers,
-whether the person chose it or the orchestrator chose it under `agentic`,
-says `no work item` in its trailer, and the pull request's check prints
-each one.
-
-**Question 1 is put every time, whatever the ladder reads, and `agentic` is
-the answer marked.** The person chooses the route, even for a typo fix, and
-choosing `agentic` leaves each item's route to the orchestrator, which reads
-the item on the ladder of *Orchestrator: when a work item is required*
-below among what it weighs (*Under agentic*). A mark read off the ladder
-would mark `complete` for nearly every item, because nearly every change
-alters observable behaviour and sits above its last rung. The mark is
-` (Recommended)` after the label, and the options keep the order of the
-table above, so the marked answer comes first and the exit stays last.
-
-### Question 2
-
-A `multiSelect` question, asked only under `manual`.
-
-**The order is the specification.** The first box is a property of the run;
-the three below name parties, in the order they run. A reader meeting four
-boxes of apparently the same kind reads the first as a fourth party to switch
-on, and the separation is the cheapest defence against it. A list that
-generates these carries the order.
-
-| Order | Box | Checked | Not checked |
-|---|---|---|---|
-| 1 | **run end to end without stopping to ask** | the run goes from here to its destination and stops only for what only you can decide; `Automation` = `yes` | **this run may stop to ask**: somebody may be asked at minute thirty; `Automation` = `no` |
-| 2 | **implement with `crafter`** | spawn the subagent; `Implementation` = `crafter` | **this session writes the code**; `Implementation` = `the session` |
-| 3 | **review with `proofer`** | the review rounds run; `Review` = `through the review chain` | **nothing reviews this code before the pull request**; `Review` = `straight to the PR` |
-| 4 | **open the pull request** | push it and open one; `Destination` = `open the pull request` | **the branch is handed back, committed and unpushed**; `Destination` = `stop before the pull request` |
-
-**What is checked is the answer, and each box is a row of the declaration**,
-which is why each box's description carries its unchecked meaning too: that
-is the half a label cannot say. Box 1's unchecked half is the one most easily
-misread: `no` says this run may stop to ask, never that a person did the work
-by hand.
-
-**The ceiling.** `AskUserQuestion` allows at most four options per question.
-Question 1 and question 2 each sit at exactly four. **Both are fully spent:
-a fifth answer or a fifth box breaks this shape.** Whoever adds an answer
-to question 1 needs another shape for the routing question, and whoever
-adds a box to question 2 needs a third question of boxes or a preset that
-hides the axes.
+The orchestrator opens `skills/implement/routing-question.md` when it puts
+the batch of questions, the routing question among them, to a person, and
+where either of the two language keys is missing from `config.json` under
+the `seal/` root, which it reads before the routing commit. That file holds
+the routing question's two calls, what each answer writes, how a question
+of the batch is worded, and what the batch does about the two keys.
 
 ### What the answer writes
-
-Question 1's first three options and question 2's four boxes write the same
-rows; what differs is who chose them and how many clicks it took.
 
 | Row | Answers |
 |---|---|
@@ -372,11 +255,6 @@ the person chose the rows, and where the orchestrator chose them under
 `agentic`, the grounds *Under agentic* asks for, which the sealer reads
 against the diff (`agents/sealer.md` step 4).
 
-**`complete` writes all four party rows at their checked values**, plus
-`Automation` = `yes`. Ticking all four boxes under `manual` writes the same
-rows. Under `agentic` the orchestrator writes the rows it chose for the
-item.
-
 **`Automation` is a record, and no script decides anything on it.** While
 the row reads `yes`, the orchestrator follows the paragraph of
 `docs/running/the-run.md` *The run* that opens **On a run whose
@@ -390,41 +268,17 @@ the row reads `yes`, the orchestrator follows the paragraph of
 
 It is a record, not a box. The question grows only where a decision is a
 person's, and this one is not: `agents/framer.md`'s `## Job` says where the
-framer runs. Under `complete` and `manual` that is where *Orchestrator:
-when a work item is required* below calls for a `frame/design.md`, and
-under `agentic` it is where the orchestrator chose a framer for the item
-(*Under agentic*). The orchestrator fills the row from what happened:
+framer runs. The orchestrator fills the row from what happened:
 `framer` where the subagent drew the frame, `the session` where the
 orchestrator drew it, and no row where no frame was called for or chosen.
-A wrong answer here is read against the record the run left:
-`chain_check.py` refuses a `framer` row whose `frame/design.md` mark names
-anyone else, and the sealer withholds where `Implementation` names `crafter`
-and a closed phase has no record (`agents/sealer.md` step 4).
-
-**The routing question is the orchestrator's, whether or not a framer runs.**
-A subagent in this harness has no `AskUserQuestion` and no equivalent, so a
-framer cannot ask. The one moment of human contact is here, before the first
-edit, and the order does not change when a framer runs:
-
-```
-the orchestrator : ask question 1; the boxes only under manual
-the orchestrator : write and commit routing.md
-the framer       : read, judge, write design, plan and questions
-the orchestrator : read plan.md against the issue, settle it with the framer, spawn the build
-```
-
-`agents/framer.md`'s rule *You ask nobody anything* is the other half of this,
-and its `## Job` tells a framer that arrives to a missing `routing.md` to
-report it rather than write one: a declaration written from a guess is a
-recorded answer nobody gave.
 
 **The orchestrator writes the answer down before the first edit**, in
 `seal/threads/<work-item-id>/routing.md`, from `templates/records/sdd-routing.md`, and
 commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
-item gets. Under `direct`, whether the person chose it or the orchestrator
-chose it under `agentic`, no declaration is written, and the trailer is the
-record.
+item gets. No check refuses an earlier edit; the pull request's check judges
+the declared work item, and a session that declares nothing is the limit
+`docs/checks/the-routing-check.md` states.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
 The commit goes as every commit does: each work item's `routing.md` in a
@@ -438,15 +292,11 @@ check went*. Under `stop before the pull request` nothing runs at the end,
 and the orchestrator says so in the handback.
 
 **Where a migration config is declared, the comparison with the original is
-recorded where the answer puts it**: in each round record under `through
-the review chain`, and in the sealer's `guarantee.md` under `straight to the
-PR`. A change confined to `docs/` and `seal/` owes none
-(`skills/legacy-parity/SKILL.md` *Recording the comparison*). The shapes
-that leave code nobody compared, with nothing that reads it, are listed in
-`docs/running/the-review-and-parity-arms.md` *Parity arm*.
+recorded where the answer puts it**, as `skills/legacy-parity/SKILL.md`
+*Recording the comparison* and `docs/running/the-review-and-parity-arms.md`
+*Parity arm* state.
 
-The declaration is what CI reads at the pull request, for **either** review
-answer. Work never headed for a reviewer, such as a release chore or a
+Work never headed for a reviewer, such as a release chore or a
 documentation pass, declares `straight to the PR`. A change belonging to no
 work item writes no declaration, and where the root is shared each of its
 commits' trailers reads `no work item`
@@ -463,30 +313,10 @@ that work item's changelog entry moves it, in the commit that adds the
 entry: the last phase's crafter where `routing.md` answers
 `Implementation` with `crafter`, and the orchestrator where it answers
 `the session`. The orchestrator chooses which work item carries the move.
-Where several work items of the release run side by side, the
-orchestrator's prompt that spawns each framer names the release's other
-work items: each one's issue, its branch, and its frame's path where the
-frame is committed. The orchestrator merges the items in the order their
-plans' `frame/plan.md` *Overlap with the release* sections state. Where two
-plans state opposite orders for one pair, or where the item ordered first
-cannot be sealed before the other, the orchestrator chooses the order,
-with the item that carries the move still first, and writes the choice as
-a row of `frame/plan.md` *Judgments of the run* in the plan of the item it
-merges out of the stated order. The move goes to an
-item that no plan orders after another, which the orchestrator chooses
-where several are, and the orchestrator merges that item before every
-other item of the release, because the first pull request into the branch
-carries the move. Once it has landed, items that no plan orders against
-each other merge as each is sealed. Where a crafter builds that work item
-and its `frame/plan.md` *Operational impact* does not name the move, the
-move is a decision the framer folds into that section, as *Orchestrator:
-the order inside a ticket* states, before the orchestrator spawns the last
-phase, because the crafter reads its version write there. A move made
-after a work item's last round owes a verifying round of its own, so
-where the chosen item's rounds have already ended, the move goes to
-another item that no plan orders after another and whose rounds still
-read it, and where no such item is, the chosen item takes the move and
-the verifying round it owes. Where the
+Where the release holds another work item, the orchestrator opens
+`skills/implement/merge-order.md` when it starts this one, before its first
+edit: that file holds what each framer's prompt names, the order the items
+merge in, and which of them takes the move. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only
@@ -561,7 +391,7 @@ the answer writes* above:
 |---|---|
 | a work item whose pull request opens without the broad run at HEAD or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
 | `crafter` building with no frame | the crafter builds a phase of `frame/plan.md` and fills its Status cell (`agents/crafter.md` *Order of work*) |
-| `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it, as *What the answer writes* above states |
+| `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it |
 
 A framer and nothing more stands among the rest: `framer` for planning,
 `the session` for the build, and `straight to the PR`.
@@ -587,14 +417,6 @@ is not lowered when the build turns out smaller, because the orchestrator
 would then waive a reader of a diff it has read itself
 (`skills/core/SKILL.md` *Each agent judges its own target, independently
 of the others*).
-
-**A wrong choice stays visible.** The pull request's check prints each
-commit whose trailer reads `no work item`, and the commit's body holds its
-grounds. The sealer reads a chosen route's grounds against the diff
-(`agents/sealer.md` step 4), and the settle reads the release's routes
-against the later fixes that name them (`skills/settle/SKILL.md` *The
-settling session's procedure* step 5), so a kind of choice that keeps
-letting defects through is a rewrite of this subsection.
 
 ## Orchestrator: when a work item is required
 
@@ -624,13 +446,9 @@ A count also has to say **when** it is taken, and the gate it guards — plan
 approval — exists only before the first edit (issue #35); a test with no
 number has no such moment, so the question stops needing an answer.
 
-What it costs: *does this alter observable behaviour* is a judgment, not a
-count, and two people can disagree about a borderline case.
-That is the trade — a judgment that is about the right thing beats a
-measurement of the wrong one, and the list in the rung is what keeps the
-judgment from being free-form. The way out of a default is to NAME the value a
-person waits on or is limited by, which a reader can open and check. *I judged
-it observable* is not something anyone can check, and it is not a way out.
+The way out of a default is to NAME the value a person waits on or is
+limited by, which a reader can open and check. *I judged it observable* is
+not something anyone can check, and it is not a way out.
 
 ## Orchestrator: drain the rows before the broad run, and keep the records
 
