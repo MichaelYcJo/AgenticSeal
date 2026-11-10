@@ -5,7 +5,7 @@
 Everything this plugin keeps in a repository sits under one root it owns,
 `seal/`, and what sits there is sorted by how long it lives. This document
 says where that root is, what opts a repository in, what first setup asks,
-and what a repository's config row decides.
+and what a repository's config key decides.
 
 ## The root and its lifetimes
 
@@ -69,9 +69,12 @@ The `seal` commands, the pull request's check and the stamp's `--stop` look
 at the two places in that order; whichever exists with the marker says both
 "on" and which mode. A `seal/` whose README does not open with the marker is a
 project's own directory,
-as a package named `seal` has one, and reads as not opted in; first setup
-that meets one writes nothing into it and keeps the root under the git
-directory. Nothing else is read, and there is no config
+as a package named `seal` has one, and reads as not opted in. First
+setup that meets one writes nothing into it, and the shared root takes
+the second name `skills/core/SKILL.md` gives it, recognised by the same
+marker; `seal mode` prints that place before the root exists. Where a
+directory of the project's own stands at the second name too, the root
+goes under the git directory. Nothing else is read, and there is no config
 key: a git config key, a marker under `.git/` or a fetched ref would say
 twice what the folder already says.
 
@@ -125,25 +128,24 @@ it is.
 | CI (the pull-request checks) | cannot run; `seal pr-checks install` refuses here | runs where first setup's answer or `seal pr-checks install` put the workflow in the tree |
 | Switching later | `seal mode shared` moves `.git/seal/` to `<repo>/seal/` and stages it; you commit | `seal mode local` moves `<repo>/seal/` back and stages the removal; you commit |
 
-**`seal/config.md`'s `Mode` row is not the opt-in, and the difference is what
-reads it.** The row says where the root *should* be; the folder's location
-says where it *is*, and no hook, gate or check resolves the root through the
-row: `lib/optin.py#home_at` is the only reader of the question. A gate that
-trusted a hand-editable row would look in a place with no folder, and that
-module fails toward *not opted in* rather than toward a guess. What the row
-buys is a repository that can say which mode it wants before the folder is
-moved, and a check that names a disagreement left standing. An absent row is
-filled in from where the folder is, the only value that cannot be wrong.
+**`seal/config.json`'s `Mode` key is not the opt-in, and the difference is
+what reads it.** The key says where the root *should* be; the folder's
+location says where it *is*, and no hook, gate or check resolves the root
+through the key: `lib/optin.py#home_at` is the only reader of the question.
+A gate that trusted a hand-editable key would look in a place with no
+folder, and that module fails toward *not opted in* rather than toward a
+guess. What the key buys is a repository that can say which mode it wants
+before the folder is moved, and a check that names a disagreement left
+standing. An absent key is filled in from where the folder is, the only
+value that cannot be wrong.
 
 **Where the records live and whether CI checks pull requests are two
-answers, and the workflow file is the record of the second.** `seal mode`
-moves the root and writes the `Mode` row, and leaves `.github/` alone.
+answers, and the workflow file is the record of the second.** `seal mode` moves the root and writes the `Mode` key, and leaves `.github/` alone.
 `seal pr-checks install` writes `.github/workflows/hygiene.yml` from
 `templates/setup/hygiene.yml` where that path is absent, pinned to the installed
 release, and stages it. It refuses where `<repo>/seal/` is not a directory,
 because the checks read committed records. `seal pr-checks remove` takes out
-a workflow this plugin wrote and leaves any other file alone. No config row
-says whether the checks are installed: the file says it, and a second record
+a workflow this plugin wrote and leaves any other file alone. No config key says whether the checks are installed: the file says it, and a second record
 would be a second answer. A workflow left behind in local mode and pinned to
 a release that has the no-root state passes having examined nothing:
 `chain_check.py`, the one record check it runs, finds no root in the tree,
@@ -205,18 +207,19 @@ are written in is that repository's answer, below.
 
 ## What the repository decides for itself, and how it is read
 
-`seal/config.md` is the one file a repository writes about itself, one row
-per item, read by the checkers and editable by hand. The rows that exist are
-documented in `templates/setup/config.md`, which also states what an absent
-row means, rather than leaving it to whoever reads the code.
+`seal/config.json` is the one file a repository writes about itself, one
+JSON object with one key per item, read by the checkers and editable by
+hand. The keys that exist are documented in `templates/setup/config.md`,
+which also states what an absent key means, rather than leaving it to
+whoever reads the code.
 
-**A setting nobody can find is a setting nobody has.** Every row is reachable
-from a command that shows the whole file and routes a change, because first
-setup asks its questions in one batch and never asks again, and the rows that
-arrive after it would otherwise be found only by reading a template a person
-has no reason to open. The routing layer holds no logic of its own: a row
-with a side effect routes to the script that performs it, and a row that is
-only a row is written directly. Logic inside a skill cannot be
+**A setting nobody can find is a setting nobody has.** Every key is
+reachable from a command that shows the whole file and routes a change,
+because first setup asks its questions in one batch and never asks again,
+and the keys that arrive after it would otherwise be found only by reading
+a template a person has no reason to open. The routing layer holds no logic
+of its own: a key with a side effect routes to the script that performs it,
+and a key that is only a key is written directly. Logic inside a skill cannot be
 mutation-tested the way a script can, and that is what decides where the line
 runs.
 check: tests/text/test_the_settings_have_a_front_door.py
@@ -224,7 +227,7 @@ check: tests/text/test_the_settings_have_a_front_door.py
 **What language this plugin writes in is the repository's answer, not the
 plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
-row, and the mirror file a translated pull-request body goes in is named for
+key, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language. The two language keys of
 `seal/config.json` are required: first setup and the batch before a work
 item's first edit ask for them, with the language of the recent pull request
@@ -234,10 +237,10 @@ the titles' language and `routing.md` says so. A commit is never refused for
 them.
 check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/lib/test_config.py
 
-**Two rows, because one cannot express the middle answer.** The combinations
+**Two keys, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
 requests in the team's language with the documents in English; or both in it.
-One row cannot say the middle, and one row per document kind is seven rows
+One key cannot say the middle, and one key per document kind is seven keys
 where nobody sets the sixth differently from the fifth. So
 `Commit and pull request language` governs what the outside world reads, the
 commit subject and body and the pull request title and body, and
@@ -249,18 +252,24 @@ pull request body opens with `pr.<lang>.md`, the quotes of `pr.md` rendered in
 the team's language, and `pr.md` follows it, so the records keep one language
 and the team reads the body in theirs.
 
-Whatever either row says, **the names a checker matches stay English**: the
+Whatever either key says, **the names a checker matches stay English**: the
 field names, the verdict words, the markers, and all code. A translated field
 name is not a translation; it is a checker that stops reading.
 check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 
-**A cell may carry an escaped pipe, and one line that will not parse is named
-rather than treated as the end of the table.** A value like a shell command
-with a pipe in it is ordinary content, and a reader that stops at it
-silently takes every row below it out of the config. The reader and the writer
-share the constant that describes a row, because their disagreement about
-which line is a given row is what turns one edit into a duplicate row in a
-person's file.
+**The file is read by the standard library's JSON parser and written by its
+serializer, and what will not read is refused, never read as absent.** A
+parser's result is a fact a script reads exactly, and a markdown table read
+by a walker held to a renderer is not one: each shape the two could
+disagree on was a defect of its own. A file that will not parse, or whose
+top level is not an object, is refused whole. A key written twice, or one
+whose value is not a string, has no value, and every other key is read.
+Each value is a string in the grammar `templates/setup/config.md` gives
+its key, so a shell command carries a pipe as written. A `config.md` that
+stands in the root without a `config.json` is refused by every reader that
+refuses a file it cannot read, and read as no file by the readers of
+`Policy root` and `Reference specs`, and `seal mode` writes `config.json`
+from its `| Item | Value |` table and removes it.
 check: tests/lib/test_config.py tests/skills/test_seal.py
 
 **A git call that fails is not a git call that answered "nothing".** Empty

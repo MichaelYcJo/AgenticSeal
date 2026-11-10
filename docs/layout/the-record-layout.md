@@ -17,7 +17,7 @@ is found, the copy is the defect.
 | The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; the GitHub Release at the `vX.Y.Z` tag once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
 | A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/threads/<work-item-id>/* below |
 | The repository's rules | `skills/core/SKILL.md` for the core every party reads, `CLAUDE.md` for how a session in this repository reaches it, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
-| The configuration | `seal/config.md`, one row per item; `templates/setup/config.md` documents every row | under target | the `Item` column |
+| The configuration | `seal/config.json`, one key per item; `templates/setup/config.md` documents every key | under target | its keys |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
 | The process rows | a `### Process changes` table at the end of a work item's `changelog.md` while its work item is open; the release note's table of the same name once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
 
@@ -88,8 +88,8 @@ common directory otherwise.
 | File | The question it answers |
 |---|---|
 | `seal/README.md` | what the root holds, where it lives in each mode, and which file states the export rules |
-| `seal/config.md` | what this repository says about itself, one row per item |
-| `seal/parity.md` | which codebase this repository ports behaviour from, and at which baseline commit; present only where a migration is declared |
+| `seal/config.json` | what this repository says about itself, one key per item |
+| `seal/parity.json` | which codebase this repository ports behaviour from, and at which baseline commit; present only where a migration is declared |
 | `seal/pact.md` | what two or more repositories keep together; present only in the repository that holds the pact |
 | `seal/follow-up.md` | which items wait on a named party, and who |
 | `seal/threads/<work-item-id>/` | one work item's records, the table below |

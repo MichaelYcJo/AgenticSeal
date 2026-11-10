@@ -53,8 +53,11 @@ check: tests/text/test_the_rules_have_one_owner.py
 **On a run whose `routing.md` reads `Automation` `yes`, the orchestrator
 does not stop the run with a question that the tree or the framer can
 answer.** The person who answered the routing question was told that the
-run would stop only for what only they can decide, and a question put at
-minute thirty waits for somebody who may not be there. Where a question
+run would stop only for what only they can decide, or answered
+`agentic` and left the `Automation` row to the
+orchestrator, which wrote `yes` because it foresaw no such question.
+Either way, a question put at minute thirty waits for somebody who may
+not be there. Where a question
 arises, the orchestrator looks for its answer in the tree and in the work
 item's `frame/questions.md` first. Where neither answers it, the orchestrator
 proceeds on the default the question states, writes that default as one

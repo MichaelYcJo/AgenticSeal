@@ -38,11 +38,11 @@ one definition each*. How an agent's handover labels the suite it did not run is
 `skills/agent-contract/SKILL.md` rule 2.
 
 **A suite whose record says a pytest session at `HEAD` did not pass
-has not passed, whatever the row's exit.** A session passed where its
+has not passed, whatever the command's exit.** A session passed where its
 record holds an `end` line whose `stopped` is an empty list and whose
 exit is 0 or 5. That exit is the one pytest's run loop gave, and what
-runs after the loop can change the row's exit and not that one. So an
-exit of 0 from the row does not say that nothing the session ran
+runs after the loop can change the command's exit and not that one. So
+an exit of 0 from the command does not say that nothing the session ran
 failed. Where a stop chose that code, as a test that calls
 `pytest.exit()` with a return code of 0 or `os._exit(0)` does, it does
 not say that the session ran every test it collected either. A run
@@ -54,13 +54,13 @@ line's `stopped` is not an empty list, or where its exit is not 0, 1
 or 5, as it does at the base. It counts a session as red where that
 line's `stopped` is an empty list and its exit is 1. Where any session
 at `HEAD` reads either way, the run fails and writes no
-`trail/gate.md`. Where the row exited 0, its failure form says so
+`trail/gate.md`. Where the command exited 0, its failure form says so
 first, and the failing files and the count of sessions that stopped
 follow as on any failing suite. One kind of stop stays out of the
 record's reach: a stop raised before the recorder writes a session's
 first line. `templates/setup/config.md` *The criterion for choosing a
 value*, rule 3, names the acts after the run loop that can turn the
-row's exit into 0, and says how the gate reads a run with that stop.
+command's exit into 0, and says how the gate reads a run with that stop.
 check: tests/skills/test_broad_gate.py
 
 ## What the gate runs, and how the list is kept true
@@ -91,22 +91,14 @@ spelling the workflow uses literally, then the ref as given.
 check: tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py
 
 **A configured command that breaks the criterion is refused before anything
-runs.** The row naming the repository's broad command is read by the gate and
-by nobody else until the gate runs, so a value that cannot do what the row
-promises would otherwise be discovered at the one moment the run was supposed
-to save. The refusal names the form, quotes the value, and shows the row
-rewritten: exit 2, nothing run, the shape an absent row already takes. The
-criterion for choosing a value has one owner, the template that documents the
-row, and it is three rules rather than an example.
+runs.** The key naming the repository's broad command is read by the gate and
+by nobody else until the gate runs, so a value that cannot do what the key
+promises would otherwise be discovered at the one moment the run was
+supposed to save. The refusal names the form, quotes the value, and shows
+the key rewritten: exit 2, nothing run, the shape an absent key already
+takes. The criterion for choosing a value has one owner, the template that
+documents the key, and it is three rules rather than an example.
 check: tests/skills/test_broad_gate.py
-
-**A fenced example in a config file is not a config row.** The one walk of
-the `| Item | Value |` table reads the file through one fence rule, and the
-writer overwrites the line that walk names. A reader and a writer that
-disagree about which line is the row leave a file two rows deep that no
-command can bring into agreement, so a repair landing in the reader alone is
-half a repair.
-check: tests/lib/test_config.py tests/skills/test_seal.py tests/skills/test_broad_gate.py
 
 **The gate that measures a tree is the copy that tree ships, and its report
 says which copy measured it.** A gate found on PATH is the installed plugin's,
