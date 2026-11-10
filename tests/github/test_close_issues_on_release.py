@@ -82,9 +82,8 @@ def load(name, filename):
 
 
 def argv_words(text):
-    """The plain string-literal words of every argv in TEXT, a script's source:
-    each list or tuple literal's elements and each call's positional
-    arguments.
+    """The literal words of every argv in TEXT, a script's source: each list
+    or tuple literal's elements and each call's positional arguments.
 
     BOTH argv shapes the release scripts use are read: `run("gh", …)` spreads
     the words as call arguments, and `subprocess.run(["gh", …], …)` passes a
@@ -97,40 +96,48 @@ def argv_words(text):
     **What the parse closes, and what it does not.** It closes layout — the
     argv wrapped one word per line, a comment between two of its words, any
     whitespace at all — because the tree does not carry layout. It does NOT
-    close a word that is not a plain string literal. Only `ast.Constant`
-    values of type `str` are kept, and a case compares the first three of them
-    against a prefix such as `["gh", "issue", verb]`, so a name anywhere in
-    those three positions is dropped, the prefix shifts by one, and the verb
-    is never matched. Measured in round 3 of #450 and again in its fix pass,
-    four spellings of a planted `gh issue reopen`: plain and comment-separated
-    both red the closer's case; `GH = "gh"` used as the first word, and the
-    verb moved into a module constant, both leave it green.
+    close a word taken from a name. A word is kept where it is a string
+    literal, an f-string with no placeholder, whose parts are joined, or a
+    bytes literal, decoded; anything else is dropped. A case compares the
+    first three kept words against a prefix such as `["gh", "issue", verb]`,
+    so a name anywhere in those three positions is dropped, the prefix shifts
+    by one, and the verb is never matched. Measured in round 3 of #450 and
+    again in its fix pass, four spellings of a planted `gh issue reopen`:
+    plain and comment-separated both red the closer's case; `GH = "gh"` used
+    as the first word, and the verb moved into a module constant, both leave
+    it green.
 
-    So this reader reads the plain string literals of a list, a tuple or a
-    call's positional arguments, and nothing else. An argv that writes one of
-    its first three words another way, as a module-level name, an f-string or
-    a bytes literal among others, passes every case that reads through it. A
-    fold of the source was blind to a name too. It matched a first word
-    written `f"gh"` or `b"gh"`, since that text still holds `"gh"`, and this
-    reader drops both, measured in round 2 of #1493. Closing the name means
-    resolving module-level names before comparing, which is a different
-    checker with its own false-positive argument to make. #1493 left the name
-    open, and the f-string and bytes words with it, since no release script
-    writes one.
+    So this reader reads string, placeholder-free f-string and bytes words in
+    a list, a tuple or a call's positional arguments, and so it reads every
+    argv a fold of the source read. The fold matched a first word written
+    `f"gh"` or `b"gh"`, since that text still holds `"gh"`, and a reader of
+    string literals alone dropped both, measured in rounds 2 and 3 of #1493.
+    A word taken from a module-level name escapes this reader, as it escaped
+    the fold: a forbidden argv so written is not seen, and a required one
+    reads as missing. Closing it means resolving module-level names before
+    comparing, which is a different checker with its own false-positive
+    argument to make. #1493 left it open, since no release script writes one.
     """
+
+    def word(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+        if isinstance(node, ast.Constant) and isinstance(node.value, bytes):
+            # Latin-1 maps each byte to one character, so no bytes literal
+            # raises, and an ASCII word reads as its string does.
+            return node.value.decode("latin-1")
+        if isinstance(node, ast.JoinedStr) and all(
+            isinstance(part, ast.Constant) for part in node.values
+        ):
+            return "".join(part.value for part in node.values)
+        return None
+
     tree = ast.parse(text)
     argvs = [
         node.elts for node in ast.walk(tree) if isinstance(node, (ast.List, ast.Tuple))
     ]
     argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
-    return [
-        [
-            a.value
-            for a in argv
-            if isinstance(a, ast.Constant) and isinstance(a.value, str)
-        ]
-        for argv in argvs
-    ]
+    return [[w for w in map(word, argv) if w is not None] for argv in argvs]
 
 
 def closer_module():
@@ -1254,6 +1261,22 @@ class Test_module:
         ):
             prefixes = [words[:3] for words in argv_words(source)]
             assert ["gh", "issue", "edit"] in prefixes, source
+
+    def test_argv_words_reads_an_f_string_and_a_bytes_word_as_it_reads_a_string(
+        self,
+    ):
+        """No release script writes an f-string or a bytes argv word, so only a
+        source written here holds the two halves of `argv_words` that read them.
+        A fold of the source matched both spellings below, and a reader of
+        string literals alone dropped both, measured in rounds 2 and 3 of
+        #1493. Dropped, a required argv so written reads as missing, and the
+        label case goes red while the script still creates the label."""
+        for source in (
+            'run(f"gh", "label", "create", name)',
+            'run(b"gh", "label", "create", name)',
+        ):
+            prefixes = [words[:3] for words in argv_words(source)]
+            assert ["gh", "label", "create"] in prefixes, source
 
 
 test_census = census_case(TARGET)
