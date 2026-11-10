@@ -111,17 +111,21 @@ def argv_words(text):
     it green.
 
     So this reader reads string, placeholder-free f-string and bytes words in
-    a list, a tuple or a call's positional arguments, and a case judges an
-    argv by its first three kept words. Two kinds of argv escape the cases.
-    In one, `gh` or one of the two words after it is not written as a
-    literal, a module-level name among them, as above. In the other, a
-    literal word such as `env` stands before `gh`, so the argv's first three
-    kept words start with that word, measured in round 4 of #1493. Either
-    way a forbidden argv is not seen, and a required one reads as missing.
-    Closing the first for a module-level name means resolving names before
+    a list, a tuple or a call's positional arguments. A verb claim judges an
+    argv by its first three kept words, so it judges no argv whose first
+    three kept words are not `gh`, its noun and its verb. Examples are an
+    argv where one of those words is not written as a literal, a
+    module-level name among them, as above; one where a literal word such as
+    `env` stands before `gh`, measured in round 4 of #1493; and one where a
+    flag such as `--repo` stands between `issue` and the verb, which `gh`
+    accepts, measured in round 5 of #1493. A forbidden argv of that kind is
+    not seen, and a required one reads as missing. The label case's
+    `--add-label` claim is no verb claim: it reads every word of every argv.
+    Closing the escape for a module-level name means resolving names before
     comparing, which is a different checker with its own false-positive
-    argument to make. #1493 left both open, since no release script writes a
-    `gh issue` or `gh label` argv either way.
+    argument to make. #1493 left these argvs unjudged, since no release
+    script writes a `gh issue` or `gh label` argv whose first three kept
+    words are not `gh`, its noun and its verb.
     """
 
     def word(node):
