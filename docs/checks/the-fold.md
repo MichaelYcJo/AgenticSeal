@@ -109,25 +109,22 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
   The wrong answer is loud instead: `BROKEN`, a refused name or exit 2, and a
   person answers it with an edit or a marker.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
-- **A line that EXCUSES or DECLARES something — a `seal/config.md` row, a
-  `routing.md` row — is not taken on doubt, except
-  where a declaring reader keeps an older reading that took it.**
+- **A line that EXCUSES or DECLARES something, such as a `routing.md` row, is
+not taken on doubt, except where a declaring reader keeps an older reading
+that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
-  `lib/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
-  wherever its walk is unsure, the fence-only reading it gave before the walk:
-  a row below a fence nobody closed declares nothing, and a row below a
-  comment opener nobody closed is not hidden, because that reading never hid
-  one, and the walk may miss no row the older reading saw. That row declares
-  nothing either: `lib/config.py#config_table` refuses a
-  `| Item | Value |` header inside an HTML block opened above it and never
-  closed, because GFM renders no table there, so every item of that table is
-  a refusal, which a command prints with exit 2
-  (`templates/setup/config.md` *Repository config*).
+  `lib/tables.py#hidden_lines`, which hides lines for the table readers
+  of a record, a pact and the old `config.md` that `seal mode` converts,
+  keeps, wherever its walk is unsure, the fence-only
+  reading it gave before the walk: a row below a fence nobody closed
+  declares nothing, and a row below a comment opener nobody closed is not
+  hidden, because that reading never hid one, and the walk may miss no row
+  the older reading saw.
   `lib/routing.py#shown`, which reads a `routing.md` and is not one of
-  the four, keeps the reading it gave before the walk the same way, and that
-  reading hid nothing: a row below a fence or a comment opener nobody closed
-  still declares there, unless a fence that closes holds it. Those
+  the four, keeps the reading it gave before the walk the same way, and
+  that reading hid nothing: a row below a fence or a comment opener nobody
+  closed still declares there, unless a fence that closes holds it. Those
   `routing.md` rows are the places a line nobody wrote live declares
   something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line
@@ -144,7 +141,7 @@ as empty.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 
 No one rule serves all three kinds. The holding bias would let a
-`seal/config.md` row quoted in an example declare a value nobody set, and the
+`routing.md` row quoted in an example declare a value nobody set, and the
 excusing bias would drop a parked row without a word. A reader of a new kind of line is a
 fourth answer, and it is argued against these three.
 
@@ -188,7 +185,7 @@ is, and the section cites the document by its path. The settle's pull
 request body states each row with its mark. No step writes, moves or
 removes a file under a named directory, and `seal settle --apply`
 removes only under `seal/threads/`. A first answer of "none" runs the
-settle with no `--from`, and no configuration row names such a
+settle with no `--from`, and no configuration key names such a
 directory. `skills/settle/SKILL.md` *The settling session's procedure*
 is the procedure.
 check: tests/skills/test_settle.py

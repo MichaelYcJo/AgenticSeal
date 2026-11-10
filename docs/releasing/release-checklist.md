@@ -69,7 +69,7 @@ it took, and the owner reviews it.
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
 it opens no directory under `seal/threads/`, and each of its commits
 carries the trailer `Seal-Routing: no work item`, the
-recorded form of the routing question's `no work item` answer
+recorded form of the routing question's `direct` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
 in this repository carrying a population floor over `seal/threads/`.
 
@@ -295,7 +295,7 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       alone, which one `gh release edit` repairs. After the note, the same
       workflow's `seal` job attaches `seal.png` and puts it in the header,
       beside the results the stamp states as badges, where
-      `seal/config.md`'s `Release note seal mark` row reads `yes`; under any
+      `seal/config.json`'s `Release note seal mark` key reads `yes`; under any
       other value it attaches nothing and puts the results in the header
       alone. Where the header still shows the counts as text, the `seal`
       job's log says why on a `::warning::` line: the suite at the tag did

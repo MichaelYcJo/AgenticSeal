@@ -97,14 +97,14 @@ hand fires the publish workflow too.
   in two of the seal's reds, and its alt text is that label and value in
   words. So a reader whose client draws no image, or who opens the note
   while the service does not answer, still has every result. Where
-  `seal/config.md`'s `Release note seal mark` row reads `yes` at the tag,
+  `seal/config.json`'s `Release note seal mark` key reads `yes` at the tag,
   the job first attaches the page form of the stamp's mark, the PNG that
   `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the
   table opens with a cell holding that image at its display width. Its alt
   text names the image alone, because the badges' alt text carries every
   number. Under any other value nothing is attached and the table is the
   results' cell alone; `templates/setup/config.md` *The seal mark* states
-  the row's values and who reads it. The PNG is drawn from
+the key's values and who reads it. The PNG is drawn from
   `assets/seals/owl.svg` by the command `assets/seals/README.md` gives, and
   the job installs no imaging library to attach it. That edit is the only
   change it makes to a note, and only to one whose header is still exactly
