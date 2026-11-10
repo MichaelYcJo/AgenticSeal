@@ -60,6 +60,11 @@ An argv that takes one of its first three words from anything but a plain string
 
 `pr.md:4` then quotes the first of those two sentences. This snippet does not reach two frame sentences, and the orchestrator owes them. `frame/design.md:31` says such an argv "passes the parse where the fold refused some of them", and `frame/plan.md:50` says an f-string or bytes first word "now passes". Each should add that a required argv so written reads as missing, and that for an f-string or bytes first word this is a red the fold did not give.
 
+```seal
+verdict: fixed b33cc9c2d
+answer: The reader changed rather than the words, by the orchestrator's judgment row in `frame/plan.md` *Judgments of the run* (`515717071`). `argv_words` now keeps an f-string with no placeholder, an `ast.JoinedStr` whose parts are all `ast.Constant`, joined, and a bytes literal, decoded as Latin-1, which maps every byte and so never raises, as it keeps a string literal (`tests/github/test_close_issues_on_release.py:84-140`). The round's snippets were not applied, because they state the f-string and bytes words as escapes and those words are now read. The docstring's first line, middle paragraph and last paragraph say instead that the reader reads string, placeholder-free f-string and bytes words in a list, a tuple or a call, so it reads every argv the fold read. They say that a word taken from a module-level name escapes the reader, as it escaped the fold: a forbidden argv so written is not seen, and a required one reads as missing. `changelog.md:4` says the same in two sentences. The new case `Test_module::test_argv_words_reads_an_f_string_and_a_bytes_word_as_it_reads_a_string` reads `run(f"gh", "label", "create", name)` and `run(b"gh", "label", "create", name)`. It was red against the reader at `515717071` on the f-string source (executed). `seal mutate` gave red with the `ast.JoinedStr` branch removed, on the f-string source, and with the `bytes` branch removed, on the bytes source. With the `str` filter taken off the first branch, the bytes source turned red, because the raw `b"gh"` was kept. With the placeholder guard removed, the three script cases raised `TypeError`. The tree was clean after each restore (executed). So the case now pins the `str` filter, and the `gaps.md` *Not done* paragraph that said nothing did left in `f524f9d79`. `bin/seal layout --pairs` names the new case and the tuple case as equal bodies once normalised. Both stay: the tuple mutation turns only the tuple case red (round 3's probe), and these mutations turn only the new case red. `pr.md:4` quotes the old changelog sentence, and that is for the orchestrator.
+```
+
 ### 2. The frame's *Out* item says the issue keeps the f-string and bytes escapes open and that closing them needs a name-resolving checker, and neither holds
 
 ```seal
@@ -87,6 +92,11 @@ A row for `frame/plan.md` *Judgments of the run*. The grounds are round 2's. The
 
 ```markdown
 | 2026-11-10 | The f-string and bytes first words `argv_words` drops stay open, and its docstring and the changelog state them | No release script writes one, and reading `ast.JoinedStr` and `bytes` adds two branches, each owing a case written for it, as the tuple half did (`trail/rounds/round-2.md`, findings 1 and 2) | `skills/core/SKILL.md` *The rule a mechanism is kept against* |
+```
+
+```seal
+verdict: fixed 515717071
+answer: The orchestrator's fold closed it, and its decision differs from the round's snippets, so neither snippet was applied. `frame/design.md:42` now names only the module-level name, as #1493's row 7 does, under the grounds that were written for it. `frame/plan.md:72` records the judgment to read the f-string and bytes words, with its grounds and the documents it was judged against (read at `515717071`). `b33cc9c2d` builds that reading, as finding 1's close says, so no f-string or bytes escape is left for the frame to keep open.
 ```
 
 ## Confirmations
