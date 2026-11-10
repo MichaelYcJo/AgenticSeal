@@ -403,8 +403,9 @@ def test_no_loaded_document_states_the_serial_figure():
     minutes* -- the serial figure, stated with no date or machine, so it
     cannot be checked later. The measured before-and-after lives in the
     work item's changelog fragment with its date and machine; no loaded
-    document states a figure. And the runner's comment no longer WITHHOLDS the flag: it says why it
-    used to, which is the record a reader needs when the next flag arrives."""
+    document states a figure. And the runner's comment no longer WITHHOLDS
+    the flag: it says why it used to, which is the record a reader needs
+    when the next flag arrives."""
     runner = " ".join(read(SCRIPT).split())
     assert "No `-n auto`" not in runner, (
         "the runner's comment still withholds the parallel default"
