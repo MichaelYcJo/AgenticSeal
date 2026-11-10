@@ -60,3 +60,4 @@ No version move: `.claude-plugin/plugin.json` reads `0.37.2`, moved by #1476. No
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-10 | The lesson of `frame/design.md` G13, a segment counted for every work item its spawn prompt names, takes an issue as its home: #1510 | `skills/implement/merge-order.md` has every framer prompt of a multi-item release name the other items, so the match recurs at each such release; the attribution is out of this work's scope (`frame/design.md` *Scope*, out), and no reading is lost meanwhile | `skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is written* |
