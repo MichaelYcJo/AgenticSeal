@@ -1,0 +1,31 @@
+# Phase 3: 1794271938-follow-up-holds-seven-owner-questions
+
+## What this phase found
+
+**The frame holds for this phase's items.** I opened each coordinate *Scope* items 3 to 7 give, at `8e28e0ff0`. The guard stood at `tests/text/test_a_rider_reaches_its_file.py:83-84` and the header pins at `:81-82`. The Status sentences stood at `skills/implement/SKILL.md:325-327`, and the line `tests/behaviour/test_the_set_a_work_item_always_has.py#KNOWN_PROSE` holds verbatim stood at `:114`. The seven rows stood at `seal/follow-up.md:42-48`. Four of the five citations G12 lists stood where it says. The fifth, at `tests/github/test_close_issues_on_release.py:1122-1124`, is *Scope* item 1's, and phase 1 rewrote it; `git grep -n "follow-up" -- tests/github/test_close_issues_on_release.py` lists nothing. No coordinate was wrong.
+
+**No unit of this phase adds behaviour, so no case is new and no `seal mutate` run is owed.** The phase removes two assertion lines, removes seven table rows, and rewrites prose: one skill paragraph, four comments or docstrings, and the guard case's docstring. Under `skills/verify/SKILL.md` *The narrow command still has to be able to fail*, prose and a docstring inside source are proved by what parses them, and the boundary run below parses every changed file.
+
+**Plan *Phases* row 3, as it reads (executed, at `470b27194`).**
+
+- The five files the row names ran inside the boundary run below, and none failed.
+- `grep -c "the repository owner" seal/follow-up.md` printed `0` (S5).
+- `git grep -n "follow-up"` outside `seal/threads/`, read hit by hit (S7). No hit says that `seal/follow-up.md` names or carries a particular item. The remaining hits name the file as a destination or describe it, such as `docs/checks/the-fold.md:35` and `skills/implement/SKILL.md:147`, or write its name into a fixture, such as `tests/skills/test_seal.py`. `skills/implement/scripts/seal.py:93` cites `Q1` of a work item's `questions.md`, not a row of this file. The search lists every file that names the file. A citation that does not name it is outside the list, so the list is a sample, as G12 says.
+
+**The boundary run (executed, at `470b27194`).** The command was `bin/test tests/text tests/behaviour tests/test_conftest.py tests/github/test_run_tests.py -q`. The set is the two tree-wide directories `CONTRIBUTING.md` names, the changed test file outside them, and `tests/github/test_run_tests.py`, the one file outside them that imports a changed path, `.github/scripts/run_tests.py`. `tests/conftest.py` is imported by every file in the run. It exited 1, with 2 failed, 1950 passed and 8 skipped.
+
+- `tests/behaviour/test_a_cited_section_stands_in_its_file.py::test_every_cited_name_stands_in_its_file` passed. Phase 2's rename had left it red, and removing row 3 cleared it. Its module alone also passed, 63 cases.
+- The two failures are `tests/test_conftest.py::Test_census_case::test_accepts_a_target_every_census_passes` and `::test_refuses_a_target_one_census_flags_naming_it`. Both raise `FileNotFoundError` in `tests/censuses.py#_root_names`, which loads `lib/optin.py` from the census's `ROOT`, and the cases point `ROOT` at a `tmp_path` that has no `lib/optin.py`.
+
+**The two census failures are on the base too (executed).** I checked out `8e28e0ff0`, the commit before this phase, in a temporary worktree under this phase's scratch directory. Then I ran `pytest tests/test_conftest.py -q -k Test_census_case` there with this worktree's virtual environment. The same two cases failed, exit 1, and I removed the worktree. This branch changes neither `tests/censuses.py`, `lib/optin.py` nor the two cases (`git diff --name-only origin/release/v0.37.1...HEAD`). This phase changed only a docstring of `tests/test_conftest.py`. So the failure predates the work item. It is a follow-up for the orchestrator to name, not a defect of this phase. `gaps.md` *Not done* records it.
+
+**Two decisions about wording, both inside the frame.**
+
+- The skill paragraph. I rewrote the two sentences to the text *Data & interfaces* gives. The rewrite left the next sentence ending on a line holding only `end.`, so I joined that line with the line after it. I changed no other line of the paragraph, and line 114 is untouched. Ground: `frame/design.md` *Data & interfaces*, "the crafter rewraps the paragraph at its width".
+- The guard case's docstring. It keeps its account of #34 and adds a paragraph. The paragraph says that the case pins the header's two sentences and reads no row, and that whoever writes or reviews a row reads its answerer, as `skills/core/SKILL.md` *The rule a mechanism is kept against* has it. The case keeps its name. The header still states the rule the name describes, and *Scope* item 3 asks for no rename. Ground: `frame/design.md` *Scope* item 3.
+
+**The other places that state the Status cell (a sample).** I ran `git grep -n -i` outside `seal/threads/` for `status cell`, `status column`, `tick and the word`, `commit that closed`, `where a hash is not`, `is empty or` and `deferred #`. The hits are the ones G4 lists, plus `skills/implement/SKILL.md:308`, `skills/implement/orchestration.md:130` and `:563`, `agents/crafter.md:21`, `:177` and `:190`, `agents/framer.md:275`, `templates/records/sdd-phase.md:5`, and test cases that pin a column header or a sentence about who writes the cell. Each states what the cell of a closed phase holds, or who writes the cell. None states the cell's values as a closed set, so none contradicts `deferred #N`. The `deferred #` hits outside the skill are round-record verdicts, a different field. The search covers an open class of spellings, so the list is a sample, and the proofer's reading of the diff covers what it did not reach.
+
+**The other places that state the removed guard (a sample).** `git grep` for the case's name, for `"next time"` in quotes, and for `answerer` beside `condition`, outside `seal/threads/` and `.test_durations`, lists only the case itself and the header sentence at `seal/follow-up.md:9`, which stays. `.test_durations` keeps the case's key, since the case keeps its name.
+
+**`changelog.md`.** The fragment has `### Changed`, `### Removed` and one `### Process changes` row, for *Scope* item 4 (`frame/design.md` G17). The version stays 0.37.1, as `frame/plan.md` *Operational impact* says.
