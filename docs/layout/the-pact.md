@@ -19,10 +19,10 @@ check: tests/lib/test_config.py
 **The three names are the owner's, and a text this plugin ships that names one
 of them another way is the proofer's to find at review, the word 0.18.x used
 for a signer included.** That holds for code, its comments and the names of its
-tests as it holds for prose. The reader is the proofer and not a case, because a case that
-refuses a word wherever it stands turns red where the meaning has not changed
-(`skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a
-script answers the rest*).
+tests as it holds for prose. The reader is the proofer and not a case, because a
+case that refuses a word wherever it stands turns red where the meaning has not
+changed (`skills/core/SKILL.md` *Judgment is spent where meaning is the
+question, and a script answers the rest*).
 
 ## When there is a pact at all
 

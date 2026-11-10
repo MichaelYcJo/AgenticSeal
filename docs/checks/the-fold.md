@@ -114,10 +114,17 @@ not taken on doubt, except where a declaring reader keeps an older reading
 that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
+  `lib/tables.py#hidden_lines`, which hides lines for the table readers
+  of a record, a pact and the old `config.md` that `seal mode` converts,
+  keeps, wherever its walk is unsure, the fence-only
+  reading it gave before the walk: a row below a fence nobody closed
+  declares nothing, and a row below a comment opener nobody closed is not
+  hidden, because that reading never hid one, and the walk may miss no row
+  the older reading saw.
   `lib/routing.py#shown`, which reads a `routing.md` and is not one of
-the four, keeps the reading it gave before the walk, and that reading hid
-nothing: a row below a fence or a comment opener nobody closed
-  still declares there, unless a fence that closes holds it. Those
+  the four, keeps the reading it gave before the walk the same way, and
+  that reading hid nothing: a row below a fence or a comment opener nobody
+  closed still declares there, unless a fence that closes holds it. Those
   `routing.md` rows are the places a line nobody wrote live declares
   something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line

@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The whole suite, the repository-wide lint and the format check over the branch at its last commit: no phase runs them | the orchestrator, through `seal gate` |
+| closed The whole suite, the repository-wide lint and the format check over the branch at its last commit: no phase runs them | answered by the work item's broad gate, `trail/gate.md` run bed47599d against 961fe52b1, on which `guarantee.md` sealed, and by run 42715396288 of the 0.37.0 release pull request #1467, whose lint job and eleven pytest jobs on ubuntu, macOS and Windows passed |
 
 ## Not done
 

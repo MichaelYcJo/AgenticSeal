@@ -59,8 +59,8 @@ check: two-review-answers
 **There is no standing waiver: a declaration moves the review arm's check to
 the pull request, and a change no work item owns writes no declaration and
 says so in each of its commits' trailers.** Both answers stay enforced, the
-chain at the pull request against the round record and
-`straight to the PR` against the broad run's record, and no value means no enforcement anywhere.
+chain at the pull request against the round record and `straight to the PR`
+against the broad run's record, and no value means no enforcement anywhere.
 Which declaration applies is settled by the branch it names, looked up from
 the pull request's branch. Every way that lookup can fail (a renamed branch,
 two declarations naming one branch, a file that will not parse) resolves to
