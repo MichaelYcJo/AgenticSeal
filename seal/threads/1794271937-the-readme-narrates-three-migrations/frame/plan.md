@@ -97,3 +97,4 @@ pull request opens, or the owner does when they set the date there.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-10 | The title takes `docs:` | The diff changes the two READMEs, a policy document, a new experiment record and the cases that pin their text; the one change to a check exempts a template no session bootstraps, and no shipped behaviour changes | `~/.claude/skills/commit-pr-convention/SKILL.md` |
