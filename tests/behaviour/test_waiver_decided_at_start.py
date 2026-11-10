@@ -690,14 +690,11 @@ def test_the_framer_leaves_a_mark_in_the_tree():
 
     `crafter` leaves a mark and `proofer` writes round records, so the framer was
     the only party in the chain whose work left no evidence that it happened —
-    only a claim in a row somebody typed. The existing framer mark is in the
-    repository's git dir, and a git dir does not travel, so the check at the
-    pull request cannot read it.
+    only a claim in a row somebody typed.
 
     Both ends are asserted: the definition that tells a framer to write it and
     the template a session copies. Either alone ships a mark nobody writes or
-    a line nobody was told to fill in. Why the git dir's mark does not do is
-    the proofer's to read.
+    a line nobody was told to fill in.
     """
     # The mark's shape, which `chain_check.py#MARK_RE` matches at the foot
     # of `frame/design.md`, in the template and in the framer's definition.

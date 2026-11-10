@@ -59,9 +59,9 @@ prevention home, a scope a spawn gives beyond a plan row, or the version
 move. These are examples of the rule, not a closed list.
 
 **The framer writes a decision's fold, because the framer judges what the
-work should be.** `agents/framer.md` *Rules* states the fold, and
-`skills/core/SKILL.md` *Each agent judges its own target, independently of
-the others* the reason. A statement the framer's hand-back names in
+work should be.** `skills/implement/fold-and-reframe.md` states the fold,
+and `skills/core/SKILL.md` *Each agent judges its own target, independently
+of the others* the reason. A statement the framer's hand-back names in
 `routing.md` or `pr.md` is the orchestrator's to repair. A statement a
 crafter's hand-back names in a frame file or `routing.md` records what the
 build changed rather than what the work is, so the orchestrator folds it in
@@ -104,7 +104,10 @@ leaves the row uncommitted, so the framer reads the row when it reads
 settle reads the row. The orchestrator resumes the work item's framer while
 that session still exists, as a fix pass resumes the implementer, and
 otherwise spawns a fresh framer and hands it the decisions and the commit
-at which the frame was last written. It corrects its row where the framer's
+at which the frame was last written. The message that resumes the framer,
+and the prompt that spawns a fresh one, each name
+`skills/implement/fold-and-reframe.md` for the framer to open before it
+answers. It corrects its row where the framer's
 hand-back names a defect in it, then commits the frame files the framer
 changed and its own rows in one commit, before the spawn that reads them.
 

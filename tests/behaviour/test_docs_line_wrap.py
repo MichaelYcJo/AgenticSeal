@@ -156,6 +156,9 @@ COVERED = [
     # passage was covered there, so each file goes in at birth.
     "skills/implement/routing-question.md",
     "skills/implement/merge-order.md",
+    # The framer's fold and reframe, cut from `agents/framer.md` in #1473,
+    # wrapped as it was.
+    "skills/implement/fold-and-reframe.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "skills/commit-pr-convention/SKILL.md",

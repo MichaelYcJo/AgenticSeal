@@ -31,6 +31,9 @@ BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 VERIFY = ("skills", "verify", "SKILL.md")
 SEALER = ("agents", "sealer.md")
 FRAMER = ("agents", "framer.md")
+# The framer's fold and reframe, cut from `agents/framer.md` in #1473 so a
+# first frame does not preload it; the definition names it in one sentence.
+FOLD = ("skills", "implement", "fold-and-reframe.md")
 TRACKER = ("docs", "releasing", "issues-and-milestones.md")
 CORE = ("skills", "core", "SKILL.md")
 PR_CHECK = ("docs", "checks", "the-pull-request-check.md")
@@ -142,7 +145,7 @@ RULES = {
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
         "A regression is routed by comparing the fix with the frame.",
-        {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
+        {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
     # #945, S5: one crafter resumed across phases read 941,799 tokens in one
     # turn, so a phase is a fresh spawn and a fix pass resumes only below
@@ -476,8 +479,8 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         (
             4,
             "The framer writes a decision's fold, because the framer judges "
-            "what the work should be.** `agents/framer.md` *Rules* states the "
-            "fold,",
+            "what the work should be.** `skills/implement/fold-and-reframe.md` "
+            "states the fold,",
         ),
         # 5, #1442.
         (
@@ -535,8 +538,8 @@ def test_a_decision_after_the_frame_is_folded_into_it():
             "then commits the frame files the framer changed and its own rows "
             "in one commit, before the spawn that reads them.",
         ),
-        # 12, #1442. What the framer's hand-back names is `agents/framer.md`
-        # *You have two routes back*'s.
+        # 12, #1442. What the framer's hand-back names is
+        # `skills/implement/fold-and-reframe.md` *You have two routes back*'s.
         (
             12,
             "A statement the framer's hand-back names in `routing.md` or "
@@ -648,6 +651,14 @@ def test_a_decision_after_the_frame_is_folded_into_it():
             "the last phase, because the crafter reads its version write "
             "there.",
         ),
+        # 25, #1473: a resumed framer has its definition in context and may
+        # answer a fold without opening the file that states it.
+        (
+            25,
+            "The message that resumes the framer, and the prompt that spawns a "
+            "fresh one, each name `skills/implement/fold-and-reframe.md` for "
+            "the framer to open before it answers.",
+        ),
     )
     missing = [(row, said) for row, said in rows if said not in order]
     assert not missing, "the order no longer says, by row of D1:\n" + "\n".join(
@@ -661,8 +672,17 @@ def test_the_framer_folds_a_decision_it_is_sent():
     each cites, rewrites its three files in place read whole, reads the
     orchestrator's uncommitted row with `plan.md`, and writes no mark, Status
     cell or judgment row. The regression route keeps its own half of the
-    rule, which rule 16 of `RULES` reads."""
-    text = flat(*FRAMER)
+    rule, which rule 16 of `RULES` reads.
+
+    #1473 moved the rule to `skills/implement/fold-and-reframe.md`, so a first
+    frame does not preload it, and `agents/framer.md` names that file. Its
+    four citations of the definition's own rules now name their files."""
+    path = "/".join(FOLD)
+    assert f"`{path}`" in flat(*FRAMER), (
+        f"`agents/framer.md` no longer names `{path}`, so a framer sent a "
+        "fold does not know where the rule stands"
+    )
+    text = flat(*FOLD)
     lead = "You have two routes back: a decision's fold, and the review chain's regression."
     start = text.index(lead)
     rule = text[start : text.index("check:", start)]
@@ -670,6 +690,8 @@ def test_the_framer_folds_a_decision_it_is_sent():
         "the orchestrator resumes you, or spawns you again, with every "
         "decision then pending",
         "Answer each decision with agree, agree with a change, or reject with grounds",
+        "as `agents/framer.md` *An orchestrator's reading of the frame is "
+        "answered in one exchange* has you answer a proposal",
         "write each rejected decision as one row of `plan.md`'s "
         "*Alternatives considered*",
         # Round 1 of #1442, finding 1: the version move and a prevention
@@ -680,9 +702,10 @@ def test_the_framer_folds_a_decision_it_is_sent():
         "where you judge that one of them conflicts with the tree, your "
         "hand-back names the conflict.",
         "Before you write what a decision says, open each coordinate it cites",
+        "as contract rule 5 asks of a fact that reaches you in prose.",
         "rewrite in place every sentence of your three files that the "
-        "decision changes, reading each file whole, as rule 12 asks of the "
-        "party that fixes",
+        "decision changes, reading each file whole, as contract rule 12 asks "
+        "of the party that fixes",
         "Read the orchestrator's *Judgments of the run* row for each decision "
         "with `plan.md`, where it stands written and not yet committed, and "
         "name any defect in it in your hand-back.",
@@ -692,7 +715,7 @@ def test_the_framer_folds_a_decision_it_is_sent():
         "Spawned fresh for a fold, you read the three frame files, the "
         "coordinates the decisions cite, and the diff since the frame's "
         "commit over the paths the decisions name, and you do not repeat the "
-        "wide reading of step 4.",
+        "wide reading of `agents/framer.md` *Order of work* step 4.",
         "Your hand-back names each sentence you changed, by coordinate, and "
         "each statement the fold contradicts in a file you do not write.",
     ):
