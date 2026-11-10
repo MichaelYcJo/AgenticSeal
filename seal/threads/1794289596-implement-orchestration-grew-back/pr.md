@@ -1,4 +1,4 @@
-- "**`skills/implement/orchestration.md`, which every orchestrating session opens before its first edit, is back under 0.30.0's size (#1477).** It held 7,311 words at 0.37.1 and holds 5,225." (`changelog.md` *Changed*, the first item)
+- "**`skills/implement/orchestration.md`, which every orchestrating session opens before its first edit, is back under 0.30.0's size (#1477).** It held 7,311 words at 0.37.1 and holds 5,223." (`changelog.md` *Changed*, the first item)
 - "The passages an orchestrator acts on only under a condition now stand in two files it opens on that condition, and the body names each file with the condition in one sentence." (`changelog.md` *Changed*, the first item)
 - "**The rule for a decision made after the frame is committed is six paragraphs of judgment, where it was one paragraph of ordered acts (#1477).**" (`changelog.md` *Changed*, the second item)
 - "Every clause of the old paragraph stands in one of them. Two clauses are new." (`changelog.md` *Changed*, the second item)
