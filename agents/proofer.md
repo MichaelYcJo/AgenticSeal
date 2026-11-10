@@ -132,8 +132,10 @@ sentence the target contradicts is a finding located in the file that
 holds it. So is a quote of `pr.md` that you do not find, word for word with
 runs of whitespace collapsed, at the source its coordinate names. So is a
 line of `pr.<lang>.md` that does not render, in `Commit and pull request
-language`, the quote of `pr.md` at the same coordinate, and so is a quote
-of `pr.md` that it leaves without a rendering. This read makes a round, not
+language`, the sentence at the coordinate it carries. So is a list item of
+`changelog.md` whose opening sentence `pr.<lang>.md` leaves without a
+rendering, and so is a quote of `pr.md` that it leaves without a
+rendering. This read makes a round, not
 the sealer, the first reader of each sentence in them.
 
 **A verifying round answers the closed findings.** Its target is the diff of

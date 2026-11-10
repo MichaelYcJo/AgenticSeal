@@ -299,8 +299,8 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
         f"already holds, so it is no mirror. This repository's record "
         f"language is {record}"
     )
-    # #1453: where the two keys differ, the mirror is the quotes of `pr.md`
-    # in the commit language, and it is named for that language.
+    # #1453: where the two keys differ, the mirror is written in the commit
+    # language, and it is named for that language.
     wanted = the_mirror(commit, record)
     if wanted is not None:
         stray = [name for name in mirrors if name != wanted]
@@ -357,9 +357,9 @@ def test_rows_that_differ_name_the_mirror_for_the_commit_language(
     commit, record, wanted, refused, tmp_path
 ):
     """tests-todo row 1, second half, as #1453 leaves it. The rows are read,
-    not the file's presence. Where they differ, the mirror holds the quotes
-    of `pr.md` rendered in the commit language, so it is named for that
-    language, and a file named for the records' language is no mirror."""
+    not the file's presence. Where they differ, the mirror is written in the
+    commit language, so it is named for that language, and a file named for
+    the records' language is no mirror."""
     home = tmp_path / "seal"
     home.mkdir()
     (home / "config.json").write_text(
@@ -432,9 +432,9 @@ def as_language_name(value):
 def mirror_to_refuse(language):
     """The one `pr.<code>.md` that cannot be a mirror, or None.
 
-    LANGUAGE is the record language. A file named for it would hold the
-    quotes in the language `pr.md` already holds them in, so it is no
-    mirror (#1453).
+    LANGUAGE is the record language. A file named for it would render
+    sentences into the language the records already hold them in, so it is
+    no mirror (#1453).
 
     None is an answer, not a failure. `templates/setup/config.md` licenses "a
     language's English name" and says the reader is a model rather than a
@@ -458,9 +458,9 @@ def mirror_to_refuse(language):
 def the_mirror(commit, record):
     """The `pr.<code>.md` a work item holds where the two keys differ, or None.
 
-    Where COMMIT and RECORD name different languages, the mirror holds each
-    quote of `pr.md` rendered in the commit language, so it is named for the
-    commit language (#1453). Where they name one language no mirror is asked
+    Where COMMIT and RECORD name different languages, the mirror is written
+    in the commit language, so it is named for the commit language (#1453).
+    Where they name one language no mirror is asked
     for, and a commit language this file has no code for answers None too.
     """
     if as_language_name(commit) == as_language_name(record):

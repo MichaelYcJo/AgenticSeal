@@ -81,9 +81,9 @@ return.
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
    request body above that line, its first part, which the orchestrator
    wrote as `pr.md`, and `pr.<lang>.md` where one stands, before the rounds
-   read them: the quotes rendered in the commit language where the keys
-   differ, then the `Closes` lines and quotes of the records, each with its
-   coordinate.
+   read them: `pr.<lang>.md`'s renderings in the commit language where the
+   keys differ, then the `Closes` lines and quotes of the records, each with
+   its coordinate.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
    or the outcome rests on it, and re-run each. For every `## Removes` row of
