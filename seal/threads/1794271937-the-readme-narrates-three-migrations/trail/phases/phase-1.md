@@ -122,12 +122,19 @@ earlier release left, while the same paragraph names what only the person
 can remove, so it now says what the command does and nothing more. The
 Korean edition dropped "그 일은 `/agentic:update` 가 맡습니다" the same way.
 
-**The boundary set passed over `03a172de4` with this record and the plan's
-Status cell on disk**
-(`executed`): `bin/test tests/text tests/behaviour -q`, 1852 passed and 8
-skipped. That set holds every module plan row 1 names. The first run, at
-`b0cb62de0`, failed on the two cases above, and the run at `4544f5ed4`
-with `gaps.md` on disk passed. No test file outside
+**The experiment record's *Question* was corrected in `bc1fb347b` and
+rewrapped in `11ea31d92`.** It said the stamp was drawn by "a `Stop` command
+hook the plugin shipped". The comment's first portal branch installs the
+stamp's `PostToolUse` and `Stop` entries, so the record now says "through
+command hooks the plugin shipped, `Stop` among them". `bc1fb347b` left one
+line at 91 columns, which `tests/behaviour/test_docs_line_wrap.py` refused
+(`executed`), and `11ea31d92` rewraps it.
+
+**The boundary set passed over `11ea31d92` with this record and the plan's
+Status cell on disk** (`executed`): `bin/test tests/text tests/behaviour
+-q`, 1852 passed and 8 skipped. That set holds every module plan row 1
+names. The first run, at `b0cb62de0`, failed on the two cases above, and
+the runs at `4544f5ed4` with `gaps.md` on disk and at `03a172de4` passed. No test file outside
 `tests/text/` and `tests/behaviour/` reads a path this phase changed: the
 hits of `git grep` for the READMEs, `the-stamp` and `experiments` under the
 other test directories are fixtures, docstrings or a corpus list of other
