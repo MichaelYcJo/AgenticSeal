@@ -66,7 +66,7 @@ and the orchestrator where they place or write a record.
 
 | File | The question it answers |
 |---|---|
-| `docs/layout/one-root-by-lifetime.md` and `docs/layout/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
+| `docs/layout/one-root-by-lifetime.md` and `docs/layout/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config keys decide |
 | `docs/layout/the-record-layout.md` | where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
 | `docs/layout/the-pact.md` | where a contract several repositories keep together lives, how each knows about it, and what checks it |
 

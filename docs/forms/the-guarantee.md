@@ -40,7 +40,7 @@ repository turns it on and the work item is sealed at HEAD.**
 `seal pr-body` writes the mark, the plugin's icon at the default
 branch of the plugin's repository, as the first line under the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds. It writes it
-where `seal/config.md`'s `Pull request seal mark` row reads `yes` and
+where `seal/config.json`'s `Pull request seal mark` key reads `yes` and
 the newest verdict block of `guarantee.md` reads `sealed` at a commit
 that only the closing records follow, so the mark means what the stamp
 means (`docs/checks/the-stamp.md` *The stamp*). It reads the row and HEAD in the work item's own
@@ -48,7 +48,7 @@ checkout, and, for a work item under the common git directory, in the
 checkout the command runs in. A base the verdict block names that git
 cannot resolve there, and a sealed commit that checkout's HEAD does not
 hold, put no mark either, and are named, since whether the seal holds at
-HEAD cannot then be read. The row's other
+HEAD cannot then be read. The key's other
 values, and what the mark's address ties a body to, are
 `templates/setup/config.md` *The seal mark*'s. The sealer's
 `seal pr-body --check` runs before its own verdict exists, so the copy

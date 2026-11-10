@@ -81,6 +81,74 @@ def load(name, filename):
     return module
 
 
+def argv_words(text):
+    """The literal words of every argv in TEXT, a script's source: each list
+    or tuple literal's elements and each call's positional arguments.
+
+    BOTH argv shapes the release scripts use are read: `run("gh", …)` spreads
+    the words as call arguments, and `subprocess.run(["gh", …], …)` passes a
+    list. A reader that knew only the first parsed zero calls of the second
+    and asserted nothing, measured on the first spelling of round 1's fix of
+    #450. A tuple, `subprocess.run(("gh", …))`, is read as a list is, and so
+    is a tuple spread whole, `run(*("gh", …))`: a fold of the source caught
+    both, and a reader of lists alone did not, measured in round 1 of #1493.
+    A first word written `f"gh"` or `b"gh"` is read as `"gh"` is: a fold of
+    the source matched both, since that text still holds `"gh"`, and a reader
+    of string literals alone dropped both, measured in rounds 2 and 3 of #1493.
+
+    **What the parse closes, and what it does not.** It closes layout — the
+    argv wrapped one word per line, a comment between two of its words, any
+    whitespace at all — because the tree does not carry layout. It does NOT
+    close a word taken from a name. A word is kept where it is a string
+    literal, an f-string with no placeholder, whose parts are joined, or a
+    bytes literal, decoded; anything else is dropped. A case compares the
+    first three kept words against a prefix such as `["gh", "issue", verb]`,
+    so a name anywhere in those three positions is dropped, the prefix shifts
+    by one, and the verb is never matched. Measured in round 3 of #450 and
+    again in its fix pass, four spellings of a planted `gh issue reopen`:
+    plain and comment-separated both red the closer's case; `GH = "gh"` used
+    as the first word, and the verb moved into a module constant, both leave
+    it green.
+
+    So this reader reads string, placeholder-free f-string and bytes words in
+    a list, a tuple or a call's positional arguments. A verb claim judges an
+    argv by its first three kept words, so it judges no argv whose first
+    three kept words are not `gh`, its noun and its verb. Examples are an
+    argv where one of those words is not written as a literal, a
+    module-level name among them, as above; one where a literal word such as
+    `env` stands before `gh`, measured in round 4 of #1493; and one where a
+    flag such as `--repo` stands between `issue` and the verb, which `gh`
+    accepts, measured in round 5 of #1493. A forbidden argv of that kind is
+    not seen, and a required one reads as missing. The label case's
+    `--add-label` claim is no verb claim: it reads every word of every argv.
+    Closing the escape for a module-level name means resolving names before
+    comparing, which is a different checker with its own false-positive
+    argument to make. #1493 left these argvs unjudged, since no release
+    script writes a `gh issue` or `gh label` argv whose first three kept
+    words are not `gh`, its noun and its verb.
+    """
+
+    def word(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+        if isinstance(node, ast.Constant) and isinstance(node.value, bytes):
+            # Latin-1 maps each byte to one character, so no bytes literal
+            # raises, and an ASCII word reads as its string does.
+            return node.value.decode("latin-1")
+        if isinstance(node, ast.JoinedStr) and all(
+            isinstance(part, ast.Constant) for part in node.values
+        ):
+            return "".join(part.value for part in node.values)
+        return None
+
+    tree = ast.parse(text)
+    argvs = [
+        node.elts for node in ast.walk(tree) if isinstance(node, (ast.List, ast.Tuple))
+    ]
+    argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
+    return [[w for w in map(word, argv) if w is not None] for argv in argvs]
+
+
 def closer_module():
     return load("close_issues_on_release", "close_issues_on_release.py")
 
@@ -1104,24 +1172,8 @@ class Test_module:
         enough: a fold normalises whitespace and nothing else, so a comment
         between two words of the argv defeats it just as the line breaks did. Two
         review rounds of #450 each found that from a different side. The reader is
-        `ast` now and the fold is gone.
-
-        **What the parse closes, and what it does not.** It closes layout — the
-        argv wrapped one word per line, a comment between two of its words, any
-        whitespace at all — because the tree does not carry layout. It does NOT
-        close a value that is not a string literal. `words` keeps only
-        `ast.Constant` strings and `issue_argvs` compares the first three of them
-        against `["gh", "issue", verb]`, so a name anywhere in those three
-        positions is dropped, the prefix shifts by one, and the verb is never
-        matched. Measured in round 3 of #450 and again in its fix pass, four
-        spellings of a planted `gh issue reopen`: plain and comment-separated both
-        red this case; `GH = "gh"` used as the first word, and the verb moved into
-        a module constant, both leave it green.
-
-        So this reader is strictly stronger than the fold and blind in a place the
-        fold was blind too. Closing that means resolving module-level names before
-        comparing, which is a different checker with its own argument to make;
-        `seal/follow-up.md` carries it with the repository owner named.
+        `ast` now, through `argv_words`, which says what the parse closes and what
+        it does not, and the fold is gone.
 
         **This used to say `only ever closes`, and #450 changed what is true.**
         The script now also removes `size: now` from the issue it is closing —
@@ -1157,25 +1209,16 @@ class Test_module:
         # them for exactly the reason the `edit` one did. The folded reader is
         # gone from this case entirely; there is one reader and it does not care
         # how the argv is laid out.
-        tree = ast.parse(read_text(".github", "scripts", "close_issues_on_release.py"))
-        # BOTH argv shapes this file uses: `run("gh", …)` spreads the words as
-        # call arguments, and `subprocess.run(["gh", …], …)` passes a list. The
-        # one `issue edit` is written the second way, and a reader that knew only
-        # the first parsed zero calls and asserted nothing — measured, on the
-        # first spelling of round 1's fix.
-        argvs = [node.elts for node in ast.walk(tree) if isinstance(node, ast.List)]
-        argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
-
-        def words(argv):
-            return [
-                a.value
-                for a in argv
-                if isinstance(a, ast.Constant) and isinstance(a.value, str)
-            ]
+        # The one `issue edit` is written as a list, `subprocess.run(["gh", …],
+        # …)`, and the close as call arguments, `attempt("gh", …)`; `argv_words`
+        # reads both shapes.
+        argvs = argv_words(
+            read_text(".github", "scripts", "close_issues_on_release.py")
+        )
 
         def issue_argvs(verb):
             """Every `gh issue <verb>` argv in the script, however it is laid out."""
-            return [argv for argv in argvs if words(argv)[:3] == ["gh", "issue", verb]]
+            return [words for words in argvs if words[:3] == ["gh", "issue", verb]]
 
         # **What this gave up, recorded rather than restored.** The folded form
         # asserted `'"gh", "issue", "close", str(issue),' in folded` — the verb
@@ -1185,7 +1228,7 @@ class Test_module:
         # passes. The trade is taken deliberately and is the same one the `edit`
         # argv below already makes, where the flags are read and the operand is
         # not — an operand is a variable name, and a name is exactly what this
-        # reader cannot resolve (see the docstring). Pinning it would mean
+        # reader cannot resolve (see `argv_words`). Pinning it would mean
         # asserting on an `ast.Name`'s spelling, which breaks on a rename that
         # changes nothing. Round 3 of #450 named the silence; this comment is it.
         closes = issue_argvs("close")
@@ -1208,13 +1251,42 @@ class Test_module:
             f"{len(edit_calls)} `gh issue edit` argv lists; there is one, and it "
             "is the removal of a spent sizing label"
         )
-        flags = {word for word in words(edit_calls[0]) if word.startswith("--")}
+        flags = {word for word in edit_calls[0] if word.startswith("--")}
         assert flags == {"--repo", "--remove-label"}, (
             f"the one `gh issue edit` carries {sorted(flags)}. It may carry "
             "`--remove-label` and nothing else that writes: adding a label is "
             "the sibling's act at the squash, and any other write is not the "
             "removal this case says the one edit is"
         )
+
+    def test_argv_words_reads_a_tuple_argv_as_it_reads_a_list(self):
+        """No release script writes a tuple argv, so only a source written here
+        holds the half of `argv_words` that reads one. A fold of the source
+        refused both spellings below, and a reader of lists alone passed both,
+        measured in round 1 of #1493."""
+        for source in (
+            'subprocess.run(("gh", "issue", "edit", str(n)))',
+            'run(*("gh", "issue", "edit", str(n)))',
+        ):
+            prefixes = [words[:3] for words in argv_words(source)]
+            assert ["gh", "issue", "edit"] in prefixes, source
+
+    def test_argv_words_reads_an_f_string_and_a_bytes_word_as_it_reads_a_string(
+        self,
+    ):
+        """No release script writes a placeholder-free f-string or a bytes word
+        in a `gh` argv, so only a source written here holds the two halves of
+        `argv_words` that read them. A fold of the source matched both
+        spellings below, and a reader of string literals alone dropped both,
+        measured in rounds 2 and 3 of #1493. Dropped, a required argv so
+        written reads as missing, and the label case goes red while the script
+        still creates the label."""
+        for source in (
+            'run(f"gh", "label", "create", name)',
+            'run(b"gh", "label", "create", name)',
+        ):
+            prefixes = [words[:3] for words in argv_words(source)]
+            assert ["gh", "label", "create"] in prefixes, source
 
 
 test_census = census_case(TARGET)

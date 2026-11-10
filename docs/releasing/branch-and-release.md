@@ -64,7 +64,7 @@ hand fires the publish workflow too.
   commit, which is a re-run. It publishes a note built from the release's
   changelog fragments, titled from the tagged commit's
   `release: X.Y.Z symptoms: <symptoms>` line (`docs/releasing/release-checklist.md`
-  *5. The release pull request*), read whole and exactly so. It never
+  *The release pull request*), read whole and exactly so. It never
   republishes a release that exists, and falls back to the tag name when no
   line reads so, logging the shape it expected and the `release:` line it
   found. Which fragments it reads is `docs/layout/the-record-layout.md` *A change
@@ -97,14 +97,14 @@ hand fires the publish workflow too.
   in two of the seal's reds, and its alt text is that label and value in
   words. So a reader whose client draws no image, or who opens the note
   while the service does not answer, still has every result. Where
-  `seal/config.md`'s `Release note seal mark` row reads `yes` at the tag,
+  `seal/config.json`'s `Release note seal mark` key reads `yes` at the tag,
   the job first attaches the page form of the stamp's mark, the PNG that
   `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the
   table opens with a cell holding that image at its display width. Its alt
   text names the image alone, because the badges' alt text carries every
   number. Under any other value nothing is attached and the table is the
   results' cell alone; `templates/setup/config.md` *The seal mark* states
-  the row's values and who reads it. The PNG is drawn from
+the key's values and who reads it. The PNG is drawn from
   `assets/seals/owl.svg` by the command `assets/seals/README.md` gives, and
   the job installs no imaging library to attach it. That edit is the only
   change it makes to a note, and only to one whose header is still exactly
@@ -132,7 +132,7 @@ hand fires the publish workflow too.
   `docs/releasing/issues-and-milestones.md` owns what the label means; this says only who
   performs the acts. Whether the label exists is what `gh label list` says.
 
-`docs/releasing/release-checklist.md` *6. After the merge* carries a box for each of the
+`docs/releasing/release-checklist.md` *After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
 check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/github/test_tag_release.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
@@ -143,9 +143,17 @@ cancels, is GitHub's behaviour. No case here can start a run, so
 
 **The plugin directory reads `dist`, a branch that holds what the
 installed plugin runs, and the publish workflow adds one commit to it at
-each release.** The directory's form does not answer in time for this
-repository's whole tree, and answers for the tree without its suites and
-records (#1374). The paths that leave are marked `export-ignore` in
+each release.** The listing has been on hold since 2026-11-08, by the
+owner's decision, and the `dist` job and the checklist's directory box keep
+running while it holds, so that nothing has to be turned back on when it
+resumes. The directory refuses every file other than Markdown from an
+organization that is not Verified, and refused v0.34.0 on 2026-11-07
+(#1420), so no change in this tree can make the plugin listable today. The
+issues that wait for the listing are in the milestone
+`backlog: marketplace listing (on hold)`. The directory's form does not
+answer in time for this repository's whole tree, and answers for the tree
+without its suites and records (#1374). The paths that leave are marked
+`export-ignore` in
 `.gitattributes`, and the tree of each commit of `dist` is `git archive`
 of the release's tag. So the list lives in that one file and the workflow
 holds none. It lists what leaves and not what stays: a path forgotten
@@ -171,7 +179,7 @@ archiving it, since an archive leaves the marked paths out. GitHub's
 source archives of a release leave them out too. `marketplace.json`'s
 `source` is `./`, so `/plugin marketplace add` installs the whole tree from
 the default branch, `main`.
-check: tests/github/test_dist_branch.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
+check: tests/github/test_dist_branch.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py
 
 ### Work accumulates on a release branch
 
@@ -230,8 +238,8 @@ tracks (`claude.com/docs/plugins/submit`), and this plugin's submission tracks
 (*Cutting a release* above), so the rule above does not reach the directory's
 commit. A marketplace file's pin can still name a commit of `main`,
 and breaking the rule above breaks that pin, a consumer nobody here can reach,
-for people the owner cannot name. `docs/releasing/release-checklist.md` *6.
-After the merge* carries the box that reads what is pinned. This paragraph is a record rather than a rule: a
+for people the owner cannot name. `docs/releasing/release-checklist.md` *After
+the merge* carries the box that reads what is pinned. This paragraph is a record rather than a rule: a
 marketplace file pins a commit of each outside plugin's source repository.
 The rule it supports, that anything reaching `main` is a merge commit, is held
 outside the tree by the `main` ruleset.

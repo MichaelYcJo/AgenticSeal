@@ -27,7 +27,7 @@ import os
 
 import pytest
 from conftest import ROOT, census_case, read
-from test_close_issues_on_release import load
+from test_close_issues_on_release import argv_words, load
 
 TARGET = ".github/scripts/label_merged_on_release_branch.py"
 
@@ -387,22 +387,28 @@ class Test_module:
         )
 
     def test_the_script_only_ever_creates_a_label_and_adds_one(self):
-        """Fold the source before matching: the arguments go one per line, so a
-        forbidden-substring list over the raw text forbids nothing.
+        """Parse the source; never search it. The arguments go one per line, so
+        a forbidden-substring list over the raw text forbids nothing, and a
+        fold of the source survived the line breaks and not a comment between
+        two words of an argv. `argv_words` says what the parse closes and what
+        it does not.
 
         `close_issues_on_release.py` has the same case for the same reason — what
         makes a re-run and a force-push safe to reason about is that the set of
         writes is small enough to enumerate.
         """
-        folded = " ".join(read(SCRIPT).split())
-        assert '"gh", "label", "create",' in folded, "the script stopped creating"
-        assert '"--add-label",' in folded, "the script stopped adding"
+        argvs = argv_words(read(SCRIPT))
+        prefixes = [words[:3] for words in argvs]
+        assert ["gh", "label", "create"] in prefixes, "the script stopped creating"
+        assert any("--add-label" in words for words in argvs), (
+            "the script stopped adding"
+        )
         for forbidden in ("close", "reopen", "delete", "comment", "transfer"):
-            assert f'"gh", "issue", "{forbidden}"' not in folded, (
+            assert ["gh", "issue", forbidden] not in prefixes, (
                 f"the script gained `issue {forbidden}`. Closing an issue at the "
                 "release-branch merge closes it for something nobody has received"
             )
-        assert '"gh", "label", "delete"' not in folded, (
+        assert ["gh", "label", "delete"] not in prefixes, (
             "the script gained `label delete`, which removes the label from every "
             "issue that carried it and falsifies the record it was created to "
             "leave"

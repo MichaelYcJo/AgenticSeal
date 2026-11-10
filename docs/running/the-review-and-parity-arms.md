@@ -12,7 +12,7 @@ spec and code together.
 **No arm runs at the commit.** The review arm is the routing check, which
 runs at the pull request (`docs/checks/the-routing-check.md`), and the
 parity arm is checked at the pull request too, as *Parity arm* below
-states. The migration config lives at `seal/parity.md`, so declaring it
+states. The migration config lives at `seal/parity.json`, so declaring it
 creates `seal/`, which opts the repository into the routing check too.
 check: tests/skills/test_chain_check.py
 
@@ -50,15 +50,16 @@ something only because somebody other than the author wrote it, and the
 contract names a review that certifies itself as what the routing check
 exists to catch. What an author's own check leaves that CI can read is what
 it ran, the broad gate at a SHA against a base, and that is the broad run's
-record the direct answer already owes. A change no work item owns writes no
-declaration: it takes the third answer of question 1, `no work item`, in
+record `straight to the PR` already owes. A change no work item owns
+writes no declaration: it takes question 1's last answer, `direct`, or
+is routed there under its answer `agentic`, in
 `skills/implement/orchestration.md` *Question 1*.
 check: two-review-answers
 
 **There is no standing waiver: a declaration moves the review arm's check to
 the pull request, and a change no work item owns writes no declaration and
 says so in each of its commits' trailers.** Both answers stay enforced, the
-chain at the pull request against the round record and the direct route
+chain at the pull request against the round record and `straight to the PR`
 against the broad run's record, and no value means no enforcement anywhere.
 Which declaration applies is settled by the branch it names, looked up from
 the pull request's branch. Every way that lookup can fail (a renamed branch,
@@ -112,7 +113,7 @@ check: tests/lib/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
 
 ### Parity arm
 
-Opt-in: `seal/parity.md`. Ported behaviour follows the original where policy
+Opt-in: `seal/parity.json`. Ported behaviour follows the original where policy
 is silent, so a change to code carries a record, in the tree, that the
 original was consulted.
 

@@ -9,7 +9,7 @@ a person who changes it; the sealer cites its code.
 section of each `frame/design.md` it parses, the records, the broad gate's
 file, the sealer's guarantee, the pull request's body where the run's event
 payload holds it, the `Seal-Routing` trailers of the pull request's own
-commits and, where `seal/parity.md` is declared, the
+commits and, where `seal/parity.json` is declared, the
 migration config's `Baseline commit`, and, against a design's
 operations, the string constants of the test files under `tests/` and
 the rule documents, and nothing else of a round record.** It judges the
@@ -100,17 +100,17 @@ is left alone here, and the settle reads such a design whole. The refusal
 reads a fact from the file and puts no question to a person.
 check: rule-changes-read-at-the-pull-request
 
-**Where `seal/parity.md` is declared and the change reaches outside
-`docs/` and `seal/`, every round record of a work item declaring `through the review chain` carries one `original:` line in its round block naming the migration config's baseline.** The check reads `seal/parity.md` at HEAD
+**Where `seal/parity.json` is declared and the change reaches outside
+`docs/` and `seal/`, every round record of a work item declaring `through the review chain` carries one `original:` line in its round block naming the migration config's baseline.** The check reads `seal/parity.json` at HEAD
 and the paths the pull request changes against its base, through the
 parity arm's own rule for a change confined to the document roots. A
 diff it cannot read ends the check with exit 2 before any record is
 judged. A ready pull request fails while a round record holds no
 `original:` line, or holds one whose commit and the
-`Baseline commit` row's SHA are not one a prefix of the other, and a
-migration config whose `Baseline commit` holds no SHA fails it too. Each
-refusal names the record, or the config, and both commits where two are
-compared. The proofer writes the line in the round where it compared that
+`Baseline commit` key's SHA are not one a prefix of the other, and a
+migration config whose `Baseline commit` holds no SHA fails it too. A `seal/parity.md` that git carries at HEAD without a `seal/parity.json`
+is refused once, naming the keys to write. Each refusal names the record,
+or the config, and both commits where two are compared. The proofer writes the line in the round where it compared that
 round's target with the original through `legacy-parity`. A round that
 could not resolve the original writes no line and raises an `unread`
 finding, so the refusal stands until a round compares. What the check
@@ -118,13 +118,13 @@ cannot read is whether the comparison was a good one, which is the
 proofer's.
 check: parity-at-the-pull-request
 
-**Where `seal/parity.md` is declared and the change reaches outside
+**Where `seal/parity.json` is declared and the change reaches outside
 `docs/` and `seal/`, the `guarantee.md` of a work item declaring
 `straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The sealer writes it after comparing the audited
 commit with the original through `legacy-parity`, and the check reads it by
 the rule a round record's line is read by: a ready pull request fails while
 the guarantee holds no such line, or one whose commit and the
-`Baseline commit` row's SHA are not one a prefix of the other. What the
+`Baseline commit` key's SHA are not one a prefix of the other. What the
 check cannot read is whether the comparison was a good one, which is the
 sealer's.
 check: parity-in-the-guarantee

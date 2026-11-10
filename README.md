@@ -92,20 +92,13 @@ The second alone reports that you are at the latest version, against
 whatever that copy last knew. A release reaches you only when the version in
 `plugin.json` changes.
 
-Earlier releases wrote a block into `CLAUDE.md` between
-`<!-- agentic:start -->` and `<!-- agentic:end -->`. `/agentic:update` backs
-the file up and takes the block out, and an update from such a release may
-first leave the empty marker pair `templates/setup/claude-md-block.md`
-holds, which the next update removes (`skills/update/SKILL.md`).
-
-Earlier releases kept a repository's settings in `seal/config.md`, a
-markdown table; the plugin now reads them from `seal/config.json`, one JSON
-object. Run `seal mode` once in each repository that holds a
-`seal/config.md`: it writes `seal/config.json` from the table and removes
-the old file. Until then `seal gate`, `seal fold`, `seal pact` and
-`seal mode --check` exit 2 and name `seal mode`, `seal pr-body` refuses
-with the same sentence and exits 1, and `seal rules`, `seal settle` and
-`seal unverified` read the default policy root and reference roots. Three
+An update from an earlier release can leave work behind.
+`/agentic:update` takes out what an earlier release wrote into your
+`CLAUDE.md`, and names what an earlier release left that only you can
+remove ([`skills/update/SKILL.md`](skills/update/SKILL.md)). If you update
+by hand instead, two things are yours. Run `seal mode` once in each repository that
+still holds `seal/config.md`, the settings table earlier releases kept: it
+writes `seal/config.json` from the table and removes the old file. Three
 files no command converts are rewritten by hand.
 `seal/parity.md` becomes `seal/parity.json`, written from
 `templates/setup/parity.json`. The `| Signer |` table of a `seal/pact.md`
@@ -365,11 +358,11 @@ writes into your settings.**
 Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
 the script under the plugin's own directory, so an update moves both hooks
 with it. The closing `exit 0` makes each command exit 0 whatever happens,
-so neither hook ever stops a turn. Releases 0.33.0 to 0.34.1 drew the stamp
-instead through a launcher, `stamp.py`, which a yes to their question wrote
-into the plugin's data directory with one `Stop` entry in
-`${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`; `/agentic:update` names
-both for you to take out by hand.
+so neither hook ever stops a turn. A release from 0.33.0 to 0.34.1 may have
+left a launcher of its own that also runs at the end of each turn, and
+`/agentic:update` names it for you to remove
+([`skills/update/SKILL.md`](skills/update/SKILL.md) *4b. The launcher an
+earlier release wrote*).
 
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.

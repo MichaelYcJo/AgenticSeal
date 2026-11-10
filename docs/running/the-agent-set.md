@@ -76,6 +76,18 @@ start. It is guidance and no check reads it. The procedure is
 `skills/implement/orchestration.md` *The frame is read against the issue at the spawn*,
 and the framer's half is `agents/framer.md`.
 
+**Contract rule 21 writes out the command forms Claude Code's parser
+holds for a person beside the forms it reads, and nothing reads an
+agent's command.** Whether a command line is readable is Claude Code's
+judgment, and that judgment moves with its version. A script that
+re-encoded it would refuse commands Claude Code reads, or pass commands
+it holds for a person. So the rule names
+its forms as examples and leaves the rest to the agent that writes the
+command. A prompt the work did not need costs the most expensive step
+`skills/core/SKILL.md` names, and a party under automation, the
+orchestrator among them, cannot see that it caused one.
+check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+
 ## What each party writes, and when
 
 **A review round is one file the proofer writes, the fix pass writes two lines
