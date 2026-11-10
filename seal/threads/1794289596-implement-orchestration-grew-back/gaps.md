@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| `frame/design.md` S1 once the release branch, #1476's change among it, is merged in. The body holds 5,225 words at `02740215a`, 17 under the bound of 5,242, and the release branch at `df775c52c` holds no change to the file. | the orchestrator, by `wc -w skills/implement/orchestration.md` after it merges the release branch in (`frame/plan.md` *Overlap with the release*), and the proofer by the same count |
+| `frame/design.md` S1 once the release branch, #1476's change among it, is merged in. The body holds 5,223 words at `f07bd7f60`, round 1's fix to finding 1, 19 under the bound of 5,242 (5,225 at `02740215a`), and the release branch at `df775c52c` holds no change to the file. | the orchestrator, by `wc -w skills/implement/orchestration.md` after it merges the release branch in (`frame/plan.md` *Overlap with the release*), and the proofer by the same count |
 | The broad gate at the work item's HEAD. Each phase ran its phase boundary set, as its record says, and none ran the broad gate. | the orchestrator, by `seal gate --record` |
 
 ## Not done
