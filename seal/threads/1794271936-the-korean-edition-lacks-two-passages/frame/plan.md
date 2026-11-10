@@ -71,3 +71,4 @@ pull request does not move the version: #1495 moved
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-10 | The title takes `docs:` | The diff changes a Korean policy document and a skill's grammar text, and no executed line; `### Changed` names a rule of the design grammar, which the settling session reads as text, not a new capability, so the patch carries no `feat:` | `~/.claude/skills/commit-pr-convention/SKILL.md`; `docs/releasing/branch-and-release.md` *Cutting a release* |
