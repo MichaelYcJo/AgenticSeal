@@ -527,9 +527,12 @@ THE_FORMS_OWN = (
 
 def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block():
     """The fix pass's procedure stands in `skills/implement/fix-pass.md`,
-    which the crafter opens at step 9 in place of steps 5 to 8, so a phase
-    spawn no longer preloads it (#1471). The case reads the file whole: the
-    paste-ready fix read before it is applied, the reading of the range and
+    which the crafter opens at step 9 in place of step 7's run and step 8's
+    record, so a phase spawn no longer preloads it (#1471). Steps 5 and 6
+    hold for each fix, as they did before the move (round 1 of #1471,
+    finding 1), since the file states neither. The case reads the file
+    whole: the paste-ready fix read before it is applied, the reading of the
+    range and
     the work item's records the crafter's rule asks for (contract rule 12,
     #1318), and the close blocks written last and left uncommitted. The
     block's values and its `location:` line are the form's alone, so the
@@ -611,8 +614,12 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
     order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
     assert (
         "9. In a fix pass, open `skills/implement/fix-pass.md` and follow it in "
-        "place of steps 5 to 8." in order
-    ), "step 9 no longer sends a fix pass to `skills/implement/fix-pass.md`"
+        "place of step 7's run and step 8's record; steps 5 and 6 hold for each "
+        "fix." in order
+    ), (
+        "step 9 no longer sends a fix pass to `skills/implement/fix-pass.md`, "
+        "or no longer keeps steps 5 and 6 for each fix"
+    )
     assert (
         crafter_rule("A fix pass appends close blocks and writes no phase record.")
         == ""

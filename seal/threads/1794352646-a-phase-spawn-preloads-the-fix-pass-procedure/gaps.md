@@ -9,4 +9,4 @@
 
 ## Not done
 
-`docs/running/the-agent-set.md:93` still says "the fix pass writes two lines of each finding it answers", where a close block holds a third line when the fix went elsewhere. `frame/design.md` *Scope* puts that `docs/` sentence out of this work and leaves it to the orchestrator to file, because this work changes no `docs/` text and no rule.
+`docs/running/the-agent-set.md:93` still says "the fix pass writes two lines of each finding it answers", where a close block holds a third line when the fix went elsewhere. `frame/design.md` *Scope* puts that `docs/` sentence out of this work, because this work changes no `docs/` text and no rule, and `frame/plan.md` *Judgments of the run* judges that it takes no issue.
