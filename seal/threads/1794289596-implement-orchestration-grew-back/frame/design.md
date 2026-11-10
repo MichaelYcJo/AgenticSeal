@@ -111,12 +111,9 @@ Out:
 |---|---|---|---|
 | *Scope* items 1, 2 and 3, built at `4112c5924` | 1,830 | 116 | 5,597, measured |
 | *Scope* item 4, built at `500d2cb98` | 872 | 979 | 5,704, measured |
-| *Scope* item 5, *Removes* rows 9 to 13 and 16 to 18 | 404 | 58 | estimate |
-| *Scope* item 5, *Removes* rows 19 and 20 | 52 | 0 | estimate |
-| *Scope* item 6: `:3-22` | 207 | 120 | estimate |
-| *Scope* item 9, *Removes* row 21 | 60 | 35 | estimate |
+| *Scope* items 5, 6 and 9, built at `02740215a` | 479 in all | | 5,225, measured |
 
-The estimate of the body after every part is about 5,190 words, against S1's bound. The estimate before item 4 was built was 5,170 with 875 words for the fold rule; the rule came to 979, and rows 19 to 21 are what answers the difference.
+The body after every part is 5,225 words at `02740215a`, under S1's bound of 5,242. The estimate before phase 3 was about 5,190; item 6's opening came to 165 words against 120 estimated. The estimate before item 4 was built was 5,170 with 875 words for the fold rule; the rule came to 979, and rows 19 to 21 answered the difference.
 
 **D4. When each new file is opened.** The body says each condition in one sentence, and the file's first paragraph says the same.
 
@@ -156,7 +153,7 @@ Every coordinate is in `skills/implement/orchestration.md`.
 | 13. **A wrong choice stays visible** | `:591-597` | Its first sentence is **The exit is last** (`:296-301`, landing by row 2). Its second is the sentence at `:370-373` on the sealer reading the grounds. Its third is `skills/settle/SKILL.md` *The settling session's procedure* step 5, which names *Under agentic* as the section to rewrite. |
 | 14. The list of what `skills/implement/SKILL.md` holds | `:15-19` | That file's own headings. The sentences on who opens which half stay. |
 | 15. **A question in this batch names its answers, and every answer continues** | `:225-229` | `skills/implement/routing-question.md` *Orchestrator: a question in the batch names its answers*; the orchestrator writes a question only when it puts the batch to a person, which is when it opens that file (D4) |
-| 16. "A wrong answer here is read against the record the run left: …" | `:399-402` | The third row of **Three combinations do not stand** at `:564` states the check's refusal, and the sentence at `:370-373` names the sealer's step 4. |
+| 16. "A wrong answer here is read against the record the run left: …" | `:399-402` | The third row of **Three combinations do not stand** at `:564` states the check's refusal, and `agents/sealer.md` step 4 states the sealer's withholding, as its owner. |
 | 17. "What it costs: …" through "… keeps the judgment from being free-form." | `:627-631` | It can go: the two sentences say why a judgment was preferred to a count, and no party acts on them. The sentences after them, on naming the value, stay. |
 | 18. The paragraph **Where a migration config is declared, the comparison with the original is recorded where the answer puts it**, shortened to one sentence | `:440-446` | `skills/legacy-parity/SKILL.md` *Recording the comparison* and `docs/running/the-review-and-parity-arms.md` *Parity arm* state where the comparison is recorded and which shapes leave code uncompared. The sentence that stays cites both. |
 | 19. "Under `complete` and `manual` that is where … and under `agentic` it is where the orchestrator chose a framer for the item (*Under agentic*).", in the paragraph opening "It is a record, not a box." | `:393-396` | The opening paragraph of *Orchestrator: when a work item is required* at `:603-605` says what the rung decides under `complete` and `manual` and under `agentic`, and the **Planning** bullet of *Under agentic* at `:543-546` says where the orchestrator chooses a framer. The sentence before it keeps `agents/framer.md`'s `## Job` as where the framer runs. |
