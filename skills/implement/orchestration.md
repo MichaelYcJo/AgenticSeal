@@ -107,7 +107,7 @@ otherwise spawns a fresh framer and hands it the decisions and the commit
 at which the frame was last written. The message that resumes the framer,
 and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
-answers. It corrects its row where the framer's
+answers. The orchestrator corrects its row where the framer's
 hand-back names a defect in it, then commits the frame files the framer
 changed and its own rows in one commit, before the spawn that reads them.
 

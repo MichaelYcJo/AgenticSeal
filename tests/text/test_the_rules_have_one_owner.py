@@ -509,7 +509,13 @@ def test_a_decision_after_the_frame_is_folded_into_it():
             "settle reads the row.",
         ),
         # 8, round 2 of #1442.
-        (8, "It corrects its row where the framer's hand-back names a defect in it,"),
+        # Round 1 of #1473: the sentence before it came to end on the framer,
+        # so the row names its actor.
+        (
+            8,
+            "The orchestrator corrects its row where the framer's hand-back "
+            "names a defect in it,",
+        ),
         # 9, rounds 1 and 2 of #1442: a rejected decision had no route, and
         # the row written before the exchange recorded a fold that did not
         # happen.
