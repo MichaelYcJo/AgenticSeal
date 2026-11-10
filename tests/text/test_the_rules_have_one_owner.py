@@ -175,7 +175,7 @@ RULES = {
     "21 a closed finding is answered on one of three lines": (
         SKILL,
         "Every finding the round before closed `fixed <commit>` or `rejected` "
-        "is named this round by exactly one of three lines: `confirms:`, "
+        "is named this round by one of three lines: `confirms:`, "
         "`regression:` or `reopens:`.",
         {PROOFER: EARLIER_ROUNDS, RECORD: EARLIER_ROUNDS, ORCH: EARLIER_ROUNDS},
     ),

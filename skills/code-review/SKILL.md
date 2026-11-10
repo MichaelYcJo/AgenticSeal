@@ -138,14 +138,16 @@ is written again from its `## Probes` row. A record written before the
 `evidence:` field lacks the line, and that is no finding.
 
 Every finding the round before closed `fixed <commit>` or `rejected` is
-named this round by exactly one of three lines: `confirms:`, `regression:`
-or `reopens:`. A `confirms:` line names the finding where its close holds.
+named this round by one of three lines: `confirms:`, `regression:` or
+`reopens:`. A `confirms:` line names the finding where its close holds.
 A `regression:` line stands on a new finding where the defect is in a unit
 that a fix pass's own commits added or changed, and those commits
-introduced the defect. A `reopens:` line stands on a new finding in every
-other case where the close does not hold: a rejection that was wrong, or a
-`fixed` commit that left the defect standing, in the unit that commit
-changed or in another.
+introduced the defect. Where the close of the finding whose fix made the
+unit holds as well, a `confirms:` line names that finding too, so two lines
+name it. A `reopens:` line stands on a new finding in every other case
+where the close does not hold: a rejection that was wrong, or a `fixed`
+commit that left the defect standing, in the unit that commit changed or
+in another.
 
 A `regression:` line names the finding whose fix made the unit, as
 `round-<N>#<n>`, or `round-<N>` for a fix pass no finding named. The
