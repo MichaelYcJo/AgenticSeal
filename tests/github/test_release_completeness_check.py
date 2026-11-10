@@ -32,6 +32,7 @@ import re
 
 import pytest
 from conftest import ROOT, census_case, read
+from test_close_issues_on_release import argv_words
 
 TARGET = ".github/scripts/release_completeness_check.py"
 
@@ -567,11 +568,16 @@ class Test_main:
 class Test_module:
     def test_the_gate_writes_nothing(self, monkeypatch):
         """Its whole job is to judge. A gate that can write is a gate whose red
-        can be made green by the thing that went red."""
-        folded = " ".join(read(SCRIPT).split())
+        can be made green by the thing that went red.
+
+        The argvs are parsed through `argv_words`, never searched: a fold of
+        the source survived an argv wrapped one word per line and not a
+        comment between two of its words. `argv_words` says what the parse
+        closes and what it does not."""
+        prefixes = [words[:3] for words in argv_words(read(SCRIPT))]
         for forbidden in ("edit", "close", "create", "delete", "comment", "reopen"):
-            assert f'"gh", "issue", "{forbidden}"' not in folded, f"issue {forbidden}"
-            assert f'"gh", "label", "{forbidden}"' not in folded, f"label {forbidden}"
+            assert ["gh", "issue", forbidden] not in prefixes, f"issue {forbidden}"
+            assert ["gh", "label", forbidden] not in prefixes, f"label {forbidden}"
 
 
 test_census = census_case(TARGET)

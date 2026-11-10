@@ -81,6 +81,46 @@ def load(name, filename):
     return module
 
 
+def argv_words(text):
+    """The string-literal words of every argv in TEXT, a script's source:
+    each list literal's elements and each call's positional arguments.
+
+    BOTH argv shapes the release scripts use are read: `run("gh", …)` spreads
+    the words as call arguments, and `subprocess.run(["gh", …], …)` passes a
+    list. A reader that knew only the first parsed zero calls of the second
+    and asserted nothing, measured on the first spelling of round 1's fix of
+    #450.
+
+    **What the parse closes, and what it does not.** It closes layout — the
+    argv wrapped one word per line, a comment between two of its words, any
+    whitespace at all — because the tree does not carry layout. It does NOT
+    close a value that is not a string literal. Only `ast.Constant` strings
+    are kept, and a case compares the first three of them against a prefix
+    such as `["gh", "issue", verb]`, so a name anywhere in those three
+    positions is dropped, the prefix shifts by one, and the verb is never
+    matched. Measured in round 3 of #450 and again in its fix pass, four
+    spellings of a planted `gh issue reopen`: plain and comment-separated both
+    red the closer's case; `GH = "gh"` used as the first word, and the verb
+    moved into a module constant, both leave it green.
+
+    So this reader is strictly stronger than a fold of the source and blind in
+    a place the fold was blind too. Closing that means resolving module-level
+    names before comparing, which is a different checker with its own
+    false-positive argument to make; #1493 left it open.
+    """
+    tree = ast.parse(text)
+    argvs = [node.elts for node in ast.walk(tree) if isinstance(node, ast.List)]
+    argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
+    return [
+        [
+            a.value
+            for a in argv
+            if isinstance(a, ast.Constant) and isinstance(a.value, str)
+        ]
+        for argv in argvs
+    ]
+
+
 def closer_module():
     return load("close_issues_on_release", "close_issues_on_release.py")
 
@@ -1104,24 +1144,8 @@ class Test_module:
         enough: a fold normalises whitespace and nothing else, so a comment
         between two words of the argv defeats it just as the line breaks did. Two
         review rounds of #450 each found that from a different side. The reader is
-        `ast` now and the fold is gone.
-
-        **What the parse closes, and what it does not.** It closes layout — the
-        argv wrapped one word per line, a comment between two of its words, any
-        whitespace at all — because the tree does not carry layout. It does NOT
-        close a value that is not a string literal. `words` keeps only
-        `ast.Constant` strings and `issue_argvs` compares the first three of them
-        against `["gh", "issue", verb]`, so a name anywhere in those three
-        positions is dropped, the prefix shifts by one, and the verb is never
-        matched. Measured in round 3 of #450 and again in its fix pass, four
-        spellings of a planted `gh issue reopen`: plain and comment-separated both
-        red this case; `GH = "gh"` used as the first word, and the verb moved into
-        a module constant, both leave it green.
-
-        So this reader is strictly stronger than the fold and blind in a place the
-        fold was blind too. Closing that means resolving module-level names before
-        comparing, which is a different checker with its own argument to make;
-        `seal/follow-up.md` carries it with the repository owner named.
+        `ast` now, through `argv_words`, which says what the parse closes and what
+        it does not, and the fold is gone.
 
         **This used to say `only ever closes`, and #450 changed what is true.**
         The script now also removes `size: now` from the issue it is closing —
@@ -1157,25 +1181,15 @@ class Test_module:
         # them for exactly the reason the `edit` one did. The folded reader is
         # gone from this case entirely; there is one reader and it does not care
         # how the argv is laid out.
-        tree = ast.parse(read_text(".github", "scripts", "close_issues_on_release.py"))
-        # BOTH argv shapes this file uses: `run("gh", …)` spreads the words as
-        # call arguments, and `subprocess.run(["gh", …], …)` passes a list. The
-        # one `issue edit` is written the second way, and a reader that knew only
-        # the first parsed zero calls and asserted nothing — measured, on the
-        # first spelling of round 1's fix.
-        argvs = [node.elts for node in ast.walk(tree) if isinstance(node, ast.List)]
-        argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
-
-        def words(argv):
-            return [
-                a.value
-                for a in argv
-                if isinstance(a, ast.Constant) and isinstance(a.value, str)
-            ]
+        # The one `issue edit` is written as a list, `subprocess.run(["gh", …],
+        # …)`, and every other argv as call arguments; `argv_words` reads both.
+        argvs = argv_words(
+            read_text(".github", "scripts", "close_issues_on_release.py")
+        )
 
         def issue_argvs(verb):
             """Every `gh issue <verb>` argv in the script, however it is laid out."""
-            return [argv for argv in argvs if words(argv)[:3] == ["gh", "issue", verb]]
+            return [words for words in argvs if words[:3] == ["gh", "issue", verb]]
 
         # **What this gave up, recorded rather than restored.** The folded form
         # asserted `'"gh", "issue", "close", str(issue),' in folded` — the verb
@@ -1185,7 +1199,7 @@ class Test_module:
         # passes. The trade is taken deliberately and is the same one the `edit`
         # argv below already makes, where the flags are read and the operand is
         # not — an operand is a variable name, and a name is exactly what this
-        # reader cannot resolve (see the docstring). Pinning it would mean
+        # reader cannot resolve (see `argv_words`). Pinning it would mean
         # asserting on an `ast.Name`'s spelling, which breaks on a rename that
         # changes nothing. Round 3 of #450 named the silence; this comment is it.
         closes = issue_argvs("close")
@@ -1208,7 +1222,7 @@ class Test_module:
             f"{len(edit_calls)} `gh issue edit` argv lists; there is one, and it "
             "is the removal of a spent sizing label"
         )
-        flags = {word for word in words(edit_calls[0]) if word.startswith("--")}
+        flags = {word for word in edit_calls[0] if word.startswith("--")}
         assert flags == {"--repo", "--remove-label"}, (
             f"the one `gh issue edit` carries {sorted(flags)}. It may carry "
             "`--remove-label` and nothing else that writes: adding a label is "
