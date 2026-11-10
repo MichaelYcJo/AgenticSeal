@@ -470,12 +470,12 @@ def test_a_decision_after_the_frame_is_folded_into_it():
             "then commits the frame files the framer changed and its own rows "
             "in one commit, before the spawn that reads them.",
         ),
-        # 12, #1442.
+        # 12, #1442. What the framer's hand-back names is `agents/framer.md`
+        # *You have two routes back*'s.
         (
             12,
-            "The framer's hand-back names each statement the fold contradicts "
-            "in a file the framer does not write, and a statement in "
-            "`routing.md` or `pr.md` is the orchestrator's to repair.",
+            "A statement the framer's hand-back names in `routing.md` or "
+            "`pr.md` is the orchestrator's to repair.",
         ),
         # 13, #1318 after #1234: #1234's fold widened only the *Scope* item a
         # finding named, so a fold reads the file whole.
@@ -494,16 +494,17 @@ def test_a_decision_after_the_frame_is_folded_into_it():
             "work is, so the orchestrator folds it in a commit of its own and "
             "spawns no framer.",
         ),
-        # 15, #1368.
+        # 15, #1368. The rule's own text is `skills/implement/SKILL.md`
+        # *Document layout — two roots, three lifetimes*'s, and the body keeps
+        # the clauses the orchestrator acts on.
         (
             15,
-            "A section the frame dates to the commit it read, *Grounding* or "
-            "*Technical context*, states that commit, so its statements of the "
-            "tree are not folded;",
+            "In a section the frame dates to the commit it read, a statement "
+            "of the tree is not folded,",
         ),
         (
             15,
-            "A section that states the tree with no date gets the date and "
+            "a section that states the tree with no date gets the date and "
             "keeps its text",
         ),
         # 16, #1327 and #1442: the records after a fold commit are read too.
@@ -558,8 +559,8 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         # 5 of 1794200907: a dated section's conclusion went stale unfolded.
         (
             22,
-            "a sentence there that says what the work does or concludes is no "
-            "claim about that commit, and is folded with the fact it states.",
+            "and a sentence that says what the work does or concludes is "
+            "folded with the fact it states;",
         ),
         # 23, #1477 from the five 0.37.0 findings: the fact a decision
         # changed stood in a section the fold did not reach.
