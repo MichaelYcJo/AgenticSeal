@@ -91,12 +91,10 @@ the person's settings. The command exits 0 whatever happens, through its
 closing ` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going;
 the `py -3` half runs where the `python3` half exits non-zero. The hook runs at the end of every turn in every
 repository; where nothing is pending in the clone of the payload's `cwd`, it
-returns before the opt-in is read. A release from 0.33.0 to 0.34.1 wrote, on
-the person's yes, a launcher at `${CLAUDE_PLUGIN_DATA}/stamp.py` and a `Stop`
-entry in their settings that runs it. That launcher keeps running at the end
-of every turn and drawing from the root it names until the person removes
-both, as `/agentic:update` step 4b names them. A file is drawn once either
-way, since drawing claims the file first.
+returns before the opt-in is read. Where the launcher
+`skills/update/SKILL.md` *4b. The launcher an earlier release wrote* names
+still runs beside the plugin's hook, a file is drawn once, since drawing
+claims the file first.
 check: tests/skills/test_seal_stamp.py
 
 **`--stop` holds its whole message under a limit named in the code, and steps
@@ -122,9 +120,10 @@ check: tests/skills/test_seal_stamp.py
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that `--stop` emits the right bytes for
 the right payload. A screenshot of the probe proved once that such bytes render
-unfolded, in colour, after the turn's final text, and the owner's spike of
-2026-11-06 proved a `Stop` command hook runs from a plugin and from the
-person's own settings alike. Whether a given work item's stamp was seen, and
+unfolded, in colour, after the turn's final text, and
+`docs/experiments/2026-11-06-what-draws-the-stamp-without-a-plugin-hook.md`
+records that a `Stop` command hook runs from a plugin and from the person's
+own settings alike. Whether a given work item's stamp was seen, and
 whether the orchestrator wrote its result in the turn the stamp closed, are
 read by the person and by nobody else. So is how the stamp reads on a light
 background as well as a dark one. Nothing outside the disc is painted, so its text is in the

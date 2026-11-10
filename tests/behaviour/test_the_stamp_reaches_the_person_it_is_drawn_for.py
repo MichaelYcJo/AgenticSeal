@@ -143,7 +143,9 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     queue and draw it carry; a second statement, on what the screen shows,
     names `seal stamp --from <path>` for where a file was written. The
     rule's trigger, its limits and the places nothing draws are the
-    proofer's to read (1792363231 S7 and S8, #1027 and #1376)."""
+    proofer's to read (1792363231 S7 and S8, #1027 and #1376). #1492: the
+    launcher of 0.33.0 to 0.34.1 is cited, not described, and the
+    measurement of 2026-11-06 is cited from its `docs/experiments/` record."""
     text = stamp_section()
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
@@ -188,6 +190,16 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     assert "`--stop` exits 0 whatever happens" not in text
     assert "nothing says so, where the `python3` the harness finds" not in text
     assert "the command exits non-zero" not in text
+    # #1492: the launcher of 0.33.0 to 0.34.1 is described in the update
+    # skill alone; the policy cites that step and keeps the draw-once rule.
+    assert (
+        "`skills/update/SKILL.md` *4b. The launcher an earlier release wrote*"
+    ) in rule
+    assert "a file is drawn once, since drawing claims the file first" in rule
+    assert "${CLAUDE_PLUGIN_DATA}/stamp.py" not in text
+    # The measurement stands in a dated record, and the policy cites it.
+    assert "the owner's spike" not in text
+    assert "`docs/experiments/2026-11-06-" in unchecked
 
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():
@@ -250,7 +262,12 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     carries no count. #975 S11: neither edition says the broad gate leaves
     the stamp's values. What each edition says is read in its section alone,
     since *Install* names the two hooks too; what is gone is read over the
-    whole file."""
+    whole file.
+
+    #1492: the launcher is described in `skills/update/SKILL.md` *4b. The
+    launcher an earlier release wrote* alone, so each edition says in one
+    sentence that it may run and links to that step, and neither names its
+    file."""
 
     for edition, heading, said, gone in (
         (
@@ -268,7 +285,13 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 'Each command is `python3 "<script>" || py -3 "<script>" || exit 0`',
                 "The closing `exit 0` makes each command exit 0 whatever "
                 "happens, so neither hook ever stops a turn.",
-                "`/agentic:update` names both for you to take out by hand.",
+                # #1492: the launcher is described in the update skill alone,
+                # and this sentence links to its step.
+                "A release from 0.33.0 to 0.34.1 may have left a launcher of "
+                "its own that also runs at the end of each turn, and "
+                "`/agentic:update` names it for you to remove "
+                "([`skills/update/SKILL.md`](skills/update/SKILL.md) "
+                "*4b. The launcher an earlier release wrote*).",
                 "These side effects are worth stating outright",
                 # The clause's own words (round 2's white 2), so the bare
                 # directory named elsewhere does not pass with it deleted.
@@ -293,6 +316,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "seal stamp --remove",
                 "Each exits 0 whatever happens.",
                 "and no `py` stands, the command exits non-zero",
+                "a launcher, `stamp.py`",
             ),
         ),
         (
@@ -309,7 +333,11 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "exit 0` 꼴이고",
                 "끝의 `exit 0` 때문에 두 명령은 무슨 일이 있어도 0 으로 끝나고, "
                 "어느 훅도 턴을 멈추지 않습니다.",
-                "`/agentic:update` 가 이 둘을 알려 주면 사용자가 직접 지웁니다.",
+                "0.33.0 부터 0.34.1 까지의 릴리스가 따로 남긴 실행기가 있으면 그 "
+                "실행기도 턴이 끝날 때마다 돌고, `/agentic:update` 가 그것을 "
+                "알려 주면 사용자가 지웁니다"
+                "([`skills/update/SKILL.md`](skills/update/SKILL.md) "
+                "*4b. The launcher an earlier release wrote*).",
                 "다음 부수 효과는 밝혀 둡니다",
                 "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
                 "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 어느 "
@@ -327,6 +355,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "seal stamp --remove",
                 "두 스크립트 모두 무슨 일이 있어도 0 으로 끝납니다.",
                 "명령은 0 이 아닌 값으로",
+                "실행기 `stamp.py`",
             ),
         ),
     ):
