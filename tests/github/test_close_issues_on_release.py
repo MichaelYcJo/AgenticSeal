@@ -82,7 +82,7 @@ def load(name, filename):
 
 
 def argv_words(text):
-    """The string-literal words of every argv in TEXT, a script's source:
+    """The plain string-literal words of every argv in TEXT, a script's source:
     each list or tuple literal's elements and each call's positional
     arguments.
 
@@ -97,20 +97,26 @@ def argv_words(text):
     **What the parse closes, and what it does not.** It closes layout — the
     argv wrapped one word per line, a comment between two of its words, any
     whitespace at all — because the tree does not carry layout. It does NOT
-    close a value that is not a string literal. Only `ast.Constant` strings
-    are kept, and a case compares the first three of them against a prefix
-    such as `["gh", "issue", verb]`, so a name anywhere in those three
-    positions is dropped, the prefix shifts by one, and the verb is never
-    matched. Measured in round 3 of #450 and again in its fix pass, four
-    spellings of a planted `gh issue reopen`: plain and comment-separated both
-    red the closer's case; `GH = "gh"` used as the first word, and the verb
-    moved into a module constant, both leave it green.
+    close a word that is not a plain string literal. Only `ast.Constant`
+    values of type `str` are kept, and a case compares the first three of them
+    against a prefix such as `["gh", "issue", verb]`, so a name anywhere in
+    those three positions is dropped, the prefix shifts by one, and the verb
+    is never matched. Measured in round 3 of #450 and again in its fix pass,
+    four spellings of a planted `gh issue reopen`: plain and comment-separated
+    both red the closer's case; `GH = "gh"` used as the first word, and the
+    verb moved into a module constant, both leave it green.
 
-    So this reader closes every argv a fold of the source closed, a list, a
-    tuple and call arguments, and more, and it is blind in a place the fold
-    was blind too. Closing that means resolving module-level names before
-    comparing, which is a different checker with its own false-positive
-    argument to make; #1493 left it open.
+    So this reader reads the plain string literals of a list, a tuple or a
+    call's positional arguments, and nothing else. An argv that writes one of
+    its first three words another way, as a module-level name, an f-string or
+    a bytes literal among others, passes every case that reads through it. A
+    fold of the source was blind to a name too. It matched a first word
+    written `f"gh"` or `b"gh"`, since that text still holds `"gh"`, and this
+    reader drops both, measured in round 2 of #1493. Closing the name means
+    resolving module-level names before comparing, which is a different
+    checker with its own false-positive argument to make. #1493 left the name
+    open, and the f-string and bytes words with it, since no release script
+    writes one.
     """
     tree = ast.parse(text)
     argvs = [
@@ -1236,6 +1242,18 @@ class Test_module:
             "the sibling's act at the squash, and any other write is not the "
             "removal this case says the one edit is"
         )
+
+    def test_argv_words_reads_a_tuple_argv_as_it_reads_a_list(self):
+        """No release script writes a tuple argv, so only a source written here
+        holds the half of `argv_words` that reads one. A fold of the source
+        refused both spellings below, and a reader of lists alone passed both,
+        measured in round 1 of #1493."""
+        for source in (
+            'subprocess.run(("gh", "issue", "edit", str(n)))',
+            'run(*("gh", "issue", "edit", str(n)))',
+        ):
+            prefixes = [words[:3] for words in argv_words(source)]
+            assert ["gh", "issue", "edit"] in prefixes, source
 
 
 test_census = census_case(TARGET)
