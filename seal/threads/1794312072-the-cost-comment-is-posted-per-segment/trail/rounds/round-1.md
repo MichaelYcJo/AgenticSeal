@@ -62,6 +62,11 @@ This snippet does not cover every statement of the fact. The fix pass also owes 
 
 The other way to fix this is in code: `work_item` could print the rule 6 lines to the terminal as well as posting them. That changes printed output, so it owes its own pin, and it still leaves the `--says` sentence written without the numbers in view.
 
+```seal
+verdict: fixed 8bc38ba9f
+answer: The finding holds: with --post, session_cost.py#work_item redirects report_work_item into a buffer for post alone, and the section named no other form. The fix follows the frame as the framer folded it at d258c0bb7 (G18, D1 items 3 to 5, S5), which carries the paste-ready text, read against session_cost.py#work_item and #post. skills/verify/orchestration.md now has the orchestrator read seal cost --work-item <dir> without --post first, a fenced command of its own that prints the rows, any Contract rule 6 line and the log's state and posts nothing, write the --says file from it, then post with --post --says. The rule 6 paragraph says the read without --post prints the line and the posted comment carries it; the exit list names the posting command and says the read still runs where the label has no history; --label flow-baseline goes on both. The pin in tests/text/test_a_segment_feeds_the_flow_log.py now asserts the fenced read line and the sentence naming it as the form that prints the line, each seen red by seal mutate with only its sentence or fence removed. changelog.md says the same at its first, second and third items and its process row (8bc38ba9f, 9dc104229). session_cost.py is unchanged, as frame/plan.md row M rejects the code route; the S5 case already read the printed output without --post, and its docstring now says so. The frame lines the finding locates were folded by the framer at d258c0bb7.
+```
+
 ## Confirmations
 
 What matched: *Scope* item 3 and S3. `grep -n -F -e '#300' -e '#377' -e '#642' -e 'reading taken before' skills/verify/orchestration.md` printed nothing (executed). The analyse sentence on the skill carrying the three changes is gone from `session_cost.py:1094-1098` (read).
