@@ -4,8 +4,12 @@
 
 The tree as read at `0d73b6ed3`.
 
-The work edits text in six rule files, one test file and
-`.claude-plugin/plugin.json`. No line of a script changes.
+The work edits text in seven rule files, one test file and
+`.claude-plugin/plugin.json`. The rule files are `skills/core/SKILL.md`,
+`skills/code-review/SKILL.md`, `skills/code-review/orchestration.md`,
+`skills/implement/orchestration.md`, `agents/proofer.md`,
+`docs/running/the-run.md` and `docs/checks/the-pull-request-check.md`. No
+line of a script changes.
 
 **Where each part of the rule stands after the work.** `frame/design.md`
 *Scope* states what each file keeps and loses. The owners are:
@@ -141,3 +145,5 @@ receives the installed plugin's copy of the core and of its definition, the
 |---|---|---|---|
 | 2026-11-10 | The title takes `refactor:` | The diff moves statements of one rule to one owner each, adds to the core's row a condition the check already held, and changes no line of a script; no rule's meaning changes (`frame/design.md` *Rule changes*) | `~/.claude/skills/commit-pr-convention/SKILL.md` |
 | 2026-11-10 | The copy notice's record is read again in #1506, assigned to the owner, in the milestone `backlog: review chain & agents` | `frame/plan.md` *Operational impact* asks the orchestrator to file the issue before the pull request opens and name its number in `pr.md`; that milestone holds the check's other open items | `frame/plan.md` *Operational impact*; `skills/verify/SKILL.md` *The answerer has to exist* |
+| 2026-11-10 | Round 1 findings 1 and 3 are folded into the frame by the framer before the fix pass. Finding 1: *Scope* item 1's "exactly one line" leaves no line for a fix that holds for its own finding and breaks its unit; the definition drops "exactly" and says a `confirms:` line stands beside the `regression:` line in that case. Finding 3: *Technical context* counts six rule files where the diff edits seven. Finding 2 (`changelog.md`) goes to the fix pass. | `trail/rounds/round-1.md` findings 1 to 3 (proofer). The base text, `df775c52c` `agents/proofer.md:136-141`, said "is named this round" with no "exactly", and `docs/forms/the-round-record.md:64-74` gives the relations side by side (read by the orchestrator) | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the fold paragraph |
+| 2026-11-10 | The fix pass is a fresh crafter on Opus, not a resume of the phase 2 implementer | The owner asked on 2026-11-10 that only the framer of this item run on Fable and every later agent on Opus (milestone `release: 0.37.2`, *Model*); the implementer ran on Fable, and a resume keeps its model | `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* |
