@@ -3,7 +3,7 @@
 ## Not verified
 
 - nothing
-  why: phase 1 changed rule text in four files and one test file, and each claim it rests on was run or read, as `trail/phases/phase-1.md` records; the broad gate is the orchestrator's.
+  why: the two phases changed rule text in seven files, one test file and the version in `.claude-plugin/plugin.json`, and each claim they rest on was run or read, as `trail/phases/phase-1.md` and `trail/phases/phase-2.md` record; the broad gate is the orchestrator's.
 
 ## Not done
 
@@ -13,3 +13,23 @@ in its own words. `frame/design.md` *Grounding* G7 keeps it as the form the
 check reads, so phase 1 left it. After phase 1 its wording and the
 definition in `skills/code-review/SKILL.md` *Earlier rounds* are two texts
 a later edit can move apart, and no case compares them.
+
+Phase 2 left three sentences that say a commit outside the work item's
+records is read by a round. None states the condition on which the sealer
+reads a change, so none is a second statement of the exception, and
+`frame/design.md` *Scope* item 5 lists none of them. Each restates the
+first half of the core's row in its own words, and no case compares it with
+the row.
+
+- `skills/code-review/orchestration.md` *Orchestrator: the pull request
+  opens once the sealer seals*, the sentence "Where the merge resolved a
+  conflict in a file outside the work item's records, the orchestrator
+  spawns a verifying round on that resolution". Its grounds are its own:
+  the check reads no merge commit.
+- The same section, the paragraph **The stated limit**, "Its fix is a
+  commit outside the work item's records, so it takes the repair path
+  below". It states a fact about one kind of fix.
+- `docs/running/the-review-and-parity-arms.md`, the row *through the review
+  chain*, "the last record's `target:` commit at HEAD or followed only by
+  the work item's own records". It says what the check reads, as the `Held
+  by` cell of the core's row does.
