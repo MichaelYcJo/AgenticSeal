@@ -92,6 +92,9 @@ def argv_words(text):
     #450. A tuple, `subprocess.run(("gh", …))`, is read as a list is, and so
     is a tuple spread whole, `run(*("gh", …))`: a fold of the source caught
     both, and a reader of lists alone did not, measured in round 1 of #1493.
+    A first word written `f"gh"` or `b"gh"` is read as `"gh"` is: a fold of
+    the source matched both, since that text still holds `"gh"`, and a reader
+    of string literals alone dropped both, measured in rounds 2 and 3 of #1493.
 
     **What the parse closes, and what it does not.** It closes layout — the
     argv wrapped one word per line, a comment between two of its words, any
@@ -108,15 +111,17 @@ def argv_words(text):
     it green.
 
     So this reader reads string, placeholder-free f-string and bytes words in
-    a list, a tuple or a call's positional arguments, and so it reads every
-    argv a fold of the source read. The fold matched a first word written
-    `f"gh"` or `b"gh"`, since that text still holds `"gh"`, and a reader of
-    string literals alone dropped both, measured in rounds 2 and 3 of #1493.
-    A word taken from a module-level name escapes this reader, as it escaped
-    the fold: a forbidden argv so written is not seen, and a required one
-    reads as missing. Closing it means resolving module-level names before
+    a list, a tuple or a call's positional arguments, and a case judges an
+    argv by its first three kept words. Two kinds of argv escape the cases.
+    In one, `gh` or one of the two words after it is not written as a
+    literal, a module-level name among them, as above. In the other, a
+    literal word such as `env` stands before `gh`, so the argv's first three
+    kept words start with that word, measured in round 4 of #1493. Either
+    way a forbidden argv is not seen, and a required one reads as missing.
+    Closing the first for a module-level name means resolving names before
     comparing, which is a different checker with its own false-positive
-    argument to make. #1493 left it open, since no release script writes one.
+    argument to make. #1493 left both open, since no release script writes a
+    `gh issue` or `gh label` argv either way.
     """
 
     def word(node):
@@ -1265,12 +1270,13 @@ class Test_module:
     def test_argv_words_reads_an_f_string_and_a_bytes_word_as_it_reads_a_string(
         self,
     ):
-        """No release script writes an f-string or a bytes argv word, so only a
-        source written here holds the two halves of `argv_words` that read them.
-        A fold of the source matched both spellings below, and a reader of
-        string literals alone dropped both, measured in rounds 2 and 3 of
-        #1493. Dropped, a required argv so written reads as missing, and the
-        label case goes red while the script still creates the label."""
+        """No release script writes a placeholder-free f-string or a bytes word
+        in a `gh` argv, so only a source written here holds the two halves of
+        `argv_words` that read them. A fold of the source matched both
+        spellings below, and a reader of string literals alone dropped both,
+        measured in rounds 2 and 3 of #1493. Dropped, a required argv so
+        written reads as missing, and the label case goes red while the script
+        still creates the label."""
         for source in (
             'run(f"gh", "label", "create", name)',
             'run(b"gh", "label", "create", name)',

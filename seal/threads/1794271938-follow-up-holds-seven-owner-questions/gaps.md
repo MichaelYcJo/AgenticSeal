@@ -3,7 +3,7 @@
 ## Not verified
 
 - nothing
-  why: Phases 1, 2 and 3 ran each claim they make, as `trail/phases/phase-1.md`, `trail/phases/phase-2.md` and `trail/phases/phase-3.md` record, and fix passes 1, 2 and 3 ran their own, as their close blocks in `trail/rounds/round-1.md`, `trail/rounds/round-2.md` and `trail/rounds/round-3.md` record. The broad gate is the orchestrator's, and `trail/gate.md` will record its run.
+  why: Phases 1, 2 and 3 ran each claim they make, as `trail/phases/phase-1.md`, `trail/phases/phase-2.md` and `trail/phases/phase-3.md` record, and fix passes 1, 2, 3 and 4 ran their own, as their close blocks in `trail/rounds/round-1.md`, `trail/rounds/round-2.md`, `trail/rounds/round-3.md` and `trail/rounds/round-4.md` record. The broad gate is the orchestrator's, and `trail/gate.md` will record its run.
 
 ## Not done
 
