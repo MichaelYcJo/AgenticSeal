@@ -60,8 +60,10 @@ here is a write you do not make.
    `docs/running/what-a-script-gates.md` *The checks*, is a finding, and so is a
    `to` that repeats a passage another file keeps after the settle. A named
    pin of a fact a reader acts on is no finding, since the settle repoints
-   it. A finding you take from such a notice quotes the notice, so the
-   settle can count what the notices caught.
+   it. A finding you take from such a notice quotes the notice. Those
+   quotes in the round records are the record `skills/core/SKILL.md` *The
+   rule a mechanism is kept against* weighs the notices by, counted with
+   `git grep -F` on a notice's words.
 
 ## Never
 

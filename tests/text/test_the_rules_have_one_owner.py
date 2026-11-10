@@ -32,6 +32,8 @@ VERIFY = ("skills", "verify", "SKILL.md")
 SEALER = ("agents", "sealer.md")
 FRAMER = ("agents", "framer.md")
 TRACKER = ("docs", "releasing", "issues-and-milestones.md")
+CORE = ("skills", "core", "SKILL.md")
+PR_CHECK = ("docs", "checks", "the-pull-request-check.md")
 RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
@@ -52,6 +54,10 @@ FRAGMENT_OWNER = (
 )
 RUN_OWNS_THE_RULE = "`docs/running/the-run.md` *The run* owns that rule"
 EARLIER_ROUNDS = "`skills/code-review/SKILL.md` *Earlier rounds*"
+THE_CORES_ROW = (
+    "the row *No fix that no round reads* of `skills/core/SKILL.md` "
+    "*Judgment is not licence to skip a party*"
+)
 
 
 # rule → (owner, the sentence the owner states, {link carrier: how it names
@@ -172,6 +178,22 @@ RULES = {
         "is named this round by exactly one of three lines: `confirms:`, "
         "`regression:` or `reopens:`.",
         {PROOFER: EARLIER_ROUNDS, RECORD: EARLIER_ROUNDS, ORCH: EARLIER_ROUNDS},
+    ),
+    # #1476: five files each gave the condition on which a fix owes no
+    # verifying round, and the core's row gave one half of it. The row
+    # states both halves, as the check holds them, and each other file names
+    # the row.
+    "22 a change after the last round is read by a round, or by the sealer": (
+        CORE,
+        "every change after the last round is read by a round, or by the "
+        "sealer where it touched the work item's records alone and each "
+        "finding it closed is located in those records alone",
+        {
+            RECORD: THE_CORES_ROW,
+            ORCH: THE_CORES_ROW,
+            PR_CHECK: THE_CORES_ROW,
+            ORCH_IMPL: THE_CORES_ROW,
+        },
     ),
 }
 
