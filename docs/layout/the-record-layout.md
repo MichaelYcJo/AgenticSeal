@@ -125,8 +125,9 @@ where the two language keys differ) go with the directory, whole, when the
 settle removes it (`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*,
 and `docs/releasing/release-checklist.md` *Settle what earlier releases left
 behind*). A document that still cites a record of it writes the path a
-commit holds, as `<commit>:<path>`, which `git show` opens as written; in this repository `tests/censuses.py#HISTORY_PATH` is
-the one form `old_names` passes.
+commit holds, as `<commit>:<path>`, which `git show` opens as written; in
+this repository `tests/censuses.py#HISTORY_PATH` is the one form
+`old_names` passes.
 check: tests/skills/test_settle.py
 
 **A record a template starts carries no HTML comment.** Its template holds headings, table headers, placeholders, the `seal` blocks the record's grammar asks for and the foot line, and nothing else. The guidance for
