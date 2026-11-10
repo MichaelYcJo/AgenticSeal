@@ -8,7 +8,7 @@ what to look at before the next step.
 `tests/behaviour/test_release_hygiene.py` refuses a loaded document that names the one
 running.
 
-## 0. Before starting
+## Before starting
 
 - [ ] Every work item of the release is squash-merged into `release/vX.Y.Z`
       and no check of its pull request was red **at the commit that
@@ -27,12 +27,12 @@ running.
 - [ ] **The milestone `release: X.Y.Z` holds what this release is actually
       carrying, and nothing else.** Every open issue in it that is not
       shipping moves to another milestone now, a planning act that needs no
-      code. Left, the release pull request goes red at step 5:
+      code. Left, the release pull request goes red when it opens:
       `release_completeness_check.py` refuses while the milestone claims an
       open issue the release branch does not carry, and names each one, at
       the worst moment to do the planning.
 
-## 2b. Settle what earlier releases left behind
+## Settle what earlier releases left behind
 
 `skills/settle/SKILL.md` *When it runs* says when the settle runs. A release
 whose owner has not called the settle skips this step.
@@ -86,9 +86,9 @@ its `### <n>. <symptom>` section that holds a finding block, by that block's
 block's `location:` names where the fix went, not where the defect shows, and the count
 does not read it. A work item whose record the reader refuses a line of reads `not read`
 in its finding cells, and the refusal is printed under the table, because a count that
-skipped a refused finding is a wrong number. They are this repository's measure
-of #1148, which removed the records' copies of one another. A records-alone count
-that does not fall is no verdict. #1148 is measured by this count falling, so a count
+skipped a refused finding is a wrong number. The four numbers measure records that
+restate one another, and #1148 is the reason they are counted. A records-alone count
+that does not fall is no verdict. The count is expected to fall, so a count
 that holds level is read as one that rose: it is a row for the judgment
 `docs/running/measuring-a-run.md` *A band flags a reading for judgment, and a judgment
 decides whether it is worse* asks, because a release's mix of work moves the count as
@@ -127,7 +127,7 @@ so nothing is kept beside the tree to carry them; `skills/core/SKILL.md` *A judg
 stands on a source document, and is written down with both* says the
 guidance improves from that record and not from memory.
 
-## 5. The release pull request
+## The release pull request
 
 ```bash
 gh pr create --base main --head release/vX.Y.Z \
@@ -136,8 +136,8 @@ gh pr create --base main --head release/vX.Y.Z \
 
 **The orchestrator opens the release pull request once the last pull
 request into `release/vX.Y.Z` has merged, and the owner's one required act
-at a release is its merge.** The reads below and the boxes of step 6 are
-reports that fail nothing. The version moved in the release's first pull
+at a release is its merge.** The reads below and the boxes of *After the
+merge* are reports that fail nothing. The version moved in the release's first pull
 request, so the one pull request that may come between the last work item
 and this one refreshes `.test_durations`. The release pull request's
 `durations` job is red when the committed file prices too little of the
@@ -169,9 +169,10 @@ when the branch name is not a release name and when no milestone of that
 title exists, and then prints a line saying so in place of the `M` line.
 That check fails the release pull request while the milestone claims an
 issue the branch does not carry, and names each one. An issue it names
-that no branch is building is step 0's milestone box, left undone. Where
-it fails for another reason, a patch carrying a `feat:` or a label on an
-issue the branch does not carry, its `::error::` line names the repair.
+that no branch is building is the milestone box of *Before starting*, left
+undone. Where it fails for another reason, a patch carrying a `feat:` or a
+label on an issue the branch does not carry, its `::error::` line names the
+repair.
 check: tests/github/test_release_completeness_check.py
 
 Press ***Create a merge commit***, never squash: the review records name the
@@ -248,7 +249,7 @@ is that it reaches somebody who opened no document, and the refusal message
 of the check that fires on a wrong base says which fact is wrong.
 check: tests/behaviour/test_the_release_check_watches_what_ships.py tests/behaviour/test_the_contributor_has_a_procedure.py
 
-## 6. After the merge
+## After the merge
 
 ```bash
 git fetch origin --tags

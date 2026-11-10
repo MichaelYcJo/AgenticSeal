@@ -42,7 +42,7 @@ import re
 from conftest import ROOT
 
 CHECKLIST = "docs/releasing/release-checklist.md"
-AFTER_THE_MERGE = "*6. After the merge*"
+AFTER_THE_MERGE = "*After the merge*"
 BRANCHING = "docs/releasing/branch-and-release.md"
 
 # The two commands the boxes carry. Each is a real invocation, and the second
@@ -77,13 +77,13 @@ def section(rel, heading):
 
 
 def after_the_tag():
-    """`docs/releasing/release-checklist.md` *6. After the merge* from the acts after the tag on.
+    """`docs/releasing/release-checklist.md` *After the merge* from the acts after the tag on.
 
     A5's *Then* is about what FOLLOWS the tag, which the merge's workflow
     creates. A box above that paragraph is one a reader working down the file
     ticks against the release before this one.
     """
-    body = section(CHECKLIST, "## 6. After the merge")
+    body = section(CHECKLIST, "## After the merge")
     return body[body.index("Two acts come after the tag") :]
 
 
@@ -220,7 +220,7 @@ def test_the_squash_rule_cites_the_box_that_reads_what_is_pinned():
     what it pins."""
     rule = squash_rule()
     # The section a reader of the squash rule resolves to the box.
-    assert "docs/releasing/release-checklist.md` *6. After the merge*" in rule, (
+    assert "docs/releasing/release-checklist.md` *After the merge*" in rule, (
         "nothing points from the rule to the box that reads what is pinned"
     )
 

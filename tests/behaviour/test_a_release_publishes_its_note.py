@@ -27,7 +27,8 @@ SYMPTOMS = "two acts nobody wrote down"
 
 
 def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
-    """S17 of #1000. The command in `docs/releasing/release-checklist.md` *5*, filled
+    """S17 of #1000. The command in `docs/releasing/release-checklist.md` *The release
+    pull request*, filled
     with a version and a symptom, is the merge commit's body line, and
     `title_from` reads it as S15 does. Protects: the document a release
     session copies and the reader moving apart, which loses the next
@@ -38,7 +39,7 @@ def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
     )
     text = doc.read()
     doc.close()
-    step = text[text.index("## 5. The release pull request") :]
+    step = text[text.index("## The release pull request") :]
     title = step.split('--title "', 1)[1].split('"', 1)[0]
     filled = title.replace("X.Y.Z", VERSION).replace(
         "<the symptoms the release answers>", SYMPTOMS

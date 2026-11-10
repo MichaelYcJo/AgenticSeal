@@ -13,7 +13,7 @@ what has to be in effect before the next work item starts.**
 |---|---|---|
 | `release:` | the work going out in that version | closed when the version ships |
 | `backlog:` | work with no release yet, bucketed by area | closed when the area is empty |
-| `log:` | **not work**: a record that is kept rather than finished | never closed |
+| `log:` | **not work**: a record that is kept rather than finished | never closed: a log of each kind is always open in it |
 
 `release:` milestones carry the version's release date as their due date, and
 are closed when the release reaches `main`. An open milestone with a past due
@@ -59,18 +59,20 @@ file. The number is illustrative, for the reason *A rolling log is titled after 
 version it rolled from* gives below.
 
 `log:` is the shape that surprises people, and there is one of it:
-`log: measurement`. What it holds are not tasks. `#51` is the durable
-performance log whose body is the current state, and the open
-`flow-measurement` issue is this version's rolling log. Neither has a done
-condition, so neither closes, so the milestone does not either.
+`log: measurement`. What it holds are not tasks. The open `flow-baseline`
+issue is the durable performance log whose body is the current state, and
+the open `flow-measurement` issue is this version's rolling log. Either
+issue can close: the rolling log is closed and replaced when a release
+ships, and the durable log is a ledger that can roll to a new issue. One of
+each kind is always open, so the milestone never closes.
 check: tests/behaviour/test_a_release_is_sized_by_a_criterion.py
 
 ## A label answers *what it is about*, and survives the move
 
 GitHub gives an issue one milestone. That field is spent on *when*, so a
 concern that outlives a schedule needs a label instead: `measurement` is
-carried by `#51`, by the rolling log, and by the scheduled work that came out
-of them, whichever milestone each one sits in. Query the concern by label and
+carried by the open `flow-baseline` issue, by the rolling log, and by the
+scheduled work that came out of them, whichever milestone each one sits in. Query the concern by label and
 the release by milestone; neither substitutes for the other.
 
 **`from-review` marks an issue a review round filed.** A round that hands a
@@ -99,8 +101,8 @@ release is never held for bookkeeping about a release, and a count the
 listing could not answer rolls the log and says the count was unreadable.
 `skills/verify/orchestration.md` finds the log to post a segment's
 measurement to by that key. Reading `--label flow-measurement --state all`
-finds the rolling logs and misses `#51`; reading `--label measurement` finds
-everything and answers no lookup.
+finds the rolling logs and misses the open `flow-baseline` issue; reading
+`--label measurement` finds everything and answers no lookup.
 check: tests/github/test_roll_flow_measurement_issue.py
 
 **A rolling log is titled after the version it rolled from**, in the form
@@ -202,7 +204,7 @@ two open ones fail the same check from the other side.
 branch does not carry, and names each one. So a milestone left holding next
 quarter's work produces a red release pull request, at the moment the release
 is being cut, which is the worst moment to do the scheduling it is asking for.
-`docs/releasing/release-checklist.md` *0. Before starting* is where that act belongs:
+`docs/releasing/release-checklist.md` *Before starting* is where that act belongs:
 the box asking whether the milestone holds what the release is carrying is
 ticked before any of the release's cost is paid.
 
@@ -326,13 +328,14 @@ How a decision is folded into the body, and into the frame once the item is
 framed, is `skills/implement/orchestration.md` *Orchestrator: the order
 inside a ticket*.
 
-An issue that is a **log rather than a ticket**, `#51` and the rolling
-`flow-measurement` log, keeps its body the same way with different
-comments: the body is the current state of a measurement, a better baseline
-replaces the table, an observation that gets an answer is rewritten where
-it stands, and the comments are the readings a change was made on rather
-than decisions. `#51`'s own body says so at the
-top, because the distinction is not guessable from the outside.
+An issue that is a **log rather than a ticket**, the open `flow-baseline`
+issue and the rolling `flow-measurement` log, keeps its body the same way
+with different comments: the body is the current state of a measurement, a
+better baseline replaces the table, an observation that gets an answer is
+rewritten where it stands, and the comments are the readings a change was
+made on rather than decisions. The open `flow-baseline` issue's own body
+says so at the top, because the distinction is not guessable from the
+outside.
 
 ## An issue is titled like a commit
 
