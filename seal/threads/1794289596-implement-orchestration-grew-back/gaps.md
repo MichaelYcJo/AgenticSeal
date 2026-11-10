@@ -2,8 +2,10 @@
 
 ## Not verified
 
-- nothing
-  why: Phases 1 and 2 ran each claim they make, as `trail/phases/phase-1.md` and `trail/phases/phase-2.md` record. The broad gate is the orchestrator's, and no phase runs it.
+| Item | Who must answer |
+|---|---|
+| `frame/design.md` S1 once the release branch, #1476's change among it, is merged in. The body holds 5,225 words at `02740215a`, 17 under the bound of 5,242, and the release branch at `df775c52c` holds no change to the file. | the orchestrator, by `wc -w skills/implement/orchestration.md` after it merges the release branch in (`frame/plan.md` *Overlap with the release*), and the proofer by the same count |
+| The broad gate at the work item's HEAD. Each phase ran its phase boundary set, as its record says, and none ran the broad gate. | the orchestrator, by `seal gate --record` |
 
 ## Not done
 
@@ -13,4 +15,6 @@ Phase 1 left `docs/running/the-review-and-parity-arms.md:56` citing `skills/impl
 
 Phase 1 added nothing to the body for the sentence on folding the version move into `frame/plan.md` *Operational impact*, so at `4112c5924` the sentence stood only in `skills/implement/merge-order.md`. Phase 1's spawn bounded the words it added to the body to what *Scope* named, and phase 1 left the question to the framer (`trail/phases/phase-1.md` *For phase 2*). The framer decided it at `07a3544aa`: the sentence stands in the body's fold rule as `frame/design.md` D1 row 24, and phase 2 takes it out of `merge-order.md`.
 
-Phase 2 left `agents/crafter.md:186` and `agents/proofer.md:124` without `frame/design.md` D1 row 22. Each says a frame section dated to the commit the framer read states that commit, and neither says that a sentence there stating what the work does or concludes is folded with the fact it states. A proofer that reads its rule as written would not flag the stale *Grounding* conclusion `frame/design.md` G8 records. Adding the clause was within reach. Agent definitions are outside `frame/design.md` *Scope*, and a rule change to two agents is a decision for the frame, so phase 2 names them in its hand-back for the orchestrator.
+Phase 2 left `agents/crafter.md:186` and `agents/proofer.md:124` without `frame/design.md` D1 row 22: each exempted a frame section dated to the commit the framer read whole, a sentence there on what the work does or concludes among it. At `500d2cb98` the two definitions were outside `frame/design.md` *Scope*, so phase 2 named them in its hand-back. The framer's fold at `8e49bb39b` brought them in as *Scope* item 9, and phase 3 built it at `02740215a`: `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* states the exception, and each definition carries it and cites that section.
+
+Phase 3 cut nothing beyond what `frame/design.md` *Scope* items 5, 6 and 9 name. The body came to 5,225 words, under S1's bound, so no count goes to the owner from this phase.
