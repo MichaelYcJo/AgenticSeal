@@ -68,4 +68,4 @@ None for a deployer: no migration, no environment variable, no dependency, no co
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-10 | The title takes `refactor:` | The diff answers seven held questions: it empties a table, removes a guard, moves three cases onto one reader and adds one assertion, and changes one sentence of the implement skill that names a third value a record already used (#84's `deferred #350`); no command, script or hook behaves differently, so the patch carries no `feat:` | `~/.claude/skills/commit-pr-convention/SKILL.md` |
