@@ -72,8 +72,9 @@ check: tests/behaviour/test_a_release_is_sized_by_a_criterion.py
 GitHub gives an issue one milestone. That field is spent on *when*, so a
 concern that outlives a schedule needs a label instead: `measurement` is
 carried by the open `flow-baseline` issue, by the rolling log, and by the
-scheduled work that came out of them, whichever milestone each one sits in. Query the concern by label and
-the release by milestone; neither substitutes for the other.
+scheduled work that came out of them, whichever milestone each one sits in.
+Query the concern by label and the release by milestone; neither
+substitutes for the other.
 
 **`from-review` marks an issue a review round filed.** A round that hands a
 finding to the tracker puts it on the new issue, and nothing reads the label;
