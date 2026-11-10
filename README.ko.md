@@ -152,8 +152,9 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 - **direct** 는 세션이 에이전트도 프레임도 리뷰도 seal 도 없이 직접 고치는
   길입니다.
 
-답마다 무엇이 정해지는지와, 그 답이 `seal/threads/<id>/routing.md` 에 쓰는
-행은 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
+답마다 무엇이 정해지는지는 `skills/implement/routing-question.md` 에 있고,
+그 답이 `seal/threads/<id>/routing.md` 에 쓰는 행은
+`skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 에 있습니다. pull request 의 검사는 이 파일을 읽고 브랜치가 어떤 길로
 보내졌는지 압니다. `complete` 는 이 파일의 `Automation` 행을 늘 `yes` 로 쓰고,
 `agentic` 은 항목에 따라 `yes` 를 고를 수 있습니다. 이 행이 `yes` 인

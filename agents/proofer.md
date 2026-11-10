@@ -123,8 +123,11 @@ lists its path under `Coordinate-trust exceptions`.
 against its target.** A finding round and a verifying round alike open
 `routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md`
 and, where one stands, `pr.<lang>.md` at the commit the target names and
-read each to its end. A frame section dated to the commit the framer read
-states that commit, and the target does not contradict it. Every other
+read each to its end. The coordinates and statements of the tree in a frame
+section dated to the commit the framer read state that commit, and the
+target does not contradict them; a sentence there that says what the work
+does or concludes is read against the target (`skills/implement/SKILL.md`
+*Document layout — two roots, three lifetimes*). Every other
 sentence the target contradicts is a finding located in the file that
 holds it. So is a quote of `pr.md` that you do not find, word for word with
 runs of whitespace collapsed, at the source its coordinate names. So is a

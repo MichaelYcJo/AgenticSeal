@@ -85,9 +85,9 @@ English and carries on rather than asking.
 **Both keys are required all the same, and a commit is never refused for
 them.** The orchestrator asks for the two keys at first setup
 (`skills/implement/bootstrap.md` step 1) and before a work item's first
-edit wherever either is missing (`skills/implement/orchestration.md`
-*Orchestrator: what needs a person is asked in one batch, before the first
-edit*). `seal pr-body` refuses to compose a pull request body where either
+edit wherever either is missing (`skills/implement/routing-question.md`
+*The two language keys join the batch wherever either is missing*).
+`seal pr-body` refuses to compose a pull request body where either
 key is absent in any of the four ways, because the body's language is the
 one the team reads. Nothing reads the keys at a commit.
 

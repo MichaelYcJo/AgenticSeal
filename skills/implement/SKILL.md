@@ -118,7 +118,9 @@ before the build does it too: the framer names the commit it read once, at
 the head of `frame/design.md` *Grounding* and `frame/plan.md` *Technical
 context*, so each coordinate and present-tense statement of the tree there
 is a claim about that commit, which the build was bound to move and HEAD
-does not contradict.
+does not contradict. A sentence there that says what the work does or
+concludes is no claim about that commit: a fold rewrites it with the fact
+it states, and a reader holds it against HEAD.
 
 **Judgment precedence is policy > SDD > code where policy exists, and
 SDD > code where it does not.** Most repositories are the second kind. Do not
