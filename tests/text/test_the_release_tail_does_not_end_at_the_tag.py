@@ -31,6 +31,9 @@ documents with the sentence or box it pins removed; the mutations and what
 each case said were recorded in
 phase 2 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
 whose rule `docs/releasing/branch-and-release.md` *Cutting a release* now carries.
+The case on the listing's hold was shown red with the date taken out of the
+hold's sentence, in phase 1 of work item
+`1794271935-the-releasing-documents-describe-the-note-twice` (#1490).
 """
 
 import os
@@ -39,7 +42,7 @@ import re
 from conftest import ROOT
 
 CHECKLIST = "docs/releasing/release-checklist.md"
-AFTER_THE_MERGE = "*6. After the merge*"
+AFTER_THE_MERGE = "*After the merge*"
 BRANCHING = "docs/releasing/branch-and-release.md"
 
 # The two commands the boxes carry. Each is a real invocation, and the second
@@ -74,13 +77,13 @@ def section(rel, heading):
 
 
 def after_the_tag():
-    """`docs/releasing/release-checklist.md` *6. After the merge* from the acts after the tag on.
+    """`docs/releasing/release-checklist.md` *After the merge* from the acts after the tag on.
 
     A5's *Then* is about what FOLLOWS the tag, which the merge's workflow
     creates. A box above that paragraph is one a reader working down the file
     ticks against the release before this one.
     """
-    body = section(CHECKLIST, "## 6. After the merge")
+    body = section(CHECKLIST, "## After the merge")
     return body[body.index("Two acts come after the tag") :]
 
 
@@ -158,23 +161,26 @@ def test_the_directory_box_names_the_page_a_person_opens():
         assert page in box, f"the box does not name the {page}"
 
 
-def test_the_directory_box_records_which_kind_of_listing_it_is_with_a_date():
-    """#858 A6. Nothing in the tree can see which kind of listing the plugin
-    has, so the sentence saying which kind it is carries whose reading it is
-    and when, so that a reader can tell it has aged, and names the branch the
-    listing reads. The owner submitted `@dist` at the portal on 2026-11-05
-    (#1383)."""
-    sentences = re.split(r"(?<=\.) ", directory_box())
-    kind = [s for s in sentences if "The plugin's listing is a portal listing" in s]
-    assert kind, "the box does not say which kind of listing the plugin's is"
-    assert re.search(r"\b\d{4}-\d{2}-\d{2}\b", kind[0]), (
-        f"the kind sentence carries no date: {kind[0]!r}"
+def test_the_listing_s_hold_carries_its_date_and_whose_decision_it_is():
+    """#858 A6, moved by #1490. Nothing in the tree can see the listing's
+    state, so the sentence in `docs/releasing/branch-and-release.md`
+    *Cutting a release* saying the listing is on hold carries whose decision
+    it is and when, so that a reader can tell it has aged, and names the
+    branch that keeps taking a commit while it holds. A bold lead ends its
+    sentence too, so the lead before the hold, which names `dist`, cannot
+    answer for it."""
+    text = flat(section(BRANCHING, "## Cutting a release"))
+    sentences = re.split(r"(?<=\.) |(?<=\.\*\*) ", text)
+    hold = [s for s in sentences if "The listing has been on hold" in s]
+    assert hold, f"{BRANCHING} *Cutting a release* does not say the listing is on hold"
+    assert re.search(r"\b\d{4}-\d{2}-\d{2}\b", hold[0]), (
+        f"the hold's sentence carries no date: {hold[0]!r}"
     )
-    assert "reading" in kind[0], (
-        f"the kind sentence does not say it is somebody's reading: {kind[0]!r}"
+    assert "owner" in hold[0], (
+        f"the hold's sentence does not say whose decision it is: {hold[0]!r}"
     )
-    assert "`dist`" in kind[0], (
-        f"the kind sentence does not name the branch the listing reads: {kind[0]!r}"
+    assert "`dist`" in hold[0], (
+        f"the hold's sentence does not name the branch that keeps running: {hold[0]!r}"
     )
 
 
@@ -214,7 +220,7 @@ def test_the_squash_rule_cites_the_box_that_reads_what_is_pinned():
     what it pins."""
     rule = squash_rule()
     # The section a reader of the squash rule resolves to the box.
-    assert "docs/releasing/release-checklist.md` *6. After the merge*" in rule, (
+    assert "docs/releasing/release-checklist.md` *After the merge*" in rule, (
         "nothing points from the rule to the box that reads what is pinned"
     )
 

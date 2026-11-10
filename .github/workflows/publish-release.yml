@@ -25,14 +25,10 @@ name: publish the release note
 # re-run finds a release already there and writes `false`, and a re-run of
 # `seal` alone keeps `true` and meets the header guard instead: the first
 # run replaced the header, so the second finds none to replace). It runs the
-# suite at the tag and replaces the note's header with a table of the
-# stamp's results as badges, each with its result as alt text (#1153,
-# #1299, `.github/scripts/release_seal.py`). Where
-# `seal/config.json`'s `Release note seal mark` key reads `yes` at the tag
-# (#1204), it first attaches the page form of the stamp's mark, the PNG
-# `.claude-plugin/plugin.json` names as its `icon` (#857), as `seal.png`, and
-# the table opens with the image beside the results; under any other value
-# nothing is attached and a value other than `yes` is named. Every
+# suite at the tag and rewrites the note's header with
+# `.github/scripts/release_seal.py`; what the header holds, and what
+# `seal/config.json`'s `Release note seal mark` key decides about the image,
+# is `docs/releasing/branch-and-release.md` *Cutting a release*. Every
 # step of it is `continue-on-error`, and every failure the script meets is a
 # log line and a `::warning::` with an exit of 0: the note is already out,
 # and a seal that cannot be drawn costs the image and never the counts. So
@@ -47,8 +43,8 @@ name: publish the release note
 # passed one on; `.github/scripts/dist_branch.py` adds one
 # commit to `dist` on its previous commit, or none where that commit already
 # holds the tag's archive, and pushes without force. It has no
-# `continue-on-error`: a release that did not reach `dist` is a release the
-# directory did not get, so the run goes red, and a re-run adds the commit.
+# `continue-on-error`: a release that did not reach `dist` leaves `dist`
+# behind the tag, so the run goes red, and a re-run adds the commit.
 
 on:
   push:

@@ -350,5 +350,5 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
         "bin/test tests -q -k",
     ):
         assert gone not in flat, f"the recipe paragraph still says {gone!r}"
-    before = section("docs/releasing/release-checklist.md", "0. Before starting")
+    before = section("docs/releasing/release-checklist.md", "Before starting")
     assert ".test_durations" not in before, "the checklist still has a refresh box"

@@ -94,12 +94,12 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     settle, and the case reads `direct` before the settle and after it."""
     text = in_force(
         "docs/releasing/release-checklist.md",
-        "2b. Settle what earlier releases left behind",
+        "Settle what earlier releases left behind",
     )
     # The routing answer `direct`, the code span, which a session gives the
     # routing question for such a commit.
     assert "`direct` answer" in text, (
-        "`docs/releasing/release-checklist.md` *2b. Settle what earlier releases "
+        "`docs/releasing/release-checklist.md` *Settle what earlier releases "
         "left behind*, as in force, does not name the waiver as the routing "
         "question's `direct` answer"
     )

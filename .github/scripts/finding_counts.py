@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Print the four numbers of `docs/releasing/release-checklist.md` step 2b, one row
-per released work item routed through the review chain (#1223).
+"""Print the four numbers of `docs/releasing/release-checklist.md` *Settle what
+earlier releases left behind*, one row per released work item routed through
+the review chain (#1223).
 
 **A finding is counted once, by its own block.** The step counts, per work
 item, its findings, the findings with a `regression:` or `reopens:` line,
@@ -32,8 +33,9 @@ not known. Under the table, one line names each record, directory or
 `routing.md` not read, and why; a work item routed straight to the pull
 request is no row and no line.
 
-It ships to no user: this repository's settling session types it at step
-2b and posts the table to the `flow-baseline` issue itself. It writes
+It ships to no user: this repository's settling session types it at
+`docs/releasing/release-checklist.md` *Settle what earlier releases left
+behind* and posts the table to the `flow-baseline` issue itself. It writes
 nothing, posts nothing and fails nothing.
 
     python3 .github/scripts/finding_counts.py [--released-at REF] [--root DIR]
@@ -178,7 +180,9 @@ def item_counts(root, where, routing, chain, reader, records_at):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Print step 2b's four numbers per released work item."
+        description="Print the four numbers of "
+        "`docs/releasing/release-checklist.md` *Settle what earlier releases "
+        "left behind* per released work item."
     )
     parser.add_argument(
         "--released-at",

@@ -210,9 +210,10 @@ def build_tracked_tree(d, files, deleted=()):
 
     `files` is `{relative path: text}`; every one of them is committed, and
     each entry of `deleted` is then unlinked WITHOUT staging the removal, so
-    it stays in the index and leaves the working tree. That is the state the
-    documented release sequence produces at step 3 of
-    `docs/releasing/release-checklist.md`, and the state `on_disk` below is about.
+    it stays in the index and leaves the working tree. That is the state
+    `seal settle --apply` leaves, since it deletes each directory and stages
+    nothing (`docs/releasing/release-checklist.md` *Settle what earlier
+    releases left behind*), and the state `on_disk` below is about.
 
     A real `git init` rather than a directory of files, for the reason
     `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_the_templates_check_reads_prose_only_and_descends`

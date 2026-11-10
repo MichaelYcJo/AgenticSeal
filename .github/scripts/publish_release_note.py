@@ -45,7 +45,7 @@ number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/releasing/release-checklist.md`
-*5. The release pull request* prescribes. Three other sources were measured and rejected: the merge
+*The release pull request* prescribes. Three other sources were measured and rejected: the merge
 commit's *subject* is GitHub's `Merge pull request #N from <owner>/...` line
 and not the title at all; the `## X.Y.Z -- <date>` heading the gathered
 changelog carried until #1053 held a date and no prose, so a title taken
@@ -163,7 +163,7 @@ PURPOSE_LABEL = "Purpose:"
 TAG_RE = settle.VERSION_RE
 
 
-# The title line `docs/releasing/release-checklist.md` *5. The release pull request*
+# The title line `docs/releasing/release-checklist.md` *The release pull request*
 # prescribes for the release
 # pull request, which is what the merge commit's body carries: a whole line,
 # one space after each colon and after the version, read exactly so.

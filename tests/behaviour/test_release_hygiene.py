@@ -1369,14 +1369,16 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
 
 
 def test_the_timer_sweep_survives_a_tracked_file_the_tree_deleted(tmp_path):
-    """#432's class in the module the release checklist runs at step 3.
+    """#432's class in the module `docs/releasing/release-checklist.md` names
+    on its `check:` lines.
 
-    This sweep is the one a release meets first, and the whole gate runs
-    before anything is staged, so the index can list paths the disk does not
-    have. The running version and the timer are both fixture values, for the
-    reason `RUNNING_IN_THE_FIXTURES` already gives: a fixture that moves with
-    the release proves nothing about the release after. Neither is
-    `ILLUSTRATIVE_VERSION`, which `timers_in` exempts by name.
+    A change that deletes a tracked file under `LOADED` and runs the suite
+    before staging the removal leaves the index listing a path the disk does
+    not have, and the sweep has to read past it. The running version and the
+    timer are both fixture values, for the reason `RUNNING_IN_THE_FIXTURES`
+    already gives: a fixture that moves with the release proves nothing about
+    the release after. Neither is `ILLUSTRATIVE_VERSION`, which `timers_in`
+    exempts by name.
     """
     root = build_tracked_tree(
         tmp_path / "r",

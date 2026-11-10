@@ -6,7 +6,7 @@ Until 2026-09-16 everybody running this plugin had installed it themselves, so
 a release that never reached them was one the owner could see was missing. A
 listing in the directory -- the catalog people browse inside Claude -- removes
 that: the people it reaches are people the owner cannot name, and
-`docs/releasing/release-checklist.md` *6. After the merge* had no box that looked (#417).
+`docs/releasing/release-checklist.md` *After the merge* had no box that looked (#417).
 
 **The directory itself is not read here, because no script can read it.**
 Measured 2026-10-07: three of its pages answered HTTP 403 with a challenge

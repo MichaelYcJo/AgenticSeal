@@ -40,7 +40,7 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
 
 
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():
-    """`docs/releasing/release-checklist.md` *6. After the merge*, the release-note box: it names the
+    """`docs/releasing/release-checklist.md` *After the merge*, the release-note box: it names the
     `seal` job and its asset, the `::warning::` line its log carries the
     reason on, and the commands of the hand-drawn route. When the job runs,
     that it never fails the release, and the reasons it gives are the

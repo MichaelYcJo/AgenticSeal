@@ -615,7 +615,7 @@ class Test_main:
         self, monkeypatch, tmp_path, capsys
     ):
         """A4, first branch, and S15 of #1000. `docs/releasing/release-checklist.md`
-        *5. The release pull request*
+        *The release pull request*
         prescribes `release: X.Y.Z symptoms: <symptoms>` for the release pull
         request, and the merge commit's BODY carries it — the subject is GitHub's
         own line. The published title keeps its `X.Y.Z — <symptoms>` form."""
