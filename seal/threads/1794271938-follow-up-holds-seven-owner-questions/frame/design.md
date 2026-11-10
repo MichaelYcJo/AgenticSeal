@@ -65,11 +65,11 @@ Out:
 
 ```python
 def argv_words(text):
-    """The plain string-literal words of every argv in TEXT, a script's source:
-    each list or tuple literal's elements and each call's positional arguments."""
+    """The literal words of every argv in TEXT, a script's source: each list
+    or tuple literal's elements and each call's positional arguments."""
 ```
 
-It returns one list of strings per `ast.List`, per `ast.Tuple` and per `ast.Call` in the parsed source, keeping only `ast.Constant` strings, as `words` does today. A case selects the argvs it judges by their first three words, such as `words[:3] == ["gh", "issue", verb]`. The two other modules import it as `tests/github/test_label_merged_on_release_branch.py` already imports `load` from the same module.
+It returns one list of strings per `ast.List`, per `ast.Tuple` and per `ast.Call` in the parsed source, keeping a string literal, an f-string with no placeholder (joined) and a bytes literal (decoded) as words, so it reads every argv the fold read (folded after round 3). A case selects the argvs it judges by their first three words, such as `words[:3] == ["gh", "issue", verb]`. The two other modules import it as `tests/github/test_label_merged_on_release_branch.py` already imports `load` from the same module.
 
 **`skills/implement/SKILL.md` *3. The SDD file set*, lines 325 to 327**, from:
 
@@ -111,6 +111,6 @@ The rows of `seal/follow-up.md` *Schedulable items with nowhere else to go* leav
 | The name `test_the_template_PARSES_into_the_three_answers_it_ships` | `tests/behaviour/test_waiver_decided_at_start.py` | `test_the_template_PARSES_into_the_THIRD_axis_it_ships` (G7). |
 | The citations of a row of `seal/follow-up.md` | The sentences G12 lists | Each states its reason itself (*Scope* item 6). |
 
-This work adds one assertion to an existing case, one case that pins the reader's tuple branch (folded after round 2), and lifts one reader to module level. In return it removes the guard and the folded reader above.
+This work adds one assertion to an existing case, two cases that pin the reader's tuple branch and its f-string and bytes words (folded after rounds 2 and 3), and lifts one reader to module level. In return it removes the guard and the folded reader above.
 
 Framed 2026-11-10 by framer, before the build.
