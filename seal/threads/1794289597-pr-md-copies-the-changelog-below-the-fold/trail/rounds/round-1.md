@@ -64,6 +64,11 @@ so no rendering is owed beside the quote.
 - "The diff moves where `seal pr-body` writes one record and where the `pr.md` rule is stated; no gate is added or removed, the body arm reads the same function, and every finding the proofer could name before it can name after" (`frame/plan.md` *Judgments of the run*, the row of the title, its Grounds cell)
 ```
 
+```seal
+verdict: fixed c3029edd7
+answer: The orchestrator, who writes `pr.md`, added the two lines of the fix at `pr.md:5-6`, word for word as the finding gives them. Each of `pr.md`'s six quotes stands word for word, whitespace collapsed, in the file its coordinate names, and the two new ones equal the Judgment and Grounds cells of the title row at `frame/plan.md:72` (executed, a script over `pr.md`, `frame/plan.md` and `frame/design.md`). The tree's `bin/seal pr-body` writes the body with the title row above `## From the records`, and its `--check` on that body exits 0 (executed).
+```
+
 ### 2. `frame/design.md` S5 asks for a body-arm case holding a stale body, which the build declined and no fold records
 
 ```seal
@@ -99,6 +104,11 @@ repair owes, and the snippet does not write it.
 ```markdown
 <!-- seal/threads/1794289597-pr-md-copies-the-changelog-below-the-fold/frame/design.md:55, the Verifiable how cell of S5 -->
 The body-arm cases of `tests/skills/test_chain_check.py`, green with fixtures in the new layout. The second half rests on `pr_body.py#compared`, which the arm calls (G3): `tests/skills/test_pr_body.py` `Test_main::test_refuses_the_changelog_inside_the_fold_until_written_again` drives the S4 body through it, and `Test_body::test_refuses_a_drifted_body_at_its_line` holds the arm's refusal at the body's line, so no case of the arm holds a whole stale body (`trail/phases/phase-1.md`).
+```
+
+```seal
+verdict: fixed dd9169206
+answer: The framer, who writes `frame/design.md`, folded the fix into S5's *Verifiable how* cell at `frame/design.md:55`. The cell equals the fix with one addition, "of `tests/skills/test_chain_check.py`" after `Test_body::test_refuses_a_drifted_body_at_its_line`, which names the module of a case the fix left unplaced (executed, a string comparison of the cell with the fix). The cell holds against the tree: the S4 case stands at `tests/skills/test_pr_body.py:1291` in `Test_main` and calls `main` with `--check`, which calls `compared` (`pr_body.py:1043`), and the drifted-body case stands at `tests/skills/test_chain_check.py:3334` in `Test_body` (read); both pass (executed). The same commit adds the *Judgments of the run* row at `frame/plan.md:73`, the second statement the finding said the repair owes.
 ```
 
 ## Confirmations
