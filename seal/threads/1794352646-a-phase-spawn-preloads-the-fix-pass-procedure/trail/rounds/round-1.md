@@ -84,6 +84,11 @@ The snippet covers `agents/crafter.md` alone. The fix pass also owes:
 `frame/design.md:30` (*Scope* item 2) is a frame statement, which the fix
 pass names in its hand-back for the orchestrator to fold.
 
+```seal
+verdict: fixed a53080e77
+answer: The finding holds. Step 9 in agents/crafter.md now reads the sentence frame/design.md Scope item 2 gives at 447524fcf, which matches the paste-ready fix: "In a fix pass, open `skills/implement/fix-pass.md` and follow it in place of step 7's run and step 8's record; steps 5 and 6 hold for each fix." The case's assertion and its docstring pin that sentence. The re-pointed assertion was seen red against the old step 9 before the edit, and red again under seal mutate with "steps 5 and 6 hold for each fix" removed. changelog.md quotes the new sentence, says what a fix pass owes is unchanged, and gives the remeasured preload: release_report.py#preloads at a53080e77 reads crafter 33,770 B (framer 39,806, proofer 33,254, sealer 33,962, tracer 25,402). Its process row now says 2.1 KB. The frame was folded by the orchestrator at 447524fcf, so the fix pass names no frame statement.
+```
+
 ### 2. The frame and the closing memo say the orchestrator files an issue for `docs/running/the-agent-set.md:93`, and the orchestrator judged it takes none
 
 ```seal
@@ -123,6 +128,11 @@ change:
 The first replaces `frame/design.md:44` and the second replaces `gaps.md:12`.
 `frame/design.md` is a frame file, so the fix pass changes `gaps.md` and
 names the *Scope* bullet for the orchestrator to fold.
+
+```seal
+verdict: fixed a53080e77
+answer: The finding holds. gaps.md Not done now takes the second paste-ready text: Scope puts the sentence out of this work, and frame/plan.md Judgments of the run judges that it takes no issue. The orchestrator already folded the first text into frame/design.md's Out bullet at 447524fcf, so the fix pass names no frame statement.
+```
 
 ## Confirmations
 
