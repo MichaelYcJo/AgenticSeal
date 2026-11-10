@@ -8,7 +8,7 @@ what to look at before the next step.
 `tests/behaviour/test_release_hygiene.py` refuses a loaded document that names the one
 running.
 
-## 0. Before starting
+## Before starting
 
 - [ ] Every work item of the release is squash-merged into `release/vX.Y.Z`
       and no check of its pull request was red **at the commit that
@@ -27,12 +27,12 @@ running.
 - [ ] **The milestone `release: X.Y.Z` holds what this release is actually
       carrying, and nothing else.** Every open issue in it that is not
       shipping moves to another milestone now, a planning act that needs no
-      code. Left, the release pull request goes red at step 5:
+      code. Left, the release pull request goes red when it opens:
       `release_completeness_check.py` refuses while the milestone claims an
       open issue the release branch does not carry, and names each one, at
       the worst moment to do the planning.
 
-## 2b. Settle what earlier releases left behind
+## Settle what earlier releases left behind
 
 `skills/settle/SKILL.md` *When it runs* says when the settle runs. A release
 whose owner has not called the settle skips this step.
@@ -69,7 +69,7 @@ it took, and the owner reviews it.
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
 it opens no directory under `seal/threads/`, and each of its commits
 carries the trailer `Seal-Routing: no work item`, the
-recorded form of the routing question's `no work item` answer
+recorded form of the routing question's `direct` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
 in this repository carrying a population floor over `seal/threads/`.
 
@@ -86,9 +86,9 @@ its `### <n>. <symptom>` section that holds a finding block, by that block's
 block's `location:` names where the fix went, not where the defect shows, and the count
 does not read it. A work item whose record the reader refuses a line of reads `not read`
 in its finding cells, and the refusal is printed under the table, because a count that
-skipped a refused finding is a wrong number. They are this repository's measure
-of #1148, which removed the records' copies of one another. A records-alone count
-that does not fall is no verdict. #1148 is measured by this count falling, so a count
+skipped a refused finding is a wrong number. The four numbers measure records that
+restate one another, and #1148 is the reason they are counted. A records-alone count
+that does not fall is no verdict. The count is expected to fall, so a count
 that holds level is read as one that rose: it is a row for the judgment
 `docs/running/measuring-a-run.md` *A band flags a reading for judgment, and a judgment
 decides whether it is worse* asks, because a release's mix of work moves the count as
@@ -127,7 +127,7 @@ so nothing is kept beside the tree to carry them; `skills/core/SKILL.md` *A judg
 stands on a source document, and is written down with both* says the
 guidance improves from that record and not from memory.
 
-## 5. The release pull request
+## The release pull request
 
 ```bash
 gh pr create --base main --head release/vX.Y.Z \
@@ -136,8 +136,8 @@ gh pr create --base main --head release/vX.Y.Z \
 
 **The orchestrator opens the release pull request once the last pull
 request into `release/vX.Y.Z` has merged, and the owner's one required act
-at a release is its merge.** The reads below and the boxes of step 6 are
-reports that fail nothing. The version moved in the release's first pull
+at a release is its merge.** The reads below and the boxes of *After the
+merge* are reports that fail nothing. The version moved in the release's first pull
 request, so the one pull request that may come between the last work item
 and this one refreshes `.test_durations`. The release pull request's
 `durations` job is red when the committed file prices too little of the
@@ -169,9 +169,10 @@ when the branch name is not a release name and when no milestone of that
 title exists, and then prints a line saying so in place of the `M` line.
 That check fails the release pull request while the milestone claims an
 issue the branch does not carry, and names each one. An issue it names
-that no branch is building is step 0's milestone box, left undone. Where
-it fails for another reason, a patch carrying a `feat:` or a label on an
-issue the branch does not carry, its `::error::` line names the repair.
+that no branch is building is the milestone box of *Before starting*, left
+undone. Where it fails for another reason, a patch carrying a `feat:` or a
+label on an issue the branch does not carry, its `::error::` line names the
+repair.
 check: tests/github/test_release_completeness_check.py
 
 Press ***Create a merge commit***, never squash: the review records name the
@@ -248,7 +249,7 @@ is that it reaches somebody who opened no document, and the refusal message
 of the check that fires on a wrong base says which fact is wrong.
 check: tests/behaviour/test_the_release_check_watches_what_ships.py tests/behaviour/test_the_contributor_has_a_procedure.py
 
-## 6. After the merge
+## After the merge
 
 ```bash
 git fetch origin --tags
@@ -272,10 +273,9 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
 - [ ] **A GitHub Release exists at `vX.Y.Z`**, by `gh release view vX.Y.Z`.
       The merge's push to `main` fires
       `.github/workflows/publish-release.yml`, which tags the merge commit
-      `vX.Y.Z` and then, in the same run, builds the note from the changelog
-      fragments the release's commits added and the previous version tag
-      does not already hold, with the title taken from the
-      `release: X.Y.Z symptoms: <symptoms>` line step 5 prescribes. **This
+      `vX.Y.Z` and publishes the note in the same run. What a published
+      note holds, and where its title comes from, is
+      `docs/releasing/branch-and-release.md` *Cutting a release*. **This
       box confirms the workflow fired; it is not where the note gets
       written.** Nothing there means the job went red or never ran, and
       `gh run list --workflow publish-release.yml` says which. A run that
@@ -285,28 +285,24 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       where GitHub refuses the tag; for a tag whose range added no changelog
       fragment the previous version tag does not already hold; for a `v*`
       tag that is not `vX.Y.Z`; and when a `gh` call it makes fails. A
-      missing title line is not one of them: it falls back to the tag name.
-      The note opens with a header of the release's counts and the theme
-      line under it, then the release's pull requests, one fold per
-      conventional-commit type under its name and count, and a
-      `### 🙌 Thanks to` line for each outside contributor, over the
-      fragments folded; where the job log says the pull requests could not
-      be listed, the note went out as the theme line and the fragments
-      alone, which one `gh release edit` repairs. After the note, the same
-      workflow's `seal` job attaches `seal.png` and puts it in the header,
-      beside the results the stamp states as badges, where
-      `seal/config.md`'s `Release note seal mark` row reads `yes`; under any
-      other value it attaches nothing and puts the results in the header
-      alone. Where the header still shows the counts as text, the `seal`
-      job's log says why on a `::warning::` line: the suite at the tag did
-      not pass or its counts could not be read, the icon could not be
-      copied, a `gh` call failed, or the header was not in the note as
-      generated: edited before the job reached it, already replaced by an
-      earlier run of the job, published without one, or the pull requests
-      moved between the two lists. A row written with a value other than
+      title that is the bare tag name is not one of them: the tagged commit
+      held no `release:` line the job could read, and its log gives the
+      shape it expected and the line it found. Where the job log says the
+      pull requests could not be listed, the note went out as the theme line
+      and the fragments alone, which one `gh release edit` repairs. After
+      the note, the same workflow's `seal` job attaches `seal.png` and
+      rewrites the header, as `docs/releasing/branch-and-release.md`
+      *Cutting a release* says. Where the header still
+      shows the counts as text, the `seal` job's log says why on a
+      `::warning::` line: the suite at the tag did not pass or its counts
+      could not be read, the icon could not be copied, a `gh` call failed,
+      or the header was not in the note as generated: edited before the job
+      reached it, already replaced by an earlier run of the job, published
+      without one, or the pull requests moved between the two lists. A
+      value of `seal/config.json`'s `Release note seal mark` key other than
       `yes` is named on a `::warning::` line of its own, and the results go
-      in without the image. That job never
-      fails the release. To seal one by hand, from a checkout at the tag,
+      in without the image. That job never fails the release. To seal one
+      by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
@@ -326,24 +322,15 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       are not the directory,
       the catalog people browse inside Claude, and the directory is readable from
       nowhere a script can reach, so the command ends by saying it was not read and
-      printing the address of the page that answers. A portal listing is answered on
-      the portal's Submissions page, with its status and the version that is live. It
-      picks up each new version from its tracked branch, `dist`, without a
-      resubmission, and a version that passes goes live by the listing's publish
-      setting, which by default waits for somebody to select Publish
-      (`claude.com/docs/plugins/submit`, *Publish a passing version*). A Console
-      listing is answered on the Console page, and takes no new version until a
-      person moves it to the portal (`claude.com/docs/directory/publish`, *Move an
-      earlier submission to the developer portal*). The plugin's listing is a portal
-      listing, by the owner's reading of the submission of the repository's `@dist`
-      on 2026-11-05, and the portal reads `dist` on a schedule, about every six
-      hours (#1383). Once
-      the publish workflow's `dist` job has run, `git log -1 --format=%s origin/dist`
-      names the release as `dist: vX.Y.Z`. A red `dist` job is a release the
-      directory did not get, and a re-run of the workflow adds the commit. Whether it
-      shows up at all is what a search for the plugin inside Claude answers. Neither
-      that search nor the Submissions page, which sits behind the owner's login, is
-      open to a script or a case here: both answers are the owner's reading.
+      printing the address of the page that answers for each kind of listing: the
+      portal's Submissions page, and the Console page. The
+      Submissions page sits behind the owner's login, and neither page is open to a
+      script or a case here: their answer is the owner's reading. The listing is on
+      hold, and the box runs all the same, as
+      `docs/releasing/branch-and-release.md` *Cutting a release* says. Once the
+      publish workflow's `dist` job has run, `git log -1 --format=%s origin/dist`
+      names the release as `dist: vX.Y.Z`. A red `dist` job added no commit, and a
+      re-run of the workflow adds it.
 
 **A notice telling somebody an update landed names the move it costs them.**
 An installed copy is what a session loads, so an update that has landed on

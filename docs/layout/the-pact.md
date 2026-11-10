@@ -16,28 +16,13 @@ naming where it is held. `seal pact` is the command that reads every signer
 from there.
 check: tests/lib/test_config.py
 
-**A pact headed with the word 0.18.x used still reads, and `seal pact`
-names the rename on it in no exit class.** Through 0.18.x a signer was
-called a signatory, and a pact's `| Signatory |` table carried that word
-into a file nobody regenerates. A file holding no table under the new header
-is read under the old one exactly as it would be under the new; a file
-holding one is read from it alone, and an old header beside it is refused,
-because its rows would otherwise go unread. `seal pact` prints one line
-naming the file, both headers and the release that renamed them before that
-file's other lines, and its exit is what the new header gives. No command
-rewrites a pact: the line says to rename the header when the file is next
-edited, and every text this plugin ships says `signer`.
-check: tests/skills/test_pact_check.py tests/lib/test_config.py
-
 **The three names are the owner's, and a text this plugin ships that names one
 of them another way is the proofer's to find at review, the word 0.18.x used
 for a signer included.** That holds for code, its comments and the names of its
-tests as it holds for prose. A text that spells the 0.18.x header in order to
-read it, as the rule on a pact headed with that word says, names no signer
-another way. The reader is the proofer and not a case, because a case that
-refuses a word wherever it stands turns red where the meaning has not changed
-(`skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a
-script answers the rest*).
+tests as it holds for prose. The reader is the proofer and not a case, because a
+case that refuses a word wherever it stands turns red where the meaning has not
+changed (`skills/core/SKILL.md` *Judgment is spent where meaning is the
+question, and a script answers the rest*).
 
 ## When there is a pact at all
 
@@ -69,33 +54,33 @@ check: tests/behaviour/test_a_signer_declares_its_pact.py
 
 ## How a signer names the pact
 
-**Every signer but the pact's repository names the pact in a `Pact` row
-of its `seal/config.md`, and one reader answers that row for every
+**Every signer but the pact's repository names the pact in a `Pact` key
+of its `seal/config.json`, and one reader answers that key for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised, and a pact anchor names the pact by
 that same URL.
 `lib/config.py#pact_declaration` refuses what will not parse in a sentence
-and stops nothing, so every reader of the row reads the same row. A `Pact`
-row written twice has no value at all: its first row is not the answer. A
-`Pact` row the config table does not hold is no row, so `seal pact` reads
-that signer as naming no pact, a relationship recorded on one side only.
+and stops nothing, so every reader of the key reads the same key. A `Pact`
+key written twice has no value at all. A config that holds no `Pact` key
+names no pact, so `seal pact` reads that signer as naming no pact, a
+relationship recorded on one side only.
 check: tests/behaviour/test_a_signer_declares_its_pact.py tests/skills/test_pact_check.py tests/lib/test_config.py
 
 ## The pact anchor
 
 **A signer cites a clause as one row of a `| Pact | Clause | Hash |` table in
 a work item's `frame/design.md`, and `seal pact` reads the table with
-`lib/config.py#gfm_table`.** The row is the pact anchor, and it records
+`lib/tables.py#gfm_table`.** The row is the pact anchor, and it records
 what the work was built against. `Pact` is the origin remote URL of the
-pact's repository, as the signer's `Pact` row writes it, compared
+pact's repository, as the signer's `Pact` key writes it, compared
 normalised. `Clause` is the clause's heading path, such as
 `## Order response shape / ### Fields`: every `##` heading of `seal/pact.md`
-below its `| Signer |` table is a clause, and a `###` narrows inside one.
+is a clause, and a `###` narrows inside one.
 `Hash` is the eight lowercase hex digits `coordinates.py#content_hash` gives
 the clause's region, `00000000` until the first report names the real one.
-The walker reads the table as GitHub renders it, as it reads every other
-table here, so nothing in a row is quoted or escaped except a pipe, written
-`\|`. A row naming another pact the signer's `Pact` row declares is passed
+The walker reads the table as GitHub renders it, as it reads every table
+of a record, so nothing in a row is quoted or escaped except a pipe, written
+`\|`. A row naming another pact the signer's `Pact` key declares is passed
 over, for that pact's `seal pact` to grade.
 check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py tests/lib/test_config.py
 
@@ -118,7 +103,7 @@ and every `pact:` token in a signer's frame.** A row whose `Pact` cell is not
 one remote URL names no pact anybody can tell, and a row naming this pact
 whose `Clause` cell does not open with a heading, or whose `Hash` cell is not
 eight lowercase hex digits, grades nothing; each is refused at its line. A
-row whose `Pact` cell names a pact the signer's `Pact` row does not declare,
+row whose `Pact` cell names a pact the signer's `Pact` key does not declare,
 such as a remote one letter off the pact's, is refused at its line, because
 no `seal pact` grades it: another pact's reports the signer `ONE-SIDED` and
 reads none of its frames. A `pact:` token outside a fenced code block, in any
@@ -142,16 +127,19 @@ pact's repository is where the reconciliation runs.
 
 ## `seal pact` reconciles, locally
 
-**`seal pact`, run at the pact's repository, reads every signer the pact
-lists and says which way each mismatch points.** It finds each checkout
-through the `| Remote | Path |` table of `~/.claude/agentic/pact-paths.md`
-or the one sibling directory with that origin, guessing nothing; refuses a
+**`seal pact`, run at the pact's repository, reads every signer the
+`Pact signers` key of that repository's `seal/config.json` lists and says
+which way each mismatch points.** It finds each checkout through
+`~/.claude/agentic/pact-paths.json`, a JSON object from remote URL to
+checkout path, or the one sibling directory with that origin, guessing
+nothing; refuses a
 signer whose config does not name the pact; and grades every anchor naming
-the pact. The map is read by `gfm_table`, as every other table is, and a map
-that is there and will not read, holds no such table, holds it twice, or has
-a row the walk does not read is refused at exit 2, because a row nobody reads
-reports its signer as not found. A remote written on two rows of the map is
-refused, and neither row is read. `SUPERSEDED` means HEAD's own history gave
+the pact. A map that is there and will not parse as a JSON object, or that holds a
+value that is not a path, is refused at exit 2, because an entry nobody
+reads reports its signer as not found. A remote written as two keys of the
+map, compared normalised, is refused, and neither is read. An absent or
+empty `Pact signers` key is refused at exit 2, because a pact nobody signs
+is not a pact. `SUPERSEDED` means HEAD's own history gave
 the clause that hash, so the signer was built against a replaced clause;
 `NOT TAKEN` means only another ref did, and names it, so the pact has not
 taken the signer's recorded change; `UNMATCHED` means no commit did; `BROKEN`
@@ -182,7 +170,7 @@ signer's `READ` line does not count them. Whether such a line was meant as an
 anchor is a judgment of meaning, and a grammar written to make it finds a new
 shape at every reading. So the proofer makes it, at stage 1 of the signer's
 own review. It reads the work item's `frame/design.md` against the shape
-`seal pact` reads and the signer's `Pact` row, and a line meant as an anchor
+`seal pact` reads and the signer's `Pact` key, and a line meant as an anchor
 that `seal pact` does not read is a finding. A signer whose work item goes
 straight to the pull request has no proofer, and there the `READ` line's
 count is the only sign.

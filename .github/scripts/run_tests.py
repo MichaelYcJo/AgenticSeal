@@ -54,8 +54,8 @@ benchmark rather than a computation -- `.github/workflows/test.yml` has run it
 serially for ten releases because the environment it built had no xdist and
 the flag would have failed on every fresh build. What a figure for the run
 costs is measured, with its date and machine, in the work item that made it
-parallel; no figure is stated here because a figure with no moment is the
-class `seal/follow-up.md` already names.
+parallel; no figure is stated here because a figure stated with no date or
+machine cannot be checked later.
 
 One package beyond those two is installed the same way, `markdown-it-py`,
 pinned in `MARKDOWN_IT` (#667). It is the CommonMark parser the suite's
