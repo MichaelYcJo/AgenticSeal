@@ -37,8 +37,11 @@ sentence (*Operational impact*).
 `docs/checks/the-stamp.md`. This frame also adds the `docs/experiments/`
 record of `frame/design.md` *Scope* item 5, with its entry in
 `tests/behaviour/test_docs_line_wrap.py`, and the test edits of *Scope* item
-6. Each is text no party acts on or a case pinning that text, and none is a
-gate, hook or check script.
+6. Each is text no party acts on or a case pinning that text. Phase 1 also
+exempted `templates/setup/claude-md-block.md` by name in
+`tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_every_template_is_named_by_a_document_that_ships`,
+a change to a check, so the orchestrator routed the review through the
+review chain (`routing.md` *Why this way*).
 
 ## Alternatives considered
 

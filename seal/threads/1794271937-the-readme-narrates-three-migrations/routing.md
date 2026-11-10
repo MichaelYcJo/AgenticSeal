@@ -2,7 +2,7 @@
 
 | Axis | Answer |
 |---|---|
-| Review | straight to the PR |
+| Review | through the review chain |
 | Destination | open the pull request |
 | Planning | framer |
 | Implementation | crafter |
@@ -17,6 +17,6 @@ The owner answered question 1 with `agentic` on 2026-11-10, for the four documen
 
 - **Planning, framer.** The issue asks the frame to state when each compatibility path is removed, which is a design choice.
 - **Implementation, crafter.** A framer stands, and the build is a phase of its plan.
-- **Review, straight to the PR.** The diff touches the two READMEs, `docs/checks/the-stamp.md` and one new record under `docs/experiments/`, text no party acts on, and under `tests/` only the wording two pinning cases read and the line-wrap list that names the new record; it changes no gate, hook or check script, so the sealer's reading of the diff against the issue is enough (amended 2026-11-10 by the orchestrator after the frame named the record and the pins).
+- **Review, through the review chain** (changed 2026-11-10 by the orchestrator after phase 1, from straight to the PR). The build had to change a check: `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_every_template_is_named_by_a_document_that_ships` now exempts `templates/setup/claude-md-block.md` by name, because the README paragraph this work removes was the only document naming it. An exemption in a check is what an independent reading weighs, so a proofer reads the diff before the sealer.
 - **Automation, yes.** No question remains that the tree or the framer cannot answer.
 - **Destination, open the pull request**, as under `complete`.
