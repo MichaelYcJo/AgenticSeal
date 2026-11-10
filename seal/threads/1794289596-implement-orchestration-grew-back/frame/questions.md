@@ -3,10 +3,10 @@
 The issue left these judgments open, and the tree answered each. None is a row.
 
 - What "0.30.0's size" is: `frame/design.md` G5.
-- Whether rewriting the fold rule in place reaches that size: `frame/design.md` G10 and `frame/plan.md` *Alternatives considered* row 2.
+- Whether rewriting the fold rule in place reaches that size, and whether its exchange with the framer takes a file: `frame/design.md` G10 and G23, and `frame/plan.md` *Alternatives considered* rows 2 and 3.
 - Which clause of the fold rule stands where: `frame/design.md` D1.
 - How many files the work cuts, their names and when each is opened: `frame/design.md` D2 and D4, and `frame/plan.md` *Alternatives considered* rows 1, 5 and 8.
-- What else leaves the body so that the size holds: `frame/design.md` D3 and `frame/plan.md` *Alternatives considered* rows 6, 7 and 9.
+- What else leaves the body so that the size holds: `frame/design.md` D3 and `frame/plan.md` *Alternatives considered* rows 6, 7, 9, 14 and 15.
 - How the policy document's citation of *Question 1* is carried: `frame/design.md` G13 and *Rule changes*.
 - Whether a case holds the size: `frame/plan.md` *Alternatives considered* row 10.
 - The merge order with #1476, #1478 and #1479: `frame/plan.md` *Overlap with the release*.
