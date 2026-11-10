@@ -116,4 +116,4 @@ edits that line with `gh issue edit 1464`.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-10 | The title takes `docs:` | The diff changes release documents, a workflow comment, the citations of the checklist's headings in scripts and tests, and one case; the one printed line that changes is `finding_counts.py --help` citing a renamed heading, and no step of any workflow or script runs differently | `~/.claude/skills/commit-pr-convention/SKILL.md` |
