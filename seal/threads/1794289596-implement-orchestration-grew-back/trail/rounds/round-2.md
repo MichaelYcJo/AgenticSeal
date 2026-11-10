@@ -69,6 +69,11 @@ It held 7,311 words at 0.37.1 and holds 5,233.
 | closed `frame/design.md` S1 once the release branch, #1476's change among it, is merged in. The body holds 5,233 words at `a1a93b3b1`, the merge of the release branch at `1959c3ea1`, 9 under the bound of 5,242 (5,223 at `f07bd7f60`, 5,225 at `02740215a`). | the orchestrator, by `wc -w skills/implement/orchestration.md` at `a1a93b3b1` (`frame/plan.md` *Judgments of the run*, the row of the merge), and the proofer by the same count at `10fc3a7f7` (`trail/rounds/round-2.md`) |
 ```
 
+```seal
+verdict: fixed a3777952d
+answer: `changelog.md:3` and `gaps.md:7` hold the paste-ready text word for word. `wc -w skills/implement/orchestration.md` gives 5233 at `07767cad7` and at `a3777952d`, and `git show <commit>:skills/implement/orchestration.md | wc -w` gives 5233 at `a1a93b3b1`, 5223 at `f07bd7f60`, 5225 at `02740215a` and 7311 at `v0.37.1`, so every count in both rows reproduces (executed). The *Not verified* row is closed in place, and its second cell names the two acts that answered it, not the answerers it named while open. `seal unverified` on `gaps.md` reads it as closed, with the broad gate's row the one item open (executed). `frame/plan.md` *Judgments of the run* is a heading of `frame/plan.md` at HEAD (read). `pr.md:1` is the orchestrator's file and still quotes 5,223; this pass left it for the orchestrator to rewrite with its source. `git grep` for 5,223 in the work item's directory at `a3777952d` finds `pr.md:1` and the round records alone, and each round record states the commit it names (executed).
+```
+
 ### 2. `frame/plan.md` *Alternatives considered* row 20 counts round 1's wording at 54 words and the body at 5,236, where a like-for-like count gives 52 and 5,234
 
 ```seal
@@ -101,6 +106,11 @@ file, so the orchestrator routes the fold.
 ```markdown
 <!-- frame/plan.md:40, row 20's Failure scenario cell -->
 The body's sentence grows from 43 words to 52 (executed, `wc -w` on each sentence alone), the body from 5,225 to 5,234, and #1476's merge adds 10 more (executed, `git show 1959c3ea1:skills/implement/orchestration.md \| wc -w`, 7,321 against 7,311), which passes S1's bound of 5,242 by 2 words.
+```
+
+```seal
+verdict: fixed 07767cad7
+answer: The framer's fold at `07767cad7` rewrote row 20's Failure scenario cell at `frame/plan.md:40` to the paste-ready text, with one addition: "the body from 5,225 at `9c17b22bc` to 5,234" names the commit of the 5,225. That count holds at `9c17b22bc` (executed, `git show 9c17b22bc:skills/implement/orchestration.md | wc -w`, 5225), so the addition is true. The other counts reproduce: the offered sentence at `trail/rounds/round-1.md:67-71` holds 52 words, the four lines at `9c17b22bc` `:316-319` hold 45, of which "Where the" opens the next sentence, so the old sentence holds 43, and `1959c3ea1` gives 7321 (executed). So 5,225 + 9 + 10 = 5,244, 2 past the bound. The Verdict cell's 41 words at `f07bd7f60` holds (executed: `:316-319` at that commit give 43, of which "Where the" opens the next sentence). This pass changed nothing for this finding.
 ```
 
 ## Confirmations
