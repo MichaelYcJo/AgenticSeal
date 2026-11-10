@@ -166,8 +166,11 @@ def test_the_listing_s_hold_carries_its_date_and_whose_decision_it_is():
     state, so the sentence in `docs/releasing/branch-and-release.md`
     *Cutting a release* saying the listing is on hold carries whose decision
     it is and when, so that a reader can tell it has aged, and names the
-    branch that keeps taking a commit while it holds."""
-    sentences = re.split(r"(?<=\.) ", flat(section(BRANCHING, "## Cutting a release")))
+    branch that keeps taking a commit while it holds. A bold lead ends its
+    sentence too, so the lead before the hold, which names `dist`, cannot
+    answer for it."""
+    text = flat(section(BRANCHING, "## Cutting a release"))
+    sentences = re.split(r"(?<=\.) |(?<=\.\*\*) ", text)
     hold = [s for s in sentences if "The listing has been on hold" in s]
     assert hold, f"{BRANCHING} *Cutting a release* does not say the listing is on hold"
     assert re.search(r"\b\d{4}-\d{2}-\d{2}\b", hold[0]), (
