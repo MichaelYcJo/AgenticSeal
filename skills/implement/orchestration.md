@@ -313,10 +313,10 @@ that work item's changelog entry moves it, in the commit that adds the
 entry: the last phase's crafter where `routing.md` answers
 `Implementation` with `crafter`, and the orchestrator where it answers
 `the session`. The orchestrator chooses which work item carries the move.
-Where the release holds two or more work items, the orchestrator opens
-`skills/implement/merge-order.md` before it spawns the first framer of the
-release: that file holds what each framer's prompt names, the order the
-items merge in, and which of them takes the move. Where the
+Where the release holds another work item, the orchestrator opens
+`skills/implement/merge-order.md` when it starts this one, before its first
+edit: that file holds what each framer's prompt names, the order the items
+merge in, and which of them takes the move. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only

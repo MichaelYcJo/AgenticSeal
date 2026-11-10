@@ -1,7 +1,7 @@
 # implement, the merge order of a release
 
-The orchestrator opens this file where the release holds two or more work
-items, before it spawns the first framer of the release, and not otherwise.
+The orchestrator opens this file when it starts a work item of a release
+that holds another, before that item's first edit, and not otherwise.
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 holds the rest: the branch a pull request lands on, and the version move
 that the first pull request into the release branch carries where the
