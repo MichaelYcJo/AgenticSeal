@@ -1182,7 +1182,8 @@ class Test_module:
         # gone from this case entirely; there is one reader and it does not care
         # how the argv is laid out.
         # The one `issue edit` is written as a list, `subprocess.run(["gh", …],
-        # …)`, and every other argv as call arguments; `argv_words` reads both.
+        # …)`, and the close as call arguments, `attempt("gh", …)`; `argv_words`
+        # reads both shapes.
         argvs = argv_words(
             read_text(".github", "scripts", "close_issues_on_release.py")
         )
