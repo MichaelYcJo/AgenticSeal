@@ -139,4 +139,5 @@ receives the installed plugin's copy of the core and of its definition, the
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-10 | The title takes `refactor:` | The diff moves statements of one rule to one owner each, adds to the core's row a condition the check already held, and changes no line of a script; no rule's meaning changes (`frame/design.md` *Rule changes*) | `~/.claude/skills/commit-pr-convention/SKILL.md` |
+| 2026-11-10 | The copy notice's record is read again in #1506, assigned to the owner, in the milestone `backlog: review chain & agents` | `frame/plan.md` *Operational impact* asks the orchestrator to file the issue before the pull request opens and name its number in `pr.md`; that milestone holds the check's other open items | `frame/plan.md` *Operational impact*; `skills/verify/SKILL.md` *The answerer has to exist* |
