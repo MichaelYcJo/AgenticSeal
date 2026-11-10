@@ -63,7 +63,7 @@ gate, hook or check script.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6, and *Scope* item 7's *Updating* sentence in `changelog.md` | `bin/test -q` over `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/behaviour/test_both_editions_carry_the_same_folds.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_release_hygiene.py`, `tests/behaviour/test_the_old_block_leaves_through_update.py` and `tests/text/test_the_mode_is_a_row_and_a_command.py`; each new assert of *Scope* item 6 seen red against the sentence it replaces; the greps of `frame/design.md` *User scenarios & acceptance* | |
+| 1 | `frame/design.md` *Scope* items 1 to 6, and *Scope* item 7's *Updating* sentence in `changelog.md` | `bin/test -q` over `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/behaviour/test_both_editions_carry_the_same_folds.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_release_hygiene.py`, `tests/behaviour/test_the_old_block_leaves_through_update.py` and `tests/text/test_the_mode_is_a_row_and_a_command.py`; each new assert of *Scope* item 6 seen red against the sentence it replaces; the greps of `frame/design.md` *User scenarios & acceptance* | `4544f5ed4` |
 
 ## Overlap with the release
 
