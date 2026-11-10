@@ -300,7 +300,8 @@ sealer 는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
 `withheld`, 사용자에게 묻는 질문을 단 `undecided` 가운데 하나입니다. pull
 request 는 작업 항목이 `sealed` 를 받은 뒤에 열리고, `Pull request seal mark`
 키가 `yes` 이면 본문에 seal 표시가 붙습니다. 두 언어 키가 서로 다른 언어를
-가리키면 본문은 pull request 언어로 쓴 `pr.<lang>.md` 로 시작합니다. pull request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request
+가리키면 본문은 pull request 언어로 쓴 `pr.<lang>.md` 로 시작합니다. pull
+request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request
 라도 맨 위 커밋에 seal 이 없거나, 마지막 수정을 어느 회차도 읽지 않았거나,
 본문이 그 커밋에서 `seal pr-body` 가 만드는 본문과 다르면 검사가 실패합니다
 (`skills/core/SKILL.md` *Judgment is not licence to skip a party*). **체인은
