@@ -167,6 +167,8 @@ COVERED = [
     "docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md",
     "docs/experiments/README.ko.md",
     "docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.ko.md",
+    # #1492, the same way: wrapped from its first line.
+    "docs/experiments/2026-11-06-what-draws-the-stamp-without-a-plugin-hook.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "skills/agent-contract/SKILL.md",
