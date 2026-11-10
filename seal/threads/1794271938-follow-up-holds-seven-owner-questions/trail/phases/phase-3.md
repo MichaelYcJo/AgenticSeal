@@ -28,4 +28,6 @@
 
 **The other places that state the removed guard (a sample).** `git grep` for the case's name, for `"next time"` in quotes, and for `answerer` beside `condition`, outside `seal/threads/` and `.test_durations`, lists only the case itself and the header sentence at `seal/follow-up.md:9`, which stays. `.test_durations` keeps the case's key, since the case keeps its name.
 
+**One correction after the record's first commit.** Reading the range against HEAD, I found that the docstring of `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py#test_no_loaded_document_states_the_serial_figure` kept one line at 99 columns where `470b27194` rewrote its sentence. `38ae1b728` rewraps it and changes no word. I ran the same boundary command again over `38ae1b728` with this record's edits in the working tree (executed). It gave the same result: exit 1, with the same two census cases failed, 1950 passed and 8 skipped.
+
 **`changelog.md`.** The fragment has `### Changed`, `### Removed` and one `### Process changes` row, for *Scope* item 4 (`frame/design.md` G17). The version stays 0.37.1, as `frame/plan.md` *Operational impact* says.
