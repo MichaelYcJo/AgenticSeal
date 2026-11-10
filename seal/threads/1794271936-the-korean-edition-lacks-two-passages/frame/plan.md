@@ -40,7 +40,7 @@ that would, and its cost is weighed there.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2 and 3 | `frame/design.md` *User scenarios & acceptance* S1 to S5: the token comparison of S1, run in the phase's scratch directory, prints nothing; the cases S4 and S5 name pass, run narrow; S2 and S3 read sentence for sentence against the English edition | |
+| 1 | `frame/design.md` *Scope* items 1, 2 and 3 | `frame/design.md` *User scenarios & acceptance* S1 to S5: the token comparison of S1, run in the phase's scratch directory, prints nothing; the cases S4 and S5 name pass, run narrow; S2 and S3 read sentence for sentence against the English edition | `2ba8bb052` |
 
 ## Overlap with the release
 
