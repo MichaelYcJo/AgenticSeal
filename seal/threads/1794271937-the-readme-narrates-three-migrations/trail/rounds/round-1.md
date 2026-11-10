@@ -77,6 +77,11 @@ asks.
 Both READMEs are on the wrap list of `tests/behaviour/test_docs_line_wrap.py`,
 so each line has to stay within its limit.
 
+```seal
+verdict: fixed 7a608c6ce
+answer: The finding holds: `skills/update/SKILL.md` step 3 prints the notes of the releases after the old version, not the old one's (read, `:87-121`). 7a608c6ce drops the clause from `README.md:95-99`, `README.ko.md:99-102` and `changelog.md:3` as the paste-ready text gives, both READMEs carrying the same two statements; `frame/design.md` *Scope* item 1 was repaired by the orchestrator in 1e57f1a59. The same claim still stands in `frame/design.md:13`, G3's right column ("`/agentic:update` already tells a person coming from an earlier release what that release asks of them"), a frame line handed to the orchestrator.
+```
+
 ### 2. The experiment record calls its whole *Method* the comment's account, while its re-run outline is the transcriber's
 
 ```seal
@@ -120,6 +125,11 @@ settings.
   has run either as a procedure.
 ```
 
+```seal
+verdict: fixed 7a608c6ce
+answer: Both places now say whose the outline is, in words of the fix pass rather than the paste-ready text. `:41-45` opens "The outline that follows is not the comment's. It was written on 2026-11-10, for #1492, and nobody has run it", and drops the paste-ready "The comment gives no steps", which `:35-36` already says. `:61-64` says the first paragraph of *Method* is the comment's account, which gives no steps, and the second an outline written for this record that nobody has run; the paste-ready "Nobody has run either as a procedure" was not used, since the comment's account reports each surface as run. The date 2026-11-10 is the outline's commit date (executed, `git log -S'To re-run it'`, b0cb62de0). `frame/design.md:72-74` *Scope* item 5 still says "the method is the comment's account"; that line is the frame's, handed to the orchestrator.
+```
+
 ### 3. A paragraph of the plan's *Technical context* cites a `routing.md` sentence that the fold rewrote
 
 ```seal
@@ -148,6 +158,11 @@ frame/plan.md:36-37, the first sentence:
 `routing.md` *Why this way* first sent the review straight to the pull
 request, on the grounds that the diff touches the two READMEs and
 `docs/checks/the-stamp.md`.
+```
+
+```seal
+verdict: fixed 1e57f1a59
+answer: The orchestrator repaired the paragraph in 1e57f1a59 in its own words, not with the paste-ready sentence: `frame/plan.md:36-43` now says what the diff touches without citing `routing.md`, and its last clause says `routing.md` *Why this way* holds the route that follows from the exemption, so no sentence of `routing.md` that the fold rewrote is cited any more (read, `git show 1e57f1a59`).
 ```
 
 ## Confirmations
