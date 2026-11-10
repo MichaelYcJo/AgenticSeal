@@ -74,6 +74,11 @@ changed and its own rows in one commit, before the spawn that reads them.
 The changed pin is seen red with the old wording of the sentence restored
 in `skills/implement/orchestration.md` (contract rule 15).
 
+```seal
+verdict: fixed f4a5169c9
+answer: `skills/implement/orchestration.md:110` now reads "The orchestrator corrects its row where the framer's hand-back names a defect in it", as the paste-ready text gives it, and row 8 of `tests/text/test_the_rules_have_one_owner.py#test_a_decision_after_the_frame_is_folded_into_it` pins those words, with a comment naming this round. Checked first: the sentence's actor is the orchestrator at `7c2801838:skills/implement/orchestration.md:104-109` and in row 8 of D1 at `seal/threads/1794289596-implement-orchestration-grew-back/frame/design.md:83` (read), so the fix names the party the rule already meant. The re-pointed row was red against the unfixed sentence (executed, `bin/test tests/text/test_the_rules_have_one_owner.py -q -p no:xdist -k test_a_decision_after_the_frame_is_folded_into_it`, 1 failed naming row 8), and `seal mutate` putting "It corrects its row" back after the commit ended `red`. `git grep -n "corrects its row"` outside `seal/threads/` finds only the fixed sentence and the pin. `bin/test tests/text tests/behaviour tests/github/test_rules.py -q` exited 0 at `f4a5169c9`. `changelog.md` names no wording of this sentence, so the fragment is unchanged.
+```
+
 ## Confirmations
 
 What matched: *Scope* item 1's word-for-word move holds. The base's
