@@ -9,4 +9,4 @@
 
 ## Not done
 
-Phase 1 left `frame/plan.md:37` citing `5d16bcd4d` with a path, on which `tests/text/test_a_cited_commit_outlives_the_squash.py::test_every_cited_commit_outlives_the_squash` is red. Correcting it was within reach, but the line is the framer's and the crafter writes only the Status cell of `frame/plan.md`, so phase 1 named it in its hand-back for the orchestrator to fold (`trail/phases/phase-1.md`).
+nothing
