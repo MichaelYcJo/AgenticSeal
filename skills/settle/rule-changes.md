@@ -71,6 +71,20 @@ one work item, for every work item `frame/design.md` its own commits add or chan
 (`docs/checks/the-pull-request-check.md` *What the check reads at the pull
 request*).
 
+**An operation on a document whose row in the index (*The index* below)
+names a `.ko.md` edition carries one on that edition, in the same design.**
+The settling session writes only the sections its groups name, so an edition
+that no operation names keeps its old text, and after the settle the two
+editions state different rules. The design's framer writes the edition's
+operation with the edition's own heading as its `section` and the edition's
+own text as its `from`, and with a `to` that says in Korean what the English
+`to` says; a check line stays English in both. Where the settling session
+meets a group on one edition and none on the other, it writes the other
+edition's section to the same decision in step 4 of `skills/settle/SKILL.md`
+*The settling session's procedure*. Whether the two `to` values say the same
+is review's to read: the proofer's at the design's review, and the owner's
+at the settle's pull request.
+
 ## A rule has one shape
 
 **A rule has one shape: the rule, its grounds, and, where a case holds it,
