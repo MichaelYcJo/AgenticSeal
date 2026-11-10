@@ -76,7 +76,7 @@ is.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The narrow run of `tests/text/test_the_release_tail_does_not_end_at_the_tag.py`, `tests/behaviour/test_the_release_seal_is_drawn.py`, `tests/behaviour/test_a_release_publishes_its_note.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_docs_line_wrap.py`; the new case seen red with the date taken out of the hold's sentence; the greps of scenarios S1, S2 and S5 | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The narrow run of `tests/text/test_the_release_tail_does_not_end_at_the_tag.py`, `tests/behaviour/test_the_release_seal_is_drawn.py`, `tests/behaviour/test_a_release_publishes_its_note.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_docs_line_wrap.py`; the new case seen red with the date taken out of the hold's sentence; the greps of scenarios S1, S2 and S5 | `de9fe33ca` |
 | 2 | `frame/design.md` *Scope* items 5, 6 and 7 | The narrow run of `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and of each test file *Technical context* lists, with `tests/behaviour/test_a_release_is_sized_by_a_criterion.py` and `tests/behaviour/test_docs_line_wrap.py`; a rename adds no case, so the census is shown able to fail by one old citation left in place and seen red; the greps of scenarios S3 and S4 | |
 
 ## Overlap with the release
