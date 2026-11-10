@@ -3,7 +3,7 @@
 ## Not verified
 
 - nothing
-  why: the two phases changed rule text in seven files, one test file and the version in `.claude-plugin/plugin.json`, and each claim they rest on was run or read, as `trail/phases/phase-1.md` and `trail/phases/phase-2.md` record; the broad gate is the orchestrator's.
+  why: the two phases changed rule text in seven files, one test file and the version in `.claude-plugin/plugin.json`, and the round 1 fix pass changed one rule file, the test file and `changelog.md`; each claim they rest on was run or read, as `trail/phases/phase-1.md`, `trail/phases/phase-2.md` and the close blocks of `trail/rounds/round-1.md` record; the broad gate is the orchestrator's.
 
 ## Not done
 
@@ -33,3 +33,16 @@ the row.
   chain*, "the last record's `target:` commit at HEAD or followed only by
   the work item's own records". It says what the check reads, as the `Held
   by` cell of the core's row does.
+
+The round 1 fix pass added one sentence to `skills/code-review/SKILL.md`
+*Earlier rounds*: where the close of the finding whose fix made the unit
+holds as well, a `confirms:` line names that finding too, so two lines
+name it. No case holds that sentence. A `seal mutate` run that took it out
+survived `tests/text/test_the_rules_have_one_owner.py` and
+`tests/text/test_review_axes.py`. The fix pass left it unpinned. The
+`RULES` row 21 pins the sentence before it without "exactly", so the
+contradiction round 1 found cannot come back without a red case. The
+sentence itself restates what `docs/forms/the-round-record.md` *The round
+record* and `skills/code-review/scripts/chain_check.py#channel` already
+allow. `frame/design.md` *Scope* item 7 names two rows and no third, and a
+third would add a pin no round has yet needed.
