@@ -93,11 +93,10 @@ whatever that copy last knew. A release reaches you only when the version in
 `plugin.json` changes.
 
 An update from an earlier release can leave work behind.
-`/agentic:update` tells you what that release asks of you, takes out what
-an earlier release wrote into your `CLAUDE.md`, and names what an earlier
-release left that only you can remove
-([`skills/update/SKILL.md`](skills/update/SKILL.md)). If you update by hand
-instead, two things are yours. Run `seal mode` once in each repository that
+`/agentic:update` takes out what an earlier release wrote into your
+`CLAUDE.md`, and names what an earlier release left that only you can
+remove ([`skills/update/SKILL.md`](skills/update/SKILL.md)). If you update
+by hand instead, two things are yours. Run `seal mode` once in each repository that
 still holds `seal/config.md`, the settings table earlier releases kept: it
 writes `seal/config.json` from the table and removes the old file. Three
 files no command converts are rewritten by hand.

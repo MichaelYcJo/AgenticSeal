@@ -38,9 +38,11 @@ on Claude Code 2.1.319, on 2026-11-06. The comment marks fact 1
 and fact 4 as executed, and fact 2 as read and then executed. It gives no
 mark for each surface of fact 3.
 
-To re-run it, build a scratch plugin whose `Stop` hook prints a coloured
-`systemMessage`, then try each surface in *Results* in turn. Restore by
-removing the scratch plugin and any entry written into the settings.
+The outline that follows is not the comment's. It was written on
+2026-11-10, for #1492, and nobody has run it: build a scratch plugin whose
+`Stop` hook prints a coloured `systemMessage`, then try each surface in
+*Results* in turn. Restore by removing the scratch plugin and any entry
+written into the settings.
 
 ## Results
 
@@ -57,8 +59,9 @@ removing the scratch plugin and any entry written into the settings.
 ## What it did not establish
 
 - **The steps.** The scratch plugin is not in this repository, and the
-  comment records results, so *Method* is the comment's account and not a
-  procedure anyone has re-run.
+  comment records results. The first paragraph of *Method* is the comment's
+  account, which gives no steps, and its second is an outline written for
+  this record that nobody has run.
 - **Any build other than Claude Code 2.1.319.**
 - **That a person saw the plugin's own hook draw a stamp.**
   `docs/checks/the-stamp.md` *What the person's screen shows is not checked*
