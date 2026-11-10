@@ -300,8 +300,8 @@ what the tree contradicts, or `undecided` with a question for you. The pull
 request opens once the work item is sealed, and its body carries the seal
 mark where the `Pull request seal mark` key reads `yes`. Where the two
 language keys name different languages, the body opens with `pr.<lang>.md`,
-the quotes of `pr.md` in the pull request language. Where the pull-request
-checks are installed, they fail a ready pull request that lacks the seal at
+written in the pull request language. Where the pull-request checks are
+installed, they fail a ready pull request that lacks the seal at
 its head commit, whose last fixes no round read, or whose body is not what
 `seal pr-body` composes at that commit (`skills/core/SKILL.md` *Judgment is
 not licence to skip a party*). **The chain ends at a pull request, never at
