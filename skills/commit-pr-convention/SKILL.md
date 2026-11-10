@@ -254,7 +254,7 @@ translated.
 **What the rounds found is the copy's *Review rounds* section**, copied from
 the round records, and `pr.md` states a round's fact only as a quote of its
 record. The run's comparison table is not in the body: it goes to the flow
-log's comment alone (`skills/verify/orchestration.md` *Measure the segment,
+log's comment alone (`skills/verify/orchestration.md` *Measure the run,
 and feed the flow log*, which owns its rows).
 
 **Why the title takes its prefix, and the kind that came closest where one

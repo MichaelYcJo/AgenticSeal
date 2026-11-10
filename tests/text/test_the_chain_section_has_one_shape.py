@@ -76,7 +76,7 @@ def test_the_section_points_at_the_tables_definition():
         "body has no place to send the run's numbers but the body"
     )
     # The heading of that file's section that holds the rows.
-    assert "Measure the segment, and feed the flow log" in section, (
+    assert "Measure the run, and feed the flow log" in section, (
         "the pointer names the file and not the section, which is a whole "
         "skill to search for one table"
     )

@@ -1111,12 +1111,12 @@ class Test_module:
             f"the comment must name the version this release shipped, which is "
             f"the one version knowable at this moment: {comment!r}"
         )
-        # #940 moved the section the comment sends its reader to into the verify
-        # skill's orchestrator half.
+        # #1479 moved the reasoning out of the verify skill's section, which
+        # now states the one command, and into the policy document's.
         assert (
-            "`skills/verify/orchestration.md`'s \"Measure the segment, and feed the "
-            'flow log" section has the reasoning.' in comment
-        ), f"the comment sends its reader to a file the section left: {comment!r}"
+            '`docs/running/measuring-a-run.md`\'s "Where a reading goes" '
+            "section has the reasoning." in comment
+        ), f"the comment sends its reader to a section the reasoning left: {comment!r}"
 
     def test_the_one_list_call_asks_for_the_comments(self):
         """The count is read off the list call the roll already makes — no

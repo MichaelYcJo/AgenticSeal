@@ -15,7 +15,7 @@ description: |
 This file is the crafter's and the sealer's: the crafter opens it before it hands
 work back, and the sealer opens it for the conditions, the labels and the
 verdicts it audits against. The orchestrator reads it too. The orchestrator's
-own two acts, the broad gate and the measurement of each segment, are
+own two acts, the broad gate and the measurement of each run, are
 `skills/verify/orchestration.md`, which the crafter and the sealer do not open.
 Each instruction below binds the party making a claim, whichever of the three
 it is.
