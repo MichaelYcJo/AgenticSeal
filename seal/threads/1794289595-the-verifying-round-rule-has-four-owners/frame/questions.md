@@ -10,7 +10,7 @@ grounds stand where each line points, and none is reopened here.
 - Whether `docs/forms/the-round-record.md` changes: `frame/design.md` *Grounding* G7, and `frame/plan.md` *Alternatives considered*, the row on citing that document.
 - Where the records-only exception has its text: `frame/design.md` *Grounding* G4, and `frame/plan.md` *Alternatives considered*, the rows on the exception's text.
 - Whether the notice sentence gains a reader or goes: `frame/design.md` *Grounding* G11, and `frame/plan.md` *Alternatives considered*, the rows on the quote and on a reader at the settle.
-- Whether the copy notice stays: `frame/design.md` *Grounding* G12, and `frame/plan.md` *Alternatives considered*, the rows on the copy notice.
+- Whether the copy notice stays, and who reads its record again: `frame/design.md` *Grounding* G12, `frame/plan.md` *Alternatives considered*, the rows on the copy notice, and `frame/plan.md` *Operational impact*.
 - What happens to the case that requires four statements of the lines: `frame/design.md` *Grounding* G9, and `frame/plan.md` *Alternatives considered*, the rows on that case.
 - Whether the core still prints below its cap with one more clause: `frame/design.md` *Grounding* G15.
 

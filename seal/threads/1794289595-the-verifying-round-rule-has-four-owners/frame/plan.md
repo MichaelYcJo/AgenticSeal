@@ -14,12 +14,14 @@ The work edits text in six rule files, one test file and
 |---|---|---|
 | What a round writes to answer a closed finding: the three lines, a `regression:` line's reference and its grounds | `skills/code-review/SKILL.md` *Earlier rounds* | `agents/proofer.md`, `skills/code-review/orchestration.md`, `docs/running/the-run.md` |
 | The bound of a verifying round: its target, the fix diff, new units | `agents/proofer.md` *Rules*, the rule **A verifying round answers the closed findings** | `skills/code-review/orchestration.md` |
-| The orchestrator's judgment: when a round counts, the weighing at the third round, the signals, the stop row, the routes of a regression, the framer's route | `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* | nobody |
+| The orchestrator's judgment: when a round counts, the weighing at the third round, the signals, the stop row, the routes of a regression, the framer's route | `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* | `docs/running/the-run.md`, in one sentence |
 | The policy: a run ends with a verifying round, three finding rounds by default from the last design change, what a regression is, the `Reframed` line, the homes, the judgment rows | `docs/running/the-run.md` *The run* | `skills/code-review/orchestration.md`, and the files outside the four that cite *The run* today |
 | The records-only exception | `skills/core/SKILL.md` *Judgment is not licence to skip a party*, the row *No fix that no round reads* | the sites of `frame/design.md` *Scope* item 5 |
 
-Citations run one way: `the-run.md` and `proofer.md` cite `SKILL.md`;
-`orchestration.md` cites `SKILL.md`, `proofer.md` and `the-run.md`;
+Each part has one owner, and a citation goes from a file that needs a part
+to the file that owns it. `the-run.md` and `proofer.md` cite `SKILL.md`.
+`orchestration.md` cites `SKILL.md`, `proofer.md` and, for the policy,
+`the-run.md`. `the-run.md` cites `orchestration.md` for the weighing.
 `SKILL.md` cites none of the other three for a rule.
 
 **Text that cases hold, which the build keeps word for word.** The list
@@ -55,8 +57,9 @@ the condition.
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| `the-run.md` cites `orchestration.md` for the judgment, as #1476 *Change* words it ("cites both"), and `orchestration.md` stops citing `the-run.md` for the rule | `orchestration.md` still needs *The run* for the homes at lines 142, 163 and 168, for *The handoff* at line 22, and for the document a judgment row names, which the settle groups by (`frame/design.md` *Grounding* G10). The two files then still name each other, and #1476 *Done when* bullet 1 is met only on a reading that splits *The run* by paragraph. Meeting it whole would move the homes table and the handoff into `orchestration.md`, which changes every citation of *The run* for them, `docs/releasing/issues-and-milestones.md` line 87 and the `RULES` row at `tests/text/test_the_rules_have_one_owner.py` line 101 among them | rejected. #1476 *Done when* is the acceptance and *Change* the means; the chosen direction meets bullet 1 for the pair at the level of the file |
-| The skill cites the policy, and the policy names the orchestrator's half nowhere (chosen) | A person reading *The run* is not told where the signals and the routes are. The orchestrator is not that reader: it reads `orchestration.md` before round 1 and reaches *The run* from there | chosen. It is the direction every other file already cites *The run* in, and the order of authority, policy above a skill, runs the same way |
+| `the-run.md` cites `orchestration.md` once, for the orchestrator's weighing, as #1476 *Change* words it ("cites both"), and `orchestration.md` cites *The run* for the policy (chosen, folded from the orchestrator's reading of the frame, 2026-11-10) | A reader who takes #1476 *Done when* bullet 1 file by file finds the two files naming each other. A later edit could also grow the one sentence into a summary of the signals, which is a second statement again | chosen. Bullet 1 says "as the owner", and neither file names the other as the owner of a part it states itself (`frame/design.md` *Grounding* G6). A person who reads the policy paragraph on ending the rounds is told where the stopping is weighed |
+| `the-run.md` names `orchestration.md` nowhere, and only the skill cites the policy | A person reading *The run* has no pointer to the signals and the routes, and #1476 *Change* is not carried out | rejected. This was the frame at `5b6734b52`; it met bullet 1 on a reading stricter than the bullet's words |
+| `orchestration.md` stops citing `the-run.md` altogether | It still needs *The run* for the homes at lines 142, 163 and 168, for *The handoff* at line 22, and for the document a judgment row names, which the settle groups by (`frame/design.md` *Grounding* G10). Meeting that would move the homes table and the handoff into `orchestration.md`, which changes every citation of *The run* for them, `docs/releasing/issues-and-milestones.md` line 87 and the `RULES` row at `tests/text/test_the_rules_have_one_owner.py` line 101 among them | rejected |
 | Keep the four statements and add a sentence to each naming one owner | Four texts still drift, which is what #161 and this issue report. The premise that would keep the structure, that each party needs the whole rule in its own file, does not hold: the proofer opens `SKILL.md` at step 1 and the orchestrator reads `orchestration.md` before round 1 (`frame/design.md` *Grounding* G2) | rejected |
 | Define the three lines in `agents/proofer.md`, which is preloaded, and have `SKILL.md` cite it | Every proofer spawn pays for the definition whether its round is a first round, which writes none of the lines, or a verifying one. `SKILL.md` *Earlier rounds* is opened by every proofer at step 1 too, and a session that reviews without the agent reads `SKILL.md` and not the definition | rejected; #1476 *Change* names `SKILL.md` |
 | Have `SKILL.md` cite `docs/forms/the-round-record.md` for the three relations, since the policy root already states them | The proofer opens one more document of 107 lines at every round to read one paragraph, and that paragraph holds neither what a `regression:` line's grounds hold nor that a build phase's unit takes no line | rejected. The form states what the check reads; *Earlier rounds* states what the proofer writes. `frame/design.md` *Grounding* G7 |
@@ -65,7 +68,8 @@ the condition.
 | The exception's text in `docs/checks/the-pull-request-check.md`, which `the-run.md` line 8 cites today | The orchestrator would open a document written for a person who changes the check, to decide whether to spawn a round | rejected |
 | The exception's text in the core's row, with the second condition added (chosen) | Every agent's preload grows by the words of one clause. A later change to the check's last-record arm has to change the core | chosen. The exception is part of an invariant every party already holds, `orchestration.md` lines 148 to 150 and `the-run.md` line 15 already cite that table, and the row becomes as exact as the check |
 | Remove the copy notice: `rule_changes.py#copies`, the documents half of `chain_check.py#_read_tree`, `COPY_SAYS`, their cases and the paragraphs that describe them | The notice was added on 2026-11-02 for one settle where four `to` values copied a passage (`30ba21373`). Its record is eight days and the designs of four tags, in which it named nothing (`frame/design.md` *Grounding* G12). A copy in a later design would again meet `tests/text/test_no_passage_is_pasted_into_a_second_file.py` first at the settle, after the pull request that could answer it has merged. The removal is a change to what the check reads, in a work item whose review reads rule text | rejected for this work item. The record is too short to tell a notice that has nothing to catch from one that has not met its case yet, and the quotes *Scope* item 6 keeps are what a later count reads |
-| Keep the copy notice (chosen) | The check reads every rule document on each run of a design that states operations, and step 7 of the proofer's definition keeps one clause for a notice that has caught nothing so far | chosen. `git grep -l -F 'repeats a passage of'` over the round records at a later tag is the measurement that overturns it |
+| Keep the copy notice (chosen) | The check reads every rule document on each run of a design that states operations, and step 7 of the proofer's definition keeps one clause for a notice that has caught nothing so far | chosen, with a reader named for its record: the issue *Operational impact* words, which gives the command, the count that decides and the tag it is read at |
+| Write the re-reading of the copy notice's catches as a row of `seal/follow-up.md`, or as an `add` in `frame/design.md` *Rule changes* (the orchestrator's reading of the frame, 2026-11-10) | `seal/follow-up.md` lines 5 to 7 keep that file for a repository with no tracker, and its lines 9 to 13 refuse a row whose answerer comes with a condition, which "at the settle after 0.38.0" is. This work item edits the policy root directly, so its *Rule changes* holds the no-change block, and a dated one-off reading is no rule of the policy | rejected as the home, agreed as the need. The home is an issue in the tracker, which names its answerer and its milestone |
 | Remove the sentence on quoting a notice from `agents/proofer.md` | A finding taken from a notice no longer names it, and the count #1476 made of the pin notice, six round records, could not be made again. The core keeps a mechanism by its record of what it caught, and this is the only place that record is written | rejected |
 | Give the quote a reader at the settle: the dry run counts the notices the round records quote | A new reading in `skills/settle/scripts/`, with its cases, for a count one `git grep` gives | rejected. `agents/framer.md` *A mark is not the answer to a blocked step* asks what a new mechanism takes out, and this one would take out nothing |
 | Keep `test_a_close_that_does_not_hold_reopens_it` as it reads | It fails as soon as three of the four files stop naming `confirms:` and `regression:`, which *Scope* items 2 to 4 require | rejected; the case holds the old structure |
@@ -107,6 +111,25 @@ Phase 2's crafter moves `.claude-plugin/plugin.json` from `0.37.1` to
 `skills/core/SKILL.md` is read in every repository that installs the
 plugin. After the release, the row *No fix that no round reads* states both
 conditions of the exception, and no behaviour of the check changes.
+
+**The copy notice's record is read again, by an issue the orchestrator
+files.** An agent posts nothing (contract rule 6), so no phase writes it.
+Before the pull request opens, the orchestrator files one issue, assigned to the repository's owner, in
+the milestone it judges holds work read once `v0.38.0` is tagged, and names
+its number in `pr.md`. The issue holds:
+
+- The command, run at the `v0.38.0` tag:
+  `git grep -l -F 'repeats a passage of' v0.38.0 -- 'seal/threads/*/trail/rounds/*'`,
+  and the same at each tag from `v0.34.0` on, since a settle removes a
+  released work item's records.
+- What decides. One round record or more that quotes the notice on a
+  finding closed `fixed`: the notice stays and the issue closes. None,
+  across tags that hold at least one `frame/design.md` stating an `add` or
+  a `change`: the issue becomes the removal of `rule_changes.py#copies`,
+  the documents half of `chain_check.py#_read_tree`, `COPY_SAYS`, their
+  cases and the clause in step 7 of `agents/proofer.md`. None, and no such
+  design since `v0.37.0`: the reading moves one release on.
+- The record so far, `frame/design.md` *Grounding* G12.
 
 A proofer or an orchestrator spawned in this repository before the release
 receives the installed plugin's copy of the core and of its definition, the
