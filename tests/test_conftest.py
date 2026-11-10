@@ -361,10 +361,9 @@ class Test_module:
         assert conftest.SLOW_CASE_S == 90
 
     def test_the_reason_names_every_path_and_what_declined(self):
-        """A count alone is a claim removed from the corpus without a word, which
-        `seal/follow-up.md`'s first row calls the one direction a checker of
-        claims must not fail in. The reader needs the paths in order to judge
-        them by hand."""
+        """A count alone is a claim removed from the corpus without a word, and
+        that is the one direction a checker of claims must not fail in. The
+        reader needs the paths in order to judge them by hand."""
         reason = shrunken_corpus(
             ["seal/ledger/two.md", "docs/one.md"], "the KEEP allowlist's liveness check"
         )

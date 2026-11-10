@@ -322,11 +322,12 @@ a trace when the orchestrator does not.
 
 **`plan.md`'s Phases table is the task list, and there is no other.** Each
 phase carries a **Verified by** column, so it cannot be called done the way a
-checkbox can be ticked, and a **Status** column that is empty or holds the
-commit that closed the phase. A commit asserts a **past** state that someone
-can open, so a tick and the word `done` are refused where a hash is not. The
-party that builds a phase fills its cell as the phase closes, not at the end.
-Where feature branches squash, those commits stop resolving at the merge.
+checkbox can be ticked, and a **Status** column that is empty, holds the
+commit that closed the phase, or reads `deferred #N` for a phase the work
+item handed to issue #N. A commit and an issue each name something someone
+can open, so a tick and the word `done` are refused where neither is named.
+The party that builds a phase fills its cell as the phase closes, not at the
+end. Where feature branches squash, those commits stop resolving at the merge.
 Nothing measures from the column, which is why that is tolerable. A rebase
 during the work would orphan them earlier and more quietly, because the
 orphaned object still answers `git cat-file` in the worktree that wrote it,
