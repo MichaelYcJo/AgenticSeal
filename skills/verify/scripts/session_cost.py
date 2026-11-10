@@ -1794,9 +1794,9 @@ def measure_segments(path, calls):
     A row's numbers come from `analyse` with no `delegated`, which is the
     PLAIN reading — exactly what a person running this script against that
     one transcript gets today, taken over one slice's calls and turns where
-    the coordinator restarted it. That is the point: the mode replaces the hand
-    method named in `skills/verify/orchestration.md`, so a row has to be the same
-    number that method produced, not a second meter with its own rules.
+    the coordinator restarted it. That is the point: the mode replaced the
+    hand method `skills/verify/orchestration.md` named, so a row has to be the
+    same number that method produced, not a second meter with its own rules.
 
     A row's tokens cover that segment's OWN file only. The run total sums the
     whole tree, so the two are different numbers on purpose and the column is
@@ -2863,7 +2863,7 @@ def run_gh(args):
 def open_log(label):
     """`(state, payload)` for the measurement log `label` declares.
 
-    One lookup, not two. The skill describes the `--state open` reading and
+    One lookup, not two. The skill described the `--state open` reading and
     the `--state all` reading as two questions, which they are; `--state all`
     answers both, because every open issue is in it. The payload is the issue
     number for `ONE_OPEN`, the numbers for `MANY_OPEN`, and a sentence for

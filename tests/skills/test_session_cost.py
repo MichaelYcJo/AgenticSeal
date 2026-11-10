@@ -6630,10 +6630,10 @@ class Test_module:
     # --- the lookup and the body --------------------------------------------------
 
     def test_the_lookup_reads_the_label_and_the_whole_history(self, monkeypatch):
-        """One call, not two. `--state all` answers both of the skill's
-        questions, because every open issue is in it — and the limit is raised
-        off the default so a label with more than thirty closed logs does not
-        read as one that never existed."""
+        """One call, not two. `--state all` answers both of the questions the
+        skill asked by hand, because every open issue is in it — and the
+        limit is raised off the default so a label with more than thirty
+        closed logs does not read as one that never existed."""
         module = _cost()
         seen = _gh(monkeypatch, module, listing=_listing((42, "OPEN")))
         module.open_log("flow-baseline")
