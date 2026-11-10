@@ -151,6 +151,11 @@ COVERED = [
     # The bootstrap, cut from that file in #1046, the same way: its prose
     # was covered there, so it goes in at birth and keeps that coverage.
     "skills/implement/bootstrap.md",
+    # The routing question and the merge order of a release, cut from
+    # `skills/implement/orchestration.md` in #1477, the same way: each
+    # passage was covered there, so each file goes in at birth.
+    "skills/implement/routing-question.md",
+    "skills/implement/merge-order.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "skills/commit-pr-convention/SKILL.md",

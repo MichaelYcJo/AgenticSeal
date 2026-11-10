@@ -202,32 +202,6 @@ Something a session cannot do for itself belongs on the same list — widening
 its own permissions, for one, which the harness blocks by design. Better
 found in the first minute than at the commit.
 
-**The two language keys join the batch wherever either is missing.** Before
-the routing commit, the orchestrator reads `Commit and pull request
-language` and `Record language` in `config.json` under the `seal/` root.
-Where both stand, nothing is asked. Where either is absent in any of the
-four ways `skills/commit-pr-convention/SKILL.md` *Every way of not naming a
-language lands on English* names, the batch asks for both, as
-`skills/implement/bootstrap.md` step 1 asks for them at first setup: the
-recent titles from `gh pr list --state all --limit 10` stand beside the
-question, and the language read from them is the option listed first. The
-routing commit writes both keys into the file's object, each as
-`"<key>": "<answer>"`. Where the batch reaches no person, because
-the routing answer was given for the release and the run is unattended, the
-orchestrator writes both keys as the language it reads the titles in, and
-as `English` where the list gives none. `routing.md` *Why this way* then
-says in one sentence that the two keys were written as a default taken
-until answered, naming the language and what it was read from, and `pr.md`
-quotes that sentence. A repository whose `config.json` predates the keys is
-caught here, at its next work item, because `seal pr-body` refuses to
-compose a body without them.
-
-**A question in this batch names its answers, and every answer continues.**
-"Should I release this?" and "should the proofer review it?" both have a `no`
-that leads nowhere — the session that answers it is holding finished work with
-no destination, which is a gate wearing the shape of a question. A yes/no is
-the tell. Ask which of two named paths instead, and say what each one does.
-
 **The first edit waits for the routing answer, and the orchestrator holds
 that.** The orchestrator writes `routing.md` and commits it before it edits
 any other file, following step 1 of *Orchestrator: the order inside a
@@ -254,96 +228,14 @@ waits for the reply spends more.
 
 ## Orchestrator: how the work is routed
 
-**The routing question is one of the questions *Orchestrator: what needs a
-person is asked in one batch, before the first edit* above has the
-orchestrator ask in one batch before the first edit.** It is one decision
-about where the work goes, and asking a part of it later is the mid-run
-question the batch exists to remove. Opening a pull request is an
-outward-facing act, not a detail that can wait for the end. Routing asked at
-the start, the reviewer in the middle and the pull request at the end would
-be three waits where one is due.
-
-**Ask question 1 alone; the boxes in a second call only under `manual`.**
-The orchestrator puts both. Question 1 goes in one call of its own, and
-three of its four answers settle everything: under `agentic` the
-orchestrator writes every row, `complete` writes every row, and `direct`
-opens nothing, so under any of them the boxes mean nothing and are not
-shown. The harness shows every question of a call at once, so boxes put
-beside question 1 would be shown under the three answers they mean nothing
-for. Under `manual` the second call follows the first at once, before the
-first edit. `AskUserQuestion` allows at most four options per question, and
-three presets beside the four boxes would be seven, which is why the shape
-is two questions rather than one.
-
-### Question 1
-
-A single-select question, put alone:
-
-| Order | Label | Description |
-|---|---|---|
-| 1 | **agentic** | The orchestrator reads each work item's issue and the tree and chooses that item's route: which of the framer, `crafter` and `proofer` run, and whether the run may stop to ask you. Where it judges a change small enough, such as a two-line fix, it takes `direct` for it. It writes each choice down with its grounds, and you are not asked the route again. |
-| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
-| 3 | **manual** | You set each part: the four boxes below are the answer. |
-| 4 | **direct** | This session writes the change itself: no agent, no work item, no frame, no review, no seal and no `routing.md`. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
-
-**A label names no destination, and its description says what it turns
-off.** A label that names a destination is read as what runs:
-`straight to the PR` reads as *call no agents at all*, where that answer
-turns off `proofer` alone. So each label names a mode, each description
-says what its answer does, and the exit's description names every party and
-record that does not run or is not written.
-
-**The exit is last.** It is the least-verified path and one click, so it
-sits where a reader's eye lands last, and its description states the cost.
-It stays visible in use where the root is shared: every commit it covers,
-whether the person chose it or the orchestrator chose it under `agentic`,
-says `no work item` in its trailer, and the pull request's check prints
-each one.
-
-**Question 1 is put every time, whatever the ladder reads, and `agentic` is
-the answer marked.** The person chooses the route, even for a typo fix, and
-choosing `agentic` leaves each item's route to the orchestrator, which reads
-the item on the ladder of *Orchestrator: when a work item is required*
-below among what it weighs (*Under agentic*). A mark read off the ladder
-would mark `complete` for nearly every item, because nearly every change
-alters observable behaviour and sits above its last rung. The mark is
-` (Recommended)` after the label, and the options keep the order of the
-table above, so the marked answer comes first and the exit stays last.
-
-### Question 2
-
-A `multiSelect` question, asked only under `manual`.
-
-**The order is the specification.** The first box is a property of the run;
-the three below name parties, in the order they run. A reader meeting four
-boxes of apparently the same kind reads the first as a fourth party to switch
-on, and the separation is the cheapest defence against it. A list that
-generates these carries the order.
-
-| Order | Box | Checked | Not checked |
-|---|---|---|---|
-| 1 | **run end to end without stopping to ask** | the run goes from here to its destination and stops only for what only you can decide; `Automation` = `yes` | **this run may stop to ask**: somebody may be asked at minute thirty; `Automation` = `no` |
-| 2 | **implement with `crafter`** | spawn the subagent; `Implementation` = `crafter` | **this session writes the code**; `Implementation` = `the session` |
-| 3 | **review with `proofer`** | the review rounds run; `Review` = `through the review chain` | **nothing reviews this code before the pull request**; `Review` = `straight to the PR` |
-| 4 | **open the pull request** | push it and open one; `Destination` = `open the pull request` | **the branch is handed back, committed and unpushed**; `Destination` = `stop before the pull request` |
-
-**What is checked is the answer, and each box is a row of the declaration**,
-which is why each box's description carries its unchecked meaning too: that
-is the half a label cannot say. Box 1's unchecked half is the one most easily
-misread: `no` says this run may stop to ask, never that a person did the work
-by hand.
-
-**The ceiling.** `AskUserQuestion` allows at most four options per question.
-Question 1 and question 2 each sit at exactly four. **Both are fully spent:
-a fifth answer or a fifth box breaks this shape.** Whoever adds an answer
-to question 1 needs another shape for the routing question, and whoever
-adds a box to question 2 needs a third question of boxes or a preset that
-hides the axes.
+The orchestrator opens `skills/implement/routing-question.md` when it puts
+the batch of questions, the routing question among them, to a person, and
+where either of the two language keys is missing from `config.json` under
+the `seal/` root, which it reads before the routing commit. That file holds
+the routing question's two calls, what each answer writes, how a question
+of the batch is worded, and what the batch does about the two keys.
 
 ### What the answer writes
-
-Question 1's first three options and question 2's four boxes write the same
-rows; what differs is who chose them and how many clicks it took.
 
 | Row | Answers |
 |---|---|
@@ -372,11 +264,6 @@ the person chose the rows, and where the orchestrator chose them under
 `agentic`, the grounds *Under agentic* asks for, which the sealer reads
 against the diff (`agents/sealer.md` step 4).
 
-**`complete` writes all four party rows at their checked values**, plus
-`Automation` = `yes`. Ticking all four boxes under `manual` writes the same
-rows. Under `agentic` the orchestrator writes the rows it chose for the
-item.
-
 **`Automation` is a record, and no script decides anything on it.** While
 the row reads `yes`, the orchestrator follows the paragraph of
 `docs/running/the-run.md` *The run* that opens **On a run whose
@@ -400,23 +287,6 @@ A wrong answer here is read against the record the run left:
 `chain_check.py` refuses a `framer` row whose `frame/design.md` mark names
 anyone else, and the sealer withholds where `Implementation` names `crafter`
 and a closed phase has no record (`agents/sealer.md` step 4).
-
-**The routing question is the orchestrator's, whether or not a framer runs.**
-A subagent in this harness has no `AskUserQuestion` and no equivalent, so a
-framer cannot ask. The one moment of human contact is here, before the first
-edit, and the order does not change when a framer runs:
-
-```
-the orchestrator : ask question 1; the boxes only under manual
-the orchestrator : write and commit routing.md
-the framer       : read, judge, write design, plan and questions
-the orchestrator : read plan.md against the issue, settle it with the framer, spawn the build
-```
-
-`agents/framer.md`'s rule *You ask nobody anything* is the other half of this,
-and its `## Job` tells a framer that arrives to a missing `routing.md` to
-report it rather than write one: a declaration written from a guess is a
-recorded answer nobody gave.
 
 **The orchestrator writes the answer down before the first edit**, in
 `seal/threads/<work-item-id>/routing.md`, from `templates/records/sdd-routing.md`, and
@@ -463,30 +333,10 @@ that work item's changelog entry moves it, in the commit that adds the
 entry: the last phase's crafter where `routing.md` answers
 `Implementation` with `crafter`, and the orchestrator where it answers
 `the session`. The orchestrator chooses which work item carries the move.
-Where several work items of the release run side by side, the
-orchestrator's prompt that spawns each framer names the release's other
-work items: each one's issue, its branch, and its frame's path where the
-frame is committed. The orchestrator merges the items in the order their
-plans' `frame/plan.md` *Overlap with the release* sections state. Where two
-plans state opposite orders for one pair, or where the item ordered first
-cannot be sealed before the other, the orchestrator chooses the order,
-with the item that carries the move still first, and writes the choice as
-a row of `frame/plan.md` *Judgments of the run* in the plan of the item it
-merges out of the stated order. The move goes to an
-item that no plan orders after another, which the orchestrator chooses
-where several are, and the orchestrator merges that item before every
-other item of the release, because the first pull request into the branch
-carries the move. Once it has landed, items that no plan orders against
-each other merge as each is sealed. Where a crafter builds that work item
-and its `frame/plan.md` *Operational impact* does not name the move, the
-move is a decision the framer folds into that section, as *Orchestrator:
-the order inside a ticket* states, before the orchestrator spawns the last
-phase, because the crafter reads its version write there. A move made
-after a work item's last round owes a verifying round of its own, so
-where the chosen item's rounds have already ended, the move goes to
-another item that no plan orders after another and whose rounds still
-read it, and where no such item is, the chosen item takes the move and
-the verifying round it owes. Where the
+Where the release holds two or more work items, the orchestrator opens
+`skills/implement/merge-order.md` before it spawns the first framer of the
+release: that file holds what each framer's prompt names, the order the
+items merge in, and which of them takes the move. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only
