@@ -1,0 +1,58 @@
+# Implementation Plan: a phase spawn preloads the fix-pass procedure (#1471)
+
+## Technical context
+
+The tree as read at `2b2bb623e`.
+
+A crafter spawn preloads `agents/crafter.md`, `skills/core/SKILL.md` and `skills/agent-contract/SKILL.md`, the files its `skills:` list names, 35,883 B (`frame/design.md` G5). Of the definition, step 9 (`agents/crafter.md:62-66`) and the rule **A fix pass appends close blocks and writes no phase record.** (`:204-232`) are acted on only in a fix pass. At step 1 every crafter also reads `skills/implement/SKILL.md` whole, and *5. Incorporate review* (`:407-440`) is fix-pass procedure apart from its last paragraph, which is the orchestrator's (`frame/design.md` G6).
+
+The close block's three `verdict:` values and its `location:` rule are stated in `docs/forms/the-round-record.md` *The round record*, the form the proofer writes and the crafter closes. They are stated again in the crafter's rule, and the `location:` rule a third and fourth time in *5.* and in `skills/code-review/orchestration.md:51-53` (`frame/design.md` G4).
+
+The move lands in a file of the kind `skills/implement/` already holds. `bootstrap.md`, `multi-repository.md`, `routing-question.md` and `merge-order.md` each open with the party that opens them and the step at which it does, and each is on `tests/behaviour/test_docs_line_wrap.py#COVERED`. The cases that read the moved text, and the tree-wide readers a move meets, are `frame/design.md` G9.
+
+What breaks in six months. First, a resumed implementer may run a fix pass from memory without opening the new file, and apply a paste-ready fix as given. Its symptom is a `regression:` line traced to such a fix, which the verifying round reads, and the orchestrator's routing of a regression sends it back as an ordinary fix pass with the crafter told what the frame says. Second, a fix pass that does not open the form may misspell a verdict. `lib/fields.py` refuses the line and names the three values in its message, so the check catches it at the pull request. Third, the new file grows the way `skills/implement/orchestration.md` grew back (#1477). Only a fix pass pays for that growth, and the settle reads it.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| 1. A new file, `skills/implement/fix-pass.md`, takes *5.*'s procedure and the crafter's. The form keeps the verdicts and the `location:` rule, and step 9 and *5.* each name the file | A fix pass opens one more file, plus the form's two paragraphs, where today the crafter's definition held the values. On the issue's estimate of about 24 fix passes in 159 crafter spawns (`unverified`: the issue labels its own count an estimate), every phase spawn saves about 2.2 KB of preload and 1.6 KB of reading. | Chosen. Each part is read by the step that acts on it, and the form two parties exchange keeps its one home (`frame/design.md` G1, G2). |
+| 2. Move the crafter's procedure into `skills/implement/SKILL.md` *5.*, as #1320 weighed | Every crafter reads that file whole at step 1 (`frame/design.md` G6), so the procedure leaves the preload and stays in every phase spawn's reading. | Rejected. The framer's 1.9 KB, #1320's ground, no longer applies (G7). This failure still does. |
+| 3. Move only the crafter's text into the new file and leave *5.*'s body in place | *5.* and the new file each say what a fix pass does first. A phase spawn keeps reading *5.*'s 1,663 B, and the two openings drift apart one edit at a time. | Rejected. The issue asks that the sentences that repeat *5.* stand in one place. |
+| 4. Keep the structure: the definition holds the fix-pass procedure | Every phase spawn pays about 2.2 KB for a step it never takes. | Rejected. The premise that keeps it would be that a phase spawn acts on the rule, and no step from 5 to 8 does (read, `agents/crafter.md:42-61`). A fix pass, the one reader, is told by step 9 where to look. |
+| 5. State the verdicts and the `location:` rule in the new file, with the form citing it | The form is policy (`frame/design.md` G10), the proofer and the check read it, and the proofer never opens `skills/implement/`. The reader that writes the finding would lose the statement of how it is closed. | Rejected. It would also take a `## Rule changes` operation on the form for no reader's gain. |
+| 6. State them in the form and repeat them in the new file for the fix pass | Two statements, and the issue's first *Done when* bullet fails. | Rejected. A fix pass reads the form's two paragraphs by their bold leads. |
+| 7. Have the orchestrator's fix-pass prompt also name the new file, for a resumed implementer | A second statement of which file a fix pass opens, kept in step with step 9 by hand. A resumed crafter holds its definition in context on every turn (`frame/design.md` G8), so step 9 stands in front of it. | Rejected. Whether a resumed implementer opens the file is `frame/design.md` S3's `unverified` row, which the orchestrator answers at the first fix pass after the merge. |
+| 8. Also reduce to one statement the fact that the fix pass writes its closes last and commits none | The form (`:96-101`), the orchestrator's half (`:80-84`) and the new file would cite one home. The orchestrator commits on that fact at its own step, and `tests/text/test_the_rules_have_one_owner.py:280-282` pins its sentence. | Rejected for this work. Each of the three states the act its own reader takes at that step, and the issue's class is the verdicts and the `location:` rule. |
+| 9. Put the file under `skills/code-review/`, beside the review procedure | The proofer preloads `skills/code-review/SKILL.md` and opens nothing else there, so either directory adds nothing to a preload. But the issue names `skills/implement/`, and *5.*, the session's way in, stands in that skill. | Rejected. |
+| 10. Hold the first *Done when* bullet with a new case module | A new module for one property beside the one written to hold that a move left its source. | Rejected. The existing fix-pass case reads the new file and asserts the copies gone (`frame/design.md` *Scope* item 5). |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1 to 6 | The fix-pass case of `tests/text/test_a_moved_rule_leaves_its_definition.py` seen red at `2b2bb623e` and with its absence guard removed (S2); the *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* over the paths the phase changed, the modules S6 names among them; `frame/design.md` G5's probe at the phase's last commit (S1); `evals/scripts/noninferiority.py run --agent crafter` at `7c2801838` and at the phase's last commit, then `compare --agent crafter --phase 1`, exit 0, each side and the record under `<scratchpad>/<work-item-id>/phase-1/` and the record's verdict with its two commands in `trail/phases/phase-1.md` (S5) | |
+
+## Overlap with the release
+
+The spawn names five other work items, and none has a committed frame at `2b2bb623e`. Four meet this work; #1480 changes `agents/framer.md` and removes `skills/feature-planner/` and `skills/confidence-check/`, none of which this work touches.
+
+| Work item | Where both change | Merges first | Grounds |
+|---|---|---|---|
+| #1473 | `tests/text/test_the_rules_have_one_owner.py`, where this work changes row 15 and the comment at `:277` and #1473 changes the fold's rows; `tests/behaviour/test_docs_line_wrap.py#COVERED`, where this work adds `skills/implement/fix-pass.md` after `merge-order.md` and #1473 adds its on-demand file where that file lands under `skills/` | #1471 | This item carries the release's version move, and `skills/implement/merge-order.md` merges that item before every other. The two `COVERED` entries are one line each, so #1473's integration is a one-hunk merge inside the rounds it spends anyway. |
+| #1472 | `agents/crafter.md`: this work removes step 9's procedure and the fix-pass rule, and #1472 rewrites the rule *Before you hand back …*, whose bold lead `skills/implement/fix-pass.md` cites (D1) | #1471 | #1472's issue says it builds after #1471. Where #1472 rewords that lead, its own sweep of the rule's statements (contract rule 19) re-points the new file's citation. Merged the other way, this work would cite a lead that no longer stands. |
+| #1474 with #1503 | `agents/crafter.md`, other sections: the scratch rule (`:102-110`) and step 10, which this work leaves as written | #1471 | The milestone's order puts this item first in the lane of `agents/crafter.md`. The hunks do not touch, so the later item merges without a conflict in them. |
+| #1475 | `agents/crafter.md`'s `check:` lines. This work takes the line at `:232` out of the definition with its rule, into `skills/implement/fix-pass.md`, a supporting file #1475 leaves alone | #1471 | #1475 is last by the milestone's order, and it counts the lines on the tree it starts from. After this work, the definition holds one line fewer and no test is unnamed: `tests/github/test_rules.py:529-538` holds that `seal rules` reads the moved line where it lands. |
+
+## Operational impact
+
+The version moves from `0.37.2` to `0.37.3` in `.claude-plugin/plugin.json`, in phase 1's commit that adds `changelog.md`. This work item is the first ordered to merge into `release/v0.37.3` (`skills/implement/merge-order.md`, `docs/releasing/branch-and-release.md:30-41`).
+
+The fragment ends with `### Process changes` and its table, because the diff changes `agents/crafter.md` and `skills/code-review/orchestration.md` (`frame/design.md` G12). The row names that a fix pass opens `skills/implement/fix-pass.md`.
+
+No migration, environment variable or dependency. An installed plugin ships `skills/implement/` whole, so a fix pass after the upgrade finds the file. A crafter resumed across the upgrade still holds the old definition in its context, and its old step 9 is complete for its own pass.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
