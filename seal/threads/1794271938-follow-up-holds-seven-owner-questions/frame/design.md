@@ -65,7 +65,7 @@ Out:
 
 ```python
 def argv_words(text):
-    """The string-literal words of every argv in TEXT, a script's source:
+    """The plain string-literal words of every argv in TEXT, a script's source:
     each list or tuple literal's elements and each call's positional arguments."""
 ```
 
@@ -111,6 +111,6 @@ The rows of `seal/follow-up.md` *Schedulable items with nowhere else to go* leav
 | The name `test_the_template_PARSES_into_the_three_answers_it_ships` | `tests/behaviour/test_waiver_decided_at_start.py` | `test_the_template_PARSES_into_the_THIRD_axis_it_ships` (G7). |
 | The citations of a row of `seal/follow-up.md` | The sentences G12 lists | Each states its reason itself (*Scope* item 6). |
 
-This work adds one assertion to an existing case and lifts one reader to module level. In return it removes the guard and the folded reader above.
+This work adds one assertion to an existing case, one case that pins the reader's tuple branch (folded after round 2), and lifts one reader to module level. In return it removes the guard and the folded reader above.
 
 Framed 2026-11-10 by framer, before the build.
