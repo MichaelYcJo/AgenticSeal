@@ -34,7 +34,7 @@ What breaks in six months. First, a resumed framer answers a fold from memory an
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 7 | S1: `wc -c agents/framer.md` at most 14,998 B, and `git diff --stat 7c2801838 -- skills/core/SKILL.md skills/agent-contract/SKILL.md` empty. S2: `git grep -n "git dir" agents/framer.md` exits 1. S3 to S7: `tests/text/test_the_rules_have_one_owner.py`, `tests/behaviour/test_waiver_decided_at_start.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_the_record_is_written_in_words.py` and `tests/github/test_rules.py`, run narrow. Each changed pin is seen red with its path changed in one place, and the new row of the order case with its sentence deleted (contract rule 15). S6: the moved text compared with `git show 5d16bcd4d:agents/framer.md`, lines 257 to 281. | |
+| 1 | `frame/design.md` *Scope* items 1 to 7 | S1: `wc -c agents/framer.md` at most 14,998 B, and `git diff --stat 7c2801838 -- skills/core/SKILL.md skills/agent-contract/SKILL.md` empty. S2: `git grep -n "git dir" agents/framer.md` exits 1. S3 to S7: `tests/text/test_the_rules_have_one_owner.py`, `tests/behaviour/test_waiver_decided_at_start.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_the_record_is_written_in_words.py` and `tests/github/test_rules.py`, run narrow. Each changed pin is seen red with its path changed in one place, and the new row of the order case with its sentence deleted (contract rule 15). S6: the moved text compared with `git show 5d16bcd4d:agents/framer.md`, lines 257 to 281. | `cb567aabf` |
 
 ## Overlap with the release
 
