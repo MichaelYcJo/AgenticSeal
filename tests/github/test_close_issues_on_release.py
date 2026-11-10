@@ -83,13 +83,16 @@ def load(name, filename):
 
 def argv_words(text):
     """The string-literal words of every argv in TEXT, a script's source:
-    each list literal's elements and each call's positional arguments.
+    each list or tuple literal's elements and each call's positional
+    arguments.
 
     BOTH argv shapes the release scripts use are read: `run("gh", …)` spreads
     the words as call arguments, and `subprocess.run(["gh", …], …)` passes a
     list. A reader that knew only the first parsed zero calls of the second
     and asserted nothing, measured on the first spelling of round 1's fix of
-    #450.
+    #450. A tuple, `subprocess.run(("gh", …))`, is read as a list is, and so
+    is a tuple spread whole, `run(*("gh", …))`: a fold of the source caught
+    both, and a reader of lists alone did not, measured in round 1 of #1493.
 
     **What the parse closes, and what it does not.** It closes layout — the
     argv wrapped one word per line, a comment between two of its words, any
@@ -103,13 +106,16 @@ def argv_words(text):
     red the closer's case; `GH = "gh"` used as the first word, and the verb
     moved into a module constant, both leave it green.
 
-    So this reader is strictly stronger than a fold of the source and blind in
-    a place the fold was blind too. Closing that means resolving module-level
-    names before comparing, which is a different checker with its own
-    false-positive argument to make; #1493 left it open.
+    So this reader closes every argv a fold of the source closed, a list, a
+    tuple and call arguments, and more, and it is blind in a place the fold
+    was blind too. Closing that means resolving module-level names before
+    comparing, which is a different checker with its own false-positive
+    argument to make; #1493 left it open.
     """
     tree = ast.parse(text)
-    argvs = [node.elts for node in ast.walk(tree) if isinstance(node, ast.List)]
+    argvs = [
+        node.elts for node in ast.walk(tree) if isinstance(node, (ast.List, ast.Tuple))
+    ]
     argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
     return [
         [
