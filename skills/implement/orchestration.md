@@ -170,9 +170,9 @@ framer. The spawn is the approval (`skills/implement/SKILL.md` *3. The SDD
 file set*), so a frame spawned as committed, with no proposal, takes no row
 of `frame/plan.md` *Judgments of the run*, and a question built on its
 default stands in `frame/questions.md` alone. The counts of the run's
-proposals, agreements, agreements with a change and rejections go with the
-framer segment's reading to the flow log
-(`skills/verify/orchestration.md` *Measure the segment, and feed the flow
+proposals, agreements, agreements with a change and rejections go into the
+run's comment on the flow log
+(`skills/verify/orchestration.md` *Measure the run, and feed the flow
 log*), and the settle weighs the exchange against what it cost under the
 core's mechanism rule.
 
@@ -484,7 +484,7 @@ repository.
 | a decision about the work item in progress or a file it changes, with its grounds | the work item's records, as `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* states |
 | a lesson about how an act is done | the file the act is read from, through the work item in progress where that work item changes the file: a skill or an agent definition edited in place, or a policy document, edited in place where the work item's subject is the policy root and through its `## Rule changes` otherwise (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 | a lesson or a decision whose home no work item in progress changes | an issue that names the home, in the tracker of the repository that holds the home. Where the home is a file the plugin ships and the run is in another repository, the orchestrator names the lesson and the file in its report to the person, who can take it to the tracker the plugin's `.claude-plugin/plugin.json` names under `repository`; it edits no installed copy, which stays on one machine and is replaced at the next update |
-| a reading of what a segment cost | the log `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* names for that reading |
+| a reading of what a run cost | the log `skills/verify/orchestration.md` *Measure the run, and feed the flow log* names for that reading |
 
 **A lesson seen once is given a home or judged not worth one.** The
 orchestrator weighs it under `skills/core/SKILL.md` *The rule a mechanism is

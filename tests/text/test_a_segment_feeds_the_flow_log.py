@@ -8,14 +8,13 @@ because the skill says so, and the destination becomes a
 section is `skills/verify/orchestration.md`'s, the orchestrator's half of the
 skill, because posting is withheld from every agent.
 
-This module pins three things a session reading that section needs: both
-commands are named (`session_cost.py` and the `gh issue list --label
-flow-measurement --state open` lookup), and the no-op case is stated
-explicitly — most installed repositories never create the label, so the
-common case is that this section does nothing, and the section has to say so
-rather than leave a reader to infer it from silence.
+This module pins what a session reading that section needs: the command is
+named, what each of its exit codes means is stated, and the no-op case is
+stated explicitly — most installed repositories never create the label, so
+the common case is that this section does nothing, and the section has to say
+so rather than leave a reader to infer it from silence.
 
-`skills/verify/SKILL.md` carries no HTML comments anywhere in the file
+`skills/verify/orchestration.md` carries no HTML comments anywhere in the file
 (checked directly, not assumed) — so unlike
 `tests/behaviour/test_a_phase_hands_the_next_one_a_record.py`'s template pins, this
 module does not need a comment-stripping reader; a plain substring check
@@ -28,9 +27,8 @@ measurements in the same shape and one of them is deleted at every release, so
 the section now says which reading goes to which — a segment's own numbers to
 the rolling `flow-measurement` log, a reading that only means something across
 versions to the durable `flow-baseline` one — and separates a repository that
-never measured from one whose log stopped. The cases below pin both labels,
-the rule that separates them, and the `--state all` lookup that tells the two
-zeroes apart.
+never measured from one whose log stopped. The cases below pin both labels
+and the rule that separates them.
 
 They also pin what the section may NOT say. This file ships to repositories
 that have neither this repository's `measurement` index label nor its
@@ -51,6 +49,15 @@ rows, their sources and the counted tokens, and the other two sentences are
 the proofer's to read. One case is structural rather than textual — every row
 of the table must name a source, because a row nobody can reproduce is a row
 the next run fills in by feel.
+
+Issue #1479 ends the per-segment post. The section is *Measure the run, and
+feed the flow log*: the orchestrator posts once when a work item's run ends,
+with `seal cost --work-item`, the command the release already ran for what
+no session posted, and the run's table goes into that one comment. The
+by-hand lookups and post leave the section, because the command takes each
+and the section states each outcome as an exit code; so do the per-segment
+mode and the description of how the meter computes its columns, which
+`session_cost.py` states. The cases that pinned those went with them.
 """
 
 import os
@@ -63,7 +70,7 @@ from conftest import ROOT
 SKILL = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 CRAFTERS_SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
-SECTION_HEADING = "## Measure the segment, and feed the flow log"
+SECTION_HEADING = "## Measure the run, and feed the flow log"
 
 
 def read(path=SKILL):
@@ -153,21 +160,23 @@ def test_the_section_names_the_measure_step():
     )
 
 
-def test_the_section_names_the_lookup_command():
+def test_the_section_says_what_each_exit_of_the_command_means():
+    """#1479, S2. The section once walked the lookups by hand, and each
+    outcome had a paragraph. The command takes the lookups, so the section
+    names each exit code with what it means and what the orchestrator does
+    next. Whether each code's sentence states the outcomes the command
+    gives it is the proofer's to read."""
     body = section_body()
-    # The command the orchestrator types to find the open rolling log.
-    assert "gh issue list --label flow-measurement --state open" in body, (
-        "the section never names the exact lookup command — a session would "
-        "have to guess how to find the destination issue rather than being "
-        "told"
-    )
-
-
-def test_the_section_names_the_post_command():
-    body = section_body()
-    assert "gh issue comment" in body and "--body-file" in body, (
-        "the section never names how to post the measurement — "
-        "`gh issue comment <n> --body-file <file>`"
+    # The three exit codes of `seal cost --work-item --post`: 0 posted or
+    # nothing due, 1 nothing posted and named, 2 the command line refused.
+    for code in ("Exit 0", "Exit 1", "Exit 2"):
+        assert code in body, (
+            f"the section never says what `{code}` of the run's command means, "
+            "so an orchestrator that meets it cannot tell a refusal it must "
+            "name from one it must correct"
+        )
+    assert "the run's hand-over" in body, (
+        "the section never says where a refusal that posted nothing is named"
     )
 
 
@@ -193,14 +202,15 @@ def test_the_section_says_it_happens_without_asking():
 
 
 def test_the_section_says_the_release_posts_what_no_session_posted():
-    """#1439. A segment whose reading no session posted stays unposted
-    unless something posts it later. The section names the command that
-    does, and the `# <file name>` line it reads on the log to tell a posted
-    reading from one nobody posted."""
+    """#1439, and #1479. The run's one post and the release's are the same
+    command. The section names it, and the `# <file name>` line it reads on
+    the log to tell a segment the run's comment named from one no comment
+    named, which is what leaves the release's run nothing to post for a
+    work item whose run posted."""
     body = section_body()
     assert "seal cost --work-item" in body, (
-        "the section never names `seal cost --work-item`, so a reading a "
-        "session did not post has no way onto the log"
+        "the section never names `seal cost --work-item`, so a run's reading "
+        "has no way onto the log"
     )
     assert "`# <file name>` line inside its fence" in body, (
         "the section never says `--work-item` reads the `# <file name>` line "
@@ -233,18 +243,6 @@ def test_the_section_says_what_separates_the_two_logs():
         "the section must say the rolling log is discarded at the release; "
         "that is the whole reason the durable one exists, and without it the "
         "split reads as an arbitrary filing convention"
-    )
-
-
-def test_the_section_separates_the_two_zeroes():
-    body = section_body()
-    # The command the orchestrator types to tell a log that never existed
-    # from one that stopped.
-    assert "gh issue list --label flow-measurement --state all" in body, (
-        "the section must name the `--state all` lookup. A repository that "
-        "never measured and one whose log stopped both read zero open, and "
-        "the first is a no-op while the second is a broken invariant — one "
-        "call tells them apart"
     )
 
 
@@ -293,8 +291,8 @@ def test_the_shipped_skill_names_no_repository_specific_tracker_state():
 
 def test_the_section_states_the_run_level_table():
     assert RUN_TABLE_HEADER in section_text(), (
-        "the section says what one segment's reading is and where it goes, "
-        "and never says what a whole run's report carries. Without the table "
+        "the section says where a run's reading goes and never says what "
+        "the table in it carries. Without the table "
         "each run invents its own shape and two runs cannot be read side by "
         "side"
     )
@@ -416,47 +414,15 @@ def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
     )
 
 
-# --- the sentence becomes a command (#350) ---------------------------------
-#
-# The step used to prescribe one `session_cost.py` per transcript and, for a
-# resumed agent, a split done by eye: *split it at the user lines where the
-# coordinator sent it a new message, and measure only the slice that belongs
-# to the segment just watched*. Both are now `--segments`, which walks the
-# run's segments, joins each to the spawn that opened it, and takes the
-# resume split itself.
-
-
-def test_the_section_names_the_per_segment_mode():
-    body = section_body()
-    assert "--segments" in body, (
-        "the section never names `--segments`, so a session measuring a "
-        "segment goes on opening one transcript at a time by hand"
-    )
-
-
-def test_the_section_no_longer_asks_for_the_split_by_hand():
-    """The whole-clause form (#310): what this case exists against is the
-    instruction to do it by eye, and a substring of it survives every
-    rearrangement of the same words."""
-    body = section_body()
-    assert (
-        "split it at the user lines where the coordinator sent it a new" not in body
-    ), (
-        "the section still tells a session to split a resumed transcript by "
-        "hand, which is the work `--segments` now does — and a document that "
-        "asks for both leaves the reader to pick"
-    )
-    assert "measure only the slice that belongs to the segment just watched" not in body
-
-
 def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
-    """#343's half of the same command. A session that runs `--segments` at
-    every segment boundary meets the `Contract rule 6` line there, and the
-    section is where it learns that is what the line means."""
+    """#343, and #1479. The reading a run ends with, `seal cost
+    --work-item`, prints the `Contract rule 6` line for a segment that
+    spawned an agent, as `--segments` does, and the section is where the
+    orchestrator learns what the line means and where it goes."""
     body = section_body()
-    # The label of the line `session_cost.py --segments` prints for a spawn
-    # inside a segment, which the orchestrator matches to this section.
+    # The label of the line `session_cost.py` prints for a spawn inside a
+    # segment, which the orchestrator matches to this section.
     assert "`Contract rule 6` line" in body, (
-        "the section names the mode and not the one finding it can print "
+        "the section names the command and not the one finding it can print "
         "that is about the agent's own conduct rather than its cost"
     )

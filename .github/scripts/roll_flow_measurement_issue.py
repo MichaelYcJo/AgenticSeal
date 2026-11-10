@@ -2,11 +2,12 @@
 """Close the current flow-measurement issue and open the next one.
 
 Issue #109 part 3: the flow log's destination is a `flow-measurement`-labelled
-GitHub issue (`skills/verify/orchestration.md`'s "Measure the segment, and
+GitHub issue (`skills/verify/orchestration.md`'s "Measure the run, and
 feed the flow log" section, phase 1 of this work item). Nothing closes that issue and
 opens the next one on its own -- without this, the log silently stops growing
-the day someone finally closes it by hand, and no session notices because the
-skill's own lookup treats "no open issue" as a no-op rather than a failure.
+the day someone finally closes it by hand, and no session opens the next one,
+because the skill has a session that finds the log closed name it and open
+nothing.
 
 This runs from the same workflow, the same trigger, and the same checkout as
 `close_issues_on_release.py` (a push to `main` -- a release reaching the
@@ -360,8 +361,8 @@ def close_issue(repo, number, shipped, comments=None):
         f"Closed by the release that just shipped {shipped}. The next "
         f"flow-measurement issue opens as `{log_title(shipped)}` -- named "
         f"after the version this release shipped, and closed by whatever "
-        f"ships after it. `skills/verify/orchestration.md`'s \"Measure the segment, "
-        f'and feed the flow log" section has the reasoning.{empty}',
+        f"ships after it. `docs/running/measuring-a-run.md`'s \"Where a reading "
+        f'goes" section has the reasoning.{empty}',
     )
 
 

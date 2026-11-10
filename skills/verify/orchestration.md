@@ -3,7 +3,7 @@
 This file is the orchestrator's: the session that spawns the crafter, the
 proofer and the sealer and takes the one broad run between the last of them.
 It holds the two acts of the verify protocol that no agent takes: the broad
-gate, and the measurement of each segment posted to the flow log.
+gate, and the measurement of each run posted to the flow log.
 
 `skills/verify/SKILL.md` is the other half: the four conditions every claim
 meets, the hand-back's labels, the scope rule and the counterfeits. The
@@ -157,289 +157,97 @@ the user, the same reading as the three-fix rule of `skills/implement/SKILL.md`
 the tree that ships. One more small fix after the run means the run is stale,
 and the gate is paid for again.
 
-## Measure the segment, and feed the flow log
+## Measure the run, and feed the flow log
 
-After every crafter or proofer segment ends, the orchestrator measures its
-transcript with `skills/verify/scripts/session_cost.py`, typed as
-`seal cost`, and posts the numbers, and what they say, as a comment on one
-of this repository's two measurement logs. Which of the two is not a filing
-detail: one of them is deleted at every release, so a reading put in the
-wrong one is a reading thrown away, and the paragraph below is what decides
-it.
+When a work item's run ends, the orchestrator measures it once with
+`skills/verify/scripts/session_cost.py`, typed as `seal cost`, and posts the
+numbers, and what they say, as one comment on one of this repository's two
+measurement logs. Which of the two is not a filing detail: one of them is
+deleted at every release, so a reading put in the wrong one is a reading
+thrown away, and the paragraph below is what decides it.
 
 **There are two logs, and the difference is kind rather than scope.** A
-reading about the segment that just ended (its span, its calls, its tools
-per turn, and what those say) belongs to the rolling `flow-measurement`
-log, which opens at a release, accumulates until the next version ships,
-and is discarded by the release that ships it. Readings that span versions
-(a rate held against an earlier version's baseline, or an observation that a
-later measurement answers) belong to the durable `flow-baseline` log,
-which is maintained rather than accumulated. Posting one of those to the
-rolling log schedules it for deletion at the next release.
+reading of what one run of this version cost (its segments' spans, calls and
+tokens, and what those say) belongs to the rolling `flow-measurement` log,
+which opens at a release, accumulates until the next version ships, and is
+discarded by the release that ships it. Readings that span versions (a rate
+held against an earlier version's baseline, or an observation that a later
+measurement answers) belong to the durable `flow-baseline` log, which is
+maintained rather than accumulated. Posting one of those to the rolling log
+schedules it for deletion at the next release. A repository declares each
+log with a label on an issue, and each keeps the same invariant: exactly one
+open. Neither is named by number, because a number goes stale the moment
+its issue closes. Where no issue has ever carried `flow-baseline`, the
+repository has no durable log, and a cross-version reading stays in the
+record that would have cited it.
 
-A repository declares each of them the same way, with a label on an issue,
-and each keeps the same invariant: exactly one open. Neither is named by
-number, because a number goes stale the moment its issue closes.
-
-**One command does the lookup, the four readings below, and the post.**
-
-```
-seal cost --segments <the run's transcript> --post --says <file|->
-```
-
-It resolves the label rather than a number, `--label flow-baseline` reaches
-the durable log with the same code, and it **opens no issue in any state**.
-It refuses without `--says`: what the numbers mean is the orchestrator's
-sentence to write, and the script writes none. The readings below are what its exits mean,
-and they are still worth knowing, because an orchestrator that meets a
-refusal has to know which one it hit.
-
-**What no session posted, the release posts.** The transcript stays on the
-machine that ran the segment after the session ends, so a reading nobody
-posted can still be posted before the release rolls the log. One command
-does it for one work item:
+**The run ends when the work item's last segment has handed back**, the
+sealer's where one runs. The orchestrator then runs one command:
 
 ```
-seal cost --work-item <the work item's directory> --post --says <file|->
+seal cost --work-item <the work item's directory> --post --says <file>
 ```
 
-It finds the work item's segments by their spawn prompts, the first user
-entry of each agent transcript on the machine, naming the work item's
-directory or the branch its `routing.md` names. It leaves out each segment
-whose file name a comment on the open log already holds on a
-`# <file name>` line inside its fence, and posts one row per remaining
-segment. Where no segment transcript on the machine names the work item,
-the comment says so, so the log does not close empty because a session
-forgot. Without `--post` it prints the same reading and posts nothing. A
-repository whose release runs this command for each work item it ships
-loses no reading to a session that forgot one.
+The `--says` file holds the orchestrator's sentence on what the readings
+say, read against the work item's records, then the run's table below, then
+the counts of the frame exchange. What each segment cost goes into this one
+comment, and no segment gets a comment of its own. The command finds the
+work item's segments by their spawn prompts naming its directory or the
+branch its `routing.md` names. It posts one row per segment that no comment
+on the open log names, each segment's file named on a `# <file name>` line
+inside its fence, and where no segment transcript on the machine names the
+work item, the comment says so. A reading that spans versions takes
+`--label flow-baseline` on the same command.
 
-By hand it is two lookups. Find the rolling log first, with `gh issue list
---label flow-measurement --state open`, rather than assuming a number, and
-the durable one the same way with `--label flow-baseline`. Where more than
-one is open, treat it the way any broken invariant is treated: name it rather
-than guessing which one is current.
+The release runs the same command for each work item it ships
+(`docs/releasing/release-checklist.md` *The release pull request*), and for
+this work item it then posts nothing, except a segment that ran after this
+comment. The table is not a third destination: it goes into this comment,
+and not into the pull request body, whose first part every round reads
+before the run ends. The orchestrator posts without asking, never as a
+question. The log is a log, not a decision, the same way the completion
+claims of `skills/verify/SKILL.md` are not asked about before they are made.
+The meter's other modes, `--latest`, `--spawns`, `--segments` and `--json`,
+and how to read their columns, are stated in `session_cost.py`'s module
+docstring and on the pages they print.
 
-**A reading of zero open is two different facts, and one call tells them
-apart.** `gh issue list --label flow-measurement --state all` says whether
-the label has any history at all:
+**Each exit prints one line naming its state, and its code says what the
+orchestrator does next.**
 
-- **No issue has ever carried it.** This whole section is a no-op: nothing
-  is measured, nothing is posted, nothing fails, and nothing asks. Most
-  installed repositories never create the label, so most segments end here,
-  and that is the expected case, not a missed one.
-- **The label has a history and nothing is open.** The log stopped and
-  nobody reopened it. Name that in the segment's own handover and stop
-  there: **opening one is not a session's act.** Two sessions finishing
-  segments at the same moment both read zero and both create, and the next
-  release then fails on two or more, the same invariant broken from the
-  other side. The release-time script that rolls the log
-  (`.github/scripts/roll_flow_measurement_issue.py`, where a repository has
-  one) is where that invariant and its reasoning are written.
+- **Exit 0**: one comment was posted, or nothing was due. Nothing is due
+  where every segment of the work item is already named on the log, where
+  no issue has ever carried the label, or where `gh` could not run. No issue
+  ever carrying the label is the case most installed repositories meet, and
+  there this section is a no-op: nothing is posted, nothing fails, and
+  nothing asks. Exit 0 needs nothing more.
+- **Exit 1**: nothing was posted. The label has a history and nothing is
+  open, more than one log is open, the log's comments could not be read,
+  the comment failed, or `--says` gave an empty reading. An empty reading is
+  the orchestrator's to write and run again. Every other exit 1 is named in
+  the run's hand-over with the line the command printed. The orchestrator
+  opens no log, because opening one is not a session's act, and
+  `docs/running/measuring-a-run.md` *Where a reading goes* holds the
+  reasoning. Where more than one log is open, it names them rather than
+  guessing which one is current.
+- **Exit 2**: the command line was refused before any lookup, such as
+  `--post` without `--says`, or `--work-item` beside another reading. The
+  orchestrator corrects the line and runs it again.
 
-**`flow-baseline` splits the same way, and for the same reason.** Run the
-`--state all` lookup against it too. No issue has ever carried the label and
-this repository simply has no durable log: post the segment's own numbers
-to the rolling log, and leave the cross-version reading in the record that
-would have cited it. The label has a history and nothing is open, and
-somebody closed the durable log: name that, in the same handover and on
-the same grounds, and open nothing. Folding the second into the first is
-what sends a cross-version reading nowhere while everything looks fine.
+**A `Contract rule 6` line in the reading means an agent spawned another
+agent**, which contract rule 6 withholds from every agent whatever its own
+definition says. The reading prints it where a segment's own transcript
+holds an `Agent` call, and names that segment's file and its count. The line
+is about the agent's conduct rather than its cost, so the orchestrator gives
+it the home that `skills/implement/orchestration.md` *Orchestrator: where a
+decision or a lesson is written* gives a lesson about how an act is done.
+Any other lesson about an agent's conduct, such as a broken spawn rule, takes
+that home when the orchestrator sees it, and the run's comment carries what
+the run cost.
 
-What a label answers that a milestone cannot, and why tidying one of these
-issues by hand breaks the next release, are the tracker's own conventions
-rather than this skill's. `docs/releasing/issues-and-milestones.md` holds them where a
-repository keeps one.
-
-Where a log is open, the orchestrator takes the two steps as part of the
-segment that just finished, not as a follow-up someone might do later:
-
-1. Run `session_cost.py --segments` against the **run's** transcript. It
-   walks every segment beside it (a subagent's transcript lives under
-   `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<project-dir>/<session-id>/subagents/agent-*.jsonl`),
-   joins each to the spawn whose result it opened at, and prints one row per
-   segment: the agent, its own span, calls, tools per turn, mean gap,
-   tokens and the largest context any one turn read.
-
-   **A segment's own span is the number no other mode has.** A cycle row's
-   `delegated` is the spawn call's own interval, and where a harness writes
-   that result on acceptance it reads seconds for an agent that ran twenty
-   minutes. The row here is read from the agent's own file instead.
-
-   **A resumed agent is one row per slice, and the mode takes the split.**
-   Its transcript holds several stretches of work in one file, and the idle
-   gap between two of them belongs to neither: read whole, a segment that
-   worked for thirty-seven seconds reports a span over two hours. The cut is
-   the coordinator's own message row. Where a file has an idle gap and no
-   such row, the report prints one row and names the gap rather than leaving
-   it inside a span. The split is the same given the agent's own file:
-   `--segments <agent-*.jsonl>` prints that file's slices, named by the file,
-   because the spawn that would name them is in the run's transcript and not
-   in view. That is the path a harness's task output hands the orchestrator,
-   so it is the file an orchestrator holding a fix pass's result already has.
-
-   **A `Contract rule 6` line means an agent spawned another agent**, which
-   contract rule 6 withholds from every agent whatever its own definition
-   says. The mode notices and stops nothing: the evidence
-   is a transcript on the machine that ran the agent, in no commit and on no
-   CI runner, so a report somebody already runs at this boundary is the only
-   place it surfaces. Carry the line into the handover; it is about the
-   agent's conduct rather than its cost, and no other row says it.
-
-   **Read the counts above the table before the table.** The mode prints
-   how many transcripts it walked, how many spawns it found, the tolerance
-   it joined within, and how many went unmatched on each side, even when
-   they agree. A join that silently matched nothing reads exactly like a run
-   that spawned nothing, which is why the numbers are there to be seen
-   holding. Given a resumed agent's own file, nothing is walked or joined,
-   and a header naming the file and its coordinator messages stands in their
-   place.
-
-   **One segment measured on its own is still `session_cost.py
-   <transcript>`** with no mode flag, unless the coordinator restarted it.
-   The plain reading keeps its numbers, and for a file those messages cut
-   into two stretches of work or more it adds one line saying how many
-   coordinator messages the file holds: its span then
-   covers every stretch of work and the waits between them, and `--segments
-   <transcript>` is the reading that splits it. A row of the per-segment
-   table is that plain reading of another file, or of one stretch of one.
-
-   **A segment is one agent's own stretch of a chain, and a spawn cycle is
-   not one.** Every segment has a transcript of its own: a crafter's, a
-   proofer's, and the orchestrator's, which is one file however many agents
-   the run spawned. The spawn cycles inside that file are bands over the
-   orchestrator's own minutes, never segments in their own right. The two
-   modes follow the distinction: `--spawns` slices this transcript into
-   those bands, and `--segments` opens the transcripts of the agents this run
-   spawned, one row each, or reads one agent's own resumed file one stretch
-   of work at a time.
-
-   **The orchestrator's own boundary is not a user line: `session_cost.py
-   --spawns` is what takes it.** Every other segment is measured whole,
-   because its transcript holds nothing but itself; the orchestrator's holds
-   every cycle of the run, so the whole file is no row of its own. A
-   **spawn cycle** is not the review chain's cycle, which
-   `docs/running/the-run.md` owns: it ends when a spawn call's result
-   arrives and begins where the row before it ended, so the head is the
-   framing before the first spawn, cycle N runs from spawn N-1's result to
-   spawn N's, and the tail is the closing work after the last one.
-
-   **Post a cycle row as a band, and never as an attribution.** Inside one
-   window the orchestrator waits on the previous agent, verifies the report
-   it hands over, and frames the next prompt, and no transcript field marks
-   where any of those ends. Cycle 1 is the one row without that window: the
-   run's own start is a boundary a script can take, so its framing goes to
-   the head row instead, and the two are read together.
-
-   **Read `delegated` before quoting a cycle's model time, because what a
-   spawn's result MEANS is the harness's and not this skill's.** That column
-   is the spawn call's own tool_use-to-tool_result span. Where a harness
-   writes the result when the agent FINISHES, the column is the delegated
-   wall clock and it is out of the row's other columns, which is the double
-   count gone. Where a harness writes it when the spawn is ACCEPTED, the
-   column reads seconds and the agent's own wall clock is in **none** of the
-   row's columns and none of any other row's. It is the gap between one
-   row's last call and the next row's first, and a row's span starts at its
-   own first call while its model time never counts the gap before it. So
-   the rows partition the run's calls and not its wall clock, and the agent's
-   own transcript is where its number is, either way.
-
-   **A span runs from its window's first call to the last call to end.** A
-   long-lived call, such as a background command or a suite spanning the
-   window, ends after the window that counts it, and the span covers it. A
-   reading taken before the release whose release note lists #300 ended a
-   span at the last call to begin: its span is the shorter of the two
-   wherever a call outlived its window, and identical everywhere else.
-   `command` can still exceed 100 per cent of the span, because command time
-   is a sum over calls and calls can run concurrently. Where a share reads
-   above 100, read it as command seconds against wall-clock seconds with calls
-   running at once, never as a broken number. Batching is the ordinary way
-   in and a background command is the rarer one: every tool call in one
-   assistant message carries that message's timestamp as its start, so a
-   batch of three overlaps by construction.
-
-   **A `git` call counts as `git` wherever it runs on the line.** The family
-   is read by command word: the first word after any separator, newline or
-   reserved word, never a word inside quotes or inside `$( … )`, so
-   `cd /x && git status` is `git`, and so is a `gh` call inside a loop or
-   after a leading assignment. The family reads the command with its newlines
-   kept and removes a heredoc's body up to its closing line, so a `gh issue
-   create` after `cat > body.md <<'EOF'` and a `bin/test` after a `python3 -
-   <<'EOF'` script are read. In a reading taken before the release whose
-   release note lists #377, `git` and `test` read low and `other` reads
-   high by the same calls, the `other` note may name a command that was a
-   `git` run, and the two repeats figures, which keep only `test`,
-   `lint/type` and `build`, may read low; span, command, model, idle, tokens,
-   tools per turn and the `slowest` list do not move. `--segments` prints the
-   same warning on the page.
-
-   **A call that only reads counts as `read`.** A call is `read` when every
-   command on it is a read word (`sed`, `grep`, `rg`, `cat`, `head`, `tail`,
-   `ls`, `find`, `wc`, `awk`, `nl`, `sort`, `diff`) or a word that touches no
-   file (for example `cd`, `echo`, `test`, `[[` and the words that close a
-   loop or an `if`; `session_cost.py`'s `NEUTRAL_WORDS` is the whole list),
-   at least one reads, nothing writes and nothing is hidden: `sed -i`,
-   `sort -o`, `find -delete`, a redirection into a file, a redirection before
-   a command's first word, a heredoc or a `$( … )` keeps it `other`, and so
-   does any command not on either list. What a `sed` or `awk` program writes
-   or runs from inside its quotes is not seen, and such a call is `read`. It
-   is judged after the other four, so `grep -rn pytest` stays `test` and
-   `ls && git status` stays `git`. In a reading taken before the release
-   whose release note lists #642 there is no `read` row, `other`
-   holds those calls, and the `other` note may fire where it would not now
-   and name a read command; every other row, the two repeats figures, span,
-   command, model, idle, tokens, tools per turn and the `slowest` list do not
-   move. `--segments` prints the same warning on the page.
-
-   **Where the report gives no between-the-rows figure and prints the rows'
-   spans against the run's own, a call outlived the cut its row ends at.**
-   Assigning a call by its start is what makes the calls partition, and it
-   leaves a long-running one, such as a background command or a suite
-   spanning a cut, in the row it began in while the next row has already
-   started, so two rows' spans cover the same seconds. The head row's cut is
-   the first spawn's START and every other row's is a spawn's RESULT, which
-   is why the line names the cut and not the result: a head call can outlive
-   its own row's cut and still end before any spawn's result arrives.
-
-   **The two figures it prints are not the rows' overlap, so do not subtract
-   them and post the difference as one.** A row's span ends at its own last
-   call to end and so does the run's, so every row's interval sits inside
-   the run's and the difference is the gaps between the rows minus their
-   overlap. Quote that run's span and its rows' columns, and leave the
-   between-the-rows share out of the reading rather than substituting either
-   sum.
-
-   **So a long cycle span is not a long agent run.** Where a row's span
-   exceeds its own parts by an hour, that hour is a gap INSIDE the row,
-   above the fifteen minutes model time stops counting at: the orchestrator
-   issuing nothing between two of its own calls. Read it as idle time in the
-   orchestrator, never as the agent it spawned.
-2. Post what the numbers say. `--post` does it: the orchestrator's sentence
-   first, the reading fenced beneath it, on the issue the label resolved to,
-   the rolling log's for the segment's own numbers and the durable one's for
-   a reading that spans versions. The fence opens with one
-   `# <file name>` line for each transcript the reading was taken from: the
-   file given and, for `--segments`, each agent file a row was measured
-   from, by its name and never by its path. By hand it is `gh issue comment
-   <n> --body-file <file>`, where `<n>` is the issue number the lookup above
-   returned, and that is the command `--post` composes.
-
-The orchestrator posts without asking, never as a question. The
-destination issue is a log, not a decision: the
-orchestrator posts to it without asking whether to, the same way the
-completion claims of `skills/verify/SKILL.md` are not asked about before they
-are made.
-
-**When the run ends, one more reading is taken, and it is the run's.**
-Everything above measures one segment: its span, its calls, its tools per
-turn. A run is every segment plus the rounds and the commits between them, and
-no segment's numbers say what the run cost. So the report a finished run hands
-over, the comment that carries the numbers, holds one table, this run beside
-the last run measured, with the same rows in the same order every time. That
-is what lets two runs be read side by side without re-deriving either. It is
-**not a third destination**: the table goes to the rolling log named above,
-beside the segment readings it gathers up, and not to the pull request body,
-whose first part every round reads before the run ends.
+**The run's table is one table, this run beside the last run measured, with
+the same rows in the same order every time**, so two runs read side by side
+without re-deriving either. A run is every segment plus the rounds and the
+commits between them, and no segment's numbers say what the run cost.
 
 | Row | Taken from |
 |---|---|
@@ -449,7 +257,7 @@ whose first part every round reads before the run ends.
 | Findings by severity | the `severity:` line of each finding block in the round records |
 | Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: every file the root holds outside `threads/`, each named in `docs/layout/the-record-layout.md` *seal/*, is the repository's own and belongs under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
-| Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript |
+| Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript, the `*.jsonl` directly under the project directory and never one under a `<session-id>/subagents/`, given by path |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |
 | Broad gate: whether it has run, how many times, and at what SHA | the work item's `trail/gate.md`, which holds one `seal` block per full-suite run it recorded, the newest last, each a `run:` line naming the tree and the base it was compared against; the count is the number of blocks, read off the file rather than remembered |
 
@@ -457,27 +265,16 @@ whose first part every round reads before the run ends.
 time.** `session_cost.py <the run's main transcript>` prints the token line,
 which sums `output_tokens`, `cache_creation_input_tokens` and
 `cache_read_input_tokens` over every `usage` block in that transcript and in
-every file under its `<session-id>/subagents/` directory. One command, so the
-row cannot be summed one way this run and another way the next. The line also
-says how many transcripts it covered, and that count is what a reader checks
-the number against.
-
-**The run's main transcript is the `*.jsonl` sitting directly under the
-project directory**, never one under a `<session-id>/subagents/`. `--latest`
-takes the newest file anywhere beneath the project directory, so on a run that
-spawned segments it usually lands on a segment rather than on the run: the
-path it prints as its first line is what says which, and a token line reading
-`1 transcript` for a run that spawned six is the same thing said twice. Give
-the main transcript by path when that happens.
+every file under its `<session-id>/subagents/` directory. The line also says
+how many transcripts it covered, and that count is what a reader checks the
+number against.
 
 **A comparison against a run whose transcript covered only part of its branch
-says so beside the number**, in the prose under the table rather than as a
-column. A resumed session, a transcript split at the user lines, a segment
-spawned through another harness: each of those leaves the token row covering
+says so in the prose under the table**, never as a column. A resumed session
+or a segment spawned through another harness leaves the token row covering
 less than the branch, and a smaller number with nothing said about it reads as
 a run that cost less.
 
-**The table carries no verdict.** It makes two runs comparable and does
-nothing else. What a row meant on this branch, such as why the rounds ran
-long or why one kind of segment cost what it did, goes in the comment beside
-the table, never in a column of it.
+**The table carries no verdict.** What a row meant on this branch, such as
+why the rounds ran long, goes in the orchestrator's sentence beside the
+table, never in a column of it.

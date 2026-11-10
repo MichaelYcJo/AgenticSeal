@@ -420,7 +420,7 @@ the title takes its prefix from the orchestrator's row of `frame/plan.md`
 printed figures, a CI run taken after the rounds and the run's comparison
 table come after the last round, so none stands in `pr.md`: the copy
 carries `trail/gate.md`'s `run:` line, and the table goes to the flow log's
-comment alone (`skills/verify/orchestration.md` *Measure the segment, and
+comment alone (`skills/verify/orchestration.md` *Measure the run, and
 feed the flow log*).
 
 **Where `config.json`'s `Commit and pull request language` and `Record
