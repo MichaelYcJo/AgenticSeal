@@ -3343,7 +3343,7 @@ class Test_body:
         code, out = check(root, capsys)
         assert code == 1, out
         assert body_lines(out) == [
-            f"{ITEM}:0  the pull request's body, line 13: reads `- The body is "
+            f"{ITEM}:0  the pull request's body, line 10: reads `- The body is "
             f"anyone's.`; the records give `{CHANGED_LINE}` at `changelog.md:1`"
         ], out
 

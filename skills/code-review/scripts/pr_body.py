@@ -19,9 +19,9 @@ not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
-between `HEADING` and the fold where `seal/config.json`'s `Pull request seal
-mark` key reads `yes` and the work item's `guarantee.md` reads `sealed` at
-HEAD, as `seal_mark` reads them. Its address is built from the plugin's
+between `HEADING` and the changelog's section where `seal/config.json`'s
+`Pull request seal mark` key reads `yes` and the work item's `guarantee.md`
+reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built from the plugin's
 manifest, which is read and never written, and names no version, so two
 releases of the plugin compose one line (#1452). It carries no record text,
 and `--check` composes it the same way, so the sealer's check, run before
@@ -37,21 +37,23 @@ bytes stand, and `HEADING` follows it on its own line (#1453). The part is
 composed from `seal/config.json`'s `Commit and pull request language` and
 `Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
-one file matching `pr.*.md` beside `pr.md`, the quotes of `pr.md` rendered
-in the commit language, then `pr.md`; where they name one language, it is
-`pr.md`, then any such file in name order. The file's middle part names its
+one file matching `pr.*.md` beside `pr.md`, its renderings in the commit
+language, then `pr.md`; where they name one language, it is `pr.md`, then
+any such file in name order. The file's middle part names its
 language for a person and is read by nothing here. The orchestrator commits
 the files before the first round, so every round reads them, and a body
 file's earlier text is replaced whole. Both forms refuse at `config.json`
 where either key is absent, empty or refused, at the work item's directory
 where the keys differ and it holds no such file or more than one, at a
 file's line where it equals `HEADING`, and at `pr.md` where it is not
-there. The copy stands below that line in one
-`<details>` fold, whose `<summary>` names the copy and is followed by a
-blank line so the Markdown inside renders, and nothing inside it is folded
-again. The squash commit keeps the fold's tags as text. `frame/design.md`
-*Data & interfaces* of the work item that last reshaped this lays out the
-body line for line. A copied line equal to `HEADING` is refused at the record's
+there. Below the line `HEADING` holds, the changelog fragment stands
+first, whole and outside any fold, so the pull request's reader meets it
+before the fold (#1478), and the rest of the copy stands in one `<details>`
+fold, whose `<summary>` names the copy and is followed by a blank line so
+the Markdown inside renders, and nothing inside it is folded again. The
+squash commit keeps the fold's tags as text. `frame/design.md` *Data &
+interfaces* of the work item that last reshaped this lays out the body line
+for line. A copied line equal to `HEADING` is refused at the record's
 line, and so is a copied line holding a `details` tag, `<details` or
 `</details` in any case followed by whitespace, `/`, `>` or the line's end,
 outside a fence, an HTML comment and a code span (#1218, #1181), and a
@@ -179,8 +181,8 @@ OPTIN = ROUTING.optin
 # The line that ends the orchestrator's part, `first_part`'s files, and
 # opens the generated one.
 HEADING = "## From the records"
-# The fold the generated part's sections stand in, opened under `HEADING`
-# and ended on the part's last line.
+# The fold the generated part's sections after the changelog's stand in,
+# opened under the changelog's section and ended on the part's last line.
 FOLD = "<details>"
 FOLD_END = "</details>"
 # A `details` tag on a copied line, as GitHub reads one (#1218): `<details`
@@ -763,15 +765,23 @@ def _claims(rel, line, seen):
     ]
 
 
+def _laid(blocks):
+    """The lines of each of BLOCKS that holds one, each block followed by a
+    blank line; a block a record left empty adds nothing."""
+    return [pair for block in blocks if block for pair in (*block, ("", None))]
+
+
 def _composed(name, texts, mark=None, home=OPTIN.HOME):
     """`[(line, source)]` for the generated part below `HEADING`, that line
     left out: a blank line, the line MARK and a blank line where it is
-    given, `FOLD`, the summary naming the copy under HOME, the root's name
-    as `_in_tree` gives it, a blank line, each section followed by a blank
-    line, and `FOLD_END`. `source`
+    given, the changelog's section followed by a blank line, outside any
+    fold so the reader meets it before the fold (#1478), `FOLD`, the summary
+    naming the copy under HOME, the root's name as `_in_tree` gives it, a
+    blank line, each other section followed by a blank line, and
+    `FOLD_END`. `source`
     is `(path, line)` for a copied line and None for a fixed one. Refused at
     the record's line where a copied line is equal to `HEADING`, which would
-    stand inside the fold as a second boundary line, or begins with a `<!--`
+    stand in the copy as a second boundary line, or begins with a `<!--`
     that no `-->` closes on the line, as `CLOSER.COMMENT`'s second arm
     matches it at the line's start, since GitHub would hide the lines after
     it and the fold's end among them, or holds a `TAG` outside a fence, a
@@ -780,8 +790,7 @@ def _composed(name, texts, mark=None, home=OPTIN.HOME):
     span, since GitHub and the release's closer would close the issue it
     names. The tag and the keyword are read on one line, blanked one way, by
     `CLOSER.HIDDEN`."""
-    blocks = _changed(texts)
-    blocks += _built(texts)
+    blocks = _built(texts)
     blocks += _rounds(texts)
     blocks += _gate(texts)
     blocks += _gaps(texts, NOT_VERIFIED, NO_NOT_VERIFIED)
@@ -790,10 +799,9 @@ def _composed(name, texts, mark=None, home=OPTIN.HOME):
     below = [("", None)]
     if mark:
         below += [(mark, None), ("", None)]
+    below += _laid(_changed(texts))
     below += [(FOLD, None), (SUMMARY.format(home=home, name=name), None), ("", None)]
-    for block in blocks:
-        if block:
-            below += [*block, ("", None)]
+    below += _laid(blocks)
     below.append((FOLD_END, None))
     seen = {rel: READER.readable(text) for rel, text in texts.items()}
     causes = []
