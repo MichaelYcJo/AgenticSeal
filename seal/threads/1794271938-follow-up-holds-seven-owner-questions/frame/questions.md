@@ -10,10 +10,10 @@ The issue left these judgments open, and the tree answered each. The grounds sta
 - What becomes of the emptied table: `frame/plan.md` *Alternatives considered* row 16.
 - Which sentences that cite a row change with it: `frame/design.md` G12, and `frame/plan.md` *Alternatives considered* row 17.
 - What rows 1, 4 and 5 change in the tree: `frame/design.md` G13, G1 and G14.
-- What the issue comment carries: `frame/design.md` *Data & interfaces*.
+- What the measurements' text appended to the issue body carries: `frame/design.md` *Data & interfaces*.
 - Whether the changelog fragment carries a process row: `frame/design.md` G17.
 
-No row follows. The owner decided rows 2 and 5 in the issue's *Decided*, and the tree or a probe answered the rest.
+No row follows. The issue's *Decided* holds the owner's answer to row 2 and the orchestrator's default for row 5, reported to the owner, and the tree or a probe answered the rest.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|

@@ -18,5 +18,5 @@ The owner answered question 1 with `agentic` on 2026-11-10, for the four documen
 - **Planning, framer.** Seven rows each take a different answer, and three of them change tests that are checks; how each is closed is a design choice the issue leaves partly open.
 - **Implementation, crafter.** A framer stands, and the build is a phase of its plan.
 - **Review, through the review chain.** The work removes a guard, converts two readers and changes a sentence of `skills/implement/SKILL.md` that agents act on, so a defect would show as a check that passes what it should refuse.
-- **Automation, yes.** The owner answered rows 2 and 5 (folded into #1493), and the other rows follow the issue's table.
+- **Automation, yes.** The owner answered row 2, the orchestrator took the default for row 5 and reported it to the owner (both in #1493 *Decided*), and the other rows follow the issue's table.
 - **Destination, open the pull request**, as under `complete`.

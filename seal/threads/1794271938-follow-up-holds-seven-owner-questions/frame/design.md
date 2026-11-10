@@ -35,7 +35,7 @@ In:
 5. Rows 1 to 7. `seal/follow-up.md` *Schedulable items with nowhere else to go* loses every row and keeps its heading and its header row, as *Riders waiting on a file another branch holds* already stands. The file's header prose stays as it reads.
 6. The sentences G12 lists are each rewritten to state their reason without citing a row of `seal/follow-up.md`. The sentences at `.github/scripts/run_tests.py` and `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` say that a figure stated with no date or machine cannot be checked later. The sentences at `tests/conftest.py` and `tests/test_conftest.py` state the direction themselves: a claim removed from a corpus without a word is the direction a checker of claims must not fail in. The sentence at `tests/github/test_close_issues_on_release.py` is *Scope* item 1's.
 7. The work item's `changelog.md`, written in the last phase, with one `### Process changes` row for *Scope* item 4.
-8. The text of the issue comment that carries the closed rows' measurements (*Data & interfaces*). The orchestrator posts it; nothing in the tree holds it.
+8. The text that carries the closed rows' measurements (*Data & interfaces*), appended to #1493's body, where the issue's *Done when* asks for them. The orchestrator appends it; nothing in the tree holds it.
 
 Out:
 
@@ -69,7 +69,7 @@ def argv_words(text):
     each list literal's elements and each call's positional arguments."""
 ```
 
-It returns one list of strings per `ast.List` and per `ast.Call` in the parsed source, keeping only `ast.Constant` strings, as `words` does today. A case selects the argvs it judges by their first three words, such as `words[:3] == ["gh", "issue", verb]`. The two other modules import it as `tests/github/test_label_merged_on_release_branch.py` already imports `load` from the same module.
+It returns one list of strings per `ast.List`, per `ast.Tuple` and per `ast.Call` in the parsed source, keeping only `ast.Constant` strings, as `words` does today. A case selects the argvs it judges by their first three words, such as `words[:3] == ["gh", "issue", verb]`. The two other modules import it as `tests/github/test_label_merged_on_release_branch.py` already imports `load` from the same module.
 
 **`skills/implement/SKILL.md` *3. The SDD file set*, lines 325 to 327**, from:
 
@@ -81,7 +81,7 @@ to:
 
 The crafter rewraps the paragraph at its width and leaves line 114, which `tests/behaviour/test_the_set_a_work_item_always_has.py#KNOWN_PROSE` holds verbatim, untouched.
 
-**The issue comment**, which the orchestrator posts on #1493 once the pull request opens:
+**The measurements' text**, which the orchestrator appends to #1493's body once the pull request opens (folded after round 1: the issue's *Done when* names the body, not a comment):
 
 ```markdown
 The rows of `seal/follow-up.md` *Schedulable items with nowhere else to go* leave in this pull request. Each row's full text stands at `8657297d5:seal/follow-up.md`, lines 42 to 48. The measurements the rows carried move here.
@@ -104,7 +104,7 @@ The rows of `seal/follow-up.md` *Schedulable items with nowhere else to go* leav
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
-| Every row of the schedulable table | `seal/follow-up.md` *Schedulable items with nowhere else to go* | Rows 2, 3, 6 and 7 land in *Scope* items 4, 2, 3 and 1. Rows 1, 4 and 5 close with no tree change (G13, G1, G14). Every row's measurements land in the issue comment of *Data & interfaces*, and the full text stays at `8657297d5:seal/follow-up.md`. |
+| Every row of the schedulable table | `seal/follow-up.md` *Schedulable items with nowhere else to go* | Rows 2, 3, 6 and 7 land in *Scope* items 4, 2, 3 and 1. Rows 1, 4 and 5 close with no tree change (G13, G1, G14). Every row's measurements land in #1493's body, in the text of *Data & interfaces*, and the full text stays at `8657297d5:seal/follow-up.md`. |
 | The `next time` guard | `tests/text/test_a_rider_reaches_its_file.py#test_the_header_stops_the_answerer_that_is_really_a_condition`, lines 83 and 84 | It tests one spelling of a shape, which the core forbids a script to carry (G1). Its catch record is one false red and one missed defect (G8). The header sentences it sits beside stay pinned, and the party that writes or reviews a row reads its answerer. |
 | The folded reader | `tests/github/test_release_completeness_check.py#Test_module::test_the_gate_writes_nothing` and `tests/github/test_label_merged_on_release_branch.py#Test_module::test_the_script_only_ever_creates_a_label_and_adds_one` | `argv_words` (*Scope* item 1). No catch on record (G11), and a comment between two argv words defeats it (the issue, row 7). |
 | The case-local `words` and argv collection | `tests/github/test_close_issues_on_release.py#Test_module::test_the_script_closes_and_takes_off_one_named_label_and_nothing_else` | `argv_words`, the one reader of the cases *Scope* item 1 names. The docstring's account of what the parse closes moves to `argv_words` with it. |
