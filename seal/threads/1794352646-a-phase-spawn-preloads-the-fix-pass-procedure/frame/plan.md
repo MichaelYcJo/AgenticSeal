@@ -31,7 +31,7 @@ What breaks in six months. First, a resumed implementer may run a fix pass from 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6 | The fix-pass case of `tests/text/test_a_moved_rule_leaves_its_definition.py` seen red at `2b2bb623e` and with its absence guard removed (S2); the *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* over the paths the phase changed, the modules S6 names among them; `frame/design.md` G5's probe at the phase's last commit (S1); `evals/scripts/noninferiority.py run --agent crafter` at `7c2801838` and at the phase's last commit, then `compare --agent crafter --phase 1`, exit 0, each side and the record under `<scratchpad>/<work-item-id>/phase-1/` and the record's verdict with its two commands in `trail/phases/phase-1.md` (S5) | `61e926e3f` |
+| 1 | `frame/design.md` *Scope* items 1 to 6 | The fix-pass case of `tests/text/test_a_moved_rule_leaves_its_definition.py` seen red at `87a4730f7`, where the new file does not yet stand, and after the build with each guarded copy pasted back (S2); the *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* over the paths the phase changed, the modules S6 names among them; `frame/design.md` G5's probe at `0083fe9e2` (S1); `evals/scripts/noninferiority.py run --agent crafter` at `7c2801838` and at `0083fe9e2`, then `compare --agent crafter --phase 1`, exit 0, each side and the record under `<scratchpad>/<work-item-id>/phase-1/` and the record's verdict with its two commands in `trail/phases/phase-1.md` (S5) | `61e926e3f` |
 
 ## Overlap with the release
 
@@ -56,3 +56,5 @@ No migration, environment variable or dependency. An installed plugin ships `ski
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-11 | `docs/running/the-agent-set.md:93`, "the fix pass writes two lines of each finding it answers", takes no issue | The sentence states what each party writes at a glance and points to `docs/forms/the-round-record.md`, which states the close block whole; it is short of the truth only where a fix went to a path the finding does not name, which adds a `location:` line, and a work item to change one clause would cost more than a reader loses | `skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is written*, the paragraph **A lesson seen once is given a home or judged not worth one.** |
+| 2026-11-11 | The title takes `refactor:` | The diff moves the fix pass's procedure from an agent definition and a skill section into a file a fix pass opens, and replaces copies of the close block's verdicts and `location:` rule with citations of the round-record form; what a fix pass does is unchanged, and no gate, check, hook or case is added or removed | `skills/commit-pr-convention/SKILL.md` |
