@@ -95,6 +95,11 @@ close or corrects the sentence in place. Where the docstrings stay, the
 memo's paragraph names `tests/conftest.py:213-215` beside the hygiene
 docstring, and drops the claim that the fact was not established.
 
+```seal
+verdict: fixed c15f827f2
+answer: The finding holds: `53f21b542` removed the checklist's step 3, and both docstrings still cited it. The `build_tracked_tree` docstring takes the proposed text word for word. The census reads its citation of *Settle what earlier releases left behind*: `bin/seal mutate tests/conftest.py --replace '*Settle what earlier' '*Settle what older'` turned `tests/behaviour/test_a_cited_section_stands_in_its_file.py -k every_cited_section` red on `tests/conftest.py:215` (executed). The timer sweep's docstring is in my own words, not the proposed ones. The sweep lists only the `LOADED` prefixes (`skills`, `agents`, `docs`, `templates` and three top-level files), and `seal settle --apply` removes directories under `seal/threads/`, which none of them reaches. Read beside this sweep, "`seal settle --apply` deletes each directory ..., so the index can list paths the disk does not have" says the sweep meets those deletions, and it never does. The docstring now names the module by the checklist's `check:` lines (`docs/releasing/release-checklist.md:241, 344`). It states the class as #432 does: a change deletes a tracked file under `LOADED` and the suite runs before the removal is staged. It drops "the one a release meets first", which no record establishes. `gaps.md` *Not done* loses the paragraph on that docstring, because nothing is left for it to hold. `trail/phases/phase-2.md:90-95` is not edited, since a fix pass writes no phase record. Its "whole for those two spellings" was untrue at `c44121bff`, the commit it states, because `tests/conftest.py:215` already wrote the path and cited step 3; its lines 86-88 and 105-106 also count one step number where there were two.
+```
+
 ## Confirmations
 
 What matched: `frame/design.md` *Scope* item 1. The box **A GitHub Release
