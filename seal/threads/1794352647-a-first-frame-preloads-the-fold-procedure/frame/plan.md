@@ -56,3 +56,4 @@ None. No migration, environment variable, dependency or compatibility break. Thi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-11 | The title takes `refactor:` | The diff moves the fold and reframe procedure from an agent definition to a file the framer opens on that route, and removes a sentence about a mark nothing writes; what the framer does on each route is unchanged, and no gate, check, hook or case is added or removed | `skills/commit-pr-convention/SKILL.md` |
