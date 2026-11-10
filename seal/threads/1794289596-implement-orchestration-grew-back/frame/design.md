@@ -29,6 +29,7 @@ The tree as read at `9e9d1087f`. Every line number of `skills/implement/orchestr
 | G20 the unsettled designs under `seal/threads/` (executed, one `awk` over each `frame/design.md`) and `seal/follow-up.md` (read) | Each of the four holds the no-change block, so the policy in force is the baseline. Both tables of `seal/follow-up.md` are empty, so this work is no row's prerequisite. |
 | G21 the latest release's `### Process changes` (executed, `gh release view --json tagName,body`) | One row, on the Status cell's value `deferred #N`. It changes nothing this work reads. |
 | G22 issues #1476, #1478 and #1479 (executed, `gh issue view <N> --json title,body,comments,state`) and `refactor/1476-the-verifying-round-rule-has-four-owners` (executed, `git ls-tree -r`) | Each is open with no comments. #1476's branch holds its `routing.md` and no frame. `frame/plan.md` *Overlap with the release* reads each against this work. |
+| G24 the statements of the dated-section rule, read at `500d2cb98` (read; `git grep -n -E "dated to the commit\|dates to the commit\|states that commit\|claim about that commit"` outside `seal/threads/`, executed) | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* owns the rule: "each coordinate and present-tense statement of the tree there is a claim about that commit, which the build was bound to move and HEAD does not contradict." `agents/proofer.md:124-125` restates it for a round as "A frame section dated to the commit the framer read states that commit, and the target does not contradict it", and `agents/crafter.md:186-187` for the read before a hand-back as "states that commit, not the present". Neither restatement keeps the owner's words "of the tree", so each exempts the whole section, a conclusion about the work among it. D1 row 22 stands only in the body's fold rule, which neither agent opens. The proofer is the party that found the stale conclusions of G8, and its definition as written tells it the target does not contradict them. `agents/framer.md:276` says a dated section keeps its date, which row 22 does not contradict. |
 
 ## Scope
 
@@ -38,15 +39,16 @@ In:
 2. **The language-key paragraph moves to the same file.** `:205-223` lands there with its bold lead unchanged. The body states no rule of its own for the keys: D4's sentence for the file names the condition. The case `tests/behaviour/test_waiver_decided_at_start.py#test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recorded` reads the paragraph in the new file.
 3. **The merge order moves to `skills/implement/merge-order.md`.** `:466-489`, from "Where several work items of the release run side by side" to "the verifying round it owes.", lands there, except the sentence at `:480-484`, "Where a crafter builds that work item … because the crafter reads its version write there.", which binds a release of one work item too and stands in the fold rule (D1 row 24). The body paragraph **Which branch the pull request lands on is decided with the routing question** keeps what precedes and follows that range, the sentence "The orchestrator chooses which work item carries the move." among it, and gains D4's sentence for the file.
 4. **The fold rule becomes paragraphs of judgment, in place.** `:55-128` is rewritten as the paragraphs D1's Home column names, in the order this sentence lists them, each with one judgment and the clauses D1 homes in it: what a decision is, who writes the fold, how far one fold reaches, what the orchestrator records and when, what a rejection leaves, and what is folded before the frame is committed. The first keeps its bold lead as written, because `:141` and `tests/text/test_the_rules_have_one_owner.py:529` cite it. The paragraph on reach names the sections G8 found stale sentences in, and holds D1 rows 22 and 23. No clause leaves the body (G23). D1 row 24 enters the paragraph that holds row 10, and the same phase takes its sentence out of `skills/implement/merge-order.md`, where phase 1 put it at `4112c5924`, so that the sentence before it there ends at "merge as each is sealed." and the sentence after it follows. The case of G15 holds one phrase per row of D1, read from the order section.
-5. **The body states once what it states twice, and keeps no sentence no party acts on.** The passages *Removes* rows 9 to 13 and 16 to 18 name leave or shrink, and each row names the statement that stays. The third row of the table under **Three combinations do not stand** at `:564` then ends at "`chain_check.py` refuses it", because row 16 removes the sentence it pointed at.
+5. **The body states once what it states twice, and keeps no sentence no party acts on.** The passages *Removes* rows 9 to 13 and 16 to 20 name leave or shrink, and each row names the statement that stays. The third row of the table under **Three combinations do not stand** at `:564` then ends at "`chain_check.py` refuses it", because row 16 removes the sentence it pointed at.
 6. **The opening of the file describes this file alone.** `:3-22` is rewritten to say what the body holds after items 1 to 5. The sentence that sends a repository with no `seal/` root to `skills/implement/bootstrap.md`, with both places the root can be, stays, and so does contract rule 11's sentence on `seal/` paths. The list of `skills/implement/SKILL.md`'s contents at `:15-19` leaves (*Removes* row 14).
 7. **The sentences of G12 say where the passage now stands.** `README.md` and `README.ko.md` name `skills/implement/routing-question.md` for each answer and keep *Orchestrator: how the work is routed* for the rows. `skills/implement/multi-repository.md` names the new file for the question's shape. `skills/commit-pr-convention/SKILL.md` and `skills/implement/bootstrap.md` cite `skills/implement/routing-question.md` for the two language keys, and the docstring G12 names cites `skills/implement/merge-order.md` for the merge order.
 8. **Each new file is covered for line wrap.** The files D2 lists join `tests/behaviour/test_docs_line_wrap.py#COVERED`, each with a comment naming this issue (G16).
+9. **The dated-section rule states its exception at its owner, and each restatement carries it.** In `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*, the sentence G24 quotes is followed by one sentence saying what D1 row 22 says: a sentence of a dated section that says what the work does or concludes is no claim about that commit, so a fold rewrites it with the fact it states and a reader holds it against HEAD. `agents/proofer.md` and `agents/crafter.md` each reword the sentence G24 quotes so that it exempts the section's coordinates and statements of the tree and not a sentence that says what the work does or concludes, and each cites the owner. The body's fold rule keeps row 22 as the clause the orchestrator acts on, shortened to cite the owner for the rule (*Removes* row 21). Where a case holds one of the reworded sentences, it holds the new wording, the exception among it. No case is added.
 
 Out:
 
 - **The ladder**, *Orchestrator: when a work item is required*, apart from *Removes* row 17; its sentence citing issue #35 stays (G18). Every section this list does not name is out too: the batch section's other paragraphs, *The frame is read against the issue at the spawn*, *Under agentic* apart from *Removes* row 13, the drain and the lesson table.
-- **`agents/framer.md`.** Its rule *You have two routes back* cites *Orchestrator: the order inside a ticket* for the fold. The heading stands and the section keeps every clause, so no sentence of the definition becomes false.
+- **`agents/framer.md`**, and every sentence of `agents/proofer.md` and `agents/crafter.md` but the one *Scope* item 9 names. The framer's rule *You have two routes back* cites *Orchestrator: the order inside a ticket* for the fold. The heading stands and the section keeps every clause, so no sentence of the definition becomes false.
 - **Step 2's `pr.md` sentence at `:41-50`, the flow-log sentence at `:166-171` and the drain's first row at `:648`.** Issues #1478, #1479 and #1476 change them (`frame/plan.md` *Overlap with the release*).
 - **The version.** #1476 carries the move.
 - **A check on the file's size** (G3).
@@ -63,6 +65,7 @@ Out:
 | S5 a moved passage says what it said | Given *Removes* rows 1 to 7 and 15. When each passage is compared with its landing text. Then they differ only where a sentence pointed, by "above" or "below" or by a heading alone, at a passage of the file it left, and now cites that file by path, and where row 7 names the sentence that stays in the body. | `git diff --color-moved=zebra 9e9d1087f HEAD -- skills/implement/`, read by the proofer; the cases of G15 green against the new files. |
 | S6 every citation resolves | Given the tree. When the citation check runs. Then it names nothing dangling, and it names `docs/running/the-review-and-parity-arms.md:56` as excused by this work item. | `tests/behaviour/test_a_cited_section_stands_in_its_file.py` green (G13). |
 | S7 the hook's line still leads to the order | Given a session in a repository with a `seal/` root. When the hook prints. Then its last line names `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, and that heading stands. | `tests/lib/test_core.py` and `tests/hooks/test_core_start.py` green, unchanged. |
+| S8 a reader of a dated section holds its conclusions against HEAD | Given the owner's paragraph, `agents/proofer.md` and `agents/crafter.md`. When each is read for the dated-section rule. Then each exempts the section's coordinates and statements of the tree, and each says that a sentence stating what the work does or concludes is read against the present. | Read by the proofer against *Scope* item 9; the fold case of S3 holds row 22's phrase in the order section. |
 
 ## Data & interfaces
 
@@ -91,7 +94,7 @@ Out:
 | 19 | Before the frame is committed, the orchestrator folds the decision into the issue body, in place, and the comment that carried it records why. | #945 | Body, before the frame |
 | 20 | Why in place: a body that contradicts a comment, or an update block above the old text, leaves the reader two versions; GitHub keeps the body's history. | #945 | Body, before the frame |
 | 21 | The prompt that spawns the framer hands it the issue whole: the body as folded, one line naming the comments, the command that read them and its date. | #1166 | Body, before the frame |
-| 22 | A sentence of a dated section that says what the work does or concludes is not a claim about the commit, and is folded with the fact it states. | G8, `1794201840` round 2 finding 1 and `1794200907` round 1 finding 5 | Body, reach |
+| 22 | A sentence of a dated section that says what the work does or concludes is not a claim about the commit, and is folded with the fact it states. | G8, `1794201840` round 2 finding 1 and `1794200907` round 1 finding 5 | Body, reach, as the clause the orchestrator acts on; the rule's own text stands at its owner (*Scope* item 9) |
 | 23 | The fact a decision changes stands in more sections than the one the decision names, so the orchestrator's message names the fact and says that the coordinates it gives are the statements it has seen and not the whole list. | G8 | Body, reach |
 | 24 | Where a crafter builds the work item that carries the version move and its `frame/plan.md` *Operational impact* does not name the move, the framer folds the move into that section before the orchestrator spawns the last phase, because the crafter reads its version write there. | `:480-484`; phase 1's hand-back, `trail/phases/phase-1.md` *For phase 2* | Body, rejection, beside row 10 |
 
@@ -102,18 +105,18 @@ Out:
 | `routing-question.md` | `# implement, the routing question` | `## Orchestrator: why the routing question is asked once, at the start`; `## Question 1, the mode`; `## Question 2, the boxes`; `## What each answer writes`; `## Orchestrator: a question in the batch names its answers`; `## Orchestrator: the two language keys` |
 | `merge-order.md` | `# implement, the merge order of a release` | `## Orchestrator: the order the work items of a release merge in` |
 
-**D3. The size, by part.** The first number of each row is counted at `9e9d1087f` (executed, `sed -n '<a>,<b>p' \| wc -w`). The second is an estimate.
+**D3. The size, by part.** The counts are executed with `wc -w`: at `9e9d1087f` for a passage that leaves, and at the phase's commit for the body. The numbers for the parts not yet built are estimates.
 
-| Part | Leaves the body | Enters the body |
-|---|---|---|
-| *Scope* item 1: `:225-229`, `:257-276`, `:278-341`, `:345-346`, `:375-378`, `:404-419` | 1,324 | 55 |
-| *Scope* item 2: `:205-223` | 216 | 40, inside item 1's sentence |
-| *Scope* item 3: `:466-489` | 290 | 45 |
-| *Scope* item 4: `:55-128` | 872 | 875 |
-| *Scope* item 5 | 404 | 58 |
-| *Scope* item 6: `:3-22` | 207 | 120 |
+| Part | Leaves the body | Enters the body | The body after it |
+|---|---|---|---|
+| *Scope* items 1, 2 and 3, built at `4112c5924` | 1,830 | 116 | 5,597, measured |
+| *Scope* item 4, built at `500d2cb98` | 872 | 979 | 5,704, measured |
+| *Scope* item 5, *Removes* rows 9 to 13 and 16 to 18 | 404 | 58 | estimate |
+| *Scope* item 5, *Removes* rows 19 and 20 | 52 | 0 | estimate |
+| *Scope* item 6: `:3-22` | 207 | 120 | estimate |
+| *Scope* item 9, *Removes* row 21 | 60 | 35 | estimate |
 
-The estimate of the body after the six parts is about 5,170 words, against S1's bound. Without items 2, 5 and 6 it is about 5,770. After items 1, 2, 3, 7 and 8 the body holds 5,597 words (executed, `wc -w` at `109fd9390`).
+The estimate of the body after every part is about 5,190 words, against S1's bound. The estimate before item 4 was built was 5,170 with 875 words for the fold rule; the rule came to 979, and rows 19 to 21 are what answers the difference.
 
 **D4. When each new file is opened.** The body says each condition in one sentence, and the file's first paragraph says the same.
 
@@ -156,6 +159,9 @@ Every coordinate is in `skills/implement/orchestration.md`.
 | 16. "A wrong answer here is read against the record the run left: …" | `:399-402` | The third row of **Three combinations do not stand** at `:564` states the check's refusal, and the sentence at `:370-373` names the sealer's step 4. |
 | 17. "What it costs: …" through "… keeps the judgment from being free-form." | `:627-631` | It can go: the two sentences say why a judgment was preferred to a count, and no party acts on them. The sentences after them, on naming the value, stay. |
 | 18. The paragraph **Where a migration config is declared, the comparison with the original is recorded where the answer puts it**, shortened to one sentence | `:440-446` | `skills/legacy-parity/SKILL.md` *Recording the comparison* and `docs/running/the-review-and-parity-arms.md` *Parity arm* state where the comparison is recorded and which shapes leave code uncompared. The sentence that stays cites both. |
+| 19. "Under `complete` and `manual` that is where … and under `agentic` it is where the orchestrator chose a framer for the item (*Under agentic*).", in the paragraph opening "It is a record, not a box." | `:393-396` | The opening paragraph of *Orchestrator: when a work item is required* at `:603-605` says what the rung decides under `complete` and `manual` and under `agentic`, and the **Planning** bullet of *Under agentic* at `:543-546` says where the orchestrator chooses a framer. The sentence before it keeps `agents/framer.md`'s `## Job` as where the framer runs. |
+| 20. "The framer's hand-back names each statement the fold contradicts in a file the framer does not write, and", the first half of the sentence phase 2 wrote for D1 row 12 | the fold rule's paragraph on who writes, at `500d2cb98` | `agents/framer.md` *You have two routes back* states what the framer's hand-back names. The sentence that stays is D1 row 12 as D1 words it. |
+| 21. The body's own wording of the dated-section rule, in the sentence phase 2 wrote for D1 rows 15 and 22, shortened to the two clauses and the citation | the fold rule's paragraph on reach, at `500d2cb98` | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* states the rule and, by *Scope* item 9, its exception. |
 
 This work adds no gate, check, hook, mark or case, so it owes no removal in return. The cases of G15 keep what they hold and read it where it now stands. No case is removed.
 
