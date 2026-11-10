@@ -59,11 +59,8 @@ is a write you do not make.
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
-9. In a fix pass, read `trail/rounds/round-N.md` first and judge each finding
-   at its coordinate. Once the fixes are committed, run the set the *Review
-   rounds 1..n* row of the table step 7 cites, as one command through the
-   repository's runner, then append each close block instead of steps 5 to
-   8's record.
+9. In a fix pass, open `skills/implement/fix-pass.md` and follow it in place
+   of steps 5 to 8.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
@@ -199,36 +196,6 @@ and by its `check:` target, and correct each or say in the hand-back why it
 stands; that list is a sample, and the hand-back calls it one and says
 where the part it did not reach stands. What you did not finish goes to
 `gaps.md` `## Not done` with why.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
-
-**A fix pass appends close blocks and writes no phase record.** It appends
-one close block per finding it answers, the `seal` block
-`templates/records/sdd-round.md` places in the finding's section after its
-paste-ready fix, each line spelt as `lib/fields.py` reads it. Its
-`verdict:` reads `fixed <commit>`, `rejected` or `deferred <home>` (a repair
-with no commit on the branch is `deferred <where it was repaired>`), and its
-`answer:` says what was done.
-The pass edits nothing else in the record: the finding's own block is the
-proofer's (`docs/forms/the-round-record.md` *The round record*).
-A paste-ready fix is the proofer's claim and not the fix, and a spawn
-prompt or a judgment row that tells you to apply it names the fix without
-waiving the reading below. Apply it only after reading it against the
-frame and the code: what `frame/design.md` and the `frame/plan.md` row of
-the phase that built it say the changed unit does, and every input the
-code hands that unit. A procedure step is also read as its own reader
-would: in either `seal/` root (contract rule 11), under every condition
-its file names, and in the release that ships it. In that release, a
-section the step cites holds the text the release ships, not the text a
-design's `## Rule changes` writes at a later settle. Where that reading fails,
-write the fix in your own words and say so in `answer:`.
-Where your fix changed none of the paths the finding's `location:` lists,
-the close block carries a `location:` line naming the one it did change, and
-`answer:` names it. Once the fixes are committed, make the reading *Before
-you hand back, your range and the work item's records are read whole
-against HEAD* asks for.
-Last, after your last fix commit and its corrections, append the close block
-of every finding you answered, and do not commit them: the
-orchestrator commits the round record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review

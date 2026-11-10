@@ -22,6 +22,9 @@ SKILL = ("skills", "code-review", "SKILL.md")
 ORCH = ("skills", "code-review", "orchestration.md")
 PROOFER = ("agents", "proofer.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
+# The fix pass's procedure, cut from `IMPLEMENT` *5.* and `agents/crafter.md`
+# in #1471.
+FIX_PASS_PROCEDURE = ("skills", "implement", "fix-pass.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
 # runs in landed here in #351.
 ORCH_IMPL = ("skills", "implement", "orchestration.md")
@@ -134,7 +137,7 @@ RULES = {
         RECORD_LAYOUT,
         "A commit after the build that changes what the work item ships "
         "updates the work item's `changelog.md` in the same range.",
-        {IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
+        {FIX_PASS_PROCEDURE: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
@@ -274,7 +277,7 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         # #1041, S1: the fix pass writes its closes last, after the
         # corrections its read of its range and the records made (#1318), and
         # commits none, since the orchestrator commits them
-        # (`agents/crafter.md` *A fix pass appends close blocks*); a doubt
+        # (`skills/implement/fix-pass.md` *The close blocks, last*); a doubt
         # goes to the next round rather than into a rewrite of the block.
         # #1198 made the two lines one close block.
         "Last, the fix pass appends the close block of every finding it "

@@ -49,10 +49,9 @@ the same records. An orchestrator in a new session reads the routing from
 the work item's `routing.md` and asks nothing again before the spawn.
 
 **The crafter's fix pass appends one close block to each open finding of
-`trail/rounds/round-N.md`, holding its verdict, its answer and, where its fix
-went to a path the finding does not name, a `location:` line naming it, and
-it edits nothing else in the record** (`docs/forms/the-round-record.md` *The round
-record*); it writes no `trail/phases/phase-N.md` and no `plan.md` row.
+`trail/rounds/round-N.md`, and it edits nothing else in the record**
+(`docs/forms/the-round-record.md` *The round record*); it writes no
+`trail/phases/phase-N.md` and no `plan.md` row.
 **The orchestrator writes no close block of a finding the fix pass answers,
 and its fix-pass prompt leaves every such block to the crafter.** A close the
 orchestrator doubts goes into the verifying round's spawn prompt, since that

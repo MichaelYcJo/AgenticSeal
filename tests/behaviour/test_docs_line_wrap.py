@@ -156,6 +156,9 @@ COVERED = [
     # passage was covered there, so each file goes in at birth.
     "skills/implement/routing-question.md",
     "skills/implement/merge-order.md",
+    # The fix pass's procedure, cut from `skills/implement/SKILL.md` and
+    # `agents/crafter.md` in #1471, the same way.
+    "skills/implement/fix-pass.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "skills/commit-pr-convention/SKILL.md",
