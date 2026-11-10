@@ -6,6 +6,9 @@ items, before it spawns the first framer of the release, and not otherwise.
 holds the rest: the branch a pull request lands on, and the version move
 that the first pull request into the release branch carries where the
 repository names the version when it cuts that branch.
+`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket* says where the framer writes the move for the crafter that builds
+it.
 
 ## Orchestrator: the order the work items of a release merge in
 
@@ -23,12 +26,7 @@ item that no plan orders after another, which the orchestrator chooses
 where several are, and the orchestrator merges that item before every
 other item of the release, because the first pull request into the branch
 carries the move. Once it has landed, items that no plan orders against
-each other merge as each is sealed. Where a crafter builds that work item
-and its `frame/plan.md` *Operational impact* does not name the move, the
-move is a decision the framer folds into that section, as
-`skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket* states, before the orchestrator spawns the last
-phase, because the crafter reads its version write there. A move made
+each other merge as each is sealed. A move made
 after a work item's last round owes a verifying round of its own, so
 where the chosen item's rounds have already ended, the move goes to
 another item that no plan orders after another and whose rounds still

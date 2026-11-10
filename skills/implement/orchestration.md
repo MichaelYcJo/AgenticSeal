@@ -59,72 +59,83 @@ in the frame. A decision is anything that changes what the frame says the
 work is or why: a round finding whose route changes the frame, a round
 finding located in a frame file, an owner's remark, an issue comment, a
 prevention home, a scope a spawn gives beyond a plan row, or the version
-move. These are examples of the rule, not a closed list. The framer writes
-a decision's fold, as `agents/framer.md` *Rules* states, because the
-framer judges what the work should be (`skills/core/SKILL.md` *Each agent
-judges its own target, independently of the others*). Before the spawn
-that will read the decisions, the orchestrator sends every decision then
-pending to the framer in one message, each with its grounds and the
+move. These are examples of the rule, not a closed list.
+
+**The framer writes a decision's fold, because the framer judges what the
+work should be.** `agents/framer.md` *Rules* states the fold, and
+`skills/core/SKILL.md` *Each agent judges its own target, independently of
+the others* the reason. The framer's hand-back names each statement the
+fold contradicts in a file the framer does not write, and a statement in
+`routing.md` or `pr.md` is the orchestrator's to repair. A statement a
+crafter's hand-back names in a frame file or `routing.md` records what the
+build changed rather than what the work is, so the orchestrator folds it in
+a commit of its own and spawns no framer. A statement found in a file the
+crafter writes, `gaps.md` or `changelog.md`, goes to a fix pass before the
+orchestrator spawns the next round or phase. The fix pass is the crafter
+that wrote the work item's last build or fix commit, resumed or spawned
+fresh as `skills/code-review/orchestration.md` *Orchestrator: a phase is a
+fresh crafter, and a fix pass resumes the implementer* states.
+
+**One fold reaches every statement of the fact it changes.** Before the
+spawn that will read the decisions, the orchestrator sends every decision
+then pending to the framer in one message, each with its grounds and the
 coordinates it stands on: the finding, the comment or the owner's words.
-The orchestrator resumes the work item's framer while that session still
-exists, as a fix pass resumes the implementer
-(`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
-crafter, and a fix pass resumes the implementer*), and otherwise spawns a
-fresh framer and hands it the decisions and the commit at which the frame
-was last written. Before it sends, the orchestrator writes each decision,
-its grounds and the document it judged against as one row of
-`frame/plan.md` *Judgments of the run* and leaves the row uncommitted, so
-the framer reads the row when it reads `plan.md` whole: the rewritten
-sentence keeps no reason for itself, and the settle reads the row. The
-orchestrator corrects its row where the framer's hand-back names a defect
-in it. A decision the framer rejects stands as its judgment, as a proposal
-left after the exchange of *The frame is read against the issue at the
-spawn* does: the orchestrator rewrites its row of *Judgments of the run* to
+The fact a decision changes often stands in sections the decision does not
+name, such as *Scope*, *Removes*, *Alternatives considered*, *Judgments of
+the run*, *Grounding* and *Technical context*, so the message names the
+fact and says that its coordinates are the statements the orchestrator has
+seen, not the whole list. The statements a crafter's hand-back names are
+its reading of a file it does not write, so the orchestrator reads each
+file that holds one whole against HEAD, not only the named line, and
+rewrites every statement HEAD contradicts. A section the frame dates to the
+commit it read, *Grounding* or *Technical context*, states that commit, so
+its statements of the tree are not folded; a sentence there that says what
+the work does or concludes is no claim about that commit, and is folded
+with the fact it states. A section that states the tree with no date gets
+the date and keeps its text (`skills/implement/SKILL.md` *Document layout —
+two roots, three lifetimes*). After a fold commit of its own, the
+orchestrator reads that commit and each file of the work item's directory
+that states the present whole against HEAD, as contract rule 12 asks of the
+party that fixes; a decision's fold is read by the framer that writes it.
+
+**The orchestrator writes its row before it sends a decision, and commits
+the fold before the spawn.** Until a decision is folded, the orchestrator
+keeps one line of its own in `plan.md` naming the comments to fold, below
+the title, and deletes that line in the commit that folds them. Before it
+sends, the orchestrator writes each decision, its grounds and the document
+it judged against as one row of `frame/plan.md` *Judgments of the run* and
+leaves the row uncommitted, so the framer reads the row when it reads
+`plan.md` whole: the rewritten sentence keeps no reason for itself, and the
+settle reads the row. The orchestrator resumes the work item's framer while
+that session still exists, as a fix pass resumes the implementer, and
+otherwise spawns a fresh framer and hands it the decisions and the commit
+at which the frame was last written. It corrects its row where the framer's
+hand-back names a defect in it, then commits the frame files the framer
+changed and its own rows in one commit, before the spawn that reads them.
+
+**A decision the framer rejects stands as its judgment, as a proposal left
+after the exchange of *The frame is read against the issue at the spawn*
+does.** The orchestrator rewrites its row of *Judgments of the run* to
 record the rejection and what the decision's source takes instead, a
 finding's route or the next spawn's scope, and quotes the framer's
 *Alternatives considered* row in the work item's `pr.md`. The version move
-and a prevention home are folded as an owner's decision is, because
-another rule gives each to the orchestrator to decide: the move by
-*Orchestrator: how the work is routed*, and the home by the paragraph
-opening *A problem that recurs within a run gets a prevention home at
-once*. The
-orchestrator then commits the frame files the framer changed and its own
-rows in one commit, before the spawn that reads them. The framer's
-hand-back names each statement the fold contradicts in a file the framer
-does not write, and a statement in `routing.md` or `pr.md` is the
-orchestrator's to repair. Where a crafter's hand-back names a statement
-its work contradicts in a file the crafter does not write, a frame file or
-`routing.md`, the orchestrator reads each such file whole against HEAD,
-not only the named line, and rewrites every statement HEAD contradicts:
-the crafter's list is its reading of a file it does not write. Such a
-statement records what the build changed rather than what the work is, so
-the orchestrator folds it in a commit of its own and spawns no framer. A
-statement of a section the
-frame dates to the commit it read, *Grounding* or *Technical context*, is
-a claim about that commit, so it is not folded, and a section that states
-the tree with no date gets the date and keeps its text
-(`skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes*). After the fold commit, the orchestrator reads that commit and
-each file of the work item's directory that states the present whole
-against HEAD, as contract rule 12 asks of the party that fixes; a
-decision's fold is read by the framer that writes it. Where that reading,
-or the framer's hand-back, finds a statement in a file the crafter writes,
-`gaps.md` or `changelog.md`, the orchestrator hands it to a fix pass
-before it spawns the next round or phase. The fix pass is the crafter that
-wrote the work item's last build or fix commit, resumed or spawned fresh as
-`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
-crafter, and a fix pass resumes the implementer* states.
-Until the decision is folded, the orchestrator keeps one line of its own
-in `plan.md` naming the comments to fold, below the title, and deletes that
-line in the commit that folds them. Before the
-frame is committed, the orchestrator folds the decision into the issue body
-instead, in place, and the comment that carried it records why. A body that
-contradicts a comment leaves the reader to work out which is current, and a
-block of updates written above the old text leaves two versions to choose
-between. GitHub keeps the body's edit history, so rewriting it loses
-nothing. The orchestrator's prompt that spawns the framer hands it the
-issue whole: the body as folded, and one line naming the comments the issue
-has, none or each comment's link, with the command that read them,
+and a prevention home are folded as an owner's decision is, because another
+rule gives each to the orchestrator to decide: the move by *Orchestrator:
+how the work is routed*, and the home by the paragraph opening *A problem
+that recurs within a run gets a prevention home at once*. Where a crafter
+builds the work item that carries the move and its `frame/plan.md`
+*Operational impact* does not name it, the framer folds the move into that
+section before the orchestrator spawns the last phase, because the crafter
+reads its version write there.
+
+**Before the frame is committed, the orchestrator folds a decision into the
+issue body instead, in place.** The comment that carried it records why. A
+body that contradicts a comment, or a block of updates written above the
+old text, leaves the reader two versions to choose between, and GitHub
+keeps the body's edit history, so rewriting it loses nothing. The
+orchestrator's prompt that spawns the framer hands it the issue whole: the
+body as folded, and one line naming the comments the issue has, none or
+each comment's link, with the command that read them,
 `gh issue view <N> --json body,comments`, and the date it ran.
 
 **Where a work item stands is read from `plan.md`'s Status column,
