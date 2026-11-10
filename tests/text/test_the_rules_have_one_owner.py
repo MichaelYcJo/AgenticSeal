@@ -51,6 +51,7 @@ FRAGMENT_OWNER = (
     "changelog fragment along* owns that rule"
 )
 RUN_OWNS_THE_RULE = "`docs/running/the-run.md` *The run* owns that rule"
+EARLIER_ROUNDS = "`skills/code-review/SKILL.md` *Earlier rounds*"
 
 
 # rule → (owner, the sentence the owner states, {link carrier: how it names
@@ -160,6 +161,17 @@ RULES = {
         "pass left it, in one commit for the whole pass, before it spawns the "
         "verifying round, and changes none of its lines.",
         {},
+    ),
+    # #1476: four files each said what the three lines mean, and #161's
+    # rounds corrected such copies a few at a time. The review skill, which
+    # the proofer opens at step 1, defines them, and the other three name
+    # that section.
+    "21 a closed finding is answered on one of three lines": (
+        SKILL,
+        "Every finding the round before closed `fixed <commit>` or `rejected` "
+        "is named this round by exactly one of three lines: `confirms:`, "
+        "`regression:` or `reopens:`.",
+        {PROOFER: EARLIER_ROUNDS, RECORD: EARLIER_ROUNDS, ORCH: EARLIER_ROUNDS},
     ),
 }
 
@@ -540,23 +552,28 @@ def sentences(text):
 
 @pytest.mark.rule("run-ends-with-verifying-round")
 def test_a_close_that_does_not_hold_reopens_it():
-    """S9 and S26 of work item 1791933022. A verifying round answers each
-    closed finding on one of three line keywords, `confirms:`,
+    """S9 and S26 of work item 1791933022, and #1476. A verifying round
+    answers each closed finding on one of three line keywords, `confirms:`,
     `regression:` and `reopens:`, which `lib/fields.py` spells and the
-    chain check reads. Every carrier that names the first two in one
-    sentence names the third in it too, so no carrier hands the proofer a
-    channel with a keyword missing. When a close reopens, and how the run
-    ends, are the proofer's to read."""
-    for carrier in (RECORD, PROOFER, SKILL, ORCH):
-        both = [
+    chain check reads. `skills/code-review/SKILL.md` defines them, so it
+    names the first two in one sentence, and the other three carriers owe
+    no such sentence. Any sentence of the four that names the first two
+    names the third in it too, so no carrier hands the proofer a channel
+    with a keyword missing. When a close reopens, and how the run ends, are
+    the proofer's to read."""
+
+    def both(carrier):
+        return [
             s
             for s in sentences(flat(*carrier))
             if "`confirms:`" in s and "`regression:`" in s
         ]
-        # The two line keywords `lib/fields.py` spells, which the
-        # proofer writes and the chain check reads.
-        assert both, f"{'/'.join(carrier)} names the channel nowhere"
-        for s in both:
+
+    # The two line keywords `lib/fields.py` spells, which the proofer
+    # writes and the chain check reads.
+    assert both(SKILL), f"{'/'.join(SKILL)} names the channel nowhere"
+    for carrier in (RECORD, PROOFER, SKILL, ORCH):
+        for s in both(carrier):
             # The third line keyword of the same channel, `reopens:`, which
             # the proofer writes and the chain check reads.
             assert "`reopens:`" in s, (

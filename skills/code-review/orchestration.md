@@ -112,11 +112,8 @@ So a run ends with a **verifying round**, and three things define it.
 | Property | What |
 |---|---|
 | When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
-| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule. Beside that diff, the round reads `routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md` and, where one stands, `pr.<lang>.md` whole at its target commit, as a finding round does (`agents/proofer.md` *Rules*, the rule opening **Every round reads the work item's records that state the present**) |
-| Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
-
-The new units in that diff are the exception: they have been reviewed by
-nobody, so the verifying round reviews them as code.
+| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `agents/proofer.md` *Rules* states the bound, in the rule opening **A verifying round answers the closed findings**, and the read of the work item's records that stands beside the bound, in the rule opening **Every round reads the work item's records that state the present** |
+| Job | the answers, not new findings. The round answers each finding the previous round closed `fixed <commit>` or `rejected`, as `skills/code-review/SKILL.md` *Earlier rounds* states |
 
 **A round that opens nothing needing a fix does not count.** The count
 holds rounds that found something, because it exists to make you weigh a
@@ -206,14 +203,13 @@ with its grounds, has opened nothing needing a fix, and it does not count.
 Its record is still not the last one: the check refuses a `rejected`
 finding in the last record, and a `fixed` one that names a path outside the
 work item's records or whose commit touched one, so one more verifying round
-reads that answer alone. Where the rejection holds, that round names it on a
-`confirms:` line; where it does not, that round raises a finding with a
-`reopens:` line naming it, which gets its fix pass and one more verifying
-round; a round carrying a `regression:` line is routed as the section below
-says, and where the work item returns to its framer the run goes on with the
-redesign. The run ends only on a round whose record holds no finding without
-a close block, no `rejected` one, and no `fixed` one that names a path
-outside the work
+reads that answer alone, and answers it as `skills/code-review/SKILL.md`
+*Earlier rounds* states. A finding of that round that carries a `reopens:`
+line gets its fix pass and one more verifying round; a round carrying a
+`regression:` line is routed as the section below says, and where the work
+item returns to its framer the run goes on with the redesign. The run ends
+only on a round whose record holds no finding without a close block, no
+`rejected` one, and no `fixed` one that names a path outside the work
 item's records or whose commit touched one, and whose `target:` commit is
 HEAD, or is followed only by the work item's own records (a verifying round,
 or the round you stopped at, whose open findings took their homes), since
@@ -225,10 +221,10 @@ verifying round.
 ### A regression is routed by comparing the fix with the frame
 
 **The route comes first, because a stop that names no exit is a wall.** A
-finding's `regression:` line routes nothing by itself. Its grounds open
-with the unit and then one sentence comparing the fix with the frame: what
-the frame says, what the fix did and where the defect came from. You route
-the round on that sentence (`docs/running/the-run.md` *The run*). Once a
+finding's `regression:` line routes nothing by itself. Its grounds hold one
+sentence comparing the fix with the frame, as `skills/code-review/SKILL.md`
+*Earlier rounds* states, and you route the round on that sentence
+(`docs/running/the-run.md` *The run*). Once a
 row has judged the run excessive, only a `must` takes a route below, and
 any other regression takes a home by the paragraph opening **A row that
 judges the run excessive binds every row after it**:

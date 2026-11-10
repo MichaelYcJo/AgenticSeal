@@ -132,14 +132,29 @@ Read the work item's earlier `trail/rounds/round-*.md` before starting. What
 carries is **where to look, not what was concluded**: open the coordinates
 an earlier round names instead of searching again, and reach your own
 verdict on the code as it stands, since a fix made for round 2 can break an
-axis round 1 found clean. Every finding the round before closed
-`fixed <commit>` or `rejected` is answered this round, by a `confirms:` line
-where the close holds, and where it does not by a finding naming it on a
-`reopens:` line, or on a `regression:` line where a fix pass's commit
-introduced the defect. Where you weigh an earlier finding, re-run its
+axis round 1 found clean. Where you weigh an earlier finding, re-run its
 `evidence: executed` line rather than re-deriving the claim; a probe it names
 is written again from its `## Probes` row. A record written before the
 `evidence:` field lacks the line, and that is no finding.
+
+Every finding the round before closed `fixed <commit>` or `rejected` is
+named this round by exactly one of three lines: `confirms:`, `regression:`
+or `reopens:`. A `confirms:` line names the finding where its close holds.
+A `regression:` line stands on a new finding where the defect is in a unit
+that a fix pass's own commits added or changed, and those commits
+introduced the defect. A `reopens:` line stands on a new finding in every
+other case where the close does not hold: a rejection that was wrong, or a
+`fixed` commit that left the defect standing, in the unit that commit
+changed or in another.
+
+A `regression:` line names the finding whose fix made the unit, as
+`round-<N>#<n>`, or `round-<N>` for a fix pass no finding named. The
+grounds of its finding open with the unit. Then one sentence of the grounds
+sets the fix beside the frame, from the phase's `frame/plan.md` row and
+`frame/design.md`: what the frame says, what the fix did, and where the
+defect came from. No label carries that sentence. A defect in a unit a
+build phase made is new work, and its finding takes neither a `regression:`
+nor a `reopens:` line, even where the round that finds it reads that phase.
 check: tests/text/test_review_axes.py tests/text/test_the_rules_have_one_owner.py
 
 ## The record

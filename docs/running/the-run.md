@@ -5,43 +5,23 @@ each agent; an agent opens the section its definition cites.
 
 ## The run
 
-**A run ends with a verifying round.** It is spawned after the last fixes are committed, and a fix pass owes none only where each finding it closed is located in `seal/threads/<id>/` alone and its commits touched nothing else, as `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states; its target is the diff of those fixes, new units included; it
-asks of every finding marked closed whether the fix holds, and says so on a
-`confirms:` line where it holds, and where it does not on a finding's
-`reopens:` line, or its `regression:` line where a fix pass's own commit
-made the defect. A round opening nothing that needs a fix does not count toward the three finding rounds, which mark where the orchestrator weighs a loop that is not converging and are no cap: such a round is the loop having converged.
+**A run ends with a verifying round.** It is spawned after the last fixes are committed, and a fix pass owes none only where each finding it closed is located in `seal/threads/<id>/` alone and its commits touched nothing else, as `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states. It answers every finding the round before closed, on the lines `skills/code-review/SKILL.md` *Earlier rounds* defines. A round opening nothing that needs a fix does not count toward the three finding rounds, which mark where the orchestrator weighs a loop that is not converging and are no cap: such a round is the loop having converged.
 check: run-ends-with-verifying-round
 
-**The orchestrator ends the rounds when they stop paying, and a run has three finding rounds by default, counted from the last design change, as the point where it weighs that rather than spawning the next round by habit.** A design change is a reframe, or a new phase the owner approved in `frame/plan.md`, so the first finding round that reviews new work starts the count again at one, whatever the record's number. The signals that a run is not converging, and what going on and stopping each cost, are `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*'s. A regression's fix pass is followed by one verifying round whatever the count, because no fix goes unread by a round, an invariant the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party* holds. Every such decision, past the third round or at it, is a row of `frame/plan.md` *Judgments of the run* naming the counts weighed and this section; the proofer writes no line for it. When the orchestrator stops, every finding still open takes a home from the table below and reads `deferred <home>`. These decisions are the orchestrator's, and the orchestrator asks no person to make them.
+**The orchestrator ends the rounds when they stop paying, and a run has three finding rounds by default, counted from the last design change, as the point where it weighs that rather than spawning the next round by habit.** A design change is a reframe, or a new phase the owner approved in `frame/plan.md`, so the first finding round that reviews new work starts the count again at one, whatever the record's number. The signals the orchestrator weighs at that point, and the routes of a regression, are `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*'s. A regression's fix pass is followed by one verifying round whatever the count, because no fix goes unread by a round, an invariant the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party* holds. Every such decision, past the third round or at it, is a row of `frame/plan.md` *Judgments of the run* naming the counts weighed and this section; the proofer writes no line for it. When the orchestrator stops, every finding still open takes a home from the table below and reads `deferred <home>`. These decisions are the orchestrator's, and the orchestrator asks no person to make them.
 check: tests/behaviour/test_chain_hooks_hardening.py
 
 **A regression is routed by comparing the fix with the frame.** A
-regression is a defect a fix pass's own commit introduced. Where a finding
-stands in a unit a fix pass's own commits added or changed, and those
-commits introduced its defect, the proofer writes its `regression:` line,
-naming the finding whose fix made the unit
-as `round-<N>#<n>`, or that round as `round-<N>` where no finding named the
-unit, and names the unit first in the grounds. Then one sentence of the
-grounds says what the frame says, from the phase's `frame/plan.md` row and
-`frame/design.md`, what the fix did, and where the defect came from. No label carries that sentence, and the orchestrator routes the round on it, at any round of the run, except that once a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, only a `must` takes a route, and every other regression takes a home that costs no round (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*). Where the fix built what the frame says and the defect is
-still there, the frame is wrong, and the round gets no fix pass: the work
-item goes back to its framer, who writes
+regression is a defect a fix pass's own commit introduced. The grounds of
+its finding carry the comparison, as `skills/code-review/SKILL.md` *Earlier
+rounds* states, and the orchestrator routes the round on it. A work item
+the route sends back to its framer gets
 `Reframed <date> by <who>, after round <N>.` under the mark at the foot of
-`frame/design.md`, and the run goes on with the redesign's build and its rounds.
-Where the fix departed from the frame, or the defect came from how the fix
-was written, a paste-ready fix taken from a review record among them, the
-round gets an ordinary fix pass, and the crafter is told what the frame says.
-A second regression on the same unit after a fix-pass route is the signal that the frame is wrong whatever the sentence reads, and the orchestrator routes it to the framer unless it can write, as the row's grounds in `frame/plan.md` *Judgments of the run*, why the frame holds and the fix alone was wrong. A defect in a unit a build phase made,
-one the framer designed and the owner approved in `frame/plan.md`, is an ordinary
-finding of new work, with no `regression:` line, even where the round that
-finds it reads that phase. A close that does not hold where no fix pass's
-commit made the defect, a `rejected` finding that holds after all or a
-`fixed` commit that left the defect standing, in the unit that commit
-changed or in another, is raised again as an ordinary finding with a
-`reopens:` line naming it, and gets its fix pass.
+`frame/design.md`, written by that framer, and the run goes on with the
+redesign's build and its rounds.
 check: tests/text/test_the_rules_have_one_owner.py
 
-**A leftover finding goes where somebody will act on it, and the orchestrator writes why there.** The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, and a new issue is not the default. After a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, the first rung holds only a `must` and a fix confined to the work item's records, because any other fix or rejection costs a round the stop has refused; every other finding takes the second, third or fourth rung (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*). The row the orchestrator writes in `frame/plan.md` *Judgments of the run* names the home and the party:
+**A leftover finding goes where somebody will act on it, and the orchestrator writes why there.** The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, and a new issue is not the default. The row the orchestrator writes in `frame/plan.md` *Judgments of the run* names the home and the party:
 
 | Rung | When it fits | Where the finding goes |
 |---|---|---|
