@@ -33,15 +33,14 @@ repeating it to every person who updates across 0.37.1. The removal's issue,
 filed when this pull request opens, is what keeps the date from being only a
 sentence (*Operational impact*).
 
-`routing.md` *Why this way* says the diff touches the two READMEs and
-`docs/checks/the-stamp.md`. This frame also adds the `docs/experiments/`
-record of `frame/design.md` *Scope* item 5, with its entry in
-`tests/behaviour/test_docs_line_wrap.py`, and the test edits of *Scope* item
-6. Each is text no party acts on or a case pinning that text. Phase 1 also
-exempted `templates/setup/claude-md-block.md` by name in
+The diff touches the two READMEs, `docs/checks/the-stamp.md`, the
+`docs/experiments/` record of `frame/design.md` *Scope* item 5 with its entry
+in `tests/behaviour/test_docs_line_wrap.py`, and the test edits of *Scope*
+item 6. Each is text no party acts on or a case pinning that text. Phase 1
+also exempted `templates/setup/claude-md-block.md` by name in
 `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_every_template_is_named_by_a_document_that_ships`,
-a change to a check, so the orchestrator routed the review through the
-review chain (`routing.md` *Why this way*).
+a change to a check; `routing.md` *Why this way* holds the route that
+follows from it.
 
 ## Alternatives considered
 

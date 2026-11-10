@@ -29,8 +29,7 @@ command gave it) or `read` (the file was opened).
 1. `README.md` *Updating*: the paragraph on the `CLAUDE.md` block
    (`README.md:95-99`) and the paragraph on `seal/config.md`
    (`README.md:101-115`) become one paragraph. It says that `/agentic:update`
-   tells a person coming from an earlier release what that release asks of
-   them, takes out what an earlier release wrote into their `CLAUDE.md`, and
+   takes out what an earlier release wrote into their `CLAUDE.md`, and
    names what an earlier release left that only they can remove, with a link
    to `skills/update/SKILL.md`. It keeps two things for a person who updates
    without `/agentic:update`: the `seal mode` line (run it once in each
