@@ -31,7 +31,7 @@ What breaks in six months. First, a resumed implementer may run a fix pass from 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6 | The fix-pass case of `tests/text/test_a_moved_rule_leaves_its_definition.py` seen red at `2b2bb623e` and with its absence guard removed (S2); the *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* over the paths the phase changed, the modules S6 names among them; `frame/design.md` G5's probe at the phase's last commit (S1); `evals/scripts/noninferiority.py run --agent crafter` at `7c2801838` and at the phase's last commit, then `compare --agent crafter --phase 1`, exit 0, each side and the record under `<scratchpad>/<work-item-id>/phase-1/` and the record's verdict with its two commands in `trail/phases/phase-1.md` (S5) | |
+| 1 | `frame/design.md` *Scope* items 1 to 6 | The fix-pass case of `tests/text/test_a_moved_rule_leaves_its_definition.py` seen red at `2b2bb623e` and with its absence guard removed (S2); the *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* over the paths the phase changed, the modules S6 names among them; `frame/design.md` G5's probe at the phase's last commit (S1); `evals/scripts/noninferiority.py run --agent crafter` at `7c2801838` and at the phase's last commit, then `compare --agent crafter --phase 1`, exit 0, each side and the record under `<scratchpad>/<work-item-id>/phase-1/` and the record's verdict with its two commands in `trail/phases/phase-1.md` (S5) | `61e926e3f` |
 
 ## Overlap with the release
 
