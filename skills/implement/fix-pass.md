@@ -53,13 +53,14 @@ range and the work item's records are read whole against HEAD* asks for.
 **A fix pass appends close blocks and writes no phase record.** It appends
 one close block per finding it answers, the `seal` block
 `templates/records/sdd-round.md` places in the finding's section after its
-paste-ready fix, each line spelt as `lib/fields.py` reads it. The values its
-`verdict:` takes are stated in `docs/forms/the-round-record.md` *A
-finding's `verdict:` decides it, and severity is for people*, and when it
-carries a `location:` line of its own in `docs/forms/the-round-record.md`
-*The fix pass appends one close block per finding and edits nothing else in
-the file*; the fix pass reads both paragraphs before it writes the first
-block. Its `answer:` says what was done.
+paste-ready fix, each line spelt as `lib/fields.py` reads it. Two
+paragraphs of the form state what the block holds, and the fix pass reads
+both before it writes the first block: `docs/forms/the-round-record.md` *A
+finding's `verdict:` decides it, and severity is for people* gives the
+values its `verdict:` takes, and `docs/forms/the-round-record.md` *The fix
+pass appends one close block per finding and edits nothing else in the
+file* gives when the block carries a `location:` line of its own. Its
+`answer:` says what was done.
 The pass edits nothing else in the record: the finding's own block is the
 proofer's (`docs/forms/the-round-record.md` *The round record*). The
 build's phases keep their records.
