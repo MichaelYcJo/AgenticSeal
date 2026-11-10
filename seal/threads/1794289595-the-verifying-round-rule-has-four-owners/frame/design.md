@@ -37,7 +37,7 @@ In scope:
    - The paragraphs after the table, on `Automation` `yes` and on the judgment rows, do not change.
 5. **The records-only exception has its text in the core's row, and every other statement of it becomes a citation of that row.** The cell of *No fix that no round reads* in `skills/core/SKILL.md` reads: "every change after the last round is read by a round, or by the sealer where it touched the work item's records alone and each finding it closed is located in those records alone". Each site below names the row, as the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*, and states no condition of its own:
    - `docs/running/the-run.md` line 8 (the clause from "and a fix pass owes none only where" to the citation of `the-pull-request-check.md`).
-   - `skills/code-review/orchestration.md` lines 102 to 108, the *When* row at line 114, lines 164 to 165, lines 177 to 180, the run's end at lines 206 to 208 and 214 to 223, and the sealer's repair at lines 496 to 505.
+   - `skills/code-review/orchestration.md` lines 102 to 108, the *When* row at line 114, lines 164 to 165, lines 177 to 180, the run's end at lines 206 to 208 and 214 to 223, its clause "or is followed only by the work item's own records" among them, the sealer's repair at lines 496 to 505, and the paragraph **On the broad run's exit 1 spawn nothing**, the sentence on reviewing a repair that touched a file outside the work item's records.
    - `docs/checks/the-pull-request-check.md` line 49, the sentence that opens "A `fixed <commit>` finding located in the work item's own records alone". The paragraph's bold lead stays: it says what the script refuses. The paragraph's two identical `check:` lines become one.
    - `skills/implement/orchestration.md` line 648, both clauses of the row *Doable within this pull request*.
 
@@ -49,7 +49,7 @@ In scope:
    - `RULES` gains one row for the exception: owner `skills/core/SKILL.md`, the cell of item 5, and a link from each file item 5 lists, naming the row as item 5 words it.
 
    `tests/text/test_the_verifying_round_is_bounded_not_cheapest.py` does not change, and the phrases it holds stay in their files.
-8. **The changelog fragment and the version.** `changelog.md` is written from its template. The commit that adds it moves `.claude-plugin/plugin.json` to `0.37.2` (G14).
+8. **The changelog fragment and the version.** `changelog.md` is written in the shape of the other fragments under `seal/threads/`, since no template for a fragment stands, and ends with `### Process changes` in the shape of `templates/records/process.md`. The commit that adds it moves `.claude-plugin/plugin.json` to `0.37.2` (G14).
 
 Out of scope:
 
