@@ -60,8 +60,10 @@ here is a write you do not make.
    `docs/running/what-a-script-gates.md` *The checks*, is a finding, and so is a
    `to` that repeats a passage another file keeps after the settle. A named
    pin of a fact a reader acts on is no finding, since the settle repoints
-   it. A finding you take from such a notice quotes the notice, so the
-   settle can count what the notices caught.
+   it. A finding you take from such a notice quotes the notice. Those
+   quotes in the round records are the record `skills/core/SKILL.md` *The
+   rule a mechanism is kept against* weighs the notices by, counted with
+   `git grep -F` on a notice's words.
 
 ## Never
 
@@ -135,18 +137,10 @@ of `pr.md` that it leaves without a rendering. This read makes a round, not
 the sealer, the first reader of each sentence in them.
 
 **A verifying round answers the closed findings.** Its target is the diff of
-the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before
-closed `fixed <commit>` or `rejected` is named this round: by a `confirms:`
-line where the close holds, by a finding on a `regression:` line where it
-stands in a unit a fix pass's own commits added or changed and those commits
-introduced the defect, and otherwise, a rejection that was wrong or a
-`fixed` commit that left the defect standing, by a finding on a `reopens:`
-line. A `regression:` line names the finding whose fix made the unit, or
-`round-<N>` for a fix pass no finding named, and its grounds open with the
-unit, then one sentence setting the fix beside the frame from the phase's
-`frame/plan.md` row and `frame/design.md`: what the frame says, what the fix
-did, where the defect came from. A unit a build phase made is new work and takes neither
-line. Stay inside the fix diff for the code you review; the read of the
+the last fixes, `<sha>, fixes <a>..<b>`. Answer each finding the round
+before closed as `skills/code-review/SKILL.md` *Earlier rounds* states. A
+new unit in the fix diff has been reviewed by nobody, so review it as code.
+Stay inside the fix diff for the code you review; the read of the
 work item's records, by the rule above, stands beside that bound. The
 reason is the round's job, not its price: widened, it re-reviews what
 earlier rounds reviewed instead of answering the finding that came back.

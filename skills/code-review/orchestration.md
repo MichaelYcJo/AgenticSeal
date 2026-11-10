@@ -100,23 +100,18 @@ the opening of `skills/implement/SKILL.md` states.
 A round's findings are closed after it ends, by whoever writes the fixes. Every
 round but the last has a reader for those fixes: the round that follows, which
 answers each of its verdicts. The last round's fixes have none unless a round
-is spawned for them, except a fix pass whose findings are all located in the
-work item's own records and whose commits touched only those records under
-`seal/threads/<id>/`: the sealer reads every record at HEAD and is that fix's
-reader, so the pass owes no verifying round, and the check passes its
-`fixed <commit>` in the last record. A finding located in code is read by a
-round whatever its fix touched.
+is spawned for them, except a fix pass that the row *No fix that no round
+reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*
+gives to the sealer: no round follows that pass, and the check passes its
+`fixed <commit>` in the last record.
 
 So a run ends with a **verifying round**, and three things define it.
 
 | Property | What |
 |---|---|
-| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
-| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule. Beside that diff, the round reads `routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md` and, where one stands, `pr.<lang>.md` whole at its target commit, as a finding round does (`agents/proofer.md` *Rules*, the rule opening **Every round reads the work item's records that state the present**) |
-| Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
-
-The new units in that diff are the exception: they have been reviewed by
-nobody, so the verifying round reviews them as code.
+| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; no round follows a fix pass that the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to the sealer |
+| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `agents/proofer.md` *Rules* states the bound, in the rule opening **A verifying round answers the closed findings**, and the read of the work item's records that stands beside the bound, in the rule opening **Every round reads the work item's records that state the present** |
+| Job | the answers, not new findings. The round answers each finding the previous round closed `fixed <commit>` or `rejected`, as `skills/code-review/SKILL.md` *Earlier rounds* states |
 
 **A round that opens nothing needing a fix does not count.** The count
 holds rounds that found something, because it exists to make you weigh a
@@ -161,8 +156,9 @@ grounds name what the next round could catch and what it would cost. From
 that row on, a `must` gets its fix pass and its verifying round. Every
 other finding takes a home that costs no round. That home is rung 2, 3 or 4
 of the homes *The run* gives, where you append its close block reading
-`deferred <home>` and spawn no fix pass for it, or a fix confined to the
-work item's records, which the sealer reads. A later row spends no round on
+`deferred <home>` and spawn no fix pass for it, or a fix that the row *No
+fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
+to skip a party* gives to the sealer. A later row spends no round on
 a finding that is not a `must`, whatever document it cites. The first row
 of `skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records* and rung 1 of *The run*'s homes are
@@ -175,9 +171,8 @@ never a fix pass and never the framer, whose redesign would end the stop.
 Only a design change ends the stop, and the count starts again at the
 first finding round that reviews the new design. A repair that the
 sealer's withheld verdict asks for is no finding and takes no row, so the
-stop does not reach it. A round reads that repair unless it touched only
-the work item's records, as the table of `skills/core/SKILL.md` *Judgment
-is not licence to skip a party* holds.
+stop does not reach it. A round reads that repair unless the core's row
+gives it to the sealer.
 
 **Where the signal is one mechanism whose edges each fix pass chased, the next
 fix pass decides what the mechanism reads, and takes no further edge.** That is
@@ -204,31 +199,30 @@ The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
 with its grounds, has opened nothing needing a fix, and it does not count.
 Its record is still not the last one: the check refuses a `rejected`
-finding in the last record, and a `fixed` one that names a path outside the
-work item's records or whose commit touched one, so one more verifying round
-reads that answer alone. Where the rejection holds, that round names it on a
-`confirms:` line; where it does not, that round raises a finding with a
-`reopens:` line naming it, which gets its fix pass and one more verifying
-round; a round carrying a `regression:` line is routed as the section below
-says, and where the work item returns to its framer the run goes on with the
-redesign. The run ends only on a round whose record holds no finding without
-a close block, no `rejected` one, and no `fixed` one that names a path
-outside the work
-item's records or whose commit touched one, and whose `target:` commit is
-HEAD, or is followed only by the work item's own records (a verifying round,
-or the round you stopped at, whose open findings took their homes), since
-the check refuses a ready pull request whose last record fails either. A fix
-to a file outside the work item's records committed after that round, a
-leftover whose home is the diff among them, is followed by one more
-verifying round.
+finding in the last record, and a `fixed` one that the row *No fix that no
+round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a
+party* gives to a round, so one more verifying round
+reads that answer alone, and answers it as `skills/code-review/SKILL.md`
+*Earlier rounds* states. A finding of that round that carries a `reopens:`
+line gets its fix pass and one more verifying round; a round carrying a
+`regression:` line is routed as the section below says, and where the work
+item returns to its framer the run goes on with the redesign. The run ends
+only on a round whose record holds no finding without a close block, no
+`rejected` one, and no `fixed` one the core's row gives to a round, and
+whose `target:` commit is HEAD, or is followed only by commits the core's
+row gives to the sealer (a verifying round, or the round you stopped at,
+whose open findings took their homes), since the check refuses a ready pull
+request whose last record fails either. A fix committed after that round
+that the core's row gives to a round, a leftover whose home is the diff
+among them, is followed by one more verifying round.
 
 ### A regression is routed by comparing the fix with the frame
 
 **The route comes first, because a stop that names no exit is a wall.** A
-finding's `regression:` line routes nothing by itself. Its grounds open
-with the unit and then one sentence comparing the fix with the frame: what
-the frame says, what the fix did and where the defect came from. You route
-the round on that sentence (`docs/running/the-run.md` *The run*). Once a
+finding's `regression:` line routes nothing by itself. Its grounds hold one
+sentence comparing the fix with the frame, as `skills/code-review/SKILL.md`
+*Earlier rounds* states, and you route the round on that sentence
+(`docs/running/the-run.md` *The run*). Once a
 row has judged the run excessive, only a `must` takes a route below, and
 any other regression takes a home by the paragraph opening **A row that
 judges the run excessive binds every row after it**:
@@ -480,9 +474,11 @@ A failing suite that names no file and counts sessions that stopped
 part-way, at exit 0 too, had a pytest session at `HEAD` stop before its
 end: `records/` in the kept output says what stopped it, and a stop the
 branch added is this work's to repair.
-Review a repair where it touched a file outside the work item's records, and
-run the gate again. On the broad run's exit 2 nothing ran; a refusal about the key goes
-to a person, as *A refusal about the `Broad gate` key* below says.
+Review a repair that the row *No fix that no round reads* of
+`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to a
+round, and run the gate again. On the broad run's exit 2 nothing ran; a
+refusal about the key goes to a person, as *A refusal about the `Broad gate`
+key* below says.
 
 **Pass the base as a plain branch name, and quote the lines only the gate can
 tell.** The gate resolves the base to the ref CI reads: the base's upstream
@@ -494,14 +490,16 @@ a fact a reader learns from nowhere else, and the gate prints it after the
 last round, so no record holds it and `pr.md` cannot quote it.
 
 **Commit `guarantee.md`; a verdict other than `sealed` opens no pull
-request.** `withheld` names the claim and the coordinate. Where the repair
-touches only the work item's own records (a phase record, the changelog
-fragment, `pr.md`), make it, commit what it
+request.** `withheld` names the claim and the coordinate. Where the row *No
+fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
+to skip a party* gives the repair to the sealer, as it does a repair to a
+phase record, the changelog fragment or `pr.md`, make it, commit what it
 changed in the records, run `seal pr-body` on the body file again, and spawn
 the sealer again at the new HEAD, giving a repaired body to a pull request
 already open as the stated limit above says: the record commits after the
 run leave it standing.
-Where it touches any other file it is a fix nobody reviewed: commit it, spawn
+Where the core's row gives it to a round it is a fix nobody reviewed: commit
+it, spawn
 a verifying round on its diff, and once that round's record is committed run
 the broad gate again, commit its record, run `seal pr-body` on the body file
 again, and spawn the sealer. Your broad run
