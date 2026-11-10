@@ -15,9 +15,9 @@ file's own. Their docstrings follow, as they stood.
 
 Issue #330. Of the three acts the ticket measured a miss for, two closed
 while it sat and one is still a sentence: posting the segment's reading to
-the flow log, written out in full in `skills/verify/orchestration.md` *Measure
-the segment, and feed the flow log* and typed by nobody. This is that procedure
-as a command, and this module is what holds it.
+the flow log, written out in full in `skills/verify/orchestration.md` and
+typed by nobody. This is that procedure as a command, and this module is what
+holds it.
 
 **Nothing here touches a network.** Every case replaces the module's own
 `run_gh`, which is the single seam every `gh` call goes through, and records
@@ -4698,7 +4698,7 @@ class Test_emit:
         # fence with the sentence above it.
         assert "command" in bodies["text"]
         printed = capsys.readouterr().out
-        assert "posted the segment's reading to #42" in printed
+        assert "posted the run's reading to #42" in printed
 
     def test_the_posted_body_does_not_carry_the_transcripts_path(
         self, monkeypatch, tmp_path, transcript
@@ -4710,9 +4710,8 @@ class Test_emit:
         The branch that leaks is the documented one: `report_segments`' empty
         branch fires whenever the named transcript has no subagents beside it,
         which is every segment measured on its own that the coordinator never
-        restarted — the case
-        `skills/verify/orchestration.md` *Measure the segment, and feed the flow
-        log* is written for.
+        restarted — the case the per-segment post of
+        `skills/verify/orchestration.md` was written for.
         """
         module = _cost()
         says = tmp_path / "says.md"
@@ -5092,20 +5091,23 @@ class Test_post:
     # --- A7: a closed log is named, never reopened --------------------------------
 
     def test_a_closed_log_is_named_and_nothing_is_opened(self, monkeypatch, capsys):
-        """A7. Opening one is not a session's act: two sessions finishing
-        segments at once both read zero and both create, and the next release
-        fails on two or more."""
+        """A7. Opening one is not a session's act: two sessions posting at
+        once both read zero and both create, and the next release fails on two
+        or more."""
         module = _cost()
         seen = _gh(
             monkeypatch, module, listing=_listing((41, "CLOSED"), (40, "CLOSED"))
         )
         code = module.post("the reading", "what it says", "flow-measurement")
         assert code == 1
-        said = capsys.readouterr().out
+        said = " ".join(capsys.readouterr().out.split())
         assert "nothing is open" in said
         # The refusal `seal cost --post` prints when the log is closed, which
-        # tells the session reading it to open nothing.
+        # tells the session reading it to open nothing, and where to name it:
+        # the run posts once, when it ends (#1479).
         assert "not a session's act" in said
+        assert "two sessions posting at once would both read zero" in said, said
+        assert said.endswith("Name this in the run's hand-over"), said
         assert _opened(seen) == [], "a closed log must never be reopened"
         assert _posted(seen) == []
 
@@ -5155,16 +5157,16 @@ class Test_post:
         assert posted[0][:3] == ["issue", "comment", "42"]
         assert "--body-file" in posted[0]
         assert _opened(seen) == []
-        assert "posted the segment's reading to #42" in capsys.readouterr().out
+        assert "posted the run's reading to #42" in capsys.readouterr().out
         # The body the command posts, built from its two arguments, which a
         # reader of the flow log reads.
         assert "the rounds ran long" in bodies["text"]
         assert "span 19m, 99 calls" in bodies["text"]
 
     def test_the_body_file_is_removed_after_the_post(self, monkeypatch):
-        """A temp file per segment boundary, left behind, is the leaving
-        contract rule 7 is about — and this one is the command's, not a
-        probe's, so nothing else would ever clean it."""
+        """A temp file per post, left behind, is the leaving contract rule 7
+        is about — and this one is the command's, not a probe's, so nothing
+        else would ever clean it."""
         module = _cost()
         paths = []
         seen = _gh(monkeypatch, module, listing=_listing((42, "OPEN")))
@@ -5352,6 +5354,40 @@ class Test_work_item:
         assert _posted(seen)[0][2] == "42"
         # One lookup: the answer that found the log is the one the post uses.
         assert len([a for a in seen if a[:2] == ["issue", "list"]]) == 1, seen
+
+    def test_a_segment_that_spawned_prints_the_contract_rule_6_line(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1479. The run's one reading is `--work-item`'s, so a segment whose
+        own transcript holds an `Agent` call is named there, printed without
+        `--post` and in the posted body with it (with `--post` the terminal
+        shows only the post's state line), as `--segments` names it for an
+        agent's own file: by the
+        segment's file and its count, and with no pair of counts against
+        unnamed segments, since no parent transcript is in view. A segment
+        that spawned nothing is not named."""
+        self.by_dir_and_by_branch(tmp_path)
+        spawned = self.agent(
+            tmp_path, "agent-c", f"Records: seal/threads/{self.NAME}/", "s3"
+        )
+        with open(spawned, "a", encoding="utf-8") as handle:
+            handle.write("\n".join(spawn("N", 20, 40, "general-purpose")) + "\n")
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        printed = " ".join(capsys.readouterr().out.split())
+
+        _seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        posted = " ".join(bodies[0].split())
+        for out in (printed, posted):
+            assert "Contract rule 6 — an agent spawned another agent" in out, out
+            assert "agent-c.jsonl made 1 `Agent` call in its own transcript" in out
+            assert "agent-a.jsonl made" not in out, out
+            assert "agent-b.jsonl made" not in out, out
+            assert "a reading a person already takes when a run ends" in out, out
+            assert "the parent could not name" not in out, out
 
     def test_a_segment_a_comment_already_names_is_left_out(
         self, monkeypatch, capsys, tmp_path, item
@@ -6596,10 +6632,10 @@ class Test_module:
     # --- the lookup and the body --------------------------------------------------
 
     def test_the_lookup_reads_the_label_and_the_whole_history(self, monkeypatch):
-        """One call, not two. `--state all` answers both of the skill's
-        questions, because every open issue is in it — and the limit is raised
-        off the default so a label with more than thirty closed logs does not
-        read as one that never existed."""
+        """One call, not two. `--state all` answers both of the questions the
+        skill asked by hand, because every open issue is in it — and the
+        limit is raised off the default so a label with more than thirty
+        closed logs does not read as one that never existed."""
         module = _cost()
         seen = _gh(monkeypatch, module, listing=_listing((42, "OPEN")))
         module.open_log("flow-baseline")

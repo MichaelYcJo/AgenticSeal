@@ -39,13 +39,19 @@ AXES = (
 )
 
 
-# The routing section — the axes, the checkbox, the file, the four
-# combinations, the wake/quiet table — is `implement`'s orchestrator half
-# since #292: the session that asks reads `orchestration.md`, and no crafter
-# spawn preloads it.
+# The routing section — the rows an answer writes, the file, the four
+# combinations — is `implement`'s orchestrator half since #292: the session
+# that asks reads `orchestration.md`, and no crafter spawn preloads it.
 ORCH = ("skills", "implement", "orchestration.md")
 
-# The shape of the asking, in the ONE spelling the orchestrator's section
+# The routing question itself — the two tables the person is asked, the
+# shape of the asking, the ceiling, the mark and the two language keys — is
+# `routing-question.md` since #1477, which the orchestrator opens when it
+# puts the batch to a person. Each case reads the file its sentence stands
+# in.
+QUESTION = ("skills", "implement", "routing-question.md")
+
+# The shape of the asking, in the ONE spelling the routing question's file
 # states (#911): question 1 alone, and
 # the boxes in a second call only where its answer was `manual` (`per axis`
 # until #1459), because under the other answers they mean nothing and were
@@ -396,7 +402,7 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     edit. So both tables have to be there AND the sentence that says when
     each is asked. Question 1 holds four answers since #1459.
     """
-    skill = read(*ORCH)
+    skill = read(*QUESTION)
     assert len(labelled_table(skill, "Order", "Label")) == 4, (
         "question 1 does not offer exactly four options"
     )
@@ -404,7 +410,7 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
         "question 2 does not offer exactly four boxes"
     )
     # ONE spelling, which `tests/text/test_review_axes.py` also reads in
-    # this section: two spellings of one decision is the drift both catch.
+    # this file: two spellings of one decision is the drift both catch.
     assert SHAPE in flat(skill)
 
 
@@ -415,7 +421,7 @@ def test_question_1_is_put_every_time_with_the_ladders_answer_marked():
     order, so the exit stays last. Since #1459 the mark is `agentic`'s every
     time: a mark read off the ladder recommended the full chain for nearly
     every item, and `agentic` reads the ladder per item itself."""
-    skill = flat(read(*ORCH))
+    skill = flat(read(*QUESTION))
     for phrase in (
         "Question 1 is put every time, whatever the ladder reads",
         "and `agentic` is the answer marked",
@@ -431,7 +437,7 @@ def test_question_1_lists_the_four_modes_in_the_owners_order():
     exit stays last. A mode's name does not say what it does, so the cell
     beside `agentic` has to say that `direct` is among its choices: a person
     pressing it is leaving a two-line fix to land with no agent."""
-    rows = labelled_table(read(*ORCH), "Order", "Label")
+    rows = labelled_table(read(*QUESTION), "Order", "Label")
     # The labels the orchestrator puts to the person in question 1's
     # `AskUserQuestion` call, in that order; label and position are the fact.
     labels = [r[1].strip("*") for r in rows]
@@ -455,7 +461,7 @@ def test_the_boxes_are_in_the_stated_order():
     first two rows and the boxes are all still present. Whether the section
     says the order is load-bearing is the proofer's to read.
     """
-    rows = labelled_table(read(*ORCH), "Order", "Box")
+    rows = labelled_table(read(*QUESTION), "Order", "Box")
     boxes = [r[1] for r in rows]
     # The box labels in the order the orchestrator puts them to the person
     # in question 2's `AskUserQuestion` call; label and position are the fact.
@@ -481,7 +487,7 @@ def test_every_box_states_what_UNCHECKED_means():
     sections down while the box a person reads at the moment of answering
     carries none of them.
     """
-    rows = labelled_table(read(*ORCH), "Order", "Box")
+    rows = labelled_table(read(*QUESTION), "Order", "Box")
     unchecked = {r[1]: r[3] for r in rows}
     wanted = {
         "run end to end": "may be asked",
@@ -508,7 +514,7 @@ def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
     vocabulary 16 committed declarations carry. What moved is the LABEL,
     named `direct` since #1459 (`no work item` before it).
     """
-    rows = labelled_table(read(*ORCH), "Order", "Label")
+    rows = labelled_table(read(*QUESTION), "Order", "Label")
     exits = [r for r in rows if r[1].strip("*") == "direct"]
     assert exits, "question 1 has no exit option labelled `direct`"
     label, description = exits[0][1], exits[0][2]
@@ -540,7 +546,7 @@ def test_the_ceiling_is_stated_beside_the_shape():
     proofer's to read. Since #1459 question 1 sits at four too, so the
     paragraph names it beside question 2.
     """
-    raw = read(*ORCH)
+    raw = read(*QUESTION)
     skill = flat(raw)
     # The value four, the most options the harness's `AskUserQuestion`
     # takes per question, which bounds the boxes the orchestrator puts.
@@ -750,7 +756,9 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
     # The box tables the orchestrator puts to the person carry no `Planning`
     # box, so the person is never asked an axis the SDD ladder, or under
     # `agentic` the orchestrator, decides.
-    for boxes in checkbox_tables(skill):
+    tables = checkbox_tables(read(*QUESTION))
+    assert tables, "the routing question's file holds no table of boxes to read"
+    for boxes in tables:
         assert not any("framer" in b or "Planning" in b for b in boxes), (
             "the `Planning` axis reached a checkbox table, which is the one "
             "place #88 says it must not be"
@@ -810,10 +818,10 @@ def test_the_skill_names_where_the_answer_is_written():
 def test_the_skill_names_the_record_and_no_per_command_waiver():
     """#1027: nothing reads `[no-review]` any more, so the skill that taught
     it as the way past the gate names the record that replaced it, the
-    trailer (#1376). The paragraph is in the orchestrator's half since
-    #1312."""
-    assert "`Seal-Routing: no work item`" in flat(read(*ORCH))
-    for parts in (ORCH, ("skills", "implement", "SKILL.md")):
+    trailer (#1376). The trailer stands in the description of question 1's
+    exit, in the routing question's file since #1477."""
+    assert "`Seal-Routing: no work item`" in flat(read(*QUESTION))
+    for parts in (ORCH, QUESTION, ("skills", "implement", "SKILL.md")):
         skill = flat(read(*parts))
         assert "[no-review]" not in skill and "waives **one command**" not in skill
 
@@ -845,9 +853,7 @@ def test_the_skill_names_where_a_late_finding_goes():
         )
 
 
-BATCH = (
-    "## Orchestrator: what needs a person is asked in one batch, before the first edit"
-)
+KEYS = "## Orchestrator: the two language keys"
 
 
 def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recorded():
@@ -855,12 +861,13 @@ def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recor
     asked for both in the batch before the first edit, with the recent pull
     request titles beside the question, and a start with nobody to ask
     writes them as a default that `routing.md` records. The case reads the
-    batch section for the two rows, the command whose titles stand beside
-    the question, and the record of the default; the rule's sentences are
-    the proofer's to read."""
-    text = read(*ORCH)
-    assert BATCH in text, "the batch section was renamed; this case is now blind"
-    section = flat(text.split(BATCH, 1)[1].split("\n## ", 1)[0])
+    language keys' section of the routing question's file, where the
+    paragraph stands since #1477, for the two rows, the command whose titles
+    stand beside the question, and the record of the default; the rule's
+    sentences are the proofer's to read."""
+    text = read(*QUESTION)
+    assert KEYS in text, "the language keys' section was renamed; this case is blind"
+    section = flat(text.split(KEYS, 1)[1].split("\n## ", 1)[0])
     for row in ("Commit and pull request language", "Record language"):
         assert f"`{row}`" in section, f"the batch does not ask for `{row}`"
     assert "gh pr list --state all --limit 10" in section, (

@@ -203,7 +203,6 @@ Ask only here. A repository that has a `seal/` carrying the marker at either
 place, `<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been
 through this: the mode is read from where the folder is, and asking again is the
 nagging this plugin exists to avoid. The two language keys are the one
-exception, and only where either is missing: the batch of
-`skills/implement/orchestration.md` *Orchestrator: what needs a person is
-asked in one batch, before the first edit* asks for them before a work
-item's first edit.
+exception, and only where either is missing: the batch asks for them
+before a work item's first edit, as `skills/implement/routing-question.md`
+*The two language keys join the batch wherever either is missing* states.

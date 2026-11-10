@@ -151,8 +151,9 @@ The question has four answers, and `agentic` is the one marked:
 - **direct**: the session makes the change itself, with no agent, no frame,
   no review and no seal.
 
+`skills/implement/routing-question.md` gives each answer, and
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
-gives each answer and the rows it writes into
+gives the rows an answer writes into
 `seal/threads/<id>/routing.md`, the file the pull request's check reads to
 learn how the branch was routed. Where that file's `Automation` row reads
 `yes`, as `complete` always writes it and `agentic` may choose it, the
@@ -299,8 +300,8 @@ what the tree contradicts, or `undecided` with a question for you. The pull
 request opens once the work item is sealed, and its body carries the seal
 mark where the `Pull request seal mark` key reads `yes`. Where the two
 language keys name different languages, the body opens with `pr.<lang>.md`,
-the quotes of `pr.md` in the pull request language. Where the pull-request
-checks are installed, they fail a ready pull request that lacks the seal at
+written in the pull request language. Where the pull-request checks are
+installed, they fail a ready pull request that lacks the seal at
 its head commit, whose last fixes no round read, or whose body is not what
 `seal pr-body` composes at that commit (`skills/core/SKILL.md` *Judgment is
 not licence to skip a party*). **The chain ends at a pull request, never at
@@ -393,7 +394,7 @@ in the last row, in your CI on a pull request.
 | What | Reaches | Sends | When |
 |---|---|---|---|
 | `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` pulls the marketplace's clone of this repository, and `claude plugin update` installs from that clone. Then one `curl`, with no token, reads the list of releases from GitHub's public API for the repository the clone came from | when you run the command |
-| `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | each time the crafter or the proofer hands back, where the orchestrator runs it; with `--work-item`, at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
+| `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
 | `seal gate`, the broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, asked by its `chain_check.py` step to learn whether the branch's pull request is a draft. `chain_check.py` run on its own asks the same | each run outside GitHub Actions, where `gh` is on the PATH |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
 | the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
@@ -417,7 +418,7 @@ after `!` in a session, or ask the session to run it.
 | `seal unverified .` | lists the rows the `unverified` labels left open, in which work item, and who was named to answer each (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | says where a session's minutes went, from its transcript (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |
-| `seal cost --work-item <dir>` | gives one row per segment of a work item that no comment on the open measurement log names, found by its spawn prompt naming the work item's directory or branch; with `--post --says <file>` it posts them (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*) |
+| `seal cost --work-item <dir>` | gives one row per segment of a work item that no comment on the open measurement log names, found by its spawn prompt naming the work item's directory or branch; with `--post --says <file>` it posts them (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
 | `seal settle [--apply]` | shows the `## Rule changes` the released work items' `frame/design.md` files state, by section, and with `--apply` removes the settled directories (`skills/settle/SKILL.md` *The settling session's procedure*) |
 | `seal fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `seal/config.json` (`templates/setup/config.md` *The fold's values*) |
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |

@@ -118,7 +118,9 @@ before the build does it too: the framer names the commit it read once, at
 the head of `frame/design.md` *Grounding* and `frame/plan.md` *Technical
 context*, so each coordinate and present-tense statement of the tree there
 is a claim about that commit, which the build was bound to move and HEAD
-does not contradict.
+does not contradict. A sentence there that says what the work does or
+concludes is no claim about that commit: a fold rewrites it with the fact
+it states, and a reader holds it against HEAD.
 
 **Judgment precedence is policy > SDD > code where policy exists, and
 SDD > code where it does not.** Most repositories are the second kind. Do not
@@ -286,7 +288,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
 | `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame's `## Removes` names once, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
-| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `seal pr-body` writes above the records' copy: the `Closes` and `Part of` lines, quotes of the other records, each with its coordinate, and the attribution line. `pr.<lang>.md` beside it holds each of those quotes rendered in `Commit and pull request language` | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ; both rewritten where a fix pass or a fold changes a sentence it quotes |
+| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `seal pr-body` writes above the records' copy. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped

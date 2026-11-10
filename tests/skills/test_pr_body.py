@@ -140,13 +140,11 @@ RECORDS = {
 
 # S1: the fixture's generated part, written out section for section as
 # `frame/design.md` *Data & interfaces* lays it out: the line it opens
-# with, then one fold whose summary names the copy, a blank line after the
-# summary, the sections, and the fold's end.
+# with, the changelog's section outside any fold (#1478), then one fold
+# whose summary names the copy, a blank line after the summary, the other
+# sections, and the fold's end.
 EXPECTED = """\
 ## From the records
-
-<details>
-<summary>Copied from the records in seal/threads/1799000000-a-body/ by seal pr-body.</summary>
 
 ## What changed
 
@@ -154,6 +152,9 @@ From `changelog.md`.
 
 - **The pull request body copies the records.** `seal pr-body` writes it (#1).
 - 본문의 사실은 기록에서 옵니다.
+
+<details>
+<summary>Copied from the records in seal/threads/1799000000-a-body/ by seal pr-body.</summary>
 
 ## How it was built
 
@@ -366,10 +367,12 @@ class Test_compose:
         the design lays out, in its order, holding the records' lines: each
         round's `seal` blocks verbatim, a finding's heading one level down
         followed by its finding block and its close block, a round with no
-        finding, a line in Korean, the line `HEADING` holds first, and one
-        `<details>` around the sections, its `<summary>` followed by a blank
-        line. Seen red against the copy of a round's labelled lines, which
-        held no block."""
+        finding, a line in Korean, the line `HEADING` holds first, the
+        changelog's section under it and outside any fold, and one
+        `<details>` around the other sections, its `<summary>` followed by a
+        blank line. Seen red against the copy of a round's labelled lines,
+        which held no block, and against `_composed` as 0.37.1 shipped it,
+        which put the changelog's section inside the fold (#1478)."""
         texts = PR.read_item(str(item_of(tmp_path, RECORDS)))
         assert PR.compose(NAME, texts) == EXPECTED
 
@@ -425,6 +428,22 @@ class Test_compose:
             "`frame/questions.md` is not in this work item.",
         ):
             assert line in text.split("\n"), line
+
+    def test_accepts_a_missing_changelog_above_the_fold(self):
+        """S2 of #1478. Where `changelog.md` is not there, its section and
+        the line naming it absent stand under `HEADING` and before the fold,
+        where the fragment would stand. Seen red against `_composed` as
+        0.37.1 shipped it, which put them inside the fold."""
+        texts = {rel: text for rel, text in RECORDS.items() if rel != "changelog.md"}
+        lines = PR.compose(NAME, texts).split("\n")
+        assert lines[: lines.index(PR.FOLD)] == [
+            "## From the records",
+            "",
+            "## What changed",
+            "",
+            "`changelog.md` is not in this work item.",
+            "",
+        ]
 
     @pytest.mark.parametrize(
         "rel, text, line, said",
@@ -495,8 +514,8 @@ class Test_compose:
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
         """S6. A round record `chain_check.py` refuses, a gate record whose
         run block `lib/fields.py` refuses (#1198), a copied line equal
-        to `HEADING`, which would put a second boundary line inside the
-        fold, a copied line holding `<details` or `</details` in any case and
+        to `HEADING`, which would put a second boundary line in the copy, a
+        copied line holding `<details` or `</details` in any case and
         anywhere in it, followed by whitespace, `/`, `>` or the line's end,
         outside a code span, which GitHub reads as a second fold or the
         fold's end (#1218), a second section of one the body copies, and a
@@ -520,7 +539,7 @@ class Test_compose:
     def test_accepts_a_details_tag_in_a_code_span(self):
         """S3 of #1218. A `details` tag in a code span is text to GitHub, and
         the code span is the one spelling of it a copied line passes in; the
-        line stands in the fold as written."""
+        line stands in the copy as written."""
         span = "`</details>` in a span"
         text = PR.compose(NAME, {**RECORDS, "changelog.md": CHANGELOG + span + "\n"})
         assert span in text.split("\n")
@@ -528,7 +547,7 @@ class Test_compose:
     def test_accepts_a_keyword_and_a_details_tag_in_a_closed_comment(self):
         """#1181. GitHub reads neither a closing keyword nor a tag inside a
         comment that closes (#1402, #1403), and the tag and the keyword are
-        blanked one way, so each line stands in the fold as written. A line
+        blanked one way, so each line stands in the copy as written. A line
         that begins with a comment closing on it passes too: GitHub ends that
         HTML block on the same line and reads the text after its `-->`
         (#1407), so nothing below it is hidden."""
@@ -820,8 +839,9 @@ class Test_main:
         self, repo, tmp_path, monkeypatch, capsys
     ):
         """S1 through the command, run in the repository: the part opens
-        with a blank line, the mark, a blank line and the fold, `--check`
-        on that body exits 0, and nothing is said about the mark."""
+        with a blank line, the mark, a blank line and the changelog's
+        section, `--check` on that body exits 0, and nothing is said about
+        the mark."""
         item = sealed_item(repo)
         monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
         monkeypatch.chdir(repo)
@@ -1264,9 +1284,38 @@ class Test_main:
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
-        assert out.startswith("refused: pr-body.md:13: ")
+        assert out.startswith("refused: pr-body.md:10: ")
         assert "`changelog.md:1`" in out
         assert body.read_bytes() == (OWN + edited).encode("utf-8")
+
+    def test_refuses_the_changelog_inside_the_fold_until_written_again(
+        self, tmp_path, capsys
+    ):
+        """S4 of #1478. A body holding the changelog's section inside the
+        fold, as 0.37.1 composed it, exits 1 under `--check`, each
+        `refused:` line naming the body file and the body's line; once the
+        command writes the file again, `--check` exits 0. Seen red against
+        `_composed` as 0.37.1 shipped it, where that body matched."""
+        item = item_of(tmp_path, RECORDS)
+        changed = EXPECTED[EXPECTED.index("## What changed") : EXPECTED.index(PR.FOLD)]
+        fold = EXPECTED[EXPECTED.index(PR.FOLD) : EXPECTED.index("## How it was built")]
+        stale = EXPECTED.replace(changed + fold, fold + changed, 1)
+        assert stale != EXPECTED
+        body = tmp_path / "pr-body.md"
+        body.write_bytes((OWN + stale).encode("utf-8"))
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 1
+        summary = PR.SUMMARY.format(home="seal", name=NAME)
+        assert capsys.readouterr().out == (
+            f"refused: pr-body.md:5: reads ``, then `<details>`, then `{summary}`, "
+            "which the records do not give\n"
+            "refused: pr-body.md:15: lacks ``, a fixed line, then `<details>`, a "
+            f"fixed line, then `{summary}`, a fixed line\n"
+        )
+        assert body.read_bytes() == (OWN + stale).encode("utf-8")
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 0
 
     @pytest.mark.parametrize(
         "old, new, said",
@@ -1280,7 +1329,7 @@ class Test_main:
             (
                 "From `changelog.md`.\n",
                 "From `changelog.md`.\nA line.\nAnother line.\n",
-                "refused: pr-body.md:14: reads `A line.`, then `Another line.`, "
+                "refused: pr-body.md:11: reads `A line.`, then `Another line.`, "
                 "which the records do not give\n",
             ),
         ],

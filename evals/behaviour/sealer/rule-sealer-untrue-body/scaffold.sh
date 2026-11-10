@@ -222,14 +222,14 @@ cat > '.git/1790000030-guarantee-untrue-body/pr-body.md' <<'AGENTIC_EOF'
 Closes #101.
 ## From the records
 
-<details>
-<summary>Copied from the records in seal/threads/1790000030-guarantee-untrue-body/ by seal pr-body.</summary>
-
 ## What changed
 
 From `changelog.md`.
 
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
+
+<details>
+<summary>Copied from the records in seal/threads/1790000030-guarantee-untrue-body/ by seal pr-body.</summary>
 
 ## How it was built
 
