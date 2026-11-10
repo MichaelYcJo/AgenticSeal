@@ -174,7 +174,7 @@ def test_the_optional_row_cites_where_its_criterions_grounds_stand():
     )
 
 
-def test_the_template_PARSES_into_the_three_answers_it_ships():
+def test_the_template_PARSES_into_the_THIRD_axis_it_ships():
     """Round 1, M4: `| Implementor | Crafter the agent |` shipped green.
 
     Every check on this file compared strings the test itself supplied, so
@@ -225,6 +225,19 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
             f"the template's row does not accept `{answer}`, so a session "
             "filling it in as instructed still records nothing"
         )
+    # The substitution above renames with the constants, so it cannot see the
+    # template drift from the parser. The answers the placeholder offers a
+    # person are read out and compared, as the fourth axis's case does.
+    stated = offered(template, routing.IMPLEMENTATION)
+    assert stated, (
+        "the placeholder no longer states the third axis's two answers, so "
+        "a person reads no vocabulary at the row"
+    )
+    assert stated == routing.IMPLEMENTATION_ANSWERS, (
+        f"the template offers {stated} and the parser accepts "
+        f"{routing.IMPLEMENTATION_ANSWERS}; a session filling the row in as "
+        "instructed would record nothing"
+    )
 
 
 def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
