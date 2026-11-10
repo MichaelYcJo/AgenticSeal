@@ -34,10 +34,9 @@ Usage:
                                          no comment on the open log names
 
 **Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
-*Measure the segment, and feed the flow log* wrote the posting procedure out in full —
-which label, how to tell a repository that never made the log from one whose
-log somebody closed, which of the two logs a reading belongs to — and nothing
-typed it, so the meter sat unreferenced through a full day of measurements
+wrote the posting procedure out in full — which label, how to tell a
+repository that never made the log from one whose log somebody closed, which
+of the two logs a reading belongs to — and nothing typed it, so the meter sat unreferenced through a full day of measurements
 nobody took (#330). It refuses without `--says`, because the numbers are this
 script's and what they say is not, and it never opens an issue.
 
@@ -63,8 +62,17 @@ between the two modes. `--spawns` slices THIS transcript into bands over the
 orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
-agent's own stretch either way. `skills/verify/orchestration.md` *Measure the
-segment, and feed the flow log* owns that distinction.
+agent's own stretch either way. This docstring owns that distinction.
+
+**A `command` share above 100 per cent is not a broken number**: command
+time sums every call and calls run at once, since every tool call in one
+assistant message starts at that message's timestamp, so the share is
+command seconds against wall-clock seconds.
+
+**A `--spawns` row whose span exceeds its own parts by an hour is not a long
+agent run**: that hour is a gap inside the row, above the fifteen minutes
+model time stops counting at, in which the orchestrator issued nothing
+between two of its own calls.
 """
 
 import argparse
@@ -1086,10 +1094,8 @@ def analyse(calls, turns, delegated=()):
     reads is `read`, where it was `other`. That moves `by_family` and
     `unnamed` and nothing else. `read` is judged after `test`, `lint/type`
     and `build`, so no call enters or leaves the repeats figures, and
-    `report_segments` says that too. The three changes are carried in
-    `skills/verify/orchestration.md`, where a person taking a reading meets them.
-    Every other number here is untouched, `command_s` and `model_s`
-    included.
+    `report_segments` says that too. Every other number here is untouched,
+    `command_s` and `model_s` included.
 
     So `delegated_s` is 0.0 for the whole-run call, and it means exactly
     *how much of this window's command time was removed because it ran
@@ -1529,9 +1535,8 @@ def opening_stamp(path):
 
 # What a harness writes into a running agent's own transcript when the
 # coordinator sends it a new message. `skills/verify/orchestration.md`
-# *Measure the segment, and feed the flow log* prescribes the hand split at
-# exactly these rows, in exactly these words, and until now nothing asserted it
-# against a file.
+# prescribed the hand split at exactly these rows, in exactly these words, and
+# until this was written nothing asserted it against a file.
 #
 # **Measured over the 350 segment transcripts on one machine before this was
 # written.** 41 of them hold an idle gap at or above `analyse`'s 900-second
@@ -2478,8 +2483,8 @@ def report_breaches(segments):
     location permits rather than a softer one chosen on taste.** The
     transcript is under the home directory of the machine that ran the agent:
     it is in no commit, reaches no CI runner, and a checker that read one
-    would run exactly where a person already is. A line in a report a person
-    already runs at every segment boundary is what that leaves. Making it an
+    would run exactly where a person already is. A line in the reading a
+    person already takes when a run ends is what that leaves. Making it an
     exit code is a later work item's, and it will be choosing against
     readings rather than against a guess.
 
@@ -2522,8 +2527,8 @@ def report_breaches(segments):
             "post nothing, push\n  nothing, open no pull request, and spawn no "
             "agent. This line notices and\n  stops nothing — the transcript it "
             "read is on the machine that ran the\n  agent, in no commit and on "
-            "no CI runner, and a report a person already\n  runs at every "
-            "segment boundary is what that leaves."
+            "no CI runner, and a reading a person already\n  takes when a "
+            "run ends is what that leaves."
         )
         print(
             "\n  Contract rule 6 binds the agents this plugin spawns. A row above "
@@ -2531,10 +2536,11 @@ def report_breaches(segments):
             "a segment and still\n  worth seeing, but which rule it answers to "
             "is for that agent's own\n  definition to say."
         )
-    # An agent's own file (#637) was read with no parent in view, so there is
-    # no second count to hold this one against: `unnamed` is 0 by
-    # construction, and printing the pair would call every spawn in the file
-    # a disagreement and send a reader after a child transcript nobody lost.
+    # An agent's own file (#637), and a work item's segments (#1479), are read
+    # with no parent in view, so there is no second count to hold this one
+    # against: `unnamed` is 0 by construction, and printing the pair would
+    # call every spawn a disagreement and send a reader after a child
+    # transcript nobody lost.
     if segments.get("own_file"):
         return
     print(
@@ -2565,10 +2571,9 @@ def report_segments(segments, path):
     zeroes about a join nobody attempted.
 
     **This is the reading the hand method produced one transcript at a
-    time.** `skills/verify/orchestration.md` *Measure the segment, and feed
-    the flow log* put a `session_cost.py` run at the end of every crafter and proofer segment, which
-    means opening each segment's file by hand and, for a resumed one,
-    splitting it by eye. The rows below are that, for every segment of a run,
+    time.** `skills/verify/orchestration.md` put a `session_cost.py` run at
+    the end of every crafter and proofer segment, which means opening each
+    segment's file by hand and, for a resumed one, splitting it by eye. The rows below are that, for every segment of a run,
     in one command.
 
     **A segment is one agent's own stretch of a chain, and a spawn cycle is
@@ -2802,16 +2807,16 @@ def newest(directory):
 
 # --- posting the reading to the flow log --------------------------------------
 #
-# `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* wrote
-# this procedure out in full and nothing typed it: which label to look up, how
-# to tell a repository that never created the log from one whose log somebody
-# closed, and which of the two logs a reading belongs to. #330 measured what
+# `skills/verify/orchestration.md` wrote this procedure out in full and
+# nothing typed it: which label to look up, how to tell a repository that
+# never created the log from one whose log somebody closed, and which of the
+# two logs a reading belongs to. #330 measured what
 # that costs — the meter sat unreferenced through a full day of measurements
 # nobody took. This is the procedure as a command.
 #
 # **It never opens an issue.** The skill says opening one is not a session's
-# act: two sessions finishing segments at the same moment both read zero and
-# both create, and the next release then fails on two or more. A command that
+# act: two sessions posting at the same moment both read zero and both
+# create, and the next release then fails on two or more. A command that
 # opened one would break the same invariant from the other side.
 #
 # **The numbers are this script's and what they say is not.** `--post` refuses
@@ -2819,8 +2824,8 @@ def newest(directory):
 # posting a judgment nobody made.
 ROLLING_LABEL = "flow-measurement"
 
-# The four states `skills/verify/orchestration.md` enumerates, plus the one it does not
-# because it is about the machine rather than the tracker.
+# The four states a label's log can be in, plus the one about the machine
+# rather than the tracker.
 NO_HISTORY, LOG_CLOSED, ONE_OPEN, MANY_OPEN, UNREADABLE = (
     "no history",
     "closed",
@@ -2939,7 +2944,7 @@ def post(reading, says, label, found=None):
 
     **Two of the five states exit 0 with nothing posted**, and that is not a
     check going quiet. Most installed repositories never create the label, so
-    most segments end at `NO_HISTORY` — the skill calls that the expected case
+    most runs end at `NO_HISTORY` — the skill calls that the expected case
     rather than a missed one — and a machine with no `gh` on it is the same
     shape. A command that went red there would be red for following the
     document beside it, which is the one thing that makes people stop running
@@ -2964,9 +2969,9 @@ def post(reading, says, label, found=None):
         print(
             f"`{label}` has a history and nothing is open: the log stopped "
             f"and nobody reopened it. Opening one is not a session's act — "
-            f"two sessions finishing segments at once would both read zero "
+            f"two sessions posting at once would both read zero "
             f"and both create, and the next release fails on two or more. "
-            f"Name this in the segment's own handover"
+            f"Name this in the run's hand-over"
         )
         return 1
     if state == MANY_OPEN:
@@ -2999,7 +3004,7 @@ def post(reading, says, label, found=None):
             f"the comment on #{payload} was not posted ({where}): {(err or out).strip()}"
         )
         return 1
-    print(f"posted the segment's reading to #{payload}")
+    print(f"posted the run's reading to #{payload}")
     return 0
 
 
@@ -3097,7 +3102,7 @@ def emit(args, render, path=None, read_from=()):
 
 # --- one work item's readings, posted by the release (#1439) -----------------
 #
-# A segment's reading is posted by the session that watched it finish, and a
+# A run's reading is posted by the session that ran it, when it ends, and a
 # session forgets. The transcript stays on the machine that ran the segment,
 # so the release can post what no session posted: it finds the work item's
 # segments by their spawn prompts, leaves out each one a comment on the open
@@ -3250,8 +3255,15 @@ def posted_names(bodies):
 def report_work_item(reading):
     """One work item's reading: the counts, then the `# <file name>` line of
     each transcript in it, then one row per segment, one per slice for a
-    resumed agent. A row is named by its file, as `--segments` names an
-    agent's own file, because no spawn is in view to name it."""
+    resumed agent, then the Contract rule 6 line where a row made an `Agent`
+    call. A row is named by its file, as `--segments` names an agent's own
+    file, because no spawn is in view to name it.
+
+    **The rule 6 line is here because this is the reading a run ends with**
+    (#1479). The run posts once, through this mode, so a line only
+    `--segments` printed would reach no orchestrator. It takes an agent's
+    own-file shape, the line without the pair of counts against unnamed
+    segments, because no parent transcript is in view to count those."""
     name, branch = reading["name"], reading["branch"]
     print(
         f"{plural(reading['walked'], 'segment transcript')} walked on this "
@@ -3277,6 +3289,7 @@ def report_work_item(reading):
     for transcript in reading["left"]:
         print(f"# {os.path.basename(transcript)}")
     segment_table(reading["rows"])
+    report_breaches({"rows": reading["rows"], "unnamed": 0, "own_file": True})
 
 
 def work_item(args):
