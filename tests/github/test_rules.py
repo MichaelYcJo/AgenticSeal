@@ -10,9 +10,10 @@ where a line is out of grammar or a target is gone, and one case of
 `tests/behaviour/test_this_repository_passes_its_own_checks.py` runs it over
 the tree, so the suite is where the fact is read.
 
-#942's phase 6 placed these cases from
-`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`, which keeps
-the cases that read the marker's registration and the settle skill. The case
+The case that reads the `rule` marker's registration stands in
+`tests/test_conftest.py`'s `Test_module`, and the case that reads the settle
+skill's grammar in
+`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`. The case
 that runs `seal rules --check` in a repository whose own `seal/` is a package
 builds `tests/conftest.py`'s `shared` repository, whose root stands at
 `agentic-seal/`.

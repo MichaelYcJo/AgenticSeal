@@ -29,6 +29,9 @@ condition and the status column is the proofer's to read.
 
 from conftest import read
 
+# No TARGET: its cases hold the set a work item always has across skills/implement/orchestration.md, skills/implement/SKILL.md and templates/records/sdd-plan.md.
+
+
 # --- the condition ----------------------------------------------------------
 
 

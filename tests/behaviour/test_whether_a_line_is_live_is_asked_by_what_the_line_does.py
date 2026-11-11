@@ -23,6 +23,9 @@ import sys
 import pytest
 from conftest import ROOT, load_lib_module
 
+# No TARGET: its cases hold whether a line is live across the four readers of a record line and docs/checks/the-fold.md.
+
+
 STATEMENT_DOC = os.path.join(ROOT, "docs", "checks", "the-fold.md")
 OPENING = "**Whether a line is live is asked by what the line does"
 

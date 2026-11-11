@@ -16,6 +16,8 @@ import pytest
 from conftest import ROOT, build_tracked_tree, git_listing, on_disk
 from workflows import load
 
+# No TARGET: its cases sweep every file the plugin loads for a version timer, and hold the release rules across the update skill, the workflows, the release documents and the records root.
+
 
 def read_text(*parts):
     with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:

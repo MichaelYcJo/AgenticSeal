@@ -1,11 +1,12 @@
 """The release seal is drawn and attached at publish time (#718).
 
-The cases here read the publishing workflow and `docs/releasing/release-checklist.md`,
-and wait for #923; `docs/releasing/branch-and-release.md` names this file on its
-`check:` line, and its bullet on the seal is the proofer's to read.
+The cases here read the publishing workflow and
+`docs/releasing/release-checklist.md`; `docs/releasing/branch-and-release.md`
+names this file on its `check:` line, and its bullet on the seal is the
+proofer's to read.
 
-#942's phase 6 placed the cases of `.github/scripts/release_seal.py`'s
-functions in `tests/github/test_release_seal.py`.
+The cases of `.github/scripts/release_seal.py`'s functions stand in
+`tests/github/test_release_seal.py`.
 """
 
 import os
@@ -13,6 +14,8 @@ import os
 from conftest import ROOT, code_lines, flat
 from conftest import load_module as load
 from workflows import load as load_workflow
+
+# No TARGET: its cases hold the release seal across .github/workflows/publish-release.yml, .github/scripts/run_tests.py and docs/releasing/release-checklist.md.
 
 
 def test_the_publishing_workflow_installs_the_pins_the_runner_holds():

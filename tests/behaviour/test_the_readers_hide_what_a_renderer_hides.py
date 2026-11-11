@@ -13,21 +13,25 @@ For every line L of a document, with `base(L)` a reader's reading at
 
 The oracle comes first, and it is the first thing held: before any reader
 moved, it had to give `RENDERER` on every shape, which was derived by
-reading the specification and could not be executed. This module holds the
-oracle, `tests/commonmark_oracle.py`, and nothing else.
+reading the specification and could not be executed. This module holds
+that the oracle, `tests/commonmark_oracle.py`, and the shapes,
+`tests/block_shapes.py`, import nothing of this repository's; the oracle's
+own cases stand in `tests/test_commonmark_oracle.py`.
 
 Each reader is held in its own module file, over those shapes and the
 seeded generated corpus `tests/lib/test_blocks.py` builds: half 1 in
 `tests/lib/test_tables.py`'s `Test_unfenced` and `tests/lib/test_routing.py`'s
 `Test_module`, half 2 in `tests/lib/test_blocks.py`'s `Test_walk` and
-`Test_walk_text`, where #1489's phase 3 moved them from here, and half 3 in
-each reader's own case table (#942's phase 6).
+`Test_walk_text`, and half 3 in each reader's own case table.
 """
 
 import os
 
 import commonmark_oracle as oracle
 from conftest import ROOT, imported_roots
+
+# No TARGET: its case holds that tests/commonmark_oracle.py and tests/block_shapes.py import nothing of this repository's.
+
 
 # --- the oracle is independent, and it says what the frame read -------------
 

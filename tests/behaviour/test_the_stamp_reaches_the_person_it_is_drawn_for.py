@@ -19,6 +19,9 @@ import sys
 
 from conftest import ROOT, flat, flattened, load_module, read
 
+# No TARGET: its cases hold the stamp across docs/checks/the-stamp.md, two skills, agents/sealer.md and both READMEs, and hold seal_stamp.py's and broad_gate.py's --help to one fact.
+
+
 STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 

@@ -1,16 +1,18 @@
-"""What is left of the rules command's old file: the cases that read the
-`rule` marker's registration and the settle skill.
+"""The settle skill states the grammar the rules command reads.
 
 The cases of `.github/scripts/rules.py`'s functions stand in
 `tests/github/test_rules.py`, and its `Test_module` holds the case that
-renders the record layout document.
+renders the record layout document. The case that reads the `rule` marker's
+registration stands in `tests/test_conftest.py`'s `Test_module`.
 """
 
 import os
 
-from conftest import ROOT
+from conftest import ROOT, census_case
 
-SETTLE = os.path.join(ROOT, "skills", "settle", "rule-changes.md")
+TARGET = "skills/settle/rule-changes.md"
+
+SETTLE = os.path.join(ROOT, *TARGET.split("/"))
 
 
 def test_settle_owns_the_grammar():
@@ -31,3 +33,6 @@ def test_settle_owns_the_grammar():
         "`seal rules --check`",
     ):
         assert phrase in section, f"settle no longer says: {phrase!r}"
+
+
+test_census = census_case(TARGET)

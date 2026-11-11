@@ -30,6 +30,9 @@ import pytest
 from conftest import ROOT, code_lines, read
 from workflows import load
 
+# No TARGET: its cases classify every top-level entry git lists, and hold the release check across .github/workflows/hygiene.yml and docs/releasing/branch-and-release.md.
+
+
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 RELEASE_DOC = os.path.join(ROOT, "docs", "releasing", "branch-and-release.md")
 STEP = "a change to what ships must move the version"

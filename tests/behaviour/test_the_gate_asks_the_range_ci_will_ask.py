@@ -27,6 +27,9 @@ from conftest import ROOT, code_lines, read
 from test_broad_gate import gate_module
 from workflows import load
 
+# No TARGET: its cases hold the base the broad gate reads across broad_gate.py, .github/workflows/hygiene.yml and the two orchestration documents that describe it.
+
+
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 

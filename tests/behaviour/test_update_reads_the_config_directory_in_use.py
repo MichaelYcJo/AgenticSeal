@@ -23,9 +23,11 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, git, read, shell_probe
+from conftest import ROOT, census_case, git, read, shell_probe
 
-UPDATE = os.path.join(ROOT, "skills", "update", "SKILL.md")
+TARGET = "skills/update/SKILL.md"
+
+UPDATE = os.path.join(ROOT, *TARGET.split("/"))
 # The config directory in use, as every command of the skill spells it.
 SPELLING = "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 FENCE = re.compile(r"```bash\n(.*?)\n```", re.S)
@@ -211,3 +213,6 @@ def test_the_skill_names_no_fixed_claude_directory():
     # `skills/update/SKILL.md` *Procedure*: "Each command below carries that
     # spelling on its own", so no path into the directory is spelled fixed.
     assert not fixed, f"skills/update/SKILL.md names {fixed!r} outside {SPELLING!r}"
+
+
+test_census = census_case(TARGET)

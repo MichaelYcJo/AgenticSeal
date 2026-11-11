@@ -1,17 +1,14 @@
-"""What is left of `unverified_check.py`'s old file.
+"""The gaps memo's template, and the fence walks the record readers share.
 
-#942's phase 5 rebuilt `skills/verify/scripts/unverified_check.py`'s cases
-into `tests/skills/test_unverified_check.py`, one class per function. Two kinds of
-case stay here, byte for byte. The cases whose assertion reads a shipped
-document's prose wait for #923. `test_the_fence_walks_agree_shape_by_shape`
-holds `lib/blocks.py` and `lib/tables.py#fence_map` to
-`lib/lines.py#fence_spans`, a check across files, which stays where it is.
-The readers these cases call moved from `unverified_check.py` to
-`lib/gaps.py` and `lib/lines.py` (#1482), and the cases call them there. The case that read
-`skills/code-review/scripts/chain_check.py` and
-`skills/settle/scripts/settle.py` for a call of this module's `settled` judged
-one file per row, so each row is now a case of its module's file,
-`tests/skills/test_chain_check.py` and `tests/skills/test_settle.py`.
+`test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken` reads
+the headings of `templates/records/sdd-gaps.md`.
+`test_the_fence_walks_agree_shape_by_shape` holds `lib/blocks.py` and
+`lib/tables.py#fence_map` to `lib/lines.py#fence_spans`, a check across
+modules. The cases of `lib/gaps.py` stand in `tests/lib/test_gaps.py`, those
+of `skills/verify/scripts/unverified_check.py` in
+`tests/skills/test_unverified_check.py`, and the cases that call `settled`
+for `chain_check.py` and `settle.py` in `tests/skills/test_chain_check.py`
+and `tests/skills/test_settle.py`.
 """
 
 import importlib.util
@@ -19,6 +16,9 @@ import os
 
 import pytest
 from conftest import ROOT, load_lib_module
+
+# No TARGET: its cases hold one fence walk across lib/blocks.py, lib/tables.py and lib/lines.py, and read the headings of templates/records/sdd-gaps.md.
+
 
 lines_reader = load_lib_module("lines.py", "lines_for_the_rows_that_close")
 

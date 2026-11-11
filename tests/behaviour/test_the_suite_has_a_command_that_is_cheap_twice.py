@@ -2,11 +2,11 @@
 
 Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks* and the agent definitions that send
-a reader to the runner, and wait for #923.
+a reader to the runner.
 
-#942's phase 6 placed the cases of `.github/scripts/run_tests.py`'s
-functions in `tests/github/test_run_tests.py`, and this file reads the runner
-through that file's `rt`.
+The cases of `.github/scripts/run_tests.py`'s functions stand in
+`tests/github/test_run_tests.py`, and this file reads the runner through that
+file's `rt`.
 """
 
 import os
@@ -16,6 +16,9 @@ import pytest
 from conftest import ROOT, read
 from test_run_tests import rt
 from workflows import load
+
+# No TARGET: its cases list every command under bin/, and hold the runner's floor and parser across .github/workflows/test.yml, CONTRIBUTING.md and the agent definitions.
+
 
 BIN = os.path.join(ROOT, "bin")
 

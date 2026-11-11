@@ -26,6 +26,9 @@ import sys
 import pytest
 from conftest import ROOT, flattened, git, read, shell_probe
 
+# No TARGET: its cases hold the CLAUDE.md block across templates/setup/claude-md-block.md, skills/update/SKILL.md and this repository's CLAUDE.md.
+
+
 TEMPLATE = os.path.join(ROOT, "templates", "setup", "claude-md-block.md")
 UPDATE = os.path.join(ROOT, "skills", "update", "SKILL.md")
 START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"

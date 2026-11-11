@@ -16,6 +16,9 @@ import re
 import pytest
 from conftest import ROOT, load_module
 
+# No TARGET: its cases hold the broad gate row and the seal across broad_gate.py, the policy, templates/setup/config.md, skills/verify/orchestration.md and the agent definitions.
+
+
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 RECORDER_SOURCE = os.path.join(
     ROOT, "skills", "verify", "scripts", "pytest_record", "agentic_pytest_record.py"

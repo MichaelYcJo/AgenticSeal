@@ -47,6 +47,9 @@ import pytest
 from conftest import COLLECTED_NODE_IDS, ROOT
 from workflows import load
 
+# No TARGET: its cases read every node id the suite collects, and hold the shards across .github/workflows/test.yml and .github/scripts/durations_union.py.
+
+
 TEST = ".github/workflows/test.yml"
 SUITE = os.path.join(ROOT, "tests")
 

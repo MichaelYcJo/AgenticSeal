@@ -26,6 +26,9 @@ import re
 
 from conftest import ROOT, read
 
+# No TARGET: its cases hold the routing rule across the orchestration, the routing question, the policy, the routing template and lib/routing.py, and walk every agent definition and every committed routing.md.
+
+
 AXES = (
     "through the review chain",
     "straight to the PR",

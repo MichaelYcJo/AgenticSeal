@@ -24,6 +24,9 @@ import subprocess
 import pytest
 from conftest import ROOT, config_json, flat, local_home, read
 
+# No TARGET: its cases hold the language rows across skills/commit-pr-convention/SKILL.md, templates/setup/config.md and lib/config.py, and walk every template and pull request mirror git lists.
+
+
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 TEMPLATE = ("templates", "setup", "config.md")
 

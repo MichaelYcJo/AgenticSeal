@@ -23,6 +23,9 @@ refusal to a person instead of letting it choose are the proofer's to read.
 from conftest import read
 from test_broad_gate import flat
 
+# No TARGET: its cases hold the broad gate row across templates/setup/config.md, skills/config/SKILL.md and the two orchestration documents.
+
+
 TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")

@@ -11,8 +11,7 @@ under `Test_gfm_table` through `_Old_config_table` and
 
 #942's phase 6 and its round 9 fix pass had placed in `tests/lib/test_config.py`
 three of the walker's cases and the refusal of a line shown directly above
-the header from `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`,
-and the case that copies the module without `lib/blocks.py` from
+the header from the walker's old file under `tests/behaviour/`, and the case that copies the module without `lib/blocks.py` from
 `tests/test_a_script_copied_alone_exits_2.py`, whose `routing.py` row is in
 `tests/lib/test_routing.py`.
 
@@ -22,9 +21,9 @@ held to GitHub's renderer, `cmarkgfm`, through `tests/gfm_table_oracle.py`,
 and the property is S1 of #647's `frame/design.md`: **on every shape, the
 walker's cells equal cmark-gfm's, or the walker refuses.** No shape yields
 cells cmark-gfm does not render. #1489's phase 3 moved those cases, the
-corpus and the cases that count it here from
-`tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, which
-keeps the oracle's own cases.
+corpus and the cases that count it here from the walker's old file under
+`tests/behaviour/`; the oracle's own cases stand in
+`tests/test_gfm_table_oracle.py`.
 
 **The corpus is enumerated by construction, not from examples.** Round 3 of
 #735 found the walk's silent drop (an autolink row) with 21 shapes its author

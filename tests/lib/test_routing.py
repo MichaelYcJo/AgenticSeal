@@ -12,8 +12,8 @@ The cases come from `tests/test_routing_is_recorded.py` and
 pass, from `tests/test_a_script_copied_alone_exits_2.py`. The two cases of
 `Test_module` that hold `shown` to `tests/commonmark_oracle.py`, over the
 corpus `tests/lib/test_blocks.py` builds, came in #1489's phase 3 from
-`tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`, which
-keeps the oracle's own cases.
+`tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`; the
+oracle's own cases stand in `tests/test_commonmark_oracle.py`.
 """
 
 import os

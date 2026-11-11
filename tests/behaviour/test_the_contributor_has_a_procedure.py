@@ -36,6 +36,9 @@ import pytest
 from conftest import ROOT, build_tracked_tree, posix_id, read
 from test_release_hygiene import LOADED, tracked
 
+# No TARGET: its cases hold the contribution procedure in CONTRIBUTING.md and sweep every loaded file and every contributor-facing surface for a concrete release branch.
+
+
 GUIDE = os.path.join(ROOT, "CONTRIBUTING.md")
 HEADING = "## Opening a pull request"
 

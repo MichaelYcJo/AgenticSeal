@@ -7,10 +7,10 @@ through `lib/fields.py`: a ready pull request passes only where the
 newest verdict block names HEAD and reads `sealed`. Each group holds a case
 on good input and one on bad.
 
-#942 moved the cases of the arm, which read no file of this repository, into
-`tests/skills/test_chain_check.py`, and #1198 put the reader's in
-`tests/lib/test_fields.py`. What stays reads the template, the definition,
-the document, or every committed `guarantee.md`.
+The cases of the arm, which read no file of this repository, stand in
+`tests/skills/test_chain_check.py`, and the reader's, the unfilled template
+among them, in `tests/lib/test_fields.py`. What stays reads the template, the
+definition, the document, or every committed `guarantee.md`.
 """
 
 import pathlib
@@ -21,6 +21,9 @@ from conftest import (
     load_module as load,
 )
 from test_fields import TEMPLATE, fields
+
+# No TARGET: its cases walk every committed guarantee.md and every sealer eval grader, and hold the guarantee across its template, agents/sealer.md and docs/forms/the-guarantee.md.
+
 
 ROOT = pathlib.Path(conftest.ROOT)
 READER = ROOT / "lib" / "lines.py"
