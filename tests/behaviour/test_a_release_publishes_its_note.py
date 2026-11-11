@@ -1,63 +1,21 @@
 """#386: the release note publishes itself, or the job goes red saying why.
 
 The cases here read the workflow the push to `main` and a tag pushed by
-hand fire, and the release checklist's title command, and wait for #923. `docs/releasing/branch-and-release.md`
-names this file on its `check:` line.
+hand fire. `docs/releasing/branch-and-release.md` names this file on its
+`check:` line.
 
-#942's phase 6 placed the cases of `.github/scripts/publish_release_note.py`'s
-functions in `tests/github/test_publish_release_note.py`, and this file loads the
-script through that file's `module`.
+The cases of `.github/scripts/publish_release_note.py`'s functions stand in
+`tests/github/test_publish_release_note.py`, and its `Test_module` holds the
+case that reads the release checklist's title command back through
+`title_from`.
 
 The workflow is read as `tests/workflows.py#load` parses it, so a setting
 that stands only in a comment is no setting.
 """
 
-import os
-
-from conftest import ROOT
-from test_publish_release_note import module
 from workflows import load
 
-SCRIPTS = os.path.join(ROOT, ".github", "scripts")
-SCRIPT = os.path.join(SCRIPTS, "publish_release_note.py")
 WORKFLOW = ".github/workflows/publish-release.yml"
-
-# `tests/behaviour/test_release_hygiene.py` refuses a loaded document naming the running
-# version or anything above it. These are illustrative, which is the form that
-# document's own message points at.
-VERSION = "1.2.3"
-TAG = "v1.2.3"
-SYMPTOMS = "two acts nobody wrote down"
-
-
-def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
-    """S17 of #1000. The command in `docs/releasing/release-checklist.md` *The
-    release pull request*, filled with a version and a symptom, is the merge
-    commit's body line, and `title_from` reads it as S15 does. Protects: the
-    document a release session copies and the reader moving apart, which
-    loses the next release's title."""
-    doc = open(
-        os.path.join(ROOT, "docs", "releasing", "release-checklist.md"),
-        encoding="utf-8",
-    )
-    text = doc.read()
-    doc.close()
-    step = text[text.index("## The release pull request") :]
-    title = step.split('--title "', 1)[1].split('"', 1)[0]
-    filled = title.replace("X.Y.Z", VERSION).replace(
-        "<the symptoms the release answers>", SYMPTOMS
-    )
-    assert filled != title and "<" not in filled, title
-    mod = module(SCRIPT, "publish_release_note_for_the_checklist")
-    message = f"Merge pull request #500 from owner/release/v{VERSION}\n\n{filled}\n"
-    title, source = mod.title_from(message, VERSION, TAG)
-    assert (title, source) == (
-        f"{VERSION} — {SYMPTOMS}",
-        "the tagged commit's `release:` line",
-    )
-    # Trailing whitespace after the symptoms is no part of the title.
-    spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
-    assert spaced == title, spaced
 
 
 def strings(node):

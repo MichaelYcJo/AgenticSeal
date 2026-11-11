@@ -1,38 +1,16 @@
 """What is left of the rules command's old file: the cases that read the
-record layout document, the `rule` marker's registration and the settle
-skill, which wait for #923.
+`rule` marker's registration and the settle skill.
 
-#942's phase 6 placed the cases of `.github/scripts/rules.py`'s functions in
-`tests/github/test_rules.py`, and this file reads the command through that file's
-`rules`.
+The cases of `.github/scripts/rules.py`'s functions stand in
+`tests/github/test_rules.py`, and its `Test_module` holds the case that
+renders the record layout document.
 """
 
 import os
 
 from conftest import ROOT
-from test_rules import rules
 
 SETTLE = os.path.join(ROOT, "skills", "settle", "rule-changes.md")
-
-
-def test_the_slice_document_resolves_every_target():
-    """`docs/layout/the-record-layout.md`, the document #944's phase 1 gave every
-    rule its test, prints a section line for each of its targets and none
-    that does not resolve."""
-    path = os.path.join(ROOT, "docs", "layout", "the-record-layout.md")
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
-    out = rules.render(ROOT, text)
-    assert out.count("  check, line ") >= 7, out
-    # The render's own two line shapes are read, not the bare words, since a
-    # marker name or a docstring the render prints may say "refused", as the
-    # marker `record-comment-line-refused` does.
-    failed = [
-        line
-        for line in out.splitlines()
-        if line.startswith("    refused: ") or ": does not resolve: " in line
-    ]
-    assert not failed, out
 
 
 def test_the_rule_marker_is_registered(pytestconfig):

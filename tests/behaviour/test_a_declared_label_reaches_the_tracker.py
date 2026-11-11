@@ -1,6 +1,6 @@
 """#450: a label this repository's documents specify exists on the tracker,
 and stops existing on the issue it was spent on; the cases here read the
-workflow and the document, and wait for #923.
+workflow and the document.
 
   A12  the document says when the judgment is made, what removes a spent
        label, and that no backlog sweep is owed
@@ -8,11 +8,13 @@ workflow and the document, and wait for #923.
        failed, because neither needs a step after checkout to have succeeded
        (#515)
 
-#942's phase 6 placed the cases of the scripts' functions in their files:
+The cases of the scripts' functions stand in their files:
 `.github/scripts/tracker_labels.py`'s in `tests/github/test_tracker_labels.py`,
+the case holding each declared label's citation of its section among them,
 `close_issues_on_release.py`'s in `tests/github/test_close_issues_on_release.py`,
 and the label reader's case in
-`tests/github/test_label_merged_on_release_branch.py`.
+`tests/github/test_label_merged_on_release_branch.py`. The document's path is
+that first file's `OWNER`.
 
 **Shown red before it was committed (contract rule 15).** A12 was run
 against the document with the one sentence it pins removed, in phase 4 of
@@ -26,44 +28,14 @@ import os
 
 import pytest
 from conftest import ROOT, read
-from test_tracker_labels import labels_module
+from test_tracker_labels import OWNER
 from workflows import load
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "close-issues-on-release.yml")
-OWNER = "docs/releasing/issues-and-milestones.md"
 
 
 def flat(rel):
     return " ".join(read(os.path.join(ROOT, rel)).split())
-
-
-def test_every_declared_label_says_which_document_specifies_it():
-    """A row here is a copy of a decision made somewhere else. A reader who
-    cannot get back to the original has to take the copy's word for what the
-    label means — which is how a label and its section drift apart."""
-    mod = labels_module()
-    assert mod.declared(), "nothing is declared, so the step reconciles nothing"
-    for label in mod.declared():
-        assert label["specified_by"].startswith(OWNER.split("/")[-1]) or label[
-            "specified_by"
-        ].startswith("docs/"), label
-        document, _, heading = label["specified_by"].partition(" *")
-        assert os.path.exists(os.path.join(ROOT, document)), (
-            f"{label['name']!r} cites {document}, which is not in the tree"
-        )
-        # The section is cited by its heading text in italics, and the
-        # heading is read as it renders, its own emphasis dropped: the
-        # citation a reader of the label resolves to its section.
-        with open(os.path.join(ROOT, document), encoding="utf-8") as handle:
-            headings = {
-                line.lstrip("#").strip().replace("*", "")
-                for line in handle
-                if line.startswith("#")
-            }
-        assert heading.endswith("*") and heading[:-1] in headings, (
-            f"{label['name']!r} cites {label['specified_by']!r}, and "
-            f"{document} has no such heading"
-        )
 
 
 def test_the_workflow_runs_the_apply_arm_and_needs_no_new_permission():

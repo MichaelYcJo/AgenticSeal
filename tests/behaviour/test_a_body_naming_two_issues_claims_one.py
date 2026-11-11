@@ -1,33 +1,17 @@
-"""What is left of the claims check's old file: the cases that read
-`docs/releasing/issues-and-milestones.md`, the hygiene workflow and its template, which
-wait for #923.
+"""What is left of the claims check's old file: the cases that read the
+hygiene workflow and its setup template.
 
-#942's phase 6 placed the cases of `.github/scripts/issue_claims_check.py`'s
-functions in `tests/github/test_issue_claims_check.py`. The document's case reads it
-through that file's `read`. `docs/releasing/issues-and-milestones.md` names this file
-on a `check:` line beside the new one.
+The cases of `.github/scripts/issue_claims_check.py`'s functions stand in
+`tests/github/test_issue_claims_check.py`, and its `Test_read` holds the case
+that runs the reader over `docs/releasing/issues-and-milestones.md`. That
+document names this file on a `check:` line beside the module's file.
 """
 
 import os
 
 import pytest
 from conftest import ROOT, code_lines
-from test_issue_claims_check import read
 from workflows import load
-
-
-def test_the_document_that_teaches_the_rule_carries_no_instance_of_it():
-    """`docs/releasing/issues-and-milestones.md` says a body quoting the failing shape
-    inside a fence or a code span is not an instance of it. This repository's
-    bodies quote its documents routinely, so the section has to hold to that
-    everywhere -- a narrative past-tense keyword is still a keyword, and
-    `KEYWORDS` carries the past tense of all three verbs."""
-    with open(
-        os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md"),
-        encoding="utf-8",
-    ) as f:
-        _, _, warnings = read(f.read())
-    assert warnings == [], warnings[0][2] if warnings else ""
 
 
 def test_the_workflow_runs_the_check_on_every_pull_request():

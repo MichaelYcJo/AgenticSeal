@@ -1122,7 +1122,7 @@ def parity_file(sha):
 # Each command's cases that keep its records under `agentic-seal/` beside a
 # project's own `seal/` package share this world: the module files of
 # `tests/skills/` that hold them, and the `seal rules` case of
-# `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`.
+# `tests/github/test_rules.py`.
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"
