@@ -455,9 +455,9 @@ def test_the_three_fix_rule_stands_in_the_skill_a_builder_opens():
 
 
 def test_the_crafters_four_rules_stand_with_their_enforcers():
-    """T3 of #967: S4's rules each keep their paragraph, their clauses and a
-    `check:` line. #1027 retired the fourth, the waiver, and the case holds
-    that it stays gone.
+    """T3 of #967: S4's rules each keep their paragraph and their clauses.
+    #1027 retired the fourth, the waiver, and the case holds that it stays
+    gone.
 
     These three have no eval case that plants their breach, so a later trim
     could drop any of them with every grader green — #107's failure, a rule
@@ -465,9 +465,6 @@ def test_the_crafters_four_rules_stand_with_their_enforcers():
     for lead, clauses in CRAFTERS_FOUR_RULES.items():
         paragraph = crafter_rule(lead)
         assert paragraph, f"`agents/crafter.md` lost the rule {lead!r}"
-        assert re.search(r"^check: \S", paragraph, re.M), (
-            f"{lead!r} has no `check:` line, so nothing names what holds it"
-        )
         said = flat(paragraph)
         for clause in clauses:
             assert clause in said, f"{lead!r} lost {clause!r}"
@@ -499,9 +496,6 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
     to the proofer."""
     paragraph = crafter_rule(READ_WHOLE)
     assert paragraph, "`agents/crafter.md` lost its rule on reading the range whole"
-    assert re.search(r"^check: \S", paragraph, re.M), (
-        "the rule has no `check:` line, so nothing names what holds it"
-    )
     said = flat(paragraph)
     for clause in (
         "In a phase and in a fix pass, after your last commit,",

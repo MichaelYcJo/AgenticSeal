@@ -439,7 +439,11 @@ after `!` in a session, or ask the session to run it.
   code. The pull request's check judges a declared work item
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` proves that a named test exists, not that it asserts
-  the rule.** A rule with no `check:` line is held by review alone.
+  the rule.** It reads no rule without a `check:` line. In a policy document
+  such a rule is held by review alone. The agent definitions and the contract
+  carry no line at all, so the command reads none of their rules: a rule there
+  is held by the cases that read it where any do, and by review alone where
+  none does (`skills/settle/rule-changes.md` *A rule has one shape*).
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round. `trail/gate.md` makes a
   repeat visible, and the proofer audits the crafter's labels.

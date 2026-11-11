@@ -2,9 +2,7 @@
 
 Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks* and the agent definitions that send
-a reader to the runner, and wait for #923;
-`agents/crafter.md` and `agents/proofer.md` name this file on their `check:`
-lines.
+a reader to the runner, and wait for #923.
 
 #942's phase 6 placed the cases of `.github/scripts/run_tests.py`'s
 functions in `tests/github/test_run_tests.py`, and this file reads the runner

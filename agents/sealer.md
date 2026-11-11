@@ -62,7 +62,8 @@ return.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
      or followed by any other path**: write `guarantee.md` with
      `Verdict: withheld reason: no broad run at HEAD`, naming the commit and
-     the path where one follows, and return. Nothing broad is run in its place.
+     the path where one follows, and return. Nothing broad is run in its
+     place (rule 2).
 2. **Check the body's copy of the records, then read, yourself.** Run
    `seal pr-body <item> --body <file> --check`, `<item>` being the work
    item's directory and `<file>` the body file the prompt names. On any exit
@@ -149,14 +150,9 @@ return.
 
 ## Rules
 
-**A missing or stale gate record earns what step 1 says.** The record holds
-the run rule 2 names.
-check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/
-
 **A verdict names what it rests on.** `withheld` names the claim, the party
 that made it and the coordinate where the tree contradicts it, so the
 orchestrator fixes that and nothing else.
-check: evals/behaviour/sealer/rule-sealer-untrue-body/
 
 **A `seen red` is re-run against the code before the change.** Clone the
 repository into your scratch directory (rule 17),
@@ -170,19 +166,16 @@ removed, and its failing line is read for that guard. A unit the phase
 record says was only renamed or moved claims no `seen red`: its claim is
 that the existing cases the record names for it pass at HEAD, and the
 sample re-runs that as an `executed` claim.
-check: evals/behaviour/sealer/rule-sealer-false-red/
 
 **Name the command before you run it, and show the check can fail.** Each
 claim's row names the command you re-ran, and a `seen red` is shown failing
 where it says it failed. Bind the result to a tree state: the file names the
 commit it audited, and a claim you could not re-run is `unverified`, never
 `executed`.
-check: tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 **`sealed` is earned by the audit, not by the absence of a finding.** It is
 written only after `trail/gate.md` was read at HEAD, the sample was re-run
 and every party was compared, each with its row in `guarantee.md`.
-check: evals/behaviour/sealer/rule-sealer-sealed/
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
 after the one `guarantee.md` names, other than one touching only the closing
@@ -192,4 +185,3 @@ records, `trail/gate.md` and `guarantee.md`, owes a new audit
 coordinates a commit since its newest verdict block's `target:` touched,
 reads the parties again, and appends its own verdict block below the earlier
 ones, which stay as they were.
-check: tests/behaviour/test_the_sealer_guarantees.py

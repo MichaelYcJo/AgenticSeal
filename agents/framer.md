@@ -143,7 +143,6 @@ caller's: it asks the routing batch and writes `routing.md` before you are
 spawned, and its reading `plan.md` and spawning the build is the approval.
 From that spawn to the pull request the chain runs unattended, so what you
 cannot settle goes into `questions.md` and never into a question.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **What the tree can answer, you answer.** A question a document could have
 answered was never a question, and a judgment you make is not one you keep:
@@ -169,7 +168,6 @@ that gave it. A row whose answer is a behaviour, a time or an output is
 written only where no probe can run in your environment, such as a CI leg
 on another platform or a harness behaviour no subagent can trigger, and
 its reason says which.
-check: evals/behaviour/framer/rule-framer-sharp-s/ evals/behaviour/framer/rule-framer-generated-page/ tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
@@ -200,13 +198,11 @@ states it, and with it which work item edits the policy root directly. In a
 work item that does not, each rule this work adds, changes or removes goes into
 `frame/design.md`'s `## Rule changes` as `skills/settle/rule-changes.md` *Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **A removal is named once, at the frame.** `frame/design.md`'s `## Removes` lists
 what the work takes out of the tree, or holds the no-change block. The review
 reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
-check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **A count of a list is stated once, beside the list.** Where a frame file
 says how many items a list holds, such as the files a phase edits or the
@@ -230,12 +226,10 @@ citing it, never by a new mark that records the block.
 mechanism by what it caught against what it costs, and a mark added at a
 blocked step has caught nothing on the day it is added. You decide whether a
 work item adds a mark, so the rule stands in your definition.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Your mark goes at the foot of `frame/design.md`.** One line in the template's
 shape, `Framed <date> by <who>, before the build.`, with `framer` for
 `<who>`.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Bound each call, not the reading.** The files your spawn prompt names go
 out in one call whatever their number, as rule 10 says. Each call of the wide
@@ -243,7 +237,6 @@ reading after that holds about six reads or ranges, never the whole reading
 list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
 form, and a `wc -l` goes out beside the other reads.
-check: tests/text/test_the_handoff_before_round_one.py
 
 **An orchestrator's reading of the frame is answered in one exchange.**
 Before the first build spawn the orchestrator may send you its reading of

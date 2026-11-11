@@ -1065,13 +1065,9 @@ def test_the_frame_rule_names_the_phase_record_section_a_no_goes_to():
     rule names the record and the section it goes to. Where the step stands
     in the order of work, and that a `no` never goes back to the framer, are
     the orchestrator's to read in the crafter's hand-back."""
-    crafter = " ".join(
-        open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8")
-        .read()
-        .split()
-    )
+    crafter = open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8").read()
     rule = crafter[crafter.index("**The frame is judged before it is built to.**") :]
-    rule = rule[: rule.index(" check: ")]
+    rule = " ".join(rule.split("\n\n", 1)[0].split())
     # The path `trail/phases/phase-N.md` and its heading
     # `## What this phase found`, where the crafter writes a frame that does
     # not hold and the next phase reads it.

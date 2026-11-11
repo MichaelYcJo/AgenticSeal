@@ -94,33 +94,28 @@ a path its row states, a list it hands you, a file it says exists. Check them
 after the requirements read, before anything is spent. A *no* goes to
 `trail/phases/phase-N.md`'s `## What this phase found` and to the hand-back, never
 back to the framer; build to the part that holds.
-check: tests/behaviour/test_chain_hooks_hardening.py
 
 **Your scratch is named for the work item and the phase.** Your scratch
 directory (rule 17) is `<scratchpad>/<work-item-id>/phase-<n>/`, where
 `<n>` is the phase, and in a fix pass
 `<scratchpad>/<work-item-id>/fix-<n>/`, where `<n>` is the round the pass
 fixes.
-check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **A handoff's claim is measured where the handoff says.** Rule 5 has you
 open each coordinate your prompt carries, in the shape
 `docs/running/the-run.md` *The handoff* gives it. Where a claim flips on
 where it is measured, measure where the handoff says and say so.
-check: tests/text/test_the_handoff_before_round_one.py
 
 **A new test starts from its group.** Before writing a case, read the tests
 of the function it covers and any pair a duplicate check in the repository
 names, and add the case to that group; a case that covers nothing its group
 does not already cover is not added. In a repository whose test files
 declare `TARGET`, `seal layout --pairs` is that check.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Commit before you mutate, and restore from `seal mutate`'s copy.** A
 revert through `git checkout -- <file>` restores the committed state and
 takes every uncommitted fix in that file with it; `seal mutate` holds the
 bytes it read and compares the hash after the restore.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py tests/skills/test_mutation_check.py
 
 **Mutation-test every unit that adds behaviour, one command each.** Break
 one unit, run the cases that cover it, and watch one go red; a unit that
@@ -136,13 +131,11 @@ Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, add `-p no:xdist` for a handful of cases.
 `skills/verify/seal-mutate.md` carries the verdicts and their exit codes.
-check: tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
 
 **A stop at three failed fixes is handed back.** The rule is
 `skills/implement/SKILL.md` *2. Implement test-first, and let each rule
 name its test*'s. Where it stops you, hand back the architecture question
 in place of a fourth fix.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
@@ -150,7 +143,6 @@ type step 7's one command, never the whole suite
 (`docs/running/the-run.md` *The handoff*).
 Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
-check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 **The broad gate is not yours, and its label is.** The run and the suite's
 label are rule 2's. When a broad gate failure is handed to you,
@@ -158,7 +150,6 @@ the word beside each failing file says what it is: `failing on base too`
 predates the work and is a follow-up to name, not a defect to chase;
 `new?` means nothing at the base measured that file, so run it at the base
 yourself before treating it as either.
-check: tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 **Before you hand back, your range and the work item's records are read
 whole against HEAD.** In a phase and in a fix pass, after your last
@@ -184,4 +175,3 @@ stands; that list is a sample, and the hand-back calls it one and says
 where the part it did not reach stands. What you did not finish goes to
 `gaps.md` `## Not done` with why. Neither that nor the part a sample did
 not reach is the proofer's share.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
