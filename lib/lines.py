@@ -113,8 +113,9 @@ def fence_spans(lines):
 
     The walk where only the fence delimiter rule decides where a fence
     opens: no comment state and no code-span state is kept (#1012). In this
-    module `blank_fences` walks it, and `readable` through `blank_fences`. Callers in other scripts are found with
-    `git grep`, and no list of them is kept here to go stale. A walk that
+    module `blank_fences` walks it, and `readable` through `blank_fences`.
+    Callers in other scripts are found with `git grep`, and no list of them
+    is kept here to go stale. A walk that
     keeps a comment or a code-span state, `_scan`, which `liveness` and
     `live_pieces` read, asks `fence_opener` and `fence_closes` directly
     instead, because there whether a line can
