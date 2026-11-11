@@ -90,3 +90,46 @@ Verdict: undecided question: Does the owner's amendment of #1503, which has the 
 ```
 
 Answered 2026-11-11 by the owner: yes. The orchestrator runs the same removal again, with the same literal path, after each repair it pushes to the open pull request, a merge from the base among them; a repair's round and audit clone again, and the removal clears those clones with no prompt. The owner chose this in this session and it is added to #1503's comment thread.
+
+## Re-audit at `fb0cbf824`
+
+Audited again on 2026-11-11 by the sealer, at `fb0cbf824` against the same
+base, `9c6907942`. The one commit after the block above, `fb0cbf824`, adds
+this file and nothing else (`executed`:
+`git log --no-merges --name-only 0e7a23c4d..HEAD` and
+`git diff --stat 0e7a23c4d HEAD` with this file excluded, which prints
+nothing). So no claim's coordinate changed, and no claim of *Claims re-run*
+needed a second run.
+
+- **The gate record still covers HEAD.** `29c41293c` is an ancestor of
+  HEAD, and only `trail/gate.md` and this file follow it, both under this
+  work item's directory (`executed`).
+- **The body check still passes.** `seal pr-body <item> --body <file>
+  --check` exited 0 with the installed `seal` and with `bin/seal`
+  (`executed`).
+- **The owner answered the question.** The `Answered 2026-11-11 by the
+  owner:` line above says yes. #1503's second comment, by the owner
+  account, adds the repeat to the amendment: "The orchestrator runs the
+  same removal again, with the same literal path, after each repair it
+  pushes to the open pull request. A merge from the base counts as a
+  repair." It also states "The repeat is the only change to the amendment
+  above" (`executed`: `gh issue view 1503 --comments`).
+
+The parties were read again against #1503 as the owner now amends it.
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as in the block above, with T22's repeat | #1503's second comment, the build, the changelog | none |
+| the build | `skills/implement/orchestration.md:46-53`, `README.md:378-380` and `README.ko.md:375-377` state one removal after the pull request opens and the same command after each repair | #1503's second comment, which names the same literal path and counts a merge from the base as a repair | none |
+| the last round (round 3, with its two `fixed 6b27a65dc` findings) | its *Not judged* left the owner's confirmation open | the owner has now answered it | none |
+| the changelog | `changelog.md:3` and `:11` state the repeat after each repair | #1503's second comment | none |
+| the orchestrator's part of the pull request body | `pr.md` quote 6 quotes the repeat row, which calls the repeat the orchestrator's judgment | the row is still true as a record of who judged first, and the owner has now granted the repeat | none |
+
+`gaps.md`'s broad-gate row is the crafter's account of what it did not
+run, and `trail/gate.md` answers it. The orchestrator keeps the row as it
+stands.
+
+```seal
+target: fb0cbf824 against 9c6907942
+Verdict: sealed
+```
