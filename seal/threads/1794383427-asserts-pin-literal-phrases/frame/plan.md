@@ -1,10 +1,12 @@
 # Implementation Plan: the literal asserts of tests/text and tests/behaviour are weighed a second time (#1488)
 
+To fold after phase 4, in the one fold the plan names: phase 1's hand-back, *Scope* item 9, `docs/forms/the-round-record.md:107`'s check line after **Each finding's close block has one writer** names `tests/text/test_a_moved_rule_leaves_its_definition.py`, which keeps no case reading that rule.
+
 ## Technical context
 
 The tree as read at `c9ed2c6ee`.
 
-The work edits test modules and the check lines that name them. It changes no script, hook, skill sentence or document. What is ruled is the cases of `frame/design.md` *The groups*, found by its *The listing*. The criterion is #1233's four kinds of fact, carried forward (design G2), with two things #1233 did not rule: an absence assert, and a kept literal cut to its fact (design *The criterion*).
+The work edits test modules and the check lines that name them. It changes no rule sentence and no file under `docs/`. Where a ruling leaves a docstring or a `check:` line stale, *Scope* items 7 and 8 rewrite it in place, a script's docstring or a skill's `check:` line among them. What is ruled is the cases of `frame/design.md` *The groups*, found by its *The listing*. The criterion is #1233's four kinds of fact, carried forward (design G2), with two things #1233 did not rule: an absence assert, and a kept literal cut to its fact (design *The criterion*).
 
 Four constraints shape the build.
 
