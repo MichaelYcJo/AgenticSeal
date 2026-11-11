@@ -73,6 +73,11 @@ check: tests/text/test_every_agent_reads_the_contract.py
 
 These snippets do not reach the frame, and the fold owes it: *Scope* item 13 (`frame/design.md:50`) should say the bullet's last sentence as the README fix gives it, and D1's block (`frame/design.md:79-92`) should read as the D1 fix above. The row of `frame/plan.md:52` records the judgment as it was made on 2026-11-11, so it stays, and a new row records this one. `trail/rounds/round-1.md:73-89` states its own commit and stays. The fix pass runs `tests/behaviour/test_docs_line_wrap.py` and `tests/behaviour/test_both_editions_carry_the_same_folds.py` over the two editions.
 
+```seal
+verdict: fixed d322c0cb7
+answer: The finding holds, and the four fixes went in as given. The `## Limits` bullet at `README.md:441-446` and `README.ko.md:436-441` reads as this round's two README fixes give it, which is *Scope* item 13 as the framer folded it at `e8830bd8d`. `changelog.md:4`'s last sentence reads as this round's fix. `skills/settle/rule-changes.md:118-128` reads as D1's block at `frame/design.md`; a `python3` check found the block's text in the file verbatim. After `d322c0cb7`, one `bin/test` command over `tests/text`, `tests/behaviour` and the 19 other test files fix pass 1 ran gave 4,669 passed and 9 skipped, with `tests/behaviour/test_docs_line_wrap.py` and `tests/behaviour/test_both_editions_carry_the_same_folds.py` among them, and `bin/seal rules --check` holds 179 lines.
+```
+
 ## Confirmations
 
 ```seal
