@@ -8,6 +8,10 @@ module asks git: the shared writer over one repository built once for the
 module and copied for each case, where a second common directory stands for a
 second clone of it, and the write-time writer over that repository and over
 one local-mode repository built the same way.
+
+The cases that run `main` beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import ast
@@ -25,7 +29,15 @@ import sys
 
 import conftest
 import pytest
-from conftest import census_case, git, git_out, load_module, mark_root, write
+from conftest import (
+    census_case,
+    commit_everything_as_e,
+    git,
+    git_out,
+    load_module,
+    mark_root,
+    write,
+)
 from conftest import commit_everything_as_e as commit
 
 TARGET = "skills/verify/scripts/seal_stamp.py"
@@ -2351,6 +2363,28 @@ class Test_main:
         out = done.stdout.decode("utf-8")
         assert out.strip(), done.stderr.decode("utf-8", "replace")[-300:]
         assert message(out).startswith("SEALED feat/x @ aaa1111"), out
+
+    def test_s4_the_stamp_queues_a_sealed_guarantee_under_agentic_seal(
+        self, package, capsys
+    ):
+        """`seal stamp --guarantee` given `agentic-seal/threads/<id>/guarantee.md`,
+        written and not yet committed, queues the work item's stamp in the
+        clone, as it does under `seal/`."""
+        mark_root(package / "agentic-seal")
+        commit_everything_as_e(package, "the root")
+        git(package, "switch", "-qc", "feat/x")
+        write(package, "work.txt", "the work\n")
+        commit_everything_as_e(package, "the work")
+        target = git(package, "rev-parse", "--short", "HEAD").stdout.strip()
+        base = git(package, "rev-parse", "--short", "main").stdout.strip()
+        item = package / "agentic-seal" / "threads" / ITEM_NAME
+        closing_records(item, target, base)
+        write(item, "routing.md", routing_text())
+        code = stamp.main(["--guarantee", str(item / "guarantee.md")])
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert out.startswith(f"agentic: the stamp for {ITEM_ID} is queued in "), out
+        assert len(queued(package / ".git")) == 1
 
 
 test_census = census_case(TARGET)

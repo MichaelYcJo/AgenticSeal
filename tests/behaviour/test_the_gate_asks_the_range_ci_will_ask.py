@@ -11,10 +11,11 @@ and drew the stamp, and CI reported seven places and exit 1 on the same
 branch, the same check and the same commit.
 
 What stays here are the cases that read a shipped document: the workflow's
-spellings held against the gate's, and the documents that say which base the
-gate asks about, with one case on the panel row the ref is printed on. #923
-places them. The resolver, the line it prints and the
-consumers it hands the commit to are `tests/skills/test_broad_gate.py` since #942.
+spellings held against the gate's, the documents and the gate's docstring
+that say which base the gate asks about, and this file's own reader of the
+workflow driven over the shapes a base is spelled in. The resolver, the line
+it prints, the panel row the ref is printed on and the consumers it hands
+the commit to are `tests/skills/test_broad_gate.py`'s.
 """
 
 import ast
@@ -221,22 +222,6 @@ def test_the_gates_own_docstring_says_the_base_is_resolved():
         "the gate's docstring describes the base without saying what it "
         f"resolves to:\n{doc}"
     )
-
-
-def test_the_panel_prints_the_ref_on_the_base_row():
-    """The ref beside the base commit is the half of the stamp a reader uses
-    to tell a fresh base from a stale one. Since #832's S5a it is the `base`
-    row itself, beside the commit, and the panel has no `from` row."""
-    mod = gate_module()
-    base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
-    checks = {
-        name: mod.Check(name, 0, "1 passed in 0.1s", "out.txt")
-        for name in (mod.SUITE, mod.CHAIN_NAME)
-    }
-    rows = mod.panel("ccccccc", base, checks, None)
-    labels = [row[0] for row in rows if row]
-    assert "from" not in labels, f"the panel still has a `from` row: {labels}"
-    assert ("base", "bbbbbbb  origin/base") in rows, rows
 
 
 # --- the workflow reader, driven over every shape a base is spelled in ---------

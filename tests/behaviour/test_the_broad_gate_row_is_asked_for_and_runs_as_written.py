@@ -9,42 +9,25 @@ away, and their output is executed in their place. The measured pair is the
 whole of why this exists — the same content exits 1 bare and exited 0 wrapped,
 with the failure still on the screen.
 
-`tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` holds the executed half:
-the gate refusing each form over a fixture repository, and the forms that stay
-allowed still sealing. What is pinned HERE is what a person reads and acts
-on — what `templates/setup/config.md` promises about the key, the criterion
-for choosing a value and its one owner, the refusal the gate prints, and the
-command that answers the key. The sentence that sends a session which meets
-the refusal to a person instead of letting it choose is the proofer's to
-read.
+`tests/skills/test_broad_gate.py` holds the executed half: the gate refusing
+each form and letting the others run (`Test_wholly_substituted`,
+`Test_not_as_written`), and the refusal it prints where the key is absent
+(`Test_missing_row`). What is pinned HERE is what a person reads and acts
+on in the documents: what `templates/setup/config.md` promises about the
+key, the criterion for choosing a value and its one owner, and the command
+that answers the key. The sentence that sends a session which meets the
+refusal to a person instead of letting it choose is the proofer's to read.
 """
 
-import os
-import pathlib
-import re
-
-import conftest
 from conftest import read
+from test_broad_gate import flat
 
-ROOT = pathlib.Path(conftest.ROOT)
 TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
 REVIEW_ORCH = ("skills", "code-review", "orchestration.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
-
-
-def flat(text):
-    """Runs of whitespace folded to one space, so a phrase a hand-wrap splits
-    across two lines still reads as the phrase.
-
-    A block quote's `> ` goes with the wrap it marks: the criterion is a
-    two-line quote, and folding without dropping the marker leaves `the exit
-    code the > gate reads` — a phrase nobody wrote and nobody can assert.
-    """
-    unquoted = "\n".join(re.sub(r"^\s*>\s?", "", line) for line in text.splitlines())
-    return re.sub(r"\s+", " ", unquoted)
 
 
 def section(text, heading, level):
@@ -258,49 +241,10 @@ def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
 # #401's third Done-when, and the one the ticket says a sentence already
 # failed: *a session that meets the refusal anyway is told to bring it to a
 # person rather than to choose — and something checks that, since a sentence
-# is what failed here.* The something is the refusal the gate prints, read
-# below, and the executed case beside it in
-# `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`; the
-# orchestration's sentences on it are the proofer's to read.
-
-
-def missing_row_text():
-    """The refusal itself, built by the module rather than quoted from it."""
-    import importlib.util
-
-    path = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
-    spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return flat(module.missing_row("/seal"))
-
-
-def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one():
-    """The only reader standing in front of this message is a session, so
-    *write the repository's own broad command into it* asked the one party
-    that may not. It printed the key to type, too."""
-    said = missing_row_text()
-    assert "Write the repository's own broad command" not in said
-    assert "<the full suite, the repository-wide lint, the typecheck>" not in said
-    assert "not this session's to do" in said
-
-
-def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered():
-    """Naming the door is what keeps *not this session's* from reading as a
-    dead end — which is how a refusal with no route becomes a session filling
-    the key in anyway. #1454: the door adds the key alone, since a JSON file
-    carries no section beside it."""
-    said = missing_row_text()
-    assert "the key is a thing a person wrote" in said
-    assert "/agentic:config" in said
-    assert "it shows every key and adds this one —" in said
-    assert "with its section" not in said
-    assert (
-        "`templates/setup/config.md` *The criterion for choosing a value* is what "
-        "they choose against"
-    ) in said
-    assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said
-    assert "Nothing ran" in said
+# is what failed here.* The something is the refusal the gate prints, which
+# `tests/skills/test_broad_gate.py`'s `Test_missing_row` reads, and the
+# command below that answers it; the orchestration's sentences on it are the
+# proofer's to read.
 
 
 def test_the_review_orchestrator_names_the_command_that_answers_the_row():

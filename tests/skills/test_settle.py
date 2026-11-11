@@ -33,6 +33,10 @@ sheets. The copy's case came from `tests/test_a_script_copied_alone_exits_2.py`
 and the case `Test_threads` replaced from
 `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` in #942's
 round 9 fix pass, each a case of this module alone.
+
+The cases that run the command beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import io
@@ -45,6 +49,7 @@ import pytest
 import test_unverified_check
 from conftest import (
     DOC,
+    ITEM,
     ROOT,
     census_case,
     commit_everything_as_e,
@@ -58,6 +63,7 @@ from conftest import (
     write,
 )
 from conftest import flattened as flat
+from test_seal import tool
 from test_unverified_check import CANONICAL, WORK, _committed, memo
 
 TARGET = "skills/settle/scripts/settle.py"
@@ -3389,6 +3395,15 @@ class Test_main:
             DOC.replace("Last.\n", "Last.\n\nRule.\n")
         )
         assert sorted(p for p in (local / ".git" / "seal").rglob("*")) == records
+
+    def test_s5_settle_shows_a_work_item_released_under_agentic_seal(self, shared):
+        """`seal settle`'s dry run reads the work items under
+        `agentic-seal/threads/` as the shared root's, released where `main`
+        holds them, and names each by its path there."""
+        code, out, err = tool(shared, "settle", "--released-at", "main")
+        assert code == 0, err
+        assert f"agentic-seal/threads/{ITEM}/" in out, out
+        assert "local mode" not in out, out
 
 
 class Test_adding_commit:

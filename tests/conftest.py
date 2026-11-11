@@ -1117,6 +1117,56 @@ def parity_file(sha):
     return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
 
 
+# --- a repository whose own `seal/` is a package (#1059) ---------------------
+#
+# Each command's cases that keep its records under `agentic-seal/` beside a
+# project's own `seal/` package share this world: the module files of
+# `tests/skills/` that hold them, and the `seal rules` case of
+# `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`.
+
+ITEM = "1794200000-a-work-item"
+REMOTE = "git@example.com:org/thing.git"
+# The project's own package, which no command of the plugin may write into.
+PACKAGE = {
+    "seal/__init__.py": "VERSION = 1\n",
+    "seal/README.md": "# seal\n\nThis package's own notes.\n",
+}
+ROOT_RECORDS = {
+    "follow-up.md": "# follow-up\n",
+    f"threads/{ITEM}/routing.md": "# routing\n",
+}
+
+
+def records_at(home):
+    """HOME made a root holding ROOT_RECORDS."""
+    mark_root(home)
+    for rel, text in ROOT_RECORDS.items():
+        write(home, rel, text)
+    return home
+
+
+@pytest.fixture
+def package(tmp_path):
+    """A repository on `main` whose committed `seal/` is the package, with
+    REMOTE as `origin` and no root at either place."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "main")
+    git(repo, "remote", "add", "origin", REMOTE)
+    for rel, text in PACKAGE.items():
+        write(repo, rel, text)
+    commit_everything_as_e(repo, "the package")
+    return repo
+
+
+@pytest.fixture
+def shared(package):
+    """PACKAGE's repository with its root committed at `agentic-seal/`."""
+    records_at(package / "agentic-seal")
+    commit_everything_as_e(package, "the root")
+    return package
+
+
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
