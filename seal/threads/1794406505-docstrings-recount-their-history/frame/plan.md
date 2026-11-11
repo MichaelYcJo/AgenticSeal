@@ -4,11 +4,11 @@
 
 The tree as read at `38123f839`.
 
-The work edits prose only: the docstrings and comments of the files design *Scope* items 2 to 7 name. No code, string constant or printed message changes, and design S1 proves it per phase by comparing each edited file's syntax tree, docstrings taken out, across the phase's range. The design's counting command lists each phase's starting lines (`--hits`), and the crafter reads each hit with the code it stands over before it judges the sentence. A sentence outside the hit listing is judged by the same rule where the crafter meets it. A second listing helps find those: the same command with the pattern `\bround \d+\b|\bfinding \d+\b|frame/design\.md|questions\.md|\bwork item \d{10}\b|\bno longer\b` gives 196 lines at the base, 114 of them outside the main listing (executed). It is a sample, noisy by design: `chain_check.py` names `frame/design.md` because it reads that file, and "no longer" can describe the present.
+The work edits the docstrings and comments of the files design *Scope* items 2 to 7 name, and a test assertion only where it pins a sentence the work rewrites or removes. No code, string constant or printed message of those files changes, and design S1 proves it per phase by comparing each edited script's syntax tree, docstrings taken out, across the phase's range. The design's counting command lists each phase's starting lines (`--hits`), and the crafter reads each hit with the code it stands over before it judges the sentence. A sentence outside the hit listing is judged by the same rule where the crafter meets it. A second listing helps find those: the same command with the pattern `\bround \d+\b|\bfinding \d+\b|frame/design\.md|questions\.md|\bwork item \d{10}\b|\bno longer\b` gives 196 lines at the base, 114 of them outside the main listing (executed). It is a sample, noisy by design: `chain_check.py` names `frame/design.md` because it reads that file, and "no longer" can describe the present.
 
 Constraints met in the build:
 
-- `broad_gate.py`'s module docstring keeps one paragraph naming both `origin/` and `upstream`, `seal_stamp.py` keeps `` `seal-mark.txt` ``, and `seal_stamp.py#admitted`'s docstring keeps every line within 79 columns (design G9).
+- `broad_gate.py`'s module docstring keeps one paragraph naming both `origin/` and `upstream`, `seal_stamp.py` keeps `` `seal-mark.txt` ``, and `seal_stamp.py#admitted`'s docstring keeps every line within 79 columns (design G9). `session_cost.py#token_thirds`' docstring keeps the three present facts design G9's fourth case still asserts.
 - A citation the build rewrites resolves, by design G10's module.
 - The first line of the module docstrings of `issue_claims_check.py`, `release_report.py` and `rules.py`, and the first paragraph of `payload_meter.py`'s, stay as they are (design G8).
 - `lib/*.py`, `hooks/*.py` and the scripts `ruff.toml` lists under `[per-file-target-version]` are linted at Python 3.9. Prose cannot reach that, and S6 runs the lint over each phase's files.
@@ -33,7 +33,7 @@ The failure scenario of the chosen approach, six months on: a maintainer meets a
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* item 1 for item 2, and item 8 at the base | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `386e46c8b` |
+| 1 | Design *Scope* item 1 for item 2, and item 8 at the base | S1, S5 (G10's module and the case on `token_thirds`' docstring) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `386e46c8b` |
 | 2 | Item 1 for item 3 | S1, S5 (G10's module and the case on `broad_gate.py`'s docstring) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
 | 3 | Item 1 for item 4 | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
 | 4 | Item 1 for item 5 | S1, S5 (G10's module and the two cases on `seal_stamp.py`) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
@@ -42,7 +42,7 @@ The failure scenario of the chosen approach, six months on: a maintainer meets a
 
 Phases 1 to 5 touch no file #1489 has edited (design G16) and can be built from the base in order. Phase 6 starts after #1489 has merged into `release/v0.37.4` and this branch has taken `release/v0.37.4` by a merge, never a rebase, so it edits the docstrings as #1489 left them. Where #1489 has not merged when phase 5 closes, the orchestrator judges whether to wait or build phase 6 from the branch as it stands. That judgment and its grounds go to *Judgments of the run*.
 
-Each phase runs the code command from the commit it started at, or from the commit after a merge it took, to its last commit. A docstring pin of design G9 stands in the file #1489 left it in, found by the case's name with `git grep`. A case that fails because it pins a sentence the phase rewrote changes with the sentence in the same commit, and the phase record names it.
+Each phase runs the code command from the commit it started at, or from the commit after a merge it took, to its last commit, over design S1's pathspecs. A docstring pin of design G9 stands in the file #1489 left it in, found by the case's name with `git grep`. A case that fails because it pins a sentence the phase rewrote changes with the sentence in the same commit, and the phase record names each assertion it changed. The test file stays outside S1's pathspecs, and the review reads the change.
 
 ## Overlap with the release
 
@@ -60,4 +60,4 @@ None. The work adds no migration, environment variable or dependency, breaks no 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-11 | The frame statements phase 1 named went to the framer as a fold before phase 2 | Design S1 and *Scope* item 1 say no code changes, and phase 1 changed a docstring-pinning case design G9 did not list; each later phase runs S1, so the frame settles it before phase 2 | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
