@@ -1,0 +1,3 @@
+### Fixed
+
+- **Two census cases of `tests/test_conftest.py` pass when their module runs alone (#1498).** `tests/censuses.py#_root_names` read the records root's two names from `lib/optin.py` under `ROOT`, and cached them on its first call. The two cases point `ROOT` at a temporary tree that holds no `lib/optin.py`, so run alone they raised `FileNotFoundError`; in the whole suite an earlier case had already filled the cache from the real tree, and they passed. The function now reads `lib/optin.py` from the repository the census module stands in, since the two names are the plugin's own. `bin/test tests/test_conftest.py -q -k Test_census_case` passes in a fresh process.
