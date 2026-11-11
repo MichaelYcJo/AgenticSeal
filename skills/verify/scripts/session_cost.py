@@ -2199,9 +2199,10 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
 
     **A negative is a different case and takes a different guard.**
     `run_span` cannot go negative; the DIFFERENCE between it and the rows'
-    spans can, because the rows partition the calls and not the spans. Where it does, the figure is refused rather
-    than printed — the comment at the subtraction says why, and why the
-    refusal does not name the shortfall an overlap.
+    spans can, because the rows partition the calls and not the spans. Where
+    it does, the figure is refused rather than printed — the comment at the
+    subtraction says why, and why the refusal does not name the shortfall an
+    overlap.
 
     **The refusal is the whole reason this prints a count.** A harness that
     renames the spawn tool, or spawns arriving through a path that writes no
