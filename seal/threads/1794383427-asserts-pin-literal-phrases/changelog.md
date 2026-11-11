@@ -1,0 +1,19 @@
+### Changed
+
+- **The asserts of `tests/text/` and `tests/behaviour/` that compare a string literal with a document's text were weighed a second time, and each one kept pins a fact a reader acts on (#1488).** The cases read were every case of the 69 modules that holds an assert with an `in` or `not in` comparison and a literal or an f-string on its left, 666 such asserts at `18a7e18fb`. Three modules and one case that #1483 and #1486 remove or rewrite were left to them. Each case was read whole, and its other asserts on a file's text were ruled the same way. 315 asserts were kept, 237 go, and 113 read a program's output or a text the case built and were not changed. #1483's merge took one more before it was ruled, and one of the kept. A kept assert has a comment directly above it naming the fact and who reads it: a spelling a script matches, a citation, a command, flag, value or exit code, or a workflow key with its value. A literal that held words of the sentence around its fact was cut to the fact, so `` `git -C` ``, `exits 0` and `` `seal pr-checks install` `` stand where a clause stood. An assert that already carried #1233's comment stays as it was, except `tests/behaviour/test_first_setup_asks_once.py:415`. An absence assert stays only where a rule in force forbids its literal and the comment cites that rule, such as `` `seal stamp --from` `` absent from `agents/sealer.md`, or the pull request body absent from the `run:` block of the claims step in `.github/workflows/hygiene.yml`. That last assert read the workflow's final `run:` block, which is another step's, and now reads the claims step's own. Rewording a rule without changing its meaning no longer turns these cases red. The proofer reads a rule's wording at review, as `docs/running/what-a-script-gates.md` *The checks* states.
+- **The settle after the release writes this work item's rule changes into `docs/` (#1488).** `docs/running/what-a-script-gates.md` *The checks* will say that the absence of a command, a path or a spelling a rule in force forbids is a fact a case pins, and that a case pinning the absence of text or a design a shipped release removed goes. `docs/layout/one-root-by-lifetime.md` *The root and its lifetimes* and its Korean edition will name `tests/lib/test_optin.py` alone on their `check:` line. The other `docs/` check lines that name a module left with no case reading their rule drop that module at the same settle.
+- **A `check:` line and a script docstring that stood on a removed case were corrected (#1488).** The `check:` line after **Three failed fixes stop the work.** in `skills/implement/SKILL.md` is gone, with its one case. The module docstring of `.github/scripts/release_completeness_check.py` no longer cites a removed case.
+
+The counts, by the issue's two forms and by the listing of `frame/design.md` *The listing*, at `18a7e18fb` and after the build. The second column includes what #1483's merge removed from the two directories.
+
+| Count | At `18a7e18fb` | After the build |
+|---|---|---|
+| `assert "<6 or more characters>" in <name>` | 388 | 306 |
+| `assert "<6 or more characters>" not in <name>` | 134 | 17 |
+| asserts with an `in` or `not in` comparison on a literal | 696 | 456 |
+| among them, absence asserts | 151 | 23 |
+
+### Removed
+
+- **57 cases left with no assert once their wording and removed-design asserts went (#1488)**, with the helpers, constants and imports only they used. Cases that kept a fact and lost a sentence are renamed for what they still read.
+- **The scan for the roots 0.4.0 removed, `.specseal/` and a top-level `specs/`, in `tests/behaviour/test_no_document_names_the_old_roots.py` (#1488).** Its eleven cases, its allowlist and its coverage check go. That no code of the plugin opens either root is behaviour, and `tests/lib/test_optin.py` reads it. The module keeps #1059's three cases on where the records root's second name is stated, and its name, until #1489 moves them.
