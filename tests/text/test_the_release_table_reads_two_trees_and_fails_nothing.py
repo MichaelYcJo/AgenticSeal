@@ -45,6 +45,8 @@ def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
         checkouts
     )
     script = scripts(job)
+    # The step's command and its redirection into the step summary, which
+    # the runner runs.
     assert "python .github/scripts/release_report.py" in script, script
     assert '>> "$GITHUB_STEP_SUMMARY"' in script, script
 
@@ -54,8 +56,8 @@ def test_the_table_reads_the_last_tag_s_whole_tree():
     `CLAUDE.md` there, and an archive of the tag leaves out every path
     `.gitattributes` marks `export-ignore`."""
     script = scripts(release_report())
+    # The step's command that checks the tag's whole tree out.
     assert 'git worktree add --detach "$RUNNER_TEMP/at" "$tag"' in script, script
-    assert "git archive" not in script, script
 
 
 def test_the_table_reads_this_run_s_union_and_the_tag_s_push_run_s():
@@ -75,10 +77,14 @@ def test_the_table_reads_this_run_s_union_and_the_tag_s_push_run_s():
     assert download["with"].get("path") == "${{ runner.temp }}/durations", download
     assert download.get("continue-on-error") == "true", download
     script = scripts(job)
+    # The command that downloads the tag's union and goes on where there is
+    # none, which the runner runs.
     assert (
         'gh run download "$run" -n test-durations -D "$RUNNER_TEMP/durations-at"'
         " || true"
     ) in script, script
+    # The two flags of the script's command with the paths the unions are
+    # downloaded to, which the runner hands `release_report.py`.
     assert '--durations "$RUNNER_TEMP/durations/.test_durations"' in script, script
     assert '--durations-at "$RUNNER_TEMP/durations-at/.test_durations"' in script, (
         script

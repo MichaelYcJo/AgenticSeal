@@ -38,6 +38,8 @@ def test_the_gate_runs_only_for_a_release_pull_request():
     carries no milestone of its own and the release branch it targets is not
     finished, so running it there is noise at best."""
     step = guarded_script()
+    # The condition of the script's base guard, which the runner runs to
+    # skip every base but `main`.
     assert 'github.base_ref }}" != "main" ]' in step, (
         "the step is missing the base guard the other release-only steps use"
     )
@@ -100,11 +102,13 @@ def test_every_input_the_script_reads_is_handed_to_it_by_the_step():
     """
     env = hygiene_step().get("env", {})
     for name in ("GH_TOKEN", "HEAD_BRANCH", "HEAD_SHA", "BASE", "REPO"):
+        # The environment key the runner hands the script.
         assert name in env, (
             f"the gate step no longer passes {name}. Every one of these is "
             "an input of `release_completeness_check.py`, and two absences "
             "are silent"
         )
+    # The value the runner binds `HEAD_SHA` to.
     assert "github.event.pull_request.head.sha" in env["HEAD_SHA"], (
         "HEAD_SHA no longer names the pull request's own head commit, so the "
         "fork point is measured against whatever the checkout left at HEAD"

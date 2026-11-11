@@ -177,12 +177,14 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
     # The two fallback commands with the parser's pin, which a reader copies.
     assert f"uvx --with pytest --with {rt.MARKDOWN_IT} " in section, section
     assert f"pip install pytest {rt.MARKDOWN_IT} " in section, section
-    # #647: the renderer's package and its constant, and the fallback
-    # commands carrying its pin after the parser's, which a reader copies.
+    # #647: the renderer's package and the constant that pins it, which a
+    # reader installs and resolves in the runner.
     assert "`cmarkgfm`" in section and "`CMARKGFM`" in section, section
-    # #1486: the YAML parser is named with its constant, and the fallbacks
-    # carry its pin after the renderer's.
+    # #1486: the YAML parser's package and the constant that pins it, which
+    # a reader installs and resolves in the runner.
     assert "`PyYAML`" in section and "`PYYAML`" in section, section
+    # The two fallback commands carrying the three pins in the runner's
+    # order, which a reader copies.
     assert (
         f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} --with {rt.PYYAML} " in section
     ), section
