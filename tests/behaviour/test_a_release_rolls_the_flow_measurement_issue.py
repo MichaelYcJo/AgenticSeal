@@ -10,10 +10,8 @@ file on its `check:` lines.
 
 The rule lives in two places a person reads: the script's docstring, and
 `docs/releasing/issues-and-milestones.md`, which is the tracker's own authority. Of
-the two only the document may carry the title format --
-`test_a_segment_feeds_the_flow_log.py::test_the_shipped_skill_names_no_repository_specific_tracker_state`
-keeps every tracker convention that exists in this repository alone out of
-`skills/verify/SKILL.md`, which ships. So the document is where a reader
+the two only the document carries the title format: the convention exists
+in this repository alone, and the verify skill ships. So the document is where a reader
 learns what a title means, and the cases below read it against the constant
 the script writes titles through rather than against a literal: the writer
 and the document drifting apart is how a person tidies a title into a shape
@@ -49,9 +47,8 @@ def test_the_tracker_doc_states_the_title_the_roll_writes():
     assert m.TITLE_MARKER in section, (
         f"the document never states the marker the roll writes and reads "
         f"({m.TITLE_MARKER!r}). A person retitling a log by hand has nothing "
-        f"to copy, and the shipped skill may not carry it -- "
-        f"`test_the_shipped_skill_names_no_repository_specific_tracker_state` "
-        f"keeps this repository's tracker conventions out of it"
+        f"to copy, and the shipped skill does not carry this repository's "
+        f"tracker conventions"
     )
     readable = [
         example

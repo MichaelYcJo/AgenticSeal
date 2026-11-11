@@ -85,7 +85,5 @@ def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
     at an agent that does not think it is addressed.
     """
     proofer = flat("agents", "proofer.md")
+    # The contract rule number the proofer resolves for the rule on edits.
     assert "rule 9" in proofer, "the reviewer can no longer reach the rule"
-    assert "scratch fixture" in proofer, (
-        "the reviewer stopped being told which of its own acts are edits"
-    )

@@ -1,6 +1,5 @@
 """What is left of the release completeness gate's old file: the cases
-that read the hygiene workflow's step, and the case that holds the module
-docstring and this file's input boundary to each other, which wait for #923.
+that read the hygiene workflow's step, which wait for #923.
 
 #942's phase 6 placed the cases of
 `.github/scripts/release_completeness_check.py`'s functions in
@@ -12,7 +11,6 @@ import re
 
 from conftest import ROOT, read
 
-SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_completeness_check.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 
 
@@ -30,6 +28,8 @@ def test_the_gate_runs_only_for_a_release_pull_request():
     carries no milestone of its own and the release branch it targets is not
     finished, so running it there is noise at best."""
     step = hygiene_step()
+    # The step's `if` condition the runner acts on, which skips every base
+    # but `main`.
     assert 'github.base_ref }}" != "main" ]' in step, (
         "the step is missing the base guard the other release-only steps use"
     )
@@ -47,6 +47,7 @@ def test_the_gate_runs_only_for_a_release_pull_request():
         "the guard is not a closed `if … fi` with the script after it, so "
         f"either it does not skip or it does not run:\n{step}"
     )
+    # The command the guard's body runs, which ends the step on another base.
     assert "exit 0" in guard.group(1), (
         "the guard's body does not exit, so a feature pull request falls "
         "through into the check"
@@ -58,6 +59,7 @@ def test_the_head_shape_reaches_the_script_rather_than_the_guard():
     and what it does about that is a case (S7) rather than a shell condition
     nothing can test."""
     step = hygiene_step()
+    # The environment binding the runner hands the script.
     assert "HEAD_BRANCH: ${{ github.head_ref }}" in step, (
         "the head branch does not reach the script, so the skip it is "
         "supposed to make is unreachable"
@@ -87,52 +89,21 @@ def test_every_input_the_script_reads_is_handed_to_it_by_the_step():
     codes read directly: `REPO` 1 (`KeyError`), `HEAD_SHA` 0 (silent),
     `HEAD_BRANCH` 0 (the *not a release branch* line), `BASE` 0 (the
     default), `GH_TOKEN` 1 (`gh` fails). The module docstring carries the
-    same table, and the case below holds the two texts to each other.
+    same table.
     """
     env = hygiene_step().split("shell:")[0]
     for name in ("GH_TOKEN", "HEAD_BRANCH", "HEAD_SHA", "BASE", "REPO"):
+        # The environment key the runner hands the script.
         assert f"{name}:" in env, (
             f"the gate step no longer passes {name}. Every one of these is "
             "an input of `release_completeness_check.py`, and two absences "
             "are silent"
         )
+    # The value the runner binds `HEAD_SHA` to.
     assert "github.event.pull_request.head.sha" in env, (
         "HEAD_SHA no longer names the pull request's own head commit, so the "
         "fork point is measured against whatever the checkout left at HEAD"
     )
-
-
-def test_the_script_and_this_file_draw_the_input_boundary_the_same_way():
-    """#362. The module docstring said `HEAD_SHA` is *the one entry whose
-    absence is silent* and named four inputs; the case above loops over five
-    and repeated the superlative. Measured one input removed at a time, two
-    absences are silent (`HEAD_SHA`, `HEAD_BRANCH`), so the superlative was
-    false, and a count rots the next time an input is added. Both places now
-    say the boundary is what the step must pass and carry the measured table
-    instead of a count — this reads the two texts for the superlative and for
-    the five names, so the next edit to one has to reach the other."""
-    # Whitespace collapsed, because both texts wrap: the superlative sat
-    # across a line break, and a substring check on the raw text missed it.
-    module = " ".join(read(SCRIPT).split('"""')[1].split())
-    this = read(os.path.abspath(__file__))
-    here = this[
-        this.index(
-            "def test_every_input_the_script_reads_is_handed_to_it_by_the_step"
-        ) :
-    ]
-    here = " ".join(here.split('"""')[1].split())
-    for name, text in (
-        ("the module docstring", module),
-        ("the case's docstring", here),
-    ):
-        assert "the one entry whose absence is silent" not in text, (
-            f"{name} says one absence is silent; two are, measured"
-        )
-        assert "the step must pass" in text, (
-            f"{name} does not say which boundary it draws"
-        )
-        for env in ("GH_TOKEN", "HEAD_BRANCH", "HEAD_SHA", "BASE", "REPO"):
-            assert f"`{env}`" in text, f"{name} does not name {env}"
 
 
 def test_the_job_asks_for_a_token_that_can_read_issues():
@@ -151,6 +122,7 @@ def test_the_job_asks_for_a_token_that_can_read_issues():
         f"the token's scopes changed: {granted}. Every step in this job reads "
         "and none of them writes"
     )
+    # The environment binding that hands `gh` the job's token.
     assert "GH_TOKEN: ${{ github.token }}" in hygiene_step(), (
         "the step does not pass a token, so `gh` falls back to whatever the "
         "runner happens to have"

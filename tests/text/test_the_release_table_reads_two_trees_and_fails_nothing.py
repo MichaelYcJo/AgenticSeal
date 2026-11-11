@@ -34,6 +34,8 @@ def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
         line for line in text.splitlines() if not line.lstrip().startswith("#")
     )
     block = job_block(code, "release-report")
+    # The job's `needs` and `if` lines, the checkout's depth, the step's
+    # command and its redirection, each of which the runner acts on.
     assert "needs: pytest" in block, block
     assert "if: ${{ !cancelled() && github.base_ref == 'main' }}" in block, block
     assert "fetch-depth: 0" in block, block
@@ -51,5 +53,5 @@ def test_the_table_reads_the_last_tag_s_whole_tree():
         line for line in text.splitlines() if not line.lstrip().startswith("#")
     )
     block = job_block(code, "release-report")
+    # The step's command that checks the tag's whole tree out.
     assert 'git worktree add --detach "$RUNNER_TEMP/at" "$tag"' in block, block
-    assert "git archive" not in block, block

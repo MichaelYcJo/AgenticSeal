@@ -73,4 +73,6 @@ def test_the_checkout_has_the_range_the_script_reads():
     """`arrived()` reads `git log before..after`. At depth 1 neither end of
     that range is in the clone, and the run reads the tip alone — which is the
     fallback that dropped three of four pull requests when it fired."""
+    # The checkout key and value the runner acts on, which give the step the
+    # whole history `arrived()` reads.
     assert "fetch-depth: 0" in read(WORKFLOW)

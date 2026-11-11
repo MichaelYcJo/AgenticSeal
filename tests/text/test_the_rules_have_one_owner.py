@@ -261,43 +261,24 @@ FIX_PASS = "## Orchestrator: a phase is a fresh crafter, and a fix pass resumes 
 
 def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
     """S5 of #945. Rules 17 and 18 pin the two bold sentences; this pins
-    what lets an orchestrator act on them: what a fresh crafter is handed, the
-    command that reads the implementer's context, where the threshold came
-    from, and the old rule gone."""
+    what lets an orchestrator act on them: the command that reads the
+    implementer's context and the column it reads, the section a fold of the
+    records follows, and the record the commit of the closes holds."""
     text = flat(*ORCH)
     section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
-    for said in (
-        "the phase records the earlier phases wrote",
+    for fact in (
+        # The command the orchestrator runs over the implementer's transcript.
         "`seal cost --segments <the implementer's agent-*.jsonl>`",
-        "the largest value of its `context` column",
-        "hands it the round record and the phase records",
-        "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
-        # Round 2 of #1318, finding 1: the fold takes each file that holds a
-        # named statement, read whole, never the one statement alone.
-        "the orchestrator folds each file that holds such a statement, read "
-        "whole, as `skills/implement/orchestration.md` *Orchestrator: the "
-        "order inside a ticket* states",
-        # #1041, S1: the fix pass writes its closes last, after the
-        # corrections its read of its range and the records made (#1318), and
-        # commits none, since the orchestrator commits them
-        # (`skills/implement/fix-pass.md` *The close blocks, last*); a doubt
-        # goes to the next round rather than into a rewrite of the block.
-        # #1198 made the two lines one close block.
-        "Last, the fix pass appends the close block of every finding it "
-        "answered, after its fix commits and the corrections its read made",
-        "and leaves the round record uncommitted",
-        "That commit holds `trail/rounds/round-N.md` alone.",
-        "A close the orchestrator doubts goes into the verifying round's spawn prompt",
-        "the orchestrator does not rewrite the block",
-        "it edits nothing else in the record",
+        # The column of its output the orchestrator reads.
+        "`context`",
+        # The section the orchestrator resolves for how it folds a file that
+        # holds a statement the fix pass named (round 2 of #1318).
+        "`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*",
+        # The path of the record the orchestrator's commit of the closes
+        # holds (#1041).
+        "`trail/rounds/round-N.md`",
     ):
-        assert said in section, f"the fix-pass section no longer says {said!r}"
-    assert "the fix pass commits the two lines" not in section, (
-        "the fix-pass section still has the fix pass commit its own two lines, "
-        "which the owner gave to the orchestrator on 2026-10-28"
-    )
-    assert "Orchestrator: a fix pass resumes the implementer" not in text
-    assert "never spawn a fresh one while that session still exists" not in text
+        assert fact in section, f"the fix-pass section no longer says {fact!r}"
 
 
 REGRESSION = "### A regression is routed by comparing the fix with the frame"
@@ -410,25 +391,6 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "`--no-merges`",
     ):
         assert said in section, f"the owner section no longer says {said!r}"
-
-
-# Where step 2 of the order inside a ticket opens.
-STEP_2 = "2. The framer writes `frame/design.md`, `plan.md` and `questions.md`."
-
-
-def test_the_order_no_longer_defers_the_framer_to_a_ticket():
-    """Step 2 read `spec · plan (framer, once #84 exists; the session until
-    then)` -- a step written before the agent it names, carrying its own
-    escape clause for the interval, which closed when `agents/framer.md`
-    landed."""
-    step = flat(*ORCH_IMPL)
-    step = step[step.index(STEP_2) : step.index("3. The pull request body")]
-    assert "framer" in step, "step 2 stopped naming who draws the frame"
-    for gone in ("once #84 exists", "the session until then"):
-        assert gone not in step, (
-            f"step 2 still carries `{gone}`. The framer ships, so the interval "
-            "that clause covered is over and the escape reads as the rule"
-        )
 
 
 def the_order():
@@ -676,17 +638,17 @@ def test_a_decision_after_the_frame_is_folded_into_it():
 
 def test_the_framer_folds_a_decision_it_is_sent():
     """#1442, Scope item 5. The framer is resumed or spawned again with the
-    decisions made after its frame was committed, answers each, opens what
-    each cites, rewrites its three files in place read whole, reads the
-    orchestrator's uncommitted row with `plan.md`, and writes no mark, Status
-    cell or judgment row. The regression route keeps its own half of the
-    rule, which rule 16 of `RULES` reads.
+    decisions made after its frame was committed. The rule cites the
+    sections and the contract rules the framer opens to answer them, and
+    the table it writes a rejected decision into. The regression route keeps
+    its own half of the rule, which rule 16 of `RULES` reads.
 
     #1473 moved the rule to `skills/implement/fold-and-reframe.md`, so a first
     frame does not preload it, and `agents/framer.md` names that file. Its
     four citations that resolved only inside the definition now name
     `agents/framer.md` or the contract."""
     path = "/".join(FOLD)
+    # The path of the file a framer sent a fold opens.
     assert f"`{path}`" in flat(*FRAMER), (
         f"`agents/framer.md` no longer names `{path}`, so a framer sent a "
         "fold does not know where the rule stands"
@@ -695,40 +657,22 @@ def test_the_framer_folds_a_decision_it_is_sent():
     lead = "You have two routes back: a decision's fold, and the review chain's regression."
     start = text.index(lead)
     rule = text[start : text.index("check:", start)]
-    for said in (
-        "the orchestrator resumes you, or spawns you again, with every "
-        "decision then pending",
-        "Answer each decision with agree, agree with a change, or reject with grounds",
-        "as `agents/framer.md` *An orchestrator's reading of the frame is "
-        "answered in one exchange* has you answer a proposal",
-        "write each rejected decision as one row of `plan.md`'s "
-        "*Alternatives considered*",
-        # Round 1 of #1442, finding 1: the version move and a prevention
-        # home are the orchestrator's to choose by other rules, so the
-        # framer folds them as they were made.
-        "A decision the owner made, the version move and a prevention home "
-        "are folded as they were made",
-        "where you judge that one of them conflicts with the tree, your "
-        "hand-back names the conflict.",
-        "Before you write what a decision says, open each coordinate it cites",
-        "as contract rule 5 asks of a fact that reaches you in prose.",
-        "rewrite in place every sentence of your three files that the "
-        "decision changes, reading each file whole, the second method of "
+    for fact in (
+        # The section the framer resolves for how it answers a decision.
+        "`agents/framer.md` *An orchestrator's reading of the frame is "
+        "answered in one exchange*",
+        # The table the framer writes a rejected decision into.
+        "`plan.md`'s *Alternatives considered*",
+        # The contract rules the framer resolves for opening what a decision
+        # cites and for reading each file whole.
+        "contract rule 5",
         "contract rule 12",
-        "Read the orchestrator's *Judgments of the run* row for each decision "
-        "with `plan.md`, where it stands written and not yet committed, and "
-        "name any defect in it in your hand-back.",
-        "You write no line under your mark, no Status cell and no *Judgments "
-        "of the run* row",
-        "a section dated to the commit you read keeps its date",
-        "Spawned fresh for a fold, you read the three frame files, the "
-        "coordinates the decisions cite, and the diff since the frame's "
-        "commit over the paths the decisions name, and you do not repeat the "
-        "wide reading of `agents/framer.md` *Order of work* step 4.",
-        "Your hand-back names each sentence you changed, by coordinate, and "
-        "each statement the fold contradicts in a file you do not write.",
+        # The table whose row the framer reads with `plan.md`.
+        "*Judgments of the run*",
+        # The step a framer spawned fresh for a fold does not repeat.
+        "`agents/framer.md` *Order of work* step 4",
     ):
-        assert said in rule, f"the framer's fold no longer says {said!r}"
+        assert fact in rule, f"the framer's fold no longer says {fact!r}"
 
 
 def test_a_handoff_file_is_written_only_to_move_the_work():

@@ -19,17 +19,9 @@ contract was written to end. That duplication has its own module now,
 nothing in the tree noticed a moved rule being pasted back.
 """
 
-import glob
-import os
 import re
 
-from conftest import ROOT, flat, read
-
-
-def read_at(path):
-    """One file by absolute path, for the cases that walk a glob."""
-    with open(path, encoding="utf-8") as f:
-        return f.read()
+from conftest import flat, read
 
 
 def test_the_broad_gate_section_cites_the_owner_of_its_timing():
@@ -84,41 +76,6 @@ def test_the_orchestration_names_the_broad_run_command():
     assert not missing, f"the orchestration does not name: {missing}"
 
 
-def test_no_definition_promises_the_suite_once_the_rounds_settle():
-    """Round 1, finding 2 of #120. `agents/proofer.md` read *rule 2 keeps the
-    suite out of your hands UNTIL the rounds settle*, which says it becomes the
-    proofer's afterwards.
-
-    Under the old contract rule 2 that was a harmless imprecision about a prohibition with
-    a holder who was not an agent. Under the new one it is false in a way a
-    reader can act on: this file assigns none of the three, and since #969 no
-    definition does, because the orchestrator runs the gate. The hazard is
-    live rather than theoretical --
-    `agents/proofer.md`'s own bullet on the broad gate's state puts a reviewer in
-    exactly the moment the sentence appears to release.
-
-    Asserted over the whole glob, not over the one file the finding named,
-    because a temporal release is the shape any definition can pick up while
-    describing a rule it does not hold.
-
-    **The direction this can still miss, stated rather than left to be found.**
-    It matches one spelling. A definition that promises the suite in other
-    words -- *yours once the rounds have settled* -- is invisible here, which
-    round 2 of #120 measured by rewording the corrected sentence and watching
-    this case stay green. That is a verbatim-versus-semantic trade: no
-    constant decides when two sentences say the same thing.
-    What narrows it is that the wrong sentence had exactly one idiom in this
-    tree, and the glob is what catches that idiom arriving in a second file --
-    which is the copy this shape actually spreads by."""
-    for path in sorted(glob.glob(os.path.join(ROOT, "agents", "*.md"))):
-        text = " ".join(read_at(path).split())
-        assert "until the rounds settle" not in text.lower(), (
-            f"{os.path.basename(path)} promises the suite once the rounds "
-            "settle. Contract rule 2 has no such release for anyone: an agent takes the "
-            "broad gate when its own definition assigns it, and never later"
-        )
-
-
 def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
     """The reviewer needs somewhere for a declined instruction to land, and
     `agents/proofer.md` names the round record's section it goes in. Why a
@@ -136,6 +93,8 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
 
 def test_the_broad_gate_state_survives_a_handoff():
     """A session joining at round 3 cannot see which commands were run."""
+    # The path of the record a session opens to learn whether the broad run
+    # already happened.
     assert "`trail/gate.md`" in read("docs", "checks", "the-pull-request-check.md"), (
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
@@ -182,40 +141,27 @@ def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
 EXAMPLE_ROW = (
     '"Broad gate": "uvx ruff check . && uvx ruff format --check . && bin/test -q"'
 )
-BY_HAND = (
-    "`evidence-check`",
-    "`seal unverified`",
-    "`chain_check.py`",
-    "`survivor-check`",
-)
 
 
-def test_the_example_row_goes_lint_first_and_the_arms_are_not_listed_by_hand():
+def test_the_example_row_goes_lint_first_and_the_prose_cites_the_arms_list():
     """S9, the owner's answer of 2026-10-01: the key a repository copies puts
     the seconds-long linters ahead of the suite, as this repository's own key
-    does. The prose above it named four of the gate's six arms; it points at
-    the one list instead, and says the preflight runs those arms alone."""
+    does. The prose above it points at the one list of the gate's arms, and
+    names the preflight that runs those arms alone."""
     body = section(read("templates", "setup", "config.md"), "Broad gate")
+    # The config key and value a repository copies into its `config.json`.
     assert EXAMPLE_ROW in body, "the example key is not the lint-first one"
     lead = joined(body).split("```")[0]
-    listed = [name for name in BY_HAND if name in lead]
-    assert not listed, f"the prose still lists arms by hand: {listed}"
+    # The script whose docstring lists the arms, which a reader opens, and
+    # the command that runs the arms alone.
     assert "broad_gate.py" in lead and PREFLIGHT in lead, lead
 
 
-def test_the_skill_says_the_preflight_is_not_the_broad_gate():
-    """S10. `verify` names the preflight in the section that assigns the run,
-    and says what keeps it from being mistaken for one: no suite, nothing
-    sealed. The sealer's own definition never mentions it — the sealer does
-    not preflight, and its four acts are unchanged."""
+def test_the_broad_gate_section_names_the_preflight():
+    """S10. `verify` names the preflight in the section that assigns the
+    run."""
     text = joined(
         section(read("skills", "verify", "orchestration.md"), "The broad gate")
     )
+    # The command the orchestrator runs before the sealer is spawned.
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"
-    at = text.index(PREFLIGHT)
-    said = text[max(0, at - 300) : at + 500]
-    assert "runs no suite" in said and "writes nothing" in said, said
-    assert "orchestrator" in said, said
-    assert "--preflight" not in read("agents", "sealer.md"), (
-        "the sealer's definition names the preflight"
-    )

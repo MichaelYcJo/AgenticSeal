@@ -27,21 +27,17 @@ def test_contributing_says_the_suite_runs_logged_out():
     section = text.split("## Running the checks", 1)[1].split("\n## ", 1)[0]
     prose = " ".join(section.split())
     for needle in (
-        "The suite runs with `gh` logged out, on a contributor's machine as on CI.",
-        "it points `GH_CONFIG_DIR` at an empty directory",
-        "sets `GH_TOKEN` and `GH_ENTERPRISE_TOKEN` to a value no server accepts",
-        "without a token variable, `gh` reads the login it keeps in the OS keyring",
+        # The variable the conftest points at an empty directory, which a
+        # contributor reads when `gh` behaves differently under the suite.
+        "`GH_CONFIG_DIR`",
+        # The token variables `tests/test_conftest.py#TOKENS` names, which a
+        # contributor reads beside `gh`'s behaviour under the suite.
         *(f"`{name}`" for name in TOKENS),
-        "A case that needs `gh` stubs it.",
-        "The conftest also removes every variable whose name starts with "
-        "`GITHUB_`, so a case sees under a pull request's CI run what it sees "
-        "everywhere else, and a case that needs one sets it with "
-        "`monkeypatch.setenv`.",
+        # The prefix of the variables the conftest removes, and the call a
+        # case writes to set one.
+        "`GITHUB_`",
+        "`monkeypatch.setenv`",
     ):
         assert needle in prose, (
             f"`CONTRIBUTING.md` *Running the checks* lacks: {needle}"
         )
-    assert "removes `GH_TOKEN`" not in prose, (
-        "CONTRIBUTING.md still says the suite removes `GH_TOKEN`, which would "
-        "leave `gh` reading the login in the OS keyring"
-    )

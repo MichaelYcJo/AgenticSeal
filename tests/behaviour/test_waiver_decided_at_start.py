@@ -409,8 +409,7 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
     )
-    # ONE spelling, which `tests/text/test_review_axes.py` also reads in
-    # this file: two spellings of one decision is the drift both catch.
+    # ONE spelling of the order the two questions are asked in.
     assert SHAPE in flat(skill)
 
 

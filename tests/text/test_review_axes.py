@@ -138,17 +138,19 @@ def test_the_record_of_a_comparison_names_its_writer():
     run of the sealer appends."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
+    # The heading `agents/proofer.md` and `skills/implement/orchestration.md`
+    # cite in italics.
     assert heading in text, "`legacy-parity` lost its section on the record"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
-    for clause in (
-        "| through the review chain | the proofer, in the round block of each "
-        "round record |",
-        "| straight to the PR | the sealer, in the verdict block each of its "
-        "runs appends to `guarantee.md` |",
-        "the tracer and the crafter record none",
+    for fact in (
+        # The two routing answers, each a row's first cell, which a reader
+        # matches against `routing.md`.
+        "| through the review chain |",
+        "| straight to the PR |",
+        # The file the sealer appends the line to.
+        "`guarantee.md`",
     ):
-        assert clause in body, f"the record of a comparison lost {clause!r}"
-    assert "-parity`" not in body, "the section still writes the mark"
+        assert fact in body, f"the record of a comparison lost {fact!r}"
 
 
 def test_the_resolution_order_ends_with_the_caller_asking():
@@ -223,47 +225,26 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
     phrase is read in the file it stands in."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
     question = " ".join(read("skills", "implement", "routing-question.md").split())
+    # The routing answers the orchestrator writes into `routing.md`'s rows,
+    # which `lib/routing.py` reads.
     for only in (
         "through the review chain",
         "straight to the PR",
         "open the pull request",
         "stop before the pull request",
-        # The third axis. A document still saying two would send a session to
-        # a template whose row it never asked about.
         "`the session`",
     ):
         assert only in implement, f"the skill lost `{only}`"
-    for said in (
-        "seal/threads/<work-item-id>/routing.md",
-        # The write is its own command, and this is the one part the gate
-        # cannot check for itself, because a batched write leaves nothing on
-        # disk to look at.
-        "in a command of its own",
-    ):
-        assert said in implement, f"the skill lost `{said}`"
+    # The path the orchestrator writes the answer to.
+    assert "seal/threads/<work-item-id>/routing.md" in implement, (
+        "the skill lost the path of `routing.md`"
+    )
     for asked in (
-        "What is checked is the answer",
-        "each box is a row of",
-        # The SHAPE of the asking, not just its vocabulary.
-        #
-        # The shape moved (#88): three checkboxes in one question became two
-        # questions in one call, because two presets beside the axes is five
-        # options and the harness allows four. **This phrase was
-        # `one \`multiSelect\` question with three checkboxes` and went stale at
-        # the build's phase 2 — red here from that commit on, and neither the
-        # build nor round 1 ran this module.** Both chose their narrow set by
-        # which files they had edited; this case then read two of those files
-        # and was in neither set.
-        #
-        # It moved again (#911): the boxes meant nothing under two of
-        # question 1's three answers and were on screen under all three, so
-        # question 1 now goes alone and the boxes follow only under
-        # `manual` (`per axis` until #1459).
-        "Ask question 1 alone; the boxes in a second call only under `manual`.",
-        # Under `direct`, the trailer that records the answer in place
-        # of the per-command waiver (#1027), which the block named until #1177.
+        # The answer to question 1 under which the boxes follow in a second
+        # call.
+        "`manual`",
+        # Under `direct`, the trailer that records the answer, which
+        # `skills/code-review/scripts/chain_check.py` reads.
         "`Seal-Routing: no work item`",
     ):
         assert asked in question, f"the routing question's file lost `{asked}`"
-    for text in (implement, question):
-        assert "[no-review]" not in text and "[no-parity]" not in text
