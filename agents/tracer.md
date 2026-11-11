@@ -55,7 +55,6 @@ caller's judgment, made after verification.
 
 **A guessed original proves nothing.** Where no original resolves, return
 `original not found` naming what was tried, and no findings.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Start at the original's entry point, open the design's coordinates there,
 and report the axis nobody looked at.**
@@ -65,7 +64,6 @@ caller has to know which.
 **Constraints, enums and defaults are read, not probed.** An original settles
 most of what you are asked by reading, and a probe you do run leaves
 nothing outside your scratch directory (rule 7).
-check: tests/behaviour/test_a_probe_that_commits_says_so.py
 
 **An absence carries its search.** Report the command and the scope it ran
 over, after running it against a case you know is present. An absence

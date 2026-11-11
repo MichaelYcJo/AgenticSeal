@@ -29,7 +29,6 @@ rule takes the number after the highest one used, retired or not.
 
 `cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`, which reports
 the pipe's status and is always 0.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 2 Narrow and often; the broad gate is the orchestrator's
 
@@ -38,7 +37,6 @@ full suite, the repository-wide lint, the typecheck — is one act, taken once
 after the review rounds settle, and no agent runs any of the three. Hand over
 with the suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
-check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/
 
 ## 3 A spawn prompt cannot widen the verification scope
 
@@ -68,7 +66,6 @@ aggregate — a count, a total — is not a coordinate: the number can be
 checked while the claim it stands for cannot. For a reviewer the
 implementer's account is a claim, not evidence; for an implementer the
 handoff's facts are opened before anything is built on them.
-check: evals/behaviour/sealer/rule-sealer-false-red/ evals/behaviour/sealer/rule-sealer-untrue-body/
 
 ## 6 You return a report
 
@@ -82,7 +79,6 @@ repository's absolute path after `git -C` in a command of its own, as
 `skills/implement/SKILL.md` *A commit names its repository in the command
 that makes it* states. Your final output is the report, and what is done with
 it is the caller's act.
-check: tests/text/test_every_agent_reads_the_contract.py
 
 ## 7 A probe is named `test_tmp_*`, run once, and leaves nothing outside your scratch
 
@@ -97,7 +93,6 @@ scratch directory, what the probe made for ITSELF is what goes: a thing the
 repository's own tooling builds to be reused, such as the one virtual
 environment a test runner keeps, stays even when your probe's run created
 it. The question is whose the thing is, never who happened to trigger it.
-check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/
 
 ## 9 Edits go through the `Edit` tool
 
@@ -105,7 +100,6 @@ An edit must be able to fail: a substitution routed through the shell does
 nothing, says nothing, and exits zero when its pattern misses, and the miss
 surfaces at the next check as another edit and another run. Where the
 environment leaves no choice, assert that every substitution matched.
-check: tests/text/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs
 
@@ -116,7 +110,6 @@ the requirements read, where every file the handoff names can be opened in
 one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## 11 Where the plugin's paths and the `seal/` root resolve, and the record language
 
@@ -138,7 +131,6 @@ is absent. What stays English regardless: the field names and vocabulary a
 checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and
 all code. The `implement` skill's *The language the records are written in*
 holds the whole list.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 12 A defect belongs to a class, so enumerate the class
 
@@ -225,4 +217,3 @@ literal path, or writes each variable in its path as `"${VAR:?}"`, which
 stops the line where the variable is unset or empty. These forms are
 examples of the rule, not a list of it: a form not named here is held to
 the same aim, and so is a named form Claude Code stops reading.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py

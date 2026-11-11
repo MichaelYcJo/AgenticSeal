@@ -244,9 +244,9 @@ class TestDefinition:
         names (`follows(..., only=CLOSING_RECORDS)`); a sealer told that any
         record of the work item may follow keeps an earlier verdict over a
         changelog or phase record it never read, and the check refuses it."""
-        rule = " ".join(
-            between(SEALER, "**The guarantee covers HEAD", " check: ").split()
-        )
+        text = SEALER.read_text(encoding="utf-8")
+        start = text.index("**The guarantee covers HEAD")
+        rule = " ".join(text[start:].split("\n\n", 1)[0].split())
         # The two paths `chain_check.py#CLOSING_RECORDS` lets follow the
         # audited commit, which the sealer resolves to tell a commit that owes
         # a new audit; the code spans are the fact.

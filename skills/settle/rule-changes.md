@@ -115,6 +115,16 @@ edition. A rule no case holds carries no check line, and review reads it.
   an em dash, a path that is no file of the repository, and a marker no
   test carries.
 
+**A file every spawn preloads carries no check line.** That is each agent
+definition, `agents/<name>.md`, and each skill its `skills:` list names,
+such as `skills/agent-contract/SKILL.md`. Every spawn that preloads such a
+file pays for each line in it, and no agent acts on one. A rule there is
+still held by its cases, and a person changing it finds them by `git grep`
+on the file's path and under `evals/behaviour/`. `seal rules --check` reads
+these files as it reads every rule file, and a suite case refuses a check
+line in any of them.
+check: tests/text/test_every_agent_reads_the_contract.py
+
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
 (`.github/scripts/rules.py`), which reads every check line in a rule file,
 refuses one the grammar refuses and names one it did not read. At the pull

@@ -644,7 +644,7 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
     """#1148, `frame/design.md` *Scope* item 6. The framer decides whether a
     work item adds a mark, so the owner's rule stands in its definition: a
     design adding a mechanism names what it takes out in `## Removes`, and a
-    blocked step is answered at its cause. The rule ends in its check line."""
+    blocked step is answered at its cause."""
     raw = read(*FRAMER)
     framer = flat(raw)
     lead = "**A mark is not the answer to a blocked step.**"
@@ -655,10 +655,6 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
         "`skills/core/SKILL.md` *The rule a mechanism is kept against*",
     ):
         assert phrase in framer, f"the rule lost `{phrase}`"
-    paragraph = raw[raw.index(lead) :].split("\n\n", 1)[0]
-    assert paragraph.splitlines()[-1] == (
-        "check: tests/behaviour/test_waiver_decided_at_start.py"
-    ), "the rule does not end in its check line"
 
 
 def test_both_halves_of_the_frame_reading_cite_the_alternatives_table():
