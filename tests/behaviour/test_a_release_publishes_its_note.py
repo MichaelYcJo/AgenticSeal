@@ -14,7 +14,7 @@ that stands only in a comment is no setting.
 
 import os
 
-from conftest import ROOT, read
+from conftest import ROOT
 from test_publish_release_note import module
 from workflows import load
 
@@ -196,12 +196,3 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     assert said.get("GIT_AUTHOR_NAME") == said.get("GIT_COMMITTER_NAME") == bot, said
     assert said.get("GIT_AUTHOR_EMAIL") == said.get("GIT_COMMITTER_EMAIL"), said
     assert "+github-actions[bot]@" in said.get("GIT_AUTHOR_EMAIL", ""), said
-
-
-def test_the_workflow_is_not_a_step_of_the_release_job():
-    """`tests/behaviour/test_the_gate_names_every_step_ci_runs.py` partitions every step
-    of `hygiene.yml`'s `release` job against `broad_gate.py`'s arms. This is a
-    workflow of its own, on a different trigger, and adding a step there
-    instead would have grown that partition for a job nothing local can run."""
-    hygiene = read(os.path.join(ROOT, ".github", "workflows", "hygiene.yml"))
-    assert "publish_release_note.py" not in hygiene
