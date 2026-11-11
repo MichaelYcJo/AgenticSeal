@@ -501,7 +501,7 @@ class Unread(Exception):
 def git_run(root, *args, given=None):
     """The standard output of `git ARGS` at ROOT as bytes, every pathspec
     literal, with GIVEN, bytes, on its standard input where it is not None.
-    Every `git` the settle's readers start goes through here. Raises
+    `git_out` and the batched readers start their `git` here. Raises
     `RuntimeError`, saying what `git` said, where it fails."""
     r = subprocess.run(
         load(GITCMD, "agentic_gitcmd_for_settle").argv(
