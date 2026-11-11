@@ -33,6 +33,11 @@ The fix deletes the sentence at `:73-75` and adds a row beside #1498's, in the o
 
 The paragraph's first sentence, "#1481 at `d2040b335`", names the commit the framer read, so it stays.
 
+```seal
+verdict: fixed a969da80c
+answer: The finding holds: `1a01c761a` rewrote `skills/settle/SKILL.md` step 5 beside `settle.py`, and `62a2fb4f1` edits the merged paragraph. The framer's fold at `a969da80c` removes the sentence saying #1481 meets nothing here and adds a #1481 row to *Overlap with the release*: the shared paragraph, #1481 merged first as #1526, this branch took it at `335cc0e75` with no conflict, and `62a2fb4f1` edits the merged text. The fix touches the work item's records alone, for a finding located in them alone.
+```
+
 ## Confirmations
 
 ```seal
