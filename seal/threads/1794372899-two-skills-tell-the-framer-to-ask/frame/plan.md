@@ -24,7 +24,7 @@ Failure scenario of the chosen approach, in six months: a framer applies D1's th
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 5, in one commit, then the records | S1 to S5 by their commands at the build commit; S6 and S7 by the crafter's narrow run of the four modules S7 names | |
+| 1 | `frame/design.md` *Scope* items 1 to 5, in one commit, then the records | S1 to S5 by their commands at the build commit; S6 and S7 by the crafter's narrow run of the four modules S7 names | `7ffcf1ab9` |
 
 ## Overlap with the release
 
