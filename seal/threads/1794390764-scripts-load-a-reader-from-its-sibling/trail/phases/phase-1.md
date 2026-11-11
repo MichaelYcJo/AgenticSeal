@@ -7,8 +7,8 @@ phase built differently.** The loaders `frame/design.md` *Removes* names
 for the fourteen scripts under `skills/` stood where it says. The
 copied-alone case *Removes* names stood in five files,
 `test_chain_check.py`, `test_fold_check.py`, `test_payload_meter.py`,
-`test_seal.py` and `test_settle.py` (read: `git grep` at `333fb9def`). G10 names eight guarded
-commands. `pr_body.py`, `broad_gate.py` and `pact_check.py` had no
+`test_seal.py` and `test_settle.py` (read: `git grep` at `333fb9def`).
+G10 names eight guarded commands. `pr_body.py`, `broad_gate.py` and `pact_check.py` had no
 copied-alone case at the base, so S4's "a case per command" adds three
 (`test_pr_body.py#Test_main`, `test_broad_gate.py#Test_module`,
 `test_pact_check.py#Test_module`).
@@ -65,9 +65,9 @@ stops a run (`test_broad_gate.py#Test_rounds_rows::test_refuses_to_stop_a_run_wh
 `Test_load` became `Test_sibling_module`. Its missing-file case went,
 since that sentence is `lib/sibling.py#load`'s and
 `tests/lib/test_sibling.py` holds it. Its two cases of a module that
-raises point `sibling.ROOT` at a tree under `tmp_path`. That is more than "only the loader's name changed" that S7
-states, and it is the least that lets a case put a raising module where
-`load` looks.
+raises point `sibling.ROOT` at a tree under `tmp_path`. That is more
+than "only the loader's name changed" that S7 states, and it is the least
+that lets a case put a raising module where `load` looks.
 
 **`seal.py` loads `lib/blocks.py` before `lib/tables.py`.** `lib/tables.py`
 imports `blocks` by its plain name. Where `lib/blocks.py` is absent, a
