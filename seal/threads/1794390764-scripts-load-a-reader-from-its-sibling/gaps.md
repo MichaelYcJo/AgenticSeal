@@ -11,6 +11,7 @@
 | Phase 2: the five workflows that run the scripts under `.github/scripts/` (`close-issues-on-release.yml`, `label-merged-on-release-branch.yml`, `hygiene.yml`, `publish-release.yml` and `test.yml`) on GitHub's runners; the scripts ran here only under their test modules and copied alone | CI, on the release pull request, the merge to `main` and the next tag |
 | Phase 3: the full suite, lint and typecheck at HEAD; the phase ran its phase-boundary set alone, under pytest-xdist | the orchestrator, by the broad gate |
 | Round 1's fix pass: the full suite, lint and typecheck at HEAD; the pass ran the phase-boundary set over the paths it changed, and the test modules of `lib/sibling.py`'s callers that catch an absent module | the orchestrator, by the broad gate |
+| Round 2's fix pass: the full suite, lint and typecheck at HEAD; the pass ran the phase-boundary set over the paths it changed | the orchestrator, by the broad gate |
 
 ## Not done
 
