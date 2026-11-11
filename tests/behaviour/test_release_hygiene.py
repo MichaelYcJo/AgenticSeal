@@ -1314,7 +1314,7 @@ def test_the_chain_check_loads_the_one_reader():
     # The path the check loads the shared reader from, and the call into it,
     # which Python resolves: the reader is the one source of how a line is
     # read (`skills/core/SKILL.md` *The rule a mechanism is kept against*).
-    assert "unverified_check.py" in check
+    assert "lib/lines.py" in check
     assert "reader.readable(" in check, (
         "the check reads lines the shared reader never normalized"
     )

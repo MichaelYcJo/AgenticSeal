@@ -425,12 +425,12 @@ def vocabulary(header):
 
 
 def shared_rule():
-    """`skills/verify/scripts/unverified_check.py`, which states the fence
-    delimiter rule the table walker's base reading was held to."""
+    """`lib/lines.py`, whose `fence_spans` states the fence delimiter
+    rule the table walker's base reading was held to."""
     import importlib.util
 
-    path = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
-    spec = importlib.util.spec_from_file_location("agentic_uc_for_the_oracle", path)
+    path = os.path.join(ROOT, "lib", "lines.py")
+    spec = importlib.util.spec_from_file_location("agentic_lines_for_the_oracle", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

@@ -87,27 +87,21 @@ Two absences are silent, and neither is caught here: the case
 holds the step to every entry of the table.
 """
 
-import importlib.util
 import json
 import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-
-
-def _load(name, filename):
-    path = os.path.join(HERE, filename)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
+sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
+import sibling  # noqa: E402
 
 # The signal holds the name mapping — branch -> version -> milestone -> label
-# — and reaches the closer's readers through its own `closer`. Importing it
+# — and reaches the closer's readers through its own `closer`. Loading it
 # runs nothing: it defines constants and functions at module level and
 # guards its `main`.
-signal = _load("label_merged_on_release_branch", "label_merged_on_release_branch.py")
+signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
 
 

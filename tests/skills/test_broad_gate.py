@@ -46,7 +46,7 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
-READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
+READER = ROOT / "lib" / "lines.py"
 ITEM = "seal/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
@@ -147,6 +147,31 @@ def clean_env():
 
 
 class Test_module:
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings
+        exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means nothing was read, and a
+        sibling that is not beside the command is that kind. It printed a
+        line of its own before."""
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / TARGET.rsplit("/", 1)[1]
+        with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), "--base", "x"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = gate.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_the_gate_reads_the_given_base_exactly_once(self):
         """Every check asks the resolved commit; `args.base`, the spelling
         the caller typed, is read once, by the resolution, so a consumer
@@ -235,29 +260,38 @@ class Test_module:
 # --- loading a sibling ------------------------------------------------------------
 
 
-class Test_load:
+class Test_sibling_module:
     def test_accepts_a_sibling_that_imports(self):
-        mod = gate.load(gate.STAMP, "stamp_loaded_by_the_case")
-        assert mod.PANEL_VALUE_WIDTH == stamp.PANEL_VALUE_WIDTH
+        assert gate.sibling_module(gate.STAMP) is stamp
 
-    def test_refuses_a_missing_file(self, tmp_path):
-        with pytest.raises(gate.Refused, match="this copy of the plugin is missing it"):
-            gate.load(str(tmp_path / "gone.py"), "gone")
-
-    def test_refuses_a_sibling_that_raises_with_its_own_sentence(self, tmp_path):
-        write(tmp_path, "bad.py", "raise ValueError('the chart is malformed')\n")
-        write(tmp_path, "bare.py", "raise ValueError()\n")
+    def test_refuses_a_sibling_that_raises_with_its_own_sentence(
+        self, tmp_path, monkeypatch
+    ):
+        """#869. The loader hands a module's exception back unchanged, and
+        the gate turns it into `Refused` with the module's own sentence, or
+        its type where it has none. The plugin root is the case's own, so
+        the raising module stands under it."""
+        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
+        write(
+            tmp_path,
+            "bad_beside_the_gate.py",
+            "raise ValueError('the chart is malformed')\n",
+        )
+        write(tmp_path, "bare_beside_the_gate.py", "raise ValueError()\n")
         with pytest.raises(gate.Refused) as said:
-            gate.load(str(tmp_path / "bad.py"), "bad")
+            gate.sibling_module("bad_beside_the_gate.py")
         assert str(said.value).endswith("nothing ran: the chart is malformed")
         with pytest.raises(gate.Refused) as bare:
-            gate.load(str(tmp_path / "bare.py"), "bare")
+            gate.sibling_module("bare_beside_the_gate.py")
         assert str(bare.value).endswith("nothing ran: ValueError")
 
-    def test_refuses_to_turn_a_siblings_exit_into_a_refusal(self, tmp_path):
-        write(tmp_path, "floor.py", "raise SystemExit(3)\n")
+    def test_refuses_to_turn_a_siblings_exit_into_a_refusal(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
+        write(tmp_path, "floor_beside_the_gate.py", "raise SystemExit(3)\n")
         with pytest.raises(SystemExit):
-            gate.load(str(tmp_path / "floor.py"), "floor")
+            gate.sibling_module("floor_beside_the_gate.py")
 
 
 # --- which copy runs ----------------------------------------------------------------
@@ -1535,6 +1569,45 @@ class Test_rounds_rows:
         write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
+    @pytest.mark.parametrize(
+        "raised", [ValueError("planted"), SystemExit(3)], ids=["raises", "exits"]
+    )
+    def test_refuses_to_stop_a_run_where_the_check_will_not_load(
+        self, tmp_path, monkeypatch, raised
+    ):
+        """A label never stops a run that passed: a check that raises or
+        exits while it loads leaves the count alone beneath it. An absent
+        check is `lib/sibling.py#Absent`, which the case below holds."""
+        real = gate.sibling.load
+
+        def load(rel):
+            if rel == "skills/code-review/scripts/chain_check.py":
+                raise raised
+            return real(rel)
+
+        monkeypatch.setattr(gate.sibling, "load", load)
+        item = tmp_path / "1799000004-z"
+        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
+        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
+
+    def test_names_the_absent_check_in_its_own_line_and_goes_on(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """An absent check leaves the count alone beneath it, and the gate
+        says in its own line that the deferred findings were not counted,
+        naming the file, where the loader's sentence would say that nothing
+        was read of a run that goes on (#1482 round 1, finding 1)."""
+        plugin = tmp_path / "no-plugin"
+        monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
+        item = tmp_path / "1799000005-w"
+        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
+        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
+        absent = os.path.join(str(plugin), "skills", "code-review", "scripts")
+        assert capsys.readouterr().err == (
+            "seal gate: the round records' deferred findings are not counted: "
+            f"{os.path.join(absent, 'chain_check.py')} is absent\n"
+        )
+
 
 def checks(suite=0, chain_code=0):
     return {
@@ -2250,6 +2323,8 @@ class Test_main:
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
         scripts.mkdir(parents=True)
         shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
+        (tmp_path / "plugin" / "lib").mkdir()
+        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
         write(scripts, "seal_stamp.py", "raise ValueError('the mark chart is bad')\n")
         keep = tmp_path / "out"
         out = subprocess.run(
@@ -2280,6 +2355,8 @@ class Test_main:
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
         scripts.mkdir(parents=True)
         shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
+        (tmp_path / "plugin" / "lib").mkdir()
+        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
         write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
         keep = tmp_path / "out"
         out = subprocess.run(
@@ -2298,14 +2375,17 @@ class Test_main:
             cwd=tmp_path,
         )
         assert out.returncode == 2, out.stderr
-        assert "gitcmd.py — this copy of the plugin is missing it" in out.stderr
+        helper = tmp_path / "plugin" / "lib" / "gitcmd.py"
+        assert gate.sibling.MISSING.format(path=str(helper)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_refuses_to_run_when_called_in_process_beside_a_broken_sibling(
         self, tmp_path, monkeypatch, capsys
     ):
         write(tmp_path, "seal_stamp.py", "raise ValueError('the chart is short')\n")
-        monkeypatch.setattr(gate, "STAMP", str(tmp_path / "seal_stamp.py"))
+        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
+        monkeypatch.setattr(gate, "STAMP", "seal_stamp.py")
+        monkeypatch.delitem(sys.modules, "seal_stamp", raising=False)
         assert gate.main(["--base", "x", "--root", str(ROOT)]) == 2
         captured = capsys.readouterr()
         assert "will not load, so nothing ran: the chart is short" in captured.err

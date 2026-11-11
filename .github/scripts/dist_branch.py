@@ -56,8 +56,12 @@ import tarfile
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
-import console  # noqa: E402
+import sibling  # noqa: E402
+
+console = sibling.load("lib/console.py")
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 REMOTE = "origin"

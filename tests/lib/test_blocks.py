@@ -5,7 +5,7 @@ and the splitter's from `tests/behaviour/test_every_reader_ends_a_line_where_gfm
 (#942's phase 6). The second file keeps what holds every copy of the
 splitter to this one, a check of several files against each other, and
 `tests/behaviour/test_unverified_rows_close.py` keeps the case that holds this module's
-fence walks to `unverified_check.py`'s and `lib/tables.py`'s, for the same
+fence walks to `lib/lines.py`'s and `lib/tables.py`'s, for the same
 reason.
 
 `Test_walk` and `Test_walk_text` hold the walk to a CommonMark oracle,
@@ -25,8 +25,8 @@ from conftest import SPLITLINES_ONLY, census_case, load_lib_module, texts
 TARGET = "lib/blocks.py"
 
 blocks = load_lib_module("blocks.py", "agentic_blocks_under_test")
-# The name the splitter's cases read it by, where they read it through
-# `unverified_check.py`, which hands this module's `gfm_lines` to its callers.
+# The name the splitter's cases read it by, from when they read it through
+# the reader that handed this module's `gfm_lines` to its callers.
 reader = blocks
 
 # An opener and a closer of every other kind of inline raw HTML, with a

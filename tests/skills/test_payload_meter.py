@@ -36,7 +36,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import LS, ROOT, census_case, names_path, symlink_or_skip
+from conftest import LS, ROOT, census_case, symlink_or_skip
 
 TARGET = "skills/verify/scripts/payload_meter.py"
 
@@ -1346,7 +1346,7 @@ class Test_imports_of:
         """#1185, S3. The docs skip a code span in the same sentence as a
         fence. A span runs from a backtick run to the next run of the same
         length, on its line or, before its paragraph ends, on a later one
-        (`unverified_check.py#_partner_ahead`), and the import after it is
+        (`lib/lines.py#_partner_ahead`), and the import after it is
         read."""
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
@@ -1399,7 +1399,7 @@ class Test_imports_of:
 class Test_module:
     def test_a_section_heading_is_read_by_the_one_heading_rule(self, meter):
         """#867. `heading_starts` cuts at the levels 2 and 3 of the one rule,
-        `unverified_check.py#heading_level`: a heading indented up to three
+        `lib/lines.py#heading_level`: a heading indented up to three
         spaces or followed by a tab is one, and `#120)` and `##B` are not. The
         pattern it kept, `^#{2,3} `, missed the first two. Seen red against it."""
         text = "intro\n   ## Indented\nx\n##\tTabbed\ny\n#120) prose\n##B\n### Three\n"
@@ -1416,48 +1416,18 @@ class Test_module:
         assert meter.heading_starts(text) == [text.index("## Real")]
 
     @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [
-            (
-                ["--root", "{root}", "--calibrate", "{root}/main.jsonl"],
-                "it is what reads a transcript's spawns",
-                None,
-            ),
-            # #584 and #1185: `--sections` loads `unverified_check.py` before
-            # it reads the root, and so does every read of a `CLAUDE.md` that
-            # exists. The sentence names both uses, and its purpose must not
-            # be the transcript sibling's.
-            (
-                ["--root", "{root}", "--sections"],
-                "it is what says where a fenced example, an HTML comment or a "
-                "code span stands in a file, so --sections cannot split a skill "
-                "at its headings and no import of a `CLAUDE.md` can be read",
-                "transcript",
-            ),
-            # #1430: every run counts the core hook's output, which
-            # `lib/core.py#rendered` defines, so a copy alone reaches it with
-            # no flag at all.
-            (
-                ["--root", "{root}"],
-                "it is what says what the core hook prints into a session",
-                "transcript",
-            ),
-        ],
-        ids=["session_cost.py", "unverified_check.py", "core.py"],
+        "args", [["--root", "{root}"], ["--help"]], ids=["a-run", "help"]
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
+        self, tmp_path, meter, args
     ):
-        """#590 and #610. A copy of this script taken without its siblings exits
-        2, with a sentence naming the missing path and what it is for; here 1
-        means an input that could not be measured, and 2 that nothing was read.
-        It loads `session_cost.py` only under `--calibrate`, and `measure` calls
-        the loader before it opens the transcript, so the transcript named need
-        not exist; under `--sections` it calls that loader before it reads the
-        root, so the row reaches it in a directory with no `agents/` at all.
-        The copy stands at its path in a plugin that holds nothing else, so
-        `lib/core.py`, which every run loads after the calibration (#1430),
-        is named under the copy's plugin root too."""
+        """#590 and #610, and S4 of #1482. A copy of this script taken
+        without its siblings exits 2, with the loader's one sentence naming
+        the absent `lib/sibling.py` by its path; here 1 means an input that
+        could not be measured, and 2 that nothing was read. The copy stands
+        at its path in a plugin that holds nothing else, so the path is
+        under the copy's plugin root. The sentence names no purpose (#1482). `--help` reaches the sentence too, because the guard stands at
+        import and reads no argument (#1482, A13)."""
         script = TARGET
         alone = tmp_path / "alone"
         copy = alone.joinpath(*script.split("/"))
@@ -1474,27 +1444,21 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
+        said = meter.sibling.MISSING.format(path=str(alone / "lib" / "sibling.py"))
+        assert done.stderr == said + "\n", done.stderr
 
     def test_a_copy_without_the_scan_exits_2_on_a_run_that_reads_a_claude_md(
-        self, tmp_path
+        self, tmp_path, meter
     ):
         """#1185. Every read of a `CLAUDE.md` that exists asks
-        `unverified_check.py` where its live text is, so a copy that holds
-        the core hook's module and not that sibling exits 2 with no flag at
-        all, and its sentence names the import reading. The row above with
-        no flag stops at `lib/core.py` first, so this copy carries it and
+        `lib/blocks.py` for its lines and `lib/lines.py` where its live text
+        is, so a copy that holds the loader and the core hook's module and
+        neither of those exits 2 with no flag at all, in the loader's
+        sentence naming the first it loads, `lib/blocks.py`.
+        Every run loads `lib/core.py` first, so this copy carries it and
         `lib/optin.py`, the one module it loads."""
         alone = tmp_path / "alone"
-        for rel in (TARGET, "lib/core.py", "lib/optin.py"):
+        for rel in (TARGET, "lib/sibling.py", "lib/core.py", "lib/optin.py"):
             copy = alone.joinpath(*rel.split("/"))
             copy.parent.mkdir(parents=True, exist_ok=True)
             with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:
@@ -1519,8 +1483,10 @@ class Test_module:
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
         assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), done.stderr
-        assert "no import of a `CLAUDE.md` can be read" in done.stderr, done.stderr
+        reader = alone / "lib" / "blocks.py"
+        assert meter.sibling.MISSING.format(path=str(reader)) in done.stderr, (
+            done.stderr
+        )
 
     def test_json_carries_the_same_numbers_as_the_text_and_no_machine_path(
         self, tmp_path

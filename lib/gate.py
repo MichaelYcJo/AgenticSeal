@@ -4,9 +4,9 @@ asks at the pull request.
 The rule is `docs/running/the-review-and-parity-arms.md` *Parity arm*: a change
 confined to `docs/` and `seal/` owes no comparison with an original, because
 nothing there can be compared against one. `skills/code-review/scripts/
-chain_check.py#originals_of` loads this file by path and asks `touches_code`
-of the paths the pull request changes, with the name of the root in force at
-HEAD, which a project's own `seal/` changes (#1059).
+chain_check.py#originals_of` loads this file through `lib/sibling.py` and
+asks `touches_code` of the paths the pull request changes, with the name of
+the root in force at HEAD, which a project's own `seal/` changes (#1059).
 
 The commit gate's arms, its refusal texts and its marks lived here until
 #1027 removed every hook of this plugin that ran inside git.

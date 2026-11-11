@@ -18,6 +18,8 @@ on past the tree it could not read.
 import importlib.util
 import json
 import os
+import subprocess
+import sys
 
 import pytest
 from conftest import ROOT, census_case, config_json, mark_root, write
@@ -285,6 +287,32 @@ class Test_main:
         assert rows["`ubuntu` leg (minutes)"] == ("2.0", "2.0", "+0.0 (+0.0%)"), rows
         assert rows["`ubuntu 3.14` leg (minutes)"] == ("no run found", "3.0", "—")
         assert out.index("`macos` leg") < out.index("`ubuntu 3.14` leg"), out
+
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings, run
+        with arguments that reach a load, exits 2 with the loader's one
+        sentence naming the absent `lib/sibling.py` by its path: 2 means
+        nothing was read. Its loads go through `module`, which guards the
+        loader's import, so a run that ends at its usage line loads
+        nothing."""
+        import sibling
+
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / "release_report.py"
+        with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(copy), "--against", "v1", "--at", str(tmp_path)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(tmp_path),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "lib", "sibling.py")
+        said = sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
 
     def test_refuses_to_print_rows_for_a_tree_it_cannot_read(self, tmp_path, capsys):
         now = tree(tmp_path / "now", "", {})

@@ -867,8 +867,7 @@ def code_lines(text):
 
 def heading_rule(rel, root=None):
     """No shipped script spells the markdown heading rule again: a reader of
-    a document's sections asks
-    `skills/verify/scripts/unverified_check.py#heading_level`. A docstring
+    a document's sections asks `lib/lines.py#heading_level`. A docstring
     and a whole-line comment are prose about the rule and are not read."""
     text = _python(rel, root, SHIPPED)
     if text is None:
@@ -876,8 +875,7 @@ def heading_rule(rel, root=None):
     flagged = {
         number: (
             "a second spelling of the heading rule; a reader of a document's "
-            "sections asks `skills/verify/scripts/unverified_check.py"
-            "#heading_level`"
+            "sections asks `lib/lines.py#heading_level`"
         )
         for number, line in code_lines(text)
         if HEADING_SPELLING.search(line)

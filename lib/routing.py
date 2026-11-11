@@ -44,8 +44,8 @@ try:
     import blocks
 except ImportError as missing:
     # `lib/config.py` raises the same sentence for the same reason: this is
-    # a module gates and scripts import, and a script that loads it by path
-    # (`chain_check.py`) catches the error or names the file first.
+    # a module gates and scripts import, and a script that loads it through
+    # `lib/sibling.py` (`chain_check.py`) catches the error.
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")

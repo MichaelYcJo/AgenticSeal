@@ -23,7 +23,7 @@ from conftest import (
 
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
-READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
+READER = ROOT / "lib" / "lines.py"
 TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 SEALER = ROOT / "agents" / "sealer.md"
 DOCUMENT = ROOT / "docs" / "forms" / "the-guarantee.md"
@@ -37,7 +37,7 @@ def between(path, start, end):
 
 
 chain = load(CHAIN, "chain_check_for_the_guarantee")
-reader = load(READER, "unverified_reader_for_the_guarantee")
+reader = load(READER, "lines_reader_for_the_guarantee")
 fields = chain.FIELDS
 
 

@@ -24,16 +24,17 @@ import re
 import sys
 
 # `lib/blocks.py` is a sibling, found by this file's own directory, so the
-# callers that load this module by path -- `pact_check.py#load`, `seal.py` --
-# find it too. `lib/routing.py` reaches `optin.py` the same way.
+# callers that load this module through `lib/sibling.py` -- `pact_check.py`,
+# `seal.py` -- find it too. `lib/routing.py` reaches `optin.py` the same way.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     import blocks
 except ImportError as missing:
     # A sentence rather than a bare `ModuleNotFoundError`, and an exception
     # rather than an exit, because this is a module other code imports: a
-    # script that loads this file by path catches the error or names the
-    # file first (`skills/implement/scripts/seal.py#LIB_PURPOSES`).
+    # script that loads this file catches the error or loads `blocks.py`
+    # first, which `lib/sibling.py#load` refuses in its own sentence
+    # (`skills/implement/scripts/seal.py`).
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")

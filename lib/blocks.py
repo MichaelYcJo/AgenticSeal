@@ -17,9 +17,8 @@ This is the one walk they read.
      three or more backticks or tildes, no backtick in a backtick opener's
      info string, and a closer of the same character at least as long with
      nothing after it but spaces. `fence_opener` and `fence_closes` below are
-     that rule, written once: `skills/verify/scripts/unverified_check.py` and
-     the record readers ask this copy, since nothing under `lib/`
-     imports from `skills/` and the import goes the other way (#1005).
+     that rule, written once: `lib/lines.py` imports it beside it, and the
+     record readers ask this copy (#1005).
   2. An HTML comment block (4.6, type 2): a line that begins with `<!--`, to
      the first line holding `-->`, which may be the start line itself.
 
@@ -118,8 +117,8 @@ CONTAINER = re.compile(r"^(?:[ \t]*(?:>|(?:[-+*]|\d{1,9}[.)])(?=[ \t]|$)))*[ \t]
 # `\x1c` to `\x1e`, and a `<!--` or a fence run after one of those starts a
 # line for that split and no line for a renderer (#667 round 1, 🟡 1; #664's
 # class). This and `gfm_lines` are the one line split every reader of
-# markdown or record text reads its lines through;
-# `skills/verify/scripts/unverified_check.py` asks them (#1005).
+# markdown or record text reads its lines through; `lib/lines.py`
+# imports them beside it (#1005).
 GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
 # What a line that starts a block this walk does not follow looks like, once
 # the container run is taken off: a fence run, or any HTML start.

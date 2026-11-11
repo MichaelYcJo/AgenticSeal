@@ -755,8 +755,7 @@ class Test_heading_rule:
         ]
         assert censuses.heading_rule("skills/x.py", root)[0].endswith(
             "heading_rule: a second spelling of the heading rule; a reader of a "
-            "document's sections asks `skills/verify/scripts/unverified_check.py"
-            "#heading_level`"
+            "document's sections asks `lib/lines.py#heading_level`"
         )
 
 
