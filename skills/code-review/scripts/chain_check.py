@@ -185,7 +185,7 @@ PLAN_FILE = "frame/plan.md"
 # guarantee names, since the sealer audited everything else on the branch.
 CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
 # A round record's fields stand in `seal` blocks, and `lib/fields.py`
-# is the one spelling of their grammar (#1198). What this file holds is where
+# is the one spelling of their grammar. What this file holds is where
 # a block stands, which turns on headings that module does not read: the one
 # `## Findings` section, and a finding's `### <n>. <symptom>` heading in it,
 # whose number names the finding across rounds.
@@ -231,7 +231,7 @@ ISSUE_RE = re.compile(r"#(\d+)")
 
 MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
 # Of the mark and each `Reframed` line the frame arm compares who alone with
-# `Planning`, and reads neither the date nor the round (#1319).
+# `Planning`, and reads neither the date nor the round.
 REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(.+?)\.$")
 
 VERIFYING_ROUND = "a verifying round is owed"
@@ -382,7 +382,7 @@ def changed(root, base):
     check reads declarations, not file identity, so a deleted declaration
     is never paired away with a similar added one. `moved` is both names of
     every exact move — a deleted file whose bytes an added file of the same
-    name carries — which is what the root move of #90 does to every
+    name carries — which is what moving the records root does to every
     declaration at once. Under `WORKTREE` the diff is against the working
     tree and untracked files count as added."""
     if WORKTREE:
@@ -1535,7 +1535,7 @@ def records(reader, routing, root, item, rel, base):
     return problems
 
 
-# The parity arm at the pull request (#988). Under a routing declaration
+# The parity arm at the pull request. Under a routing declaration
 # answering the review chain, each round record carries the comparison on the
 # `original:` line of its round block, which these read.
 NO_ORIGINAL = (
@@ -1559,7 +1559,7 @@ NO_BASELINE = (
 
 def parity_readers():
     """`(config, gate)`: `lib/config.py` and `lib/gate.py`. `gate.py`
-    imports nothing since #1027, so the order no longer matters. Raises what
+    imports nothing, so the order does not matter. Raises what
     `lib/sibling.py#load` raises."""
     config = sibling.load("lib/config.py")
     gate = sibling.load("lib/gate.py")
@@ -1605,7 +1605,7 @@ def guarantee_original(text, rel, sha, config):
     commit` of the migration config at CONFIG: a newest block with no such
     line, at its opener, and one naming a commit that is not a prefix of SHA
     and of which SHA is not a prefix, at its line. An earlier block's line
-    stands for no later run (#1198). A guarantee `lib/fields.py`
+    stands for no later run. A guarantee `lib/fields.py`
     refuses, or one holding no verdict block, is the guarantee arm's
     refusal, and none is added here."""
     found = FIELDS.read(text, FIELDS.GUARANTEE)
@@ -1635,8 +1635,7 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     verdict block's (`guarantee_original`). A config whose `Baseline commit`
     names no SHA is one refusal naming it, and so is an earlier release's
     `parity.md` git carries with no `parity.json` beside it, naming the
-    keys to write (#1454). None where `lib/` would not load, said on
-    stderr."""
+    keys to write. None where `lib/` would not load, said on stderr."""
     config = f"{home}/{routing.optin.PARITY_CONFIG}"
     old = f"{home}/{routing.optin.OLD_PARITY_CONFIG}"
     text = read_record(root, config)
@@ -1669,8 +1668,8 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     return found
 
 
-# A gate record with no run block: one written before the run stood in a
-# block, or one nobody wrote a run into (#1198, *Scope* item 9).
+# A gate record with no run block: one of the older shape, its run written
+# outside any block, or one nobody wrote a run into.
 NO_RUN_BLOCK = (
     "no run block: since #1198 the run stands in a `seal` block holding "
     "`run: <tree> against <base commit>`, which `seal gate --base <base> "
@@ -1716,8 +1715,8 @@ def broad_gate(reader, root, item, base, notices=None):
     return [(rel, 0, follows_reason(behind, "the newest gate run"))]
 
 
-# A guarantee with no verdict block: one written before the verdict stood in
-# a block, or one the sealer never filled (#1198, *Scope* item 9).
+# A guarantee with no verdict block: one of the older shape, its verdict
+# written outside any block, or one the sealer never filled.
 NO_VERDICT_BLOCK = (
     "no verdict block: since #1198 the sealer's verdict stands in a `seal` "
     "block holding `target: <sha> against <base>`, the `original:` line where "
@@ -1778,7 +1777,7 @@ def guarantee(reader, root, item, base, notices=None):
     return problems
 
 
-# The pull request's body (#1452), read from the event payload, against what
+# The pull request's body, read from the event payload, against what
 # `seal pr-body` composes at HEAD for the one judged work item it carries.
 # `pr_body.py` loads this module at its own import, so the arm loads it
 # inside `pr_body_reader` and never at module level.
@@ -1834,8 +1833,8 @@ def body(root, items, text, why, base=None):
     read for each, in the sentence for that shape. A line of the body is
     refused on the work item's directory, naming the body's line; a record
     `compared` refuses is refused at its line, by its path from the work
-    item's directory, which names the root's `config.json` for a language key
-    (#1453); `seal_mark`'s sentence is a notice. Unreadable where
+    item's directory, which names the root's `config.json` for a language
+    key; `seal_mark`'s sentence is a notice. Unreadable where
     `pr_body.py` will not load."""
     if text is None:
         return [], [("", 0, BODY_UNREAD.format(why=why))]
@@ -1878,17 +1877,17 @@ def local_root(root, routing):
 def root_name(routing, root, fork):
     """The root's repository-relative name the check reads the declarations
     under: the name `lib/optin.py#home_name_in` gives for the tree the check
-    reads, `seal`, or the second name beside a project's own `seal/`
-    (#1059). That tree is HEAD, and the working tree under `WORKTREE`, as
+    reads, `seal`, or the second name beside a project's own `seal/`. That
+    tree is HEAD, and the working tree under `WORKTREE`, as
     `read_record` reads it.
 
     Where that tree has no marked root, the name is the one the merge base
     FORK gives, so a pull request that deletes only the marker keeps its
     declarations judged, and one that deletes the root is read under the
     name the root had. Where neither has one, or FORK is None, it is
-    `lib/optin.py#HOME`: a committed `seal/` with no marker is read as this
-    check read it before the marker decided the root, and a repository
-    whose root is local has nothing committed under any name.
+    `lib/optin.py#HOME`: a committed `seal/` with no marker is still read
+    under that name, and a repository whose root is local has nothing
+    committed under any name.
 
     A pull request that renames the root, the marker under one name at the
     merge base and under the other at HEAD, is read under the new name, and
@@ -1967,7 +1966,7 @@ SETTLE_SAYS = (
 )
 
 # The pull request that moves the root to local mode deletes every
-# declaration with the root (#952).
+# declaration with the root.
 ROOT_LEFT_SAYS = (
     "the tree the check reads has no top-level `{home}` entry, so nothing is "
     "declared: the routing declarations this pull request deletes left the "
@@ -2005,7 +2004,7 @@ def routing_trailers(root, base):
     other than its author committed is not judged: a person's cherry-pick or
     rebase of a session's commit, and GitHub's squash or rebase-merge, carry
     a trailer their committer did not write, and a session's own commit is
-    committed by its author (round 1 of #1027, finding 2). The two emails are
+    committed by its author. The two emails are
     compared as git records them, case-folded, so a session whose committer
     email differs from its author email is not judged either."""
     out = git(
@@ -2039,8 +2038,7 @@ def trailer_findings(trailers, judged, local=False):
     naming a work item that is not among JUDGED, the ids of the declarations
     this pull request judges, is a problem; `no work item` is a notice. Where
     LOCAL, the root is under the common git directory and no declaration is
-    ever committed, so a work item's value is a notice too (round 1 of #1027,
-    finding 1)."""
+    ever committed, so a work item's value is a notice too."""
     problems, notices = [], []
     for sha, value in trailers:
         if value == NO_WORK_ITEM:
@@ -2081,7 +2079,7 @@ def merge_base(root, ref):
     passes is the branch the pull request merges into, and that branch
     MOVES: the moment one work item squashes into it, every sibling branch
     cut before that squash has the squashed item's files at the ref and never
-    had them at all (#272).
+    had them at all.
 
     On a branch checkout the merge base is the fork point. In CI, whose
     checkout of a pull request is the head already merged into the base, it is
@@ -2213,7 +2211,7 @@ def main(argv=None):
     # directory, so a root that is not a directory, or one whose marker alone
     # left, keeps the declarations judged. A root that left is named by the
     # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
-    # root that stayed (#1059). Where git cannot answer, `git()` is None and
+    # root that stayed. Where git cannot answer, `git()` is None and
     # the declarations stay judged.
     if WORKTREE:
         gone = not os.path.lexists(os.path.join(root, home))
