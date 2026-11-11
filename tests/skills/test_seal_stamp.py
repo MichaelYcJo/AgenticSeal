@@ -272,6 +272,11 @@ def owners_cell(top, bottom):
     return EMPTY
 
 
+def strip_ansi(s):
+    """S with every SGR taken out, the text a person reads."""
+    return SGR.sub("", s)
+
+
 def trimmed(cells):
     """CELLS without the blank cells at their end."""
     cells = list(cells)
@@ -663,15 +668,6 @@ class Test_letter_row:
         assert any(line.endswith(f"tree    {value}") for line in twin), twin
 
 
-class Test_strip_ansi:
-    def test_accepts_a_line_with_its_codes_removed(self):
-        assert stamp.strip_ansi("\x1b[1;38;2;1;2;3mA\x1b[0m b") == "A b"
-
-    @pytest.mark.parametrize("text", ["[1m a ;m", "\x1b[2Ja", "\x1b[1;2H"])
-    def test_refuses_to_touch_text_or_a_code_that_sets_no_colour(self, text):
-        assert stamp.strip_ansi(text) == text
-
-
 # --- the panel's text rules -----------------------------------------------------------
 
 
@@ -822,7 +818,7 @@ class Test_compose:
                 assert (top if y % 2 == 0 else bottom) == colours[key], (x, y)
         ascii_ = str.maketrans(stamp.TWIN_ASCII)
         for line, twin in zip(stamp.stamp(REFERENCE_ROWS), REFERENCE_TWIN, strict=True):
-            text = stamp.strip_ansi(line).translate(ascii_)
+            text = strip_ansi(line).translate(ascii_)
             assert len(text) == len(twin)
             assert all(a == b for a, b in zip(text, twin, strict=True) if a not in "▀▄")
 
@@ -863,7 +859,7 @@ class Test_stamp:
         width = stamp.PANEL_VALUE_WIDTH
         rows = [("SEALED", ""), ("CI also", "x" * width)]
         for shape in (False, True):
-            lines = [stamp.strip_ansi(line) for line in stamp.stamp(rows, shape)]
+            lines = [strip_ansi(line) for line in stamp.stamp(rows, shape)]
             widest = max(len(line) for line in lines)
             assert widest == 80, f"a value of {width} columns draws {widest}"
             assert any(line.endswith(" " + "x" * width) for line in lines), lines

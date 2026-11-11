@@ -84,18 +84,6 @@ class Test_fence_spans:
         assert READER.fence_spans(["a", "```", "x"]) == [(1, None)]
 
 
-class Test_closed_fence_lines:
-    def test_accepts_the_lines_of_a_block_that_closes(self):
-        assert READER.closed_fence_lines(["a", "```", "x", "```", "b"]) == {1, 2, 3}
-
-    def test_refuses_the_lines_of_a_block_that_never_closes(self):
-        assert READER.closed_fence_lines(["a", "```", "x", "```", "b", "```", "c"]) == {
-            1,
-            2,
-            3,
-        }
-
-
 class Test_blank_fences:
     def test_accepts_a_closed_block_blanked_and_the_lines_kept(self):
         assert READER.blank_fences(["a", "```", "x", "```", "b"]) == [
