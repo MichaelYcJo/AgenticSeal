@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 # Runs this repository's own suite from a virtualenv that is built once and
 # reused, instead of a command that resolves its environment on every call.
-# Issue #156: the form CONTRIBUTING.md named paid 55-58 seconds of setup per
-# call, on all seventeen test calls of one measured segment.
+# A command that resolves its environment pays 55-58 seconds of setup per
+# call, and one session segment paid that on all seventeen of its test calls.
 #
 # Resolves the script relative to this file, not the caller's cwd, so it works
 # from any directory in the repository or a worktree of it, and pytest runs
@@ -25,7 +25,7 @@
 # forbids it to every agent. Name a module to run one.
 # Either form runs in parallel (`-n auto`) unless you pass your own `-n`,
 # `-p no:xdist` or `--pdb`; the runner installs pytest-xdist where the
-# virtualenv lacks it (#337).
+# virtualenv lacks it.
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 script="$here/../.github/scripts/run_tests.py"
 if [ ! -f "$script" ]; then

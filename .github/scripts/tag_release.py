@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Tag the release a push to `main` shipped, and pass the tag on.
 
-A release ended with a tag the owner pushed by hand, after the release pull
-request merged (#1117). Nothing else could push it: a tag pushed with the
-workflow's own token starts no other workflow, so a tag a workflow pushed
-would never have fired the note. So the publish workflow runs on the push to
+A tag pushed with the workflow's own token starts no other workflow, so a
+tag a workflow pushes cannot fire the note from a workflow of its own, and a
+tag left to a person is pushed by hand after the release pull request
+merges. So the publish workflow runs on the push to
 `main` itself, and this step decides there whether that push shipped a
 release, creates the tag where it did, and hands the tag to the note step of
 the same job, which publishes for it.

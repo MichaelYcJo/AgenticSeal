@@ -138,7 +138,7 @@ class Test_repo_root:
 class Test_git_common_dir:
     def test_accepts_a_main_worktree_without_asking_git(self, optin, repo, monkeypatch):
         """A `.git` directory at the toplevel is the git directory, so the common
-        case costs no process. The rider on `repo_root` counts why."""
+        case costs no process, which every gated command would pay."""
         monkeypatch.setattr(
             optin.subprocess,
             "run",
@@ -233,9 +233,9 @@ class Test_home_paths:
         assert optin.home_at(str(repo)) == optin.home_paths(str(repo))[0]
 
     def test_accepts_a_common_dir_passed_and_asks_git_no_second_time(self, optin, repo):
-        """The rider on `repo_root` counts `git` calls per gated command. A caller
-        that already resolved the common directory passes it, and nothing here
-        asks git again."""
+        """A second `git` call here would be paid on every gated command. A
+        caller that already resolved the common directory passes it, and
+        nothing here asks git again."""
         common = optin.git_common_dir(str(repo))
 
         def refuse(*a, **k):

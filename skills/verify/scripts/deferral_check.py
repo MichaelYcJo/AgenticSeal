@@ -2,13 +2,13 @@
 """seal deferrals — resolve the answerer named in an `unverified` row.
 
 Condition 4 lets a claim go out unproven as long as it says *who or what
-answers it*. Nothing checked that the answerer existed. The measured failure:
-a session narrowed its run to one domain and deferred the rest to CI. That
-repository's workflows assigned reviewers, deployed on push to the default
-branch, and checked a migration graph. None ran the test suite, the default
-branch had no protection, and the pre-commit hooks were lint and typecheck
-only. The deferral named something that was not there, which reads exactly
-like a deferral that was honoured.
+answers it*, and the answerer it names may not exist. A session narrows its
+run to one domain and defers the rest to CI, in a repository whose
+workflows assign reviewers, deploy on push to the default branch and check a
+migration graph. None runs the test suite, the default branch has no
+protection, and the pre-commit hooks are lint and typecheck only. The
+deferral names something that is not there, which reads exactly like a
+deferral that was honoured.
 
 So this resolves the common answerer. Given a repo and a kind of check, it
 reads the command lines of the CI files and the pre-commit hook, and
@@ -20,8 +20,8 @@ separates three outcomes that a reader otherwise collapses into one:
   nothing  no one runs it
 
 It reads no trigger. A workflow's `on:` key is YAML, no YAML parser ships
-with the plugin's stdlib-only scripts, and a scan of it by hand misread
-shapes YAML reads otherwise (#1167). The agent that opens the named file
+with the plugin's stdlib-only scripts, and a scan of it by hand misreads
+shapes YAML reads otherwise. The agent that opens the named file
 reads the trigger better than a scan would. `KNOWN_LIMITS` states the
 rest of what the command text leaves out.
 
@@ -98,9 +98,9 @@ def runners_in(text, kind):
     Jenkinsfile's, which is Groovy. `read` opens a file with universal
     newlines, so all three arrive here as LF, and the text is split at LF
     alone. `str.splitlines` also ends a line at U+2028, U+2029, U+0085,
-    U+000B, U+000C and U+001C to U+001E, so a runner word after one of
-    them inside a comment printed as a command line of its own; split at
-    LF, the line prints whole, comment and all, for its reader (#1167)."""
+    U+000B, U+000C and U+001C to U+001E, so split by it, a runner word after
+    one of them inside a comment would print as a command line of its own;
+    split at LF, the line prints whole, comment and all, for its reader."""
     found = []
     for line in text.split("\n"):
         stripped = line.strip().lstrip("-").strip()

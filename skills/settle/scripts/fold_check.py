@@ -3,7 +3,7 @@
 
 `skills/settle/SKILL.md` gives a document one read, and
 `skills/settle/rule-changes.md` gives the policy root one index. This is the
-reader of both, shipped (#566, #953).
+reader of both.
 
   seal fold                      every check, with the values seal/config.json states
   seal fold --ceiling N          report documents past N estimated tokens, this run
@@ -18,8 +18,8 @@ of, and anything below a group, is not read.
 **One read.** Each document whose estimate (`tokens`) is past the `Document
 token ceiling` key is named as one to split by who opens each section and at
 which step. That is a report and never a failure: the estimate is a guess from bytes, and a
-document past one tool's per-call cap is still read in more calls (the
-owner's answer of 2026-10-20).
+document past one tool's per-call cap is still read in more calls. The
+owner chose a report over a failure (#953).
 
 **One index.** Where `<policy root>/README.md` exists, each other document
 is named on exactly one row of its tables, and every row names one.
@@ -36,7 +36,7 @@ than refusing. A flag overrides its key for one run.
 
 Live lines and table rows come from `lib/lines.py` (`live_lines`,
 `split_row`) and a text's lines from `lib/blocks.py#gfm_lines`, loaded rather
-than re-spelled (#664).
+than re-spelled.
 
 Typed with no `--root`, it reads the repository the current directory is in,
 so a run from a subdirectory checks that repository and not nothing.
@@ -66,7 +66,7 @@ OPTIN = "lib/optin.py"
 
 # `lib/sibling.py` loads every other module this command reads, and an
 # absent one is its sentence and exit 2: nothing about the tree has been
-# read, and 1 is a problem found in `docs/` (#590). Where it is absent
+# read, and 1 is a problem found in `docs/`. Where it is absent
 # itself, the refusal is the same sentence about it, spelt here because the
 # file that holds the sentence is the one missing.
 sys.path.insert(0, LIB)
@@ -174,7 +174,7 @@ def why(error):
 
 
 def read(root, rel):
-    """A document's text, or `Unusable` naming it (round 1, finding 2)."""
+    """A document's text, or `Unusable` naming it."""
     try:
         with open(os.path.join(root, *rel.split("/")), encoding="utf-8") as f:
             return f.read()
@@ -240,9 +240,7 @@ def located(root):
     Through `lib/optin.py#home_at`, the way `settle.py#main` reaches it:
     the places `home_at` reads, in its order. `home_at`
     answers "" for two states, and they are given two sentences, because
-    one was false for the other: a repository that opted out HAS a root, and
-    settle met the same defect as its own round 2 finding 7 (round 1,
-    finding 3)."""
+    one is false for the other: a repository that opted out HAS a root."""
     resolver = optin()
     common = resolver.git_common_dir(root)
     home = resolver.home_at(root, common)
@@ -272,7 +270,7 @@ def declared(home):
     None for a ceiling key that is absent or empty, or `Unusable` naming
     what will not read. No root and no file are no key at all; a file
     `lib/config.py#config_pairs` refuses is `Unusable` in the reader's own
-    sentence (#867), because reading it as no key turned every check this
+    sentence, because reading it as no key would turn every check this
     command runs off at exit 0. Each value is the reader's own answer,
     `lib/config.py#config_value`, so a key written twice is `Unusable`
     rather than one of the two; the policy root is
@@ -369,8 +367,8 @@ def main(argv=None):
         # Typed anywhere inside a repository, the command reads that
         # repository, the way `seal.py` and `chain_check.py` resolve theirs.
         # Read from the directory it was typed in, a subdirectory has no
-        # `seal/` and no `docs/`, and the run passed having checked nothing
-        # (round 1, finding 1).
+        # `seal/` and no `docs/`, and the run would pass having checked
+        # nothing.
         root = optin().repo_root(root) or root
     home, where = located(root)
     try:
@@ -393,7 +391,7 @@ def main(argv=None):
         )
         return 2
     # The run's lines are held until it has a result, so a file it cannot read
-    # stops it with nothing on stdout that reads as one (round 1, finding 2).
+    # stops it with nothing on stdout that reads as one.
     out = io.StringIO()
     try:
         problems = run(root, (ceiling, policy), where, out)
@@ -409,8 +407,7 @@ def main(argv=None):
 if __name__ == "__main__":
     # The console's encoding is not UTF-8 everywhere — cp1252 on Windows —
     # and every line this prints carries an em dash, so stdio is reconfigured
-    # before `main()`, as every other shipped script does (found by CI's
-    # `windows-latest` leg after the seal).
+    # before `main()`, as every other shipped script does.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

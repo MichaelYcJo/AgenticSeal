@@ -71,9 +71,7 @@ class _LooseHeading:
 
     **Whether the line is a heading is the one rule's**, `heading_level`, at
     level 2 or 3; this decides the wording alone, a heading that mentions
-    `not verified` in any case. It was a pattern of its own, a sixth
-    spelling of the heading rule beside the one in this file (#867 round 1,
-    🟡 6). `.match` is the name `check_text` calls."""
+    `not verified` in any case. `.match` is the name `check_text` calls."""
 
     def match(self, text):
         return heading_level(text) in (2, 3) and "not verified" in text.lower()
@@ -148,7 +146,7 @@ def parse_section(body, offset):
         item, who = cells
         # One normalization for every judgment below. Reading the raw cell in
         # one place and the normalized cell in another is how a zero-width
-        # space turned a separator into an unverified item and a blank row
+        # space turns a separator into an unverified item and a blank row
         # into an open one.
         seen = [visible(c) for c in cells]
         if is_separator(seen) or is_header(seen):
@@ -213,8 +211,8 @@ def check_file(path):
     """(open, closed, errors) for one closing memo.
 
     Exactly one `## Not verified` section, spelled that way. Tolerating other
-    spellings is what makes an unknown one report zero, and this corpus had
-    more than one of them."""
+    spellings is what makes an unknown one report zero, and memos are
+    written with more than one of them."""
     try:
         with open(path, encoding="utf-8", errors="replace") as f:
             text = f.read()
@@ -236,7 +234,7 @@ def check_text(text):
 
     **A comment line is refused before any section is looked for.** The
     first line that begins with `lib/lines.py#OPENER` is refused at its line
-    (`comment_lines`, #1012). `open_record_rows` hands any refusal on as one
+    (`comment_lines`). `open_record_rows` hands any refusal on as one
     entry saying the record cannot be read, never as zero open rows."""
     lines = readable(text)
 
@@ -272,11 +270,11 @@ def open_record_rows(root, directory):
     """`[(file, what is open)]` for a work item's record on disk, DIRECTORY
     `/`-joined under ROOT.
 
-    The rows `seal settle --apply` refuses to take with a directory, and its dry
-    run lists: every open item in `gaps.md`'s `## Not verified`. Each is a claim with an answerer rather
-    than a rule, and #514's frame measured the loss this prevents — the only
-    record that a production workflow was red sat in a retiring closing memo (its
-    L2).
+    The rows `seal settle --apply` refuses to take with a directory, and its
+    dry run lists: every open item in `gaps.md`'s `## Not verified`. Each is
+    a claim with an answerer rather than a rule, and a directory taken with
+    one loses it: the only record that a production workflow is red can sit
+    in a retiring closing memo.
 
     The record is read by `check_text`, as `seal unverified` reads it. A
     closing memo whose section cannot be read is one entry saying so, never

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Does every signer still agree with the pact? Run at the pact's repository.
 
-Issue #647. A work item that commits in more than one repository, where those
+A work item that commits in more than one repository, where those
 repositories keep a contract together, keeps the one copy of that contract in
 `seal/pact.md` in one of them -- the pact's repository -- and every repository
 of the work item is a signer (`docs/layout/the-pact.md`). A signer cites each
@@ -19,7 +19,7 @@ row naming this pact against the clause as the pact holds it now.
   seal pact ROOT        the pact's repository at ROOT
 
 **Local only.** No CI runs it: a signer's pull request can read one
-repository, and this needs all of them (#647's decision 2). A signer's CI
+repository, and this needs all of them. A signer's CI
 reads nothing of the pact.
 
 ## What each frame is read for
@@ -168,13 +168,12 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     where it lies under HOME_DIR, and otherwise whole, with `/` for every
     separator.
 
-    **Every path this command prints goes through here** (#647, the separator
-    note). A sentence that joins a native absolute path with `/` prints
-    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, as the
-    `UNREADABLE` sentence once did, and a path line printed without this
-    function carries whatever separators the platform gave it. One function,
-    so the class is closed by construction rather than one sentence at a
-    time.
+    **Every path this command prints goes through here.** A sentence that
+    joins a native absolute path with `/` prints
+    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, and a path line
+    printed without this function carries whatever separators the platform
+    gave it. One function, so the class is closed by construction rather
+    than one sentence at a time.
 
     The comparison is by whole segment and literal: nothing is case-folded,
     resolved or normalised, so a path reached by another spelling of the
@@ -335,7 +334,7 @@ def near_headers(tables, text):
     each through `header_key`, are the anchor header's and that is not the
     anchor header: a table no row of which is read. Whether it meant the
     anchor table is the judgment of the person reading the report and of
-    the proofer reading the frame (#1167)."""
+    the proofer reading the frame."""
     # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
     want = tuple(map(header_key, ANCHOR_TABLE))
@@ -512,9 +511,10 @@ class History:
 
     def commits(self, *revs):
         # `--full-history`: by default git follows only the TREESAME parent
-        # of a merge, so a clause version on the side a merge did not keep
-        # vanished from HEAD's list (and `--not HEAD` kept it out of the
-        # other one), and its hash read UNMATCHED where SUPERSEDED is true.
+        # of a merge, so without it a clause version on the side a merge did
+        # not keep would vanish from HEAD's list (and `--not HEAD` would keep
+        # it out of the other one), and its hash would read UNMATCHED where
+        # SUPERSEDED is true.
         # A merge listed this way carries one parent's text, so it changes
         # no verdict.
         out = git(self.root, "rev-list", "--full-history", *revs, "--", self.rel)
@@ -578,7 +578,7 @@ def clause_hash(checker, text, clause):
     if parts is None:
         return None, "names no heading path, and a pact clause is addressed by one"
     lines = checker.gfm_lines(text)
-    # The clause's region as the checker reads a document's (#867): headings
+    # The clause's region as the checker reads a document's: headings
     # on the lines a renderer shows, the hash over the lines as written.
     regions = checker.heading_path(checker.markdown_lines(text), parts)
     if len(regions) != 1:
@@ -714,8 +714,7 @@ def check(root, out=sys.stdout, home_dir=None):
         if signer[1] == ours:
             # The owner's definition makes the pact's repository a signer
             # too, so listing it is a plausible slip; the sibling search
-            # skips this repository and would call it not found here (round
-            # 1 of #647, white 9).
+            # skips this repository and would call it not found here.
             found(
                 REFUSED,
                 written,

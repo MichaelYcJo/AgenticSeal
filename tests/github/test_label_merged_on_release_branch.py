@@ -366,10 +366,10 @@ class Test_module:
             "the reader is no longer on the module that owns the 404-tolerant "
             "read it is built on"
         )
-        # The CALL, not the word. The sibling's docstring says in prose that it
-        # used to unpack `closer._issue_api` here and now delegates, and a check
-        # on the bare name counts that sentence as the defect — which would make
-        # explaining the history the thing that fails.
+        # The CALL, not the word. The sibling's prose may name
+        # `closer._issue_api` to say what it delegates instead of calling, and
+        # a check on the bare name would count that sentence as the defect —
+        # which would make explaining the delegation the thing that fails.
         source = read(os.path.join(SCRIPTS, "label_merged_on_release_branch.py"))
         assert "_issue_api(" not in source, (
             "the sibling unpacks the private read again instead of delegating, "

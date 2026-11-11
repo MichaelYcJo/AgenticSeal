@@ -236,8 +236,8 @@ def documents(root):
     ]
     config = module(CONFIG)
     optin = module(OPTIN)
-    # The shared root's name, or `optin.HOME` where none is marked, as an
-    # unmarked `seal/` was read before the second name.
+    # The shared root's name, or `optin.HOME` where none is marked, so an
+    # unmarked `seal/` is read under the name `seal`.
     home = os.path.join(root, optin.home_name(root) or optin.HOME)
     policy = config.policy_root(home)
     if os.path.isdir(os.path.join(root, *policy.split("/"))):

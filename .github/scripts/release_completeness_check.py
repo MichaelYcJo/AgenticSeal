@@ -2,9 +2,8 @@
 """A release cannot ship while its milestone claims work the release has not
 got, or while a release named as a patch carries a `feat:`.
 
-`docs/flow.md` used to carry this as a checklist bullet — *is everything in* —
-and #351 deleted the file. This is the same question asked by the machine, at
-the release pull request, which is the last moment anybody is looking.
+*Is everything in* is asked here by the machine, at the release pull
+request, which is the last moment anybody is looking.
 
 Three sets of issue numbers, and naming them is what keeps a failure pointing
 at the right party.
@@ -13,7 +12,7 @@ at the right party.
     D   issues the release branch actually carries: its commit subjects ->
         `(#N)` -> those pull request bodies -> closing keywords
 
-        **A reverted squash stays in D**, and round 1 named it so nobody
+        **A reverted squash stays in D**, named here so nobody
         rediscovers it. The revert's own subject carries the revert pull
         request's `(#N)` and its body carries no closing keyword, so nothing
         subtracts the original claim — "actually carries" is read over the
@@ -28,7 +27,7 @@ recomputes D in full from the release branch's own range. So the refusal is
 `M \\ D` and never depends on a label write having succeeded — computing it as
 `M \\ L` would give the same answer by transitivity and blame the wrong party,
 since a release blocked by a failed label write is repaired by a person adding
-a label by hand, which is the act this whole work item removes.
+a label by hand, which is the act the signal exists to remove.
 
 What it does in each direction, and every line says which direction it is
 reporting:
@@ -42,12 +41,12 @@ reporting:
     D \\ M   reports, passes. An issue somebody closed by hand mid-release is
             in D and in no open milestone, which is ordinary tracker hygiene
 
-**A second question, from the same subjects: does a patch carry a `feat:`**
-(#1199). A `feat:` makes a minor, so a release whose version's third number
+**A second question, from the same subjects: does a patch carry a `feat:`.**
+A `feat:` makes a minor, so a release whose version's third number
 is not 0 FAILS where one of its own subjects opens with `feat:`, and the
 error names each subject and the two repairs `docs/releasing/branch-and-release.md`
 *Work accumulates on a release branch* states, each at the moment it can be
-made (#1205): before its squash, a `feat:` in a milestone numbered as a
+made: before its squash, a `feat:` in a milestone numbered as a
 patch moves to the planned minor whose goal it shares; once squashed here,
 the milestone and every later planned one are renamed one step forward and
 the branch is cut again under the new name. The reading counts that one
@@ -65,8 +64,8 @@ with the reason printed.
 Environment: every entry the step in `.github/workflows/hygiene.yml` passes,
 and the boundary is what the step must pass rather than what `os.environ`
 reads -- `GH_TOKEN` reaches this through `gh` and is an input all the same.
-Measured one entry removed at a time against a fixture branch name, exit
-codes read directly (#362):
+One entry removed at a time against a fixture branch name, with exit codes
+read directly, gives:
 
     `REPO`         exit 1   `KeyError: 'REPO'` -- loud
     `HEAD_SHA`     exit 0   the commit the range is measured TO falls back to
@@ -117,17 +116,16 @@ def merge_base(base, head="HEAD"):
     carries is what it accumulated since it was cut, and that is measured
     from the fork point.
 
-    **`head` is not `HEAD` in CI, and round 1 found that this docstring was
-    describing a protection the job did not have.** On a `pull_request` event
+    **`head` is not `HEAD` in CI.** On a `pull_request` event
     `actions/checkout` checks out the merge ref GitHub builds — the head
     merged into the base — so `HEAD` in the job already contains
     `origin/main`, `git merge-base origin/main HEAD` returns the base tip
     rather than the fork point, and the range collapses to exactly the
-    `base..HEAD` spelling `questions.md` Q8 rejected. It arrived through the
-    checkout rather than through the code, which is why every case here
-    passed. The caller passes the head commit the pull request names, so the
-    fork point survives the merge ref; a session running this by hand has no
-    such commit and gets `HEAD`, which is its own branch tip.
+    `base..HEAD` spelling the paragraph above rejects. That arrives through
+    the checkout rather than through the code, so a case over the code alone
+    passes with it. The caller passes the head commit the pull request
+    names, so the fork point survives the merge ref; a session running this
+    by hand has no such commit and gets `HEAD`, which is its own branch tip.
     """
     return closer.run("git", "merge-base", base, head).strip()
 
@@ -146,26 +144,24 @@ def milestone_titles(repo):
     """Every milestone this repository has, open or closed.
 
     Asked for separately because `gh issue list --milestone` answers a title
-    nothing has with an empty list and exit 0 — measured. Without this read a
+    nothing has with an empty list and exit 0. Without this read a
     mistyped or absent milestone would make the whole check pass while
     verifying nothing, which is the one direction a checker of claims must
     not fail in.
 
-    `--paginate` closes that same fail-open one level down, and round 1 found
-    it open. `per_page` caps at 100, so an unpaginated read of a repository
-    with more milestones than that leaves the title off the page and this
-    function reports it absent — the hole it exists to close, arriving
-    through it. 33 here today, so it is reachable by growth rather than now.
+    `--paginate` closes that same fail-open one level down. `per_page` caps
+    at 100, so an unpaginated read of a repository with more milestones than
+    that leaves the title off the page and this function reports it absent
+    — the hole it exists to close, arriving through it.
 
-    **No `--jq`, and the reason is measured rather than assumed.** The fix
-    round 1 offered added `--jq .[].title` on the grounds that `--paginate`
-    over an array endpoint concatenates arrays into something `json.loads`
-    refuses. On gh 2.92 it does not: `--paginate` MERGES the pages into one
-    array, and `per_page=2` — seventeen pages — comes back as a single list
-    of 33 that `json.loads` accepts. So the flag would have been added on a
-    false premise. A gh old enough to concatenate would make `json.loads`
-    raise, which is loud and is the direction this function is for; what it
-    would never do is quietly return a short list.
+    **No `--jq`, and the reason is measured rather than assumed.**
+    `--jq .[].title` would be owed only if `--paginate` over an array
+    endpoint concatenated arrays into something `json.loads` refuses. On gh
+    2.92 it does not: `--paginate` MERGES the pages into one array, and
+    `per_page=2` — seventeen pages — comes back as a single list of 33 that
+    `json.loads` accepts. A gh old enough to concatenate would make
+    `json.loads` raise, which is loud and is the direction this function is
+    for; what it would never do is quietly return a short list.
     """
     out = closer.run(
         "gh", "api", "--paginate", f"repos/{repo}/milestones?state=all&per_page=100"
@@ -175,7 +171,7 @@ def milestone_titles(repo):
 
 def open_in_milestone(repo, title):
     """M. `gh issue list` and not the REST `/issues` endpoint: REST counts a
-    pull request as an issue and `gh issue list` does not — measured, and it
+    pull request as an issue and `gh issue list` does not, and that
     matters because a pull request in the milestone could never carry
     `merged: X.Y.Z` and would block the release with nothing anyone could
     do about it."""

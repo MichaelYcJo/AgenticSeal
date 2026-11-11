@@ -5,11 +5,9 @@ Three readers decide from a markdown file what a person or a party declared:
 `lib/tables.py` (a record's table, through `seal pact` and `seal settle`,
 and an earlier release's `config.md`, through `seal mode`), `lib/routing.py`
 (the routing declaration, on every commit and at the pull request) and
-`lib/fields.py` (the `seal` blocks of a work item's records, #1198). A row
+`lib/fields.py` (the `seal` blocks of a work item's records). A row
 quoted in a fenced example, or parked in an HTML comment, is not a row
-anybody gave, and each reader used to decide that by a rule of its own or
-by none (#667, #658).
-This is the one walk they read.
+anybody gave, and this is the one walk all three read to tell it apart.
 
 **What it models: two block constructs, by CommonMark's own block rules.**
 
@@ -18,7 +16,7 @@ This is the one walk they read.
      info string, and a closer of the same character at least as long with
      nothing after it but spaces. `fence_opener` and `fence_closes` below are
      that rule, written once: `lib/lines.py` imports it beside it, and the
-     record readers ask this copy (#1005).
+     record readers ask this copy.
   2. An HTML comment block (4.6, type 2): a line that begins with `<!--`, to
      the first line holding `-->`, which may be the start line itself.
 
@@ -26,9 +24,9 @@ They are walked in one pass, in document order, and a start is looked for
 only on a line outside both. Inside a fence nothing but its closer is read;
 inside a comment block nothing but `-->`. Both start conditions and both end
 conditions are properties of one line, and CommonMark decides block structure
-before it parses anything inline, which is why these two can be exact where
-the readings before this one could not: a code span or a mid-line `<!--` can
-never hide a fence line or a comment-block line.
+before it parses anything inline, which is why these two can be exact: a
+code span or a mid-line `<!--` can never hide a fence line or a
+comment-block line.
 
 **A construct that never closes is not a construct.** Its start line is read
 as an ordinary line and the walk goes on. A renderer hides everything below
@@ -45,11 +43,11 @@ its quoted values followed across lines and the walk follows nothing inline.
 The same holds for a piece of a line (below) that starts inside one.
 
 **Where the walk does not know, it says so, and it decides nothing.** Every
-line carries an `uncertain` flag, and a reader reads an uncertain line exactly
-as it did before this module existed -- its BASE reading. That is the whole
-safety argument: on every line the reader's answer is either its old one or
-the renderer's, never a third. The contexts the walk calls uncertain, and why
-it cannot be exact there:
+line carries an `uncertain` flag, and a reader reads an uncertain line by
+its own rule alone, without this walk -- its BASE reading. That is the
+whole safety argument: on every line the reader's answer is either its base
+reading or the renderer's, never a third. The contexts the walk calls
+uncertain, and why it cannot be exact there:
 
   - from the first construct-looking line that stands inside a container --
     indented, after a `>` or after a list marker -- or that starts some other
@@ -61,22 +59,22 @@ it cannot be exact there:
     answers (above);
   - the paragraph lines after inline raw HTML a line leaves open -- a
     comment, CDATA, a processing instruction, a declaration or a tag -- and
-    a piece of a line that starts inside it (above; #667 round 2, #673);
+    a piece of a line that starts inside it (above);
   - a line behind a container's marker (`>`, a bullet, a number), a line
     indented four columns or more, and a blank line after either: any of
     them may be part of an indented code block, and `-     code` is one
     whose indentation only the marker's column decides.
 
-**A line is a line where GFM ends one, at LF, CR or CRLF** (#667 round 1,
-🟡 1). The readers split with `str.splitlines`, which also ends a line at
+**A line is a line where GFM ends one, at LF, CR or CRLF.** The readers
+split with `str.splitlines`, which also ends a line at
 U+2028, NEL, a form feed and five more characters; `walk_text` walks the
 file's own lines and answers for each reader line by the line it starts in.
 
 `tests/lib/test_blocks.py`'s `Test_walk_text` holds this to a
 CommonMark parser that shares nothing with it: on every line the walk does
-not call uncertain, over the frame's shapes and a seeded generated corpus,
-the walk and the parser agree. A context is taken off the list above only
-with that case green on documents that hold it.
+not call uncertain, over that file's named shapes and a seeded generated
+corpus, the walk and the parser agree. A context is taken off the list
+above only with that case green on documents that hold it.
 
 Standard library only, and it imports nothing: every reader of a record
 loads it, where loading a skill module would cost each of them a load.
@@ -88,15 +86,14 @@ import re
 # spaces of indentation, then a run of three or more backticks or three or
 # more tildes, then the info string. Four or more spaces is an indented code
 # block instead and never a fence, and reading one as a delimiter inverts the
-# fence state for the rest of the file (#491).
+# fence state for the rest of the file.
 #
 # **Three or more, and tildes as well as backticks, is a decision with
 # grounds.** This repository's own records wrap a fenced example in FOUR
-# backticks -- #429's body and `trail/rounds/round-3-report.md` both do -- and
-# that is exactly the text somebody would paste into a markdown file to
-# document the format. A rule that knew three backticks only would read the
-# inner fence as the outer one's close and leave the live table inside a
-# fence.
+# backticks, and that is exactly the text somebody would paste into a
+# markdown file to document the format. A rule that knew three backticks
+# only would read the inner fence as the outer one's close and leave the live
+# table inside a fence.
 FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
 
 OPENER = "<" + "!--"
@@ -108,17 +105,15 @@ LIVE, FENCED, COMMENTED = "live", "fence", "comment"
 # `>`, a list item's bullet or number. What follows it is what the line is.
 # A list marker needs a space, a tab or the line's end after it; a block
 # quote's `>` needs nothing (CommonMark 5.1: the space after it may be
-# omitted), so `>` followed by a fence run is a fence inside a quote (#667
-# round 1, 🟡 2).
+# omitted), so `>` followed by a fence run is a fence inside a quote.
 CONTAINER = re.compile(r"^(?:[ \t]*(?:>|(?:[-+*]|\d{1,9}[.)])(?=[ \t]|$)))*[ \t]*")
 
 # A line as GFM ends it: at LF, CR or CRLF, and nowhere else. `str.splitlines`
 # also ends one at U+2028, U+2029, NEL, a form feed, a vertical tab and
 # `\x1c` to `\x1e`, and a `<!--` or a fence run after one of those starts a
-# line for that split and no line for a renderer (#667 round 1, 🟡 1; #664's
-# class). This and `gfm_lines` are the one line split every reader of
-# markdown or record text reads its lines through; `lib/lines.py`
-# imports them beside it (#1005).
+# line for that split and no line for a renderer. This and `gfm_lines` are
+# the one line split every reader of markdown or record text reads its lines
+# through; `lib/lines.py` imports them beside it.
 GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
 # What a line that starts a block this walk does not follow looks like, once
 # the container run is taken off: a fence run, or any HTML start.
@@ -163,11 +158,9 @@ def fence_only(lines):
     None) -- the fence rule alone, a block that never closes running to the
     end of the file.
 
-    This is not the walk. It is the reading the table walker, now
-    `lib/tables.py`, gave every line before #667, and it stays because that
-    reader's base reading is what an uncertain line gets:
-    `lib/tables.py#hidden_lines`' docstring says why a row below a fence
-    nobody closed stays hidden.
+    This is not the walk. It is `lib/tables.py`'s base reading, which an
+    uncertain line gets: `lib/tables.py#hidden_lines`' docstring says why a
+    row below a fence nobody closed stays hidden.
     """
     hidden, opener, opened_at = set(), None, None
     for index, raw in enumerate(lines):
@@ -212,7 +205,7 @@ def leaves_open(text):
 # CDATA section, a processing instruction, a declaration, or an open or
 # closing tag. A comment's `<!--` matches none of the four; `leaves_open`
 # reads it. Each can run past a line ending inside its paragraph and hide
-# what it holds, as a comment can (#673).
+# what it holds, as a comment can.
 INLINE_HTML = re.compile(r"<(?:(!\[CDATA\[)|(\?)|(![A-Za-z])|/?[A-Za-z])")
 # A tag's end: the first `>` outside a quoted attribute value.
 TAG_END = re.compile(r"""(?:[^>"']|"[^"]*"|'[^']*')*>""")
@@ -248,13 +241,13 @@ class Walk:
 
     kinds      LIVE, FENCED or COMMENTED: what the walk says the line is
     uncertain  True where the walk does not know, and a reader must read
-               the line as it did before
+               the line by its base reading
     unclosed   the index of every fence opener that never closes, which
                the walk read as an ordinary line
     opens      {index: info} for every fence the walk paired, keyed by its
                opener's line, the info string being the text after the
                opener's run as written; `lib/fields.py` reads a
-               `seal` block by it (#1198). A fence's lines run from its
+               `seal` block by it. A fence's lines run from its
                opener to the line before the next FENCED run's start or
                the first line that is not FENCED
     """
@@ -268,7 +261,8 @@ class Walk:
     def hidden(self, base=()):
         """{index: kind} of the lines a reader hides: the walk's answer where
         it knows, and where it does not, the lines of BASE -- the reader's own
-        reading before #667, as {index: kind} or a set of fenced indices."""
+        reading by its rule alone, as {index: kind} or a set of fenced
+        indices."""
         if not isinstance(base, dict):
             base = dict.fromkeys(base, FENCED)
         out = {}
@@ -406,16 +400,16 @@ def _starts(pieces):
 def walk_text(text):
     """The walk over TEXT, answered for each line of `text.splitlines()`.
 
-    **Every reader splits with `str.splitlines`, and the walk must not**
-    (#667 round 1, 🟡 1). A reader's grammar keeps its own lines -- which
+    **Every reader splits with `str.splitlines`, and the walk must not.**
+    A reader's grammar keeps its own lines -- which
     lines form a table is not this module's question -- but whether a line
     stands in a fence or a comment is a renderer's, and a renderer ends a line
     at LF, CR and CRLF alone. So the walk reads `gfm_lines(text)`, and each
     reader line takes the answer of the GFM line it starts in: a piece of a
     hidden line is hidden, a piece of a shown line is shown unless the line
-    opened inline raw HTML before it and left it open -- a comment (#667
-    round 2) or CDATA, a processing instruction, a declaration or a tag
-    (#673); then a renderer hides the piece, and the walk calls it
+    opened inline raw HTML before it and left it open -- a comment or CDATA,
+    a processing instruction, a declaration or a tag; then a renderer hides
+    the piece, and the walk calls it
     uncertain -- and a piece of a line the walk is not sure of keeps its
     reader's base reading.
     An unclosed fence opener, and a paired one in `opens`, is reported at the
@@ -435,7 +429,7 @@ def walk_text(text):
             line += 1
         at_start = start == renderer_starts[line]
         # A piece that starts inside inline raw HTML its own line opened -- a
-        # comment (#667 round 2) or any other kind (#673) -- is hidden by a
+        # comment or any other kind -- is hidden by a
         # renderer while the line is shown, so the walk is not sure of it and
         # the reader keeps its base reading. At a line's start the text
         # before the piece is empty and opens nothing.

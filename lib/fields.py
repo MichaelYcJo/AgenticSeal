@@ -1,5 +1,5 @@
 """The one reader and the one spelling of the `seal` blocks a work item's
-records hold their fields in (#1198).
+records hold their fields in.
 
 A field a script reads in a round record, in `guarantee.md` or in
 `trail/gate.md` stands inside a `seal` block and nowhere else. A block is a
@@ -9,8 +9,8 @@ and every HTML comment block, whose opener is a line of three backticks then
 CommonMark closes it. Each line inside it is `<key>: <value>`, or `<key>:`
 where the value's shape takes nothing, with the key spelt as `Kind` below
 spells it; the first line's key names the block's kind among the kinds the
-record holds. This module is the one statement of that grammar, as #1198
-drew it, and a change to it is an edit here.
+record holds. This module is the one statement of that grammar, and a
+change to it is an edit here.
 
 `read` returns each block whose every line parses, each refusal and each
 notice, each refusal and notice at its 1-based line:
@@ -22,8 +22,8 @@ notice, each refusal and notice at its 1-based line:
             opening with no kind's key: the block is read no further and
             is not returned. Outside every block: a fence that never closes,
             at its opener, since a renderer hides every line after it; a
-            line that begins `<!--`, since a record carries no HTML comment
-            (#1012); and a fence line the walk cannot place, because a line
+            line that begins `<!--`, since a record carries no HTML
+            comment; and a fence line the walk cannot place, because a line
             above it opens an HTML block or a fence stands in a list item, a
             block quote or an indent, so no block from there on is read
   named     a fence outside every fence whose info string's first word,
@@ -123,12 +123,10 @@ class Kind:
         return f"Kind({self.name!r})"
 
 
-# The kinds. Each value's shape is the `Shape` cell the round record's
-# grammar table in `docs/the-review-record.md` gave its label before #1198,
-# and `verdict:` takes no `open`: a finding with no close block is open.
-# A finding's `severity:` and `evidence:` and a close's `answer:` take any
-# text, and the last two may be left out: no script decides on their values,
-# and `seal pr-body` copies each block whole (#1319).
+# The kinds. `verdict:` takes no `open`: a finding with no close block is
+# open. A finding's `severity:` and `evidence:` and a close's `answer:` take
+# any text, and the last two may be left out: no script decides on their
+# values, and `seal pr-body` copies each block whole.
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,
@@ -187,8 +185,9 @@ CLOSE_BLOCK = Kind(
         ),
     },
 )
-# `none` reads for a record written before #1319, which took it out of the
-# template: a claim that matched with no earlier finding to name is prose.
+# `none` reads for a record written from an earlier release's template,
+# which offered it. The template offers no `none`: a claim that matched with
+# no earlier finding to name is prose.
 CONFIRMATION_BLOCK = Kind(
     "confirmation",
     {

@@ -5,8 +5,7 @@ Between a work item squashing into `release/vX.Y.Z` and the release reaching
 `main`, a finished ticket is indistinguishable from one nobody has started:
 an issue's state does not move until `main` moves, and `main` moves once per
 release. A person reading the milestone mid-release cannot tell the two
-apart, and the checklist line that used to tell them apart went with the file
-it lived in (#351, #359).
+apart.
 
 So this runs when a release branch moves. It reads the pull request numbers
 out of the commit subjects that arrived, fetches those pull request bodies,
@@ -34,8 +33,8 @@ adds no second closer.
 a read says it is absent, and added to an issue only after a read says that
 issue does not carry it. That is not tidiness -- it is what makes a re-run of
 a push, or a re-push, a no-op *by construction* rather than by assuming what
-GitHub does with a duplicate label. Nobody here has run that assumption
-(`questions.md` Q6), and this way nobody has to.
+GitHub does with a duplicate label. Nobody here has tested that assumption,
+and this way nobody has to.
 
 **A `(#N)` that names no pull request is skipped, not fatal**, and so is a
 number naming no issue at all -- both for the reasons
@@ -74,9 +73,8 @@ closer = sibling.load(".github/scripts/close_issues_on_release.py")
 # --- the name mapping -----------------------------------------------------
 #
 # branch `release/vX.Y.Z` -> version `X.Y.Z` -> milestone `release: X.Y.Z`
-# -> label `merged: X.Y.Z`. Four spellings of one fact, and until these
-# functions existed the chain was written out by hand at each end. They live
-# here, in the first of the two scripts to exist, and
+# -> label `merged: X.Y.Z`. Four spellings of one fact, written once: these
+# functions live here, and
 # `release_completeness_check.py` loads them: one source, the way both
 # scripts take their readers from one source.
 
@@ -98,9 +96,9 @@ def label_name(version):
 # The most characters GitHub accepts in a label's description. The number is
 # GitHub's, not this repository's: `gh label create` with a longer one is
 # refused with `HTTP 422 ... description is too long (maximum is 100
-# characters)`, which is how `size: now`'s 119-character description failed
-# the close-issues workflow after a release and skipped the step behind it
-# (#515). Every description this directory sends to `gh label create` is held
+# characters)`, and a 119-character description sent there fails the
+# close-issues workflow after a release and skips the step behind it.
+# Every description this directory sends to `gh label create` is held
 # under it by a case, so an over-long one is refused by the suite before a
 # merge rather than by the tracker after one. Raising it does not make a longer
 # description fit; it moves the refusal back to the tracker.
@@ -134,14 +132,12 @@ def label_description(version):
 def issue_labels(repo, number):
     """(label names, exists) for an issue, or ([], False) if there is none.
 
-    This used to unpack `closer._issue_api` here, which was correct while
-    this was the only caller. It is not any more: `close_issues_on_release.py`
-    reads an issue's labels too, to take a spent `size: now` off the issue it
-    is closing. So the reader moved to the module that owns the 404-tolerant
-    read it is built on, and this is the delegation -- one source, the way
-    both scripts take `MERGED_PR`, `keywords_in`, `pull_request_body` and
-    `arrived` from one source. The name stays here so nothing calling it had
-    to change.
+    `close_issues_on_release.py` reads an issue's labels too, to take a
+    spent `size: now` off the issue it is closing, so the reader lives on
+    that module, which owns the 404-tolerant read it is built on, and this
+    is the delegation -- one source, the way both scripts take `MERGED_PR`,
+    `keywords_in`, `pull_request_body` and `arrived` from one source. The
+    name stays here, so a caller of this module reads labels through it.
     """
     return closer.issue_labels(repo, number)
 
