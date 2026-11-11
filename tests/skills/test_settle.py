@@ -1782,6 +1782,104 @@ class Test_main:
             "`seal settle --all-earlier` reads them"
         ), earlier_block(text)
 
+    def test_a_removing_commit_that_deleted_two_plans_is_one_commit_of_the_window(
+        self, repo, capfd
+    ):
+        """#1481, design *Scope* items 1 and 2. The window and the line
+        count commits, never plans: a commit that deleted two plans is one
+        removing commit, so both its plans are read beside the newest
+        commit's, and the one oldest commit is counted once. Seen red with
+        the removing commits listed once per plan."""
+        removed_plan(
+            repo,
+            "1700000001-oldest",
+            judgments_plan([("2026-10-01", "oldest", "y", "z")]),
+            "the oldest work item (#1)",
+            "settle 0.1.0 (#11)",
+        )
+        for name in ("1700000002-a", "1700000003-b"):
+            write(
+                repo / "seal" / "threads" / name,
+                "frame/plan.md",
+                judgments_plan([("2026-10-02", name, "y", "z")]),
+            )
+        commit(repo, "the two work items (#2)")
+        git(repo, "rm", "-rq", "seal/threads")
+        commit(repo, "settle 0.2.0 (#12)")
+        removed_plan(
+            repo,
+            "1700000004-newest",
+            judgments_plan([("2026-10-04", "newest", "y", "z")]),
+            "the newest work item (#4)",
+            "settle 0.3.0 (#14)",
+        )
+        released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = earlier_block(text)
+        for judged in ("newest", "1700000002-a", "1700000003-b"):
+            assert f"  {judged}\n" in block, block
+        assert "  oldest\n" not in block, block
+        assert block.endswith(
+            "\n\n1 older commit removed plans this section did not read; "
+            "`seal settle --all-earlier` reads them"
+        ), block
+
+    def test_prints_the_section_where_it_holds_only_the_line_of_older_commits(
+        self, repo, capfd
+    ):
+        """#1481, design *Scope* item 2. Where the plans the window reads
+        hold no row, the section is still printed, holding only the line
+        that counts the older removing commits, so the settling session
+        learns that rows stand past the window. Seen red with that line
+        alone left out of what prints the section."""
+        removed_plan(
+            repo,
+            "1700000001-old",
+            judgments_plan([("2026-10-01", "old", "y", "z")]),
+            "the old work item (#1)",
+            "settle 0.1.0 (#11)",
+        )
+        for n in (2, 3):
+            removed_plan(
+                repo,
+                f"170000000{n}-bare",
+                "# Implementation Plan: x\n",
+                f"the bare work item {n} (#{n})",
+                f"settle 0.{n}.0 (#{n + 10})",
+            )
+        released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert earlier_block(text) == (
+            "\n1 older commit removed plans this section did not read; "
+            "`seal settle --all-earlier` reads them"
+        ), text
+
+    def test_a_batched_read_that_fails_keeps_the_line_of_older_commits(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1481, design *Scope* items 2 and 6. The deletions' `git log`
+        counted the removing commits before the plans' texts were asked, so
+        where `git cat-file --batch` fails, the section names the failure,
+        prints no row, and still counts the older removing commit. Seen red
+        with the failure branch returning no count."""
+        three_removals(repo)
+        real = settle.git_run
+
+        def git_run(root, *args, given=None):
+            if args[0] == "cat-file":
+                raise RuntimeError("git said no")
+            return real(root, *args, given=given)
+
+        monkeypatch.setattr(settle, "git_run", git_run)
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert earlier_block(text) == (
+            "    not read: git said no\n\n1 older commit removed plans this "
+            "section did not read; `seal settle --all-earlier` reads them"
+        ), earlier_block(text)
+
     def test_all_earlier_reads_the_plans_of_every_removing_commit(self, repo, capfd):
         """#1481, design S2. Under `--all-earlier` the section prints the
         rows of every removing commit's plans, newest first, and no line of
