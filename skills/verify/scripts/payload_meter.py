@@ -5,19 +5,18 @@ of, and what it costs in tokens.
 Every spawn of an agent this plugin defines pays for the same prefix again:
 the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and the
-user's, in the config directory in use, `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`,
-#1367) with every file their `@` lines import, up to four hops
-(`imports_of`, #1177). The prefix is cached for five minutes, and no two
-spawns of one agent in a review chain fall inside five minutes of each other
-(#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
+user's, in the config directory in use, `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`)
+with every file their `@` lines import, up to four hops (`imports_of`). The
+prefix is cached for five minutes, and no two spawns of one agent in a
+review chain fall inside five minutes of each other — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
 
 A session pays for a prefix of its own, which `session_composition` lists in
 a table before the agents': the same `CLAUDE.md` pair with its imports, and
 the core the plugin's `SessionStart` hook prints, counted as
-`lib/core.py#rendered` for the measured tree's core (#1177, #1430). The
-hook's output reaches the session and no subagent (#1177's probe of a plugin
-`SessionStart` hook), so no agent's table carries it.
+`lib/core.py#rendered` for the measured tree's core. A probe of a plugin
+`SessionStart` hook shows its output reaching the session and no subagent,
+so no agent's table carries it.
 
   bytes, chars    counted from the files.
   tokens          NEVER counted. Every file's token figure, the session's
@@ -60,7 +59,7 @@ LIB = os.path.join(HERE, "..", "..", "..", "lib")
 # `lib/sibling.py` loads every other module this command reads, and an
 # absent one is its sentence and exit 2: here 1 means an input that could
 # not be measured, and a copy of this script taken without its siblings is
-# a broken plugin copy, where nothing ran (#610). Where it is absent itself,
+# a broken plugin copy, where nothing ran. Where it is absent itself,
 # the refusal is the same sentence about it, spelt here because the file
 # that holds the sentence is the one missing.
 sys.path.insert(0, LIB)
@@ -88,11 +87,11 @@ BASIS = f"estimated ({ASSUMED_RATIO} B/token, an assumed ratio)"
 # A `CLAUDE.md` import, `imports_of`'s reading of it: `@` at the start of a
 # line or after whitespace, then a path a quote or a backtick does not open,
 # which runs to the next whitespace except a space with a backslash before
-# it. That path group is Claude Code's own (#1185). `imports_of` runs it over
-# each live piece of a line, with the line's offsets, so the lookbehind still
-# sees the character before the piece. Then the hops the harness follows
-# (code.claude.com/docs/en/memory.md, read for #1177 and #1185); and what
-# joins an imported row's name to its importer's.
+# it. That path group is Claude Code's own. `imports_of` runs it over each
+# live piece of a line, with the line's offsets, so the lookbehind still sees
+# the character before the piece. Then the hops the harness follows
+# (code.claude.com/docs/en/memory.md); and what joins an imported row's name
+# to its importer's.
 IMPORT = re.compile(r"(?:^|(?<=\s))@(?![\"'`])((?:[^\s\\]|\\ )+)")
 HOPS = 4
 ARROW = " → "
@@ -109,8 +108,7 @@ def _fence_rule():
 
 def _line_reader():
     """`lib/lines.py`, for the scan of fences, HTML comments and code spans
-    `imports_of` asks for each `CLAUDE.md` and imported file that exists
-    (#1185)."""
+    `imports_of` asks for each `CLAUDE.md` and imported file that exists."""
     return sibling.load("lib/lines.py")
 
 
@@ -132,8 +130,8 @@ def _shown(path):
     """The path relative to the working directory where that spelling
     exists, else as given. A relative spelling is a courtesy: on Windows
     `relpath` raises `ValueError` for a path on another drive than the
-    working directory (#329's Windows leg — the pytest temp dir on `C:`, the
-    checkout on `D:`), and a meter that dies there has measured nothing."""
+    working directory (the pytest temp dir on `C:`, the checkout on `D:`),
+    and a meter that dies there has measured nothing."""
     try:
         return os.path.relpath(path)
     except ValueError:
@@ -145,15 +143,15 @@ def frontmatter(text):
 
     `skills:` is read in every spelling YAML gives the same list: a block
     sequence, indented or not, and the flow form on one line — `[a, b]` or
-    `a, b`. The one-line form used to read as no skills at all, silently, so
-    the meter measured such a definition as its whole payload and the check
-    that shares this parser had nothing to check (#292 round 1).
+    `a, b`. Read as no skills at all, the one-line form would have the meter
+    measure such a definition as its whole payload, silently, and leave the
+    check that shares this parser nothing to check.
 
     A line ends at LF, CR or CRLF, YAML 1.2's line breaks. `read` decodes
     the bytes as they are, so the text is taken through universal newlines
     here and split at LF alone, as `deferral_check.py#runners_in` splits,
     and an entry holding U+2028, which `str.splitlines` also ends a line
-    at, reads whole (#1198)."""
+    at, reads whole."""
     name, skills = None, []
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     if not text.startswith("---"):
@@ -201,10 +199,9 @@ def file_row(root, rel, display, share):
 
 def imports_of(path, home, depth=HOPS, seen=None):
     """`[(chain, real_path)]`: every file the file at `path` imports, depth
-    first, as code.claude.com/docs/en/memory.md resolves them (#1177,
-    `frame/design.md` *Scope* item 5).
+    first, as code.claude.com/docs/en/memory.md resolves them.
 
-    An import is read in the file's live text alone (#1185), the docs'
+    An import is read in the file's live text alone, the docs'
     "Import parsing skips Markdown code spans and fenced code blocks". Live
     text is text outside a fenced code block, an HTML comment and a code
     span, as `lib/lines.py#live_pieces` places them with spans read
@@ -226,10 +223,11 @@ def imports_of(path, home, depth=HOPS, seen=None):
     `missing`, and is not followed.
 
     **What this does not model.** Claude Code 2.1.318's reader goes past
-    its docs, and the meter follows the docs (#1185, `frame/questions.md`
-    Q1). The harness also reads no import in an indented code block, in an
-    HTML block other than a comment or in a YAML frontmatter block, and the
-    meter reads one in each. The harness cuts a path at its first `#`, and
+    its docs, and the meter follows the docs, so a later Claude Code release
+    cannot make the meter wrong where the docs did not move. The harness
+    also reads no import in an indented code block, in an HTML block other
+    than a comment or in a YAML frontmatter block, and the meter reads one
+    in each. The harness cuts a path at its first `#`, and
     the meter keeps the `#` and what follows it. The harness refuses a path
     by its first character and skips an imported file whose extension is
     not text, and the meter follows either.
@@ -285,7 +283,7 @@ def imports_of(path, home, depth=HOPS, seen=None):
 
 def user_dir(home, config):
     """`(directory, label)`: the user's config directory, where Claude Code
-    keeps the user's `CLAUDE.md` and user skills (#1367), and the label its
+    keeps the user's `CLAUDE.md` and user skills, and the label its
     rows carry. `config` is `CLAUDE_CONFIG_DIR` as the caller read it; where
     it is `None` or empty, the directory is `home`'s `.claude`, labelled
     `~/.claude`, as the shell's `${CLAUDE_CONFIG_DIR:-$HOME/.claude}` reads
