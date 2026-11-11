@@ -54,8 +54,7 @@ def test_the_crafters_definition_names_the_command_and_its_flag():
     # The `seal mutate` command line with its `--replace` and `--tests`
     # arguments, which the crafter copies for each unit it mutates.
     # Any runner: the definition ships to repositories with no `bin/test`,
-    # and `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it
-    # to naming none.
+    # so the pattern names none.
     assert re.search(r"seal mutate \S+ --replace .+? --tests \"", crafter), (
         "`agents/crafter.md` does not show the mutation loop as one command, "
         "with its replacement and the cases it runs"

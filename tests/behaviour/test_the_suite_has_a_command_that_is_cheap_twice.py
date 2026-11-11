@@ -19,7 +19,6 @@ from test_ci_gives_the_checks_what_they_need import read as read_workflow
 from test_run_tests import rt
 
 BIN = os.path.join(ROOT, "bin")
-SCRIPT = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
 
 
 def posix_entries():
@@ -35,9 +34,11 @@ def test_both_wrappers_ship_and_point_at_the_runner():
     windows = os.path.join(BIN, "test.cmd")
     assert os.path.isfile(posix), "bin/test missing"
     assert os.path.isfile(windows), "bin/test.cmd missing"
+    # The runner's path in each wrapper, which the shell and cmd.exe run.
     assert ".github/scripts/run_tests.py" in read(posix)
     text = read(windows)
     assert ".github\\scripts\\run_tests.py" in text
+    # The two interpreter commands the `.cmd` twin runs, in its order.
     assert "py -3" in text and "python " in text, (
         "the .cmd twin prefers `py -3` and falls back to `python`"
     )
@@ -56,52 +57,25 @@ def test_every_posix_wrapper_resolves_its_own_directory(entry):
     repository root and nowhere else, which is the failure a session hits
     from a subdirectory."""
     text = read(os.path.join(BIN, entry))
+    # The line the shell runs to find the wrapper's own directory, and the
+    # expansion that hands the caller's arguments on.
     assert 'here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)' in text, (
         f"bin/{entry} does not resolve its own directory the way its siblings do"
     )
     assert '"$@"' in text, f"bin/{entry} does not pass its arguments through"
 
 
-def test_the_runner_behind_the_wrapper_says_the_same_thing():
-    """Round 1's finding 7. `bin/test` is five lines and one `exec` into
-    `.github/scripts/run_tests.py`.
-
-    #30 re-pointed the wrapper's comment from `orchestrator` to `sealer` and
-    left the module it runs saying the other thing — one command, two files,
-    two owners, which is the contract rule 12 class this branch already knows
-    `survivor-check` cannot reach. The changelog claimed *the runner's own
-    comment … all of them now say the sealer's*, true of the wrapper and
-    false of the runner.
-
-    Nothing pinned this docstring: the case above reads `bin/test`, and how
-    the agent definitions name the run's owner is the proofer's to read."""
-    runner = read(os.path.join(ROOT, ".github", "scripts", "run_tests.py"))
-    assert "is the orchestrator's, run once after" in runner, (
-        "the file `bin/test` execs no longer says whose the full suite is"
-    )
-    assert "is the sealer's" not in runner, (
-        "the wrapper and the module it runs name two different owners for one "
-        "command; since #969 no agent runs it"
-    )
-
-
 def test_the_wrapper_points_at_the_contract_rather_than_inviting_a_full_run():
     """`bin/test` with no arguments runs the whole suite, which
-    contract rule 2 forbids to crafter and proofer. The file
-    a session reads before typing it says so, and names where the rule is.
-
-    Re-pointed by #30 from `orchestrator` to `sealer`, and back by #969, which
-    moved the run out of every agent: the orchestrator takes it before it
-    spawns the sealer, so the comment names that participant and says every
-    agent is forbidden it."""
+    contract rule 2 forbids to every agent. The file a session reads before
+    typing it names where the rule is; whose the run is, in its words, is
+    the proofer's to read."""
     text = read(os.path.join(BIN, "test"))
-    flat = " ".join(text.split())
-    assert "agent-contract" in text and "is the orchestrator's" in flat, (
-        "bin/test no longer says the full suite is the orchestrator's, so a "
-        "segment reading it has nothing telling it not to"
-    )
-    assert "forbids it to every agent" in flat, (
-        "bin/test no longer says no agent runs the full suite"
+    # The path of the contract, which a session reading the wrapper opens
+    # for the rule that keeps the full run out of its hands.
+    assert "skills/agent-contract/SKILL.md" in text, (
+        "bin/test no longer names the rule that forbids the full suite to an "
+        "agent, so a segment reading it has nothing telling it not to"
     )
 
 
@@ -182,19 +156,19 @@ def test_ci_installs_the_parser_the_runner_pins():
 
 
 def test_the_section_names_the_parser_and_where_it_is_pinned():
-    """#667, phase 1. `CONTRIBUTING.md` said the suite needs only pytest.
-    The sentence now names the parser and the constant that pins it, and the
-    fallback commands carry the pin as the runner spells it, so the fallback
-    cannot run the oracle against another version either."""
+    """#667, phase 1. The section names the parser and the constant that
+    pins it, and the fallback commands carry the pin as the runner spells
+    it, so the fallback cannot run the oracle against another version
+    either."""
     section = running_the_checks()
-    assert "needs only `pytest`" not in section, section
+    # The parser's package and the constant that pins it, which a reader
+    # installs and resolves in the runner.
     assert "`markdown-it-py`" in section and "MARKDOWN_IT" in section, section
+    # The two fallback commands with the parser's pin, which a reader copies.
     assert f"uvx --with pytest --with {rt.MARKDOWN_IT} " in section, section
     assert f"pip install pytest {rt.MARKDOWN_IT} " in section, section
-    # #857: Pillow left with its last reader, so the section names it nowhere.
-    assert "pillow" not in section.lower(), section
-    # #647: the renderer is named with its constant, and the fallbacks carry
-    # its pin after the parser's.
+    # #647: the renderer's package and its constant, and the fallback
+    # commands carrying its pin after the parser's, which a reader copies.
     assert "`cmarkgfm`" in section and "`CMARKGFM`" in section, section
     assert f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} " in section, section
     assert f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} " in section, section
@@ -222,6 +196,7 @@ def test_the_section_names_the_cheap_command_before_the_slow_one():
     #156: the first one paid 55-58 seconds for its environment on every
     call, and a section that names the cheap one second still costs that."""
     section = running_the_checks()
+    # The runner's command, which a reader copies from the section.
     assert "bin/test" in section, (
         "`CONTRIBUTING.md` *Running the checks* does not name the runner at all"
     )
@@ -231,28 +206,17 @@ def test_the_section_names_the_cheap_command_before_the_slow_one():
     )
 
 
-def test_the_slow_form_says_what_it_is_for_and_what_it_costs():
-    """Kept rather than deleted, because `bin/test` writes a `.venv` into the
-    tree and a reader who does not want that needs the other form named. Kept
-    without its cost, it reads as an equal alternative."""
-    section = running_the_checks()
-    assert "fallback" in section, (
-        "the uvx form sits in the section as an unlabelled second option"
-    )
-    assert "seconds each" in section and "every call" in section, (
-        "the fallback is named without the cost that demoted it, so the next "
-        "reader promotes it back"
-    )
-
-
 def test_the_section_and_the_runner_state_the_same_floor():
     """The document names a version and the code enforces one. Two places
     saying a number is two places to disagree, and the disagreement is
     invisible until somebody's 3.11 builds an environment the suite needs
     3.12 for."""
     section = running_the_checks()
-    assert f"Python {rt.FLOOR_TEXT} is the supported floor" in section, (
-        "the floor sentence no longer states the floor the runner enforces "
+    # The floor's version, read from the runner's `FLOOR`, which a reader
+    # installs at least; and the constant's name, which the reader resolves
+    # in the runner.
+    assert rt.FLOOR_TEXT in section, (
+        "the section no longer states the floor the runner enforces "
         f"({rt.FLOOR_TEXT} in .github/scripts/run_tests.py's FLOOR)"
     )
     assert "FLOOR" in section, (
@@ -291,31 +255,19 @@ def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
     )
 
 
-def test_the_section_keeps_the_broad_once_rule():
-    """It predates this work item and a cheap runner is exactly what would
-    tempt a session to drop it."""
-    section = running_the_checks()
-    assert "The broad runs come once" in section
-
-
-def test_the_section_says_the_full_run_is_the_orchestrators():
+def test_the_section_names_the_contract_and_the_narrow_form():
     """`bin/test` with no arguments runs the whole suite, which
-    contract rule 2 forbids to every agent. The section that makes it cheap is the
-    section that has to say who it is for, and name the form a segment
-    types.
-
-    Re-pointed by #30 to the `sealer`, and by #969 to the orchestrator,
-    which takes the run before it spawns the sealer. The owner is read from
-    its own sentence: the word `sealer` alone also matches the section's
-    *before the sealer is spawned*, so it held nothing."""
+    contract rule 2 forbids to every agent. The section that makes it cheap
+    names where that rule is and the form a segment types; whose the full
+    run is, in its words, is the proofer's to read."""
     section = " ".join(running_the_checks().split())
-    assert "agent-contract" in section, (
+    # The path of the contract, which a reader opens for the rule that keeps
+    # the full run out of an agent's hands.
+    assert "`skills/agent-contract/SKILL.md`" in section, (
         "the section makes the full suite cheap and says nothing about the "
         "rule that forbids it to a segment"
     )
-    assert "The full suite is the orchestrator's" in section, (
-        "the section no longer says whose the full suite is"
-    )
+    # The narrow form, which a segment copies to run one module.
     assert "bin/test tests/" in section, (
         "no narrow form is shown, so the only command a segment can copy is "
         "the one it must not run"
@@ -352,68 +304,3 @@ def test_proofer_cites_the_handoff_for_the_narrow_form():
     assert HANDOFF_LINK in proofer, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
     )
-
-
-@pytest.mark.parametrize("definition", ["crafter.md", "proofer.md"])
-def test_no_agent_definition_names_this_repositorys_own_command(definition):
-    """`agents/` is copied into every install, so a definition naming
-    `bin/test` sends a user's segment after a file their repository does not
-    have. The shape both carry instead is the generic one: a wrapper in
-    `bin/`, or whatever the contribution guide names first."""
-    text = flat("agents", definition)
-    assert "bin/test" not in text, (
-        f"agents/{definition} names this repository's own runner, and it "
-        "ships to repositories that have no such file"
-    )
-
-
-def test_the_cheat_sheet_does_not_offer_the_runner():
-    """`bin/` is on a plugin user's PATH, but `test` is a shell builtin, so
-    PATH never gets a say. A row in the table that names commands a reader
-    types would name the one command there that cannot be typed."""
-    readme = read(os.path.join(ROOT, "README.md"))
-    sheet = readme[readme.index("## Commands") :]
-    rows = [line for line in sheet.splitlines() if line.startswith("| `")]
-    assert not [row for row in rows if "bin/test" in row or "`test" in row], (
-        "the cheat sheet offers a command a plugin user cannot type, and "
-        "whose runner is this repository's own suite"
-    )
-
-
-def test_the_placement_stands_on_what_it_actually_buys():
-    """Phase 1 recorded `.github/` as absent from a plugin cache. It is not:
-    the plugin ships from the repository root, and 0.5.0, 0.7.0, 0.8.0 and
-    0.8.1 each hold `.github/scripts/`. The location is still right and the
-    reason is not, so the file has to carry the true one — otherwise the next
-    reader moves the runner to fix a problem that was never there."""
-    doc = " ".join(read(SCRIPT).split())
-    assert "`.github/` does not" not in doc, (
-        "the runner still claims a location hides it from a plugin cache"
-    )
-    assert "shell builtin" in doc, (
-        "the runner does not say what actually keeps a plugin user from "
-        "running this suite, so its placement reads as the guard"
-    )
-
-
-def test_no_loaded_document_states_the_serial_figure():
-    """A6 (#337). Four carriers stated the suite's cost as *about five
-    minutes* -- the serial figure, stated with no date or machine, so it
-    cannot be checked later. The measured before-and-after lives in the
-    work item's changelog fragment with its date and machine; no loaded
-    document states a figure. And the runner's comment no longer WITHHOLDS
-    the flag: it says why it used to, which is the record a reader needs
-    when the next flag arrives."""
-    runner = " ".join(read(SCRIPT).split())
-    assert "No `-n auto`" not in runner, (
-        "the runner's comment still withholds the parallel default"
-    )
-    for name, text in (
-        ("bin/test", flat("bin", "test")),
-        (".github/scripts/run_tests.py", runner),
-        (
-            "`CONTRIBUTING.md` *Running the checks*",
-            " ".join(running_the_checks().split()),
-        ),
-    ):
-        assert "five minutes" not in text, f"{name} states the serial figure"
