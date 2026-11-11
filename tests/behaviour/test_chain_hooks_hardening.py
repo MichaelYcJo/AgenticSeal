@@ -1052,79 +1052,6 @@ def test_the_run_names_its_default_round_count_and_the_follow_up_file():
     assert "follow-up.md" in record, "no home recorded for what is left"
 
 
-# The two skills a definition calls rather than preloads. Neither is in any
-# `skills:` list: a preloaded body is paid for on every spawn (#292), and a
-# skill two frames in ten want is cheaper called than carried.
-UTILITY_SKILLS = ("confidence-check", "feature-planner")
-
-
-def definitions_naming(skill):
-    """The `agents/*.md` files that name `skill`, read out of the glob.
-
-    Which definition calls these is a fact about the tree, and a case that
-    types the answer instead of reading it asserts an owner rather than
-    checking one. That is what made the pair below go stale together when the
-    gate moved: the agent's name was in the case, so the tree could change
-    under it and only the half that pinned a literal noticed.
-    """
-    import glob
-
-    return [
-        os.path.basename(path)
-        for path in sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
-        if skill in open(path, encoding="utf-8").read()
-    ]
-
-
-def test_each_utility_skill_is_callable_from_exactly_one_definition():
-    """S4 of #84. `confidence-check` and `feature-planner` were named in
-    `agents/crafter.md`'s design gate; 0.11.0 moves the judgment they serve to
-    `agents/framer.md`, and a skill named in two definitions is two agents
-    each believing the call is theirs.
-
-    Counted from the glob rather than from a pair of filenames, so a sixth
-    definition picking one of them up is red here on the day it lands."""
-    for skill in UTILITY_SKILLS:
-        homes = definitions_naming(skill)
-        assert homes == ["framer.md"], (
-            f"`{skill}` is named in {homes}. It belongs to exactly one "
-            "definition -- the one whose phase decides what it answers -- and "
-            "a second home is where the two agents start calling it over each "
-            "other. If the home moved, `agents/framer.md`, the losing "
-            "definition and the skill's own stand-down clause move together"
-        )
-
-
-def test_the_skills_stand_down_for_whichever_definition_calls_them():
-    """Both skills used to fire on their own keywords while a design gate was
-    deciding the same thing, so one request could open three scope
-    conversations. The `NOT for` clause is what stopped that, and it names the
-    agent it stands down for.
-
-    This case used to read that name as a literal, which is why the
-    clause and the gate could come apart: 0.11.0 moved the gate to the framer
-    and the two SKILL.md files went on naming an agent that no longer calls
-    them, with nothing red. The name is read out of the glob now, so the
-    clause has to follow whichever definition actually holds the skill."""
-    for skill in UTILITY_SKILLS:
-        homes = definitions_naming(skill)
-        assert len(homes) == 1, (
-            f"`{skill}` is named in {homes}, so there is no single agent for "
-            "its stand-down clause to name"
-        )
-        owner = os.path.splitext(homes[0])[0]
-        head = (
-            open(os.path.join(ROOT, "skills", skill, "SKILL.md"), encoding="utf-8")
-            .read()
-            .split("\n---\n", 1)[0]
-        )
-        assert f"{owner} is driving" in head, (
-            f"`{skill}` stands down for somebody other than `{owner}`, which "
-            f"is the definition that names it. The clause is what keeps it "
-            "from firing on its own beside the phase that already calls it"
-        )
-
-
 def test_the_frame_rule_names_the_phase_record_section_a_no_goes_to():
     """S5 of #84. A `frame/design.md` and a `frame/plan.md` are a drawing another party
     made, and a drawing can be wrong about the tree it describes. #107's
@@ -1138,13 +1065,9 @@ def test_the_frame_rule_names_the_phase_record_section_a_no_goes_to():
     rule names the record and the section it goes to. Where the step stands
     in the order of work, and that a `no` never goes back to the framer, are
     the orchestrator's to read in the crafter's hand-back."""
-    crafter = " ".join(
-        open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8")
-        .read()
-        .split()
-    )
+    crafter = open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8").read()
     rule = crafter[crafter.index("**The frame is judged before it is built to.**") :]
-    rule = rule[: rule.index(" check: ")]
+    rule = " ".join(rule.split("\n\n", 1)[0].split())
     # The path `trail/phases/phase-N.md` and its heading
     # `## What this phase found`, where the crafter writes a frame that does
     # not hold and the next phase reads it.

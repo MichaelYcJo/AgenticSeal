@@ -29,7 +29,6 @@ rule takes the number after the highest one used, retired or not.
 
 `cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`, which reports
 the pipe's status and is always 0.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 2 Narrow and often; the broad gate is the orchestrator's
 
@@ -38,7 +37,6 @@ full suite, the repository-wide lint, the typecheck — is one act, taken once
 after the review rounds settle, and no agent runs any of the three. Hand over
 with the suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
-check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/
 
 ## 3 A spawn prompt cannot widen the verification scope
 
@@ -68,7 +66,6 @@ aggregate — a count, a total — is not a coordinate: the number can be
 checked while the claim it stands for cannot. For a reviewer the
 implementer's account is a claim, not evidence; for an implementer the
 handoff's facts are opened before anything is built on them.
-check: evals/behaviour/sealer/rule-sealer-false-red/ evals/behaviour/sealer/rule-sealer-untrue-body/
 
 ## 6 You return a report
 
@@ -82,20 +79,20 @@ repository's absolute path after `git -C` in a command of its own, as
 `skills/implement/SKILL.md` *A commit names its repository in the command
 that makes it* states. Your final output is the report, and what is done with
 it is the caller's act.
-check: tests/text/test_every_agent_reads_the_contract.py
 
-## 7 A probe is named `test_tmp_*`, one file, run once, deleted
+## 7 A probe is named `test_tmp_*`, run once, and leaves nothing outside your scratch
 
 Probe only what reading cannot settle. A probe is one file named
-`test_tmp_*`, it runs once, and it is deleted before you hand over. The rule
-is about leavings, not about files: A probe leaves nothing behind, whatever
-kind of thing it made — a worktree, a branch, a checkout, a scratch clone, a
-virtual environment — and those are examples, not a list. What the probe
-made for ITSELF is what goes: a thing the repository's own tooling builds to
-be reused, such as the one virtual environment a test runner keeps, stays
-even when your probe's run created it. The question is whose the thing is,
-never who happened to trigger it.
-check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/
+`test_tmp_*`, and it runs once. What stands under your scratch directory
+(rule 17) stays there: the probe file, a clone, a virtual environment
+inside one. The rule is about leavings, not about files: everything else
+the probe made is gone before you hand over, whatever kind of thing it is —
+the file itself in a working tree, a worktree, a branch, a checkout, a
+virtual environment — and those are examples, not a list. Outside your
+scratch directory, what the probe made for ITSELF is what goes: a thing the
+repository's own tooling builds to be reused, such as the one virtual
+environment a test runner keeps, stays even when your probe's run created
+it. The question is whose the thing is, never who happened to trigger it.
 
 ## 9 Edits go through the `Edit` tool
 
@@ -103,7 +100,6 @@ An edit must be able to fail: a substitution routed through the shell does
 nothing, says nothing, and exits zero when its pattern misses, and the miss
 surfaces at the next check as another edit and another run. Where the
 environment leaves no choice, assert that every substitution matched.
-check: tests/text/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs
 
@@ -114,7 +110,6 @@ the requirements read, where every file the handoff names can be opened in
 one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## 11 Where the plugin's paths and the `seal/` root resolve, and the record language
 
@@ -136,7 +131,6 @@ is absent. What stays English regardless: the field names and vocabulary a
 checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and
 all code. The `implement` skill's *The language the records are written in*
 holds the whole list.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 12 A defect belongs to a class, so enumerate the class
 
@@ -146,22 +140,12 @@ list whole: build it from what produces the defect, take the artefact apart
 into every one of its parts, or run a command that lists each thing holding
 the property. The instances in view, or a search for one wording, find only
 the spellings already seen, and a list that none of the three methods made
-is a sample, whatever searches were joined to make it. The reach of your
-own fix is a closed set: your own diff, and each file of the work item's
-directory that states the present, each read whole, which is the second
-method. A phase record or a round record states the commit it names, and
-HEAD contradicts neither. A list of a closed set is never a sample. A
-sample stays a sample only where the class is open, as the other
-statements of a rule across the tree are, or a class over an unbounded
-domain of keywords, spellings or constructs, where no method makes the list
-whole; the hand-back says so, and says where the part of the class its
-list did not reach stands. The hand-back names each part's method and what
-it listed, calls a sample a sample, and names what you did not finish as
-not done. Neither the part a sample did not reach nor what you did not
-finish is the proofer's share. The proofer reads that account as a claim
-and verifies it on its own: a statement the closed set held that the
-account missed, or a sample handed back as a whole list, is a finding on
-the method, even where every instance on the list was fixed.
+is a sample, whatever searches were joined to make it. A list stays a
+sample only where no method makes it whole: the other statements of a rule
+across the tree, or a class over an unbounded domain of keywords, spellings
+or constructs. The hand-back names the method and what it listed, calls a
+sample a sample, says where the part it did not reach stands, and names
+what you did not finish as not done.
 
 ## 13 A defence resting on a platform guarantee is not verified
 
@@ -188,14 +172,21 @@ names. A case that passes against the defect it was written for pins
 nothing, and reverting the fix, or removing its one guard, is what catches
 one.
 
-## 17 Clean up only what you started
+## 17 Name your scratch for the work item, keep it, stop only what you started
 
-An agent cleans up only the processes and files it started. Record the PID
-of every process you start and the path of every file and directory you
-create, and stop or remove by that record; never kill by command name, and
-never delete in a shared directory by glob — another session's process or
-file answers to the same name. A leftover you did not start is reported in
-the hand-back, not removed.
+What you make outside the repository's working tree, such as a probe, a
+captured output, a list of files or a clone, sits under your scratch
+directory, `<scratchpad>/<work-item-id>/<leaf>/`. Your definition names the
+leaf, and where it names none the leaf is your agent's name. Agents of one
+session share one scratchpad, and that name keeps a parallel agent's files
+apart from yours. Where the directory already stands when you first need
+it, an earlier spawn made it: leave it as it is and add `-2` to the leaf,
+or the next number free. No agent removes the scratchpad, a scratch
+directory or a file in one. Record the PID of every process you start and
+stop it by that record, never by command name. Never delete by glob in a
+directory another session shares. Another session's process or file
+answers to the same name, so a leftover you did not start is reported in
+the hand-back, not stopped and not removed.
 
 ## 18 A check that refuses correct code is fixed or reported
 
@@ -209,10 +200,9 @@ hides it from the next reader.
 `skills/core/SKILL.md` *The rule a mechanism is kept against* states the
 rule. What stood on the old fact, which the same commit removes or
 corrects, is every other sentence, case and citation stating it, found at
-least with `git grep` on its words. Where none of rule 12's three methods
-listed them, the list is a sample, and the hand-back says so as rule 12
-asks. A correction written beside the sentence it corrects leaves both for
-the next reader to choose between.
+least with `git grep` on its words; rule 12 calls that a sample. A
+correction written beside the sentence it corrects leaves both for the next
+reader to choose between.
 
 ## 21 Write each command so Claude Code's parser can read it
 
@@ -224,10 +214,6 @@ way. A list reaches a command as `xargs <runner> < list` or as
 `${(f)"$(cat list)"}` or `$=var`, and never through an unquoted variable
 expected to split, which bash splits and zsh does not. An `rm` names a
 literal path, or writes each variable in its path as `"${VAR:?}"`, which
-stops the line where the variable is unset or empty. A directory you made
-under `<scratchpad>/<work-item-id>/` is removed in one `rm -rf` of that
-directory, never file by file in a loop, and the removal never names the
-scratchpad itself, which every agent of the session shares. These forms
-are examples of the rule, not a list of it: a form not named here is held
-to the same aim, and so is a named form Claude Code stops reading.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+stops the line where the variable is unset or empty. These forms are
+examples of the rule, not a list of it: a form not named here is held to
+the same aim, and so is a named form Claude Code stops reading.

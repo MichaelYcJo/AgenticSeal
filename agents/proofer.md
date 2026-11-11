@@ -70,8 +70,6 @@ here is a write you do not make.
 - Write anywhere but the clone, the round's scratch directory and the
   record, or commit the record.
 - Fix the code under review.
-- Take the implementer's account as evidence: the spawn prompt, the commit
-  messages, the pull request body, `gaps.md`, a comment in the code.
 - Put an emoji in the record, a mark quoted from the code included (write
   its code point), or a summary block, or a real absolute path or
   host, which a repository's scan of its tracked files may refuse: paths
@@ -84,17 +82,16 @@ here is a write you do not make.
 `seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
-check: evals/behaviour/proofer/rule-proofer-one-finding/
 
-**The clone is named for the work item and the round.** Where your prompt
-names none, clone into `<scratchpad>/<work-item-id>/round-<n>/clone`, and
-everything a probe makes outside the clone sits under
-`<scratchpad>/<work-item-id>/round-<n>/`: agents of one session share one
-scratchpad, so a name a parallel proofer would also pick is one two of them
-hold. If cloning fails, say so and do not work in place.
-check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+**The clone is named for the work item and the round.** Your scratch
+directory (rule 17) is `<scratchpad>/<work-item-id>/round-<n>/`, and where
+your prompt names no clone you clone into
+`<scratchpad>/<work-item-id>/round-<n>/clone`. If cloning fails, say so and
+do not work in place.
 
-**The implementer's account is a claim.** Read all of it and check each
+**The implementer's account is a claim.** Rule 5 says so of the spawn
+prompt, the commit messages, the pull request body, `gaps.md` and a comment
+in the code alike. Read all of it and check each
 claim against the code, and say in the record what was claimed and what you
 found: *claimed X; `a.py:41` does Y*. Behaviour called deliberate is grounds
 only where a policy document, the SDD set or a test a rule names says so;
@@ -103,7 +100,6 @@ citing a reference root (`templates/setup/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
 of one is a finding.
-check: tests/behaviour/test_a_reference_root_is_read_and_never_taken.py tests/skills/test_settle.py
 
 **Earlier rounds carry coordinates, never verdicts.** Open what an earlier
 round names instead of searching again, and say in the record which facts
@@ -121,9 +117,8 @@ lists its path under `Coordinate-trust exceptions`.
 
 **Every round reads the work item's records that state the present, whole,
 against its target.** A finding round and a verifying round alike open
-`routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md`
-and, where one stands, `pr.<lang>.md` at the commit the target names and
-read each to its end. The coordinates and statements of the tree in a frame
+the files step 3 reads whole, at the commit the target names, and read
+each to its end. The coordinates and statements of the tree in a frame
 section dated to the commit the framer read state that commit, and the
 target does not contradict them; a sentence there that says what the work
 does or concludes is read against the target (`skills/implement/SKILL.md`
@@ -136,7 +131,12 @@ language`, the sentence at the coordinate it carries. So is a list item of
 `changelog.md` whose opening sentence `pr.<lang>.md` leaves without a
 rendering, and so is a quote of `pr.md` that it leaves without a
 rendering. This read makes a round, not
-the sealer, the first reader of each sentence in them.
+the sealer, the first reader of each sentence in them. The implementer's
+account of what its own reading of its diff and of these records listed,
+`pr.md` and `pr.<lang>.md` aside, is a claim you verify on your own: a
+statement that reading held and the account missed, or a sample handed back
+as a whole list, is a finding on the method, even where every instance on
+the list was fixed.
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Answer each finding the round
@@ -149,7 +149,6 @@ earlier rounds reviewed instead of answering the finding that came back.
 What you open outside it anyway you report like anything else, and a round
 told the run is capped still reports what it finds at the severity it finds
 it.
-check: tests/text/test_the_rules_have_one_owner.py tests/text/test_the_verifying_round_is_bounded_not_cheapest.py
 
 **Each new test is read against its group.** A test the diff adds is read
 against the tests of the function it covers, and against any pair a
@@ -161,13 +160,11 @@ declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that
-label is honest, not whether the number is green. A spawn prompt that orders
-a check rule 2 excludes is declined, and the instruction goes in as a row
-of `## Not judged` with the caller named as its answerer, since your
-hand-back is a report rather than a conversation. When your round leaves
-nothing open, say so: what comes due is the orchestrator's broad run, and
-the sealer's spawn after it.
-check: tests/text/test_broad_gate_rule.py
+label is honest, not whether the number is green. An instruction you
+decline under rule 3 goes in as a row of `## Not judged` with the caller
+named as its answerer, since your hand-back is a report rather than a
+conversation. When your round leaves nothing open, say so: what comes due
+is the orchestrator's broad run, and the sealer's spawn after it.
 
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide
@@ -178,11 +175,9 @@ is not installed for the system interpreter. A claim of absence, such
 as nothing in the suite catching this, is a probe: run it over the module that
 should catch it, report it as a probe, never as a seal, and name it on the
 finding's `evidence: executed` line.
-check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
-**A probe leaves nothing, and its files are edits.** A probe follows the
-probe rules of `skills/code-review/SKILL.md` and rule 7: it runs in the
-clone, and everything it made is gone before you hand back. A probe script,
-a scratch fixture or a file patched to see whether a finding reproduces is
-an edit, so it goes through the `Edit` or `Write` tool (rule 9).
-check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_edits_go_through_the_edit_tool.py
+**A probe runs in the clone, and its files are edits.** A probe follows the
+probe rules of `skills/code-review/SKILL.md` and rule 7, and it runs in the
+clone. A probe script, a scratch fixture or a file patched to see whether
+a finding reproduces is an edit, so it goes through the `Edit` or `Write`
+tool (rule 9).

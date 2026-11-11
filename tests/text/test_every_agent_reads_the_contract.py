@@ -13,6 +13,13 @@ definition arriving in another shape is red on the day it lands. Every
 definition is written in that shape, so the shape case skips none, and its
 `skills:` check is what holds each definition to preloading the core and the
 contract and nothing else.
+
+#1475 deleted the `check:` lines of every file a spawn preloads, each
+definition and each skill a `skills:` list names, because every spawn paid
+for them and no agent acts on one. The preload case reads each such file
+through `.github/scripts/rules.py#check_lines`, the grammar's one reader, so
+a line written back into one is red here, while `seal rules --check` would
+resolve it and pass.
 """
 
 import glob
@@ -20,10 +27,11 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, load, read
 from conftest import repo_relative as name
 
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
+rules = load(".github/scripts/rules.py", "agentic_rules_for_the_preloads")
 
 CORE = "skills/core/SKILL.md"
 CONTRACT = "skills/agent-contract/SKILL.md"
@@ -148,6 +156,37 @@ def test_every_file_a_step_names_exists(path):
     reads only `check:` targets, and no other case reads the paths a
     step names."""
     assert missing_paths(read(path)) == [], name(path)
+
+
+# --- what a preload carries --------------------------------------------------
+
+
+def preloaded():
+    """Every file a spawn preloads: each definition, then each skill any
+    definition's `skills:` list names, as `skills/<name>/SKILL.md`, once."""
+    skills = []
+    for path in AGENTS:
+        head, _ = split(read(path))
+        for skill in listed_skills(head or ""):
+            skill_path = os.path.join(ROOT, "skills", skill, "SKILL.md")
+            if skill_path not in skills:
+                skills.append(skill_path)
+    return AGENTS + skills
+
+
+@pytest.mark.parametrize("path", preloaded(), ids=name)
+def test_a_file_every_spawn_preloads_carries_no_check_line(path):
+    """`skills/settle/rule-changes.md` *A rule has one shape*: a file every
+    spawn preloads carries no check line (#1475). The set is derived from
+    the definitions, so a skill added to a `skills:` list is read here
+    without an edit to this case."""
+    found = rules.check_lines(read(path))
+    assert found == [], (
+        f"{name(path)} carries a check line at "
+        + ", ".join(f"line {number} (`{line}`)" for number, _heading, line in found)
+        + ", and a file every spawn preloads carries none "
+        "(`skills/settle/rule-changes.md` *A rule has one shape*)"
+    )
 
 
 # The ways a definition is allowed to close its own list of durable writes.

@@ -406,33 +406,11 @@ and findings from execution are labeled separately.
 
 ### 5. Incorporate review — read the round records first
 
-A session fixing review feedback starts at `seal/threads/<work-item-id>/trail/rounds/`,
-**not** at the inline comments: the proofer writes `round-N.md`, and the next
-review round reads it (`docs/forms/the-round-record.md` *The round record*).
-
-A finding is a claim too, and it arrives from someone who did not write the
-code. Open the coordinate and judge it yourself: fix what holds, and where it
-does not, answer it in `round-N.md` with the grounds — the policy clause, the
-original's behavior, the constraint that makes the state unreachable. What is
-not allowed is the third path, changing the code to quiet a finding you do not
-believe. A review the implementer cannot argue with is not a review, it is a
-handoff of judgment.
-Probes already run by a previous round (listed in `round-N.md`) are not
-rebuilt — only re-checked for whether the finding is now fixed.
-
-**A fix pass appends one close block to each open finding in
-`trail/rounds/round-N.md`, edits nothing else in it, and writes no phase
-record** — `docs/forms/the-round-record.md` *The round record* names the three
-closing verdicts, and `lib/fields.py` spells the block's lines. A
-`fixed` commit must touch a path the finding's `location:` names; where the
-fix went somewhere else, the close block carries a `location:` line naming
-that coordinate, and its `answer:` says so. The build's phases keep theirs.
-
-A fix that changes what the work item ships brings the work item's
-`changelog.md` along, because the release note is built from that fragment as
-it stands at the tag;
-`docs/layout/the-record-layout.md` *A commit after the build brings its changelog
-fragment along* owns that rule.
+A fix pass, the crafter's or a session's, opens
+`skills/implement/fix-pass.md` before it judges the first finding, and
+follows it: where the pass starts, how it reads a finding and a paste-ready
+fix, what it runs once the fixes are committed, and the close blocks it
+appends to `trail/rounds/round-N.md`.
 
 Once the last round record has no finding open, the orchestrator moves the
 rows still open to their destinations, as

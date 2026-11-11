@@ -773,9 +773,10 @@ def test_the_crafters_gate_rule_names_the_failure_words_and_rule_2():
     crafter's own: what `failing on base too` and `new?` mean beside a broad
     gate failure handed to it. That it names nobody as the runner (#969 moved
     the run to the orchestrator) is the proofer's to read."""
-    crafter = agent("crafter.md")
+    with open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8") as handle:
+        crafter = handle.read()
     start = crafter.index("**The broad gate is not yours, and its label is.**")
-    rule = crafter[start : crafter.index(" check: ", start)]
+    rule = " ".join(crafter[start:].split("\n\n", 1)[0].split())
     # The words `failing on base too` and `new?`, which `broad_gate.py`
     # prints beside a failing file and the crafter reads to tell the two
     # apart.

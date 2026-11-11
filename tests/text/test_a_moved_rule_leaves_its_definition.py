@@ -365,6 +365,27 @@ def test_the_proofer_checks_its_record_in_the_branch_worktree():
     ), "the proofer's hand-back check names no `--root`, so it reads the session's tree"
 
 
+def test_the_proofer_finds_a_missed_statement_on_the_method_of_a_fix():
+    """#1472, Scope item 7. Contract rule 12 told the proofer how to read a
+    fixing party's account of its own reading; the sentence left the
+    contract, which every agent preloads, for the proofer's rule on the
+    records a round reads whole. A list the account calls whole, with a
+    statement that reading held left out, is a finding on the method even
+    where every listed instance was fixed (#1318)."""
+    text = flat(read(os.path.join(ROOT, "agents", "proofer.md")))
+    lead = (
+        "**Every round reads the work item's records that state the present, "
+        "whole, against its target.**"
+    )
+    assert lead in text, "`agents/proofer.md` lost its rule on the records"
+    start = text.index(lead)
+    rule = text[start : text.index("**A verifying round answers", start)]
+    clause = (
+        "is a finding on the method, even where every instance on the list was fixed."
+    )
+    assert clause in rule, f"the proofer's rule on the records lost {clause!r}"
+
+
 # --- the crafter's own rules from its rewrite (#967) ---------------------------
 
 
@@ -434,9 +455,9 @@ def test_the_three_fix_rule_stands_in_the_skill_a_builder_opens():
 
 
 def test_the_crafters_four_rules_stand_with_their_enforcers():
-    """T3 of #967: S4's rules each keep their paragraph, their clauses and a
-    `check:` line. #1027 retired the fourth, the waiver, and the case holds
-    that it stays gone.
+    """T3 of #967: S4's rules each keep their paragraph and their clauses.
+    #1027 retired the fourth, the waiver, and the case holds that it stays
+    gone.
 
     These three have no eval case that plants their breach, so a later trim
     could drop any of them with every grader green — #107's failure, a rule
@@ -444,9 +465,6 @@ def test_the_crafters_four_rules_stand_with_their_enforcers():
     for lead, clauses in CRAFTERS_FOUR_RULES.items():
         paragraph = crafter_rule(lead)
         assert paragraph, f"`agents/crafter.md` lost the rule {lead!r}"
-        assert re.search(r"^check: \S", paragraph, re.M), (
-            f"{lead!r} has no `check:` line, so nothing names what holds it"
-        )
         said = flat(paragraph)
         for clause in clauses:
             assert clause in said, f"{lead!r} lost {clause!r}"
@@ -466,15 +484,18 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
     0.30.1 stood in the fixing party's own diff or in its work item's
     records (`frame/design.md` G9), a set closed enough to read whole. So
     after its last commit, in a phase and in a fix pass, the crafter reads
-    its range hunk by hunk and the five files that state the present, fixes
+    its range hunk by hunk and the six files that state the present, fixes
     what it writes, names the frame's statements for the orchestrator, and
     calls only the tree-wide search a sample. Step 10 carries that account
-    by citing the rule, not by restating it."""
+    by citing the rule, not by restating it.
+
+    #1472 moved the closed set's reason and the proofer's share out of
+    contract rule 12, which every agent preloads, into this rule, which the
+    one party that reads the set holds: reading it whole is rule 12's second method,
+    and neither a sample's unreached part nor what is not finished is left
+    to the proofer."""
     paragraph = crafter_rule(READ_WHOLE)
     assert paragraph, "`agents/crafter.md` lost its rule on reading the range whole"
-    assert re.search(r"^check: \S", paragraph, re.M), (
-        "the rule has no `check:` line, so nothing names what holds it"
-    )
     said = flat(paragraph)
     for clause in (
         "In a phase and in a fix pass, after your last commit,",
@@ -488,13 +509,17 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
         "Name each one that stands in a file you do not write,",
         "in the hand-back with its coordinate and the fact HEAD gives, for the "
         "orchestrator to fold.",
-        "That set is closed (rule 12), so none of it is handed on as a sample.",
+        "That set is closed, and reading it whole is rule 12's second method, "
+        "so none of it is handed on as a sample.",
         "by `git grep` on its words and by its `check:` target",
         # Round 1 of #1318, finding 3: a sample's hand-back still says where
         # the part it did not reach stands (contract rule 12).
         "that list is a sample, and the hand-back calls it one and says where "
         "the part it did not reach stands.",
         "What you did not finish goes to `gaps.md` `## Not done` with why.",
+        # #1472: R10 of contract rule 12, which a crafter's `gaps.md` row
+        # naming the proofer as a sample's answerer caught (#1318).
+        "Neither that nor the part a sample did not reach is the proofer's share.",
     ):
         assert clause in said, f"the rule lost {clause!r}"
     text = read(CRAFTER)
@@ -504,23 +529,51 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
     )
 
 
-def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_reworded():
-    """The crafter's half of the fix pass: the close block it appends, which
-    edits nothing of the proofer's, the coordinate the block carries, and the
-    reading of its range and the work item's records it cites from the rule
-    before it (contract rule 12, #1318). The block's grammar is
-    `lib/fields.py`'s and is held there; this holds the definition's
-    paragraph, which no other case reads."""
-    paragraph = flat(
-        crafter_rule("A fix pass appends close blocks and writes no phase record.")
-    )
-    assert paragraph, "`agents/crafter.md` lost its fix-pass rule"
+FIX_PASS_FILE = os.path.join(ROOT, "skills", "implement", "fix-pass.md")
+ROUND_RECORD_FORM = os.path.join(ROOT, "docs", "forms", "the-round-record.md")
+# The files a fix pass reads on its way to a close block, which state none of
+# what the form states about the block (#1471).
+FIX_PASS_READERS = (
+    CRAFTER,
+    FIX_PASS_FILE,
+    os.path.join(ROOT, "skills", "implement", "SKILL.md"),
+    os.path.join(ROOT, "skills", "code-review", "orchestration.md"),
+)
+# The close block's three `verdict:` values, the one a repair outside the
+# tree takes, and the `location:` line a fix that went elsewhere carries:
+# `docs/forms/the-round-record.md` states them, and a copy of any of them in
+# a file of FIX_PASS_READERS is a second statement to drift (#1471).
+THE_FORMS_OWN = (
+    "`fixed <commit>`, `rejected` or `deferred <home>`",
+    "`deferred <where it was repaired>`",
+    "`location:` line naming",
+)
+
+
+def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block():
+    """The fix pass's procedure stands in `skills/implement/fix-pass.md`,
+    which the crafter opens at step 9 in place of step 7's run and of the
+    phase record steps 5 and 8 write, so a phase spawn no longer preloads it
+    (#1471). Steps 5 and 6 otherwise hold for each fix, as they did before
+    the move (round 1 of #1471, finding 1), since the file states neither;
+    a fix pass writes no phase record, so step 5's census is not one of
+    them (round 2, finding 1). The case reads the file whole: the
+    paste-ready fix read before it is applied, the reading of the range and
+    the work item's records the crafter's rule asks for (contract rule 12,
+    #1318), and the close blocks written last and left uncommitted. The
+    block's values and its `location:` line are the form's alone, so the
+    file cites the form's two paragraphs and none of the four files a fix
+    pass reads states them. The block's grammar is `lib/fields.py`'s and is
+    held there."""
+    said = flat(read(FIX_PASS_FILE))
     for clause in (
-        "`fixed <commit>`, `rejected` or `deferred <home>`",
-        "`deferred <where it was repaired>`",
         # #1198, Scope item 7: the finding's own block is the proofer's.
         "edits nothing else in the record",
-        "carries a `location:` line naming the one it did change",
+        # #1471: the values and the `location:` line are cited, not stated.
+        "`docs/forms/the-round-record.md` *A finding's `verdict:` decides it, "
+        "and severity is for people*",
+        "`docs/forms/the-round-record.md` *The fix pass appends one close block "
+        "per finding and edits nothing else in the file*",
         # #1148, Scope item 13: two fix passes of its run applied a round
         # record's paste-ready text to a procedure step as given, and each
         # carried a new defect into shipped text.
@@ -529,12 +582,12 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
         # its judgment row said, and round 1 kept a proposal's collection
         # against the frame's own rule, so an instruction to apply waives no
         # reading, and the reading is against the frame and the code.
-        "a spawn prompt or a judgment row that tells you to apply it names "
-        "the fix without waiving the reading below.",
-        "Apply it only after reading it against the frame and the code: what "
-        "`frame/design.md` and the `frame/plan.md` row of the phase that built "
-        "it say the changed unit does, and every input the code hands that "
-        "unit.",
+        "a spawn prompt or a judgment row that tells the fix pass to apply it "
+        "names the fix without waiving the reading below.",
+        "The fix pass applies it only after reading it against the frame and "
+        "the code: what `frame/design.md` and the `frame/plan.md` row of the "
+        "phase that built it say the changed unit does, and every input the "
+        "code hands that unit.",
         "A procedure step is also read as its own reader would",
         # Round 4 of #1148, finding 2: the release is the third axis, which
         # round 1's paste-ready fix failed by citing a section a later settle
@@ -544,26 +597,60 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
         "In that release, a section the step cites holds the text the release "
         "ships, not the text a design's `## Rule changes` writes at a later "
         "settle.",
-        "Where that reading fails, write the fix in your own words and say so "
-        "in `answer:`.",
+        "Where that reading fails, the fix pass writes the fix in its own "
+        "words and says so in `answer:`.",
         # #1318, Scope item 3: the sweep's sentences gave way to the rule
         # that reads the range and the records whole, which the pass cites.
-        f"Once the fixes are committed, make the reading *{READ_WHOLE[:-1]}* asks for.",
+        f"A crafter then makes the reading `agents/crafter.md` *{READ_WHOLE[:-1]}* "
+        "asks for.",
         # #1041, S3: the owner's answer of 2026-10-28 gives the commit of the
-        # closes to the orchestrator, so the crafter writes them last and
+        # closes to the orchestrator, so the fix pass writes them last and
         # leaves them uncommitted.
-        "Last, after your last fix commit and its corrections, append the "
-        "close block of every finding you answered, and do not commit them: "
-        "the orchestrator commits the round record as you left it.",
+        "Last, after its last fix commit and its corrections, the fix pass "
+        "appends the close block of every finding it answered, and commits "
+        "none of them: the orchestrator commits the round record as the pass "
+        "left it.",
     ):
-        assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
+        assert clause in said, f"`skills/implement/fix-pass.md` lost {clause!r}"
     for gone in (
         "Then commit the `verdict:` and `answer:` lines",
         # #1198: the fix pass no longer rewrites a line of the proofer's.
         "rewrites `verdict:`",
         "append the one it did change after `, `",
     ):
-        assert gone not in paragraph, f"the fix-pass rule still says {gone!r}"
+        assert gone not in said, f"`skills/implement/fix-pass.md` still says {gone!r}"
+    for path in FIX_PASS_READERS:
+        text = flat(read(path))
+        for fact in THE_FORMS_OWN:
+            assert fact not in text, (
+                f"{name(path)} states {fact!r}, which "
+                "`docs/forms/the-round-record.md` states and the fix pass "
+                "reads there"
+            )
+    form = flat(read(ROUND_RECORD_FORM))
+    for fact in (
+        "`fixed <commit>`",
+        "`rejected`",
+        "`deferred <home>`",
+        "`deferred <where it was repaired>`",
+        "the close block carries a `location:` line naming it",
+    ):
+        assert fact in form, f"`docs/forms/the-round-record.md` lost {fact!r}"
+    text = read(CRAFTER)
+    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
+    assert (
+        "9. In a fix pass, open `skills/implement/fix-pass.md` and follow it in "
+        "place of step 7's run and of the phase record steps 5 and 8 write; "
+        "steps 5 and 6 otherwise hold for each fix." in order
+    ), (
+        "step 9 no longer sends a fix pass to `skills/implement/fix-pass.md`, "
+        "no longer replaces the phase record steps 5 and 8 write, or no longer "
+        "keeps steps 5 and 6 otherwise for each fix"
+    )
+    assert (
+        crafter_rule("A fix pass appends close blocks and writes no phase record.")
+        == ""
+    ), "`agents/crafter.md` states the fix pass's rule beside the file that holds it"
 
 
 def test_the_crafters_hand_back_names_the_follow_up_file():
