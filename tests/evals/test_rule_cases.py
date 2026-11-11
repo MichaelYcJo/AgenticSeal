@@ -66,9 +66,9 @@ class Test_main:
         self, tmp_path, capsys
     ):
         """Guards #1487 Scope 7: the proofer's rule case is written with its
-        own truth and the uncovered `shout_twice` its classed runs named,
-        which reads a `location:` line naming `tests/test_textutil.py` and
-        no line of `src/textutil.py`."""
+        own truth and the second defect its runs found, no case for
+        `shout_twice`, whose truth reads a `location:` line naming
+        `tests/test_textutil.py` and no line of `src/textutil.py`."""
         assert RC.main(["--out", str(tmp_path)]) == 0
         capsys.readouterr()
         graders = tmp_path / "proofer" / RULE / "graders"
