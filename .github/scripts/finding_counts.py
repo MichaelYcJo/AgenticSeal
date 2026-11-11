@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Print the four numbers of `docs/releasing/release-checklist.md` *Settle what
 earlier releases left behind*, one row per released work item routed through
-the review chain (#1223).
+the review chain.
 
 **A finding is counted once, by its own block.** The step counts, per work
 item, its findings, the findings with a `regression:` or `reopens:` line,
