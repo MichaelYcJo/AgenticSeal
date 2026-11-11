@@ -35,9 +35,7 @@ this off a trigger that already exists rather than inventing one.
 **It is not a gate and must not become one.** A hygiene step failing a pull
 request for a missing label was considered and rejected: it would be red on
 the very branch that adds the label, because no agent in this repository's
-chain may write to the tracker, and it would have to be added to
-`broad_gate.py`'s partition as well. A step that performs the act costs
-neither.
+chain may write to the tracker. A step that performs the act does not.
 
   tracker_labels.py --check   report what is missing, exit 0
   tracker_labels.py --apply   create what is missing

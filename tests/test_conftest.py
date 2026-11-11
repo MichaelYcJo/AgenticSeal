@@ -419,7 +419,7 @@ class Test_module:
         assert code_line(line) == code, repr(code_line(line))
 
     def test_a_step_is_found_by_its_name_and_ends_at_the_next_one(self):
-        """`workflow_step` reads the name the way `broad_gate.py#unquote` does,
+        """`workflow_step` reads the name with its quotes off (`_unquote`),
         and the block stops at the next step of its list or at the next job."""
         step = workflow_step(WORKFLOW, "the real step")
         assert 'github.base_ref }}" = "main"' in step, step

@@ -91,22 +91,6 @@ def test_the_stamp_docstring_names_the_file_its_mark_is_drawn_from():
     assert "`seal-mark.txt`" in stamp
 
 
-def test_the_documents_name_the_ci_also_row():
-    """#717, S7 for the rows (contract rule 14). `skills/verify/orchestration.md`
-    *A run says what it did not answer* named the `workflow` row and its
-    `<n> of <total> not answered` reading; it names the `CI also` row and its
-    `· <n> more steps` now (#832's S5a: the value leads with a dim `·`, the
-    owner's mark for a row that is not a pass). The rest of the paragraph,
-    and whether an old reading or a count is back in it (#940), are the
-    proofer's to read."""
-    verify = " ".join(
-        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
-    )
-    # The row name `CI also` and its value `· <n> more steps`, which the
-    # panel prints and the orchestrator reads on the gate's output.
-    assert "the panel carries a `CI also` row, *· <n> more steps*, and" in verify
-
-
 def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     """A9 (#747, contract rule 14), S15 (#789), and S19 (#825). The reasons
     the gate prints are text a person reads and acts on, so they are pinned

@@ -1,21 +1,19 @@
 """`evals/scripts/noninferiority.py`, one class per function.
 
 Rebuilt by #942's phase 5 from the `noninferiority.py` half of one
-behaviour module, whose remaining case stands in
-`tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`.
-The script runs one side of the behaviour suite, judges a new side's shape
-and reach graders against a baseline by three pass rules, and reads a side
-again under another suite's truths.
+behaviour module. The script runs one side of the behaviour suite, and
+judges a new side's shape and reach graders against a baseline by three
+pass rules.
 
-The pure units, the pass rules, the record's writer and reader, the trace
-readers and the grader reader, run in the process on numbers, texts and
-files under the case's own directory, with no git. `run` runs through
-`main` with the eval replaced by a stand-in that writes the eval's JSON.
-`regrade` and the units that ask git for a suite read one repository built
-once for the module, holding seven proofer suites in its history; no case
-writes into it, so it is never copied, and each case writes its sides and
-its output under its own directory. A few cases of `compare` read this
-clone's own HEAD, as a side written before `suite_tree` was recorded does.
+The pure units, the pass rules, the record's writer and reader and the
+trace readers run in the process on numbers, texts and files under the
+case's own directory, with no git. `run` runs through `main` with the eval
+replaced by a stand-in that writes the eval's JSON. The units that ask git
+for a suite read one repository built once for the module, holding three
+proofer suites in its history; no case writes into it, so it is never
+copied, and each case writes its sides and its output under its own
+directory. A few cases of `compare` read this clone's own HEAD, as a side
+written before `suite_tree` was recorded does.
 """
 
 import hashlib
@@ -25,7 +23,6 @@ import os
 import posixpath
 import re
 import stat
-import subprocess
 import sys
 import tempfile
 import types
@@ -44,39 +41,10 @@ BEHAVIOUR = load_module(
 
 SUITE = {"rev": "1" * 40, "tree": "2" * 40}
 TRUTH = r"^location: .*(?:src\/a\.py:(?:10|11|12)(?!\d))"
-WIDE = r"^location: .*(?:src\/a\.py:(?:10|11|12|40)(?!\d))"
-REPORT = "seal/threads/i/trail/rounds/round-1.md"
 CASE = "evals/behaviour/proofer/c1"
-# Run 0's truth is its second finding's `location:` line, which a regex
-# finds only where the grader's `m` flag reaches it.
-ROWS = (
-    ["location: `src/a.py:40`", "location: `src/a.py:11`"],
-    ["location: `src/a.py:40`"],
-)
-# A path and a host the identifier scan refuses, built from halves so this
-# file carries neither whole.
-REFUSED_PATH = "/Users/" + "someone/"
-REFUSED_HOST = "fixture.example" + ".net"
-# The user root alone, which the scan refuses once the side's JSON writes
-# the character after it as an escape.
-USER_ROOT = "/Users" + "/"
-FENCE = "`" * 3
-
-
-def finding_block(location, severity="should"):
-    """A finding's `seal` block whose `location:` line is LOCATION."""
-    return (
-        f"{FENCE}seal\nseverity: {severity}\n{location}\n"
-        f"evidence: read `src/a.py:1`\n{FENCE}\n"
-    )
-
-
-FENCED_FIX = (
-    "### 1. a defect with a fenced fix\n\n"
-    + finding_block("location: `src/a.py:11`", "must")
-    + "\n```\nlocation: `src/a.py:40`\n```\n"
-)
-UNCLOSED = "Why it matters.\n\n~~~\nand nothing closes this.\n\n"
+# The header rows a record written before #1487 carries, which no reader of
+# a record reads any more.
+REMOVED_ROWS = ("report rows", "false rows", "tokens per true find")
 RESULT = {
     "type": "result",
     "subtype": "success",
@@ -108,10 +76,10 @@ EVERY_MODEL = 4 + 27598 + 15057 + 28 + 445032 + 43597
 
 
 def numbers(**over):
-    """Numbers every rule passes: two truths found twice a side, a tenth of
-    the rows false, every shape grader green, and a new side that read a
-    tenth fewer tokens across every model over as many tool calls and spent
-    the same from a preload half the size."""
+    """Numbers every rule passes: two truths found twice a side, every shape
+    grader green, and a new side that read a tenth fewer tokens across every
+    model over as many tool calls and spent the same from a preload half the
+    size."""
     graders = {
         ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
         ("c1", "truth-2"): ("truth", 2, 2, 2, 2),
@@ -121,10 +89,6 @@ def numbers(**over):
     graders.update(over.pop("graders", {}))
     base = {
         "graders": graders,
-        "old_rows": 20,
-        "old_false": 2,
-        "new_rows": 20,
-        "new_false": 2,
         "old_cut": False,
         "new_cut": False,
         "old_spend": 10.0,
@@ -147,8 +111,6 @@ def side(graders, **over):
     with OVER replacing any other number."""
     base = {
         "graders": {k: [v[0], v[1], v[2]] for k, v in graders.items()},
-        "rows": 20,
-        "false": 2,
         "runs": {},
         "cut": False,
         "preload": {"agents/proofer.md": "a" * 64},
@@ -177,82 +139,17 @@ def written(old_graders=GRADED, new_graders=GRADED, **new):
     return NI.render("proofer", 3, side(old_graders), side(new_graders, **new))
 
 
-def printed(findings, before="", after=""):
-    """A round record a case session printed: BEFORE above its `## Findings`
-    section, FINDINGS in it, and AFTER below it."""
-    return (
-        f"# i — review round 1\n\n{FENCE}seal\ntarget: 1a2b3c4 against main\n"
-        f"{FENCE}\n{before}\n## Findings\n\n{findings}{after}"
-    )
-
-
-def record_of(rows):
-    """A printed round record holding one finding for each of ROWS, each
-    finding block's `location:` line the row."""
-    return printed(
-        "".join(
-            f"### {n}. a finding\n\n{finding_block(row)}\n"
-            for n, row in enumerate(rows, 1)
-        ),
-        after=f"## Confirmations\n\n{FENCE}seal\nconfirms: none\n{FENCE}\nheld.\n",
-    )
-
-
-def three_findings(tail):
-    """A printed record of three findings, each with its finding block, and
-    TAIL[n] after finding n's."""
-    return printed(
-        "".join(
-            f"### {n}. a finding\n\n{finding_block(f'location: `src/b.py:{n}`')}\n"
-            f"{tail.get(n, '')}"
-            for n in (1, 2, 3)
-        )
-    )
-
-
-def record_truth(name, pattern):
-    """A `truth-` grader over the round record, as a side records it."""
-    return {
-        "name": name,
-        "type": "regex",
-        "weight": 1,
-        "config": {
-            "target": {"source": "file", "path": REPORT},
-            "pattern": pattern,
-            "flags": "m",
-            "match": "contains",
-        },
-    }
-
-
-def printed_side(text, truths=(), found=()):
-    """A side of case c1 whose one run printed TEXT: its truth graders are
-    TRUTHS, `(name, pattern)` each, and the run recorded the ones FOUND
-    names as passed, as the eval's search of the whole file would."""
-    run = {
-        "graders": [{"name": n, "passed": n in found} for n, _ in truths],
-        "agentic": {"report_text": text},
-    }
-    case = {
-        "name": "c1",
-        "graders": [record_truth(n, p) for n, p in truths],
-        "arms": {"with": [run]},
-    }
-    return {"cases": [case]}
-
-
-def eval_side(tmp_path, name, rev, tree, text="", grader=None):
+def eval_side(tmp_path, name, rev, tree):
     """A one-run side `run` could have written, run on the suite REV/TREE,
-    its case holding GRADER (a `shape-x` `file_exists` one where None) and
-    its run passing it; the path it is written to."""
-    grader = grader or {"name": "shape-x", "type": "file_exists"}
+    its case holding a `shape-x` `file_exists` grader and its run passing
+    it; the path it is written to."""
     run = {
-        "graders": [{"name": grader["name"], "passed": True}],
-        "agentic": {"report_text": text},
+        "graders": [{"name": "shape-x", "passed": True}],
+        "agentic": {"cost": None, "tool_calls": None},
     }
     case = {
         "name": "c1",
-        "graders": [grader],
+        "graders": [{"name": "shape-x", "type": "file_exists"}],
         "arms": {"with": [run]},
     }
     meta = {
@@ -292,20 +189,6 @@ def trace_at(path, events, tail=""):
         "".join(json.dumps(e) + "\n" for e in events) + tail, encoding="utf-8"
     )
     return str(path)
-
-
-def cat(call_id, content, parent=None, path="r/round-1-report.md", error=False):
-    """The two events of a Bash `cat PATH` whose result is CONTENT."""
-    use = {"type": "tool_use", "id": call_id, "name": "Bash"}
-    use["input"] = {"command": f"cat {path}"}
-    result = {"type": "tool_result", "tool_use_id": call_id, "content": content}
-    if error:
-        result["is_error"] = True
-    events = [{"message": {"content": [use]}}, {"message": {"content": [result]}}]
-    for event in events:
-        if parent:
-            event["parent_tool_use_id"] = parent
-    return events
 
 
 def assistant(blocks, parent=None):
@@ -372,12 +255,10 @@ def run_one_side(tmp_path, monkeypatch, events, error=None):
 
 @pytest.fixture(scope="module")
 def _suites(tmp_path_factory):
-    """A repository whose history holds seven proofer suites, built once:
-    `own` (case c1, its truth-1 TRUTH), `wide` (truth-1 widened to line 40),
-    and five from `wide`: `prompt` (c1's case.yaml changed), `more` (a case
-    c2 added), `kind` (truth-1 a file test, which no report row answers),
-    `flag` (truth-1 carrying a flag Python's `re` has no letter for) and
-    `plain` (truth-1 with no front matter). `(its path, {name: commit})`."""
+    """A repository whose history holds three proofer suites, built once:
+    `own` (case c1, its truth-1 TRUTH), and two from `own`: `prompt` (c1's
+    case.yaml changed) and `more` (a case c2 added). `(its path, {name:
+    commit})`."""
     d = tmp_path_factory.mktemp("suites")
     identity = ["-c", "user.email=t@example.com", "-c", "user.name=t"]
 
@@ -386,35 +267,20 @@ def _suites(tmp_path_factory):
         git(d, *identity, "commit", "-qm", name)
         return git(d, "rev-parse", "HEAD").stdout.strip()
 
-    def truth(pattern, flags="m"):
-        text = BEHAVIOUR.report_regex("truth", "1", "r.md", pattern, "A defect.", flags)
-        write(d, f"{CASE}/graders/truth-1.md", text[1])
-
     git(d, "init", "-q")
     write(d, f"{CASE}/case.yaml", "name: c1\n")
     shape = BEHAVIOUR.grader(
         "shape", "x", "The report exists.", type="file_exists", path="r.md"
     )
     write(d, f"{CASE}/graders/shape-x.md", shape[1])
-    truth(TRUTH)
+    truth = BEHAVIOUR.report_regex("truth", "1", "r.md", TRUTH, "A defect.")
+    write(d, f"{CASE}/graders/truth-1.md", truth[1])
     commits = {"own": commit("own")}
-    truth(WIDE)
-    commits["wide"] = commit("wide")
     write(d, f"{CASE}/case.yaml", "name: c1, asked otherwise\n")
     commits["prompt"] = commit("prompt")
-    git(d, "reset", "-q", "--hard", commits["wide"])
+    git(d, "reset", "-q", "--hard", commits["own"])
     write(d, "evals/behaviour/proofer/c2/case.yaml", "name: c2\n")
     commits["more"] = commit("more")
-    git(d, "reset", "-q", "--hard", commits["wide"])
-    kind = BEHAVIOUR.grader("truth", "1", "A defect.", type="file_exists", path="r.md")
-    write(d, f"{CASE}/graders/truth-1.md", kind[1])
-    commits["kind"] = commit("kind")
-    git(d, "reset", "-q", "--hard", commits["wide"])
-    truth(WIDE, flags="mu")
-    commits["flag"] = commit("flag")
-    git(d, "reset", "-q", "--hard", commits["wide"])
-    write(d, f"{CASE}/graders/truth-1.md", "A defect, with no front matter.\n")
-    commits["plain"] = commit("plain")
     return d, commits
 
 
@@ -426,148 +292,7 @@ def suites(_suites, monkeypatch):
     return commits
 
 
-def graded_side(tmp_path, rev, rows, found, spoil=None):
-    """A side of case c1 run on the suite at REV, its run I having printed a
-    round record of one finding for each of ROWS[I] and recorded truth-1 as
-    FOUND[I], its scores the ones a run of two graders gets, and SPOIL
-    applied to it where one is given. The path it is written to."""
-    truth = {
-        "name": "truth-1",
-        "type": "regex",
-        "weight": 1,
-        "config": {
-            "target": {"source": "file", "path": "r.md"},
-            "pattern": TRUTH,
-            "flags": "m",
-            "match": "contains",
-        },
-    }
-    shape = {
-        "name": "shape-x",
-        "type": "file_exists",
-        "weight": 1,
-        "config": {"path": "r.md"},
-    }
-    runs = []
-    for shown, passed in zip(rows, found, strict=True):
-        score = (1 + passed) / 2
-        runs.append(
-            {
-                "score": score,
-                "passed": score >= 1,
-                "graders": [
-                    {"name": "shape-x", "passed": True, "weight": 1, "scored": True},
-                    {"name": "truth-1", "passed": passed, "weight": 1, "scored": True},
-                ],
-                "agentic": {"report_text": record_of(shown)},
-            }
-        )
-    score = sum(r["score"] for r in runs) / len(runs)
-    rate = sum(r["passed"] for r in runs) / len(runs)
-    result = {
-        "startedAt": "2026-10-19T00:00:00Z",
-        "suite": {"threshold": 1},
-        "cases": [
-            {
-                "name": "proofer c1",
-                "dir": CASE,
-                "graders": [shape, truth],
-                "arms": {"with": runs},
-                "aggregates": {"score": score, "passRate": rate},
-            }
-        ],
-        "aggregates": {
-            "casesTotal": 1,
-            "casesPassed": int(rate >= 1),
-            "overallScore": score,
-            "overallPassRate": rate,
-        },
-        "agentic": {
-            "agent": "proofer",
-            "preload": {},
-            "cut_short": False,
-            "suite_rev": rev,
-            "suite_tree": NI.suite_tree(rev, "proofer"),
-        },
-    }
-    if spoil:
-        spoil(result)
-    path = tmp_path / "side.json"
-    path.write_text(json.dumps(result), encoding="utf-8")
-    return str(path)
-
-
-def regraded_to(side_path, rev, out):
-    return NI.main(
-        ["regrade", "--side", side_path, "--suite-rev", rev, "--out", str(out)]
-    )
-
-
-def fenced_first_run(result):
-    """Run 0 printed truth-1's line only inside a finding's fenced fix."""
-    run = result["cases"][0]["arms"]["with"][0]
-    run["agentic"]["report_text"] = printed(
-        "### 1. a defect\n\n"
-        + finding_block("location: `src/a.py:40`", "must")
-        + "\n```\nlocation: `src/a.py:11`\n```\n"
-    )
-
-
-def run_score_off(result):
-    result["cases"][0]["arms"]["with"][0]["score"] = 0.5
-
-
-def case_score_off(result):
-    result["cases"][0]["aggregates"]["score"] = 0.5
-
-
-def side_score_off(result):
-    result["aggregates"]["overallScore"] = 0.5
-
-
-def truth_not_its_suites(result):
-    result["cases"][0]["graders"][1]["config"]["pattern"] = WIDE
-
-
-def no_suite(result):
-    result["agentic"]["suite_rev"] = None
-
-
-def no_agent(result):
-    result["agentic"]["agent"] = "nobody"
-
-
-def with_c2(result):
-    case = json.loads(json.dumps(result["cases"][0]))
-    case.update(name="proofer c2", dir="evals/behaviour/proofer/c2")
-    result["cases"].append(case)
-
-
 # --- the cases -----------------------------------------------------------------
-
-
-class Test_module:
-    def test_the_scan_loads_in_a_process_that_cannot_import_a_test_module(
-        self, tmp_path
-    ):
-        """A side's run is `python3` on the script, with no `tests/` on its
-        path and maybe no pytest, so the scan is loaded without the
-        `conftest` import its cases need. Run in an isolated interpreter, a
-        refused path is masked."""
-        code = (
-            "import sys\n"
-            f"sys.path.insert(0, {os.path.join(ROOT, 'evals', 'scripts')!r})\n"
-            "import noninferiority as ni\n"
-            "print(ni.masked(sys.argv[1]))\n"
-        )
-        run = subprocess.run(
-            [sys.executable, "-I", "-c", code, f"read {REFUSED_PATH}log"],
-            cwd=tmp_path,
-            capture_output=True,
-            encoding="utf-8",
-        )
-        assert run.returncode == 0, run.stderr
-        assert run.stdout == "read /Users/x/log\n", run.stdout
 
 
 class Test_preload_files:
@@ -626,8 +351,7 @@ class Test_preload_bytes:
 class Test_git_bytes:
     def test_accepts_what_git_prints_as_bytes(self, suites):
         assert (
-            NI.git_bytes("rev-parse", suites["plain"]).strip()
-            == suites["plain"].encode()
+            NI.git_bytes("rev-parse", suites["own"]).strip() == suites["own"].encode()
         )
 
     def test_refuses_a_git_that_exits_otherwise(self, suites):
@@ -770,246 +494,6 @@ class Test_write_git_shim:
         monkeypatch.setattr(NI, "sys", types.SimpleNamespace(platform=platform))
         NI.write_git_shim(str(tmp_path))
         assert not (tmp_path / ".shims").exists()
-
-
-class Test_identifier_scan:
-    def test_accepts_the_census_module_by_its_path(self):
-        scan = NI.identifier_scan()
-        assert scan.ALLOWED_USER_PATH == "/Users/x/"
-        assert NI.identifier_scan() is scan
-
-    def test_refuses_a_census_module_that_will_not_load(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(NI, "SCAN", str(tmp_path / "absent.py"))
-        with pytest.raises(FileNotFoundError):
-            NI.identifier_scan.__wrapped__()
-
-
-class Test_masked:
-    def test_accepts_a_text_the_scan_refuses_nothing_of_as_it_is(self):
-        text = "### 1. a defect\nlocation: `src/a.py:11`\nread /Users/x/log at example.com\n"
-        assert NI.masked(text) == text
-
-    def test_refuses_a_user_path_and_a_host_by_the_fixture_ones(self):
-        scan = NI.identifier_scan()
-        text = NI.masked(f"read {REFUSED_PATH}w/log at {REFUSED_HOST}\nnext\n")
-        assert (
-            text
-            == f"read {scan.ALLOWED_USER_PATH}w/log at {scan.FIXTURE_DOMAIN}\nnext\n"
-        )
-
-
-class Test_apart:
-    def test_accepts_a_text_whose_json_form_hides_nothing(self):
-        scan = NI.identifier_scan()
-        text = "github.com/x/y answered it.\n"
-        assert NI.apart(text, scan) == text
-
-    @pytest.mark.parametrize(
-        "text",
-        [
-            "x\n" + "example.com answered it.",
-            f"ends at {USER_ROOT}\nand",
-            f'"{USER_ROOT}" + x',
-        ],
-        ids=[
-            "a host after a line break",
-            "the user root before a line break",
-            "the user root in quotes",
-        ],
-    )
-    def test_refuses_a_refusal_an_escape_takes_part_in(self, text):
-        scan = NI.identifier_scan()
-        kept = NI.apart(text, scan)
-        assert kept != text and kept.replace(" ", "") == text.replace(" ", "")
-        form = json.dumps(kept, ensure_ascii=False)
-        assert [*scan.refused_domains(form), *scan.refused_user_paths(form)] == []
-
-
-class Test_finding_rows:
-    @pytest.mark.parametrize(
-        "text, want",
-        [
-            (printed(FENCED_FIX), ["location: `src/a.py:11`"]),
-            (
-                printed(
-                    "### 1. a finding with no block\n\nseverity: should\n"
-                    "location: `src/a.py:10`\n\n### 2. a finding in a broken shape\n\n"
-                    + finding_block("location: `src/a.py#unit`")
-                ),
-                ["", ""],
-            ),
-            (
-                printed(
-                    "### 1. a defect\n\n"
-                    + finding_block("location: `src/b.py:1`", "must"),
-                    before="location: `src/a.py:10`\n",
-                    after="\n## Not judged\n\nlocation: `src/a.py:12`\n",
-                ),
-                ["location: `src/b.py:1`"],
-            ),
-            (
-                printed(
-                    "### 1. a closed defect\n\n"
-                    + finding_block("location: `src/b.py:1`", "must")
-                    + f"\n{FENCE}seal\nverdict: fixed abc1234\nanswer: moved\n"
-                    f"location: `src/c.py:9`\n{FENCE}\n"
-                ),
-                ["location: `src/b.py:1`"],
-            ),
-        ],
-        ids=[
-            "a fenced fix",
-            "a shape the check refuses",
-            "lines outside every finding",
-            "a close naming where the fix went",
-        ],
-    )
-    def test_accepts_each_finding_as_its_location_lines(self, text, want):
-        assert NI.finding_rows(text) == want
-
-    @pytest.mark.parametrize(
-        "text, count",
-        [
-            (three_findings({1: UNCLOSED}), 3),
-            (three_findings({1: "```\n## Not judged\n```\n\n", 3: UNCLOSED}), 3),
-            (
-                three_findings(
-                    {1: UNCLOSED, 2: "```\n### 9. a quoted finding heading\n```\n\n"}
-                ),
-                4,
-            ),
-            (three_findings({}).replace("### 2.", "## Findings\n\n### 2.", 1), 3),
-            (three_findings({}).replace("## Findings\n", "## Findings (3)\n", 1), 3),
-        ],
-        ids=[
-            "a fence that never closes",
-            "a fenced heading beside it",
-            "a fenced finding heading",
-            "a second findings section",
-            "a misspelt findings heading",
-        ],
-    )
-    def test_refuses_a_record_the_check_cannot_read_by_an_empty_row_per_heading(
-        self, text, count
-    ):
-        """A record the check cannot read or split is one production reads
-        as no finding; each raw finding heading is one empty, false row, so a
-        proofer cannot lower its false count by breaking the record."""
-        assert NI.finding_rows(text) == [""] * count
-
-
-class Test_text_of:
-    def test_accepts_the_record_a_run_kept(self):
-        assert NI.text_of("c1", 0, {"agentic": {"report_text": "# r\n"}}) == "# r\n"
-
-    @pytest.mark.parametrize(
-        "run",
-        [{}, {"agentic": {"report_rows": ["x"]}}, {"agentic": {"report_text": 5}}],
-        ids=["no agentic", "rows and no text", "a text that is no string"],
-    )
-    def test_refuses_a_run_that_keeps_no_text(self, run):
-        with pytest.raises(ValueError, match=r"^c1, run 2, keeps no report_text"):
-            NI.text_of("c1", 2, run)
-
-
-class Test_reads_record:
-    @pytest.mark.parametrize("path", [REPORT, "r/x-report.md"])
-    def test_accepts_a_truth_regex_over_a_round_record(self, path):
-        grader = record_truth("truth-1", TRUTH)
-        grader["config"]["target"]["path"] = path
-        assert NI.reads_record(grader)
-
-    @pytest.mark.parametrize(
-        "grader",
-        [
-            {
-                "name": "shape-x",
-                "type": "regex",
-                "config": {"target": {"path": REPORT}},
-            },
-            {
-                "name": "truth-1",
-                "type": "regex",
-                "config": {"target": {"path": "notes.md"}},
-            },
-            {
-                "name": "truth-1",
-                "type": "file_exists",
-                "config": {"target": {"path": REPORT}},
-            },
-            {"name": "truth-1", "type": "regex"},
-            {"name": "truth-1", "type": "regex", "config": {"target": "files"}},
-        ],
-        ids=[
-            "a shape grader",
-            "another file",
-            "not a regex",
-            "no target",
-            "a target that is not a mapping",
-        ],
-    )
-    def test_refuses_any_other_grader(self, grader):
-        assert not NI.reads_record(grader)
-
-
-class Test_report_text:
-    def test_accepts_the_last_record_the_session_printed(self, tmp_path):
-        """The round record of the session's own `cat`, the last one
-        winning, byte for byte, and never a subagent's output; a record
-        printed as `trail/rounds/round-N.md` is kept as a `-report.md` one is."""
-        last = [
-            {
-                "type": "text",
-                "text": "### 1. new\n\n"
-                + finding_block("location: `x:1`")
-                + f"\n## Confirmations\n\n{FENCE}seal\nconfirms: none\n{FENCE}\n"
-                "holds, at `x:2`.\n",
-            }
-        ]
-        denied = {
-            "type": "system",
-            "subtype": "permission_denied",
-            "message": "Permission to use Read has been denied",
-        }
-        events = [
-            {"type": "system", "subtype": "init", "cwd": "/w"},
-            *cat("a", "location: `x:9`"),
-            denied,
-            {"type": "assistant", "message": {"content": "plain text"}},
-            *cat("c", last, path="seal/threads/i/trail/rounds/round-1.md"),
-            *cat("b", "location: `x:7`", parent="s"),
-        ]
-        text = NI.report_text(trace_at(tmp_path / "t.jsonl", events, "not json\n"))
-        assert text == last[0]["text"]
-        assert NI.finding_rows(printed(text)) == ["location: `x:1`"]
-
-    @pytest.mark.parametrize(
-        "events",
-        [
-            [],
-            cat("a", "location: `x:9`", error=True),
-            cat("a", "location: `x:9`", path="notes.md"),
-            cat("a", "location: `x:9`", parent="s"),
-        ],
-        ids=["nothing printed", "a cat that failed", "another file", "a subagent's"],
-    )
-    def test_refuses_a_print_that_is_not_the_sessions_record(self, tmp_path, events):
-        assert NI.report_text(trace_at(tmp_path / "t.jsonl", events)) == ""
-
-    def test_refuses_to_keep_what_the_identifier_scan_refuses(self, tmp_path):
-        scan = NI.identifier_scan()
-        shown = printed(
-            "### 1. a defect\n\n"
-            + finding_block("location: `src/a.py:11`", "must")
-            + f"\nRead {REFUSED_PATH}w/log at {REFUSED_HOST}.\n",
-            after=f"\n{REFUSED_HOST} answered it.\n",
-        )
-        text = NI.report_text(
-            trace_at(tmp_path / "t.jsonl", cat("a", shown, path=REPORT))
-        )
-        assert REFUSED_PATH not in text and REFUSED_HOST not in text
-        assert f"{scan.ALLOWED_USER_PATH}w/log at {scan.FIXTURE_DOMAIN}" in text
-        assert NI.finding_rows(text) == ["location: `src/a.py:11`"]
 
 
 class Test_run_cost:
@@ -1205,9 +689,9 @@ class Test_save_side:
         assert os.path.isfile(elsewhere)
 
 
-def saved_side(tmp_path, runs, rev="abc", partial=False):
+def saved_side(tmp_path, runs, rev="abc", partial=False, name="c1"):
     """A saved side at TMP_PATH/side.raw whose runs are RUNS, `(trace events
-    or None, error)` each; its path."""
+    or None, error)` each, of one case NAME; its path."""
     saved = tmp_path / "side.raw"
     traces, arms = {}, []
     for n, (events, error) in enumerate(runs):
@@ -1219,7 +703,7 @@ def saved_side(tmp_path, runs, rev="abc", partial=False):
     raw = {
         "startedAt": "t",
         "partial": partial,
-        "cases": [{"name": "c1", "arms": {"with": arms}}],
+        "cases": [{"name": name, "arms": {"with": arms}}],
     }
     write(saved, "raw.json", json.dumps(raw))
     meta = {
@@ -1236,15 +720,13 @@ def saved_side(tmp_path, runs, rev="abc", partial=False):
 
 
 class Test_annotate:
-    def test_accepts_each_runs_text_cost_and_calls_and_the_sides_meta(self, tmp_path):
-        events = [
-            *cat("a", "location: `x:1`", path=REPORT),
-            assistant([use("Read", "r")]),
-            RESULT,
-        ]
+    def test_accepts_each_runs_cost_and_calls_and_the_sides_meta(self, tmp_path):
+        """A run keeps its cost and its tool calls, and no `report_text`: the
+        round record its session printed stays in its trace under
+        `<out>.raw/`."""
+        events = [assistant([use("Bash", "a"), use("Read", "r")]), RESULT]
         result = NI.annotate(saved_side(tmp_path, [(events, None)]))
         assert result["cases"][0]["arms"]["with"][0]["agentic"] == {
-            "report_text": "location: `x:1`",
             "cost": {
                 k: RESULT[k] for k in ("total_cost_usd", "duration_ms", "modelUsage")
             },
@@ -1276,7 +758,7 @@ class Test_annotate:
         assert result["agentic"]["cut_short"] is cut
         if runs[0][0] is None:
             run = result["cases"][0]["arms"]["with"][0]["agentic"]
-            assert run == {"report_text": "", "cost": None, "tool_calls": None}
+            assert run == {"cost": None, "tool_calls": None}
 
     def test_refuses_a_machine_path_as_the_sides_rev(self, tmp_path):
         """A `--tree` side's `rev` names no machine path, since a committed
@@ -1289,11 +771,11 @@ class Test_annotate:
 
 class Test_write_side:
     def test_accepts_the_annotated_side_as_json_with_its_characters(self, tmp_path):
-        events = cat("a", "location: `x:1` — é", path=REPORT)
         out = tmp_path / "side.json"
-        assert NI.write_side(saved_side(tmp_path, [(events, None)]), str(out)) == 0
+        saved = saved_side(tmp_path, [([RESULT], None)], name="c1 — é")
+        assert NI.write_side(saved, str(out)) == 0
         text = out.read_text(encoding="utf-8")
-        assert "`x:1` — é" in text and text.endswith("}\n")
+        assert '"c1 — é"' in text and text.endswith("}\n")
 
     def test_refuses_a_directory_that_is_not_there(self, tmp_path):
         with pytest.raises(OSError):
@@ -1364,9 +846,7 @@ class Test_run_side:
         real = NI.annotate
         monkeypatch.setattr(NI, "annotate", crash)
         with pytest.raises(RuntimeError):
-            run_one_side(
-                tmp_path, monkeypatch, cat("a", "location: `src/a.py:3`", path=REPORT)
-            )
+            run_one_side(tmp_path, monkeypatch, [assistant([use("Bash", "a")])])
         saved, out = tmp_path / "side.raw", tmp_path / "again.json"
 
         def no_eval(command, env):
@@ -1376,9 +856,10 @@ class Test_run_side:
         monkeypatch.setattr(NI, "annotate", real)
         assert NI.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
         data = json.loads(out.read_text(encoding="utf-8"))
-        assert data["cases"][0]["arms"]["with"][0]["agentic"]["report_text"] == (
-            "location: `src/a.py:3`"
-        )
+        assert data["cases"][0]["arms"]["with"][0]["agentic"] == {
+            "cost": None,
+            "tool_calls": 1,
+        }
         assert not (tmp_path / "e-Cost01").exists()
 
     def test_refuses_a_run_with_no_agent_or_an_eval_that_wrote_nothing(
@@ -1428,23 +909,45 @@ class Test_kind:
         assert NI.kind(name) is None
 
 
+def one_case_side(runs, graders=()):
+    """A side of case c1 whose runs are RUNS, its graders GRADERS."""
+    return {"cases": [{"name": "c1", "graders": list(graders), "arms": {"with": runs}}]}
+
+
+# A `truth-` grader over a round record, as a side records it.
+RECORD_TRUTH = {
+    "name": "truth-1",
+    "type": "regex",
+    "weight": 1,
+    "config": {
+        "target": {"source": "file", "path": "seal/threads/i/trail/rounds/round-1.md"},
+        "pattern": TRUTH,
+        "flags": "m",
+        "match": "contains",
+    },
+}
+
+
 class Test_side_numbers:
-    def test_accepts_a_side_as_its_rows_its_graders_and_its_cost(self):
-        text = record_of(["location: `src/a.py:11`", "location: `src/a.py:40`"])
-        result = printed_side(text, [("truth-1", TRUTH)])
-        case = result["cases"][0]
-        case["graders"].append({"name": "shape-x", "type": "file_exists"})
-        run = case["arms"]["with"][0]
-        run["graders"] += [
-            {"name": "shape-x", "passed": True},
-            {"name": "note", "passed": True},
-        ]
-        run["agentic"].update(
-            cost={
-                k: RESULT[k] for k in ("total_cost_usd", "duration_ms", "modelUsage")
+    def test_accepts_a_side_as_its_graders_and_its_cost(self):
+        """A run that keeps no `report_text` is read as any other, and the
+        side's numbers hold no row count."""
+        run = {
+            "graders": [
+                {"name": "truth-1", "passed": True},
+                {"name": "shape-x", "passed": True},
+                {"name": "note", "passed": True},
+            ],
+            "agentic": {
+                "cost": {
+                    k: RESULT[k]
+                    for k in ("total_cost_usd", "duration_ms", "modelUsage")
+                },
+                "tool_calls": 7,
             },
-            tool_calls=7,
-        )
+        }
+        shape = {"name": "shape-x", "type": "file_exists"}
+        result = one_case_side([run], [RECORD_TRUTH, shape])
         result.update(
             startedAt="t0",
             agentic={
@@ -1455,7 +958,7 @@ class Test_side_numbers:
             },
         )
         got = NI.side_numbers(result)
-        assert (got["rows"], got["false"]) == (2, 1)
+        assert "rows" not in got and "false" not in got
         assert got["graders"] == {
             ("c1", "truth-1"): ["truth", 1, 1],
             ("c1", "shape-x"): ["shape", 1, 1],
@@ -1476,31 +979,26 @@ class Test_side_numbers:
         assert got["runs"] == {"c1": 1} and got["suite"] == {"rev": "s", "tree": "t"}
         assert got["id"].startswith("t0 ") and len(got["id"]) == len("t0 ") + 12
 
-    def test_accepts_a_truth_found_only_inside_a_fence_as_found_by_no_run(self):
-        fenced = r"^location: .*(?:src\/a\.py:(?:40)(?!\d))"
-        got = NI.side_numbers(
-            printed_side(printed(FENCED_FIX), [("truth-1", fenced)], ["truth-1"])
-        )
-        assert got["graders"][("c1", "truth-1")] == ["truth", 0, 1]
-        assert (got["rows"], got["false"]) == (1, 1)
-
-    def test_refuses_a_run_with_no_text_and_a_truth_it_cannot_grade(self):
-        with pytest.raises(ValueError, match=r"^c1, run 0, keeps no report_text"):
-            NI.side_numbers({"cases": [{"name": "c1", "arms": {"with": [{}]}}]})
-        result = printed_side(record_of([]), [("truth-1", TRUTH)])
-        result["cases"][0]["graders"][0]["config"]["flags"] = "q"
-        with pytest.raises(ValueError, match=r"^c1: truth-1 carries the flag 'q'"):
-            NI.side_numbers(result)
+    def test_accepts_a_truth_over_a_round_record_as_the_eval_recorded_it(self):
+        """A side written before #1487 keeps the record its run printed, and
+        a truth the eval recorded found is counted found: the kept text is
+        not read again."""
+        run = {
+            "graders": [{"name": "truth-1", "passed": True}],
+            "agentic": {"report_text": ""},
+        }
+        got = NI.side_numbers(one_case_side([run], [RECORD_TRUTH]))
+        assert got["graders"] == {("c1", "truth-1"): ["truth", 1, 1]}
 
     def test_refuses_a_cost_one_run_lacks_and_a_cut_side(self):
-        result = printed_side(record_of([]))
-        runs = result["cases"][0]["arms"]["with"]
-        runs[0]["agentic"]["cost"] = {
+        cost = {
             "total_cost_usd": 1.0,
             "duration_ms": 1000,
             "modelUsage": RESULT["modelUsage"],
         }
-        runs.append({"graders": [], "agentic": {"report_text": ""}})
+        result = one_case_side(
+            [{"graders": [], "agentic": {"cost": cost}}, {"graders": []}]
+        )
         result["partial"] = True
         got = NI.side_numbers(result)
         assert (got["spend"], got["tokens"], got["seconds"], got["calls"]) == (
@@ -1597,12 +1095,8 @@ VERDICTS = {
         numbers(graders={("c1", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
         "pass",
     ),
-    "recall fallen by two finds is written and not judged": (
+    "a truth grader passing two runs fewer is written and not judged": (
         numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)}),
-        "pass",
-    ),
-    "a false-finding rate risen by a tenth is written and not judged": (
-        numbers(new_false=4),
         "pass",
     ),
     "a preload no smaller than the baseline's is written and not judged": (
@@ -1693,12 +1187,11 @@ class Test_verdict:
         assert NI.verdict(numbers(graders=graders)) == ("fail", reasons)
 
     def test_accepts_a_side_worse_on_every_figure_no_rule_reads(self):
-        """Recall, the false-finding rate, the preload's bytes and both token
-        figures are written in the record and judge nothing."""
+        """A truth grader, the preload's bytes and both token figures are
+        written in the record and judge nothing."""
         assert NI.verdict(
             numbers(
                 graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)},
-                new_false=5,
                 new_bytes=100000,
                 new_tokens=1100000,
             )
@@ -1753,30 +1246,22 @@ class Test_per:
 
 
 class Test_cost_rows:
-    def test_accepts_both_sides_and_the_two_derived_rows(self):
+    def test_accepts_both_sides_and_the_derived_row(self):
         lines = NI.cost_rows(numbers())
         assert lines[:2] == [
             "| Baseline spend USD | 10.0000 |",
             "| New spend USD | 10.0000 |",
         ]
-        assert "| New tokens per tool call | 9000.0 |" in lines
-        assert "| New tokens per true find | 225000 |" in lines
+        assert lines[-2:] == [
+            "| Baseline tokens per tool call | 10000.0 |",
+            "| New tokens per tool call | 9000.0 |",
+        ]
         assert "| Baseline preload bytes | 100000 |" in lines
 
     def test_refuses_a_number_it_does_not_know_as_unknown(self):
-        lines = NI.cost_rows(
-            numbers(
-                new_tokens=None,
-                old_calls=0,
-                graders={
-                    ("c1", "truth-1"): ("truth", 0, 2, 0, 2),
-                    ("c1", "truth-2"): ("truth", 0, 2, 0, 2),
-                },
-            )
-        )
+        lines = NI.cost_rows(numbers(new_tokens=None, old_calls=0))
         assert "| New tokens read, every model | unknown |" in lines
         assert "| Baseline tokens per tool call | unknown |" in lines
-        assert "| Baseline tokens per true find | unknown |" in lines
 
 
 class Test_render:
@@ -1799,6 +1284,7 @@ class Test_render:
         }
         assert text.startswith("# proofer — phase 3 smoke run\n")
         assert text.endswith("\nVerdict: pass\n\n- every pass rule holds\n")
+        assert [row for row in REMOVED_ROWS if row in text] == []
 
     def test_refuses_a_failing_side_with_its_reasons_and_a_cut_one_as_no_result(self):
         text = written(GRADED, SHAPE_FELL)
@@ -1853,41 +1339,6 @@ class Test_parse_record:
         back, _stated, _preload = NI.parse_record(bare)
         assert back["old_cut"] is True and back["new_cut"] is True
 
-    @pytest.mark.parametrize(
-        "row",
-        [
-            "|  New false rows | 15 |",
-            "| New false rows |15 |",
-            "| New false rows | 15|",
-            "| New false rows | 15 | ",
-        ],
-        ids=[
-            "the name spaced otherwise",
-            "no space before the value",
-            "no space after the value",
-            "a space after the last pipe",
-        ],
-    )
-    def test_a_count_row_spelt_otherwise_is_read_as_naught(self, row):
-        """A row count is found only on a line spelt `| <name> | <value> |`
-        with nothing outside the pipes, one space on each side of the name and
-        at least one on each side of the value, so a hand-edited record whose
-        `New false rows` row is spelt otherwise reads a count of 0, as
-        `evals/README.md` says."""
-        text = written(false=15)
-        assert NI.parse_record(text)[0]["new_false"] == 15
-        edited = text.replace("| New false rows | 15 |", row)
-        assert edited.count(row) == 1
-        assert NI.parse_record(edited)[0]["new_false"] == 0
-
-    def test_a_count_padded_with_more_spaces_is_read(self):
-        """The other half of the same `evals/README.md` sentence: a value cell
-        with more than one space on either side is found, and its count read."""
-        text = written(false=15)
-        edited = text.replace("| New false rows | 15 |", "| New false rows |  15   |")
-        assert edited.count("| New false rows |  15   |") == 1
-        assert NI.parse_record(edited)[0]["new_false"] == 15
-
 
 class Test_differ:
     def test_accepts_two_suites_and_names_both(self):
@@ -1923,9 +1374,10 @@ class Test_read_record:
         assert (computed, reasons, problems) == ("pass", [], [])
 
     def test_refuses_a_record_that_does_not_parse_or_says_otherwise(self):
-        assert NI.read_record("| Baseline report rows | x |\n")[3][0].startswith(
-            "the record does not parse: "
+        unread = written().replace(
+            "| shape | c1 | shape-x | 2 |", "| shape | c1 | shape-x | x |"
         )
+        assert NI.read_record(unread)[3][0].startswith("the record does not parse: ")
         edited = written(GRADED, SHAPE_FELL).replace("Verdict: fail", "Verdict: pass")
         assert "it says `pass` and its numbers give `fail`" in NI.read_record(edited)[3]
 
@@ -2053,30 +1505,22 @@ class Test_compare:
         )
         text = out.read_text(encoding="utf-8")
         assert "| Baseline suite | " + "a" * 40 + " " + "b" * 40 + " |" in text
+        assert [row for row in REMOVED_ROWS if row in text] == []
         assert (
             capsys.readouterr().out == re.search(r"^Verdict: .*$", text, re.M)[0] + "\n"
         )
 
-    def test_accepts_sides_holding_a_grader_whose_target_is_a_string(
-        self, tmp_path, capsys
-    ):
-        """A crafter case's `shape-no-probe-left` targets the string `files`,
-        which names no round record, so each side keeps the result the eval
-        recorded for it and the record is written."""
-        grader = NI.grader_from(
-            "graders/shape-no-probe-left.md",
-            "---\ntype: 'regex'\ntarget: 'files'\npattern: 'test_tmp_'\n"
-            "match: 'not_contains'\n---\nNo probe file is left behind.\n",
-        )
-        old = eval_side(tmp_path, "old", "a" * 40, "b" * 40, grader=grader)
-        new = eval_side(tmp_path, "new", "c" * 40, "b" * 40, grader=grader)
+    def test_accepts_a_side_read_before_986(self, tmp_path, capsys):
+        """A side whose runs keep the rows the reader before #986 matched,
+        and no `report_text`, is read for the result the eval recorded."""
+        old = eval_side(tmp_path, "old", "a" * 40, "b" * 40)
+        new = eval_side(tmp_path, "new", "a" * 40, "b" * 40)
+        read_before_986(old)
         out = tmp_path / "proofer-phase-3.md"
         assert NI.main([*self.ARGV, "--old", old, "--new", new, "--out", str(out)]) == 0
         text = out.read_text(encoding="utf-8")
-        assert "| shape | c1 | shape-no-probe-left | 1 | 1 | 1 | 1 |" in text
-        assert (
-            capsys.readouterr().out == re.search(r"^Verdict: .*$", text, re.M)[0] + "\n"
-        )
+        assert "| shape | c1 | shape-x | 1 | 1 | 1 | 1 |" in text
+        assert capsys.readouterr().out == "Verdict: pass\n"
 
     def test_accepts_a_side_naming_its_commit_alone(self, tmp_path):
         """A side written before `suite_tree` was recorded names its commit,
@@ -2102,22 +1546,15 @@ class Test_compare:
         said = capsys.readouterr().err
         assert "a" * 12 in said and "c" * 12 in said
 
-    def test_refuses_a_side_read_before_986_and_one_naming_no_suite(
-        self, tmp_path, capsys
-    ):
-        old = eval_side(tmp_path, "old", "a" * 40, "b" * 40)
+    def test_refuses_a_side_naming_no_suite(self, tmp_path, capsys):
         new = eval_side(tmp_path, "new", "a" * 40, "b" * 40)
-        out = tmp_path / "proofer-phase-3.md"
-        argv = [*self.ARGV, "--old", old, "--new", new, "--out", str(out)]
-        read_before_986(old)
-        assert NI.main(argv) == 2 and not out.exists()
-        said = capsys.readouterr().err
-        assert old in said and "the reader before #986" in said
         unnamed = eval_side(tmp_path, "unnamed", None, None)
+        out = tmp_path / "proofer-phase-3.md"
         assert (
             NI.main([*self.ARGV, "--old", unnamed, "--new", new, "--out", str(out)])
             == 2
         )
+        assert not out.exists()
         assert "records no suite_rev" in capsys.readouterr().err
 
 
@@ -2126,6 +1563,38 @@ class Test_check:
         path = tmp_path / "r.md"
         path.write_text(written(), encoding="utf-8")
         assert NI.main(["check", str(path)]) == 0
+
+    def test_accepts_a_record_written_before_1487_as_it_was_judged(
+        self, tmp_path, capsys
+    ):
+        """A record written before #1487 carries the four row counts and the
+        two `tokens per true find` rows; `check` and `model` read past them
+        and give what they give the same record without them."""
+        now = NI.render("sealer", 4, side(GRADED), side(GRADED, spend=5.0))
+        before = now.replace(
+            "| New cut short | no |\n",
+            "| New cut short | no |\n| Baseline report rows | 20 |\n"
+            "| Baseline false rows | 2 |\n| New report rows | 20 |\n"
+            "| New false rows | 4 |\n",
+        ).replace(
+            "| New tokens per tool call | 10000.0 |\n",
+            "| New tokens per tool call | 10000.0 |\n"
+            "| Baseline tokens per true find | 500000 |\n"
+            "| New tokens per true find | 500000 |\n",
+        )
+        assert [row for row in REMOVED_ROWS if before.count(row) != 2] == []
+        said = []
+        for text in (now, before):
+            path = tmp_path / "r.md"
+            path.write_text(text, encoding="utf-8")
+            assert NI.main(["check", str(path)]) == 0
+            assert NI.main(["model", str(path)]) == 0
+            said.append(capsys.readouterr().out)
+        assert (
+            said[0]
+            == said[1]
+            == ("sonnet\nevery grader holds and Sonnet spent 5.0 USD, below 10.0\n")
+        )
 
     def test_refuses_a_failing_record_and_one_over_two_suites(self, tmp_path, capsys):
         path = tmp_path / "r.md"
@@ -2173,382 +1642,12 @@ class Test_model:
         assert capsys.readouterr().out == ""
 
 
-class Test_scalar:
-    @pytest.mark.parametrize(
-        "text, want",
-        [
-            (
-                "{source: file, path: 'it''s, {a}.md'}",
-                {"source": "file", "path": "it's, {a}.md"},
-            ),
-            ("'it''s'", "it's"),
-            ("2", 2),
-            ("-3", -3),
-        ],
-        ids=["a flow map", "a quoted string", "an integer", "a negative integer"],
-    )
-    def test_accepts_a_map_a_quoted_string_and_an_integer(self, text, want):
-        assert NI.scalar(text) == want
-
-    @pytest.mark.parametrize("text", ["regex", "1.5"])
-    def test_refuses_anything_else_and_keeps_its_text(self, text):
-        assert NI.scalar(f" {text} ") == text
-
-
-class Test_grader_at:
-    def test_accepts_a_truth_file_at_a_commit(self, suites):
-        grader = NI.grader_at(suites["wide"], f"{CASE}/graders/truth-1.md")
-        assert grader["name"] == "truth-1" and grader["config"]["pattern"] == WIDE
-
-    def test_refuses_a_file_the_commit_does_not_hold(self, suites):
-        with pytest.raises(SystemExit, match=r"^git show"):
-            NI.grader_at(suites["own"], f"{CASE}/graders/truth-9.md")
-
-
-class Test_grader_from:
-    def test_accepts_what_behaviour_writes_field_for_field(self):
-        pattern = r"^location: .*it's(?:a|b)"
-        name, text = BEHAVIOUR.report_regex(
-            "truth", "q", "it's, {a}.md", pattern, "A defect.", "m", weight=2
-        )
-        assert NI.grader_from(f"graders/{name}", text) == {
-            "name": "truth-q",
-            "type": "regex",
-            "weight": 2,
-            "config": {
-                "target": {"source": "file", "path": "it's, {a}.md"},
-                "pattern": pattern,
-                "flags": "m",
-                "match": "contains",
-            },
-        }
-
-    def test_accepts_a_file_naming_no_weight_and_no_match(self):
-        got = NI.grader_from(
-            "graders/truth-1.md", "---\ntype: regex\npattern: 'x'\n---\nA defect.\n"
-        )
-        assert (got["weight"], got["config"]["match"]) == (1, "contains")
-
-    def test_refuses_a_file_with_no_front_matter(self):
-        with pytest.raises(
-            ValueError, match=r"^graders/truth-1\.md has no front matter$"
-        ):
-            NI.grader_from("graders/truth-1.md", "A defect.\n")
-
-
-class Test_suite_files:
-    def test_accepts_every_file_of_every_case_by_its_blob(self, suites, _suites):
-        d, _commits = _suites
-        got = NI.suite_files(suites["more"], "proofer")
-        assert sorted(got) == [CASE, "evals/behaviour/proofer/c2"]
-        blob = git(d, "rev-parse", f"{suites['more']}:{CASE}/case.yaml").stdout.strip()
-        assert got[CASE][f"{CASE}/case.yaml"] == blob
-
-    def test_refuses_an_agent_with_no_suite_as_no_case(self, suites):
-        assert NI.suite_files(suites["own"], "crafter") == {}
-
-
-class Test_is_truth_file:
-    def test_accepts_a_cases_truth_grader(self):
-        assert NI.is_truth_file(f"{CASE}/graders/truth-1.md")
-
-    @pytest.mark.parametrize(
-        "path", [f"{CASE}/graders/shape-x.md", f"{CASE}/truth-1.md", "truth-1.md"]
-    )
-    def test_refuses_any_other_file(self, path):
-        assert not NI.is_truth_file(path)
-
-
-class Test_truths_at:
-    def test_accepts_each_cases_truth_graders(self, suites):
-        got = NI.truths_at(suites["own"], NI.suite_files(suites["own"], "proofer"))
-        assert [g["config"]["pattern"] for g in got[CASE]] == [TRUTH]
-
-    def test_refuses_a_case_with_no_truth_as_none(self, suites):
-        got = NI.truths_at(suites["more"], NI.suite_files(suites["more"], "proofer"))
-        assert got["evals/behaviour/proofer/c2"] == []
-
-
-class Test_grade:
-    @pytest.mark.parametrize(
-        "rows, found",
-        [
-            (["location: `src/b.py:1`", "location: `src/a.py:11`"], True),
-            (["location: `src/a.py:40`"], False),
-        ],
-    )
-    def test_accepts_a_contains_regex_over_the_rows(self, rows, found):
-        got = NI.grade(record_truth("truth-1", TRUTH), rows)
-        assert got == {
-            "name": "truth-1",
-            "passed": found,
-            "weight": 1,
-            "explanation": "regraded from the kept report text: "
-            + ("found" if found else "not found"),
-            "withOnly": False,
-            "scored": True,
-        }
-
-    @pytest.mark.parametrize(
-        "change, why",
-        [
-            ({"type": "file_exists"}, "is not a regex the report must contain"),
-            ({"match": "equals"}, "is not a regex the report must contain"),
-            ({"flags": "mu"}, "carries the flag 'u'"),
-        ],
-        ids=["not a regex", "not contains", "an unknown flag"],
-    )
-    def test_refuses_a_grader_it_cannot_read(self, change, why):
-        grader = record_truth("truth-1", TRUTH)
-        if "type" in change:
-            grader["type"] = change["type"]
-        else:
-            grader["config"].update(change)
-        with pytest.raises(ValueError, match=f"^truth-1 {re.escape(why)}"):
-            NI.grade(grader, ["location: `src/a.py:11`"])
-
-
-class Test_mean:
-    def test_accepts_values_as_their_mean(self):
-        assert NI.mean(iter([1, 2, 6])) == 3
-
-    def test_refuses_no_value_as_zero(self):
-        assert NI.mean([]) == 0
-
-
 class Test_case_runs:
     def test_accepts_every_arms_runs(self):
         assert NI.case_runs({"arms": {"a": [1, 2], "b": [3]}}) == [1, 2, 3]
 
     def test_refuses_a_case_with_no_arm_as_no_run(self):
         assert NI.case_runs({}) == []
-
-
-class Test_regraded:
-    def test_accepts_a_side_graded_on_new_truths_with_its_scores_recomputed(
-        self, suites, tmp_path
-    ):
-        with open(
-            graded_side(tmp_path, suites["own"], ROWS, [True, False]), encoding="utf-8"
-        ) as f:
-            result = json.load(f)
-        wide = [record_truth("truth-1", WIDE)]
-        got = NI.regraded(result, {CASE: wide})
-        case = got["cases"][0]
-        assert [r["passed"] for r in case["arms"]["with"]] == [True, True]
-        assert case["aggregates"] == {"score": 1.0, "passRate": 1.0}
-        assert got["aggregates"] == {
-            "casesTotal": 1,
-            "casesPassed": 1,
-            "overallScore": 1.0,
-            "overallPassRate": 1.0,
-        }
-        assert result["cases"][0]["aggregates"] == {"score": 0.75, "passRate": 0.5}
-
-    def test_accepts_the_whole_text_where_whole_is_set(self, suites, tmp_path):
-        side_path = graded_side(
-            tmp_path, suites["own"], ROWS, [True, False], spoil=fenced_first_run
-        )
-        with open(side_path, encoding="utf-8") as f:
-            result = json.load(f)
-        truths = {CASE: [record_truth("truth-1", TRUTH)]}
-        first = NI.regraded(result, truths, whole=True)["cases"][0]["arms"]["with"][0]
-        assert {g["name"]: g["passed"] for g in first["graders"]}["truth-1"] is True
-        rows = NI.regraded(result, truths)["cases"][0]["arms"]["with"][0]
-        assert {g["name"]: g["passed"] for g in rows["graders"]}["truth-1"] is False
-
-    def test_refuses_a_run_with_no_text_and_a_truth_it_cannot_grade(
-        self, suites, tmp_path
-    ):
-        with open(
-            graded_side(tmp_path, suites["own"], ROWS, [True, False]), encoding="utf-8"
-        ) as f:
-            result = json.load(f)
-        flagged = record_truth("truth-1", TRUTH)
-        flagged["config"]["flags"] = "x"
-        with pytest.raises(
-            ValueError, match=r"^proofer c1: truth-1 carries the flag 'x'"
-        ):
-            NI.regraded(result, {CASE: [flagged]})
-        del result["cases"][0]["arms"]["with"][1]["agentic"]
-        with pytest.raises(
-            ValueError, match=r"^proofer c1, run 1, keeps no report_text"
-        ):
-            NI.regraded(result, {CASE: []})
-
-
-class Test_differs:
-    def test_accepts_two_sums_of_one_score_in_another_order(self):
-        assert (
-            NI.differs(
-                {"score": 0.1 + 0.2, "passed": True},
-                {"score": 0.3, "passed": True},
-                ("score", "passed"),
-            )
-            == []
-        )
-
-    def test_refuses_a_value_the_again_does_not_give_and_skips_one_not_recorded(self):
-        assert NI.differs({"score": 0.5}, {"score": 1.0, "x": 1}, ("score", "x")) == [
-            "score 0.5, not 1.0"
-        ]
-
-
-class Test_unreproduced:
-    def test_accepts_a_side_graded_again_as_it_recorded(self, suites, tmp_path):
-        with open(
-            graded_side(tmp_path, suites["own"], ROWS, [True, False]), encoding="utf-8"
-        ) as f:
-            result = json.load(f)
-        files = NI.suite_files(suites["own"], "proofer")
-        again = NI.regraded(result, NI.truths_at(suites["own"], files), whole=True)
-        assert NI.unreproduced(result, again) == []
-
-    def test_refuses_a_truth_result_its_text_does_not_give(self, suites, tmp_path):
-        with open(
-            graded_side(tmp_path, suites["own"], ROWS, [True, True]), encoding="utf-8"
-        ) as f:
-            result = json.load(f)
-        files = NI.suite_files(suites["own"], "proofer")
-        again = NI.regraded(result, NI.truths_at(suites["own"], files), whole=True)
-        assert NI.unreproduced(result, again)[0] == (
-            "proofer c1, run 1: it recorded {'truth-1': True} and its report text gives "
-            "{'truth-1': False}"
-        )
-
-
-class Test_regrade:
-    def test_accepts_a_side_onto_its_own_suite_unchanged(self, suites, tmp_path):
-        side_path = graded_side(tmp_path, suites["own"], ROWS, [True, False])
-        out = tmp_path / "out.json"
-        assert regraded_to(side_path, suites["own"], out) == 0
-        with open(side_path, encoding="utf-8") as f:
-            before = json.load(f)
-        after = json.loads(out.read_text(encoding="utf-8"))
-        old, new = NI.side_numbers(before), NI.side_numbers(after)
-        assert (new["rows"], new["false"]) == (old["rows"], old["false"]) == (3, 2)
-        assert new["graders"] == old["graders"]
-        assert after["aggregates"] == before["aggregates"]
-        assert after["agentic"]["suite_rev"] == suites["own"]
-
-    def test_accepts_a_wider_truth_and_names_the_suite_its_runs_answered(
-        self, suites, tmp_path, capsys
-    ):
-        side_path = graded_side(tmp_path, suites["own"], ROWS, [True, False])
-        out = tmp_path / "out.json"
-        assert regraded_to(side_path, suites["wide"], out) == 0
-        assert (
-            capsys.readouterr().out
-            == f"graded on {suites['wide'][:8]}: 3 rows, 0 false\n"
-        )
-        after = json.loads(out.read_text(encoding="utf-8"))
-        numbers_after = NI.side_numbers(after)
-        assert numbers_after["graders"][("proofer c1", "truth-1")] == ["truth", 2, 2]
-        meta = after["agentic"]
-        assert (meta["suite_rev"], meta["regraded_from"]) == (
-            suites["wide"],
-            suites["own"],
-        )
-        assert meta["suite_tree"] == NI.suite_tree(suites["wide"], "proofer")
-        again = tmp_path / "again.json"
-        assert regraded_to(str(out), suites["wide"], again) == 0
-        assert (
-            json.loads(again.read_text(encoding="utf-8"))["agentic"]["regraded_from"]
-            == (suites["own"])
-        )
-
-    def test_accepts_a_side_the_eval_found_on_a_fenced_line(self, suites, tmp_path):
-        """The eval searched the whole file, so the side's own suite gives
-        its result back only from the whole text; graded on a suite, the run
-        is read by its finding rows, where the fenced line is no row."""
-        side_path = graded_side(
-            tmp_path, suites["own"], ROWS, [True, False], spoil=fenced_first_run
-        )
-        out = tmp_path / "out.json"
-        assert regraded_to(side_path, suites["own"], out) == 0
-        after = json.loads(out.read_text(encoding="utf-8"))
-        assert NI.side_numbers(after)["graders"][("proofer c1", "truth-1")] == [
-            "truth",
-            0,
-            2,
-        ]
-
-    @pytest.mark.parametrize(
-        "own, rev, found, spoil, named",
-        [
-            ("own", "wide", [True, True], None, "proofer c1, run 1: it recorded {"),
-            (
-                "own",
-                "wide",
-                [True, False],
-                run_score_off,
-                "proofer c1, run 0: it recorded score",
-            ),
-            (
-                "own",
-                "wide",
-                [True, False],
-                case_score_off,
-                "proofer c1: its aggregates",
-            ),
-            ("own", "wide", [True, False], side_score_off, "the side's aggregates"),
-            (
-                "own",
-                "wide",
-                [True, False],
-                truth_not_its_suites,
-                "proofer c1: its truth",
-            ),
-            ("own", "wide", [True, False], no_suite, "suite is unknown"),
-            (
-                "own",
-                "wide",
-                [True, False],
-                no_agent,
-                "records no agent or no suite_rev",
-            ),
-            ("own", "more", [True, False], with_c2, "proofer c2: the suite it ran"),
-            ("more", "wide", [True, False], with_c2, "proofer c2: the suite at"),
-            ("own", "prompt", [True, False], None, "proofer c1: the suite at"),
-            ("own", "more", [True, False], None, "proofer/c2: the suite at"),
-            ("own", "kind", [True, False], None, "proofer c1: truth-1 is not"),
-            ("own", "flag", [True, False], None, "proofer c1: truth-1 carries"),
-            ("own", "plain", [True, False], None, "c1/graders/truth-1.md has no"),
-        ],
-        ids=[
-            "rows-do-not-reproduce",
-            "a-run-score-does-not-reproduce",
-            "a-case-score-does-not-reproduce",
-            "the-side-score-does-not-reproduce",
-            "a-truth-not-its-suites",
-            "no-suite",
-            "an-agent-of-no-suite",
-            "a-case-its-own-suite-lacks",
-            "a-case-the-target-lacks",
-            "a-non-truth-file-differs",
-            "another-case",
-            "a-truth-no-row-answers",
-            "an-unknown-flag",
-            "no-front-matter",
-        ],
-    )
-    def test_refuses_a_side_it_cannot_stand_in_for(
-        self, suites, tmp_path, capsys, own, rev, found, spoil, named
-    ):
-        side_path = graded_side(tmp_path, suites[own], ROWS, found, spoil)
-        out = tmp_path / "out.json"
-        assert regraded_to(side_path, suites[rev], out) == 2
-        assert not out.exists()
-        assert named in capsys.readouterr().err
-
-    def test_refuses_a_side_read_before_986(self, suites, tmp_path, capsys):
-        side_path = graded_side(tmp_path, suites["own"], ROWS, [True, False])
-        read_before_986(side_path)
-        out = tmp_path / "out.json"
-        assert regraded_to(side_path, suites["own"], out) == 2
-        assert not out.exists()
-        said = capsys.readouterr().err
-        assert side_path in said and "the reader before #986" in said
 
 
 class Test_main:
@@ -2574,10 +1673,6 @@ class Test_main:
             ),
             (["check", "r.md"], "check"),
             (["model", "r.md"], "model"),
-            (
-                ["regrade", "--side", "s", "--suite-rev", "HEAD", "--out", "o"],
-                "regrade",
-            ),
         ],
     )
     def test_accepts_each_subcommand_and_hands_it_on(self, monkeypatch, argv, called):
@@ -2587,7 +1682,6 @@ class Test_main:
             ("compare", "compare"),
             ("check", "check"),
             ("model", "model"),
-            ("regrade", "regrade"),
         ):
             monkeypatch.setattr(NI, name, lambda a, _fn=fn: seen.append(_fn) or 0)
         assert NI.main(argv) == 0
@@ -2612,8 +1706,15 @@ class Test_main:
                 "--out",
                 "o",
             ],
+            ["regrade", "--side", "s", "--suite-rev", "HEAD", "--out", "o"],
         ],
-        ids=["no subcommand", "no source", "two sources", "no such agent"],
+        ids=[
+            "no subcommand",
+            "no source",
+            "two sources",
+            "no such agent",
+            "the removed regrade",
+        ],
     )
     def test_refuses_arguments_it_cannot_use(self, monkeypatch, argv):
         monkeypatch.setattr(NI, "run_side", lambda a: 0)
