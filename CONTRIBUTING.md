@@ -262,18 +262,24 @@ check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 
 **A case stands in the file of what it holds, and a file that declares no
 `TARGET` says why.** What a case holds is read from the case whole, never
-from its file's name. A case that calls a function of one shipped module,
-directly or through a loader, or runs the `seal` subcommand or the script
-that one module is, and asserts on what that call returned, printed, raised
-or wrote, stands in that module's file. It goes in the class of the
-function it calls, or in `Test_module`, and keeps its name. A case that
-reads a document only to build that call's input is still the module's. A
-case that holds a document's sentence against a value it takes from a
-module is not, because what it asserts is the document's text. A case has
-no one file in the layout where it walks this repository's tree or a whole
-directory of it, lists its tracked files, or runs a check over its root;
-where it holds one rule across the text of several files; or where it holds
-one property across several shipped modules. A file that holds such a
+from its file's name. A case that calls a function of one module, directly
+or through a loader, or runs the `seal` subcommand or the script that one
+module is, and asserts on what that call returned, printed, raised or
+wrote, stands in that module's file. The module is a shipped one, or a
+module under `tests/` that is not a test file, such as
+`tests/gfm_table_oracle.py`. A case whose subject is the source of such a
+module under `tests/` stands in that module's file too. A case that uses
+one only to read another file, as a case reading a workflow through
+`tests/workflows.py` does, holds that other file. A case that stands in a
+module's file goes in the class of the function it calls, or in
+`Test_module`, and keeps its name. A case that reads a document only to
+build that call's input is still the module's. A case that holds a
+document's sentence against a value it takes from a module is not, because
+what it asserts is the document's text. A case has no one file in the
+layout where it walks this repository's tree or a whole directory of it,
+lists its tracked files, or runs a check over its root; where it holds one
+rule across the text of several files; or where it holds one property
+across several modules, shipped or under `tests/`. A file that holds such a
 case, or whose cases read different files, declares no `TARGET`. Its first
 line after the imports, where `TARGET = "..."` would stand, gives the
 ground in words, as the line
@@ -299,7 +305,10 @@ past the threshold.** The threshold is 60 seconds of the module's old files in
 the `test-durations` artifact of the newest push run on `main`, which
 `gh run download <run id> -n test-durations -D <dir>` writes to
 `<dir>/.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
-the module's classes. Every other module's old cases are placed and merged.
+the module's classes whose docstring states no input its two cases differ
+by. A pair whose class states that input is two cases a reader has judged
+distinct, so it is no ground to write the module's tests anew. Every other
+module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading
 the code, one class per function, and its old cases are read for their
 inputs.
