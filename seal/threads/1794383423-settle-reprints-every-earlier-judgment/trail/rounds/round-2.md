@@ -71,6 +71,11 @@ verdict: fixed 0a354b5a7
 The fix touches the work item's records alone. So the sealer can read it,
 as the invariant's second row allows, or a round after it can.
 
+```seal
+verdict: fixed 05394cbca
+answer: The finding holds: `c719f1de8` changed `tests/skills/test_settle.py` alone, and the code fix of round 1's finding 2 is `0a354b5a7`. `05394cbca` changes round 1's close of finding 2 to `verdict: fixed 0a354b5a7` and leaves its answer line as it was. The fix touches the work item's records alone, for a finding located in them alone.
+```
+
 ## Confirmations
 
 ```seal
