@@ -83,3 +83,12 @@ less `tests/censuses.py` and `tests/conftest.py`, which hold no cases. The
 run at `ad8a55543` passed, 3,913 passed and 9 skipped (executed). A test
 file that reaches a changed module only through a script it runs is not in
 the set; `gaps.md` names the broad gate as its answerer.
+
+**The phase closes at `1e3c11fb7`, one docstring commit after the runs
+above.** Reading the range found the `fence_spans` docstring sentence that
+names `blank_fences` joined to the next on one line of 115 characters, and
+`1e3c11fb7` wraps it. A docstring can break only the module's import, so
+`bin/test tests/lib/test_lines.py -q` was run at that commit and passed,
+105 cases (executed). After the records commit, `bin/test tests/text
+tests/behaviour -q`, the files that walk `seal/threads/`, passed, 1,773
+passed and 8 skipped (executed).
