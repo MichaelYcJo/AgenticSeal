@@ -10,7 +10,7 @@ The tree as read at `918342dc0`.
 
 `lib/lines.py:31-34` is one comment that names both `closed_fence_lines` and `payload_meter.py#heading_starts`. Phase 1 drops the second name and phase 2 the first, each where its unit goes.
 
-The failure scenario of the chosen approach, six months on: a person wants the per-agent token figure measured again, as #292 and #329 measured it, for a model change or a preload cut. The meter now only divides bytes by 3.2. They read a spawn's first `usage` block in its subagent transcript and subtract a baseline spawn's by hand, the procedure the removed docstring described. The owner accepted that cost in the decision (design G1).
+The failure scenario of the chosen approach, six months on: a person wants the per-agent token figure measured again, as #292 and #329 measured it, for a model change or a preload cut. The meter now only estimates each file's tokens at 3.2 bytes per token and sums them. They read a spawn's first `usage` block in its subagent transcript and subtract a baseline spawn's by hand, the procedure the removed docstring described. The owner accepted that cost in the decision (design G1).
 
 ## Alternatives considered
 
@@ -55,3 +55,4 @@ No migration, environment variable or dependency. `seal payload` refuses `--cali
 |---|---|---|---|
 | 2026-11-11 | The frame statements phases 1 and 2 named went to the framer as one fold after phase 2, before the first round | The three from phase 1 did not bear on phase 2's five symbols, and the three from phase 2 came at the last phase; a round read before the fold would judge the build against `## Removes` rows and *Scope* sentences the build already departed from with recorded grounds | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
 | 2026-11-11 | The title takes `refactor:`, as the issue's title does: the release report prints the same table and no command a document or workflow calls changes | The prefix names the kind of change that dominates the diff | `skills/commit-pr-convention/SKILL.md` |
+| 2026-11-11 | Round 1 finding 2's third location, design *Scope* item 2, went to the framer as a fold after the fix pass, and round 2 reads the fix and the fold together | The location is a frame file, which the framer writes for a round finding | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
