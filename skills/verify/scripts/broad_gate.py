@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """seal gate — the one broad run, taken once after the rounds settle.
 
-Issue #30. Contract rule 2 and `docs/running/the-broad-gate.md` say the full suite,
+Contract rule 2 and `docs/running/the-broad-gate.md` say the full suite,
 the repository-wide lint and the typecheck run once, after the review rounds
-settle, and for three releases nobody was assigned that run: contract rule 2
-forbade it to the crafter and the proofer, and the orchestrator that took it by
-default kept hundreds of output lines in the one context a release cannot
-replace. This command is the run, as a thing the orchestrator types once,
-with nothing else running, before it spawns the sealer (#969).
+settle, and contract rule 2 forbids that run to every agent. This command is
+the run, as a thing the orchestrator types once, with nothing else running,
+before it spawns the sealer. Each check's output goes to a file, so the
+hundreds of lines a suite prints stay out of the orchestrator's context, the
+one context a release cannot replace.
 
 What it does, in order, from the repository root:
 
@@ -17,7 +17,7 @@ What it does, in order, from the repository root:
      nothing run**: no key at all, because a run over a command nobody
      chose is the counterfeit `verify` names; a config that will not read,
      or a key written twice or holding no string, which is refused rather
-     than read as absent (#867); or a value this gate would not run as the
+     than read as absent; or a value this gate would not run as the
      command it reads as — the whole command wrapped in backticks or in
      `$(…)`, or ending in a single `&`. No refusal names a command to
      write: the key is a person's, and the message says where they answer
@@ -28,21 +28,14 @@ What it does, in order, from the repository root:
      it, printed rather than judged
   3. `seal.py mode --check`            the `Mode` key and the folder agree
 
-**Which arms exist is declared rather than remembered** (#468). `PARTITION`
-below holds every step of `.github/workflows/hygiene.yml`'s `release` job
-against the arm that mirrors it, or against the reason none does, and a case
-holds that table against the workflow from both sides. The list above went
-three releases at five while the workflow went to thirteen steps, and no case
-went red for it.
-
 **`<base>` above is a resolved commit, never the ref as typed.** `--base` is
 resolved once before anything runs, to the ref CI will read: the given ref's
 upstream where the checkout declares one, else `refs/remotes/origin/<base>`,
 else the ref as given. Every consumer takes that commit, including the
 scratch worktree and the `Broad gate` cell. A branch name in a local checkout
 is a LOCAL ref and a runner has no local branches, so a checkout one commit
-behind its remote passed green over a question nobody asked while CI refused
-the same commit on the same check (#423). Where resolving MOVES the answer
+behind its remote would pass green over a question nobody asked while CI
+refuses the same commit on the same check. Where resolving MOVES the answer
 one line says so and the run continues; where it does not, nothing extra
 prints. Nothing is fetched.
 
@@ -60,27 +53,26 @@ outcome. Only when the repository's command fails AND that record holds
 failing test files does the gate add a scratch worktree at `<base>`, run the
 command there once, unchanged, with the recorder loaded again, remove the
 worktree, and label each file `new`, `failing on base too`, or
-`new?` with the reason no run measured it, from the base's own record
-(#825). No line pytest printed decides a word, and no file is appended to
+`new?` with the reason no run measured it, from the base's own record.
+No line pytest printed decides a word, and no file is appended to
 any run. It decides nothing about any of the words: they go in the report
 and the reader acts.
 
-**It judges nothing and draws nothing** (#975). The verdict word `sealed`
+**It judges nothing and draws nothing.** The verdict word `sealed`
 is the sealer's, in `guarantee.md`, and the stamp is drawn from that
 verdict at its commit, never from this run. A run that passes prints one
 form on every stream: `BROAD GATE PASSED   <branch> @ <tree> against <ref>
 @ <base commit>`, the branch left out on a detached HEAD and the ref left
-out where it is the commit itself (#666); under it the panel's rows as
+out where it is the commit itself; under it the panel's rows as
 plain text (`panel`, `report_lines`) — the tree and its branch, the base
 and the ref it came from, the work item, the suite's counts, the chain's
-exit, how many more steps CI runs than this run answers, and the round
-count when `--record` names a work item, with the deferred findings' homes
-beneath it (`rounds_rows`); and last, where git still sees `trail/gate.md`
-uncommitted, one line saying so: CI reads HEAD. The owner's marks are
+exit, and the round count when `--record` names a work item, with the
+deferred findings' homes beneath it (`rounds_rows`); and last, where git
+still sees `trail/gate.md` uncommitted, one line saying so: CI reads HEAD. The owner's marks are
 written in ASCII on a console that is not UTF-8, or under `--shape`. A run
 fails where a check exits non-zero, and where the suite's record at `HEAD`
-counts a pytest session that did not pass, whatever the command's exit (#883,
-#1301): a stop that chooses the exit code, as `pytest.exit()` and
+counts a pytest session that did not pass, whatever the command's exit: a
+stop that chooses the exit code, as `pytest.exit()` and
 `os._exit()` do, can give 0 over tests that never ran, and an act after
 pytest's run loop, a later hook or a part of the command after pytest, can give
 0 over a test that failed. A run
@@ -92,11 +84,11 @@ or a drawing.
 answer: it appends one `seal` block holding `run: <tree> against <base
 commit>` below the blocks of earlier runs, assembled and read by
 `lib/fields.py`, and appends nothing where the last block names the
-same commit against the same base (`write_gate_file`, #1198). It is the
+same commit against the same base (`write_gate_file`). It is the
 run's one record; `chain_check.py` reads its last block at the pull
 request.
 
-**`--preflight` runs arms 2 and 3 alone, and writes nothing** (#638). It is the
+**`--preflight` runs arms 2 and 3 alone, and writes nothing.** It is the
 orchestrator's step before it spawns the sealer: the same base resolved the
 same way, every refusal of the `Broad gate` key applied, and then every arm
 above except the key's command, in the same order, with the same arguments,
@@ -104,7 +96,7 @@ each output kept the same way. The key is read and its command never run, so
 a refusal on a record arm — a chain refusal, a mode the `Mode` key and the
 folder disagree on — arrives in
 seconds rather than after a whole suite. It writes no file, adds no
-worktree, prints no coverage line, and prints no line beginning `BROAD GATE`: its stdout opens
+worktree, and prints no line beginning `BROAD GATE`: its stdout opens
 `PREFLIGHT PASSED` or `PREFLIGHT FAILED`, the failing arms under the second
 in the failure form's own words.
 `--record` beside it is refused, because a preflight writes nothing. It is
@@ -124,8 +116,6 @@ refused, with nothing run, `--record` given among the refusals.
 """
 
 import argparse
-import functools
-import importlib.util
 import json
 import ntpath
 import os
@@ -141,22 +131,40 @@ import tempfile
 #
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
-# loaded by path the way `chain_check.py` loads `lib/routing.py`: it is the
-# one reader of `seal/config.json`, and a second reader would answer a
-# different question about the same file.
+# loaded through `lib/sibling.py` the way `chain_check.py` loads
+# `lib/routing.py`: it is the one reader of `seal/config.json`, and a second
+# reader would answer a different question about the same file. The modules
+# loaded are named as `lib/sibling.py#load` names them.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
-STAMP = os.path.join(HERE, "seal_stamp.py")
+STAMP = "skills/verify/scripts/seal_stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
-# `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
+# `chain_check.SEALING`, the flag the chain arm passes. Spelled here
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
-CONFIG_READER = os.path.join(PLUGIN, "lib", "config.py")
+CONFIG_READER = "lib/config.py"
 # `lib/fields.py`, which assembles the run block `--record` appends and
-# reads the blocks already there (#1198).
-FIELDS_READER = os.path.join(PLUGIN, "lib", "fields.py")
-OPTIN = os.path.join(PLUGIN, "lib", "optin.py")
+# reads the blocks already there.
+FIELDS_READER = "lib/fields.py"
+OPTIN = "lib/optin.py"
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2. Where it is absent itself, the
+# refusal is the same sentence about it, spelt here because the file that
+# holds the sentence is the one missing.
+sys.path.insert(0, os.path.join(PLUGIN, "lib"))
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.join(PLUGIN, "lib", "sibling.py")
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 CONFIG = "config.json"
 KEY = "Broad gate"
@@ -173,10 +181,9 @@ ROUNDS_DIR = os.path.join("trail", "rounds")
 # repository's own command; the panel reads its `suite` and `lint` from that
 # one run, because the command carries both.
 #
-# There is no count in this comment on purpose. There were five of these for
-# three releases and every document that said `five` had to be found again
-# when the sixth landed — `PARTITION` below is where the list is declared, and
-# a case holds it against the workflow rather than against a number typed here.
+# There is no count in this comment on purpose: every document that states a
+# count has to be found again when an arm is added, and the module
+# docstring's numbered list is where the arms are listed.
 SUITE, CHAIN_NAME, MODE_NAME = ("suite", "chain", "mode")
 
 # How many lines of a failing check's output the report quotes before naming
@@ -186,8 +193,8 @@ QUOTED = 8
 NEW, ON_BASE = "new", "failing on base too"
 
 # How a panel value is cut, continued and marked — `PANEL_VALUE_WIDTH`,
-# `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW`, `TICK` and
-# `DOT` — is `seal_stamp.py`'s since #975, which composes the stamp's rows
+# `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW` and `TICK` —
+# is `seal_stamp.py`'s, which composes the stamp's rows
 # from a `sealed` guarantee; this gate's report reads them through
 # `stamp_module()`, so the two write a row by one set of rules.
 
@@ -195,7 +202,7 @@ NEW, ON_BASE = "new", "failing on base too"
 # pytest's short-summary line for a failed test, `FAILED path::name - why`,
 # printed under `-q` too. Read only where the command's run at `HEAD` left no
 # record (`failing_files`), to name the files that read `NO_RECORD_AT_HEAD`;
-# the path may hold a space (#813).
+# the path may hold a space.
 FAILED_RE = re.compile(r"^FAILED\s+(.+?)::", re.M)
 
 
@@ -203,45 +210,36 @@ class Refused(Exception):
     """A reason nothing ran (exit 2)."""
 
 
-def load(path, name):
-    """Import a sibling script by path, or raise `Refused`: where the file is
-    not there, and where executing it raises (#869) — `seal_stamp.py` reads
-    its disc's mark sprite at import and raises `SPRITE_MALFORMED`'s sentence
-    for one that is not in shape, which then ends the gate at exit 2 with
-    that sentence and nothing run, rather than in a traceback. The
-    exception's own sentence is what the person reads; one with none is
-    named by its type. A `SystemExit` is no `Exception` and keeps its own
-    exit."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None or not os.path.isfile(path):
-        raise Refused(f"cannot load {path} — this copy of the plugin is missing it")
-    mod = importlib.util.module_from_spec(spec)
+def sibling_module(rel):
+    """The module at REL through `lib/sibling.py#load`, or `Refused` where
+    executing it raises: `seal_stamp.py` reads its disc's mark sprite
+    at import and raises `SPRITE_MALFORMED`'s sentence for one that is not
+    in shape, which then ends the gate at exit 2 with that sentence and
+    nothing run, rather than in a traceback. The exception's own sentence is
+    what the person reads; one with none is named by its type. A
+    `SystemExit` is no `Exception` and keeps its own exit, and so does the
+    loader's for an absent file."""
     try:
-        spec.loader.exec_module(mod)
+        return sibling.load(rel)
     except Exception as exc:
         said = str(exc) or type(exc).__name__
+        path = os.path.join(PLUGIN, *rel.split("/"))
         raise Refused(
             f"seal gate: {path} will not load, so nothing ran: {said}"
         ) from exc
-    return mod
 
 
-@functools.lru_cache(maxsize=1)
 def stamp_module():
     """`seal_stamp.py`, loaded once per process: `panel` asks it the one
     question both of them answer (`ref_is_commit`), and a case drives
     `panel` without a gate around it to have loaded it."""
-    return load(STAMP, "agentic_seal_stamp_for_broad_gate")
+    return sibling_module(STAMP)
 
 
-@functools.lru_cache(maxsize=1)
 def gitcmd_module():
     """`lib/gitcmd.py`, loaded once per process, or `Refused`. A
-    refusal is not cached, so each later call raises it again."""
-    return load(
-        os.path.join(PLUGIN, "lib", "gitcmd.py"),
-        "agentic_gitcmd_for_broad_gate",
-    )
+    refusal leaves nothing loaded, so each later call raises it again."""
+    return sibling_module("lib/gitcmd.py")
 
 
 def git(root, *args):
@@ -266,11 +264,10 @@ def branch_name(root):
     """The branch checked out at `root`, or None on a detached HEAD.
 
     What the `BROAD GATE PASSED` and `BROAD GATE FAILED` lines name beside
-    the tree (#666): a head naming two commits told a reader which hash it
-    was about and never which branch, so a line was matched to its work by
-    hand. `symbolic-ref
-    -q` exits non-zero on a detached HEAD and prints nothing, which is the
-    None the lines read as *leave the branch out*."""
+    the tree: a hash tells a reader which commit a line is about and never
+    which branch, and the branch is what matches a line to its work.
+    `symbolic-ref -q` exits non-zero on a detached HEAD and prints nothing,
+    which is the None the lines read as *leave the branch out*."""
     out = git(root, "symbolic-ref", "--short", "-q", "HEAD")
     return out.strip() if out and out.strip() else None
 
@@ -279,10 +276,9 @@ def branch_name(root):
 #
 # `seal gate` on the Bash tool's PATH is the installed plugin's, and this
 # script resolves every arm relative to itself (`PLUGIN`, above). So a branch
-# that changes the gate was measured by the copy that predates the change,
-# and the stamp could not say which copy drew it — #475, measured twice: seven
-# arms in the tree against five installed, and a chain refusal from the
-# released copy over a state the branch had repaired. CI runs the checkout's
+# that changes the gate would be measured by the copy that predates the
+# change: an installed copy can run fewer arms than the tree holds, and refuse
+# a state the branch has repaired. CI runs the checkout's
 # scripts (`.github/workflows/hygiene.yml`), and the gate exists to say what CI
 # will say (`docs/running/the-broad-gate.md`), so the checkout's copy is the one that
 # asks the question the merge is judged by. Where the gated tree ships one,
@@ -291,7 +287,8 @@ def branch_name(root):
 # its version, and the panel's `gate` row says `tree <version>` where that
 # copy's bytes differ from the one the caller invoked, or where no invoked
 # copy was handed over to compare — the tree's copy run directly, or
-# redirected by an installed copy older than #666 (`gate_copy`). A
+# redirected by an installed copy that sets no `INVOKED_AS_VAR`
+# (`gate_copy`). A
 # tree that breaks an arm passes itself — that is the stated cost, named
 # in the report by `tree` and caught at the pull request by the same scripts.
 
@@ -348,8 +345,8 @@ def copy_origin(root, plugin=PLUGIN, running=None):
     A path does not fit `PANEL_VALUE_WIDTH`; a version alone does not tell a
     branch cut from the tag apart from the tag. The pair says where the copy
     came from and which release it belongs to, and the line `main` writes to
-    stderr carries the path in full, the way `moved_line` and `coverage_line`
-    carry what the panel cannot. Elided at the frame (`fit`), so a long
+    stderr carries the path in full, the way `moved_line` carries what the
+    panel cannot. Elided at the frame (`fit`), so a long
     version is a shorter label and never a wider row. `running` is this
     file unless a case names another.
     """
@@ -360,24 +357,23 @@ def copy_origin(root, plugin=PLUGIN, running=None):
 
 
 def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
-    """The panel's `gate` row, or None where it would say nothing (#666).
+    """The panel's `gate` row, or None where it would say nothing.
 
-    The row printed on every stamp from 0.15.1 (#475), and in this repository
-    every run is redirected to the tree's copy, so it read `tree <version>`
-    every time and told nobody anything. It prints now only where the copy
-    that measured the tree is NOT the copy the caller invoked:
+    In this repository every run is redirected to the tree's copy, so a row
+    printed on every run would read `tree <version>` every time and tell
+    nobody anything. It prints only where the copy that measured the tree is
+    NOT the copy the caller invoked:
 
       - the running copy lies under the gated root, AND
       - its bytes differ from `installed`, the copy the caller invoked, whose
         path the redirect hands the child in `INVOKED_AS_VAR` and `main`
         passes here; or `installed` is None — the tree's copy invoked
-        directly, or redirected by an installed copy older than #666, either
-        way with no path handed over — which is the direction that says more
-        when it cannot tell.
+        directly, or redirected by an installed copy that sets no
+        `INVOKED_AS_VAR`, either way with no path handed over — which is the
+        direction that says more when it cannot tell.
 
     A repository that ships no gate runs the invoked copy, which is not under
-    its root, so it gets no row, which is the *carries no information* case
-    the owner named.
+    its root, so it gets no row: there the row would carry no information.
 
     **Two bounds, named rather than claimed.** It compares one file, so a
     tree that changed a sibling arm (`chain_check.py`, say) and not
@@ -385,8 +381,7 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     and an installed copy that cannot be read counts as different, so the row
     prints. Versions are not compared: within a release cycle the tree's
     `plugin.json` equals the installed one until the release bumps it, so a
-    branch that changed the gate — #475 itself — would print nothing exactly
-    when it matters (`plan.md` *Alternatives considered*).
+    branch that changed the gate would print nothing exactly when it matters.
     """
     running = __file__ if running is None else running
     if not under(running, root):
@@ -421,14 +416,13 @@ def redirect_line(root, shipped):
 # `.github/workflows/hygiene.yml` spells every base it takes
 # `origin/${{ github.base_ref }}`, at its four base-taking steps. That is not
 # a choice the workflow made: a runner's checkout has no local branch, so the
-# remote-tracking ref is the only thing that resolves there. This gate was
-# handed the ref AS TYPED and so resolved the LOCAL one, and the two part as
-# soon as the local ref falls behind — #423, where the gate passed a branch
-# green and CI refused the same commit.
+# remote-tracking ref is the only thing that resolves there. A gate that took
+# the ref AS TYPED would resolve the LOCAL one, and the two part as soon as
+# the local ref falls behind: the gate passes a branch green that CI refuses
+# at the same commit.
 #
 # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
-# against the workflow's, so the two readers cannot drift apart again in
-# silence.
+# against the workflow's, so the two readers cannot drift apart in silence.
 REMOTE_BASE = "refs/remotes/origin/{ref}"
 REMOTE_LABEL = "origin/{ref}"
 UPSTREAM_BASE = "{ref}@{{upstream}}"
@@ -439,9 +433,9 @@ class Base:
     from: the caller's `--base`, the ref the resolution landed on, and both
     refs' commits.
 
-    `commit` is what every check is handed, because #423's own comment asks
-    for the property that anything recorded as evidence names a commit rather
-    than a ref — a ref re-resolves and a commit does not. `ref` is what a
+    `commit` is what every check is handed, because anything recorded as
+    evidence names a commit rather than a ref: a ref re-resolves and a commit
+    does not. `ref` is what a
     person reads, in the panel and in the line below.
 
     `commit` is None for a base that resolves nowhere. That is not this
@@ -467,11 +461,10 @@ def moved_line(root, base):
     """The one line printed where resolving the base MOVED the answer, or
     None where the given spelling and the resolved one are the same commit.
 
-    Printed and then the run continues. A refusal was the ticket's second
-    direction and `plan.md` *Alternatives considered* rejected it: its only
+    Printed and then the run continues, rather than refused: a refusal's only
     repair is a `git fetch` and a second nine-minute gate, performed by a
-    person the run has no way to ask, and it fires on the ordinary release
-    case where a sibling merges while this branch is open.
+    person the run has no way to ask, and it would fire on the ordinary
+    release case where a sibling merges while this branch is open.
 
     **Nothing prints where the two agree.** A line on every run is a line
     people learn to skip.
@@ -488,21 +481,19 @@ def moved_line(root, base):
     says what THIS checkout declares and names the ref a runner would read
     beside it. `skills/code-review/orchestration.md` has the orchestrator
     quote this line, so a sentence that can be wrong here is wrong in what
-    a person reads (round 1, finding 2).
+    a person reads.
 
-    **And it names a runner's ref only where a runner could hold one.** The
-    clause above was over-claimed by one spelling: `--base @{-1}` passes
+    **And it names a runner's ref only where a runner could hold one.** One
+    spelling would over-claim the clause above: `--base @{-1}` passes
     `names_a_branch`, because `check-ref-format --branch` expands `@{-N}`
     before it checks, and the runner label built out of it is `origin/@{-1}`
-    — a name no ref can have. The line used to offer it as *the ref a runner
-    reads*. `a_runner_could_hold` asks git about the constructed label, and
-    where git refuses it the line says the runner has no counterpart for that
-    spelling instead of naming one (round 2, finding 10, and #461).
+    — a name no ref can have. `a_runner_could_hold` asks git about the
+    constructed label, and where git refuses it the line says the runner has
+    no counterpart for that spelling instead of naming one.
 
     **The counts name what they are measured against.** `1 ahead, 0 behind`
     has no subject and both refs are in the sentence, so the reading that
-    makes it true is the nearer noun rather than anything stated (round 1,
-    finding 7)."""
+    makes it true is the nearer noun rather than anything stated."""
     if not base.moved:
         return None
     runner = REMOTE_LABEL.format(ref=base.given)
@@ -555,8 +546,7 @@ def names_a_branch(root, given):
 
     **`--branch` EXPANDS `@{-N}` and then checks what it expanded to.** That
     is the property, and it is not the same as refusing everything carrying
-    `@{…}`, which is what this docstring claimed until round 2 of #423
-    measured it. On git 2.54.0, `@{-1}` is accepted and the command prints
+    `@{…}`. On git 2.54.0, `@{-1}` is accepted and the command prints
     the branch it expanded to (`base`); `HEAD`, `HEAD~1`, `base@{u}` and
     `topic@{1}` are each refused with *is not a valid branch name*. `base`,
     `release/vX.Y.Z` and a short SHA are accepted. The SHA being accepted is
@@ -566,8 +556,7 @@ def names_a_branch(root, given):
     `@{-1}` being accepted is right too — it does name a branch, so taking
     that branch's upstream is coherent. What it is NOT is a spelling a
     runner's checkout can build a remote-tracking ref out of, and that is a
-    different question, asked of git separately in `a_runner_could_hold`
-    (#461).
+    different question, asked of git separately in `a_runner_could_hold`.
     """
     return git(root, "check-ref-format", "--branch", given) is not None
 
@@ -581,10 +570,10 @@ def a_runner_could_hold(root, ref):
     refuses the whole name here, so `origin/@{-1}` comes back False while
     `origin/base` comes back True.
 
-    Asked of git rather than of a pattern written here, for the reason round
-    1's finding 6 established: a hand-written guard closed the spelling in
-    front of it and moved the defect one step down to `origin/HEAD` instead
-    of closing the class. #461's *Not this* says the same thing.
+    Asked of git rather than of a pattern written here, because a
+    hand-written guard closes the spelling in front of it and moves the
+    defect one step down instead of closing the class, as a guard on `HEAD`
+    alone moves it to `origin/HEAD` (`resolve_base`).
     """
     return git(root, "check-ref-format", ref) is not None
 
@@ -595,10 +584,9 @@ def resolve_base(root, given):
     Three steps, in order:
 
       1. `<given>@{upstream}` — what THIS checkout says the base tracks. It
-         comes first because a clone whose base branch tracks a second remote
-         (a fork with an upstream) is the defect class being repaired, and
-         reaching for `origin/` there would compare against the fork's stale
-         copy.
+         comes first because in a clone whose base branch tracks a second
+         remote (a fork with an upstream), reaching for `origin/` would
+         compare against the fork's stale copy.
       2. `refs/remotes/origin/<given>` — the spelling the workflow uses
          literally, and what a runner always has.
       3. the ref as given. A base with no remote-tracking counterpart — never
@@ -607,28 +595,25 @@ def resolve_base(root, given):
          **What does NOT stay the same there is what the consumers are
          handed.** The resolution turns the ref into its commit for them too,
          so that repository's `Broad gate` cell, its `BROAD GATE FAILED` line and the
-         baselines the child checks quote back all name a hash where they
-         named a branch. One assertion in
-         `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` moved for it,
-         and this paragraph said *nothing about that run changes* until round
-         1 measured it (finding 3).
+         baselines the child checks quote back all name a hash where the
+         caller typed a branch.
 
     Nothing is fetched. A remote-tracking ref is only as fresh as the last
-    fetch, and #423 *Not this* refuses a check that moves refs to make
-    itself pass — an unattended run may have no credentials. What this buys
+    fetch, and a check does not move refs to make itself pass: an
+    unattended run may have no credentials. What this buys
     is that the gate asks the question the merge is judged by; what it cannot
     buy is that the answer is current, which is why the ref is named in what
     a person reads.
     """
     given_commit = short_commit(root, given)
-    # Both steps are asked only of a spelling a BRANCH could have, and that is
-    # the whole of round 1's finding 6. `@{upstream}` is a suffix on any
-    # revision expression, so `HEAD@{upstream}` answers for the branch the
-    # checkout is sitting on rather than for the one `--base` named; and a
-    # clone creates `refs/remotes/origin/HEAD`, so guarding step 1 alone moved
-    # the same defect one step down and `--base HEAD` resolved to
-    # `origin/HEAD`. A short SHA is a legal branch name and needs no guard:
-    # neither ref exists for it, so it reaches the fallback the way A9 asks.
+    # Both steps are asked only of a spelling a BRANCH could have.
+    # `@{upstream}` is a suffix on any revision expression, so
+    # `HEAD@{upstream}` answers for the branch the checkout is sitting on
+    # rather than for the one `--base` named; and a clone creates
+    # `refs/remotes/origin/HEAD`, so guarding step 1 alone would move the same
+    # defect one step down and resolve `--base HEAD` to `origin/HEAD`. A short
+    # SHA is a legal branch name and needs no guard: neither ref exists for
+    # it, so it reaches the fallback.
     if names_a_branch(root, given):
         tracked = git(
             root, "rev-parse", "--abbrev-ref", UPSTREAM_BASE.format(ref=given)
@@ -652,7 +637,7 @@ def seal_home(root):
     the project keeps for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
-    optin = load(OPTIN, "agentic_optin_for_broad_gate")
+    optin = sibling_module(OPTIN)
     for found in optin.home_paths(root):
         if found and os.path.isdir(found) and optin.marked(found):
             return found
@@ -663,15 +648,15 @@ def broad_command(home):
     """The `Broad gate` key's value, or None for every way of not having
     one: no file, no key, and an empty value.
 
-    **What will not read is refused, not read as no key** (#867): a config
+    **What will not read is refused, not read as no key**: a config
     `lib/config.py#config_pairs` refuses -- one that will not read or
     parse, or a `config.md` an earlier release wrote standing without a
     `config.json` -- and a `Broad gate` key written twice or holding no
     string. Each raises `Refused` naming the path, so the broad gate exits 2
-    with nothing run. Read as no key, an unreadable file was reported as a
-    missing one, which sent a person to add a key the file already held,
-    and a doubled key ran one of its commands."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
+    with nothing run. Read as no key, an unreadable file would be reported
+    as a missing one, which sends a person to add a key the file already
+    holds, and a doubled key would run one of its commands."""
+    config = sibling_module(CONFIG_READER)
     pairs, refused = config.config_pairs(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
@@ -684,13 +669,13 @@ def broad_command(home):
 def missing_row(home):
     """The refusal for a `Broad gate` key the config does not hold.
 
-    It used to say *write the repository's own broad command into it* and
-    print the key to type. The only reader standing here is a session, so
-    what that sentence asked for is the one thing the key may not be: #401
-    is a session that met this message after its review rounds had settled,
-    ran four candidate commands, chose one, wrote the key, and told the
-    owner afterwards. The message says whose the key is and where they
-    answer it."""
+    It names no command to write and prints no key to type. The only reader
+    standing here is a session, so a message asking for the command asks
+    for the one thing the key may not be: a session's own choice. A session
+    that met such a message after its review rounds had settled ran four
+    candidate commands, chose one, wrote the key, and told the owner
+    afterwards. The message says whose the key is and where they answer
+    it."""
     return (
         f"seal gate: {os.path.join(home, CONFIG)} has no `{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
@@ -747,10 +732,10 @@ def not_as_written(home, command):
 
     Three forms fail one. The whole value wrapped in backticks, or in the
     `$(…)` spelling of the same thing, runs the checks first, DISCARDS their
-    exit status, and executes their output as a command — measured on #402:
-    the same content exits 1 bare and 0 wrapped, with the failure still on
-    the screen. A trailing `&` backgrounds the line, so the shell answers 0
-    before any check has finished.
+    exit status, and executes their output as a command: the same content
+    exits 1 bare and 0 wrapped, with the failure still on the screen. A
+    trailing `&` backgrounds the line, so the shell answers 0 before any
+    check has finished.
 
     Everything else stays legal, a pipe included, because the value is an
     arbitrary shell command line by design and telling a status-discarding
@@ -827,15 +812,15 @@ def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=
 
     **A shell string is handed over through `handed_to_shell`**, which is the
     one place this module's shell sites meet: `gate`'s `SUITE` and
-    `compare_at_base`'s `suite-at-base` both arrive here, so neither needed a
-    change of its own (#448). Where what the shell is handed differs from what
+    `compare_at_base`'s `suite-at-base` both arrive here, so neither needs a
+    change of its own. Where what the shell is handed differs from what
     the key says, one stderr line says so before the run, and the kept file
     carries both lines above the exit code — the command as written first, because
     that is the line a reader retypes. `windows` and `comspec` are the
     platform, passed through, so a case can drive the `cmd.exe` branch from
     any machine the way `quote` is driven. `root` is passed through too,
     because it is where the command runs, and so where a command name's first
-    part is asked whether it is a directory (#596).
+    part is asked whether it is a directory.
     """
     handed = handed_to_shell(command, windows, comspec, root) if shell else command
     rewritten = shell and handed != command
@@ -868,7 +853,7 @@ def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=
 # in a command NAME as the start of a switch, so the command `bin/test -q && …`
 # runs a command called `bin` with the argument `/test`, prints "not
 # recognized" in the machine's own language, and exits 1 — which the failure
-# form then reports as the suite failing (#448). `bin/test.cmd` exists so that
+# form then reports as the suite failing. `bin/test.cmd` exists so that
 # `cmd.exe` can call the runner, and it is reached as `bin\test`.
 
 CMD_EXE = "cmd.exe"
@@ -890,14 +875,14 @@ CMD_VARIABLE = re.compile(r"%([^%]+)%")
 
 def as_cmd_expands(part, here):
     """`part` with each plain `%NAME%` replaced as `cmd /c` replaces it
-    before it reads a command name (#596). What of `cmd.exe`'s expansion is
+    before it reads a command name. What of `cmd.exe`'s expansion is
     modelled is the list below, and nothing past it.
 
     A name defined in this process's environment takes its value, which is
     the environment `run` hands the shell. Where the environment defines
     neither `CD` nor `__CD__`, `cmd.exe` computes them, and both name the
     directory the command runs in, which is `here`. A defined one wins, as it
-    does in `cmd.exe` (`set /?`), so the environment is asked first (#616).
+    does in `cmd.exe` (`set /?`), so the environment is asked first.
     Any other name is left as written, as `cmd /c` leaves an undefined one,
     and so is `%%`. A substring or substitution (`%NAME:~0,2%`,
     `%NAME:a=b%`) is not modelled and is left as written too, so a name that
@@ -927,7 +912,7 @@ def cmd_exe_reads(windows=None, comspec=None):
     Python answers with `cmd.exe` too.
 
     `handed_to_shell` rewrites a command name only for `cmd.exe`, and this
-    is where it asks (#747). `windows` and `comspec` default to this
+    is where it asks. `windows` and `comspec` default to this
     machine's, for the reason `handed_to_shell`'s docstring gives.
     """
     if windows is None:
@@ -961,7 +946,7 @@ def handed_to_shell(command, windows=None, comspec=None, root=None):
     `None` is the current directory, which is where
     `subprocess.run` with `cwd=None` would run the command. The read happens
     here because this function already reads `COMSPEC` from the
-    environment; the scan takes the answer as an argument (#596).
+    environment; the scan takes the answer as an argument.
 
     Keyed on the shell and not on `os.name` alone, because a Windows machine
     can name a POSIX shell in `COMSPEC` (`tests/conftest.py#
@@ -969,7 +954,7 @@ def handed_to_shell(command, windows=None, comspec=None, root=None):
     runs `bin/test` as written. `windows` and `comspec` default to this
     machine's, and are arguments so that both branches can be driven from
     either platform — `quote`'s docstring says what reading `os.name` in the
-    body cost the last time.
+    body costs.
     """
     if not cmd_exe_reads(windows, comspec):
         return command
@@ -1087,8 +1072,8 @@ def command_names_backslashed(command, is_directory):
 
     **Not rewritten, and named rather than claimed:** a path after `call`,
     `start`, `if`, `else`, `for … do` or `cmd /c`, which `cmd.exe` reads as
-    an argument of those words and then splits exactly as it did before this
-    existed; and a command name after a redirection at the start of a
+    an argument of those words and then splits at its `/` as though nothing
+    had been rewritten; and a command name after a redirection at the start of a
     command (`>out bin/test`), where this scan stops treating the rest as
     command position. None is worse than the command handed as written, and
     `templates/setup/config.md` *Broad gate* states the rule and these examples.
@@ -1096,11 +1081,11 @@ def command_names_backslashed(command, is_directory):
     **Judged where the command starts, and bounded there, named rather than
     claimed:** a directory an earlier command in the same line makes, or
     one a `cd` earlier in the line enters, is not seen, so that name is
-    handed over as written — which is what `cmd.exe` got before #448, and
-    no worse than the command itself. And a directory at the root named like a
-    program the command calls with a glued switch (an `xcopy/` directory)
-    makes `xcopy/e` read as a path; `cmd.exe` itself is ambiguous in that
-    tree, and a blank before the switch (`xcopy /e`) is never rewritten.
+    handed over as written, which is no worse than the command itself. And
+    a directory at the root named like a program the command calls with a
+    glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path;
+    `cmd.exe` itself is ambiguous in that tree, and a blank before the
+    switch (`xcopy /e`) is never rewritten.
     `templates/setup/config.md` *Broad gate* states both.
     """
     out = []
@@ -1175,12 +1160,12 @@ def command_names_backslashed(command, is_directory):
 
 # --- the reactive base comparison ------------------------------------------
 #
-# #825. Four designs in a row inferred which pytest process printed a line,
-# from the command's text and from what pytest printed, and each fix moved the
-# guess one level up. The gate now loads a recorder of its own into every run
-# it measures, and the pytest process that collected a test is the process
-# that writes that test's outcome down. No line pytest printed is read for a
-# word, and no file is appended to any run.
+# Which pytest process printed a line is not inferred, from the command's
+# text or from what pytest printed: each such inference fixed one case and
+# moved the guess one level up. The gate loads a recorder of its own into
+# every run it measures, and the pytest process that collected a test is
+# the process that writes that test's outcome down. No line pytest printed
+# is read for a word, and no file is appended to any run.
 
 # The recorder's directory, which holds the recorder and nothing else, so the
 # command's interpreter is shown nothing else of this plugin's through
@@ -1215,7 +1200,7 @@ def records_dir(keep):
 
 
 def recording_env(keep, key):
-    """The environment a run the gate measures is handed (`#825`): this
+    """The environment a run the gate measures is handed: this
     process's own, with the recorder's directory first on `PYTHONPATH`,
     ` -p agentic_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
     and the recorder's two variables set — the records directory, made here,
@@ -1248,28 +1233,28 @@ class RunRecord:
     names. A file is its path made relative to the run's worktree and
     spelled with `/`, or its absolute path where it lies outside the
     worktree. `unread` counts the lines of the keyed files that did not
-    parse as an object, which the recorder never writes (#869); another
+    parse as an object, which the recorder never writes; another
     run's file is not counted. `counts` is how many reports pytest's own
     summary line counts under each category, over the keyed sessions, in
     the order each category was first written: a `test` line under its
     `category`, a failed collection under `error` and a skipped one under
     `skipped`, as pytest's terminal reporter counts them. `unplaced` sums the
     `end` lines' counts of the tests and collections the recorder wrote as
-    no line, for want of a file of their own (#825's reframe after round 3);
+    no line, for want of a file of their own;
     `unplaced_red` sums only those of sessions whose `end` line shows a
     non-zero exit, because a session that exited 0 failed nothing, counted
-    or not (#825 round 5). `unended` counts the sessions that stopped
+    or not. `unended` counts the sessions that stopped
     part-way: those whose record holds no `end` line, because the process
-    died or the recorder stopped writing (#849); those whose `end` line says
+    died or the recorder stopped writing; those whose `end` line says
     pytest stopped the session -- an interrupt, `pytest.exit()`, `-x` or
-    `--maxfail`, a plugin's stop (#852); and those whose `end` line shows an
-    exit `RAN_TO_ITS_END` does not hold, the net for a stop no hook showed
-    (#849 round 1). `unpassed` counts the sessions that did not pass (#1301):
+    `--maxfail`, a plugin's stop; and those whose `end` line shows an
+    exit `RAN_TO_ITS_END` does not hold, the net for a stop no hook showed.
+    `unpassed` counts the sessions that did not pass:
     every session `unended` counts, and every one whose `end` line shows an
     exit `PASSED_EXITS` does not hold, a red session that stopped nothing
     among them.
 
-    Named apart from `Record`, which is a round record's home (#666)."""
+    Named apart from `Record`, which is a round record's home."""
 
     __slots__ = (
         "collected",
@@ -1296,7 +1281,7 @@ def record_path(path, worktree):
 
     `realpath` on both sides is not optional: pytest reports its rootdir
     resolved, and on macOS a `mkdtemp` directory and that rootdir spell one
-    place `/var/…` and `/private/var/…` (`trail/phases/phase-1.md` of 1791270161).
+    place `/var/…` and `/private/var/…`.
     """
     real = os.path.realpath(path)
     try:
@@ -1309,8 +1294,8 @@ def record_path(path, worktree):
     return rel.replace(os.sep, "/")
 
 
-# The `end` exits of a pytest session that ran to its end (#849 round 1). A
-# stop is read off the `end` line's `stopped` first (#852): what pytest
+# The `end` exits of a pytest session that ran to its end. A
+# stop is read off the `end` line's `stopped` first: what pytest
 # handed `pytest_keyboard_interrupt` and the session's `shouldfail` and
 # `shouldstop`, which the recorder writes. The exit is the net for a stop no
 # hook shows. pytest defines six, and its `wrap_session` gives each one this
@@ -1336,24 +1321,23 @@ def record_path(path, worktree):
 #
 # Any other value is a return code `pytest.exit` or a plugin chose, and is no
 # exit of a session that ran to its end. Every exit above was measured with
-# the recorder loaded on pytest 6.1, 7.0 and 9.1 (#849 round 2), and again
-# with every stop `stopped` carries on the same three builds and on 9.1 with
-# pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of 1791384158). One
-# kind of stop shows in neither. A stop raised before the recorder writes its
-# `session` line, such as a `pytest.exit()` in a conftest's `pytest_configure`,
-# leaves no record of that session, and the gate reads the run as though that
-# session never started: on the command's exit and the other sessions' records
-# (#883 rounds 1 and 2). A `pytest.exit()` raised by a `pytest_sessionfinish`
-# hook that runs after the recorder's is no stop: it comes after the run loop,
-# which ran every test, and it can only choose the command's exit. A red session
-# under it still fails the suite on its `end` line's exit (`PASSED_EXITS`,
-# #1301). One over-strictness is named rather than closed: pytest sets
-# `shouldfail` after the test that reaches `-x` or `--maxfail`, last test or
-# not, so a session whose limit fell on its last test ran every test and still
-# reads unended (#869 round 1's ⬜ 4).
+# the recorder loaded on pytest 6.1, 7.0 and 9.1, and so was every stop
+# `stopped` carries, on the same three builds and on 9.1 with pytest-xdist
+# 3.8 under `-n 2`. One kind of stop shows in neither. A stop raised
+# before the recorder writes its `session` line, such as a `pytest.exit()`
+# in a conftest's `pytest_configure`, leaves no record of that session, and
+# the gate reads the run as though that session never started: on the
+# command's exit and the other sessions' records. A `pytest.exit()` raised
+# by a `pytest_sessionfinish` hook that runs after the recorder's is no
+# stop: it comes after the run loop, which ran every test, and it can only
+# choose the command's exit. A red session under it still fails the suite
+# on its `end` line's exit (`PASSED_EXITS`). One over-strictness is named
+# rather than closed: pytest sets `shouldfail` after the test that reaches
+# `-x` or `--maxfail`, last test or not, so a session whose limit fell on
+# its last test ran every test and still reads unended.
 RAN_TO_ITS_END = (0, 1, 5)
 
-# The `end` exits of a pytest session that passed (#1301): one that ran to its
+# The `end` exits of a pytest session that passed: one that ran to its
 # end and failed nothing, or collected nothing. The exit is the one pytest's
 # run loop gave, because `wrap_session` hands the same value to every
 # `pytest_sessionfinish` hook, the recorder's among them. What runs after the
@@ -1367,7 +1351,7 @@ PASSED_EXITS = (0, 5)
 
 # The category pytest's terminal reporter counts a collect report under
 # (`TerminalReporter.pytest_collectreport`): a failed collection is an
-# `error` on its summary line and a skipped one a `skipped` (#869).
+# `error` on its summary line and a skipped one a `skipped`.
 COLLECT_CATEGORY = {"failed": "error", "skipped": "skipped"}
 
 
@@ -1383,8 +1367,8 @@ def read_record(directory, key, worktree):
     a blank line is passed over uncounted. Every line naming a path is a
     test or a failed or skipped collection, and its `outcome` says whether
     it failed. A file's lines are read as a set for the lists — xdist's
-    controller is handed one failed collection once per worker
-    (`trail/phases/phase-1.md` of 1791270161) — so a collection is counted once
+    controller is handed one failed collection once per worker — so a
+    collection is counted once
     per session however often its line was written, and a `test` line once
     per line, as pytest counts each report. A `test` line whose `category`
     is not a word, or is `""`, counts under none. Files are
@@ -1399,7 +1383,7 @@ def read_record(directory, key, worktree):
     one to `unended`, and one to `unpassed` too. A keyed file whose `end`
     line's `stopped` is an empty list and whose `exitstatus` is in
     `RAN_TO_ITS_END` but not in `PASSED_EXITS`, a red session, adds one to
-    `unpassed` alone (#1301)."""
+    `unpassed` alone."""
     record = RunRecord()
     try:
         names = os.listdir(directory)
@@ -1435,10 +1419,9 @@ def read_record(directory, key, worktree):
         record.sessions += 1
         record.unread += unread
         # A session stopped part-way where it wrote no `end` line -- its
-        # process died, or its recorder stopped writing (#849, #825 round 6)
-        # -- where its `end` line says pytest stopped it (#852), or where
-        # that line shows an exit no session that ran to its end gives (#849
-        # round 1).
+        # process died, or its recorder stopped writing -- where its `end`
+        # line says pytest stopped it, or where that line shows an exit no
+        # session that ran to its end gives.
         ends = [value for value in parsed[1:] if value.get("kind") == "end"]
         stopped = not ends or any(
             end.get("stopped") != [] or end.get("exitstatus") not in RAN_TO_ITS_END
@@ -1447,7 +1430,7 @@ def read_record(directory, key, worktree):
         if stopped:
             record.unended += 1
         # A session that ran to its end passed where its exit says it failed
-        # nothing (#1301), whatever the command exited after the run loop.
+        # nothing, whatever the command exited after the run loop.
         if stopped or any(end.get("exitstatus") not in PASSED_EXITS for end in ends):
             record.unpassed += 1
         collections = set()
@@ -1489,12 +1472,12 @@ def quote(path, windows=None):
     """One path, quoted for the shell `run(..., shell=True)` hands it to.
 
     `windows` is the platform, defaulting to this one, so BOTH branches can
-    be driven from a case on either machine. Reading `os.name` inside the
-    body left the branch that exists for Windows undrivable from the machine
-    this was written on, and the whole unit could be replaced by `return
-    path` with every case still green -- #103's class, made out of the fix
-    for it. The platform is not what was missing; CI runs
-    `windows-latest` on every push. An assertion was.
+    be driven from a case on either machine. Read inside the body, `os.name`
+    would leave the branch that exists for Windows undrivable from any other
+    machine, and the whole unit could be replaced by `return path` with
+    every case still green. CI runs `windows-latest` on every push, so the
+    platform is there; what holds the branch is an assertion a case on any
+    machine can make.
 
     On Windows `run(..., shell=True)` goes through `cmd.exe`, and
     `subprocess.list2cmdline` builds the argv quoting `CreateProcess` reads,
@@ -1513,7 +1496,7 @@ def quote(path, windows=None):
     return f'"{path}"' if windows else shlex.quote(path)
 
 
-# What a file reads where no run measured it (#747). Each starts `new?`, so it
+# What a file reads where no run measured it. Each starts `new?`, so it
 # is never read as `new`, and says the comparison was not measured.
 NOT_MEASURED = f"{NEW}? not measured"
 # How a command earns the measured word, said by both reasons that are about
@@ -1525,12 +1508,12 @@ EARNS_THE_WORD = (
     "environment rather than one it builds, through any wrapper"
 )
 # What a missing record means, said by both reasons: every cause, never one
-# of them as the only one (#825 round 3's 🟡 3 and round 4's 🟡 3). The
-# records alone cannot tell the three apart, so the sentence names each and
-# where it shows: a command that started no pytest -- a part before its runner
-# failed, the module's case A5, or a command with no runner at all -- prints no
-# pytest output; a pytest that loaded no recorder prints its own; and the
-# recorder's warning is `agentic_pytest_record: no record written: <error>`.
+# of them as the only one. The records alone cannot tell the three apart,
+# so the sentence names each and where it shows: a command that started no
+# pytest -- a part before its runner failed, the module's case A5, or a
+# command with no runner at all -- prints no pytest output; a pytest that
+# loaded no recorder prints its own; and the recorder's warning is
+# `agentic_pytest_record: no record written: <error>`.
 NO_RECORD_CAUSES = (
     "the command started no pytest, because a part before its runner failed or "
     "it has none; none it started loaded the recorder; or the one that did "
@@ -1553,8 +1536,7 @@ NO_RECORD = (
     f"it). {EARNS_THE_WORD}"
 )
 # Formatted with the exit of the command's run at the base, where no session
-# of that run collected the file and the run did not exit 0 (`questions.md`
-# Q1 of 1791270161 holds the trade).
+# of that run collected the file and the run did not exit 0.
 NOT_REACHED = (
     f"{NOT_MEASURED}: the command ran once at the base and exited {{code}}, and no "
     "pytest it ran there collected this file, so the run may have ended before "
@@ -1567,10 +1549,10 @@ NOT_REACHED = (
 # Formatted with the base record's `unplaced_red` count, where a file would
 # read `new` from a base record one of whose sessions ended non-zero and left
 # tests or collections out of every list: one of them may be this file's
-# failure, so `new` is not measured (#825 round 4's 🟡 2, the worker that
-# dies in a test's setup before any report of it reaches the xdist
-# controller). A session that exited 0 failed nothing, so what it left out
-# cannot be (#825 round 5). A red session whose left-out reports all passed
+# failure, so `new` is not measured: an xdist worker that dies in a test's
+# setup before any report of it reaches the controller leaves such a test
+# out. A session that exited 0 failed nothing, so what it left out cannot
+# be. A red session whose left-out reports all passed
 # still turns `new` into this: the limit rule 3 names.
 UNPLACED_AT_BASE = (
     f"{NOT_MEASURED}: the command ran once at the base, and its sessions that "
@@ -1585,10 +1567,9 @@ UNPLACED_AT_BASE = (
 # Formatted with how many of the base's sessions stopped part-way, where a
 # file would read `new`, so what such a session held passing may not have
 # finished. It wrote no `end` line: its process died, as plain pytest does on
-# a test that calls `os._exit` or segfaults, or its recorder stopped writing
-# (#849, #825 round 6's 🟡 1: round 4's 🟡 2 without xdist). Or its `end` line
-# says pytest stopped the session (#852), or shows an exit `RAN_TO_ITS_END`
-# does not hold: pytest ended the session itself (#849 round 1). Checked
+# a test that calls `os._exit` or segfaults, or its recorder stopped
+# writing. Or its `end` line says pytest stopped the session, or shows an
+# exit `RAN_TO_ITS_END` does not hold: pytest ended the session itself. Checked
 # after `UNPLACED_AT_BASE`, whose count is the one a red session can give.
 UNENDED_AT_BASE = (
     f"{NOT_MEASURED}: the command ran once at the base, and {{count}} of its pytest "
@@ -1602,7 +1583,7 @@ UNENDED_AT_BASE = (
 
 
 # Formatted with how many lines of the base's keyed records did not parse as
-# the recorder's, where a file would read `new` (#869). The recorder writes
+# the recorder's, where a file would read `new`. The recorder writes
 # one JSON object per line, so such a line was written by something else or
 # cut short, and it may have held this file's failing test. Checked after
 # `UNENDED_AT_BASE`: a session that died part-way can leave a cut last line,
@@ -1652,7 +1633,7 @@ def compare_at_base(root, base, command, files, keep):
     kept as `suite-at-base.txt` and its record under `records/`, and the
     worktree is removed whatever happened. Each file is named against the
     scratch worktree the way it was named against `root`, and reads one row
-    of this table (#825):
+    of this table:
 
       - no session carries the base's key: `NO_RECORD`;
       - a failing test or a failed collection of the file: `failing on base
@@ -1674,9 +1655,9 @@ def compare_at_base(root, base, command, files, keep):
     that exited 0 failed nothing, so what it left out cannot be. Where no
     such count is given, either `new` reads `UNENDED_AT_BASE` instead where a
     session of the base stopped part-way: it wrote no `end` line, as plain
-    pytest a test kills with `os._exit` writes none (#849), or its `end`
+    pytest a test kills with `os._exit` writes none, or its `end`
     line shows an exit `RAN_TO_ITS_END` does not hold, as a
-    `KeyboardInterrupt` in a test and xdist under `-x` give (#849 round 1).
+    `KeyboardInterrupt` in a test and xdist under `-x` give.
     `failing on base too` is not affected.
 
     The process that collected a test is the process that wrote its line,
@@ -1685,9 +1666,9 @@ def compare_at_base(root, base, command, files, keep):
     command writes its own session with its own paths. Each line names its file
     by the path pytest holds for the test or the collector, carried on the
     report from the process that held it, and never by a name pytest made
-    from that path, so no rootdir and no argument enters it (#825's reframe
-    after round 3). What `templates/setup/config.md` rule 3 names as left open is
-    a test written against this gate's key or its file.
+    from that path, so no rootdir and no argument enters it. What
+    `templates/setup/config.md` rule 3 names as left open is a test written
+    against this gate's key or its file.
 
     The `run` call stays in this function's own body, one call for the one
     run: the shell sites are `gate` and this function, and a case holds
@@ -1719,352 +1700,13 @@ def compare_at_base(root, base, command, files, keep):
         )
 
 
-# --- the workflow this gate is a local reading of ---------------------------
-#
-# The gate exists so the one broad run says what CI will say. It said a
-# SHORTER list than CI for one release: `.github/workflows/hygiene.yml`'s
-# `release` job gained a step in #424, nobody extended the gate, and no case
-# in the suite went red for it — a coverage probe over the eight structural
-# modules that read those files reported 243 passed and 8 skipped with the arm
-# absent (#468).
-#
-# So the list is declared here rather than remembered. **Every step of that
-# job is mirrored by a named arm or excluded with a reason a person wrote**,
-# there is no third state, and
-# `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` holds the partition
-# against the workflow from both sides: a step added to the workflow and left
-# unclassified goes red there, and so does a row naming a step that was
-# renamed away.
-#
-# **A reason is prose, never a category.** `EXCLUDED` tells the next reader
-# nothing, and the reason is the whole value of the row — it is what a person
-# checks when they wonder whether this gate's run covers them.
-#
-# What this does NOT close, stated rather than left to be found: an exclusion
-# can be written to make the case green rather than to state a truth, and the
-# partition would then be total and this gate's run still short of what the
-# merge is judged by. That hole is real and open; what the declaration buys is
-# that the omission is now a sentence somebody wrote and signed rather than a
-# silence.
-
-WORKFLOW = os.path.join(".github", "workflows", "hygiene.yml")
-RELEASE_JOB = "release"
-
-# A job's key under `jobs:`, at two spaces. Anything deeper is inside a job.
-JOB_RE = re.compile(r"^  ([A-Za-z0-9_-]+):\s*$")
-# A step's name. Any indentation: the dash is what makes it a step of the
-# list, where a `name:` with no dash is a key inside one (`with:`, `env:`).
-STEP_RE = re.compile(r"^\s*-\s+name:\s*(\S.*?)\s*$")
-
-
-def unquote(value):
-    """A YAML scalar with its matching quotes off, if it wore any."""
-    for mark in ('"', "'"):
-        if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):
-            return value[1:-1]
-    return value
-
-
-def job_steps(text, job):
-    """Every named step of one job of a workflow, in file order.
-
-    **Text in, list out.** The reader is driven over shapes this repository's
-    workflow does not happen to have, because a reader nothing drives is a
-    reader nobody can tell is partial — #424's finding 4, whose repair was the
-    same move.
-
-    **No YAML parser.** This script runs with no third-party dependency, and
-    CI installs a test runner and nothing else. A step name is a `- name:`
-    line, read as text, the way
-    `tests/text/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
-    same file. A step that exists only in a comment is not a step, and that
-    falls out of both patterns rather than out of a line dropping comments:
-    each requires the first non-blank character to be the list's dash or the
-    job key's own letter. The line that dropped them was written, mutated,
-    and found to change nothing — dead code that looks like a defence is
-    worse than none.
-
-    **Known gap: a TRAILING comment joins the step name.** YAML ends an
-    unquoted scalar at ` #`, and this reader does not, so
-    `- name: a step  # why` reads as `a step  # why`. Not live — no `- name:`
-    line in `hygiene.yml` carries one — and it fails LOUDLY if one ever does,
-    because A1 goes red with the comment visible in the name it could not
-    classify. `strip_comments` in
-    `tests/text/test_ci_gives_the_checks_what_they_need.py`, the reader this one
-    follows, has the same gap, so it is a class rather than something this
-    reader opened (round 1, recorded as a correction rather than fixed).
-
-    A file this cannot read as a workflow comes back empty rather than
-    raising. The gate calls it on whatever sits at that path in the repository
-    it was pointed at, and the plugin ships to repositories that have no such
-    workflow at all — for them nothing about the run may change. What keeps an
-    empty answer from reading as a pass is the caller: the case that grades
-    this repository refuses an empty list rather than counting zero
-    unclassified steps.
-
-    A line ends at LF, CR or CRLF, YAML 1.2's line breaks: the text is
-    taken through universal newlines and split at LF alone, as
-    `deferral_check.py#runners_in` splits, so a name holding U+2028, which
-    `str.splitlines` also ends a line at, reads whole (#1198).
-    """
-    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    try:
-        # Found by walking rather than by splitting on `"\njobs:\n"`: that
-        # spelling cannot see a `jobs:` on the FIRST line of the file, and
-        # driving this reader over a fragment that had one is what said so.
-        start = lines.index("jobs:") + 1
-    except ValueError:
-        return []
-    steps, current = [], None
-    for line in lines[start:]:
-        job_line = JOB_RE.match(line)
-        if job_line:
-            current = job_line.group(1)
-            continue
-        if current != job:
-            continue
-        step = STEP_RE.match(line)
-        if step:
-            steps.append(unquote(step.group(1)))
-    return steps
-
-
-# Each row is a step of the `release` job, spelled as `hygiene.yml` spells it,
-# and then either the arm that mirrors it or the reason none does.
-#
-# **Three of the six exclusions could not run here at all; three could.** The
-# measurement `questions.md` M1 asked for, taken by construction over every
-# step: two steps have no local answer (the pull request's body and the
-# tracker), one raises a warning and can
-# refuse nothing, one is shell written inline in the workflow with no script
-# to share, and two run a script that belongs to this repository rather
-# than to the plugin. The last three are the ones with a local answer, and
-# `seal/config.json`'s `Broad gate` key is where a repository names checks of
-# its own — not the arm list of a script that ships to every repository that
-# installs the plugin.
-#
-# **Which of the steps CI runs depends on the base** (#666). Three run only
-# on a pull request into `main` (`ONLY_AT_MAIN`), so the `workflow` count is taken over
-# `steps_for(workflow, base)` rather than over this table: a step CI does not
-# ask of a pull request is neither answered nor unanswered by the broad run.
-PARTITION = (
-    (
-        "every issue this pull request claims, and every one it only names",
-        None,
-        "reads the body of the pull request, and a gate run on a branch has "
-        "no pull request to read. The step never fails either — it reports a "
-        "split and exits 0 — so there is no verdict for an arm to carry",
-    ),
-    (
-        "a change to what ships must move the version",
-        None,
-        "the check is shell written inline in the workflow, with no script "
-        "both sides can run. An arm would be a second reading of one "
-        "question, which is the drift this partition exists to stop",
-    ),
-    (
-        "a declared review chain has the round record it claimed",
-        CHAIN_NAME,
-        None,
-    ),
-    (
-        "the milestone this release claims is the work it carries, and a patch carries no feat",
-        None,
-        "asks the tracker through `gh` which issues the milestone holds. The "
-        "gate reads no network and carries no token",
-    ),
-    (
-        "the mode the key declares is the mode the folder is in",
-        MODE_NAME,
-        None,
-    ),
-    (
-        "the check lines rules.py did not read",
-        None,
-        "prints notices and never fails, so there is nothing for an arm to "
-        "refuse. The exit code of the same command is the suite's, which "
-        "this gate runs",
-    ),
-    (
-        "both READMEs move together",
-        None,
-        "raises a warning and never fails, so there is nothing for an arm to "
-        "refuse. Every arm here is an exit code",
-    ),
-)
-
-
-# The branch a pull request into which is a release, spelled once.
-MAIN = "main"
-
-# The steps that run ONLY on a pull request into `main`, by step name (#666).
-# In `hygiene.yml` each of the two opens its `run:` with `if [ "${{
-# github.base_ref }}" != "main" ]; then … exit 0`: a release pull request is
-# where the version moves and the milestone is judged. On any other base CI
-# never asks them, so a run that counted them as *not answered* would count
-# questions nobody asks. Neither is mirrored, so no arm changes; what
-# changes is the denominator of the `workflow` count and the names beside
-# it.
-#
-# Held against the workflow by `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`
-# from both sides: a `!= "main"` guard added to a third step, or dropped
-# from one of these, fails the suite. No step skips a pull request into
-# `main`, so every mirrored arm runs at every base.
-ONLY_AT_MAIN = (
-    "a change to what ships must move the version",
-    "the milestone this release claims is the work it carries, and a patch carries no feat",
-)
-
-
-def mirrored():
-    """The arm each classified step is mirrored by, by step name."""
-    return {name: arm for name, arm, _ in PARTITION if arm}
-
-
-def base_is_main(given):
-    """Whether the base the caller gave is `main`: `given`, with one leading
-    `origin/` removed. This gate's one reading of the workflow's
-    `github.base_ref == "main"`, asked by `steps_for` for the count (#666).
-    None — no base known — is not `main`.
-
-    **The bound, named rather than claimed:** it is keyed on the spelling,
-    so `refs/heads/main` or `upstream/main` reads as not-`main`, and the
-    count leaves the only-at-`main` steps out, the direction that names
-    fewer steps CI asks."""
-    if given is None:
-        return False
-    if given.startswith("origin/"):
-        given = given[len("origin/") :]
-    return given == MAIN
-
-
-def steps_for(workflow, given):
-    """The `release` job's steps CI runs for a pull request into `given`, in
-    file order (#666).
-
-    Every step of the job, less `ONLY_AT_MAIN` where the base is not `main`.
-    A step left out here is neither answered nor unanswered: CI does not ask
-    it of this pull request, so the broad run neither covers it nor misses
-    it. `given` None — no base known — leaves out what a base that is not
-    `main` would, which is what every caller that knows no base has been
-    asked about."""
-    steps = job_steps(workflow, RELEASE_JOB) if workflow else []
-    if base_is_main(given):
-        return steps
-    return [step for step in steps if step not in ONLY_AT_MAIN]
-
-
-def left_out_clause(workflow, given):
-    """The clause the coverage line adds for the steps `steps_for` left out,
-    or "" where it left none: how many, and why (#666)."""
-    every = job_steps(workflow, RELEASE_JOB) if workflow else []
-    left = len(every) - len(steps_for(workflow, given))
-    if not left:
-        return ""
-    why = f"{'run' if left > 1 else 'runs'} only on a pull request into `{MAIN}`"
-    return (
-        f" {left} more {why}, so this count leaves {'them' if left > 1 else 'it'} out."
-    )
-
-
-def workflow_text(root):
-    """The hygiene workflow of the repository being gated, or None.
-
-    None is the ordinary case away from this repository: the plugin ships to
-    repositories that have no such workflow, and for them nothing about the
-    run changes (`frame/design.md` A7). **A file that is there and is not UTF-8 is the
-    same case**, and it has to be: `UnicodeDecodeError` is a `ValueError`
-    rather than an `OSError`, and `main` catches only `Refused`, so a decode
-    error raised here ended the whole run on a traceback instead of a verdict
-    — the largest possible change to the run of a repository this partition
-    is not about (round 1, finding 5).
-    """
-    try:
-        with open(os.path.join(root, WORKFLOW), encoding="utf-8") as handle:
-            return handle.read()
-    except (OSError, ValueError):
-        return None
-
-
-def unanswered(text, given):
-    """The steps CI runs for this base (`steps_for`) that this run answers
-    nothing for, in file order. `given` is required, here and in
-    `coverage_line` (round 1's 🟡 3 of #666): a default answered every caller
-    that dropped it with the feature-base count, in silence.
-
-    A step no row classifies counts here too, and that is the honest answer
-    rather than an oversight: in another repository whose workflow happens to
-    carry this name, every step is one this gate runs nothing for.
-    """
-    arms = mirrored()
-    return [step for step in steps_for(text, given) if step not in arms]
-
-
-def coverage_line(text, given):
-    """One line naming the steps this run did not answer, or None.
-
-    **Over the steps CI runs for this base** (#666, `steps_for`), and one
-    clause saying how many it left out and why (`left_out_clause`): a step CI
-    does not ask of this pull request is not a step the broad run failed
-    to answer, and naming it among the unanswered sent a reader to four steps
-    no run of this pull request would ever ask.
-
-    **Names here, a count on the panel** (`questions.md` W1).
-    The panel gives a value `PANEL_VALUE_WIDTH` columns (23 when this was
-    written, 41 since #832), which the step
-    names do not fit and a count does — and a reader who is told only a number
-    has to reconstruct WHICH from two files, which is the reconstruction this
-    work item exists to remove. So the panel carries the number and this
-    carries the names, on the stream the gate already uses to say which
-    command the key asked for.
-
-    **A step no row classifies is named apart from one a row excludes.**
-    `PARTITION` describes AgenticSeal's own `release` job; in another repository
-    whose workflow happens to carry that job name, every step is unclassified
-    and none of them has a reason written anywhere. Pointing that reader at
-    `PARTITION` sends them to a row per step of a workflow they do not run,
-    which is the reconstruction from two files this work item exists to
-    remove, arriving one level further out (round 1, finding 3).
-    """
-    if not job_steps(text, RELEASE_JOB):
-        return None
-    steps = steps_for(text, given)
-    short = unanswered(text, given)
-    left = left_out_clause(text, given)
-    if not short:
-        return (
-            f"seal gate: this run answers every one of the {len(steps)} "
-            f"`{RELEASE_JOB}` steps {WORKFLOW} runs for this base." + left
-        )
-    classified = {name for name, _, _ in PARTITION}
-    excluded = [step for step in short if step in classified]
-    unknown = [step for step in short if step not in classified]
-    said = (
-        f"seal gate: {WORKFLOW}'s `{RELEASE_JOB}` job runs {len(steps)} "
-        f"steps for this base and this run answers {len(steps) - len(short)}." + left
-    )
-    if excluded:
-        said += (
-            " Not answered, each with the reason no arm mirrors it in "
-            "`broad_gate.py#PARTITION`: " + "; ".join(excluded) + "."
-        )
-    if unknown:
-        said += (
-            " In no row of `broad_gate.py#PARTITION` at all, so this gate has "
-            "no reading of them and answers nothing for them: "
-            + "; ".join(unknown)
-            + "."
-        )
-    return said
-
-
 # --- what the panel reads --------------------------------------------------
 
 
 # The order pytest's summary line prints the categories in, from its
 # `KNOWN_TYPES` with the two no report carries left out (`deselected`,
 # `warnings`); a category outside it follows, in the order it was first
-# written, as pytest prints one (#869).
+# written, as pytest prints one.
 SUMMARY_ORDER = ("failed", "passed", "skipped", "xfailed", "xpassed", "error")
 # The one category pytest's line pluralises among those a report carries.
 PLURALS = {"error": "errors"}
@@ -2077,12 +1719,12 @@ def suite_counts(record):
 
     Every number is a count of lines the command's own pytest wrote, under
     the category pytest's own line counts each report under (`read_record`),
-    so nothing the command PRINTS can reach it (#869). None where no session
+    so nothing the command PRINTS can reach it. None where no session
     carries the key, where a keyed file holds a line that did not parse —
     a count that passed a line over is not one anybody can vouch for —
     where a report was counted under no category because it had no file of
-    its own (`unplaced`, which pytest's own line counted; #869 round 1's
-    🟡 2), or where no report was counted at all."""
+    its own (`unplaced`, which pytest's own line counted), or where no
+    report was counted at all."""
     if not record.sessions or record.unread or record.unplaced or not record.counts:
         return None
     known = [name for name in SUMMARY_ORDER if name in record.counts]
@@ -2113,7 +1755,7 @@ def write_gate_file(item, tree, base):
     file that was not, and return its path. Nothing is appended where the
     last block the file holds names the same run. Raises `Refused`, and
     writes nothing, where the file cannot be read or written, the reader will
-    not load, the run is not one the reader reads (#1198), or the file as it
+    not load, the run is not one the reader reads, or the file as it
     will stand, the held file where nothing is appended, is one the reader
     refuses at a line or reads with another run last."""
     path = os.path.join(item, *GATE_FILE.split("/"))
@@ -2125,7 +1767,7 @@ def write_gate_file(item, tree, base):
         held = f"# {name} {chr(0x2014)} broad gate\n"
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused(f"seal gate: {path} could not be read ({exc})") from exc
-    fields = load(FIELDS_READER, "agentic_fields_for_broad_gate")
+    fields = sibling_module(FIELDS_READER)
     value = f"{tree} against {base}"
     try:
         block = fields.assemble([(fields.RUN, value)], fields.GATE)
@@ -2173,9 +1815,18 @@ def rounds_rows(item):
     refuses anything of adds nothing beneath."""
     records = round_records(item)
     rows = [("rounds", str(len(records)))]
+    # A label never stops a run that passed, so an absent check is said here
+    # and the run goes on.
     try:
-        chain = load(CHAIN, "agentic_chain_check_for_broad_gate")
-    except Refused:  # a label never stops a run that passed
+        with sibling.going_on():
+            chain = sibling_module("skills/code-review/scripts/chain_check.py")
+    except sibling.Absent as absent:
+        sys.stderr.write(
+            f"seal gate: the round records' deferred findings are not counted: "
+            f"{absent.path} is absent\n"
+        )
+        return rows
+    except (Refused, SystemExit):
         return rows
     stamp = stamp_module()
     reader = chain.SHARED_READER
@@ -2207,21 +1858,20 @@ def panel(
     base,
     checks,
     item,
-    workflow=None,
     copy=None,
     branch=None,
     run=None,
 ):
     """The report's rows, as `(label, value)`, with `""` as the label of a row
-    that continues the one above it (#666) and `None` for the blank line
-    between the identity rows and the result rows (#832). Printed as text
-    under the `BROAD GATE PASSED` line (`report_lines`); since #975 they are
-    no stamp's, and carry no title row.
+    that continues the one above it and `None` for the blank line
+    between the identity rows and the result rows. Printed as text
+    under the `BROAD GATE PASSED` line (`report_lines`); they are no
+    stamp's, and carry no title row.
 
     `base` is a `Base`. `copy` is `gate_copy`'s value and None leaves the
     `gate` row out; `branch` is `branch_name`'s, None on a detached HEAD;
     `run` is the `RunRecord` of the command's run here, whose `suite_counts`
-    the `suite` row prints (#869) — never the command's printed output, which
+    the `suite` row prints — never the command's printed output, which
     a test can print into.
 
       tree      <tree>
@@ -2233,15 +1883,12 @@ def panel(
       suite     ✓ <recorded counts>        joined by ` · `, wrapped onto `""`
                                            rows; `exit N` where there are none
       chain    ✓ exit <code>              read off the chain's own check
-      CI also   · <n> more steps           absent without a hygiene workflow
       rounds    <R>                        absent without --record
                 <k> deferred → <homes>     only where k > 0 (`rounds_rows`)
 
-    **The result rows carry a `✓`, and the blank before them is a row**
-    (#832, `frame/design.md` decision 6 of work item 1791270164, the owner's design
-    of 2026-10-07): a `✓` where the arm's count or exit was read,
-    `chain ✓ exit <code>`, and a dim `·` before `CI also`'s value, the mark
-    of a row that is not a pass.
+    **The result rows carry a `✓`, and the blank before them is a row**, as
+    the owner designed the panel (#832): a `✓` where the arm's count or exit
+    was read, `chain ✓ exit <code>`.
     `exit N` stays where a row has no count to print, because then it is the
     only statement of what that arm did. The failure form keeps every arm's
     exit code (`failure_lines`). The text block does not know which label
@@ -2249,44 +1896,39 @@ def panel(
     than a rule there.
 
     **The values are the owner's characters** — ` · ` (`SEP`), `→`
-    (`ARROW`), `✓ ` (`TICK`) and `· ` (`DOT`), `seal_stamp`'s. They were
-    ASCII, ` . ` and `->`, until #832, for a console that is not UTF-8,
-    where `·` and `→` print as `?`. That console is served where the report
-    is printed: `report_lines` maps the four to ASCII there, and the values
-    stay what the owner chose.
+    (`ARROW`) and `✓ ` (`TICK`), `seal_stamp`'s. A console that is not
+    UTF-8 prints `·` and `→` as `?`, and that console is served where the
+    report is printed:
+    `report_lines` maps the three to ASCII there, and the values stay what
+    the owner chose.
 
     **The panel keeps its width, and nothing on it is cut by the frame.**
     A value is given `PANEL_VALUE_WIDTH` columns, the widest that keeps a
     stamp inside 80, and the owner chose continuation rows over a wider
-    stamp (`questions.md` Q1 of #666). So the branch goes on the row under
+    stamp (#666). So the branch goes on the row under
     its label, where it has the whole width; a list — the suite's counts,
-    the deferred homes — continues on further rows (`wrapped`, round 1's
-    🟡 1); and every value passes through `fit` on the way out, which elides
+    the deferred homes — continues on further rows (`wrapped`); and every
+    value passes through `fit` on the way out, which elides
     only a name: a branch keeps its HEAD, whose issue number is what a
     reader matches to a ticket, and a ref keeps its TAIL, because for the
     `origin/<base>` a runner reads the prefix is the part a reader can infer.
-    The ref shares the `base` row with its commit since #832, two spaces
+    The ref shares the `base` row with its commit, two spaces
     after it, so it is elided to the room the commit leaves. Where step 1
     lands on a second remote the prefix is NOT inferable, and the line the
     gate prints is what names that ref in full — it fires whenever the given
-    and resolved commits differ (`questions.md` W1, round 1 finding 5); the
-    `BROAD GATE PASSED` line names it in full as well.
+    and resolved commits differ; the `BROAD GATE PASSED` line names it in
+    full as well.
 
     **Where the moved-base line does not fire, the ref on the `base` row is
-    the only statement a reader gets.** A4 keeps the line silent where the
+    the only statement a reader gets.** `moved_line` stays silent where the
     two bases agree, so a fork whose base and `origin`'s name one commit
     renders a long `other/…` ref as its tail with the remote hidden — the
-    stated cost of keeping the tail (`trail/phases/phase-3.md`, round 2 finding
-    13).
+    stated cost of keeping the tail.
 
-    Two rows left with #666, and why: `from` became the row under `base`,
-    which #832 folded into the `base` row, and `row` — the exit code the
-    repository's command came back with — continued under `suite` until #717
-    took it off. NOT `("lint", "clean")` either: the command is
-    one shell command line and nothing in it says which part is a linter
-    (`templates/setup/config.md` *Broad gate*), so `clean` over a command
-    with no linter in it is the gate's report asserting a check that never
-    ran."""
+    **No row says `lint`.** The command is one shell command line and
+    nothing in it says which part is a linter (`templates/setup/config.md`
+    *Broad gate*), so `("lint", "clean")` over a command with no linter in
+    it would be the gate's report asserting a check that never ran."""
     stamp = stamp_module()
     fit = stamp.fit
     rows = [("tree", tree)]
@@ -2311,30 +1953,6 @@ def panel(
     else:
         rows.append((SUITE, f"exit {checks[SUITE].code}"))
     rows.append((CHAIN_NAME, f"{tick}exit {checks[CHAIN_NAME].code}"))
-    # What this run did NOT answer, which a reader otherwise reconstructs
-    # from two files (#468). A COUNT, because a panel value is
-    # `PANEL_VALUE_WIDTH` columns and a step name is a sentence — the names
-    # go to stderr beside the command line, where `coverage_line` puts them
-    # (`questions.md` W1).
-    #
-    # Absent where the repository has no such workflow, which is the ordinary
-    # case away from this one: the partition describes AgenticSeal's own CI, the
-    # plugin ships to repositories that have none, and for them nothing about
-    # the run changes (`frame/design.md` A7).
-    #
-    # Over the steps CI runs for THIS base (#666): `unanswered` leaves out the
-    # four that run only into `main` on any other base, and the two CI skips
-    # at `main` on a release one, so the number is one CI will ask.
-    #
-    # `CI also  <n> more steps` is the owner's wording (#717). The total it
-    # was `<n> of` left the panel for the stderr line, which says it beside
-    # the names; the row still prints at 0, because a row that goes quiet
-    # reads as a gate that stopped looking. The dim `·` before the count is
-    # the owner's mark for a row that is not a pass (#832); the label stays
-    # `CI also`, seven columns already (`questions.md` Q15 of 1791270164).
-    if job_steps(workflow, RELEASE_JOB) if workflow else []:
-        short = len(unanswered(workflow, base.given))
-        rows.append(("CI also", f"{stamp.DOT}{short} more steps"))
     if item is not None:
         rows += rounds_rows(item)
     return [None if row is None else (row[0], fit(row[1])) for row in rows]
@@ -2347,20 +1965,20 @@ def failure_lines(check, verdicts=None, record=None):
     command's run at `HEAD`, for the suite; None for every other check.
 
     **Where the record at `HEAD` left tests or collections out, it says how
-    many** (#825's reframe after round 3). `record.unplaced` is the count of
+    many.** `record.unplaced` is the count of
     them — a test with no file of its own, a report a plugin built without
     its path — and each is in no list above, so a person reading the list
     alone would not know they ran.
 
-    **Where a session at `HEAD` stopped part-way, it says how many did**
-    (#849 round 1). `record.unended` is the count of them. The test a
+    **Where a session at `HEAD` stopped part-way, it says how many did.**
+    `record.unended` is the count of them. The test a
     session stopped in may have written no failing line — one that kills
     plain pytest writes only its passing setup, and a `KeyboardInterrupt`
     writes no call — and the tests it never reached wrote none, so its file
     can be in no list above.
 
     **A session at `HEAD` that did not pass fails the suite, whatever the
-    command's exit** (#883, #1301). `record.unpassed` is the count of them: every
+    command's exit.** `record.unpassed` is the count of them: every
     session that stopped part-way, and every red one. So a failing `suite`
     whose exit is 0 says first, under its own lines and above any file list,
     why it failed (`NOT_PASSED_AT_EXIT_0`): a stop that chooses the exit code
@@ -2368,14 +1986,14 @@ def failure_lines(check, verdicts=None, record=None):
     it, and an act after pytest's run loop, a later hook or a part of the
     command, can give 0 over a test that failed.
 
-    **Where a line of the record at `HEAD` did not parse, it says how many**
-    (#869). `record.unread` is the count of them; the gate passed each over,
+    **Where a line of the record at `HEAD` did not parse, it says how
+    many.** `record.unread` is the count of them; the gate passed each over,
     so a failing test it named is in no list above.
 
-    **A failing `suite` ends with the counts its pytest recorded** (#869),
+    **A failing `suite` ends with the counts its pytest recorded**,
     `suite_counts` of `record`, in pytest's own words and never read off
     what the command printed. **Where no pytest the command ran left a
-    record, it says so** (#448): the exit code alone reads as tests failing,
+    record, it says so**: the exit code alone reads as tests failing,
     and it is equally what a shell prints when the command never reached the
     suite —
     `cmd.exe` exits 1 with a "not recognized" line in the machine's own
@@ -2390,7 +2008,7 @@ def failure_lines(check, verdicts=None, record=None):
     if verdicts:
         # Where no pytest at `HEAD` left a record the base is not run, and
         # every row says so; nor is it where the base could not be checked
-        # out. The heading does not claim otherwise (#825 rounds 1 and 2).
+        # out. The heading does not claim otherwise.
         words = set(verdicts.values())
         if words == {NO_RECORD_AT_HEAD}:
             lines.append(NAMED_BY_FAILED_LINES)
@@ -2439,7 +2057,7 @@ UNPLACED = (
 # The line under the listing where a session of the command's pytest at
 # `HEAD` stopped part-way, formatted with how many did: the test it stopped in
 # may have written no failing line, and the tests it never reached wrote none,
-# so their file can be in no list above (#849 round 1).
+# so their file can be in no list above.
 UNENDED_HERE = (
     "{count} of the command's pytest sessions here stopped part-way, because the "
     "process died or the recorder stopped writing before the session's end "
@@ -2450,8 +2068,8 @@ UNENDED_HERE = (
 )
 
 # The line under a failing suite's own lines where the command exited 0 and
-# the gate failed it on a session at `HEAD` that did not pass (#883, #1301). A
-# test that calls `pytest.exit()` with a return code of 0, or ends its process
+# the gate failed it on a session at `HEAD` that did not pass. A test that
+# calls `pytest.exit()` with a return code of 0, or ends its process
 # with `os._exit(0)`, stops the session there with the command still at exit
 # 0, and that exit holds whether or not a test failed before the stop. A
 # session whose `end` line reads exit 1 failed a test, and a later hook or a
@@ -2468,7 +2086,7 @@ NOT_PASSED_AT_EXIT_0 = (
 
 # The line under the listing where a line of the records the command's
 # pytest wrote at `HEAD` did not parse as the recorder's, formatted with how
-# many (#869): the gate passed each over, so a failing test it named may be in
+# many: the gate passed each over, so a failing test it named may be in
 # no list, and no count of the suite is printed.
 UNREAD_HERE = (
     "{count} of the lines in the records the command's pytest wrote here did not "
@@ -2478,7 +2096,7 @@ UNREAD_HERE = (
 )
 
 # The line a failing `suite` gets where no pytest the command ran left a
-# record, in place of the counts (#448, #869). Every cause of a missing
+# record, in place of the counts. Every cause of a missing
 # record, never one of them as the only one (`NO_RECORD_CAUSES`); a pytest
 # that died part-way is not among them, because it left a record and
 # `UNENDED_HERE` counts it.
@@ -2491,7 +2109,7 @@ NO_RECORD_HERE = (
 
 # --- the command -------------------------------------------------------------
 #
-# The first line of a run's stdout (#975). The verdict word `sealed` is the
+# The first line of a run's stdout. The verdict word `sealed` is the
 # sealer's, in `guarantee.md`, and this run comes before the sealer is spawned
 # and judges nothing, so its heads say what it did: the broad gate passed or
 # failed. `{names}` is `seal_stamp.sealed_names`'s `<branch> @ <tree> against
@@ -2509,7 +2127,7 @@ def failed_form(tree, base, failures, branch=None, ref=None):
     `failures` is a list of `(name, lines)` — the check that failed and the
     first lines of what it printed, as the gate kept them. `branch` and `ref`
     None leave their half out, which is the line a caller that names neither
-    has always got."""
+    gets."""
     names = stamp_module().sealed_names(tree, base, branch, ref)
     out = [GATE_FAILED.format(names=names), ""]
     # The widest name present, not a literal 8, so a name longer than the
@@ -2524,8 +2142,8 @@ def failed_form(tree, base, failures, branch=None, ref=None):
 
 
 def report_lines(rows, ascii_marks=False):
-    """`panel`'s rows as the plain text a passing run prints under its head
-    (#975): each label padded as the stamp's text block pads it, the value
+    """`panel`'s rows as the plain text a passing run prints under its head:
+    each label padded as the stamp's text block pads it, the value
     after it, a blank line for a `None` row; no disc, no colour, and the
     same bytes on a terminal as on a pipe. `ascii_marks` writes the owner's
     `·`, `✓`, `─` and `→` as the letter twin does, for a console that is not
@@ -2540,7 +2158,7 @@ def report_lines(rows, ascii_marks=False):
     return out
 
 
-# --- the preflight (#638) -----------------------------------------------------
+# --- the preflight ------------------------------------------------------------
 #
 # The record arms, typed by the orchestrator before it spawns the sealer.
 # Its heads say `PREFLIGHT`, not `BROAD GATE`: a preflight runs no command,
@@ -2572,7 +2190,7 @@ def gate(args, ascii_marks=False):
     """The run. `ascii_marks` is whether the report writes the owner's marks
     in ASCII: `is_utf8` asked of stdout as the process found it, negated,
     which is what `__main__` passes. The report is the same text on a
-    terminal and a pipe, and nothing is drawn on either (#975)."""
+    terminal and a pipe, and nothing is drawn on either."""
     root = repo_root(os.path.abspath(args.root or os.getcwd()))
     if root is None:
         raise Refused(
@@ -2584,7 +2202,7 @@ def gate(args, ascii_marks=False):
         # The two places as `optin.home_paths` gives them, as `seal mode`
         # prints them: beside a project's own `seal/` the shared one takes
         # the second name, which a literal `<repo>/seal/` would misname.
-        shared, local = load(OPTIN, "agentic_optin_for_broad_gate").home_paths(root)
+        shared, local = sibling_module(OPTIN).home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
@@ -2598,9 +2216,8 @@ def gate(args, ascii_marks=False):
     # the only one there needs to be: the other surface that runs the command
     # (`compare_at_base`, which runs it once, unchanged, at the base) is
     # reached only after the run below, so this refusal closes it by
-    # reachability rather than by a second guard in a second place (`frame/design.md`
-    # *The class, enumerated by construction*). It runs the very command this
-    # refusal passed (#825).
+    # reachability rather than by a second guard in a second place. It runs
+    # the very command this refusal passed.
     unrunnable = not_as_written(home, command)
     if unrunnable:
         raise Refused(unrunnable)
@@ -2609,15 +2226,12 @@ def gate(args, ascii_marks=False):
         raise Refused(f"seal gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
-    # without that case going red (`frame/design.md` *The class, enumerated by
-    # construction*). Every check below asks `base.commit`, which is the
-    # commit CI will compare against. The readers of `base.given`, the
-    # caller's spelling, are none of them a check: `moved_line`, which exists
-    # to say how that spelling differs from what it resolved to; and, through
-    # `base_is_main`, the `workflow` count — `coverage_line` and `panel`,
-    # through `steps_for` (#666) — because the
-    # workflow's guard compares a branch NAME (`github.base_ref`) and a
-    # resolved commit carries no name.
+    # without that case going red. Every check below asks `base.commit`,
+    # which is the commit CI will compare against. The readers of
+    # `base.given`, the caller's spelling, are none of them a check:
+    # `moved_line`, which exists to say how that spelling differs from what
+    # it resolved to, and the refusal below, which names the spelling that
+    # resolved to nothing.
     base = resolve_base(root, args.base)
     if base.commit is None:
         raise Refused(
@@ -2642,8 +2256,8 @@ def gate(args, ascii_marks=False):
     # running it, and the command is the only part of this run the gate did
     # not choose. `skills/code-review/orchestration.md` asks the orchestrator
     # to quote the gate's lines and let the reader judge them, so the command
-    # has to arrive here (round 1's 🟡 9). `run` wrote it to the kept output file and
-    # nothing reached the report.
+    # is written here, on stderr: `run` writes it only to the kept output
+    # file, which the report does not quote.
     said = moved_line(root, base)
     if said:
         sys.stderr.write(said + "\n")
@@ -2652,25 +2266,14 @@ def gate(args, ascii_marks=False):
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )
-    # Before the checks rather than after them, so a run that comes back
-    # failed carries it too: what this run would not have covered is as much
-    # a fact about a failed run as about a passing one. A preflight prints
-    # none: the line says what THIS RUN answers, and a preflight runs no
-    # command.
-    workflow = workflow_text(root)
-    coverage = (
-        coverage_line(workflow, base.given) if workflow and not args.preflight else None
-    )
-    if coverage:
-        sys.stderr.write(coverage + "\n")
-    # A preflight skips the command by CONDITION and keeps this assignment where it
-    # stands: `PARTITION`'s cases read every `checks[...] = run(...)` in this
-    # function, so a second list of arms for the preflight would be the drift
-    # that table was declared to end (#468). Every arm below runs either way.
-    # The command's run records what each pytest it starts ran (#825), under a key
+    # A preflight skips the command by CONDITION and keeps this assignment
+    # where it stands: a second list of arms for the preflight would be a
+    # second list to keep in step with this one. Every arm below runs either
+    # way.
+    # The command's run records what each pytest it starts ran, under a key
     # made for this run alone. The record is read once, here, for every
-    # outcome (#869): the failure loop below takes from it whether a session
-    # did not pass (#883, #1301), its failing files and its counts, and the
+    # outcome: the failure loop below takes from it whether a session
+    # did not pass, its failing files and its counts, and the
     # panel its counts.
     head_key = record_key("head")
     head = None
@@ -2679,7 +2282,7 @@ def gate(args, ascii_marks=False):
             SUITE, command, root, keep, shell=True, env=recording_env(keep, head_key)
         )
         head = read_record(records_dir(keep), head_key, root)
-    # `--sealing` (#866): this run writes `trail/gate.md` after it passes, so
+    # `--sealing`: this run writes `trail/gate.md` after it passes, so
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
     # written into the environment for it.
@@ -2697,7 +2300,7 @@ def gate(args, ascii_marks=False):
     for name, check in checks.items():
         # A check fails on its exit, and the suite fails as well where its
         # record here counts a session that did not pass, whatever the
-        # command's exit (#883, #1301): `pytest.exit()` with a return code of
+        # command's exit: `pytest.exit()` with a return code of
         # 0, or `os._exit(0)`, leaves the command at 0 over tests that never
         # ran, and a later hook or a part of the command after pytest leaves
         # it at 0 over a
@@ -2710,13 +2313,13 @@ def gate(args, ascii_marks=False):
             # The failing files come from the record the command's pytest wrote
             # here. Where no pytest left a record there is nothing to
             # compare, so the `FAILED` lines only name the files, and the base
-            # is not run (#825). A session that stopped part-way here is
-            # counted under the list (#849 round 1), and so is a line of the
-            # record that did not parse (#869). A suite failed at exit 0 for
+            # is not run. A session that stopped part-way here is
+            # counted under the list, and so is a line of the
+            # record that did not parse. A suite failed at exit 0 for
             # a stopped session holds a failing file only where a test failed
             # before the stop, and only then is the base run. One failed at
             # exit 0 for a red session holds the file that failed, and the
-            # base is run for it as for any failing suite (#1301).
+            # base is run for it as for any failing suite.
             record = head
             if head.sessions:
                 files = list(head.failing)
@@ -2731,8 +2334,7 @@ def gate(args, ascii_marks=False):
         if args.preflight:
             # The same per-check lines under a first line that names the
             # preflight. The form is kept in one place, and only its head is
-            # the preflight's (`trail/phases/phase-1.md` of 1790815611 says why the
-            # head is replaced here rather than passed in).
+            # the preflight's.
             form[0] = preflight_line(PREFLIGHT_FAILED, tree, base.commit)
         sys.stdout.write("\n".join(form) + "\n")
         return 1
@@ -2746,13 +2348,12 @@ def gate(args, ascii_marks=False):
         base,
         checks,
         item,
-        workflow,
         gate_copy(root, installed=getattr(args, "invoked_as", None)),
         branch=branch,
         run=head,
     )
-    # One form on every stream (#975): the head, the panel's rows as text,
-    # and — the file being in the working tree while CI reads HEAD (#666) —
+    # One form on every stream: the head, the panel's rows as text,
+    # and — the file being in the working tree while CI reads HEAD —
     # the line saying so, only where git still sees it uncommitted. Nothing
     # is drawn and no values file is written: the stamp is the sealer's,
     # queued at the write of a `guarantee.md` reading `sealed`.
@@ -2769,12 +2370,12 @@ def gate(args, ascii_marks=False):
 # The one variable the gate reads, and it sets it itself: `main`
 # hands the tree's copy, on the redirect, the realpath of the copy the caller
 # invoked, and nobody else sets or reads it. `gate_copy` compares the two
-# files' bytes to decide whether the panel's `gate` row says anything (#666).
+# files' bytes to decide whether the panel's `gate` row says anything.
 # Absent, the running copy was invoked directly, or redirected by an installed
-# copy older than #666, which sets no such variable.
+# copy that sets no such variable.
 INVOKED_AS_VAR = "AGENTIC_GATE_INVOKED_AS"
 
-# The last line of a recorded run that passed (#666): the gate writes
+# The last line of a recorded run that passed: the gate writes
 # `trail/gate.md` into the working tree and commits nothing, and CI reads HEAD.
 CELL_UNCOMMITTED = (
     "seal gate: the run is written to {path} and not committed. CI reads "
@@ -2806,7 +2407,7 @@ def main(argv=None, console_wants_ascii=False):
     found it, negated — `__main__` asks before it reconfigures the
     streams. A caller in process names it, or gets the owner's marks."""
     try:
-        load(STAMP, "agentic_seal_stamp_for_broad_gate")
+        sibling_module(STAMP)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
         return 2
@@ -2844,9 +2445,9 @@ def main(argv=None, console_wants_ascii=False):
     # The redirect is decided from `parse_known_args`, before this copy's
     # parser can refuse an argument only the tree's copy knows: a flag added
     # to the gate is a change to the gate, and the copy that predates it must
-    # not be the one that answers (#475; round 1's 🟡 1). `--base` is still
-    # required here, so a call with no base is refused by the same parser as
-    # before. The gated tree's own copy runs in place of this one with the
+    # not be the one that answers. `--base` is required here too, so a call
+    # with no base is refused by this parser before anything is handed over.
+    # The gated tree's own copy runs in place of this one with the
     # same argument vector, under the same interpreter, with inherited
     # streams; its exit code is this run's. Before `gate()` and before
     # anything runs, so `gate` is not entered by the copy that hands over.
@@ -2873,7 +2474,7 @@ def main(argv=None, console_wants_ascii=False):
     # Taken OUT of the environment rather than read from it: every check
     # below inherits this process's environment, and a suite that loads this
     # module in process would otherwise answer `gate_copy` for a redirect it
-    # never made (#666).
+    # never made.
     args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
     if root is not None:
         sys.stderr.write(running_line(root) + "\n")
@@ -2887,10 +2488,10 @@ def main(argv=None, console_wants_ascii=False):
 if __name__ == "__main__":
     # Whether the report's marks go out in ASCII, asked of stdout as the
     # process found it — before the loop below moves every stream to UTF-8
-    # (`seal_stamp.py` measured why).
+    # (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
     # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
     try:
-        _stamp = load(STAMP, "agentic_seal_stamp_for_broad_gate")
+        _stamp = sibling_module(STAMP)
     except Refused as _exc:
         sys.stderr.write(str(_exc) + "\n")
         sys.exit(2)

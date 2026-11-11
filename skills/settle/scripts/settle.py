@@ -5,8 +5,8 @@
                                 name one section, the designs to read whole, every
                                 open row, the files named like a record and not
                                 read, the judgments of each run, those of
-                                the plans earlier settles removed, and what
-                                `--apply` removes
+                                the plans the two newest removing commits
+                                deleted, and what `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row and whose version's
                                 published note, where one is read, carries
@@ -17,6 +17,9 @@
   settle --draft                write every released operation into the
                                 policy root in merge order, and name each one
                                 not placed; it decides nothing
+  settle --all-earlier          the dry run, with the judgments of the plans
+                                every earlier settle removed, not only those
+                                of the two newest removing commits
   settle --released-at REF      what counts as released (default origin/main)
   settle --root DIR             a repository other than this one
 
@@ -59,14 +62,20 @@ the settling session's to judge. Every row of every released
 `frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
 against` cell, with its work item's round count; a heading near the
 section's, and a section whose table it cannot read, are named as not read.
-After them come the rows of every `frame/plan.md` a commit on
-`--released-at` deleted from a work item with no directory in the tree, the
-plans earlier settles removed: each read at that commit's parent by the
-same reader, grouped the same way, with the release whose tag holds the
-commit that added it and the removing commit's `(#N)`. A `git` that fails
-there is named, and no row is matched to another: whether two rows are one
-kind is the settling session's to judge. Nothing is refused or held in the
-dry run.
+After them come the rows of the `frame/plan.md` files commits on
+`--released-at` deleted from work items with no directory in the tree, the
+plans earlier settles removed: each read at its removing commit's parent by
+the same reader, grouped the same way, with the release whose tag holds the
+commit that added it and the removing commit's `(#N)`. The plans of the two
+newest removing commits are read (`EARLIER_WINDOW`), and a last line counts
+the older removing commits left out; `--all-earlier` reads them all and
+prints no such line. The texts and the adding commits are each read in one
+batched call, and the tags in three (`versions`), so the git calls do not
+grow with the plans read. A plan whose path holds a newline, which the
+batch would read as two names, is named as not read and never asked for.
+A `git` that fails there is named, and no row is matched to another:
+whether two rows are one kind is the settling session's to judge. Nothing
+is refused or held in the dry run.
 
 **`--from` reads a directory a person names, and writes nothing there.**
 Each `--from DIR` is read from the directory this runs in, and names a
@@ -88,7 +97,7 @@ reads what a document says. A root holding no work item lists them before
 its settled line.
 
 **`--draft` writes the released operations as they are written, and decides
-nothing (#1217).** It reads what the dry run reads, and applies each
+nothing.** It reads what the dry run reads, and applies each
 operation of each design the dry run groups, in merge order and in the order
 its design writes them, through `rule_changes.py#apply_op` to the policy
 root in the working tree, each over the text the earlier ones left. A
@@ -124,7 +133,7 @@ holds that commit. The version is the lowest such tag by number, and its
 note is its release in one `gh api --paginate` list of the repository's
 releases, drafts left out. The note carries the entry where it links that
 pull request, under any owner and name, or holds `<!-- specs/<id> -->`,
-which the notes published before #1139 carry. The workflow that builds a
+the line older notes carry. The workflow that builds a
 note from the fragments is this repository's, and the plugin ships none, so
 notes are read only where some published release holds a whole line
 `BUILT_RE` reads, the line that opens an entry. A directory whose note does
@@ -164,14 +173,14 @@ list `gh` cannot give or a `git` that cannot read what a note is checked
 by, each before anything is removed, a sibling script that is
 not beside it, a `--from` that names no directory of the working tree, one
 outside the repository, the `seal/` root or a path under it, `--from`
-beside `--apply`, which removes only under `seal/threads/`, and `--draft`
-beside `--apply` or `--from`. An interpreter below
+beside `--apply`, which removes only under `seal/threads/`, `--draft`
+beside `--apply` or `--from`, and `--all-earlier` beside `--apply` or
+`--draft`, which print none of what it widens. An interpreter below
 the floor never reaches this file through `seal settle`: `lib/launch.py`
 refuses `seal` with 2 first.
 """
 
 import argparse
-import importlib.util
 import json
 import os
 import re
@@ -180,30 +189,38 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
-ROUTING = os.path.join(HERE, "..", "..", "..", "lib", "routing.py")
-RULES = os.path.join(HERE, "rule_changes.py")
-FOLD_CHECK = os.path.join(HERE, "fold_check.py")
-TABLES = os.path.join(HERE, "..", "..", "..", "lib", "tables.py")
-GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
+# The modules this command reads, each as `lib/sibling.py#load` names it.
+# `lib/gaps.py` reads a closing memo's `## Not verified`, `lib/items.py`
+# holds the no-change block's word, and `lib/blocks.py` splits a text into
+# GFM lines.
+READER = "lib/gaps.py"
+ITEMS = "lib/items.py"
+BLOCKS = "lib/blocks.py"
+CONFIG = "lib/config.py"
+OPTIN = "lib/optin.py"
+ROUTING = "lib/routing.py"
+RULES = "skills/settle/scripts/rule_changes.py"
+FOLD_CHECK = "skills/settle/scripts/fold_check.py"
+TABLES = "lib/tables.py"
+GITCMD = "lib/gitcmd.py"
 
-# What each sibling is for, in the sentence `load` prints when it is missing.
-PURPOSES = {
-    READER: "it is where a record's open rows are read from",
-    OPTIN: "it is what finds the repository's seal/ root",
-    ROUTING: (
-        "it is what reads the branch a local work item's `routing.md` names "
-        "and counts a work item's round records"
-    ),
-    RULES: "it is what reads a design's `## Rule changes`",
-    FOLD_CHECK: "it is what reads the index and the one read after an apply",
-    TABLES: "it is what reads a plan's *Judgments of the run* table",
-    GITCMD: (
-        "it is what holds what this command reads of `git log` to one "
-        "reading under any git configuration"
-    ),
-}
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2. Where it is absent itself,
+# the refusal is the same sentence about it, spelt here because the file
+# that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 # The sub-directory of the root that holds the work items:
 # `lib/optin.py#WORK_ITEMS`.
@@ -233,35 +250,29 @@ def under(root, rel):
     return os.path.join(root, *rel.split("/"))
 
 
+def policy_root(root):
+    """The policy root of the repository at ROOT: `lib/config.py#policy_root`
+    of the `seal/` root `lib/optin.py#home_at` resolves there."""
+    optin = sibling.load(OPTIN)
+    return sibling.load(CONFIG).policy_root(
+        optin.home_at(root, optin.git_common_dir(root))
+    )
+
+
+def show(root, ref, rel):
+    r = subprocess.run(
+        ["git", "-C", root, "show", f"{ref}:{rel}"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return r.stdout if r.returncode == 0 else None
+
+
 def plural(count, many="s", one=""):
     """`s` unless there is one of them. Every count this prints is read by a
     person, and `1 work items` is the tell that nobody read the output."""
     return one if count == 1 else many
-
-
-def load(path, name):
-    """Import a sibling script by path, or refuse with a sentence saying what
-    the missing file is for — its `PURPOSES` entry — and exit 2.
-
-    Not a bare `exec_module`: `spec_from_file_location` hands back a spec for
-    any path ending in `.py`, present or not, so a missing reader would raise
-    `FileNotFoundError` — a traceback where every failure here is a sentence.
-    Exit 2 and not 1, because nothing about the tree has been read (#590)."""
-    purpose = PURPOSES.get(path, "this command cannot run without it")
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"settle: cannot read {path}, and {purpose}. This command ships "
-            "beside it under `skills/`; a copy of one script taken on its own "
-            "is not a plugin. Nothing was read.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        sys.stderr.write(f"settle: cannot load {path}, and {purpose}.\n")
-        raise SystemExit(2)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 # --- what the tree says ----------------------------------------------------
@@ -337,51 +348,65 @@ def reaches(root, ref, commit):
 PULL_REQUEST_RE = re.compile(r"\(#(\d+)\)$")
 
 
-def adding_commit(root, revisions, path):
-    """`(commit, pull request number or None)` for the oldest commit of
-    REVISIONS, a range or a ref in the repository at ROOT, that adds PATH, or
-    `(None, None)` where no commit there adds it.
+def adding_commits(root, revisions, pathspec):
+    """`{path: (commit, short hash, pull request number or None)}` for each
+    path under PATHSPEC that a commit of REVISIONS, a range or a ref in the
+    repository at ROOT, adds, from the oldest commit there that adds it.
+    One `git log`, whatever the number of paths.
 
     The number is the digits of the `(#N)` that ends the commit's stripped
     subject. Where a title ends with its issue, as `... (#7) (#42)` does, the
     last is the pull request's, because GitHub appends it after the title.
     This is the one reader of that number, so the release note's link,
     which this plugin's own publish workflow writes, and any other reader
-    of it cannot name different pull requests (#1139).
+    of it cannot name different pull requests.
 
     `--full-history` walks every parent, because a release's tag is a merge
-    into `main` whose first parent never held the path (0.22.4). No rename is
-    read: the pathspec names one path, so the path a rename would pair it
-    with is never in the diff. Raises `RuntimeError`, saying what `git` said,
-    where it fails.
+    into `main` whose first parent never held the path. A merge
+    shows no diff here, so a path only a merge's own resolution added has
+    no adding commit. `--no-renames` reads a path a rename under PATHSPEC
+    would pair with another as the add it is, and `-z` quotes no path.
+    Raises `RuntimeError`, saying what `git` said, where it fails.
     """
-    r = subprocess.run(
-        load(GITCMD, "agentic_gitcmd_for_settle").argv(
-            "-C",
-            root,
-            "log",
-            "--diff-filter=A",
-            "--full-history",
-            "--format=%H%x00%s",
-            revisions,
-            "--",
-            path,
-        ),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
+    listed = git_out(
+        root,
+        "log",
+        "-z",
+        "--no-renames",
+        "--full-history",
+        "--diff-filter=A",
+        "--name-only",
+        "--format=%x01%H %h %s",
+        revisions,
+        "--",
+        pathspec,
     )
-    if r.returncode != 0:
-        raise RuntimeError(
-            f"`git log {revisions} -- {path}` exited {r.returncode}: {r.stderr.strip()}"
-        )
-    # exempt from splitlines: git output
-    listed = [line for line in r.stdout.splitlines() if line]
-    if not listed:
-        return None, None
-    commit, _, subject = listed[-1].partition("\x00")
-    found = PULL_REQUEST_RE.search(subject.strip())
-    return commit, int(found.group(1)) if found else None
+    added, commit = {}, None
+    # The log lists the newest commit first, so the oldest add of a path is
+    # the one written last. A commit's field opens with U+0001, as in
+    # `earlier_judgments`, and the path that follows it opens with a newline.
+    for field in listed.split("\0"):
+        field = field.lstrip("\n")
+        if field.startswith("\x01"):
+            commit = field[1:].split(" ", 2)
+        elif field and commit is not None:
+            added[field] = commit
+    out = {}
+    for path, (full, short, subject) in added.items():
+        found = PULL_REQUEST_RE.search(subject.strip())
+        out[path] = (full, short, int(found.group(1)) if found else None)
+    return out
+
+
+def adding_commit(root, revisions, path):
+    """`(commit, pull request number or None)` for the oldest commit of
+    REVISIONS that adds PATH, or `(None, None)` where no commit there adds
+    it: `adding_commits` asked of the one path. Raises `RuntimeError`,
+    saying what `git` said, where it fails."""
+    full, _short, number = adding_commits(root, revisions, path).get(
+        path, (None, None, None)
+    )
+    return full, number
 
 
 class Unasked(Exception):
@@ -436,7 +461,7 @@ def merged_pull_requests(root, branch):
     return out
 
 
-# --- the published note `--apply` reads where the root is shared (#1139) ----
+# --- the published note `--apply` reads where the root is shared -----------
 
 # A version tag, `vX.Y.Z`. The publish workflow publishes a release's note
 # at such a tag, and `.github/scripts/publish_release_note.py` reads tags
@@ -445,7 +470,7 @@ VERSION_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 # The line that opens an entry of a release note built from the fragments:
 # this plugin's own publish workflow writes it from this, and `BUILT_RE`
-# reads it. Before #1139 an entry opened with `MARKER` instead.
+# reads it. An older note's entry opens with `MARKER` instead.
 PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
 MARKER = "<!-- specs/{work_item_id} -->"
 
@@ -484,34 +509,126 @@ class Unread(Exception):
     by; the message says what it said."""
 
 
-def git_out(root, *args):
-    """The standard output of `git ARGS` at ROOT, every pathspec literal.
-    Raises `RuntimeError`, saying what `git` said, where it fails."""
+def git_run(root, *args, given=None):
+    """The standard output of `git ARGS` at ROOT as bytes, every pathspec
+    literal, with GIVEN, bytes, on its standard input where it is not None.
+    `git_out` and the batched readers start their `git` here. Raises
+    `RuntimeError`, saying what `git` said, where it fails."""
     r = subprocess.run(
-        load(GITCMD, "agentic_gitcmd_for_settle").argv(
-            "-C", root, "--literal-pathspecs", *args
-        ),
+        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
+        input=given,
         capture_output=True,
-        encoding="utf-8",
-        errors="replace",
     )
     if r.returncode != 0:
         raise RuntimeError(
-            f"`git {' '.join(args)}` exited {r.returncode}: {r.stderr.strip()}"
+            f"`git {' '.join(args)}` exited {r.returncode}: {decoded(r.stderr).strip()}"
         )
     return r.stdout
 
 
-def version(root, commit):
-    """The lowest `vX.Y.Z` tag that holds COMMIT, its three parts compared
-    as numbers and not as text, or None where none does. A tag of any other
-    shape is no version."""
-    found = []
-    for name in git_out(root, "tag", "--contains", commit, "--list", "v*").split():
-        matched = VERSION_RE.match(name)
-        if matched:
-            found.append((tuple(int(n) for n in matched.group(1).split(".")), name))
-    return min(found)[1] if found else None
+def decoded(data):
+    """DATA as the text mode of `subprocess.run` reads it: UTF-8 with each
+    undecodable byte replaced, and every line ending a newline."""
+    return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def git_out(root, *args):
+    """The standard output of `git ARGS` at ROOT as text (`git_run`,
+    `decoded`). Raises `RuntimeError`, saying what `git` said, where it
+    fails."""
+    return decoded(git_run(root, *args))
+
+
+def versions(root):
+    """`{commit: tag}` for each commit some `vX.Y.Z` tag of the repository
+    at ROOT holds, the tag being the lowest that holds it, its three parts
+    compared as numbers and not as text. A tag of any other shape is no
+    version, and neither is one that does not peel to a commit.
+
+    Three calls, whatever the number of commits asked about: one
+    `git for-each-ref` lists the tags, one `git cat-file --batch-check`
+    peels each with `^{}` to the object it names, and one
+    `git rev-list --parents --stdin` of the commits among those gives their
+    history. `^{}` peels a tag of a tag whole on every git, as
+    `git tag --contains` counts it, where `%(*objectname)` of
+    `for-each-ref` peels one level only before git 2.44. The tags are then
+    walked lowest first, and each commit is labelled by the first tag that
+    reaches it; a walk stops at a commit already labelled, whose history a
+    lower tag has labelled whole. Raises `RuntimeError`, saying what `git`
+    said, where it fails."""
+    listed = git_out(
+        root, "for-each-ref", "--format=%(refname:lstrip=2)", "refs/tags/v*"
+    )
+    named = []
+    # exempt from splitlines: git output
+    for name in listed.splitlines():
+        if matched := VERSION_RE.match(name):
+            named.append((tuple(int(n) for n in matched.group(1).split(".")), name))
+    if not named:
+        return {}
+    peeled = decoded(
+        git_run(
+            root,
+            "cat-file",
+            "--batch-check=%(objecttype) %(objectname)",
+            given="".join(f"refs/tags/{name}^{{}}\n" for _n, name in named).encode(),
+        )
+    )
+    tips = []
+    # exempt from splitlines: git output
+    for (number, name), line in zip(named, peeled.splitlines(), strict=True):
+        kind, _, tip = line.partition(" ")
+        if kind == "commit":
+            tips.append((number, name, tip))
+    if not tips:
+        return {}
+    given = "".join(f"{tip}\n" for _n, _name, tip in tips).encode()
+    walked = decoded(git_run(root, "rev-list", "--parents", "--stdin", given=given))
+    parents = {}
+    # exempt from splitlines: git output
+    for line in walked.splitlines():
+        commit, *above = line.split()
+        parents[commit] = above
+    labels = {}
+    for _number, name, tip in sorted(tips):
+        stack = [tip]
+        while stack:
+            commit = stack.pop()
+            if commit in labels:
+                continue
+            labels[commit] = name
+            stack.extend(parents.get(commit, ()))
+    return labels
+
+
+def blobs(root, names):
+    """`[(text, None) or (None, answer)]`, one for each of NAMES, each a
+    `<revision>:<path>` git reads, in their order: the file's text as
+    `git_out` decodes it, or what `git cat-file --batch` answered where it
+    holds no file there, such as `missing`, or the kind of object it holds
+    instead. One call, whatever the number of names; a name holds no
+    newline, which git would read as two names (`earlier_judgments` asks
+    for none that does). Raises `RuntimeError`, saying what `git` said,
+    where it fails."""
+    out = git_run(
+        root, "cat-file", "--batch", given="".join(f"{n}\n" for n in names).encode()
+    )
+    read, at = [], 0
+    for name in names:
+        end = out.index(b"\n", at)
+        header = decoded(out[at:end])
+        at = end + 1
+        fields = header.split(" ")
+        if len(fields) != 3 or not fields[2].isdigit():
+            # `<name> missing`, `<name> ambiguous`: the name is echoed.
+            read.append((None, header.removeprefix(f"{name} ")))
+            continue
+        size = int(fields[2])
+        content, at = out[at : at + size], at + size + 1
+        read.append(
+            (decoded(content), None) if fields[1] == "blob" else (None, fields[1])
+        )
+    return read
 
 
 def published_releases(root):
@@ -549,8 +666,7 @@ def published_releases(root):
 def carries(body, number, work_item_id):
     """Whether a note's BODY carries a work item's entry: a link to pull
     request NUMBER under any owner and name, since a renamed repository's
-    old links redirect, or the marker (`MARKER`) that the notes published
-    before #1139 carry."""
+    old links redirect, or the marker (`MARKER`) older notes carry."""
     link = rf"https://github\.com/[^/\s]+/[^/\s]+/pull/{number}(?!\d)"
     marker = MARKER.format(work_item_id=work_item_id)
     return bool(re.search(link, body)) or marker in body
@@ -615,7 +731,7 @@ def notes(root, ref, ids, specs):
     The fragment's text is read at REF, and the release note read it at
     the newest commit of its range that holds it: a fragment emptied or
     filled after the tag reads differently here, a limit no guard covers."""
-    out, pending = {}, {}
+    out, pending, labels = {}, {}, None
     try:
         at = git_out(root, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
         for work_item_id in ids:
@@ -629,10 +745,13 @@ def notes(root, ref, ids, specs):
                 out[work_item_id] = (False, NO_TEXT.format(ref=ref))
             elif number is None:
                 out[work_item_id] = (False, NO_NUMBER.format(commit=commit))
-            elif (tag := version(root, commit)) is None:
-                out[work_item_id] = (False, NO_TAG.format(commit=commit))
             else:
-                pending[work_item_id] = (tag, number, path)
+                if labels is None:
+                    labels = versions(root)
+                if (tag := labels.get(commit)) is None:
+                    out[work_item_id] = (False, NO_TAG.format(commit=commit))
+                else:
+                    pending[work_item_id] = (tag, number, path)
     except RuntimeError as refused:
         raise Unread(str(refused)) from refused
     if not pending:
@@ -699,7 +818,7 @@ def released_local(root, records, ref, ids, specs):
     asked once per branch, and not for a work item that names none. Raises
     `Unasked` where `gh` cannot be asked: every work item would then read as
     unreleased, and the run would say there is nothing to settle."""
-    routing = load(ROUTING, "agentic_routing_for_settle")
+    routing = sibling.load(ROUTING)
     asked, merged, why = {}, {}, {}
     for work_item_id in ids:
         branch = declared_branch(records, work_item_id, routing, specs)
@@ -828,18 +947,41 @@ JUDGMENTS_HEADING = (
     "kept costing rounds (`skills/settle/SKILL.md`):"
 )
 # Its neighbour, the rows of the plans earlier settles removed, read from the
-# history of `--released-at` (#1281), and what a work item's line says where
-# no release can be named for it. The heading says who decides the kind.
+# history of `--released-at` and bounded to the two newest removing commits
+# unless `--all-earlier` is given, and what a work item's line says where no
+# release can be named for it. The heading says who decides the kind.
 EARLIER_HEADING = (
-    "the judgments earlier settles removed: the rows of each `frame/plan.md` a "
-    "commit on\n`--released-at` deleted, read at that commit's parent and "
-    "grouped by the document each\nstands on, with the release each shipped "
-    "in. The script matches no row to another:\nwhether a row here is one kind "
-    "with a row above is the settling session's to judge,\nand it rewrites a "
-    "section where a kind recurs across releases (`skills/settle/SKILL.md`):"
+    "the judgments earlier settles removed: the rows of each `frame/plan.md` "
+    "deleted by\none of the two newest commits on `--released-at` that deleted "
+    "a plan, or by any such\ncommit under `--all-earlier`, read at that "
+    "commit's parent and grouped by the\ndocument each stands on, with the "
+    "release each shipped in. The script matches no\nrow to another: whether a "
+    "row here is one kind with a row above is the settling\nsession's to judge, "
+    "and it rewrites a section where a kind recurs across releases\n"
+    "(`skills/settle/SKILL.md`):"
+)
+# How many removing commits the default dry run reads, newest first. Two,
+# because over five settle pull requests every kind named as recurring across
+# releases rests on rows of the current release and of the two newest
+# removing commits before that settle, and one of them rests on the second.
+EARLIER_WINDOW = 2
+# The section's last line where the window left removing commits out: a count
+# of commits, never of rows.
+EARLIER_OLDER = (
+    "{count} older commit{s} removed plans this section did not read; "
+    "`seal settle --all-earlier` reads them"
 )
 NO_RELEASE_TAG = "no `vX.Y.Z` tag holds {commit}, the commit that added its plan"
 NO_ADDING_COMMIT = "no commit on {ref} adds its plan"
+# A removed plan whose `<short>^:<path>` git holds no file's text for.
+NO_PLAN_TEXT = (
+    "`git cat-file --batch` answered `{answer}`, so none of its rows were read"
+)
+# A removed plan whose path holds a newline, which `blobs` cannot ask for.
+NO_ONE_LINE = (
+    "its path holds a newline, which `git cat-file --batch` reads as two "
+    "names, so none of its rows were read"
+)
 REMOVES_HEADING = (
     "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row,\nunless `--apply`, which alone reads the published "
@@ -855,7 +997,7 @@ READERS_HEADING = (
     "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
 )
-# The named directories' listing (#1054), printed only with `--from`.
+# The named directories' listing, printed only with `--from`.
 DOCUMENTS_HEADING = (
     "named directories: every document of each directory named with `--from`, "
     "with the\ncommit that added it and the commit that last changed it. The "
@@ -887,7 +1029,7 @@ FROM_UNDER_ROOT = (
     "this runs in, so nothing was read.\n"
 )
 
-# What `--draft` refuses, each with exit 2 before anything is read (#1217).
+# What `--draft` refuses, each with exit 2 before anything is read.
 DRAFT_WITH_APPLY = (
     "settle: --draft and --apply cannot be given together: the draft is "
     "written and read before anything is removed, so nothing was written and "
@@ -898,6 +1040,19 @@ DRAFT_WITH_FROM = (
     "only the released designs' operations, and a promoted document is "
     "written by the settling session, so nothing was read and nothing was "
     "written.\n"
+)
+
+# What `--all-earlier` refuses, each with exit 2 before anything is read:
+# it widens only what the dry run prints.
+EARLIER_WITH_APPLY = (
+    "settle: --all-earlier and --apply cannot be given together: --apply "
+    "prints none of the judgments earlier settles removed, so nothing was read "
+    "and nothing was removed.\n"
+)
+EARLIER_WITH_DRAFT = (
+    "settle: --all-earlier and --draft cannot be given together: the draft "
+    "prints none of the judgments earlier settles removed, so nothing was read "
+    "and nothing was written.\n"
 )
 # `--draft`'s last line, after its count.
 DRAFTED = (
@@ -954,7 +1109,7 @@ def in_tree(root, records, work_item_id, path, names, specs):
 def open_rows(root, records, ids, reader, specs):
     """`[(id, [(file, item, [(path, in the tree)])])]` for each of IDS whose
     record under SPECS (`threads`) in RECORDS holds an open row in the
-    working tree (`unverified_check.py#open_record_rows`)."""
+    working tree (`lib/gaps.py#open_record_rows`)."""
     out, names = [], None
     for work_item_id in ids:
         rows = reader.open_record_rows(records, f"{specs}/{work_item_id}")
@@ -985,7 +1140,7 @@ def misplaced(records, work_item_id, reader, specs):
     directory under SPECS (`threads`) in RECORDS, sorted: a regular file, or
     a link to one, whose
     name is the last part of a record this reads in the directory, the
-    closing memo (`unverified_check.py#OVERVIEW`), `DESIGN` or `PLAN`, and
+    closing memo (`lib/gaps.py#OVERVIEW`), `DESIGN` or `PLAN`, and
     whose path from the directory is not that record's. PATH is that path,
     and PLACE is the record's.
 
@@ -1026,7 +1181,7 @@ def judgments(records, ids, specs):
     Each plan is read by `plan_rows`, the reader the plans earlier settles
     removed are read by (`earlier_judgments`). A plan with no such section
     and no near heading holds no judgment and is in neither."""
-    routing = load(ROUTING, "agentic_routing_for_settle")
+    routing = sibling.load(ROUTING)
     groups, unread = {}, []
     for work_item_id in ids:
         text = read_text(records, f"{specs}/{work_item_id}/{PLAN}")
@@ -1069,12 +1224,12 @@ def plan_rows(text):
               it cannot read
 
     A heading inside a fence or an HTML comment is no heading
-    (`unverified_check.py#live_lines`). The table is read through
+    (`lib/lines.py#live_lines`). The table is read through
     `lib/tables.py#gfm_table` over the section's lines alone, and
     nothing here grades a cell."""
-    rules = load(RULES, "agentic_rule_changes")
-    tables = load(TABLES, "agentic_tables_for_settle")
-    lines = rules.reader().gfm_lines(text)
+    rules = sibling.load(RULES)
+    tables = sibling.load(TABLES)
+    lines = sibling.load(BLOCKS).gfm_lines(text)
     marks = rules.headings(lines)
     unread = [
         NEAR_JUDGMENTS.format(line=n + 1, written=lines[n].strip(), heading=JUDGMENTS)
@@ -1102,11 +1257,15 @@ def removed_plan_re(specs):
     return re.compile(rf"{re.escape(specs)}/([^/]+)/{re.escape(PLAN)}")
 
 
-def earlier_judgments(root, ref, present, specs):
-    """`(groups, unread)` for every `frame/plan.md` a commit on REF deleted
-    under SPECS (`threads`) whose work item has no directory among PRESENT,
-    the ids `work_items(records, specs)` lists: the plans earlier settles
-    removed.
+def earlier_judgments(root, ref, present, specs, every=False):
+    """`(groups, unread, older)` for the `frame/plan.md` files commits on REF
+    deleted under SPECS (`threads`) whose work items have no directory among
+    PRESENT, the ids `work_items(records, specs)` lists: the plans earlier
+    settles removed. A removing commit is one at which a plan is read here,
+    so a commit whose every deleted plan is read at a newer deletion, or
+    belongs to a directory that stands, is none. The plans of the
+    `EARLIER_WINDOW` newest removing commits are read, and under EVERY those
+    of all of them.
 
       groups  `[(judged against, [(id, released, removed, [(coordinate,
               date, judgment, grounds)])])]`, grouped by the `Judged
@@ -1114,13 +1273,19 @@ def earlier_judgments(root, ref, present, specs):
               the removing commits newest first, and within one commit the
               plans in the order git lists them. `released` is the lowest
               `vX.Y.Z` tag that holds the commit adding the plan
-              (`adding_commit`, `version`), or the sentence saying none
+              (`adding_commits`, `versions`), or the sentence saying none
               does. `removed` is `(short hash, pull request number or
               None)`, the number read by `PULL_REQUEST_RE`. A coordinate is
               `<short>^:seal/threads/<id>/frame/plan.md:<line>`
-      unread  `[(where, why)]`: what `plan_rows` names for a plan, at its
-              `<short>^:` path, and a `git` that fails, with what it said;
-              `where` is empty where the history itself was not read
+      unread  `[(where, why)]`: what `plan_rows` names for a plan, a plan
+              git holds no text for, with what `git cat-file` answered, and
+              a plan whose path holds a newline, which the batch cannot
+              ask for, each at its `<short>^:` path; and a `git` that fails, with
+              what it said, where `where` is empty and no row is read
+      older   how many removing commits past the window were not read: 0
+              under EVERY, and where the deletions' `git log` fails. A
+              batched read that fails leaves it standing, since the
+              deletions it counts were listed
 
     One `git log -z --no-renames --full-history --diff-filter=D` of REF over
     `seal/threads` lists the deletions: `-z` so that no path is quoted,
@@ -1128,9 +1293,12 @@ def earlier_judgments(root, ref, present, specs):
     as another work item's plan, is not paired with it as a rename. A merge shows no diff in it, so a
     deletion is listed at the commit that made it, and a plan only a
     merge's own resolution deleted is not listed. Each plan is read once,
-    at the parent of the newest commit that deleted it. Nothing here
-    matches, counts or filters a row by its cells: whether two rows are
-    one kind is the settling session's to judge."""
+    at the parent of the newest commit that deleted it. The plans' texts
+    (`blobs`) and their adding commits (`adding_commits`) are each read
+    in one batched call, and the tags that hold those in the three of
+    `versions`, so the calls made do not grow with the number of plans.
+    Nothing here matches, counts or filters a row by its cells: whether
+    two rows are one kind is the settling session's to judge."""
     try:
         listed = git_out(
             root,
@@ -1146,7 +1314,7 @@ def earlier_judgments(root, ref, present, specs):
             specs,
         )
     except RuntimeError as failed:
-        return [], [("", str(failed))]
+        return [], [("", str(failed))], 0
     deleted, seen = [], set()
     commit = None
     removed_plan = removed_plan_re(specs)
@@ -1165,22 +1333,48 @@ def earlier_judgments(root, ref, present, specs):
         seen.add(line)
         if matched.group(1) not in present:
             deleted.append((commit, matched.group(1), line))
-    groups, unread = {}, []
-    for (full, short, subject), work_item_id, path in deleted:
+    # The log lists commits newest first, so the removing commits are met in
+    # that order, and the window is the deletions of the first ones met.
+    removing = list(dict.fromkeys(full for (full, _s, _t), _i, _p in deleted))
+    older = 0
+    if not every and len(removing) > EARLIER_WINDOW:
+        kept = set(removing[:EARLIER_WINDOW])
+        older = len(removing) - EARLIER_WINDOW
+        deleted = [d for d in deleted if d[0][0] in kept]
+    # `git cat-file --batch` reads one name per line (`blobs`), so a path
+    # holding a newline is named here and never asked for: asked, it would
+    # read as two names and shift the answer of every plan after it.
+    split = [
+        (f"{work_item_id}  {short}^:{path}", NO_ONE_LINE)
+        for (_full, short, _subject), work_item_id, path in deleted
+        if "\n" in path
+    ]
+    deleted = [d for d in deleted if "\n" not in d[2]]
+    if not deleted:
+        return [], split, older
+    try:
+        texts = blobs(root, [f"{full}^:{path}" for (full, _s, _t), _i, path in deleted])
+        added = adding_commits(root, ref, specs)
+        labels = versions(root)
+    except RuntimeError as failed:
+        return [], [("", str(failed))], older
+    groups, unread = {}, split
+    for ((_full, short, subject), work_item_id, path), (text, answer) in zip(
+        deleted, texts, strict=True
+    ):
         where = f"{short}^:{path}"
-        try:
-            text = git_out(root, "show", f"{full}^:{path}")
-            adding, _number = adding_commit(root, ref, path)
-            if adding is None:
-                released = NO_ADDING_COMMIT.format(ref=ref)
-            elif (tag := version(root, adding)) is None:
-                added = git_out(root, "rev-parse", "--short", adding).strip()
-                released = NO_RELEASE_TAG.format(commit=added)
-            else:
-                released = f"released in {tag}"
-        except RuntimeError as failed:
-            unread.append((f"{work_item_id}  {where}", str(failed)))
+        if text is None:
+            unread.append(
+                (f"{work_item_id}  {where}", NO_PLAN_TEXT.format(answer=answer))
+            )
             continue
+        adding, added_short, _number = added.get(path, (None, None, None))
+        if adding is None:
+            released = NO_ADDING_COMMIT.format(ref=ref)
+        elif (tag := labels.get(adding)) is None:
+            released = NO_RELEASE_TAG.format(commit=added_short)
+        else:
+            released = f"released in {tag}"
         rows, whys = plan_rows(text)
         unread += [(f"{work_item_id}  {where}", why) for why in whys]
         number = PULL_REQUEST_RE.search(subject.strip())
@@ -1196,6 +1390,7 @@ def earlier_judgments(root, ref, present, specs):
             for against, members in groups.items()
         ],
         unread,
+        older,
     )
 
 
@@ -1207,7 +1402,7 @@ def facts(root, op, rules):
     span, _ = rules.section_lines(text, op.section)
     region = ""
     if span:
-        lines = rules.reader().gfm_lines(text)
+        lines = sibling.load(BLOCKS).gfm_lines(text)
         region = "\n".join(lines[span[0] - 1 : span[1]])
     return [
         (field, bool(span) and bool(rules.pattern(value).search(region)))
@@ -1233,8 +1428,8 @@ def timeline(root, ref, ids, reader, records, specs, merged=None):
     (`Parsed.unread`), is to be read whole; one holding the no-change
     block has nothing to write; a directory with no `frame/design.md` states no
     rule."""
-    rules = load(RULES, "agentic_rule_changes")
-    policy = reader.policy_root(root)
+    rules = sibling.load(RULES)
+    policy = policy_root(root)
     parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
         if not has_spec(records, work_item_id, specs):
@@ -1242,7 +1437,7 @@ def timeline(root, ref, ids, reader, records, specs, merged=None):
             continue
         rel = f"{specs}/{work_item_id}/{DESIGN}"
         if merged is None:
-            text = reader.show(root, ref, rel) or ""
+            text = show(root, ref, rel) or ""
         else:
             text = read_text(records, rel) or ""
         found = rules.parse(text, policy)
@@ -1322,7 +1517,7 @@ def records_of(root, home):
     return local, (os.path.dirname(home) if local else root)
 
 
-def survey(root, ref, home=None):
+def survey(root, ref, home=None, every=False):
     """What the dry run prints, and where `--apply` gets *released*.
 
     HOME is the resolved `seal/` root, `<root>/seal` when it is None, the
@@ -1330,7 +1525,8 @@ def survey(root, ref, home=None):
     ROOT the root is in local mode: the work items are read under the
     directory holding it, and released is asked of `gh` and git
     (`released_local`) rather than read from REF's tree. Every work item
-    path opens with `threads(home)`.
+    path opens with `threads(home)`. EVERY is `--all-earlier`, which
+    `earlier_judgments` reads every removing commit's plans under.
 
     **`--apply` does not take its candidates from here.** It reads the
     directories and the records from the tree again, because a
@@ -1340,7 +1536,7 @@ def survey(root, ref, home=None):
 
     None where `ref` does not resolve. Raises `Unasked` where local mode
     needs `gh` and it cannot be asked."""
-    home = home or under(root, load(OPTIN, "agentic_optin").HOME)
+    home = home or under(root, sibling.load(OPTIN).HOME)
     local, records = records_of(root, home)
     specs = threads(home)
     present = work_items(records, specs)
@@ -1354,7 +1550,7 @@ def survey(root, ref, home=None):
         on_base = released(root, ref, specs)
         if on_base is None:
             return None
-    reader = load(READER, "agentic_unverified_reader")
+    reader = sibling.load(READER)
     ids = [i for i in present if i in on_base]
     found = {
         "ref": ref,
@@ -1371,14 +1567,14 @@ def survey(root, ref, home=None):
             (i, held) for i in ids if (held := misplaced(records, i, reader, specs))
         ],
         "judgments": judgments(records, ids, specs),
-        "earlier": earlier_judgments(root, ref, present, specs),
-        "nothing": reader.NOTHING,
+        "earlier": earlier_judgments(root, ref, present, specs, every),
+        "nothing": sibling.load(ITEMS).NOTHING,
     }
     found["citations"], found["readers"] = citations(root, ids, specs)
     return found
 
 
-# --- the directories a person names (#1054) ---------------------------------
+# --- the directories a person names ----------------------------------------
 
 
 def inside(path, top):
@@ -1412,9 +1608,7 @@ def git_fields(root, *args):
     """The NUL-separated fields of `git ARGS` run at ROOT with every
     pathspec literal, or [] where git exits non-zero."""
     r = subprocess.run(
-        load(GITCMD, "agentic_gitcmd_for_settle").argv(
-            "-C", root, "--literal-pathspecs", *args
-        ),
+        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
         capture_output=True,
     )
     if r.returncode != 0:
@@ -1686,8 +1880,8 @@ def report(found, ref, out):
                 for line, date, judgment, grounds in held:
                     write(f"        {PLAN}:{line}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
-    groups, unread = found["earlier"]
-    if groups or unread:
+    groups, unread, older = found["earlier"]
+    if groups or unread or older:
         write(f"\n{EARLIER_HEADING}\n")
         for where, why in unread:
             write(f"    {where + '  ' if where else ''}not read: {why}\n")
@@ -1699,6 +1893,8 @@ def report(found, ref, out):
                 for where, date, judgment, grounds in held:
                     write(f"        {where}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
+        if older:
+            write(f"\n{EARLIER_OLDER.format(count=older, s=plural(older))}\n")
     if "documents" in found:
         write("\n")
         write_documents(found["documents"], out)
@@ -1720,7 +1916,7 @@ def report(found, ref, out):
     return 0
 
 
-# --- the draft (#1217) -----------------------------------------------------
+# --- the draft -------------------------------------------------------------
 
 
 def draft(found, root, out):
@@ -1733,7 +1929,7 @@ def draft(found, root, out):
     `remove` empties is deleted. Each operation not placed is
     printed with its reason, the rest go on, and nothing decides which
     operation is the latest: the exit code is 0 whatever was placed."""
-    rules = load(RULES, "agentic_rule_changes")
+    rules = sibling.load(RULES)
     texts, placed, total = {}, 0, 0
     for work_item_id, ops in found["timeline"]["specs"]:
         for op in ops:
@@ -1756,7 +1952,7 @@ def draft(found, root, out):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8", newline="") as f:
             f.write(text)
-    policy = load(READER, "agentic_unverified_reader").policy_root(root)
+    policy = policy_root(root)
     out.write(f"placed {placed} of {total} operation{plural(total)} in {policy}/\n")
     out.write(DRAFTED)
     return 0
@@ -1775,7 +1971,7 @@ def write_after(root, policy, out):
     read by `fold_check.py` over the policy root the settling session wrote.
     A row it cannot read is said in its own sentence, never as a traceback
     after the removals."""
-    fold = load(FOLD_CHECK, "agentic_fold_check_for_settle")
+    fold = sibling.load(FOLD_CHECK)
     try:
         ceiling = fold.declared(fold.seal_home(root))[0]
         lines = list(fold.index_problems(root, policy) or [])
@@ -1792,7 +1988,7 @@ def write_after(root, policy, out):
 def closed_rows(records, directory, reader):
     """`[(item, what closed it)]` for each closed row of DIRECTORY's record
     under RECORDS in the working tree, read by
-    `unverified_check.py#check_text`."""
+    `lib/gaps.py#check_text`."""
     text = read_text(records, f"{directory}/{reader.OVERVIEW}")
     if text is None:
         return []
@@ -1818,7 +2014,7 @@ def apply(found, root, out):
     gives *released*, which only git answers, and in local mode `gh` with
     git. Every directory is classified before the first removal, so the
     `Unasked` and `Unread` that `notes` raises leave every one in place."""
-    reader = load(READER, "agentic_unverified_reader")
+    reader = sibling.load(READER)
     records, specs = found["records"], found["threads"]
     ids = sorted(set(work_items(records, specs)) & set(found["released"]))
     held = {i: reader.open_record_rows(records, f"{specs}/{i}") for i in ids}
@@ -1860,7 +2056,7 @@ def apply(found, root, out):
         for item, who in closed:
             out.write(f"    closed in {reader.OVERVIEW}: {item}\n")
             out.write(f"        what closed it: {who}\n")
-    policy = reader.policy_root(root)
+    policy = policy_root(root)
     if os.path.isdir(under(root, policy)):
         write_after(root, policy, out)
     out.write(
@@ -1916,6 +2112,13 @@ def main(argv=None):
         "root as it stands, in merge order, and name each one not placed with "
         "the reason; it decides nothing. Refused beside --apply and --from",
     )
+    ap.add_argument(
+        "--all-earlier",
+        action="store_true",
+        help="the dry run, with the judgments of the plans every commit on "
+        "--released-at removed, where the dry run alone reads those of the two "
+        "newest such commits. Refused beside --apply and --draft",
+    )
     args = ap.parse_args(argv)
     if args.draft and args.apply:
         sys.stderr.write(DRAFT_WITH_APPLY)
@@ -1926,11 +2129,17 @@ def main(argv=None):
     if args.named and args.apply:
         sys.stderr.write(FROM_WITH_APPLY)
         return 2
+    if args.all_earlier and args.apply:
+        sys.stderr.write(EARLIER_WITH_APPLY)
+        return 2
+    if args.all_earlier and args.draft:
+        sys.stderr.write(EARLIER_WITH_DRAFT)
+        return 2
 
     root = os.path.abspath(args.root or os.getcwd())
     # The root is resolved through the one resolver, `lib/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
-    optin = load(OPTIN, "agentic_optin")
+    optin = sibling.load(OPTIN)
     # The repository's top, as `fold_check.py` resolves it: the policy root,
     # the tracked files and `tests/` are read from it, and a subdirectory
     # holds none of them. `repo_root` answers "" outside a repository, where
@@ -1965,7 +2174,7 @@ def main(argv=None):
         named.append(rel)
     listed = documents(root, named) if named else None
     local, records = records_of(root, home)
-    # A settled root is not an unusable one (#517): an empty `seal/threads/`, or
+    # A settled root is not an unusable one: an empty `seal/threads/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
     if not work_items(records, threads(home)):
         if listed is not None:
@@ -1978,7 +2187,7 @@ def main(argv=None):
         return 0
 
     try:
-        found = survey(root, args.released_at, home)
+        found = survey(root, args.released_at, home, args.all_earlier)
     except Unasked as refused:
         sys.stderr.write(UNASKED.format(why=refused))
         return 2

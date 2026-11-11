@@ -65,7 +65,6 @@ the open `flow-measurement` issue is this version's rolling log. Either
 issue can close: the rolling log is closed and replaced when a release
 ships, and the durable log is a ledger that can roll to a new issue. One of
 each kind is always open, so the milestone never closes.
-check: tests/behaviour/test_a_release_is_sized_by_a_criterion.py
 
 ## A label answers *what it is about*, and survives the move
 

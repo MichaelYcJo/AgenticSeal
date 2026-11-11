@@ -1,10 +1,9 @@
 """Shared reader: which way did this work item say it was going?
 
 The routing answer -- review chain or straight to the PR -- is given before the
-first edit. Nothing used to receive it, so the commit gate re-derived it from
-the absence of a review mark, and a mark only exists after a review passes.
-Every commit of every round was stopped on its way to the reviewer the answer
-had already named.
+first edit, and this module reads it back. Without a declaration, the route
+could only be guessed from the absence of a review mark, and a mark only
+exists after a review passes.
 
 A declaration lives at `seal/threads/<work-item-id>/routing.md` and is committed.
 Committed is the load-bearing part: the check moves to the pull request, and CI
@@ -13,8 +12,8 @@ sees only what is in the tree; nothing under the git directory travels there.
 Beside the work item rather than at the root's top level, because a work item
 begins and ends in one directory and routing is its first fact. It also gives
 the work below the SDD ladder somewhere to exist: those items write no
-`frame/design.md`, so until now they left no trace anywhere, and they are most of what
-the pull request's check sees.
+`frame/design.md`, so without it they would leave no trace anywhere, and they
+are most of what the pull request's check sees.
 
 Loaded by the pull request's check and by every script that reads a
 declaration, rather than copied into each -- the same reason `optin.py`
@@ -44,8 +43,8 @@ try:
     import blocks
 except ImportError as missing:
     # `lib/config.py` raises the same sentence for the same reason: this is
-    # a module gates and scripts import, and a script that loads it by path
-    # (`chain_check.py`) catches the error or names the file first.
+    # a module gates and scripts import, and a script that loads it through
+    # `lib/sibling.py` (`chain_check.py`) catches the error.
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
@@ -82,10 +81,10 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 # The fifth row, and the first that is not a party. The other four each name
 # somebody who does or does not run; this one names a property of the RUN --
 # whether it may come back and ask. A reader six months later asks that about a
-# work item, and until now the answer was nowhere.
+# work item, and this row is where the answer stands.
 #
 # `no` is not "a person did it by hand". It is "this run may stop to ask", which
-# is the half a label cannot say and the half the measured instance got wrong.
+# is the half a label cannot say and the half a reader gets wrong.
 #
 # No script decides anything on it: it is a record the orchestrator reads
 # (`docs/running/the-run.md` *The run*).
@@ -101,15 +100,15 @@ def shown(lines, text=None):
     """[(index, line)] for each of LINES `table_rows` reads, ending removed.
 
     The walk's hidden lines are left out, and only those: where it is not
-    sure, this reader's own reading from before #667 stands, and that
-    reading hid nothing. So on every line the answer is either the old one
-    or a renderer's, which `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`
+    sure, this reader's base reading stands, and that reading hides
+    nothing. So on every line the answer is either the base reading or a
+    renderer's, which `tests/lib/test_routing.py`'s `Test_module`
     holds over a generated corpus.
 
     TEXT is the file LINES were split from, and `table_rows` passes it: the
     walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
     form feed, which `str.splitlines` breaks at, hides nothing a renderer
-    shows (#667 round 1, 🟡 1; `lib/tables.py#hidden_lines` says more).
+    shows (`lib/tables.py#hidden_lines` says more).
     """
     walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
     hidden = walked.hidden()
@@ -127,20 +126,15 @@ def table_rows(text):
     it does not recognise cannot gain a third axis later without the older
     readers silently ignoring it. The caller decides what it needs.
 
-    The FOURTH axis arrived on that promise and is what tested it. `Planning`
-    was added when seventy-two declarations had already been written, none of
-    them carrying the row and none of them needing an edit -- and the only
-    change this function needed was none.
-
-    **A row a renderer does not show is not a row** (#658, #667). `parse`
-    kept the LAST row of a label then, so an example quoted in a fenced block
-    below the table answered for it, and so did an answer somebody parked in
-    an HTML comment; since #867 a label shown twice has no value at all.
+    **A row a renderer does not show is not a row.** Otherwise an example
+    quoted in a fenced block below the table, or an answer somebody parked
+    in an HTML comment, would be a second row of its label, and a label
+    written twice has no value at all.
     `shown` below is what this walks, and it hides exactly the lines
     `lib/blocks.py` is sure a renderer hides: inside a fenced
     block or a comment block that begins its line, where either closes.
-    Every other line is read as it always was, so a fence or a `<!--` nobody
-    closed hides nothing, and a declaration that read before still reads.
+    Every other line is read by the base reading, so a fence or a `<!--`
+    nobody closed hides nothing, and a declaration below one reads.
     A file whose only table is hidden is not a declaration, the direction
     this module fails in.
     """
@@ -195,24 +189,23 @@ def parse(text):
     `Automation` is the fifth row and it is read on the same looser terms, for
     the same reason one step further along: no script decides anything on it,
     and an absent or unreadable row reads as never asked. A required row would
-    turn all 84 declarations already committed here into "not a declaration",
+    turn every declaration committed without it into "not a declaration",
     and the pull request's check would read every branch that already
     answered as undeclared.
 
     **What it reads is `table_rows`', which skips a row a renderer does not
-    show** (#667): a table wholly inside a fenced block, or inside a comment
+    show**: a table wholly inside a fenced block, or inside a comment
     block that closes, is no declaration, as any `routing.md` that does not
     parse is. A fence or a `<!--` nobody closed
     above the table is not a block at all, so that declaration still reads.
 
-    **A label written twice has no value** (#867), the rule
-    `lib/config.py#config_value` gives every `seal/config.json` key. This used to
-    keep the LAST row of a label, so a second `Review` row below the first
-    answered for it, and nothing said there were two. Now a strict label
-    doubled -- `Review`, `Destination`, `Branch` -- makes the file no
-    declaration, as any file that will not parse is; an optional label doubled is unanswered, on the terms above.
-    Measured when the rule landed: none of the 86 committed declarations
-    writes a label twice.
+    **A label written twice has no value**, the rule
+    `lib/config.py#config_value` gives every `seal/config.json` key: taking
+    the last row would let a second `Review` row below the first answer for
+    it, with nothing saying there were two. A strict label doubled --
+    `Review`, `Destination`, `Branch` -- makes the file no declaration, as
+    any file that will not parse is; an optional label doubled is
+    unanswered, on the terms above.
     """
     rows = table_rows(text)
     counts = {}
@@ -248,7 +241,7 @@ def parse(text):
         # that IS asked always writes one of the two values, so `None` means
         # the question was never put to anybody. A chosen `no` and a question
         # nobody read are not the same fact, which is the whole reason the
-        # unchecked half is a VALUE rather than an absence (#151).
+        # unchecked half is a VALUE rather than an absence.
         "automation": automation if automation in AUTOMATION_ANSWERS else None,
     }
 
@@ -309,9 +302,8 @@ def declarations(root):
             # nothing on the branch. The module docstring says everything
             # here fails toward "no declaration"; a file nobody can decode is
             # not an answer somebody gave, so it is skipped and its branch
-            # reads as undeclared. `chain_check.py` already catches both when it
-            # reads the event payload -- the CI half was hardened and this one
-            # was not.
+            # reads as undeclared. `chain_check.py` catches both when it reads
+            # the event payload, for the same reason.
             continue
         if parsed:
             out.append((path, parsed))
@@ -367,15 +359,16 @@ def _ordered(where):
     try:
         names = os.listdir(where)
     except NotADirectoryError:
-        # A `rounds` that is a FILE, not a directory. Round 1 reached it by
-        # following an earlier release's own migration command: a `git mv` of
-        # each round record into a `rounds` directory fails because `git mv`
-        # does not create its destination, and dropping the trailing slash is what a
+        # A `rounds` that is a FILE, not a directory. Following an earlier
+        # release's own migration command reaches it: a `git mv` of each round
+        # record into a `rounds` directory fails because `git mv` does not
+        # create its destination, and dropping the trailing slash is what a
         # person tries next -- which succeeds for a single record and renames
-        # it to a file called `rounds`. Both readers then said the work item
-        # held no round record while git carried the review's whole text, and
-        # a review reported as never having happened is the one direction this
-        # module refuses. Raised so a caller says which of the two it is.
+        # it to a file called `rounds`. Both readers would then say the work
+        # item holds no round record while git carries the review's whole
+        # text, and a review reported as never having happened is the one
+        # direction this module refuses. Raised so a caller says which of the
+        # two it is.
         raise
     except OSError:
         return []
@@ -391,15 +384,12 @@ def rounds(item):
     Numerically, not by name, for the reason `round_number` gives.
 
     `trail/rounds/` rather than the work-item directory itself, because `round-N`
-    is the one member of the SDD set that is plural and unbounded: six
-    records beside six other files was the worst case here, and the structure
-    should say which member grows.
+    is the one member of the SDD set that is plural and unbounded, and the
+    structure should say which member grows.
 
-    The old flat location is NOT read, and `stray_rounds` exists so a caller
-    can say so out loud. A permanent dual read would put two places to look in
-    the reader the release scripts and the settle depend on, and an expiry nothing enforces is a
-    comment -- so what replaces the fallback is a message naming the file and
-    the destination.
+    The old flat location is NOT read. A permanent dual read would put two
+    places to look in the reader the release scripts and the settle depend
+    on, and an expiry nothing enforces is a comment.
 
     What stays different between the two readers is deliberate, and it is not
     the order: this one reads the working tree, because its callers, `seal
@@ -425,7 +415,7 @@ def rounds_unreadable(item):
     that is not a directory, or a directory nothing can list.
 
     Told apart from "no records" because the two need opposite answers: one
-    is 28 of this repository's 35 work items and must stay quiet, the other
+    is every work item that ran no review and must stay quiet, the other
     is a review whose whole text git is still carrying while every reader
     reports that none happened.
 
@@ -439,13 +429,12 @@ def rounds_unreadable(item):
     where = os.path.join(item, *ROUNDS_DIR.split("/"))
     if os.path.islink(where):
         # ANY link, including one that resolves to a directory holding
-        # records. `os.path.exists` follows links, so the first version
-        # returned False for a broken one; the second still followed a live
-        # one into the directory and stayed quiet while the pull-request
-        # check — which sees git's `120000` and calls it not-a-tree — failed
-        # and told the reader to `mkdir` a path that already exists. The two
-        # readers answer for what GIT carries, and git carries a link.
-        # Round 4's fourth shape, after three were enumerated.
+        # records. `os.path.exists` follows links, so it is False for a broken
+        # one, and `os.path.isdir` follows a live one into the directory and
+        # stays quiet while the pull-request check — which sees git's `120000`
+        # and calls it not-a-tree — fails and tells the reader to `mkdir` a
+        # path that already exists. The two readers answer for what GIT
+        # carries, and git carries a link.
         return True
     if os.path.exists(where) and not os.path.isdir(where):
         return True
@@ -457,18 +446,3 @@ def rounds_unreadable(item):
             # without this it reads as a work item that never ran a review.
             return True
     return False
-
-
-def stray_rounds(item):
-    """`round-N.md` left at the work item's own directory, lowest round first.
-
-    These are records nothing reads. `rounds()` looks one level down and a
-    reader that merely found nothing would report the same silence as a work
-    item that never ran a review -- the state 28 of this repository's 35 work
-    items are in, and the state that must stay quiet. The difference between
-    "no review happened" and "the review is in a place nobody reads" is the
-    whole reason this function is separate from the one above.
-    """
-    if not item:
-        return []
-    return _ordered(item)

@@ -7,15 +7,15 @@ default, which is what every repository got before that key existed. An
 absent `Broad gate` is one exception: `seal gate` names the key and exits 2
 with nothing run. `Commit and pull request language` and `Record language`
 are two more: `seal pr-body` refuses to compose a pull request body without
-either (#1453), and a commit is never refused for them.
+either, and a commit is never refused for them.
 
-`Mode` is the fourth, and it is why this module exists. What
-every repository got before that key was *the folder decides*, which is not a
-value, so an absent one has no default at all -- it is filled in from where the
-folder actually is, by `seal mode`. Until somebody runs that command, a root
-exists that nobody chose a mode for, and #151 is what that costs: a monorepo
-was opted into shared mode, with its review records committed, without the
-question ever being put to anyone.
+`Mode` is the fourth, and it is why this module exists. What every
+repository got before that key was *the folder decides*, which is not a
+value, so an absent one has no default at all -- it is filled in from where
+the folder actually is, by `seal mode`. Until somebody runs that command, a
+root exists that nobody chose a mode for, and that is what it costs: a
+monorepo can be opted into shared mode, with its review records committed,
+without the question ever being put to anyone.
 
 The writer and every reader of the file need the SAME answer.
 `skills/implement/scripts/seal.py` writes it and `seal mode --check` reads it
@@ -24,7 +24,7 @@ READER lives here and the writer in `seal.py`, so a script that only reads
 imports this module and not the two-thousand-line command, and `seal.py`
 re-exports these names rather than keeping a second copy. The file is read
 by the standard library's JSON parser (`config_pairs`) and written by its
-serializer, so the two cannot disagree about which key is which (#1454).
+serializer, so the two cannot disagree about which key is which.
 
 **Not in `optin.py`, deliberately.** That module's docstring says there is no
 config key and everything in it fails toward *not opted in*; the root's
@@ -37,7 +37,7 @@ Everything here fails toward "nothing is declared" -- except where a written
 answer would be read as absent. A file that is there and will not read or
 parse, a `config.md` an earlier release wrote standing without a
 `config.json`, and a key written twice or holding no string are refused by
-`config_pairs` and `config_value` rather than read as nothing (#867), and a
+`config_pairs` and `config_value` rather than read as nothing, and a
 command prints the refusal and stops: exit 2, or exit 1 for `seal pr-body`,
 which exits 1 on every refusal.
 
@@ -119,15 +119,15 @@ def config_pairs(home):
                        top level is not an object. REFUSAL is one sentence
                        opening with the `config.json` path
 
-    **A file nobody can read is refused, never read as absent** (#867). An
+    **A file nobody can read is refused, never read as absent.** An
     absent file is what every repository had before it wrote a key, so it
     declares nothing, everywhere. A file that is there and will not read is
     one whose answer nobody can read, and a command a person runs prints the
     sentence and stops with nothing judged (exit 2, or exit 1 for
     `seal pr-body`), because a command that reads a
     written answer as absent acts as if the person had written none. A
-    `config.md` standing alone is such an answer, written in the table this
-    release no longer reads: `seal mode` converts it (#1454).
+    `config.md` standing alone is such an answer, written in the table an
+    earlier release read and no command reads now: `seal mode` converts it.
 
     The text is decoded as `utf-8-sig`, so a byte order mark an editor wrote
     reads. A name that `lexists` but will not open -- a symbolic link to
@@ -195,7 +195,7 @@ def doubled_row(item, count):
 
 def config_value(pairs, key):
     """(value, refusal) for KEY among PAIRS, `config_pairs`' members — the
-    one answer every reader of one config key gives (#867).
+    one answer every reader of one config key gives.
 
       (None, None)     no member is named KEY, or PAIRS is None (no file)
       (value, None)    one member: its string, as parsed, "" where empty
@@ -253,7 +253,7 @@ def declared_mode(home):
     `seal mode` rather than assumed here. A default of `shared` would report
     every undeclared local-mode repository as lying.
 
-    **`refused` is not `none`** (#867). The reader tells them apart once:
+    **`refused` is not `none`.** The reader tells them apart once:
     `seal mode` prints a refusal and writes nothing, because writing a key
     into a file nobody can read, or one whose answers disagree, cannot make
     it agree.
@@ -267,7 +267,7 @@ def declared_mode(home):
     return ("mode", lowered) if lowered in MODES else ("unknown", value)
 
 
-# --- the reference roots (#688) -------------------------------------------
+# --- the reference roots -----------------------------------------------------
 #
 # A project may have kept its own `specs/` before the plugin arrived. The
 # plugin writes only to its own root and reads every other directory named
@@ -306,14 +306,13 @@ def reference_roots(home, name):
 
     **No root at either place is `()`, no reference root at all** — not the
     default. A reference root is defined against the plugin's root, and a
-    repository with none has not opted in: the one layout the plugin ever
-    read without a root is 0.3.x, whose top-level `specs/` was the plugin's
-    own, and `seal unverified` still reads that spelling as its records. A
-    person
+    repository with none has not opted in: the one layout the plugin reads
+    without a root is 0.3.x's, whose top-level `specs/` is the plugin's own,
+    and `seal unverified` reads that spelling as its records. A person
     joining a project runs the bootstrap, which creates the root, before any
     check reads the tree.
 
-    **A refusal reads as the default** (#867): a file that will not read,
+    **A refusal reads as the default**: a file that will not read,
     and a `Reference specs` key written twice or holding no string, which
     `config_value` gives no value. Its caller, `seal unverified`, does not
     refuse on it: what a refusal costs it is the reading every repository
@@ -355,7 +354,7 @@ def under_reference_root(rel, roots, name):
     return any(joined == p or joined.startswith(p + "/") for p in roots)
 
 
-# --- the policy root (#953) -------------------------------------------------
+# --- the policy root ---------------------------------------------------------
 
 POLICY_KEY = "Policy root"
 POLICY_DEFAULT = "docs"
@@ -379,7 +378,7 @@ def policy_root(home):
     return rel
 
 
-# --- the pact a signer declares (#647) -------------------------------------
+# --- the pact a signer declares ----------------------------------------------
 #
 # A work item can commit in more than one repository, and where those
 # repositories keep one contract together, the one copy of it is the PACT:
@@ -428,11 +427,11 @@ def normalise_remote(url):
     Anything that is not text reduces to "", because one caller passes a field
     out of a manifest another machine wrote. `read_manifest` checks that the
     manifest is an object and that its `format` is one this build reads; every
-    other field is whatever the zip says, and a list here used to reach the
-    console as an `AttributeError`.
+    other field is whatever the zip says, and a list here would otherwise
+    reach the console as an `AttributeError`.
 
-    **It lives here and `skills/implement/scripts/seal.py` re-exports it**
-    (#647), the arrangement this module's docstring records for the `Mode`
+    **It lives here and `skills/implement/scripts/seal.py` re-exports it**,
+    the arrangement this module's docstring records for the `Mode`
     reader. The `Pact` reader below needs it, and this module cannot import
     `seal.py`: that file imports this one, and a reader must not load a
     two-thousand-line command to read a key. One normaliser, reached by the
@@ -507,7 +506,7 @@ def pact_declaration(pairs):
     rather than read as absent: a signer that wrote a key and is read as
     having written none is the silence this reader exists to end. A `Pact`
     key written twice or holding no string has no value, by
-    `config_value`'s rule and in its sentence (#867), so it lists no pact.
+    `config_value`'s rule and in its sentence, so it lists no pact.
 
     **Only the `Pact` key is read.** A key of any other name is no answer
     about a pact, a `Pact notify` key an earlier release read included
@@ -534,7 +533,7 @@ def signer_declaration(pairs):
     `Pact` key: its one reader, `seal pact`, reads it only in the repository
     that holds `seal/pact.md`, and a pact nobody signs is not a pact. A key
     written twice or holding no string has no value, by `config_value`'s
-    rule and in its sentence (#867), so it lists no signer. Each entry is
+    rule and in its sentence, so it lists no signer. Each entry is
     read as `Pact`'s are."""
     value, refused = config_value(pairs, SIGNERS_KEY)
     if refused:
@@ -558,8 +557,8 @@ def declared_pacts(home):
     """`pact_declaration` over `<home>/config.json`, or None where that
     file is refused by `config_pairs`.
 
-    **Not the rule the other readers here keep**, and on purpose (round 1 of
-    #647, white 5). `reference_roots` and `policy_root` answer a refused file
+    **Not the rule the other readers here keep**, and on purpose.
+    `reference_roots` and `policy_root` answer a refused file
     as no key, because a gate that refuses wrongly stops a session with
     nobody able to get past it. This reader's caller is `seal pact`, run by
     a person at the pact's repository, and a signer whose written keys read
@@ -572,7 +571,7 @@ def declared_pacts(home):
     return pact_declaration(pairs)
 
 
-# --- the migration config's baseline (#988) --------------------------------
+# --- the migration config's baseline -----------------------------------------
 #
 # `seal/parity.json` is written from `templates/setup/parity.json`, one JSON
 # object whose `Baseline commit` key holds the SHA the original's

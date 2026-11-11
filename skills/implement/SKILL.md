@@ -244,7 +244,6 @@ fixes is the architecture talking: stop, and the next step is the
 architecture question, not a fourth fix. Three returns through the broad
 gate read the same way: a fourth says the narrow scope misses a class of
 breakage.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ### 3. The SDD file set
 

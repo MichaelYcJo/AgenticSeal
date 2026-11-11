@@ -16,3 +16,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
+
+# The durations union CI restores from its cache or a download writes; it
+# lives in `actions/cache` and the `test-durations` artifact, never in the
+# tree (`CONTRIBUTING.md` *Running the checks*).
+/.test_durations

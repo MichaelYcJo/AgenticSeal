@@ -41,8 +41,8 @@ REVIEW = ("skills", "code-review", "SKILL.md")
 
 # The harness's cap on one hook's output, in characters: past it the context
 # holds a preview naming a file rather than the output. Measured between
-# 9,990 and 10,010 on Claude Code 2.1.312 (#1177), and a case holds the
-# tree's whole output under it.
+# 9,990 and 10,010 on Claude Code 2.1.312, and a case holds the tree's whole
+# output under it.
 CAP = 10_000
 
 HEADER = "AgenticSeal core from {path}, plugin {version}."

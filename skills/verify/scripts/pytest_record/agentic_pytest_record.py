@@ -1,9 +1,9 @@
 """The broad gate's recorder: what this pytest process ran, written down by it.
 
-#825. The broad gate used to infer which pytest run printed a line from the
-row's text and from what pytest printed. This module ends the inference: the
-gate loads it into every run it measures, and the pytest process that
-collected a test is the process that writes that test's outcome down.
+The gate loads it into every run it measures, and the pytest process that
+collected a test is the process that writes that test's outcome down, so the
+gate infers nothing about which pytest run printed a line from the row's text
+or from what pytest printed.
 
 How it is loaded. The gate prepends this module's directory -- which holds
 nothing else, so the row's interpreter is shown nothing else of the plugin's
@@ -39,7 +39,7 @@ object per line with a `kind`:
 A `test` line's `category` is the first element of what pytest's
 `pytest_report_teststatus` hook returns for that report, asked with the
 report and the config exactly as pytest's terminal reporter asks it before
-counting the report on its summary line (#869): `passed`, `failed`,
+counting the report on its summary line: `passed`, `failed`,
 `skipped`, `xfailed`, `xpassed`, `error` for a failed setup or teardown,
 `""` for a report pytest counts nowhere, and whatever word a plugin's own
 implementation of the hook gives. The recorder copies no rule of pytest's;
@@ -50,7 +50,7 @@ Neither `deselected` nor `warnings` is a report's category, and neither is
 written.
 
 The `end` line's `stopped` holds one entry per thing pytest says stopped the
-session, each `{"by": <by>, "what": <text pytest gave>}` (#852):
+session, each `{"by": <by>, "what": <text pytest gave>}`:
 
   interrupt   pytest called `pytest_keyboard_interrupt`: a `KeyboardInterrupt`
               in a test, or the run loop's `Interrupted` -- a failed
@@ -69,11 +69,11 @@ shows in `exitstatus`, and the gate reads both. One kind of stop shows in
 neither. A stop raised before `Recorder.pytest_sessionstart` writes the
 `session` line, such as a `pytest.exit()` in a conftest's
 `pytest_configure`, which pytest calls ahead of this module's, leaves no
-file at all (#883 round 1). The `exitstatus` written is the one pytest
+file at all. The `exitstatus` written is the one pytest
 hands every `pytest_sessionfinish` hook alike, the run loop's own. A hook
 that sets the session's exit status, before this one or after it, or a
 later hook that raises `pytest.exit()`, changes the process's exit and not
-this line, and the gate reads this line (#1301).
+this line, and the gate reads this line.
 
 A line's path is the node's own: `item.path` for a test, the module that
 COLLECTED it, and `collector.path` for a failed collection, `fspath` below
@@ -81,14 +81,13 @@ pytest 7. Two hookwrappers, on the hooks that make a test report and a
 collect report, read it where pytest holds the node and set it on the
 report; the recording process reads it off the report. Under xdist the node
 is on a worker and the recorder on the controller, and a report carries
-every attribute in its `__dict__` across (#825's reframe after round 3,
-`questions.md` Q-M3 of work item 1791270161). No path is ever made from a
-node id and a rootdir: pytest makes the node id FROM the path, by a rule
-with more branches than three review rounds of #825 could enumerate, so a
-file outside the rootdir, a `--pyargs` module wherever Python imports it
-from and a collector a conftest builds are each named by their own path.
-Never `report.location[0]` either, which names the module that DEFINES the
-test function (#825 phase 4). Each line is flushed as it is written, so a
+every attribute in its `__dict__` across. No path is ever made from a node
+id and a rootdir: pytest makes the node id FROM the path, by a rule with
+more branches than a copy of it here could keep up with, so a file outside
+the rootdir, a `--pyargs` module wherever Python imports it from and a
+collector a conftest builds are each named by their own path. Never
+`report.location[0]` either, which names the module that DEFINES the test
+function. Each line is flushed as it is written, so a
 crash leaves what ran.
 
 What it leaves out, and counts. A test whose node's path is a directory --
@@ -108,8 +107,8 @@ failing line.
 It never changes an outcome, never raises out of a hook, and runs none of
 the row's code: it looks no module up and imports nothing but pytest. A
 directory it cannot write is one warning, shown under the recorder's own
-filter so that a run with warnings as errors does not raise it (#825 round
-1), and no record, which the gate reads as no record -- the strict side.
+filter so that a run with warnings as errors does not raise it, and no
+record, which the gate reads as no record -- the strict side.
 
 It runs in the ROW's interpreter, whose version the gate does not know, so it
 is written for Python 3.8 syntax and reads only names pytest has had since
@@ -121,11 +120,9 @@ since 7.0, `fspath` before; `pytest_collectreport`,
 and with pytest-xdist 3.8 under `-n 2` on each: the `-p` in `PYTEST_ADDOPTS`
 loads it, an xdist controller receives every worker's test and
 failed-collection reports, and the path a worker sets on a report reaches
-the controller (`trail/phases/phase-1.md` and `trail/phases/phase-5.md` of work item
-1791270161 hold the builds and the commands). The category, the skipped
-collection and every stop above were measured on pytest 6.1, 7.0 and 9.1,
-and on 9.1 with pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of work
-item 1791384158).
+the controller. The category, the skipped collection and every stop above
+were measured on pytest 6.1, 7.0 and 9.1, and on 9.1 with pytest-xdist 3.8
+under `-n 2`.
 """
 
 import json
@@ -140,7 +137,7 @@ DIR_VARIABLE = "AGENTIC_RECORD_DIR"
 # The recorder's own name, so no field pytest or another plugin reads moves.
 # A plugin that writes a report whole writes it too: pytest-reportlog's
 # `--report-log` writes what `pytest_report_to_serializable` returns, so a
-# row's report log gains this key while the gate measures it (#825 round 4).
+# row's report log gains this key while the gate measures it.
 PATH_ATTRIBUTE = "agentic_path"
 
 # Taken out at import, before any test of this process can read it, and
@@ -190,7 +187,7 @@ def pytest_make_collect_report(collector):
     # The session's own collection is no file's and no directory's: pytest 7
     # lays a conftest's import error anywhere below the root there, and a
     # plugin's hook can on any build, so two different breakages would share
-    # the rootdir's word (#825 round 4). Its report carries no path, and a
+    # the rootdir's word. Its report carries no path, and a
     # failed one is counted on the `end` line, never written.
     if collector is getattr(collector, "session", None):
         return
@@ -222,17 +219,17 @@ class Recorder:
         as it does on every report it forwards. A worker runs one test at a
         time, so where the last report the same worker sent was of the same
         node and was not its teardown, the crash is that node's and that
-        report's path is used (#825 round 4). Never a lookup by node id
-        alone: two nodes can share one -- pytest 7 names a file outside the
-        rootdir from the argument it came from -- and round 4's lookup by id
-        wrote the crash under the other node's file (#825 round 5).
+        report's path is used. Never a lookup by node id alone: two nodes can
+        share one -- pytest 7 names a file outside the rootdir from the
+        argument it came from -- and a lookup by id would write the crash
+        under the other node's file.
 
         The map is keyed on the worker's `id()` and holds the worker in the
         value, so a worker xdist makes to replace a crashed one cannot take
-        the freed one's address and its last report with it (#849). Nothing
-        is asked of the worker but its identity -- no hash and no equality,
-        either of which a `node` could raise from or share with another --
-        so any `node` is a sender and nothing raises (#849 round 1)."""
+        the freed one's address and its last report with it. Nothing is asked
+        of the worker but its identity -- no hash and no equality, either of
+        which a `node` could raise from or share with another -- so any
+        `node` is a sender and nothing raises."""
         path = getattr(report, PATH_ATTRIBUTE, None)
         sender = getattr(report, "node", None)
         if isinstance(path, str):
@@ -261,7 +258,7 @@ class Recorder:
         # Shown, never raised: a row run with warnings as errors (`python -W
         # error`, `filterwarnings = error`) would otherwise turn this one
         # warning into an exception out of a hook, and pytest would end in
-        # INTERNALERROR with the suite's own result lost (#825 round 1).
+        # INTERNALERROR with the suite's own result lost.
         with warnings.catch_warnings():
             warnings.simplefilter("always")
             warnings.warn(
@@ -316,8 +313,7 @@ class Recorder:
         read from, or raised -- the terminal reporter would then have raised
         first, and this hook raises nothing out. `""` for a report pytest
         sets `count_towards_summary` false on, which its terminal reporter
-        leaves off the summary line whatever its category (#869 round 1's
-        ⬜ 5)."""
+        leaves off the summary line whatever its category."""
         if not getattr(report, "count_towards_summary", True):
             return ""
         try:

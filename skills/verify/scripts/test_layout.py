@@ -2,14 +2,13 @@
 """seal layout: whether each test file stands where the test layout puts it.
 
   seal layout --check [paths]         refuse a file that breaks the layout
-  seal layout --check --all [paths]   refuse a file that declares no TARGET too
   seal layout --pairs [paths]         name two cases of a class that look alike
   seal layout --moved BASE --from OLD... --to NEW...
                                       whether the NEW files hold the OLD
                                       files' cases, only moved
 
-#942. A test file names the module it tests once, as the first assignment
-after its imports, `TARGET = "<tracked path>"`, holds one class per public
+A test file names the module it tests once, as the first assignment after
+its imports, `TARGET = "<tracked path>"`, holds one class per public
 top-level function of that module, `Test_<name>`, each with a case named
 `test_accepts_...` and one named `test_refuses_...`, and ends with
 `test_census = census_case(TARGET)`. `CONTRIBUTING.md`
@@ -43,7 +42,7 @@ and its file's name and classes are free.
 
 It prints, on lines that open with `report:`, each file that declares no
 TARGET, each twin between two such files, and each public top-level
-function of a TARGET that has no class. `--all` makes the first two refusals.
+function of a TARGET that has no class.
 
 `--pairs` prints, for each class, two cases that call the class's function
 with equal argument expressions, or whose bodies are equal once every name
@@ -51,9 +50,10 @@ and every string constant is replaced by one placeholder. A call with an
 argument that reads a name the case assigns or takes as a parameter is not
 compared at all: two cases passing a local `source` pass two values, and
 the input such a call reads is on disk or in a fixture, where the report
-cannot see it. A call with no argument is not compared either, because any
-two such calls are equal. Attribute names are kept, so two cases calling
-different methods of one object differ.
+cannot see it. A call with no argument is not compared either, nor one
+whose every argument is `[]`, `()`, `{}` or `None`: such a call carries no
+input, so any two such calls are equal. Attribute names are kept, so two
+cases calling different methods of one object differ.
 
 `--moved` is the move check of `CONTRIBUTING.md` *The test layout*: it
 passes a group of modules whose old cases were only moved into the NEW
@@ -338,15 +338,13 @@ def runs_the_censuses(tree):
     return False
 
 
-def check(tests, tracked, read, every=False, peers=None):
+def check(tests, tracked, read, peers=None):
     """`(refused, reported)`, two lists of lines, for TESTS, `{path: source}`.
 
     TRACKED is the set of paths git tracks, and READ returns a tracked
-    path's source or None. With EVERY, a file that declares no TARGET and a
-    twin between two such files are refused rather than reported. PEERS,
-    `{path: source}`, are the files whose helpers TESTS' helpers are compared
-    with, TESTS where none are given; a twin is judged only where one of its
-    files is in TESTS.
+    path's source or None. PEERS, `{path: source}`, are the files whose
+    helpers TESTS' helpers are compared with, TESTS where none are given; a
+    twin is judged only where one of its files is in TESTS.
     """
     shipped = sorted(
         p for p in tracked if p.endswith(".py") and not p.startswith(TESTS)
@@ -364,10 +362,7 @@ def check(tests, tracked, read, every=False, peers=None):
             continue
         target = _declared(tree)
         if target is None:
-            line = f"{rel}: declares no {TARGET_NAME}"
-            (refused if every else reported).append(
-                f"refused: {line}" if every else f"report: {line}"
-            )
+            reported.append(f"report: {rel}: declares no {TARGET_NAME}")
             continue
         declared.add(rel)
         if not runs_the_censuses(tree):
@@ -434,7 +429,7 @@ def check(tests, tracked, read, every=False, peers=None):
         if not set(files) & set(tests):
             continue
         line = f"{name} is defined byte-identically in {', '.join(files)}"
-        if every or declared.intersection(files):
+        if declared.intersection(files):
             refused.append(f"refused: {line}")
         else:
             reported.append(f"report: {line}")
@@ -459,11 +454,21 @@ def _body(case):
     return ast.dump(_Normalised().visit(module))
 
 
+def _carries_no_input(argument):
+    """Whether ARGUMENT, an expression, is `[]`, `()`, `{}` or `None`."""
+    if isinstance(argument, (ast.List, ast.Tuple)):
+        return not argument.elts
+    if isinstance(argument, ast.Dict):
+        return not argument.keys
+    return isinstance(argument, ast.Constant) and argument.value is None
+
+
 def _calls(case, function):
     """Each call of FUNCTION in CASE, dumped without its callee, leaving out
-    a call with no argument, since any two such calls are equal, and a call
-    whose arguments read a name the case assigns or takes as a parameter:
-    two cases passing a local `source` pass two values."""
+    a call with no argument or whose every argument is `[]`, `()`, `{}` or
+    `None`, since such a call carries no input and any two such calls are
+    equal, and a call whose arguments read a name the case assigns or takes
+    as a parameter: two cases passing a local `source` pass two values."""
     local = {arg.arg for arg in ast.walk(case.args) if isinstance(arg, ast.arg)}
     local |= {
         node.id
@@ -480,7 +485,10 @@ def _calls(case, function):
         )
         arguments = ast.Tuple(elts=[*node.args, *node.keywords], ctx=ast.Load())
         reads = {n.id for n in ast.walk(arguments) if isinstance(n, ast.Name)}
-        given = node.args or node.keywords
+        given = not all(
+            _carries_no_input(argument)
+            for argument in [*node.args, *(keyword.value for keyword in node.keywords)]
+        )
         if named and given and not reads & local:
             found.add(
                 ast.dump(
@@ -1211,11 +1219,6 @@ def main(argv=None):
         help="whether the new files hold the old files' cases at BASE, only moved",
     )
     parser.add_argument(
-        "--all",
-        action="store_true",
-        help="with --check, refuse a file that declares no TARGET",
-    )
-    parser.add_argument(
         "--from",
         dest="olds",
         nargs="+",
@@ -1233,8 +1236,6 @@ def main(argv=None):
         "paths", nargs="*", help="files or directories; tests/ when none"
     )
     args = parser.parse_args(argv)
-    if args.all and not args.check:
-        parser.error("--all goes with --check")
     if (args.olds or args.news) and args.moved is None:
         parser.error("--from and --to go with --moved")
     if args.moved is not None:
@@ -1285,7 +1286,6 @@ def main(argv=None):
         tests,
         _tracked(root),
         lambda rel: _read(root, rel),
-        every=args.all,
         peers=peers,
     )
     for line in refused + reported:

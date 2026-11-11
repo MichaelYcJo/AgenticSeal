@@ -5,222 +5,117 @@ of, and what it costs in tokens.
 Every spawn of an agent this plugin defines pays for the same prefix again:
 the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and the
-user's, in the config directory in use, `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`,
-#1367) with every file their `@` lines import, up to four hops
-(`imports_of`, #1177). The prefix is cached for five minutes, and no two
-spawns of one agent in a review chain fall inside five minutes of each other
-(#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
+user's, in the config directory in use, `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`)
+with every file their `@` lines import, up to four hops (`imports_of`). The
+prefix is cached for five minutes, and no two spawns of one agent in a
+review chain fall inside five minutes of each other — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
 
 A session pays for a prefix of its own, which `session_composition` lists in
 a table before the agents': the same `CLAUDE.md` pair with its imports, and
 the core the plugin's `SessionStart` hook prints, counted as
-`lib/core.py#rendered` for the measured tree's core (#1177, #1430). The
-hook's output reaches the session and no subagent (#1177's probe of a plugin
-`SessionStart` hook), so no agent's table carries it. No transcript
-calibrates a session's prefix, so the session's tokens are estimated at
-`ASSUMED_RATIO` and labelled so.
+`lib/core.py#rendered` for the measured tree's core. A probe of a plugin
+`SessionStart` hook shows its output reaching the session and no subagent,
+so no agent's table carries it.
 
   bytes, chars    counted from the files.
-  tokens          NEVER counted. A token figure is `measured (<transcript>)`
-                  where it came from a subagent transcript's first `usage`
-                  block, or `estimated (<ratio> B/token, from <origin>)`
-                  where it came from a bytes-per-token ratio. A bare number
-                  is refused by the module's own tests, because the six
-                  calibration spawns put three agents at 2.7, 3.2 and 3.4
-                  bytes per token — one ratio does not fit all of them.
+  tokens          NEVER counted. Every file's token figure, the session's
+                  and each agent's, is its bytes over `ASSUMED_RATIO`, and
+                  the `CLAUDE.md` pair line and each total are the sums of
+                  the file figures they cover, all labelled `BASIS`. A bare
+                  number is refused by the module's own tests, because the
+                  six calibration spawns put three agents at 2.7, 3.2 and
+                  3.4 bytes per token — one ratio does not fit all of them.
 
 Usage:
-  payload_meter.py                          one table per agent, estimates
-  payload_meter.py --sections               each file split at ## / ### headings
+  payload_meter.py                          one table for the session and
+                                            one per agent
   payload_meter.py --json                   the same as data
-  payload_meter.py --calibrate <main.jsonl> measured prefixes and per-agent
-                                            ratios from the spawns that
-                                            transcript made
-  payload_meter.py --baseline <run.json>    the delta against an earlier run;
-                                            its ratios are lent to this one
   payload_meter.py --root DIR --agent NAME  a different tree, a subset
 
-Calibration reads the main transcript's `Agent` calls for `subagent_type`,
-the matching tool result for `agentId: <id>`, and
-`<session>/subagents/agent-<id>.jsonl`'s first assistant `usage` — whose
-`input_tokens + cache_creation_input_tokens + cache_read_input_tokens` is the
-whole prefix that spawn paid for. The baseline agent (`general-purpose` by
-default, no plugin skill) is subtracted, because the harness's own system
-prompt, tool schemas and the `CLAUDE.md` pair are in every prefix; what is
-left is the agent's own files, and dividing their bytes by it is the ratio.
-A transcript that never spawned the baseline agent is refused rather than
-subtracted from by zero. The baseline stays `general-purpose` with the core
-hook in place: the hook's output reaches no subagent, so it is in neither
-the baseline's prefix nor an agent's, and the subtraction still leaves each
-agent's own files.
+A skill name resolves to `skills/<name>/SKILL.md` in the user's config
+directory when the user has one, shadowing the plugin's, so the row reports
+the tree's file and notes the shadow.
 
-Exit codes: 0 measured · 1 the input could not be measured -- a transcript
-the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
-`--calibrate` was given and `session_cost.py`, the sibling it loads, is not
-beside this script, `unverified_check.py`, which says where a fence, a
-comment or a code span stands, is not beside it where `--sections` was
-given or a `CLAUDE.md` the meter reads exists, `lib/core.py`, which says
-what the core hook prints, is not in the plugin around it, or the arguments
-were unusable
-(argparse's usage error). An interpreter below the floor never reaches this
-file through `seal payload`: `lib/launch.py` refuses `seal` with 2 first.
-
-Two things the ratio has to know about the machine it was measured on. A
-skill name resolves to `skills/<name>/SKILL.md` in the user's config
-directory when the user has one, shadowing the plugin's — measured here for
-`writing-style`, 25,834 B against the tree's 19,762 B — so the row reports
-the tree's file, notes the shadow, and the calibration divides by the bytes
-the spawn actually read.
-And a spawn's first message carries its prompt as well as the payload, so
-of several spawns of one agent the SMALLEST prefix is taken and the count
-is reported.
-
-And one thing the ratio has to know about the TREE: a spawn read the files
-as they stood when it was made. Calibrating against a transcript after the
-tree changed divides that spawn's token count by bytes it never read — the
-first after-run of #292 put the crafter at 2.49 B/token against the 2.87 its spawn
-paid, and +979 tokens on a file whose bytes had not moved. So with
-`--baseline` given, an agent whose smallest spawn is the one the baseline was
-calibrated from, over a different byte count, keeps the baseline's ratio, is
-labelled estimated throughout, and the row says to take a spawn after the
-change for a measured after-number. Without `--baseline` nothing can tell.
-Every ratio entry a run writes — derived, lent, lent from the same spawn —
-carries `spawn` and `over_bytes`, so the rule holds however many runs are
-chained: the after-number of one work item is the before-number of the next.
+Exit codes: 0 measured · 1 no `agents/*.md` under the root · 2 nothing ran:
+`lib/blocks.py` or `lib/lines.py`, which say where a fence, a comment or a
+code span stands, is not in the plugin around it where a `CLAUDE.md` the
+meter reads exists, `lib/core.py`, which says what the core hook prints, is
+not in the plugin around it, or the arguments were unusable (argparse's
+usage error). An interpreter below the floor never reaches this file through
+`seal payload`: `lib/launch.py` refuses `seal` with 2 first.
 """
 
 import argparse
 import datetime as dt
-import importlib.util
-import itertools
 import json
 import os
 import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
 
-# The ratio an estimate rests on when nothing measured one: no `--calibrate`
-# and no `--baseline` carrying ratios. Between the three measured agents
-# (2.71, 3.16, 3.44 over tree bytes; 2.87, 3.41, 3.44 over the bytes the
-# spawns read), and labelled `assumed` on every figure it produces.
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2: here 1 means an input that could
+# not be measured, and a copy of this script taken without its siblings is
+# a broken plugin copy, where nothing ran. Where it is absent itself,
+# the refusal is the same sentence about it, spelt here because the file
+# that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
+# The bytes-per-token ratio every token figure is estimated at. Between the
+# three measured agents (2.71, 3.16, 3.44 over tree bytes; 2.87, 3.41, 3.44
+# over the bytes the spawns read), and labelled `assumed` on every figure it
+# produces.
 ASSUMED_RATIO = 3.2
 
-BASELINE_AGENT = "general-purpose"
-
-# The heading levels a section is cut at; whether a line IS a heading is the
-# one rule's, `unverified_check.py#heading_level` (#867).
-SECTION_LEVELS = (2, 3)
-AGENT_ID = re.compile(r"\bagentId:\s*([0-9a-f]+)")
+# The basis every token figure carries, the session's and each agent's.
+BASIS = f"estimated ({ASSUMED_RATIO} B/token, an assumed ratio)"
 
 # A `CLAUDE.md` import, `imports_of`'s reading of it: `@` at the start of a
 # line or after whitespace, then a path a quote or a backtick does not open,
 # which runs to the next whitespace except a space with a backslash before
-# it. That path group is Claude Code's own (#1185). `imports_of` runs it over
-# each live piece of a line, with the line's offsets, so the lookbehind still
-# sees the character before the piece. Then the hops the harness follows
-# (code.claude.com/docs/en/memory.md, read for #1177 and #1185); and what
-# joins an imported row's name to its importer's.
+# it. That path group is Claude Code's own. `imports_of` runs it over each
+# live piece of a line, with the line's offsets, so the lookbehind still sees
+# the character before the piece. Then the hops the harness follows
+# (code.claude.com/docs/en/memory.md); and what joins an imported row's name
+# to its importer's.
 IMPORT = re.compile(r"(?:^|(?<=\s))@(?![\"'`])((?:[^\s\\]|\\ )+)")
 HOPS = 4
 ARROW = " → "
 
-# The session table's row for what the plugin's `SessionStart` hook prints,
-# and the basis of every session figure: no transcript calibrates a session.
+# The session table's row for what the plugin's `SessionStart` hook prints.
 HOOK_ROW = "SessionStart hook: skills/core/SKILL.md"
-SESSION_BASIS = (
-    f"estimated ({ASSUMED_RATIO} B/token, from assumed — no transcript "
-    "calibrates a session)"
-)
-
-
-def _session_cost():
-    """The transcript helpers, imported from the sibling script rather than
-    re-derived: how a delegating call names what it spawned, and where a
-    run's subagent transcripts are.
-
-    The file is checked for first, because `spec_from_file_location` hands
-    back a spec for a missing `.py` path and `exec_module` then dies with a
-    `FileNotFoundError` traceback at exit 1 -- which reads as *this
-    transcript could not be measured* and sends the reader to the transcript
-    (#610). A copy of this script taken without its sibling is a broken
-    plugin copy, where nothing ran, so it exits 2: the sentence to stderr,
-    then the int."""
-    path = os.path.join(HERE, "session_cost.py")
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"seal payload: cannot read {path}, and it is what reads a "
-            "transcript's spawns and finds their subagent transcripts. This "
-            "command ships beside it under `skills/`; a copy of one script "
-            "taken on its own is not a plugin. Nothing was measured.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location("agentic_session_cost", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-_reader = None
 
 
 def _fence_rule():
-    """`unverified_check.py`, loaded once, for its two uses here: the fence
-    delimiter rule `heading_starts` asks where `--sections` splits a skill
-    at its headings (#584), and the scan of fences, HTML comments and code
-    spans `imports_of` asks for each `CLAUDE.md` and imported file that
-    exists (#1185). A missing file is `_session_cost`'s shape: a sentence to
-    stderr, then exit 2."""
-    global _reader
-    if _reader is None:
-        path = os.path.join(HERE, "unverified_check.py")
-        if not os.path.isfile(path):
-            sys.stderr.write(
-                f"seal payload: cannot read {path}, and it is what says where "
-                "a fenced example, an HTML comment or a code span stands in a "
-                "file, so --sections cannot split a skill at its headings and "
-                "no import of a `CLAUDE.md` can be read. This command ships "
-                "beside it under `skills/`; a copy of one script taken on its "
-                "own is not a plugin. Nothing was measured.\n"
-            )
-            raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _reader = module
-    return _reader
+    """`lib/blocks.py`, for the line split `imports_of` reads each
+    `CLAUDE.md` and imported file through."""
+    return sibling.load("lib/blocks.py")
 
 
-_core_module = None
+def _line_reader():
+    """`lib/lines.py`, for the scan of fences, HTML comments and code spans
+    `imports_of` asks for each `CLAUDE.md` and imported file that exists."""
+    return sibling.load("lib/lines.py")
 
 
 def _core():
     """`lib/core.py` of the plugin around this script, the one definition of
-    what the core hook prints, loaded once. A copy of this script taken
-    without the plugin has none, which is `_session_cost`'s shape: a sentence
-    to stderr, then exit 2."""
-    global _core_module
-    if _core_module is None:
-        path = os.path.join(plugin_root(), "lib", "core.py")
-        if not os.path.isfile(path):
-            sys.stderr.write(
-                f"seal payload: cannot read {path}, and it is what says what "
-                "the core hook prints into a session, whose bytes the session "
-                "table counts. This command ships beside it in the plugin; a "
-                "copy of one script taken on its own is not a plugin. Nothing "
-                "was measured.\n"
-            )
-            raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location("agentic_payload_core", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _core_module = module
-    return _core_module
-
-
-class CalibrationError(Exception):
-    """A transcript the meter cannot calibrate from — said, never guessed."""
+    what the core hook prints."""
+    return sibling.load("lib/core.py")
 
 
 # --- the tree -----------------------------------------------------------------
@@ -235,8 +130,8 @@ def _shown(path):
     """The path relative to the working directory where that spelling
     exists, else as given. A relative spelling is a courtesy: on Windows
     `relpath` raises `ValueError` for a path on another drive than the
-    working directory (#329's Windows leg — the pytest temp dir on `C:`, the
-    checkout on `D:`), and a meter that dies there has measured nothing."""
+    working directory (the pytest temp dir on `C:`, the checkout on `D:`),
+    and a meter that dies there has measured nothing."""
     try:
         return os.path.relpath(path)
     except ValueError:
@@ -248,15 +143,15 @@ def frontmatter(text):
 
     `skills:` is read in every spelling YAML gives the same list: a block
     sequence, indented or not, and the flow form on one line — `[a, b]` or
-    `a, b`. The one-line form used to read as no skills at all, silently, so
-    the meter measured such a definition as its whole payload and the check
-    that shares this parser had nothing to check (#292 round 1).
+    `a, b`. Read as no skills at all, the one-line form would have the meter
+    measure such a definition as its whole payload, silently, and leave the
+    check that shares this parser nothing to check.
 
     A line ends at LF, CR or CRLF, YAML 1.2's line breaks. `read` decodes
     the bytes as they are, so the text is taken through universal newlines
     here and split at LF alone, as `deferral_check.py#runners_in` splits,
     and an entry holding U+2028, which `str.splitlines` also ends a line
-    at, reads whole (#1198)."""
+    at, reads whole."""
     name, skills = None, []
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     if not text.startswith("---"):
@@ -291,71 +186,7 @@ def read(path):
     return raw, raw.decode("utf-8", errors="replace")
 
 
-def heading_starts(text):
-    """Offsets of every `##` / `###` heading outside a code fence. A skill
-    quotes headings as examples, and an example is not a section — the rule
-    `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`
-    applies before it reads a marker, applied here before a byte count is
-    put beside a heading somebody may trim.
-
-    The fence is the shared rule, `lib/blocks.py#fence_opener` and
-    `#fence_closes` (#584): at most three spaces of indentation, a backtick
-    opener's info string holds no backtick, and a fence closes only on a run
-    of its own character at least as long with nothing after it — which
-    keeps a ``` inside a ```` block, or a ~~~ inside a ``` block, from ending
-    the outer one (#292 round 2). The rule this kept before read any
-    indentation and any delimiter line as a fence, so a prose line opening
-    with a four-backtick code span hid every heading after it.
-
-    The lines are the reader's too, `gfm_lines` with their ends kept (#664),
-    so the offsets still sum to the file. Split with `str.splitlines`, a `#`
-    after a U+2028 or a form feed mid-line began a section no renderer
-    shows.
-
-    Whether a line is a heading is the one rule's too,
-    `unverified_check.py#heading_level` (#867), asked for levels 2 and 3:
-    the pattern this kept, `^#{2,3} `, missed a heading indented up to three
-    spaces and one followed by a tab."""
-    rule = _fence_rule()
-    starts, offset, fence = [], 0, None
-    for line in rule.gfm_lines(text, keepends=True):
-        if fence is not None:
-            if rule.fence_closes(line, fence):
-                fence = None
-        elif (opened := rule.fence_opener(line)) is not None:
-            fence = opened
-        elif rule.heading_level(line) in SECTION_LEVELS:
-            starts.append(offset)
-        offset += len(line)
-    return starts
-
-
-def sections_of(text):
-    """The file split at its `##` / `###` headings, each piece's own size.
-    The pieces sum to the file: every byte belongs to exactly one."""
-    starts = heading_starts(text)
-    bounds = [0, *starts, len(text)]
-    out = []
-    for begin, end in itertools.pairwise(bounds):
-        piece = text[begin:end]
-        if begin == 0 and starts and starts[0] == 0:
-            continue
-        heading = (
-            "(before the first heading)"
-            if begin == 0
-            else piece.split("\n", 1)[0].rstrip()
-        )
-        out.append(
-            {
-                "heading": heading,
-                "bytes": len(piece.encode("utf-8")),
-                "chars": len(piece),
-            }
-        )
-    return out
-
-
-def file_row(root, rel, display, share, sections):
+def file_row(root, rel, display, share):
     path = os.path.join(root, rel)
     row = {"path": display, "share": share}
     if not os.path.isfile(path):
@@ -363,20 +194,17 @@ def file_row(root, rel, display, share, sections):
         return row
     raw, text = read(path)
     row.update({"bytes": len(raw), "chars": len(text)})
-    if sections:
-        row["sections"] = sections_of(text)
     return row
 
 
 def imports_of(path, home, depth=HOPS, seen=None):
     """`[(chain, real_path)]`: every file the file at `path` imports, depth
-    first, as code.claude.com/docs/en/memory.md resolves them (#1177,
-    `frame/design.md` *Scope* item 5).
+    first, as code.claude.com/docs/en/memory.md resolves them.
 
-    An import is read in the file's live text alone (#1185), the docs'
+    An import is read in the file's live text alone, the docs'
     "Import parsing skips Markdown code spans and fenced code blocks". Live
     text is text outside a fenced code block, an HTML comment and a code
-    span, as `unverified_check.py#live_pieces` places them with spans read
+    span, as `lib/lines.py#live_pieces` places them with spans read
     across the lines of a paragraph; a fence or a comment nobody closed
     hides the rest of the file. There an import is `@` at the start of a
     line or after whitespace, then a path (`IMPORT`). The path runs to the
@@ -395,15 +223,16 @@ def imports_of(path, home, depth=HOPS, seen=None):
     `missing`, and is not followed.
 
     **What this does not model.** Claude Code 2.1.318's reader goes past
-    its docs, and the meter follows the docs (#1185, `frame/questions.md`
-    Q1). The harness also reads no import in an indented code block, in an
-    HTML block other than a comment or in a YAML frontmatter block, and the
-    meter reads one in each. The harness cuts a path at its first `#`, and
+    its docs, and the meter follows the docs, so a later Claude Code release
+    cannot make the meter wrong where the docs did not move. The harness
+    also reads no import in an indented code block, in an HTML block other
+    than a comment or in a YAML frontmatter block, and the meter reads one
+    in each. The harness cuts a path at its first `#`, and
     the meter keeps the `#` and what follows it. The harness refuses a path
     by its first character and skips an imported file whose extension is
     not text, and the meter follows either.
 
-    Two differences come from the shared scan, `unverified_check.py#_scan`,
+    Two differences come from the shared scan, `lib/lines.py#_scan`,
     which keeps no model of markdown's blocks. Its fence rule reads each
     line with no list item or block quote around it. So it opens no fence
     behind `>` or a list marker, and the meter reads an import inside such
@@ -430,7 +259,9 @@ def imports_of(path, home, depth=HOPS, seen=None):
     found = (
         match.group(1)
         for line, pieces in zip(
-            lines, rule.live_pieces(lines, spans_cross_lines=True), strict=True
+            lines,
+            _line_reader().live_pieces(lines, spans_cross_lines=True),
+            strict=True,
         )
         for start, end in pieces
         for match in IMPORT.finditer(line, start, end)
@@ -452,19 +283,19 @@ def imports_of(path, home, depth=HOPS, seen=None):
 
 def user_dir(home, config):
     """`(directory, label)`: the user's config directory, where Claude Code
-    keeps the user's `CLAUDE.md` and user skills (#1367), and the label its
+    keeps the user's `CLAUDE.md` and user skills, and the label its
     rows carry. `config` is `CLAUDE_CONFIG_DIR` as the caller read it; where
     it is `None` or empty, the directory is `home`'s `.claude`, labelled
     `~/.claude`, as the shell's `${CLAUDE_CONFIG_DIR:-$HOME/.claude}` reads
     it. Otherwise it is `config`, labelled `$CLAUDE_CONFIG_DIR`, so no
-    account name reaches a table or a `--baseline` key. A `@~/` import is
-    not under it: `imports_of` resolves `~` against `home`."""
+    account name reaches a table or the JSON. A `@~/` import is not under
+    it: `imports_of` resolves `~` against `home`."""
     if config:
         return config, "$CLAUDE_CONFIG_DIR"
     return os.path.join(home, ".claude"), "~/.claude"
 
 
-def composition(root, home, name, definition, sections, user=None):
+def composition(root, home, name, definition, user=None):
     """The rows of one agent's payload, in the order the harness lays them
     out: the definition, each skill, then the harness's `CLAUDE.md` pair with
     its imports (`pair_rows`). A skill's shadow is read in `user`, the pair
@@ -472,15 +303,15 @@ def composition(root, home, name, definition, sections, user=None):
     subagent.
 
     `user` left out is `user_dir(home, None)`, because the release report
-    the plugin's repository runs in CI loads this file from the last tag's
-    tree as well as this one and calls it with five arguments."""
+    the plugin's repository runs in CI, `.github/scripts/release_report.py`,
+    calls this with four arguments."""
     user = user or user_dir(home, None)
     directory, label = user
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
-    rows = [file_row(root, definition, definition, "agent", sections)]
+    rows = [file_row(root, definition, definition, "agent")]
     for skill in skills:
         rel = os.path.join("skills", skill, "SKILL.md")
-        row = file_row(root, rel, rel.replace(os.sep, "/"), "agent", sections)
+        row = file_row(root, rel, rel.replace(os.sep, "/"), "agent")
         shadow = os.path.join(directory, "skills", skill, "SKILL.md")
         if os.path.isfile(shadow):
             row["shadow"] = {
@@ -488,10 +319,10 @@ def composition(root, home, name, definition, sections, user=None):
                 "bytes": len(read(shadow)[0]),
             }
         rows.append(row)
-    return rows + pair_rows(root, home, sections, user)
+    return rows + pair_rows(root, home, user)
 
 
-def pair_rows(root, home, sections, user):
+def pair_rows(root, home, user):
     """The harness's `CLAUDE.md` pair, the repository's and the one in
     `user`, the pair `user_dir` returns, each file followed by the files its
     `@` lines import (`imports_of`, against `home`). An imported row is the
@@ -512,7 +343,6 @@ def pair_rows(root, home, sections, user):
                 os.path.basename(path),
                 display,
                 "harness",
-                sections,
             )
         )
         for chain, real in imports_of(path, home, seen=seen):
@@ -521,14 +351,26 @@ def pair_rows(root, home, sections, user):
                 os.path.basename(real),
                 ARROW.join((display, *chain)),
                 "harness",
-                sections,
             )
             row["via"] = ARROW.join((display, *chain[:-1]))
             rows.append(row)
     return rows
 
 
-def session_composition(root, home, sections, user):
+def _estimated(rows):
+    """`{"files": rows, "total": total}`, each row given its tokens, its
+    bytes over `ASSUMED_RATIO`, and `BASIS`. The total sums the rows' bytes,
+    characters and tokens, so the token column a reader adds up is the
+    total under it."""
+    for row in rows:
+        row["tokens"] = round(row["bytes"] / ASSUMED_RATIO)
+        row["basis"] = BASIS
+    total = {key: sum(row[key] for row in rows) for key in ("bytes", "chars", "tokens")}
+    total["basis"] = BASIS
+    return {"files": rows, "total": total}
+
+
+def session_composition(root, home, user):
     """The rows of a session's prefix in the tree at ROOT: the `CLAUDE.md`
     pair with its imports (`pair_rows`, with `user` the pair `user_dir`
     returns), then `HOOK_ROW`, share `hook`, whose bytes and characters are
@@ -537,10 +379,9 @@ def session_composition(root, home, sections, user):
     ROOT holds a `seal/` root. Where ROOT
     holds no core to print, as a release before the hook does, the row is 0
     bytes marked `missing`: the hook's one-line refusal is printed only by a
-    tree that has the hook. Every token figure is estimated at
-    `ASSUMED_RATIO` and labelled `SESSION_BASIS`."""
+    tree that has the hook. Every token figure is `_estimated`'s."""
     core = _core()
-    rows = pair_rows(root, home, sections, user)
+    rows = pair_rows(root, home, user)
     hook = {"path": HOOK_ROW, "share": "hook"}
     path = core.origin(root, root)
     if os.path.isfile(path):
@@ -549,12 +390,7 @@ def session_composition(root, home, sections, user):
     else:
         hook.update({"bytes": 0, "chars": 0, "missing": True})
     rows.append(hook)
-    for row in rows:
-        row["tokens"] = round(row["bytes"] / ASSUMED_RATIO)
-        row["basis"] = SESSION_BASIS
-    total = {key: sum(row[key] for row in rows) for key in ("bytes", "chars", "tokens")}
-    total["basis"] = SESSION_BASIS
-    return {"files": rows, "total": total}
+    return _estimated(rows)
 
 
 def agents_in(root, only=()):
@@ -574,420 +410,24 @@ def agents_in(root, only=()):
     return found
 
 
-# --- the transcript -----------------------------------------------------------
-
-
-def _rows(path):
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                row = json.loads(line)
-            except ValueError:
-                continue
-            if isinstance(row, dict):
-                yield row
-
-
-def _text_of(content):
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        return "\n".join(
-            b.get("text", "")
-            for b in content
-            if isinstance(b, dict) and isinstance(b.get("text"), str)
-        )
-    return ""
-
-
-def spawns_in(transcript, helpers):
-    """Every `Agent` call in a main transcript, paired with the `agentId` its
-    result carried. A call whose result carries none (a type the harness
-    did not know, for one) is returned under `unread` with why."""
-    pending, spawned, unread = {}, [], []
-    for row in _rows(transcript):
-        message = row.get("message")
-        if not isinstance(message, dict):
-            continue
-        content = message.get("content")
-        if not isinstance(content, list):
-            continue
-        for block in content:
-            if not isinstance(block, dict):
-                continue
-            if block.get("type") == "tool_use" and block.get("name") in (
-                helpers.DELEGATING
-            ):
-                payload = block.get("input")
-                if not isinstance(payload, dict):
-                    payload = {}
-                call_id = block.get("id")
-                if isinstance(call_id, str):
-                    pending[call_id] = helpers.spawn_labels(payload)
-            elif block.get("type") == "tool_result":
-                labels = pending.pop(block.get("tool_use_id"), None)
-                if labels is None:
-                    continue
-                kind = labels.get("subagent_type", "?")
-                match = AGENT_ID.search(_text_of(block.get("content")))
-                if match:
-                    spawned.append((kind, match.group(1)))
-                else:
-                    unread.append(
-                        {"subagent_type": kind, "why": "no agentId in the tool result"}
-                    )
-    return spawned, unread
-
-
-def first_prefix(path, helpers):
-    """The whole prefix a subagent paid for: `input_tokens` plus both cache
-    columns of its FIRST assistant message. Later messages carry the
-    conversation as well and are not the payload."""
-    for row in _rows(path):
-        message = row.get("message")
-        if not isinstance(message, dict) or message.get("role") != "assistant":
-            continue
-        usage = message.get("usage")
-        if not isinstance(usage, dict):
-            continue
-        return (
-            helpers.count(usage.get("input_tokens"))
-            + helpers.count(usage.get("cache_creation_input_tokens"))
-            + helpers.count(usage.get("cache_read_input_tokens"))
-        )
-    return None
-
-
-def short_name(subagent_type):
-    """`agentic:crafter` → `crafter`; `general-purpose` stays as it is."""
-    return subagent_type.rsplit(":", 1)[-1]
-
-
-def calibration_of(transcript, baseline_agent):
-    """Measured prefixes per agent from one main transcript's spawns.
-
-    Several spawns of one agent take the SMALLEST prefix: a first message
-    holds the payload plus the spawn prompt, and the prompt only adds.
-    `baseline_agent` may be spelled with or without its namespace: `seen`
-    is keyed by the short name, and the refusal below lists the spawned
-    types with theirs, so the spelling it prints has to be one it takes."""
-    baseline_agent = short_name(baseline_agent)
-    helpers = _session_cost()
-    spawned, unread = spawns_in(transcript, helpers)
-    by_id = {
-        os.path.basename(p)[len("agent-") : -len(".jsonl")]: p
-        for p in helpers.subagent_transcripts(transcript)
-        if os.path.basename(p).startswith("agent-")
-    }
-    seen = {}
-    for kind, agent_id in spawned:
-        path = by_id.get(agent_id)
-        if path is None:
-            unread.append(
-                {"subagent_type": kind, "why": f"no subagents/agent-{agent_id}.jsonl"}
-            )
-            continue
-        prefix = first_prefix(path, helpers)
-        if prefix is None:
-            unread.append(
-                {
-                    "subagent_type": kind,
-                    "why": f"agent-{agent_id}.jsonl has no assistant usage",
-                }
-            )
-            continue
-        name = short_name(kind)
-        entry = seen.setdefault(
-            name,
-            {"measured": prefix, "from": os.path.basename(path), "spawns": 0},
-        )
-        entry["spawns"] += 1
-        entry.setdefault("subagent_type", kind)
-        if prefix < entry["measured"]:
-            entry.update({"measured": prefix, "from": os.path.basename(path)})
-    if baseline_agent not in seen:
-        saw = sorted(e["subagent_type"] for e in seen.values()) or ["nothing"]
-        raise CalibrationError(
-            f"{os.path.basename(transcript)} never spawned the baseline agent "
-            f"`{baseline_agent}`, whose prefix is what every other agent's is "
-            f"measured against; it spawned {', '.join(saw)}. Spawn one with "
-            f"`use no tools, reply with one word`, or name another with "
-            f"--baseline-agent"
-        )
-    return {
-        "transcript": os.path.basename(transcript),
-        "baseline_agent": baseline_agent,
-        "baseline": seen[baseline_agent],
-        "agents": {k: v for k, v in seen.items() if k != baseline_agent},
-        "unread": unread,
-    }
-
-
 # --- the measurement ----------------------------------------------------------
 
 
-def _ratio_from_baseline(baseline_data, name):
-    ratios = (baseline_data or {}).get("ratios") or {}
-    entry = ratios.get(name)
-    if isinstance(entry, dict) and isinstance(
-        entry.get("bytes_per_token"), int | float
-    ):
-        return entry["bytes_per_token"]
-    return None
-
-
-def _spawn_of(entry):
-    """The subagent transcript a ratio entry was measured from, whichever
-    shape the entry has. `spawn` is read first; a derived entry written before
-    that key existed names the spawn in `from`, and a lent entry's `from` is
-    the file it was lent from — so `from` counts only where `tokens` says the
-    entry is a measurement."""
-    if not isinstance(entry, dict):
-        return None
-    spawn = entry.get("spawn")
-    if isinstance(spawn, str):
-        return spawn
-    if "tokens" in entry and isinstance(entry.get("from"), str):
-        return entry["from"]
-    return None
-
-
-def _carried(entry):
-    """The two facts every ratio entry carries forward, whatever else it
-    holds: the spawn it was measured from and the bytes it was measured
-    over. A lent entry that drops them loses the spawn one hop later, and
-    the run after that re-derives the ratio over bytes the spawn never read
-    (#292 round 1: 2.49 B/token and +5,381 tokens over 0 bytes changed)."""
-    out = {}
-    spawn = _spawn_of(entry)
-    if spawn is not None:
-        out["spawn"] = spawn
-    over = (entry or {}).get("over_bytes")
-    if isinstance(over, int):
-        out["over_bytes"] = over
-    return out
-
-
-def _same_spawn_over_other_bytes(baseline_data, name, spawn_file, seen_bytes):
-    """The bytes the baseline's ratio was measured over, when this run's
-    smallest spawn for `name` is that very spawn and the tree's bytes differ
-    from them — or None when the two agree or the baseline knows nothing."""
-    entry = ((baseline_data or {}).get("ratios") or {}).get(name)
-    if _spawn_of(entry) != spawn_file:
-        return None
-    over = entry.get("over_bytes")
-    if isinstance(over, int) and over != seen_bytes:
-        return over
-    return None
-
-
-def measure(
-    root,
-    home,
-    agents=(),
-    sections=False,
-    calibrate=None,
-    baseline=None,
-    baseline_agent=BASELINE_AGENT,
-    config=None,
-):
-    """The whole reading as data. `calibrate` is a main transcript path;
-    `baseline` an earlier run's JSON path, whose ratios are lent to agents
-    this run did not measure and whose numbers the delta is taken against.
-    `config` is `CLAUDE_CONFIG_DIR` as the caller read it, and `user_dir`
-    places the user's files from it and `home`; a call that passes none
-    reads only the `home` it was given."""
-    baseline_agent = short_name(baseline_agent)
+def measure(root, home, agents=(), config=None):
+    """The whole reading as data. `config` is `CLAUDE_CONFIG_DIR` as the
+    caller read it, and `user_dir` places the user's files from it and
+    `home`; a call that passes none reads only the `home` it was given."""
     user = user_dir(home, config)
-    if sections:
-        # Before anything is read, so a copy missing the fence rule says so
-        # at exit 2 rather than after a partial measurement (#584).
-        _fence_rule()
-    baseline_data = None
-    if baseline:
-        with open(baseline, encoding="utf-8") as handle:
-            baseline_data = json.load(handle)
-    measured = calibrate_data = None
-    if calibrate:
-        calibrate_data = calibration_of(calibrate, baseline_agent)
-        measured = calibrate_data["agents"]
     out = {
         "measured_at": dt.date.today().isoformat(),
         "root": _shown(root),
-        "ratios": {},
-        # After the calibration, so a copy missing `session_cost.py` names
-        # that sibling first.
-        "session": session_composition(root, home, sections, user),
+        "session": session_composition(root, home, user),
         "agents": {},
     }
-    if baseline:
-        out["baseline"] = os.path.basename(baseline)
-    if calibrate_data:
-        out["calibrated_from"] = calibrate_data["transcript"]
-        out["calibration"] = {
-            "baseline_agent": baseline_agent,
-            "baseline": calibrate_data["baseline"],
-            "unread": calibrate_data["unread"],
-        }
     for name, definition in agents_in(root, agents).items():
-        files = composition(root, home, name, definition, sections, user)
-        own = [f for f in files if f["share"] == "agent"]
-        pair = [f for f in files if f["share"] == "harness"]
-        prefix = None
-        ratio, origin = None, None
-        if measured and name in measured:
-            entry = measured[name]
-            base = calibrate_data["baseline"]["measured"]
-            prefix = {
-                "measured": entry["measured"],
-                "baseline": base,
-                "baseline_agent": baseline_agent,
-                "from": entry["from"],
-                "spawns": entry["spawns"],
-                "subagent_type": entry["subagent_type"],
-            }
-            delta = entry["measured"] - base
-            seen_bytes = sum(f.get("shadow", {}).get("bytes", f["bytes"]) for f in own)
-            shadowed = [f["path"] for f in own if "shadow" in f]
-            read_over = _same_spawn_over_other_bytes(
-                baseline_data, name, entry["from"], seen_bytes
-            )
-            if read_over is not None:
-                lent = _ratio_from_baseline(baseline_data, name)
-                base_name = os.path.basename(baseline)
-                prefix["note"] = (
-                    f"the smallest {name} spawn, {entry['from']}, is the one "
-                    f"{base_name} was calibrated from, over {read_over:,} bytes "
-                    f"this tree no longer holds ({seen_bytes:,} now); its ratio "
-                    f"is kept and nothing here is measured — take a spawn after "
-                    f"the change for a measured after-number"
-                )
-                if lent is not None:
-                    ratio, origin = lent, f"{name} in {base_name}"
-                    out["ratios"][name] = {
-                        "bytes_per_token": ratio,
-                        "from": f"{base_name} (lent — the same spawn, over other bytes)",
-                        "spawn": entry["from"],
-                        "over_bytes": read_over,
-                        "shadowed": shadowed,
-                    }
-            elif delta > 0:
-                ratio = round(seen_bytes / delta, 2)
-                origin = name
-                out["ratios"][name] = {
-                    "bytes_per_token": ratio,
-                    "from": entry["from"],
-                    "spawn": entry["from"],
-                    "tokens": delta,
-                    "over_bytes": seen_bytes,
-                    "shadowed": shadowed,
-                }
-            else:
-                prefix["note"] = (
-                    f"prefix {entry['measured']:,} is not above the baseline's "
-                    f"{base:,}; nothing to derive a ratio from"
-                )
-        if ratio is None:
-            lent = _ratio_from_baseline(baseline_data, name)
-            if lent is not None:
-                ratio = lent
-                origin = f"{name} in {os.path.basename(baseline)}"
-                out["ratios"][name] = {
-                    "bytes_per_token": ratio,
-                    "from": f"{os.path.basename(baseline)} (lent)",
-                    **_carried((baseline_data.get("ratios") or {}).get(name)),
-                }
-        if ratio is None:
-            ratio, origin = ASSUMED_RATIO, "assumed — nothing calibrated"
-        basis = f"estimated ({ratio} B/token, from {origin})"
-        for row in files:
-            row["tokens"] = round(row["bytes"] / ratio)
-            row["basis"] = basis
-            for section in row.get("sections", ()):
-                section["tokens"] = round(section["bytes"] / ratio)
-                section["basis"] = basis
-        pair_tokens = sum(f["tokens"] for f in pair)
-        total = {
-            "bytes": sum(f["bytes"] for f in files),
-            "chars": sum(f["chars"] for f in files),
-        }
-        if prefix and "note" not in prefix:
-            total["tokens"] = (prefix["measured"] - prefix["baseline"]) + pair_tokens
-            total["basis"] = (
-                f"measured ({prefix['from']}) for the agent's own files, "
-                f"{prefix['measured']:,} - {prefix['baseline']:,} of "
-                f"{baseline_agent}; + estimated CLAUDE.md pair"
-            )
-        else:
-            total["tokens"] = sum(f["tokens"] for f in files)
-            total["basis"] = basis
-        agent = {"files": files, "total": total}
-        if prefix:
-            agent["prefix"] = prefix
-        out["agents"][name] = agent
-    if baseline_data:
-        out["delta"] = delta_against(out, baseline_data)
-    return out
-
-
-def delta_against(now, before):
-    """Per agent, per file: what changed since the earlier run. Files and
-    agents that appeared or disappeared are named rather than diffed."""
-    out = {}
-    before_agents = before.get("agents") or {}
-    for name, agent in now["agents"].items():
-        old = before_agents.get(name)
-        if not isinstance(old, dict):
-            out[name] = {"added_agent": True}
-            continue
-        old_files = {f["path"]: f for f in old.get("files", []) if "path" in f}
-        files, added = {}, []
-        for row in agent["files"]:
-            past = old_files.pop(row["path"], None)
-            if past is None:
-                added.append(row["path"])
-                continue
-            files[row["path"]] = {
-                "bytes": row["bytes"] - past.get("bytes", 0),
-                "tokens": row["tokens"] - past.get("tokens", 0),
-                "basis": row["basis"],
-            }
-        old_total = old.get("total", {})
-        total = {
-            "bytes": agent["total"]["bytes"] - old_total.get("bytes", 0),
-            "tokens": agent["total"]["tokens"] - old_total.get("tokens", 0),
-            "basis": agent["total"]["basis"],
-        }
-        now_measured = agent["total"]["basis"].startswith("measured")
-        then_measured = str(old_total.get("basis", "")).startswith("measured")
-        if now_measured != then_measured:
-            # A measured total minus an estimated one reports the gap between
-            # two bases as a change in the tree (-6,773 on #292's after-run,
-            # where the files summed to -4,691). Bytes are exact either way.
-            now_rows = {f["path"]: f for f in agent["files"] if "path" in f}
-            total["tokens"] = (
-                sum(d["tokens"] for d in files.values())
-                + sum(now_rows[p]["tokens"] for p in added)
-                - sum(old_files[p].get("tokens", 0) for p in old_files)
-            )
-            total["basis"] = (
-                "summed over the files — the earlier total was "
-                f"{'measured' if then_measured else 'estimated'} and this one is "
-                f"{'measured' if now_measured else 'estimated'}, so the two "
-                "cannot be subtracted"
-            )
-        out[name] = {
-            "files": files,
-            "added": added,
-            "removed": sorted(old_files),
-            "total": total,
-        }
-    for name in before_agents:
-        if name not in now["agents"]:
-            out[name] = {"removed_agent": True}
+        out["agents"][name] = _estimated(
+            composition(root, home, name, definition, user)
+        )
     return out
 
 
@@ -998,54 +438,13 @@ def _n(value):
     return f"{value:,}" if isinstance(value, int) else str(value)
 
 
-def _signed(value):
-    return f"{value:+,}"
-
-
 def render(data):
     lines = [f"# seal payload — {data['root']} ({data['measured_at']})", ""]
-    calibration = data.get("calibration")
-    if calibration:
-        base = calibration["baseline"]
-        lines += [
-            f"Calibrated from `{data['calibrated_from']}`: the baseline agent "
-            f"`{calibration['baseline_agent']}` paid {_n(base['measured'])} tokens "
-            f"of prefix ({base['from']}, {base['spawns']} spawn"
-            f"{'s' if base['spawns'] != 1 else ''}); every measured figure below "
-            f"is a spawn's prefix minus that.",
-        ]
-        for item in calibration.get("unread", ()):
-            lines.append(f"- not read: `{item['subagent_type']}` — {item['why']}")
-        lines.append("")
     session = data.get("session")
     if session:
         lines += _session_lines(session)
     for name, agent in data["agents"].items():
-        prefix = agent.get("prefix")
-        head = f"## {name}"
-        if prefix:
-            head += (
-                f" — prefix {_n(prefix['measured'])} measured ({prefix['from']}"
-                f", {prefix['spawns']} spawn{'s' if prefix['spawns'] != 1 else ''}"
-                f", the smallest taken)"
-            )
-        lines += [head, ""]
-        if prefix and "note" in prefix:
-            lines += [prefix["note"], ""]
-        ratio = data["ratios"].get(name)
-        if ratio and "tokens" in ratio:
-            lines += [
-                f"Ratio {ratio['bytes_per_token']} B/token: {_n(ratio['over_bytes'])} "
-                f"bytes the spawn read over {_n(ratio['tokens'])} tokens above the "
-                f"baseline"
-                + (
-                    f" (shadowed on this machine: {', '.join(ratio['shadowed'])})"
-                    if ratio.get("shadowed")
-                    else ""
-                )
-                + ".",
-                "",
-            ]
+        lines += [f"## {name}", ""]
         lines += ["| File | Bytes | Chars | Tokens | Basis |", "|---|---|---|---|---|"]
         pair = []
         for row in agent["files"]:
@@ -1053,19 +452,13 @@ def render(data):
                 pair.append(row)
                 continue
             lines.append(_file_line(row))
-            for section in row.get("sections", ()):
-                lines.append(
-                    f"| &nbsp;&nbsp;{section['heading']} | {_n(section['bytes'])} | "
-                    f"{_n(section['chars'])} | {_n(section['tokens'])} | "
-                    f"{section['basis']} |"
-                )
         if pair:
             names = " + ".join(f"`{p['path']}`" for p in pair)
             lines.append(
                 f"| CLAUDE.md pair ({names}) | {_n(sum(p['bytes'] for p in pair))} | "
                 f"{_n(sum(p['chars'] for p in pair))} | "
                 f"{_n(sum(p['tokens'] for p in pair))} | {pair[0]['basis']} — inside "
-                f"every agent's prefix, the baseline's included |"
+                f"every agent's prefix |"
             )
             for row in pair:
                 if row.get("missing"):
@@ -1084,37 +477,6 @@ def render(data):
             f"{_n(total['tokens'])} | {total['basis']} |"
         )
         lines.append("")
-    delta = data.get("delta")
-    if delta:
-        lines += [f"## Delta against {_baseline_name(data)}", ""]
-        for name, change in delta.items():
-            if change.get("added_agent"):
-                lines.append(f"- `{name}`: added since the baseline")
-                continue
-            if change.get("removed_agent"):
-                lines.append(f"- `{name}`: in the baseline, not in this tree")
-                continue
-            lines += [
-                f"### {name}",
-                "",
-                "| File | Δ bytes | Δ tokens | Basis |",
-                "|---|---|---|---|",
-            ]
-            for path, row in change["files"].items():
-                lines.append(
-                    f"| `{path}` | {_signed(row['bytes'])} | {_signed(row['tokens'])} | "
-                    f"{row['basis']} |"
-                )
-            for path in change["added"]:
-                lines.append(f"| `{path}` | added | | |")
-            for path in change["removed"]:
-                lines.append(f"| `{path}` | removed | | |")
-            total = change["total"]
-            lines.append(
-                f"| **total** | {_signed(total['bytes'])} | "
-                f"{_signed(total['tokens'])} | {total['basis']} |"
-            )
-            lines.append("")
     return "\n".join(lines)
 
 
@@ -1166,13 +528,6 @@ def _session_lines(session):
     return lines
 
 
-def _baseline_name(data):
-    """The file the delta was taken against, recorded once by `measure`
-    rather than read back off a `(lent)` suffix only one entry shape had."""
-    name = data.get("baseline")
-    return name if isinstance(name, str) and name else "the baseline"
-
-
 def _file_line(row):
     if row.get("missing"):
         return f"| `{row['path']}` | 0 | 0 | 0 | missing — named by `skills:`, not in the tree |"
@@ -1195,26 +550,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--root", default=plugin_root())
     parser.add_argument("--agent", action="append", default=[])
-    parser.add_argument("--sections", action="store_true")
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--baseline", metavar="FILE")
-    parser.add_argument("--calibrate", metavar="TRANSCRIPT")
-    parser.add_argument("--baseline-agent", default=BASELINE_AGENT)
     args = parser.parse_args()
-    try:
-        data = measure(
-            os.path.abspath(args.root),
-            os.path.expanduser("~"),
-            agents=tuple(args.agent),
-            sections=args.sections,
-            calibrate=args.calibrate,
-            baseline=args.baseline,
-            baseline_agent=args.baseline_agent,
-            config=os.environ.get("CLAUDE_CONFIG_DIR"),
-        )
-    except CalibrationError as error:
-        print(f"seal payload: {error}", file=sys.stderr)
-        return 1
+    data = measure(
+        os.path.abspath(args.root),
+        os.path.expanduser("~"),
+        agents=tuple(args.agent),
+        config=os.environ.get("CLAUDE_CONFIG_DIR"),
+    )
     if not data["agents"]:
         print(f"seal payload: no agents/*.md under {args.root}", file=sys.stderr)
         return 1

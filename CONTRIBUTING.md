@@ -40,8 +40,8 @@ run follows.
 
 - A branch cut from the open release branch, and a pull request based on it.
 - `bin/test tests/<file> -q` on each module the change touched, and
-  `bin/test tests/text tests/behaviour -q`, the tree-wide files *The test
-  layout* names. CI runs the rest, on three platforms.
+  `bin/test tests/text tests/behaviour -q`, which hold the tree-wide files
+  *The test layout* names. CI runs the rest, on three platforms.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
@@ -76,15 +76,17 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 
 ## Running the checks
 
-The suite needs `pytest`, one parser, `markdown-it-py`, pinned to one
-version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, and one
-renderer, `cmarkgfm`, pinned in `CMARKGFM` beside it.
+The suite needs `pytest` and three packages, each pinned to one version in
+`.github/scripts/run_tests.py`: one parser, `markdown-it-py`, pinned in
+`MARKDOWN_IT`, one renderer, `cmarkgfm`, pinned in `CMARKGFM`, and one YAML
+parser, `PyYAML`, pinned in `PYYAML`.
 The parser is the CommonMark oracle the readers under `lib/` are checked
 against. The renderer is
 GitHub's own, cmark-gfm, and the table walker in `lib/tables.py` is checked
-against what it renders. The parser and the renderer are test-only: the gates
-themselves are stdlib-only Python and
-import nothing the suite installs. `bin/test` acquires all three once: it
+against what it renders. The YAML parser is how `tests/workflows.py` reads a
+workflow file for the cases that read a job, a step or a key. The three are
+test-only: the gates themselves are stdlib-only Python and
+import nothing the suite installs. `bin/test` acquires all four once: it
 builds a virtualenv at `.venv` on the first call and reuses it afterwards, so
 only the first call pays for an environment. It works from any directory in
 the repository or a worktree of it, and it prints the interpreter it used.
@@ -97,8 +99,8 @@ uvx ruff check . && uvx ruff format .    # the linter and formatter CI holds the
 
 Both forms run under `-n auto` unless the command line passes its own `-n`,
 `-p no:xdist` or `--pdb`, and the runner installs `pytest-xdist` into a
-`.venv` that lacks it, and the pinned `markdown-it-py` and `cmarkgfm`
-into one that lacks that version. What the whole run costs is a figure with a
+`.venv` that lacks it, and each pinned package into one that lacks that
+version. What the whole run costs is a figure with a
 date and a machine, recorded in the work item that measured it, not here.
 
 **A contributor names a module.** The full suite is the orchestrator's, run
@@ -136,16 +138,17 @@ nothing here holds the floor for it: macOS ships 3.9 under that name, and a
 version manager points it wherever it was last told.
 
 ```bash
-uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 python3 -m pytest tests/ -q
-# or: pip install pytest markdown-it-py==4.2.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
+uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 --with PyYAML==6.0.3 python3 -m pytest tests/ -q
+# or: pip install pytest markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 && python3 -m pytest tests/
 ```
 
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
-on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
-shards that `pytest-split` divides from the one committed `.test_durations`,
-and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
-job; `durations`, which unions what the Windows shards measured and, on a
-pull request into `main`, fails where the committed file is stale;
+on ubuntu, macOS and Windows at the floor stated above, Windows in four
+shards that `pytest-split` divides by the durations union the cache holds,
+and ubuntu and macOS each as one job; the suite once more on ubuntu at
+Python 3.14, as one job; `durations`, which unions what the Windows shards
+measured and, on a run that is no pull request's, saves the union to the
+cache;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
 hygiene workflow that guards releases. A change to any gate needs a test
@@ -159,43 +162,24 @@ The contributor who sees a case named makes it cheaper, splits it, or samples
 what it walks. The report reads a case's call only: time spent building a
 fixture in setup is the module's, and the release table's row for each test
 file is where that shows. Each `pytest` leg in `test.yml` carries a
-`timeout-minutes`, and the comment beside the values says which runs they
-were set from.
+`timeout-minutes`, and the comment beside the values states the rule they
+are set by.
 
-`.test_durations` goes stale as cases are added, renamed or removed, which
-unbalances the Windows and macOS shards and drops no case. The file is the
-Windows leg's, and it divides the macOS leg too, because every leg collects the same
-cases under the same ids: a parametrized path takes `ids=posix_id` from
-`tests/conftest.py`, and no id carries the interpreter's path, which
-`test_no_collected_id_carries_the_interpreters_path` holds. It prices each
-case as Windows ran it, so a case Windows skips is near zero there and its
-macOS cost is unseen by the division; a macOS shard that grows past its
-`timeout` fails, and the rule beside the values in `test.yml` sets it
-again. Every `tests` run measures the file: each Windows shard runs with
-`--store-durations --clean-durations` and uploads the part it wrote, and
-the `durations` job unions the parts into the `test-durations` artifact,
-kept for the days `test.yml` sets, and writes each shard's measured seconds
-and their spread to its summary, beside two shares of the committed file:
-the union's cases it gives no price, and its seconds held by entries no
-shard ran. A work item never commits `.test_durations`, so a refresh costs
-no review round and no broad run. When to refresh it is the release pull
-request's `durations` job's to say: on a pull request into `main`, and on
-no other run, the job is red when more than one case in twenty
-(`STALE_SHARE` in `.github/scripts/durations_union.py`) has no price in
-the file, or when more than one second in twenty of the file's belongs to
-entries no shard ran, and the red run still uploads the union. Whoever
-prepares the release refreshes the file from that run's artifact:
-`gh run download <run id> -n test-durations -D <dir>`, then moves
-`<dir>/.test_durations` over the committed file and commits it alone, with
-the trailer `Seal-Routing: no work item`, on a branch cut from
-`release/vX.Y.Z`. The file's line ends are already LF, and the download
-goes to a directory of its own because `gh` will not write over a file that
-is already there. A pull request merges that branch into `release/vX.Y.Z`,
-and the release pull request's next run reads the refreshed file. A shard
-that runs past its `timeout` during the release because the file is stale
-is answered by the same refresh, taken from the newest run whose
-`durations` job wrote the union, since a shard killed at its timeout
-uploads no part.
+The durations union lives in `actions/cache`, never in the tree, and
+nothing refreshes it by hand. Every `tests` run measures it: each Windows
+shard runs with `--store-durations --clean-durations` and uploads the part
+it wrote, and the `durations` job unions the parts, writes each shard's
+measured seconds and their spread to its summary, and uploads the union as
+the `test-durations` artifact. On a run that is no pull request's, a push
+to `main` among them, the job also saves the union to the cache under a key
+starting `test-durations-`, and each Windows shard restores the newest
+such key before it divides. `.gitignore` names `.test_durations`, so
+a restored or downloaded copy is never committed. Where no cache matches,
+or the cache was evicted, every shard splits by count: the shards come out
+unbalanced, no case is dropped, and a shard past its leg's `timeout` fails. The
+union is measured on the Windows leg and divides that leg alone, and no
+collected id carries the interpreter's path, a key no other runner writes,
+which `test_no_collected_id_carries_the_interpreters_path` holds.
 
 **The suite runs with `gh` logged out, on a contributor's machine as on
 CI.** CI's pytest job has no token, so `tests/conftest.py` makes the same
@@ -249,8 +233,10 @@ one named `test_refuses_<what>` for bad input. What the module does as a
 whole goes in `Test_module`. A flow across modules lives under
 `tests/e2e/<flow>/`: its `TARGET` names the command or hook the flow starts
 from, and each of its classes is a scenario that keeps the same two cases.
-A case whose assertion reads a shipped document names that document as
-`TARGET`, and its classes take any name. A helper two test files use is
+A file whose cases each read the text of one and the same tracked file that
+is not a test file, such as a document, a template, a workflow or a config
+file, and run no shipped code as their subject, names that file as
+`TARGET`, and its name and classes are free. A helper two test files use is
 defined once, in `tests/conftest.py` or in one of the two files, which the
 other imports by its name. Each module file ends with
 `test_census = census_case(TARGET)`, which runs every census in
@@ -258,9 +244,13 @@ other imports by its name. Each module file ends with
 carries `# exempt from <census>: <why>` on its own line above it, where the
 census reads it and refuses it once it excuses nothing.
 `bin/seal layout --check` refuses a file that declares `TARGET` and breaks
-this, and lists the files that do not declare one yet. A contributor writing
-a case first reads its class and the pairs `bin/seal layout --pairs` names
-in it.
+this, and lists the files that declare none. A contributor writing a case
+first reads its class and the pairs `bin/seal layout --pairs` names in it.
+Each pair the report prints carries its reason in its class's docstring: one
+sentence stating the input its two cases differ by where they call the
+function alike, such as the world a fixture or a monkeypatch builds.
+Where the two read one input, the sentence says so and names the fact
+each holds, and the pair counts toward the threshold below.
 check: tests/skills/test_test_layout.py tests/test_censuses.py
 
 **A test file takes the repository root from `tests/conftest.py`.** A test
@@ -272,12 +262,33 @@ under `tests/` that holds a test file on `sys.path`, so two files of one name
 import as one module.
 check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 
-**A test file that declares no `TARGET` stands by what its cases run.** It
-stands in `tests/behaviour/` where its cases load or run shipped code, and
-in `tests/text/` where they only read text. A case that walks this
-repository's tree or a whole directory of it, lists its tracked files, or
-runs a check over its root stands in a file that declares none. The files
-that declare no `TARGET`, `tests/text/` and `tests/behaviour/`, are this
+**A case stands in the file of what it holds, and a file that declares no
+`TARGET` says why.** What a case holds is read from the case whole, never
+from its file's name. A case that calls a function of one module, directly
+or through a loader, or runs the `seal` subcommand or the script that one
+module is, and asserts on what that call returned, printed, raised or
+wrote, stands in that module's file. The module is a shipped one, or a
+module under `tests/` that is not a test file, such as
+`tests/gfm_table_oracle.py`. A case whose subject is the source of such a
+module under `tests/` stands in that module's file too. A case that uses
+one only to read another file, as a case reading a workflow through
+`tests/workflows.py` does, holds that other file. A case that stands in a
+module's file goes in the class of the function it calls, or in
+`Test_module`, and keeps its name. A case that reads a document only to
+build that call's input is still the module's. A case that holds a
+document's sentence against a value it takes from a module is not, because
+what it asserts is the document's text. A case has no one file in the
+layout where it walks this repository's tree or a whole directory of it,
+lists its tracked files, or runs a check over its root; where it holds one
+rule across the text of several files; or where it holds one property
+across several modules, shipped or under `tests/`. A file that holds such a
+case, or whose cases read different files, declares no `TARGET`. Its first
+line after the imports, where `TARGET = "..."` would stand, gives the
+ground in words, as the line
+`# No TARGET: its cases walk every rule file of the tree.` does. No script
+reads that line. Such a file stands in `tests/behaviour/` or in
+`tests/text/`, which together hold every file that declares none.
+The files that declare no `TARGET`, wherever they stand, are this
 repository's tree-wide files, which `skills/verify/SKILL.md` *Scope: cheap
 and often, broad and once* runs at every phase boundary and every fix pass.
 
@@ -293,8 +304,13 @@ killed by another case, or where the behaviour it guarded has left the tree.
 
 **A module's tests are written anew from the code when its old files cost
 past the threshold.** The threshold is 60 seconds of the module's old files in
-`.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
-the module's classes. Every other module's old cases are placed and merged.
+the `test-durations` artifact of the newest push run on `main`, which
+`gh run download <run id> -n test-durations -D <dir>` writes to
+`<dir>/.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
+the module's classes whose docstring states no input its two cases differ
+by. A pair whose class states that input is two cases a reader has judged
+distinct, so it is no ground to write the module's tests anew. Every other
+module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading
 the code, one class per function, and its old cases are read for their
 inputs.
