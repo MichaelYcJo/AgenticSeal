@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 5 | the orchestrator's broad gate |
+| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 6 | the orchestrator's broad gate |
 
 ## Not done
 
@@ -44,21 +44,19 @@ description of `durations_union.py`, each "(#931)", and
 Out keeps printed messages out of this work, for the reason phase 2's
 paragraph above gives.
 
-Phase 5 also left two statements outside this work's files that its edits
-made untrue or that were already untrue. Design *Scope* names the `.py`
-files under `.github/scripts/` and leaves out `.github/workflows/` and the
-comments of `tests/`, which #1489 rewrites.
+The comment over the claims step of `.github/workflows/hygiene.yml` still
+tells the `Closes #153 and #150` incident by pull request and release
+number, which phase 5 removed from `issue_claims_check.py`. Design *Scope*
+Out leaves the history in `.github/workflows/*.yml` comments to an issue of
+its own. Phase 6 corrected only that comment's clause on where
+`close_issues_on_release.py`'s comment stands, and the comment over the
+second assert of `tests/github/test_label_merged_on_release_branch.py`'s
+`test_the_label_reader_has_one_source`, as design *Scope* item 10 asks.
 
-- `.github/workflows/hygiene.yml`, the comment over the claims step, says
-  `close_issues_on_release.py`'s comment stands "two lines above its
-  regex". That comment stands over `KEYWORDS`, and its last line is twelve
-  lines above `CLOSING`. The same comment also tells the `Closes #153 and #150`
-  incident by pull request and release number, which this phase removed
-  from `issue_claims_check.py`.
-- `tests/github/test_label_merged_on_release_branch.py`, the comment over
-  the second assert of `Test_module`'s
-  `test_the_label_reader_has_one_source`, says the sibling's docstring "says in
-  prose that it used to unpack `closer._issue_api` here and now delegates".
-  `label_merged_on_release_branch.py#issue_labels` no longer says it used
-  to unpack anything. The assert itself, `"_issue_api(" not in source`,
-  still holds and pins the call, not the sentence.
+Phase 6 left two test docstrings that point at a rider that does not stand.
+`tests/lib/test_optin.py:141` says "The rider on `repo_root` counts why",
+and `:236` says "The rider on `repo_root` counts `git` calls per gated
+command". No `RIDER:` comment stands in `lib/optin.py`, at the base or now,
+and phase 6 rewrote the two docstring sentences of `lib/optin.py` that
+pointed at it. Design *Scope* Out keeps the docstrings of `tests/` out of
+this work.
