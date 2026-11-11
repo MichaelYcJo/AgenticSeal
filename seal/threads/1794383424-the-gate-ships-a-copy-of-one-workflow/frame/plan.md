@@ -51,3 +51,5 @@ None for a user's repository: `seal gate` prints what it printed before (S1). In
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-11 | Phase 1's hand-back named three frame statements HEAD left incomplete, and the orchestrator folded them into `frame/design.md` in its own commit: the preflight clause at `broad_gate.py:107` (G4 and *Scope* item 2), the `Test_panel` rename (*Scope* item 4), and S3 reading the panel the gate prints | They record what the build changed, not what the work is | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |
+| 2026-11-11 | The title takes `refactor:`, as the issue's title does | The gate's verdict and every user's output are unchanged; the work removes a copy and its readers | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지* |
