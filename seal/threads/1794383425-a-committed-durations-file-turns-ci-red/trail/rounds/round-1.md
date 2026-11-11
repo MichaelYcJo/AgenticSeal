@@ -36,6 +36,11 @@ def union_step(steps):
 
 The new assertion needs to be seen red under contract rule 15, with `--stale-fails` appended to the union step's `run:` line in `test.yml`.
 
+```seal
+verdict: fixed bd4ec54d8
+answer: The finding holds: `seal mutate` appending `--stale-fails` to the union line SURVIVED at `335cc0e75`. `union_step` now pairs `words[2::2]` with `words[3::2]` and asserts equal lengths, every name starting with `--` and no value starting with `--`, so a bare flag at the end, at the start or two together in the middle is refused; the record's even-count check would miss the last. Three mutants of `test.yml` went red, and the real command still reads as `--parts`, `--count`, `--out`.
+```
+
 ### 2. Three frame sentences state what the target does not hold
 
 ```seal
@@ -80,6 +85,11 @@ The method missed it. The *Grounding* row of readers at `frame/design.md:24` was
 ```
 
 No case pins the clause (the `git grep` above found no test holding "durations refresh"), so no case changes with it.
+
+```seal
+verdict: fixed 62a2fb4f1
+answer: The finding holds at `skills/settle/SKILL.md:233`, where #1481 moved it: no refresh commit lies in the release range and none can come. The sentence now reads "A settle's commit carries that trailer with no route chosen and is not one.", and `changelog.md` says the clause is gone, since the settle skill ships. The frame's lists of what stated the committed file go to the framer.
+```
 
 ## Confirmations
 
