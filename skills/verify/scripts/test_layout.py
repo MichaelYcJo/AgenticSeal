@@ -7,8 +7,8 @@
                                       whether the NEW files hold the OLD
                                       files' cases, only moved
 
-#942. A test file names the module it tests once, as the first assignment
-after its imports, `TARGET = "<tracked path>"`, holds one class per public
+A test file names the module it tests once, as the first assignment after
+its imports, `TARGET = "<tracked path>"`, holds one class per public
 top-level function of that module, `Test_<name>`, each with a case named
 `test_accepts_...` and one named `test_refuses_...`, and ends with
 `test_census = census_case(TARGET)`. `CONTRIBUTING.md`
