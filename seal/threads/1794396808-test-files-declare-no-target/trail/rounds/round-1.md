@@ -74,6 +74,11 @@ repository's. `tests/lib/test_tables.py` and `tests/lib/test_routing.py`
 import the corpus from here and hold their readers to the oracle over it.
 ```
 
+```seal
+verdict: fixed 379eb64b8
+answer: The finding holds: phase 7 moved the oracle's six cases to `tests/test_commonmark_oracle.py`, and the readers-hide file keeps only the import case. The docstring at `tests/lib/test_blocks.py:11-18` takes the record's replacement and now says so.
+```
+
 ### 2. `CONTRIBUTING.md` *The test layout* places a file with no `TARGET` by whether it runs shipped code, and five such files stand the other way
 
 ```seal
@@ -113,6 +118,11 @@ and any importer, and the fix pass owes that choice an answer.
 ```markdown
 reads that line. Such a file stands in `tests/behaviour/` or in
 `tests/text/`, which together hold every file that declares none.
+```
+
+```seal
+verdict: fixed 1ebd4cf19
+answer: The finding holds. `CONTRIBUTING.md:289-290` now says such a file stands in `tests/behaviour/` or in `tests/text/`, which together hold every file that declares none; no code reads the split, so the files stay and no check line is re-pointed. The framer restated design G1 to match at `6ad069d57`.
 ```
 
 ## Confirmations
