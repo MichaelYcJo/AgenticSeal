@@ -11,9 +11,10 @@
 Phase 1 left `skills/verify/scripts/session_cost.py`'s two statements of
 how long a subagent runs side by side. `DELEGATING`'s comment and
 `spawn_cycles`' docstring say "a median of about 1,000 seconds" over 67
-spawns of three runs, and `measure_segments`' docstring says that over 433
-segment rows the median is 716 s and 1,000 is the mean. Which the first
-figure is cannot be read from the tree, and settling it means re-reading
+spawns of three runs. `measure_segments`' docstring says that over the
+segment rows of 43 runs the median is 716 s over the 381 named rows and
+664 s over all 433, and that 1,000 is the mean. Which the first figure is
+cannot be read from the tree, and settling it means re-reading
 transcripts that live on one machine, which a prose-only phase does not do.
 Both sentences are present-tense claims a reader can hold against each
 other, so neither recounts history.
