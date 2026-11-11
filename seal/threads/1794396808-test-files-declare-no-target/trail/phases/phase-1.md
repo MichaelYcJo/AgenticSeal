@@ -131,3 +131,12 @@ for this work item's missing `gaps.md`, which this phase writes. Run
 again with the records written, it gave `2926 passed, 8 skipped` and
 exited 0 (S9). `bin/seal layout --check` exits 0 at `490eb834b` (S7,
 executed).
+
+**`323135210` rewraps the new paragraph of `CONTRIBUTING.md` *The test
+layout*, after reading the range against HEAD.** It changes prose only.
+The reason line's example now stands in a sentence of its own, and "or
+cases that read different files" reads "or whose cases read different
+files". The 29 test files that name `CONTRIBUTING`, with
+`tests/github/test_rules.py` and
+`tests/behaviour/test_every_tracked_file_meets_every_census.py`, ran as
+one command after it and gave `1256 passed` (executed).
