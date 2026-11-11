@@ -115,6 +115,11 @@ owes these:
   that case passes without the fix, so it can be seen red only with a git
   before 2.44 first on PATH, such as the Command Line Tools git above.
 
+```seal
+verdict: fixed 0a354b5a7
+answer: The finding holds: on the Command Line Tools git 2.39.3 the nested-tag case failed with `'v0.2.0' == 'v0.1.0'` before the fix. `versions` now peels every `refs/tags/<name>^{}` in one `cat-file --batch-check`, so every git runs the same path and the case is green on 2.39.3 and 2.50.1. This takes the place of the record's branch for a git before 2.44, which no case run on a current git could reach. The tag read is three calls, one fixed call more per run, and the count still does not grow with the plans read (S4). The docstring, `changelog.md` and the `gaps.md` row were rewritten at `0a354b5a7` and `87387b856`; the frame's two-call sentence goes to the framer.
+```
+
 ### 2. A removed plan whose path holds a newline shifts the batch's answers, so a later plan's rows are dropped and it is named with another name's answer
 
 ```seal
@@ -182,6 +187,11 @@ The case commits the two paths as the probe does, through
 printed. It also owes the plan's sentence at `frame/plan.md:40`, and a
 clause in the bullet *The judgments earlier settles removed* of
 `skills/settle/SKILL.md`, which lists what is named as not read.
+
+```seal
+verdict: fixed c719f1de8
+answer: The finding holds: the `[beside]` case named the plain plan with `name/frame/plan.md missing` before the fix. The record's fix was applied after reading it: `NO_ONE_LINE` names a plan whose path holds a newline before `blobs` is called, and that plan is never asked for (`0a354b5a7`). The `[alone]` parameter, added at `c719f1de8`, holds the branch where it is the only plan left. The docstrings and the skill bullet say the same; the frame's sentence that an id holds no newline goes to the framer.
+```
 
 ### 3. Three frame statements left by the fold at `e72cbe025` are contradicted by the target
 
