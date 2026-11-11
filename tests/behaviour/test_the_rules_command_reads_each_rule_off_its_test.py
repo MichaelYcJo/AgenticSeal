@@ -13,14 +13,6 @@ from conftest import ROOT
 SETTLE = os.path.join(ROOT, "skills", "settle", "rule-changes.md")
 
 
-def test_the_rule_marker_is_registered(pytestconfig):
-    """`tests/conftest.py` registers `rule`, so a gate test carries it with no
-    unknown-mark warning."""
-    assert any(line.startswith("rule(") for line in pytestconfig.getini("markers")), (
-        pytestconfig.getini("markers")
-    )
-
-
 def test_settle_owns_the_grammar():
     """The grammar is stated once, in the settle skill, the document a spec's
     author reads; this module and `rules.py` only read it."""

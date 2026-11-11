@@ -476,6 +476,13 @@ class Test_module:
         assert posix_id("agents/framer.md") == "agents/framer.md"
         assert posix_id(None) is None
 
+    def test_the_rule_marker_is_registered(self, pytestconfig):
+        """`tests/conftest.py` registers `rule`, so a gate test carries it with no
+        unknown-mark warning."""
+        assert any(
+            line.startswith("rule(") for line in pytestconfig.getini("markers")
+        ), pytestconfig.getini("markers")
+
 
 class Test_census_case:
     def test_accepts_a_target_every_census_passes(self, tmp_path, monkeypatch):

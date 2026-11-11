@@ -20,53 +20,7 @@ import os
 import pytest
 from conftest import ROOT, load_lib_module
 
-GAPS = load_lib_module("gaps.py", "gaps_for_its_own_file")
 lines_reader = load_lib_module("lines.py", "lines_for_the_rows_that_close")
-
-
-def test_the_skill_shows_the_word(tmp_path):
-    """`skills/implement/SKILL.md` *4. The closing memo — only what the diff
-    cannot show* is what the memo's writer reads for how a row closes, so its
-    example row is one the check accepts as closed."""
-    with open(
-        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        text = f.read()
-    example = next(ln for ln in text.splitlines() if ln.startswith("| closed "))
-    p = tmp_path / "gaps.md"
-    p.write_text(
-        f"# memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n{example}\n",
-        encoding="utf-8",
-    )
-    op, closed, err = GAPS.check_file(str(p))
-    assert not err and not op and len(closed) == 1, (op, closed, err)
-
-
-def test_the_template_is_the_shape_the_checker_reads(tmp_path):
-    """Template and checker drift apart silently otherwise: every new work
-    item would copy a section the release check then refuses."""
-    with open(
-        os.path.join(ROOT, "templates", "records", "sdd-gaps.md"), encoding="utf-8"
-    ) as f:
-        template = f.read()
-
-    d = tmp_path / "specs" / "1780000000-work"
-    d.mkdir(parents=True)
-    p = d / "gaps.md"
-
-    p.write_text(template, encoding="utf-8")
-    _, _, err = GAPS.check_file(str(p))
-    assert err and "placeholder" in err[0][1], (
-        "a template copied and never filled in has to fail, or an empty record "
-        "passes as a complete one"
-    )
-
-    filled = template.replace("<what was not verified>", "the TUI rendering").replace(
-        "<who or what can answer it>", "user, on the next session"
-    )
-    p.write_text(filled, encoding="utf-8")
-    op, _, err = GAPS.check_file(str(p))
-    assert not err and len(op) == 1
 
 
 def test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken():

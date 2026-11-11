@@ -17,14 +17,13 @@ import pathlib
 import re
 
 import conftest
-from conftest import load_lib_module
 from conftest import (
     load_module as load,
 )
+from test_fields import TEMPLATE, fields
 
 ROOT = pathlib.Path(conftest.ROOT)
 READER = ROOT / "lib" / "lines.py"
-TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-guarantee.md")
 SEALER = ROOT / "agents" / "sealer.md"
 DOCUMENT = ROOT / "docs" / "forms" / "the-guarantee.md"
 
@@ -37,7 +36,6 @@ def between(path, start, end):
 
 
 reader = load(READER, "lines_reader_for_the_guarantee")
-fields = load_lib_module("fields.py", "agentic_fields_under_test")
 
 
 # --- the template ---------------------------------------------------------------
@@ -96,10 +94,6 @@ class TestTemplate:
         # which the sealer writes each act's row under.
         assert reader.sections(lines, "## Claims re-run")
         assert reader.sections(lines, "## The parties")
-
-    def test_the_unfilled_template_is_no_guarantee(self):
-        found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
-        assert found.blocks == [] and found.refusals, found
 
 
 # --- every committed guarantee ---------------------------------------------------
