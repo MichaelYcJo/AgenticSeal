@@ -31,7 +31,7 @@ with `--released-at 18a7e18fb`.
 | G17. `skills/settle/SKILL.md` (read) | The command table is at `:43-57`. The bullet *The judgments earlier settles removed* (`:116-139`) says the section holds "every row of every" removed plan. Step 5 (`:199-217`) tells the settling session to read the section. Step 11 asks the body to name each kind that recurred across releases. `skills/settle/local-mode.md:42` stays true, because a local root's removals leave no commit. |
 | G18. The policy root (read: `docs/releasing/release-checklist.md` *Settle what earlier releases left behind* `:115-128`, `docs/running/the-run.md` *The run* `:54`, `docs/running/what-a-script-gates.md` *The checks* `:63`; executed: `grep -n -A1` for the three `file:` values over every `seal/threads/*/frame/design.md`) | Each states that the section reads every plan an earlier settle removed. `1794289597` changes another cell of *The checks*, and `1794312072` changes *The release pull request* of the checklist. No unsettled operation quotes the three sentences this work changes. The subject of this work is the code, so the three change through `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*). |
 | G19. `docs/README.md`, the index (read) | Each `file:` below is picked from it. None of the three documents has a `.ko.md` edition. |
-| G20. `tests/skills/test_settle.py` (read) | The #1281 cases stand at `:1371-1615`. `:1580` fails `git_out` by its subcommand, `log`, `show` or `tag`. `:1541` replaces `adding_commit`, and `:2309` replaces it for `notes`. `:3153-3158` pin two phrases of `EARLIER_HEADING`. |
+| G20. `tests/skills/test_settle.py` (read) | The #1281 cases stand at `:1371-1615`. `:1580` fails `git_out` by its subcommand, `log`, `show` or `tag`. `:1541` replaces `adding_commit`, and `:2309` replaces it for `notes`. `:3153-3158` pin two phrases of `EARLIER_HEADING`; after phase 2 they stand at `:3540-3543`, in `Test_module::test_the_dry_runs_headings_say_who_decides`. |
 | G21. Whether the tree already batches these reads (executed: `git grep -n -e cat-file -e --batch -e rev-list -e --contains` over `lib`, `skills`, `.github/scripts`, `hooks`, `bin`) | No script reads blobs through `cat-file --batch` or labels commits by a tag graph. `skills/verify/scripts/pact_check.py#ref_holding` asks `for-each-ref --contains` per commit and returns the first ref by name, which is another fact. |
 | G22. `seal/follow-up.md`, and the `### Process changes` table of v0.37.3 (executed: `grep -n -i 'settle\|judgment' seal/follow-up.md`, `gh release view --json body`) | No follow-up row and no process change concerns the settle's earlier reading. |
 | G23. The rule changes below (executed: `rule_changes.py#parse` on this file and `#apply_op` of each operation against the clone's `docs/`) | The section parses with no error and no line left unread. Each of the three `change` operations is placed, so each `from` stands once in its section at `18a7e18fb`. |
@@ -69,7 +69,7 @@ In:
    batched readers, or are replaced by them, so `notes` and
    `publish_release_note.py` read the same code as the earlier section. What
    each returns to its callers does not change, and neither do the cases at
-   `tests/skills/test_settle.py:3031-3051`. The lowest tag stays the lowest
+   `tests/skills/test_settle.py:3031-3051` (in `Test_adding_commit`, from `:3328` after phase 2). The lowest tag stays the lowest
    by number, and a tag of any other shape stays no version.
 6. **A batched read that fails is named, and the dry run goes on.** A
    failed `cat-file`, adding-commit `log` or tag read is named once with
@@ -90,7 +90,7 @@ In:
      rewrote is the example.
    - `settle.py`'s module docstring, `EARLIER_HEADING`, the argument's help
      and the exit-2 list say the same. `EARLIER_HEADING` keeps the two
-     phrases pinned at `tests/skills/test_settle.py:3153-3158`.
+     phrases pinned at `tests/skills/test_settle.py:3153-3158` (`:3540-3543` after phase 2).
 8. **The rule changes below**, written at the settle after the release.
 9. **The changelog fragment** `changelog.md` in this work item's directory.
    Its `### Process changes` table gets one row in the shape of
@@ -142,7 +142,7 @@ Out:
 - The printed shape:
 
   ```
-  <EARLIER_HEADING, naming the plans the two newest removing commits deleted>
+  <EARLIER_HEADING, naming the plans the two newest removing commits deleted, and the plans `--all-earlier` reads>
 
   judged against: <cell>
       <id>  released in vX.Y.Z; removed by <short> (#N)
