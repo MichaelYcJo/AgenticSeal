@@ -375,8 +375,8 @@ writes plain POSIX syntax that bash and zsh read the same way
 (`skills/agent-contract/SKILL.md` rule 21). An agent keeps its scratch
 files in a directory of its own under `<scratchpad>/<work-item-id>/`, and
 the crafter keeps one for each phase and each fix pass. No agent removes its
-directory or the session's scratchpad, and both last as long as the
-scratchpad does.
+directory or the session's scratchpad. The orchestrator removes the work
+item's directory once, after the pull request opens.
 
 Neither hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints goes into the session's own context, as a file

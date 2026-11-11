@@ -23,11 +23,14 @@ Contract rule 17 states the rule once (#1474, #1503): an agent's scratch
 directory is `<scratchpad>/<work-item-id>/<leaf>/`, the name keeps a
 parallel agent's files apart because the agents of one session share one
 scratchpad, an agent that finds its directory standing adds `-2` to the
-leaf, and nobody removes the scratchpad, a scratch directory or a file in
-one. Each definition names its own leaf and cites rule 17. A removal
+leaf, and no agent removes the scratchpad, a scratch directory or a file
+in one. Each definition names its own leaf and cites rule 17. A removal
 written with a variable in its path is a command Claude Code holds for a
 person (#1503), so no section of the contract and no agent definition
-writes `rm -rf`. This file pins rule 17's sentences, the directory each
+writes `rm -rf`. The one removal left is the orchestrator's, of the work
+item's directory once the pull request is open, in one `rm -rf` with its
+path written out (`skills/implement/orchestration.md` *Orchestrator: the
+order inside a ticket*), which no agent preloads. This file pins rule 17's sentences, the directory each
 definition names, and that absence, because a definition is a sentence an
 agent reads and a sentence can be dropped without a case going red.
 
@@ -126,7 +129,7 @@ def test_rule_17_names_the_scratch_directory_for_the_work_item():
     """#1474, #1503. Contract rule 17 is the one statement of the scratch
     rule, which every agent receives: the directory's shape, with the leaf
     each definition names, why the name carries the work item, and what an
-    agent does where an earlier spawn left its directory standing. Nobody
+    agent does where an earlier spawn left its directory standing. No agent
     removes a scratch directory, so a second sealer or proofer of one work
     item that cloned into the standing directory would fail, and the rule
     gives it the next free leaf."""
@@ -151,7 +154,8 @@ def test_no_contract_section_or_definition_writes_a_removal():
     one `rm -rf`, and a crafter closed a phase with a loop of `rm` on a
     variable path, which Claude Code held for the owner. No agent removes
     its scratch directory now (contract rule 17), so no section of the
-    contract and no agent definition writes the command."""
+    contract and no agent definition writes the command. The orchestrator's
+    one removal stands in a skill no agent preloads."""
     for path in [CONTRACT, *AGENTS]:
         name = os.path.relpath(path, ROOT)
         assert "rm -rf" not in read(path), (

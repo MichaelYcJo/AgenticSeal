@@ -92,11 +92,11 @@ Probe only what reading cannot settle. A probe is one file named
 inside one. The rule is about leavings, not about files: everything else
 the probe made is gone before you hand over, whatever kind of thing it is —
 the file itself in a working tree, a worktree, a branch, a checkout, a
-virtual environment — and those are examples, not a list. What the probe
-made for ITSELF is what goes: a thing the repository's own tooling builds to
-be reused, such as the one virtual environment a test runner keeps, stays
-even when your probe's run created it. The question is whose the thing is,
-never who happened to trigger it.
+virtual environment — and those are examples, not a list. Outside your
+scratch directory, what the probe made for ITSELF is what goes: a thing the
+repository's own tooling builds to be reused, such as the one virtual
+environment a test runner keeps, stays even when your probe's run created
+it. The question is whose the thing is, never who happened to trigger it.
 check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/
 
 ## 9 Edits go through the `Edit` tool
@@ -180,7 +180,7 @@ names. A case that passes against the defect it was written for pins
 nothing, and reverting the fix, or removing its one guard, is what catches
 one.
 
-## 17 Name your scratch for the work item, remove nothing, stop only what you started
+## 17 Name your scratch for the work item, keep it, stop only what you started
 
 What you make outside the repository's working tree, such as a probe, a
 captured output, a list of files or a clone, sits under your scratch
@@ -189,12 +189,12 @@ leaf, and where it names none the leaf is your agent's name. Agents of one
 session share one scratchpad, and that name keeps a parallel agent's files
 apart from yours. Where the directory already stands when you first need
 it, an earlier spawn made it: leave it as it is and add `-2` to the leaf,
-or the next number free. Nobody removes the scratchpad, a scratch directory
-or a file in one. Record the PID of every process you start and stop it by
-that record, never by command name. Never delete by glob in a directory
-another session shares. Another session's process or file answers to the
-same name, so a leftover you did not start is reported in the hand-back,
-not stopped and not removed.
+or the next number free. No agent removes the scratchpad, a scratch
+directory or a file in one. Record the PID of every process you start and
+stop it by that record, never by command name. Never delete by glob in a
+directory another session shares. Another session's process or file
+answers to the same name, so a leftover you did not start is reported in
+the hand-back, not stopped and not removed.
 
 ## 18 A check that refuses correct code is fixed or reported
 

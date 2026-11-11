@@ -43,7 +43,11 @@ lifetimes* states (contract rule 11).
    the pull request body from `pr.md` and the records, then the sealer,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
-   opens once the sealer seals* owns when).
+   opens once the sealer seals* owns when). Once the pull request is open,
+   the orchestrator removes the work item's scratch directory,
+   `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
+   out in full, with no variable in it, and removes nothing else of the
+   scratchpad. No agent removes a scratch directory (contract rule 17).
 3. The pull request body carries `Closes #N`, from the work item's `pr.md`
    where the work runs through the review chain; the release workflow
    closes the ticket when the release reaches `main`.
