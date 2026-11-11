@@ -53,4 +53,5 @@ No migration, environment variable or dependency. `seal payload` refuses `--cali
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| 2026-11-11 | The frame statements phases 1 and 2 named went to the framer as one fold after phase 2, before the first round | None bore on phase 2's five symbols, and a round read before the fold would judge the build against `## Removes` rows and *Scope* sentences the build already departed from with recorded grounds | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+| 2026-11-11 | The frame statements phases 1 and 2 named went to the framer as one fold after phase 2, before the first round | The three from phase 1 did not bear on phase 2's five symbols, and the three from phase 2 came at the last phase; a round read before the fold would judge the build against `## Removes` rows and *Scope* sentences the build already departed from with recorded grounds | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+| 2026-11-11 | The title takes `refactor:`, as the issue's title does: the release report prints the same table and no command a document or workflow calls changes | The prefix names the kind of change that dominates the diff | `skills/commit-pr-convention/SKILL.md` |
