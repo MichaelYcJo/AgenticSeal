@@ -493,8 +493,8 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
     by citing the rule, not by restating it.
 
     #1472 moved the closed set's reason and the proofer's share out of
-    contract rule 12, which every agent preloads, into this rule, the one
-    party's that reads the set: reading it whole is rule 12's second method,
+    contract rule 12, which every agent preloads, into this rule, which the
+    one party that reads the set holds: reading it whole is rule 12's second method,
     and neither a sample's unreached part nor what is not finished is left
     to the proofer."""
     paragraph = crafter_rule(READ_WHOLE)
