@@ -59,12 +59,13 @@ case needed no rewrite.
 exception into `Refused("seal gate: <path> will not load, so nothing ran:
 <what it said>")`, which is #869's contract (*Scope* item 4).
 `stamp_module` and `gitcmd_module` call it. Its round label site catches
-`SystemExit` beside `Refused`: an absent `lib/gitcmd.py` or
-`seal_stamp.py` there is the loader's `SystemExit(2)`, and a label never
+`SystemExit` beside `Refused`: an absent `chain_check.py`, or an absent
+module it loads, is the loader's `SystemExit(2)` there, and a label never
 stops a run (`test_broad_gate.py#Test_rounds_rows::test_refuses_to_stop_a_run_where_the_check_will_not_load`).
-The cases of `Test_load` that tested the old loader became
-`Test_sibling_module`, which point `sibling.ROOT` at a tree under
-`tmp_path`. That is more than "only the loader's name changed" that S7
+`Test_load` became `Test_sibling_module`. Its missing-file case went,
+since that sentence is `lib/sibling.py#load`'s and
+`tests/lib/test_sibling.py` holds it. Its two cases of a module that
+raises point `sibling.ROOT` at a tree under `tmp_path`. That is more than "only the loader's name changed" that S7
 states, and it is the least that lets a case put a raising module where
 `load` looks.
 
