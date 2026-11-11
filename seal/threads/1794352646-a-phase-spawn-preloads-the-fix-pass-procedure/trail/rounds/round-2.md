@@ -75,6 +75,11 @@ The snippet covers `agents/crafter.md` alone. The fix pass also owes:
 `frame/design.md:30` (*Scope* item 2) and `frame/plan.md:29` (row 11) are
 frame statements of the same fact, for the orchestrator to fold.
 
+```seal
+verdict: fixed 39be4b024
+answer: The finding holds. I fixed it in my own words: the frame's sentence, folded at b8866b2e1, governs over the paste-ready text. Step 9 in agents/crafter.md now reads "In a fix pass, open `skills/implement/fix-pass.md` and follow it in place of step 7's run and of the phase record steps 5 and 8 write; steps 5 and 6 otherwise hold for each fix." That is frame/design.md Scope item 2 word for word. Step 5's census goes into the phase record, which a fix pass does not write, so it no longer conflicts with skills/implement/fix-pass.md. The case's assertion and docstring pin the sentence. The re-pointed assertion failed against round 1's step 9 before the edit. Under seal mutate after the commit, it failed again with "and of the phase record steps 5 and 8 write" put back as "and step 8's record", and again with "otherwise" removed. changelog.md quotes the new sentence and gives the remeasured preload: release_report.py#preloads at 39be4b024 reads crafter 33,807 B, and the other four are unchanged. The orchestrator already folded frame/design.md:30 and frame/plan.md row 11 at b8866b2e1, so I name no frame statement.
+```
+
 ## Confirmations
 
 ```seal
