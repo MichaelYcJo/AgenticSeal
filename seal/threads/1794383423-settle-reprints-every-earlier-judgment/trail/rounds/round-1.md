@@ -234,6 +234,11 @@ positions after phase 2 beside `:1371-1578`, `:1541` and `:1580`. In
 `EARLIER_WITH_APPLY`. Findings 1 and 2 each add a unit to `settle.py`. If
 the fix pass adds one, it owes that unit's name in this row as well.
 
+```seal
+verdict: fixed 8c1eb676f
+answer: The finding holds. The fold at `8c1eb676f` gives S5 (`frame/design.md`) and phase row 1 (`frame/plan.md`) their positions after phase 2 beside the base ones: `:1423-1651`, `:1663` and `:1615`. The range ends at `:1651`, the case's last line at `c89db956f`, where `:1652` is blank. The #1482 row of *Overlap with the release* now names `NO_PLAN_TEXT`, and also `NO_ONE_LINE`, which fix pass 1 added. An `ast` comparison of `settle.py` at `18a7e18fb` and `508d093ad` finds no other unit the row leaves out.
+```
+
 ## Confirmations
 
 What matched: S7 at the target. `test_tmp_s7.py` ran `settle.main` in a
