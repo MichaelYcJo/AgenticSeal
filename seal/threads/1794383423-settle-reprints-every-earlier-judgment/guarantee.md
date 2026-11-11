@@ -59,3 +59,54 @@ done` items of `gaps.md`, which the build disclosed and this audit read.
 target: 254d9a27a against 957a3bc7d
 Verdict: sealed
 ```
+
+## Re-audit at 5426fed88
+
+Since `254d9a27a`, the commits outside the closing records are fix pass 2
+(`f56246f6e`), which touches `tests/skills/test_settle.py` alone, and round
+3's record (`72b78d30c`). `git diff --quiet 254d9a27a HEAD` exited 0 over
+the work item's `frame/`, `gaps.md`, `changelog.md`, `pr.md` and
+`routing.md`, over `trail/phases/` and rounds 1 and 2, and over `skills/`
+(executed). So this audit re-runs the claims whose coordinates the fix
+touched, which are the S6 case and the newline case, and reads the parties
+again. Every rule-15 seal from the run above that does not rest on those
+two cases stands as it was.
+
+That run's clone under `sealer/` was gone when this run began. The re-runs
+went to a new `git clone --no-local` at `5426fed88`, under
+`sealer-2/at-base/`. One command of this run lost its `cd` into that clone.
+It ran the two changed cases in the worktree instead, where 4 passed with
+the tree untouched, and wrote a log to
+`/Users/michael/Documents/GitHub/SpecSeal-worktrees/perf/h2-239.log`. That
+log has been removed, and the worktree's `git status --short` showed only
+`guarantee.md`. No row below rests on that run.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad gate ran at a commit that only this work item's records follow | `trail/gate.md`, the second block (`run: 72b78d30c against 957a3bc7d`) | `git merge-base --is-ancestor 72b78d30c HEAD`; `git log --no-merges --stat 254d9a27a..HEAD` | holds (executed). The commit is an ancestor of HEAD, and only `5426fed88` follows it, touching `trail/gate.md` alone. |
+| The body file matches `pr.md` and the records at HEAD | the body file `pr-body.md`, rewritten by `seal pr-body` | `seal pr-body <item> --body <file> --check`, run with the installed copy and with the tree's `bin/seal` | holds (executed). Both copies exited 0 with `matches:`. |
+| The two changed cases pass at HEAD, and on macOS they run rather than skip | `trail/rounds/round-3.md` *Probes*, rows 1 and 2 | `bin/test tests/skills/test_settle.py tests/github/test_publish_release_note.py -q -rs` on git 2.50.1; `bin/test tests/skills/test_settle.py -q -rs -p no:xdist -k "newline or git_holds_no_text"` with git 2.39.3 first on `PATH` | holds (executed). The first run gave 233 passed and the second 4 passed. No `SKIPPED` line appeared in either run. |
+| S6 is still red against the old reading, and still red with only its guard removed, after the `os.chmod` added before the unlink | `tests/skills/test_settle.py:1727-1772`; `trail/phases/phase-1.md:31-36` | the cases at `957a3bc7d`'s `settle.py`; then at HEAD with only `if text is None:` before `NO_PLAN_TEXT` replaced by `if False:` | holds (executed). At the base it failed on its sentence line, where `git show` named the plan. With the guard removed it failed with `TypeError: expected string or bytes-like object, got 'NoneType'`. |
+| The newline case is still red against the batch that asked for both paths, and still red with only the line naming the plan dropped, after the skip was added | `tests/skills/test_settle.py:1775-1834`; `trail/rounds/round-1.md` finding 2's close block | the newline case at `452d08a3d`'s `settle.py`; then at HEAD with only `return [], split, older` replaced by `return [], [], older` | holds (executed). At `452d08a3d` both parameters failed, and the plain plan was named with `` answered `name/frame/plan.md missing` ``. With the line dropped, `[alone]` failed with `IndexError` in `earlier_block`, because the section was never printed. The skip did not fire in either run. |
+| The Windows failure is fixed, and every leg passes on the fix | PR #1526, run `42995460465`; the coordinator's message | `gh run view 42995460465`; `gh run list --commit f56246f6e…`; `gh run view 42996311201 --json jobs` | holds (executed). Run `42995460465` was on `0c2742d83` and concluded `failure`. Run `42996311201`, a `pull_request` run on `f56246f6e`, passed every job: lint, durations, the ubuntu, macOS and four Windows pytest shards. `release-report` was skipped. |
+| The full suite, the repository-wide lint and the format check pass | `trail/gate.md`, the second block | not run (contract rule 2) | read. The gate record names `72b78d30c`, and HEAD differs from that commit by `trail/gate.md` alone. |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | Unchanged since `254d9a27a` (executed, `git diff --quiet`) | as in the run above | as in the run above: none that the issue body or the tree decides |
+| the build | Fix pass 2 makes the missing-object case clear the read-only bit before the unlink. The newline case now skips only where git refuses the odd path in the index, and fails where the plain path is refused | The re-runs above. The case still runs and holds its fact on Linux and macOS. The code under test reads the history through `git log -z` and `cat-file --batch`, not through the index, so the Windows skip hides no Windows-only behaviour of `settle.py` (read) | none |
+| the last round | Round 3 opens no finding, confirms round 2's finding 1, and reads both changed cases | The tree at HEAD and the re-runs above. It notes that the case's comment and skip reason claim more than they hold, since a Windows clone can fetch such a commit made elsewhere, and opens no finding for it. This audit reads that the same way: it is wording in a test, and the claim the guarantee covers does not rest on it | none |
+| the changelog | Unchanged since `254d9a27a` | as in the run above | none |
+| the orchestrator's part of the pull request body | `pr.md` is unchanged since `254d9a27a`. `routing.md` is unchanged | as in the run above | none |
+
+`seal/parity.json` is still not tracked, so no parity comparison is owed.
+The items not covered are those listed above, with the same answerers.
+
+```seal
+target: 5426fed88 against 957a3bc7d
+Verdict: sealed
+```
