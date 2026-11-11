@@ -51,16 +51,35 @@ refuses `seal` with 2 first.
 """
 
 import argparse
-import importlib.util
 import io
 import os
 import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-CONFIG_READER = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
+# The modules this command reads, each as `lib/sibling.py#load` names it.
+READER = "skills/verify/scripts/unverified_check.py"
+CONFIG_READER = "lib/config.py"
+OPTIN = "lib/optin.py"
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2: nothing about the tree has been
+# read, and 1 is a problem found in `docs/` (#590). Where it is absent
+# itself, the refusal is the same sentence about it, spelt here because the
+# file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 CONFIG = "config.json"
 INDEX = "README.md"
@@ -74,43 +93,9 @@ WHOLE = re.compile(r"[0-9]+")
 BYTES_PER_TOKEN = 2
 
 
-def load(path, name, purpose):
-    """Import a sibling script by path, or refuse with a sentence that says
-    what the missing file is for — `purpose` — rather than one reason for
-    every file (round 1, note 7).
-
-    The refusal is exit 2, written to stderr: nothing about the tree has been
-    read, which is what 2 means here, and 1 is a problem found in `docs/`.
-    It used to be `SystemExit(<sentence>)`, and a string argument exits 1, so
-    a copy missing its sibling read as a finding (#590)."""
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"seal fold: cannot read {path}, and {purpose}. This command "
-            "ships beside it in the plugin; a copy of one script taken on its "
-            "own is not a plugin. Nothing was read.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        sys.stderr.write(f"seal fold: cannot load {path}, and {purpose}.\n")
-        raise SystemExit(2)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-_loaded = {}
-
-
 def reader():
-    """`unverified_check.py`, loaded once on first use."""
-    if "reader" not in _loaded:
-        _loaded["reader"] = load(
-            READER,
-            "agentic_unverified_reader_for_folds",
-            "it is where a document's lines and table rows are read from",
-        )
-    return _loaded["reader"]
+    """`unverified_check.py`, loaded on first use."""
+    return sibling.load(READER)
 
 
 class Unusable(Exception):
@@ -243,14 +228,8 @@ def index_problems(root, policy):
 
 
 def optin():
-    """`lib/optin.py`, the one resolver, loaded once on first use."""
-    if "optin" not in _loaded:
-        _loaded["optin"] = load(
-            OPTIN,
-            "agentic_optin_for_folds",
-            "it is what finds the repository's seal/ root",
-        )
-    return _loaded["optin"]
+    """`lib/optin.py`, the one resolver, loaded on first use."""
+    return sibling.load(OPTIN)
 
 
 def located(root):
@@ -284,11 +263,7 @@ def seal_home(root):
 
 def config_reader():
     """`lib/config.py`, the one reader of `seal/config.json`, or exit 2."""
-    return load(
-        CONFIG_READER,
-        "agentic_config_for_folds",
-        "it is what reads the keys of seal/config.json",
-    )
+    return sibling.load(CONFIG_READER)
 
 
 def declared(home):

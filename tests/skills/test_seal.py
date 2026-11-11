@@ -22,10 +22,10 @@ case runs, so a copy is a plain copy.
 `seal.py`'s re-exports of the config reader, from that file and from
 `tests/behaviour/test_a_signer_declares_its_pact.py`. #1454 replaced the table
 writer with `write_mode`, which the serializer writes for, and added the
-converter of an earlier release's `config.md`. Its round 9 fix pass placed in
-`Test_refuse_without_lib` the three rows that run a copy of this script
-without `lib/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
-of this module alone.
+converter of an earlier release's `config.md`. Its round 9 fix pass placed
+in `Test_module` the case that runs a copy of this script without `lib/`,
+from `tests/test_a_script_copied_alone_exits_2.py`, a case of this module
+alone.
 """
 
 import datetime
@@ -54,7 +54,6 @@ from conftest import (
     load_module,
     local_home,
     mark_root,
-    names_path,
     staged,
     symlink_or_skip,
     write,
@@ -335,6 +334,32 @@ def template_text():
 
 
 class Test_module:
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """#590 and #610, and S4 of #1482. A copy of this script taken
+        without `lib/` exits 2, with the loader's one sentence naming the
+        absent `lib/sibling.py` by its path, not 1 in a `ModuleNotFoundError`
+        traceback. It asks at import, so any invocation argparse accepts
+        reaches it: `mode --check`, and not an empty one, because argparse's
+        own usage error is also exit 2 and would pass for the wrong reason."""
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / TARGET.rsplit("/", 1)[1]
+        with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), "mode", "--check"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = SEAL.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_the_template_carries_the_marker_and_the_placeholder(self):
         """The marker and the placeholder are literals in `seal.py`, and a
         template that stopped carrying either would silently change what the
@@ -419,111 +444,6 @@ class Test_module:
             "seal_for_the_pact",
         )
         assert seal.normalise_remote is seal.repo_config.normalise_remote
-
-
-class Test_refuse_without_lib:
-    def test_accepts_a_lib_directory_holding_every_module_it_names(
-        self, tmp_path, capsys
-    ):
-        for name in SEAL.LIB_PURPOSES:
-            write(tmp_path, name, "")
-        assert SEAL.refuse_without_lib(str(tmp_path)) is None
-        assert capsys.readouterr().err == ""
-
-    def test_refuses_with_exit_2_and_a_sentence_per_module_missing(
-        self, tmp_path, capsys
-    ):
-        write(tmp_path, "config.py", "")
-        with pytest.raises(SystemExit) as stopped:
-            SEAL.refuse_without_lib(str(tmp_path))
-        err = capsys.readouterr().err
-        assert stopped.value.code == 2
-        for name in ("optin.py", "blocks.py"):
-            assert f"seal: cannot read {os.path.join(str(tmp_path), name)}, and " in err
-        assert os.path.join(str(tmp_path), "config.py") not in err
-        assert err.endswith("Nothing was read.\n"), err
-
-    @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [
-            (
-                ["mode", "--check"],
-                "it is what finds the repository's seal/ root",
-                None,
-            ),
-            # Round 1's yellow 1 of #610: `lib/config.py` reads the config
-            # and never writes it, so a purpose saying it writes is #590's
-            # wrong-purpose defect again.
-            (
-                ["mode", "--check"],
-                "it is what reads the root's config.json",
-                "reads and writes",
-            ),
-            # #1454: `seal mode` converts an earlier release's `config.md`
-            # through `lib/tables.py`, which this script imports.
-            (
-                ["mode", "--check"],
-                "it is the walker seal mode reads an old config.md through",
-                None,
-            ),
-            # #667: `lib/tables.py` imports `lib/blocks.py`, so a `lib/`
-            # without it fails that import.
-            (
-                ["mode", "--check"],
-                "it is the walk tables.py reads a table through",
-                None,
-            ),
-            (
-                ["mode", "--check"],
-                "it is what builds the `git status` this command reads, the "
-                "same under any git configuration",
-                None,
-            ),
-        ],
-        ids=[
-            "optin.py",
-            "config.py",
-            "tables.py",
-            "blocks.py",
-            "gitcmd.py",
-        ],
-    )
-    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
-    ):
-        """#590 and #610. A copy of this script taken without `lib/` exits 2,
-        with a sentence per missing module naming its path and what it is for.
-        It puts `lib/` on `sys.path` and then runs a plain `import`, which a
-        search for by-path loaders does not find, and it asks before the
-        import, at import, so any invocation argparse accepts reaches it:
-        `mode --check`, and not an empty one, because argparse's own usage
-        error is also exit 2 and would pass for the wrong reason."""
-        script = TARGET
-        name = script.rsplit("/", 1)[1]
-        alone = tmp_path / "alone"
-        alone.mkdir()
-        copy = alone / name
-        with open(os.path.join(ROOT, *script.split("/")), encoding="utf-8") as f:
-            copy.write_text(f.read(), encoding="utf-8")
-        repo = tmp_path / "repo"
-        repo.mkdir()
-        done = subprocess.run(
-            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=str(repo),
-        )
-        assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
 
 
 class Test_git_asked:

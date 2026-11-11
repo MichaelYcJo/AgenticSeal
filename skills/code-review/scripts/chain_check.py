@@ -138,7 +138,6 @@ and changes no exit code.
 
 import argparse
 import collections
-import importlib.util
 import json
 import os
 import posixpath
@@ -160,16 +159,15 @@ if __name__ == "__main__":
             _stream.reconfigure(encoding="utf-8", errors=_errors)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
-ROUTING = os.path.join(LIB, "routing.py")
-FIELDS_READER = os.path.join(LIB, "fields.py")
+# The modules this check reads, each as `lib/sibling.py#load` names it.
+READER = "skills/verify/scripts/unverified_check.py"
+ROUTING = "lib/routing.py"
+FIELDS_READER = "lib/fields.py"
 # `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
 # rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
-CHECK_LINES_READER = os.path.join(
-    HERE, "..", "..", "..", ".github", "scripts", "rules.py"
-)
+CHECK_LINES_READER = ".github/scripts/rules.py"
 
 # A thread's files, relative to its directory: `lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
@@ -256,16 +254,6 @@ CARRIED_SAYS = (
 )
 
 
-def load(path, name):
-    """Import a sibling script by path, or raise SystemExit naming it."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise SystemExit(f"chain-check: cannot load {path}")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def section_end(reader, lines, start):
     """The index of the line that ends the section opened at `start`: the
     first heading of its level or shallower, else `len(lines)`."""
@@ -277,17 +265,34 @@ def section_end(reader, lines, start):
     return len(lines)
 
 
+# `lib/sibling.py` loads every other module this check reads. Where it is
+# absent, the refusal is its own sentence about itself, spelt here because
+# the file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
 # Loaded once, here, and read by `main` and by every importer through this
-# name. As a command, a reader that will not load ends the run at exit 2
-# naming the file; imported, the error is raised and the importer decides
+# name. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As a
+# command, a reader that raises while it loads ends the run at exit 2
+# naming the error; imported, the error is raised and the importer decides
 # what a check that cannot read a record means to it.
 try:
-    SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
+    SHARED_READER = sibling.load(READER)
     # `lib/fields.py`, the one reader of a record's `seal` blocks.
-    FIELDS = load(FIELDS_READER, "agentic_fields_for_the_chain")
+    FIELDS = sibling.load(FIELDS_READER)
     # `lib/gitcmd.py`, which builds every git command `git` runs.
-    GITCMD = load(os.path.join(LIB, "gitcmd.py"), "agentic_gitcmd_for_the_chain")
-except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
+    GITCMD = sibling.load("lib/gitcmd.py")
+except (OSError, SyntaxError, ImportError) as _exc:
     if __name__ != "__main__":
         raise
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
@@ -1153,11 +1158,11 @@ _check_lines = None
 
 
 def check_lines_reader():
-    """`CHECK_LINES_READER`, loaded by path once, or Unreadable naming it."""
+    """`CHECK_LINES_READER`, loaded once, or Unreadable naming it."""
     global _check_lines
     if _check_lines is None:
         try:
-            _check_lines = load(CHECK_LINES_READER, "agentic_rules_for_the_chain")
+            _check_lines = sibling.load(CHECK_LINES_READER)
         except (OSError, SyntaxError, ImportError, SystemExit) as exc:
             raise Unreadable(
                 f"the check-line reader `.github/scripts/rules.py` would not load "
@@ -1528,11 +1533,11 @@ NO_BASELINE = (
 
 
 def parity_readers():
-    """`(config, gate)`: `lib/config.py` and `lib/gate.py`, loaded by path.
-    `gate.py` imports nothing since #1027, so the order no longer matters.
-    Raises what `load` raises."""
-    config = load(os.path.join(LIB, "config.py"), "agentic_config_for_parity")
-    gate = load(os.path.join(LIB, "gate.py"), "agentic_gate_for_parity")
+    """`(config, gate)`: `lib/config.py` and `lib/gate.py`. `gate.py`
+    imports nothing since #1027, so the order no longer matters. Raises what
+    `lib/sibling.py#load` raises."""
+    config = sibling.load("lib/config.py")
+    gate = sibling.load("lib/gate.py")
     return config, gate
 
 
@@ -1752,7 +1757,7 @@ def guarantee(reader, root, item, base, notices=None):
 # `seal pr-body` composes at HEAD for the one judged work item it carries.
 # `pr_body.py` loads this module at its own import, so the arm loads it
 # inside `pr_body_reader` and never at module level.
-PR_BODY = os.path.join(HERE, "pr_body.py")
+PR_BODY = "skills/code-review/scripts/pr_body.py"
 PR_FILE = "pr.md"
 BODY_LINE = "the pull request's body, line {line}: {why}"
 BODY_WHOLE = "the pull request's body: {why}"
@@ -1777,11 +1782,11 @@ _pr_body = None
 
 
 def pr_body_reader():
-    """`PR_BODY`, loaded by path once, or Unreadable naming it."""
+    """`PR_BODY`, loaded once, or Unreadable naming it."""
     global _pr_body
     if _pr_body is None:
         try:
-            _pr_body = load(PR_BODY, "agentic_pr_body_for_the_chain")
+            _pr_body = sibling.load(PR_BODY)
         except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as exc:
             raise Unreadable(
                 f"the body reader `skills/code-review/scripts/pr_body.py` would "
@@ -2050,8 +2055,8 @@ def main(argv=None):
 
     reader = SHARED_READER
     try:
-        routing = load(ROUTING, "agentic_routing")
-    except (OSError, SyntaxError, ImportError, SystemExit) as exc:
+        routing = sibling.load(ROUTING)
+    except (OSError, SyntaxError, ImportError) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2
     root = reader.repo_root(os.path.abspath(args.root))

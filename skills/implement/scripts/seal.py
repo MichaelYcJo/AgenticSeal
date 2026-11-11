@@ -174,55 +174,33 @@ TOOLS = {
     ),
 }
 
-# What each module this command imports from `lib/` is for, in the sentence
-# printed when it is missing. They are checked before the `import` lines,
-# because a plain `import` of an absent module dies with a
-# `ModuleNotFoundError` traceback at exit 1 (#610) -- and a search for
-# by-path loaders cannot see this shape, which is how #590 missed it.
-LIB_PURPOSES = {
-    "config.py": "it is what reads the root's config.json, whose Mode key "
-    "this command keeps",
-    "optin.py": "it is what finds the repository's seal/ root",
-    "tables.py": "it is the walker seal mode reads an old config.md through",
-    # `tables.py` imports it, so a `lib/` without it fails that import.
-    "blocks.py": "it is the walk tables.py reads a table through, which "
-    "tells a live row from one quoted in a fence or parked in a comment",
-    "gitcmd.py": "it is what builds the `git status` this command reads, the "
-    "same under any git configuration",
-}
-
-
-def refuse_without_lib(lib=LIB):
-    """Exit 2 with one sentence per `LIB_PURPOSES` module absent from
-    `lib`, naming its path and what it is for; return where all are there.
-
-    2 and not 1, because 1 here means *nothing was written* about a root this
-    command read, and a missing sibling means nothing was read at all. A
-    `SystemExit` carrying a string exits 1, so the sentences go to stderr and
-    the code is the int -- the shape `settle.py#load` has."""
-    missing = [
-        name for name in LIB_PURPOSES if not os.path.isfile(os.path.join(lib, name))
-    ]
-    if not missing:
-        return
-    for name in missing:
-        sys.stderr.write(
-            f"seal: cannot read {os.path.join(lib, name)}, and {LIB_PURPOSES[name]}.\n"
-        )
+# `lib/sibling.py` loads every module this command reads from `lib/`. Where
+# it is absent, the refusal is its own sentence about itself, spelt here
+# because the file that holds the sentence is the one missing; a plain
+# `import` of an absent module dies with a `ModuleNotFoundError` traceback at
+# exit 1 (#610). It runs at import, so any invocation argparse accepts
+# reaches it.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
     sys.stderr.write(
-        "This command ships under `skills/`, in the plugin that holds "
-        "`lib/`; a copy of one script taken on its own is not a plugin. "
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
         "Nothing was read.\n"
     )
-    raise SystemExit(2)
+    raise SystemExit(2) from None
 
-
-refuse_without_lib()
-sys.path.insert(0, LIB)
-import config as repo_config  # noqa: E402
-import gitcmd  # noqa: E402
-import optin  # noqa: E402
-import tables  # noqa: E402
+repo_config = sibling.load("lib/config.py")
+gitcmd = sibling.load("lib/gitcmd.py")
+optin = sibling.load("lib/optin.py")
+# `lib/tables.py` imports `lib/blocks.py` by its plain name, which finds this
+# instance, so a `lib/` without it is the loader's sentence at exit 2 rather
+# than the import's traceback.
+sibling.load("lib/blocks.py")
+tables = sibling.load("lib/tables.py")
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that

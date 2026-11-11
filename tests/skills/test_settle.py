@@ -50,7 +50,6 @@ from conftest import (
     line_of,
     load_module,
     mark_root,
-    names_path,
     op,
     spec,
     symlink_or_skip,
@@ -836,7 +835,7 @@ def records_in_place(tmp_path, name):
     top = tmp_path / "seal" / "threads" / name
     for rel in ("gaps.md", "frame/design.md", "frame/plan.md"):
         write(top, rel, "# x\n")
-    return top, settle.load(settle.READER, "agentic_unverified_reader")
+    return top, settle.sibling.load(settle.READER)
 
 
 class Test_misplaced:
@@ -2032,17 +2031,11 @@ class Test_main:
         item(repo, "1700000001-a", op("add", "U", new="Rule."))
         item(repo, "1700000002-b", op("add", "U", new="B."))
         commit(repo, "a and b")
-        real = settle.load
-
-        def load(path, name):
-            module = real(path, name)
-            if path == settle.RULES:
-                monkeypatch.setattr(
-                    module, "order", lambda r, f, ids, s: [(i, None) for i in ids]
-                )
-            return module
-
-        monkeypatch.setattr(settle, "load", load)
+        monkeypatch.setattr(
+            settle.sibling.load(settle.RULES),
+            "order",
+            lambda r, f, ids, s: [(i, None) for i in ids],
+        )
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         said = settle.UNORDERED.format(a="1700000001-a", b="1700000002-b")
@@ -2837,13 +2830,14 @@ class Test_main:
         for itself, and the opt-out arm then resolved it a second time, although
         `home_at(root, common)` exists for a caller that needs the value too and
         `lib/optin.py` documents the parameter with the measurement that created
-        it. Counted through the module `settle.load` hands `main`, and counted as
-        calls rather than processes: on a main worktree the resolver's fast path
-        costs no process, so a process count would have said nothing."""
+        it. Counted through the one module `lib/sibling.py#load` hands `main`,
+        and counted as calls rather than processes: on a main worktree the
+        resolver's fast path costs no process, so a process count would have
+        said nothing."""
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
-        optin = settle.load(settle.OPTIN, "agentic_optin_counted")
+        optin = settle.sibling.load(settle.OPTIN)
         calls, received = [], []
         common_dir, home_at = optin.git_common_dir, optin.home_at
 
@@ -2857,13 +2851,8 @@ class Test_main:
 
         # `home_at` reaches `git_common_dir` through the module global, so the
         # counter sees the resolver's own call as well as `main`'s.
-        optin.git_common_dir, optin.home_at = counted, recorded
-        real_load = settle.load
-        monkeypatch.setattr(
-            settle,
-            "load",
-            lambda path, name: optin if path == settle.OPTIN else real_load(path, name),
-        )
+        monkeypatch.setattr(optin, "git_common_dir", counted)
+        monkeypatch.setattr(optin, "home_at", recorded)
         assert settle.main(["--root", str(repo), "--released-at", "HEAD"]) == 2
         assert len(calls) == 1, calls
         assert received == [common_dir(os.path.abspath(str(repo)))], received
@@ -3675,66 +3664,6 @@ class Test_module:
         assert done.returncode == 0, done.stderr
         assert done.stdout.startswith("usage: seal settle"), done.stdout
 
-    @pytest.mark.parametrize(
-        "which, phrase",
-        [
-            ("READER", "it is where a record's open rows are read from"),
-            ("OPTIN", "it is what finds the repository's seal/ root"),
-            (
-                "ROUTING",
-                "it is what reads the branch a local work item's `routing.md` "
-                "names and counts a work item's round records",
-            ),
-            ("TABLES", "it is what reads a plan's *Judgments of the run* table"),
-            ("RULES", "it is what reads a design's `## Rule changes`"),
-            (
-                "FOLD_CHECK",
-                "it is what reads the index and the one read after an apply",
-            ),
-            (
-                "GITCMD",
-                "it is what holds what this command reads of `git log` to one "
-                "reading under any git configuration",
-            ),
-        ],
-    )
-    def test_each_sibling_is_refused_with_its_own_purpose(
-        self, which, phrase, monkeypatch, capsys
-    ):
-        """Round 1, ⬜ 5 — #590's second half, per file: the table entry for each
-        real sibling, not an entry the case put there itself. A copy taken alone
-        stops at `OPTIN` first, so the class case never reaches the other one."""
-        path = getattr(settle, which)
-        real = os.path.isfile
-        monkeypatch.setattr(
-            os.path, "isfile", lambda p: False if p == path else real(p)
-        )
-        with pytest.raises(SystemExit) as raised:
-            settle.load(path, "absent")
-        assert raised.value.code == 2
-        assert phrase in capsys.readouterr().err
-
-    def test_a_missing_sibling_reader_is_a_sentence_and_not_a_traceback(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """`spec_from_file_location` hands back a spec for any path ending in
-        `.py`, present or not, so a missing sibling reaches `exec_module` and dies
-        with `FileNotFoundError`. This case keeps `settle.load` from that shape:
-        the refusal is exit 2 on stderr, and it names what the missing file is
-        for, per file."""
-        missing = str(tmp_path / "not-here.py")
-        monkeypatch.setitem(
-            settle.PURPOSES, missing, "it is where the fold record is read from"
-        )
-        with pytest.raises(SystemExit) as raised:
-            settle.load(missing, "absent")
-        err = capsys.readouterr().err
-        assert raised.value.code == 2, raised.value
-        assert "not-here.py" in err, err
-        assert "fold record" in err, (
-            "the refusal does not say what the missing file was for"
-        )
-
     def test_surveys_docstring_does_not_invite_the_mutation_that_reopens_finding_4(
         self,
     ):
@@ -3757,27 +3686,13 @@ class Test_module:
         assert "does not take its candidates from here" in doc["survey"], doc["survey"]
         assert "not taken from `survey`" in doc["apply"], doc["apply"]
 
-    @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [
-            (
-                ["--root", "{root}"],
-                "it is what finds the repository's seal/ root",
-                "fold record",
-            )
-        ],
-        ids=["optin.py"],
-    )
-    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
-    ):
-        """#590. A copy of this script taken without its siblings exits 2, with
-        a sentence naming the missing path and what it is for: 2 means the
-        input or the tree was unusable and nothing was read, and a sibling that
-        is not beside the command is that kind. It loads `lib/optin.py`
-        before it reads the root, so `--root` reaches the loader. The loader
-        used to give every file the fold record's purpose, which is false of
-        `optin.py`, so that phrase must not appear."""
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """#590, and S4 of #1482. A copy of this script taken without its
+        siblings exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means the input or the tree was
+        unusable and nothing was read, and a sibling that is not beside the
+        command is that kind. The sentence names no purpose (#1482)."""
+        args = ["--root", "{root}"]
         script = TARGET
         name = script.rsplit("/", 1)[1]
         alone = tmp_path / "alone"
@@ -3795,15 +3710,9 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = settle.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
 
 
 class Test_threads:

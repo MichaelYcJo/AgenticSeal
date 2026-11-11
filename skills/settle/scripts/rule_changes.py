@@ -21,16 +21,16 @@ readers that excuse such a line: `.github/scripts/rules.py` and
 `literals`, `pins` and `copies` say what an operation takes out of a test
 and what its `to` repeats of another rule document, over texts their caller
 hands them, for `chain_check.py` to name as notices (#1216); a copy is read
-through `passages.py`, the paste check's reader, loaded by path.
+through `passages.py`, the paste check's reader, loaded on first use.
 `apply_op` places one operation in one document's text as the grammar
 places it, for `settle --draft` to write (#1217); it reads a table row
-through `lib/tables.py`, loaded by path.
+through `lib/tables.py`, loaded on first use.
 `settle` prints what they read and writes what `apply_op` returns; nothing
 here writes a file.
 
 Headings and fences are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
-`liveness`, `gfm_lines`, `blank_fences`, `comment_lines`), loaded by path,
+`liveness`, `gfm_lines`, `blank_fences`, `comment_lines`), loaded on first use,
 so this module spells no fence or heading rule of its own. A design is a
 record and carries no HTML comment, so `parse` reads it with no comment
 state and refuses a section line that begins with `<!--` (#1012); `headings`
@@ -41,16 +41,21 @@ policy documents.
 import ast
 import collections
 import glob
-import importlib.util
 import os
 import re
 import subprocess
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-PASSAGES = os.path.join(HERE, "passages.py")
-TABLES = os.path.join(HERE, "..", "..", "..", "lib", "tables.py")
-GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; the
+# import stands in each getter below, at the module's first use, so a copy
+# of this script taken on its own loads nothing until it is asked to read.
+sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
+# The modules this reads, each as `lib/sibling.py#load` names it.
+READER = "skills/verify/scripts/unverified_check.py"
+PASSAGES = "skills/settle/scripts/passages.py"
+TABLES = "lib/tables.py"
+GITCMD = "lib/gitcmd.py"
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -78,51 +83,35 @@ NEAR_HEADING = (
     "`## {heading}`, spelt exactly so"
 )
 
-_reader = None
-_passages = None
-_tables = None
-_gitcmd = None
-
 
 def reader():
-    global _reader
-    if _reader is None:
-        spec = importlib.util.spec_from_file_location("agentic_rules_reader", READER)
-        _reader = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_reader)
-    return _reader
+    """`unverified_check.py`, the line reader, loaded on first use."""
+    import sibling
+
+    return sibling.load(READER)
 
 
 def passages():
-    """`passages.py`, the paste check's reader, loaded by path once."""
-    global _passages
-    if _passages is None:
-        spec = importlib.util.spec_from_file_location("agentic_passages", PASSAGES)
-        _passages = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_passages)
-    return _passages
+    """`passages.py`, the paste check's reader, loaded on first use."""
+    import sibling
+
+    return sibling.load(PASSAGES)
 
 
 def tables():
     """`lib/tables.py`, the reader of a GFM table row held to
-    cmark-gfm, loaded by path once."""
-    global _tables
-    if _tables is None:
-        spec = importlib.util.spec_from_file_location("agentic_rules_tables", TABLES)
-        _tables = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_tables)
-    return _tables
+    cmark-gfm, loaded on first use."""
+    import sibling
+
+    return sibling.load(TABLES)
 
 
 def gitcmd():
     """`lib/gitcmd.py`, which builds a `git log` read the same under
-    any git configuration, loaded by path once."""
-    global _gitcmd
-    if _gitcmd is None:
-        spec = importlib.util.spec_from_file_location("agentic_rules_gitcmd", GITCMD)
-        _gitcmd = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_gitcmd)
-    return _gitcmd
+    any git configuration, loaded on first use."""
+    import sibling
+
+    return sibling.load(GITCMD)
 
 
 def heading_text(line):

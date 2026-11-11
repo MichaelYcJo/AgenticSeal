@@ -115,6 +115,20 @@ def test_a_script_reaches_the_modules_under_lib():
     }
 
 
+def test_a_script_reaches_what_it_hands_the_loader():
+    """S9 of #1482. A script loads every module but `lib/sibling.py`
+    through `sibling.load("<rel>")`, the path under the plugin root, so
+    `loaded_by` reads a string that is a tracked path in full. A walk that
+    read only the import of `sibling` would stop at the loader, and the set
+    above would shrink without failing."""
+    tracked = {"skills/x/g.py", "skills/y/d.py", "lib/sibling.py"}
+    text = 'import sibling\nD = sibling.load("skills/y/d.py")\n'
+    assert loaded_by("skills/x/g.py", text, tracked) == {
+        "lib/sibling.py",
+        "skills/y/d.py",
+    }
+
+
 # --- one number --------------------------------------------------------------
 
 
@@ -204,9 +218,11 @@ def loaded_by(rel, text, tracked):
     """The tracked `.py` files the module at `rel` loads in its own process:
     one it imports that sits beside it, where its `sys.path[0]` is, or in
     `lib/`, which a script that imports from it inserts before it; a bare
-    `<name>.py` beside it; and the path an
-    `os.path.join` spells whose last string part ends in `.py`, `..` left
-    out. A module that does not parse here loads nothing."""
+    `<name>.py` beside it; a string that is a tracked path in full, the
+    `/`-joined path under the root `lib/sibling.py#load` is handed; and
+    the path an `os.path.join` spells whose last string part ends in
+    `.py`, `..` left out. A module that does not parse here loads
+    nothing."""
     here = posixpath.dirname(rel)
     try:
         tree = ast.parse(text)
@@ -223,6 +239,8 @@ def loaded_by(rel, text, tracked):
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             if BARE_SCRIPT.fullmatch(node.value):
                 found.add(posixpath.join(here, node.value))
+            elif node.value in tracked:
+                found.add(node.value)
         if isinstance(node, ast.Call) and getattr(node.func, "attr", "") == "join":
             parts = [
                 a.value

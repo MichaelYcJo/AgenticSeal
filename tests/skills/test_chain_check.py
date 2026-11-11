@@ -34,7 +34,6 @@ from conftest import (
     commit_everything_as_e,
     config_json,
     mark_root,
-    names_path,
     parity_file,
     write,
 )
@@ -2701,9 +2700,14 @@ class Test_parity_readers:
         """A `lib/gate.py` that raises at import is raised to the caller,
         which `originals_of` turns into exit 2; nothing hands back a reader
         that did not load."""
-        shutil.copy(ROOT / "lib" / "config.py", tmp_path / "config.py")
-        (tmp_path / "gate.py").write_text("raise ImportError('planted')\n", "utf-8")
-        monkeypatch.setattr(chain, "LIB", str(tmp_path))
+        real = chain.sibling.load
+
+        def load(rel):
+            if rel == "lib/gate.py":
+                raise ImportError("planted")
+            return real(rel)
+
+        monkeypatch.setattr(chain.sibling, "load", load)
         with pytest.raises(ImportError, match="planted"):
             chain.parity_readers()
 
@@ -4614,21 +4618,14 @@ class Test_module:
             if isinstance(node, ast.FunctionDef) and node.name == "settled"
         ], f"{'/'.join(script)} defines a second `settled`"
 
-    @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [(["--baseline", "HEAD", "--root", "{root}"], "the shared reader", None)],
-        ids=["unverified_check.py"],
-    )
-    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
-    ):
-        """#590. A copy of this script taken without its siblings exits 2, with
-        a sentence naming the missing path and what it is for: 2 means the
-        input or the tree was unusable and nothing was read, and a sibling that
-        is not beside the command is that kind. It loads the shared reader at
-        import and `lib/routing.py` after argument parsing, so it is given
-        its one required flag. It quotes the `OSError`, whose path Windows
-        repr-escapes, which `names_path` reads."""
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """#590, and S4 of #1482. A copy of this script taken without its
+        siblings exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path, where it printed a line of its own: 2
+        means the input or the tree was unusable and nothing was read, and a
+        sibling that is not beside the command is that kind. It is given its
+        one required flag, so argparse's own exit 2 cannot pass for it."""
+        args = ["--baseline", "HEAD", "--root", "{root}"]
         script = TARGET
         name = script.rsplit("/", 1)[1]
         alone = tmp_path / "alone"
@@ -4646,15 +4643,9 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = chain.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
 
     def test_the_framers_mark_is_the_last_line_a_renderer_shows(self):
         """S10 of #664. The mark stands after a U+2028 on the file's last line,

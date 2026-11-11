@@ -41,9 +41,9 @@ this module does not read.
 `(key, value)` pairs and refuses pairs this reader would refuse.
 
 Standard library only; it imports `blocks` beside it. `chain_check.py`,
-`broad_gate.py` and `unverified_check.py` load it by path, as they load
-`lib/routing.py`; `seal_stamp.py`, which `seal stamp` runs, and
-`pr_body.py` reach it through `chain_check.FIELDS`.
+`broad_gate.py` and `unverified_check.py` load it through `lib/sibling.py`,
+as they load `lib/routing.py`; `seal_stamp.py`, which `seal stamp` runs,
+and `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
 import collections

@@ -36,7 +36,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import LS, ROOT, census_case, names_path, symlink_or_skip
+from conftest import LS, ROOT, census_case, symlink_or_skip
 
 TARGET = "skills/verify/scripts/payload_meter.py"
 
@@ -1415,49 +1415,16 @@ class Test_module:
         text = f"intro\n\nprose{LS}## Not a section\n\n## Real\nbody\n"
         assert meter.heading_starts(text) == [text.index("## Real")]
 
-    @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [
-            (
-                ["--root", "{root}", "--calibrate", "{root}/main.jsonl"],
-                "it is what reads a transcript's spawns",
-                None,
-            ),
-            # #584 and #1185: `--sections` loads `unverified_check.py` before
-            # it reads the root, and so does every read of a `CLAUDE.md` that
-            # exists. The sentence names both uses, and its purpose must not
-            # be the transcript sibling's.
-            (
-                ["--root", "{root}", "--sections"],
-                "it is what says where a fenced example, an HTML comment or a "
-                "code span stands in a file, so --sections cannot split a skill "
-                "at its headings and no import of a `CLAUDE.md` can be read",
-                "transcript",
-            ),
-            # #1430: every run counts the core hook's output, which
-            # `lib/core.py#rendered` defines, so a copy alone reaches it with
-            # no flag at all.
-            (
-                ["--root", "{root}"],
-                "it is what says what the core hook prints into a session",
-                "transcript",
-            ),
-        ],
-        ids=["session_cost.py", "unverified_check.py", "core.py"],
-    )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
+        self, tmp_path, meter
     ):
-        """#590 and #610. A copy of this script taken without its siblings exits
-        2, with a sentence naming the missing path and what it is for; here 1
-        means an input that could not be measured, and 2 that nothing was read.
-        It loads `session_cost.py` only under `--calibrate`, and `measure` calls
-        the loader before it opens the transcript, so the transcript named need
-        not exist; under `--sections` it calls that loader before it reads the
-        root, so the row reaches it in a directory with no `agents/` at all.
-        The copy stands at its path in a plugin that holds nothing else, so
-        `lib/core.py`, which every run loads after the calibration (#1430),
-        is named under the copy's plugin root too."""
+        """#590 and #610, and S4 of #1482. A copy of this script taken
+        without its siblings exits 2, with the loader's one sentence naming
+        the absent `lib/sibling.py` by its path; here 1 means an input that
+        could not be measured, and 2 that nothing was read. The copy stands
+        at its path in a plugin that holds nothing else, so the path is
+        under the copy's plugin root. The sentence names no purpose (#1482)."""
+        args = ["--root", "{root}"]
         script = TARGET
         alone = tmp_path / "alone"
         copy = alone.joinpath(*script.split("/"))
@@ -1474,27 +1441,20 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
+        said = meter.sibling.MISSING.format(path=str(alone / "lib" / "sibling.py"))
+        assert done.stderr == said + "\n", done.stderr
 
     def test_a_copy_without_the_scan_exits_2_on_a_run_that_reads_a_claude_md(
-        self, tmp_path
+        self, tmp_path, meter
     ):
         """#1185. Every read of a `CLAUDE.md` that exists asks
         `unverified_check.py` where its live text is, so a copy that holds
-        the core hook's module and not that sibling exits 2 with no flag at
-        all, and its sentence names the import reading. The row above with
-        no flag stops at `lib/core.py` first, so this copy carries it and
+        the loader and the core hook's module and not that sibling exits 2
+        with no flag at all, in the loader's sentence naming that sibling.
+        Every run loads `lib/core.py` first, so this copy carries it and
         `lib/optin.py`, the one module it loads."""
         alone = tmp_path / "alone"
-        for rel in (TARGET, "lib/core.py", "lib/optin.py"):
+        for rel in (TARGET, "lib/sibling.py", "lib/core.py", "lib/optin.py"):
             copy = alone.joinpath(*rel.split("/"))
             copy.parent.mkdir(parents=True, exist_ok=True)
             with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:
@@ -1519,8 +1479,10 @@ class Test_module:
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
         assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), done.stderr
-        assert "no import of a `CLAUDE.md` can be read" in done.stderr, done.stderr
+        reader = alone / "skills" / "verify" / "scripts" / "unverified_check.py"
+        assert meter.sibling.MISSING.format(path=str(reader)) in done.stderr, (
+            done.stderr
+        )
 
     def test_json_carries_the_same_numbers_as_the_text_and_no_machine_path(
         self, tmp_path

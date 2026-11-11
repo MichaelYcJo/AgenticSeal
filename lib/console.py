@@ -48,10 +48,11 @@ carries its reason in an exemption above the line
 point gives it by importing this module and calling `to_utf8()`, or by
 spelling the loop inline. A script that loads nothing from `lib/` at
 import spells the loop, because a load of this module would be one more load
-that can fail before the answer. Most of the scripts under `skills/*/scripts/`,
-and some under `.github/scripts/`, already reach `lib/` at import:
-`skills/implement/scripts/seal.py` imports its modules after checking they are
-there, and others load them by path, directly or through a sibling script.
+that can fail before the answer. Many of the scripts under `skills/*/scripts/`
+already reach `lib/` at import: each imports `lib/sibling.py` and loads the
+modules it reads through `sibling.load`, directly or through a sibling script,
+`skills/implement/scripts/seal.py` among them. Some under `.github/scripts/`
+load them by path.
 `skills/code-review/scripts/chain_check.py` runs its loop before it loads any
 of them, so that the refusal it prints when one will not load does not meet a
 console's code page. None of the others says why it copies the loop rather

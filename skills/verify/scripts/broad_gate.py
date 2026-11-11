@@ -116,8 +116,6 @@ refused, with nothing run, `--record` given among the refusals.
 """
 
 import argparse
-import functools
-import importlib.util
 import json
 import ntpath
 import os
@@ -133,22 +131,40 @@ import tempfile
 #
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
-# loaded by path the way `chain_check.py` loads `lib/routing.py`: it is the
-# one reader of `seal/config.json`, and a second reader would answer a
-# different question about the same file.
+# loaded through `lib/sibling.py` the way `chain_check.py` loads
+# `lib/routing.py`: it is the one reader of `seal/config.json`, and a second
+# reader would answer a different question about the same file. The modules
+# loaded are named as `lib/sibling.py#load` names them.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
-STAMP = os.path.join(HERE, "seal_stamp.py")
+STAMP = "skills/verify/scripts/seal_stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
 # `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
-CONFIG_READER = os.path.join(PLUGIN, "lib", "config.py")
+CONFIG_READER = "lib/config.py"
 # `lib/fields.py`, which assembles the run block `--record` appends and
 # reads the blocks already there (#1198).
-FIELDS_READER = os.path.join(PLUGIN, "lib", "fields.py")
-OPTIN = os.path.join(PLUGIN, "lib", "optin.py")
+FIELDS_READER = "lib/fields.py"
+OPTIN = "lib/optin.py"
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2. Where it is absent itself, the
+# refusal is the same sentence about it, spelt here because the file that
+# holds the sentence is the one missing.
+sys.path.insert(0, os.path.join(PLUGIN, "lib"))
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.join(PLUGIN, "lib", "sibling.py")
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 CONFIG = "config.json"
 KEY = "Broad gate"
@@ -195,45 +211,36 @@ class Refused(Exception):
     """A reason nothing ran (exit 2)."""
 
 
-def load(path, name):
-    """Import a sibling script by path, or raise `Refused`: where the file is
-    not there, and where executing it raises (#869) — `seal_stamp.py` reads
-    its disc's mark sprite at import and raises `SPRITE_MALFORMED`'s sentence
-    for one that is not in shape, which then ends the gate at exit 2 with
-    that sentence and nothing run, rather than in a traceback. The
-    exception's own sentence is what the person reads; one with none is
-    named by its type. A `SystemExit` is no `Exception` and keeps its own
-    exit."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None or not os.path.isfile(path):
-        raise Refused(f"cannot load {path} — this copy of the plugin is missing it")
-    mod = importlib.util.module_from_spec(spec)
+def sibling_module(rel):
+    """The module at REL through `lib/sibling.py#load`, or `Refused` where
+    executing it raises (#869): `seal_stamp.py` reads its disc's mark sprite
+    at import and raises `SPRITE_MALFORMED`'s sentence for one that is not
+    in shape, which then ends the gate at exit 2 with that sentence and
+    nothing run, rather than in a traceback. The exception's own sentence is
+    what the person reads; one with none is named by its type. A
+    `SystemExit` is no `Exception` and keeps its own exit, and so does the
+    loader's for an absent file."""
     try:
-        spec.loader.exec_module(mod)
+        return sibling.load(rel)
     except Exception as exc:
         said = str(exc) or type(exc).__name__
+        path = os.path.join(PLUGIN, *rel.split("/"))
         raise Refused(
             f"seal gate: {path} will not load, so nothing ran: {said}"
         ) from exc
-    return mod
 
 
-@functools.lru_cache(maxsize=1)
 def stamp_module():
     """`seal_stamp.py`, loaded once per process: `panel` asks it the one
     question both of them answer (`ref_is_commit`), and a case drives
     `panel` without a gate around it to have loaded it."""
-    return load(STAMP, "agentic_seal_stamp_for_broad_gate")
+    return sibling_module(STAMP)
 
 
-@functools.lru_cache(maxsize=1)
 def gitcmd_module():
     """`lib/gitcmd.py`, loaded once per process, or `Refused`. A
-    refusal is not cached, so each later call raises it again."""
-    return load(
-        os.path.join(PLUGIN, "lib", "gitcmd.py"),
-        "agentic_gitcmd_for_broad_gate",
-    )
+    refusal leaves nothing loaded, so each later call raises it again."""
+    return sibling_module("lib/gitcmd.py")
 
 
 def git(root, *args):
@@ -644,7 +651,7 @@ def seal_home(root):
     the project keeps for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
-    optin = load(OPTIN, "agentic_optin_for_broad_gate")
+    optin = sibling_module(OPTIN)
     for found in optin.home_paths(root):
         if found and os.path.isdir(found) and optin.marked(found):
             return found
@@ -663,7 +670,7 @@ def broad_command(home):
     with nothing run. Read as no key, an unreadable file was reported as a
     missing one, which sent a person to add a key the file already held,
     and a doubled key ran one of its commands."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
+    config = sibling_module(CONFIG_READER)
     pairs, refused = config.config_pairs(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
@@ -1778,7 +1785,7 @@ def write_gate_file(item, tree, base):
         held = f"# {name} {chr(0x2014)} broad gate\n"
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused(f"seal gate: {path} could not be read ({exc})") from exc
-    fields = load(FIELDS_READER, "agentic_fields_for_broad_gate")
+    fields = sibling_module(FIELDS_READER)
     value = f"{tree} against {base}"
     try:
         block = fields.assemble([(fields.RUN, value)], fields.GATE)
@@ -1827,8 +1834,8 @@ def rounds_rows(item):
     records = round_records(item)
     rows = [("rounds", str(len(records)))]
     try:
-        chain = load(CHAIN, "agentic_chain_check_for_broad_gate")
-    except Refused:  # a label never stops a run that passed
+        chain = sibling_module("skills/code-review/scripts/chain_check.py")
+    except (Refused, SystemExit):  # a label never stops a run that passed
         return rows
     stamp = stamp_module()
     reader = chain.SHARED_READER
@@ -2210,7 +2217,7 @@ def gate(args, ascii_marks=False):
         # The two places as `optin.home_paths` gives them, as `seal mode`
         # prints them: beside a project's own `seal/` the shared one takes
         # the second name, which a literal `<repo>/seal/` would misname.
-        shared, local = load(OPTIN, "agentic_optin_for_broad_gate").home_paths(root)
+        shared, local = sibling_module(OPTIN).home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
@@ -2417,7 +2424,7 @@ def main(argv=None, console_wants_ascii=False):
     found it, negated — `__main__` asks before it reconfigures the
     streams. A caller in process names it, or gets the owner's marks."""
     try:
-        load(STAMP, "agentic_seal_stamp_for_broad_gate")
+        sibling_module(STAMP)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
         return 2
@@ -2501,7 +2508,7 @@ if __name__ == "__main__":
     # (`seal_stamp.py` measured why).
     # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
     try:
-        _stamp = load(STAMP, "agentic_seal_stamp_for_broad_gate")
+        _stamp = sibling_module(STAMP)
     except Refused as _exc:
         sys.stderr.write(str(_exc) + "\n")
         sys.exit(2)

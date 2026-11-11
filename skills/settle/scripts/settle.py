@@ -181,7 +181,6 @@ refuses `seal` with 2 first.
 """
 
 import argparse
-import importlib.util
 import json
 import os
 import re
@@ -190,30 +189,32 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
-ROUTING = os.path.join(HERE, "..", "..", "..", "lib", "routing.py")
-RULES = os.path.join(HERE, "rule_changes.py")
-FOLD_CHECK = os.path.join(HERE, "fold_check.py")
-TABLES = os.path.join(HERE, "..", "..", "..", "lib", "tables.py")
-GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
+# The modules this command reads, each as `lib/sibling.py#load` names it.
+READER = "skills/verify/scripts/unverified_check.py"
+OPTIN = "lib/optin.py"
+ROUTING = "lib/routing.py"
+RULES = "skills/settle/scripts/rule_changes.py"
+FOLD_CHECK = "skills/settle/scripts/fold_check.py"
+TABLES = "lib/tables.py"
+GITCMD = "lib/gitcmd.py"
 
-# What each sibling is for, in the sentence `load` prints when it is missing.
-PURPOSES = {
-    READER: "it is where a record's open rows are read from",
-    OPTIN: "it is what finds the repository's seal/ root",
-    ROUTING: (
-        "it is what reads the branch a local work item's `routing.md` names "
-        "and counts a work item's round records"
-    ),
-    RULES: "it is what reads a design's `## Rule changes`",
-    FOLD_CHECK: "it is what reads the index and the one read after an apply",
-    TABLES: "it is what reads a plan's *Judgments of the run* table",
-    GITCMD: (
-        "it is what holds what this command reads of `git log` to one "
-        "reading under any git configuration"
-    ),
-}
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2 (#590). Where it is absent itself,
+# the refusal is the same sentence about it, spelt here because the file
+# that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 # The sub-directory of the root that holds the work items:
 # `lib/optin.py#WORK_ITEMS`.
@@ -247,31 +248,6 @@ def plural(count, many="s", one=""):
     """`s` unless there is one of them. Every count this prints is read by a
     person, and `1 work items` is the tell that nobody read the output."""
     return one if count == 1 else many
-
-
-def load(path, name):
-    """Import a sibling script by path, or refuse with a sentence saying what
-    the missing file is for — its `PURPOSES` entry — and exit 2.
-
-    Not a bare `exec_module`: `spec_from_file_location` hands back a spec for
-    any path ending in `.py`, present or not, so a missing reader would raise
-    `FileNotFoundError` — a traceback where every failure here is a sentence.
-    Exit 2 and not 1, because nothing about the tree has been read (#590)."""
-    purpose = PURPOSES.get(path, "this command cannot run without it")
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"settle: cannot read {path}, and {purpose}. This command ships "
-            "beside it under `skills/`; a copy of one script taken on its own "
-            "is not a plugin. Nothing was read.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        sys.stderr.write(f"settle: cannot load {path}, and {purpose}.\n")
-        raise SystemExit(2)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 # --- what the tree says ----------------------------------------------------
@@ -514,9 +490,7 @@ def git_run(root, *args, given=None):
     `git_out` and the batched readers start their `git` here. Raises
     `RuntimeError`, saying what `git` said, where it fails."""
     r = subprocess.run(
-        load(GITCMD, "agentic_gitcmd_for_settle").argv(
-            "-C", root, "--literal-pathspecs", *args
-        ),
+        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
         input=given,
         capture_output=True,
     )
@@ -820,7 +794,7 @@ def released_local(root, records, ref, ids, specs):
     asked once per branch, and not for a work item that names none. Raises
     `Unasked` where `gh` cannot be asked: every work item would then read as
     unreleased, and the run would say there is nothing to settle."""
-    routing = load(ROUTING, "agentic_routing_for_settle")
+    routing = sibling.load(ROUTING)
     asked, merged, why = {}, {}, {}
     for work_item_id in ids:
         branch = declared_branch(records, work_item_id, routing, specs)
@@ -1185,7 +1159,7 @@ def judgments(records, ids, specs):
     Each plan is read by `plan_rows`, the reader the plans earlier settles
     removed are read by (`earlier_judgments`). A plan with no such section
     and no near heading holds no judgment and is in neither."""
-    routing = load(ROUTING, "agentic_routing_for_settle")
+    routing = sibling.load(ROUTING)
     groups, unread = {}, []
     for work_item_id in ids:
         text = read_text(records, f"{specs}/{work_item_id}/{PLAN}")
@@ -1231,8 +1205,8 @@ def plan_rows(text):
     (`unverified_check.py#live_lines`). The table is read through
     `lib/tables.py#gfm_table` over the section's lines alone, and
     nothing here grades a cell."""
-    rules = load(RULES, "agentic_rule_changes")
-    tables = load(TABLES, "agentic_tables_for_settle")
+    rules = sibling.load(RULES)
+    tables = sibling.load(TABLES)
     lines = rules.reader().gfm_lines(text)
     marks = rules.headings(lines)
     unread = [
@@ -1432,7 +1406,7 @@ def timeline(root, ref, ids, reader, records, specs, merged=None):
     (`Parsed.unread`), is to be read whole; one holding the no-change
     block has nothing to write; a directory with no `frame/design.md` states no
     rule."""
-    rules = load(RULES, "agentic_rule_changes")
+    rules = sibling.load(RULES)
     policy = reader.policy_root(root)
     parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
@@ -1540,7 +1514,7 @@ def survey(root, ref, home=None, every=False):
 
     None where `ref` does not resolve. Raises `Unasked` where local mode
     needs `gh` and it cannot be asked."""
-    home = home or under(root, load(OPTIN, "agentic_optin").HOME)
+    home = home or under(root, sibling.load(OPTIN).HOME)
     local, records = records_of(root, home)
     specs = threads(home)
     present = work_items(records, specs)
@@ -1554,7 +1528,7 @@ def survey(root, ref, home=None, every=False):
         on_base = released(root, ref, specs)
         if on_base is None:
             return None
-    reader = load(READER, "agentic_unverified_reader")
+    reader = sibling.load(READER)
     ids = [i for i in present if i in on_base]
     found = {
         "ref": ref,
@@ -1612,9 +1586,7 @@ def git_fields(root, *args):
     """The NUL-separated fields of `git ARGS` run at ROOT with every
     pathspec literal, or [] where git exits non-zero."""
     r = subprocess.run(
-        load(GITCMD, "agentic_gitcmd_for_settle").argv(
-            "-C", root, "--literal-pathspecs", *args
-        ),
+        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
         capture_output=True,
     )
     if r.returncode != 0:
@@ -1935,7 +1907,7 @@ def draft(found, root, out):
     `remove` empties is deleted. Each operation not placed is
     printed with its reason, the rest go on, and nothing decides which
     operation is the latest: the exit code is 0 whatever was placed."""
-    rules = load(RULES, "agentic_rule_changes")
+    rules = sibling.load(RULES)
     texts, placed, total = {}, 0, 0
     for work_item_id, ops in found["timeline"]["specs"]:
         for op in ops:
@@ -1958,7 +1930,7 @@ def draft(found, root, out):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8", newline="") as f:
             f.write(text)
-    policy = load(READER, "agentic_unverified_reader").policy_root(root)
+    policy = sibling.load(READER).policy_root(root)
     out.write(f"placed {placed} of {total} operation{plural(total)} in {policy}/\n")
     out.write(DRAFTED)
     return 0
@@ -1977,7 +1949,7 @@ def write_after(root, policy, out):
     read by `fold_check.py` over the policy root the settling session wrote.
     A row it cannot read is said in its own sentence, never as a traceback
     after the removals."""
-    fold = load(FOLD_CHECK, "agentic_fold_check_for_settle")
+    fold = sibling.load(FOLD_CHECK)
     try:
         ceiling = fold.declared(fold.seal_home(root))[0]
         lines = list(fold.index_problems(root, policy) or [])
@@ -2020,7 +1992,7 @@ def apply(found, root, out):
     gives *released*, which only git answers, and in local mode `gh` with
     git. Every directory is classified before the first removal, so the
     `Unasked` and `Unread` that `notes` raises leave every one in place."""
-    reader = load(READER, "agentic_unverified_reader")
+    reader = sibling.load(READER)
     records, specs = found["records"], found["threads"]
     ids = sorted(set(work_items(records, specs)) & set(found["released"]))
     held = {i: reader.open_record_rows(records, f"{specs}/{i}") for i in ids}
@@ -2145,7 +2117,7 @@ def main(argv=None):
     root = os.path.abspath(args.root or os.getcwd())
     # The root is resolved through the one resolver, `lib/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
-    optin = load(OPTIN, "agentic_optin")
+    optin = sibling.load(OPTIN)
     # The repository's top, as `fold_check.py` resolves it: the policy root,
     # the tracked files and `tests/` are read from it, and a subdirectory
     # holds none of them. `repo_root` answers "" outside a repository, where

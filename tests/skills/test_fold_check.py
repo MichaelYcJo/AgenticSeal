@@ -24,7 +24,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, config_json, load_module, mark_root, names_path
+from conftest import ROOT, census_case, config_json, load_module, mark_root
 
 TARGET = "skills/settle/scripts/fold_check.py"
 
@@ -364,26 +364,13 @@ class Test_module:
     def test_the_estimate_is_utf8_bytes_halved_rounded_up(self):
         assert [fold_check.tokens(t) for t in ("", "ab", "abc", "한")] == [0, 1, 2, 2]
 
-    @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [
-            (
-                ["--root", "{root}"],
-                "it is what finds the repository's seal/ root",
-                "fold's markers",
-            )
-        ],
-        ids=["optin.py"],
-    )
-    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
-    ):
-        """#590. A copy of this script taken without its siblings exits 2, with
-        a sentence naming the missing path and what it is for: 2 means the
-        input or the tree was unusable and nothing was read, and a sibling that
-        is not beside the command is that kind. It loads `lib/optin.py`
-        before it reads the root, so `--root` reaches the loader, and the
-        sentence is not the fold markers' purpose."""
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """#590, and S4 of #1482. A copy of this script taken without its
+        siblings exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means the input or the tree was
+        unusable and nothing was read, and a sibling that is not beside the
+        command is that kind. The sentence names no purpose (#1482)."""
+        args = ["--root", "{root}"]
         script = TARGET
         name = script.rsplit("/", 1)[1]
         alone = tmp_path / "alone"
@@ -401,15 +388,9 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = fold_check.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
 
     def test_fold_check_keeps_no_copy_of_its_own(self):
         """The copy `fold_check.py` held while the reader was being rewritten on

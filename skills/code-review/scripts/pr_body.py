@@ -113,7 +113,6 @@ import argparse
 import difflib
 import fnmatch
 import html
-import importlib.util
 import json
 import os
 import posixpath
@@ -132,18 +131,23 @@ if __name__ == "__main__":
             _stream.reconfigure(encoding="utf-8", errors=_errors)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CHAIN_CHECK = os.path.join(HERE, "chain_check.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
 
-
-def _load(path, name):
-    """Import a sibling script by path, or raise ImportError naming it."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
+# `lib/sibling.py` loads every other module this command reads. Where it is
+# absent, the refusal is its own sentence about itself, spelt here because
+# the file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 # Loaded once, here: `chain_check.py` with the block reader and the shared
 # markdown reader it loads at its import,
@@ -152,22 +156,16 @@ def _load(path, name):
 # `lib/config.py`, the one reader of a `seal/config.json` key, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
 # reader of a closing keyword. The plugin ships from the repository root, so
-# `.github/scripts/` stands three levels above HERE in a clone and in an
-# installed copy alike. As a command, a module that will not load ends the
-# run at exit 2; imported, the error is raised to the importer.
+# `.github/scripts/` stands in an installed copy as in a clone. An absent
+# file is `lib/sibling.py#load`'s sentence and exit 2. As a command, a
+# module that raises while it loads ends the run at exit 2; imported, the
+# error is raised to the importer.
 try:
-    CHAIN = _load(CHAIN_CHECK, "agentic_chain_check_for_the_pr_body")
-    ROUTING = CHAIN.load(CHAIN.ROUTING, "agentic_routing_for_the_pr_body")
-    CONFIG = CHAIN.load(
-        os.path.join(CHAIN.LIB, "config.py"), "agentic_config_for_the_pr_body"
-    )
-    CLOSER = _load(
-        os.path.join(
-            HERE, "..", "..", "..", ".github", "scripts", "close_issues_on_release.py"
-        ),
-        "agentic_closer_for_the_pr_body",
-    )
-except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
+    CHAIN = sibling.load("skills/code-review/scripts/chain_check.py")
+    ROUTING = sibling.load("lib/routing.py")
+    CONFIG = sibling.load("lib/config.py")
+    CLOSER = sibling.load(".github/scripts/close_issues_on_release.py")
+except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
     print(

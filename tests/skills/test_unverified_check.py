@@ -1451,10 +1451,15 @@ class Test_references_at:
         assert UC.references_at(str(joined))[1] is None
         assert UC.references_at(str(plain))[1] == ()
 
-    def test_refuses_to_fail_a_copy_with_no_lib_beside_it(
-        self, joined, monkeypatch, tmp_path
-    ):
-        monkeypatch.setattr(UC, "LIB", str(tmp_path / "no-lib-here"))
+    def test_refuses_to_fail_where_lib_will_not_load(self, joined, monkeypatch):
+        real = UC.sibling.load
+
+        def load(rel):
+            if rel == "lib/config.py":
+                raise ImportError("planted")
+            return real(rel)
+
+        monkeypatch.setattr(UC.sibling, "load", load)
         assert UC.references_at(str(joined)) is None
 
 
@@ -1971,12 +1976,17 @@ class Test_main:
         assert run([str(joined / TEAM / "gaps.md")]) == 1
         assert run([str(joined / "specs")]) == 1
 
-    def test_refuses_nothing_less_in_a_copy_with_no_lib_beside_it(
-        self, joined, tmp_path, monkeypatch
-    ):
-        """A copy taken alone reads every overview, as it did before
-        reference roots existed."""
-        monkeypatch.setattr(UC, "LIB", str(tmp_path / "no-lib-here"))
+    def test_refuses_nothing_less_where_lib_will_not_load(self, joined, monkeypatch):
+        """Where `lib/config.py` raises while it loads, the walk reads every
+        overview, as it did before reference roots existed."""
+        real = UC.sibling.load
+
+        def load(rel):
+            if rel == "lib/config.py":
+                raise ImportError("planted")
+            return real(rel)
+
+        monkeypatch.setattr(UC.sibling, "load", load)
         assert run([str(joined)]) == 1
 
 

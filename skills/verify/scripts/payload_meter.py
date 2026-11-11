@@ -92,7 +92,6 @@ chained: the after-number of one work item is the before-number of the next.
 
 import argparse
 import datetime as dt
-import importlib.util
 import itertools
 import json
 import os
@@ -100,6 +99,26 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2: here 1 means an input that could
+# not be measured, and a copy of this script taken without its siblings is
+# a broken plugin copy, where nothing ran (#610). Where it is absent itself,
+# the refusal is the same sentence about it, spelt here because the file
+# that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 # The ratio an estimate rests on when nothing measured one: no `--calibrate`
 # and no `--baseline` carrying ratios. Between the three measured agents
@@ -138,85 +157,23 @@ SESSION_BASIS = (
 def _session_cost():
     """The transcript helpers, imported from the sibling script rather than
     re-derived: how a delegating call names what it spawned, and where a
-    run's subagent transcripts are.
-
-    The file is checked for first, because `spec_from_file_location` hands
-    back a spec for a missing `.py` path and `exec_module` then dies with a
-    `FileNotFoundError` traceback at exit 1 -- which reads as *this
-    transcript could not be measured* and sends the reader to the transcript
-    (#610). A copy of this script taken without its sibling is a broken
-    plugin copy, where nothing ran, so it exits 2: the sentence to stderr,
-    then the int."""
-    path = os.path.join(HERE, "session_cost.py")
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"seal payload: cannot read {path}, and it is what reads a "
-            "transcript's spawns and finds their subagent transcripts. This "
-            "command ships beside it under `skills/`; a copy of one script "
-            "taken on its own is not a plugin. Nothing was measured.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location("agentic_session_cost", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-_reader = None
+    run's subagent transcripts are."""
+    return sibling.load("skills/verify/scripts/session_cost.py")
 
 
 def _fence_rule():
-    """`unverified_check.py`, loaded once, for its two uses here: the fence
-    delimiter rule `heading_starts` asks where `--sections` splits a skill
-    at its headings (#584), and the scan of fences, HTML comments and code
-    spans `imports_of` asks for each `CLAUDE.md` and imported file that
-    exists (#1185). A missing file is `_session_cost`'s shape: a sentence to
-    stderr, then exit 2."""
-    global _reader
-    if _reader is None:
-        path = os.path.join(HERE, "unverified_check.py")
-        if not os.path.isfile(path):
-            sys.stderr.write(
-                f"seal payload: cannot read {path}, and it is what says where "
-                "a fenced example, an HTML comment or a code span stands in a "
-                "file, so --sections cannot split a skill at its headings and "
-                "no import of a `CLAUDE.md` can be read. This command ships "
-                "beside it under `skills/`; a copy of one script taken on its "
-                "own is not a plugin. Nothing was measured.\n"
-            )
-            raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _reader = module
-    return _reader
-
-
-_core_module = None
+    """`unverified_check.py`, for its two uses here: the fence delimiter
+    rule `heading_starts` asks where `--sections` splits a skill at its
+    headings (#584), and the scan of fences, HTML comments and code spans
+    `imports_of` asks for each `CLAUDE.md` and imported file that exists
+    (#1185)."""
+    return sibling.load("skills/verify/scripts/unverified_check.py")
 
 
 def _core():
     """`lib/core.py` of the plugin around this script, the one definition of
-    what the core hook prints, loaded once. A copy of this script taken
-    without the plugin has none, which is `_session_cost`'s shape: a sentence
-    to stderr, then exit 2."""
-    global _core_module
-    if _core_module is None:
-        path = os.path.join(plugin_root(), "lib", "core.py")
-        if not os.path.isfile(path):
-            sys.stderr.write(
-                f"seal payload: cannot read {path}, and it is what says what "
-                "the core hook prints into a session, whose bytes the session "
-                "table counts. This command ships beside it in the plugin; a "
-                "copy of one script taken on its own is not a plugin. Nothing "
-                "was measured.\n"
-            )
-            raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location("agentic_payload_core", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _core_module = module
-    return _core_module
+    what the core hook prints."""
+    return sibling.load("lib/core.py")
 
 
 class CalibrationError(Exception):

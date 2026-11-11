@@ -8,17 +8,21 @@ files are compared by (`windows`). `skills/code-review/scripts/chain_check.py`
 reads a design's `to` through the same functions, through
 `skills/settle/scripts/rule_changes.py#copies`, so the notice and the test
 agree on what a copy is. A heading line is told by
-`skills/verify/scripts/unverified_check.py#heading_level`, loaded by path,
-so this module spells no heading rule of its own. Nothing here reads a
+`skills/verify/scripts/unverified_check.py#heading_level`, loaded through
+`lib/sibling.py`, so this module spells no heading rule of its own. Nothing here reads a
 document or runs a command: each caller lists and reads its own files.
 """
 
-import importlib.util
 import os
 import re
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; the
+# import stands at the first read of a heading, so a copy of this module
+# taken on its own loads nothing until it reads one.
+sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
+READER = "skills/verify/scripts/unverified_check.py"
 
 # A run of this many consecutive words is longer than any phrase two rule
 # documents share by writing about the same mechanism, and shorter than the
@@ -36,17 +40,12 @@ SECTION = re.compile(r"`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
 SECTION_TOKEN = " section-citation "
 STRIP = str.maketrans("", "", "`*|>#")
 
-_reader = None
-
 
 def _heading_level(line):
     """`unverified_check.py#heading_level` of LINE, its module loaded once."""
-    global _reader
-    if _reader is None:
-        spec = importlib.util.spec_from_file_location("agentic_passages_reader", READER)
-        _reader = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_reader)
-    return _reader.heading_level(line)
+    import sibling
+
+    return sibling.load(READER).heading_level(line)
 
 
 def in_corpus(rel):

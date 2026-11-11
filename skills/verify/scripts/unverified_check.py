@@ -48,32 +48,24 @@ top level (`absent_root`); and work items none of which carries a `gaps.md`
 """
 
 import argparse
-import importlib.util
 import os
 import re
 import subprocess
 import sys
 
 # `lib/` beside this script, from which the fence rule, the line split,
-# the `Reference specs` key's reader and the root's resolver are loaded by
-# path (#688, #1005).
+# the `Reference specs` key's reader and the root's resolver are loaded
+# through `lib/sibling.py` (#688, #1005). A module under `lib/` imports
+# nothing from `skills/`, so this module asks `lib/`'s copy rather than the
+# other way round: `blocks.py`, the one place the fence delimiter rule and
+# the GFM line split are written, and `fields.py`, the one place a record's
+# comment line is said.
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
+sys.path.insert(0, LIB)
+import sibling  # noqa: E402
 
-
-def _load_lib(name, as_name):
-    """`lib/<name>`, run as module AS_NAME. A module under `lib/` imports
-    nothing from `skills/`, so this module asks `lib/`'s copy rather than the
-    other way round: `blocks.py`, the one place the fence delimiter rule and
-    the GFM line split are written, and `fields.py`, the one place a record's
-    comment line is said."""
-    spec = importlib.util.spec_from_file_location(as_name, os.path.join(LIB, name))
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-_BLOCKS = _load_lib("blocks.py", "agentic_blocks_for_unverified")
+_BLOCKS = sibling.load("lib/blocks.py")
 # The fence delimiter rule, CommonMark 4.5 (#491, #444, #584): `fence_opener`
 # says which fence a line opens and `fence_closes` whether a line closes it.
 # The readers of this module ask them, `fence_spans` and through it
@@ -158,7 +150,7 @@ CLOSER = "-->"
 # once, in `lib/fields.py`, whose `read` says it of a `guarantee.md` and a
 # `trail/gate.md`: `check_text` here, `chain_check.py` for a round record, and
 # `rule_changes.py#parse` for a design's `## Rule changes` say it from here.
-COMMENT_LINE = _load_lib("fields.py", "agentic_fields_for_unverified").COMMENT_LINE
+COMMENT_LINE = sibling.load("lib/fields.py").COMMENT_LINE
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
 SKIP_DIRS = {
@@ -952,16 +944,8 @@ def config_at(top):
     repository at `top`: the root as `lib/optin.py#home_at` resolves it, and
     the name `lib/optin.py#home_name` gives, "" where the root is local or
     absent."""
-    modules = []
-    for name in ("config", "optin"):
-        path = os.path.join(LIB, f"{name}.py")
-        spec = importlib.util.spec_from_file_location(
-            f"agentic_{name}_for_unverified", path
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        modules.append(module)
-    config, resolver = modules
+    config = sibling.load("lib/config.py")
+    resolver = sibling.load("lib/optin.py")
     common = resolver.git_common_dir(top)
     return config, resolver.home_at(top, common), resolver.home_name(top, common)
 
@@ -970,13 +954,12 @@ def references_at(top):
     """`(lib/config.py, roots, name)` for the repository at `top` — the
     module holding `under_reference_root`, what the key names under the root
     `lib/optin.py#home_at` resolves, and that root's name in the tree
-    (`config_at`) — or None for a copy of this script with no `lib/` beside
-    it.
+    (`config_at`) — or None where one of the two raises while it loads or
+    reads. An absent one is `lib/sibling.py#load`'s sentence at exit 2.
 
-    None prunes nothing, which reads more and never less: a copy taken alone
-    keeps the walk it had before reference roots existed, rather than
-    refusing a run that needed none of this. Read once per path a run is
-    handed, so nothing is cached."""
+    None prunes nothing, which reads more and never less: the walk is the
+    one it had before reference roots existed, rather than refusing a run
+    that needed none of this. Read once per path a run is handed."""
     try:
         config, home, name = config_at(top)
         return config, config.reference_roots(home, name), name
@@ -994,7 +977,7 @@ def policy_root(top):
 def reference_rule(start):
     """A predicate on a disk directory — True for one the walk from `start`
     leaves out — or None where nothing is left out: `start` outside a git
-    repository, a copy with no `lib/`, or `start` itself inside a
+    repository, a `lib/` that will not load, or `start` itself inside a
     reference root, which the person named and so asked for. Every
     directory the walk meets is under `start`, so under `top` as well, and
     has a repository-relative form."""
@@ -1145,20 +1128,10 @@ def merge_base(root, ref):
     return r.stdout.strip() or None
 
 
-_rules = None
-
-
 def rule_changes():
     """`skills/settle/scripts/rule_changes.py`, the one reader of a design's
-    `## Rule changes`, loaded by path once."""
-    global _rules
-    if _rules is None:
-        here = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join(here, "..", "..", "settle", "scripts", "rule_changes.py")
-        spec = importlib.util.spec_from_file_location("agentic_rule_changes", path)
-        _rules = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_rules)
-    return _rules
+    `## Rule changes`, loaded on first use."""
+    return sibling.load("skills/settle/scripts/rule_changes.py")
 
 
 def settled(root, ref, directories):
@@ -1240,7 +1213,7 @@ def root_name(top):
     None or holds no shared root. That is the name every root had before
     the second one (#1059), the one a local root keeps, and the one each
     fixture that commits a `seal/` with no marker is read under."""
-    optin = _load_lib("optin.py", "agentic_optin_for_unverified")
+    optin = sibling.load("lib/optin.py")
     return (top and optin.home_name(top)) or optin.HOME
 
 
@@ -1304,7 +1277,7 @@ def absent_root(path):
     found = repo_root(top)
     if found is None or not os.path.samefile(found, top):
         return False
-    optin = _load_lib("optin.py", "agentic_optin_for_unverified")
+    optin = sibling.load("lib/optin.py")
     shared = optin.home_paths(found, optin.git_common_dir(found))[0]
     return os.path.basename(parent) == os.path.basename(shared)
 

@@ -2,7 +2,7 @@
 """coordinates — where a clause of a markdown file begins and ends, and the
 hash of what it holds.
 
-No command runs it. Its one reader, `pact_check.py`, loads it by path to
+No command runs it. Its one reader, `pact_check.py`, loads it to
 grade a pact anchor: the anchor's `Clause` cell is a heading path, which
 `heading_path` resolves over the lines `markdown_lines` shows, and its
 `Hash` cell is `content_hash` of that region, `HASH_LEN` hex digits long.
@@ -14,31 +14,31 @@ not a change and reindenting is.
 
 import functools
 import hashlib
-import importlib.util
 import os
 import re
+import sys
 
 HASH_LEN = 8
 
 # The fence, heading and line rules are the shared reader's,
 # `unverified_check.py` beside this file, which every reader of markdown and
-# record text asks.
+# record text asks. `lib/` stands first on `sys.path`, where `lib/sibling.py`
+# is imported from at the reader's first use.
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "unverified_check.py")
+sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
+READER = "skills/verify/scripts/unverified_check.py"
 
 
-@functools.cache
 def shared_reader():
-    """The shared reader's module, loaded once by path.
+    """The shared reader's module, loaded on first use.
 
-    A reader that is not there, or will not load, raises: a plugin whose
-    shared reader is broken has every other gate broken too, and a fallback
-    would hide that here alone.
+    A reader that is not there, or will not load, ends the run or raises: a
+    plugin whose shared reader is broken has every other gate broken too,
+    and a fallback would hide that here alone.
     """
-    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", READER)
-    reader = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(reader)
-    return reader
+    import sibling
+
+    return sibling.load(READER)
 
 
 def quoted_lines(lines):
