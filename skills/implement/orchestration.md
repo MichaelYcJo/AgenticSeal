@@ -28,10 +28,9 @@ lifetimes* states (contract rule 11).
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
-   once. The orchestrator's own commands, its commits, the broad run and
-   the removal of its scratch files among them, follow contract rule 21,
-   which the orchestrator opens once in `skills/agent-contract/SKILL.md`
-   beside the core.
+   once. The orchestrator's own commands, its commits and the broad run
+   among them, follow contract rule 21, which the orchestrator opens once
+   in `skills/agent-contract/SKILL.md` beside the core.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
@@ -44,7 +43,14 @@ lifetimes* states (contract rule 11).
    the pull request body from `pr.md` and the records, then the sealer,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
-   opens once the sealer seals* owns when).
+   opens once the sealer seals* owns when). Once the pull request is open,
+   the orchestrator removes the work item's scratch directory,
+   `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
+   out in full, with no variable in it, and removes nothing else of the
+   scratchpad. It runs the same command again after each repair it pushes
+   to the open pull request, a merge from the base among them, because the
+   repair's round and audit clone again. No agent removes a scratch
+   directory (contract rule 17).
 3. The pull request body carries `Closes #N`, from the work item's `pr.md`
    where the work runs through the review chain; the release workflow
    closes the ticket when the release reaches `main`.
@@ -59,9 +65,9 @@ prevention home, a scope a spawn gives beyond a plan row, or the version
 move. These are examples of the rule, not a closed list.
 
 **The framer writes a decision's fold, because the framer judges what the
-work should be.** `agents/framer.md` *Rules* states the fold, and
-`skills/core/SKILL.md` *Each agent judges its own target, independently of
-the others* the reason. A statement the framer's hand-back names in
+work should be.** `skills/implement/fold-and-reframe.md` states the fold,
+and `skills/core/SKILL.md` *Each agent judges its own target, independently
+of the others* the reason. A statement the framer's hand-back names in
 `routing.md` or `pr.md` is the orchestrator's to repair. A statement a
 crafter's hand-back names in a frame file or `routing.md` records what the
 build changed rather than what the work is, so the orchestrator folds it in
@@ -90,8 +96,8 @@ states; a section that states the tree with no date gets the date and keeps
 its text (`skills/implement/SKILL.md` *Document layout — two roots, three
 lifetimes*). After a fold commit of its own, the
 orchestrator reads that commit and each file of the work item's directory
-that states the present whole against HEAD, as contract rule 12 asks of the
-party that fixes; a decision's fold is read by the framer that writes it.
+that states the present whole against HEAD, the second method of contract
+rule 12; a decision's fold is read by the framer that writes it.
 
 **The orchestrator writes its row before it sends a decision, and commits
 the fold before the spawn.** Until a decision is folded, the orchestrator
@@ -104,7 +110,10 @@ leaves the row uncommitted, so the framer reads the row when it reads
 settle reads the row. The orchestrator resumes the work item's framer while
 that session still exists, as a fix pass resumes the implementer, and
 otherwise spawns a fresh framer and hands it the decisions and the commit
-at which the frame was last written. It corrects its row where the framer's
+at which the frame was last written. The message that resumes the framer,
+and the prompt that spawns a fresh one, each name
+`skills/implement/fold-and-reframe.md` for the framer to open before it
+answers. The orchestrator corrects its row where the framer's
 hand-back names a defect in it, then commits the frame files the framer
 changed and its own rows in one commit, before the spawn that reads them.
 

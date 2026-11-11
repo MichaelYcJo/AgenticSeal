@@ -274,7 +274,7 @@ pull request 의 검사로 돕니다.
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
-| 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
+| 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
 ### 리뷰 체인
@@ -371,8 +371,10 @@ an earlier release wrote*).
 zsh 가 똑같이 읽는 평범한 POSIX 문법으로 명령을 씁니다
 (`skills/agent-contract/SKILL.md` 21번 규칙). 에이전트는 임시 파일을
 `<scratchpad>/<work-item-id>/` 아래 자기 디렉터리에 두고, crafter 는 단계와
-fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자기 디렉터리만
-지우고, 세션의 scratchpad 자체는 지우지 않습니다.
+fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자기 디렉터리도
+세션의 scratchpad 도 지우지 않습니다. orchestrator 가 pull request 를 연
+뒤에 그 작업 항목의 디렉터리를 지우고, 그 뒤 pull request 를 고칠 때마다
+다시 지웁니다.
 
 두 훅 모두 사용자의 코드나 경로, 프롬프트를 어디로도 보내지 않습니다.
 `SessionStart` 훅이 찍는 것은 세션이 연 파일처럼 그 세션의 컨텍스트에 들어갈
@@ -432,8 +434,11 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
   코드를 하나도 돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` 는 적어 둔 테스트가 있다는 것만 증명합니다.** 그
-  테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 리뷰만
-  지킵니다.
+  테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 읽지
+  않습니다. 정책 문서에서 그런 규칙은 리뷰만 지킵니다. 에이전트 정의와
+  계약에는 `check:` 줄이 하나도 없어서, 이 명령은 그 규칙을 하나도 읽지
+  않습니다. 그 규칙은 읽는 테스트가 있으면 그 테스트가 지키고, 없으면
+  리뷰만 지킵니다 (`skills/settle/rule-changes.md` *A rule has one shape*).
 - **broad gate 를 한 번만 돌린다는 것은 에이전트가 따르는 규칙이지, 막는
   장치가 아닙니다.** 회차 도중에 세션이 전체 스위트를 돌려도 막는 것은
   없습니다. 되풀이한 실행은 `trail/gate.md` 에 드러나고, proofer 가 crafter 의

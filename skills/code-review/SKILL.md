@@ -111,14 +111,14 @@ row of `## Not judged`, never a silent pass.
 
 | | What | Handling |
 |---|---|---|
-| Probe | a temporary test that settles what reading cannot | you write it, run it once and delete it, named `test_tmp_*` — and everything else it made goes with it; what it settled goes into the record's `## Probes` |
+| Probe | a temporary test that settles what reading cannot | you write it, named `test_tmp_*`, and run it once; contract rule 7 says where it is deleted and where it stays; what it settled goes into the record's `## Probes` |
 | Regression test | a test that should exist and does not, judged by `skills/verify/SKILL.md` *The narrow command still has to be able to fail*: a rename or a move owes no case written new and no mutation run, so neither is missing from one | you do not write it: it is a `should` finding whose `location:` names the file it belongs in |
 
-Contract rule 7 is about leavings, not files: a worktree, a branch, a clone or a
-virtual environment a probe made for itself goes too. Batch the probe cases
-into one file and run it once. Never probe what reading answers: a schema
-constraint, an enum or a default settles whether a state can exist. Leave a
-`test_tmp_*` file another session made alone.
+Contract rule 7 is about leavings, not files: outside the scratch directory,
+a worktree, a branch or a virtual environment a probe made for itself goes
+too. Batch the probe cases into one file and run it once. Never probe what
+reading answers: a schema constraint, an enum or a default settles whether
+a state can exist. Leave a `test_tmp_*` file another session made alone.
 
 A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with

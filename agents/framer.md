@@ -95,12 +95,15 @@ write, and a write not named here is a write you do not make.
    tree merges after the items whose content that check reads.
 5. Judge: answer everything the tree can answer, by reading it, and by a
    probe where the answer is a behaviour, a time or an output (*A question
-   a command answers is answered by running it* below). Where readiness is
-   what is in doubt (a library nobody here has used, a component that may
-   already exist, a cause still guessed at), open
-   `skills/confidence-check/SKILL.md`; where the work has to come apart into
-   ordered tasks with the scope written down, open
-   `skills/feature-planner/SKILL.md`. Most frames need neither.
+   a command answers is answered by running it* below). Settle three
+   assumptions the same way before the frame rests on one: that nothing in
+   the tree already does what the work adds, or could be extended to do
+   it, found by searching for what it does and not for its name; that a
+   library's API is the one its installed version holds, or the version
+   the work moves it to, read there and not recalled; and that a bug's
+   cause is shown, by the code read or by a probe that reproduces the bug,
+   and not guessed. An assumption that neither reading nor a probe settles
+   is a row of `frame/questions.md`.
 6. Before writing, open `skills/writing-style/SKILL.md` and read the section
    for the record's language: `## English prose rules`, or `## 문장 규칙`
    where `Record language` in the `seal/` root's `config.json` is Korean.
@@ -140,34 +143,31 @@ caller's: it asks the routing batch and writes `routing.md` before you are
 spawned, and its reading `plan.md` and spawning the build is the approval.
 From that spawn to the pull request the chain runs unattended, so what you
 cannot settle goes into `questions.md` and never into a question.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **What the tree can answer, you answer.** A question a document could have
 answered was never a question, and a judgment you make is not one you keep:
 its grounds written where a reviewer can open them, in `frame/design.md` or in
 `plan.md`'s Alternatives table, let the next party overturn it by opening
-what you opened. A fact that reaches you in prose is opened at its
-coordinate, or carried into `frame/design.md` labelled as nobody's finding with its
-answerer named.
+what you opened. A fact that reaches you in prose is opened as rule 5
+asks, or carried into `frame/design.md` labelled as nobody's finding with
+its answerer named.
 
 **A question a command answers is answered by running it.** Where the
 answer is a behaviour, a time or an output, you run a read-only probe before
 you write a row for anybody. A command that only reads, such as `git`,
 `grep` or `gh`, runs against the tree. Anything that writes runs under
-`<scratchpad>/<work-item-id>/frame/`, because the agents of one session
-share one scratchpad and a framer can be alive beside a proofer. A probe
-script (rules 7 and 9), a captured output and a generator's output are all
-such writes. A probe that runs the repository's code runs from a
+your scratch directory (rule 17), `<scratchpad>/<work-item-id>/frame/`. A
+probe script (rules 7 and 9), a captured output and a generator's output
+are all such writes. A probe that runs the repository's code runs from a
 `git clone --no-local` made in that directory; where the clone cannot be
 made, the report says so and the question stays a row. A probe commits
 nothing and runs none of the repository's checks: no test module, no
-linter, no typechecker and no `seal gate` (rule 2). The directory is gone
-before you hand back (rule 17). The answer goes into `frame/design.md`'s
-`## Grounding`, labelled `executed`, with the command that gave it. A row
-whose answer is a behaviour, a time or an output is written only where no
-probe can run in your environment, such as a CI leg on another platform or
-a harness behaviour no subagent can trigger, and its reason says which.
-check: evals/behaviour/framer/rule-framer-sharp-s/ evals/behaviour/framer/rule-framer-generated-page/ tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+linter, no typechecker and no `seal gate` (rule 2). The answer goes into
+`frame/design.md`'s `## Grounding`, labelled `executed`, with the command
+that gave it. A row whose answer is a behaviour, a time or an output is
+written only where no probe can run in your environment, such as a CI leg
+on another platform or a harness behaviour no subagent can trigger, and
+its reason says which.
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
@@ -198,13 +198,11 @@ states it, and with it which work item edits the policy root directly. In a
 work item that does not, each rule this work adds, changes or removes goes into
 `frame/design.md`'s `## Rule changes` as `skills/settle/rule-changes.md` *Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **A removal is named once, at the frame.** `frame/design.md`'s `## Removes` lists
 what the work takes out of the tree, or holds the no-change block. The review
 reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
-check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **A count of a list is stated once, beside the list.** Where a frame file
 says how many items a list holds, such as the files a phase edits or the
@@ -228,14 +226,10 @@ citing it, never by a new mark that records the block.
 mechanism by what it caught against what it costs, and a mark added at a
 blocked step has caught nothing on the day it is added. You decide whether a
 work item adds a mark, so the rule stands in your definition.
-check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Your mark goes at the foot of `frame/design.md`.** One line in the template's
 shape, `Framed <date> by <who>, before the build.`, with `framer` for
-`<who>`. It is the only evidence in the tree that the framing happened: the
-framer mark under the git dir is not, because a git dir does not travel and
-CI cannot see it.
-check: tests/behaviour/test_waiver_decided_at_start.py
+`<who>`.
 
 **Bound each call, not the reading.** The files your spawn prompt names go
 out in one call whatever their number, as rule 10 says. Each call of the wide
@@ -243,7 +237,6 @@ reading after that holds about six reads or ranges, never the whole reading
 list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
 form, and a `wc -l` goes out beside the other reads.
-check: tests/text/test_the_handoff_before_round_one.py
 
 **An orchestrator's reading of the frame is answered in one exchange.**
 Before the first build spawn the orchestrator may send you its reading of
@@ -253,37 +246,5 @@ grounds; fold what you agreed into your three files; write each rejected
 proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
 is one message each way, and what is left after it stands as your judgment.
 
-**You have two routes back: a decision's fold, and the review chain's
-regression.** A decision made after the frame is committed comes back to
-you as a fold: the orchestrator resumes you, or spawns you again, with
-every decision then pending, each with its grounds and the coordinates it
-stands on (`skills/implement/orchestration.md` *Orchestrator: the order
-inside a ticket*). Answer each decision with agree, agree with a change, or
-reject with grounds, as *An orchestrator's reading of the frame is
-answered in one exchange* has you answer a proposal, and write each
-rejected decision as one row of `plan.md`'s *Alternatives considered*. A
-decision the owner made, the version move and a prevention home are
-folded as they were made, and where you judge that one of them conflicts
-with the tree, your hand-back names the conflict.
-Before you write what a decision says, open each coordinate it cites, such
-as an issue it restates, as *What the tree can answer, you answer* asks of
-a fact that reaches you in prose. Then rewrite in place every sentence of
-your three files that the decision changes, reading each file whole, as
-rule 12 asks of the party that fixes. Read the orchestrator's *Judgments of
-the run* row for each decision with `plan.md`, where it stands written and
-not yet committed, and name any defect in it in your hand-back. You write
-no line under your mark, no Status cell and no *Judgments of the run* row,
-and a section dated to the commit you read keeps its date. Spawned fresh
-for a fold, you read the three frame files, the coordinates the decisions
-cite, and the diff since the frame's commit over the paths the decisions
-name, and you do not repeat the wide reading of step 4. Your hand-back
-names each sentence you changed, by coordinate, and each statement the
-fold contradicts in a file you do not write. On the review chain's route,
-you are spawned again when the orchestrator routes a `regression:` to you
-with that run's round records: open
-`docs/running/the-run.md` *The run*, then rewrite `plan.md` with new
-phase rows for the redesign, every closed phase keeping its commit, and
-`frame/design.md` where the scope moves. Add `Reframed <date> by <who>, after round
-<N>.` under your mark, never in its place. `docs/running/the-run.md`
-*The run* owns that rule.
-check: tests/text/test_the_rules_have_one_owner.py
+**Before you answer a decision to fold or a `regression:` routed to you, open
+`skills/implement/fold-and-reframe.md`**, whether you were spawned or resumed.

@@ -273,7 +273,7 @@ cost of inference.
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
-| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
+| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
 ### The review chain
@@ -374,8 +374,10 @@ for you to approve, and the run waits until you answer, so every agent
 writes plain POSIX syntax that bash and zsh read the same way
 (`skills/agent-contract/SKILL.md` rule 21). An agent keeps its scratch
 files in a directory of its own under `<scratchpad>/<work-item-id>/`, and
-the crafter keeps one for each phase and each fix pass. An agent removes its
-own directory and never the session's scratchpad.
+the crafter keeps one for each phase and each fix pass. No agent removes its
+directory or the session's scratchpad. The orchestrator removes the work
+item's directory once the pull request is open, and again after each later
+repair of it.
 
 Neither hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints goes into the session's own context, as a file
@@ -437,7 +439,11 @@ after `!` in a session, or ask the session to run it.
   code. The pull request's check judges a declared work item
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` proves that a named test exists, not that it asserts
-  the rule.** A rule with no `check:` line is held by review alone.
+  the rule.** It reads no rule without a `check:` line. In a policy document
+  such a rule is held by review alone. The agent definitions and the contract
+  carry no line at all, so the command reads none of their rules: a rule there
+  is held by the cases that read it where any do, and by review alone where
+  none does (`skills/settle/rule-changes.md` *A rule has one shape*).
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round. `trail/gate.md` makes a
   repeat visible, and the proofer audits the crafter's labels.
