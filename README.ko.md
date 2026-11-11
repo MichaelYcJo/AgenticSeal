@@ -434,8 +434,10 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
   코드를 하나도 돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` 는 적어 둔 테스트가 있다는 것만 증명합니다.** 그
-  테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 리뷰만
-  지킵니다.
+  테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 읽지
+  않습니다. 정책 문서에서 그런 규칙은 리뷰만 지킵니다. 에이전트 정의와 계약의
+  규칙은 줄이 없어도 그 테스트가 지킵니다
+  (`skills/settle/rule-changes.md` *A rule has one shape*).
 - **broad gate 를 한 번만 돌린다는 것은 에이전트가 따르는 규칙이지, 막는
   장치가 아닙니다.** 회차 도중에 세션이 전체 스위트를 돌려도 막는 것은
   없습니다. 되풀이한 실행은 `trail/gate.md` 에 드러나고, proofer 가 crafter 의
