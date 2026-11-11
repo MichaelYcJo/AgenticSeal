@@ -164,13 +164,21 @@ def test_the_upload_step_runs_always_and_only_where_store_is_set():
 
 def union_step(steps):
     """`(index, options)` of the one of STEPS that runs the union script,
-    its options being each `--name` word and the word after it."""
+    its options being each `--name` word and the word after it. A `--name`
+    with no value after it, such as a bare flag, is refused: paired off, it
+    would be dropped as a last word or would shift every pair after it."""
     (at,) = [
         i for i, step in enumerate(steps) if "durations_union.py" in step.get("run", "")
     ]
     words = steps[at]["run"].split()
     assert words[:2] == ["python", ".github/scripts/durations_union.py"], words
-    return at, {words[i]: words[i + 1] for i in range(2, len(words) - 1, 2)}
+    names, values = words[2::2], words[3::2]
+    assert (
+        len(names) == len(values)
+        and all(name.startswith("--") for name in names)
+        and not any(value.startswith("--") for value in values)
+    ), f"the union step passes an option with no value after it: {words[2:]}"
+    return at, dict(zip(names, values, strict=True))
 
 
 def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
