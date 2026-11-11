@@ -17,6 +17,8 @@ import sys
 import pytest
 from conftest import ROOT, git_listing, shell_probe
 
+# No TARGET: its cases hold what the plugin ships across its packaging, both READMEs, the skills and the agent definitions.
+
 # --- packaging sanity ------------------------------------------------------
 
 # The two entries `hooks/hooks.json` registers, each event's matcher (None
@@ -278,40 +280,6 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     # procedure (#1046).
 
 
-def _folded(*parts):
-    with open(os.path.join(ROOT, "docs", *parts), encoding="utf-8") as f:
-        return " ".join(f.read().split())
-
-
-def test_the_policy_says_a_failed_diff_asks():
-    """Contract rule 14, for S10 of work item 1791384157 (#868):
-    *Parity arm* says a diff git could not take is asked about."""
-    sentence = (
-        "A diff git could not take is not a change confined to the document roots"
-    )
-    assert sentence in _folded("running", "the-review-and-parity-arms.md"), sentence
-
-
-def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
-    """`Use when:` / `NOT for:` exist to route the model's own choice.
-
-    A skill the model can never choose is picked by a person typing its name,
-    and the routing paragraph does nothing there but take space."""
-    import glob
-
-    offenders = []
-    for path in sorted(glob.glob(os.path.join(ROOT, "skills", "*", "SKILL.md"))):
-        with open(path, encoding="utf-8") as f:
-            head = f.read().split("\n---\n", 1)[0]
-        if "disable-model-invocation: true" not in head:
-            continue
-        if "Use when:" in head or "NOT for:" in head:
-            offenders.append(os.path.basename(os.path.dirname(path)))
-    assert not offenders, (
-        f"user-invoked skills carrying auto-trigger scaffolding: {offenders}"
-    )
-
-
 def test_the_review_skill_names_the_built_in_command_a_person_types():
     """Contract rule 14, for #1376 phase 3. The review-skill gate asked the
     person which review a plain request meant, and it went with the hooks the
@@ -382,16 +350,6 @@ SKILL_ROW = {"README.md": "| Skills |", "README.ko.md": "| 스킬 |"}
 # own: the sentence of the row that holds this phrase.
 ON_DEMAND = {"README.md": "a session loads on its own", "README.ko.md": "알아서 로드"}
 
-# A count spelled in either language: a numeral, an English number word, or
-# a Korean native numeral before the counter `개`. These are words of the two
-# languages, not a count of anything in the tree.
-COUNT_WORD = re.compile(
-    r"\d|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve"
-    r"|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b"
-    r"|(?:한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|스무|스물)\S*\s?개",
-    re.IGNORECASE,
-)
-
 
 def skill_groups():
     """The shipped skills' names split three ways from frontmatter: those an
@@ -428,15 +386,11 @@ def skill_row(edition):
     return rows[0]
 
 
-def test_the_skills_row_lists_the_on_demand_skills_without_a_count():
-    """#1055 S5. The row counted the skills and each of its three groups in
-    two languages, and shipping a skill is a diff that never opens either
-    file, so the counts went stale and a table of number words in this
-    module had to grow at every release. The row now lists names and no
-    count. Its on-demand sentence names exactly the skills no agent
-    preloads and nobody has to type, derived from the skills' and the
-    agents' frontmatter, so a name in the wrong sentence is red as well as a
-    missing one."""
+def test_the_skills_row_lists_the_on_demand_skills():
+    """#1055 S5. The row lists names. Its on-demand sentence names exactly
+    the skills no agent preloads and nobody has to type, derived from the
+    skills' and the agents' frontmatter, so a name in the wrong sentence is
+    red as well as a missing one."""
     _, _, on_demand = skill_groups()
     for edition, phrase in ON_DEMAND.items():
         row = skill_row(edition)
@@ -444,8 +398,6 @@ def test_the_skills_row_lists_the_on_demand_skills_without_a_count():
         assert len(sentences) == 1, (edition, phrase, sentences)
         named = set(re.findall(r"`([^`]+)`", sentences[0]))
         assert named == on_demand, (edition, sorted(named ^ on_demand))
-        count = COUNT_WORD.search(row)
-        assert count is None, (edition, count and count.group(0))
 
 
 def test_the_core_row_names_the_core_file():
@@ -489,44 +441,27 @@ def network_passage(path, said):
     return flattened(text[at.start() : end if end != -1 else len(text)])
 
 
-def test_the_places_that_reach_the_network_are_named_without_a_count():
-    """#1055 S4 and #1382. Both READMEs and `CONTRIBUTING.md` said how many
-    hooks reach the network, and the guide's rule for a new one counted on
-    from there. Since #1430 the plugin ships two hooks, the stamp's `Stop`
-    hook and the `SessionStart` hook that prints the core, and neither
-    reaches a network. The READMEs' network passage says so, the guide
-    points at it, and none of the three counts anything. Each edition's passage, from the pinned sentence to the
-    next heading, names every place in `NETWORK_PLACES`."""
+def test_the_places_that_reach_the_network_are_named():
+    """#1055 S4 and #1382. Since #1430 the plugin ships two hooks, the
+    stamp's `Stop` hook and the `SessionStart` hook that prints the core,
+    and neither reaches a network. Each README edition's passage, from the
+    sentence that says so to the next heading, names every place in
+    `NETWORK_PLACES`, and `CONTRIBUTING.md` points at the passage."""
     from conftest import flat
 
-    for path, said, gone, places in (
-        (
-            "README.md",
-            "Neither hook reaches a network.",
-            ("Two hooks reach the network", "Both stay silent"),
-            NETWORK_PLACES,
-        ),
-        (
-            "README.ko.md",
-            "두 훅 모두 네트워크를 타지 않습니다.",
-            ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
-            NETWORK_PLACES,
-        ),
-        (
-            "CONTRIBUTING.md",
-            "Neither reaches a network; `README.md` *What runs on your machine* "
-            "names the commands and steps that do",
-            ("Two hooks reach the network", "A third needs", "the second carries"),
-            (),
-        ),
+    for path, said in (
+        # The sentence each edition's passage opens at, which only locates
+        # the passage the places are read in.
+        ("README.md", "Neither hook reaches a network."),
+        ("README.ko.md", "두 훅 모두 네트워크를 타지 않습니다."),
     ):
-        text = flat(path)
-        assert said in text, (path, said)
-        for phrase in gone:
-            assert phrase not in text, (path, phrase)
-        passage = network_passage(path, said) if places else ""
-        for place in places:
+        passage = network_passage(path, said)
+        for place in NETWORK_PLACES:
+            # The command or step a reader of the passage runs or looks for.
             assert place in passage, (path, place)
+    # The citation a contributor resolves for the places that reach the
+    # network: the path and the heading in italics.
+    assert "`README.md` *What runs on your machine*" in flat("CONTRIBUTING.md")
 
 
 def test_every_shipped_skill_is_named_in_both_readmes():

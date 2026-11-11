@@ -7,8 +7,7 @@ through the launcher. What runs before any floor is checked, which this file
 derives from `hooks/hooks.json` and `bin/` over the tracked files, is linted
 at the version `ruff.toml`'s `per-file-target-version` names. Each case
 lists the tracked files or `bin/`, so it stands in a file that declares no
-`TARGET`. They came, unchanged, from `tests/lib/test_launch.py`, which keeps
-the launcher's own cases.
+`TARGET`. The launcher's own cases stand in `tests/lib/test_launch.py`.
 """
 
 import ast
@@ -21,6 +20,8 @@ import shlex
 from censuses import matches, ruff_targets
 from conftest import ROOT, decline_if_shrunken, git_listing, on_disk, read
 from test_launch import LAUNCH, load
+
+# No TARGET: its cases hold the Python floor across lib/launch.py, the runner, ruff.toml, every wrapper under bin/ and what the hooks run.
 
 BIN = os.path.join(ROOT, "bin")
 RUNNER = os.path.join(ROOT, ".github", "scripts", "run_tests.py")

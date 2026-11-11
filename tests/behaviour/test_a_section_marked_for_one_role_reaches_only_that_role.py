@@ -39,6 +39,8 @@ import pytest
 from conftest import ROOT
 from conftest import read_lossy as _read
 
+# No TARGET: its cases walk every definition under agents/ and each skill its skills: list preloads.
+
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
 
 MARKER = "Orchestrator:"

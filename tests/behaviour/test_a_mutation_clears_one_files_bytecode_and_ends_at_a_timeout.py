@@ -9,10 +9,10 @@ that file lives
 in #326). Nothing bounded a mutated run either, and one hung for 32 minutes
 (#577).
 
-The cases that run the command moved to `tests/skills/test_mutation_check.py` in
-#942's phase 6. What stays here reads the sentences a session acts on: the
-crafter's definition, the verify skill's section, and the bound both of them
-state.
+The cases that run the command stand in `tests/skills/test_mutation_check.py`.
+What stays here reads the sentences a session acts on: the
+crafter's definition, `skills/verify/seal-mutate.md`, and the bound both of
+them state.
 
 **How the script is loaded here.** By path, with an `importlib` spec,
 registered in `sys.modules` before it executes, so nothing has to be put on
@@ -25,6 +25,8 @@ import re
 import sys
 
 from conftest import ROOT, flat
+
+# No TARGET: its cases hold seal mutate's command and bound across agents/crafter.md, skills/verify/seal-mutate.md and the script's constant.
 
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
 
@@ -67,24 +69,28 @@ def test_the_crafters_definition_names_the_command_and_its_flag():
     )
 
 
-def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends():
-    """The section a reader opens to learn the command: its verdicts with
-    their exit codes, its bound, and what that bound ends on each platform.
-    The section is `skills/verify/seal-mutate.md`'s since #1312, and runs to
-    the end of that file."""
+def test_the_verify_skill_says_what_each_verdict_means():
+    """The section a reader opens to learn the command: the command line and
+    its verdicts with their exit codes. The section is
+    `skills/verify/seal-mutate.md`'s since #1312, and runs to the end of that
+    file; its bound is the next case's."""
     skill = flat("skills", "verify", "seal-mutate.md")
     section = skill[skill.index("## `seal mutate`") :]
     for said in (
+        # The command line a reader copies for each break.
         "seal mutate <file> --replace",
+        # The verdicts `skills/verify/scripts/mutation_check.py#RED` and
+        # `skills/verify/scripts/mutation_check.py#SURVIVED` print, with the
+        # exit codes a caller's `&&` chain acts on.
         "`red`, exit 0",
         "`SURVIVED`, exit 1",
+        # The exit code a caller reads as a run that measured nothing.
         "exit 2",
-        "300 seconds",
-        "process group",
-        "Windows",
+        # The variable the cases inherit, which a case that plants a `.pyc`
+        # has to switch off.
         "PYTHONDONTWRITEBYTECODE",
-        # Round 1, 🔴 1: the baseline, and the verdict it gives.
-        "first runs `--tests` against the file as it is",
+        # The verdict `skills/verify/scripts/mutation_check.py#NO_BASELINE`
+        # prints.
         "`no baseline`",
     ):
         assert said in section, f"the section does not say {said!r}"

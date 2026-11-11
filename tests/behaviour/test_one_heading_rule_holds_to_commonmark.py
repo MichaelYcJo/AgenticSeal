@@ -34,6 +34,8 @@ from commonmark_oracle import setext_lines
 from conftest import ROOT, on_disk
 from test_lines import disagreements
 
+# No TARGET: its cases read every tracked Markdown file against the CommonMark oracle.
+
 
 def tracked_markdown():
     """Every tracked `.md` file the working tree holds. Both callers judge

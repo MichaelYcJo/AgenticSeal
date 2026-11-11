@@ -5,6 +5,10 @@ work item written under a case's own directory, and the command with its own
 `main`, so no shell runs under them. The fixture's records are the shapes
 the templates under `templates/records/` give, and its round records hold
 the `seal` blocks `chain_check.py` reads.
+
+The cases that run `main` beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import json
@@ -14,7 +18,16 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, config_json, load_module, mark_root, write
+from conftest import (
+    ROOT,
+    census_case,
+    commit_everything_as_e,
+    config_json,
+    git,
+    load_module,
+    mark_root,
+    write,
+)
 
 TARGET = "skills/code-review/scripts/pr_body.py"
 
@@ -1430,6 +1443,46 @@ class Test_main:
         body = tmp_path / "pr-body.md"
         assert PR.main([str(tmp_path / "absent"), "--body", str(body)]) == 2
         assert not body.exists()
+
+    def test_s5_pr_body_check_reads_the_seal_and_the_records_under_agentic_seal(
+        self, package, tmp_path, monkeypatch, capsys
+    ):
+        """`seal pr-body` reads the keys of `agentic-seal/config.json` and a
+        guarantee sealed at the commit before its own, so the body carries the
+        mark and names the records where they stand; `--check` on that body
+        exits 0. A refusal names the record by its path under `agentic-seal/`."""
+        git(package, "switch", "-qc", "feature")
+        home = mark_root(package / "agentic-seal")
+        write(home, "config.json", config_json(*LANGUAGES, *ROW))
+        item = home / "threads" / NAME
+        for rel, text in RECORDS.items():
+            write(item, rel, text)
+        (item / "pr.md").write_bytes(OWN.encode("utf-8"))
+        sha = commit_everything_as_e(package, "the build")
+        write(
+            item,
+            "guarantee.md",
+            f"# Guarantee: {NAME}\n\n```seal\ntarget: {sha} against main\n"
+            "Verdict: sealed\n```\n",
+        )
+        commit_everything_as_e(package, "the seal")
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        monkeypatch.chdir(package)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        marked = EXPECTED.replace(
+            "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
+        ).replace(f" seal/threads/{NAME}/ ", f" agentic-seal/threads/{NAME}/ ", 1)
+        assert body.read_bytes() == (OWN + marked).encode("utf-8")
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 0
+        assert "seal pr-body:" not in capsys.readouterr().out
+        (item / "pr.md").unlink()
+        for check in (["--check"], []):
+            assert PR.main([str(item), "--body", str(body), *check]) == 1
+            assert capsys.readouterr().out.startswith(
+                f"refused: agentic-seal/threads/{NAME}/pr.md: is not there"
+            )
 
 
 test_census = census_case(TARGET)

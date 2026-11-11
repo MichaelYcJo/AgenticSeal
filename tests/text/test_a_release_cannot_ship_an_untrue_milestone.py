@@ -1,18 +1,19 @@
-"""What is left of the release completeness gate's old file: the cases
-that read the hygiene workflow's step, which wait for #923.
+"""The release completeness gate's step in the hygiene workflow, which
+these cases read.
 
-#942's phase 6 placed the cases of
-`.github/scripts/release_completeness_check.py`'s functions in
-`tests/github/test_release_completeness_check.py`.
+The cases of `.github/scripts/release_completeness_check.py`'s functions
+stand in `tests/github/test_release_completeness_check.py`.
 """
 
 import os
 import re
 
-from conftest import ROOT, code_lines
+from conftest import ROOT, census_case, code_lines
 from workflows import load
 
-HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
+TARGET = ".github/workflows/hygiene.yml"
+
+HYGIENE = os.path.join(ROOT, *TARGET.split("/"))
 STEP = "the milestone this release claims"
 
 
@@ -131,3 +132,6 @@ def test_the_job_asks_for_a_token_that_can_read_issues():
         "the step does not pass a token, so `gh` falls back to whatever the "
         "runner happens to have"
     )
+
+
+test_census = census_case(TARGET)

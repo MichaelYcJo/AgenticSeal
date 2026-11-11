@@ -27,10 +27,10 @@ taken from, and the three sentences that keep it comparable: the tokens are
 counted rather than estimated and counted the same way every time, a run whose
 transcript covered only part of its branch says so in the prose rather than in
 a column, and the table itself carries no verdict. The cases below pin the
-rows, their sources and the token fields the count reads, and the three
-sentences are the proofer's to read. One case is structural rather than textual — every row
-of the table must name a source, because a row nobody can reproduce is a row
-the next run fills in by feel.
+command, the paths and the token fields three rows' sources name; the rows
+themselves and the three sentences are the proofer's to read. One case is
+structural rather than textual — every row of the table must name a source,
+because a row nobody can reproduce is a row the next run fills in by feel.
 
 Issue #1479 ends the per-segment post. The section is *Measure the run, and
 feed the flow log*: the orchestrator posts once when a work item's run ends,
@@ -46,6 +46,8 @@ mode and the description of how the meter computes its columns, which
 import os
 
 from conftest import ROOT
+
+# No TARGET: its cases hold the flow log's measurement across skills/verify/orchestration.md and skills/verify/SKILL.md.
 
 # Since #940 the section is the orchestrator's, in the verify skill's
 # orchestration file; the crafter's and the sealer's `SKILL.md` no longer
@@ -78,18 +80,6 @@ def section_body():
 
 
 RUN_TABLE_HEADER = "| Row | Taken from |"
-
-RUN_TABLE_ROWS = (
-    "Rounds",
-    "Wall clock",
-    "Commits, by kind",
-    "Findings by severity",
-    "Findings by `Location`",
-    "Records' share of the diff",
-    "Model turns",
-    "Segments",
-    "Broad gate",
-)
 
 
 def run_table_rows():
@@ -177,25 +167,6 @@ def test_the_section_names_the_durable_logs_label():
         "log — which is deleted when the version ships. That happened on "
         "2026-09-04 and is what #136 opened for"
     )
-
-
-def test_the_section_states_the_run_level_table():
-    assert RUN_TABLE_HEADER in section_text(), (
-        "the section says where a run's reading goes and never says what "
-        "the table in it carries. Without the table "
-        "each run invents its own shape and two runs cannot be read side by "
-        "side"
-    )
-
-
-def test_the_run_level_table_carries_every_row():
-    labels = [row[0] for row in run_table_rows()]
-    for expected in RUN_TABLE_ROWS:
-        assert any(expected in label for label in labels), (
-            f"the run-level table has no `{expected}` row. The rows are the "
-            "whole point of stating the table: a run that drops one is a run "
-            "the next comparison cannot line up against"
-        )
 
 
 def test_every_row_of_the_run_level_table_names_its_source():

@@ -23,6 +23,9 @@ import sys
 import pytest
 from conftest import ROOT, load_lib_module
 
+# No TARGET: its cases hold whether a line is live across the four readers of a record line and docs/checks/the-fold.md.
+
+
 STATEMENT_DOC = os.path.join(ROOT, "docs", "checks", "the-fold.md")
 OPENING = "**Whether a line is live is asked by what the line does"
 
@@ -271,9 +274,17 @@ def test_the_statement_names_each_reader_under_its_answer():
     reader is named in the bullet of the answer the table gives it, and in no
     other bullet."""
     found = bullets(statement())
+    # The three answers, each the bold word a bullet of the statement opens
+    # on, which a reader of `docs/` looks a reader's answer up by.
     assert set(found) == {HOLDS, EXCUSES, COUNTS}, sorted(found)
     for name, (_adapter, answer, spelling, _answers) in TABLE.items():
+        # The reader's name as the statement cites it, which a reader of
+        # `docs/` resolves to the function.
         assert spelling in found[answer], (name, answer)
         for other, text in found.items():
             if other != answer:
+                # `docs/checks/the-fold.md` *Whether a line is live is asked
+                # by what the line does*: the four readers give three
+                # answers, each reader one, so its name stands in no other
+                # answer's bullet.
                 assert spelling not in text, (name, other)

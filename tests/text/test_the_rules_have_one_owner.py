@@ -3,8 +3,10 @@ carrier links to that one in a sentence that names it.
 
 A rule stated in eight places is eight places to disagree: #161's count rule
 reached eight carriers, and rounds 7, 8 and 9 corrected them three at a time.
-The table below holds each rule's owner, the sentence the owner states, and
-the sentence each linking carrier names the owner with.
+The table below holds each rule's owner, the facts the owner states that a
+reader acts on, and the citation each linking carrier names the owner by.
+Whether the owner's sentences state the rule, and whether a carrier restates
+it around its link, are the proofer's to read.
 
 0.22.0 (#923) replaced the three record documents with one, which #1312 cut
 by reader; the rules that left with their mechanism left this table, and the
@@ -15,6 +17,8 @@ import re
 
 import pytest
 from conftest import flat
+
+# No TARGET: its cases hold each review-chain rule's owner across the skills, the definitions and the documents that carry it.
 
 RECORD = ("docs", "running", "the-run.md")
 SKILL = ("skills", "code-review", "SKILL.md")
@@ -44,102 +48,80 @@ RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 
+# Each link is the owner's path and section, the citation a reader of the
+# linking carrier resolves; the sentence around it is the proofer's to read.
 ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
-    "the one seal is the sealer's* owns that rule"
+    "the one seal is the sealer's*"
 )
 AFTER_THE_SEAL = (
     "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the sealer seals* owns"
+    "opens once the sealer seals*"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
-CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value* owns the criterion"
+CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value*"
 FRAGMENT_OWNER = (
     "`docs/layout/the-record-layout.md` *A commit after the build brings its "
-    "changelog fragment along* owns that rule"
+    "changelog fragment along*"
 )
-RUN_OWNS_THE_RULE = "`docs/running/the-run.md` *The run* owns that rule"
+RUN_OWNS_THE_RULE = "`docs/running/the-run.md` *The run*"
 EARLIER_ROUNDS = "`skills/code-review/SKILL.md` *Earlier rounds*"
 THE_CORES_ROW = (
     "the row *No fix that no round reads* of `skills/core/SKILL.md` "
     "*Judgment is not licence to skip a party*"
 )
-PR_FILES_OWNER = (
-    "What `pr.md` and `pr.<lang>.md` hold is stated in "
-    "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the sealer seals*"
-)
-# The Korean carrier's link, in the language its file is written in.
-PR_FILES_OWNER_KO = (
-    "`pr.md` 와 `pr.<lang>.md` 가 무엇을 담는지는 "
-    "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the sealer seals* 가 정한다"
-)
 CONVENTION = ("skills", "commit-pr-convention", "SKILL.md")
 OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
 
 
-# rule → (owner, the sentence the owner states, {link carrier: how it names
-# the owner}). A link is one sentence and names the owner's file or the
-# owner's subsection; it does not restate the rule.
+# rule -> (owner, the facts the owner states, {link carrier: the citation it
+# names the owner by}). A fact is a spelling, a path or a number a reader of
+# the owner acts on; the rule's words are the proofer's to read.
 RULES = {
-    "3 🟡 is a defect the release would ship": (
-        SKILL,
-        "a defect the release would ship",
-        {},
-    ),
     # #943: a pull request opened before round 1 ran the suite on three
     # platforms at every push of every round, and its Ready press once more.
     "6 the pull request opens once the sealer has sealed": (
         ORCH,
-        "The pull request opens ready, once the sealer has sealed, and CI runs then.",
-        {
-            ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL} when)",
-            CONTRIBUTING: f"{AFTER_THE_SEAL} the order a maintainer's run follows",
-        },
-    ),
-    "7 a compacted session hands the next round to a fresh one": (
-        ORCH,
-        "A session that has compacted hands the next round to a fresh one, and "
-        "the round record is the handoff.",
-        {},
+        (),
+        {ORCH_IMPL: AFTER_THE_SEAL, CONTRIBUTING: AFTER_THE_SEAL},
     ),
     # Since #967 an agent's hand-back carries its claims under the three
     # labels and no agent but the sealer takes a seal.
     "10 the hand-back's labels carry the claims, and one seal is the sealer's": (
         VERIFY,
-        "The hand-back's labels carry the claims, and the one seal over the "
-        "whole project is the sealer's `guarantee.md`.",
+        (
+            # The file the sealer writes its seal into, which the chain
+            # check's guarantee arm reads.
+            "`guarantee.md`",
+        ),
         {SEALER: ONE_SEAL_IS_FINAL},
     ),
     # From #401: the `Broad gate` key is the one value only a person can
     # write, and the criterion for it is folded into one owner.
     "12 the criterion for choosing a Broad gate value": (
         CONFIG_TEMPLATE,
-        "A check that is red repository-wide for reasons unrelated to any "
-        "branch does not belong in the command",
+        (),
         {CONFIG_SKILL: CRITERION_OWNER, BOOTSTRAP: CRITERION_OWNER},
     ),
     # From #493: filing a finding ran at 100% and acting on one at 47%, so a
     # new issue is a rung rather than the default.
     "14 a finding is filed where somebody will act": (
         RECORD,
-        "A leftover finding goes where somebody will act on it, and the "
-        "orchestrator writes why there.",
+        (),
         # The crafter's copy of the ladder left with #967. Filing is the
-        # orchestrator's act (the ladder's own `check:` line says so), and a
-        # crafter hands a leftover back with its answerer (its step 10).
-        {
-            TRACKER: "`docs/running/the-run.md` *The run* owns where a filed "
-            "finding goes",
-        },
+        # orchestrator's act, and a crafter hands a leftover back with its
+        # answerer (its step 10).
+        {TRACKER: RUN_OWNS_THE_RULE},
     ),
     # From #797: three of six 0.18.2 fragments shipped false because the
     # commits after the build changed behaviour.
     "15 a commit after the build brings its changelog fragment along": (
         RECORD_LAYOUT,
-        "A commit after the build that changes what the work item ships "
-        "updates the work item's `changelog.md` in the same range.",
+        (
+            # The fragment's file name, which a commit after the build
+            # updates and the release reads.
+            "`changelog.md`",
+        ),
         {FIX_PASS_PROCEDURE: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
@@ -147,44 +129,19 @@ RULES = {
     # of the fix with the frame (the owner, 2026-10-16, on round 8).
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
-        "A regression is routed by comparing the fix with the frame.",
+        (),
         {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
     # #945, S5: one crafter resumed across phases read 941,799 tokens in one
-    # turn, so a phase is a fresh spawn and a fix pass resumes only below
-    # the largest context a fresh crafter reached in the 0.22.0 run.
-    "17 each phase is a fresh crafter": (
-        ORCH,
-        "Each phase of a work item is built by a fresh `crafter` spawn, and the "
-        "orchestrator never resumes a crafter across a phase boundary.",
-        {},
-    ),
+    # turn, so a fix pass resumes only below the largest context a fresh
+    # crafter reached in the 0.22.0 run.
     "18 a fix pass resumes the implementer only below the threshold": (
         ORCH,
-        "A fix pass resumes the implementer only while the implementer's "
-        "largest per-turn context is below 806,241 tokens, and is a fresh "
-        "`crafter` spawn otherwise.",
-        {},
-    ),
-    # #1041: in #955 and #1016 the orchestrator's fix-pass prompts left every
-    # `verdict:` line to the orchestrator, which rewrote them in a commit of
-    # its own, so a round with fixes cost three record commits. #1198 made
-    # the two lines one close block.
-    "19 the orchestrator writes no close block of a finding a fix pass answers": (
-        ORCH,
-        "The orchestrator writes no close block of a finding the fix pass "
-        "answers, and its fix-pass prompt leaves every such block to the "
-        "crafter.",
-        {},
-    ),
-    # #1041, the owner's answer of 2026-10-28: issue #1041 *Done when*
-    # bullet 1 gives the commit of the fix pass's two lines to the
-    # orchestrator, which makes it before the verifying round reads them.
-    "20 the orchestrator commits the round record the fix pass left": (
-        ORCH,
-        "On the hand-back the orchestrator commits the round record as the fix "
-        "pass left it, in one commit for the whole pass, before it spawns the "
-        "verifying round, and changes none of its lines.",
+        (
+            # The per-turn context, in tokens, the orchestrator compares the
+            # implementer's `context` column with.
+            "806,241",
+        ),
         {},
     ),
     # #1476: four files each said what the three lines mean, and #161's
@@ -193,9 +150,17 @@ RULES = {
     # that section.
     "21 a closed finding is answered on one of three lines": (
         SKILL,
-        "Every finding the round before closed `fixed <commit>` or `rejected` "
-        "is named this round by one of three lines: `confirms:`, "
-        "`regression:` or `reopens:`.",
+        (
+            # The two close verdicts a fix pass writes, which the chain check
+            # reads.
+            "`fixed <commit>`",
+            "`rejected`",
+            # The three line keywords `lib/fields.py` spells, which the
+            # proofer writes and the chain check reads.
+            "`confirms:`",
+            "`regression:`",
+            "`reopens:`",
+        ),
         {PROOFER: EARLIER_ROUNDS, RECORD: EARLIER_ROUNDS, ORCH: EARLIER_ROUNDS},
     ),
     # #1476: five files each gave the condition on which a fix owes no
@@ -204,9 +169,7 @@ RULES = {
     # the row.
     "22 a change after the last round is read by a round, or by the sealer": (
         CORE,
-        "every change after the last round is read by a round, or by the "
-        "sealer where it touched the work item's records alone and each "
-        "finding it closed is located in those records alone",
+        (),
         {
             RECORD: THE_CORES_ROW,
             ORCH: THE_CORES_ROW,
@@ -220,27 +183,34 @@ RULES = {
     # it, and the files that said what `pr.md` holds name the owner.
     "23 pr.md quotes no sentence of changelog.md": (
         ORCH,
-        "`pr.md` quotes no sentence of `changelog.md`, because `seal pr-body` "
-        "writes the fragment whole under the line "
-        "`skills/code-review/scripts/pr_body.py#HEADING` holds, above the "
-        "fold, so the reader meets it there and a fix to a changelog sentence "
-        "touches no `pr.md`.",
+        (
+            # The two records the rule is about, by the names the orchestrator
+            # writes them under.
+            "`pr.md`",
+            "`changelog.md`",
+            # The command that writes the fragment into the body, and the
+            # constant that holds the line it writes it under.
+            "`seal pr-body`",
+            "`skills/code-review/scripts/pr_body.py#HEADING`",
+        ),
         {
-            CONVENTION: PR_FILES_OWNER,
-            IMPLEMENT: PR_FILES_OWNER,
-            CONFIG_TEMPLATE: PR_FILES_OWNER,
-            OUTSIDE_THE_REVIEW: PR_FILES_OWNER_KO,
+            CONVENTION: AFTER_THE_SEAL,
+            IMPLEMENT: AFTER_THE_SEAL,
+            CONFIG_TEMPLATE: AFTER_THE_SEAL,
+            OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
         },
     ),
 }
 
 
-@pytest.mark.parametrize("rule", sorted(RULES))
+@pytest.mark.parametrize("rule", sorted(r for r in RULES if RULES[r][1]))
 def test_the_owner_states_the_rule(rule):
-    owner, sentence, _ = RULES[rule]
-    assert sentence in flat(*owner), (
-        f"{'/'.join(owner)} no longer states rule {rule!r}, and it is the one "
-        "carrier that does"
+    owner, facts, _ = RULES[rule]
+    text = flat(*owner)
+    missing = [fact for fact in facts if fact not in text]
+    assert not missing, (
+        f"{'/'.join(owner)} no longer names {missing} for rule {rule!r}, and "
+        "it is the one carrier that does"
     )
 
 
@@ -249,6 +219,8 @@ def test_every_link_names_the_owner(rule):
     owner, _, links = RULES[rule]
     for carrier, names_the_owner in links.items():
         assert carrier != owner, f"{rule!r}: the owner is listed as its own link"
+        # The owner's path and section, which a reader of the carrier
+        # resolves.
         assert names_the_owner in flat(*carrier), (
             f"{'/'.join(carrier)} carries rule {rule!r} without naming "
             f"{'/'.join(owner)} as its owner, which is a second statement of "
@@ -260,8 +232,8 @@ FIX_PASS = "## Orchestrator: a phase is a fresh crafter, and a fix pass resumes 
 
 
 def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
-    """S5 of #945. Rules 17 and 18 pin the two bold sentences; this pins
-    what lets an orchestrator act on them: the command that reads the
+    """S5 of #945. Rule 18 holds the threshold; this holds what lets an
+    orchestrator act on the section: the command that reads the
     implementer's context and the column it reads, the section a fold of the
     records follows, and the record the commit of the closes holds."""
     text = flat(*ORCH)
@@ -287,18 +259,19 @@ REGRESSION = "### A regression is routed by comparing the fix with the frame"
 def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit():
     """S2 of #1041, under #1198. On the framer's route no fix pass runs, so
     the orchestrator closes every open finding itself; row *The record*
-    names the close block's `answer:` beside `deferred the frame`, and one
-    commit for every block."""
+    names the close block's `answer:` beside `deferred the frame`. That one
+    commit holds every block is the proofer's to read."""
     text = flat(*ORCH)
     section = text[
         text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
     ]
     row = section[section.index("| The record |") : section.index("| The framer |")]
     for said in (
-        "you append a close block to every open finding",
-        "its `verdict:` reading `deferred the frame`",
-        "its `answer:` naming the regression that sent the work item back",
-        "commit every such block in one commit",
+        # The close verdict the orchestrator writes, which the chain check
+        # reads as a close.
+        "`deferred the frame`",
+        # The close block's field that names the regression.
+        "`answer:`",
     ):
         assert said in row, (
             f"row *The record* of the framer's route no longer says {said!r}"
@@ -355,7 +328,9 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     check has reported exits 1 without waiting. Round 1 of #1222 counts the
     checks of `pull_request` runs alone, because a finished check of another
     event on the pushed commit ended the poll before the pull request's own
-    checks were listed, and pins the poll's stop condition and its report."""
+    checks were listed. The case holds the commands, states, numbers and
+    flag the orchestrator acts on; the order and the stop condition's words
+    are the proofer's to read."""
     text = flat(*ORCH)
     section = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
@@ -363,31 +338,26 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         )
     ]
     for said in (
-        "reads `gh pr view <N> --json state,mergeable` when the pull request "
-        "opens, before each push to its branch and after each push",
-        "`MERGED` or `CLOSED` stops the push",
+        # The read the orchestrator types before and after each push, and the
+        # two states that stop the push.
+        "`gh pr view <N> --json state,mergeable`",
+        "`MERGED`",
+        "`CLOSED`",
+        # The wait, and the exit code it gives where no check has reported.
         "`gh pr checks <N> --watch`",
-        "exits 1 without waiting",
-        "starts the wait only once the commit it pushed last has a check of a "
-        "`pull_request` run.**",
-        "Every ten seconds the orchestrator runs",
+        "exits 1",
+        # The poll's interval and the two commands it runs.
+        "ten seconds",
         "gh pr view <N> --json headRefOid --jq .headRefOid",
         "gh pr checks <N> --json event --jq "
         "'[.[] | select(.event == \"pull_request\")] | length'",
-        "stops once the first prints the commit it pushed last and the second "
-        "prints a count above 0",
-        "the second command exits 1 while no check at all has reported",
-        "The count reads the checks of GitHub Actions runs on `pull_request` alone",
-        "within two minutes",
-        "reads `gh pr view <N> --json state,mergeable` once more",
-        "no check of a `pull_request` run reported on that commit and names the SHA",
-        "`CONFLICTING` means GitHub made no merge ref for the pull request and "
-        "runs no `pull_request` CI on it, and nothing else says so",
-        "`UNKNOWN` means GitHub has not computed the answer yet",
-        "A conflict with the base is integrated by merging the base into the "
-        "branch, never by a rebase.",
-        "after the branch whose changes conflict with this one has landed",
-        "the orchestrator spawns a verifying round on that resolution",
+        # The poll's bound.
+        "two minutes",
+        # The two `mergeable` values the orchestrator acts on.
+        "`CONFLICTING`",
+        "`UNKNOWN`",
+        # The flag the orchestrator reads the branch's commits with, so a
+        # merge commit is left out.
         "`--no-merges`",
     ):
         assert said in section, f"the owner section no longer says {said!r}"
@@ -410,230 +380,46 @@ def test_a_decision_after_the_frame_is_folded_into_it():
     the next crafter spawns, and before framing into the issue body.
 
     #1477 rewrote the one paragraph of ordered acts as six paragraphs of
-    judgment and kept every clause. Each phrase below is one row of that
-    work item's `frame/design.md` D1, numbered as there, with the finding the
-    clause came from. Round 2 of #1442, finding 1: only a lead was pinned,
-    and sentences went with the suite green, so every row keeps a phrase.
-    Every phrase the section misses is named in one failure."""
+    judgment, numbered as rows of that work item's `frame/design.md` D1.
+    The case holds what those paragraphs name that the orchestrator opens,
+    writes or types; whether each clause of D1 still stands is the proofer's
+    to read. Every fact the section misses is named in one failure."""
     order = the_order()
-    rows = (
-        # 1, #945.
-        (
-            1,
-            "A decision made after the frame is committed is folded, in place, "
-            "into `frame/design.md` or `plan.md` before the next crafter spawns.",
-        ),
-        # 2, round 2 of #1442.
-        (
-            2,
-            "A crafter reads the frame and not the issue's comments, so the "
-            "decision has to stand in the frame.",
-        ),
-        # 3, #1442: examples, and not a closed list.
-        (
-            3,
-            "A decision is anything that changes what the frame says the work "
-            "is or why: a round finding whose route changes the frame, a round "
-            "finding located in a frame file, an owner's remark, an issue "
-            "comment, a prevention home, a scope a spawn gives beyond a plan "
-            "row, or the version move. These are examples of the rule, not a "
-            "closed list.",
-        ),
-        # 4, #1442: a fold the orchestrator wrote passed the next fix pass
-        # unread four times, so a decision's fold is the framer's.
-        (
-            4,
-            "The framer writes a decision's fold, because the framer judges "
-            "what the work should be.** `skills/implement/fold-and-reframe.md` "
-            "states the fold,",
-        ),
-        # 5, #1442.
-        (
-            5,
-            "the orchestrator sends every decision then pending to the framer "
-            "in one message, each with its grounds and the coordinates it "
-            "stands on",
-        ),
-        # 6, #1442.
-        (
-            6,
-            "The orchestrator resumes the work item's framer while that "
-            "session still exists, as a fix pass resumes the implementer, and "
-            "otherwise spawns a fresh framer and hands it the decisions and "
-            "the commit at which the frame was last written.",
-        ),
-        # 7, #1442 and #1167: the row is written before the framer reads
-        # `plan.md`, and the settle reads it.
-        (
-            7,
-            "Before it sends, the orchestrator writes each decision, its "
-            "grounds and the document it judged against as one row of "
-            "`frame/plan.md` *Judgments of the run* and leaves the row "
-            "uncommitted, so the framer reads the row when it reads `plan.md` "
-            "whole: the rewritten sentence keeps no reason for itself, and the "
-            "settle reads the row.",
-        ),
-        # 8, round 2 of #1442.
-        # Round 1 of #1473: the sentence before it came to end on the framer,
-        # so the row names its actor.
-        (
-            8,
-            "The orchestrator corrects its row where the framer's hand-back "
-            "names a defect in it,",
-        ),
-        # 9, rounds 1 and 2 of #1442: a rejected decision had no route, and
-        # the row written before the exchange recorded a fold that did not
-        # happen.
-        (
-            9,
-            "A decision the framer rejects stands as its judgment, as a "
-            "proposal left after the exchange of *The frame is read against "
-            "the issue at the spawn* does.** The orchestrator rewrites its row "
-            "of *Judgments of the run* to record the rejection and what the "
-            "decision's source takes instead, a finding's route or the next "
-            "spawn's scope, and quotes the framer's *Alternatives considered* "
-            "row in the work item's `pr.md`.",
-        ),
-        # 10, round 2 of #1442.
-        (
-            10,
-            "The version move and a prevention home are folded as an owner's "
-            "decision is, because another rule gives each to the orchestrator "
-            "to decide: the move by *Orchestrator: how the work is routed*, "
-            "and the home by the paragraph opening *A problem that recurs "
-            "within a run gets a prevention home at once*.",
-        ),
-        # 11, #1442.
-        (
-            11,
-            "then commits the frame files the framer changed and its own rows "
-            "in one commit, before the spawn that reads them.",
-        ),
-        # 12, #1442. What the framer's hand-back names is
-        # `skills/implement/fold-and-reframe.md` *You have two routes back*'s.
-        (
-            12,
-            "A statement the framer's hand-back names in `routing.md` or "
-            "`pr.md` is the orchestrator's to repair.",
-        ),
-        # 13, #1318 after #1234: #1234's fold widened only the *Scope* item a
-        # finding named, so a fold reads the file whole.
-        (
-            13,
-            "The statements a crafter's hand-back names are its reading of a "
-            "file it does not write, so the orchestrator reads each file that "
-            "holds one whole against HEAD, not only the named line, and "
-            "rewrites every statement HEAD contradicts.",
-        ),
-        # 14, #1442: a statement a crafter names stays the orchestrator's.
-        (
-            14,
-            "A statement a crafter's hand-back names in a frame file or "
-            "`routing.md` records what the build changed rather than what the "
-            "work is, so the orchestrator folds it in a commit of its own and "
-            "spawns no framer.",
-        ),
-        # 15, #1368. The rule's own text is `skills/implement/SKILL.md`
-        # *Document layout — two roots, three lifetimes*'s, and the body keeps
-        # the clauses the orchestrator acts on.
-        (
-            15,
-            "In a section the frame dates to the commit it read, a statement "
-            "of the tree is not folded,",
-        ),
-        (
-            15,
-            "a section that states the tree with no date gets the date and "
-            "keeps its text",
-        ),
-        # 16, #1327 and #1442: the records after a fold commit are read too.
-        (
-            16,
-            "After a fold commit of its own, the orchestrator reads that commit "
-            "and each file of the work item's directory that states the "
-            "present whole against HEAD, the second method of contract rule "
-            "12; a decision's fold is read by the framer that writes it.",
-        ),
-        # 17, round 1 of #1318 and #1327: a record's statement goes back to
-        # the crafter that wrote the last commit.
-        (
-            17,
-            "A statement found in a file the crafter writes, `gaps.md` or "
-            "`changelog.md`, goes to a fix pass before the orchestrator spawns "
-            "the next round or phase. The fix pass is the crafter that wrote "
-            "the work item's last build or fix commit,",
-        ),
-        # 18, #945.
-        (
-            18,
-            "Until a decision is folded, the orchestrator keeps one line of its "
-            "own in `plan.md` naming the comments to fold, below the title, "
-            "and deletes that line in the commit that folds them.",
-        ),
-        # 19, #945.
-        (
-            19,
-            "Before the frame is committed, the orchestrator folds a decision "
-            "into the issue body instead, in place.** The comment that carried "
-            "it records why.",
-        ),
-        # 20, #945.
-        (
-            20,
-            "A body that contradicts a comment, or a block of updates written "
-            "above the old text, leaves the reader two versions to choose "
-            "between, and GitHub keeps the body's edit history,",
-        ),
-        # 21, #1166.
-        (
-            21,
-            "The orchestrator's prompt that spawns the framer hands it the "
-            "issue whole: the body as folded, and one line naming the comments "
-            "the issue has, none or each comment's link, with the command that "
-            "read them, `gh issue view <N> --json body,comments`, and the date "
-            "it ran.",
-        ),
-        # 22, #1477 from round 2 finding 1 of 1794201840 and round 1 finding
-        # 5 of 1794200907: a dated section's conclusion went stale unfolded.
-        (
-            22,
-            "and a sentence that says what the work does or concludes is "
-            "folded with the fact it states;",
-        ),
-        # 23, #1477 from the five 0.37.0 findings: the fact a decision
-        # changed stood in a section the fold did not reach.
-        (
-            23,
-            "The fact a decision changes often stands in sections the decision "
-            "does not name, such as *Scope*, *Removes*, *Alternatives "
-            "considered*, *Judgments of the run*, *Grounding* and *Technical "
-            "context*, so the message names the fact and says that its "
-            "coordinates are the statements the orchestrator has seen, not "
-            "the whole list.",
-        ),
-        # 24, phase 1 of #1477: the version move's fold binds a release of one
-        # work item, which never opens `skills/implement/merge-order.md`.
-        (
-            24,
-            "Where a crafter builds the work item that carries the move and its "
-            "`frame/plan.md` *Operational impact* does not name it, the framer "
-            "folds the move into that section before the orchestrator spawns "
-            "the last phase, because the crafter reads its version write "
-            "there.",
-        ),
-        # 25, #1473: a resumed framer has its definition in context and may
-        # answer a fold without opening the file that states it.
-        (
-            25,
-            "The message that resumes the framer, and the prompt that spawns a "
-            "fresh one, each name `skills/implement/fold-and-reframe.md` for "
-            "the framer to open before it answers.",
-        ),
+    facts = (
+        # The frame files a decision is folded into, and the file that states
+        # the framer's fold.
+        "`frame/design.md`",
+        "`plan.md`",
+        "`skills/implement/fold-and-reframe.md`",
+        # The table the orchestrator writes each decision's row into, which
+        # the settle reads.
+        "`frame/plan.md` *Judgments of the run*",
+        # The sections of the same file the paragraphs cite in italics.
+        "*The frame is read against the issue at the spawn*",
+        "*Alternatives considered*",
+        "*Orchestrator: how the work is routed*",
+        "*A problem that recurs within a run gets a prevention home at once*",
+        # The sections a decision's fact often stands in, which the message
+        # to the framer names.
+        "*Scope*",
+        "*Removes*",
+        "*Grounding*",
+        "*Technical context*",
+        # The section the version move's fold is written into.
+        "`frame/plan.md` *Operational impact*",
+        # The records whose statements the orchestrator repairs or sends to a
+        # fix pass.
+        "`pr.md`",
+        "`routing.md`",
+        "`gaps.md`",
+        "`changelog.md`",
+        # The contract rule the read after a fold commit cites.
+        "contract rule 12",
+        # The command the framer's spawn prompt names for reading the issue.
+        "`gh issue view <N> --json body,comments`",
     )
-    missing = [(row, said) for row, said in rows if said not in order]
-    assert not missing, "the order no longer says, by row of D1:\n" + "\n".join(
-        f"{row}: {said!r}" for row, said in missing
-    )
+    missing = [fact for fact in facts if fact not in order]
+    assert not missing, f"the order no longer names {missing}"
 
 
 def test_the_framer_folds_a_decision_it_is_sent():
@@ -677,33 +463,31 @@ def test_the_framer_folds_a_decision_it_is_sent():
 
 def test_a_handoff_file_is_written_only_to_move_the_work():
     """S9 of #945. Where a work item stands is in the records it already
-    has, so a `handoff.md` lives only as long as a move between sessions."""
+    has, so a `handoff.md` lives only as long as a move between sessions.
+    When it is written and deleted is the proofer's to read."""
     order = the_order()
     for said in (
-        "Where a work item stands is read from `plan.md`'s Status column, "
-        "`gaps.md` and the phase records.",
-        "a `handoff.md` in the work item's directory only to move the work to "
-        "another session or another machine",
-        "The orchestrator that hands the work over writes",
-        "The orchestrator that takes the work over deletes it once",
+        # The file the orchestrator writes to move the work.
+        "`handoff.md`",
+        # The records a work item's standing is read from.
+        "`plan.md`",
+        "`gaps.md`",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
 
 def test_a_recurring_problem_gets_a_prevention_home():
     """S9 of #945. A problem met twice in one run gets the place that
-    prevents it before the next spawn, and the issue records where."""
+    prevents it before the next spawn, and the issue records where. Where
+    the home goes is the proofer's to read."""
     order = the_order()
     for said in (
-        "A problem that recurs within a run gets a prevention home at once.",
-        "a mechanism that stops it, or a rule written into the file the "
-        "recurring act is read from",
-        "The work item in progress builds that home.",
-        "records the home in a comment on the issue of the work item in progress",
-        # #1442, Scope item 2: the home is a decision, so the framer folds it.
-        "The home is a decision, so the framer folds it into that work item's "
-        "frame as the paragraph opening *A decision made after the frame is "
-        "committed is folded* states",
+        # The paragraph's lead, which the fold paragraph of the same section
+        # cites in italics.
+        "A problem that recurs within a run gets a prevention home at once",
+        # #1442, Scope item 2: the home is a decision, so the framer folds
+        # it; the paragraph it cites for that.
+        "*A decision made after the frame is committed is folded*",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
@@ -767,7 +551,7 @@ def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
         text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
     ]
     # The citation the orchestrator resolves to write a judgment at the cap.
-    assert "as one row of " + JUDGMENTS in run, run
+    assert JUDGMENTS in run, run
     row = regression[
         regression.index("| the unit already had a regression") : regression.index(
             "The framer's route:"

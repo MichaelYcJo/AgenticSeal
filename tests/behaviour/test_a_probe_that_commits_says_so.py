@@ -16,6 +16,8 @@ definitions, and the review skill, point a probe at what is left.
 
 from conftest import read
 
+# No TARGET: its cases hold contract rule 7's pointer across agents/proofer.md, skills/code-review/SKILL.md and agents/tracer.md.
+
 
 def test_the_reviewer_points_a_probe_at_rules_7_and_9():
     """What stayed in `agents/proofer.md` is the application, not the shapes.

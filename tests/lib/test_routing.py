@@ -9,14 +9,20 @@ answer is that reader's own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
 `tests/test_console_is_not_utf8.py` (#942's phase 6). The case of
 `Test_module` on the copy without `lib/blocks.py` came in #942's round 9 fix
-pass, from `tests/test_a_script_copied_alone_exits_2.py`.
+pass, from `tests/test_a_script_copied_alone_exits_2.py`. The two cases of
+`Test_module` that hold `shown` to `tests/commonmark_oracle.py`, over the
+corpus `tests/lib/test_blocks.py` builds, came in #1489's phase 3 from
+`tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`; the
+oracle's own cases stand in `tests/test_commonmark_oracle.py`.
 """
 
 import os
 import subprocess
 import sys
 
+import commonmark_oracle as oracle
 import pytest
+from block_shapes import RENDERER, SHAPES
 from conftest import (
     ROOT,
     census_case,
@@ -27,6 +33,8 @@ from conftest import (
     two_axis_text,
     with_row,
 )
+from test_blocks import CORPUS, as_read
+from test_tables import leaves_both
 
 TARGET = "lib/routing.py"
 
@@ -102,6 +110,12 @@ class Test_table_rows:
 
 
 class Test_parse:
+    """Where two cases call `parse` alike on the two-axis declaration, the
+    declaration they hold it against differs: none, one carrying a row the
+    reader no longer reads, or one answering `no` for automation. Where two
+    have one body, the Implementation answer they write differs: an old name
+    or a sentence."""
+
     def test_accepts_a_two_axis_declaration_with_no_optional_row_answered(self):
         """S1, and S8 at the parser. Twelve of these are committed in this
         repository at the base of this work, thirteen at its head. A third or
@@ -528,6 +542,31 @@ class Test_module:
         assert "tells a live row from one quoted in a fence or parked in a comment" in (
             last
         ), last
+
+    def test_the_routing_reader_never_leaves_both_readings(self):
+        """Half 1, S9. `lib/routing.py#table_rows` read every line at
+        `release/v0.16.0`, so its base hides nothing, and every line it skips now
+        has to be one a renderer hides: a row it stops reading was never a live
+        answer."""
+        wrong = []
+        for doc in CORPUS:
+            text, lines = as_read(doc)
+            new = set(range(len(lines))) - {
+                i for i, _line in routing.shown(lines, text)
+            }
+            bad = leaves_both(new, set(), set(oracle.hidden_text(text)), len(lines))
+            if bad:
+                wrong.append((lines, bad))
+        assert not wrong, f"{len(wrong)} documents, the first: {wrong[0]}"
+
+    def test_the_routing_reader_hides_something(self):
+        """The half above is empty for a reader that skips nothing, which is
+        what it was. On the shapes that park or quote a table it skips the
+        renderer's lines."""
+        for name in ("R1", "R2", "R5", "R9"):
+            lines = SHAPES[name]
+            skipped = set(range(len(lines))) - {i for i, _ in routing.shown(lines)}
+            assert skipped == RENDERER[name], name
 
 
 test_census = census_case(TARGET)

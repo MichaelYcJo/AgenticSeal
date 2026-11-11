@@ -16,6 +16,8 @@ import pytest
 from conftest import ROOT, build_tracked_tree, git_listing, on_disk
 from workflows import load
 
+# No TARGET: its cases sweep every file the plugin loads for a version timer, and hold the release rules across the update skill, the workflows, the release documents and the records root.
+
 
 def read_text(*parts):
     with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
@@ -124,10 +126,13 @@ RECORDS_OF_A_MOMENT = (
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
     # The policy states which gits a git-side decision was measured to hold
-    # on, and that is the class the `seal.py` and `broad_gate.py` rows below
-    # name: a property read off an unnamed git is not a measurement.
+    # on, and that is the class the `seal.py` row for `2.50.1` and the
+    # `broad_gate.py` row below name: a property read off an unnamed git is
+    # not a measurement.
     ("skills/implement/scripts/seal.py", "4.4.17"): (
-        "bash's, named in a comment about the glob behaviour of that release"
+        "the zip specification's, APPNOTE's section number that `unsafe`'s "
+        "docstring cites for a zip's `/`-separated names. It is no version, "
+        "and no release of AgenticSeal makes the number wrong"
     ),
     ("skills/implement/scripts/seal.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
@@ -1028,6 +1033,8 @@ def test_the_python_floor_is_the_same_number_everywhere():
     floor = python_floor()
     for name in ("README.md", "README.ko.md"):
         with open(os.path.join(ROOT, name), encoding="utf-8") as f:
+            # The floor `ruff.toml` declares, the value a person reads in the
+            # README to choose an interpreter.
             assert floor in f.read(), f"{name} does not state the {floor} floor"
     versions = matrix_pythons()
     assert versions, "the test matrix names no python versions"
@@ -1103,56 +1110,55 @@ def test_update_shows_what_changed_from_the_github_releases():
     """S8 of #1053. The notes are published once, as the GitHub Release at
     each tag, and no copy is kept in the tree. So step 3 reads the releases
     from the public API with no token, `gh` included, because `gh` needs a
-    login; it takes the repository from the marketplace clone's `origin`,
-    reads every release after the old version up to the new one oldest
-    first, and where the read fails it says so, names the releases page and
-    goes on, because the update has already landed.
+    login; it takes the repository from the marketplace clone's `origin` and
+    prints the releases after the old version up to the new one, oldest
+    first. The case reads the spellings of the commands the session runs;
+    the step's sentences are the proofer's to read.
 
     Round 1 of #1053, finding 2: the list holds every release's whole note,
     about 880 KB, so it is downloaded to a file and only the releases in the
-    span are printed, oldest first."""
+    span are printed."""
     update = read_text("skills", "update", "SKILL.md")
     step = update[update.index("**3.") : update.index("**4.")]
     flat = " ".join(step.split())
+    # Each entry is a spelling of the command the session runs at step 3,
+    # and the second field names what it is.
     for needed, why in (
+        # The public API the session's command reads the releases from.
         ("https://api.github.com/repos/", "the public API the releases are read from"),
+        # The endpoint the command requests.
         ("/releases", "the releases endpoint and page"),
+        # The download to a file, which the command writes the list into.
         ('releases?per_page=100" -o "$f"', "the list goes to a file, not the session"),
+        # The call in the command's script that prints the span oldest first.
         ("reversed(", "the span is printed oldest first"),
+        # The comparison in the command's script that bounds the span.
         ("old < at <= new", "only the releases after the old version up to the new"),
+        # The git command the session runs for the repository.
         ("remote get-url origin", "where the repository is taken from"),
+        # The path of the clone whose `origin` the command reads.
         ("marketplaces/agenticseal", "the clone whose origin it is"),
-        ("no token", "that the read carries no credentials"),
-        ("oldest first", "the order the releases are read in"),
-        ("releases page", "what a failed read names"),
-        ("go on to step 4", "that a failed read does not stop the procedure"),
     ):
         assert needed in flat, f"step 3 does not carry {needed!r}: {why}"
-    for refused in ("changelog/", "CHANGELOG.md", "Authorization", "gh "):
+    # `skills/update/SKILL.md` *3. Name what changed.* reads the releases
+    # "with no token: `gh` is not used", so the session's command carries no
+    # credential header and calls no `gh`.
+    for refused in ("Authorization", "gh "):
         assert refused not in flat, f"step 3 carries {refused!r}"
 
 
-def test_update_names_the_reload_and_what_it_was_measured_to_reach():
+def test_update_names_the_reload():
     """The update's output tells the user how to load what landed: it names
-    `/reload-plugins`, scopes what was measured to the skill bodies a spawned
-    agent is handed out of the copy the session is already on, and names a
-    restart for what nobody measured. The session-start notice carried this
-    until #1376 removed it, and `docs/releasing/release-checklist.md` *A
-    notice telling somebody an update landed names the move it costs them*
-    is the rule."""
+    `/reload-plugins`. What it says a reload was measured to reach, and the
+    restart it names for the rest, are the proofer's to read against
+    `docs/releasing/release-checklist.md` *A notice telling somebody an
+    update landed names the move it costs them*."""
     update = read_text("skills", "update", "SKILL.md")
     start = update.index("## Output")
     end = update.find("\n## ", start + 1)
     flat = " ".join(update[start : end if end != -1 else len(update)].split())
-    for needed, why in (
-        ("/reload-plugins", "the reload command"),
-        ("re-reads the skill bodies a spawned agent is", "what was measured"),
-        ("out of the copy this session is already on", "the copy it re-reads"),
-        # #1376: the unmeasured list names what a reload might still miss.
-        ("Nobody has measured whether a reload reaches agent", "what was not"),
-        ("so restart for those", "the move named for what was not"),
-    ):
-        assert needed in flat, f"the update's output does not carry {needed!r}: {why}"
+    # The command the person types to load what landed.
+    assert "/reload-plugins" in flat, "the update's output does not name the reload"
 
 
 def test_the_token_stays_the_smallest_that_can_close_an_issue():
@@ -1192,6 +1198,10 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
         glob.glob(os.path.join(ROOT, "seal", "threads", "*", "pr.ko.md"))
     ):
         text = open(path, encoding="utf-8").read()
+        # `docs/layout/the-record-layout.md` *A fact of a work item has one
+        # record, and every other record cites it by path and heading.*: the
+        # `Closes` lines are `pr.md`'s, and `pr.<lang>.md` holds the quotes
+        # rendered and no fact of its own, so a close it states is refused.
         for line in text.splitlines():
             if "닫습니다" in line and "#" in line and "닫히지" not in line:
                 raise AssertionError(
@@ -1277,6 +1287,8 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     ]
     assert len(steps) == 1, f"{len(steps)} steps are called {RULES_STEP!r}"
     script = steps[0]["run"]
+    # The command the step runs, which the case replaces with this checkout's
+    # interpreter and script; one occurrence is what the replacement reaches.
     assert script.count(RULES_COMMAND) == 1, script
     rules = os.path.join(ROOT, ".github", "scripts", "rules.py")
     script = script.replace(

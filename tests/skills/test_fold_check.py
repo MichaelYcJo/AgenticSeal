@@ -17,6 +17,10 @@ cases that read the cheat sheets and the settle skill. Its round 9 fix pass
 placed the copy's case from `tests/test_a_script_copied_alone_exits_2.py`
 and the splitter's from `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`,
 each a case of this module alone.
+
+The cases that run the command beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import os
@@ -24,7 +28,8 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, config_json, load_module, mark_root
+from conftest import ROOT, census_case, config_json, load_module, mark_root, write
+from test_seal import configured, tool
 
 TARGET = "skills/settle/scripts/fold_check.py"
 
@@ -358,6 +363,20 @@ class Test_main:
             "which has no seal/ root at either place, and there is no "
             "docs/README.md, so nothing was checked\n"
         ), out
+
+    def test_s5_fold_reads_its_keys_from_agentic_seal(self, shared):
+        """`seal fold` reads `Policy root` and `Document token ceiling` from
+        `agentic-seal/config.json`, so the documents it holds to the ceiling are
+        the ones under the root that key names."""
+        configured(
+            shared / "agentic-seal",
+            ("Policy root", "policy"),
+            ("Document token ceiling", "1"),
+        )
+        write(shared, "policy/a.md", "# A\n")
+        code, out, err = tool(shared, "fold")
+        assert code == 0, err
+        assert "policy/a.md is about 2 tokens, past the ceiling of 1" in out, out
 
 
 class Test_module:

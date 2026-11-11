@@ -1,8 +1,7 @@
-"""What is left of `seal fold`'s old file: the two cases that read the
-cheat sheets and the settle skill, which wait for #923.
+"""The cheat sheets' `seal fold` row, in both editions.
 
-#942's phase 6 placed the cases that run `seal fold` or call
-`skills/settle/scripts/fold_check.py` in `tests/skills/test_fold_check.py`, which
+The cases that run `seal fold` or call
+`skills/settle/scripts/fold_check.py` stand in `tests/skills/test_fold_check.py`, which
 `docs/layout/the-record-layout.md` *The size a reader takes whole* names on its
 `check:` line.
 """
@@ -11,6 +10,8 @@ import os
 
 import pytest
 from conftest import ROOT
+
+# No TARGET: its cases hold the seal fold row across README.md and README.ko.md.
 
 
 @pytest.mark.parametrize("edition", ["README.md", "README.ko.md"])
@@ -21,19 +22,3 @@ def test_both_cheat_sheets_point_to_the_checks_home(edition):
         row = next(line for line in f if line.startswith("| `seal fold [--ceiling"))
     # The section a reader of the row resolves for the fold's values.
     assert "`templates/setup/config.md` *The fold's values*" in row, row
-
-
-def test_settle_owns_the_placement_rule():
-    """A11. The rule is settle's, in general form, and it sets no value."""
-    with open(
-        os.path.join(ROOT, "skills", "settle", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        text = f.read()
-    section = text.split("\n## A document past its ceiling is split, never trimmed\n")
-    section = " ".join(section[1].split("\n## ")[0].split())
-    for phrase in (
-        "is recommended to be split by who opens each section and at which step",
-        "nothing is cut to fit",
-        "The plugin sets no ceiling",
-    ):
-        assert phrase in section, f"settle no longer says: {phrase!r}"

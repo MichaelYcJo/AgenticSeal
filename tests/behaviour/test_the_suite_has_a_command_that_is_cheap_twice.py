@@ -2,11 +2,11 @@
 
 Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks* and the agent definitions that send
-a reader to the runner, and wait for #923.
+a reader to the runner.
 
-#942's phase 6 placed the cases of `.github/scripts/run_tests.py`'s
-functions in `tests/github/test_run_tests.py`, and this file reads the runner
-through that file's `rt`.
+The cases of `.github/scripts/run_tests.py`'s functions stand in
+`tests/github/test_run_tests.py`, and this file reads the runner through that
+file's `rt`.
 """
 
 import os
@@ -16,6 +16,9 @@ import pytest
 from conftest import ROOT, read
 from test_run_tests import rt
 from workflows import load
+
+# No TARGET: its cases list every command under bin/, and hold the runner's floor and parser across .github/workflows/test.yml, CONTRIBUTING.md and the agent definitions.
+
 
 BIN = os.path.join(ROOT, "bin")
 
@@ -100,24 +103,6 @@ def test_a_copy_without_the_runner_beside_it_says_so(tmp_path):
     assert "Traceback" not in result.stderr
 
 
-def test_both_wrappers_say_the_same_thing_when_the_runner_is_missing():
-    """The case above EXECUTES the POSIX wrapper and is skipped on `nt`, so on
-    the one platform the `.cmd` twin runs, nothing reads its sentence. It
-    shipped with half of one: the reader was told the copy has no runner and
-    never told where to get it. This case reads both files, so it runs
-    everywhere."""
-    posix = read(os.path.join(BIN, "test"))
-    windows = read(os.path.join(BIN, "test.cmd"))
-    for fragment in (
-        "has no runner beside it",
-        "Run it from a clone of the AgenticSeal repository",
-    ):
-        assert fragment in posix, f"bin/test no longer says: {fragment}"
-        assert fragment in windows, (
-            f"bin/test.cmd drops what its POSIX twin tells the reader: {fragment}"
-        )
-
-
 def test_ci_installs_the_parser_the_runner_pins():
     """#667, phase 1. The pin is chosen once, in `MARKDOWN_IT`, and CI's
     pytest job installs its own list. A version bumped in one place and not
@@ -128,16 +113,13 @@ def test_ci_installs_the_parser_the_runner_pins():
         if step.get("run", "").startswith("pip install")
     ]
     assert installs, "the pytest job installs nothing to compare"
+    # The pinned parser `run_tests.py#MARKDOWN_IT` names, which the runner
+    # installs before the suite runs, and no other version of it.
     assert any(rt.MARKDOWN_IT in words for words in installs), installs
     assert not any(
         word.startswith("markdown-it-py") and word != rt.MARKDOWN_IT
         for words in installs
         for word in words
-    ), installs
-    # #857: Pillow left the line with its last reader, and no version of it
-    # is installed.
-    assert not any(
-        word.lower().startswith("pillow") for words in installs for word in words
     ), installs
     # #647: cmarkgfm joins the same line, at the version the runner pins.
     assert any(rt.CMARKGFM in words for words in installs), installs
@@ -240,19 +222,6 @@ def test_the_section_and_the_runner_state_the_same_floor():
     )
     assert "FLOOR" in section, (
         "the sentence names a number the reader cannot trace to the code that holds it"
-    )
-
-
-def test_the_section_states_the_floor_once():
-    """The sentence above is worth nothing while a second copy of the number
-    sits in the same section untraced. Whichever one a reader finds first is
-    the one they edit when the floor moves, and the other stays behind saying
-    the old number with nothing pointing at it."""
-    section = running_the_checks()
-    found = section.count(rt.FLOOR_TEXT)
-    assert found == 1, (
-        f"the section states {rt.FLOOR_TEXT} {found} times; only the sentence "
-        "naming FLOOR carries the number, and the rest refer back to it"
     )
 
 

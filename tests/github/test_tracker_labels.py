@@ -22,10 +22,13 @@ about a write that did NOT happen.
 that read the workflow and `docs/releasing/issues-and-milestones.md`.
 """
 
-from conftest import census_case
+import os
+
+from conftest import ROOT, census_case
 from test_close_issues_on_release import LABEL, REPO, Tracker, load
 
 TARGET = ".github/scripts/tracker_labels.py"
+OWNER = "docs/releasing/issues-and-milestones.md"
 
 
 def labels_module():
@@ -59,6 +62,10 @@ class Test_create:
 
 
 class Test_main:
+    """Where two cases call `main` alike, the world differs: the fake tracker
+    lacks one declared label, holds every one, or holds none under
+    `DRY_RUN=1`."""
+
     def test_accepts_a_missing_label_and_creates_it_with_the_documents_sentence(
         self, monkeypatch, capsys
     ):
@@ -155,6 +162,34 @@ class Test_module:
             f"the tracker refuses a label description past {limit} characters, "
             f"and these are longer: {too_long}"
         )
+
+    def test_every_declared_label_says_which_document_specifies_it(self):
+        """A row here is a copy of a decision made somewhere else. A reader who
+        cannot get back to the original has to take the copy's word for what the
+        label means — which is how a label and its section drift apart."""
+        mod = labels_module()
+        assert mod.declared(), "nothing is declared, so the step reconciles nothing"
+        for label in mod.declared():
+            assert label["specified_by"].startswith(OWNER.split("/")[-1]) or label[
+                "specified_by"
+            ].startswith("docs/"), label
+            document, _, heading = label["specified_by"].partition(" *")
+            assert os.path.exists(os.path.join(ROOT, document)), (
+                f"{label['name']!r} cites {document}, which is not in the tree"
+            )
+            # The section is cited by its heading text in italics, and the
+            # heading is read as it renders, its own emphasis dropped: the
+            # citation a reader of the label resolves to its section.
+            with open(os.path.join(ROOT, document), encoding="utf-8") as handle:
+                headings = {
+                    line.lstrip("#").strip().replace("*", "")
+                    for line in handle
+                    if line.startswith("#")
+                }
+            assert heading.endswith("*") and heading[:-1] in headings, (
+                f"{label['name']!r} cites {label['specified_by']!r}, and "
+                f"{document} has no such heading"
+            )
 
 
 test_census = census_case(TARGET)

@@ -617,6 +617,9 @@ class Test_issue_state:
 
 
 class Test_comments_on:
+    """Where two cases call `comments_on` alike, the world differs: the
+    monkeypatched `_issue_api` answers with a comment count or without one."""
+
     def test_accepts_the_count_the_read_gave(self, monkeypatch):
         mod = closer_module()
         monkeypatch.setattr(mod, "_issue_api", lambda r, n: ({"comments": 2}, True))
@@ -649,6 +652,10 @@ def _refused_first_route(monkeypatch, counts):
 
 
 class Test_close_issue:
+    """Where two cases call `close_issue` alike, the world differs:
+    `_refused_first_route` reads the comment count as 0 and then 1, or as
+    unread and then 1."""
+
     def test_accepts_a_count_grown_by_one_as_the_comment_already_posted(
         self, monkeypatch
     ):
@@ -1097,6 +1104,9 @@ class Test_main:
 
 
 class Test_module:
+    """Where two cases call `argv_words` alike, the source differs: a tuple
+    argv in one, and an f-string and a bytes word in the other."""
+
     def test_every_report_of_the_removal_goes_through_one_place(self):
         """Contract rule 12: the defect was one copy of three being unguarded, so what is owed
         is that a fourth copy cannot be written. Both branches of the loop call

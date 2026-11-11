@@ -43,6 +43,8 @@ from censuses import COMMIT_PATH
 from conftest import ROOT, on_disk
 from test_a_cited_section_stands_in_its_file import text_of
 
+# No TARGET: its cases read every tracked text file the citation check reads.
+
 # The refs whose commits outlive a squash: `main` and the release branches,
 # the patterns `docs/releasing/branch-and-release.md` names, local or remote-tracking.
 REACHING = (

@@ -144,7 +144,7 @@ def hidden_lines(lines, text=None):
     line keeps this reader's reading from before #667, the fence rule alone,
     `blocks.fence_only`. So on every line the answer is either the old one or
     the renderer's, and never a third;
-    `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py` holds that
+    `tests/lib/test_tables.py`'s `Test_unfenced` holds that
     over a generated corpus.
 
     What it means in a file:
@@ -241,7 +241,7 @@ def unfenced(lines, text=None):
 # ended the table, and a signer written as one was read by nobody at exit 0.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
-# by `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, a property case
+# by `tests/lib/test_tables.py`'s `Test_gfm_table`, property cases
 # over a corpus enumerated from the CommonMark and GFM block kinds: on every
 # shape the walker's cells equal cmark-gfm's, or the walker refuses. So every
 # arm below is one of two kinds. An END is a line the renderer was measured to

@@ -93,6 +93,8 @@ from conftest import (
 from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
 from test_the_agent_contract_holds_the_universal_rules import read as read_at_root
 
+# No TARGET: its cases read every tracked file's citations and the archive git builds of the tree.
+
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
     "agentic_rule_changes_for_citations",

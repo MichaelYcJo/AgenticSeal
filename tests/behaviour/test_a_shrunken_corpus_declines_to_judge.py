@@ -30,6 +30,8 @@ from conftest import (
     on_disk,
 )
 
+# No TARGET: its cases walk every test module under tests/ that git lists.
+
 # --- the class, re-enumerated over tests/ -----------------------------------
 #
 # The guard is per helper, so a sixth helper written without one is the defect

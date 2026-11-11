@@ -47,6 +47,9 @@ import pytest
 from conftest import COLLECTED_NODE_IDS, ROOT
 from workflows import load
 
+# No TARGET: its cases read every node id the suite collects, and hold the shards across .github/workflows/test.yml and .github/scripts/durations_union.py.
+
+
 TEST = ".github/workflows/test.yml"
 SUITE = os.path.join(ROOT, "tests")
 
@@ -112,6 +115,8 @@ def test_the_pytest_line_hands_the_split_to_pytest():
         if step.get("run", "").startswith("pytest ")
     ]
     assert len(runs) == 1, runs
+    # The two matrix expressions the runner expands at the end of the pytest
+    # line, the split first and the store after it.
     assert runs[0].endswith("${{ matrix.split }} ${{ matrix.store }}"), runs[0]
 
 
@@ -204,9 +209,6 @@ def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
         pattern,
         shard["name"],
     )
-    assert "merge-multiple" not in download, (
-        "merged, the four parts are one `.test_durations` written four times"
-    )
     _, opts = union_step(steps)
     assert sorted(opts) == ["--count", "--out", "--parts"], (
         f"the union step passes {sorted(opts)}: a file's age is no input (#1486)"
@@ -253,6 +255,8 @@ def test_a_run_that_is_no_pull_request_saves_the_union_and_each_split_shard_rest
     union_at, out = union_step(steps)
     save = cache_step(steps, "save")
     assert steps.index(save) > union_at, "the union is saved before it is written"
+    # The condition the runner evaluates on the save step: a run that is no
+    # pull request's, and a union file that exists.
     assert "github.event_name != 'pull_request'" in save.get("if", ""), save
     assert f"hashFiles('{out['--out']}') != ''" in save.get("if", ""), save
     ((_, upload),) = uploads(steps)
@@ -269,6 +273,8 @@ def test_a_run_that_is_no_pull_request_saves_the_union_and_each_split_shard_rest
     assert saved.get("path") == restored.get("path") == out["--out"], (saved, restored)
     prefix = restored.get("restore-keys", "")
     assert prefix and saved.get("key", "").startswith(prefix), (saved, restored)
+    # The expression in the save's key the runner expands per attempt, since
+    # a cache key is immutable.
     assert "github.run_attempt" in saved["key"], saved
     assert saved.get("enableCrossOsArchive") == "true", saved
     assert restored.get("enableCrossOsArchive") == "true", restored

@@ -1418,8 +1418,8 @@ def slash_in_join(rel, root=None):
 # What the walk cannot see, and passes: a name built from other strings, a
 # name a pattern spells after another character, such as `^seal/`, and
 # `optin.HOME` joined under a repository where the root may have the second
-# name. A reader written that way is held by the cases built on the fixture
-# of `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`.
+# name. A reader written that way is held by the cases built on the
+# `package` and `shared` fixtures of `tests/conftest.py`.
 
 ROOT_NAME_HOME = "lib/optin.py"
 ROOT_NAME_SKIPPED = ("tests/", "evals/")

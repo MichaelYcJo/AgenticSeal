@@ -1,19 +1,19 @@
 """Issue #359, the signal half: the workflow that runs
 `.github/scripts/label_merged_on_release_branch.py` on a squash into
-`release/vX.Y.Z`. These cases read the workflow and wait for #923.
+`release/vX.Y.Z`. These cases read the workflow.
 
-#942's phase 6 placed the cases of the script's functions in
+The cases of the script's functions stand in
 `tests/github/test_label_merged_on_release_branch.py`.
 """
 
 import os
 
-from conftest import ROOT, read
+from conftest import ROOT, census_case, read
 from workflows import load
 
-WORKFLOW = os.path.join(
-    ROOT, ".github", "workflows", "label-merged-on-release-branch.yml"
-)
+TARGET = ".github/workflows/label-merged-on-release-branch.yml"
+
+WORKFLOW = os.path.join(ROOT, *TARGET.split("/"))
 
 
 def test_the_token_is_the_smallest_that_can_add_a_label():
@@ -53,3 +53,6 @@ def test_the_checkout_has_the_range_the_script_reads():
     # The checkout key and value the runner acts on, which give the step the
     # whole history `arrived()` reads.
     assert "fetch-depth: 0" in read(WORKFLOW)
+
+
+test_census = census_case(TARGET)

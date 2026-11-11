@@ -15,6 +15,10 @@ argument; two of them run the machine's real shell, and only CI's
 `windows-latest` leg runs its `cmd.exe` path. The cases of `main` that run
 the command build a repository with a `feature` branch and run it over that
 branch.
+
+The cases that run the command beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import argparse
@@ -32,15 +36,18 @@ import conftest
 import pytest
 from conftest import (
     census_case,
+    commit_everything_as_e,
     config_json,
     git,
     git_out,
     load_module,
     mark_root,
+    records_at,
     symlink_or_skip,
     write,
 )
 from conftest import commit_everything_as_e as commit
+from test_seal import configured, tool
 
 TARGET = "skills/verify/scripts/broad_gate.py"
 
@@ -594,6 +601,29 @@ class Test_broad_command:
         assert said in str(refused.value), refused.value
 
 
+def flat(text):
+    """Runs of whitespace folded to one space, so a phrase a hand-wrap splits
+    across two lines still reads as the phrase.
+
+    A block quote's `> ` goes with the wrap it marks: the criterion is a
+    two-line quote, and folding without dropping the marker leaves `the exit
+    code the > gate reads` — a phrase nobody wrote and nobody can assert.
+    """
+    unquoted = "\n".join(re.sub(r"^\s*>\s?", "", line) for line in text.splitlines())
+    return re.sub(r"\s+", " ", unquoted)
+
+
+def missing_row_text():
+    """The refusal itself, built by the module rather than quoted from it."""
+    import importlib.util
+
+    path = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
+    spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return flat(module.missing_row("/seal"))
+
+
 class Test_missing_row:
     def test_accepts_a_file_with_no_row_as_a_question_for_a_person(self, tmp_path):
         said = gate.missing_row(home_with(tmp_path, config_of(None)))
@@ -610,6 +640,34 @@ class Test_missing_row:
         said = gate.missing_row(home)
         assert f"seal gate: {os.path.join(home, 'config.json')} has no" in said
         assert os.path.join(home, "config.md") not in said, said
+
+    def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one(self):
+        """The only reader standing in front of this message is a session, so
+        *write the repository's own broad command into it* asked the one party
+        that may not. It printed the key to type, too."""
+        said = missing_row_text()
+        assert "Write the repository's own broad command" not in said
+        assert "<the full suite, the repository-wide lint, the typecheck>" not in said
+        assert "not this session's to do" in said
+
+    def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered(
+        self,
+    ):
+        """Naming the door is what keeps *not this session's* from reading as a
+        dead end — which is how a refusal with no route becomes a session filling
+        the key in anyway. #1454: the door adds the key alone, since a JSON file
+        carries no section beside it."""
+        said = missing_row_text()
+        assert "the key is a thing a person wrote" in said
+        assert "/agentic:config" in said
+        assert "it shows every key and adds this one —" in said
+        assert "with its section" not in said
+        assert (
+            "`templates/setup/config.md` *The criterion for choosing a value* is what "
+            "they choose against"
+        ) in said
+        assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said
+        assert "Nothing ran" in said
 
 
 class Test_wholly_substituted:
@@ -1668,6 +1726,21 @@ class Test_panel:
         assert suite[1][0] == "" and suite[1][1].endswith("1000 xfailed")
         assert long_ref.startswith("origin/") and len(based) == width
 
+    def test_the_panel_prints_the_ref_on_the_base_row(self):
+        """The ref beside the base commit is the half of the stamp a reader uses
+        to tell a fresh base from a stale one. Since #832's S5a it is the `base`
+        row itself, beside the commit, and the panel has no `from` row."""
+        mod = gate_module()
+        base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
+        checks = {
+            name: mod.Check(name, 0, "1 passed in 0.1s", "out.txt")
+            for name in (mod.SUITE, mod.CHAIN_NAME)
+        }
+        rows = mod.panel("ccccccc", base, checks, None)
+        labels = [row[0] for row in rows if row]
+        assert "from" not in labels, f"the panel still has a `from` row: {labels}"
+        assert ("base", "bbbbbbb  origin/base") in rows, rows
+
 
 # Pinned verbatim, because a person reads it on the failure form and decides
 # from it whether to open the kept file (contract rule 14). It names every
@@ -2480,6 +2553,25 @@ class Test_main:
         )
         assert labels == HISTORICAL_ROWS, (
             f"the report of a run over a workflow is not the report it was: {labels}"
+        )
+
+    def test_s5_gate_reads_its_key_from_agentic_seal_and_names_it_where_none_is(
+        self, package, tmp_path
+    ):
+        """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
+        the shared place a root would stand, not the package's `seal/`; with
+        the root there, it reads the `Broad gate` key of `agentic-seal/config.json`."""
+        top = os.path.realpath(package)
+        code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
+        assert code == 2, err
+        shared = os.path.join(top, "agentic-seal")
+        assert f"at either place a root lives (`{shared}`, `" in err, err
+        command = f"{sys.executable} -c pass"
+        configured(records_at(package / "agentic-seal"), ("Broad gate", command))
+        commit_everything_as_e(package, "the root")
+        _code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
+        assert f"seal gate: `Broad gate` says: {command} — read, and not run" in err, (
+            err
         )
 
 

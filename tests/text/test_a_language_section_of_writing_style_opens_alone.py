@@ -20,6 +20,8 @@ import re
 
 from conftest import ROOT, read
 
+# No TARGET: its cases hold the language sections of skills/writing-style/SKILL.md against every definition under agents/ that names them.
+
 SKILL = "skills/writing-style/SKILL.md"
 
 # The two sections an agent opens alone, spelled as `agents/proofer.md` and

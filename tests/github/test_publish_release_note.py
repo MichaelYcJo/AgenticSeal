@@ -34,7 +34,7 @@ stands in for `subprocess.run`. The cases that read the history drive a real
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
-read the workflow and the release checklist.
+read the workflow.
 """
 
 import html.parser
@@ -1194,6 +1194,35 @@ class Test_module:
         assert mod.fragments(f"{PREVIOUS}..{TAG}") == [
             ("1700000002-ours", "- our entry", 5)
         ]
+
+    def test_the_line_the_checklist_copies_is_the_line_the_reader_reads(self):
+        """S17 of #1000. The command in `docs/releasing/release-checklist.md` *The
+        release pull request*, filled with a version and a symptom, is the merge
+        commit's body line, and `title_from` reads it as S15 does. Protects: the
+        document a release session copies and the reader moving apart, which
+        loses the next release's title."""
+        doc = open(
+            os.path.join(ROOT, "docs", "releasing", "release-checklist.md"),
+            encoding="utf-8",
+        )
+        text = doc.read()
+        doc.close()
+        step = text[text.index("## The release pull request") :]
+        title = step.split('--title "', 1)[1].split('"', 1)[0]
+        filled = title.replace("X.Y.Z", VERSION).replace(
+            "<the symptoms the release answers>", SYMPTOMS
+        )
+        assert filled != title and "<" not in filled, title
+        mod = module(SCRIPT, "publish_release_note_for_the_checklist")
+        message = f"Merge pull request #500 from owner/release/v{VERSION}\n\n{filled}\n"
+        title, source = mod.title_from(message, VERSION, TAG)
+        assert (title, source) == (
+            f"{VERSION} — {SYMPTOMS}",
+            "the tagged commit's `release:` line",
+        )
+        # Trailing whitespace after the symptoms is no part of the title.
+        spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
+        assert spaced == title, spaced
 
 
 class Test_section:

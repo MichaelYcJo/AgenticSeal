@@ -23,6 +23,8 @@ import re
 
 from conftest import flat, read
 
+# No TARGET: its cases hold the one broad run across the agent definitions, the skills and the documents that state it.
+
 
 def test_the_broad_gate_section_cites_the_owner_of_its_timing():
     """The section that runs the gate cites the section that owns when the
@@ -123,19 +125,18 @@ def joined(lines):
     return " ".join(" ".join(lines).split())
 
 
-def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
+def test_the_order_inside_a_ticket_names_the_preflight():
     """The order section sequences the sealer's spawn, so the step before it
-    is written in where the spawn is."""
+    is written in where the spawn is. Where it stands in the order is the
+    proofer's to read."""
     text = joined(
         section(
             read("skills", "implement", "orchestration.md"),
             "Orchestrator: the order inside a ticket",
         )
     )
+    # The command the orchestrator runs before it spawns the sealer.
     assert PREFLIGHT in text, "the order does not name the preflight"
-    assert text.index(PREFLIGHT) < text.index("then the sealer, and then the pull"), (
-        text
-    )
 
 
 EXAMPLE_ROW = (

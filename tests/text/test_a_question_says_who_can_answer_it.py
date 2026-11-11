@@ -20,6 +20,8 @@ each framer report.
 
 from conftest import read
 
+# No TARGET: its cases hold the answerer column across the questions template and skills/implement/SKILL.md.
+
 ANSWERERS = ("a person", "a measurement", "the work")
 
 
