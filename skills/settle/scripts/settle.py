@@ -337,10 +337,11 @@ def reaches(root, ref, commit):
 PULL_REQUEST_RE = re.compile(r"\(#(\d+)\)$")
 
 
-def adding_commit(root, revisions, path):
-    """`(commit, pull request number or None)` for the oldest commit of
-    REVISIONS, a range or a ref in the repository at ROOT, that adds PATH, or
-    `(None, None)` where no commit there adds it.
+def adding_commits(root, revisions, pathspec):
+    """`{path: (commit, short hash, pull request number or None)}` for each
+    path under PATHSPEC that a commit of REVISIONS, a range or a ref in the
+    repository at ROOT, adds, from the oldest commit there that adds it.
+    One `git log`, whatever the number of paths.
 
     The number is the digits of the `(#N)` that ends the commit's stripped
     subject. Where a title ends with its issue, as `... (#7) (#42)` does, the
@@ -350,38 +351,51 @@ def adding_commit(root, revisions, path):
     of it cannot name different pull requests (#1139).
 
     `--full-history` walks every parent, because a release's tag is a merge
-    into `main` whose first parent never held the path (0.22.4). No rename is
-    read: the pathspec names one path, so the path a rename would pair it
-    with is never in the diff. Raises `RuntimeError`, saying what `git` said,
-    where it fails.
+    into `main` whose first parent never held the path (0.22.4). A merge
+    shows no diff here, so a path only a merge's own resolution added has
+    no adding commit. `--no-renames` reads a path a rename under PATHSPEC
+    would pair with another as the add it is, and `-z` quotes no path.
+    Raises `RuntimeError`, saying what `git` said, where it fails.
     """
-    r = subprocess.run(
-        load(GITCMD, "agentic_gitcmd_for_settle").argv(
-            "-C",
-            root,
-            "log",
-            "--diff-filter=A",
-            "--full-history",
-            "--format=%H%x00%s",
-            revisions,
-            "--",
-            path,
-        ),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
+    listed = git_out(
+        root,
+        "log",
+        "-z",
+        "--no-renames",
+        "--full-history",
+        "--diff-filter=A",
+        "--name-only",
+        "--format=%x01%H %h %s",
+        revisions,
+        "--",
+        pathspec,
     )
-    if r.returncode != 0:
-        raise RuntimeError(
-            f"`git log {revisions} -- {path}` exited {r.returncode}: {r.stderr.strip()}"
-        )
-    # exempt from splitlines: git output
-    listed = [line for line in r.stdout.splitlines() if line]
-    if not listed:
-        return None, None
-    commit, _, subject = listed[-1].partition("\x00")
-    found = PULL_REQUEST_RE.search(subject.strip())
-    return commit, int(found.group(1)) if found else None
+    added, commit = {}, None
+    # The log lists the newest commit first, so the oldest add of a path is
+    # the one written last. A commit's field opens with U+0001, as in
+    # `earlier_judgments`, and the path that follows it opens with a newline.
+    for field in listed.split("\0"):
+        field = field.lstrip("\n")
+        if field.startswith("\x01"):
+            commit = field[1:].split(" ", 2)
+        elif field and commit is not None:
+            added[field] = commit
+    out = {}
+    for path, (full, short, subject) in added.items():
+        found = PULL_REQUEST_RE.search(subject.strip())
+        out[path] = (full, short, int(found.group(1)) if found else None)
+    return out
+
+
+def adding_commit(root, revisions, path):
+    """`(commit, pull request number or None)` for the oldest commit of
+    REVISIONS that adds PATH, or `(None, None)` where no commit there adds
+    it: `adding_commits` asked of the one path. Raises `RuntimeError`,
+    saying what `git` said, where it fails."""
+    full, _short, number = adding_commits(root, revisions, path).get(
+        path, (None, None, None)
+    )
+    return full, number
 
 
 class Unasked(Exception):
@@ -484,34 +498,115 @@ class Unread(Exception):
     by; the message says what it said."""
 
 
-def git_out(root, *args):
-    """The standard output of `git ARGS` at ROOT, every pathspec literal.
-    Raises `RuntimeError`, saying what `git` said, where it fails."""
+def git_run(root, *args, given=None):
+    """The standard output of `git ARGS` at ROOT as bytes, every pathspec
+    literal, with GIVEN, bytes, on its standard input where it is not None.
+    Every `git` the settle's readers start goes through here. Raises
+    `RuntimeError`, saying what `git` said, where it fails."""
     r = subprocess.run(
         load(GITCMD, "agentic_gitcmd_for_settle").argv(
             "-C", root, "--literal-pathspecs", *args
         ),
+        input=given,
         capture_output=True,
-        encoding="utf-8",
-        errors="replace",
     )
     if r.returncode != 0:
         raise RuntimeError(
-            f"`git {' '.join(args)}` exited {r.returncode}: {r.stderr.strip()}"
+            f"`git {' '.join(args)}` exited {r.returncode}: {decoded(r.stderr).strip()}"
         )
     return r.stdout
 
 
-def version(root, commit):
-    """The lowest `vX.Y.Z` tag that holds COMMIT, its three parts compared
-    as numbers and not as text, or None where none does. A tag of any other
-    shape is no version."""
-    found = []
-    for name in git_out(root, "tag", "--contains", commit, "--list", "v*").split():
+def decoded(data):
+    """DATA as the text mode of `subprocess.run` reads it: UTF-8 with each
+    undecodable byte replaced, and every line ending a newline."""
+    return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def git_out(root, *args):
+    """The standard output of `git ARGS` at ROOT as text (`git_run`,
+    `decoded`). Raises `RuntimeError`, saying what `git` said, where it
+    fails."""
+    return decoded(git_run(root, *args))
+
+
+def versions(root):
+    """`{commit: tag}` for each commit some `vX.Y.Z` tag of the repository
+    at ROOT holds, the tag being the lowest that holds it, its three parts
+    compared as numbers and not as text. A tag of any other shape is no
+    version, and neither is one that does not peel to a commit.
+
+    Two calls, whatever the number of commits asked about: one
+    `git for-each-ref` lists the tags with the commit each peels to, and
+    one `git rev-list --parents --stdin` of those commits gives their
+    history. The tags are then walked lowest first, and each commit is
+    labelled by the first tag that reaches it; a walk stops at a commit
+    already labelled, whose history a lower tag has labelled whole.
+    Raises `RuntimeError`, saying what `git` said, where it fails."""
+    listed = git_out(
+        root,
+        "for-each-ref",
+        "--format=%(objecttype) %(objectname) %(*objecttype) %(*objectname) "
+        "%(refname:lstrip=2)",
+        "refs/tags/v*",
+    )
+    tips = []
+    # exempt from splitlines: git output
+    for line in listed.splitlines():
+        kind, oid, peeled_kind, peeled, name = line.split(" ", 4)
         matched = VERSION_RE.match(name)
-        if matched:
-            found.append((tuple(int(n) for n in matched.group(1).split(".")), name))
-    return min(found)[1] if found else None
+        tip = oid if kind == "commit" else peeled if peeled_kind == "commit" else None
+        if matched and tip:
+            number = tuple(int(n) for n in matched.group(1).split("."))
+            tips.append((number, name, tip))
+    if not tips:
+        return {}
+    given = "".join(f"{tip}\n" for _n, _name, tip in tips).encode()
+    walked = decoded(git_run(root, "rev-list", "--parents", "--stdin", given=given))
+    parents = {}
+    # exempt from splitlines: git output
+    for line in walked.splitlines():
+        commit, *above = line.split()
+        parents[commit] = above
+    labels = {}
+    for _number, name, tip in sorted(tips):
+        stack = [tip]
+        while stack:
+            commit = stack.pop()
+            if commit in labels:
+                continue
+            labels[commit] = name
+            stack.extend(parents.get(commit, ()))
+    return labels
+
+
+def blobs(root, names):
+    """`[(text, None) or (None, answer)]`, one for each of NAMES, each a
+    `<revision>:<path>` git reads, in their order: the file's text as
+    `git_out` decodes it, or what `git cat-file --batch` answered where it
+    holds no file there, such as `missing`, or the kind of object it holds
+    instead. One call, whatever the number of names; a name holds no
+    newline. Raises `RuntimeError`, saying what `git` said, where it
+    fails."""
+    out = git_run(
+        root, "cat-file", "--batch", given="".join(f"{n}\n" for n in names).encode()
+    )
+    read, at = [], 0
+    for name in names:
+        end = out.index(b"\n", at)
+        header = decoded(out[at:end])
+        at = end + 1
+        fields = header.split(" ")
+        if len(fields) != 3 or not fields[2].isdigit():
+            # `<name> missing`, `<name> ambiguous`: the name is echoed.
+            read.append((None, header.removeprefix(f"{name} ")))
+            continue
+        size = int(fields[2])
+        content, at = out[at : at + size], at + size + 1
+        read.append(
+            (decoded(content), None) if fields[1] == "blob" else (None, fields[1])
+        )
+    return read
 
 
 def published_releases(root):
@@ -615,7 +710,7 @@ def notes(root, ref, ids, specs):
     The fragment's text is read at REF, and the release note read it at
     the newest commit of its range that holds it: a fragment emptied or
     filled after the tag reads differently here, a limit no guard covers."""
-    out, pending = {}, {}
+    out, pending, labels = {}, {}, None
     try:
         at = git_out(root, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
         for work_item_id in ids:
@@ -629,10 +724,13 @@ def notes(root, ref, ids, specs):
                 out[work_item_id] = (False, NO_TEXT.format(ref=ref))
             elif number is None:
                 out[work_item_id] = (False, NO_NUMBER.format(commit=commit))
-            elif (tag := version(root, commit)) is None:
-                out[work_item_id] = (False, NO_TAG.format(commit=commit))
             else:
-                pending[work_item_id] = (tag, number, path)
+                if labels is None:
+                    labels = versions(root)
+                if (tag := labels.get(commit)) is None:
+                    out[work_item_id] = (False, NO_TAG.format(commit=commit))
+                else:
+                    pending[work_item_id] = (tag, number, path)
     except RuntimeError as refused:
         raise Unread(str(refused)) from refused
     if not pending:
@@ -840,6 +938,10 @@ EARLIER_HEADING = (
 )
 NO_RELEASE_TAG = "no `vX.Y.Z` tag holds {commit}, the commit that added its plan"
 NO_ADDING_COMMIT = "no commit on {ref} adds its plan"
+# A removed plan whose `<short>^:<path>` git holds no file's text for.
+NO_PLAN_TEXT = (
+    "`git cat-file --batch` answered `{answer}`, so none of its rows were read"
+)
 REMOVES_HEADING = (
     "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row,\nunless `--apply`, which alone reads the published "
@@ -1114,13 +1216,14 @@ def earlier_judgments(root, ref, present, specs):
               the removing commits newest first, and within one commit the
               plans in the order git lists them. `released` is the lowest
               `vX.Y.Z` tag that holds the commit adding the plan
-              (`adding_commit`, `version`), or the sentence saying none
+              (`adding_commits`, `versions`), or the sentence saying none
               does. `removed` is `(short hash, pull request number or
               None)`, the number read by `PULL_REQUEST_RE`. A coordinate is
               `<short>^:seal/threads/<id>/frame/plan.md:<line>`
-      unread  `[(where, why)]`: what `plan_rows` names for a plan, at its
-              `<short>^:` path, and a `git` that fails, with what it said;
-              `where` is empty where the history itself was not read
+      unread  `[(where, why)]`: what `plan_rows` names for a plan, and a
+              plan git holds no text for, with what `git cat-file` answered,
+              each at its `<short>^:` path; and a `git` that fails, with
+              what it said, where `where` is empty and no row is read
 
     One `git log -z --no-renames --full-history --diff-filter=D` of REF over
     `seal/threads` lists the deletions: `-z` so that no path is quoted,
@@ -1128,7 +1231,10 @@ def earlier_judgments(root, ref, present, specs):
     as another work item's plan, is not paired with it as a rename. A merge shows no diff in it, so a
     deletion is listed at the commit that made it, and a plan only a
     merge's own resolution deleted is not listed. Each plan is read once,
-    at the parent of the newest commit that deleted it. Nothing here
+    at the parent of the newest commit that deleted it. The plans' texts
+    (`blobs`), their adding commits (`adding_commits`) and the tags that
+    hold those (`versions`) are each read in one batched call, so the
+    calls made do not grow with the number of plans. Nothing here
     matches, counts or filters a row by its cells: whether two rows are
     one kind is the settling session's to judge."""
     try:
@@ -1165,22 +1271,31 @@ def earlier_judgments(root, ref, present, specs):
         seen.add(line)
         if matched.group(1) not in present:
             deleted.append((commit, matched.group(1), line))
+    if not deleted:
+        return [], []
+    try:
+        texts = blobs(root, [f"{full}^:{path}" for (full, _s, _t), _i, path in deleted])
+        added = adding_commits(root, ref, specs)
+        labels = versions(root)
+    except RuntimeError as failed:
+        return [], [("", str(failed))]
     groups, unread = {}, []
-    for (full, short, subject), work_item_id, path in deleted:
+    for ((_full, short, subject), work_item_id, path), (text, answer) in zip(
+        deleted, texts, strict=True
+    ):
         where = f"{short}^:{path}"
-        try:
-            text = git_out(root, "show", f"{full}^:{path}")
-            adding, _number = adding_commit(root, ref, path)
-            if adding is None:
-                released = NO_ADDING_COMMIT.format(ref=ref)
-            elif (tag := version(root, adding)) is None:
-                added = git_out(root, "rev-parse", "--short", adding).strip()
-                released = NO_RELEASE_TAG.format(commit=added)
-            else:
-                released = f"released in {tag}"
-        except RuntimeError as failed:
-            unread.append((f"{work_item_id}  {where}", str(failed)))
+        if text is None:
+            unread.append(
+                (f"{work_item_id}  {where}", NO_PLAN_TEXT.format(answer=answer))
+            )
             continue
+        adding, added_short, _number = added.get(path, (None, None, None))
+        if adding is None:
+            released = NO_ADDING_COMMIT.format(ref=ref)
+        elif (tag := labels.get(adding)) is None:
+            released = NO_RELEASE_TAG.format(commit=added_short)
+        else:
+            released = f"released in {tag}"
         rows, whys = plan_rows(text)
         unread += [(f"{work_item_id}  {where}", why) for why in whys]
         number = PULL_REQUEST_RE.search(subject.strip())

@@ -126,6 +126,23 @@ def apply(repo, capfd):
     return dry_run(repo, capfd, "--apply")
 
 
+def calls(monkeypatch, repo, capfd):
+    """The number of `git` commands the dry run over REPO starts, its exit
+    asserted 0."""
+    real, started = subprocess.run, []
+
+    def run(argv, *args, **kwargs):
+        if argv[0] == "git":
+            started.append(argv)
+        return real(argv, *args, **kwargs)
+
+    with monkeypatch.context() as patched:
+        patched.setattr(subprocess, "run", run)
+        code, text = dry_run(repo, capfd)
+    assert code == 0, text
+    return len(started)
+
+
 def specs_dir(repo, name):
     return repo / "seal" / "threads" / name
 
@@ -1538,7 +1555,7 @@ class Test_main:
             + ", the commit that added its plan"
         )
         if added_by == "no commit":
-            monkeypatch.setattr(settle, "adding_commit", lambda *_: (None, None))
+            monkeypatch.setattr(settle, "adding_commits", lambda *_: {})
             released = "no commit on main adds its plan"
         code, text = dry_run(repo, capfd)
         assert code == 0, text
@@ -1576,43 +1593,117 @@ class Test_main:
             "run` and is not it, so none of its rows were read"
         ), block
 
-    @pytest.mark.parametrize("failing", ["log", "show", "tag"])
+    @pytest.mark.parametrize(
+        "failing",
+        [
+            pytest.param(("log", "--diff-filter=D"), id="the deletions"),
+            pytest.param(("cat-file", "--batch"), id="the texts"),
+            pytest.param(("log", "--diff-filter=A"), id="the adding commits"),
+            pytest.param(("for-each-ref", "refs/tags/v*"), id="the tags"),
+            pytest.param(("rev-list", "--stdin"), id="the tag history"),
+        ],
+    )
     def test_a_git_that_cannot_read_an_earlier_plan_is_named_and_refuses_nothing(
         self, repo, capfd, monkeypatch, failing
     ):
-        """#1281, design *Scope* item 4. The history's `git log`, a plan's
-        `git show` or its tag read that fails is named with what git said,
-        no row of that plan is printed, and the dry run exits 0."""
-        old = "1700000001-old"
-        _, short = removed_plan(
+        """#1281, design *Scope* item 4, and #1481, design *Scope* item 6.
+        Each of the five calls the section reads through, the deletions'
+        `git log`, the plans' `git cat-file --batch`, the adding commits'
+        `git log`, and the tags' `for-each-ref` and `rev-list`, that fails
+        is named once with what git said, no row is printed, and the dry run
+        exits 0."""
+        removed_plan(
             repo,
-            old,
+            "1700000001-old",
             judgments_plan([("2026-10-01", "x", "y", "z")]),
             "the old work item (#3)",
             "settle 0.1.0 (#7)",
             "v0.1.0",
         )
         released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
-        real = settle.git_out
+        real = settle.git_run
+        subcommand, marker = failing
 
-        def git_out(root, *args):
-            if args[0] == failing and (failing != "log" or "--diff-filter=D" in args):
+        def git_run(root, *args, given=None):
+            if args[0] == subcommand and marker in args:
                 raise RuntimeError("git said no")
-            return real(root, *args)
+            return real(root, *args, given=given)
 
-        monkeypatch.setattr(settle, "git_out", git_out)
+        monkeypatch.setattr(settle, "git_run", git_run)
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         assert settle.EARLIER_HEADING in text, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
             f"\n\n{settle.REMOVES_HEADING}"
         )[0]
-        where = (
-            ""
-            if failing == "log"
-            else f"{old}  {short}^:seal/threads/{old}/frame/plan.md  "
+        assert block == "    not read: git said no", block
+
+    def test_the_git_calls_do_not_grow_with_the_plans_read(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1481, design S4. The dry run over a history that removed one
+        plan makes as many git calls as over one that removed three, each
+        in its own commit, because the plans' texts, their adding commits
+        and their tags are each read in one batched call. Seen red against
+        the per-plan `git show`, `git log` and `git tag --contains`."""
+        for n in range(1, 4):
+            removed_plan(
+                repo,
+                f"170000000{n}-old",
+                judgments_plan([(f"2026-10-0{n}", f"judged {n}", "y", "z")]),
+                f"the old work item {n} (#{n})",
+                f"settle 0.{n}.0 (#{n + 10})",
+                f"v0.{n}.0",
+            )
+            if n == 1:
+                released_item(
+                    repo, "1700000009-new", {"routing.md": "# new — routing\n"}
+                )
+                counted = calls(monkeypatch, repo, capfd)
+        assert calls(monkeypatch, repo, capfd) == counted
+
+    def test_a_plan_git_holds_no_text_for_is_named_and_none_of_its_rows_printed(
+        self, repo, capfd
+    ):
+        """#1481, design S6. Where `git cat-file --batch` answers `missing`
+        for a removed plan, as it does where the plan's blob is gone from
+        the object store, the plan is named as not read at its coordinate
+        with what git answered, none of its rows is printed, the other
+        plans' rows are, and the dry run exits 0. Seen red with the branch
+        that names a plan the batch gave no text for alone removed."""
+        old, kept = "1700000001-old", "1700000002-kept"
+        adding, short = removed_plan(
+            repo,
+            old,
+            judgments_plan([("2026-10-01", "gone", "y", "z")]),
+            "the old work item (#3)",
+            "settle 0.1.0 (#7)",
+            "v0.1.0",
         )
-        assert block == f"    {where}not read: git said no", block
+        removed_plan(
+            repo,
+            kept,
+            judgments_plan([("2026-10-02", "kept", "y", "z")]),
+            "the kept work item (#8)",
+            "settle 0.2.0 (#9)",
+            "v0.2.0",
+        )
+        released_item(repo, "1700000003-new", {"routing.md": "# new — routing\n"})
+        blob = git(repo, "rev-parse", f"{adding}:seal/threads/{old}/frame/plan.md")
+        blob = blob.strip()
+        (repo / ".git" / "objects" / blob[:2] / blob[2:]).unlink()
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        assert (
+            f"    {old}  {short}^:seal/threads/{old}/frame/plan.md  not read: "
+            "`git cat-file --batch` answered `missing`, so none of its rows "
+            "were read"
+        ) in block, block
+        assert "  2026-10-01  gone\n" not in block, block
+        assert "  2026-10-02  kept\n" in block, block
 
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):

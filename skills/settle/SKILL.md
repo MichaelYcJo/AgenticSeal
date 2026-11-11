@@ -123,7 +123,8 @@ nothing:
   item's. Each plan is read once, at the
   parent of the newest commit that deleted it, by the reader *The
   judgments* uses: a near heading and a table not under the exact header
-  are named as not read, at the coordinate `<short>^:<path>`. The rows are
+  are named as not read, at the coordinate `<short>^:<path>`, and so is a
+  plan whose text git does not hold there, with what git answered. The rows are
   grouped by the `Judged against` cell exactly as written, in the order
   first met, the removing commits newest first. Each work item's line gives
   the lowest `vX.Y.Z` tag that holds the commit adding its plan, or says no
