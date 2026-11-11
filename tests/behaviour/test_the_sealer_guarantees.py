@@ -17,14 +17,14 @@ import pathlib
 import re
 
 import conftest
+from conftest import load_lib_module
 from conftest import (
     load_module as load,
 )
 
 ROOT = pathlib.Path(conftest.ROOT)
-CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "lib" / "lines.py"
-TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
+TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-guarantee.md")
 SEALER = ROOT / "agents" / "sealer.md"
 DOCUMENT = ROOT / "docs" / "forms" / "the-guarantee.md"
 
@@ -36,9 +36,8 @@ def between(path, start, end):
     return text[head : text.index(end, head)]
 
 
-chain = load(CHAIN, "chain_check_for_the_guarantee")
 reader = load(READER, "lines_reader_for_the_guarantee")
-fields = chain.FIELDS
+fields = load_lib_module("fields.py", "agentic_fields_under_test")
 
 
 # --- the template ---------------------------------------------------------------

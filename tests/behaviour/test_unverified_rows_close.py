@@ -20,7 +20,7 @@ import os
 import pytest
 from conftest import ROOT, load_lib_module
 
-gaps = load_lib_module("gaps.py", "gaps_for_the_rows_that_close")
+GAPS = load_lib_module("gaps.py", "gaps_for_its_own_file")
 lines_reader = load_lib_module("lines.py", "lines_for_the_rows_that_close")
 
 
@@ -38,7 +38,7 @@ def test_the_skill_shows_the_word(tmp_path):
         f"# memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n{example}\n",
         encoding="utf-8",
     )
-    op, closed, err = gaps.check_file(str(p))
+    op, closed, err = GAPS.check_file(str(p))
     assert not err and not op and len(closed) == 1, (op, closed, err)
 
 
@@ -55,7 +55,7 @@ def test_the_template_is_the_shape_the_checker_reads(tmp_path):
     p = d / "gaps.md"
 
     p.write_text(template, encoding="utf-8")
-    _, _, err = gaps.check_file(str(p))
+    _, _, err = GAPS.check_file(str(p))
     assert err and "placeholder" in err[0][1], (
         "a template copied and never filled in has to fail, or an empty record "
         "passes as a complete one"
@@ -65,7 +65,7 @@ def test_the_template_is_the_shape_the_checker_reads(tmp_path):
         "<who or what can answer it>", "user, on the next session"
     )
     p.write_text(filled, encoding="utf-8")
-    op, _, err = gaps.check_file(str(p))
+    op, _, err = GAPS.check_file(str(p))
     assert not err and len(op) == 1
 
 
