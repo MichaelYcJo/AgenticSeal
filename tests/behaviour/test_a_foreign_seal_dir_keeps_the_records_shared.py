@@ -11,11 +11,7 @@ command run in that world stand in each command's module file under
 """
 
 from conftest import ITEM, write
-from test_rules import HELD as RULES_HELD
-from test_rules import TESTS as RULES_TESTS
-from test_rules import doc as rules_doc
-from test_rules import rule as rules_rule
-from test_rules import rules as RULES
+from test_rules import HELD, TESTS, doc, rule, rules
 from test_seal import configured
 
 
@@ -27,15 +23,15 @@ def test_s5_rules_check_excuses_a_section_a_design_under_agentic_seal_removes(
     line in a section a design there removes is excused and named by its
     path under the root."""
     configured(shared / "agentic-seal", ("Policy root", "policy"))
-    write(shared, RULES_HELD, RULES_TESTS)
-    write(shared, "policy/a.md", rules_doc(rules_rule("check: tests/test_gone.py")))
+    write(shared, HELD, TESTS)
+    write(shared, "policy/a.md", doc(rule("check: tests/test_gone.py")))
     write(
         shared / "agentic-seal" / "threads" / ITEM,
         "frame/design.md",
         "# Design\n\n## Rule changes\n\n- remove\n  file: policy/a.md\n"
         "  section: The heading\n",
     )
-    code = RULES.main(["--check", "--root", str(shared)])
+    code = rules.main(["--check", "--root", str(shared)])
     out = capsys.readouterr().out
     assert code == 0, out
     assert (
