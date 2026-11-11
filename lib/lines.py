@@ -67,7 +67,7 @@ except ImportError as missing:
 
 # Characters that occupy no width: the two variation selectors, the zero-width
 # family, and the byte-order mark. None of them make a marker into a claim.
-INVISIBLE = "️︎​‌‍⁠﻿"
+INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
 # The two delimiters of an HTML comment. `live_lines` scans for them directly
 # for the callers that read files other than records: it holds the comment
