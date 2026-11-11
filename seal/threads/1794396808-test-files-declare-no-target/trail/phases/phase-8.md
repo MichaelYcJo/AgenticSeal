@@ -70,7 +70,7 @@ docstring, and the sentence went at its end. The classes are:
 | `tests/skills/test_payload_meter.py::Test_imports_of` | 4 | the text written |
 | `tests/skills/test_seal.py::Test_pinned` | 1 | the text given to `pinned` |
 | `tests/skills/test_seal_stamp.py::Test_main` | 1 | a waiting stamp, or a `drawn_at_stop` that raises |
-| `tests/skills/test_session_cost.py::Test_main` | 3 | the fixture read; for one pair, nothing |
+| `tests/skills/test_session_cost.py::Test_main` | 3 | the fixture read; for one pair, which reads one input, the fact each case holds |
 | `tests/skills/test_session_cost.py::Test_post` | 15 | what `_gh` answers |
 
 **One pair differs by no input.** In
@@ -80,12 +80,26 @@ docstring, and the sentence went at its end. The classes are:
 over the same fixture, `run_with_segments`. Each holds a different note
 of the report it prints. They hold two facts, so frame/questions.md Q5's
 "a pair whose two cases hold one fact" does not fit them. Design *Scope*
-item 11 presumes an input differs, and here none does. The class
-docstring says the two read one world and differ by the note each holds.
-Under the threshold sentence `ff7d138c9` wrote, this pair still counts,
-since its class states no input for it. That is the threshold's purpose:
-two cases on one input are the ones a rewrite would merge. The pair is
-kept, and no case was rewritten (`frame/plan.md` A10).
+item 11 presumed an input differs, and here none does. Under the
+threshold sentence `ff7d138c9` wrote, this pair still counts, since its
+class states no input for it. That is the threshold's purpose: two cases
+on one input are the ones a rewrite would merge. The pair is kept, and
+no case was rewritten (`frame/plan.md` A10).
+
+The fold `f3732a227` gave such a pair a second form in design *Scope*
+item 11 and S8: the sentence says the two read one input and names the
+fact each holds, and the pair counts toward the threshold. `a3aa9049e`
+builds to it. In `CONTRIBUTING.md` *The test layout* it adds the
+framer's proposed sentence after the one on a pair's reason, as the
+framer wrote it: "Where the two read one input, the sentence says so and
+names the fact each holds, and the pair counts toward the threshold
+below." It agrees with the threshold sentence, which counts a pair whose
+class states no input its cases differ by, so no second sentence states
+the threshold. The class docstring now names the input,
+`run_with_segments`, and the two facts: the report names 0.9.4 as the
+release its readings compare from, and it says the family rows moved at
+#642. The docstring `d215adfe9` wrote said only that each holds a
+different note, which named no fact, so the same commit rewrote it.
 
 `tests/lib/test_routing.py::Test_parse` takes two sentences, one for
 each way its pairs arise. Three pairs share the call
@@ -102,8 +116,10 @@ that is not JSON.
 directory read each class that `bin/seal layout --pairs` names. It
 found a docstring in all 18 classes that hold the 43 pairs. Whether
 each sentence states the input is a reading, and the proofer reads it.
-The pair list is the same at `32dc787ee` and at `77664dc10` (executed:
-`diff`), because a docstring is not part of what the reader compares.
+The pair list is the same at `32dc787ee`, `77664dc10` and `a3aa9049e`
+(executed: `diff`), because a docstring is not part of what the reader
+compares. At `a3aa9049e` the script again found a docstring in all 18
+classes (executed).
 
 **Item 12, the counts at this phase's commit** (executed at
 `77664dc10`):
@@ -124,7 +140,10 @@ report names holds exactly one reason line. Whether each ground matches
 
 **S6 and S7** (executed at `77664dc10`). `bin/seal rules --check` gives
 `seal rules: all 176 check lines in 69 rule files hold.` and exits 0.
-`bin/seal layout --check` exits 0. This phase moved, renamed and deleted
+`bin/seal layout --check` exits 0. Both gave the same results at
+`a3aa9049e`, and `bin/seal layout --pairs` still gave `141 files read,
+43 pairs` (executed). The counts above hold at `a3aa9049e` too, since
+that commit changes one paragraph of prose and one docstring. This phase moved, renamed and deleted
 nothing, so there is no citation to re-point.
 
 **Item 13.** `changelog.md` covers the whole work item. It was written
@@ -142,7 +161,7 @@ change writes fragments, never a shared file* names for a process row
 no `### Process changes` table. `frame/plan.md` *Operational impact*
 says this pull request does not move the version, and it does not.
 
-**No unit adds behaviour, so no `seal mutate` ran.** The three commits
+**No unit adds behaviour, so no `seal mutate` ran.** The four commits
 change prose: a section of `CONTRIBUTING.md` and class docstrings in
 test files. `skills/verify/SKILL.md` *The narrow command still has to be
 able to fail* says what can fail for prose: whatever parses the file,
@@ -200,7 +219,15 @@ skipped where the run did not collect the whole suite. One is
 docstring of `tests/github/test_roll_flow_measurement_issue.py`. After
 it, that module and its importer
 `tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py`
-gave `40 passed` (executed). `uvx ruff check` and `uvx ruff format
---check` exit 0 over each changed Python file (executed). The suite
+gave `40 passed` (executed). The same set gave the same counts at
+`156e43172`, with the records written (executed). `a3aa9049e` changes
+one paragraph of `CONTRIBUTING.md` and one docstring of
+`tests/skills/test_session_cost.py`, which no test file imports. After
+it, the 30 files under `tests/` that name `CONTRIBUTING`,
+`tests/skills/test_session_cost.py`, `tests/github/test_rules.py` and
+`tests/behaviour/test_this_repository_passes_its_own_checks.py` ran as
+one command and gave `1241 passed` (executed). `uvx ruff check` and
+`uvx ruff format --check` exit 0 over each changed Python file
+(executed). The suite
 beyond the set is `unverified`, and the orchestrator's broad gate
 answers it.

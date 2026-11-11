@@ -19,7 +19,7 @@
 | Phase 7: the suite beyond the boundary set `trail/phases/phase-7.md` names | the orchestrator's broad gate |
 | Phase 7: each kept and removed assert of the range against #1488's *The criterion*, each reason line's ground and each of the three D files against design *The kinds*, the four moved M cases with `edc9ba6e0`'s binding alignment and its two rewritten cases, and the pair reason in `tests/test_commonmark_oracle.py::Test_module` | the proofer at review |
 | Phase 8: the suite beyond the boundary set `trail/phases/phase-8.md` names | the orchestrator's broad gate |
-| Phase 8: whether each of the 15 class docstrings `d215adfe9` and `77664dc10` wrote states the input its pairs' cases differ by, and whether `CONTRIBUTING.md` *The test layout*'s kinds paragraph and threshold sentence, as `ff7d138c9` wrote them, state design *The kinds* and *Scope* item 11 with no reading of their own | the proofer at review |
+| Phase 8: whether each of the 15 class docstrings `d215adfe9`, `77664dc10` and `a3aa9049e` wrote states the input its pairs' cases differ by, or for the session-cost pair the fact each case holds, and whether `CONTRIBUTING.md` *The test layout*'s kinds paragraph, pair sentence and threshold sentence, as `ff7d138c9` and `a3aa9049e` wrote them, state design *The kinds* and *Scope* item 11 with no reading of their own | the proofer at review |
 | Phase 8: whether every claim of `changelog.md` stands in the phase records and the tree | the proofer at review |
 
 ## Not done
@@ -78,9 +78,13 @@ Phase 8: one pair, `test_the_reading_names_the_release_it_is_comparable_from`
 and `test_the_reading_says_its_family_rows_moved_at_642` in
 `tests/skills/test_session_cost.py::Test_main`, runs one function over
 one fixture, and its cases differ by no input. Each holds a different
-note of the report. Its class docstring says so, and the pair is kept
-as it stands. A merge would rewrite both cases, and `frame/plan.md` A10
-rejects that. Under the threshold sentence `ff7d138c9` wrote, the pair
-counts toward rewriting `skills/verify/scripts/session_cost.py`'s
-tests anew. That rewrite is not this work item's.
+note of the report. The pair was kept as it stands, since a merge would
+rewrite both cases (`frame/plan.md` A10). The fold `f3732a227` gave such
+a pair a second form in design *Scope* item 11 and S8, and rejected the
+merge (`frame/plan.md` A16). `a3aa9049e` closed it: `CONTRIBUTING.md`
+*The test layout* says the sentence of a pair whose cases read one input
+names the fact each holds, and that the pair counts toward the
+threshold, and the class docstring names the two facts. Rewriting
+`skills/verify/scripts/session_cost.py`'s tests anew, which the
+threshold may now call for, is not this work item's.
 `trail/phases/phase-8.md` names the pair.
