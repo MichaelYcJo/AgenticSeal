@@ -21,6 +21,8 @@ import os
 
 from conftest import ROOT, load_module
 
+# No TARGET: its cases list every command under bin/ and seal.py's subcommands, and hold one citation across the files that read a reference root.
+
 SEAL = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
     "seal_for_the_reference_root",

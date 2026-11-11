@@ -1,17 +1,14 @@
-"""What is left of `unverified_check.py`'s old file.
+"""The gaps memo's template, and the fence walks the record readers share.
 
-#942's phase 5 rebuilt `skills/verify/scripts/unverified_check.py`'s cases
-into `tests/skills/test_unverified_check.py`, one class per function. Two kinds of
-case stay here, byte for byte. The cases whose assertion reads a shipped
-document's prose wait for #923. `test_the_fence_walks_agree_shape_by_shape`
-holds `lib/blocks.py` and `lib/tables.py#fence_map` to
-`lib/lines.py#fence_spans`, a check across files, which stays where it is.
-The readers these cases call moved from `unverified_check.py` to
-`lib/gaps.py` and `lib/lines.py` (#1482), and the cases call them there. The case that read
-`skills/code-review/scripts/chain_check.py` and
-`skills/settle/scripts/settle.py` for a call of this module's `settled` judged
-one file per row, so each row is now a case of its module's file,
-`tests/skills/test_chain_check.py` and `tests/skills/test_settle.py`.
+`test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken` reads
+the headings of `templates/records/sdd-gaps.md`.
+`test_the_fence_walks_agree_shape_by_shape` holds `lib/blocks.py` and
+`lib/tables.py#fence_map` to `lib/lines.py#fence_spans`, a check across
+modules. The cases of `lib/gaps.py` stand in `tests/lib/test_gaps.py`, those
+of `skills/verify/scripts/unverified_check.py` in
+`tests/skills/test_unverified_check.py`, and the cases that call `settled`
+for `chain_check.py` and `settle.py` in `tests/skills/test_chain_check.py`
+and `tests/skills/test_settle.py`.
 """
 
 import importlib.util
@@ -20,80 +17,10 @@ import os
 import pytest
 from conftest import ROOT, load_lib_module
 
-gaps = load_lib_module("gaps.py", "gaps_for_the_rows_that_close")
+# No TARGET: its cases hold one fence walk across lib/blocks.py, lib/tables.py and lib/lines.py, and read the headings of templates/records/sdd-gaps.md.
+
+
 lines_reader = load_lib_module("lines.py", "lines_for_the_rows_that_close")
-
-
-# Spelt by code point, so it stays legible in the source and no emoji stands
-# in it.
-OLD_MARK = chr(0x2705)
-
-# Every shipped text that tells a session how a `## Not verified` row closes.
-CLOSING_TEXTS = [
-    ("templates", "setup", "config.md"),
-    ("docs", "checks", "the-fold.md"),
-    ("skills", "implement", "SKILL.md"),
-    ("skills", "verify", "SKILL.md"),
-    ("skills", "settle", "SKILL.md"),
-    ("skills", "settle", "scripts", "settle.py"),
-    ("skills", "verify", "scripts", "unverified_check.py"),
-    ("lib", "gaps.py"),
-]
-
-
-@pytest.mark.parametrize("parts", CLOSING_TEXTS, ids=lambda p: "/".join(p))
-def test_no_text_that_states_the_closing_shows_the_old_mark(parts):
-    """A text that still shows the emoji sends whoever follows it to a row
-    the check refuses. Protects: one of these quietly keeping the old mark
-    when the others moved, which is how a rule stated in five places drifts;
-    no other case reads them for it."""
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        assert OLD_MARK not in f.read()
-
-
-def test_the_skill_shows_the_word(tmp_path):
-    """`skills/implement/SKILL.md` *4. The closing memo — only what the diff
-    cannot show* is what the memo's writer reads for how a row closes, so its
-    example row is one the check accepts as closed."""
-    with open(
-        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        text = f.read()
-    example = next(ln for ln in text.splitlines() if ln.startswith("| closed "))
-    p = tmp_path / "gaps.md"
-    p.write_text(
-        f"# memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n{example}\n",
-        encoding="utf-8",
-    )
-    op, closed, err = gaps.check_file(str(p))
-    assert not err and not op and len(closed) == 1, (op, closed, err)
-
-
-def test_the_template_is_the_shape_the_checker_reads(tmp_path):
-    """Template and checker drift apart silently otherwise: every new work
-    item would copy a section the release check then refuses."""
-    with open(
-        os.path.join(ROOT, "templates", "records", "sdd-gaps.md"), encoding="utf-8"
-    ) as f:
-        template = f.read()
-
-    d = tmp_path / "specs" / "1780000000-work"
-    d.mkdir(parents=True)
-    p = d / "gaps.md"
-
-    p.write_text(template, encoding="utf-8")
-    _, _, err = gaps.check_file(str(p))
-    assert err and "placeholder" in err[0][1], (
-        "a template copied and never filled in has to fail, or an empty record "
-        "passes as a complete one"
-    )
-
-    filled = template.replace("<what was not verified>", "the TUI rendering").replace(
-        "<who or what can answer it>", "user, on the next session"
-    )
-    p.write_text(filled, encoding="utf-8")
-    op, _, err = gaps.check_file(str(p))
-    assert not err and len(op) == 1
 
 
 def test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken():

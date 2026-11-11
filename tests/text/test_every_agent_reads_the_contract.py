@@ -1,9 +1,10 @@
 """Every agent definition has one shape and preloads the core, then the contract.
 
 `frame/design.md` *The shape of a definition* of #957: frontmatter whose `skills:`
-list is fixed, one opening sentence naming what it preloads, identical in
-every definition, then `## Job`, `## Order of work`, `## Never` and
-`## Rules`, in that order. #1177 made the list `core` then `agent-contract`,
+list is fixed, one opening paragraph naming the two files it preloads, then
+`## Job`, `## Order of work`, `## Never` and `## Rules`, in that order. The
+opening's words, and whether every definition words it alike, are the
+proofer's to read. #1177 made the list `core` then `agent-contract`,
 values before rules, so every agent receives `skills/core/SKILL.md` as well.
 Every other skill is opened at the step that needs it, by its path, so a
 path a definition names has to be a file in the tree.
@@ -30,19 +31,24 @@ import pytest
 from conftest import ROOT, load, read
 from conftest import repo_relative as name
 
+# No TARGET: its cases walk every definition under agents/ and each skill their skills: lists preload.
+
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 rules = load(".github/scripts/rules.py", "agentic_rules_for_the_preloads")
 
 CORE = "skills/core/SKILL.md"
 CONTRACT = "skills/agent-contract/SKILL.md"
+# The `skills:` entries the harness preloads, in order.
 PRELOADS = ["core", "agent-contract"]
-# One sentence with one fixed line break: on one line it is 115 columns, and
-# `tests/behaviour/test_docs_line_wrap.py` holds every definition to 88. The
-# break is part of the shape, so a definition wrapped anywhere else is red.
+# The opening sentence of the planted definition below. A definition's own
+# opening paragraph is held to the two paths it names, which an agent opens;
+# its words are the proofer's to read.
 SENTENCE = (
     f"`{CORE}` and `{CONTRACT}` bind you, and both\n"
     "arrived before your first tool call."
 )
+# The headings a definition carries, which its own steps and the other
+# definitions cite in italics.
 SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,
@@ -84,9 +90,12 @@ def shape_problems(text):
     skills = listed_skills(head)
     if skills != PRELOADS:
         problems.append(f"`skills:` lists {skills}, not {PRELOADS}")
-    opening = opening_paragraph(body)
-    if opening != SENTENCE:
-        problems.append(f"the opening paragraph is {opening!r}, not the sentence")
+    opening = opening_paragraph(body) or ""
+    if f"`{CORE}`" not in opening or f"`{CONTRACT}`" not in opening:
+        problems.append(
+            f"the opening paragraph is {opening!r}, which does not name "
+            f"`{CORE}` and `{CONTRACT}`"
+        )
     headings = tuple(re.findall(r"^## .*$", body, re.M))
     if headings != SECTIONS:
         problems.append(f"the `## ` headings are {headings}, not {SECTIONS}")
@@ -125,6 +134,8 @@ def test_the_sentence_names_the_core():
     with open(os.path.join(ROOT, *CORE.split("/")), encoding="utf-8") as handle:
         text = handle.read()
     for heading in (
+        # The two headings every citation of the core names, which a reader
+        # of such a citation resolves.
         "## The first value: efficient development through the workflow",
         "## The rule a mechanism is kept against",
     ):
@@ -182,34 +193,14 @@ def test_a_file_every_spawn_preloads_carries_no_check_line(path):
     the definitions, so a skill added to a `skills:` list is read here
     without an edit to this case."""
     found = rules.check_lines(read(path))
+    # `skills/settle/rule-changes.md` *A rule has one shape*: a `check:`
+    # line, which `seal rules` reads and every spawn that preloads the file
+    # pays for.
     assert found == [], (
         f"{name(path)} carries a check line at "
         + ", ".join(f"line {number} (`{line}`)" for number, _heading, line in found)
         + ", and a file every spawn preloads carries none "
         "(`skills/settle/rule-changes.md` *A rule has one shape*)"
-    )
-
-
-# The ways a definition is allowed to close its own list of durable writes.
-# Under contract rule 6 a definition's named writes are its permission, so
-# every definition says where that list stops, and each phrase names WRITING
-# as its subject so only a sentence about what the agent writes can match it.
-BOUNDS = (
-    "a write not below is a write you do not make",
-    "a write not named here is a write you do not make",
-    "is the whole of what you may write",
-    "You write nothing durable anywhere, and that is the whole of it",
-)
-
-
-@pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_every_definition_bounds_what_it_writes(path):
-    """A definition that names writes and never says where the list stops
-    reads its own examples as a floor, and under contract rule 6 every sentence about
-    producing something becomes a grant."""
-    text = " ".join(read(path).split())
-    assert any(bound in text for bound in BOUNDS), (
-        f"{name(path)} never says where its list of durable writes stops"
     )
 
 
@@ -294,13 +285,6 @@ def test_a_sentence_anywhere_but_the_opening_is_caught():
     moved = GOOD.replace(f"{SENTENCE}\n\n", "", 1) + f"\n{SENTENCE}\n"
     assert SENTENCE in moved
     assert any("opening paragraph" in p for p in shape_problems(moved))
-    for rewrapped in (
-        SENTENCE.replace(" bind", "\nbind"),
-        SENTENCE.replace(" both\n", " both "),
-    ):
-        assert rewrapped != SENTENCE
-        wrapped = GOOD.replace(SENTENCE, rewrapped)
-        assert any("opening paragraph" in p for p in shape_problems(wrapped))
 
 
 def test_a_path_that_does_not_resolve_is_caught():

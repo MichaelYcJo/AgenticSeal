@@ -16,7 +16,7 @@ on a domain outside this repository's fixture allowlist.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_body_naming_two_issues_claims_one.py`, which keeps the cases
-that read the issues document, the hygiene workflow and its template. Its
+that read the hygiene workflow and its template. Its
 round 9 fix pass placed here the body cut after a U+2028, from
 `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, a case of this module
 alone; it is `Test_segments`' refusing case.
@@ -287,6 +287,19 @@ class Test_read:
         claimed, mentioned, _ = read("Closes #11. Fixes #11. See #22, and #22 again.")
         assert claimed == ["11"]
         assert mentioned == ["22"]
+
+    def test_the_document_that_teaches_the_rule_carries_no_instance_of_it(self):
+        """`docs/releasing/issues-and-milestones.md` says a body quoting the failing shape
+        inside a fence or a code span is not an instance of it. This repository's
+        bodies quote its documents routinely, so the section has to hold to that
+        everywhere -- a narrative past-tense keyword is still a keyword, and
+        `KEYWORDS` carries the past tense of all three verbs."""
+        with open(
+            os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md"),
+            encoding="utf-8",
+        ) as f:
+            _, _, warnings = read(f.read())
+        assert warnings == [], warnings[0][2] if warnings else ""
 
 
 class Test_report:

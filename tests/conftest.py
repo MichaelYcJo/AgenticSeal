@@ -35,33 +35,6 @@ for _directory, _subdirectories, _names in os.walk(_TESTS):
     ):
         sys.path.append(_directory)
 
-# The review run's documents: the round record, the guarantee, the run, the
-# pull request check, the stamp, the routing check, and what each
-# arm wants. A case that reads one of them for what is THERE reads the one
-# that holds the section; a case asserting what is NOT there reads all of them
-# through `review_chain_text`, because a sentence forbidden in one that
-# returns in a sibling is the same sentence back, and an absence that holds in
-# one part of the text proves nothing about the rest.
-REVIEW_CHAIN_DOCS = (
-    ("docs", "forms", "the-round-record.md"),
-    ("docs", "forms", "the-guarantee.md"),
-    ("docs", "running", "the-run.md"),
-    ("docs", "checks", "the-pull-request-check.md"),
-    ("docs", "checks", "the-stamp.md"),
-    ("docs", "checks", "the-routing-check.md"),
-    ("docs", "running", "the-review-and-parity-arms.md"),
-)
-
-
-def review_chain_text(root):
-    """The review chain's documents under `root`, each whitespace-collapsed,
-    joined."""
-    texts = []
-    for parts in REVIEW_CHAIN_DOCS:
-        with open(os.path.join(root, *parts), encoding="utf-8") as handle:
-            texts.append(" ".join(handle.read().split()))
-    return "\n".join(texts)
-
 
 # --- a `run:` script's code lines ------------------------------------------
 #
@@ -1142,6 +1115,56 @@ def parity_file(sha):
     )
     assert text.count('"<SHA>"') == 1
     return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
+
+
+# --- a repository whose own `seal/` is a package (#1059) ---------------------
+#
+# Each command's cases that keep its records under `agentic-seal/` beside a
+# project's own `seal/` package share this world: the module files of
+# `tests/skills/` that hold them, and the `seal rules` case of
+# `tests/github/test_rules.py`.
+
+ITEM = "1794200000-a-work-item"
+REMOTE = "git@example.com:org/thing.git"
+# The project's own package, which no command of the plugin may write into.
+PACKAGE = {
+    "seal/__init__.py": "VERSION = 1\n",
+    "seal/README.md": "# seal\n\nThis package's own notes.\n",
+}
+ROOT_RECORDS = {
+    "follow-up.md": "# follow-up\n",
+    f"threads/{ITEM}/routing.md": "# routing\n",
+}
+
+
+def records_at(home):
+    """HOME made a root holding ROOT_RECORDS."""
+    mark_root(home)
+    for rel, text in ROOT_RECORDS.items():
+        write(home, rel, text)
+    return home
+
+
+@pytest.fixture
+def package(tmp_path):
+    """A repository on `main` whose committed `seal/` is the package, with
+    REMOTE as `origin` and no root at either place."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "main")
+    git(repo, "remote", "add", "origin", REMOTE)
+    for rel, text in PACKAGE.items():
+        write(repo, rel, text)
+    commit_everything_as_e(repo, "the package")
+    return repo
+
+
+@pytest.fixture
+def shared(package):
+    """PACKAGE's repository with its root committed at `agentic-seal/`."""
+    records_at(package / "agentic-seal")
+    commit_everything_as_e(package, "the root")
+    return package
 
 
 # --- the pact's world ---------------------------------------------------------

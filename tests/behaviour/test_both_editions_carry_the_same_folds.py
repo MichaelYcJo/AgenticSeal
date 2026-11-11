@@ -20,6 +20,8 @@ import re
 import pytest
 from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
 
+# No TARGET: its cases walk every tracked document with a .ko.md edition.
+
 READER = os.path.join(ROOT, "lib", "lines.py")
 
 HEADING = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]|$)")

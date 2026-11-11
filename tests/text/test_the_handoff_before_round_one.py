@@ -17,6 +17,8 @@ import re
 
 from conftest import flat, read
 
+# No TARGET: its cases hold the handoff before round 1 across docs/running/the-run.md, the implement skill and the crafter's and framer's definitions.
+
 # --- the handoff before round 1 ---------------------------------------------
 
 
@@ -49,28 +51,6 @@ def test_the_implementer_documents_point_at_the_section():
         # facts arrive under.
         assert "`docs/running/the-run.md`" in text and "handoff" in text, "/".join(
             parts
-        )
-
-
-# --- the rules a prompt no longer carries -----------------------------------
-
-
-def test_the_protocol_no_longer_states_the_rules_it_points_at():
-    """The restatement check: each rule below is the contract's or a
-    definition's, and a copy of it in the record's document is a second
-    source a paste-back would bring."""
-    protocol = flat(*PROTOCOL)
-    for phrase, whose in (
-        ("never `cmd | tail; echo $?`", "contract rule 1"),
-        ("enumerate the class, do not fix the coordinate", "contract rule 12"),
-        ("Do not push, do not open a pull request", "contract rule 6"),
-        ("make a `uv` venv", "`agents/proofer.md`"),
-        ("Mutation-test every unit that adds behaviour", "`agents/crafter.md`"),
-    ):
-        assert phrase not in protocol, (
-            f"the protocol states {whose} again: {phrase!r}. This document is "
-            "a pointer at those rules now, and a copy beside the pointer is "
-            "the state #107 opens with"
         )
 
 

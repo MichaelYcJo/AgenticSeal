@@ -1,15 +1,17 @@
-"""`seal export` and `seal import`: what is left here after #942.
+"""`seal export` and `seal import`: the READMEs that name them.
 
 The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`,
 and the three of `normalise_remote`, which `seal.py` re-exports from
-`lib/config.py`, are in `tests/lib/test_config.py`. The two README cases left
-here read prose, and they are #923's.
+`lib/config.py`, are in `tests/lib/test_config.py`. The two cases here read
+the READMEs.
 """
 
 import os
 
 import pytest
 from conftest import ROOT
+
+# No TARGET: its cases hold seal export and seal import across the READMEs and the seal README with its template.
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])

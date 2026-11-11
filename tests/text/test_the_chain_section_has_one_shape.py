@@ -29,9 +29,11 @@ the rows, are the proofer's to read.
 
 import re
 
-from conftest import read
+from conftest import census_case, read
 
-SKILL = ("skills", "commit-pr-convention", "SKILL.md")
+TARGET = "skills/commit-pr-convention/SKILL.md"
+
+SKILL = tuple(TARGET.split("/"))
 
 
 def body_section():
@@ -80,3 +82,6 @@ def test_the_section_points_at_the_tables_definition():
         "the pointer names the file and not the section, which is a whole "
         "skill to search for one table"
     )
+
+
+test_census = census_case(TARGET)

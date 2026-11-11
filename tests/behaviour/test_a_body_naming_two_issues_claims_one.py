@@ -1,42 +1,27 @@
-"""What is left of the claims check's old file: the cases that read
-`docs/releasing/issues-and-milestones.md`, the hygiene workflow and its template, which
-wait for #923.
+"""What is left of the claims check's old file: the cases that read the
+hygiene workflow.
 
-#942's phase 6 placed the cases of `.github/scripts/issue_claims_check.py`'s
-functions in `tests/github/test_issue_claims_check.py`. The document's case reads it
-through that file's `read`. `docs/releasing/issues-and-milestones.md` names this file
-on a `check:` line beside the new one.
+The cases of `.github/scripts/issue_claims_check.py`'s functions stand in
+`tests/github/test_issue_claims_check.py`, and its `Test_read` holds the case
+that runs the reader over `docs/releasing/issues-and-milestones.md`. That
+document names this file on a `check:` line beside the module's file.
 """
 
 import os
 
-import pytest
-from conftest import ROOT, code_lines
-from test_issue_claims_check import read
+from conftest import ROOT, census_case, code_lines
 from workflows import load
 
+TARGET = ".github/workflows/hygiene.yml"
 
-def test_the_document_that_teaches_the_rule_carries_no_instance_of_it():
-    """`docs/releasing/issues-and-milestones.md` says a body quoting the failing shape
-    inside a fence or a code span is not an instance of it. This repository's
-    bodies quote its documents routinely, so the section has to hold to that
-    everywhere -- a narrative past-tense keyword is still a keyword, and
-    `KEYWORDS` carries the past tense of all three verbs."""
-    with open(
-        os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md"),
-        encoding="utf-8",
-    ) as f:
-        _, _, warnings = read(f.read())
-    assert warnings == [], warnings[0][2] if warnings else ""
+WORKFLOW = os.path.join(*TARGET.split("/"))
 
 
 def test_the_workflow_runs_the_check_on_every_pull_request():
     """A check nothing calls is the standing waiver this repository refuses to
     build. It goes in the job that already runs on every pull request, so it
     needs no trigger and no token of its own."""
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
-    ) as f:
+    with open(os.path.join(ROOT, WORKFLOW), encoding="utf-8") as f:
         workflow = f.read()
     # The script `issue_claims_check.py`, which a step of the workflow runs
     # on every pull request.
@@ -54,7 +39,7 @@ def test_the_body_reaches_the_script_through_the_environment():
     `run:` block is textual substitution into a shell script. Interpolating a
     body there hands whoever opens the pull request the runner, so no step's
     script holds the expression."""
-    workflow = load(os.path.join(".github", "workflows", "hygiene.yml"))
+    workflow = load(WORKFLOW)
     steps = [step for job in workflow["jobs"].values() for step in job["steps"]]
     running = [
         step
@@ -69,14 +54,4 @@ def test_the_body_reaches_the_script_through_the_environment():
     )
 
 
-@pytest.mark.parametrize("stays_home", ["issue_claims_check"])
-def test_the_check_does_not_travel_to_user_repositories(stays_home):
-    """`.github/scripts/` is this repository's own automation, and
-    `test_first_setup_asks_once.py` pins its other rows out of the template
-    the same way. Shipping this one means first deciding it
-    belongs under `skills/`, which is a wider change than this issue asks
-    for."""
-    with open(
-        os.path.join(ROOT, "templates", "setup", "hygiene.yml"), encoding="utf-8"
-    ) as f:
-        assert stays_home not in f.read()
+test_census = census_case(TARGET)

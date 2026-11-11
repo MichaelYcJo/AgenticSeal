@@ -19,6 +19,10 @@ root beside a team's own `specs/`, a `seal/` root with no `specs/`, and a
 a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
 are plain copies.
+
+The cases that run `main` beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import os
@@ -27,6 +31,7 @@ import subprocess
 
 import pytest
 from conftest import (
+    ITEM,
     ROOT,
     census_case,
     commit_everything_as_e,
@@ -652,6 +657,55 @@ class Test_main:
 
         monkeypatch.setattr(UC.sibling, "load", load)
         assert run([str(joined)]) == 1
+
+    @pytest.mark.parametrize("state", ["unwritten", "settled", "absent"])
+    def test_s5_unverified_reads_agentic_seal_threads_as_the_roots_own(
+        self, shared, capsys, monkeypatch, state
+    ):
+        """`seal unverified agentic-seal/threads` reads the root's own `threads/`:
+        work items with no `gaps.md` are unwritten, none is a finished settle,
+        and with the root out of the tree there is nothing declared. Each exits
+        0, where a path read as a typo exits 2."""
+        said_of_it = {
+            "unwritten": "holds work items and none of them carries an `gaps.md`",
+            "settled": "holds no work item and its `seal/` root is there",
+            "absent": "has no `seal/` root in this tree, so nothing here is declared",
+        }[state]
+        if state == "settled":
+            shutil.rmtree(shared / "agentic-seal" / "threads" / ITEM)
+        elif state == "absent":
+            shutil.rmtree(shared / "agentic-seal")
+        monkeypatch.chdir(shared)
+        code = UC.main(["agentic-seal/threads"])
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert out.startswith(f"seal unverified: agentic-seal/threads {said_of_it}"), (
+            out
+        )
+
+    def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
+        self, shared, capsys, monkeypatch
+    ):
+        """`seal unverified .` reads the closing memo under `agentic-seal/` and
+        takes the package's `seal/vendor/specs/` for what it is beside a root
+        of the second name, a directory named `specs` outside the root, which
+        no `Reference specs` key keeps and the walk passes over: its memo,
+        which does not read, is never opened."""
+        write(
+            shared / "agentic-seal" / "threads" / ITEM,
+            "gaps.md",
+            "# overview\n\n## Not verified\n\n- nothing\n  why: nothing to verify\n",
+        )
+        write(
+            shared,
+            "seal/vendor/specs/1794200003-theirs/gaps.md",
+            "# theirs\n\n## Not verified\n\nnot a table, and not a none line either\n",
+        )
+        monkeypatch.chdir(shared)
+        code = UC.main(["."])
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert "\n1 closing memos · 0 open · 0 closed · 0 unreadable\n" in out, out
 
 
 class Test_module:

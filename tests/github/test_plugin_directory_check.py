@@ -266,6 +266,10 @@ class Test_line:
 
 
 class Test_main:
+    """Where two cases call `main` alike, the world differs: their parameters
+    give the monkeypatched `fetch` different outcomes, and only the second
+    gives an entry that pins a commit."""
+
     @pytest.mark.parametrize(
         "outcome",
         [

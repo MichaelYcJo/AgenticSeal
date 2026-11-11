@@ -76,6 +76,8 @@ from conftest import flattened as flat
 from conftest import repo_relative as name
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
+# No TARGET: its cases hold every rule of the agent contract against every definition under agents/.
+
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 
@@ -164,6 +166,8 @@ def test_no_definition_carries_a_sections_own_sentences(path, number):
     tomorrow are each checked on the day they land, which is the miss with no
     other symptom."""
     duplicated = copied(SECTIONS[number], read(path))
+    # `skills/core/SKILL.md` *The rule a mechanism is kept against*: a fact
+    # has one source, and every other place links to it.
     assert not duplicated, (
         f"{name(path)} carries contract rule {number}'s own words: "
         f"{duplicated[0]!r}. A definition may cite rule {number} and say what "
@@ -253,58 +257,33 @@ def test_pasting_a_section_body_back_into_a_definition_is_caught(path, number):
 # --- a rule that moved to ANOTHER DEFINITION does not stay behind either ----
 
 # The same property one axis over. Above, a rule moved into the contract; here,
-# three acts moved out of `agents/crafter.md` and into `agents/framer.md` and
-# `skills/implement/orchestration.md` (#419). Three documents said the acts
-# were not the crafter's while `crafter.md` claimed all three in twenty lines, and
-# nothing could see the disagreement — which is the same invisible-in-a-diff
-# failure this module opens with.
-#
-# Named by CONTENT, never by the line range the frame measured them at. The
-# waiver example, then a kept application, sat inside that range, so a
-# removal keyed on lines would have taken it too.
+# the routing batch moved out of `agents/crafter.md` (#419) and stands in
+# `skills/implement/routing-question.md`, and the crafter's *Never* forbids
+# the act: "Ask a person anything".
 CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 
 MOVED_OUT_OF_CRAFTER = {
-    "the design gate": (
-        "you own this decision, and no skill makes it for you",
-        "Ask everything that needs a person here, in one batch",
-        # The SECOND copy, sixty lines below the span `plan.md` measured the
-        # first at, and the design gate by CONTENT: present approaches and
-        # wait for a go. Left standing it would have had the file say `phase 2
-        # is your caller's spawn` in one paragraph and `wait for an explicit
-        # go` in another. It was removed with the others and held by nothing —
-        # round 1 pasted it back and 242 cases stayed green, which makes it
-        # the one thing the build found by going past its named span and the
-        # one thing the suite could not see come back.
-        "wait for an explicit go",
-    ),
-    "the routing batch": (
-        "How the work is routed belongs in that batch",
-        "one `multiSelect` question with three checkboxes",
-    ),
-    "the `routing.md` write": (
-        "Write the answer into `seal/threads/<work-item-id>/routing.md`",
-    ),
-    "the inference that a missing frame proves none was owed": (
-        "Where no frame was drawn, the ladder put the work",
-    ),
+    # The question form `skills/implement/routing-question.md` asks the
+    # routing batch in, which a crafter would act on were it written in its
+    # definition.
+    "the routing batch": ("`multiSelect`",),
 }
 
 
 def test_the_crafter_claims_no_act_another_definition_owns():
     """S13 and S14's first half. One case per act, so a failure names which.
 
-    A presence-only suite cannot catch this: every one of these sentences
-    reads perfectly well, and pasting one back is an edit that only ADDS.
-    That is the measurement this module was built on, applied to a move
-    between definitions rather than a move into the contract.
+    Pasting the act back is an edit that only ADDS, which a presence-only
+    suite cannot catch. Whether a sentence of the crafter's definition hands
+    it another act its *Never* forbids is the proofer's to read.
     """
     crafter = flat(read(CRAFTER))
     for act, phrases in MOVED_OUT_OF_CRAFTER.items():
         for phrase in phrases:
+            # `agents/crafter.md` *Never*: "Ask a person anything".
             assert flat(phrase) not in crafter, (
-                f"`agents/crafter.md` carries {act} again: {phrase!r}. Three "
-                "other documents own it, and a definition that keeps the "
+                f"`agents/crafter.md` carries {act} again: {phrase!r}. Its "
+                "*Never* forbids the act, and a definition that keeps the "
                 "words of an act it does not perform is an instruction to "
                 "perform it"
             )
@@ -315,18 +294,18 @@ def test_a_citation_is_not_a_copy():
 
     A check that flagged the application forms would be worse than no check:
     the definitions would be rewritten to satisfy it, and what they would
-    lose is the half that is actually theirs. So the kept applications are
-    named here and asserted clean."""
+    lose is the half that is actually theirs. So the definitions that keep
+    an application are asserted clean, and what each application cites is
+    named; its words are the proofer's to read."""
     kept = {
         ("agents", "proofer.md"): (
-            "so it goes through the `Edit` or `Write` tool (rule 9)",
-            "whether that label is honest",
-            "a row of `## Not judged`",
+            # The contract rule number the proofer's application cites.
+            "rule 9",
+            # The round record's heading the proofer writes a row of.
+            "`## Not judged`",
         ),
-        # The crafter's waiver example, its RIDER and its pointer at the
-        # retired probe rule left with its rewrite (#967), and the one waiver
-        # sentence left with #1027, which removed what it waived.
-        ("agents", "crafter.md"): ("hand-back",),
+        # The crafter's applications cite nothing this case reads.
+        ("agents", "crafter.md"): (),
     }
     for parts, phrases in kept.items():
         definition = read(os.path.join(ROOT, *parts))
@@ -336,6 +315,8 @@ def test_a_citation_is_not_a_copy():
                 f"{'/'.join(parts)} lost its own application: {phrase!r}"
             )
         for number, body in SECTIONS.items():
+            # `skills/core/SKILL.md` *The rule a mechanism is kept against*: a
+            # fact has one source, and every other place links to it.
             assert not copied(body, definition), (
                 f"{'/'.join(parts)}'s application prose reads as a copy of "
                 f"contract rule {number}"
@@ -364,25 +345,18 @@ def test_the_proofer_checks_its_record_in_the_branch_worktree():
     ), "the proofer's hand-back check names no `--root`, so it reads the session's tree"
 
 
-def test_the_proofer_finds_a_missed_statement_on_the_method_of_a_fix():
+def test_the_proofer_keeps_its_rule_on_the_records_a_round_reads_whole():
     """#1472, Scope item 7. Contract rule 12 told the proofer how to read a
     fixing party's account of its own reading; the sentence left the
     contract, which every agent preloads, for the proofer's rule on the
-    records a round reads whole. A list the account calls whole, with a
-    statement that reading held left out, is a finding on the method even
-    where every listed instance was fixed (#1318)."""
+    records a round reads whole (#1318). What the rule says is the proofer's
+    to read."""
     text = flat(read(os.path.join(ROOT, "agents", "proofer.md")))
-    lead = (
-        "**Every round reads the work item's records that state the present, "
-        "whole, against its target.**"
-    )
+    # The rule's bold lead, which `skills/code-review/orchestration.md` cites
+    # in its verifying round's *Target* row and a reader of that row
+    # resolves here.
+    lead = "**Every round reads the work item's records that state the present"
     assert lead in text, "`agents/proofer.md` lost its rule on the records"
-    start = text.index(lead)
-    rule = text[start : text.index("**A verifying round answers", start)]
-    clause = (
-        "is a finding on the method, even where every instance on the list was fixed."
-    )
-    assert clause in rule, f"the proofer's rule on the records lost {clause!r}"
 
 
 # --- the crafter's own rules from its rewrite (#967) ---------------------------
@@ -400,46 +374,40 @@ def crafter_rule(lead):
     return ""
 
 
-# The four rules decision 1 of #967 names, each by its lead and the clauses
-# that make it the rule rather than its title. #1027 retired the fourth, *The
-# waiver is one command's.*, with the gate it waived.
-CRAFTERS_FOUR_RULES = {
-    "A new test starts from its group.": (
-        "Before writing a case, read the tests of the function it covers",
-        "any pair a duplicate check in the repository names",
-        "add the case to that group",
-    ),
+# Two of the rules decision 1 of #967 names, each by its lead and what its
+# paragraph names that a reader acts on. The rules' words are the proofer's to
+# read.
+CRAFTERS_RULES = {
+    # The lead `skills/verify/scripts/mutation_check.py` cites in italics.
     "Commit before you mutate, and restore from `seal mutate`'s copy.": (
-        "A revert through `git checkout -- <file>` restores the committed state",
-        "`seal mutate` holds the bytes it read",
+        # The command whose revert the rule warns of, and the command whose
+        # copy restores the file.
+        "`git checkout -- <file>`",
+        "`seal mutate`",
     ),
     # #1148 moved the rule to `skills/implement/SKILL.md` *2.*, where a
     # session that builds reads it too; the definition keeps its application.
     "A stop at three failed fixes is handed back.": (
+        # The section the crafter resolves for the rule.
         "`skills/implement/SKILL.md` *2. Implement test-first, and let each rule "
         "name its test*",
-        "hand back the architecture question",
     ),
 }
 
 
-def test_the_crafters_four_rules_stand_with_their_enforcers():
-    """T3 of #967: S4's rules each keep their paragraph and their clauses.
-    #1027 retired the fourth, the waiver, and the case holds that it stays
-    gone.
+def test_the_crafters_rules_name_what_their_readers_resolve():
+    """T3 of #967: two of S4's rules each keep their paragraph and what it
+    names that a reader acts on.
 
-    These three have no eval case that plants their breach, so a later trim
-    could drop any of them with every grader green — #107's failure, a rule
-    that left the repository while the suite passed."""
-    for lead, clauses in CRAFTERS_FOUR_RULES.items():
+    These have no eval case that plants their breach, so a later trim could
+    drop either with every grader green — #107's failure, a rule that left
+    the repository while the suite passed."""
+    for lead, facts in CRAFTERS_RULES.items():
         paragraph = crafter_rule(lead)
         assert paragraph, f"`agents/crafter.md` lost the rule {lead!r}"
         said = flat(paragraph)
-        for clause in clauses:
-            assert clause in said, f"{lead!r} lost {clause!r}"
-    assert crafter_rule("The waiver is one command's.") == "", (
-        "the crafter still states a waiver nothing reads since #1027"
-    )
+        for fact in facts:
+            assert fact in said, f"{lead!r} lost {fact!r}"
 
 
 READ_WHOLE = (

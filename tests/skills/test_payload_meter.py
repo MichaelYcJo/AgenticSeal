@@ -645,7 +645,9 @@ class Test_imports_of:
     code.claude.com/docs/en/memory.md states it -- relative to the file that
     holds it, `~` as the home, at most four hops. #1185: where an import is
     read, as the same page states it -- in the file's live text alone, with
-    a backslash carrying a path past a space."""
+    a backslash carrying a path past a space. Where two cases have one body,
+    the text they write differs: a fence of each shape, a code span, an HTML
+    comment, or a backtick its paragraph never closes."""
 
     def test_accepts_a_tilde_path_as_the_home_it_was_given(
         self, meter, monkeypatch, tmp_path

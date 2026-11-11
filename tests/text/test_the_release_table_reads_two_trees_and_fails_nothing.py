@@ -4,17 +4,18 @@ last release tag's whole tree.
 #923 item 3: what a release reads release to release is one table on the
 release pull request, printed by `.github/scripts/release_report.py`; the
 tests workflow's `release-report` job runs it after the suite, on a pull
-request into `main` only. #942's phase 6 placed the script's cases in
-`tests/github/test_release_report.py`; the cases that read the workflow stay
-here.
+request into `main` only. The script's cases stand in
+`tests/github/test_release_report.py`; the cases here read the workflow.
 """
 
 import os
 
-from conftest import code_lines
+from conftest import census_case, code_lines
 from workflows import load
 
-WORKFLOW = os.path.join(".github", "workflows", "test.yml")
+TARGET = ".github/workflows/test.yml"
+
+WORKFLOW = os.path.join(*TARGET.split("/"))
 
 
 def release_report():
@@ -89,3 +90,6 @@ def test_the_table_reads_this_run_s_union_and_the_tag_s_push_run_s():
     assert '--durations-at "$RUNNER_TEMP/durations-at/.test_durations"' in script, (
         script
     )
+
+
+test_census = census_case(TARGET)

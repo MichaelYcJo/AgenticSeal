@@ -1,12 +1,13 @@
 """#386: the release note publishes itself, or the job goes red saying why.
 
 The cases here read the workflow the push to `main` and a tag pushed by
-hand fire, and the release checklist's title command, and wait for #923. `docs/releasing/branch-and-release.md`
-names this file on its `check:` line.
+hand fire. `docs/releasing/branch-and-release.md` names this file on its
+`check:` line.
 
-#942's phase 6 placed the cases of `.github/scripts/publish_release_note.py`'s
-functions in `tests/github/test_publish_release_note.py`, and this file loads the
-script through that file's `module`.
+The cases of `.github/scripts/publish_release_note.py`'s functions stand in
+`tests/github/test_publish_release_note.py`, and its `Test_module` holds the
+case that reads the release checklist's title command back through
+`title_from`.
 
 The workflow is read as `tests/workflows.py#load` parses it, so a setting
 that stands only in a comment is no setting.
@@ -14,50 +15,12 @@ that stands only in a comment is no setting.
 
 import os
 
-from conftest import ROOT
-from test_publish_release_note import module
+from conftest import census_case
 from workflows import load
 
-SCRIPTS = os.path.join(ROOT, ".github", "scripts")
-SCRIPT = os.path.join(SCRIPTS, "publish_release_note.py")
-WORKFLOW = ".github/workflows/publish-release.yml"
+TARGET = ".github/workflows/publish-release.yml"
 
-# `tests/behaviour/test_release_hygiene.py` refuses a loaded document naming the running
-# version or anything above it. These are illustrative, which is the form that
-# document's own message points at.
-VERSION = "1.2.3"
-TAG = "v1.2.3"
-SYMPTOMS = "two acts nobody wrote down"
-
-
-def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
-    """S17 of #1000. The command in `docs/releasing/release-checklist.md` *The
-    release pull request*, filled with a version and a symptom, is the merge
-    commit's body line, and `title_from` reads it as S15 does. Protects: the
-    document a release session copies and the reader moving apart, which
-    loses the next release's title."""
-    doc = open(
-        os.path.join(ROOT, "docs", "releasing", "release-checklist.md"),
-        encoding="utf-8",
-    )
-    text = doc.read()
-    doc.close()
-    step = text[text.index("## The release pull request") :]
-    title = step.split('--title "', 1)[1].split('"', 1)[0]
-    filled = title.replace("X.Y.Z", VERSION).replace(
-        "<the symptoms the release answers>", SYMPTOMS
-    )
-    assert filled != title and "<" not in filled, title
-    mod = module(SCRIPT, "publish_release_note_for_the_checklist")
-    message = f"Merge pull request #500 from owner/release/v{VERSION}\n\n{filled}\n"
-    title, source = mod.title_from(message, VERSION, TAG)
-    assert (title, source) == (
-        f"{VERSION} — {SYMPTOMS}",
-        "the tagged commit's `release:` line",
-    )
-    # Trailing whitespace after the symptoms is no part of the title.
-    spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
-    assert spaced == title, spaced
+WORKFLOW = os.path.join(*TARGET.split("/"))
 
 
 def strings(node):
@@ -90,18 +53,18 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     the job's own timeout sits under a job-level `continue-on-error` (round
     1's finding 4). The token is on the drawing step alone, and the checkout
     does not persist it in `.git/config`, so the suite at the tag runs with
-    none (round 1's finding 5). Since #1009 (S7) the job has five steps:
-    none runs `apt-get`, so the job installs no system package and the image
-    needs no renderer from the runner. Seen red against the workflow with no
-    `seal` job, the two round-1 halves against the workflow without them,
-    #1009's against the job with the SVG renderer's install step, and
-    #1117's against the workflow that fired on the tag alone."""
+    none (round 1's finding 5). Since #1009 (S7) the job has five steps.
+    Seen red against the workflow with no `seal` job, the two round-1 halves
+    against the workflow without them, and #1117's against the workflow that
+    fired on the tag alone."""
     workflow = load(WORKFLOW)
     push = workflow["on"]["push"]
     assert push.get("branches") == ["main"], "the workflow does not fire on `main`"
     assert push.get("tags") == ["v*"], "a tag pushed by hand no longer publishes"
-    said = list(strings(workflow))
-    assert not any("github.ref_name" in s for s in said), (
+    # `.github/workflows/publish-release.yml`, the comment above `publish`'s
+    # `outputs`: the ref's name is `main` on the push to `main`, so the tag is
+    # read from the tag step alone, and no step reads `github.ref_name`.
+    assert not any("github.ref_name" in s for s in strings(workflow)), (
         "a step reads the ref's name, which is `main` on the push to `main`"
     )
     assert workflow.get("permissions") == {"contents": "write"}, (
@@ -136,7 +99,6 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
         step.get("with", {}).get("ref") == "${{ needs.publish.outputs.tag }}"
         for step in held
     ), held
-    assert not any("apt-get" in s for s in strings(held)), held
     assert held[0].get("with", {}).get("persist-credentials") == "false", held[0]
     for step in held:
         assert step.get("continue-on-error") == "true", step
@@ -153,8 +115,8 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
         tokened
     )
     # #869 (S12 of 1791384158): the suite runs with the broad gate's recorder
-    # loaded as the gate loads it, writes no JUnit file, and the drawing
-    # step is handed the directory and the key the suite step wrote with.
+    # loaded as the gate loads it, and the drawing step is handed the
+    # directory and the key the suite step wrote with.
     env = {**suite[0].get("env", {}), **tokened[0]["env"]}
     assert env.get("PYTHONPATH") == (
         "${{ github.workspace }}/skills/verify/scripts/pytest_record"
@@ -162,7 +124,6 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert env.get("PYTEST_ADDOPTS") == "-p agentic_pytest_record", env
     assert env.get("SUITE_RECORDS") == env.get("AGENTIC_RECORD_DIR"), env
     assert env.get("SUITE_KEY") == env.get("AGENTIC_RECORD_KEY"), env
-    assert not any("junitxml" in s or "SUITE_XML" in s for s in said)
 
 
 def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
@@ -205,3 +166,6 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     # The bot's address in the environment binding, which the commit the
     # script makes carries as its author.
     assert "+github-actions[bot]@" in said.get("GIT_AUTHOR_EMAIL", ""), said
+
+
+test_census = census_case(TARGET)

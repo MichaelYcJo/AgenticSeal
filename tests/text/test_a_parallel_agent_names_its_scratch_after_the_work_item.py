@@ -43,6 +43,8 @@ import os
 
 from conftest import ROOT, read
 
+# No TARGET: its cases hold the scratch directory's name across the four agent definitions, the agent contract and the skills that name it.
+
 PROOFER = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")
@@ -102,6 +104,8 @@ def test_the_framers_probe_is_named_for_the_work_item():
     the name carries the work item is contract rule 17's, which the
     definition cites."""
     where = section(FRAMER, "Rules")
+    # The path the framer writes its probe's script, captures and clone
+    # under.
     assert FRAME_HOME in where, (
         "`agents/framer.md` *Rules* does not name the probe's directory as "
         f"`{FRAME_HOME}`, so a framer's writes have no name of their own"
@@ -117,10 +121,12 @@ def test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase():
     two crafters alive at once cannot pick one name. Why the name carries
     the work item is contract rule 17's, which the definition cites."""
     where = section(CRAFTER, "Rules")
+    # The path the crafter writes a phase's scratch under.
     assert PHASE_HOME in where, (
         "`agents/crafter.md` *Rules* does not name a phase's directory as "
         f"`{PHASE_HOME}`, so a crafter's writes have no name of their own"
     )
+    # The path the crafter writes a fix pass's scratch under.
     assert FIX_HOME in where, (
         "the section does not name a fix pass's directory as "
         f"`{FIX_HOME}`, so a fix pass writes into the shared scratchpad"
