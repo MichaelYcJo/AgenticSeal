@@ -1432,10 +1432,12 @@ _names_read = []
 
 
 def _root_names():
-    """`(HOME, SECOND_HOME)` as this repository's `lib/optin.py` holds them,
-    read once."""
+    """`(HOME, SECOND_HOME)` as `lib/optin.py` holds them, read once from the
+    repository this module stands in. The names are the plugin's own, and a
+    case may point `ROOT` at a fixture tree that holds no `lib/optin.py`."""
     if not _names_read:
-        path = os.path.join(ROOT, *ROOT_NAME_HOME.split("/"))
+        here = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        path = os.path.join(here, *ROOT_NAME_HOME.split("/"))
         spec = importlib.util.spec_from_file_location("agentic_optin_for_census", path)
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)
