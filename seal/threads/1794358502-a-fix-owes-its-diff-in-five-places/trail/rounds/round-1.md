@@ -66,6 +66,11 @@ as a whole list, is a finding on the method, even where every instance on
 the list was fixed.
 ```
 
+```seal
+verdict: fixed a085980ed
+answer: The finding holds: "these records" in T5 are the files the proofer's step 3 reads whole, `pr.md` and `pr.<lang>.md` among them, and the crafter's rule names neither. The paste-ready words, which the frame's T5 holds since its fold at `112f5faf4`, now stand in `agents/proofer.md` *Every round reads the work item's records that state the present, whole, against its target*, and `changelog.md` quotes them. `wc -c agents/proofer.md` prints 10,999, 253 B more than 10,746 at `0b55462b2`, and the changelog now says 253 bytes. The case on the sentence pins the clause after the colon and passes unchanged.
+```
+
 ### 2. The changelog says only the crafter and the proofer act on the sentences rule 12 lost, and the framer's and the orchestrator's folds cited one of them
 
 ```seal
@@ -103,6 +108,11 @@ make no claim about who acts on the sentences.
 
 ```markdown
 | 2026-11-11 | Contract rule 12 keeps the class, the three methods and the sample. The closed set a fix reads whole is defined in `agents/crafter.md` *Before you hand back, your range and the work item's records are read whole against HEAD* alone, the proofer's sentence on a fix's account stands in `agents/proofer.md` *Every round reads the work item's records that state the present, whole, against its target*, and `skills/implement/orchestration.md` and `skills/implement/fold-and-reframe.md` cite rule 12's second method | Every spawn of every agent preloaded about 0.8 KB that a tracer, a sealer and a first-frame framer act on none of, and the closed set was defined both in the contract and in the crafter's rule | https://github.com/MichaelYcJo/AgenticSeal/issues/1472 |
+```
+
+```seal
+verdict: fixed a085980ed
+answer: The finding holds: at `0b55462b2` the framer's fold and the orchestrator's fold each cited rule 12 for the reading of whole files, so the crafter and the proofer were not the only parties acting on it. `changelog.md:3` and its *Process changes* row now hold the round's paste-ready text word for word, which states the claim `frame/plan.md` *Alternatives considered* row 2 makes.
 ```
 
 ## Confirmations
