@@ -24,6 +24,9 @@ def test_the_oracle_imports_the_renderer_and_nothing_of_this_repositorys():
     assert imported_roots(oracle.__file__) == {"cmarkgfm", "html"}
     with open(oracle.__file__, encoding="utf-8") as handle:
         source = handle.read()
+    # `tests/gfm_table_oracle.py` *It shares nothing with what it checks*:
+    # the oracle's code reaches nothing under `lib/`, `skills/` or
+    # `.github/`, by a path or through the import machinery.
     for reach in ("sys.path", "importlib", "lib/", "skills/", ".github/"):
         assert reach not in source.split('"""', 2)[-1], reach
 

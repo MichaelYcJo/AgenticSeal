@@ -1051,8 +1051,7 @@ def test_the_template_names_the_rows_an_absent_one_is_refused_for():
 )
 def test_the_layout_lists_the_config(parts):
     """S9. Four documents draw the root's contents and a file in none of them
-    is a file nobody finds. `seal/README.md` is the template verbatim —
-    `tests/behaviour/test_first_setup_asks_once.py` pins that equality — so
+    is a file nobody finds. `seal/README.md` is written from the template, so
     the two move as one edit."""
     # The file name of the config, which a reader of the root's layout opens.
     assert "config.json" in read(*parts), (

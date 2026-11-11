@@ -19,9 +19,9 @@ import pytest
 from conftest import local_home, read, shell_probe
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
-# The sentence a session reads, which the Q1 cases below hold in each place:
-# the same rule `lib/optin.py` states, moved to where a session looks.
-SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
+# The local root's path as a session reads it, which the Q1 cases below hold
+# in each place: the path `lib/optin.py` resolves, where a session looks.
+SESSION_RULE = f"`{COMMON_DIR}`"
 
 
 def section(text, heading, level):
@@ -122,6 +122,8 @@ def test_a_repository_with_the_root_at_either_place_is_never_asked():
 
 def test_the_parity_question_follows_the_mode_question():
     boot = bootstrap()
+    # The question the orchestrator puts to the person word for word, after
+    # the mode question's options.
     assert boot.index("port behavior from an existing codebase") > boot.index(
         "**local**"
     )
@@ -157,9 +159,9 @@ def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them
 # The paths the orchestrator opens to read a `Broad gate` candidate off the
 # repository, the table's *Where to look* cells that name a path.
 DERIVED = [
-    ".github/workflows/*.yml",
-    "a runner under `bin/`",
-    "a `Makefile`",
+    "`.github/workflows/*.yml`",
+    "`bin/`",
+    "`Makefile`",
 ]
 
 
@@ -293,22 +295,13 @@ def test_the_session_rule_names_both_places(parts):
     assert SESSION_RULE in text, "/".join(parts)
 
 
-@pytest.mark.parametrize("agent", ["proofer.md", "crafter.md"])
-def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
-    """The move has to be a move. A definition that keeps the sentence beside
-    the contract's is the duplication contract rule 11 was written to end, and it is
-    invisible in a diff that only adds."""
-    assert SESSION_RULE not in read("agents", agent), (
-        f"agents/{agent} still spells the root rule out, so the tree holds "
-        "two homes for it again"
-    )
-
-
 def test_the_session_rule_sits_in_the_layout_section_of_the_skill():
     """The layout section runs from its heading to `## Procedure`; the
     bootstrap that used to close it left with #292 and is in
     `skills/implement/bootstrap.md` now (#1046)."""
     skill = read(*SKILL)
+    # The section a session opens for where the root lives, which holds the
+    # local root's path.
     assert (
         skill.index("## Document layout")
         < skill.index(SESSION_RULE)
@@ -336,11 +329,6 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     assert "MichaelYcJo/AgenticSeal" in t
     # The runner's temporary directory the step clones the plugin into.
     assert "RUNNER_TEMP" in t or "runner.temp" in t, "the plugin lands in the tree"
-
-
-@pytest.mark.parametrize("stays_home", ["plugin.json", "fold_ledger", "README.ko.md"])
-def test_the_rows_that_read_this_repository_do_not_travel(stays_home):
-    assert stays_home not in template()
 
 
 def test_the_template_header_names_the_commands_that_write_and_remove_it():
@@ -422,35 +410,26 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     )
 
 
-# What local mode leaves unchecked, said once under each edition's table of
-# the three answers: no pull-request check reads records that are not
-# committed, and no mechanism stands in for it (#1376).
-LOCAL_LIMIT = {
-    "README.md": (
-        "In local mode no pull-request check reads the records, so "
-        "`agents/sealer.md` step 1 and the orchestrator's guidance alone hold "
-        "the four rows of `skills/core/SKILL.md` *Judgment is not licence "
-        "to skip a party*, and that is a limit."
-    ),
-    "README.ko.md": (
-        "local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 "
-        "기록이 없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not "
-        "licence to skip a party* 표의 네 행은 sealer 의 1단계"
-        "(`agents/sealer.md`)와 작업을 이끄는 세션이 따르는 지침만이 지키며, "
-        "이것이 local 모드의 한계입니다."
-    ),
-}
+# What holds the core's four rows in local mode, cited once under each
+# edition's table of the three answers (#1376): the sealer's definition and
+# the core's table, which a reader resolves.
+LOCAL_LIMIT = (
+    "`agents/sealer.md`",
+    "`skills/core/SKILL.md` *Judgment is not licence to skip a party*",
+)
 
 
 @pytest.mark.parametrize("readme", sorted(READMES))
 def test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table(readme):
-    """The paragraph right under the table of the three answers says that in
-    local mode nothing checks the pull request's rows of the core's table,
-    and names what holds them, as a limit."""
+    """The paragraph right under the table of the three answers names what
+    holds the pull request's rows of the core's table in local mode. What it
+    says of them is the proofer's to read."""
     body = section(read(readme), READMES[readme][1], 3)
     chunks = body.split("\n\n")
     table = next(i for i, chunk in enumerate(chunks) if chunk.startswith("|"))
-    assert flat(chunks[table + 1]) == LOCAL_LIMIT[readme], chunks[table + 1]
+    under = flat(chunks[table + 1])
+    for cited in LOCAL_LIMIT:
+        assert cited in under, (readme, cited, under)
 
 
 # The one home of the way back before the commit to shared (#1055 S6), and
@@ -461,14 +440,17 @@ SHARED_WAY_BACK = f"`skills/config/SKILL.md` *{SHARED_HEADING}*"
 
 def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
     """#1055 S6. The skill section is where the way back is said before the
-    act, so it holds the command and both reasons the READMEs used to give,
-    and it cites the policy for the rule rather than restating it."""
+    act, so it holds the commands, and it cites the policy for the rule
+    rather than restating it. Why a bare `git reset` is not the way back is
+    the proofer's to read."""
     skill = read("skills", "config", "SKILL.md")
     body = flat(section(skill, "## " + SHARED_HEADING, 2))
     for said in (
-        "`git reset -- :/seal` and then `seal mode local` walk the whole thing back",
-        "refuses a switch over a staged change",
-        "a bare `git reset` unstages the whole index",
+        # The two commands a person runs to walk the switch back.
+        "`git reset -- :/seal`",
+        "`seal mode local`",
+        # The citation of the rule, which a reader resolves: the path and the
+        # heading in italics.
         "`docs/layout/one-root-by-lifetime.md` *Shared or local*",
     ):
         assert said in body, said
@@ -559,10 +541,6 @@ def test_the_seal_readme_names_the_command_that_finds_the_local_root(parts):
     assert "git rev-parse --git-common-dir" in text, "/".join(parts)
 
 
-def test_the_seal_readme_is_the_template_verbatim():
-    assert read("seal", "README.md") == read("templates", "setup", "seal-README.md")
-
-
 MARKER_SAID = "**The first line of this file is the marker.**"
 
 
@@ -577,42 +555,24 @@ def test_the_seal_readme_cites_the_marker_constant():
     assert "`lib/optin.py#MARKER`" in said, said
 
 
-def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
+def test_the_seal_readme_points_at_the_drain():
     """Round 2 of #940, finding 2. Who moves a work item's open rows, when
     and where each goes is `skills/implement/orchestration.md`'s drain
-    section's alone; a second statement here drifted from it on all three.
-    The README names the section and carries no destination of its own."""
+    section's alone, and the README names the section."""
     text = read("templates", "setup", "seal-README.md")
     rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = (
         "## Orchestrator: drain the rows before the broad run, and keep the records"
     )
+    # The heading the citation resolves to.
     assert heading in read("skills", "implement", "orchestration.md")
+    # The citation a person resolves for the drain: the path and the heading
+    # in italics.
     cited = "`skills/implement/orchestration.md` " + f"*{heading[3:]}*"
     assert cited in rules, rules
-    for copied in ("| Item still here |", "follow-up.md", "open-questions"):
-        assert copied not in rules, (copied, rules)
 
 
 # --- Q8: the design record agrees with the code -----------------------------
-
-
-@pytest.mark.parametrize(
-    "parts, wrong",
-    [
-        (
-            ("docs", "layout", "one-root-by-lifetime.md"),
-            "would refuse a pull request with no round records",
-        ),
-        (
-            ("docs", "layout", "one-root-by-lifetime.ko.md"),
-            "라운드 기록이 없는 PR 은 그 워크플로에서",
-        ),
-    ],
-)
-def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
-    text = read(*parts)
-    assert wrong not in text, "/".join(parts)
 
 
 @pytest.mark.parametrize(

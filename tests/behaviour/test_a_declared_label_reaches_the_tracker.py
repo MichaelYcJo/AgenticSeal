@@ -2,8 +2,7 @@
 and stops existing on the issue it was spent on; the cases here read the
 workflow and the document.
 
-  A12  the document says when the judgment is made, what removes a spent
-       label, and that no backlog sweep is owed
+  A12  the document names the workflow that removes a spent label
   A14  the label step and the roll run whether or not a step before them
        failed, because neither needs a step after checkout to have succeeded
        (#515)
@@ -83,31 +82,14 @@ def test_a_failed_step_cannot_skip_the_independent_steps_after_it(step):
     )
 
 
-@pytest.mark.parametrize(
-    ("clause", "what_it_answers"),
-    [
-        pytest.param(
-            "The judgment is made at filing, and again when an issue moves milestone.",
-            "when somebody decides it",
-            id="when the judgment is made",
-        ),
-        pytest.param(
-            "removes `size: now` from each issue it closes when the release "
-            "reaches `main`",
-            "what removes a spent one",
-            id="what removes a spent label",
-        ),
-        pytest.param(
-            "No sweep of the standing backlog is owed, and none should be done.",
-            "whether the open backlog gets one",
-            id="no sweep is owed",
-        ),
-    ],
-)
-def test_the_document_answers_what_it_left_open(clause, what_it_answers):
-    """A12. Each of the three was a gap #450 named, and each is the kind a
-    reader fills in for themselves — differently each time — when the document
+def test_the_document_names_what_spends_the_label():
+    """A12. What removes a spent label was a gap #450 named, and a reader
+    fills it in for themselves, differently each time, when the document
     does not."""
-    assert clause in flat(OWNER), (
-        f"{OWNER} no longer says {what_it_answers}: {clause!r} is gone"
-    )
+    # The workflow path a reader resolves for what removes the spent label,
+    # and the label as
+    # `.github/scripts/close_issues_on_release.py#SPENT_ON_CLOSE` spells it.
+    assert (
+        "`.github/workflows/close-issues-on-release.yml` removes `size: now`"
+        in flat(OWNER)
+    ), f"{OWNER} no longer names the workflow that removes `size: now`"

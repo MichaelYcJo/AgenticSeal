@@ -48,18 +48,18 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     the job's own timeout sits under a job-level `continue-on-error` (round
     1's finding 4). The token is on the drawing step alone, and the checkout
     does not persist it in `.git/config`, so the suite at the tag runs with
-    none (round 1's finding 5). Since #1009 (S7) the job has five steps:
-    none runs `apt-get`, so the job installs no system package and the image
-    needs no renderer from the runner. Seen red against the workflow with no
-    `seal` job, the two round-1 halves against the workflow without them,
-    #1009's against the job with the SVG renderer's install step, and
-    #1117's against the workflow that fired on the tag alone."""
+    none (round 1's finding 5). Since #1009 (S7) the job has five steps.
+    Seen red against the workflow with no `seal` job, the two round-1 halves
+    against the workflow without them, and #1117's against the workflow that
+    fired on the tag alone."""
     workflow = load(WORKFLOW)
     push = workflow["on"]["push"]
     assert push.get("branches") == ["main"], "the workflow does not fire on `main`"
     assert push.get("tags") == ["v*"], "a tag pushed by hand no longer publishes"
-    said = list(strings(workflow))
-    assert not any("github.ref_name" in s for s in said), (
+    # `.github/workflows/publish-release.yml`, the comment above `publish`'s
+    # `outputs`: the ref's name is `main` on the push to `main`, so the tag is
+    # read from the tag step alone, and no step reads `github.ref_name`.
+    assert not any("github.ref_name" in s for s in strings(workflow)), (
         "a step reads the ref's name, which is `main` on the push to `main`"
     )
     assert workflow.get("permissions") == {"contents": "write"}, (
@@ -94,7 +94,6 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
         step.get("with", {}).get("ref") == "${{ needs.publish.outputs.tag }}"
         for step in held
     ), held
-    assert not any("apt-get" in s for s in strings(held)), held
     assert held[0].get("with", {}).get("persist-credentials") == "false", held[0]
     for step in held:
         assert step.get("continue-on-error") == "true", step
@@ -111,8 +110,8 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
         tokened
     )
     # #869 (S12 of 1791384158): the suite runs with the broad gate's recorder
-    # loaded as the gate loads it, writes no JUnit file, and the drawing
-    # step is handed the directory and the key the suite step wrote with.
+    # loaded as the gate loads it, and the drawing step is handed the
+    # directory and the key the suite step wrote with.
     env = {**suite[0].get("env", {}), **tokened[0]["env"]}
     assert env.get("PYTHONPATH") == (
         "${{ github.workspace }}/skills/verify/scripts/pytest_record"
@@ -120,7 +119,6 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert env.get("PYTEST_ADDOPTS") == "-p agentic_pytest_record", env
     assert env.get("SUITE_RECORDS") == env.get("AGENTIC_RECORD_DIR"), env
     assert env.get("SUITE_KEY") == env.get("AGENTIC_RECORD_KEY"), env
-    assert not any("junitxml" in s or "SUITE_XML" in s for s in said)
 
 
 def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():

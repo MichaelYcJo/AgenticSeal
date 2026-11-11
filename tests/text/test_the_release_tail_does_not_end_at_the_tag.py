@@ -22,9 +22,7 @@ previous release.
 **Every assertion reads the file with its wraps collapsed.** These documents
 are hand-wrapped at 88 columns (`tests/behaviour/test_docs_line_wrap.py` covers
 `docs/releasing/release-checklist.md`), so a phrase pinned as written on one line breaks
-the moment a word is added earlier in the paragraph — the reader
-`tests/behaviour/test_a_release_is_sized_by_a_criterion.py` already uses, for the reason
-its own docstring gives.
+the moment a word is added earlier in the paragraph.
 
 **Shown red before it was committed (contract rule 15).** Each case was run against the two
 documents with the sentence or box it pins removed; the mutations and what

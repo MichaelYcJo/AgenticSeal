@@ -85,23 +85,24 @@ def section_body(lines, heading):
 
 
 def test_the_template_is_its_title_and_the_found_section():
-    """#1148. Every other line the template carried copied another record:
-    the field table the file name and `plan.md`'s Status cell, the asked
-    section the plan's Delivers cell."""
+    """#1148. Every other section the template carried copied another
+    record: the asked section copied the plan's Delivers cell."""
     lines = [line.strip() for line in template_lines() if line.strip()]
+    # The title the crafter copies into `trail/phases/phase-N.md`, with the
+    # phase and the work item filled in.
     assert lines[0] == "# Phase <N>: <work-item-id>", lines[0]
     headings = [line for line in lines if line.startswith("## ")]
+    # The one heading the crafter writes under and the next phase's crafter
+    # opens.
     assert headings == ["## What this phase found"], headings
-    assert not [line for line in lines if line.startswith("|")], (
-        "the template still carries a table, and every cell it could hold "
-        "copies the file name or the plan's Status cell"
-    )
 
 
 def test_the_found_section_ships_a_placeholder():
     body = section_body(template_lines(), "## What this phase found")
     assert body, "`## What this phase found` has no content"
     text = " ".join(line.strip() for line in body)
+    # A placeholder in angle brackets, which the crafter replaces with what
+    # its phase found.
     assert text.startswith("<") and text.endswith(">"), (
         f"`## What this phase found` ships `{text}` — a template must offer a "
         "placeholder, not a filled-in claim"

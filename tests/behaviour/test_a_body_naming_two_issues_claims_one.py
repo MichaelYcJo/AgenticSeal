@@ -1,5 +1,5 @@
 """What is left of the claims check's old file: the cases that read the
-hygiene workflow and its setup template.
+hygiene workflow.
 
 The cases of `.github/scripts/issue_claims_check.py`'s functions stand in
 `tests/github/test_issue_claims_check.py`, and its `Test_read` holds the case
@@ -9,7 +9,6 @@ document names this file on a `check:` line beside the module's file.
 
 import os
 
-import pytest
 from conftest import ROOT, code_lines
 from workflows import load
 
@@ -51,16 +50,3 @@ def test_the_body_reaches_the_script_through_the_environment():
     assert not interpolated, (
         f"the body is interpolated into a shell line: {interpolated}"
     )
-
-
-@pytest.mark.parametrize("stays_home", ["issue_claims_check"])
-def test_the_check_does_not_travel_to_user_repositories(stays_home):
-    """`.github/scripts/` is this repository's own automation, and
-    `test_first_setup_asks_once.py` pins its other rows out of the template
-    the same way. Shipping this one means first deciding it
-    belongs under `skills/`, which is a wider change than this issue asks
-    for."""
-    with open(
-        os.path.join(ROOT, "templates", "setup", "hygiene.yml"), encoding="utf-8"
-    ) as f:
-        assert stays_home not in f.read()

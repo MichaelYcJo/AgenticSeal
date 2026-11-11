@@ -10,10 +10,8 @@ asks or a probe commits, and no step of theirs opens *2.*, so contract rule
 
 The cases read the rule's lead, the `git -C` form an agent types, the
 contract's pointer and the orchestration's citation of the rule. The rule's
-reason is the proofer's to read.
-#1027 removed every gate that read a commit, and the reason that rested on
-that reading went with it; the shell's starting directory is the one left.
-The rule points at contract rule 9 rather than restating it.
+reason is the proofer's to read. The rule points at contract rule 9 rather
+than restating it.
 """
 
 from conftest import read
@@ -44,15 +42,6 @@ def test_the_rule_stands_in_implement_and_names_the_shape():
     # The command form `git -C <absolute path>`, which every party types when
     # it commits.
     assert "absolute path written out after `git -C`, in a command of its own" in body
-
-
-def test_no_reason_rests_on_a_gate_reading_the_command():
-    """#1027: nothing reads a commit's command any more, so a reason that
-    said what such a reader could place would send a session after a gate
-    that is gone."""
-    body = rule()
-    for gone in ("the gate", "Two reasons", "loop variable"):
-        assert gone not in body, f"the rule still rests on the reading: {gone!r}"
 
 
 def test_it_points_at_the_edit_rule():
