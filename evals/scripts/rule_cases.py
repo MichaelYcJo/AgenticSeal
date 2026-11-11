@@ -11,8 +11,7 @@ whether a sentence of today's definition was followed:
 
   proofer  one review of a diff with one defect against its spec: the
            defect found, the round record in the template's shape, and
-           any truth `recurred_truths.json` adds for the case
-           (`replay_targets.py#truths_with`)
+           the uncovered `shout_twice` its classed runs named
   crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
@@ -56,7 +55,6 @@ sys.path.insert(
 import behaviour
 import console
 import optin
-import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
@@ -313,9 +311,16 @@ def proofer_case():
         r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
         "`shout_twice` joins the two shouts with no space, against S2.",
     )
+    # A real defect two of the case's classed runs named, which the case did
+    # not list: no case covers `shout_twice`.
+    uncovered = (
+        "shout-twice-uncovered",
+        r"^location: .*(?:tests\/test_textutil\.py(?![\w./#-]))",
+        "No case covers shout_twice, so plan.md's phase 1 check passes over "
+        "the defect it names S2 for.",
+    )
     graders = behaviour.report_shape("proofer", report)
-    # A fixture has no commit, and an entry's location never needs one.
-    for name, pattern, body in rt.truths_with(PROOFER_CASE, [shout], None):
+    for name, pattern, body in (shout, uncovered):
         graders.append(behaviour.report_regex("truth", name, report, pattern, body))
     return PROOFER_CASE, {
         "agent": "proofer",

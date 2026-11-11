@@ -60,37 +60,22 @@ is the session spawning the agent. No judge scores anything.
 **No case tells the agent under test that the run is a measurement.** The
 agent reads a case's `prompt.md` and works in the repository its
 `scaffold.sh` builds, so neither file holds a word that names the run, its
-graders or its cases as such. Two kinds of text are exempt: a record shape
-this plugin's templates write, and a value a replay or seeded generator
-copies from this repository into its case.
+graders or its cases as such. A record shape this plugin's templates write
+is exempt, and a replay or seeded case is not read, since its bytes are a
+record.
 `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` holds the
-words and the exemptions, and names each hit by its file, line and word.
+words and the exemption, and names each hit by its file, line and word.
 The path of the tree `noninferiority.py run` loads is the base directory of
 every skill the agent reads, so no component of it below the system
 temporary directory holds one of those words either;
 `tests/evals/test_noninferiority.py` *Test_run_side* refuses one that does.
 
-The cases are generated, never edited by hand. `replay_targets.py` and
-`seed_defects.py` take `--list` for what they can write, `--count N` for the
-N smallest and `--case NAME` for one committed case again, read at every
-release tag; `rule_cases.py` takes no selection and writes every fixture
-case:
-
-| Generator | Cases |
-|---|---|
-| `scripts/replay_targets.py` | `proofer/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `proofer/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added, amended into the target with the target's own committer and date, and neither a copy of the unmutated target commit nor a remote left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
-| `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
-
-All three also read `scripts/recurred_truths.json`. A real defect a case
-did not list, named by at least two of the case's classed runs, is a
-`truth-` grader of that case. A listed truth that a run found at a
-coordinate its regex missed is widened with that coordinate. Each entry
-names its case, the grader it adds or widens, its locations and the
-classing rows it came from. Where the ±15 lines around a location would
-reach another truth of the case, it also names a narrower `window`, because
-no two truths of one case may accept the same `location:` line. An entry
-the case cannot take stops the generator with exit 1.
+The rule cases are generated, never edited by hand:
+`scripts/rule_cases.py` takes no selection and writes every
+`<agent>/rule-*` case, a fixture repository the agent works in, graded on
+what it produced. The `proofer/replay-*` and `proofer/seeded-*` cases are
+records: each is a review of a target at a recorded commit, with a `truth-`
+grader for each defect it holds, and no script writes one again.
 
 ```bash
 python3 evals/scripts/noninferiority.py run --agent proofer --rev <merge base> \
