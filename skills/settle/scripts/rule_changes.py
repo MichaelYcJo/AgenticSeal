@@ -20,10 +20,10 @@ readers that excuse such a line: `.github/scripts/rules.py` and
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 `literals`, `pins` and `copies` say what an operation takes out of a test
 and what its `to` repeats of another rule document, over texts their caller
-hands them, for `chain_check.py` to name as notices (#1216); a copy is read
+hands them, for `chain_check.py` to name as notices; a copy is read
 through `passages.py`, the paste check's reader, loaded on first use.
 `apply_op` places one operation in one document's text as the grammar
-places it, for `settle --draft` to write (#1217); it reads a table row
+places it, for `settle --draft` to write; it reads a table row
 through `lib/tables.py`, loaded on first use.
 `settle` prints what they read and writes what `apply_op` returns; nothing
 here writes a file.
@@ -33,7 +33,7 @@ Headings and fences are read through `lib/lines.py` (`live_lines`,
 lines through `lib/blocks.py#gfm_lines`, each loaded on first use, so this
 module spells no fence or heading rule of its own. A design is a
 record and carries no HTML comment, so `parse` reads it with no comment
-state and refuses a section line that begins with `<!--` (#1012); `headings`
+state and refuses a section line that begins with `<!--`; `headings`
 keeps the comment state for `section_lines` and `overlapping`, which read the
 policy documents.
 """
@@ -210,11 +210,11 @@ def parse(text, policy_root):
     end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
     live = [flag for _, flag in r.live_lines(lines, comments=False)]
     # `live_lines` ANDs two readings, here with no comment state, since a
-    # design carries no comment (#1012). In this one a code span never leaves
+    # design carries no comment. In this one a code span never leaves
     # its line, so a line dead here is in a fence and is skipped. A fence's
     # opener is live, so a fence inside the section is refused at that line
     # as no field. A line live here and dead in `live` begins inside a code
-    # span an earlier line opened, and is refused (#988), before a line
+    # span an earlier line opened, and is refused, before a line
     # beginning with `<!--` is, since an opener inside a span is text.
     literal = r.liveness(lines, spans_cross_lines=False, comments=False)
     commented = set(r.comment_lines(r.blank_fences(lines)))
@@ -357,7 +357,7 @@ def section_lines(text, section):
     return (h + 1, end), None
 
 
-# --- placing one operation in one document's text (#1217) ---------------------
+# --- placing one operation in one document's text -----------------------------
 
 
 def _cut(text, s, e):
@@ -485,9 +485,8 @@ def apply_op(text, op):
 # --- what an operation takes out of a test and repeats of a document ----------
 
 # A string constant of a test reads as a pin of a rule's text from this many
-# words: the floor #1278's lister used. At three words the 0.27.1 settle's
-# record names 44 pins against 26 and none more of the literals that failed
-# (#1216 design G10).
+# words. At three words the 0.27.1 settle's record names 44 pins against 26,
+# and none more of the literals that failed.
 LITERAL_WORDS = 4
 
 
