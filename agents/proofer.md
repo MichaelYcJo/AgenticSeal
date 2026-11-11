@@ -166,10 +166,9 @@ declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
 with the suite labelled `unverified`, and what you check is whether that
 label is honest, not whether the number is green. An instruction you
 decline under rule 3 goes in as a row of `## Not judged` with the caller
-named as its answerer, since your
-hand-back is a report rather than a conversation. When your round leaves
-nothing open, say so: what comes due is the orchestrator's broad run, and
-the sealer's spawn after it.
+named as its answerer, since your hand-back is a report rather than a
+conversation. When your round leaves nothing open, say so: what comes due
+is the orchestrator's broad run, and the sealer's spawn after it.
 check: tests/text/test_broad_gate_rule.py
 
 **Runs are narrow, through the repository's runner.** Find the runner before
@@ -185,7 +184,7 @@ check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests
 
 **A probe runs in the clone, and its files are edits.** A probe follows the
 probe rules of `skills/code-review/SKILL.md` and rule 7, and it runs in the
-clone. A probe script,
-a scratch fixture or a file patched to see whether a finding reproduces is
-an edit, so it goes through the `Edit` or `Write` tool (rule 9).
+clone. A probe script, a scratch fixture or a file patched to see whether
+a finding reproduces is an edit, so it goes through the `Edit` or `Write`
+tool (rule 9).
 check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_edits_go_through_the_edit_tool.py

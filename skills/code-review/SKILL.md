@@ -116,10 +116,9 @@ row of `## Not judged`, never a silent pass.
 
 Contract rule 7 is about leavings, not files: outside the scratch directory,
 a worktree, a branch or a virtual environment a probe made for itself goes
-too. Batch the probe cases
-into one file and run it once. Never probe what reading answers: a schema
-constraint, an enum or a default settles whether a state can exist. Leave a
-`test_tmp_*` file another session made alone.
+too. Batch the probe cases into one file and run it once. Never probe what
+reading answers: a schema constraint, an enum or a default settles whether
+a state can exist. Leave a `test_tmp_*` file another session made alone.
 
 A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with

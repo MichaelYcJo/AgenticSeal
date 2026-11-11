@@ -67,9 +67,10 @@ is a write you do not make.
     claim labelled as rule 4 asks and the suite as rule 2 asks, each
     instruction you declined as rule 3 asks, the account the rule *Before
     you hand back, your range and the work item's records are read whole
-    against HEAD* asks for, what this file does not let you record yourself (a question
-    only a person can answer, a leftover for `seal/follow-up.md`) with who
-    answers each, and changed files by absolute path.
+    against HEAD* asks for, what this file does not let you record
+    yourself (a question only a person can answer, a leftover for
+    `seal/follow-up.md`) with who answers each, and changed files by
+    absolute path.
 
 ## Never
 
