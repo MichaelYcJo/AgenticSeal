@@ -61,10 +61,12 @@ In:
    `git cat-file --batch`, each at `<commit>^:<path>`. Their adding commits
    come from one `git log -z --no-renames --full-history --diff-filter=A`
    of the ref. The lowest `vX.Y.Z` tag of each adding commit comes from one
-   read of the tags' history. Two calls are allowed for that read where one
-   lists the tags and the other walks them, such as `for-each-ref` and
-   `rev-list --parents --stdin`. The printed output for the same plans is
-   byte-identical to today's (G12, G13).
+   read of the tags' history in three calls: `for-each-ref` lists the tags,
+   `cat-file --batch-check` peels each with `^{}` to the commit it names,
+   and `rev-list --parents --stdin` walks them. `^{}` peels a tag of a tag
+   whole on every git, where `%(*objectname)` peels one level only before
+   git 2.44. The printed output for the same plans is byte-identical to
+   today's (G12, G13).
 5. **One reader per fact.** `adding_commit` and `version` read through the
    batched readers, or are replaced by them, so `notes` and
    `publish_release_note.py` read the same code as the earlier section. What
@@ -76,7 +78,9 @@ In:
    what git said, as the deletion log's failure is today. No row of the plans
    it would have read or labelled is printed. A plan the batch answers as
    `missing`, or as no blob, is named as not read at its
-   `<short>^:<path>` coordinate. The dry run exits 0.
+   `<short>^:<path>` coordinate. A plan whose path holds a newline is named
+   as not read at its coordinate before the batch and is never asked for,
+   because `cat-file --batch` reads one name per line. The dry run exits 0.
 7. **`skills/settle/SKILL.md` states the bound.**
    - The command table gains the row for `seal settle --all-earlier`.
    - The bullet *The judgments earlier settles removed* says which plans it
@@ -121,7 +125,7 @@ Out:
 | S2 | Given the history of S1, when `seal settle --all-earlier` runs, then the section prints the rows of all three plans and no line of *Scope* item 2. | a case in `tests/skills/test_settle.py` |
 | S3 | Given `--all-earlier` beside `--apply`, or beside `--draft`, when the command runs, then it exits 2 with its sentence and reads nothing. | a parametrized case in `tests/skills/test_settle.py`, each sentence pinned |
 | S4 | Given one history with one removed plan in the window and another with three, when the dry run runs on each, then both make the same number of git calls. | a case in `tests/skills/test_settle.py` counting the calls through a wrapped `subprocess.run`, shown red against the per-plan reads |
-| S5 | Given the #1281 cases at `tests/skills/test_settle.py:1371-1578`, when they run against the batched reads, then each passes. Each history there removes plans in at most two removing commits, so each pins the batched output as it pinned today's. `:1580` fails each batched call in turn and asserts the one `not read:` line with what git said, and exit 0. | the cases as they stand, with `:1541` and `:1580` changed to replace the batched readers |
+| S5 | Given the #1281 cases at `tests/skills/test_settle.py:1371-1578` (`:1423-1651` after phase 2), when they run against the batched reads, then each passes. Each history there removes plans in at most two removing commits, so each pins the batched output as it pinned today's. `:1580` (`:1663` after phase 2) fails each batched call in turn and asserts the one `not read:` line with what git said, and exit 0. | the cases as they stand, with `:1541` (`:1615` after phase 2) and `:1580` changed to replace the batched readers |
 | S6 | Given a removed plan the batch answers as `missing`, when the dry run runs, then the plan is named as not read at its coordinate, no row of it is printed, and the run exits 0. | a case in `tests/skills/test_settle.py` |
 | S7 | Given this repository at the last phase's head, cloned with `git clone --no-local` under the crafter's scratch directory. When `seal settle --released-at <the release branch's base>` runs there, then it finishes under 2 s, makes the same number of git calls with and without `--all-earlier`, and its section holds the plans of the two newest removing commits alone. | replayed by the crafter, with the time, the call counts and the section's bytes recorded in the phase record |
 | S8 | Given the next settle's dry run, when the settling session reads step 5, then it reads the bounded section, and runs `--all-earlier` where a kind it reads may have come before the window. | read by the owner at the next settle. `skills/settle/SKILL.md` step 5 states it, and no case holds it |

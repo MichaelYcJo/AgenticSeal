@@ -37,8 +37,10 @@ Constraints:
   `git describe --contains` prefer the oldest tag by date, which is another
   fact, so neither is the tag read.
 - A path goes to `cat-file --batch` on one line, as `<commit>^:<path>`.
-  A work item id holds no newline, and `-z` already keeps a non-ASCII id
-  whole in the deletion log (`tests/skills/test_settle.py:1484`).
+  Nothing keeps a newline out of a work item id, and `-z` hands such a
+  path to the reading whole, as it keeps a non-ASCII id whole in the
+  deletion log (`tests/skills/test_settle.py:1484`). So a path holding a
+  newline is named as not read before the batch (design *Scope* item 6).
 
 Failure scenario of the chosen approach, six months out:
 
@@ -61,7 +63,7 @@ Failure scenario of the chosen approach, six months out:
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| A1. Read the plans of the two newest removing commits by default, name how many older removing commits were not read, read every one under `--all-earlier`, and batch the reads | The six-month scenarios above. Two is a number taken from the settle bodies design G11 reads, and a longer gap in a later record would argue for more. | **Chosen.** The bound is a fact git gives exactly (G2), and it keeps every recurrence the record shows (G11). At this tree it prints 48,176 B where today prints 247,730 B, in 0.51 s with 24 git calls (G13). The call count is the same at every bound. |
+| A1. Read the plans of the two newest removing commits by default, name how many older removing commits were not read, read every one under `--all-earlier`, and batch the reads | The six-month scenarios above. Two is a number taken from the settle bodies design G11 reads, and a longer gap in a later record would argue for more. | **Chosen.** The bound is a fact git gives exactly (G2), and it keeps every recurrence the record shows (G11). At this tree the prototype printed 48,176 B where today prints 247,730 B, in 0.51 s with 24 git calls (G13). The build makes 25, one more for the tag peel of design *Scope* item 4, as `changelog.md` records. The call count is the same at every bound. |
 | A2. The plans of the newest removing commit alone | #1432's recurrence would have rested on one row (G11). | Rejected. It saves 41 KB at this tree and loses a case on record. |
 | A3. The last N releases, by each plan's version tag, as the issue names first | A settle covers from one to eleven releases (G10), so a window of N releases cuts a settle's period at a point no settle chose. A long release run pushes the whole previous settle out of view. Choosing the plans needs every plan's tag first. | Rejected. The removing commit is the unit a settling session read whole as current, and its line already carries the `(#N)` step 11 names. |
 | A4. Only the groups whose `judged against` document is one this settle writes, the issue's second candidate | Three paths carry 251 of the 316 rows (G14), so the filter saves little, and it still grows with every release. The groups a settle writes name `docs/` files, while the rows mostly name `skills/`. A filter by a cell's spelling hides a row the session would read as the same kind (#1281's A5). | Rejected. |
@@ -76,7 +78,7 @@ Failure scenario of the chosen approach, six months out:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* items 4, 5 and 6, with the reading still unbounded | `tests/skills/test_settle.py`: the #1281 cases at `:1371-1578` passing with no expected text changed (S5); `:1541` and `:1580` changed to replace the batched readers and to fail each in turn; S4 and S6 as new cases. `tests/github/test_publish_release_note.py`, for `adding_commit`'s other caller. Every other module that reads a path the phase changed, taken by `git grep -l` at the phase's base. `uvx ruff check` and `uvx ruff format --check` on the touched files. S4 is shown red against the per-plan reads, and S6 with its guard alone removed. The phase record says how. The suite is `unverified`, and the orchestrator's broad gate answers it. | bc5f349c6 |
+| 1 | Design *Scope* items 4, 5 and 6, with the reading still unbounded | `tests/skills/test_settle.py`: the #1281 cases at `:1371-1578` (`:1423-1651` after phase 2) passing with no expected text changed (S5); `:1541` (`:1615` after phase 2) and `:1580` (`:1663` after phase 2) changed to replace the batched readers and to fail each in turn; S4 and S6 as new cases. `tests/github/test_publish_release_note.py`, for `adding_commit`'s other caller. Every other module that reads a path the phase changed, taken by `git grep -l` at the phase's base. `uvx ruff check` and `uvx ruff format --check` on the touched files. S4 is shown red against the per-plan reads, and S6 with its guard alone removed. The phase record says how. The suite is `unverified`, and the orchestrator's broad gate answers it. | bc5f349c6 |
 | 2 | Design *Scope* items 1, 2, 3, 7, 8 and 9 | `tests/skills/test_settle.py`: S1, S2 and S3 as new cases, and the `EARLIER_HEADING` pins at `:3153-3158` (`:3540-3543` after phase 2) passing. `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_settle_applies_rule_changes_in_place.py`, `tests/test_censuses.py`, and every other module that reads a path the phase changed, taken by `git grep -l` at the phase's base. `chain-check`'s reading of this design's `## Rule changes`. `uvx ruff check` and `uvx ruff format --check` on the touched files. S1 is shown red with the bound alone removed. S7 is replayed in a `git clone --no-local` under the crafter's scratch directory, and its time, call counts and section bytes go into the phase record. The suite is `unverified`, and the orchestrator's broad gate answers it. | c89db956f |
 
 ## Overlap with the release
@@ -95,7 +97,7 @@ this work either.
 |---|---|---|---|
 | #1498 | `tests/censuses.py#_root_names`, which every tracked file's census run reads, this work item's records and new cases among them | #1498 | It carries the version move, and the spawn orders it first. This work's records hold no user path and no real identifier, so the census reads them the same before and after #1498. |
 | #1486 | The durations `.github/scripts/durations_union.py` prices are the test ids, and this work adds cases to `tests/skills/test_settle.py` | either | No file is changed by both. `--stale-fails` runs only on the release pull request, and fails only past `STALE_SHARE`, 5 % of the union's cases unpriced (`durations_union.py:24-26`, `:70`). A handful of new cases does not cross it whichever merges first. |
-| #1482 | `skills/settle/scripts/settle.py`: #1482 changes `load` and the loaders `plan_rows` calls, and this work changes `earlier_judgments`, `survey`, `report`, `adding_commit`, `git_out`, `notes`, `main` and `EARLIER_HEADING`, adds `git_run`, `decoded`, `versions`, `blobs`, `adding_commits`, `EARLIER_WINDOW`, `EARLIER_OLDER`, `EARLIER_WITH_APPLY` and `EARLIER_WITH_DRAFT`, and removes `version` | #1481 | The milestone orders #1481 first, and #1482's body says it builds after #1481. #1482 then moves the loaders of a reading that already reads fewer plans. |
+| #1482 | `skills/settle/scripts/settle.py`: #1482 changes `load` and the loaders `plan_rows` calls, and this work changes `earlier_judgments`, `survey`, `report`, `adding_commit`, `git_out`, `notes`, `main` and `EARLIER_HEADING`, adds `git_run`, `decoded`, `versions`, `blobs`, `adding_commits`, `EARLIER_WINDOW`, `EARLIER_OLDER`, `NO_PLAN_TEXT`, `NO_ONE_LINE`, `EARLIER_WITH_APPLY` and `EARLIER_WITH_DRAFT`, and removes `version` | #1481 | The milestone orders #1481 first, and #1482's body says it builds after #1481. #1482 then moves the loaders of a reading that already reads fewer plans. |
 
 ## Operational impact
 
@@ -110,4 +112,5 @@ today. This pull request does not move the version; #1498 carries the move.
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | 2026-11-11 | The orchestrator folded phase 2's departures into the frame at `e72cbe025`: the heading also names `--all-earlier`, the moved test coordinates, the units #1482 meets, and Q1 closed on the words phase 2 states | Each was a statement in a frame file that the tree at `c89db956f` contradicts, named by the crafter's hand-back and read against the tree (read) | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
+| 2026-11-11 | Round 1's finding 3 and the frame halves of findings 1 and 2 went to the framer to fold, after fix pass 1 closed findings 1 and 2 at `0a354b5a7` and `c719f1de8` | Each is a sentence of `frame/design.md` or `frame/plan.md` that the tree at `51b5d5ab4` contradicts: the two-call tag read, the id that holds no newline, the coordinates S5 and phase row 1 cite, the units the #1482 row names, and A1's call count | `skills/implement/fold-and-reframe.md` |
 | 2026-11-11 | The title takes `perf:`, as the issue's title does | The default reading prints the plans of the two newest removing commits and names the older ones, and `--all-earlier` reads every plan as before; what changes is what the settle costs to read | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지* |
