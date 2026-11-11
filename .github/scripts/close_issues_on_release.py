@@ -3,8 +3,8 @@
 
 A closing keyword is read by GitHub only for a pull request whose base is the
 default branch. Everything here merges into `release/vX.Y.Z` first, so every
-keyword a feature pull request writes is inert -- measured on #37, #38 and
-#39, all merged, none fired. The answer existed; nothing acted on it.
+keyword a feature pull request writes is inert -- of three merged that way,
+none fired. The answer is written down, and without this nothing acts on it.
 
 This runs when `main` moves. It reads the pull request numbers out of the
 commit subjects that arrived, fetches each of those pull request bodies, and
@@ -19,8 +19,8 @@ that knew which issue it was answering.
 
 **It never reopens and never comments on an unrelated issue.** There are two
 writes and no others: the close, and taking `size: now` off the issue being
-closed -- the moment `docs/releasing/issues-and-milestones.md` had already named as
-where a spent sizing label comes off, with nothing acting on it until #450.
+closed -- the moment `docs/releasing/issues-and-milestones.md` names as
+where a spent sizing label comes off.
 Both are idempotent. A close of an issue already closed is skipped rather
 than repeated, and the removal happens only after a read says the label is
 there, so a re-run or a force-push changes nothing.
@@ -38,33 +38,32 @@ otherwise does.
 two scripts come to disagree about which is the current answer.
 
 **A `(#N)` that names no pull request is skipped, not fatal.** People write
-that form by hand to name the issue a commit fixes; measured here on a `(#N)`
-that names an issue. Everything else still fails loudly.
+that form by hand to name the issue a commit fixes, and this repository's
+history holds a `(#N)` that names an issue. Everything else still fails
+loudly.
 
 **It fails loudly, and it fails at the END.** A closing keyword nobody acted on
 is the defect this exists for; a run that swallows its own error would be that
 defect wearing a green check. But a run that dies on the first refusal leaves
-every issue sorted after it open, with a re-run dying in the same place --
-measured at the release before #536: `gh issue close` was refused on one
-issue with `GraphQL: Something went wrong while executing your query`, twice,
-and the four issues behind it stayed open while the job went red. So every
+every issue sorted after it open, with a re-run dying in the same place:
+`gh issue close` has been refused on one issue with `GraphQL: Something went
+wrong while executing your query`, twice in a row, and the four issues
+behind it stayed open while the job went red. So every
 issue is attempted, a refusal on the `gh issue close` route falls back to the
 REST route (`gh api -X PATCH …/issues/<n> -f state=closed`, then the same
 comment through `gh api …/issues/<n>/comments` where the refused route did
 not already post it -- `gh issue close --comment` comments before it closes,
-so it usually did; that pair is what closed that issue by hand), each
+so it usually did; that pair closes such an issue by hand), each
 fallback is printed so the log says how many took it,
 and the run exits non-zero only once every issue has been tried, naming each
 one that both routes refused with both errors. A partial close is repaired by
 re-running this script with the run's `BEFORE`, `AFTER` and `REPO`: it skips
 what is already closed and reaches the rest.
 
-`DRY_RUN=1` prints what it would close and writes nothing. It exists because
-of an incident rather than for tidiness: this script was run by hand against
-a real commit range to check its output, and it closed a real issue -- the one
-this work item had deliberately left open so the release could be seen closing
-it. A tool whose only mode has side effects gets run for its output sooner or
-later, and the first person to do it is whoever wrote it.
+`DRY_RUN=1` prints what it would close and writes nothing. Without it, a
+run by hand against a real commit range, made to check the output, closes
+real issues. A tool whose only mode has side effects gets run for its output
+sooner or later, and the first person to do it is whoever wrote it.
 """
 
 import json
@@ -109,27 +108,27 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # would otherwise close the issue the document names -- and this
 # repository's bodies quote its documents routinely.
 #
-# Five well-formed shapes the fence and span patterns used to give up were
-# enumerated by review round 1 of work item 1788844400 (#266), and three were
-# masked then: a tilde fence, a fence indented under a list item, and a
-# double-backtick span. The direction is chosen rather than incidental --
+# The fence and span patterns mask a tilde fence, a fence indented under a
+# list item, and a double-backtick span, as well as the plain shapes. The
+# direction is chosen rather than incidental --
 # masking more closes FEWER issues, and an issue left open is visible on the
 # tracker and closed by a re-run, where an issue closed on a quoted example
 # is a false record. `issue_claims_check.py` imports `HIDDEN`, so it widens
 # with it.
 #
-# The comment is masked as GitHub reads it, measured for #1181 on throwaway
-# pull requests into `main` through `closingIssuesReferences`. A comment that
+# The comment is masked as GitHub reads it, observed through
+# `closingIssuesReferences` on the throwaway pull requests #1402 to #1410
+# into `main`, each titled for the shape it probes. A comment that
 # closes hides its keyword wherever it stands: at a line start, in the middle
-# of a line, over several lines and under a list item (#1402, #1403). Text
-# after its `-->` is read, on a line that begins with the `<!--` too (#1407). A
+# of a line, over several lines and under a list item. Text
+# after its `-->` is read, on a line that begins with the `<!--` too. A
 # `<!--` that no `-->` follows hides everything below it where it begins a
-# line, on its own line and on the lines after it (#1403, #1405). A `<!--`
+# line, on its own line and on the lines after it. A `<!--`
 # that no `-->` follows, after other text on its line, is text, and a keyword
-# on the next line is read (#1404). Behind a list marker or a block quote
+# on the next line is read. Behind a list marker or a block quote
 # marker, a `<!--` that no `-->` follows hides everything below it too, past
-# the end of its list item or its quote (#1408, #1409). Indented four spaces
-# it is an indented code block, and a keyword after it is read (#1410), so
+# the end of its list item or its quote. Indented four spaces
+# it is an indented code block, and a keyword after it is read, so
 # the mask there runs past GitHub's, as the Limits below state.
 #
 # Two shapes stay unmasked, on purpose, and each has a row pinning it in
@@ -137,8 +136,8 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # indented block is an indented code block to CommonMark and is ALSO how this
 # repository's pull request bodies continue a bullet onto the next line, so
 # masking it would drop real claims -- the wrong direction for a closer. A
-# `<!--` that never closes after other text on its line is text to GitHub
-# (#1404), so masking it would drop a claim GitHub reads.
+# `<!--` that never closes after other text on its line is text to GitHub,
+# so masking it would drop a claim GitHub reads.
 #
 # A fence is three backticks or three tildes, indented or not, closed by the
 # same delimiter; `\1` is what keeps a tilde fence from ending at a backtick
@@ -161,10 +160,10 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # opener in an indented code block or after a list marker that opens no list
 # item, it masks to the end of the text all the same, and the closer closes
 # fewer.
-# The measured shapes are examples, not a list: GitHub reads on past an
-# opener with text before it (#1404), hides what follows an opener behind a
-# list marker or a quote marker as the closer does (#1408, #1409), and reads
-# on past an opener indented four spaces (#1410). Following those rules would
+# The observed shapes are examples, not a list: GitHub reads on past an
+# opener with text before it, hides what follows an opener behind a
+# list marker or a quote marker as the closer does, and reads
+# on past an opener indented four spaces. Following those rules would
 # mean modelling CommonMark's containers, and this repository's bodies write
 # a bullet's continuation as an indent. A `<!--` in the middle of a line with
 # a `-->` further down is a comment up to that `-->`, across blank lines too,
@@ -243,7 +242,7 @@ def comments_on(repo, number):
 
     The same read `issue_state` makes; taken before and after the first
     route so the fallback can tell whether that route's comment landed
-    before its close was refused (round 1 of #536's work item, finding 1).
+    before its close was refused.
     """
     data, exists = _issue_api(repo, number)
     count = data.get("comments") if exists and isinstance(data, dict) else None
@@ -254,8 +253,8 @@ def issue_labels(repo, number):
     """(label names, exists) for an issue, or ([], False) if there is none.
 
     The one reader, here rather than beside either caller.
-    `label_merged_on_release_branch.py` wrote this against `_issue_api` and
-    delegates to it now; the loop below reads it to know whether a spent
+    `label_merged_on_release_branch.py` delegates to it, and the loop below
+    reads it to know whether a spent
     `size: now` is there to remove. A second copy is what this module's
     neighbours already exist not to have.
     """
@@ -267,9 +266,9 @@ def issue_labels(repo, number):
 
 # The sizing label, spent the moment the release that carried the ticket
 # closes it. `docs/releasing/issues-and-milestones.md` says that is the moment, and
-# until this line nothing acted on it -- the same shape as the closing
-# keyword this whole script exists for: an answer written down and nothing
-# reading it. The name is the document's, and the description of what it
+# this line is what acts on it: an answer written down with nothing reading
+# it is the same shape as the closing keyword this whole script exists for.
+# The name is the document's, and the description of what it
 # means lives in `.github/scripts/tracker_labels.py`, which is what creates
 # it.
 SPENT_ON_CLOSE = "size: now"
@@ -302,17 +301,17 @@ def drop_label(repo, number, label):
 def spend_label(repo, number, dry):
     """Take the spent sizing label off `number`, and say what happened.
 
-    **Three call sites reach this and they used to be three copies.** Round 1
-    found the reason to have one: the loop below spends the label on an issue
-    it just closed and on one a previous run closed, and only the first copy
-    guarded its report on the write. A refused removal therefore printed
-    `could not remove …` and then `removed …` for the same issue, in the job
-    log that is the only record of what the release did to the tracker, with
-    the tracker in the state the first line describes and the second denies.
+    **Three call sites reach this, and there is one copy.** The loop below
+    spends the label on an issue it just closed and on one a previous run
+    closed. A copy per site that did not guard its report on the write would
+    print `could not remove …` and then `removed …` for the same issue, in
+    the job log that is the only record of what the release did to the
+    tracker, with the tracker in the state the first line describes and the
+    second denies.
 
-    The dry arm is here for the same reason: it was written at one of the
-    three sites and not the others, so a preview over an already-closed issue
-    said nothing about the label at all, and `DRY_RUN` exists precisely so a
+    The dry arm is here for the same reason: written at one of the three
+    sites and not the others, a preview over an already-closed issue would
+    say nothing about the label at all, and `DRY_RUN` exists precisely so a
     person can see the whole act before it happens.
 
     One copy is what keeps a fourth call site from being written unguarded.
@@ -339,17 +338,16 @@ def close_issue(repo, number, comment):
     """Close `number` with `comment`; the errors, empty where it closed.
 
     Two routes to the same two writes. `gh issue close` is the first, and it
-    goes through GraphQL. When that is refused -- as it was at the release
-    before #536, twice on the same issue, for a reason nobody has found --
-    the REST route takes over: a PATCH of the state, then the comment posted
-    to the issue's comments where the refused route did not already post it.
-    That is exactly the pair a person typed to repair that release, in that
-    order.
+    goes through GraphQL. When that is refused -- GraphQL has refused one
+    issue twice in a row, for a reason nobody has found -- the REST route
+    takes over: a PATCH of the state, then the comment posted to the issue's
+    comments where the refused route did not already post it. That is the
+    pair a person types to close such an issue by hand, in that order.
 
     `gh issue close --comment` posts the comment and THEN sends the close, so
-    the route that was refused usually left its comment behind: the issue the
-    previous release's run could not close carried one identical closing
-    comment per refused run (round 1, finding 1). The comment count is read
+    the route that was refused usually leaves its comment behind, and posting
+    it again on every run would leave an issue a run could not close with one
+    identical closing comment per refused run. The comment count is read
     before and after the first route, and where it grew by one the sentence
     is already there. Where the read did not say, the comment is posted: a
     duplicate is the smaller wrong answer than a close nobody explained.
@@ -414,7 +412,7 @@ def pull_request_body(repo, number):
 
     `(#N)` at the end of a subject is what a squash merge writes, and it is
     ALSO something a person writes by hand to name the issue a commit fixes.
-    Measured on this repository: `fix: a Target SHA the squash discarded …
+    In this repository, `fix: a Target SHA the squash discarded …
     (#61)` names an issue rather than a pull request, and asking
     `repos/…/pulls/61` for it returns 404. A run that treated that as an error
     would fail the whole release for a number somebody typed in a commit
@@ -438,8 +436,8 @@ def arrived(before, after):
     that case -- it sends the SHA it displaced, and if the runner's clone
     cannot reach it the range fails and the run stops, which is the right
     direction and not the fallback. The fallback reads the tip alone and says
-    so, because it drops every pull request behind it: measured, a release
-    push whose four pull requests name three issues collects one.
+    so, because it drops every pull request behind it: a release push whose
+    four pull requests name three issues collects one.
     """
     if not before or set(before) == {"0"}:
         print(
@@ -488,8 +486,8 @@ def main():
         spent = exists and SPENT_ON_CLOSE in carried
         if state == "closed":
             print(f"#{issue} already closed (named by #{source}) — leaving it")
-            # A closed issue still carrying it is one a previous run closed
-            # before this line existed, or one closed by hand. The label is
+            # A closed issue still carrying it is one closed by hand, or one
+            # a previous run closed and whose removal failed. The label is
             # spent either way and the removal is idempotent, so taking it
             # off here costs one call and leaves no stale ones behind.
             if spent:
