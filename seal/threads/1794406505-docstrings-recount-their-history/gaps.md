@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 and 2 | the orchestrator's broad gate |
+| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 3 | the orchestrator's broad gate |
 
 ## Not done
 
@@ -26,3 +26,13 @@ Design *Scope* Out keeps string constants and printed messages out of this
 work, because changing what a person reads at a terminal owes a pin by
 contract rule 14, which the issue does not ask for. They are code to the
 counting command, so they are in no count.
+
+Phase 3 opened the `# RIDER:` comment over
+`skills/implement/scripts/seal.py#other_worktrees` and left its fix
+undone. The rider asks that, when the function is next opened, the
+worktree list be filtered by common git directory, refusing a path that is
+not a work tree. A `--separate-git-dir` clone otherwise gets a note naming
+its git directory as another worktree. That fix changes code, which design
+S1 and *Scope* item 1 rule out of this work, so the phase rewrote only the
+rider's history and kept its instruction for the next change to the
+function.
