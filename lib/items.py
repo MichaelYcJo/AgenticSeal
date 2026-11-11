@@ -106,7 +106,7 @@ def nothing_block(body):
     spelling, and a line that opens like it is passed on (`unread_block`).
     Its field `why` is optional and its value is returned to nobody: the
     readers use only that the section holds no row or no operation, and the
-    reason is the agents' to read (#1319)."""
+    reason is the agents' to read."""
     if not opens_the_block(body[0][1]):
         return None
     found, error = items(body)

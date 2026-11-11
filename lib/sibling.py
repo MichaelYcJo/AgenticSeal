@@ -18,7 +18,7 @@ than handed the other's module.
 
 An absent file is said in one sentence, `MISSING`, whichever script asked:
 a copy of one script taken on its own is not a plugin, and exit 2 says
-nothing was read (#590). A command that guards its own import of this
+nothing was read. A command that guards its own import of this
 module spells the same sentence about this file, since it cannot read the
 constant from a file that is not there. A caller whose run goes on without
 the module loads inside `going_on`: there the absent file raises `Absent`
