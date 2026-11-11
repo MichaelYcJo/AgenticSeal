@@ -1,0 +1,71 @@
+# Implementation Plan: the literal asserts of tests/text and tests/behaviour are weighed a second time (#1488)
+
+## Technical context
+
+The tree as read at `c9ed2c6ee`.
+
+The work edits test modules and the check lines that name them. It changes no script, hook, skill sentence or document. What is ruled is the cases of `frame/design.md` *The groups*, found by its *The listing*. The criterion is #1233's four kinds of fact, carried forward (design G2), with two things #1233 did not rule: an absence assert, and a kept literal cut to its fact (design *The criterion*).
+
+Four constraints shape the build.
+
+- `.github/scripts/rules.py` refuses a check line naming a path that is no file, and a pending `change` excuses nothing (design G6). A module a `docs/` check line names stays a file in this pull request, and design G7 counts the modules so named.
+- A check line under `docs/` changes only through `frame/design.md` `## Rule changes`. Which lines lose their last reader is known only after each ruling, so a phase names them and the framer folds them (design *Scope* item 9).
+- `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py#APPLIES_THE_SHARED_GUARD` is a table of the scopes that list tracked files, by `path#unit`. A helper removed from a module it names turns that case red, so the old-roots module keeps `tracked` (design G5).
+- Each case is read whole before any assert in it is ruled, because what a right side reads, a file's text or a program's output, is settled by the case's code and not by the name on the line (design *What an assert reads*).
+
+The four groups of design *The groups* are sized for one phase each. The split keeps each module inside one group and follows the size a fresh crafter reads in one phase. No group depends on another. They run in order because phases may edit the same check line of a skill file, and because each later phase starts after `release/v0.37.4` has taken more of the siblings (*Overlap with the release*).
+
+The failure scenario of the chosen approach, six months on. A sentence of a rule is deleted by a change whose review misses it, and no case turns red, because the assert that held its words is gone. The proofer reading that diff is the reader left, which is the trade `docs/running/what-a-script-gates.md` *The checks* makes. The second scenario is new with this work: a path or a name that a shipped release removed is written into a document again, for example a `.specseal/` path by a session working from an old transcript, and no scan refuses it. A session that follows that path writes a file nothing reads. The third is the cut literal: a command that stands in two sentences of one section keeps its assert green when the sentence the case was written for is deleted.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1 Read each case that holds a listed assert whole. Rule each of its asserts that reads a file's text. Keep a fact with a comment above it and its literal cut to the fact, remove wording, remove the absence of what a shipped release removed, keep the absence a rule in force forbids. State the changes to `docs/` check lines as rule changes | the three scenarios under *Technical context* | chosen |
+| A2 Rule only the lines the issue's two forms match | A case keeps the pins the forms do not match. `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py:132-160` asserts 26 removed names through a loop variable, beside the `not in` lines at `:161-188`, and an assert whose literal stands on the line below the word `assert` matches neither form. The case still turns red on a rewording, and the counts fall while the cost stays | rejected; #1233 weighed the same choice as its A2 |
+| A3 Widen the scope to every case of the two directories that reads a file's text by any spelling | The spellings are unbounded: a regular expression, a `count`, an equality, a helper. No method lists them whole (contract rule 12), so the build would rest on a sample presented as a census | rejected; #1489 applies the criterion to each case it moves, and the proofer reads the rest |
+| A4 Replace the structure: remove every assert that reads a document, and leave documents to the proofer and to the readers that parse, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `seal rules --check` | A command a document tells a person to type stops matching the script after a rename, in a pull request whose diff does not touch that document, so no proofer reads it. The premise that keeps the structure is that a fact stated in a document has no other reader at the moment it drifts. Checked: the policy row in force keeps such a pin (design G1), and the citation readers resolve headings and paths and no command, flag, key or exit code (read: the module's docstring) | rejected; the structure stays for facts and goes for wording |
+| A5 Replace each kept literal with a value taken from the code, such as the subcommands `seal.py` registers | Each fact needs its own reader of the code, which is a new mechanism per module with nothing caught to its name on the day it is added (`skills/core/SKILL.md` *The rule a mechanism is kept against*). Some modules already do it where the code holds a table, such as the routing answers of `lib/routing.py` | rejected for this work; a phase that meets a fact the case already derives leaves it derived |
+| A6 Keep each kept literal whole, as #1233 did, and name the fact in the comment alone | The assert still turns red when the sentence around the fact is reworded with its meaning unchanged, which is the cost #1233 was filed for and the reason this issue was filed again | rejected; the literal is cut to the fact. Its own failure is the third scenario under *Technical context*, bounded by the assert reading the narrowest text its case already cuts |
+| A7 Cut the literals of the asserts #1233 kept as well | Each was argued through #1233's two rounds as kept, and reopening them widens the diff the review reads for no assert the issue names | rejected; an assert that carries #1233's comment stays as it stands (design G2) |
+| A8 Keep the old-roots scan as a standing rule | The scan holds an allowlist, a coverage check and eleven functions of cases for a layout removed at 0.4.0, and each document that mentions a project's own `specs/` directory must be weighed against it. No policy sentence states the rule it holds (design G5) | rejected; the scan goes and the three cases of #1059 stay |
+| A9 Delete `tests/behaviour/test_no_document_names_the_old_roots.py` whole, or rename it for what it keeps | Two `docs/` check lines name the file until the settle, so `seal rules --check` would refuse the tree (design G6). The three cases of #1059 hold a rule in force | rejected; the file keeps its name, and #1489 moves the cases |
+| A10 Where a ruling leaves a `docs/` check line with no reader, keep the last assert unchanged and file a successor issue, as #1233's *Scope* item 9 did | A wording assert stays in the tree against the issue's first *Done when*, and a second work item is framed for a line the framer can state in one fold | rejected; the phase names the line and the framer folds a `change` (design *Scope* item 9). A successor issue remains only for a module left with no case that a `docs/` line names, which cannot be deleted before the settle |
+| A11 Remove the rows of `.test_durations` for each removed case, as #1233 did | #1486 deletes the file in this release, so each pruned row is a conflict between a change and a deletion for whichever branch merges second. Left alone, a dead row costs nothing below the share design G8 names, and the checklist's refresh answers the release pull request | rejected; the file is left as it stands |
+| A12 Rule the three modules and the one case the siblings remove or rewrite | The ruling is thrown away when #1483 or #1486 merges, or it conflicts with their rewrite | rejected; they are *Out* in the design |
+| A13 One phase for all the cases | One crafter reads every case of the four groups in one context, and one round reads that diff | rejected; four phases, each with its own narrow run |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | Design *Scope* item 1, and items 6, 7, 8 and 9 for group A | S1 over group A, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
+| 2 | Design *Scope* item 2, and items 6, 7, 8 and 9 for group B | S1 over group B, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
+| 3 | Design *Scope* item 3, and items 6, 7, 8 and 9 for group C | S1 over group C, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
+| 4 | Design *Scope* items 4, 5, 10 and 11, and items 6, 7, 8 and 9 for group D | S1 over group D, S4, S5, S6, S7 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
+
+Each phase starts from the branch after it has taken `release/v0.37.4` by a merge, never a rebase. A case or a module that merge removed or rewrote is no longer the phase's: the phase rules what stands at its own base and says in its phase record which listed asserts of its group left with the merge. After phase 4 the orchestrator sends the framer the `docs/` lines the four phase records name, in one fold, before the first round.
+
+## Overlap with the release
+
+Each sibling's branch is cut from `release/v0.37.4` with the asserts of this work still in it, so each repairs on its own branch the asserts its change breaks, whatever the merge order. The order below is chosen for what the second branch to merge has to resolve.
+
+| Work item | Where both change | Merges first | Grounds |
+|---|---|---|---|
+| #1498 | nothing: its branch changes `tests/censuses.py` and `.claude-plugin/plugin.json` (design G11) | #1498 | it carries the release's version move, so every item merges after it |
+| #1481 | the asserts of `tests/text/test_settle_reads_before_it_removes.py` and other modules read `skills/settle/SKILL.md` and `skills/settle/scripts/settle.py`, which #1481 changes | #1481 | its diff is the smaller and it is likelier to be sealed first. Phase 1 then rules that module as #1481 left it, inside a phase this work spends anyway |
+| #1483 | #1483 removes `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`, the panel's `workflow` line and the documents that cite it. Asserts of groups B and C read `skills/verify/scripts/broad_gate.py`'s docstring, `docs/running/the-broad-gate.md` and the config template. Both designs change a row of `docs/running/what-a-script-gates.md` *The checks*, by different `from` values | #1483 | the module it removes is *Out* here, and phases 2 and 3 rule the docstring asserts after its text settled. The two rule changes name different rows, so the settle applies both in either order |
+| #1486 | #1486 rewrites `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` and `tests/behaviour/test_a_release_publishes_its_note.py:124-149`, and removes `.test_durations`. Asserts of this work read `CONTRIBUTING.md` and `docs/releasing/release-checklist.md`, which it changes | #1486 | the two modules and the one case are *Out* here, and this work leaves `.test_durations` alone, so its deletion meets no change of this branch (A11). Phase 4 rules the other three cases of the release-note module after the rewrite |
+| #1487 | it may remove `tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`, which holds no listed assert. Asserts here that read `docs/checks/the-pull-request-check.md` meet the citation it corrects | #1487 | the smaller diff; nothing of this work reads the code it removes |
+| #1482, #1484, #1485, not started | #1485 rewrites the scripts' docstrings, and asserts of groups B and C read docstrings as text. #1482 and #1484 change scripts whose source some cases read | this work | this work removes the wording and absence asserts on those docstrings, so each of the three then meets only the facts that stay. None has a branch, so none can be sealed sooner |
+| #1489 | it moves the remaining cases of both directories into module files and applies this design's criterion to the cases that read a document | this work | the milestone states the order, and #1489 would otherwise move cases this work removes. It also takes the old-roots module's three cases and its name (A9) |
+
+## Operational impact
+
+None for a deployer: no migration, environment variable, dependency or compatibility break. This pull request does not move the version, which #1498 carries for the release. The suite loses the cases the ruling removes. `.test_durations` keeps their rows until #1486 removes the file or the release's refresh rewrites it (design G8). The settle writes three operations into the policy root, and more where the fold of design *Scope* item 9 adds them. Where *Scope* item 6 leaves a module with no case that a `docs/` check line names, the orchestrator files one issue for its deletion after the settle, before `seal pr-body` runs.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
