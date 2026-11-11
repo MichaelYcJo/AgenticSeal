@@ -146,3 +146,26 @@ ends on a row's grounds, with no such line. The section is 47,844 B where
 the framer's prototype measured 48,176 B, and the whole output under
 `--all-earlier` is 89 B longer than phase 1's 308,261 B: the heading is
 longer, and the rows are the same.
+
+**The phase boundary run.** At `528208ec3`, one `bin/test` of
+`tests/skills/test_settle.py`, `tests/github/test_publish_release_note.py`,
+`tests/github/test_release_report.py`, `tests/github/test_rules.py`,
+`tests/skills/test_fold_check.py`, `tests/skills/test_passages.py`,
+`tests/skills/test_rule_changes.py`, `tests/skills/test_seal.py`,
+`tests/skills/test_unverified_check.py`, `tests/test_censuses.py`,
+`tests/text` and `tests/behaviour` failed one case,
+`test_prose_stays_within_the_wrap_limit[skills/settle/SKILL.md]`: one line
+of the rewritten bullet was 96 columns, past the limit of 88. `b5354b340`
+reflowed it, and `7c70aaaef` reflowed two ragged lines and reworded the
+comment over `EARLIER_WINDOW`. At `7c70aaaef` the same command passed
+3,269 cases and skipped 8 (executed). The modules beside the two tree-wide
+directories are those `git grep -l` at `75ee43aff` finds naming
+`settle.py`, `skills/settle` or `"settle"` under `tests/`, with
+`tests/github/test_publish_release_note.py`, which loads `settle.py`
+through the script it tests; the other modules it finds stand in the two
+tree-wide directories. `uvx ruff check` and `uvx ruff format --check`
+passed on the two changed Python files, `seal layout --pairs` exited 0,
+and `skills/code-review/scripts/chain_check.py --baseline 18a7e18fb
+--worktree` named no line of this design's `## Rule changes`, only the
+round, gate and guarantee records that come after the build (executed).
+The full suite is `unverified`; the orchestrator's broad gate answers it.
