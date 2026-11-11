@@ -50,10 +50,11 @@ ruling that differs from design *The files*, and phases 6 and 7 file those
 files.
 
 Phase 6: `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`
-holds three cases of `tests/gfm_table_oracle.py`, a helper of the suite
-with no module file. Design *The kinds* names no kind for such a case, so
-the file carries a reason line that states its ground. Whether the frame
-gives such a case a kind is the framer's to fold.
+held three cases of `tests/gfm_table_oracle.py`, a helper of the suite
+with no module file. Design *The kinds* named no kind for such a case, so
+phase 6 gave the file a reason line that stated its ground. The fold
+`3fc2aca87` made such a case M for its module, and phase 7 moved the three
+cases to `tests/test_gfm_table_oracle.py` and deleted the file.
 `trail/phases/phase-6.md` names this and the five other rows of design
 *The files* that do not hold at `fa911da9c`.
 
