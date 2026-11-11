@@ -61,6 +61,11 @@ finds it and round 1's record alone). The fold owes no other line.
 - `broad_gate.panel(tree, base, checks, item, copy=None, branch=None, run=None)`: the `workflow` parameter leaves. `gate` is its one caller in the plugin (executed: `git grep -n "panel("` over `skills`, `lib` and `.github`). After *Scope* item 4, no test caller passes a workflow: the one test caller with a fifth positional argument, `Test_panel#test_accepts_the_item_and_the_gate_row`, passes the copy, which `copy` now takes fifth (read: G10).
 ```
 
+```seal
+verdict: fixed 5278c3c5a
+answer: The finding holds, and the framer folded it at `5278c3c5a`: `frame/design.md:60` now carries the round's sentence. Checked against the tree: `git grep -n -E '(gate|broad_gate)\.panel\(' -- tests` lists four callers, and only `tests/skills/test_broad_gate.py:1564` passes a fifth positional argument, `"tree 1.0"`, which binds to `copy`.
+```
+
 ### 2. The phase record cites G5 for the four files that S4 lists
 
 ```seal
@@ -84,6 +89,11 @@ phase, not from the fix pass, so this finding takes no `regression:` line.
 
 ```markdown
 S4's `git grep` listed the four files S4 names at `5909a2776` before the build.
+```
+
+```seal
+verdict: fixed 6a749d014
+answer: The finding holds: G5 is the output probe, and the four files are S4's own. I did not apply the paste-ready sentence as written, because the build never ran S4 before the phase, so "before the build" would claim a run nobody made. I ran S4's grep at `0dd6d89f3` for this fix (executed); it lists the same four files. `phase-1.md:5` now cites S4 and says the build ran S4 only after the phase. One more instance of the class was in the same file: `phase-1.md:9` said "G4 does not list" the `:107` clause, which HEAD's G4 lists since the fold at `4df4b087a`, and it now says G4 omitted the clause until that fold. Every other frame citation in `phase-1.md` and `gaps.md` was read against HEAD's frame and holds.
 ```
 
 ## Confirmations
