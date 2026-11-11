@@ -315,10 +315,17 @@ def chain_counts(root, pulls):
     three tree rows are not read rather than drawn as 0 (round 1's 🔴 1)."""
     capped = sum(1 for pull in pulls if CAPPED_LABEL in labels_of(pull))
     try:
-        routing, chain, reader = readers()
-    # An absent reader is `lib/sibling.py#load`'s sentence and `SystemExit`,
-    # which leaves these rows unread as any other failed load does.
+        import sibling
+
+        # The seal goes on without these rows, so an absent reader raises
+        # `lib/sibling.py#Absent` with no sentence of the loader's, and the
+        # line below names it.
+        with sibling.going_on():
+            routing, chain, reader = readers()
     except (Exception, SystemExit) as problem:
+        # `Absent`'s path; an `ImportError` carries a `path` of its own.
+        if isinstance(problem, SystemExit) and getattr(problem, "path", None):
+            problem = f"{problem.path} is absent"
         print(
             f"the chain rows are not read: the round record's readers did not load ({problem})"
         )

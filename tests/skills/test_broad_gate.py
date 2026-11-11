@@ -1590,6 +1590,24 @@ class Test_rounds_rows:
         write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
+    def test_names_the_absent_check_in_its_own_line_and_goes_on(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """An absent check leaves the count alone beneath it, and the gate
+        says in its own line that the deferred findings were not counted,
+        naming the file, where the loader's sentence would say that nothing
+        was read of a run that goes on (#1482 round 1, finding 1)."""
+        plugin = tmp_path / "no-plugin"
+        monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
+        item = tmp_path / "1799000005-w"
+        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
+        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
+        absent = os.path.join(str(plugin), "skills", "code-review", "scripts")
+        assert capsys.readouterr().err == (
+            "seal gate: the round records' deferred findings are not counted: "
+            f"{os.path.join(absent, 'chain_check.py')} is absent\n"
+        )
+
 
 def checks(suite=0, chain_code=0):
     return {

@@ -1833,9 +1833,18 @@ def rounds_rows(item):
     refuses anything of adds nothing beneath."""
     records = round_records(item)
     rows = [("rounds", str(len(records)))]
+    # A label never stops a run that passed, so an absent check is said here
+    # and the run goes on.
     try:
-        chain = sibling_module("skills/code-review/scripts/chain_check.py")
-    except (Refused, SystemExit):  # a label never stops a run that passed
+        with sibling.going_on():
+            chain = sibling_module("skills/code-review/scripts/chain_check.py")
+    except sibling.Absent as absent:
+        sys.stderr.write(
+            f"seal gate: the round records' deferred findings are not counted: "
+            f"{absent.path} is absent\n"
+        )
+        return rows
+    except (Refused, SystemExit):
         return rows
     stamp = stamp_module()
     reader = chain.SHARED_READER

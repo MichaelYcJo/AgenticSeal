@@ -20,12 +20,17 @@ An absent file is said in one sentence, `MISSING`, whichever script asked:
 a copy of one script taken on its own is not a plugin, and exit 2 says
 nothing was read (#590). A command that guards its own import of this
 module spells the same sentence about this file, since it cannot read the
-constant from a file that is not there.
+constant from a file that is not there. A caller whose run goes on without
+the module loads inside `going_on`: there the absent file raises `Absent`
+and no sentence is written, because "Nothing was read." is false of a run
+that goes on, and the caller's own line names `Absent.path` and what goes
+unread.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
 `seal_stamp.py` reaches it on whatever `python3` starts it.
 """
 
+import contextlib
 import importlib.util
 import os
 import sys
@@ -41,6 +46,34 @@ MISSING = (
 )
 # What a stem held by another file is called.
 TAKEN = "cannot load {path} as `{stem}`: {held} already runs under that name"
+
+
+class Absent(SystemExit):
+    """The exit `load` raises for an absent file: code 2, the file's path in
+    `path`. A `SystemExit`, so a caller that does not catch it ends at exit
+    2."""
+
+    def __init__(self, path):
+        super().__init__(2)
+        self.path = path
+
+
+# How many `going_on` blocks the process is inside.
+_going_on = 0
+
+
+@contextlib.contextmanager
+def going_on():
+    """A block whose caller goes on where a module is absent. A load inside
+    it that meets an absent file raises `Absent` without writing `MISSING`,
+    and the caller says in its own line what goes unread, naming
+    `Absent.path`."""
+    global _going_on
+    _going_on += 1
+    try:
+        yield
+    finally:
+        _going_on -= 1
 
 
 def _same(module, path):
@@ -68,8 +101,9 @@ def load(rel):
     is taken out of `sys.modules` again, and its exception reaches the
     caller unchanged; the caller decides what that means for its command.
 
-    An absent file writes `MISSING` to stderr and raises `SystemExit(2)`:
-    the integer, because a string argument to `SystemExit` exits 1. A stem
+    An absent file writes `MISSING` to stderr and raises `Absent`, a
+    `SystemExit` whose code is the integer 2, because a string argument to
+    `SystemExit` exits 1. Inside `going_on` nothing is written. A stem
     another file holds raises `ImportError` naming both files, and replaces
     nothing."""
     path = os.path.join(ROOT, *rel.split("/"))
@@ -78,8 +112,9 @@ def load(rel):
     if held is not None and _same(held, path):
         return held
     if not os.path.isfile(path):
-        sys.stderr.write(MISSING.format(path=path) + "\n")
-        raise SystemExit(2)
+        if not _going_on:
+            sys.stderr.write(MISSING.format(path=path) + "\n")
+        raise Absent(path)
     if held is not None:
         where = getattr(held, "__file__", None) or repr(held)
         raise ImportError(TAKEN.format(path=path, stem=stem, held=where))

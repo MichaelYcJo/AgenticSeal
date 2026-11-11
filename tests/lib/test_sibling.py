@@ -141,4 +141,35 @@ class Test_load:
         assert "raises_under_sibling" not in sys.modules
 
 
+class Test_going_on:
+    def test_accepts_an_absent_file_with_no_sentence_and_names_its_path(
+        self, tree, capsys
+    ):
+        """A caller whose run goes on without the module loads inside the
+        block: the absent file is `Absent` at exit 2, carrying its path for
+        the caller's own line, and the loader writes nothing, since "Nothing
+        was read." is false of a run that goes on (#1482 round 1, finding
+        1)."""
+        loader, root, _stems = tree
+        with pytest.raises(loader.Absent) as stopped, loader.going_on():
+            loader.load("skills/x/scripts/absent_while_going_on.py")
+        assert stopped.value.code == 2
+        assert stopped.value.path == os.path.join(
+            str(root), "skills", "x", "scripts", "absent_while_going_on.py"
+        )
+        assert capsys.readouterr().err == ""
+
+    def test_refuses_to_keep_the_sentence_back_after_the_block(self, tree, capsys):
+        """The block ends with its `with`, an exit raised inside it among
+        the ways out, so a load after it says the sentence again."""
+        loader, _root, _stems = tree
+        with pytest.raises(loader.Absent), loader.going_on():
+            loader.load("skills/x/scripts/absent_while_going_on.py")
+        with pytest.raises(loader.Absent):
+            loader.load("skills/x/scripts/absent_after_going_on.py")
+        assert "absent_after_going_on.py, which this command loads" in (
+            capsys.readouterr().err
+        )
+
+
 test_census = census_case(TARGET)
