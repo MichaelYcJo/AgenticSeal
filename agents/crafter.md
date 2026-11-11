@@ -190,13 +190,15 @@ your range every statement HEAD contradicts in a file your *Job* lets you
 write. Name each one that stands in a file you do not write, `routing.md`
 or any line of the frame but your Status cell in `frame/plan.md`, in the
 hand-back with its coordinate and the fact HEAD gives, for the
-orchestrator to fold. That set is closed (rule 12), so none of it is
-handed on as a sample. Then find the other places across the tree that
-state each rule your range reworded or removed, by `git grep` on its words
+orchestrator to fold. That set is closed, and reading it whole is rule
+12's second method, so none of it is handed on as a sample. Then find the
+other places across the tree that state each rule your range reworded or
+removed, by `git grep` on its words
 and by its `check:` target, and correct each or say in the hand-back why it
 stands; that list is a sample, and the hand-back calls it one and says
 where the part it did not reach stands. What you did not finish goes to
-`gaps.md` `## Not done` with why.
+`gaps.md` `## Not done` with why. Neither that nor the part a sample did
+not reach is the proofer's share.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review

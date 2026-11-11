@@ -365,6 +365,27 @@ def test_the_proofer_checks_its_record_in_the_branch_worktree():
     ), "the proofer's hand-back check names no `--root`, so it reads the session's tree"
 
 
+def test_the_proofer_finds_a_missed_statement_on_the_method_of_a_fix():
+    """#1472, Scope item 7. Contract rule 12 told the proofer how to read a
+    fixing party's account of its own reading; the sentence left the
+    contract, which every agent preloads, for the proofer's rule on the
+    records a round reads whole. A list the account calls whole, with a
+    statement that reading held left out, is a finding on the method even
+    where every listed instance was fixed (#1318)."""
+    text = flat(read(os.path.join(ROOT, "agents", "proofer.md")))
+    lead = (
+        "**Every round reads the work item's records that state the present, "
+        "whole, against its target.**"
+    )
+    assert lead in text, "`agents/proofer.md` lost its rule on the records"
+    start = text.index(lead)
+    rule = text[start : text.index("**A verifying round answers", start)]
+    clause = (
+        "is a finding on the method, even where every instance on the list was fixed."
+    )
+    assert clause in rule, f"the proofer's rule on the records lost {clause!r}"
+
+
 # --- the crafter's own rules from its rewrite (#967) ---------------------------
 
 
@@ -466,10 +487,16 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
     0.30.1 stood in the fixing party's own diff or in its work item's
     records (`frame/design.md` G9), a set closed enough to read whole. So
     after its last commit, in a phase and in a fix pass, the crafter reads
-    its range hunk by hunk and the five files that state the present, fixes
+    its range hunk by hunk and the six files that state the present, fixes
     what it writes, names the frame's statements for the orchestrator, and
     calls only the tree-wide search a sample. Step 10 carries that account
-    by citing the rule, not by restating it."""
+    by citing the rule, not by restating it.
+
+    #1472 moved the closed set's reason and the proofer's share out of
+    contract rule 12, which every agent preloads, into this rule, which the
+    one party that reads the set holds: reading it whole is rule 12's second method,
+    and neither a sample's unreached part nor what is not finished is left
+    to the proofer."""
     paragraph = crafter_rule(READ_WHOLE)
     assert paragraph, "`agents/crafter.md` lost its rule on reading the range whole"
     assert re.search(r"^check: \S", paragraph, re.M), (
@@ -488,13 +515,17 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
         "Name each one that stands in a file you do not write,",
         "in the hand-back with its coordinate and the fact HEAD gives, for the "
         "orchestrator to fold.",
-        "That set is closed (rule 12), so none of it is handed on as a sample.",
+        "That set is closed, and reading it whole is rule 12's second method, "
+        "so none of it is handed on as a sample.",
         "by `git grep` on its words and by its `check:` target",
         # Round 1 of #1318, finding 3: a sample's hand-back still says where
         # the part it did not reach stands (contract rule 12).
         "that list is a sample, and the hand-back calls it one and says where "
         "the part it did not reach stands.",
         "What you did not finish goes to `gaps.md` `## Not done` with why.",
+        # #1472: R10 of contract rule 12, which a crafter's `gaps.md` row
+        # naming the proofer as a sample's answerer caught (#1318).
+        "Neither that nor the part a sample did not reach is the proofer's share.",
     ):
         assert clause in said, f"the rule lost {clause!r}"
     text = read(CRAFTER)

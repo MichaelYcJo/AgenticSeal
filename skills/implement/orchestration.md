@@ -90,8 +90,8 @@ states; a section that states the tree with no date gets the date and keeps
 its text (`skills/implement/SKILL.md` *Document layout — two roots, three
 lifetimes*). After a fold commit of its own, the
 orchestrator reads that commit and each file of the work item's directory
-that states the present whole against HEAD, as contract rule 12 asks of the
-party that fixes; a decision's fold is read by the framer that writes it.
+that states the present whole against HEAD, the second method of contract
+rule 12; a decision's fold is read by the framer that writes it.
 
 **The orchestrator writes its row before it sends a decision, and commits
 the fold before the spawn.** Until a decision is folded, the orchestrator
