@@ -1767,17 +1767,20 @@ class Test_main:
         assert "  2026-10-01  gone\n" not in block, block
         assert "  2026-10-02  kept\n" in block, block
 
+    @pytest.mark.parametrize("beside", [True, False], ids=["beside", "alone"])
     def test_a_removed_plan_whose_path_holds_a_newline_is_named_and_the_rest_read(
-        self, repo, capfd
+        self, repo, capfd, beside
     ):
         """#1481, round 1, finding 2. `git cat-file --batch` reads one name
         per line, so a removed plan whose work item id holds a newline is
         named as not read at its coordinate and never asked for, and the
         plan removed beside it is read with its own text and its rows
         printed. Seen red against the batch asked for both, where the plain
-        plan was named with the other path's answer."""
+        plan was named with the other path's answer; alone, seen red with
+        the line naming it dropped where no other plan is left to ask for."""
         odd, plain = "1700000001-odd\nname", "1700000002-plain"
-        for name, judged in ((odd, "odd"), (plain, "plain")):
+        plans = ((odd, "odd"), (plain, "plain")) if beside else ((odd, "odd"),)
+        for name, judged in plans:
             plan = judgments_plan([("2026-10-01", judged, "y", "z")])
             blob = subprocess.run(
                 ["git", "-C", str(repo), "hash-object", "-w", "--stdin"],
@@ -1806,7 +1809,7 @@ class Test_main:
             "its path holds a newline, which `git cat-file --batch` reads as "
             "two names, so none of its rows were read"
         ) in block, block
-        assert "  2026-10-01  plain\n" in block, block
+        assert ("  2026-10-01  plain\n" in block) is beside, block
         assert "  2026-10-01  odd\n" not in block, block
 
     def test_reads_the_plans_of_the_two_newest_removing_commits_and_names_the_rest(
