@@ -10,13 +10,12 @@ end. The same shape costs the `bin/`-wrapped checks their output, and
 Korean, Japanese and Chinese Windows default to cp949/cp932/cp936 and encode
 none of the em dash, arrow or middle dot these files print; a bare `LC_ALL=C`
 does the same on POSIX. The English `windows-latest` runner uses cp1252, which
-encodes the em dash — which is why CI never saw the writing half, and why the
-reading half bit it anyway (cp1252 decodes every byte to *something*, so a
-round record's 🔴 arrives as four other characters, and an open blocking
-finding passes).
+encodes the em dash, so CI does not see the writing half; the reading half
+still reaches it (cp1252 decodes every byte to *something*, so a round
+record's 🔴 arrives as four other characters, and an open blocking finding
+passes).
 
-Three decisions live here, and each was paid for once already on the branch
-that first attempted this, in a pull request that was closed:
+Three decisions live here, each with the failure it prevents:
 
 **Unconditional, not `if os.name == "nt"`.** Where a stream is already UTF-8
 this is a no-op, and branching on the platform would leave the Windows path
@@ -25,13 +24,12 @@ proven by nothing while Linux CI runs the other one.
 **`stdin` is in the loop.** A payload is where the non-ASCII actually is — the
 `Stop` payload `seal stamp --stop` reads carries the session's own paths, and
 one Korean path is enough. That is the only stdin read production takes, and a
-raise there draws no stamp. Round 2 of that pull request found this defect
-INSIDE the first fix.
+raise there draws no stamp.
 
 **`errors` is named.** `TextIOWrapper.reconfigure` resets it to `strict`
 whenever `encoding` is given without it, so naming the encoding alone turns a
-degradable character into a crash — round 1 of that pull request found exactly
-that, on `sys.stderr`, which ships as `backslashreplace`. A path holding a lone
+degradable character into a crash, on `sys.stderr` too, which ships as
+`backslashreplace`. A path holding a lone
 surrogate must degrade, not take the gate down on its way to reporting
 something.
 
