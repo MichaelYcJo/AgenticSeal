@@ -392,6 +392,22 @@ class Test_main:
         ), rows
         assert out.endswith("|---|---|---|---|---|\n"), out
 
+    def test_a_union_this_side_alone_reads_against_no_reading_at_the_tag(
+        self, tmp_path, capsys
+    ):
+        """S5: the first release after the union left the tree, whose tag's
+        push run uploaded none this script reads, prints this side's seconds
+        beside `no union found` and no change, never a traceback."""
+        at = tree(tmp_path / "at", "", {})
+        now = priced(tmp_path / "unions" / "now.json", NOW)
+        argv = ["--against", "v1", "--at", at, "--root", at, "--durations", now]
+        assert report.main(argv) == 0
+        out = capsys.readouterr().out
+        assert rows_of(out)["the suite (seconds)"] == ("no union found", "10", "—")
+        assert (
+            "| `tests/test_new.py` | no union found | no union found | 1 | 9.0 |" in out
+        ), out
+
     @pytest.mark.parametrize(
         "spoil, said",
         [
