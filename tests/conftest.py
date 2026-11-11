@@ -35,33 +35,6 @@ for _directory, _subdirectories, _names in os.walk(_TESTS):
     ):
         sys.path.append(_directory)
 
-# The review run's documents: the round record, the guarantee, the run, the
-# pull request check, the stamp, the routing check, and what each
-# arm wants. A case that reads one of them for what is THERE reads the one
-# that holds the section; a case asserting what is NOT there reads all of them
-# through `review_chain_text`, because a sentence forbidden in one that
-# returns in a sibling is the same sentence back, and an absence that holds in
-# one part of the text proves nothing about the rest.
-REVIEW_CHAIN_DOCS = (
-    ("docs", "forms", "the-round-record.md"),
-    ("docs", "forms", "the-guarantee.md"),
-    ("docs", "running", "the-run.md"),
-    ("docs", "checks", "the-pull-request-check.md"),
-    ("docs", "checks", "the-stamp.md"),
-    ("docs", "checks", "the-routing-check.md"),
-    ("docs", "running", "the-review-and-parity-arms.md"),
-)
-
-
-def review_chain_text(root):
-    """The review chain's documents under `root`, each whitespace-collapsed,
-    joined."""
-    texts = []
-    for parts in REVIEW_CHAIN_DOCS:
-        with open(os.path.join(root, *parts), encoding="utf-8") as handle:
-            texts.append(" ".join(handle.read().split()))
-    return "\n".join(texts)
-
 
 # --- a `run:` script's code lines ------------------------------------------
 #
