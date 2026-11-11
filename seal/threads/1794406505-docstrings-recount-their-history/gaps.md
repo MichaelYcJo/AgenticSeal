@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 4 | the orchestrator's broad gate |
+| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 5 | the orchestrator's broad gate |
 
 ## Not done
 
@@ -36,3 +36,29 @@ its git directory as another worktree. That fix changes code, which design
 S1 and *Scope* item 1 rule out of this work, so the phase rewrote only the
 rider's history and kept its instruction for the next change to the
 function.
+
+Phase 5 left four printed strings under `.github/scripts/` that carry an
+issue number as they are: the two report headings and the argparse
+description of `durations_union.py`, each "(#931)", and
+`roll_flow_measurement_issue.py#empty_log_note`, "(#198)". Design *Scope*
+Out keeps printed messages out of this work, for the reason phase 2's
+paragraph above gives.
+
+Phase 5 also left two statements outside this work's files that its edits
+made untrue or that were already untrue. Design *Scope* names the `.py`
+files under `.github/scripts/` and leaves out `.github/workflows/` and the
+comments of `tests/`, which #1489 rewrites.
+
+- `.github/workflows/hygiene.yml`, the comment over the claims step, says
+  `close_issues_on_release.py`'s comment stands "two lines above its
+  regex". That comment stands over `KEYWORDS`, and its last line is twelve
+  lines above `CLOSING`. The same comment also tells the `Closes #153 and #150`
+  incident by pull request and release number, which this phase removed
+  from `issue_claims_check.py`.
+- `tests/github/test_label_merged_on_release_branch.py`, the comment over
+  the second assert of `Test_module`'s
+  `test_the_label_reader_has_one_source`, says the sibling's docstring "says in
+  prose that it used to unpack `closer._issue_api` here and now delegates".
+  `label_merged_on_release_branch.py#issue_labels` no longer says it used
+  to unpack anything. The assert itself, `"_issue_api(" not in source`,
+  still holds and pins the call, not the sentence.

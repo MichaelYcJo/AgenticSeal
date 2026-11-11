@@ -37,7 +37,7 @@ The failure scenario of the chosen approach, six months on: a maintainer meets a
 | 2 | Item 1 for item 3 | S1, S5 (G10's module and the case on `broad_gate.py`'s docstring) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `ead171191` |
 | 3 | Item 1 for item 4 | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `4ac403501` |
 | 4 | Item 1 for item 5 | S1, S5 (G10's module and the two cases on `seal_stamp.py`) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `e455a72e8` |
-| 5 | Item 1 for item 6 | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
+| 5 | Item 1 for item 6 | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `a01158430` |
 | 6 | Item 1 for item 7, item 8 at its commit, and item 9 | S1, S2, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
 
 Phases 1 to 5 touch no file #1489 has edited (design G16) and can be built from the base in order. Phase 6 starts after #1489 has merged into `release/v0.37.4` and this branch has taken `release/v0.37.4` by a merge, never a rebase, so it edits the docstrings as #1489 left them. Where #1489 has not merged when phase 5 closes, the orchestrator judges whether to wait or build phase 6 from the branch as it stands. That judgment and its grounds go to *Judgments of the run*.
