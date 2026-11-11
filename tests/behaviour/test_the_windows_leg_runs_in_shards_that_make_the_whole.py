@@ -12,13 +12,12 @@ cases under the same ids: an id built from a path writes it with `/`, and
 none carries the interpreter's path. What decides whether a leg's union is
 the suite is the matrix itself: a group named twice runs twice and a group
 named by no entry runs nowhere, and nothing on the runner says so -- each
-shard passes. So the matrix is read here, through
-`tests/text/test_ci_gives_the_checks_what_they_need.py#
-matrix_include_entries`, the suite's one reading of the job's entries,
-which refuses a matrix whose entries would not be its jobs: every entry of
-a sharded system is a shard of that system's count `K` in `SHARDED`, its
-groups are exactly 1 to `K` once each, every other entry carries no split,
-and the pytest line hands the split to pytest.
+shard passes. So the matrix is read here, as `tests/workflows.py#load`
+parses it, and a matrix whose entries would not be its jobs is refused:
+`include:` is the matrix's only key, every entry of a sharded system is a
+shard of that system's count `K` in `SHARDED`, its groups are exactly 1 to
+`K` once each, every other entry carries no split, and the pytest line
+hands the split to pytest.
 
 Every run measures the file as well (#931). Each Windows entry carries
 `store`, the pytest line hands it to pytest after the split, and pytest-split
@@ -51,13 +50,10 @@ import re
 import sys
 
 import pytest
-from conftest import COLLECTED_NODE_IDS, ROOT, _unquote, workflow_steps
-from test_ci_gives_the_checks_what_they_need import (
-    jobs,
-    matrix_include_entries,
-    read,
-)
+from conftest import COLLECTED_NODE_IDS, ROOT
+from workflows import load
 
+TEST = ".github/workflows/test.yml"
 DURATIONS = os.path.join(ROOT, ".test_durations")
 SUITE = os.path.join(ROOT, "tests")
 
@@ -74,8 +70,29 @@ SPLIT = re.compile(r"--splits (\d+) --group (\d+)")
 SHARDED = {"windows-latest": 4, "macos-latest": 3}
 
 
+def job(name):
+    """The `test.yml` job NAME, as `tests/workflows.py#load` reads it."""
+    return load(TEST)["jobs"][name]
+
+
+def matrix_entries():
+    """The `pytest` job's `include:` entries, each one job.
+
+    GitHub runs each entry as a job of its own only where `include:` is the
+    matrix's only key: beside a base axis an entry is merged into the axis'
+    combinations, and an `exclude:` takes combinations away, so three shards
+    can become fewer jobs while every entry still reads as a shard. A matrix
+    with another key is refused here, naming the keys."""
+    matrix = job("pytest")["strategy"]["matrix"]
+    assert list(matrix) == ["include"], (
+        f"a `matrix:` key beside `include:` changes which jobs the entries "
+        f"are: {sorted(matrix)}"
+    )
+    return matrix["include"]
+
+
 def test_every_group_of_each_sharded_leg_runs_exactly_once():
-    entries = matrix_include_entries(read("test.yml"))
+    entries = matrix_entries()
     for system, k in SHARDED.items():
         legs = [e for e in entries if e.get("os") == system]
         found = [SPLIT.fullmatch(e.get("split", "")) for e in legs]
@@ -97,9 +114,9 @@ def test_the_pytest_line_hands_the_split_to_pytest():
     """The split, then the store (#931): pytest-split reads both, and the
     store is about the session the split leaves, so it follows it."""
     runs = [
-        ln.strip()
-        for ln in jobs(read("test.yml"))["pytest"].splitlines()
-        if ln.strip().startswith("- run: pytest ")
+        step["run"]
+        for step in job("pytest")["steps"]
+        if step.get("run", "").startswith("pytest ")
     ]
     assert len(runs) == 1, runs
     assert runs[0].endswith("${{ matrix.split }} ${{ matrix.store }}"), runs[0]
@@ -109,7 +126,7 @@ def test_the_windows_entries_store_and_the_other_entries_do_not():
     """S1 of work item 1791876667. A Windows entry without `store` leaves its
     group out of every union, and a `store` anywhere else prices the file on
     a second system."""
-    entries = matrix_include_entries(read("test.yml"))
+    entries = matrix_entries()
     windows = [e for e in entries if e.get("os") == STORING]
     assert windows, entries
     assert all(e.get("store") == STORE for e in windows), windows
@@ -117,28 +134,12 @@ def test_the_windows_entries_store_and_the_other_entries_do_not():
     assert others and not any("store" in e for e in others), others
 
 
-def job_steps(job):
-    """`[(name, code lines)]` for each step of the `test.yml` job `job`."""
-    return workflow_steps(jobs(read("test.yml"))[job])
-
-
-def step_fields(block):
-    """`{key: value}` of every `key: value` line in one step, its `with:`
-    keys among them, a leading `- ` off and quotes off the value."""
-    fields = {}
-    for line in block.splitlines():
-        m = re.match(r"^\s*(?:-\s+)?([A-Za-z0-9_-]+):\s*(\S.*?)\s*$", line)
-        if m:
-            fields[m.group(1)] = _unquote(m.group(2))
-    return fields
-
-
-def uploads(job):
-    """`(index, fields)` of each step of `job` that uploads an artifact."""
+def uploads(steps):
+    """`(index, step)` of each of STEPS that uploads an artifact."""
     return [
-        (i, step_fields(block))
-        for i, (_, block) in enumerate(job_steps(job))
-        if "uses: actions/upload-artifact@" in block
+        (i, step)
+        for i, step in enumerate(steps)
+        if step.get("uses", "").startswith("actions/upload-artifact@")
     ]
 
 
@@ -151,15 +152,16 @@ def test_the_upload_step_runs_always_and_only_where_store_is_set():
     re-running failed jobs re-runs the `durations` job, which reads every
     part again, so a part is kept as long as the union it makes, and the
     re-run shard's part replaces the one its first attempt uploaded."""
-    steps = job_steps("pytest")
+    steps = job("pytest")["steps"]
     (pytest_at,) = [
-        i for i, (_, block) in enumerate(steps) if "run: pytest tests/" in block
+        i for i, step in enumerate(steps) if "pytest tests/" in step.get("run", "")
     ]
-    found = uploads("pytest")
+    found = uploads(steps)
     assert len(found) == 1, found
-    at, fields = found[0]
+    at, step = found[0]
     assert at > pytest_at, "the part is uploaded before pytest wrote it"
-    assert fields.get("if") == "always() && matrix.store != ''", fields
+    assert step.get("if") == "always() && matrix.store != ''", step
+    fields = step.get("with", {})
     assert fields.get("path") == ".test_durations", fields
     assert fields.get("include-hidden-files") == "true", fields
     assert fields.get("name") == "test-durations-${{ strategy.job-index }}", fields
@@ -167,30 +169,22 @@ def test_the_upload_step_runs_always_and_only_where_store_is_set():
     assert fields.get("overwrite") == "true", fields
 
 
-def job_keys(job):
-    """`{key: value}` of the `test.yml` job's own one-line keys."""
-    keys = {}
-    for line in jobs(read("test.yml"))[job].splitlines():
-        m = re.match(r"^    ([A-Za-z0-9_-]+):\s*(\S.*?)\s*$", line)
-        if m:
-            keys[m.group(1)] = _unquote(m.group(2))
-    return keys
-
-
 def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
     """S2. Without `needs: pytest` the job runs before any part exists; with
     `success()`, the default, one red case anywhere loses the run's reading.
     It downloads what the shards uploaded, unions as many parts as entries
     store, and uploads the union under the name the remedy downloads."""
-    keys = job_keys("durations")
-    assert keys.get("needs") == "pytest", keys
-    assert keys.get("if") == "${{ !cancelled() }}", keys
-    assert keys.get("runs-on") == "ubuntu-latest", keys
-    steps = [step_fields(block) for _, block in job_steps("durations")]
+    durations = job("durations")
+    assert durations.get("needs") == "pytest", durations
+    assert durations.get("if") == "${{ !cancelled() }}", durations
+    assert durations.get("runs-on") == "ubuntu-latest", durations
+    steps = durations["steps"]
     (download,) = [
-        s for s in steps if s.get("uses", "").startswith("actions/download-artifact@")
+        step.get("with", {})
+        for step in steps
+        if step.get("uses", "").startswith("actions/download-artifact@")
     ]
-    (_, shard) = uploads("pytest")[0]
+    shard = uploads(job("pytest")["steps"])[0][1].get("with", {})
     pattern = download.get("pattern", "")
     assert pattern.endswith("-*") and shard["name"].startswith(pattern[:-1]), (
         pattern,
@@ -199,14 +193,15 @@ def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
     assert "merge-multiple" not in download, (
         "merged, the four parts are one `.test_durations` written four times"
     )
-    (union,) = [s for s in steps if "durations_union.py" in s.get("run", "")]
+    (union,) = [step for step in steps if "durations_union.py" in step.get("run", "")]
     words = union["run"].removesuffix(" " + ASK_THE_VERDICT).split()
     opts = {words[i]: words[i + 1] for i in range(2, len(words) - 1, 2)}
-    stores = [e for e in matrix_include_entries(read("test.yml")) if "store" in e]
+    stores = [e for e in matrix_entries() if "store" in e]
     assert opts.get("--count") == str(len(stores)), (opts, len(stores))
     assert opts.get("--parts") == download.get("path"), (opts, download)
     assert opts.get("--committed") == ".test_durations", opts
-    ((_, out),) = uploads("durations")
+    ((_, step),) = uploads(steps)
+    out = step.get("with", {})
     assert out.get("name") == "test-durations", out
     assert out.get("path") == opts.get("--out"), (out, opts)
     assert out.get("include-hidden-files") == "true", out
@@ -228,19 +223,19 @@ def test_the_verdict_is_asked_into_main_alone_and_the_upload_outlives_it():
     file exists rather than where the step succeeded, so the red run still
     carries the file the release's refresh commits; a refusal writes
     nothing, and nothing is uploaded."""
-    steps = job_steps("durations")
+    steps = job("durations")["steps"]
     (union_at,) = [
-        i for i, (_, block) in enumerate(steps) if "durations_union.py" in block
+        i for i, step in enumerate(steps) if "durations_union.py" in step.get("run", "")
     ]
-    run = step_fields(steps[union_at][1])["run"]
+    run = steps[union_at]["run"]
     assert run.endswith(" " + ASK_THE_VERDICT), run
-    assert jobs(read("test.yml"))["durations"].count("--stale-fails") == 1, (
+    assert sum(step.get("run", "").count("--stale-fails") for step in steps) == 1, (
         "the verdict is asked outside the condition"
     )
-    ((at, out),) = uploads("durations")
+    ((at, step),) = uploads(steps)
     assert at > union_at, "the union is uploaded before it is written"
-    written = f"hashFiles('{out.get('path')}') != ''"
-    assert out.get("if") == "${{ !cancelled() && " + written + " }}", out
+    written = f"hashFiles('{step.get('with', {}).get('path')}') != ''"
+    assert step.get("if") == "${{ !cancelled() && " + written + " }}", step
 
 
 def test_the_durations_file_parses_and_names_cases():

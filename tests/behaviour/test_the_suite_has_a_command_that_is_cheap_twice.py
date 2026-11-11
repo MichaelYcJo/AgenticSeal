@@ -14,12 +14,16 @@ import subprocess
 
 import pytest
 from conftest import ROOT, read
-from test_ci_gives_the_checks_what_they_need import jobs, matrix_include_entries
-from test_ci_gives_the_checks_what_they_need import read as read_workflow
 from test_run_tests import rt
+from workflows import load
 
 BIN = os.path.join(ROOT, "bin")
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
+
+
+def pytest_job():
+    """`test.yml`'s `pytest` job, as `tests/workflows.py#load` reads it."""
+    return load(".github/workflows/test.yml")["jobs"]["pytest"]
 
 
 def posix_entries():
@@ -144,11 +148,10 @@ def test_ci_installs_the_parser_the_runner_pins():
     """#667, phase 1. The pin is chosen once, in `MARKDOWN_IT`, and CI's
     pytest job installs its own list. A version bumped in one place and not
     the other runs the oracle's cases against two parsers."""
-    job = jobs(read_workflow("test.yml"))["pytest"]
     installs = [
-        line.split("run:", 1)[1].split()
-        for line in job.splitlines()
-        if "run: pip install" in line
+        step["run"].split()
+        for step in pytest_job()["steps"]
+        if step.get("run", "").startswith("pip install")
     ]
     assert installs, "the pytest job installs nothing to compare"
     assert any(rt.MARKDOWN_IT in words for words in installs), installs
@@ -294,7 +297,7 @@ def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
     other Python it also runs (#1065) -- a floor CI does not run at is a
     floor nothing measures. It reads a system and not its shards: one macOS
     shard moved off the floor leaves two at it, and this case passes that."""
-    entries = matrix_include_entries(read_workflow("test.yml"))
+    entries = pytest_job()["strategy"]["matrix"]["include"]
     systems = {e.get("os") for e in entries}
     assert systems, "the pytest job names no operating system to compare"
     at_floor = {e.get("os") for e in entries if e.get("python") == rt.FLOOR_TEXT}
