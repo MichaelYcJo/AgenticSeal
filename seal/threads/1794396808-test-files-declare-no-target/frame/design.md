@@ -140,7 +140,7 @@ The 86 files, 51 under `tests/behaviour/` and 35 under `tests/text/`, holding 69
 | `tests/text/test_a_question_says_who_can_answer_it.py` | 2 | 0 | T2 |  |
 | `tests/text/test_a_record_carries_no_comment.py` | 3 | 1 | T1 |  |
 | `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py` | 4 | 0 | D | `.github/workflows/hygiene.yml` |
-| `tests/text/test_a_rider_reaches_its_file.py` | 4 | 0 | T2 |  |
+| `tests/text/test_a_rider_reaches_its_file.py` | 4 | 0 | T2 | `seal/follow-up.md` once #1484's removal of its rider case is merged (`frame/plan.md` *Overlap with the release*, the #1484 row) |
 | `tests/text/test_a_segment_feeds_the_flow_log.py` | 13 | 2 | D | `skills/verify/orchestration.md`, where the one case reading `skills/verify/SKILL.md` goes by the criterion; T2 otherwise |
 | `tests/text/test_broad_gate_rule.py` | 8 | 1 | T2 |  |
 | `tests/text/test_ci_gives_the_checks_what_they_need.py` | 9 | 0 | T2 |  |
@@ -171,20 +171,20 @@ The 86 files, 51 under `tests/behaviour/` and 35 under `tests/text/`, holding 69
 | `tests/behaviour/test_a_commit_names_its_repository.py` | 5 | 1 | T2 |  |
 | `tests/behaviour/test_a_declared_label_reaches_the_tracker.py` | 4 | 0 | T2 | case calling `tracker_labels` moves to `tests/github/test_tracker_labels.py` |
 | `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py` | 14 | 0 | T1 |  |
-| `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py` | 25 | 0 | M | each case moves to the module of the command it runs: `tests/skills/test_seal.py`, `test_chain_check.py`, `test_unverified_check.py`, `test_seal_stamp.py`, `test_pr_body.py`, `test_pact_check.py`, `tests/github/test_rules.py`; the shared fixtures go to `tests/conftest.py`; the file is deleted |
+| `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py` | 25 | 0 | M | each case moved to the module of the command it runs: `tests/skills/test_seal.py`, `test_chain_check.py`, `test_unverified_check.py`, `test_seal_stamp.py`, `test_pr_body.py`, `test_pact_check.py`, `test_broad_gate.py`, `test_settle.py` and `test_fold_check.py` in phase 4 (`trail/phases/phase-4.md`), and `tests/github/test_rules.py` in phase 5; its world went to `tests/conftest.py`, and phase 5 deleted the file (`trail/phases/phase-5.md`) |
 | `tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py` | 3 | 0 | T2 |  |
 | `tests/behaviour/test_a_phase_hands_the_next_one_a_record.py` | 9 | 3 | T2 |  |
 | `tests/behaviour/test_a_probe_that_commits_says_so.py` | 3 | 1 | T2 |  |
-| `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` | 2 | 0 | T2 | the case running `seal` moves to `tests/skills/test_seal.py` |
+| `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` | 2 | 0 | T2 | no case moves: `test_every_shipped_command_is_classified` lists `bin/` and `seal.py#TOOLS` against the file's own table, kind T1 (`trail/phases/phase-4.md`) |
 | `tests/behaviour/test_a_release_is_sized_by_a_criterion.py` | 1 | 1 | D | `docs/releasing/issues-and-milestones.md` |
-| `tests/behaviour/test_a_release_publishes_its_note.py` | 3 | 1 | T2 | a case calling `publish_release_note` or `dist_branch` alone moves to its module file under `tests/github/` |
+| `tests/behaviour/test_a_release_publishes_its_note.py` | 3 | 1 | T2 | `test_the_line_the_checklist_copies_is_the_line_the_reader_reads` moved to `tests/github/test_publish_release_note.py::Test_module` in phase 5; no case calls `dist_branch.py`, since the dist case reads the workflow alone (`trail/phases/phase-5.md`) |
 | `tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py` | 2 | 1 | D | `docs/releasing/issues-and-milestones.md` |
 | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py` | 9 | 1 | T1 |  |
 | `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` | 9 | 1 | T1 |  |
-| `tests/behaviour/test_a_signer_declares_its_pact.py` | 4 | 3 | T2 | the one running `seal` moves to `tests/skills/test_seal.py` in phase 4; no case moves to `tests/lib/test_config.py`, because the two key cases hold a template's and a skill's sentence to `lib/config.py`, which *The kinds* does not make M (`trail/phases/phase-3.md`) |
+| `tests/behaviour/test_a_signer_declares_its_pact.py` | 4 | 3 | T2 | no case moves: `test_s4_the_configs_this_plugin_writes_are_silent` holds `seal.py#serialized`'s output and this repository's `seal/config.json` to `lib/config.py`, kind T3 (`trail/phases/phase-4.md`), and the two key cases hold a template's and a skill's sentence to `lib/config.py`, which *The kinds* does not make M (`trail/phases/phase-3.md`) |
 | `tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py` | 2 | 1 | T1 |  |
 | `tests/behaviour/test_both_editions_carry_the_same_folds.py` | 7 | 1 | T1 |  |
-| `tests/behaviour/test_chain_hooks_hardening.py` | 28 | 2 | T2 | the one calling `fold_check.py` moves to `tests/skills/test_fold_check.py` in phase 4; no case runs `hooks/core-start.py`, so none moves to `tests/hooks/` (`trail/phases/phase-3.md`) |
+| `tests/behaviour/test_chain_hooks_hardening.py` | 28 | 2 | T2 | no case moves: no case runs `hooks/core-start.py` (`trail/phases/phase-3.md`), and `test_bin_wrapper_resolves_the_checker_from_any_cwd` holds the chain from `bin/seal` through `lib/launch.py` and `seal.py` to `fold_check.py`, kind T3 (`trail/phases/phase-4.md`) |
 | `tests/behaviour/test_docs_line_wrap.py` | 8 | 0 | T1 |  |
 | `tests/behaviour/test_evals_layout.py` | 15 | 0 | T1 |  |
 | `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` | 4 | 0 | T3 |  |
@@ -199,18 +199,18 @@ The 86 files, 51 under `tests/behaviour/` and 35 under `tests/text/`, holding 69
 | `tests/behaviour/test_settle_applies_rule_changes_in_place.py` | 1 | 0 | D | `skills/settle/rule-changes.md` |
 | `tests/behaviour/test_the_broad_gate_row_is_asked_for_and_runs_as_written.py` | 10 | 0 | T2 | cases calling `broad_gate.py` move to `tests/skills/test_broad_gate.py` |
 | `tests/behaviour/test_the_contributor_has_a_procedure.py` | 10 | 1 | T2 |  |
-| `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py` | 10 | 1 | T2 |  |
+| `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py` | 10 | 1 | T2 | `test_the_panel_prints_the_ref_on_the_base_row` was M and moved to `tests/skills/test_broad_gate.py::Test_panel` in phase 4 (`trail/phases/phase-4.md`) |
 | `tests/behaviour/test_the_old_block_leaves_through_update.py` | 12 | 0 | T2 |  |
-| `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py` | 31 | 4 | T2 | the one calling `chain_check.py` moves to `tests/skills/test_chain_check.py` in phase 4; no case calling `lib/config.py` moves, because each holds the file's own model of `skills/commit-pr-convention/SKILL.md`, and phase 7 files the file (`trail/phases/phase-3.md`) |
+| `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py` | 31 | 4 | T2 | no case moves: each case calling `lib/config.py` holds the file's own model of `skills/commit-pr-convention/SKILL.md` (`trail/phases/phase-3.md`), and each read of `chain_check.py` walks `git ls-files` or holds a template to that script's constants (`trail/phases/phase-4.md`); phase 7 files the file |
 | `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py` | 12 | 0 | T3 | a case calling one reader alone moves to that reader's module file under `tests/lib/` or `tests/skills/` |
 | `tests/behaviour/test_the_release_check_watches_what_ships.py` | 12 | 2 | T1 |  |
-| `tests/behaviour/test_the_release_seal_is_drawn.py` | 2 | 1 | T2 | a case calling `run_tests.py` alone moves to `tests/github/test_run_tests.py` |
+| `tests/behaviour/test_the_release_seal_is_drawn.py` | 2 | 1 | T2 | no case moves: its one case holds the publishing workflow's install line to `run_tests.py`'s pinned versions, which *The kinds* does not make M (`trail/phases/phase-5.md`) |
 | `tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py` | 3 | 0 | T2 | a case calling `rules.py` alone moves to `tests/github/test_rules.py` |
 | `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` | 13 | 1 | T2 |  |
 | `tests/behaviour/test_the_sealer_guarantees.py` | 12 | 4 | T1 |  |
 | `tests/behaviour/test_the_set_a_work_item_always_has.py` | 6 | 0 | T2 |  |
-| `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py` | 7 | 0 | T2 | a case calling one of `broad_gate.py` and `seal_stamp.py` alone moves to its module file |
-| `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` | 15 | 2 | T2 | cases calling `run_tests.py` move to `tests/github/test_run_tests.py` |
+| `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py` | 7 | 0 | T2 | no case moves: the runner case holds `seal_stamp.py --help` and `broad_gate.py --help` to one fact, kind T3, and the others read documents (`trail/phases/phase-4.md`) |
+| `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` | 15 | 2 | T2 | no case moves: each case reading `run_tests.py` holds `.github/workflows/test.yml` or `CONTRIBUTING.md` to the runner's constants, which *The kinds* does not make M (`trail/phases/phase-5.md`) |
 | `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` | 8 | 0 | T2 |  |
 | `tests/behaviour/test_this_repository_passes_its_own_checks.py` | 5 | 0 | T1 |  |
 | `tests/behaviour/test_unverified_rows_close.py` | 5 | 1 | T2 | `test_the_fence_walks_agree_shape_by_shape` is T3 and stays (`trail/phases/phase-3.md`); since #1482 the other cases call `lib/gaps.py`, not `unverified_check.py` (read: the file's docstring at `30e82d2f8`), so none is phase 4's, and phase 7 rules each and moves an M case among them to `tests/lib/test_gaps.py` |
