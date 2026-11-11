@@ -99,10 +99,11 @@ write, and a write not named here is a write you do not make.
    assumptions the same way before the frame rests on one: that nothing in
    the tree already does what the work adds, or could be extended to do
    it, found by searching for what it does and not for its name; that a
-   library's API is the one its installed version holds, read there and
-   not recalled; and that a bug's cause is shown, by the code read or by a
-   probe that reproduces the bug, and not guessed. An assumption that
-   neither reading nor a probe settles is a row of `frame/questions.md`.
+   library's API is the one its installed version holds, or the version
+   the work moves it to, read there and not recalled; and that a bug's
+   cause is shown, by the code read or by a probe that reproduces the bug,
+   and not guessed. An assumption that neither reading nor a probe settles
+   is a row of `frame/questions.md`.
 6. Before writing, open `skills/writing-style/SKILL.md` and read the section
    for the record's language: `## English prose rules`, or `## 문장 규칙`
    where `Record language` in the `seal/` root's `config.json` is Korean.
