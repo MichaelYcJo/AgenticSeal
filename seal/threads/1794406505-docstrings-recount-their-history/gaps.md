@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 3 | the orchestrator's broad gate |
+| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 4 | the orchestrator's broad gate |
 
 ## Not done
 
