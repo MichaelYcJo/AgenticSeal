@@ -70,8 +70,6 @@ here is a write you do not make.
 - Write anywhere but the clone, the round's scratch directory and the
   record, or commit the record.
 - Fix the code under review.
-- Take the implementer's account as evidence: the spawn prompt, the commit
-  messages, the pull request body, `gaps.md`, a comment in the code.
 - Put an emoji in the record, a mark quoted from the code included (write
   its code point), or a summary block, or a real absolute path or
   host, which a repository's scan of its tracked files may refuse: paths
@@ -86,15 +84,16 @@ under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
 check: evals/behaviour/proofer/rule-proofer-one-finding/
 
-**The clone is named for the work item and the round.** Where your prompt
-names none, clone into `<scratchpad>/<work-item-id>/round-<n>/clone`, and
-everything a probe makes outside the clone sits under
-`<scratchpad>/<work-item-id>/round-<n>/`: agents of one session share one
-scratchpad, so a name a parallel proofer would also pick is one two of them
-hold. If cloning fails, say so and do not work in place.
+**The clone is named for the work item and the round.** Your scratch
+directory (rule 17) is `<scratchpad>/<work-item-id>/round-<n>/`, and where
+your prompt names no clone you clone into
+`<scratchpad>/<work-item-id>/round-<n>/clone`. If cloning fails, say so and
+do not work in place.
 check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
-**The implementer's account is a claim.** Read all of it and check each
+**The implementer's account is a claim.** Rule 5 says so of the spawn
+prompt, the commit messages, the pull request body, `gaps.md` and a comment
+in the code alike. Read all of it and check each
 claim against the code, and say in the record what was claimed and what you
 found: *claimed X; `a.py:41` does Y*. Behaviour called deliberate is grounds
 only where a policy document, the SDD set or a test a rule names says so;
@@ -165,12 +164,11 @@ declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that
-label is honest, not whether the number is green. A spawn prompt that orders
-a check rule 2 excludes is declined, and the instruction goes in as a row
-of `## Not judged` with the caller named as its answerer, since your
-hand-back is a report rather than a conversation. When your round leaves
-nothing open, say so: what comes due is the orchestrator's broad run, and
-the sealer's spawn after it.
+label is honest, not whether the number is green. An instruction you
+decline under rule 3 goes in as a row of `## Not judged` with the caller
+named as its answerer, since your hand-back is a report rather than a
+conversation. When your round leaves nothing open, say so: what comes due
+is the orchestrator's broad run, and the sealer's spawn after it.
 check: tests/text/test_broad_gate_rule.py
 
 **Runs are narrow, through the repository's runner.** Find the runner before
@@ -184,9 +182,9 @@ should catch it, report it as a probe, never as a seal, and name it on the
 finding's `evidence: executed` line.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
-**A probe leaves nothing, and its files are edits.** A probe follows the
-probe rules of `skills/code-review/SKILL.md` and rule 7: it runs in the
-clone, and everything it made is gone before you hand back. A probe script,
-a scratch fixture or a file patched to see whether a finding reproduces is
-an edit, so it goes through the `Edit` or `Write` tool (rule 9).
+**A probe runs in the clone, and its files are edits.** A probe follows the
+probe rules of `skills/code-review/SKILL.md` and rule 7, and it runs in the
+clone. A probe script, a scratch fixture or a file patched to see whether
+a finding reproduces is an edit, so it goes through the `Edit` or `Write`
+tool (rule 9).
 check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_edits_go_through_the_edit_tool.py

@@ -28,10 +28,9 @@ lifetimes* states (contract rule 11).
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
-   once. The orchestrator's own commands, its commits, the broad run and
-   the removal of its scratch files among them, follow contract rule 21,
-   which the orchestrator opens once in `skills/agent-contract/SKILL.md`
-   beside the core.
+   once. The orchestrator's own commands, its commits and the broad run
+   among them, follow contract rule 21, which the orchestrator opens once
+   in `skills/agent-contract/SKILL.md` beside the core.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
@@ -44,7 +43,14 @@ lifetimes* states (contract rule 11).
    the pull request body from `pr.md` and the records, then the sealer,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
-   opens once the sealer seals* owns when).
+   opens once the sealer seals* owns when). Once the pull request is open,
+   the orchestrator removes the work item's scratch directory,
+   `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
+   out in full, with no variable in it, and removes nothing else of the
+   scratchpad. It runs the same command again after each repair it pushes
+   to the open pull request, a merge from the base among them, because the
+   repair's round and audit clone again. No agent removes a scratch
+   directory (contract rule 17).
 3. The pull request body carries `Closes #N`, from the work item's `pr.md`
    where the work runs through the review chain; the release workflow
    closes the ticket when the release reaches `main`.

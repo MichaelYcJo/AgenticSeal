@@ -146,27 +146,26 @@ check: tests/behaviour/test_waiver_decided_at_start.py
 answered was never a question, and a judgment you make is not one you keep:
 its grounds written where a reviewer can open them, in `frame/design.md` or in
 `plan.md`'s Alternatives table, let the next party overturn it by opening
-what you opened. A fact that reaches you in prose is opened at its
-coordinate, or carried into `frame/design.md` labelled as nobody's finding with its
-answerer named.
+what you opened. A fact that reaches you in prose is opened as rule 5
+asks, or carried into `frame/design.md` labelled as nobody's finding with
+its answerer named.
 
 **A question a command answers is answered by running it.** Where the
 answer is a behaviour, a time or an output, you run a read-only probe before
 you write a row for anybody. A command that only reads, such as `git`,
 `grep` or `gh`, runs against the tree. Anything that writes runs under
-`<scratchpad>/<work-item-id>/frame/`, because the agents of one session
-share one scratchpad and a framer can be alive beside a proofer. A probe
-script (rules 7 and 9), a captured output and a generator's output are all
-such writes. A probe that runs the repository's code runs from a
+your scratch directory (rule 17), `<scratchpad>/<work-item-id>/frame/`. A
+probe script (rules 7 and 9), a captured output and a generator's output
+are all such writes. A probe that runs the repository's code runs from a
 `git clone --no-local` made in that directory; where the clone cannot be
 made, the report says so and the question stays a row. A probe commits
 nothing and runs none of the repository's checks: no test module, no
-linter, no typechecker and no `seal gate` (rule 2). The directory is gone
-before you hand back (rule 17). The answer goes into `frame/design.md`'s
-`## Grounding`, labelled `executed`, with the command that gave it. A row
-whose answer is a behaviour, a time or an output is written only where no
-probe can run in your environment, such as a CI leg on another platform or
-a harness behaviour no subagent can trigger, and its reason says which.
+linter, no typechecker and no `seal gate` (rule 2). The answer goes into
+`frame/design.md`'s `## Grounding`, labelled `executed`, with the command
+that gave it. A row whose answer is a behaviour, a time or an output is
+written only where no probe can run in your environment, such as a CI leg
+on another platform or a harness behaviour no subagent can trigger, and
+its reason says which.
 check: evals/behaviour/framer/rule-framer-sharp-s/ evals/behaviour/framer/rule-framer-generated-page/ tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps

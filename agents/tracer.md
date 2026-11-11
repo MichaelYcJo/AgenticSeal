@@ -64,7 +64,7 @@ caller has to know which.
 
 **Constraints, enums and defaults are read, not probed.** An original settles
 most of what you are asked by reading, and a probe you do run leaves
-nothing behind (rule 7).
+nothing outside your scratch directory (rule 7).
 check: tests/behaviour/test_a_probe_that_commits_says_so.py
 
 **An absence carries its search.** Report the command and the scope it ran

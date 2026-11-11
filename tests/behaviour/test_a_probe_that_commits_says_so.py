@@ -6,12 +6,12 @@ session as permission prompts inside five minutes, and the agent was stopped
 to end them. The shapes that avoided the prompt became a contract rule, and
 #1027 retired it: no gate reads a commit any more, so a probe's commit
 reaches nobody. Its number, 8, is one the contract's preamble lists as
-retired. What stays is rule 7's: a probe leaves nothing behind, and its
-files are edits under rule 9. A commit a probe makes in its clone writes the
-clone's path after `git -C`, as rule 6 states and
-`tests/behaviour/test_a_commit_names_its_repository.py` holds. The cases
-below hold that each definition that once pointed at rule 8 points at what
-is left.
+retired. What stays is rule 7's: a probe leaves nothing outside the
+agent's scratch directory, and its files are edits under rule 9. A commit
+a probe makes in its clone writes the clone's path after `git -C`, as rule
+6 states and `tests/behaviour/test_a_commit_names_its_repository.py`
+holds. The cases below hold that each definition that once pointed at rule
+8 points at what is left.
 """
 
 from conftest import read
@@ -74,7 +74,7 @@ def test_the_fact_finder_points_a_probe_at_rule_7():
     probe it does run."""
     tracer = " ".join(read("agents", "tracer.md").split())
     # The citation `(rule 7)`, which the tracer resolves for what a probe it
-    # runs leaves behind.
-    assert "leaves nothing behind (rule 7)" in tracer, (
+    # runs may leave, and where.
+    assert "outside your scratch directory (rule 7)" in tracer, (
         "the fact-finder can no longer reach the rule for a probe it runs"
     )

@@ -37,8 +37,10 @@ is a write you do not make.
    every coordinate the handoff names. Where `seal/parity.json` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything.
 3. Say whether the frame holds before you build to it.
-4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and
-   hand that back.
+4. Where `routing.md` declares a framer and no `frame/design.md` is there,
+   stop and hand back that `routing.md` and the directory disagree. A
+   missing `frame/design.md` is not evidence about the rung, so do not
+   guess which is true.
 5. Read what the phase changes against the table in `skills/verify/SKILL.md`
    *The narrow command still has to be able to fail*. Build the phase as a
    vertical slice. Where a unit adds behaviour, build it as
@@ -47,8 +49,7 @@ is a write you do not make.
    case new for it: the existing cases that prove it at the new name or
    path, and the census that table's row asks for, go into
    `trail/phases/phase-N.md`'s `## What this phase found`.
-6. Commit, then run `seal mutate` over each unit that adds behaviour. A unit
-   only renamed or moved owes no run.
+6. Commit, then run `seal mutate` over each unit that adds behaviour.
 7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
    cheap and often, broad and once* names, as one command through the
    repository's runner.
@@ -63,15 +64,13 @@ is a write you do not make.
    of step 7's run and of the phase record steps 5 and 8 write; steps 5 and
    6 otherwise hold for each fix.
 10. Hand back, after the same `writing-style` section: what was done, each
-    claim labelled `executed`, `read` or `unverified`, the suite labelled
-    `unverified` with the orchestrator named as its answerer, each declined
-    instruction as one line saying what was asked and which rule refused it
-    (rule 3), the account the rule *Before you hand back, your range and the
-    work item's records are read whole against HEAD* asks for, each part's
-    method and what it listed and each statement named for the
-    orchestrator, what this file does not let you record yourself (a question
-    only a person can answer, a leftover for `seal/follow-up.md`) with who
-    answers each, and changed files by absolute path.
+    claim labelled as rule 4 asks and the suite as rule 2 asks, each
+    instruction you declined as rule 3 asks, the account the rule *Before
+    you hand back, your range and the work item's records are read whole
+    against HEAD* asks for, what this file does not let you record
+    yourself (a question only a person can answer, a leftover for
+    `seal/follow-up.md`) with who answers each, and changed files by
+    absolute path.
 
 ## Never
 
@@ -84,7 +83,7 @@ is a write you do not make.
   TODO stub in a core path.
 - Restore a mutated file from HEAD.
 - Put an emoji in anything you write, or end the hand-back with a block of
-  any kind, whoever asks for one: step 10's three labels carry the claims.
+  any kind, whoever asks for one: rule 4's labels carry the claims.
 - Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
@@ -97,25 +96,17 @@ after the requirements read, before anything is spent. A *no* goes to
 back to the framer; build to the part that holds.
 check: tests/behaviour/test_chain_hooks_hardening.py
 
-**Your scratch is named for the work item and the phase.** Everything a
-phase makes outside the worktree, a probe, a captured output, a list of
-files or a clone, sits under `<scratchpad>/<work-item-id>/phase-<n>/`,
-where `<n>` is the phase, and a fix pass's under
+**Your scratch is named for the work item and the phase.** Your scratch
+directory (rule 17) is `<scratchpad>/<work-item-id>/phase-<n>/`, where
+`<n>` is the phase, and in a fix pass
 `<scratchpad>/<work-item-id>/fix-<n>/`, where `<n>` is the round the pass
-fixes. Agents of one session share one scratchpad, so a name of your own
-is what keeps a parallel agent's files out of your removal. Remove that
-directory before you hand back, in the form rule 21 gives, and never the
-scratchpad or anything else in it.
+fixes.
 check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
-**A declared frame that is absent stops the build.** A missing `frame/design.md` is
-not evidence about the rung: hand back that `routing.md` and the directory
-disagree, and do not guess which is true.
-
-**The handoff's facts are coordinates to open.** A fact your prompt carries
-arrives in the shape of `docs/running/the-run.md` *The handoff*; open its
-coordinate before you build on it, and where a claim flips on where it is
-measured, measure where the handoff says and say so.
+**A handoff's claim is measured where the handoff says.** Rule 5 has you
+open each coordinate your prompt carries, in the shape
+`docs/running/the-run.md` *The handoff* gives it. Where a claim flips on
+where it is measured, measure where the handoff says and say so.
 check: tests/text/test_the_handoff_before_round_one.py
 
 **A new test starts from its group.** Before writing a case, read the tests
@@ -161,19 +152,13 @@ Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py
 
-**The broad gate is not yours, and its label is.** The run is rule 2's, and
-the label is step 10's. When a broad gate failure is handed to you,
+**The broad gate is not yours, and its label is.** The run and the suite's
+label are rule 2's. When a broad gate failure is handed to you,
 the word beside each failing file says what it is: `failing on base too`
 predates the work and is a follow-up to name, not a defect to chase;
 `new?` means nothing at the base measured that file, so run it at the base
 yourself before treating it as either.
 check: tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
-
-**Each phase closes with its record.** `trail/phases/phase-N.md` holds what
-building this phase found, every departure from the frame among it, a
-removal the frame's `## Removes` did not name among them; `frame/plan.md`'s
-Status cell holds the commit.
-check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **Before you hand back, your range and the work item's records are read
 whole against HEAD.** In a phase and in a fix pass, after your last
@@ -200,7 +185,3 @@ where the part it did not reach stands. What you did not finish goes to
 `gaps.md` `## Not done` with why. Neither that nor the part a sample did
 not reach is the proofer's share.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
-
-**The chain ends at a pull request, never a merge.** Verification and review
-follow your hand-back without being asked, bounded as
-`docs/running/the-run.md` *The run* states; merging is the user's act.
