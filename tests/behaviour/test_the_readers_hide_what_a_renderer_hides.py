@@ -23,10 +23,11 @@ reading the specification and could not be executed.
 
 import os
 
+import commonmark_oracle
 import commonmark_oracle as oracle
 import pytest
 from block_shapes import BREAKS, CLOSE, INLINE_KINDS, OPEN, RENDERER, SHAPES
-from conftest import ROOT, imported_roots
+from conftest import ROOT, imported_roots, load_lib_module
 
 # Spelled by its code point, so no line of this file carries the character
 # itself for a reader to mistake for a space.
@@ -552,14 +553,7 @@ CORPUS = (
 )
 
 
-def load_lib(filename):
-    """The module FILENAME under `lib/`."""
-    from conftest import load_lib_module
-
-    return load_lib_module(filename, "agentic_" + filename[:-3] + "_for_the_oracle")
-
-
-blocks = load_lib("blocks.py")
+blocks = load_lib_module("blocks.py", "agentic_blocks_under_test")
 
 
 def as_read(doc):
@@ -650,7 +644,7 @@ def leaves_both(new, base, renderer, count):
     ]
 
 
-tables = load_lib("tables.py")
+tables = load_lib_module("tables.py", "tables_under_test")
 
 
 def test_the_table_walker_never_leaves_both_readings():
@@ -665,14 +659,17 @@ def test_the_table_walker_never_leaves_both_readings():
             index for index, _line in tables.unfenced(lines, text)
         }
         bad = leaves_both(
-            new, walker_base(lines), set(oracle.hidden_text(text)), len(lines)
+            new,
+            walker_base(lines),
+            set(commonmark_oracle.hidden_text(text)),
+            len(lines),
         )
         if bad:
             wrong.append((lines, bad))
     assert not wrong, f"{len(wrong)} documents, the first: {wrong[0]}"
 
 
-routing = load_lib("routing.py")
+routing = load_lib_module("routing.py", "agentic_routing")
 
 
 def test_the_routing_reader_never_leaves_both_readings():

@@ -48,10 +48,10 @@ import gfm_table_oracle as oracle
 import pytest
 from conftest import imported_roots, load_lib_module
 
-tables = load_lib_module("tables.py", "tables_for_the_table_walker")
+tables = load_lib_module("tables.py", "tables_under_test")
 # `lib/config.py#OLD_TABLE`, the header `seal mode`'s conversion hands the
 # walker.
-config = load_lib_module("config.py", "config_for_the_table_walker")
+config = load_lib_module("config.py", "config_for_the_walker_cases")
 
 HEADERS = {
     # A one-cell table; the header's word is the corpus's, and no reader
