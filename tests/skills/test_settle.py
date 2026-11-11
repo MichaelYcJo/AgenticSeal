@@ -1531,6 +1531,28 @@ class Test_main:
         assert code == 0, text
         assert f"\n    {old}  " in text, text
 
+    def test_a_plan_added_where_another_is_deleted_names_its_release(self, repo, capfd):
+        """#1481, design *Scope* item 4. The adding commits are read in one
+        `git log` over `seal/threads`, so a commit that deletes one plan and
+        adds another from the same text is read as the add it is, and the
+        second plan's line names the release that holds it. Seen red with
+        `--no-renames` alone removed from `adding_commits`."""
+        git(repo, "config", "diff.renames", "true")
+        old, new = "1700000001-old", "1700000002-new"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        write(repo / "seal" / "threads" / new, "frame/plan.md", plan)
+        commit(repo, "settle 0.1.0 and frame the new one (#7)")
+        git(repo, "tag", "v0.2.0")
+        git(repo, "rm", "-rq", f"seal/threads/{new}")
+        commit(repo, "settle 0.2.0 (#9)")
+        released_item(repo, "1700000003-next", {"routing.md": "# next — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {new}  released in v0.2.0; removed by " in text, text
+
     @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
     def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
         self, repo, capfd, monkeypatch, added_by
@@ -3140,6 +3162,50 @@ class Test_adding_commit:
         assert settle.adding_commit(str(repo), "HEAD", missing) == (None, None)
         with pytest.raises(RuntimeError, match="nosuch"):
             settle.adding_commit(str(repo), "nosuch", path)
+
+
+class Test_versions:
+    def test_labels_each_commit_by_the_lowest_version_tag_that_holds_it(self, repo):
+        """#1481, design *Scope* item 5. Each commit is labelled by the
+        lowest `vX.Y.Z` tag that holds it, by number and not by text, an
+        annotated tag read at the commit it peels to; a tag of another shape,
+        or one on a tree, is no version, and a commit no tag holds is not
+        labelled. Seen red with the peel of an annotated tag alone removed,
+        and with the tags walked highest first."""
+        write(repo, "a.txt", "a\n")
+        commit(repo, "a")
+        first = git(repo, "rev-parse", "HEAD").strip()
+        git(repo, "tag", "-a", "-m", "annotated", "v1.2.3")
+        git(repo, "tag", "v1.0")
+        write(repo, "b.txt", "b\n")
+        commit(repo, "b")
+        second = git(repo, "rev-parse", "HEAD").strip()
+        git(repo, "tag", "v1.10.0")
+        git(repo, "tag", "v0.0.1", "HEAD^{tree}")
+        write(repo, "c.txt", "c\n")
+        commit(repo, "c")
+        third = git(repo, "rev-parse", "HEAD").strip()
+        labels = settle.versions(str(repo))
+        assert labels[first] == "v1.2.3", labels
+        assert labels[second] == "v1.10.0", labels
+        assert third not in labels, labels
+        assert set(labels.values()) == {"v1.2.3", "v1.10.0"}, labels
+
+
+class Test_blobs:
+    def test_reads_each_name_in_order_and_names_what_holds_no_text(self, repo):
+        """#1481, design *Scope* item 6. One `git cat-file --batch` gives
+        each name's text as `git_out` decodes it, a line ending `\\r\\n` read
+        as a newline, and where git holds no file's text there, what it
+        answered: `missing`, or the kind of object it holds. Seen red with
+        the read past each object's text taken one byte short, and with the
+        kind of object left unread."""
+        (repo / "crlf.md").write_bytes(b"one\r\ntwo\r\n")
+        git(repo, "config", "core.autocrlf", "false")
+        commit(repo, "crlf")
+        assert settle.blobs(
+            str(repo), ["HEAD:crlf.md", "HEAD:docs", "HEAD:nope.md", "HEAD:docs/a.md"]
+        ) == [("one\ntwo\n", None), (None, "tree"), (None, "missing"), (DOC, None)]
 
 
 class Test_module:
