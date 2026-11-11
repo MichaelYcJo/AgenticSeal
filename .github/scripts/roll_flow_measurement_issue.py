@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Close the current flow-measurement issue and open the next one.
 
-Issue #109 part 3: the flow log's destination is a `flow-measurement`-labelled
+The flow log's destination is a `flow-measurement`-labelled
 GitHub issue (`skills/verify/orchestration.md`'s "Measure the run, and
-feed the flow log" section, phase 1 of this work item). Nothing closes that issue and
+feed the flow log" section). Nothing closes that issue and
 opens the next one on its own -- without this, the log silently stops growing
 the day someone finally closes it by hand, and no session opens the next one,
 because the skill has a session that finds the log closed name it and open
@@ -11,7 +11,7 @@ nothing.
 
 This runs from the same workflow, the same trigger, and the same checkout as
 `close_issues_on_release.py` (a push to `main` -- a release reaching the
-default branch). The release's first pull request moved
+default branch). The release's first pull request moves
 `.claude-plugin/plugin.json`'s version, and it reaches `main` in the same
 push as the rest of the release, so the checked-out tree carries the
 just-shipped version -- the fact everything below depends on
@@ -26,12 +26,12 @@ push.
   chore: flow measurement — after 0.8.1     opened by the 0.8.1 release,
                                             closed by whatever ships next
 
-Naming the log by a guess instead cost two things at the 0.8.1 release
-(#155). The arithmetic here was `"0.8.1" -> "0.9.0"`, so the roll closed
-#166 -- opened at the 0.8.0 release, titled for 0.9.0, and holding the
-measurements 0.8.1 had just been written with -- and opened #172 under the
-identical title. A patch release ended a log the next release still needed,
-and the 0.9.0 log became two issues told apart only by creation date.
+Naming the log by a guess at the next version instead costs two things
+whenever a patch release ships. With the arithmetic `"0.8.1" -> "0.9.0"`,
+the 0.8.1 release closes the log titled for 0.9.0, which holds the
+measurements 0.8.1 was written with and which the next release still needs,
+and opens a second issue under the identical title, so the 0.9.0 log
+becomes two issues told apart only by creation date.
 
 So the title states a fact and the condition reads it back: `rolled_from` of
 the open log's title, against the version in the tree. Equal means this push
@@ -43,21 +43,20 @@ the roll says nothing was due, closes nothing, opens nothing, and exits 0.
 means the whole of what `log_title` writes, from the first character: the
 `chore: ` prefix and the marker, and only then a version. Anything else --
 a different prefix, the marker buried mid-sentence, an older title -- names
-no version this script can act on. That covers the logs opened before this
-change, whose `chore: flow measurement — 0.9.0` names a version that had not
+no version this script can act on. That covers an older title such as
+`chore: flow measurement — 0.9.0`, which names a version that had not
 shipped and so cannot answer "has anything shipped since this log opened";
-the ` — after ` marker appears in no title written before this change, so the
-first release after it rolls them and the old convention retires itself. It
-covers a title somebody tidied by hand just as well, and one written for
-something else entirely that happens to carry the marker inside it. The
+it carries no ` — after ` marker, so the first release that meets it rolls
+it. It covers a title somebody tidied by hand just as well, and one written
+for something else entirely that happens to carry the marker inside it. The
 direction is chosen rather than incidental: an
 unreadable title read as *not due* stops the log forever with the workflow
-green, which is the same class of failure as the bug above one step over,
+green, which is the same class of failure as the guess above one step over,
 while read as *due* it costs at most one roll that was not owed.
 
-**The lookup is still by label and open state, never by the title.** What
-changed is that the title, once the lookup has found the issue, is read for
-the version it names. An edited title can neither hide the issue nor stop the
+**The lookup is by label and open state, never by the title.** The
+title, once the lookup has found the issue, is read for the version it
+names. An edited title can neither hide the issue nor stop the
 roll; the most it can do is cause one roll that was not due.
 
 **The invariant is exactly one open `flow-measurement` issue at a time.**
@@ -71,10 +70,10 @@ issue list` reads GitHub's search index, and the index lags the writes it
 reflects. Which way a lag moves a reading depends on the kind of write. A
 lag behind a write that adds an issue to the reading, a create or a label
 added, gives a reading short a result. A lag behind a close gives a reading
-with an extra issue in it, the closed issue still listed as open. #109
-measured the first kind: `gh issue list --label flow-measurement --state
-open` returned `[]` right after `gh issue edit ... --add-label
-flow-measurement` on the same issue, while `gh issue view` showed the label
+with an extra issue in it, the closed issue still listed as open. The
+first kind is observed: `gh issue list --label flow-measurement --state
+open` can return `[]` right after `gh issue edit ... --add-label
+flow-measurement` on the same issue, while `gh issue view` shows the label
 applied and the issue open. A release does not write the label it is about
 to look for (the issue this script closes was opened by the *previous*
 release, not by this run), so the race is unlikely to reach `main`'s lookup
@@ -82,8 +81,8 @@ in practice. So a zero reading in `main`'s lookup gets one retry after
 `RETRY_DELAY_SECONDS` before it is trusted as the real invariant violation.
 A reading of two or more is not retried and fails loudly. That is not
 because a lag cannot produce one. It is the invariant above, which fails
-loudly rather than guessing which issue is current, and the lag measured
-here was an undercount.
+loudly rather than guessing which issue is current, and the lag observed
+here is an undercount.
 
   roll_flow_measurement_issue.py     read REPO, GH_TOKEN from the
                                       environment (same as
@@ -94,8 +93,8 @@ here was an undercount.
 
 **The issue this opens carries a body, and finds the durable log by label.**
 A rolling log opened with `--body ""` is born with no path back to the one it
-replaced and no statement of what it is for, which is the state every log
-before this change was in (#136). The body names the issue just closed, says
+replaced and no statement of what it is for. The body names the issue just
+closed, says
 which version it covers the work since and that the next release closes it,
 and points at the durable log --
 the issue carrying `flow-baseline`, looked up the same way the rolling one is
@@ -112,7 +111,7 @@ one-open rule, which neither argument touches, so a release does not stop for
 them. The create is attempted with both, then with the index label alone, then
 with neither, and each fallback carries into the body what the attempt above
 it could not set. The body is where that goes because it is the one artifact
-a person opens; a line in a workflow log is not read (#136).
+a person opens; a line in a workflow log is not read.
 
 **A failed attempt re-reads the open-issue list before it retries.** A `gh
 issue create` that fails after the mutation lands would, on retry, open a
@@ -249,9 +248,9 @@ def rolled_from(title):
     three segments -- what comes before the marker, the marker, and what comes
     after it -- and a version may be read out of only the third, and only when
     the first two are exactly what `log_title` wrote. Matching the marker
-    anywhere instead accepted a title this script never wrote (`docs: explain
-    flow measurement — after 0.8.2`) as the log for 0.8.2, which is *not due*
-    and a log stalled with the workflow green.
+    anywhere instead would accept a title this script never wrote (`docs:
+    explain flow measurement — after 0.8.2`) as the log for 0.8.2, which is
+    *not due* and a log stalled with the workflow green.
     """
     if not title.startswith(TITLE_PREFIX):
         return None
@@ -298,12 +297,12 @@ def comment_count(issue):
     """How many comments the open log carries, or `None` where the listing
     did not say.
 
-    #198: a release opened a log, carried it through a whole cycle and closed
-    it with nothing written in it, and nothing read what was in the log it
-    was closing. The count is read off the one list call `main` already
-    makes rather than a second read, so the check costs no call and no
-    write; a listing without the field answers `None`, and `main` says so
-    and rolls exactly as before -- the count is never allowed to touch the
+    A log can go through a whole cycle and close with nothing written in it,
+    and without this nothing reads what is in the log being closed. The
+    count is read off the one list call `main` already makes rather than a
+    second read, so the check costs no call and no write; a listing without
+    the field answers `None`, and `main` says so and rolls all the same --
+    the count is never allowed to touch the
     exactly-one-open invariant, and never a reason to refuse a release.
     """
     comments = issue.get("comments")
@@ -338,14 +337,13 @@ def close_issue(repo, number, shipped, comments=None):
     """Close the old log, saying on it what replaces it and how it is named.
 
     The comment is the last thing written on an issue people go on reading,
-    so it states the convention in force rather than the one it replaced. It
-    used to promise a log "for the version this release ships next", which is
-    the prediction #155 removed: the new log is named after the version this
-    release just shipped, and that version is the one thing knowable here.
+    so it states the convention in force and predicts no version: the new
+    log is named after the version this release just shipped, and that
+    version is the one thing knowable here.
 
     `comments` is the count `comment_count` read, and zero adds one sentence:
     this is the first of the three places a person reads that says the cycle
-    measured nothing (#198). `None` -- the count could not be read -- adds
+    measured nothing. `None` -- the count could not be read -- adds
     nothing, because a sentence about emptiness on a log that may not be
     empty is a false record.
     """
@@ -373,8 +371,7 @@ def find_baseline_issue(repo):
     `flow-baseline` has no durable log, a `gh` failure here is not worth a
     release, and either way the body simply leaves the clause out. The lookup
     is the rolling log's own shape -- a label, never a number -- because a
-    number goes stale the moment its issue closes, which is what `#109`
-    removed from the rolling log's lookup for the same reason.
+    number goes stale the moment its issue closes.
 
     **The note separates two silences.** No durable log is the ordinary
     case and says nothing, because a note about it would appear on every
@@ -415,7 +412,7 @@ def issue_body(shipped, closed_number, baseline_number, notes=(), comments=None)
     `notes` are what the create could not set -- see the module docstring.
     They go in the body rather than in the workflow log because the issue is
     the artifact a person opens. `comments` at zero adds the second of the
-    three places that say the predecessor closed empty (#198): the new log is
+    three places that say the predecessor closed empty: the new log is
     the one the next session opens to write in, and a reader there is the
     one who can still do something about a cycle that measured nothing.
     """
@@ -538,7 +535,7 @@ def main():
         )
         return
 
-    # The third of the three places that say a cycle measured nothing (#198):
+    # The third of the three places that say a cycle measured nothing:
     # the job's own output, beside the `rolled:` line below. Read before the
     # close so the count is the log's as it stood, and never a reason not
     # to roll -- a release does not stop for bookkeeping about a release.
