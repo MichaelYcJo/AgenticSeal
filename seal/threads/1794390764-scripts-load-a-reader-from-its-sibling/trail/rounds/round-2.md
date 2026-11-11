@@ -147,6 +147,11 @@ pass owes the rest, through the framer for the frame:
 - The docstring paragraph at `release_seal.py:39-44` becomes true again,
   and needs no edit.
 
+```seal
+verdict: fixed 5532345fb
+answer: The finding holds, and round 1 finding 1's close answer was wrong to say every other catch ends at exit 2 or catches no load. `release_seal.py#main` now runs `seal_release` inside `sibling.going_on()` and imports `sibling` inside its `try`; its `no seal` line and `::warning::` name the file as `<path> is absent`, the job still ends at exit 0, and no "Nothing was read." is written. `Test_main::test_names_an_absent_module_in_its_own_line_and_exits_0` failed before the fix, and mutants removing the block or the path from the warning turned it red. `changelog.md:3` is corrected in the same commit; the module docstring holds again unchanged. The design states `main` as the third caller that goes on at `0e8801ab7`.
+```
+
 ### 2. A row of `Test_rounds_rows` is named `absent` and stubs a plain `SystemExit(2)` that no absent file raises any more
 
 ```seal
@@ -189,6 +194,11 @@ other row standing in for the loader's exit.
 This snippet keeps the `SystemExit` arm of `rounds_rows` and its pin. If
 the fix pass judges that arm dead and removes it, the row goes with it,
 and the comment at `broad_gate.py:1836-1837` still holds.
+
+```seal
+verdict: fixed d984a81ee
+answer: The finding holds. The row is now `SystemExit(3)` under the id `exits`, and its docstring points at `test_names_the_absent_check_in_its_own_line_and_goes_on` for an absent check; a mutant dropping `SystemExit` from `rounds_rows`' last catch turned the renamed row red.
+```
 
 ## Confirmations
 
