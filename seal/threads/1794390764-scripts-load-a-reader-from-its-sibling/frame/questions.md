@@ -22,6 +22,9 @@ points at where the grounds stand:
   considered*, A14 and A15.
 - Whether `rules.py` and `release_report.py` are guarded: `plan.md`
   *Alternatives considered*, A16.
+- Whether `seal layout --moved` can be the check of the moved cases:
+  `frame/design.md` *Grounding* G13 and scenario S8, with `plan.md`
+  *Alternatives considered*, A17.
 - Whether "one place" for the sentence can be literal: `frame/design.md`
   *Data & interfaces*, *The sentence*. It is one constant, and the guard
   spells it again in each guarded command because nothing can be read from
