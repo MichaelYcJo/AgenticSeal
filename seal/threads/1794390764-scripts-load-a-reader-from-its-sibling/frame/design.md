@@ -50,13 +50,20 @@ In:
    file, a module that raises and a stem another file holds.
 2. **A script reaches `lib/sibling.py` by one stanza**, and reaches every
    other module, a `lib/` one included, through `load`. The stanza puts
-   `lib/` first on `sys.path` and imports `sibling`. It stands where the
-   script's first load stands at this base: at import where the script
-   loads at import, and inside the function where it loads on first use, so
-   a script that reaches no load with no argument still reaches none
-   (G10). In the commands G10 names as exiting 2 for an absent sibling,
-   the stanza is guarded: where `lib/sibling.py` is absent it prints the loader's
-   sentence about that file and exits 2.
+   `lib/` first on `sys.path` and imports `sibling`. In the commands G10
+   names as exiting 2 for an absent sibling, the stanza is guarded and
+   stands whole at import: where `lib/sibling.py` is absent the guard
+   prints the loader's sentence about that file and exits 2, before any
+   argument is read. Each of them reaches a load with no argument at this
+   base (G10), so the guard at import refuses nothing a bare run did not
+   refuse. Run with `--help`, a lone copy of `settle.py`, `fold_check.py`,
+   `pact_check.py` or `payload_meter.py` now exits 2 in that sentence,
+   where it printed its help at exit 0 (*Data & interfaces*). In every
+   other script the stanza is unguarded. A script that loads at import at
+   this base imports `sibling` at import. A script that loads on first use
+   puts `lib/` on `sys.path` at import, which reads no file, and imports
+   `sibling` inside the function that first loads, so a script that
+   reaches no load with no argument still reaches none (G10).
 3. **The loader forms of 29 scripts go.** They are every file of G5's
    union but those of *Out of scope* item 2: under `skills/`,
    `chain_check.py`, `pr_body.py`, `seal.py`, `fold_check.py`,
@@ -75,8 +82,11 @@ In:
    `broad_gate.py` still refuses with the sibling's own sentence (#869),
    `release_seal.py` still exits 0, `chain_check.py` and `pr_body.py` still
    exit 2 as commands and raise when imported, and `rules.py` and
-   `release_report.py` still end in their `Unreadable`. Each catches at its
-   call what it caught in its loader. None words an absent file itself.
+   `release_report.py` still end in their `Unreadable`. Each catches what it
+   caught in its loader, at its call or in one helper its calls share, as
+   `broad_gate.py#sibling_module` does. None words an absent file itself,
+   and none catches the loader's `SystemExit` to add a line of its own
+   under the sentence.
 5. **`lib/lines.py` holds the markdown line readers**, moved from
    `unverified_check.py`: `split_row`, `is_separator`, `visible`,
    `fence_spans`, `closed_fence_lines`, `blank_fences`, `comment_lines`,
@@ -119,8 +129,10 @@ In:
     call. A test file that loads `unverified_check.py` for a moved name
     loads the name's home. The cases that pin a per-file purpose or a
     removed loader go or are rewritten against `lib/sibling.py`
-    (*Removes*). `loaded_by` (G12) reads a `sibling.load("<rel>")` call,
-    and `ruff.toml`'s table follows what the walk then derives.
+    (*Removes*). `loaded_by` (G12) reads every string constant that is a
+    tracked path in full, because a script names a module in a constant
+    and hands the constant to `load`; `ruff.toml`'s table follows what the
+    walk then derives.
 11. **Every sentence that stands on a moved fact is rewritten in place**,
     in the commit that moves it: the docstrings and comments that cite a
     moved unit as `unverified_check.py#<name>` or say a module is loaded
@@ -129,7 +141,8 @@ In:
     `git grep` on each moved name and on `by path`, and the hand-back
     calls it a sample where it is one.
 12. **`changelog.md`** states what a user sees change: the one sentence a
-    command copied alone prints.
+    command copied alone prints, and the exit code *Data & interfaces*
+    names for a lone copy run with `--help`.
 
 Out of scope:
 
@@ -165,12 +178,12 @@ Out of scope:
 | S1. One settle executes each module once | Given this repository's clone. When `settle.py` runs as `__main__`, with no argument and with `--all-earlier`. Then no file is executed more than once, and stdout is byte-identical to the run at `333fb9def`. | A count of `SourceFileLoader.exec_module` by file over the run, as G6 took it, and `cmp` of the two outputs. |
 | S2. No script loads `unverified_check.py` | Given the tree at HEAD. When each hit of `git grep -n unverified_check -- '*.py'` outside the script and `tests/skills/test_unverified_check.py` is read. Then each is the `unverified` row of `seal.py#TOOLS`, an argv that runs the command, or a sentence naming a unit the script keeps. | The `git grep`, read line by line by the proofer; and S1's count holds no run of `unverified_check.py`. |
 | S3. One function loads a module | Given the tree at HEAD. When `git grep -n spec_from_file_location -- '*.py' ':!tests'` runs. Then every hit is in `lib/sibling.py`. And `git grep -nE '^\s*def _?load\('` over the same files prints `lib/sibling.py#load` and `session_cost.py#load` alone. | The two commands. |
-| S4. A command copied alone says one sentence | Given a guarded command of *Scope* item 2 copied into an empty directory. When it runs with no argument. Then it exits 2, stderr holds no traceback, and stderr holds the sentence of *Data & interfaces* naming the absent `lib/sibling.py` by its path. | A case per command that copies it and runs it, as `test_a_script_copied_alone_exits_2_and_names_what_it_misses` does today. |
+| S4. A command copied alone says one sentence | Given a guarded command of *Scope* item 2 copied into an empty directory. When it runs, with no argument or with any, `--help` among them. Then it exits 2, stderr holds no traceback, and stderr holds the sentence of *Data & interfaces* naming the absent `lib/sibling.py` by its path. | A case per command that copies it and runs it, as `test_a_script_copied_alone_exits_2_and_names_what_it_misses` does today. |
 | S5. An absent sibling of a whole command says the same sentence | Given a script that has `lib/sibling.py` and lacks a module it loads. When it reaches the load. Then the process exits 2 and stderr holds the same sentence naming that module's path, whichever script asked. | `tests/lib/test_sibling.py`, a `test_refuses_` case on `load`. |
 | S6. Every other script does alone what it did | Given each script of G10 that *Scope* item 2 does not guard. When it is copied alone and run with no argument. Then its exit code is G10's, and it ends in a traceback only where G10's row does. | The copy-and-run of G10 repeated at HEAD, row against row. |
-| S7. A caller's contract for a module that raises holds | Given a sibling that raises while it executes. When `broad_gate.py`, `release_seal.py`, `rules.py` or `release_report.py` loads it. Then each ends as *Scope* item 4 says. | The cases that hold each today, in `tests/skills/test_broad_gate.py`, `tests/github/test_release_seal.py`, `tests/github/test_rules.py` and `tests/github/test_release_report.py`, passing with only the loader's name changed. |
+| S7. A caller's contract for a module that raises holds | Given a sibling that raises while it executes. When `broad_gate.py`, `release_seal.py`, `rules.py` or `release_report.py` loads it. Then each ends as *Scope* item 4 says. | The cases that hold each today, in `tests/skills/test_broad_gate.py`, `tests/github/test_release_seal.py`, `tests/github/test_rules.py` and `tests/github/test_release_report.py`, passing with the loader's name changed and, where a case plants a module that raises, with `sibling.ROOT` pointed at the tree that holds it. |
 | S8. The moved cases were only moved | Given the test classes of *Scope* item 10. When `seal layout --moved` compares the old file with the new ones. Then it passes, and `seal layout --check` refuses none of the files this work writes. | The two commands, by the crafter in the phase that moves them. |
-| S9. The floor walk still sees every load | Given a script whose only load is `sibling.load("<rel>")`. When `loaded_by` reads it. Then it returns that tracked path, and the set `ruff.toml` lints at the floor is no smaller than at `333fb9def` but for files this work removes from it by name. | A case beside `test_a_script_reaches_the_modules_under_lib`, and that file's cases passing. |
+| S9. The floor walk still sees every load | Given a script whose only load hands `sibling.load` a tracked path, in the call or through a constant. When `loaded_by` reads it. Then it returns that tracked path, and the set `ruff.toml` lints at the floor is no smaller than at `333fb9def` but for files this work removes from it by name. | A case beside `test_a_script_reaches_the_modules_under_lib`, and that file's cases passing. |
 
 ## Data & interfaces
 
@@ -210,11 +223,22 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
 import sibling
 ```
 
+*Scope* item 2 says where its two lines stand and which commands guard
+the second.
+
 **No schema, endpoint or record form changes.** No command gains or loses
-an argument. The exit codes of every command are unchanged; what changes
-for a person is the wording of the sentence a copied command prints, and
-that `chain_check.py`, `pr_body.py` and `broad_gate.py` print it where they
-printed their own.
+an argument. The exit codes of every command in a whole plugin are
+unchanged. For a command copied alone two things change. The first is the
+wording of the sentence it prints, and that `chain_check.py`, `pr_body.py`
+and `broad_gate.py` print it where they printed their own. The second is
+one exit code: `settle.py`, `fold_check.py`, `pact_check.py` and
+`payload_meter.py`, copied alone and run with `--help`, exit 2 in that
+sentence where they printed their help at exit 0 (executed at `54d8653fb`
+against `333fb9def`: each file copied into an empty directory and run with
+`--help`). The other four guarded commands exited 2 on `--help` at the
+base as well. A copy that lacks `lib/` can run none of what its help
+lists, so the sentence at exit 2 is the answer a bare run of the same copy
+already gave.
 
 ## Rule changes
 
@@ -251,9 +275,9 @@ mark. What it takes out:
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
-| The module loaders named `load` or `_load` (G5) | `settle.py#load`, `fold_check.py#load`, `chain_check.py#load`, `pr_body.py#_load`, `broad_gate.py#load`, `pact_check.py#load`, `finding_counts.py#load`, `label_merged_on_release_branch.py#_load`, `release_completeness_check.py#_load`, `tracker_labels.py#_load`, `rule_cases.py#load` | `lib/sibling.py#load`. `broad_gate.py` keeps its conversion to `Refused` at its calls (*Scope* item 4). |
+| The module loaders named `load` or `_load` (G5) | `settle.py#load`, `fold_check.py#load`, `chain_check.py#load`, `pr_body.py#_load`, `broad_gate.py#load`, `pact_check.py#load`, `finding_counts.py#load`, `label_merged_on_release_branch.py#_load`, `release_completeness_check.py#_load`, `tracker_labels.py#_load`, `rule_cases.py#load` | `lib/sibling.py#load`. `broad_gate.py` keeps its conversion to `Refused` in `broad_gate.py#sibling_module`, which its calls go through (*Scope* item 4). |
 | The other by-path loading code | `release_report.py#script`, `release_seal.py#_module`, `rules.py#sibling`'s loading half and `_loaded`, `issue_claims_check.py#load_reader`, `unverified_check.py#_load_lib` and the loop in `#config_at`, the four getters' bodies in `rule_changes.py:87-125`, `passages.py:44-48`, `coordinates.py#shared_reader`, the three loaders in `payload_meter.py:138-219`, `seal_stamp.py#_gitcmd`, `#_chain_check` and `#_optin`, `session_cost.py#lib_module`'s `sys.path` half, `run_tests.py:82-90`, `publish_release_note.py:120-136` | `lib/sibling.py#load`, called where each stood. A getter that only names its module may stay as one line. |
-| The per-file sentences and tables saying what a missing file is for | `settle.py#PURPOSES`, `seal.py#LIB_PURPOSES` and `#refuse_without_lib`, the `purpose` argument of `fold_check.py#load` and its three call sites, the purposes in `rules.py#SIBLINGS`, the `purpose` argument of `release_report.py#script`, the three sentences in `payload_meter.py:151-214`, the sentence in `pact_check.py:270-275`, `chain_check.py:290-292`'s line for an absent reader, and the like line in `pr_body.py` | The one sentence of `lib/sibling.py`. The purposes go, which is the loss the issue names. |
+| The per-file sentences and tables saying what a missing file is for | `settle.py#PURPOSES`, `seal.py#LIB_PURPOSES` and `#refuse_without_lib`, the `purpose` argument of `fold_check.py#load` and its three call sites, the purposes in `rules.py#SIBLINGS`, the `purpose` argument of `release_report.py#script`, the three sentences in `payload_meter.py:151-214`, the sentence in `pact_check.py:270-275`, and what `chain_check.py:290-292`'s line and the like line in `pr_body.py` say of an absent reader | The one sentence of `lib/sibling.py`. The purposes go, which is the loss the issue names. The two lines stay for a module that raises (*Scope* item 4); an absent file no longer reaches them, because neither script catches the loader's `SystemExit` at import. |
 | The markdown line readers, the item grammar and the `## Not verified` reader | `unverified_check.py:194-648`, `:650-730`, and `:732-918` with `#open_record_rows` | `lib/lines.py`, `lib/items.py` and `lib/gaps.py` (*Scope* items 5 to 7). |
 | The units of G9 with one reader elsewhere | `unverified_check.py#settled`, `#tree_at`, `#merge_base`, `#resolves`, `#commit_of`, `#show` | `chain_check.py`, and `settle.py` for `show` (*Scope* item 8). |
 | A loader that exists for one caller | `unverified_check.py#rule_changes` | Nothing owns it. `chain_check.py` loads `rule_changes.py` itself. |

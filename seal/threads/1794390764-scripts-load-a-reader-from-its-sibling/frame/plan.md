@@ -62,9 +62,10 @@ loads `rule_changes.py` at `:1151-1162` for `chain_check.py`, and
   under a name of its own, and a sibling that asks `load` for the same file
   gets the instance under the stem. A case that patches a module through a
   script's own loader, such as `tests/skills/test_settle.py:2045` on
-  `settle.load` and `tests/skills/test_seal_stamp.py:2105` on
-  `stamp._optin`, is rewritten against the place the script now reaches
-  the module.
+  `settle.load`, is rewritten against the place the script now reaches
+  the module. Where a getter that names its module stays, as
+  `seal_stamp.py#_optin` does, a case that patches the getter stands
+  unchanged.
 - **One instance is shared by every script in a `pytest` process.** A
   module under `lib/` that kept state at module level would carry it from
   one test file to the next. G7 shows the modules a settle loads keep
@@ -86,6 +87,7 @@ loads `rule_changes.py` at `:1151-1162` for `chain_check.py`, and
 | A10. A guard on the stanza of every script | The scripts that end in a traceback today for a missing module (G10) would gain a refusal nobody asked for, and the sentence would stand in every script of *Scope* item 3. | Rejected. The guard stands where the behaviour stands today. |
 | A11. A census that refuses `spec_from_file_location` outside `lib/sibling.py` | It is a mechanism with no catch on the day it is added (`skills/core/SKILL.md` *The rule a mechanism is kept against*). A new by-path load shows in the diff that adds it, where the proofer reads it. | Rejected. S3 is a command a reviewer runs, not a gate. |
 | A12. `lib/`'s own imports and `hooks/core-start.py` go through the loader too | A `lib/` module reaches `sibling` only by the plain import it would be replacing. The hook would need a guard to stay silent where today it needs none. | Rejected (`frame/design.md` *Scope*, out of scope item 2). |
+| A13. The guard stands inside the function that first loads, in `settle.py`, `fold_check.py`, `pact_check.py` and `payload_meter.py`, so a lone copy still prints its help at exit 0 | The guard is spelt once in each getter that reaches a module, or behind one more getter every call goes through, and the sentence then stands more often than once per command. What it buys is the help text of a copy that can run none of what the help lists. | Rejected after phase 1 built the guard at import and measured the one invocation that changes (`trail/phases/phase-1.md` *What this phase found*). Each of the four reaches a load with no argument at the base (G10), so a bare run of the copy already ended in the sentence at exit 2. `frame/design.md` *Data & interfaces* states the changed exit code. |
 
 ## Phases
 
@@ -108,7 +110,7 @@ The spawn names #1486, #1488, #1484, #1489 and #1485. #1483, #1487 and
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
 | #1486 (`refactor/1486-a-committed-durations-file-turns-ci-red`, under review; executed: `git diff --name-only origin/release/v0.37.4...origin/<branch>`) | `.github/scripts/release_report.py`, whose `script` loader this work removes and which #1486 rewrites in part; `.github/scripts/run_tests.py`, whose by-path load of `lib/launch.py` at `:82-90` this work replaces and which #1486 rewrites in part; their test modules `tests/github/test_release_report.py` and `tests/github/test_run_tests.py`; `tests/conftest.py` and `tests/censuses.py`, where this work touches them for the new spelling of a load; `CONTRIBUTING.md`, where *Scope* item 11 finds a sentence; and `.test_durations`, which lists test ids this work moves and which #1486 changes | #1486 | It is under review and likelier to be sealed first. Its diff of the two scripts is larger than this work's few lines in each, and both stand in phase 2, so this work integrates inside a phase it spends anyway. Phase 2 builds on the release branch as #1486 leaves it where #1486 has merged by then. |
-| #1488 (`test/1488-asserts-pin-literal-phrases`, built, waiting for #1486; executed: `git diff --name-only origin/release/v0.37.4...test/1488-asserts-pin-literal-phrases` on the local branch, which is not pushed) | `.github/scripts/release_completeness_check.py`, whose `_load` this work removes; and the `tests/behaviour/` files that name `unverified_check.py`: `test_a_phase_hands_the_next_one_a_record.py`, `test_both_editions_carry_the_same_folds.py`, `test_the_pull_request_language_is_the_repositorys.py` and `test_the_sealer_guarantees.py`, which load it by path, and `test_a_reference_root_is_read_and_never_taken.py`, `test_first_setup_asks_once.py` and `test_release_hygiene.py`, which name it in a comment or an assert | #1488 | Its phases are built and it waits only on #1486, so it is sealed before this work's phase 3. This work changes a load line or a citation in each file, which rebases onto #1488's edits at lower cost than the reverse. |
+| #1488 (`test/1488-asserts-pin-literal-phrases`, built, waiting for #1486; executed: `git diff --name-only origin/release/v0.37.4...test/1488-asserts-pin-literal-phrases` on the local branch, which is not pushed) | `.github/scripts/release_completeness_check.py`, whose `_load` this work removes; and the `tests/behaviour/` files that name `unverified_check.py`: `test_a_phase_hands_the_next_one_a_record.py`, `test_both_editions_carry_the_same_folds.py`, `test_the_pull_request_language_is_the_repositorys.py` and `test_the_sealer_guarantees.py`, which load it by path, and `test_a_reference_root_is_read_and_never_taken.py`, `test_first_setup_asks_once.py` and `test_release_hygiene.py`, which name it in a comment or an assert. `test_release_hygiene.py::test_the_chain_check_reuses_the_reader_rather_than_writing_a_second` asserts `"unverified_check.py" in check` and `"reader.readable(" in check` against `chain_check.py`'s text (read: `git show test/1488-asserts-pin-literal-phrases:tests/behaviour/test_release_hygiene.py`, `:1305-1320`), and #1488's round 1 holds that assert under a fold not yet made (the orchestrator's finding, not opened here). Phase 3 takes the first string out of `chain_check.py`, where `:164` holds it, and may change the second | #1488 | Its phases are built and it waits only on #1486, so it is sealed before this work's phase 3. This work changes a load line or a citation in each file, which rebases onto #1488's edits at lower cost than the reverse. Whichever of the two merges second rules the `test_release_hygiene.py` assert on the other's text: where #1488 keeps it, phase 3 rewrites it to the reader `chain_check.py` then loads, `lib/lines.py`, or removes it under #1488's own criterion; where this work merges first, #1488's fold reads `chain_check.py` as phase 3 leaves it. |
 | #1484 (no frame; executed: `gh issue view 1484`) | `skills/verify/scripts/payload_meter.py`, whose three loaders this work replaces and whose `--sections` and calibration paths #1484 removes; `closed_fence_lines`, which this work moves to `lib/lines.py` and #1484 removes; `skills/verify/scripts/seal_stamp.py`; and `tests/skills/test_payload_meter.py` | #1482 | The release's plan and #1484's own body put it after this work. #1484 then removes units at the homes this work gives them, and frames against the tree this work leaves. |
 | #1489 (no frame; executed: `gh issue view 1489`) | The test files this work writes and splits: `tests/skills/test_unverified_check.py` and the new files under `tests/lib/`. #1489 moves cases into module test files and reads the layout whole | #1482 | #1489 builds after #1488 and has no frame. It moves cases to the homes this work leaves. |
 | #1485 (no frame; executed: `gh issue view 1485`) | The docstrings and comments of every script this work edits | #1482 | #1485's body says it builds last of the code items. This work moves a docstring as it reads (`frame/design.md` *Scope*, out of scope item 6). |
@@ -116,12 +118,15 @@ The spawn names #1486, #1488, #1484, #1489 and #1485. #1483, #1487 and
 ## Operational impact
 
 No migration, environment variable or dependency. No command gains or loses
-an argument, and no exit code changes.
+an argument, and no exit code of a command in a whole plugin changes.
 
-A deployer sees one change: a command of the plugin copied out and run
-alone prints one sentence in place of its own, and `chain_check.py`,
+A deployer sees a change only in a command of the plugin copied out and run
+alone. It prints one sentence in place of its own, and `chain_check.py`,
 `pr_body.py` and `broad_gate.py` print that sentence where they printed a
-line of their own. The exit is 2 as before.
+line of their own, at exit 2 as before. One exit code changes: a lone copy
+of `settle.py`, `fold_check.py`, `pact_check.py` or `payload_meter.py` run
+with `--help` exits 2 in that sentence, where it printed its help at exit 0
+(`frame/design.md` *Data & interfaces*).
 
 `lib/` gains `sibling.py`, `lines.py`, `items.py` and `gaps.py`.
 `ruff.toml` already lints `lib/*.py` at the floor. No tracked list names the
@@ -135,4 +140,4 @@ commit adds `changelog.md`.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-11 | The seven frame statements phase 1's hand-back names, among them the exit code of a lone copy run with `--help` and *Scope* item 2's placement of the guard, went to the framer as one fold before phase 2 | One of them changes a stated interface, the exit codes design *Data & interfaces* holds unchanged, so it is a design decision and not a restatement; phase 2 applies item 2 and item 10 to `.github/scripts/`, so it should read the frame that states what phase 1 built | `skills/implement/fold-and-reframe.md` |

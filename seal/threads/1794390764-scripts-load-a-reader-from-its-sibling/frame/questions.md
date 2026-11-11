@@ -16,6 +16,8 @@ points at where the grounds stand:
   file holding the sentence is itself absent from the copy: `plan.md`
   *Alternatives considered*, A9 and A10, with `frame/design.md` *Grounding*
   G10.
+- Whether the guard stands at import or inside the function that first
+  loads: `plan.md` *Alternatives considered*, A13.
 - Whether "one place" for the sentence can be literal: `frame/design.md`
   *Data & interfaces*, *The sentence*. It is one constant, and the guard
   spells it again in each guarded command because nothing can be read from
