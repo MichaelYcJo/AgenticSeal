@@ -4,7 +4,7 @@ The judgments the issue left open that the tree answered, so nobody reopens them
 
 - What "cleaned once" means for the pairs of `tests/github/test_run_tests.py`: `frame/design.md` G4 and *The pair reader*, and `plan.md` A7 to A9.
 - Where a file that keeps no `TARGET` says why, and whether a script reads it: `frame/design.md` *The reason line*, and `plan.md` A6.
-- Which cases move, which declare a document, and which stay: `frame/design.md` *The kinds* and *The files*, and `plan.md` A3 to A5 and A11.
+- Which cases move, which declare a document, and which stay: `frame/design.md` *The kinds* and *The files*, and `plan.md` A3 to A5, A11, A14 and A15.
 - Which of the cases #1488's criterion still has to rule: `frame/design.md` G5, G6 and *The cases #1488 read*.
 - How a check line comes to name a moved case at its new home: `frame/design.md` G9, G10, *Scope* item 9 and `## Rule changes`, and `plan.md` A2.
 - Whether `--all` stays: `frame/design.md` G11 and `## Removes`, and `plan.md` A6.
