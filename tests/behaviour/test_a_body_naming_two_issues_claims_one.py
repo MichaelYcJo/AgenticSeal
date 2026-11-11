@@ -60,8 +60,8 @@ def test_the_body_reaches_the_script_through_the_environment():
     # `.github/workflows/hygiene.yml`, the comment above the step *every issue
     # this pull request claims, and every one it only names*: the body goes
     # through `env:`, because `${{ }}` inside `run:` is substituted into the
-    # shell script the runner executes.
-    assert "${{ github.event.pull_request.body }}" not in workflow.split("run:")[-1], (
+    # shell script the runner executes. The step's `run:` block is read.
+    assert "${{ github.event.pull_request.body }}" not in step.split("run:", 1)[1], (
         "the body is interpolated into a shell line"
     )
 
