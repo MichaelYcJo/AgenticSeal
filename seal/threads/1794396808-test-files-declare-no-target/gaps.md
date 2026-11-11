@@ -18,15 +18,21 @@
 | Phase 6: each kept and removed assert of the range against #1488's *The criterion*, and each reason line's ground and each of the three D files against design *The kinds* | the proofer at review |
 | Phase 7: the suite beyond the boundary set `trail/phases/phase-7.md` names | the orchestrator's broad gate |
 | Phase 7: each kept and removed assert of the range against #1488's *The criterion*, each reason line's ground and each of the three D files against design *The kinds*, the four moved M cases with `edc9ba6e0`'s binding alignment and its two rewritten cases, and the pair reason in `tests/test_commonmark_oracle.py::Test_module` | the proofer at review |
+| Phase 8: the suite beyond the boundary set `trail/phases/phase-8.md` names | the orchestrator's broad gate |
+| Phase 8: whether each of the 15 class docstrings `d215adfe9` and `77664dc10` wrote states the input its pairs' cases differ by, and whether `CONTRIBUTING.md` *The test layout*'s kinds paragraph and threshold sentence, as `ff7d138c9` wrote them, state design *The kinds* and *Scope* item 11 with no reading of their own | the proofer at review |
+| Phase 8: whether every claim of `changelog.md` stands in the phase records and the tree | the proofer at review |
 
 ## Not done
 
 Phase 1: the sentence of `CONTRIBUTING.md` *The test layout* that counts
 any pair `bin/seal layout --pairs` names in a module's class as a reason
-to write that module's tests anew is left as it stands. Design *Scope*
+to write that module's tests anew was left as it stood. Design *Scope*
 item 11 keeps such a pair with its reason in the class docstring, and
-whether the threshold should still count it is a question the design
-does not ask. `trail/phases/phase-1.md` names it for the framer.
+whether the threshold should still count it was a question the design
+did not ask. `trail/phases/phase-1.md` named it for the framer. The fold
+after phase 3 gave the sentence to phase 8, and `ff7d138c9` rewrote it
+to count a pair only where its class states no input its cases differ
+by (`trail/phases/phase-8.md`).
 
 Phase 3: `tests/behaviour/test_a_signer_declares_its_pact.py#test_s4_the_configs_this_plugin_writes_are_silent`
 holds two modules. Phase 4 ruled it kind T3, so it stays in
@@ -58,10 +64,23 @@ cases to `tests/test_gfm_table_oracle.py` and deleted the file.
 `trail/phases/phase-6.md` names this and the five other rows of design
 *The files* that do not hold at `fa911da9c`.
 
-Phase 7: `CONTRIBUTING.md` *The test layout* (`:263-275`) makes a case M
+Phase 7: `CONTRIBUTING.md` *The test layout* (`:263-275`) made a case M
 only for a shipped module, and T3 a property across several shipped
 modules, while design *The kinds* after the fold `3fc2aca87` counts a
-module under `tests/` for both. The section is phase 1's, so this phase
+module under `tests/` for both. The section was phase 1's, so phase 7
 left it and built to the design. `trail/phases/phase-7.md` names it and
-the eight rows of design *The files* that do not hold at `d59eda804`,
-for the framer.
+the eight rows of design *The files* that did not hold at `d59eda804`,
+for the framer. The fold `32dc787ee` gave the paragraph to phase 8, and
+`ff7d138c9` brought it to design *The kinds*
+(`trail/phases/phase-8.md`).
+
+Phase 8: one pair, `test_the_reading_names_the_release_it_is_comparable_from`
+and `test_the_reading_says_its_family_rows_moved_at_642` in
+`tests/skills/test_session_cost.py::Test_main`, runs one function over
+one fixture, and its cases differ by no input. Each holds a different
+note of the report. Its class docstring says so, and the pair is kept
+as it stands. A merge would rewrite both cases, and `frame/plan.md` A10
+rejects that. Under the threshold sentence `ff7d138c9` wrote, the pair
+counts toward rewriting `skills/verify/scripts/session_cost.py`'s
+tests anew. That rewrite is not this work item's.
+`trail/phases/phase-8.md` names the pair.
