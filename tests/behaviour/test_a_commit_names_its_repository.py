@@ -16,6 +16,8 @@ than restating it.
 
 from conftest import read
 
+# No TARGET: its cases hold the commit rule across skills/implement/SKILL.md, the agent contract and skills/implement/orchestration.md.
+
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 ORCHESTRATION = ("skills", "implement", "orchestration.md")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")

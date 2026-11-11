@@ -61,6 +61,8 @@ import re
 import pytest
 from conftest import ROOT, load_module, read
 
+# No TARGET: its cases walk every shipped document under agents/, skills/ and templates/.
+
 SEAL = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
     "seal_for_the_locator_rule",

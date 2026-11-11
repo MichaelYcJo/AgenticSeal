@@ -21,6 +21,8 @@ import os
 
 from conftest import ORDERS, ROOT, URL, flat, load_lib_module, load_module
 
+# No TARGET: its cases hold the pact's keys across lib/config.py, the configs this plugin writes, templates/setup/config.md, skills/config/SKILL.md and skills/implement/multi-repository.md.
+
 config = load_lib_module("config.py", "config_for_the_pact")
 
 

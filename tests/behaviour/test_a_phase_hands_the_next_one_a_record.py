@@ -38,6 +38,8 @@ import os
 import pytest
 from conftest import ROOT, read
 
+# No TARGET: its cases hold the phase record and the design's sections across their two templates, agents/crafter.md, agents/framer.md and skills/implement/SKILL.md.
+
 PHASE_TEMPLATE = os.path.join(ROOT, "templates", "records", "sdd-phase.md")
 CRAFTER_AGENT = os.path.join(ROOT, "agents", "crafter.md")
 IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")

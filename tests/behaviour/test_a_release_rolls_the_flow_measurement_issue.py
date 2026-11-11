@@ -1,12 +1,11 @@
 """What the tracker's own document says about the flow-measurement roll's
-convention (#155), read against the script's constants; these cases wait for
-#923.
+convention (#155), read against the script's constants.
 
 #942's phase 6 placed the cases of
 `.github/scripts/roll_flow_measurement_issue.py`'s functions in
 `tests/github/test_roll_flow_measurement_issue.py`, and this file loads the script
 through that file's `_roller`. `docs/releasing/issues-and-milestones.md` names this
-file on its `check:` lines.
+file on a `check:` line.
 
 The rule lives in two places a person reads: the script's docstring, and
 `docs/releasing/issues-and-milestones.md`, which is the tracker's own authority. Of
@@ -21,10 +20,12 @@ the roll no longer reads.
 import os
 import re
 
-from conftest import ROOT
+from conftest import ROOT, census_case
 from test_roll_flow_measurement_issue import _roller
 
-DOC = os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md")
+TARGET = "docs/releasing/issues-and-milestones.md"
+
+DOC = os.path.join(ROOT, *TARGET.split("/"))
 DOC_SECTION = "**`flow-measurement` is a label that is not an index.**"
 
 
@@ -44,12 +45,16 @@ def test_the_tracker_doc_states_the_title_the_roll_writes():
     becoming a title the roll would read as an old one."""
     m = _roller()
     section = _tracker_section()
+    # The marker `TITLE_MARKER`, which the roll writes and reads in a title,
+    # and which a person retitling a log by hand copies.
     assert m.TITLE_MARKER in section, (
         f"the document never states the marker the roll writes and reads "
         f"({m.TITLE_MARKER!r}). A person retitling a log by hand has nothing "
         f"to copy, and the shipped skill does not carry this repository's "
         f"tracker conventions"
     )
+    # An example title the roll reads back through `rolled_from`, which a
+    # person retitling a log by hand copies.
     readable = [
         example
         for example in re.findall(r"`(chore: [^`]+)`", section)
@@ -78,3 +83,6 @@ def test_the_tracker_doc_states_the_whole_prefix_the_roll_requires():
         f"requires ({m.TITLE_PREFIX!r}), read out of the script's own "
         f"constant rather than against a literal here"
     )
+
+
+test_census = census_case(TARGET)

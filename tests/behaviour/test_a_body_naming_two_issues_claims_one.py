@@ -9,17 +9,19 @@ document names this file on a `check:` line beside the module's file.
 
 import os
 
-from conftest import ROOT, code_lines
+from conftest import ROOT, census_case, code_lines
 from workflows import load
+
+TARGET = ".github/workflows/hygiene.yml"
+
+WORKFLOW = os.path.join(*TARGET.split("/"))
 
 
 def test_the_workflow_runs_the_check_on_every_pull_request():
     """A check nothing calls is the standing waiver this repository refuses to
     build. It goes in the job that already runs on every pull request, so it
     needs no trigger and no token of its own."""
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
-    ) as f:
+    with open(os.path.join(ROOT, WORKFLOW), encoding="utf-8") as f:
         workflow = f.read()
     # The script `issue_claims_check.py`, which a step of the workflow runs
     # on every pull request.
@@ -37,7 +39,7 @@ def test_the_body_reaches_the_script_through_the_environment():
     `run:` block is textual substitution into a shell script. Interpolating a
     body there hands whoever opens the pull request the runner, so no step's
     script holds the expression."""
-    workflow = load(os.path.join(".github", "workflows", "hygiene.yml"))
+    workflow = load(WORKFLOW)
     steps = [step for job in workflow["jobs"].values() for step in job["steps"]]
     running = [
         step
@@ -50,3 +52,6 @@ def test_the_body_reaches_the_script_through_the_environment():
     assert not interpolated, (
         f"the body is interpolated into a shell line: {interpolated}"
     )
+
+
+test_census = census_case(TARGET)

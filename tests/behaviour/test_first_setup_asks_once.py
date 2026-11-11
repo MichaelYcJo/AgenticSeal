@@ -18,6 +18,8 @@ import subprocess
 import pytest
 from conftest import local_home, read, shell_probe
 
+# No TARGET: its cases hold where the root lives across the bootstrap, the implement and config skills, the agent contract, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
+
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The local root's path as a session reads it, which the Q1 cases below hold
 # in each place: the path `lib/optin.py` resolves, where a session looks.

@@ -22,6 +22,8 @@ import re
 
 from conftest import ROOT
 
+# No TARGET: its cases walk every case directory under evals/.
+
 EVALS = os.path.join(ROOT, "evals")
 
 TOP = ("schema_version", "name", "runs")

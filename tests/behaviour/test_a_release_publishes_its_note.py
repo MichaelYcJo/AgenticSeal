@@ -13,9 +13,14 @@ The workflow is read as `tests/workflows.py#load` parses it, so a setting
 that stands only in a comment is no setting.
 """
 
+import os
+
+from conftest import census_case
 from workflows import load
 
-WORKFLOW = ".github/workflows/publish-release.yml"
+TARGET = ".github/workflows/publish-release.yml"
+
+WORKFLOW = os.path.join(*TARGET.split("/"))
 
 
 def strings(node):
@@ -161,3 +166,6 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     # The bot's address in the environment binding, which the commit the
     # script makes carries as its author.
     assert "+github-actions[bot]@" in said.get("GIT_AUTHOR_EMAIL", ""), said
+
+
+test_census = census_case(TARGET)

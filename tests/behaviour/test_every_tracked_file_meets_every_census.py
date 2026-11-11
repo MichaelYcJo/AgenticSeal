@@ -3,8 +3,8 @@ module file runs the censuses over itself.
 
 A module file runs every census over its own target through
 `test_census = census_case(TARGET)`. The sweep here runs them over every
-other tracked file, the documents and every module not yet in the layout,
-and lists the tracked files once. It came, unchanged, from
+other tracked file, the documents and every module no module file
+declares, and lists the tracked files once. It came, unchanged, from
 `tests/test_censuses.py`, which keeps each census's own cases over files they
 write into a temporary root.
 """
@@ -16,6 +16,8 @@ import os
 import censuses
 from conftest import ROOT, git_listing, on_disk
 
+# No TARGET: its case runs every census over each tracked file no module file declares.
+
 _LAYOUT = importlib.util.spec_from_file_location(
     "agentic_layout_for_censuses",
     os.path.join(ROOT, "skills", "verify", "scripts", "test_layout.py"),
@@ -26,7 +28,7 @@ _LAYOUT.loader.exec_module(layout)
 
 def test_every_file_no_module_file_declares_meets_every_census():
     """The censuses over every tracked file whose module file does not run
-    them itself: the documents, and every module not yet in the layout."""
+    them itself: the documents, and every module no module file declares."""
     tracked, _missing = on_disk(ROOT, git_listing(ROOT, "ls-files", check=True))
     assert tracked, "git ls-files listed no tracked file, so the sweep judged nothing"
     declared = set()

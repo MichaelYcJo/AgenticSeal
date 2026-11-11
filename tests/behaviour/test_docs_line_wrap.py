@@ -38,6 +38,8 @@ import unicodedata
 import pytest
 from conftest import ROOT
 
+# No TARGET: its cases read every policy document and each document COVERED lists.
+
 LIMIT = 88
 
 

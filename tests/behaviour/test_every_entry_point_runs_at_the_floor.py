@@ -22,6 +22,8 @@ from censuses import matches, ruff_targets
 from conftest import ROOT, decline_if_shrunken, git_listing, on_disk, read
 from test_launch import LAUNCH, load
 
+# No TARGET: its cases hold the Python floor across lib/launch.py, the runner, ruff.toml, every wrapper under bin/ and what the hooks run.
+
 BIN = os.path.join(ROOT, "bin")
 RUNNER = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
 RUFF = os.path.join(ROOT, "ruff.toml")

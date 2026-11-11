@@ -16,6 +16,8 @@ from conftest import ROOT
 from test_payload_meter import run, write
 from test_release_report import report, rows_of
 
+# No TARGET: its cases list every definition under agents/ and every policy document under docs/.
+
 
 class Test_release_report:
     def test_the_table_reads_this_tree_against_the_last_tag(self):

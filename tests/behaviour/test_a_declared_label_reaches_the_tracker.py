@@ -30,6 +30,8 @@ from conftest import ROOT, read
 from test_tracker_labels import OWNER
 from workflows import load
 
+# No TARGET: its cases hold the label rule across .github/workflows/close-issues-on-release.yml and docs/releasing/issues-and-milestones.md.
+
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "close-issues-on-release.yml")
 
 

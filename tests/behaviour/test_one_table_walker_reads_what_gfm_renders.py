@@ -14,6 +14,8 @@ CommonMark and GFM block kinds, are `tests/lib/test_tables.py`'s
 import gfm_table_oracle as oracle
 from conftest import imported_roots
 
+# No TARGET: its cases hold tests/gfm_table_oracle.py, a helper of the suite that ships nothing and has no module file of its own.
+
 # --- the oracle is independent ---------------------------------------------
 
 

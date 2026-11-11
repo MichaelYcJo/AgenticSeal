@@ -22,6 +22,8 @@ from conftest import (
     read,
 )
 
+# No TARGET: its cases walk every scanned document of the tree for the roots' old names.
+
 SCANNED = (
     ".github/workflows",
     "templates",

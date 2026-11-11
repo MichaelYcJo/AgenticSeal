@@ -13,6 +13,8 @@ import conftest
 from conftest import posix_id
 from test_conftest import TESTS
 
+# No TARGET: its cases walk every Python file under tests/.
+
 
 def python_files(top):
     """The path of every Python file under TOP, `__pycache__` left out, in

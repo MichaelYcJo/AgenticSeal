@@ -26,6 +26,8 @@ import sys
 
 from conftest import ROOT, flat
 
+# No TARGET: its cases hold seal mutate's command and bound across agents/crafter.md, skills/verify/seal-mutate.md and the script's constant.
+
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
 
 

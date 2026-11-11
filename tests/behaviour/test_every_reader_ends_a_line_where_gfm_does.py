@@ -32,6 +32,8 @@ import sys
 
 from conftest import ROOT, texts
 
+# No TARGET: its cases hold one line splitter across lib/blocks.py and skills/verify/scripts/coordinates.py.
+
 READER = os.path.join(ROOT, "lib", "blocks.py")
 CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 

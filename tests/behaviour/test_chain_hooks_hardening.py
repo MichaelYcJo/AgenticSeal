@@ -17,6 +17,8 @@ import sys
 import pytest
 from conftest import ROOT, git_listing, shell_probe
 
+# No TARGET: its cases hold what the plugin ships across its packaging, both READMEs, the skills and the agent definitions.
+
 # --- packaging sanity ------------------------------------------------------
 
 # The two entries `hooks/hooks.json` registers, each event's matcher (None
