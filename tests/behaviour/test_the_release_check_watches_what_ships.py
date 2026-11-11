@@ -27,7 +27,8 @@ import re
 import subprocess
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, code_lines, read
+from workflows import load
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 RELEASE_DOC = os.path.join(ROOT, "docs", "releasing", "branch-and-release.md")
@@ -74,10 +75,7 @@ STAYS_HOME = {
 
 def ships_pattern():
     """The regex the step filters the diff's file list through, verbatim."""
-    text = read(WORKFLOW)
-    assert STEP in text, f"hygiene.yml no longer has a step named {STEP!r}"
-    step = text.split(STEP, 1)[1].split("- name:", 1)[0]
-    found = re.search(r"grep -E '(\^\([^']*\)/)'", step)
+    found = re.search(r"grep -E '(\^\([^']*\)/)'", release_step())
     assert found, "the step no longer filters the file list with grep -E '^(...)/'"
     return re.compile(found.group(1))
 
@@ -175,12 +173,15 @@ def test_the_release_document_names_the_same_roots():
 
 
 def release_step():
-    """The step's body, from its `- name:` to the next one at the same indent."""
-    text = read(WORKFLOW)
-    start = text.index(f"- name: {STEP}")
-    rest = text[start + 1 :]
-    end = rest.find("\n      - name:")
-    return rest[: end if end != -1 else len(rest)]
+    """The script of the one step called STEP, with its shell comments off."""
+    steps = [
+        step
+        for job in load(WORKFLOW)["jobs"].values()
+        for step in job["steps"]
+        if step.get("name") == STEP
+    ]
+    assert len(steps) == 1, f"hygiene.yml has {len(steps)} steps named {STEP!r}"
+    return "\n".join(code_lines(steps[0]["run"]))
 
 
 def refusal():

@@ -22,6 +22,7 @@ import re
 
 import pytest
 from conftest import ROOT, code_lines, load_module, read
+from workflows import load
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
@@ -37,17 +38,17 @@ def gate_module():
 # question differently, each correct on its own, with nothing in the tree
 # comparing them.
 
-# Every place the workflow names a base, not only the ones spelled as a
-# quoted argument at the start of a line. The value may be quoted or bare,
-# and a bare one can carry a `${{ … }}` expression with spaces inside it, so
-# the unquoted alternative treats such an expression as part of one token.
-# An `env:` assignment counts: `.github/workflows/hygiene.yml` already names
-# a base that way at its milestone step, and a `run:` block reading `$BASE`
-# is as much a reader of the base as one spelling it on a command line.
+# Every place a script of the workflow names a base, not only the ones
+# spelled as a quoted argument at the start of a line. The value may be quoted
+# or bare, and a bare one can carry a `${{ … }}` expression with spaces inside
+# it, so the unquoted alternative treats such an expression as part of one
+# token. An `env:` assignment counts too: `.github/workflows/hygiene.yml`
+# already names a base that way at its milestone step, and a `run:` block
+# reading `$BASE` is as much a reader of the base as one spelling it on a
+# command line.
 BASE_ARGUMENT = re.compile(
     r"(?:--baseline|--range)\s+(?:\"([^\"]*)\"|((?:\$\{\{[^}]*\}\}|\S)+))"
 )
-BASE_ENVIRONMENT = re.compile(r"^\s*BASE:\s*(\S.*?)\s*$")
 # A step that passes the base through a shell variable names the `env:`
 # assignment, which this reader checks on its own — requiring the
 # remote-tracking spelling here as well would turn the case red for a
@@ -56,42 +57,47 @@ SHELL_VARIABLE = re.compile(r'^"?\$\{?BASE\}?"?$')
 REMOTE_TRACKING = "origin/${{ github.base_ref }}"
 
 
-def base_spellings(text):
-    """Every revision `text` names as a base, as it spells it.
+def base_spellings(workflow):
+    """Every revision the loaded `workflow` names as a base, as it spells it,
+    in the order the file writes them.
 
-    Takes text rather than reading the file, so the reader itself can be
-    driven over shapes the workflow does not happen to use today — round 1's
-    finding 4 was that a reader nothing drives is a reader nobody can tell is
-    partial.
+    Takes a loaded workflow rather than reading the file, so the reader
+    itself can be driven over shapes the workflow does not happen to use
+    today — round 1's finding 4 was that a reader nothing drives is a reader
+    nobody can tell is partial.
 
-    **Code lines only** (#462), through `tests/conftest.py#code_lines`, so a
-    flag in a whole-line or a trailing comment is not a base. **A `BASE:`
-    counts only as a key of an `env:` mapping**: the nearest shallower code
-    line above it is `env:`, so one under `with:` or inside a `run: |` block
-    is not a base. **An empty quoted value is `""`, never `None`** (#463), so
-    the spelling check fails on it by name the way it fails on every other
-    malformed spelling, rather than raising `TypeError`.
+    **A `BASE:` counts only as a key of an `env:` mapping**, the workflow's,
+    a job's or a step's, so one under `with:` or inside a `run:` script is
+    not a base. **A script's code lines only** (#462), through
+    `tests/conftest.py#code_lines`: the parser drops YAML's comments, and a
+    flag in a shell comment inside a script is not a base either. **An empty
+    quoted value is `""`, never `None`** (#463), so the spelling check fails
+    on it by name the way it fails on every other malformed spelling, rather
+    than raising `TypeError`.
     """
     found = []
-    lines = code_lines(text)
-    for n, line in enumerate(lines):
-        for match in BASE_ARGUMENT.finditer(line):
-            quoted, bare = match.group(1), match.group(2)
-            found.append(quoted if quoted is not None else bare)
-        environment = BASE_ENVIRONMENT.match(line)
-        if environment and keyed_under_env(lines, n):
-            found.append(environment.group(1))
+
+    def read_keys(mapping):
+        for key, value in mapping.items():
+            if key == "env" and "BASE" in value:
+                found.append(value["BASE"])
+            elif key == "run":
+                for line in code_lines(value):
+                    for match in BASE_ARGUMENT.finditer(line):
+                        quoted, bare = match.group(1), match.group(2)
+                        found.append(quoted if quoted is not None else bare)
+
+    read_keys(workflow)
+    for job in workflow["jobs"].values():
+        read_keys(job)
+        for step in job.get("steps", []):
+            read_keys(step)
     return found
 
 
-def keyed_under_env(lines, n):
-    """Whether the nearest code line above `lines[n]` that is shallower than
-    it is `env:`, which makes `lines[n]` a key of that mapping."""
-    depth = len(lines[n]) - len(lines[n].lstrip())
-    for above in reversed(lines[:n]):
-        if above.strip() and len(above) - len(above.lstrip()) < depth:
-            return above.strip() == "env:"
-    return False
+def as_workflow(*steps):
+    """A loaded workflow of one job whose steps are STEPS."""
+    return {"jobs": {"job": {"steps": list(steps)}}}
 
 
 def assert_every_base_is_remote_tracking(spellings):
@@ -116,7 +122,7 @@ def workflow_base_arguments():
     fourth base-taking step is added without it, because the earlier three
     still carry the string — so each occurrence is read on its own.
     """
-    found = base_spellings(read(HYGIENE))
+    found = base_spellings(load(HYGIENE))
     assert found, "the hygiene workflow names no base at all"
     return found
 
@@ -253,26 +259,31 @@ def test_the_documents_name_the_panel_row_the_gate_actually_prints():
 # while `trail/phases/phase-4.md` and the changelog claimed all of them.
 WORKFLOW_SHAPES = [
     (
-        '            --baseline "origin/${{ github.base_ref }}" seal/threads/',
+        {
+            "run": 'python3 x.py \\\n  --baseline "origin/${{ github.base_ref }}" seal/threads/\n'
+        },
         "origin/${{ github.base_ref }}",
     ),
     (
-        '          python3 x.py --baseline "origin/${{ github.base_ref }}" specs/',
+        {"run": 'python3 x.py --baseline "origin/${{ github.base_ref }}" specs/\n'},
         "origin/${{ github.base_ref }}",
     ),
     (
-        "            --baseline origin/${{ github.base_ref }}",
+        {"run": "python3 x.py \\\n  --baseline origin/${{ github.base_ref }}\n"},
         "origin/${{ github.base_ref }}",
     ),
-    ('            --baseline "$BASE"', "$BASE"),
+    ({"run": 'python3 x.py --baseline "$BASE"\n'}, "$BASE"),
     # A `BASE:` is a base only as a key of `env:` (#462), so the shape
     # carries the mapping it stands in.
     (
-        "        env:\n          BASE: origin/${{ github.base_ref }}",
+        {"env": {"BASE": "origin/${{ github.base_ref }}"}},
         "origin/${{ github.base_ref }}",
     ),
     (
-        '            --range "origin/${{ github.base_ref }}...HEAD" ${exempt[@]+"${exempt[@]}"}',
+        {
+            "run": 'python3 x.py --range "origin/${{ github.base_ref }}...HEAD" '
+            '${exempt[@]+"${exempt[@]}"}\n'
+        },
         "origin/${{ github.base_ref }}...HEAD",
     ),
 ]
@@ -283,9 +294,9 @@ def test_the_workflow_reader_sees_every_shape_a_base_is_spelled_in():
     line as its command, the value unquoted, a shell variable, an `env:`
     assignment, and a range. A reader that sees only the first shape passes
     while a step added in any of the others goes unread."""
-    for line, expected in WORKFLOW_SHAPES:
-        found = base_spellings(line)
-        assert found == [expected], f"{line!r} was read as {found}"
+    for step, expected in WORKFLOW_SHAPES:
+        found = base_spellings(as_workflow(step))
+        assert found == [expected], f"{step!r} was read as {found}"
 
 
 def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
@@ -309,10 +320,10 @@ def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
 # --- #462, #463: what the reader counts, driven over one fixture ------------
 
 # Every shape #462 names, in one workflow: a flag in a whole-line comment, a
-# flag in a trailing comment, a `BASE:` under `with:` and one inside a
-# `run: |` block beside the one `env:` carries, and an empty quoted value.
-# Neutral values only (`CONTRIBUTING.md` *House rules*, *No real
-# identifiers*).
+# flag in a trailing comment, a flag in a shell comment inside a script, a
+# `BASE:` under `with:` and one inside a `run: |` block beside the one `env:`
+# carries, and an empty quoted value. Neutral values only (`CONTRIBUTING.md`
+# *House rules*, *No real identifiers*).
 MISLEADING_WORKFLOW = """\
 jobs:
   release:
@@ -327,26 +338,35 @@ jobs:
           BASE: not-a-base-under-with
         run: |
           BASE: not-a-base-inside-run
-          y --baseline "$BASE"
+          # --baseline origin/in-a-script
+          y --baseline "$BASE"  # --baseline after-the-command
       - name: an empty base
         run: z --baseline ""
 """
 
 
-def test_a_flag_in_a_comment_is_not_a_base():
-    """B1, #462. Whole-line and trailing comments are not code, so neither
-    `origin/other` nor `bar` is read; the flag before the trailing comment
+def misleading(tmp_path):
+    """MISLEADING_WORKFLOW, written under TMP_PATH and loaded."""
+    path = tmp_path / "misleading.yml"
+    path.write_text(MISLEADING_WORKFLOW, encoding="utf-8")
+    return load(str(path))
+
+
+def test_a_flag_in_a_comment_is_not_a_base(tmp_path):
+    """B1, #462. Whole-line and trailing comments are not code, in the YAML
+    or in a script, so neither `origin/other`, `bar`, `origin/in-a-script`
+    nor `after-the-command` is read; the flag before the trailing comment
     is."""
-    found = base_spellings(MISLEADING_WORKFLOW)
-    assert "origin/other" not in found, found
-    assert "bar" not in found, found
+    found = base_spellings(misleading(tmp_path))
+    for comment in ("origin/other", "bar", "origin/in-a-script", "after-the-command"):
+        assert comment not in found, found
     assert "foo" in found, found
 
 
-def test_only_a_base_keyed_under_env_is_a_base():
+def test_only_a_base_keyed_under_env_is_a_base(tmp_path):
     """B2, #462. The `BASE:` under `env:` counts; the one under `with:` and
     the one inside a `run: |` block do not. The whole reading, in order."""
-    assert base_spellings(MISLEADING_WORKFLOW) == [
+    assert base_spellings(misleading(tmp_path)) == [
         "foo",
         REMOTE_TRACKING,
         "$BASE",
@@ -359,7 +379,7 @@ def test_an_empty_base_fails_the_spelling_check_by_name():
     workflow's spellings are held to fails with `AssertionError` naming the
     value, the way every other malformed spelling fails, and never with
     `TypeError`."""
-    found = base_spellings('        run: z --baseline ""')
+    found = base_spellings(as_workflow({"run": 'z --baseline ""'}))
     assert found == [""], found
     with pytest.raises(AssertionError, match="''"):
         assert_every_base_is_remote_tracking(found)

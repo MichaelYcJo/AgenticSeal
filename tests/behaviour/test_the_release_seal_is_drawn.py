@@ -10,8 +10,9 @@ functions in `tests/github/test_release_seal.py`.
 
 import os
 
-from conftest import ROOT, flat
+from conftest import ROOT, code_lines, flat
 from conftest import load_module as load
+from workflows import load as load_workflow
 
 
 def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
@@ -22,15 +23,16 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
     runner = load(
         os.path.join(ROOT, ".github", "scripts", "run_tests.py"), "rt_for_seal"
     )
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "publish-release.yml"),
-        encoding="utf-8",
-    ) as handle:
-        installs = [
-            line.split("run:", 1)[1].split()
-            for line in handle
-            if "run: pip install" in line
-        ]
+    workflow = load_workflow(
+        os.path.join(".github", "workflows", "publish-release.yml")
+    )
+    installs = [
+        line.split()
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        for line in code_lines(step.get("run", ""))
+        if line.split()[:2] == ["pip", "install"]
+    ]
     assert len(installs) == 1, installs
     assert runner.MARKDOWN_IT in installs[0], installs
     assert not any(word.lower().startswith("pillow") for word in installs[0]), installs

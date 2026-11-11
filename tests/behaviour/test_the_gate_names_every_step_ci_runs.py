@@ -39,11 +39,13 @@ repository, `coverage_line`'s and `base_is_main`'s. The cases here read
 which #923 places.
 """
 
+import copy
 import os
 import re
 
-from conftest import ROOT, load_module, read, workflow_step
+from conftest import ROOT, code_lines, load_module, read
 from test_broad_gate import reasons
+from workflows import load
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
@@ -169,31 +171,29 @@ SKIPS_AT_MAIN = re.compile(
 )
 
 
-def step_text(text, name):
-    """The lines of the step called `name`, from its `- name:` line to the
-    next step's, as one string."""
-    lines = text.splitlines(keepends=True)
-    start = next(i for i, line in enumerate(lines) if line.strip() == f"- name: {name}")
-    end = next(
-        (
-            i
-            for i in range(start + 1, len(lines))
-            if lines[i].lstrip().startswith("- ")
-            and len(lines[i]) - len(lines[i].lstrip())
-            == len(lines[start]) - len(lines[start].lstrip())
-        ),
-        len(lines),
-    )
-    return "".join(lines[start:end])
+def release_steps(workflow):
+    """The steps of the loaded WORKFLOW's `release` job."""
+    return workflow["jobs"][gate.RELEASE_JOB]["steps"]
 
 
-def mirrored_steps_skipping_at_main(text):
+def release_scripts(workflow):
+    """{step name: its script, shell comments off} for the named steps of the
+    loaded WORKFLOW's `release` job."""
+    return {
+        step["name"]: "\n".join(code_lines(step.get("run", "")))
+        for step in release_steps(workflow)
+        if "name" in step
+    }
+
+
+def mirrored_steps_skipping_at_main(workflow):
     """The mirrored `release` steps whose `run:` exits on a pull request
     into `main`."""
+    scripts = release_scripts(workflow)
     return {
         name
         for name, arm, _ in gate.PARTITION
-        if arm and SKIPS_AT_MAIN.search(step_text(text, name))
+        if arm and SKIPS_AT_MAIN.search(scripts[name])
     }
 
 
@@ -202,13 +202,13 @@ def test_every_mirrored_step_runs_at_every_base():
     `main` would be a step the release seal answers and CI does not ask. None
     does; the reader is shown able to find one by planting a guard in a copy
     of the workflow."""
-    text = read(HYGIENE)
-    assert mirrored_steps_skipping_at_main(text) == set()
+    workflow = load(HYGIENE)
+    assert mirrored_steps_skipping_at_main(workflow) == set()
     name = "a declared review chain has the round record it claimed"
-    step = step_text(text, name)
+    planted = copy.deepcopy(workflow)
+    (step,) = [s for s in release_steps(planted) if s.get("name") == name]
     guard = 'if [ "${{ github.base_ref }}" = "main" ]; then\n  exit 0\nfi\n'
-    planted = text.replace(step, step.replace("run: |\n", "run: |\n" + guard, 1))
-    assert planted != text, "the plant did not land"
+    step["run"] = guard + step["run"]
     assert mirrored_steps_skipping_at_main(planted) == {name}
 
 
@@ -222,12 +222,12 @@ RUNS_ONLY_AT_MAIN = re.compile(
 )
 
 
-def steps_guarded_off_main(text):
+def steps_guarded_off_main(workflow):
     """The `release` steps whose `run:` exits on a base that is not `main`."""
     return {
         name
-        for name in gate.job_steps(text, gate.RELEASE_JOB)
-        if RUNS_ONLY_AT_MAIN.search(workflow_step(text, name))
+        for name, script in release_scripts(workflow).items()
+        if RUNS_ONLY_AT_MAIN.search(script)
     }
 
 
@@ -238,18 +238,21 @@ def test_the_steps_left_out_off_main_are_the_steps_guarded_off_main():
     around, so a guard added to a third step, or dropped from one of the
     two, fails here. The gather's step was the third until #1053 removed
     it."""
-    text = read(HYGIENE)
-    guarded = steps_guarded_off_main(text)
+    workflow = load(HYGIENE)
+    guarded = steps_guarded_off_main(workflow)
     assert guarded, "no step is guarded off main, so the reader found nothing"
     assert guarded == set(gate.ONLY_AT_MAIN), (
         f"the workflow guards these steps off `main`: {sorted(guarded)}, and "
         f"`ONLY_AT_MAIN` holds {sorted(gate.ONLY_AT_MAIN)}"
     )
     assert len(gate.ONLY_AT_MAIN) == len(set(gate.ONLY_AT_MAIN)) == 2
-    flipped = text.replace('" != "main" ]', '" = "main" ]', 1)
-    assert flipped != text and steps_guarded_off_main(flipped) != set(
-        gate.ONLY_AT_MAIN
-    ), "turning one guard around did not move the reader"
+    flipped = copy.deepcopy(workflow)
+    turned = [s for s in release_steps(flipped) if '" != "main" ]' in s.get("run", "")]
+    assert turned, "no step's guard was there to turn around"
+    turned[0]["run"] = turned[0]["run"].replace('" != "main" ]', '" = "main" ]', 1)
+    assert steps_guarded_off_main(flipped) != set(gate.ONLY_AT_MAIN), (
+        "turning one guard around did not move the reader"
+    )
 
 
 FEATURE_UNANSWERED = (
