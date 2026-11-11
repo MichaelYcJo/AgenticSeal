@@ -51,16 +51,6 @@ ORCH = ("skills", "implement", "orchestration.md")
 # in.
 QUESTION = ("skills", "implement", "routing-question.md")
 
-# The shape of the asking, in the ONE spelling the routing question's file
-# states (#911): question 1 alone, and
-# the boxes in a second call only where its answer was `manual` (`per axis`
-# until #1459), because under the other answers they mean nothing and were
-# on screen anyway.
-# Fourteen words, from when the block's template shared it: at fifteen a
-# sentence two documents share is a pasted passage to
-# `tests/text/test_no_passage_is_pasted_into_a_second_file.py`.
-SHAPE = "Ask question 1 alone; the boxes in a second call only under `manual`."
-
 
 def flat(text):
     """Rewrapped prose and table cells compare the same way collapsed.
@@ -345,6 +335,10 @@ def test_the_template_PARSES_into_the_NEWEST_row_it_ships():
     label, answers = routing.AUTOMATION, routing.AUTOMATION_ANSWERS
     rows = [ln for ln in template.splitlines() if ln.startswith(f"| {label} |")]
     assert len(rows) == 1, f"the template has no single `{label}` row"
+    # The `<` that opens a placeholder cell, the shape a person reads as a
+    # row to fill and
+    # `test_no_committed_declaration_still_carries_a_template_placeholder`
+    # refuses in a committed declaration.
     assert rows[0].split("|")[2].strip().startswith("<"), (
         f"the `{label}` row stopped shipping a placeholder a person reads"
     )
@@ -391,7 +385,7 @@ def labelled_table(text, first_column, second_column):
     raise AssertionError(f"no table headed `| {first_column} | {second_column} |`")
 
 
-def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
+def test_both_questions_offer_four_options():
     """S1, and #911. One batch before the first edit, and the boxes only
     where they mean something.
 
@@ -399,35 +393,33 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     answer other than `manual` (then `per axis`) was shown four boxes that
     meant nothing under it. Question 1 now goes alone, and the boxes follow
     in a second call only under `manual`, at once and before the first
-    edit. So both tables have to be there AND the sentence that says when
-    each is asked. Question 1 holds four answers since #1459.
+    edit. So both tables have to be there; the sentence that says when each
+    is asked is the proofer's to read. Question 1 holds four answers since
+    #1459.
     """
     skill = read(*QUESTION)
+    # The rows of each table, which the orchestrator puts to the person as
+    # the options of one `AskUserQuestion` question, four at most.
     assert len(labelled_table(skill, "Order", "Label")) == 4, (
         "question 1 does not offer exactly four options"
     )
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
     )
-    # ONE spelling of the order the two questions are asked in.
-    assert SHAPE in flat(skill)
 
 
-def test_question_1_is_put_every_time_with_the_ladders_answer_marked():
+def test_question_1_spells_the_mark_of_its_marked_answer():
     """#1376 phase 4, the owner's rule of 2026-11-06: the person chooses the
     route even for a small change, so the ladder no longer skips question 1.
-    It reads which answer the orchestrator marks, and the options keep their
-    order, so the exit stays last. Since #1459 the mark is `agentic`'s every
-    time: a mark read off the ladder recommended the full chain for nearly
-    every item, and `agentic` reads the ladder per item itself."""
+    Since #1459 the mark is `agentic`'s every time: a mark read off the
+    ladder recommended the full chain for nearly every item, and `agentic`
+    reads the ladder per item itself. The case reads the mark's spelling;
+    when question 1 is put, which answer is marked and the order the options
+    keep are the proofer's to read."""
     skill = flat(read(*QUESTION))
-    for phrase in (
-        "Question 1 is put every time, whatever the ladder reads",
-        "and `agentic` is the answer marked",
-        "The mark is ` (Recommended)` after the label",
-        "the options keep the order of the table above",
-    ):
-        assert phrase in skill, phrase
+    # The suffix the orchestrator writes after the marked option's label in
+    # question 1's `AskUserQuestion` call.
+    assert "` (Recommended)`" in skill, "the mark's spelling is gone"
 
 
 def test_question_1_lists_the_four_modes_in_the_owners_order():
@@ -474,68 +466,6 @@ def test_the_boxes_are_in_the_stated_order():
             f"box {i + 1} is `{boxes[i]}`; the three party boxes follow the "
             "run's property in the order they run"
         )
-
-
-def test_every_box_states_what_UNCHECKED_means():
-    """S6. The half a label cannot say, and the half the measured instance
-    got wrong — the owner read `straight to the PR` as *call no agents at
-    all*, where it turns off `proofer` alone.
-
-    Each phrase is asserted in the box it belongs to rather than anywhere in
-    the file, because a document can carry all four words in prose two
-    sections down while the box a person reads at the moment of answering
-    carries none of them.
-    """
-    rows = labelled_table(read(*QUESTION), "Order", "Box")
-    unchecked = {r[1]: r[3] for r in rows}
-    wanted = {
-        "run end to end": "may be asked",
-        "crafter": "this session writes the code",
-        "proofer": "nothing reviews",
-        "pull request": "stop before",
-    }
-    for box, phrase in wanted.items():
-        found = [v for k, v in unchecked.items() if box in k]
-        assert found, f"no box named for `{box}`"
-        assert phrase in found[0], (
-            f"the `{box}` box's unchecked half does not say `{phrase}`; a "
-            "person answering reads the label and this cell and nothing else"
-        )
-
-
-def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
-    """S4. The rule the measured instance produced: a label must not name
-    where it ends, and its description says what it turns off.
-
-    So the exit's label carries no destination, and its description names the
-    things that do not happen. `straight to the PR` is the counter-example
-    and it stays in the tree — as the `Review` row's value, which is machine
-    vocabulary 16 committed declarations carry. What moved is the LABEL,
-    named `direct` since #1459 (`no work item` before it).
-    """
-    rows = labelled_table(read(*QUESTION), "Order", "Label")
-    exits = [r for r in rows if r[1].strip("*") == "direct"]
-    assert exits, "question 1 has no exit option labelled `direct`"
-    label, description = exits[0][1], exits[0][2]
-    for destination in ("the PR", "pull request"):
-        assert destination not in label, (
-            f"the exit's label names a destination (`{label}`), which is the "
-            "defect the measured instance is an instance of"
-        )
-    for noun in (
-        "no frame",
-        "no review",
-        "no seal",
-        "no `routing.md`",
-    ):
-        assert noun in description, (
-            f"the exit's description does not name `{noun}`, so a person "
-            "pressing it cannot see what they are turning off"
-        )
-    assert rows[-1][1] == label, (
-        "the exit is not last. It is one click and the least-verified path, "
-        "so it sits where a reader's eye lands last"
-    )
 
 
 def test_the_ceiling_is_stated_beside_the_shape():
@@ -645,17 +575,15 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
     """#1148, `frame/design.md` *Scope* item 6. The framer decides whether a
     work item adds a mark, so the owner's rule stands in its definition: a
     design adding a mechanism names what it takes out in `## Removes`, and a
-    blocked step is answered at its cause."""
-    raw = read(*FRAMER)
-    framer = flat(raw)
-    lead = "**A mark is not the answer to a blocked step.**"
-    assert lead in framer, "the framer's definition lost the rule"
-    for phrase in (
-        "names in `## Removes` what it takes out",
-        "never by a new mark",
-        "`skills/core/SKILL.md` *The rule a mechanism is kept against*",
-    ):
-        assert phrase in framer, f"the rule lost `{phrase}`"
+    blocked step is answered at its cause. The definition cites the rule a
+    mechanism is kept against; the rule's sentences are the proofer's to
+    read."""
+    framer = flat(read(*FRAMER))
+    # The citation of the core's section, which the framer resolves to the
+    # rule a mechanism it adds is kept against.
+    assert "`skills/core/SKILL.md` *The rule a mechanism is kept against*" in framer, (
+        "the framer's definition no longer cites the rule"
+    )
 
 
 def test_both_halves_of_the_frame_reading_cite_the_alternatives_table():

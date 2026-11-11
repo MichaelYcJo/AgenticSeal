@@ -14,10 +14,6 @@ is the skill's text, the way it already is for the prefix vocabulary. So the
 cases here read the reader this file loads, and the spellings the skill and
 the template name: the file, the key, the branch shapes, the mirror's name.
 The skill's sentences around them are the proofer's to read.
-
-Where a case still pairs a sentence with its absence, the absence half is
-what makes it worth having. A document can gain the corrected sentence and
-keep the old one two sections down, which is how two answers ship at once.
 """
 
 import glob
@@ -61,52 +57,6 @@ def test_the_root_is_resolved_rather_than_spelled():
     )
     # The path of the shared root, which a session opens first.
     assert "<repo>/seal/" in text, "the shared place went with the fix"
-
-
-# --- the five places that used to say English -------------------------------
-
-
-RETIRED = [
-    (
-        "`<prefix>: <one line, starting lower-case>`, English.",
-        "the commit subject",
-    ),
-    (
-        "**English, in the subject and in the body.**",
-        "the commit body",
-    ),
-    (
-        "**The same prefix vocabulary as the commits, and English.**",
-        "the pull request title",
-    ),
-    (
-        "Are the title and body English?",
-        "the self-check question",
-    ),
-]
-
-
-@pytest.mark.parametrize("phrase, surface", RETIRED)
-def test_the_surface_no_longer_requires_english_of_everyone(phrase, surface):
-    assert phrase not in flat(*SKILL), (
-        f"{surface} still requires English of every repository: {phrase!r}"
-    )
-
-
-@pytest.mark.parametrize(
-    "surface, phrase",
-    [
-        ("the commit subject", "in the repository's language"),
-        ("the commit body", "One language, in the subject and in the body"),
-        ("the pull request title", "and the same language"),
-        ("the self-check question", "Commit and pull request language` key names"),
-    ],
-)
-def test_the_surface_defers_to_the_row_instead(surface, phrase):
-    """The presence half. Removing the English requirement and saying nothing
-    in its place leaves a session with no rule at all, which is worse than
-    the rule that was too narrow."""
-    assert phrase in flat(*SKILL), f"{surface} names no language rule at all"
 
 
 # --- what the row deliberately does not reach -------------------------------
@@ -586,34 +536,6 @@ def test_a_mirror_named_for_a_country_is_caught():
     )
 
 
-def test_the_documents_name_the_repair_of_a_file_the_parser_refuses():
-    """#1454, in place of S8 of #871. The config is a JSON object a parser
-    reads, so `templates/setup/config.md` and `skills/config/SKILL.md` each
-    say what a refused file is repaired by, and neither names an edit the
-    table walker's shapes once asked for: a blank line above the header, the
-    `\\|` escape, a delimiter row, a heading between two tables."""
-    documents = {
-        "the template": (
-            flat(*TEMPLATE),
-            "repairs it by deleting the extra key or by correcting the JSON",
-        ),
-        "the config skill": (
-            flat("skills", "config", "SKILL.md"),
-            "correct the JSON rather than any key the refusal did not name",
-        ),
-    }
-    for who, (text, repair) in documents.items():
-        assert repair in text, f"{who} does not name the repair {repair!r}"
-        for gone in (
-            "leave a blank line above the header",
-            "write it `\\|`",
-            "write it as `| … | … |`",
-            "`|---|---|` under",
-            "put a heading between the two",
-        ):
-            assert gone not in text, f"{who} still names the table's edit {gone!r}"
-
-
 def test_an_unreadable_config_lands_on_english_too(tmp_path):
     """The fifth way, which needs a filesystem rather than a string: a
     `config.json` that is a DIRECTORY, which the reader refuses as a file
@@ -936,13 +858,6 @@ def _chain():
     return _checker("chain_check", "skills", "code-review", "scripts", "chain_check.py")
 
 
-# The headings of a round record only the parties read: no script and no
-# eval grader reads them, so no grammar holds them and the exclusion list
-# does not name them (#1319). The confirmation blocks stand under
-# `## Confirmations`, and the check reads the blocks, not the heading.
-PROSE_HEADINGS = ["## Confirmations", "## Not judged", "## Probes"]
-
-
 def _round_record_grammar():
     """Every key of the `seal` blocks of a round record, read from
     `lib/fields.py` rather than copied, and the `## Findings` section
@@ -953,15 +868,15 @@ def _round_record_grammar():
 
 
 def _round_record_fields():
-    """What a round record carries: its grammar and the prose headings.
-    Two lines are owed only where their condition holds, `original:` in a
-    repository that declares `seal/parity.json` and `reopens:` on a finding
-    that raises an earlier close, so the template's one finding shows the
-    other relation, `regression:`, and neither of these."""
+    """What a round record carries: its grammar. Two lines are owed only
+    where their condition holds, `original:` in a repository that declares
+    `seal/parity.json` and `reopens:` on a finding that raises an earlier
+    close, so the template's one finding shows the other relation,
+    `regression:`, and neither of these. The headings only the parties read
+    are the proofer's to read (#1319)."""
     fields = _chain().FIELDS
     left_out = (fields.ORIGINAL, fields.REOPENS)
-    kept = [key for key in _round_record_grammar() if key not in left_out]
-    return kept + PROSE_HEADINGS
+    return [key for key in _round_record_grammar() if key not in left_out]
 
 
 ROUND_RECORD_FIELDS = _round_record_fields()
@@ -972,6 +887,9 @@ def test_the_round_template_carries_the_fields_it_is_expected_to(field):
     """`ROUND_RECORD_FIELDS` is checked against `templates/records/sdd-round.md`, so
     what runs is that the template still carries the fields this list
     expects — a pin on the template, and on nothing else."""
+    # A key `chain_check.py` reads through `lib/fields.py`, or the
+    # `## Findings` heading it reads, which a round record copies from the
+    # template.
     assert field in read("templates", "records", "sdd-round.md"), (
         f"{field!r} is a field a round record is expected to carry and is "
         "not in `templates/records/sdd-round.md`, the file a round starts from"

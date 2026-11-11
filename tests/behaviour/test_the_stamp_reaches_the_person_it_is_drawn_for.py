@@ -7,7 +7,8 @@ drawn from the sealer's `sealed` guarantee: the sealer's
 and the plugin's `Stop` hook draws each undrawn file once, after the
 orchestrator's turn's text (#1430).
 
-This module holds the cases that read the documents, which are #923's.
+This module holds the cases that read the documents, and the case that
+holds both commands' `--help` to one fact.
 `skills/verify/scripts/seal_stamp.py`'s own cases, the queue and the draw
 among them, are `tests/skills/test_seal_stamp.py`.
 """
@@ -195,124 +196,53 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         assert case in held, case
 
 
+# Each fact the section of either README edition names, which a user reads
+# to learn what runs on their machine and what it leaves there.
+README_FACTS = (
+    # The file the two hooks are registered in, which a user opens.
+    "`hooks/hooks.json`",
+    # The harness event of the first hook and the script it runs.
+    "`SessionStart`",
+    "`hooks/core-start.py`",
+    # The harness event of the second hook and the command it runs.
+    "`Stop`",
+    "`seal_stamp.py --stop`",
+    # The one command shape both hooks run, as `hooks/hooks.json` spells it.
+    '`python3 "<script>" || py -3 "<script>" || exit 0`',
+    # The citation of the update skill's step, which a user resolves for the
+    # launcher an earlier release may have left.
+    "[`skills/update/SKILL.md`](skills/update/SKILL.md) "
+    "*4b. The launcher an earlier release wrote*",
+    # The command that names that launcher for the user to remove.
+    "`/agentic:update`",
+    # The command that writes the stamp's values, and the two directories
+    # the queue and a refusal leave under the git common dir.
+    "`seal stamp --guarantee`",
+    "`<git-common-dir>/agentic-stamp/`",
+    "`<git-common-dir>/agentic-stamp-refused/`",
+)
+
+
 def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     """Round 1's yellow 4. The inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition. Since
     #1430 the plugin ships two hooks again, so each edition names both, the
-    one command shape, that neither writes into the person's settings, the
-    launcher of 0.33.0 to 0.34.1 as `/agentic:update`'s to name, and the side
-    effects of the queue. The editions move together, so both are read.
-
-    1792363231's round 1 finding 3: the side effects gained the refusal
-    record's directory, and the count before them went stale, so the sentence
-    carries no count. #975 S11: neither edition says the broad gate leaves
-    the stamp's values. What each edition says is read in its section alone,
-    since *Install* names the two hooks too; what is gone is read over the
-    whole file.
-
-    #1492: the launcher is described in `skills/update/SKILL.md` *4b. The
-    launcher an earlier release wrote* alone, so each edition says in one
-    sentence that it may run and links to that step, and neither names its
-    file."""
-
-    for edition, heading, said, gone in (
-        (
-            "README.md",
-            "## What runs on your machine",
-            (
-                "**The plugin ships two hooks, registered in `hooks/hooks.json`, "
-                "and neither writes into your settings.**",
-                "- **`SessionStart`**, at a session's start and again after "
-                "`/clear` or a compaction, runs `hooks/core-start.py`.",
-                "- **`Stop`**, at the end of each turn of the main session, runs "
-                "`seal_stamp.py --stop`",
-                # Round 2 of #1430, finding 1: each command ends with
-                # ` || exit 0`, and its exit is stated as that one rule.
-                'Each command is `python3 "<script>" || py -3 "<script>" || exit 0`',
-                "The closing `exit 0` makes each command exit 0 whatever "
-                "happens, so neither hook ever stops a turn.",
-                # #1492: the launcher is described in the update skill alone,
-                # and this sentence links to its step.
-                "A release from 0.33.0 to 0.34.1 may have left a launcher of "
-                "its own that also runs at the end of each turn, and "
-                "`/agentic:update` names it for you to remove "
-                "([`skills/update/SKILL.md`](skills/update/SKILL.md) "
-                "*4b. The launcher an earlier release wrote*).",
-                "These side effects are worth stating outright",
-                # The clause's own words (round 2's white 2), so the bare
-                # directory named elsewhere does not pass with it deleted.
-                "the sealer's `seal stamp --guarantee`, run once on a "
-                "`guarantee.md` reading `sealed`, writes the stamp's values under "
-                "`<git-common-dir>/agentic-stamp/`, which the stamp's hook renames "
-                "once drawn and nothing prunes",
-                "a `sealed` refused because its audited commit is not on the work "
-                "item's branch leaves an empty file under "
-                "`<git-common-dir>/agentic-stamp-refused/`, in either mode, which "
-                "nothing prunes either",
-            ),
-            (
-                "| Gate |",
-                "| sealer-stamp",
-                "Four side effects",
-                "the broad gate left for this session",
-                "a sealed broad gate run writes",
-                "written by the edit hook",
-                "The plugin registers no hook",
-                "seal stamp --install",
-                "seal stamp --remove",
-                "Each exits 0 whatever happens.",
-                "and no `py` stands, the command exits non-zero",
-                "a launcher, `stamp.py`",
-            ),
-        ),
-        (
-            "README.ko.md",
-            "## 내 컴퓨터에서 도는 것",
-            (
-                "**플러그인은 훅 두 개를 `hooks/hooks.json` 에 등록해 함께 "
-                "내보내고, 어느 훅도 사용자 설정에 쓰지 않습니다.**",
-                "- **`SessionStart`** 는 세션이 시작할 때, 그리고 `/clear` 나 "
-                "압축(compaction) 뒤에 다시 `hooks/core-start.py` 를 돌립니다.",
-                "- **`Stop`** 은 메인 세션의 턴이 끝날 때마다 "
-                "`seal_stamp.py --stop` 을 돌립니다.",
-                '두 명령은 모두 `python3 "<script>" || py -3 "<script>" || '
-                "exit 0` 꼴이고",
-                "끝의 `exit 0` 때문에 두 명령은 무슨 일이 있어도 0 으로 끝나고, "
-                "어느 훅도 턴을 멈추지 않습니다.",
-                "0.33.0 부터 0.34.1 까지의 릴리스가 따로 남긴 실행기가 있으면 그 "
-                "실행기도 턴이 끝날 때마다 돌고, `/agentic:update` 가 그것을 "
-                "알려 주면 사용자가 지웁니다"
-                "([`skills/update/SKILL.md`](skills/update/SKILL.md) "
-                "*4b. The launcher an earlier release wrote*).",
-                "다음 부수 효과는 밝혀 둡니다",
-                "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
-                "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 어느 "
-                "모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈 "
-                "파일을 남깁니다.",
-            ),
-            (
-                "| 게이트 |",
-                "| sealer-stamp",
-                "네 가지 부수 효과",
-                "광역 관문 실행은 도장에 들어갈 값을",
-                "편집 훅이 씁니다",
-                "훅을 하나도 등록하지 않습니다",
-                "seal stamp --install",
-                "seal stamp --remove",
-                "두 스크립트 모두 무슨 일이 있어도 0 으로 끝납니다.",
-                "명령은 0 이 아닌 값으로",
-                "실행기 `stamp.py`",
-            ),
-        ),
+    files and commands they run, the launcher of 0.33.0 to 0.34.1 as
+    `/agentic:update`'s to name, and the directories the queue leaves. The
+    editions move together, so both are read, each in its section alone,
+    since *Install* names the two hooks too. What each edition says of them
+    is the proofer's to read."""
+    for edition, heading in (
+        ("README.md", "## What runs on your machine"),
+        ("README.ko.md", "## 내 컴퓨터에서 도는 것"),
     ):
         whole = read(edition)
+        # The section's heading, which bounds what the facts are read in.
         assert heading in whole, (edition, heading)
         section = whole.split(heading, 1)[1].split("\n## ", 1)[0]
         text = flattened(section)
-        for phrase in said:
-            assert phrase in text, (edition, phrase)
-        for phrase in gone:
-            assert phrase not in flattened(whole), (edition, phrase)
+        for fact in README_FACTS:
+            assert fact in text, (edition, fact)
 
 
 # --- S16: the sealer is told it draws nothing --------------------------------

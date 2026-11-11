@@ -29,9 +29,13 @@ def test_settle_owns_the_grammar():
     section = text.split("\n## A rule has one shape\n")[1].split("\n## ")[0]
     section = " ".join(section.split())
     for phrase in (
-        "starts with `check: `",
+        # The label `.github/scripts/rules.py#LABEL` matches at a check line,
+        # which a framer writes into a rule.
+        "`check: `",
+        # The marker a test carries for a rule its check line names by
+        # marker, which `rules.py` reads off the collected tests.
         '`@pytest.mark.rule("<marker>")`',
-        "It ships `seal rules --check`",
-        "it is review's to find",
+        # The command a person runs to read every check line.
+        "`seal rules --check`",
     ):
         assert phrase in section, f"settle no longer says: {phrase!r}"

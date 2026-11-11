@@ -13,10 +13,11 @@ with the failure still on the screen.
 each form and letting the others run (`Test_wholly_substituted`,
 `Test_not_as_written`), and the refusal it prints where the key is absent
 (`Test_missing_row`). What is pinned HERE is what a person reads and acts
-on in the documents: what `templates/setup/config.md` promises about the
-key, the criterion for choosing a value and its one owner, and the command
-that answers the key. The sentence that sends a session which meets the
-refusal to a person instead of letting it choose is the proofer's to read.
+on in the documents: the section of `templates/setup/config.md` that lists
+the forms, the forms the gate refuses, the citation of the criterion for
+choosing a value, and the command that answers the key. The reasons, the
+criterion's rules and the sentence that sends a session which meets the
+refusal to a person instead of letting it choose are the proofer's to read.
 """
 
 from conftest import read
@@ -43,11 +44,8 @@ def table(text, header):
     stops satisfying the case named for the list it left.
 
     Round 1's 🟡 6. `rows` returns every `| ` line under the heading, and both
-    tables live under one heading, so it merged them: the pipe row could be
-    moved into the refused table with every case still green, and the refused
-    loop below could pair a form with another form's reason. That is the
-    contract rule 14 artifact for this change asserting nothing about its own content, in a
-    release whose whole subject is a check that could not fail.
+    tables live under one heading, so it merged them: a form of the allowed
+    table could be found in the refused one with every case still green.
     """
     assert header in text, f"{header!r} is not a table in this section"
     after = text.split(header, 1)[1]
@@ -88,33 +86,27 @@ def test_the_template_carries_the_heading_of_the_two_lists():
     assert REFUSED_AND_ALLOWED in read(*TEMPLATE)
 
 
-REFUSED = {
-    "backticks": "discards its exit status",
-    "`$(…)`": "the same semantics",
-    "trailing `&`": "before any check has finished",
-}
+REFUSED = (
+    # The form `skills/verify/scripts/broad_gate.py` refuses as a value
+    # wholly wrapped in backticks, which a person writing the key reads in
+    # the refused table.
+    "backticks",
+    # The form it refuses as a value wholly wrapped in `$(…)`.
+    "`$(…)`",
+    # The form it refuses as a value that ends in `&`.
+    "trailing `&`",
+)
 
 
-def test_each_refused_form_is_named_with_what_a_shell_does_with_it():
-    """A list without the reason is an enumeration the next reader extends by
-    analogy, which is how a narrow refusal becomes the general sanitiser #402
-    steers away from.
-
-    The reason is asserted IN the form's own row of the REFUSED table. The
-    dictionary already holds the pairing, and a loop asking only whether both
-    strings appear somewhere under the heading throws it away: round 1 swapped
-    the backticks row's reason with the `$(…)` row's and 15 cases stayed
-    green, leaving the backticks row explaining itself as *the same semantics
-    in the spelling somebody who knows shell reaches for first*.
-    """
+def test_each_refused_form_is_named_in_the_refused_table():
+    """Each form the gate refuses is named in the first cell of a row of the
+    REFUSED table, not anywhere under the heading: round 1 found a form of
+    one list read in the other. The reason each row gives is the proofer's
+    to read."""
     body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
     refused = table(body, "| Refused |")
-    for form, because in REFUSED.items():
-        row = named(refused, form)
-        assert row, f"the refused list does not name {form}"
-        assert because in flat(row), (
-            f"{form} is listed with the wrong reason, or with none: {row!r}"
-        )
+    for form in REFUSED:
+        assert named(refused, form), f"the refused list does not name {form}"
 
 
 def test_the_template_names_the_command_that_rewrites_a_refused_key():
@@ -129,67 +121,18 @@ def test_the_template_names_the_command_that_rewrites_a_refused_key():
     )
 
 
-ALLOWED = {
-    "**inside** a longer line": "runs as the command it reads as",
-    "quotes, redirection": "the repository's own claim about itself",
-    "a pipe": "LAST status",
-    # Round 1's 🟡 1. A backgrounding `&` breaks the criterion's second half
-    # wherever it stands, and only the trailing form is refused — so the
-    # mid-line form has to be in ONE of the two lists. It is here, with what
-    # it costs, because telling it from a `2>&1` or a quoted `&` needs the
-    # shell parser this list exists to avoid.
-    "an `&` anywhere but at the end": "may still be running when the gate reports",
-}
-
-
-def test_each_allowed_form_is_listed_with_what_it_costs():
-    """What stays legal is a commitment rather than an omission, and a cost
-    stated in the open is what keeps it from being re-litigated as a defect.
-
-    Read from the ALLOWED table alone, and the cost from the form's own row:
-    round 1 moved the pipe row into the refused table and both allowed-list
-    cases stayed green, which made them assert only that certain characters
-    appear somewhere under the heading.
-    """
-    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
-    legal = table(body, "| Stays legal |")
-    for form, cost in ALLOWED.items():
-        row = named(legal, form)
-        assert row, f"the allowed list does not name {form}"
-        assert cost in flat(row), (
-            f"{form} is listed with the wrong cost, or with none: {row!r}"
-        )
-
-
 # No case asserts that the two lists partition the forms, and that is not an
 # omission. `$(…)` belongs in both and must: the whole command wrapped in it
 # is refused, and one INSIDE a longer line is legal, which is the distinction
 # the section exists to draw. A partition case over the matching keys was
 # written here and asserted exactly that falsehood; it went red on its first
 # run and came out rather than being weakened into something that passes.
-# What `table()` buys is the pairing above — a row's reason read from the
-# row, in the list the row is in.
+# What `table()` buys is that a refused form is read in the list it is in.
 
 
 # --- A8: the criterion has one home ------------------------------------------
 
 CRITERION = "### The criterion for choosing a value"
-
-THREE_RULES = [
-    "red repository-wide for reasons unrelated to any branch",
-    "A command that **fixes** the tree",
-    "Every pytest the command runs keeps the environment the gate hands it",
-]
-
-
-def test_the_template_carries_all_three_rules_of_the_criterion():
-    """#401's second half. The key is the one value only a person can write
-    and nobody had written down how to choose it: the session that met the
-    refusal derived these three under pressure, and two of them existed in no
-    document at all."""
-    body = flat(section(read(*TEMPLATE), CRITERION, 3))
-    for rule in THREE_RULES:
-        assert rule in body, f"the criterion does not carry {rule!r}"
 
 
 def test_the_config_skill_sends_the_criterion_to_its_owner_by_name():

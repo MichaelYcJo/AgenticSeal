@@ -105,6 +105,8 @@ def assert_every_base_is_remote_tracking(spellings):
     for argument in spellings:
         if SHELL_VARIABLE.match(argument):
             continue
+        # The remote-tracking spelling, the one revision a runner's checkout
+        # resolves, which the gate's `REMOTE_LABEL` is held to below.
         assert argument.startswith(REMOTE_TRACKING), (
             f"the workflow no longer asks about the remote-tracking ref: "
             f"{argument!r}. A runner's checkout has no local branch, so this "
@@ -156,6 +158,8 @@ def test_the_gate_reaches_for_the_spelling_the_workflow_uses(tmp_path):
         and isinstance(node.func, ast.Name)
         and node.func.id == "resolve_base"
     ]
+    # One call of `resolve_base` in the gate's code, which Python runs where
+    # the gate builds a child check's base.
     assert len(called) == 1, (
         f"`resolve_base` is called {len(called)} times in broad_gate.py; the "
         "spelling above is only the workflow's while the gate still reaches "
@@ -184,7 +188,9 @@ DESCRIBES_THE_BASE = (REVIEW_ORCH, VERIFY)
 
 
 def says_what_the_base_resolves_to(text):
-    """True where one block of `text` carries both halves of the fact."""
+    """True where one block of `text` carries both halves of the fact: the
+    `origin/` and `@{upstream}` refs the gate resolves the base to, which a
+    reader doubting a seal checks the printed base against."""
     return any("origin/" in b and "upstream" in b for b in text.split("\n\n"))
 
 
@@ -286,7 +292,10 @@ def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
         if not line.lstrip().startswith("#")
         and re.search(r"--baseline\b|\bBASE:", line)
     ]
+    # The flag and the `env:` key each step names a base by, which the
+    # runner acts on; one reading per line is what the reader owes.
     assert len(found) == len(listed), f"the workflow names {len(found)} bases: {found}"
+    # The `BASE:` assignment's value, the remote-tracking spelling bare.
     assert any(spelling == REMOTE_TRACKING for spelling in found), (
         f"no bare `{REMOTE_TRACKING}` among {found} — the `BASE:` assignment is unread"
     )

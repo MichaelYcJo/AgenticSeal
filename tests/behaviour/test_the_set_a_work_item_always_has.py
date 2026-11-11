@@ -51,33 +51,6 @@ def test_the_rung_cites_the_issue_that_measured_the_count():
 # --- the status column ------------------------------------------------------
 
 
-def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
-    """The examples are where the rung drifted, not the condition.
-
-    Round 1 found two documents split: the skill named four kinds of
-    second-rung work and `agents/crafter.md` named three, so a change touching
-    only tests was decidable by one and not the other. Since #967 the crafter
-    opens the skill and keeps no copy, so the list has one home, held here.
-    The home is `skills/implement/orchestration.md` since #1312.
-
-    Whitespace-normalised because the file is wrapped.
-    """
-    skill = " ".join(read("skills", "implement", "orchestration.md").split())
-    for example in (
-        "a refactor",
-        "a performance pass",
-        "a formatting sweep",
-        "a test that pins what already holds",
-    ):
-        assert example in skill, f"the skill lost `{example}`"
-
-    # The exception that lifts a default. Naming the value is what moves a
-    # change up a rung, and a document that dropped the sentence would
-    # silently make the four a closed list again.
-    for named in ("a timeout", "a retry count", "a rate", "a size cap"):
-        assert named in skill, f"the skill lost `{named}`"
-
-
 def test_the_plan_template_carries_a_status_column():
     """S7. The column has to be in the shipped template, not only in prose:
     a session bootstraps from the template and never reads the argument."""

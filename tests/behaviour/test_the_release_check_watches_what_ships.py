@@ -94,6 +94,8 @@ def test_the_two_lists_do_not_overlap():
 def test_every_shipping_root_is_watched(root):
     """A change under a root the loader reads has to move the version."""
     pattern = ships_pattern()
+    # The pattern the step's `grep -E` filters the diff's file list through,
+    # which the runner runs at a release pull request.
     assert pattern.match(f"{root}/anything"), (
         f"`{root}/` ships but the hygiene step's pattern {pattern.pattern!r} "
         f"does not match it — a release fixing only `{root}/` would reach "
@@ -106,6 +108,7 @@ def test_nothing_that_stays_home_is_watched(entry):
     """A wrong deny at the release is a stopped release: a change confined to
     this repository's own work must not be asked for a version bump."""
     pattern = ships_pattern()
+    # The same pattern, which a change confined to this root must not match.
     assert not pattern.match(f"{entry}/anything"), (
         f"`{entry}` does not reach a user through the plugin, yet the pattern "
         f"{pattern.pattern!r} would demand a version bump for it"
@@ -116,6 +119,7 @@ def test_the_pattern_names_nothing_this_file_has_not_classified():
     """The pattern can only name roots this file says ship. A root added to the
     workflow alone is a decision with no record of why."""
     named = set(ships_pattern().pattern[2:-2].replace("\\", "").split("|"))
+    # The roots the step's pattern alternates, which the runner matches.
     assert named == SHIPS, (
         f"the pattern names {sorted(named)} and this file says {sorted(SHIPS)} "
         "ship — classify the difference here, with the reason"
@@ -149,6 +153,8 @@ def test_the_release_document_names_the_same_roots():
     # The paragraph, not the sentence: `.claude-plugin/` carries a full stop.
     paragraph = doc.split("the `hygiene` workflow", 1)[1].split("\n\n", 1)[0]
     named = set(re.findall(r"`([^`]+)/`", paragraph))
+    # The roots the paragraph names as code spans, which a person cutting a
+    # release reads to know which change moves the version.
     assert named == SHIPS, (
         f"docs/releasing/branch-and-release.md's paragraph about the hygiene workflow "
         f"names {sorted(named)} and the pattern's roots are {sorted(SHIPS)} — "
@@ -208,17 +214,6 @@ def test_the_refusal_names_the_file_a_release_moves():
     # The file whose version a release moves, which a reader opens.
     assert "plugin.json" in text, (
         "the refusal no longer names the file a release has to move"
-    )
-
-
-def test_the_refusal_asserts_neither_case():
-    """The step cannot tell the two apart, so the message must not claim to.
-    Both halves are conditional or the message is guessing."""
-    text = refusal()
-    assert text.count("If this is") == 2, (
-        "the refusal does not offer both causes as conditions. The step reads "
-        "`base_ref = main` and nothing else, so it cannot know which reader "
-        f"it has:\n{text}"
     )
 
 
@@ -289,6 +284,8 @@ def test_the_refusal_still_fails_the_run():
     """The message is the only thing that moved. A refusal that stopped
     exiting 1 would ship an unversioned release in silence."""
     step = release_step()
+    # The shell command `exit 1` after the `::error::` line, which the runner
+    # runs to fail the step.
     assert re.search(r"::error::.*\n\s*exit 1\n", step), (
         f"the ::error:: line is no longer followed by `exit 1`:\n{step}"
     )

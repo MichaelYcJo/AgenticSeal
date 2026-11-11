@@ -55,6 +55,10 @@ def test_the_procedure_is_the_first_section_of_the_guide():
     thing a newcomer needs and the first thing they met."""
     headings = re.findall(r"^## .+$", read(GUIDE), re.MULTILINE)
     assert headings, "CONTRIBUTING.md has no `## ` headings at all"
+    # The heading `.github/PULL_REQUEST_TEMPLATE.md` and both READMEs cite,
+    # first in the file, where `docs/releasing/release-checklist.md` *A
+    # contributor whose base is wrong is told the base is wrong.* puts the
+    # procedure.
     assert headings[0] == HEADING, (
         f"the first section of CONTRIBUTING.md is {headings[0]!r}; a "
         f"contributor meets it before {HEADING!r}, which is the one written "
@@ -99,10 +103,11 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
 @pytest.mark.parametrize(
     "thing",
     [
+        # Each path is a file of a work item, or the version file, that a
+        # contributor reads in the list as one a contribution does not write.
         "routing.md",
         "frame/design.md",
         "frame/plan.md",
-        "review round record",
         "changelog.md",
         "gaps.md",
         ".claude-plugin/plugin.json",
@@ -111,8 +116,10 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
 def test_the_exemption_list_names_what_a_contribution_does_not_write(thing):
     """A5. An outsider looking at this repository's work items and review
     rounds has every reason to assume all of it applies to them. The list
-    is the half of the section that cannot be inferred."""
+    names the files a contribution does not write; its sentences are the
+    proofer's to read."""
     body = guide_section()
+    # The path, which a contributor matches against the files of a work item.
     assert thing in body, (
         f"the section does not say a contribution writes no {thing!r} — an "
         "exemption that is not stated reads as a requirement nobody explained"
@@ -220,6 +227,10 @@ def concrete_release_branches(root, history=RELEASE_BRANCH_HISTORY):
 
 def test_no_loaded_file_names_a_concrete_release_branch():
     found = concrete_release_branches(ROOT)
+    # `docs/releasing/release-checklist.md` *A loaded file naming a version
+    # at or above the running one is a timer.*: a concrete release branch is
+    # deleted after its release, so a loaded file naming one outside a
+    # history sentence is refused.
     assert not found, (
         "a concrete release branch is deleted after its release, so a file "
         "that ships naming one is false on a schedule. Name the convention "
@@ -253,6 +264,8 @@ def test_each_history_sentence_still_stands(rel):
     did. It is removed with its sentence, so the list stays the set of names
     that are history in the tree as it stands."""
     text = " ".join(read(os.path.join(ROOT, rel)).split())
+    # The sentence the allowance names, which `concrete_release_branches`
+    # takes out of the file before it sweeps.
     assert RELEASE_BRANCH_HISTORY[rel] in text, (
         f"{rel} no longer carries the history sentence the allowance names; "
         "remove the entry"

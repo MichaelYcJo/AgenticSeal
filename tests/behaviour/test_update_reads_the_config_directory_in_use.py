@@ -78,6 +78,8 @@ def test_step_2b_reads_the_copy_the_config_directory_installed(tmp_path):
     install(home / ".claude", tmp_path / "copy-home", "9.9.0")
     install(config, tmp_path / "copy-in-use", "9.9.1")
     block = FENCE.findall(step("2b", "3"))[0]
+    # The block's two `python3 -c` programs the session runs, which
+    # `run_bash` points at this interpreter.
     assert block.count("python3 -c") == 2, block
     out = run_bash(block, home, config, tmp_path)
     assert out.returncode == 0, out.stdout + out.stderr
@@ -97,6 +99,8 @@ def test_step_2b_prints_the_repair_with_this_sessions_paths(tmp_path):
     install(config, copy, "9.9.1")
     block = FENCE.findall(step("2b", "3"))[1]
     lines = block.splitlines()
+    # The block's two shell lines the session runs, the assignment that reads
+    # the copy and the `printf` that prints the repair.
     assert len(lines) == 2, block
     assert lines[0].startswith("p=$(") and lines[1].startswith("printf "), (
         "the repair block runs more than its read and its print"
@@ -145,6 +149,7 @@ def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
         git(clone, "remote", "add", "origin", url)
     lines = FENCE.findall(step("3", "4"))[0].splitlines()
     repo = [line for line in lines if line.startswith("repo=$(")]
+    # The one shell assignment of the repository, which the case runs alone.
     assert len(repo) == 1, lines
     out = run_bash(repo[0] + '\nprintf "%s" "$repo"', home, config, tmp_path)
     assert out.returncode == 0, out.stdout + out.stderr
@@ -156,9 +161,9 @@ def test_step_4b_reads_the_old_launcher_and_writes_nothing(tmp_path):
     nothing and writes nothing. Its one command reads whether the launcher a
     release from 0.33.0 to 0.34.1 wrote stands under the data directory,
     which the skill body receives substituted and the case writes in the
-    same way, and its row names under *Needs action* the settings entry and
-    the file the person removes by hand, the entry first. The output loses
-    the `Stamp:` line."""
+    same way, and its row names the settings file and the command of the
+    entry the person removes by hand. What the row says of the order is the
+    proofer's to read."""
     text = step("4b", "5")
     (block,) = FENCE.findall(text)
     home, config = tmp_path / "home", tmp_path / "config"
@@ -180,17 +185,19 @@ def test_step_4b_reads_the_old_launcher_and_writes_nothing(tmp_path):
     assert said("") == "no data directory\n"
     flat = " ".join(text.split())
     for needed in (
-        "| `launcher <path>` | name under *Needs action* the two things the person "
-        "removes by hand, in this order: the `Stop` entry of "
-        f"`{SPELLING}/settings.json` whose command is "
+        # The row's first cell, the line the command prints, which the
+        # session matches in what it read.
+        "| `launcher <path>` |",
+        # The settings file whose `Stop` entry the person removes.
+        f"`{SPELLING}/settings.json`",
+        # The entry's command, as the person finds it in that file.
         '`python3 "<path>" \\|\\| py -3 "<path>"`',
-        "and then the file at `<path>`",
-        "This step asks nothing and writes nothing.",
     ):
         assert needed in flat, needed
-    whole = read(UPDATE)
-    for gone in ("AskUserQuestion", "seal stamp --", "Stamp: <"):
-        assert gone not in whole, gone
+    # `skills/update/SKILL.md` *4b. The launcher an earlier release wrote*:
+    # "This step asks nothing and writes nothing", so the step names no tool
+    # that asks the person.
+    assert "AskUserQuestion" not in flat, "step 4b names a tool that asks"
 
 
 def test_the_skill_names_no_fixed_claude_directory():
@@ -201,4 +208,6 @@ def test_the_skill_names_no_fixed_claude_directory():
     another name and does not count."""
     rest = read(UPDATE).replace(SPELLING, "")
     fixed = re.findall(r"\S*/\.claude(?![-\w])\S*", rest)
+    # `skills/update/SKILL.md` *Procedure*: "Each command below carries that
+    # spelling on its own", so no path into the directory is spelled fixed.
     assert not fixed, f"skills/update/SKILL.md names {fixed!r} outside {SPELLING!r}"

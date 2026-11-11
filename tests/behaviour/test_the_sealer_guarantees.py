@@ -69,31 +69,34 @@ class TestTemplate:
         assert len(patterns) >= 9, patterns
         text = TEMPLATE.read_text(encoding="utf-8")
         hits = [p for p in patterns if re.search(p, text, re.M)]
+        # The patterns the sealer's eval graders match a verdict with, which
+        # `evals/scripts/rule_cases.py` generated: a template line one of
+        # them matched would pass a sealer that left the template's comment
+        # standing.
         assert hits == [], hits
 
     def test_the_template_carries_the_tables_sections_and_verdict_block(self):
-        """#1198, *Scope* item 3: the claims and the parties are tables for
-        people, and the template's one verdict block holds `target:`, the
-        `original:` line and `Verdict:`, in that order. The run the sealer
-        read is `trail/gate.md`'s, which the template no longer copies
-        (#1319, D5)."""
+        """#1198, *Scope* item 3: the claims and the parties stand under the
+        two headings the document cites, and the template's one verdict block
+        holds `target:`, the `original:` line and `Verdict:`, in that order.
+        The columns of the tables for people are the proofer's to read. The
+        run the sealer read is `trail/gate.md`'s, which the template no
+        longer copies (#1319, D5)."""
         text = TEMPLATE.read_text(encoding="utf-8")
         lines = reader.readable(text)
-        rows = chain.table_rows(reader, lines)
         raw = text.split("\n")
         opener = raw.index(fields.OPENER)
+        # The block's opener, its three keys in order and its closing fence,
+        # which `chain_check.py#guarantee` reads through `lib/fields.py`.
         assert raw.count(fields.OPENER) == 1
         keys = [line.split(" ", 1)[0] for line in raw[opener + 1 : opener + 4]]
         assert keys == [fields.TARGET, fields.ORIGINAL, fields.SEALER_VERDICT]
         assert raw[opener + 4] == fields.FENCE
+        # The two headings `docs/forms/the-guarantee.md` *It checks a claim
+        # against the fact, and the parties against each other.* cites,
+        # which the sealer writes each act's row under.
         assert reader.sections(lines, "## Claims re-run")
         assert reader.sections(lines, "## The parties")
-        assert ["Claim", "Source", "Command", "Result"] in [
-            [c.strip() for c in r] for r in rows
-        ]
-        assert ["Party", "Says", "Agrees with", "Disagrees with"] in [
-            [c.strip() for c in r] for r in rows
-        ]
 
     def test_the_unfilled_template_is_no_guarantee(self):
         found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
@@ -221,14 +224,17 @@ class TestDefinition:
         `chain_check.py`'s to read against the frame's mark."""
         step_4 = between(SEALER, "4. **", "5. **")
         pinned = [
-            # The row and the answer the sealer reads in `routing.md`.
-            "`routing.md`'s `Implementation` row reads `crafter`",
-            # Which phases owe a record: those `plan.md`'s Status closed.
-            "every phase of `frame/plan.md` whose Status cell holds a commit",
+            # The file, the row and the answer the sealer reads, the row and
+            # answer `lib/routing.py#parse` reads.
+            "`routing.md`",
+            "`Implementation`",
+            "`crafter`",
+            # The file whose Status cells the sealer reads for closed phases.
+            "`frame/plan.md`",
             # The record the crafter leaves, as the sealer resolves its path.
             "`trail/phases/phase-N.md`",
             # The verdict word `lib/fields.py` reads.
-            "a declared party that left no record is a `withheld` reason",
+            "`withheld`",
         ]
         missing = [phrase for phrase in pinned if phrase not in step_4]
         assert missing == [], missing

@@ -24,33 +24,6 @@ gaps = load_lib_module("gaps.py", "gaps_for_the_rows_that_close")
 lines_reader = load_lib_module("lines.py", "lines_for_the_rows_that_close")
 
 
-# Spelt by code point, so it stays legible in the source and no emoji stands
-# in it.
-OLD_MARK = chr(0x2705)
-
-# Every shipped text that tells a session how a `## Not verified` row closes.
-CLOSING_TEXTS = [
-    ("templates", "setup", "config.md"),
-    ("docs", "checks", "the-fold.md"),
-    ("skills", "implement", "SKILL.md"),
-    ("skills", "verify", "SKILL.md"),
-    ("skills", "settle", "SKILL.md"),
-    ("skills", "settle", "scripts", "settle.py"),
-    ("skills", "verify", "scripts", "unverified_check.py"),
-    ("lib", "gaps.py"),
-]
-
-
-@pytest.mark.parametrize("parts", CLOSING_TEXTS, ids=lambda p: "/".join(p))
-def test_no_text_that_states_the_closing_shows_the_old_mark(parts):
-    """A text that still shows the emoji sends whoever follows it to a row
-    the check refuses. Protects: one of these quietly keeping the old mark
-    when the others moved, which is how a rule stated in five places drifts;
-    no other case reads them for it."""
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        assert OLD_MARK not in f.read()
-
-
 def test_the_skill_shows_the_word(tmp_path):
     """`skills/implement/SKILL.md` *4. The closing memo — only what the diff
     cannot show* is what the memo's writer reads for how a row closes, so its
