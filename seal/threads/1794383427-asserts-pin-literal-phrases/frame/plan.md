@@ -39,7 +39,7 @@ The failure scenario of the chosen approach, six months on. A sentence of a rule
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* item 1, and items 6, 7, 8 and 9 for group A | S1 over group A, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
+| 1 | Design *Scope* item 1, and items 6, 7, 8 and 9 for group A | S1 over group A, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `bd7abc923` |
 | 2 | Design *Scope* item 2, and items 6, 7, 8 and 9 for group B | S1 over group B, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
 | 3 | Design *Scope* item 3, and items 6, 7, 8 and 9 for group C | S1 over group C, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
 | 4 | Design *Scope* items 4, 5, 10 and 11, and items 6, 7, 8 and 9 for group D | S1 over group D, S4, S5, S6, S7 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
