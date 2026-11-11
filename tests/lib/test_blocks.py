@@ -11,10 +11,11 @@ reason.
 `Test_walk` and `Test_walk_text` hold the walk to a CommonMark oracle,
 `tests/commonmark_oracle.py`, over the corpus this file builds: on every line
 the walk does not call uncertain, the walk and the oracle agree. #1489's
-phase 3 moved those two cases and the corpus here from the first file, which
-keeps the oracle's own cases. `tests/lib/test_tables.py` and
-`tests/lib/test_routing.py` import the corpus from here and hold their
-readers to the oracle over it.
+phase 3 moved those two cases and the corpus here from the first file. The
+oracle's own cases stand in `tests/test_commonmark_oracle.py`, and the first
+file keeps the case that holds the oracle imports nothing of this
+repository's. `tests/lib/test_tables.py` and `tests/lib/test_routing.py`
+import the corpus from here and hold their readers to the oracle over it.
 """
 
 import commonmark_oracle as oracle
