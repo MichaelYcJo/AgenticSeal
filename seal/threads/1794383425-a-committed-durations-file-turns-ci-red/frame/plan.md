@@ -57,7 +57,7 @@ reads them. The Windows timeout of 10 minutes covers a count split.
 | 2 | *Scope* item 3 | `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/behaviour/test_a_release_publishes_its_note.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` | `e51c4bb79` |
 | 3 | *Scope* item 4 | The enumeration's command and its list in the phase record; `tests/test_conftest.py` and each module the list names | `0fc6e80a5` |
 | 4 | *Scope* items 5, 6 and 7 | `tests/github/test_durations_union.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, `tests/github/test_release_report.py`, `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py`, `tests/test_censuses.py`, `tests/behaviour/test_the_release_check_watches_what_ships.py`; `git ls-files .test_durations` prints nothing | `6f38a1209` |
-| 5 | *Scope* item 8 | `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`; `grep -c -E '[0-9]{11}' .github/workflows/test.yml` prints 0; this work item's pull request run, its job times written in the phase record | `60838ede9` |
+| 5 | *Scope* item 8 | `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`; `grep -c -E '[0-9]{11}' .github/workflows/test.yml` prints 0; this work item's pull request run, its job times written in the phase record | `0cd12880c` |
 
 ## Overlap with the release
 
