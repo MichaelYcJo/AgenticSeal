@@ -73,10 +73,10 @@ jobs:
           # from the `.test_durations` the shard restored from the cache, so
           # every shard collects the whole suite and runs its own disjoint
           # part, and a leg's parts are the whole suite. A case missing from
-          # the file is given the average, and with no file restored every
-          # case is priced alike, and either way it still runs in exactly one
-          # shard: the shards come out unbalanced and no case is dropped. The
-          # file is measured on the Windows
+          # the file is given the average, and where no file was restored
+          # every case is priced alike; either way each case runs in exactly
+          # one shard, so the shards come out unbalanced and no case is
+          # dropped. The file is measured on the Windows
           # leg and divides the macOS leg too, because every leg collects the
           # same cases, so group k of a count holds the same cases on both.
           # Only each case's price differs by system, and that is read off
@@ -185,11 +185,10 @@ jobs:
       # case still has a price. Only where `store` is set, because anywhere
       # else `.test_durations` is the union the shard restored, and a part
       # holding the whole suite would read to the union as every id in two
-      # parts. The
-      # name starts with a dot, which the action skips by default. A part is
-      # kept as long as the union it makes: re-running failed jobs re-runs
-      # the `durations` job too, which reads every part again, and the
-      # re-run shard's part replaces the one its first attempt uploaded.
+      # parts. The name starts with a dot, which the action skips by default.
+      # A part is kept as long as the union it makes: re-running failed jobs
+      # re-runs the `durations` job too, which reads every part again, and
+      # the re-run shard's part replaces the one its first attempt uploaded.
       - if: always() && matrix.store != ''
         uses: actions/upload-artifact@v4
         with:
