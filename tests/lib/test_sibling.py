@@ -65,15 +65,20 @@ class Test_load:
     def test_accepts_the_module_lib_imported_by_its_plain_name(self, tree):
         """A `lib/` module imports its neighbour by a plain name, which
         registers the neighbour under its stem; `load` hands back that
-        module rather than running the file a second time (G14)."""
+        module rather than running the file a second time (G14). The
+        directory is spelt the way a script puts it on `sys.path`, through
+        `..`, so the module's `__file__` is another spelling of the path
+        `load` builds."""
         loader, root, stems = tree
         stems.append("neighbour_of_sibling")
         plant(root, "lib/neighbour_of_sibling.py", COUNTED)
-        sys.path.insert(0, str(root / "lib"))
+        (root / "skills").mkdir()
+        spelt = os.path.join(str(root), "skills", "..", "lib")
+        sys.path.insert(0, spelt)
         try:
             import neighbour_of_sibling
         finally:
-            sys.path.remove(str(root / "lib"))
+            sys.path.remove(spelt)
         assert loader.load("lib/neighbour_of_sibling.py") is neighbour_of_sibling
         assert (root / "lib" / "runs").read_text(encoding="utf-8") == "run\n"
 

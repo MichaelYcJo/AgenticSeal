@@ -4647,6 +4647,36 @@ class Test_module:
         said = chain.sibling.MISSING.format(path=os.path.normpath(lib))
         assert done.stderr == said + "\n", done.stderr
 
+    def test_an_absent_reader_is_the_loaders_sentence_alone(self, tmp_path):
+        """*Scope* item 4 of #1482. A copy that holds the loader and lacks
+        the shared reader exits 2 as a command, with the loader's sentence
+        naming the reader and no line of the check's own about it."""
+        plugin = tmp_path / "plugin"
+        for rel in (TARGET, "lib/sibling.py"):
+            copy = plugin.joinpath(*rel.split("/"))
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(os.path.join(ROOT, *rel.split("/")), copy)
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [
+                sys.executable,
+                str(plugin.joinpath(*TARGET.split("/"))),
+                "--baseline",
+                "HEAD",
+                "--root",
+                str(repo),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        reader = plugin / "skills" / "verify" / "scripts" / "unverified_check.py"
+        said = chain.sibling.MISSING.format(path=str(reader))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_the_framers_mark_is_the_last_line_a_renderer_shows(self):
         """S10 of #664. The mark stands after a U+2028 on the file's last line,
         which GFM does not end a line at, so the last line does not begin with

@@ -1569,6 +1569,27 @@ class Test_rounds_rows:
         write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
+    @pytest.mark.parametrize(
+        "raised", [ValueError("planted"), SystemExit(2)], ids=["raises", "absent"]
+    )
+    def test_refuses_to_stop_a_run_where_the_check_will_not_load(
+        self, tmp_path, monkeypatch, raised
+    ):
+        """A label never stops a run that passed: a check that raises while
+        it loads, or that `lib/sibling.py#load` finds absent and exits for,
+        leaves the count alone beneath it."""
+        real = gate.sibling.load
+
+        def load(rel):
+            if rel == "skills/code-review/scripts/chain_check.py":
+                raise raised
+            return real(rel)
+
+        monkeypatch.setattr(gate.sibling, "load", load)
+        item = tmp_path / "1799000004-z"
+        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
+        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
+
 
 def checks(suite=0, chain_code=0):
     return {

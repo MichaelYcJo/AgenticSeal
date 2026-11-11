@@ -360,6 +360,37 @@ class Test_module:
         said = SEAL.sibling.MISSING.format(path=os.path.normpath(lib))
         assert done.stderr == said + "\n", done.stderr
 
+    def test_a_lib_without_the_table_walks_reader_exits_2_in_one_sentence(
+        self, tmp_path
+    ):
+        """#667. `lib/tables.py` imports `lib/blocks.py` by its plain name,
+        so this script loads `blocks.py` first: a `lib/` without it is the
+        loader's sentence at exit 2, not the import's traceback at 1."""
+        plugin = tmp_path / "plugin"
+        for rel in (TARGET, "lib/sibling.py", "lib/config.py", "lib/gitcmd.py"):
+            copy = plugin.joinpath(*rel.split("/"))
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(os.path.join(ROOT, *rel.split("/")), copy)
+        shutil.copy(os.path.join(ROOT, "lib", "optin.py"), plugin / "lib")
+        shutil.copy(os.path.join(ROOT, "lib", "tables.py"), plugin / "lib")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [
+                sys.executable,
+                str(plugin.joinpath(*TARGET.split("/"))),
+                "mode",
+                "--check",
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        said = SEAL.sibling.MISSING.format(path=str(plugin / "lib" / "blocks.py"))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_the_template_carries_the_marker_and_the_placeholder(self):
         """The marker and the placeholder are literals in `seal.py`, and a
         template that stopped carrying either would silently change what the
