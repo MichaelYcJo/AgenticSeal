@@ -133,12 +133,13 @@ nothing:
   The plans' texts are read in one `git cat-file --batch`, their adding
   commits in one `git log` of the ref, and the tags that hold those in one
   walk of the tags' history, so the git calls do not grow with the plans
-  read, with or without `--all-earlier`. Each plan is read by the reader *The judgments* uses: a
-  near heading and a table not under the exact header are named as not
-  read, at the coordinate `<short>^:<path>`, and so is a plan whose text
-  git does not hold there, with what git answered. The rows are grouped by
-  the `Judged against` cell exactly as written, in the order first met,
-  the removing commits newest first. Each work item's line gives the lowest
+  read, with or without `--all-earlier`. Each plan is read by the reader
+  *The judgments* uses: a near heading and a table not under the exact
+  header are named as not read, at the coordinate `<short>^:<path>`, and so
+  is a plan whose text git does not hold there, with what git answered. The
+  rows are grouped by the `Judged against` cell exactly as written, in the
+  order first met, the removing commits newest first. Each work item's line
+  gives the lowest
   `vX.Y.Z` tag that holds the commit adding its plan, or says no tag holds
   that commit, and the removing commit's short hash with its `(#N)`. A
   `git` that fails is named with what it said, and the dry run goes on.
