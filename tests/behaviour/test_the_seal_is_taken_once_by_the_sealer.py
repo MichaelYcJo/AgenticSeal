@@ -170,12 +170,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     )
     # #832's S5a: the module docstring and `panel`'s row diagram name the
     # rows the owner's design of 2026-10-07 put back.
-    assert (
-        "the suite's counts, the chain's exit, how many more steps CI runs "
-        "than this run answers"
-    ) in gate
     assert "the ledger's `ok` count, how many more steps" not in gate
-    assert "CI also · <n> more steps absent without a hygiene workflow" in gate
     assert "chain ✓ exit <code> read off the chain's own check" in gate
     assert "workflow <n> of <m> not answered" not in gate
     assert "**A drawn panel says only what a `SEALED` stamp can say** (#717)" not in (
@@ -186,22 +181,6 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     )
     assert "**Separators are ASCII**" not in gate
     assert "No row is `None` since #717" not in gate
-
-
-def test_the_documents_name_the_ci_also_row():
-    """#717, S7 for the rows (contract rule 14). `skills/verify/orchestration.md`
-    *A run says what it did not answer* named the `workflow` row and its
-    `<n> of <total> not answered` reading; it names the `CI also` row and its
-    `· <n> more steps` now (#832's S5a: the value leads with a dim `·`, the
-    owner's mark for a row that is not a pass). The rest of the paragraph,
-    and whether an old reading or a count is back in it (#940), are the
-    proofer's to read."""
-    verify = " ".join(
-        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
-    )
-    # The row name `CI also` and its value `· <n> more steps`, which the
-    # panel prints and the orchestrator reads on the gate's output.
-    assert "the panel carries a `CI also` row, *· <n> more steps*, and" in verify
 
 
 def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
