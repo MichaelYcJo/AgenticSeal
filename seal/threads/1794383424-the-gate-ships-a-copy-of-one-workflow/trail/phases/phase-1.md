@@ -2,14 +2,14 @@
 
 ## What this phase found
 
-**The frame holds.** Every coordinate `frame/design.md` G4, G6, G7 and G10 gives was opened at `0dd6d89f3`, and each line stood where the frame placed it. S4's `git grep` listed the four files G5 names before the build. One line the frame does not list stated the section's facts, and the departures below follow from it and from the scope items.
+**The frame holds.** Every coordinate `frame/design.md` G4, G6, G7 and G10 gives was opened at `0dd6d89f3`, and each line stood at the line number the frame gave. This reading did not check the function the frame named: G4 placed in `main` lines that stand in `gate()`, which round 1's finding 2 found and `15d57e9bb` folded. S4's `git grep` listed the four files G5 names before the build. One line the frame does not list stated the section's facts, and the departures below follow from it and from the scope items.
 
 **Departures from the frame, each judged against `skills/core/SKILL.md` *The rule a mechanism is kept against*: a change removes, in the same commit, what stood on the old fact.**
 
 - `broad_gate.py`'s module docstring said a preflight "prints no coverage line" (`:107` at `0dd6d89f3`). G4 does not list that clause. It names a line no run prints after this work, so the clause left under *Scope* item 2.
 - `panel`'s docstring said `report_lines` "maps the four to ASCII", the four being `SEP`, `ARROW`, `TICK` and `DOT`. With `DOT` gone from that list, it says "the three". *Scope* item 2 named only the line that lists `DOT`.
 - `Test_panel`'s case `test_accepts_the_item_the_gate_row_and_what_ci_also_asks` is now `test_accepts_the_item_and_the_gate_row`. *Scope* item 4 removed its `CI also` assertion, and the old name stated that assertion.
-- `main`'s comment above the chain arm gave `PARTITION`'s cases as the reason a preflight keeps one list of arms. *Scope* item 2 removes that ground. The comment keeps the ground that remains: a second list of arms would be a second list to keep in step with the first.
+- `gate`'s comment above the chain arm gave `PARTITION`'s cases as the reason a preflight keeps one list of arms. *Scope* item 2 removes that ground. The comment keeps the ground that remains: a second list of arms would be a second list to keep in step with the first.
 - `.github/scripts/tracker_labels.py` ended the paragraph with "A step that performs the act costs neither." With the partition cost gone, one cost remains, so it now ends "A step that performs the act does not."
 - In `tests/skills/test_broad_gate.py`, the module docstring, the comment above `HISTORICAL_ROWS` and `with_workflow`'s docstring cited the deleted file, the absent workflow and the arm that "mirrors" a step. Each now states what stands. *Scope* item 4 named only the module docstring.
 

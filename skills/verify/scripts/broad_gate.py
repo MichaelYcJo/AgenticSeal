@@ -2237,9 +2237,10 @@ def gate(args, ascii_marks=False):
     # case: a seventh consumer written later cannot take the unresolved value
     # without that case going red (`frame/design.md` *The class, enumerated by
     # construction*). Every check below asks `base.commit`, which is the
-    # commit CI will compare against. The one reader of `base.given`, the
-    # caller's spelling, is no check: `moved_line`, which exists to say how
-    # that spelling differs from what it resolved to.
+    # commit CI will compare against. The readers of `base.given`, the
+    # caller's spelling, are none of them a check: `moved_line`, which
+    # exists to say how that spelling differs from what it resolved to, and
+    # the refusal below, which names the spelling that resolved to nothing.
     base = resolve_base(root, args.base)
     if base.commit is None:
         raise Refused(
