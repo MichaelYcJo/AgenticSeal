@@ -1570,14 +1570,14 @@ class Test_rounds_rows:
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
     @pytest.mark.parametrize(
-        "raised", [ValueError("planted"), SystemExit(2)], ids=["raises", "absent"]
+        "raised", [ValueError("planted"), SystemExit(3)], ids=["raises", "exits"]
     )
     def test_refuses_to_stop_a_run_where_the_check_will_not_load(
         self, tmp_path, monkeypatch, raised
     ):
-        """A label never stops a run that passed: a check that raises while
-        it loads, or that `lib/sibling.py#load` finds absent and exits for,
-        leaves the count alone beneath it."""
+        """A label never stops a run that passed: a check that raises or
+        exits while it loads leaves the count alone beneath it. An absent
+        check is `lib/sibling.py#Absent`, which the case below holds."""
         real = gate.sibling.load
 
         def load(rel):
