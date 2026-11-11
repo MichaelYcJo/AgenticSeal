@@ -42,4 +42,4 @@ A person who typed `/agentic:feature-planner` or `/agentic:confidence-check`, or
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-11 | The title takes `fix:`, as the issue's title does | The two skills told their one reader, the framer, to ask a person, which `agents/framer.md` and the core forbid, and the diff removes that instruction with the skills that carried it. `feat:` would fit a removal its users must work around; the only measurement, the owner's transcripts, found no call of either command, so no user is known to lose one, and the changelog's *Removed* names both for any who did | `skills/commit-pr-convention/SKILL.md` *Commit messages*; `frame/design.md` G11 |
