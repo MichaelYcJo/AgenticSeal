@@ -21,6 +21,7 @@
 | Phase 8: the suite beyond the boundary set `trail/phases/phase-8.md` names | the orchestrator's broad gate |
 | Phase 8: whether each of the 15 class docstrings `d215adfe9`, `77664dc10` and `a3aa9049e` wrote states the input its pairs' cases differ by, or for the session-cost pair the fact each case holds, and whether `CONTRIBUTING.md` *The test layout*'s kinds paragraph, pair sentence and threshold sentence, as `ff7d138c9` and `a3aa9049e` wrote them, state design *The kinds* and *Scope* item 11 with no reading of their own | the proofer at review |
 | Phase 8: whether every claim of `changelog.md` stands in the phase records and the tree | the proofer at review |
+| Round 1 fix pass: the suite beyond the set it ran, `tests/lib/test_blocks.py`, its importers, the files under `tests/` that name `CONTRIBUTING`, the 67 files that declare no `TARGET` and `tests/github/test_rules.py` | the orchestrator's broad gate |
 
 ## Not done
 
