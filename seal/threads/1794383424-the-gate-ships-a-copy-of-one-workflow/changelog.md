@@ -1,0 +1,10 @@
+### Removed
+
+- **`seal gate` keeps no copy of AgenticSeal's own `release` job (#1483).** `skills/verify/scripts/broad_gate.py` held `PARTITION`, a hand-kept table of each step of this repository's `.github/workflows/hygiene.yml` `release` job against the gate's arm that mirrors it or a written reason. Beside it stood a reader of the workflow and the list of steps that run only on a pull request into `main`. From them the gate's report printed a `CI also · <n> more steps` row, and its stderr a line naming the steps the run did not answer. Both appeared only where the gated repository's workflow carried a `release` job, and the workflow `seal pr-checks install` writes carries none, so a user's run printed neither. Every edit to the `release` job still cost a row in the table, and no party acted on the count. CI runs every step on the pull request whatever the gate says. The table, the reader, the row, the line, the `·` mark `seal_stamp.DOT` that only the row drew, and the cases that held them are gone. The gate reads no workflow, and what it prints in a user's repository is unchanged. A case holds that a repository whose `hygiene.yml` carries a `release` job is gated exactly as one without.
+- **The rule that every CI step is mirrored by an arm or excluded with a reason.** `docs/running/the-broad-gate.md` drops it, and the section is now *What the gate runs*. `skills/verify/orchestration.md` *The broad gate* drops its four paragraphs on the table, the row and the count.
+
+### Process changes
+
+| Date | Change | Why | Source |
+|---|---|---|---|
+| 2026-11-11 | `skills/verify/orchestration.md` *The broad gate* no longer tells the orchestrator that the broad run's arms are declared against `hygiene.yml`'s `release` job, or that the gate's report counts the CI steps the run did not answer | The gate's copy of that job printed nothing in a user's repository, no party acted on the count, and CI runs every step on the pull request | https://github.com/MichaelYcJo/AgenticSeal/issues/1483 |

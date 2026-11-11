@@ -12,9 +12,9 @@ Phase 6 placed the light files' cases here as they stood. The cases of
 `run` and `handed_to_shell` that came from the file on what `cmd.exe` is
 handed (#448, #596) drive the Windows half with the platform passed in as an
 argument; two of them run the machine's real shell, and only CI's
-`windows-latest` leg runs its `cmd.exe` path. The cases of `main` that came
-from the file on the steps CI runs (#468) each build a repository with a
-`feature` branch and run the command over it.
+`windows-latest` leg runs its `cmd.exe` path. The cases of `main` that run
+the command build a repository with a `feature` branch and run it over that
+branch.
 """
 
 import argparse
@@ -31,14 +31,12 @@ import sys
 import conftest
 import pytest
 from conftest import (
-    LS,
     census_case,
     config_json,
     git,
     git_out,
     load_module,
     mark_root,
-    read,
     symlink_or_skip,
     write,
 )
@@ -60,7 +58,6 @@ chain = load_module(CHAIN, "chain_check_beside_broad_gate")
 stamp = gate.stamp_module()
 GATE = str(ROOT / TARGET)
 STAMP = str(ROOT / "skills" / "verify" / "scripts" / "seal_stamp.py")
-HYGIENE = str(ROOT / ".github" / "workflows" / "hygiene.yml")
 
 
 def gate_module():
@@ -142,65 +139,8 @@ def end(exitstatus=0, stopped=(), unplaced=0):
     }
 
 
-WORKFLOW = (
-    "name: hygiene\non: pull_request\njobs:\n"
-    "  lint:\n    steps:\n      - name: not a release step\n"
-    "  release:\n    steps:\n"
-    "      - name: a declared review chain has the round record it claimed\n"
-    "      - name: 'a change to what ships must move the version'\n"
-    "      - name: both READMEs move together\n"
-    "      - name: a step nobody classified\n"
-)
-
-
 def clean_env():
     return {k: v for k, v in os.environ.items() if k not in AMBIENT}
-
-
-def gate_function():
-    """`gate()`, as a syntax tree.
-
-    Read as a tree rather than as text: the claim is about which checks the
-    gate RUNS, and a substring search cannot tell a call from a mention of
-    one in a docstring or a comment.
-    """
-    parsed = ast.parse(read(GATE))
-    found = [
-        node
-        for node in ast.walk(parsed)
-        if isinstance(node, ast.FunctionDef) and node.name == "gate"
-    ]
-    assert len(found) == 1, f"broad_gate.py has {len(found)} functions named gate"
-    return found[0]
-
-
-def arms_the_gate_runs():
-    """The check name each `checks[...] = run(...)` in `gate()` records.
-
-    The key is read as source rather than resolved, so `checks[CHAIN_NAME]`
-    comes back as the constant's NAME — which is what the partition holds too,
-    because a row names the arm by the same constant.
-    """
-    names = []
-    for node in ast.walk(gate_function()):
-        if not isinstance(node, ast.Assign):
-            continue
-        for target in node.targets:
-            if not isinstance(target, ast.Subscript):
-                continue
-            if ast.unparse(target.value) != "checks":
-                continue
-            call = node.value
-            ran = isinstance(call, ast.Call) and ast.unparse(call.func) == "run"
-            if ran:
-                names.append(ast.unparse(target.slice))
-    return names
-
-
-def reasons():
-    """`PARTITION`'s written reasons, by step; the file on the steps CI runs
-    imports it for the count of the steps with a local answer."""
-    return [(name, reason) for name, _, reason in gate.PARTITION if reason]
 
 
 # --- the module as a whole ------------------------------------------------------
@@ -289,128 +229,6 @@ class Test_module:
         assert assigned_from_rewrite, (
             f"`run` hands the shell `{handed}`, and nothing in `run` assigns it "
             "from `handed_to_shell`"
-        )
-
-    def test_the_partition_names_each_step_once(self):
-        """Two rows for one step is two answers to one question, and the second
-        is unreachable — whichever way a reader resolves it, the count of what the
-        seal did not answer is wrong by one."""
-        names = [name for name, _, _ in gate.PARTITION]
-        twice = sorted({name for name in names if names.count(name) > 1})
-        assert not twice, f"these steps carry more than one row: {twice}"
-
-    def test_a_row_is_an_arm_or_a_reason_and_never_both_or_neither(self):
-        """The partition's shape, which A1 and A2 assume and neither asserts. A
-        row with both says a step is mirrored AND excluded; a row with neither is
-        the silence written down."""
-        broken = [
-            (name, arm, reason)
-            for name, arm, reason in gate.PARTITION
-            if bool(arm) == bool(reason)
-        ]
-        assert not broken, (
-            f"these rows are neither mirrored nor excluded, or claim to be both: {broken}"
-        )
-
-    def test_every_arm_the_partition_names_is_an_arm_the_gate_runs(self):
-        """A3. Red when an arm is deleted from `gate()` while its partition row
-        stands — the row would then say a step is mirrored by nothing.
-
-        The partition holds the arm's VALUE (`"chain"`) and `gate()` subscripts
-        `checks` by the constant's NAME (`CHAIN_NAME`), so the two are joined
-        through the module: a constant renamed in one place and not the other is
-        red here rather than quiet."""
-        ran = arms_the_gate_runs()
-        assert ran, "gate() records no check at all"
-        values = {}
-        for name in ran:
-            assert hasattr(gate, name), (
-                f"gate() records `checks[{name}]` and broad_gate.py has no such constant"
-            )
-            values[getattr(gate, name)] = name
-        missing = sorted(
-            {arm for _, arm, _ in gate.PARTITION if arm and arm not in values}
-        )
-        assert not missing, (
-            f"`PARTITION` says these arms mirror a step of the workflow and "
-            f"`gate()` runs no check by those names: {missing}. The arms it does "
-            f"run are {sorted(values)}"
-        )
-
-    def test_the_gate_runs_no_arm_the_partition_does_not_account_for(self):
-        """A3's other side. An arm the gate runs and the partition never names is
-        an arm nobody can say which step it stands for — the `suite` arm aside,
-        which answers no step of this job at all: it is the repository's own
-        command from the `Broad gate` key of `seal/config.json`."""
-        answering_no_release_step = {gate.SUITE}
-        named = {arm for _, arm, _ in gate.PARTITION if arm}
-        loose = sorted(
-            getattr(gate, name)
-            for name in arms_the_gate_runs()
-            if getattr(gate, name) not in named | answering_no_release_step
-        )
-        assert not loose, (
-            f"`gate()` runs these arms and no partition row names them: {loose}. "
-            "An arm belongs to a step of the `release` job, or it answers "
-            "something outside that job — the repository's own command, or a job "
-            "of another workflow — and belongs in the set above"
-        )
-
-    def test_every_exclusion_carries_prose_rather_than_a_category(self):
-        """A4. Red against a reason cell reduced to a category word.
-
-        `EXCLUDED` tells the next reader nothing, and the reason is the whole
-        value of the row — it is what a person checks when they wonder whether
-        the seal covers them. Two structural rules stand in for that judgment: a
-        reason is several words, and it is written in the prose case rather than
-        as a marker.
-
-        **What this cannot catch is a category in prose clothing.** *not
-        applicable here* passes every rule below and says as little as
-        `EXCLUDED`. Only a reader catches that one, and `plan.md` *The failure
-        scenario at six months* is where it is written down as an open hole
-        rather than a closed one.
-        """
-        thin = [
-            (name, reason)
-            for name, reason in reasons()
-            if len(reason.split()) < 3 or reason == reason.upper()
-        ]
-        assert not thin, (
-            f"these rows give a marker where a reason belongs: {thin}. A reason "
-            "is prose somebody wrote — `needs the pull request's body` is one, "
-            "`EXCLUDED` is not"
-        )
-
-    def test_every_exclusion_says_what_the_gate_cannot_reach(self):
-        """A4's second half. A reason that never names the thing out of reach is
-        a sentence rather than a reason — it reads as prose and answers nothing.
-
-        Held loosely on purpose: the vocabulary below is what the four kinds of
-        unreachable thing are called in this repository, and a fifth kind is a
-        word to add here rather than a case to delete."""
-        out_of_reach = (
-            "pull request",
-            "tracker",
-            "fetch",
-            "network",
-            "never fails",
-            "warning",
-            ".github/scripts/",
-            "inline",
-            "second reading",
-            "second implementation",
-        )
-        silent = [
-            name
-            for name, reason in reasons()
-            if not any(word in reason for word in out_of_reach)
-        ]
-        assert not silent, (
-            f"these rows give a reason that names nothing out of the gate's "
-            f"reach: {silent}. Say what the gate cannot get at — the pull "
-            "request, the tracker, a fetch, a step that only warns, or a check "
-            "this repository owns rather than the plugin"
         )
 
 
@@ -1528,321 +1346,6 @@ class Test_base_word:
         )
 
 
-# --- the workflow -----------------------------------------------------------------
-
-WORKFLOW_WITH_TWO_JOBS = """\
-name: example
-
-on:
-  pull_request:
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # - name: a step somebody commented out
-      - name: the first step
-        run: true
-      - name: the second step
-        run: true
-  ledger:
-    runs-on: ubuntu-latest
-    steps:
-      - name: a step of another job
-        run: true
-"""
-
-UNCLASSIFIED_WORKFLOW = """\
-name: hygiene
-
-on:
-  pull_request:
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: a declared review chain has the round record it claimed
-        run: true
-      - name: deploy to staging
-        run: true
-"""
-
-MIXED_WORKFLOW = """\
-name: hygiene
-
-on:
-  pull_request:
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: a declared review chain has the round record it claimed
-        run: true
-      - name: both READMEs move together
-        run: true
-      - name: deploy to staging
-        run: true
-"""
-
-
-class Test_unquote:
-    def test_accepts_a_quoted_scalar_without_its_quotes(self):
-        assert gate.unquote("'a b'") == "a b"
-        assert gate.unquote('"a"') == "a"
-
-    def test_refuses_quotes_that_do_not_match(self):
-        for value in ("'a\"", "'", "a'"):
-            assert gate.unquote(value) == value
-
-
-class Test_job_steps:
-    def test_accepts_the_named_steps_of_one_job(self):
-        assert gate.job_steps(WORKFLOW, "release") == [
-            "a declared review chain has the round record it claimed",
-            "a change to what ships must move the version",
-            "both READMEs move together",
-            "a step nobody classified",
-        ]
-
-    def test_refuses_a_text_with_no_jobs_and_another_jobs_steps(self):
-        assert gate.job_steps("name: x\n", "release") == []
-        assert gate.job_steps(WORKFLOW, "lint") == ["not a release step"]
-
-    def test_the_reader_takes_the_steps_of_the_job_it_was_asked_for(self):
-        """A1's reader. In file order, this job only, and an unnamed step — the
-        checkout every job opens with — is not one. Nor is a step that exists
-        only in a comment, the same reading
-        `tests/text/test_ci_gives_the_checks_what_they_need.py#strip_comments` takes
-        of the same file, for the same reason."""
-        assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "release") == [
-            "the first step",
-            "the second step",
-        ]
-        assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "ledger") == [
-            "a step of another job"
-        ]
-
-    def test_a_job_the_workflow_does_not_have_reads_as_no_steps(self):
-        assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "nosuchjob") == []
-
-    def test_a_file_that_declares_no_jobs_reads_as_no_steps(self):
-        """Not an exception. The gate calls this on whatever file sits at the
-        workflow's path in the repository it was pointed at, and a file it cannot
-        read as a workflow must leave the run exactly as it was (A7)."""
-        assert gate.job_steps("name: not a workflow at all\n", "release") == []
-        assert gate.job_steps("", "release") == []
-
-    def test_a_quoted_step_name_comes_back_unquoted(self):
-        """YAML lets a name be quoted, and the partition holds the name a reader
-        sees rather than the bytes the file spells it in."""
-        text = 'jobs:\n  release:\n    steps:\n      - name: "the quoted step"\n'
-        assert gate.job_steps(text, "release") == ["the quoted step"]
-        text = "jobs:\n  release:\n    steps:\n      - name: 'the other quoting'\n"
-        assert gate.job_steps(text, "release") == ["the other quoting"]
-
-    def test_a_step_name_carrying_a_colon_survives_the_reader(self):
-        """`- name: a: b` is one name, not a mapping. A reader that split on the
-        first colon would take `a` and the partition would name a step nobody
-        runs — which is exactly A2's failure, arriving through the reader."""
-        text = "jobs:\n  release:\n    steps:\n      - name: the step: and its tail\n"
-        assert gate.job_steps(text, "release") == ["the step: and its tail"]
-
-    @pytest.mark.parametrize(
-        "text, expected",
-        [
-            (
-                f"jobs:\n  release:\n    steps:\n      - name: the step{LS}and its tail\n",
-                [f"the step{LS}and its tail"],
-            ),
-            (
-                "jobs:\r\n  release:\r\n    steps:\r\n      - name: the step\r\n",
-                ["the step"],
-            ),
-            (
-                "jobs:\r  release:\r    steps:\r      - name: the step\r",
-                ["the step"],
-            ),
-        ],
-        ids=["U+2028 inside a name", "CRLF line ends", "CR line ends"],
-    )
-    def test_accepts_a_line_ended_only_where_yaml_ends_it(self, text, expected):
-        """#1198, Scope item 10. YAML 1.2 ends a line at LF, CR or CRLF and
-        nowhere else, so a step name holding U+2028 is one name. Seen red
-        against `str.splitlines`, which ends a line at U+2028 too and read
-        `the step` alone; the two line-end shapes pin the universal newlines
-        the LF split comes after."""
-        assert gate.job_steps(text, "release") == expected
-
-
-class Test_base_is_main:
-    @pytest.mark.parametrize("given", ["main", "origin/main"])
-    def test_accepts_main_as_typed_or_as_origins(self, given):
-        assert gate.base_is_main(given)
-
-    @pytest.mark.parametrize("given", [None, "release/v1", "upstream/main"])
-    def test_refuses_any_other_base(self, given):
-        assert not gate.base_is_main(given)
-
-    @pytest.mark.parametrize(
-        "given, main",
-        [
-            ("main", True),
-            ("origin/main", True),
-            ("origin/origin/main", False),
-            ("refs/heads/main", False),
-            ("mains", False),
-            ("release/x", False),
-            (None, False),
-        ],
-    )
-    def test_one_reading_says_whether_the_base_is_main(self, given, main):
-        """S5's `base_is_main`: the one reading the count takes, keyed on the spelling with one leading `origin/` removed."""
-        assert gate.base_is_main(given) is main
-
-
-class Test_steps_for:
-    def test_accepts_every_step_into_main(self):
-        assert len(gate.steps_for(WORKFLOW, "main")) == 4
-
-    def test_refuses_the_main_only_steps_on_another_base(self):
-        steps = gate.steps_for(WORKFLOW, "release/v1")
-        assert "a change to what ships must move the version" not in steps
-        assert len(steps) == 3
-        assert gate.steps_for(None, "main") == []
-
-
-class Test_left_out_clause:
-    def test_accepts_the_count_and_why_on_another_base(self):
-        assert gate.left_out_clause(WORKFLOW, "release/v1") == (
-            " 1 more runs only on a pull request into `main`, so this count leaves "
-            "it out."
-        )
-
-    def test_refuses_a_clause_where_nothing_was_left_out(self):
-        assert gate.left_out_clause(WORKFLOW, "main") == ""
-        assert gate.left_out_clause(None, "release/v1") == ""
-
-
-class Test_workflow_text:
-    def test_accepts_the_workflow_the_tree_holds(self, tmp_path):
-        write(tmp_path, gate.WORKFLOW, WORKFLOW)
-        assert gate.workflow_text(str(tmp_path)) == WORKFLOW
-
-    def test_refuses_a_missing_file_and_one_that_is_not_utf8(self, tmp_path):
-        assert gate.workflow_text(str(tmp_path)) is None
-        path = tmp_path / gate.WORKFLOW
-        path.parent.mkdir(parents=True)
-        path.write_bytes(b"jobs:\n\xff\n")
-        assert gate.workflow_text(str(tmp_path)) is None
-
-
-class Test_unanswered:
-    def test_accepts_the_steps_no_arm_mirrors(self):
-        assert gate.unanswered(WORKFLOW, "main") == [
-            "a change to what ships must move the version",
-            "both READMEs move together",
-            "a step nobody classified",
-        ]
-
-    def test_refuses_a_mirrored_step(self):
-        assert gate.mirrored()[gate.job_steps(WORKFLOW, "release")[0]] == "chain"
-        assert gate.job_steps(WORKFLOW, "release")[0] not in gate.unanswered(
-            WORKFLOW, "release/v1"
-        )
-
-
-class Test_coverage_line:
-    def test_accepts_a_workflow_every_step_of_which_is_answered(self):
-        text = (
-            "jobs:\n  release:\n    steps:\n      - name: both READMEs move together\n"
-        )
-        text = text.replace(
-            "both READMEs move together",
-            "the mode the key declares is the mode the folder is in",
-        )
-        assert gate.coverage_line(text, "main") == (
-            "seal gate: this run answers every one of the 1 `release` steps "
-            f"{gate.WORKFLOW} runs for this base."
-        )
-
-    def test_refuses_to_send_a_reader_to_a_row_for_an_unclassified_step(self):
-        said = gate.coverage_line(WORKFLOW, "main")
-        excluded, unknown = said.split(" In no row of ")
-        assert "both READMEs move together" in excluded
-        assert "a step nobody classified" not in excluded
-        assert unknown.endswith(": a step nobody classified.")
-        assert gate.coverage_line("name: x\n", "main") is None
-
-    def test_a_step_no_row_classifies_is_not_said_to_carry_a_reason(self):
-        """A6's other repository, and round 1's finding 3. `PARTITION` describes
-        THIS repository's `release` job, and `broad_gate.py` ships to every
-        installation — so a repository with a `release` job of its own has steps
-        no row has ever heard of.
-
-        Counting them as unanswered is honest; telling their reader the reason is
-        in `PARTITION` is not, because `PARTITION` holds a row per step of a
-        workflow that repository does not run. A reader who follows the pointer
-        finds somebody else's list and no answer, which is the reconstruction
-        from two files this work item exists to remove, one level further out."""
-        said = gate.coverage_line(UNCLASSIFIED_WORKFLOW, "base")
-        assert "deploy to staging" in said, said
-        with_reasons = said.split("no arm mirrors it in", 1)
-        assert len(with_reasons) == 1 or "deploy to staging" not in with_reasons[1], (
-            f"a step in no row of PARTITION is named among the ones PARTITION "
-            f"gives a reason for:\n{said}"
-        )
-        assert "no row of `broad_gate.py#PARTITION` at all" in said, said
-
-    def test_the_two_clauses_render_together_and_hold_the_right_names(self):
-        """Round 2's coverage note. The case above and
-        `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`'s
-        `test_a_step_a_row_excludes_is_still_pointed_at_its_reason` each
-        exercise one clause — `UNCLASSIFIED_WORKFLOW` leaves `excluded` empty
-        and this repository's own workflow leaves `unknown` empty — so the
-        JOINED sentence, which is
-        the one a mixed repository's reader actually has to parse, was rendered
-        by nothing.
-
-        The two comprehensions are disjoint by construction, which is why the
-        reviewer called this a coverage note rather than a defect. It is still
-        the sentence that goes wrong if either clause ever learns to claim the
-        other's steps."""
-        said = gate.coverage_line(MIXED_WORKFLOW, "base")
-        assert "runs 3 steps for this base and this run answers 1" in said, said
-
-        reasoned, _, unknown = said.partition(
-            "In no row of `broad_gate.py#PARTITION` at all"
-        )
-        assert unknown, f"the second clause did not render at all:\n{said}"
-        assert "no arm mirrors it in `broad_gate.py#PARTITION`" in reasoned, said
-
-        assert "both READMEs move together" in reasoned, said
-        assert "both READMEs move together" not in unknown, (
-            f"a step `PARTITION` excludes with a reason is named among the ones "
-            f"it has never heard of:\n{said}"
-        )
-        assert "deploy to staging" in unknown, said
-        assert "deploy to staging" not in reasoned, (
-            f"a step in no row of `PARTITION` is named among the ones it gives a "
-            f"reason for:\n{said}"
-        )
-        assert "a declared review chain has the round record it claimed" not in said, (
-            f"a step the gate DOES mirror is named as unanswered:\n{said}"
-        )
-
-    def test_the_count_cannot_be_asked_without_a_base(self):
-        """Round 1's 🟡 3: a caller that drops the base gets a `TypeError` rather
-        than the feature-base answer in silence, so the merge that rewrote the
-        gate's coverage call could not lose its argument unnoticed."""
-        text = read(HYGIENE)
-        for unit in (gate.unanswered, gate.coverage_line):
-            with pytest.raises(TypeError):
-                unit(text)
-
-
 # --- what the report reads --------------------------------------------------------
 
 
@@ -2054,14 +1557,13 @@ class Test_panel:
             ("chain", "✓ exit 0"),
         ]
 
-    def test_accepts_the_item_the_gate_row_and_what_ci_also_asks(self, tmp_path):
+    def test_accepts_the_item_and_the_gate_row(self, tmp_path):
         base = gate.Base("main", "aaa1111", "main", "aaa1111")
         item = tmp_path / "1799000005-z"
         item.mkdir()
-        rows = gate.panel("c", base, checks(), str(item), WORKFLOW, "tree 1.0")
+        rows = gate.panel("c", base, checks(), str(item), "tree 1.0")
         assert ("item", "1799000005") in rows
         assert ("gate", "tree 1.0") in rows
-        assert ("CI also", "· 3 more steps") in rows
         assert rows[-1] == ("rounds", "0")
 
     def test_refuses_to_print_a_ref_that_is_the_commit_or_counts_it_has_not(self):
@@ -2069,9 +1571,7 @@ class Test_panel:
         rows = gate.panel("c", base, checks(suite=0), None, run=None)
         assert ("base", "aaa1111") in rows
         assert ("suite", "exit 0") in rows
-        assert not any(
-            row and row[0] in ("", "item", "gate", "CI also") for row in rows
-        )
+        assert not any(row and row[0] in ("", "item", "gate") for row in rows)
 
     def test_refuses_a_value_wider_than_the_frame_and_continues_a_list(self):
         width = stamp.PANEL_VALUE_WIDTH
@@ -2691,34 +2191,22 @@ jobs:
 """
 
 
-def panel_rows(repo):
-    """The stamp's rows for a run over `repo`'s workflow, computed rather
-    than scraped off the drawing — the rendered line is asserted separately,
-    and a value's WIDTH cannot be measured once the frame has cut it."""
-    checks = {
-        name: gate.Check(name, 0, "", "") for name in (gate.SUITE, gate.CHAIN_NAME)
-    }
-    base = gate.Base("base", "cccccccc", "base", "cccccccc")
-    return gate.panel(
-        "ccccccc", base, checks, None, read(repo / ".github/workflows/hygiene.yml")
-    )
-
-
 def with_workflow(repo):
     """The fixture, given a hygiene workflow whose `release` job runs three
-    real steps: one this gate mirrors and two it does not."""
+    named steps, one of them only on a pull request into `main`."""
     write(repo, ".github/workflows/hygiene.yml", FIXTURE_WORKFLOW)
     commit(repo, "the repository gains a hygiene workflow")
     return repo
 
 
-# The panel of a run with no workflow, as it has stood release to release.
+# The panel of a run, as it has stood release to release.
 # `gate` joined it in 0.15.1 (#475), and since #666 it prints only where the
 # copy that ran is not the one invoked, so a run handed no `copy` has none.
 # #666 also moved the ref from `from` to the row under `base` (`""`), and the
 # row's exit code from `row` to the row under `suite` — which this fixture's
 # empty output, carrying no pytest counts, does not have. No row here is
-# about the workflow: a run without one is still the run it was. #717 took
+# about a workflow: #1483 took the `CI also` row off with the gate's copy of
+# AgenticSeal's `release` steps, and the gate reads no workflow. #717 took
 # `chain` off, because a drawn panel is green by construction and its title
 # already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
 # put it back with a `✓`, and the base's ref beside its commit on one row.
@@ -2875,178 +2363,44 @@ class Test_main:
             f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{result.stdout}"
         )
 
-    def test_the_report_says_how_many_steps_the_run_did_not_answer(self, tmp_path):
-        """A6, on the printed output rather than on the data behind it.
+    def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(self, tmp_path):
+        """#1483's S3, the issue's third *Done when*. The gate reads no
+        workflow, so a repository whose `hygiene.yml` holds a `release` job is
+        gated as one with none: its report carries `HISTORICAL_ROWS` and its
+        stderr names neither the workflow, nor the job, nor a step of it.
 
-        W1's choice, recorded: **the panel carries the count and the names go to
-        the stream beside it.** The panel gives a value 41 columns since #832
-        (23 before it) — `seal_stamp.PANEL_VALUE_WIDTH` — and three
-        step names do not fit in it, let alone fourteen. A reader given only a
-        number would have to reconstruct WHICH from two files, which is the
-        reconstruction this work item exists to remove, so both are printed and
-        neither alone.
-
-        The printed half is read off the run's own stdout since #975, where the
-        panel's rows are text under the `BROAD GATE PASSED` line."""
+        Seen red against the gate that kept a copy of AgenticSeal's `release`
+        steps, which printed a `CI also` row and a line counting the steps for
+        this fixture. The searched names are the job as that line spelled it,
+        the workflow's path and the fixture's step names, never a bare
+        `release`, which a checkout under a `release/` directory carries
+        (#499)."""
         repo = with_workflow(sealable_repo(tmp_path))
         result = run_gate(repo, tmp_path / "out")
         assert result.returncode == 0, result.stdout + result.stderr
-
-        printed = result.stdout.splitlines()
-        rendered = [line for line in printed if "more steps" in line]
-        assert len(rendered) == 1, (
-            "the report says nothing about the steps this run did not answer:\n"
-            + result.stdout
-        )
-        # Whole, not cut: a value one column too wide would read as a shorter
-        # true statement — which is the failure mode the elision beside the
-        # `from` row was added for. The substring is the assertion: a cut value
-        # would not carry its tail.
-        #
-        # #666: over the steps CI runs for THIS base. The milestone step runs only
-        # on a pull request into `main` and the base here is `base`, so it is
-        # neither answered nor unanswered — `2 of 3` became `1 of 2`.
-        #
-        # #717: the owner's wording, `CI also  <n> more steps`. The denominator
-        # left the panel for the stderr line beside the names, asserted below.
-        # #832's S5a: the value leads with a dim `·`, which `--shape` writes `.`.
-        assert re.search(r"^CI also [·.] 1 more steps$", rendered[0]), rendered[0]
-        width = load_module(STAMP, "agentic_seal_stamp").PANEL_VALUE_WIDTH
-        value = next(
-            v for _, v in [r for r in panel_rows(repo) if r] if "more steps" in v
-        )
-        assert len(value) <= width, (
-            f"the value is {len(value)} columns and the panel gives "
-            f"{width}: {value!r}. This is W1's whole reason for a "
-            "count rather than the names"
-        )
-
-        assert "both READMEs move together" in result.stderr
-        # A11 at the fixture: the step CI will not run here is not named among
-        # the unanswered, and one clause says how many were left out and why.
-        assert (
-            "the milestone this release claims is the work it carries, and a patch carries no feat"
-            not in result.stderr
-        ), result.stderr
-        assert (
-            "runs 2 steps for this base and this run answers 1. 1 more runs only on "
-            "a pull request into `main`, so this count leaves it out."
-        ) in result.stderr, result.stderr
-        assert (
-            "a declared review chain has the round record it claimed"
-            not in (result.stderr.split("Not answered", 1)[-1])
-        ), "a step the gate DOES mirror is listed among the ones it did not answer"
-
-    def test_a_seal_that_answers_every_step_says_so(self, tmp_path):
-        """The other value of the same line. A run that leaves nothing unanswered
-        must not go quiet: silence there is indistinguishable from a gate that
-        stopped looking, which is the state this work item found the gate in.
-
-        #666 keys it on the base: the milestone step stays in the workflow and
-        runs only into `main`, so against `base` the one step CI runs is the
-        mirrored one, and the line says every one is answered AND that one more
-        was left out, rather than calling the milestone unanswered."""
-        repo = sealable_repo(tmp_path)
-        readmes = "      - name: both READMEs move together\n        run: true\n"
-        assert readmes in FIXTURE_WORKFLOW, "the fixture no longer has the step"
-        write(
-            repo, ".github/workflows/hygiene.yml", FIXTURE_WORKFLOW.replace(readmes, "")
-        )
-        commit(repo, "a workflow whose every step CI runs here this gate mirrors")
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 0, result.stdout + result.stderr
-        assert (
-            "this run answers every one of the 1 `release` steps "
-            f"{gate.WORKFLOW} runs for this base. 1 more runs only on a pull request "
-            "into `main`, so this count leaves it out."
-        ) in result.stderr, result.stderr
-        # #717: the panel's row does not go quiet either. At 0 it still prints,
-        # and it says a count.
-        assert ("CI also", "· 0 more steps") in panel_rows(repo), panel_rows(repo)
-
-    def test_a_repository_with_no_hygiene_workflow_is_sealed_exactly_as_before(
-        self, tmp_path
-    ):
-        """A7. The partition describes THIS repository's CI and `broad_gate.py`
-        ships to every repository that installs the plugin. For one with no such
-        workflow the run must be what it was: the same panel rows, and no line
-        about steps nobody runs.
-
-        Red against a gate that prints the row unconditionally — which is what a
-        partition held as a constant and printed from would do, and why
-        `questions.md` Q1's answer (a) survives only while this case is green.
-        """
-        repo = sealable_repo(tmp_path)
-        assert not (repo / ".github").exists(), "the fixture has a workflow after all"
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 0, result.stdout + result.stderr
-        # The stamp's rows are what the run read: `panel` is handed
-        # `workflow_text(root)`, and for this repository that is None, which is
-        # the input the labels below are computed over. It used to be asked of a
-        # drawing on stdout, and a piped run draws nothing since #400 — so that
-        # absence held for every repository, workflow or not.
-        assert gate.workflow_text(str(repo)) is None, (
-            "the run read a workflow in a repository that has none, so the stamp "
-            "would say something about that workflow's steps"
-        )
-        # What names the release job, and nothing a path can carry by accident:
-        # the job as `coverage_line` spells it, the workflow's path, and every
-        # step name the partition holds. A bare `release` used to be searched
-        # for once the echoed paths were cut out of the stream, and a checkout
-        # under a `release/` directory then went red for a path nobody had cut
-        # yet (#499).
-        for names_the_job in (
-            f"`{gate.RELEASE_JOB}`",
-            gate.WORKFLOW,
-            *(name for name, _, _ in gate.PARTITION),
+        steps = re.findall(r"^\s*- name: (.+)$", FIXTURE_WORKFLOW, re.M)
+        assert steps, "the fixture names no step"
+        for names_the_workflow in (
+            os.path.join(".github", "workflows", "hygiene.yml"),
+            "`release`",
+            *steps,
         ):
-            assert names_the_job not in result.stderr, (
-                f"the gate names {names_the_job!r} for a repository with no "
-                f"hygiene workflow:\n{result.stderr}"
+            assert names_the_workflow not in result.stderr, (
+                f"the gate names {names_the_workflow!r} for a repository whose "
+                f"workflow it does not read:\n{result.stderr}"
             )
-
+        # The report's rows as the run printed them under its head line: each
+        # label padded to the stamp's width, a branch's row and a blank one
+        # carrying none.
+        _head, *rows = result.stdout.splitlines()
         labels = tuple(
-            row[0]
-            for row in gate.panel(
-                "ccccccc",
-                gate.Base("base", "cccccccc", "base", "cccccccc"),
-                {
-                    name: gate.Check(name, 0, "", "")
-                    for name in (gate.SUITE, gate.CHAIN_NAME)
-                },
-                None,
-            )
-            if row
+            label
+            for label in (row[: stamp.LABEL_WIDTH].strip() for row in rows)
+            if label
         )
         assert labels == HISTORICAL_ROWS, (
-            f"the panel of a run with no workflow is no longer the panel it was: {labels}"
+            f"the report of a run over a workflow is not the report it was: {labels}"
         )
-
-    def test_a_workflow_that_is_not_utf8_leaves_the_run_as_it_was(self, tmp_path):
-        """A7's other shape, and the one that ends the run rather than changing
-        it. `UnicodeDecodeError` is a `ValueError`, not an `OSError`, and
-        `broad_gate.main` catches only `Refused` — so before this the gate ended
-        on a traceback for a repository whose workflow file happens to be
-        latin-1. A repository this partition is not about must come out of the
-        run exactly as it went in, and a traceback is the largest departure from
-        that there is. Round 1, finding 5."""
-        repo = sealable_repo(tmp_path)
-        path = repo / ".github" / "workflows" / "hygiene.yml"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(
-            "jobs:\n  release:\n    steps:\n      - name: café step\n".encode("latin-1")
-        )
-        commit(repo, "a workflow file that is not utf-8")
-        assert gate.workflow_text(str(repo)) is None
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 0, result.stdout + result.stderr
-        assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
-        assert "Traceback" not in result.stderr, result.stderr
-        # No `workflow` row on the stamp is `workflow_text(root)` being None,
-        # asserted above: it is the one input `panel` takes the row from, and the
-        # case before this one pins the rows of a run given None. It used to be
-        # asked of a drawing on stdout as well, and a piped run draws nothing
-        # since #400, so that absence held whatever the run read.
 
 
 test_census = census_case(TARGET)
