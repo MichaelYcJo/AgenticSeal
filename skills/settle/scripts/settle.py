@@ -5,8 +5,8 @@
                                 name one section, the designs to read whole, every
                                 open row, the files named like a record and not
                                 read, the judgments of each run, those of
-                                the plans earlier settles removed, and what
-                                `--apply` removes
+                                the plans the two newest removing commits
+                                deleted, and what `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row and whose version's
                                 published note, where one is read, carries
@@ -17,6 +17,9 @@
   settle --draft                write every released operation into the
                                 policy root in merge order, and name each one
                                 not placed; it decides nothing
+  settle --all-earlier          the dry run, with the judgments of the plans
+                                every earlier settle removed, not only those
+                                of the two newest removing commits
   settle --released-at REF      what counts as released (default origin/main)
   settle --root DIR             a repository other than this one
 
@@ -59,14 +62,18 @@ the settling session's to judge. Every row of every released
 `frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
 against` cell, with its work item's round count; a heading near the
 section's, and a section whose table it cannot read, are named as not read.
-After them come the rows of every `frame/plan.md` a commit on
-`--released-at` deleted from a work item with no directory in the tree, the
-plans earlier settles removed: each read at that commit's parent by the
-same reader, grouped the same way, with the release whose tag holds the
-commit that added it and the removing commit's `(#N)`. A `git` that fails
-there is named, and no row is matched to another: whether two rows are one
-kind is the settling session's to judge. Nothing is refused or held in the
-dry run.
+After them come the rows of the `frame/plan.md` files commits on
+`--released-at` deleted from work items with no directory in the tree, the
+plans earlier settles removed: each read at its removing commit's parent by
+the same reader, grouped the same way, with the release whose tag holds the
+commit that added it and the removing commit's `(#N)`. The plans of the two
+newest removing commits are read (`EARLIER_WINDOW`), and a last line counts
+the older removing commits left out; `--all-earlier` reads them all and
+prints no such line. The texts, the adding commits and the tags are each
+read in one batched call, so the git calls do not grow with the plans read.
+A `git` that fails there is named, and no row is matched to another:
+whether two rows are one kind is the settling session's to judge. Nothing
+is refused or held in the dry run.
 
 **`--from` reads a directory a person names, and writes nothing there.**
 Each `--from DIR` is read from the directory this runs in, and names a
@@ -164,8 +171,9 @@ list `gh` cannot give or a `git` that cannot read what a note is checked
 by, each before anything is removed, a sibling script that is
 not beside it, a `--from` that names no directory of the working tree, one
 outside the repository, the `seal/` root or a path under it, `--from`
-beside `--apply`, which removes only under `seal/threads/`, and `--draft`
-beside `--apply` or `--from`. An interpreter below
+beside `--apply`, which removes only under `seal/threads/`, `--draft`
+beside `--apply` or `--from`, and `--all-earlier` beside `--apply` or
+`--draft`, which print none of what it widens. An interpreter below
 the floor never reaches this file through `seal settle`: `lib/launch.py`
 refuses `seal` with 2 first.
 """
@@ -926,15 +934,31 @@ JUDGMENTS_HEADING = (
     "kept costing rounds (`skills/settle/SKILL.md`):"
 )
 # Its neighbour, the rows of the plans earlier settles removed, read from the
-# history of `--released-at` (#1281), and what a work item's line says where
-# no release can be named for it. The heading says who decides the kind.
+# history of `--released-at` (#1281) and bounded to the two newest removing
+# commits unless `--all-earlier` is given (#1481), and what a work item's
+# line says where no release can be named for it. The heading says who
+# decides the kind.
 EARLIER_HEADING = (
-    "the judgments earlier settles removed: the rows of each `frame/plan.md` a "
-    "commit on\n`--released-at` deleted, read at that commit's parent and "
-    "grouped by the document each\nstands on, with the release each shipped "
-    "in. The script matches no row to another:\nwhether a row here is one kind "
-    "with a row above is the settling session's to judge,\nand it rewrites a "
-    "section where a kind recurs across releases (`skills/settle/SKILL.md`):"
+    "the judgments earlier settles removed: the rows of each `frame/plan.md` "
+    "deleted by\none of the two newest commits on `--released-at` that deleted "
+    "a plan, or by any such\ncommit under `--all-earlier`, read at that "
+    "commit's parent and grouped by the\ndocument each stands on, with the "
+    "release each shipped in. The script matches no\nrow to another: whether a "
+    "row here is one kind with a row above is the settling\nsession's to judge, "
+    "and it rewrites a section where a kind recurs across releases\n"
+    "(`skills/settle/SKILL.md`):"
+)
+# How many removing commits the default dry run reads, newest first (#1481).
+# Two, because every kind the settle pull requests #1310, #1400, #1432, #1466
+# and #1495 name as recurring across releases rests on rows of the current
+# release and of the two newest removing commits before that settle, and
+# #1432's rested on the second (#1481's design, *Grounding* G11).
+EARLIER_WINDOW = 2
+# The section's last line where the window left removing commits out: a count
+# of commits, never of rows.
+EARLIER_OLDER = (
+    "{count} older commit{s} removed plans this section did not read; "
+    "`seal settle --all-earlier` reads them"
 )
 NO_RELEASE_TAG = "no `vX.Y.Z` tag holds {commit}, the commit that added its plan"
 NO_ADDING_COMMIT = "no commit on {ref} adds its plan"
@@ -1000,6 +1024,19 @@ DRAFT_WITH_FROM = (
     "only the released designs' operations, and a promoted document is "
     "written by the settling session, so nothing was read and nothing was "
     "written.\n"
+)
+
+# What `--all-earlier` refuses, each with exit 2 before anything is read
+# (#1481): it widens only what the dry run prints.
+EARLIER_WITH_APPLY = (
+    "settle: --all-earlier and --apply cannot be given together: --apply "
+    "prints none of the judgments earlier settles removed, so nothing was read "
+    "and nothing was removed.\n"
+)
+EARLIER_WITH_DRAFT = (
+    "settle: --all-earlier and --draft cannot be given together: the draft "
+    "prints none of the judgments earlier settles removed, so nothing was read "
+    "and nothing was written.\n"
 )
 # `--draft`'s last line, after its count.
 DRAFTED = (
@@ -1204,11 +1241,15 @@ def removed_plan_re(specs):
     return re.compile(rf"{re.escape(specs)}/([^/]+)/{re.escape(PLAN)}")
 
 
-def earlier_judgments(root, ref, present, specs):
-    """`(groups, unread)` for every `frame/plan.md` a commit on REF deleted
-    under SPECS (`threads`) whose work item has no directory among PRESENT,
-    the ids `work_items(records, specs)` lists: the plans earlier settles
-    removed.
+def earlier_judgments(root, ref, present, specs, every=False):
+    """`(groups, unread, older)` for the `frame/plan.md` files commits on REF
+    deleted under SPECS (`threads`) whose work items have no directory among
+    PRESENT, the ids `work_items(records, specs)` lists: the plans earlier
+    settles removed. A removing commit is one at which a plan is read here,
+    so a commit whose every deleted plan is read at a newer deletion, or
+    belongs to a directory that stands, is none. The plans of the
+    `EARLIER_WINDOW` newest removing commits are read, and under EVERY those
+    of all of them.
 
       groups  `[(judged against, [(id, released, removed, [(coordinate,
               date, judgment, grounds)])])]`, grouped by the `Judged
@@ -1224,6 +1265,10 @@ def earlier_judgments(root, ref, present, specs):
               plan git holds no text for, with what `git cat-file` answered,
               each at its `<short>^:` path; and a `git` that fails, with
               what it said, where `where` is empty and no row is read
+      older   how many removing commits past the window were not read: 0
+              under EVERY, and where the deletions' `git log` fails. A
+              batched read that fails leaves it standing, since the
+              deletions it counts were listed
 
     One `git log -z --no-renames --full-history --diff-filter=D` of REF over
     `seal/threads` lists the deletions: `-z` so that no path is quoted,
@@ -1252,7 +1297,7 @@ def earlier_judgments(root, ref, present, specs):
             specs,
         )
     except RuntimeError as failed:
-        return [], [("", str(failed))]
+        return [], [("", str(failed))], 0
     deleted, seen = [], set()
     commit = None
     removed_plan = removed_plan_re(specs)
@@ -1271,14 +1316,22 @@ def earlier_judgments(root, ref, present, specs):
         seen.add(line)
         if matched.group(1) not in present:
             deleted.append((commit, matched.group(1), line))
+    # The log lists commits newest first, so the removing commits are met in
+    # that order, and the window is the deletions of the first ones met.
+    removing = list(dict.fromkeys(full for (full, _s, _t), _i, _p in deleted))
+    older = 0
+    if not every and len(removing) > EARLIER_WINDOW:
+        kept = set(removing[:EARLIER_WINDOW])
+        older = len(removing) - EARLIER_WINDOW
+        deleted = [d for d in deleted if d[0][0] in kept]
     if not deleted:
-        return [], []
+        return [], [], older
     try:
         texts = blobs(root, [f"{full}^:{path}" for (full, _s, _t), _i, path in deleted])
         added = adding_commits(root, ref, specs)
         labels = versions(root)
     except RuntimeError as failed:
-        return [], [("", str(failed))]
+        return [], [("", str(failed))], older
     groups, unread = {}, []
     for ((_full, short, subject), work_item_id, path), (text, answer) in zip(
         deleted, texts, strict=True
@@ -1311,6 +1364,7 @@ def earlier_judgments(root, ref, present, specs):
             for against, members in groups.items()
         ],
         unread,
+        older,
     )
 
 
@@ -1437,7 +1491,7 @@ def records_of(root, home):
     return local, (os.path.dirname(home) if local else root)
 
 
-def survey(root, ref, home=None):
+def survey(root, ref, home=None, every=False):
     """What the dry run prints, and where `--apply` gets *released*.
 
     HOME is the resolved `seal/` root, `<root>/seal` when it is None, the
@@ -1445,7 +1499,8 @@ def survey(root, ref, home=None):
     ROOT the root is in local mode: the work items are read under the
     directory holding it, and released is asked of `gh` and git
     (`released_local`) rather than read from REF's tree. Every work item
-    path opens with `threads(home)`.
+    path opens with `threads(home)`. EVERY is `--all-earlier`, which
+    `earlier_judgments` reads every removing commit's plans under.
 
     **`--apply` does not take its candidates from here.** It reads the
     directories and the records from the tree again, because a
@@ -1486,7 +1541,7 @@ def survey(root, ref, home=None):
             (i, held) for i in ids if (held := misplaced(records, i, reader, specs))
         ],
         "judgments": judgments(records, ids, specs),
-        "earlier": earlier_judgments(root, ref, present, specs),
+        "earlier": earlier_judgments(root, ref, present, specs, every),
         "nothing": reader.NOTHING,
     }
     found["citations"], found["readers"] = citations(root, ids, specs)
@@ -1801,8 +1856,8 @@ def report(found, ref, out):
                 for line, date, judgment, grounds in held:
                     write(f"        {PLAN}:{line}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
-    groups, unread = found["earlier"]
-    if groups or unread:
+    groups, unread, older = found["earlier"]
+    if groups or unread or older:
         write(f"\n{EARLIER_HEADING}\n")
         for where, why in unread:
             write(f"    {where + '  ' if where else ''}not read: {why}\n")
@@ -1814,6 +1869,8 @@ def report(found, ref, out):
                 for where, date, judgment, grounds in held:
                     write(f"        {where}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
+        if older:
+            write(f"\n{EARLIER_OLDER.format(count=older, s=plural(older))}\n")
     if "documents" in found:
         write("\n")
         write_documents(found["documents"], out)
@@ -2031,6 +2088,13 @@ def main(argv=None):
         "root as it stands, in merge order, and name each one not placed with "
         "the reason; it decides nothing. Refused beside --apply and --from",
     )
+    ap.add_argument(
+        "--all-earlier",
+        action="store_true",
+        help="the dry run, with the judgments of the plans every commit on "
+        "--released-at removed, where the dry run alone reads those of the two "
+        "newest such commits. Refused beside --apply and --draft",
+    )
     args = ap.parse_args(argv)
     if args.draft and args.apply:
         sys.stderr.write(DRAFT_WITH_APPLY)
@@ -2040,6 +2104,12 @@ def main(argv=None):
         return 2
     if args.named and args.apply:
         sys.stderr.write(FROM_WITH_APPLY)
+        return 2
+    if args.all_earlier and args.apply:
+        sys.stderr.write(EARLIER_WITH_APPLY)
+        return 2
+    if args.all_earlier and args.draft:
+        sys.stderr.write(EARLIER_WITH_DRAFT)
         return 2
 
     root = os.path.abspath(args.root or os.getcwd())
@@ -2093,7 +2163,7 @@ def main(argv=None):
         return 0
 
     try:
-        found = survey(root, args.released_at, home)
+        found = survey(root, args.released_at, home, args.all_earlier)
     except Unasked as refused:
         sys.stderr.write(UNASKED.format(why=refused))
         return 2

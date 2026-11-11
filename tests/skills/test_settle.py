@@ -260,6 +260,41 @@ def removed_plan(repo, name, plan, added, removed, tag=None):
     return adding, git(repo, "rev-parse", "--short", "HEAD").strip()
 
 
+def three_removals(repo):
+    """Three removing commits, each deleting one plan of one row as an
+    earlier settle's `--apply` leaves it, and a released work item. The
+    lines each work item prints in the earlier section, newest removal
+    first."""
+    printed = []
+    for n in range(1, 4):
+        name = f"170000000{n}-old"
+        _, short = removed_plan(
+            repo,
+            name,
+            judgments_plan([(f"2026-10-0{n}", f"judged {n}", "y", "z")]),
+            f"the old work item {n} (#{n})",
+            f"settle 0.{n}.0 (#{n + 10})",
+            f"v0.{n}.0",
+        )
+        printed.insert(
+            0,
+            f"    {name}  released in v0.{n}.0; removed by {short} (#{n + 10})\n"
+            f"        {short}^:seal/threads/{name}/frame/plan.md:7  "
+            f"2026-10-0{n}  judged {n}\n"
+            "            grounds: y\n",
+        )
+    released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
+    return printed
+
+
+def earlier_block(text):
+    """The dry run's section of the judgments earlier settles removed,
+    without its heading."""
+    return text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+        f"\n\n{settle.REMOVES_HEADING}"
+    )[0]
+
+
 def not_read(name, rel, place):
     """The line naming a misplaced record file, as the dry run and `--apply`
     print it."""
@@ -1726,6 +1761,75 @@ class Test_main:
         ) in block, block
         assert "  2026-10-01  gone\n" not in block, block
         assert "  2026-10-02  kept\n" in block, block
+
+    def test_reads_the_plans_of_the_two_newest_removing_commits_and_names_the_rest(
+        self, repo, capfd
+    ):
+        """#1481, design S1. Of three commits that each removed one plan,
+        the dry run prints the rows of the two newest commits' plans, none
+        of the oldest's, and ends the section with the line counting the
+        one older removing commit it did not read and naming
+        `seal settle --all-earlier`. Seen red with the bound alone
+        removed."""
+        newest, middle, _oldest = three_removals(repo)
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert earlier_block(text) == (
+            "\njudged against: z\n"
+            + newest
+            + middle
+            + "\n1 older commit removed plans this section did not read; "
+            "`seal settle --all-earlier` reads them"
+        ), earlier_block(text)
+
+    def test_all_earlier_reads_the_plans_of_every_removing_commit(self, repo, capfd):
+        """#1481, design S2. Under `--all-earlier` the section prints the
+        rows of every removing commit's plans, newest first, and no line of
+        older commits not read."""
+        printed = three_removals(repo)
+        code, text = dry_run(repo, capfd, "--all-earlier")
+        assert code == 0, text
+        assert earlier_block(text) == (
+            "\njudged against: z\n" + "".join(printed).rstrip("\n")
+        ), earlier_block(text)
+
+    @pytest.mark.parametrize(
+        "other, sentence",
+        [
+            pytest.param(
+                "--apply",
+                "settle: --all-earlier and --apply cannot be given together: "
+                "--apply prints none of the judgments earlier settles removed, "
+                "so nothing was read and nothing was removed.\n",
+                id="apply",
+            ),
+            pytest.param(
+                "--draft",
+                "settle: --all-earlier and --draft cannot be given together: "
+                "the draft prints none of the judgments earlier settles "
+                "removed, so nothing was read and nothing was written.\n",
+                id="draft",
+            ),
+        ],
+    )
+    def test_refuses_all_earlier_beside_apply_or_draft_and_reads_nothing(
+        self, repo, capfd, monkeypatch, other, sentence
+    ):
+        """#1481, design S3. `--all-earlier` widens only what the dry run
+        prints, so beside `--apply` or `--draft`, which print none of it,
+        it is refused with exit 2 and one sentence before anything is read,
+        and the tree is left as it was."""
+        three_removals(repo)
+        before = files(repo)
+
+        def survey(*_args, **_kwargs):
+            raise AssertionError("the refused run read the records")
+
+        monkeypatch.setattr(settle, "survey", survey)
+        code, text = dry_run(repo, capfd, "--all-earlier", other)
+        assert code == 2, text
+        assert text == sentence, text
+        assert files(repo) == before
 
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
@@ -3339,6 +3443,13 @@ class Test_module:
         assert (
             "whether a row here is one kind with a row above is the settling "
             "session's to judge" in flat(settle.EARLIER_HEADING)
+        )
+        # Which plans it reads by default, and the flag that reads the rest
+        # (#1481).
+        assert (
+            "deleted by one of the two newest commits on `--released-at` that "
+            "deleted a plan, or by any such commit under `--all-earlier`"
+            in flat(settle.EARLIER_HEADING)
         )
         # The named directories' heading: the session proposes, the person
         # marks (#1054).
