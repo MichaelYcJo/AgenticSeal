@@ -103,8 +103,16 @@ wait for #923, and it says `docs/releasing/issues-and-milestones.md`
 names it on one `check:` line, which is the count at `fa911da9c`. The
 census sweep no longer calls a module that declares no `TARGET` one not
 yet in the layout. The docstrings of every file whose cases changed say
-what the file now holds. Sentences that say where #942 or an earlier
-phase placed cases still state where those cases stand, and were kept.
+what the file now holds. Six docstrings said where their file's cases
+came from, or that a phase moved cases out of the file. They were
+`test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py`,
+`test_a_test_file_takes_the_root_from_the_conftest.py`,
+`test_every_entry_point_runs_at_the_floor.py`,
+`test_every_shipped_agent_and_document_is_measured.py`,
+`test_every_tracked_file_meets_every_census.py` and
+`test_one_table_walker_reads_what_gfm_renders.py`. The read of the range
+against HEAD after `8496e6664`, the records' first commit, found them, and
+`662760c6b` makes each say where those cases stand.
 
 **The rulings shown red** (executed after `d0ed5f84d`, each command
 exited 0). Each ran as `bin/seal mutate <file> --replace <old> <new>
@@ -154,5 +162,8 @@ census sweep and `tests/github/test_rules.py`:
 bin/test tests/behaviour/test_a_body_naming_two_issues_claims_one.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_a_commit_names_its_repository.py tests/behaviour/test_a_declared_label_reaches_the_tracker.py tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_a_probe_that_commits_says_so.py tests/behaviour/test_a_reference_root_is_read_and_never_taken.py tests/behaviour/test_a_release_publishes_its_note.py tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py tests/behaviour/test_a_signer_declares_its_pact.py tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py tests/behaviour/test_both_editions_carry_the_same_folds.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_evals_layout.py tests/behaviour/test_every_entry_point_runs_at_the_floor.py tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py tests/behaviour/test_every_shipped_agent_and_document_is_measured.py tests/behaviour/test_every_tracked_file_meets_every_census.py tests/behaviour/test_first_setup_asks_once.py tests/behaviour/test_no_document_names_the_old_roots.py tests/behaviour/test_one_heading_rule_holds_to_commonmark.py tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py tests/behaviour/test_release_hygiene.py tests/behaviour/test_the_contributor_has_a_procedure.py tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/behaviour/test_this_repository_passes_its_own_checks.py tests/censuses.py tests/conftest.py tests/gfm_table_oracle.py tests/github/test_close_issues_on_release.py tests/github/test_dist_branch.py tests/github/test_issue_claims_check.py tests/github/test_label_merged_on_release_branch.py tests/github/test_publish_release_note.py tests/github/test_release_completeness_check.py tests/github/test_roll_flow_measurement_issue.py tests/github/test_rules.py tests/github/test_tracker_labels.py tests/hooks/test_core_start.py tests/lib/test_blocks.py tests/lib/test_config.py tests/lib/test_launch.py tests/lib/test_lines.py tests/lib/test_tables.py tests/skills/test_chain_check.py tests/skills/test_fold_check.py tests/skills/test_mutation_check.py tests/skills/test_payload_meter.py tests/skills/test_seal_stamp.py tests/skills/test_seal.py tests/skills/test_settle.py tests/test_censuses.py tests/test_conftest.py tests/text/test_a_cited_commit_outlives_the_squash.py tests/text/test_a_language_section_of_writing_style_opens_alone.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/text/test_settle_reads_before_it_removes.py tests/text/test_the_chain_section_has_one_shape.py tests/text/test_the_records_can_be_carried_out_and_in.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/text/test_the_rules_have_one_owner.py -q
 ```
 
-It gave `3320 passed, 7 skipped` and exited 0 (S9). The suite beyond the
-set is `unverified`, and the orchestrator's broad gate answers it.
+It gave `3320 passed, 7 skipped` and exited 0 (S9). At `662760c6b`,
+which changes six docstrings and no assert, the same command gave
+`3320 passed, 7 skipped` and exited 0, and the four counts above came out
+the same (all executed). The suite beyond the set is `unverified`, and
+the orchestrator's broad gate answers it.
