@@ -28,13 +28,6 @@ What it does, in order, from the repository root:
      it, printed rather than judged
   3. `seal.py mode --check`            the `Mode` key and the folder agree
 
-**Which arms exist is declared rather than remembered** (#468). `PARTITION`
-below holds every step of `.github/workflows/hygiene.yml`'s `release` job
-against the arm that mirrors it, or against the reason none does, and a case
-holds that table against the workflow from both sides. The list above went
-three releases at five while the workflow went to thirteen steps, and no case
-went red for it.
-
 **`<base>` above is a resolved commit, never the ref as typed.** `--base` is
 resolved once before anything runs, to the ref CI will read: the given ref's
 upstream where the checkout declares one, else `refs/remotes/origin/<base>`,
@@ -73,10 +66,9 @@ form on every stream: `BROAD GATE PASSED   <branch> @ <tree> against <ref>
 out where it is the commit itself (#666); under it the panel's rows as
 plain text (`panel`, `report_lines`) — the tree and its branch, the base
 and the ref it came from, the work item, the suite's counts, the chain's
-exit, how many more steps CI runs than this run answers, and the round
-count when `--record` names a work item, with the deferred findings' homes
-beneath it (`rounds_rows`); and last, where git still sees `trail/gate.md`
-uncommitted, one line saying so: CI reads HEAD. The owner's marks are
+exit, and the round count when `--record` names a work item, with the
+deferred findings' homes beneath it (`rounds_rows`); and last, where git
+still sees `trail/gate.md` uncommitted, one line saying so: CI reads HEAD. The owner's marks are
 written in ASCII on a console that is not UTF-8, or under `--shape`. A run
 fails where a check exits non-zero, and where the suite's record at `HEAD`
 counts a pytest session that did not pass, whatever the command's exit (#883,
@@ -104,7 +96,7 @@ each output kept the same way. The key is read and its command never run, so
 a refusal on a record arm — a chain refusal, a mode the `Mode` key and the
 folder disagree on — arrives in
 seconds rather than after a whole suite. It writes no file, adds no
-worktree, prints no coverage line, and prints no line beginning `BROAD GATE`: its stdout opens
+worktree, and prints no line beginning `BROAD GATE`: its stdout opens
 `PREFLIGHT PASSED` or `PREFLIGHT FAILED`, the failing arms under the second
 in the failure form's own words.
 `--record` beside it is refused, because a preflight writes nothing. It is
@@ -175,8 +167,8 @@ ROUNDS_DIR = os.path.join("trail", "rounds")
 #
 # There is no count in this comment on purpose. There were five of these for
 # three releases and every document that said `five` had to be found again
-# when the sixth landed — `PARTITION` below is where the list is declared, and
-# a case holds it against the workflow rather than against a number typed here.
+# when the sixth landed — the module docstring's numbered list is where the
+# arms are listed.
 SUITE, CHAIN_NAME, MODE_NAME = ("suite", "chain", "mode")
 
 # How many lines of a failing check's output the report quotes before naming
@@ -186,8 +178,8 @@ QUOTED = 8
 NEW, ON_BASE = "new", "failing on base too"
 
 # How a panel value is cut, continued and marked — `PANEL_VALUE_WIDTH`,
-# `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW`, `TICK` and
-# `DOT` — is `seal_stamp.py`'s since #975, which composes the stamp's rows
+# `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW` and `TICK` —
+# is `seal_stamp.py`'s since #975, which composes the stamp's rows
 # from a `sealed` guarantee; this gate's report reads them through
 # `stamp_module()`, so the two write a row by one set of rules.
 
@@ -348,8 +340,8 @@ def copy_origin(root, plugin=PLUGIN, running=None):
     A path does not fit `PANEL_VALUE_WIDTH`; a version alone does not tell a
     branch cut from the tag apart from the tag. The pair says where the copy
     came from and which release it belongs to, and the line `main` writes to
-    stderr carries the path in full, the way `moved_line` and `coverage_line`
-    carry what the panel cannot. Elided at the frame (`fit`), so a long
+    stderr carries the path in full, the way `moved_line` carries what the
+    panel cannot. Elided at the frame (`fit`), so a long
     version is a shorter label and never a wider row. `running` is this
     file unless a case names another.
     """
@@ -1719,345 +1711,6 @@ def compare_at_base(root, base, command, files, keep):
         )
 
 
-# --- the workflow this gate is a local reading of ---------------------------
-#
-# The gate exists so the one broad run says what CI will say. It said a
-# SHORTER list than CI for one release: `.github/workflows/hygiene.yml`'s
-# `release` job gained a step in #424, nobody extended the gate, and no case
-# in the suite went red for it — a coverage probe over the eight structural
-# modules that read those files reported 243 passed and 8 skipped with the arm
-# absent (#468).
-#
-# So the list is declared here rather than remembered. **Every step of that
-# job is mirrored by a named arm or excluded with a reason a person wrote**,
-# there is no third state, and
-# `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` holds the partition
-# against the workflow from both sides: a step added to the workflow and left
-# unclassified goes red there, and so does a row naming a step that was
-# renamed away.
-#
-# **A reason is prose, never a category.** `EXCLUDED` tells the next reader
-# nothing, and the reason is the whole value of the row — it is what a person
-# checks when they wonder whether this gate's run covers them.
-#
-# What this does NOT close, stated rather than left to be found: an exclusion
-# can be written to make the case green rather than to state a truth, and the
-# partition would then be total and this gate's run still short of what the
-# merge is judged by. That hole is real and open; what the declaration buys is
-# that the omission is now a sentence somebody wrote and signed rather than a
-# silence.
-
-WORKFLOW = os.path.join(".github", "workflows", "hygiene.yml")
-RELEASE_JOB = "release"
-
-# A job's key under `jobs:`, at two spaces. Anything deeper is inside a job.
-JOB_RE = re.compile(r"^  ([A-Za-z0-9_-]+):\s*$")
-# A step's name. Any indentation: the dash is what makes it a step of the
-# list, where a `name:` with no dash is a key inside one (`with:`, `env:`).
-STEP_RE = re.compile(r"^\s*-\s+name:\s*(\S.*?)\s*$")
-
-
-def unquote(value):
-    """A YAML scalar with its matching quotes off, if it wore any."""
-    for mark in ('"', "'"):
-        if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):
-            return value[1:-1]
-    return value
-
-
-def job_steps(text, job):
-    """Every named step of one job of a workflow, in file order.
-
-    **Text in, list out.** The reader is driven over shapes this repository's
-    workflow does not happen to have, because a reader nothing drives is a
-    reader nobody can tell is partial — #424's finding 4, whose repair was the
-    same move.
-
-    **No YAML parser.** This script runs with no third-party dependency, and
-    CI installs a test runner and nothing else. A step name is a `- name:`
-    line, read as text, the way
-    `tests/text/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
-    same file. A step that exists only in a comment is not a step, and that
-    falls out of both patterns rather than out of a line dropping comments:
-    each requires the first non-blank character to be the list's dash or the
-    job key's own letter. The line that dropped them was written, mutated,
-    and found to change nothing — dead code that looks like a defence is
-    worse than none.
-
-    **Known gap: a TRAILING comment joins the step name.** YAML ends an
-    unquoted scalar at ` #`, and this reader does not, so
-    `- name: a step  # why` reads as `a step  # why`. Not live — no `- name:`
-    line in `hygiene.yml` carries one — and it fails LOUDLY if one ever does,
-    because A1 goes red with the comment visible in the name it could not
-    classify. `strip_comments` in
-    `tests/text/test_ci_gives_the_checks_what_they_need.py`, the reader this one
-    follows, has the same gap, so it is a class rather than something this
-    reader opened (round 1, recorded as a correction rather than fixed).
-
-    A file this cannot read as a workflow comes back empty rather than
-    raising. The gate calls it on whatever sits at that path in the repository
-    it was pointed at, and the plugin ships to repositories that have no such
-    workflow at all — for them nothing about the run may change. What keeps an
-    empty answer from reading as a pass is the caller: the case that grades
-    this repository refuses an empty list rather than counting zero
-    unclassified steps.
-
-    A line ends at LF, CR or CRLF, YAML 1.2's line breaks: the text is
-    taken through universal newlines and split at LF alone, as
-    `deferral_check.py#runners_in` splits, so a name holding U+2028, which
-    `str.splitlines` also ends a line at, reads whole (#1198).
-    """
-    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    try:
-        # Found by walking rather than by splitting on `"\njobs:\n"`: that
-        # spelling cannot see a `jobs:` on the FIRST line of the file, and
-        # driving this reader over a fragment that had one is what said so.
-        start = lines.index("jobs:") + 1
-    except ValueError:
-        return []
-    steps, current = [], None
-    for line in lines[start:]:
-        job_line = JOB_RE.match(line)
-        if job_line:
-            current = job_line.group(1)
-            continue
-        if current != job:
-            continue
-        step = STEP_RE.match(line)
-        if step:
-            steps.append(unquote(step.group(1)))
-    return steps
-
-
-# Each row is a step of the `release` job, spelled as `hygiene.yml` spells it,
-# and then either the arm that mirrors it or the reason none does.
-#
-# **Three of the six exclusions could not run here at all; three could.** The
-# measurement `questions.md` M1 asked for, taken by construction over every
-# step: two steps have no local answer (the pull request's body and the
-# tracker), one raises a warning and can
-# refuse nothing, one is shell written inline in the workflow with no script
-# to share, and two run a script that belongs to this repository rather
-# than to the plugin. The last three are the ones with a local answer, and
-# `seal/config.json`'s `Broad gate` key is where a repository names checks of
-# its own — not the arm list of a script that ships to every repository that
-# installs the plugin.
-#
-# **Which of the steps CI runs depends on the base** (#666). Three run only
-# on a pull request into `main` (`ONLY_AT_MAIN`), so the `workflow` count is taken over
-# `steps_for(workflow, base)` rather than over this table: a step CI does not
-# ask of a pull request is neither answered nor unanswered by the broad run.
-PARTITION = (
-    (
-        "every issue this pull request claims, and every one it only names",
-        None,
-        "reads the body of the pull request, and a gate run on a branch has "
-        "no pull request to read. The step never fails either — it reports a "
-        "split and exits 0 — so there is no verdict for an arm to carry",
-    ),
-    (
-        "a change to what ships must move the version",
-        None,
-        "the check is shell written inline in the workflow, with no script "
-        "both sides can run. An arm would be a second reading of one "
-        "question, which is the drift this partition exists to stop",
-    ),
-    (
-        "a declared review chain has the round record it claimed",
-        CHAIN_NAME,
-        None,
-    ),
-    (
-        "the milestone this release claims is the work it carries, and a patch carries no feat",
-        None,
-        "asks the tracker through `gh` which issues the milestone holds. The "
-        "gate reads no network and carries no token",
-    ),
-    (
-        "the mode the key declares is the mode the folder is in",
-        MODE_NAME,
-        None,
-    ),
-    (
-        "the check lines rules.py did not read",
-        None,
-        "prints notices and never fails, so there is nothing for an arm to "
-        "refuse. The exit code of the same command is the suite's, which "
-        "this gate runs",
-    ),
-    (
-        "both READMEs move together",
-        None,
-        "raises a warning and never fails, so there is nothing for an arm to "
-        "refuse. Every arm here is an exit code",
-    ),
-)
-
-
-# The branch a pull request into which is a release, spelled once.
-MAIN = "main"
-
-# The steps that run ONLY on a pull request into `main`, by step name (#666).
-# In `hygiene.yml` each of the two opens its `run:` with `if [ "${{
-# github.base_ref }}" != "main" ]; then … exit 0`: a release pull request is
-# where the version moves and the milestone is judged. On any other base CI
-# never asks them, so a run that counted them as *not answered* would count
-# questions nobody asks. Neither is mirrored, so no arm changes; what
-# changes is the denominator of the `workflow` count and the names beside
-# it.
-#
-# Held against the workflow by `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`
-# from both sides: a `!= "main"` guard added to a third step, or dropped
-# from one of these, fails the suite. No step skips a pull request into
-# `main`, so every mirrored arm runs at every base.
-ONLY_AT_MAIN = (
-    "a change to what ships must move the version",
-    "the milestone this release claims is the work it carries, and a patch carries no feat",
-)
-
-
-def mirrored():
-    """The arm each classified step is mirrored by, by step name."""
-    return {name: arm for name, arm, _ in PARTITION if arm}
-
-
-def base_is_main(given):
-    """Whether the base the caller gave is `main`: `given`, with one leading
-    `origin/` removed. This gate's one reading of the workflow's
-    `github.base_ref == "main"`, asked by `steps_for` for the count (#666).
-    None — no base known — is not `main`.
-
-    **The bound, named rather than claimed:** it is keyed on the spelling,
-    so `refs/heads/main` or `upstream/main` reads as not-`main`, and the
-    count leaves the only-at-`main` steps out, the direction that names
-    fewer steps CI asks."""
-    if given is None:
-        return False
-    if given.startswith("origin/"):
-        given = given[len("origin/") :]
-    return given == MAIN
-
-
-def steps_for(workflow, given):
-    """The `release` job's steps CI runs for a pull request into `given`, in
-    file order (#666).
-
-    Every step of the job, less `ONLY_AT_MAIN` where the base is not `main`.
-    A step left out here is neither answered nor unanswered: CI does not ask
-    it of this pull request, so the broad run neither covers it nor misses
-    it. `given` None — no base known — leaves out what a base that is not
-    `main` would, which is what every caller that knows no base has been
-    asked about."""
-    steps = job_steps(workflow, RELEASE_JOB) if workflow else []
-    if base_is_main(given):
-        return steps
-    return [step for step in steps if step not in ONLY_AT_MAIN]
-
-
-def left_out_clause(workflow, given):
-    """The clause the coverage line adds for the steps `steps_for` left out,
-    or "" where it left none: how many, and why (#666)."""
-    every = job_steps(workflow, RELEASE_JOB) if workflow else []
-    left = len(every) - len(steps_for(workflow, given))
-    if not left:
-        return ""
-    why = f"{'run' if left > 1 else 'runs'} only on a pull request into `{MAIN}`"
-    return (
-        f" {left} more {why}, so this count leaves {'them' if left > 1 else 'it'} out."
-    )
-
-
-def workflow_text(root):
-    """The hygiene workflow of the repository being gated, or None.
-
-    None is the ordinary case away from this repository: the plugin ships to
-    repositories that have no such workflow, and for them nothing about the
-    run changes (`frame/design.md` A7). **A file that is there and is not UTF-8 is the
-    same case**, and it has to be: `UnicodeDecodeError` is a `ValueError`
-    rather than an `OSError`, and `main` catches only `Refused`, so a decode
-    error raised here ended the whole run on a traceback instead of a verdict
-    — the largest possible change to the run of a repository this partition
-    is not about (round 1, finding 5).
-    """
-    try:
-        with open(os.path.join(root, WORKFLOW), encoding="utf-8") as handle:
-            return handle.read()
-    except (OSError, ValueError):
-        return None
-
-
-def unanswered(text, given):
-    """The steps CI runs for this base (`steps_for`) that this run answers
-    nothing for, in file order. `given` is required, here and in
-    `coverage_line` (round 1's 🟡 3 of #666): a default answered every caller
-    that dropped it with the feature-base count, in silence.
-
-    A step no row classifies counts here too, and that is the honest answer
-    rather than an oversight: in another repository whose workflow happens to
-    carry this name, every step is one this gate runs nothing for.
-    """
-    arms = mirrored()
-    return [step for step in steps_for(text, given) if step not in arms]
-
-
-def coverage_line(text, given):
-    """One line naming the steps this run did not answer, or None.
-
-    **Over the steps CI runs for this base** (#666, `steps_for`), and one
-    clause saying how many it left out and why (`left_out_clause`): a step CI
-    does not ask of this pull request is not a step the broad run failed
-    to answer, and naming it among the unanswered sent a reader to four steps
-    no run of this pull request would ever ask.
-
-    **Names here, a count on the panel** (`questions.md` W1).
-    The panel gives a value `PANEL_VALUE_WIDTH` columns (23 when this was
-    written, 41 since #832), which the step
-    names do not fit and a count does — and a reader who is told only a number
-    has to reconstruct WHICH from two files, which is the reconstruction this
-    work item exists to remove. So the panel carries the number and this
-    carries the names, on the stream the gate already uses to say which
-    command the key asked for.
-
-    **A step no row classifies is named apart from one a row excludes.**
-    `PARTITION` describes AgenticSeal's own `release` job; in another repository
-    whose workflow happens to carry that job name, every step is unclassified
-    and none of them has a reason written anywhere. Pointing that reader at
-    `PARTITION` sends them to a row per step of a workflow they do not run,
-    which is the reconstruction from two files this work item exists to
-    remove, arriving one level further out (round 1, finding 3).
-    """
-    if not job_steps(text, RELEASE_JOB):
-        return None
-    steps = steps_for(text, given)
-    short = unanswered(text, given)
-    left = left_out_clause(text, given)
-    if not short:
-        return (
-            f"seal gate: this run answers every one of the {len(steps)} "
-            f"`{RELEASE_JOB}` steps {WORKFLOW} runs for this base." + left
-        )
-    classified = {name for name, _, _ in PARTITION}
-    excluded = [step for step in short if step in classified]
-    unknown = [step for step in short if step not in classified]
-    said = (
-        f"seal gate: {WORKFLOW}'s `{RELEASE_JOB}` job runs {len(steps)} "
-        f"steps for this base and this run answers {len(steps) - len(short)}." + left
-    )
-    if excluded:
-        said += (
-            " Not answered, each with the reason no arm mirrors it in "
-            "`broad_gate.py#PARTITION`: " + "; ".join(excluded) + "."
-        )
-    if unknown:
-        said += (
-            " In no row of `broad_gate.py#PARTITION` at all, so this gate has "
-            "no reading of them and answers nothing for them: "
-            + "; ".join(unknown)
-            + "."
-        )
-    return said
-
-
 # --- what the panel reads --------------------------------------------------
 
 
@@ -2207,7 +1860,6 @@ def panel(
     base,
     checks,
     item,
-    workflow=None,
     copy=None,
     branch=None,
     run=None,
@@ -2233,15 +1885,13 @@ def panel(
       suite     ✓ <recorded counts>        joined by ` · `, wrapped onto `""`
                                            rows; `exit N` where there are none
       chain    ✓ exit <code>              read off the chain's own check
-      CI also   · <n> more steps           absent without a hygiene workflow
       rounds    <R>                        absent without --record
                 <k> deferred → <homes>     only where k > 0 (`rounds_rows`)
 
     **The result rows carry a `✓`, and the blank before them is a row**
     (#832, `frame/design.md` decision 6 of work item 1791270164, the owner's design
     of 2026-10-07): a `✓` where the arm's count or exit was read,
-    `chain ✓ exit <code>`, and a dim `·` before `CI also`'s value, the mark
-    of a row that is not a pass.
+    `chain ✓ exit <code>`.
     `exit N` stays where a row has no count to print, because then it is the
     only statement of what that arm did. The failure form keeps every arm's
     exit code (`failure_lines`). The text block does not know which label
@@ -2249,11 +1899,11 @@ def panel(
     than a rule there.
 
     **The values are the owner's characters** — ` · ` (`SEP`), `→`
-    (`ARROW`), `✓ ` (`TICK`) and `· ` (`DOT`), `seal_stamp`'s. They were
-    ASCII, ` . ` and `->`, until #832, for a console that is not UTF-8,
-    where `·` and `→` print as `?`. That console is served where the report
-    is printed: `report_lines` maps the four to ASCII there, and the values
-    stay what the owner chose.
+    (`ARROW`) and `✓ ` (`TICK`), `seal_stamp`'s. They were ASCII, ` . `
+    and `->`, until #832, for a console that is not UTF-8, where `·` and
+    `→` print as `?`. That console is served where the report is printed:
+    `report_lines` maps the three to ASCII there, and the values stay what
+    the owner chose.
 
     **The panel keeps its width, and nothing on it is cut by the frame.**
     A value is given `PANEL_VALUE_WIDTH` columns, the widest that keeps a
@@ -2311,30 +1961,6 @@ def panel(
     else:
         rows.append((SUITE, f"exit {checks[SUITE].code}"))
     rows.append((CHAIN_NAME, f"{tick}exit {checks[CHAIN_NAME].code}"))
-    # What this run did NOT answer, which a reader otherwise reconstructs
-    # from two files (#468). A COUNT, because a panel value is
-    # `PANEL_VALUE_WIDTH` columns and a step name is a sentence — the names
-    # go to stderr beside the command line, where `coverage_line` puts them
-    # (`questions.md` W1).
-    #
-    # Absent where the repository has no such workflow, which is the ordinary
-    # case away from this one: the partition describes AgenticSeal's own CI, the
-    # plugin ships to repositories that have none, and for them nothing about
-    # the run changes (`frame/design.md` A7).
-    #
-    # Over the steps CI runs for THIS base (#666): `unanswered` leaves out the
-    # four that run only into `main` on any other base, and the two CI skips
-    # at `main` on a release one, so the number is one CI will ask.
-    #
-    # `CI also  <n> more steps` is the owner's wording (#717). The total it
-    # was `<n> of` left the panel for the stderr line, which says it beside
-    # the names; the row still prints at 0, because a row that goes quiet
-    # reads as a gate that stopped looking. The dim `·` before the count is
-    # the owner's mark for a row that is not a pass (#832); the label stays
-    # `CI also`, seven columns already (`questions.md` Q15 of 1791270164).
-    if job_steps(workflow, RELEASE_JOB) if workflow else []:
-        short = len(unanswered(workflow, base.given))
-        rows.append(("CI also", f"{stamp.DOT}{short} more steps"))
     if item is not None:
         rows += rounds_rows(item)
     return [None if row is None else (row[0], fit(row[1])) for row in rows]
@@ -2611,13 +2237,9 @@ def gate(args, ascii_marks=False):
     # case: a seventh consumer written later cannot take the unresolved value
     # without that case going red (`frame/design.md` *The class, enumerated by
     # construction*). Every check below asks `base.commit`, which is the
-    # commit CI will compare against. The readers of `base.given`, the
-    # caller's spelling, are none of them a check: `moved_line`, which exists
-    # to say how that spelling differs from what it resolved to; and, through
-    # `base_is_main`, the `workflow` count — `coverage_line` and `panel`,
-    # through `steps_for` (#666) — because the
-    # workflow's guard compares a branch NAME (`github.base_ref`) and a
-    # resolved commit carries no name.
+    # commit CI will compare against. The one reader of `base.given`, the
+    # caller's spelling, is no check: `moved_line`, which exists to say how
+    # that spelling differs from what it resolved to.
     base = resolve_base(root, args.base)
     if base.commit is None:
         raise Refused(
@@ -2652,21 +2274,10 @@ def gate(args, ascii_marks=False):
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )
-    # Before the checks rather than after them, so a run that comes back
-    # failed carries it too: what this run would not have covered is as much
-    # a fact about a failed run as about a passing one. A preflight prints
-    # none: the line says what THIS RUN answers, and a preflight runs no
-    # command.
-    workflow = workflow_text(root)
-    coverage = (
-        coverage_line(workflow, base.given) if workflow and not args.preflight else None
-    )
-    if coverage:
-        sys.stderr.write(coverage + "\n")
-    # A preflight skips the command by CONDITION and keeps this assignment where it
-    # stands: `PARTITION`'s cases read every `checks[...] = run(...)` in this
-    # function, so a second list of arms for the preflight would be the drift
-    # that table was declared to end (#468). Every arm below runs either way.
+    # A preflight skips the command by CONDITION and keeps this assignment
+    # where it stands: a second list of arms for the preflight would be a
+    # second list to keep in step with this one. Every arm below runs either
+    # way.
     # The command's run records what each pytest it starts ran (#825), under a key
     # made for this run alone. The record is read once, here, for every
     # outcome (#869): the failure loop below takes from it whether a session
@@ -2746,7 +2357,6 @@ def gate(args, ascii_marks=False):
         base,
         checks,
         item,
-        workflow,
         gate_copy(root, installed=getattr(args, "invoked_as", None)),
         branch=branch,
         run=head,

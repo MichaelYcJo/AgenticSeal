@@ -522,11 +522,11 @@ def strip_ansi(s):
 PANEL_VALUE_WIDTH = 41
 ELISION = "..."
 # The panel's own characters (#832 S5a, the owner's design of 2026-10-07):
-# the separator inside a value, the arrow before a deferral's homes, the mark
-# on a result row that passed and the mark on a row that is not a pass. They
-# are the owner's and not ASCII; the letter twin, which exists for a console
-# that is not UTF-8, maps them where it writes them (`TWIN_ASCII`).
-SEP, ARROW, TICK, DOT = " · ", "→", "✓ ", "· "
+# the separator inside a value, the arrow before a deferral's homes and the
+# mark on a result row that passed. They are the owner's and not ASCII; the
+# letter twin, which exists for a console that is not UTF-8, maps them where
+# it writes them (`TWIN_ASCII`).
+SEP, ARROW, TICK = " · ", "→", "✓ "
 
 
 def fit(value, keep="head", width=None):
@@ -590,7 +590,7 @@ def item_value(item):
 # colours. #717's sheet, which the text was written on, is retired.
 
 # The columns a label is padded to before the one space ahead of its value:
-# the owner's seven, which `CI also` fills.
+# the owner's seven.
 LABEL_WIDTH = 7
 # The dim `─` rule after the title: the owner's reference's thirty.
 RULE_WIDTH = 30

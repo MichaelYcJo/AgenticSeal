@@ -123,8 +123,8 @@ def _indent(line):
 
 
 def _unquote(value):
-    """A YAML scalar with its matching quotes off, as `broad_gate.py#unquote`
-    reads a step's name."""
+    """A YAML scalar with its matching quotes off, if it wore any: a step's
+    name as a reader sees it, never as the file quotes it."""
     for mark in ('"', "'"):
         if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):
             return value[1:-1]
@@ -141,8 +141,8 @@ def workflow_steps(text):
     at that indentation, or to the first code line shallower than the list,
     which is the next key of its job or the next job. A step's code lines
     keep their blank ones. `name` is the step's
-    `- name:` value, read the way `broad_gate.py#STEP_RE` and `#unquote` read
-    it, or `None` for a step with no name (`- uses: …`).
+    `- name:` value with its quotes off (`_unquote`), or `None` for a step
+    with no name (`- uses: …`).
     """
     lines = code_lines(text)
     steps, i = [], 0
