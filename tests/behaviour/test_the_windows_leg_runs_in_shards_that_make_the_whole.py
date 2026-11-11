@@ -1,9 +1,8 @@
 """The Windows leg runs in shards whose union is the whole suite (#841).
 
 The Windows leg runs in four shards (#841); ubuntu and macOS each run as
-one job. macOS ran in three shards from #864 until #1486, which made it one
-job because its whole suite finishes inside the slowest Windows shard, so a
-shard of it shortened no run.
+one job. macOS's whole suite finishes inside the slowest Windows shard, so a
+shard of it would shorten no run (#1486).
 
 `pytest-split` divides the suite by each case's duration, read from the
 `.test_durations` the shard restored from the cache before its pytest line,
@@ -240,8 +239,8 @@ def test_a_run_that_is_no_pull_request_saves_the_union_and_each_split_shard_rest
     other pull request. Each split shard restores, before its pytest line,
     the newest key the save's prefix opens. Both steps name one path and set
     the cross-system flag, because the save runs on ubuntu and the restore on
-    Windows. The upload keeps a push run's union as long as the
-    release table reads it."""
+    Windows. The upload keeps a push run's union as long as the release
+    table reads it."""
     steps = job("durations")["steps"]
     union_at, out = union_step(steps)
     save = cache_step(steps, "save")

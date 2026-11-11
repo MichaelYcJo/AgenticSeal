@@ -53,8 +53,8 @@ jobs:
           - { os: ubuntu-latest, python: "3.12", timeout: 5 }
           - { os: ubuntu-latest, python: "3.14", timeout: 5 }
           # macOS runs as one job (#1486): its whole suite finishes inside
-          # the slowest Windows shard, so a shard of it shortened no run and
-          # paid a job's fixed cost again.
+          # the slowest Windows shard, so a shard of it would shorten no run
+          # and would pay a job's fixed cost again.
           - { os: macos-latest, python: "3.12", timeout: 10 }
           # Windows in four shards (#841). `pytest-split` divides the suite by
           # each case's duration, read from the `.test_durations` the shard
