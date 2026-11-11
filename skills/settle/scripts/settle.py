@@ -609,8 +609,8 @@ def blobs(root, names):
     holds no file there, such as `missing`, or the kind of object it holds
     instead. One call, whatever the number of names; a name holds no
     newline, which git would read as two names (`earlier_judgments` asks
-    for none that does). Raises `RuntimeError`, saying what `git` said, where it
-    fails."""
+    for none that does). Raises `RuntimeError`, saying what `git` said,
+    where it fails."""
     out = git_run(
         root, "cat-file", "--batch", given="".join(f"{n}\n" for n in names).encode()
     )
@@ -1283,8 +1283,8 @@ def earlier_judgments(root, ref, present, specs, every=False):
               `<short>^:seal/threads/<id>/frame/plan.md:<line>`
       unread  `[(where, why)]`: what `plan_rows` names for a plan, a plan
               git holds no text for, with what `git cat-file` answered, and
-              a plan whose path holds a newline, which it cannot be asked
-              for, each at its `<short>^:` path; and a `git` that fails, with
+              a plan whose path holds a newline, which the batch cannot
+              ask for, each at its `<short>^:` path; and a `git` that fails, with
               what it said, where `where` is empty and no row is read
       older   how many removing commits past the window were not read: 0
               under EVERY, and where the deletions' `git log` fails. A
@@ -1301,9 +1301,8 @@ def earlier_judgments(root, ref, present, specs, every=False):
     (`blobs`) and their adding commits (`adding_commits`) are each read
     in one batched call, and the tags that hold those in the three of
     `versions`, so the calls made do not grow with the number of plans.
-    Nothing here
-    matches, counts or filters a row by its cells: whether two rows are
-    one kind is the settling session's to judge."""
+    Nothing here matches, counts or filters a row by its cells: whether
+    two rows are one kind is the settling session's to judge."""
     try:
         listed = git_out(
             root,

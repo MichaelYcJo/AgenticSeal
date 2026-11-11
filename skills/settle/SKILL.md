@@ -140,13 +140,12 @@ nothing:
   not read, at the coordinate `<short>^:<path>`, and so is a plan whose
   text git does not hold there, with what git answered, and a plan whose
   path holds a newline, which `git cat-file --batch` would read as two
-  names and so is never asked for. The
-  rows are grouped by the `Judged against` cell exactly as written, in the
-  order first met, the removing commits newest first. Each work item's line
-  gives the lowest `vX.Y.Z` tag that holds the commit adding its plan, or
-  says no tag holds that commit, and the removing commit's short hash with
-  its `(#N)`. A `git` that fails is named with what it said, and the dry
-  run goes on.
+  names and so is never asked for. The rows are grouped by the `Judged
+  against` cell exactly as written, in the order first met, the removing
+  commits newest first. Each work item's line gives the lowest `vX.Y.Z`
+  tag that holds the commit adding its plan, or says no tag holds that
+  commit, and the removing commit's short hash with its `(#N)`. A `git`
+  that fails is named with what it said, and the dry run goes on.
   The section matches no row to another, so a row here sharing a cell with
   a row above is not a recurrence, and two cells spelt apart are not two
   kinds: whether two rows are one kind is the settling session's judgment
