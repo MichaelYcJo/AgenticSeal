@@ -102,7 +102,7 @@ class _Kernel:
     def agents_in(self, root):
         return {"proofer": "definition"}
 
-    def composition(self, root, plugin, agent, definition, verbose):
+    def composition(self, root, plugin, agent, definition):
         if self.error:
             raise self.error
         return self.rows

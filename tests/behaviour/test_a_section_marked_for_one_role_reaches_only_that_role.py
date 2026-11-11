@@ -56,7 +56,7 @@ def _reader():
 
 
 # The fence delimiter rule, `lib/blocks.py#fence_opener` and
-# `#fence_closes` (#584) — the pair `payload_meter.py#heading_starts` asks.
+# `#fence_closes` (#584).
 RULE = _reader()
 
 
@@ -73,9 +73,8 @@ def headings(text):
 
     A fence is tracked because a skill quotes headings as examples, and an
     example is not a section. The fence is the shared rule,
-    `lib/blocks.py#fence_opener` and `#fence_closes` (#584), the same
-    rule `payload_meter.py#heading_starts` applies: at most three spaces of
-    indentation, no backtick in a backtick opener's info string, and a close
+    `lib/blocks.py#fence_opener` and `#fence_closes` (#584): at most three
+    spaces of indentation, no backtick in a backtick opener's info string, and a close
     only on a run of the same character at least as long with nothing after
     it, so a ``` inside a ```` block, or a ~~~ inside a ``` block, does not
     end the outer one (#292 round 2). `marked_headings` below filters it for
@@ -225,8 +224,9 @@ def test_a_marker_quoted_inside_a_code_fence_is_not_a_section(tmp_path):
     ids=["backtick info", "four spaces"],
 )
 def test_a_line_the_shared_rule_does_not_fence_hides_no_marker(tmp_path, not_a_fence):
-    """#584, S12. `headings` kept `payload_meter.py#heading_starts`'s own
-    fence rule, so a prose line opening with a four-backtick code span, or a
+    """#584, S12. `headings` kept a fence rule of its own, apart from
+    `lib/blocks.py#fence_opener` and `#fence_closes`, so a prose line opening
+    with a four-backtick code span, or a
     four-space line of backticks, read as a fence and hid every heading
     after it — a marked section there reached the agent unseen. The shared
     rule reads neither as a fence."""

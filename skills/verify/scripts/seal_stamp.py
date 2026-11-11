@@ -125,23 +125,6 @@ BODY = (160, 30, 34)
 BREAST = (186, 38, 42)
 EYE = (222, 86, 78)
 BEAK = (208, 68, 64)
-DISC_COLOURS = (
-    EDGE_DARK,
-    WAX,
-    WAX_LIT,
-    WAX_DARK,
-    GLOSS,
-    STEP_DARK,
-    STEP_LIT,
-    FIELD,
-    DROP,
-    OUTLINE,
-    PUPIL,
-    BODY,
-    BREAST,
-    EYE,
-    BEAK,
-)
 
 # `SEALED` is bold and in this red, the owner's `frames.py`'s `RED`. The rest
 # of the text is in the terminal's own colours (`STYLE_CODES`), since #832
@@ -491,10 +474,6 @@ def letter_row(cells):
         else:
             out.append(TWIN_ASCII.get(char, char or " "))
     return "".join(out)
-
-
-def strip_ansi(s):
-    return re.sub(r"\x1b\[[0-9;]*m", "", s)
 
 
 # --- the panel's text rules ------------------------------------------------

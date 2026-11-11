@@ -3,8 +3,8 @@
 Every script that reads markdown or a record by line asks this module:
 which cells a table row holds (`split_row`, `is_separator`), what a cell
 shows (`visible`), which lines a fenced block holds (`fence_spans`,
-`closed_fence_lines`, `blank_fences`), which line of a record opens an HTML
-comment (`comment_lines`), whether a line begins live (`liveness`,
+`blank_fences`), which line of a record opens an HTML comment
+(`comment_lines`), whether a line begins live (`liveness`,
 `live_pieces`, `live_lines`), which ATX heading a line is
 (`heading_level`, `headings`, `sections`), and which lines of a record a
 reader judges (`readable`). `lib/gaps.py` reads a closing memo through it,
@@ -28,10 +28,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # The fence delimiter rule, CommonMark 4.5 (#491, #444, #584): `fence_opener`
 # says which fence a line opens and `fence_closes` whether a line closes it.
 # The readers of this module ask them, `fence_spans` and through it
-# `blank_fences` and `closed_fence_lines`, `_scan` and through it `liveness`
+# `blank_fences`, `_scan` and through it `liveness`
 # and `live_pieces`, and `_paragraph_ends_at`; so do
-# `coordinates.py#quoted_lines`, `payload_meter.py#heading_starts`,
-# `payload_meter.py#imports_of` through `live_pieces`
+# `coordinates.py#quoted_lines`, `payload_meter.py#imports_of` through
+# `live_pieces`
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `lib/blocks.py#walk` adds a line-start HTML comment block to it for
 # `lib/config.py`, `lib/routing.py` and `lib/fields.py`, apart
@@ -113,9 +113,9 @@ def fence_spans(lines):
 
     The walk where only the fence delimiter rule decides where a fence
     opens: no comment state and no code-span state is kept (#1012). In this
-    module `closed_fence_lines` and `blank_fences` walk it, and `readable`
-    through `blank_fences`. Callers in other scripts are found with
-    `git grep`, and no list of them is kept here to go stale. A walk that
+    module `blank_fences` walks it, and `readable` through `blank_fences`.
+    Callers in other scripts are found with `git grep`, and no list of them
+    is kept here to go stale. A walk that
     keeps a comment or a code-span state, `_scan`, which `liveness` and
     `live_pieces` read, asks `fence_opener` and `fence_closes` directly
     instead, because there whether a line can
@@ -140,18 +140,6 @@ def fence_spans(lines):
     if opener is not None:
         spans.append((first, None))
     return spans
-
-
-def closed_fence_lines(lines):
-    """The indices of `lines` inside a fenced block that CLOSES, delimiters
-    included — the lines a reader of something a line holds may skip."""
-    lines = list(lines)
-    return {
-        n
-        for first, last in fence_spans(lines)
-        if last is not None
-        for n in range(first, last + 1)
-    }
 
 
 def blank_fences(lines):

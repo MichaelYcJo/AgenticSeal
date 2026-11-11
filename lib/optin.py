@@ -60,8 +60,9 @@ CHANGELOG = "changelog.md"
 # `seal pr-body` writes above the copy of the records, after the work item's
 # `pr.<lang>.md` where the two language keys differ.
 PR = "pr.md"
-# The migration config, directly under the root: `parity_config` below opens
-# it, and `chain_check.py` reads it at HEAD under the shared root (#988).
+# The migration config, directly under the root: `chain_check.py` reads it at
+# HEAD under the shared root (#988), and `seal mode` looks for it beside an
+# earlier release's `OLD_PARITY_CONFIG`.
 PARITY_CONFIG = "parity.json"
 # The migration config an earlier release read, a `| Field | Value |` table:
 # `chain_check.py` refuses it where git carries it without `PARITY_CONFIG`,
@@ -82,12 +83,6 @@ README = "README.md"
 
 def repo_root(cwd):
     """The repository root containing cwd, or "" when there is none."""
-    # RIDER: every caller of this module resolves the root again. Counted with
-    # a logging `git` on PATH: one gated command costs five `git` calls per
-    # target and three of them are `rev-parse --show-toplevel` -- the commit
-    # gate's own `root_of`, then `opted_in` and `parity_config` below. Fixing
-    # it means passing the root in or memoising here, and three gates import
-    # this module, so it is a change to all of them at once.
     if not cwd or not os.path.isdir(cwd):
         return ""
     try:
@@ -342,12 +337,3 @@ def home(cwd):
 def opted_in(cwd):
     """True when this repository runs the workflow."""
     return bool(home(cwd))
-
-
-def parity_config(cwd):
-    """Path to the migration config, or "" when there is none."""
-    root = home(cwd)
-    if not root:
-        return ""
-    path = os.path.join(root, PARITY_CONFIG)
-    return path if os.path.isfile(path) else ""

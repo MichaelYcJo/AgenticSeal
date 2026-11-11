@@ -395,11 +395,9 @@ def rounds(item):
     records beside six other files was the worst case here, and the structure
     should say which member grows.
 
-    The old flat location is NOT read, and `stray_rounds` exists so a caller
-    can say so out loud. A permanent dual read would put two places to look in
-    the reader the release scripts and the settle depend on, and an expiry nothing enforces is a
-    comment -- so what replaces the fallback is a message naming the file and
-    the destination.
+    The old flat location is NOT read. A permanent dual read would put two
+    places to look in the reader the release scripts and the settle depend
+    on, and an expiry nothing enforces is a comment.
 
     What stays different between the two readers is deliberate, and it is not
     the order: this one reads the working tree, because its callers, `seal
@@ -457,18 +455,3 @@ def rounds_unreadable(item):
             # without this it reads as a work item that never ran a review.
             return True
     return False
-
-
-def stray_rounds(item):
-    """`round-N.md` left at the work item's own directory, lowest round first.
-
-    These are records nothing reads. `rounds()` looks one level down and a
-    reader that merely found nothing would report the same silence as a work
-    item that never ran a review -- the state 28 of this repository's 35 work
-    items are in, and the state that must stay quiet. The difference between
-    "no review happened" and "the review is in a place nobody reads" is the
-    whole reason this function is separate from the one above.
-    """
-    if not item:
-        return []
-    return _ordered(item)
