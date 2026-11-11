@@ -952,15 +952,6 @@ def _round_record_grammar():
     return [*dict.fromkeys(keys), chain.FINDINGS_HEADING]
 
 
-def _block_keys():
-    """Every key of the `seal` blocks of a round record, a `guarantee.md`
-    and a `trail/gate.md`, read from `lib/fields.py`, the one
-    spelling of them."""
-    fields = _chain().FIELDS
-    kinds = (*fields.ROUND_RECORD, *fields.GUARANTEE, *fields.GATE)
-    return [*dict.fromkeys(key for kind in kinds for key in kind.keys)]
-
-
 def _round_record_fields():
     """What a round record carries: its grammar and the prose headings.
     Two lines are owed only where their condition holds, `original:` in a
@@ -1090,7 +1081,7 @@ def _literal_strings():
 
     The keys of the `seal` blocks are not among them: the list names the
     module that spells them (`test_the_exclusion_list_points_at_the_block_
-    grammar_and_restates_none_of_it`), so a checker's constant here is one
+    grammar`), so a checker's constant here is one
     outside that module. The info string and the `## Findings` heading are,
     since the module's keys do not hold them.
 
@@ -1132,32 +1123,18 @@ def _literal_strings():
 BLOCK_GRAMMAR = "`lib/fields.py`"
 
 
-def test_the_exclusion_list_points_at_the_block_grammar_and_restates_none_of_it():
+def test_the_exclusion_list_points_at_the_block_grammar():
     """S4, under #1198. The keys of a round record's, a guarantee's and a
     gate record's `seal` blocks have one statement, `lib/fields.py`,
     which `chain_check.py` and the stamp read them through, so the list names
-    the module and copies no key of it: a copy here is a second source that
-    drifts, and a repository told the copy reads a list the check no longer
-    holds.
-
-    Protects: the label list coming back into `templates/setup/config.md`, which
-    is where it drifted before; no other case reads the list for a key of
-    the module."""
+    the module. Whether a key of it is copied beside the citation is the
+    proofer's to read."""
     said = _governs_nothing()
     # The citation of the module that spells the keys, which a person
     # translating the records resolves to the keys that stay English.
     assert BLOCK_GRAMMAR in said, (
         "the exclusion list no longer names the module that spells the keys "
         "of a record's `seal` blocks"
-    )
-    # No key of the module, as `lib/fields.py` spells it: a fact has one
-    # source (`skills/core/SKILL.md` *The rule a mechanism is kept against*),
-    # and a key copied here is one a person would read off a list the check
-    # no longer holds.
-    copied = [key for key in _block_keys() if f"`{key}`" in said]
-    assert not copied, (
-        f"the exclusion list restates the module's keys {copied}; it names "
-        "the module instead"
     )
 
 

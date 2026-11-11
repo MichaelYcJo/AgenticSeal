@@ -97,11 +97,16 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
     assert f"creates `{COMMON_DIR}`" in local
 
 
-def test_the_root_is_spelled_through_the_common_dir():
-    """`.git` is a FILE in a linked worktree, so the bootstrap asks git for
-    the common directory."""
+def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
+    """`.git` is a FILE in a linked worktree, so the literal path lands
+    nowhere, and the bootstrap asks git for the common directory."""
     # The command the orchestrator runs to find where the local root goes.
     assert "git rev-parse --git-common-dir" in bootstrap()
+    # `skills/implement/bootstrap.md` *Orchestrator: Bootstrap*, its **local**
+    # option: the path is spelled through the common git directory rather
+    # than through `.git`, which is a file in a linked worktree. The path is
+    # one the orchestrator would create.
+    assert "`.git/seal/`" not in bootstrap()
 
 
 def test_a_repository_with_the_root_at_either_place_is_never_asked():

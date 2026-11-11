@@ -196,10 +196,17 @@ def test_the_gates_capture_file_carries_the_work_item_id():
 
 
 def test_the_capture_example_is_not_a_name_every_session_shares():
-    """A14. A capture file every session on the machine shares is the same
-    class one file over. The fenced example redirects under the scratchpad
-    with the work item id."""
+    """A14. `/tmp/run.txt` is the same class one file over, shared across
+    every session on the machine rather than across one session's agents.
+    The fenced example redirects under the scratchpad with the work item id."""
     text = read(VERIFY)
+    # `skills/verify/SKILL.md` *Capture once, filter locally.*: the capture
+    # file carries the work item id, "never a name every session on the
+    # machine would also pick". The path is one a reader copies.
+    assert "/tmp/run.txt" not in text, (
+        "skills/verify/SKILL.md shows a capture file every session on the "
+        "machine would also pick"
+    )
     start = text.index("**Capture once, filter locally.**")
     example = text[start : text.index("The tell is a second invocation", start)]
     # The path the example's capture file stands under, which a reader
