@@ -126,10 +126,13 @@ RECORDS_OF_A_MOMENT = (
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
     # The policy states which gits a git-side decision was measured to hold
-    # on, and that is the class the `seal.py` and `broad_gate.py` rows below
-    # name: a property read off an unnamed git is not a measurement.
+    # on, and that is the class the `seal.py` row for `2.50.1` and the
+    # `broad_gate.py` row below name: a property read off an unnamed git is
+    # not a measurement.
     ("skills/implement/scripts/seal.py", "4.4.17"): (
-        "bash's, named in a comment about the glob behaviour of that release"
+        "the zip specification's, APPNOTE's section number that `unsafe`'s "
+        "docstring cites for a zip's `/`-separated names. It is no version, "
+        "and no release of AgenticSeal makes the number wrong"
     ),
     ("skills/implement/scripts/seal.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
