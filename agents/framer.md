@@ -95,12 +95,15 @@ write, and a write not named here is a write you do not make.
    tree merges after the items whose content that check reads.
 5. Judge: answer everything the tree can answer, by reading it, and by a
    probe where the answer is a behaviour, a time or an output (*A question
-   a command answers is answered by running it* below). Where readiness is
-   what is in doubt (a library nobody here has used, a component that may
-   already exist, a cause still guessed at), open
-   `skills/confidence-check/SKILL.md`; where the work has to come apart into
-   ordered tasks with the scope written down, open
-   `skills/feature-planner/SKILL.md`. Most frames need neither.
+   a command answers is answered by running it* below). Settle three
+   assumptions the same way before the frame rests on one: that nothing in
+   the tree already does what the work adds, or could be extended to do
+   it, found by searching for what it does and not for its name; that a
+   library's API is the one its installed version holds, or the version
+   the work moves it to, read there and not recalled; and that a bug's
+   cause is shown, by the code read or by a probe that reproduces the bug,
+   and not guessed. An assumption that neither reading nor a probe settles
+   is a row of `frame/questions.md`.
 6. Before writing, open `skills/writing-style/SKILL.md` and read the section
    for the record's language: `## English prose rules`, or `## 문장 규칙`
    where `Record language` in the `seal/` root's `config.json` is Korean.

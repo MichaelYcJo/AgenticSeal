@@ -98,12 +98,6 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     # `| 6+ files` alone left `6-file line` standing in the same file and
     # the en-dash spelling in the template a session actually types into.
     # Round 1 found both.
-    #
-    # `feature-planner` is deliberately NOT here: its `Use when:` counts
-    # files, and that was left standing because it decides when to CALL a
-    # skill, not what a work item owes. Round 2 found the reason recorded
-    # nowhere, so it is recorded here rather than left as an absence a
-    # later reader takes for an oversight.
     for parts in (
         ("skills", "implement", "SKILL.md"),
         ("skills", "implement", "orchestration.md"),
@@ -159,7 +153,6 @@ INSTRUCTING = (
     ("seal", "README.md"),
     ("templates", "setup", "seal-README.md"),
     ("skills", "implement", "SKILL.md"),
-    ("skills", "feature-planner", "SKILL.md"),
     ("README.md",),
     ("README.ko.md",),
 )
@@ -274,15 +267,6 @@ def test_the_plan_template_carries_the_overlap_table():
         in section
     ), section
     assert after[1].split("\n## ")[1].startswith("Operational impact\n"), after[1]
-
-
-def test_the_planner_writes_into_the_plan():
-    """Where the task list goes, and what the Status column gives up, are
-    the proofer's to read in the skills."""
-    planner = read("skills", "feature-planner", "SKILL.md")
-    # The file `plan.md` and its Phases table, where the planner writes the
-    # phases a crafter later builds.
-    assert "plan.md`, as its Phases table" in planner
 
 
 # --- who writes each member of the set --------------------------------------
