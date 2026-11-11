@@ -5,7 +5,9 @@
 **The count is 115 at the phase's last commit, below design S2's 150
 (design *Scope* item 8).** The phase is 15 commits from `846a446a5` to
 `54086012e`, started at `79a5f94c7`, the merge of `origin/release/v0.37.4`
-at `810ef9018` that brought #1489 in. The counting command of design *Data
+at `810ef9018` that brought #1489 in, and one commit after the framer's fold
+`b2ba1dcd0`, `a296ae8e4`, which changes two test docstrings (below) and no
+file the count reads. The counting command of design *Data
 & interfaces*, taken from that file into the phase's scratch directory and
 run with `python3 -I`, printed these totals (executed):
 
@@ -13,7 +15,8 @@ run with `python3 -I`, printed these totals (executed):
 |---|---|---|---|---|---|---|
 | `38123f839`, the base | 50 | 33,491 | 2,776 | 13,216 | 17,499 | 869 |
 | `79a5f94c7`, the phase's start | 50 | 33,279 | 2,778 | 13,004 | 17,497 | 225 |
-| `54086012e`, the phase's last commit | 50 | 33,234 | 2,778 | 12,959 | 17,497 | 115 |
+| `54086012e`, the last commit before the fold | 50 | 33,234 | 2,778 | 12,959 | 17,497 | 115 |
+| `a296ae8e4`, the phase's last commit | 50 | 33,234 | 2,778 | 12,959 | 17,497 | 115 |
 
 117 of the 225 hit lines at `79a5f94c7` were in the files of design
 *Scope* item 7, and 7 are left there. The other 108 stand in the files
@@ -83,16 +86,18 @@ reads wrong. `routing.py#parse`'s account of keeping the LAST row became the
 reason a doubled label has no value: taking the last row lets a second
 `Review` row answer for the first with nothing saying there were two.
 
-**Four stored counts of the tree went, a departure from K3.** K3 keeps an
-evidence count without its date and issue. These counts count the tree
-itself, and they no longer match it, so they went:
+**Four stored counts of the tree went (design *Scope* item 1).** The phase
+took this as a departure from K3, which then kept an evidence count without
+its date and issue, and the fold `b2ba1dcd0` wrote it into item 1's list of
+what goes. These counts count the tree itself, and they no longer match it,
+so they went:
 `routing.py`'s "all 84 declarations already committed here", "none of the
 86 committed declarations", "28 of this repository's 35 work items", and
 `lines.py`'s "944 lines of them" for issue references. Each sentence now
 states its reason without the count, such as "every declaration committed
 without it". Judged against `skills/core/SKILL.md` *The rule a mechanism is
 kept against*: nothing is kept beside the tree to stay in step with it,
-such as a stored count. The core outranks the frame. Evidence counts of
+such as a stored count. Evidence counts of
 observations stay under K3: `tables.py#gfm_table`'s generator over 600,000
 documents, and `bin/test`'s seventeen test calls.
 
@@ -103,9 +108,13 @@ documents, and `bin/test`'s seventeen test calls.
 38123f839:lib/optin.py | grep -n -i rider` printed only those two
 sentences). A pointer to something that is gone states a former state.
 Each sentence now states the cost directly: a `git` process started there is
-paid on every gated command. `tests/lib/test_optin.py:141` and `:236` say
-the same thing in two test docstrings, which design *Scope* Out leaves
-alone. `gaps.md` *Not done* names them.
+paid on every gated command. `tests/lib/test_optin.py:141` and `:236`
+stated the same fact in two test docstrings. Design *Scope* item 10, as the
+fold `b2ba1dcd0` widened it, corrects every other statement of a fact this
+work corrected, and `a296ae8e4` rewrote both clauses to the same cost ground:
+"which every gated command would pay" and "A second `git` call here would
+be paid on every gated command". No assert changed. `git grep -n 'rider on
+.repo_root' -- . ':!seal'` prints nothing at `a296ae8e4` (executed).
 
 **The hit lines of item 7 that stay, each with its keep class.**
 
@@ -161,8 +170,8 @@ tense.
 item 7's files carries a hit. `test_layout.py`'s `--help` description is a
 string constant, and its module docstring's first line did not change.
 
-**Design *Scope* item 10: the two sentences, and S7's search over the whole
-build range.**
+**Design *Scope* item 10: the sentences it names, and S7's search over the
+whole build range.**
 
 - `.github/workflows/hygiene.yml:47-48` said `close_issues_on_release.py`'s
   comment stands "two lines above its regex". It now says the comment stands
@@ -174,6 +183,9 @@ build range.**
   the reason the assert reads the call and not the bare name: the sibling's
   prose may name `closer._issue_api` to say what it delegates instead of
   calling. The assert did not change.
+- `tests/lib/test_optin.py:141` and `:236`, after the fold `b2ba1dcd0`:
+  two docstrings citing "the rider on `repo_root`", corrected in
+  `a296ae8e4` as the paragraph on the rider above says.
 
 S7's search ran over `c21b4248f..54086012e`. It covered the 48 files the
 range changes under `lib hooks .github/scripts skills bin`, other than
@@ -219,8 +231,8 @@ The wording is unbounded, so the list is a sample. The comment above in
 `test_label_merged_on_release_branch.py` is one line it misses, because it
 says "the sibling's docstring" without naming the file. The phase also
 searched with `git grep` for the words of each sentence it removed. Two hit
-test docstrings that state the same fact as a removed sentence, and
-`gaps.md` *Not done* names them.
+test docstrings that stated the same fact as a removed sentence,
+`tests/lib/test_optin.py:141` and `:236`, which `a296ae8e4` corrected.
 
 **No case reads the prose of item 7's files.** Pins were looked for by
 design G9's method, not taken from its list. `git grep -n -E
@@ -259,3 +271,10 @@ module, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, is in
 the set. It ran at `54086012e` with this record, `gaps.md`, `changelog.md`
 and the Status cell in the working tree, printed `5254 passed, 9 skipped`
 and exited 0 (executed).
+
+**The commit after the fold, `a296ae8e4`.** The code command over
+`b2ba1dcd0..a296ae8e4` with no pathspec printed `1 .py files differ in
+text; code differs in: none` and exited 0 (executed). `uvx ruff check` and
+`uvx ruff format --check` over `tests/lib/test_optin.py` exit 0, and
+`bin/test tests/lib/test_optin.py -q` printed `70 passed` and exited 0
+(executed).

@@ -51,12 +51,6 @@ Out leaves the history in `.github/workflows/*.yml` comments to an issue of
 its own. Phase 6 corrected only that comment's clause on where
 `close_issues_on_release.py`'s comment stands, and the comment over the
 second assert of `tests/github/test_label_merged_on_release_branch.py`'s
-`test_the_label_reader_has_one_source`, as design *Scope* item 10 asks.
-
-Phase 6 left two test docstrings that point at a rider that does not stand.
-`tests/lib/test_optin.py:141` says "The rider on `repo_root` counts why",
-and `:236` says "The rider on `repo_root` counts `git` calls per gated
-command". No `RIDER:` comment stands in `lib/optin.py`, at the base or now,
-and phase 6 rewrote the two docstring sentences of `lib/optin.py` that
-pointed at it. Design *Scope* Out keeps the docstrings of `tests/` out of
-this work.
+`test_the_label_reader_has_one_source`, and the two docstrings of
+`tests/lib/test_optin.py` that cited a rider on `repo_root`, as design
+*Scope* item 10 asks.
