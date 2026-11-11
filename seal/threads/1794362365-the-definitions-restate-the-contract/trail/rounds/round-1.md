@@ -86,6 +86,11 @@ def test_the_fact_finder_points_a_probe_at_rule_7():
     )
 ```
 
+```seal
+verdict: fixed 979c60b7d
+answer: The finding holds. The paste-ready fix was read against frame/design.md T25 and Scope item 17 as the fold at 3ad1c31fa states them, and against contract rule 7 at HEAD, and it matches both. agents/tracer.md now says a probe leaves nothing outside your scratch directory (rule 7), and in the same commit the case test_the_fact_finder_points_a_probe_at_rule_7 pins "outside your scratch directory (rule 7)" and the module docstring says a probe leaves nothing outside the agent's scratch directory; 59d730708 rewraps that docstring with no word changed. The changed clause was seen red: seal mutate put the sentence back as it stood at 9c6907942, "nothing behind (rule 7).", and the case failed on its own assertion. The frame lines are the framer's, folded at 3ad1c31fa.
+```
+
 ### 2. Contract rules 7 and 17 each give the removal a second reading
 
 ```seal
@@ -126,6 +131,11 @@ goes:
 
 skills/agent-contract/SKILL.md:183:
 ## 17 Name your scratch for the work item, keep it, stop only what you started
+```
+
+```seal
+verdict: fixed 979c60b7d
+answer: The finding holds. Both paste-ready texts were read against frame/design.md T1 and T2 as the fold at 3ad1c31fa states them, and each matches. Rule 7's sentence now opens "Outside your scratch directory, what the probe made for ITSELF is what goes:", so a clone a probe made inside the scratch directory is kept by the sentence before it alone, and rule 17's heading reads "keep it" in place of "remove nothing" at 78 columns. In the same commit rule 17's body reads "No agent removes the scratchpad, a scratch directory or a file in one", as T2 now gives it after the owner's decision that the orchestrator removes the work item's directory once after the pull request opens. No case pins either sentence; the narrow set over tests/text and tests/behaviour passes. The contract holds 12,806 B, inside S9's bound of 12,864 B. The frame lines are the framer's, folded at 3ad1c31fa.
 ```
 
 ### 3. The plan and the pull request body say the contract costs three agents bytes, and it costs four
