@@ -1,0 +1,15 @@
+### Removed
+
+- **The agent definitions and the agent contract carry no `check:` line, and every spawn preloads less (#1475).** A `check:` line names the test or eval case that holds a rule. The five definitions under `agents/` and `skills/agent-contract/SKILL.md` held 41 of them. Every agent spawn read its definition's lines and the contract's, and no agent acted on one. Their one reader was `seal rules`. The lines are gone, and nothing replaces them: no index file, and no strip when `dist` is built. Every test and eval case they named stays and runs as before. A crafter spawn preloads 30,828 bytes where it preloaded 32,343, a framer 35,884 where 37,179, a proofer 31,474 where 32,891, a sealer 31,866 where 33,186, and a tracer 24,148 where 25,046.
+- **What the deletion gives up (#1475).** `seal rules` prints `(no check line)` under every heading of an agent definition and of the contract, so it no longer lists the tests of their rules. `seal rules --check` no longer names such a rule when a test it relied on is deleted or renamed. A person changing such a rule finds its cases by `git grep` on the file's path. The eval cases under `evals/behaviour/` do not all carry the definition's name, so that person also looks there.
+- **The sealer's rule *A missing or stale gate record earns what step 1 says.* (#1475).** It pointed at step 1 of `agents/sealer.md` and at contract rule 2, which state its content whole, and it carried a check line longer than itself. Step 1 now cites rule 2 where it says nothing broad is run in place of a missing record.
+
+### Changed
+
+- **`skills/settle/rule-changes.md` *A rule has one shape* says that a file every spawn preloads carries no check line, and a suite case refuses one (#1475).** Such a file is each agent definition and each skill a definition's `skills:` list names, today `skills/core/SKILL.md` and `skills/agent-contract/SKILL.md`. The case, in `tests/text/test_every_agent_reads_the_contract.py`, reads each of them through `.github/scripts/rules.py`, the reader `seal rules` uses. Where a check line is written back, it fails and names the file and the line. Without it, `seal rules --check` would resolve such a line and pass.
+
+### Process changes
+
+| Date | Change | Why | Source |
+|---|---|---|---|
+| 2026-11-11 | The agent definitions and the contract carry no `check:` line. `skills/settle/rule-changes.md` *A rule has one shape* says a file every spawn preloads carries none, and `tests/text/test_every_agent_reads_the_contract.py` refuses one. The sealer's rule on a missing or stale gate record goes, and its step 1 cites contract rule 2 | Every spawn paid for the lines and no agent acted on one. The owner chose deletion over an index file, which is a coordinate kept beside the tree, and over a strip at the `dist` build, which is a second copy | https://github.com/MichaelYcJo/AgenticSeal/issues/1475 |

@@ -29,7 +29,7 @@ Failure scenario of the chosen approach, in six months: a person changing a rule
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 11. Item 4's case is written first and seen red against the base; the other items follow, and all of them land in one commit; then the records | S1 to S5 and S7 by their commands at the build commit. S5 is D2 shown red at the base. S6 is the crafter's narrow run | |
+| 1 | `frame/design.md` *Scope* items 1 to 11. Item 4's case is written first and seen red against the base; the other items follow, and all of them land in one commit; then the records | S1 to S5 and S7 by their commands at the build commit. S5 is D2 shown red at the base. S6 is the crafter's narrow run | `e9658c727` |
 
 ## Overlap with the release
 
