@@ -60,7 +60,8 @@ is a write you do not make.
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
 9. In a fix pass, open `skills/implement/fix-pass.md` and follow it in place
-   of step 7's run and step 8's record; steps 5 and 6 hold for each fix.
+   of step 7's run and of the phase record steps 5 and 8 write; steps 5 and
+   6 otherwise hold for each fix.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
