@@ -578,12 +578,15 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
     blocked step is answered at its cause. The definition cites the rule a
     mechanism is kept against; the rule's sentences are the proofer's to
     read."""
-    framer = flat(read(*FRAMER))
+    raw = read(*FRAMER)
+    lead = "**A mark is not the answer to a blocked step.**"
+    assert lead in raw, "the rule was renamed; this case is blind"
+    paragraph = flat(raw[raw.index(lead) :].split("\n\n", 1)[0])
     # The citation of the core's section, which the framer resolves to the
     # rule a mechanism it adds is kept against.
-    assert "`skills/core/SKILL.md` *The rule a mechanism is kept against*" in framer, (
-        "the framer's definition no longer cites the rule"
-    )
+    assert (
+        "`skills/core/SKILL.md` *The rule a mechanism is kept against*" in paragraph
+    ), "the rule no longer cites the core's section"
 
 
 def test_both_halves_of_the_frame_reading_cite_the_alternatives_table():
