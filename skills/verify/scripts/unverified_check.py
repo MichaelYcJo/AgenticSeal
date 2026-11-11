@@ -234,9 +234,10 @@ def settled_root(path):
     """Whether `path` is a `seal/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
-    That is the state a complete settle reaches, and it is two states: the tree that ran `seal settle --apply` holds an empty
-    `seal/threads/`, and a fresh checkout of the commit holds none, because git
-    keeps no empty directory. A person who runs `seal unverified seal/threads/`
+    That is the state a complete settle reaches, and it is two states: the
+    tree that ran `seal settle --apply` holds an empty `seal/threads/`, and a
+    fresh checkout of the commit holds none, because git keeps no empty
+    directory. A person who runs `seal unverified seal/threads/`
     after the settle hands this tool that path, and reading it as a typo would
     refuse a finished settle. Only this one path is settled: any other path
     that is missing is still refused, which is what keeps `threads/ thraeds/`
