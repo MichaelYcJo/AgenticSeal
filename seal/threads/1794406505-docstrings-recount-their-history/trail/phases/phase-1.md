@@ -8,10 +8,13 @@ file into the phase's scratch directory and run with `python3 -I` at
 `38123f839`, printed `{'files': 50, 'lines': 33491, 'blank': 2776,
 'prose': 13216, 'code': 17499, 'hits': 869}`, and its `--hits` listing held
 133 lines of `skills/verify/scripts/session_cost.py`, the figure *Scope*
-item 2 gives (executed). At `18ffe5ff0` it prints `{'files': 50, 'lines':
-33406, 'blank': 2776, 'prose': 13131, 'code': 17499, 'hits': 755}`, and 19
+item 2 gives (executed). At `386e46c8b` it prints `{'files': 50, 'lines':
+33407, 'blank': 2776, 'prose': 13132, 'code': 17499, 'hits': 755}`, and 19
 of those lines are `session_cost.py`'s (executed). The code line count is
-the same at both commits.
+the same at both commits. The phase is two commits: `18ffe5ff0` rewrites
+the prose and changes the case below, and `386e46c8b` rewraps one
+docstring paragraph the first left with a 114-column line, found by the
+read of the range's diff.
 
 **The frame holds against the tree, except for two statements.** Each is a
 claim about the tree, and neither changes what this phase builds.
@@ -22,20 +25,22 @@ claim about the tree, and neither changes what this phase builds.
   and division residuals, and `#192`, "the issue the class came from"
   (executed: the phase boundary run over the rewritten docstring, before the
   case changed, failed on `assert "#192" in text`; the commit it ran at was
-  amended into `18ffe5ff0` to carry the case's change). G9 calls its own list a sample, so the
-  broad gate would have found this case, and the phase boundary run found it
-  first. `#192` there is the provenance of a present fact, which design
+  amended into `18ffe5ff0` to carry the case's change). G9 calls its own
+  list a sample, so the broad gate would have found this case, and the
+  phase boundary run found it first. `#192` there is the provenance of a present fact, which design
   *Scope* item 1 removes. As `frame/plan.md` *Phases* asks, the case changed
   in the same commit as the sentence: it keeps its three present facts and
   loses the `#192` assertion. Judged against `skills/core/SKILL.md` *The
   rule a mechanism is kept against*: a change removes what stood on the old
   fact in the same commit.
 - Design S1 says the code command exits 0 for a phase's range. For
-  `c21b4248f..18ffe5ff0` it prints `2 .py files differ in text; code differs
+  `c21b4248f..386e46c8b` it prints `2 .py files differ in text; code differs
   in: ['tests/skills/test_session_cost.py']` and exits 1 (executed). The one
   file it names is the case above, whose code changed by the plan's own
   allowance. `skills/verify/scripts/session_cost.py` is not in that list, so
-  its code with every docstring removed is the same at both commits. S1 and
+  its code with every docstring removed is the same at both commits. For
+  `18ffe5ff0..386e46c8b` it prints `code differs in: none` and exits 0
+  (executed). S1 and
   `frame/plan.md` *Phases*' allowance for a pinning case disagree for any
   phase that meets such a case. This record reads S1 as holding for the
   scripts the phase rewrote, and names the disagreement for the orchestrator.
@@ -52,14 +57,14 @@ or "wrote out" a procedure "until this was written".
 
 **The 19 hit lines that stay, each with its keep class.**
 
-| Line at `18ffe5ff0` | Class | Why it stays |
+| Line at `386e46c8b` | Class | Why it stays |
 |---|---|---|
 | 667 | K4 | `only_reads`: the owner's answer that any `<<` keeps a line out, its issue as the one coordinate |
 | 819, 830, 1198, 1261, 1718 | K3 | "the harness measured here" and "measured over the same three runs" name the observed harness and the evidence of `DELEGATING` |
-| 2304 | K3 | "`mostly` is measured": the evidence the printed word rests on, the wait being 98% of the interval |
-| 1268, 2303 | K2 | "a measured run": a run the meter reads |
-| 1396, 1425, 2045, 2373, 2951, 2976, 2989 | K2 | "measured" for what the meter reads now: a turn, a segment, a transcript read on its own or beside another |
-| 2633, 2653, 2657 | K5 | the comments over the printed comparability lines of `report_segments`, which name #377 and #642 and stay unchanged as printed text; each comment states the shape an older reading carries and why the printed line names an issue rather than a release |
+| 2305 | K3 | "`mostly` is measured": the evidence the printed word rests on, the wait being 98% of the interval |
+| 1268, 2304 | K2 | "a measured run": a run the meter reads |
+| 1396, 1425, 2045, 2374, 2952, 2977, 2990 | K2 | "measured" for what the meter reads now: a turn, a segment, a transcript read on its own or beside another |
+| 2634, 2654, 2658 | K5 | the comments over the printed comparability lines of `report_segments`, which name #377 and #642 and stay unchanged as printed text; each comment states the shape an older reading carries and why the printed line names an issue rather than a release |
 
 **Five sentences fit no class cleanly, and `frame/questions.md` Q1's
 default kept each, rewritten in the present tense.**
@@ -100,10 +105,11 @@ comments and docstrings, the *A comment or docstring inside source* row of
 `skills/verify/SKILL.md` *The narrow command still has to be able to
 fail*, and the one test edit removes an assertion and adds no case.
 
-**S6 and S5 at `18ffe5ff0`.** `uvx ruff check` and `uvx ruff format --check`
-over `skills/verify/scripts/session_cost.py` and
-`tests/skills/test_session_cost.py` both exit 0, and both name the files
-they read (executed). The phase boundary set ran as one command,
+**S6 and S5 at `386e46c8b`.** `uvx ruff check` and `uvx ruff format
+--check` over `skills/verify/scripts/session_cost.py` and
+`tests/skills/test_session_cost.py` exit 0 at `18ffe5ff0`, and over
+`session_cost.py` again at `386e46c8b`, the one file that commit changes
+(executed). Each run printed the count of files it read. The phase boundary set ran as one command,
 `bin/test tests/skills/test_session_cost.py tests/text tests/behaviour -q`,
 over the tree this record is committed with: 2042 passed, 8 skipped, exit 0
 (executed). G10's module, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`,
