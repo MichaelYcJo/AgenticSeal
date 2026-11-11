@@ -2,25 +2,23 @@
 """Say what the two marketplace files hold for this plugin -- and that the
 directory was not read.
 
-Until 2026-09-16 everybody running this plugin had installed it themselves, so
-a release that never reached them was one the owner could see was missing. A
-listing in the directory -- the catalog people browse inside Claude -- removes
-that: the people it reaches are people the owner cannot name, and
-`docs/releasing/release-checklist.md` *After the merge* had no box that looked (#417).
+A listing in the directory -- the catalog people browse inside Claude --
+reaches people the owner cannot name, so a release that never reaches them
+is one the owner cannot see is missing. This is what the box in
+`docs/releasing/release-checklist.md` *After the merge* runs to look.
 
 **The directory itself is not read here, because no script can read it.**
 Measured 2026-10-07: three of its pages answered HTTP 403 with a challenge
 page, to a plain client and to one carrying a browser user agent, and the
-documentation's index names no API for it (#858). What a script can read is
+documentation's index names no API for it. What a script can read is
 the two marketplace files below, the public `.claude-plugin/marketplace.json`
 files: the community one calls itself a read-only mirror synced nightly from
 the review pipeline, and the official one calls itself a curated catalog that
 takes outside plugins through the same submission. Neither is the directory,
 so an absent entry in them says nothing about whether the plugin is published
-there. This used to print *not listed* and send the reader to submit, about a
-catalog it never read, on the day the owner's Console page showed the plugin
-published. The run now ends by saying the directory was not read and naming
-the page a person opens instead.
+there. So the run never says *not listed* or sends the reader to submit
+about a catalog it never read: it ends by saying the directory was not read
+and naming the page a person opens instead.
 
 **Three facts from the documentation, read 2026-10-07 and 2026-10-08**, which
 are why that closing names two pages and sends nobody to resubmit:
@@ -35,9 +33,9 @@ are why that closing names two pages and sends nobody to resubmit:
     status of its own -- marked published, with nothing listed yet.
 
 **This reports. It never fails a release**, and that is the whole design
-decision. The marketplace files sync on somebody else's schedule -- measured,
-one of the two went twenty-two days without a commit in #417 and twenty-eight
-by the time this was first written -- so a gate keyed to their state would go
+decision. The marketplace files sync on somebody else's schedule -- one of
+the two has gone twenty-eight days without a commit -- so a gate keyed to
+their state would go
 red for something no branch caused, and a red nobody can act on is the
 interruption the core's first value is against (`skills/core/SKILL.md`). The
 only non-zero exit here is a malformed argument, which is the author's
@@ -68,10 +66,8 @@ serves raw file bodies from; extending that allowlist to read a file the
 documented API already serves would spend the repository's own rule for
 nothing -- and the census refuses the host's NAME in the tree, so a comment explaining the choice by
 spelling it out is itself the violation. No credentials are needed for a
-public
-file. `.claude-plugin/marketplace.json` is the path -- measured, the root
-`marketplace.json` both the ticket and `frame/design.md` name is 404 in both
-repositories.
+public file. `.claude-plugin/marketplace.json` is the path -- a root
+`marketplace.json` is 404 in both repositories.
 
   plugin_directory_check.py             read both, report
   plugin_directory_check.py --root DIR  read the plugin name and git from DIR
@@ -117,7 +113,7 @@ CONSOLE_PAGE = "https://platform.claude.com/plugins/submissions"
 TIMEOUT = 20
 
 # The refs a pin is read against where `--ref` names none: `main`, and
-# `dist`'s remote-tracking ref, since the directory reads `dist` (#1374).
+# `dist`'s remote-tracking ref, since the directory reads `dist`.
 REFS = ("main", "origin/dist")
 
 
@@ -227,7 +223,7 @@ def line(label, repo, text, error, name, root, *refs):
 
     An absent entry is one line and the whole answer: which file, over how
     many entries. It names no act, because the file is not the directory and
-    nothing here read the directory (#858).
+    nothing here read the directory.
 
     A pin is read against each of `refs` and the line names the ones that
     hold it. It is "NOT reachable" only where every ref answered, and none
@@ -280,10 +276,10 @@ def line(label, repo, text, error, name, root, *refs):
 def closing():
     """What the run did not read, and the page a person opens instead.
 
-    The directory answers a challenge page to any script (measured 2026-10-07,
-    #858), so its state is not among what this run says. Which page answers
-    *is it published, and at which version* depends on the kind of listing,
-    and the run cannot see the kind either, so it names both.
+    The directory answers a challenge page to any script (measured
+    2026-10-07), so its state is not among what this run says. Which page
+    answers *is it published, and at which version* depends on the kind of
+    listing, and the run cannot see the kind either, so it names both.
     """
     return [
         "The directory -- the catalog people browse inside Claude -- was not "
