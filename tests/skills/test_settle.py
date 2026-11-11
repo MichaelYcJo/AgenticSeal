@@ -1657,6 +1657,10 @@ class Test_main:
             pytest.param(("cat-file", "--batch"), id="the texts"),
             pytest.param(("log", "--diff-filter=A"), id="the adding commits"),
             pytest.param(("for-each-ref", "refs/tags/v*"), id="the tags"),
+            pytest.param(
+                ("cat-file", "--batch-check=%(objecttype) %(objectname)"),
+                id="the tags' peel",
+            ),
             pytest.param(("rev-list", "--stdin"), id="the tag history"),
         ],
     )
@@ -1664,9 +1668,10 @@ class Test_main:
         self, repo, capfd, monkeypatch, failing
     ):
         """#1281, design *Scope* item 4, and #1481, design *Scope* item 6.
-        Each of the five calls the section reads through, the deletions'
+        Each of the six calls the section reads through, the deletions'
         `git log`, the plans' `git cat-file --batch`, the adding commits'
-        `git log`, and the tags' `for-each-ref` and `rev-list`, that fails
+        `git log`, and the tags' `for-each-ref`, `cat-file --batch-check`
+        and `rev-list`, that fails
         is named once with what git said, no row is printed, and the dry run
         exits 0."""
         removed_plan(
@@ -1761,6 +1766,48 @@ class Test_main:
         ) in block, block
         assert "  2026-10-01  gone\n" not in block, block
         assert "  2026-10-02  kept\n" in block, block
+
+    def test_a_removed_plan_whose_path_holds_a_newline_is_named_and_the_rest_read(
+        self, repo, capfd
+    ):
+        """#1481, round 1, finding 2. `git cat-file --batch` reads one name
+        per line, so a removed plan whose work item id holds a newline is
+        named as not read at its coordinate and never asked for, and the
+        plan removed beside it is read with its own text and its rows
+        printed. Seen red against the batch asked for both, where the plain
+        plan was named with the other path's answer."""
+        odd, plain = "1700000001-odd\nname", "1700000002-plain"
+        for name, judged in ((odd, "odd"), (plain, "plain")):
+            plan = judgments_plan([("2026-10-01", judged, "y", "z")])
+            blob = subprocess.run(
+                ["git", "-C", str(repo), "hash-object", "-w", "--stdin"],
+                input=plan,
+                check=True,
+                capture_output=True,
+                encoding="utf-8",
+            ).stdout.strip()
+            git(
+                repo,
+                "update-index",
+                "--add",
+                "--cacheinfo",
+                f"100644,{blob},seal/threads/{name}/frame/plan.md",
+            )
+        git(repo, "commit", "-qm", "the two work items (#3)")
+        git(repo, "rm", "-r", "-q", "--cached", "--", "seal/threads")
+        git(repo, "commit", "-qm", "settle 0.1.0 (#7)")
+        short = git(repo, "rev-parse", "--short", "HEAD").strip()
+        released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = earlier_block(text)
+        assert (
+            f"    {odd}  {short}^:seal/threads/{odd}/frame/plan.md  not read: "
+            "its path holds a newline, which `git cat-file --batch` reads as "
+            "two names, so none of its rows were read"
+        ) in block, block
+        assert "  2026-10-01  plain\n" in block, block
+        assert "  2026-10-01  odd\n" not in block, block
 
     def test_reads_the_plans_of_the_two_newest_removing_commits_and_names_the_rest(
         self, repo, capfd
@@ -3398,6 +3445,24 @@ class Test_versions:
         labels = settle.versions(str(repo))
         assert labels[first] == "v1.2.3", labels
         assert labels[second] == "v1.10.0", labels
+
+    def test_accepts_a_version_tag_of_a_tag_at_the_commit_it_peels_to(self, repo):
+        """#1481, round 1, finding 1. A `vX.Y.Z` tag whose object is
+        another tag labels the commit the chain peels to, as
+        `git tag --contains` counts it, so that commit is not labelled by
+        the next tag up. A git before 2.44 peels `%(*objectname)` of
+        `for-each-ref` one level only, so this is seen red only with such a
+        git first on PATH: with git 2.39.3 against the reading of
+        `%(*objecttype)`."""
+        write(repo, "a.txt", "a\n")
+        commit(repo, "a")
+        first = git(repo, "rev-parse", "HEAD").strip()
+        git(repo, "tag", "-a", "-m", "inner", "inner")
+        git(repo, "tag", "-a", "-m", "outer", "v0.1.0", "inner")
+        write(repo, "b.txt", "b\n")
+        commit(repo, "b")
+        git(repo, "tag", "v0.2.0")
+        assert settle.versions(str(repo))[first] == "v0.1.0"
 
     def test_refuses_a_tag_of_another_shape_one_on_a_tree_and_an_untagged_commit(
         self, repo

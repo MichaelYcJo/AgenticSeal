@@ -69,8 +69,10 @@ the same reader, grouped the same way, with the release whose tag holds the
 commit that added it and the removing commit's `(#N)`. The plans of the two
 newest removing commits are read (`EARLIER_WINDOW`), and a last line counts
 the older removing commits left out; `--all-earlier` reads them all and
-prints no such line. The texts, the adding commits and the tags are each
-read in one batched call, so the git calls do not grow with the plans read.
+prints no such line. The texts and the adding commits are each read in one
+batched call, and the tags in three (`versions`), so the git calls do not
+grow with the plans read. A plan whose path holds a newline, which the
+batch would read as two names, is named as not read and never asked for.
 A `git` that fails there is named, and no row is matched to another:
 whether two rows are one kind is the settling session's to judge. Nothing
 is refused or held in the dry run.
@@ -544,28 +546,40 @@ def versions(root):
     compared as numbers and not as text. A tag of any other shape is no
     version, and neither is one that does not peel to a commit.
 
-    Two calls, whatever the number of commits asked about: one
-    `git for-each-ref` lists the tags with the commit each peels to, and
-    one `git rev-list --parents --stdin` of those commits gives their
-    history. The tags are then walked lowest first, and each commit is
-    labelled by the first tag that reaches it; a walk stops at a commit
-    already labelled, whose history a lower tag has labelled whole.
-    Raises `RuntimeError`, saying what `git` said, where it fails."""
+    Three calls, whatever the number of commits asked about: one
+    `git for-each-ref` lists the tags, one `git cat-file --batch-check`
+    peels each with `^{}` to the object it names, and one
+    `git rev-list --parents --stdin` of the commits among those gives their
+    history. `^{}` peels a tag of a tag whole on every git, as
+    `git tag --contains` counts it, where `%(*objectname)` of
+    `for-each-ref` peels one level only before git 2.44. The tags are then
+    walked lowest first, and each commit is labelled by the first tag that
+    reaches it; a walk stops at a commit already labelled, whose history a
+    lower tag has labelled whole. Raises `RuntimeError`, saying what `git`
+    said, where it fails."""
     listed = git_out(
-        root,
-        "for-each-ref",
-        "--format=%(objecttype) %(objectname) %(*objecttype) %(*objectname) "
-        "%(refname:lstrip=2)",
-        "refs/tags/v*",
+        root, "for-each-ref", "--format=%(refname:lstrip=2)", "refs/tags/v*"
+    )
+    named = []
+    # exempt from splitlines: git output
+    for name in listed.splitlines():
+        if matched := VERSION_RE.match(name):
+            named.append((tuple(int(n) for n in matched.group(1).split(".")), name))
+    if not named:
+        return {}
+    peeled = decoded(
+        git_run(
+            root,
+            "cat-file",
+            "--batch-check=%(objecttype) %(objectname)",
+            given="".join(f"refs/tags/{name}^{{}}\n" for _n, name in named).encode(),
+        )
     )
     tips = []
     # exempt from splitlines: git output
-    for line in listed.splitlines():
-        kind, oid, peeled_kind, peeled, name = line.split(" ", 4)
-        matched = VERSION_RE.match(name)
-        tip = oid if kind == "commit" else peeled if peeled_kind == "commit" else None
-        if matched and tip:
-            number = tuple(int(n) for n in matched.group(1).split("."))
+    for (number, name), line in zip(named, peeled.splitlines(), strict=True):
+        kind, _, tip = line.partition(" ")
+        if kind == "commit":
             tips.append((number, name, tip))
     if not tips:
         return {}
@@ -594,7 +608,8 @@ def blobs(root, names):
     `git_out` decodes it, or what `git cat-file --batch` answered where it
     holds no file there, such as `missing`, or the kind of object it holds
     instead. One call, whatever the number of names; a name holds no
-    newline. Raises `RuntimeError`, saying what `git` said, where it
+    newline, which git would read as two names (`earlier_judgments` asks
+    for none that does). Raises `RuntimeError`, saying what `git` said, where it
     fails."""
     out = git_run(
         root, "cat-file", "--batch", given="".join(f"{n}\n" for n in names).encode()
@@ -966,6 +981,11 @@ NO_ADDING_COMMIT = "no commit on {ref} adds its plan"
 NO_PLAN_TEXT = (
     "`git cat-file --batch` answered `{answer}`, so none of its rows were read"
 )
+# A removed plan whose path holds a newline, which `blobs` cannot ask for.
+NO_ONE_LINE = (
+    "its path holds a newline, which `git cat-file --batch` reads as two "
+    "names, so none of its rows were read"
+)
 REMOVES_HEADING = (
     "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row,\nunless `--apply`, which alone reads the published "
@@ -1261,9 +1281,10 @@ def earlier_judgments(root, ref, present, specs, every=False):
               does. `removed` is `(short hash, pull request number or
               None)`, the number read by `PULL_REQUEST_RE`. A coordinate is
               `<short>^:seal/threads/<id>/frame/plan.md:<line>`
-      unread  `[(where, why)]`: what `plan_rows` names for a plan, and a
-              plan git holds no text for, with what `git cat-file` answered,
-              each at its `<short>^:` path; and a `git` that fails, with
+      unread  `[(where, why)]`: what `plan_rows` names for a plan, a plan
+              git holds no text for, with what `git cat-file` answered, and
+              a plan whose path holds a newline, which it cannot be asked
+              for, each at its `<short>^:` path; and a `git` that fails, with
               what it said, where `where` is empty and no row is read
       older   how many removing commits past the window were not read: 0
               under EVERY, and where the deletions' `git log` fails. A
@@ -1277,9 +1298,10 @@ def earlier_judgments(root, ref, present, specs, every=False):
     deletion is listed at the commit that made it, and a plan only a
     merge's own resolution deleted is not listed. Each plan is read once,
     at the parent of the newest commit that deleted it. The plans' texts
-    (`blobs`), their adding commits (`adding_commits`) and the tags that
-    hold those (`versions`) are each read in one batched call, so the
-    calls made do not grow with the number of plans. Nothing here
+    (`blobs`) and their adding commits (`adding_commits`) are each read
+    in one batched call, and the tags that hold those in the three of
+    `versions`, so the calls made do not grow with the number of plans.
+    Nothing here
     matches, counts or filters a row by its cells: whether two rows are
     one kind is the settling session's to judge."""
     try:
@@ -1324,15 +1346,24 @@ def earlier_judgments(root, ref, present, specs, every=False):
         kept = set(removing[:EARLIER_WINDOW])
         older = len(removing) - EARLIER_WINDOW
         deleted = [d for d in deleted if d[0][0] in kept]
+    # `git cat-file --batch` reads one name per line (`blobs`), so a path
+    # holding a newline is named here and never asked for: asked, it would
+    # read as two names and shift the answer of every plan after it.
+    split = [
+        (f"{work_item_id}  {short}^:{path}", NO_ONE_LINE)
+        for (_full, short, _subject), work_item_id, path in deleted
+        if "\n" in path
+    ]
+    deleted = [d for d in deleted if "\n" not in d[2]]
     if not deleted:
-        return [], [], older
+        return [], split, older
     try:
         texts = blobs(root, [f"{full}^:{path}" for (full, _s, _t), _i, path in deleted])
         added = adding_commits(root, ref, specs)
         labels = versions(root)
     except RuntimeError as failed:
         return [], [("", str(failed))], older
-    groups, unread = {}, []
+    groups, unread = {}, split
     for ((_full, short, subject), work_item_id, path), (text, answer) in zip(
         deleted, texts, strict=True
     ):
