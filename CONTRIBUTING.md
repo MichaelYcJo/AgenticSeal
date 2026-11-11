@@ -144,10 +144,10 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 --wit
 
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
 on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
-shards that `pytest-split` divides from the one committed `.test_durations`,
+shards that `pytest-split` divides by the durations union the cache holds,
 and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
 job; `durations`, which unions what the Windows shards measured and, on a
-pull request into `main`, fails where the committed file is stale;
+run that is no pull request's, saves the union to the cache;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
 hygiene workflow that guards releases. A change to any gate needs a test
@@ -164,40 +164,26 @@ file is where that shows. Each `pytest` leg in `test.yml` carries a
 `timeout-minutes`, and the comment beside the values says which runs they
 were set from.
 
-`.test_durations` goes stale as cases are added, renamed or removed, which
-unbalances the Windows and macOS shards and drops no case. The file is the
-Windows leg's, and it divides the macOS leg too, because every leg collects the same
-cases under the same ids: a parametrized path takes `ids=posix_id` from
-`tests/conftest.py`, and no id carries the interpreter's path, which
-`test_no_collected_id_carries_the_interpreters_path` holds. It prices each
-case as Windows ran it, so a case Windows skips is near zero there and its
-macOS cost is unseen by the division; a macOS shard that grows past its
-`timeout` fails, and the rule beside the values in `test.yml` sets it
-again. Every `tests` run measures the file: each Windows shard runs with
-`--store-durations --clean-durations` and uploads the part it wrote, and
-the `durations` job unions the parts into the `test-durations` artifact,
-kept for the days `test.yml` sets, and writes each shard's measured seconds
-and their spread to its summary, beside two shares of the committed file:
-the union's cases it gives no price, and its seconds held by entries no
-shard ran. A work item never commits `.test_durations`, so a refresh costs
-no review round and no broad run. When to refresh it is the release pull
-request's `durations` job's to say: on a pull request into `main`, and on
-no other run, the job is red when more than one case in twenty
-(`STALE_SHARE` in `.github/scripts/durations_union.py`) has no price in
-the file, or when more than one second in twenty of the file's belongs to
-entries no shard ran, and the red run still uploads the union. Whoever
-prepares the release refreshes the file from that run's artifact:
-`gh run download <run id> -n test-durations -D <dir>`, then moves
-`<dir>/.test_durations` over the committed file and commits it alone, with
-the trailer `Seal-Routing: no work item`, on a branch cut from
-`release/vX.Y.Z`. The file's line ends are already LF, and the download
-goes to a directory of its own because `gh` will not write over a file that
-is already there. A pull request merges that branch into `release/vX.Y.Z`,
-and the release pull request's next run reads the refreshed file. A shard
-that runs past its `timeout` during the release because the file is stale
-is answered by the same refresh, taken from the newest run whose
-`durations` job wrote the union, since a shard killed at its timeout
-uploads no part.
+The durations union lives in `actions/cache`, never in the tree, and
+nothing refreshes it by hand. Every `tests` run measures it: each Windows
+shard runs with `--store-durations --clean-durations` and uploads the part
+it wrote, and the `durations` job unions the parts, writes each shard's
+measured seconds and their spread to its summary, and uploads the union as
+the `test-durations` artifact. On a run that is no pull request's, a push
+to `main` among them, the job also saves the union to the cache under a key
+starting `test-durations-`, and each macOS and Windows shard restores the
+newest such key before it divides. `.gitignore` names `.test_durations`, so
+a restored or downloaded copy is never committed. Where no cache matches,
+or the cache was evicted, every shard splits by count: the shards come out
+unbalanced, no case is dropped, and a shard past its leg's `timeout` fails. The
+union is the Windows leg's, and it divides the macOS leg too, because every
+leg collects the same cases under the same ids: a parametrized path takes
+`ids=posix_id` from `tests/conftest.py`, and no id carries the
+interpreter's path, which `test_no_collected_id_carries_the_interpreters_path`
+holds. It prices each case as Windows ran it, so a case Windows skips is
+near zero there and its macOS cost is unseen by the division; a macOS shard
+that grows past its `timeout` fails, and the rule beside the values in
+`test.yml` sets it again.
 
 **The suite runs with `gh` logged out, on a contributor's machine as on
 CI.** CI's pytest job has no token, so `tests/conftest.py` makes the same
@@ -295,7 +281,9 @@ killed by another case, or where the behaviour it guarded has left the tree.
 
 **A module's tests are written anew from the code when its old files cost
 past the threshold.** The threshold is 60 seconds of the module's old files in
-`.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
+the `test-durations` artifact of the newest push run on `main`, which
+`gh run download <run id> -n test-durations -D <dir>` writes to
+`<dir>/.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
 the module's classes. Every other module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading
 the code, one class per function, and its old cases are read for their

@@ -41,7 +41,7 @@ DIRECT_REQUIRES = {
 # left for the policy root in #1148, which holds both; the skill keeps one
 # sentence on `straight to the PR` and cites the section that holds the rest.
 # The file and function names say "the direct answer", the name that answer
-# had until #1459, because `.test_durations` keys the cases by name.
+# had until #1459, because CI's durations union keys the cases by name.
 WAIVER_SECTION = (
     "`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*"
 )

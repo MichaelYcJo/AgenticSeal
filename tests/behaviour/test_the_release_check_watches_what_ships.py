@@ -69,7 +69,6 @@ STAYS_HOME = {
     # the loader reads neither, so a change to it alone moves no version.
     "TRADEMARKS.md",
     "ruff.toml",
-    ".test_durations",  # what CI's Windows and macOS shards are divided by (#841, #864)
 }
 
 
