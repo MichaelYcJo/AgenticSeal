@@ -589,9 +589,8 @@ def test_a_decision_after_the_frame_is_folded_into_it():
             16,
             "After a fold commit of its own, the orchestrator reads that commit "
             "and each file of the work item's directory that states the "
-            "present whole against HEAD, as contract rule 12 asks of the party "
-            "that fixes; a decision's fold is read by the framer that writes "
-            "it.",
+            "present whole against HEAD, the second method of contract rule "
+            "12; a decision's fold is read by the framer that writes it.",
         ),
         # 17, round 1 of #1318 and #1327: a record's statement goes back to
         # the crafter that wrote the last commit.
@@ -714,8 +713,8 @@ def test_the_framer_folds_a_decision_it_is_sent():
         "Before you write what a decision says, open each coordinate it cites",
         "as contract rule 5 asks of a fact that reaches you in prose.",
         "rewrite in place every sentence of your three files that the "
-        "decision changes, reading each file whole, as contract rule 12 asks "
-        "of the party that fixes",
+        "decision changes, reading each file whole, the second method of "
+        "contract rule 12",
         "Read the orchestrator's *Judgments of the run* row for each decision "
         "with `plan.md`, where it stands written and not yet committed, and "
         "name any defect in it in your hand-back.",

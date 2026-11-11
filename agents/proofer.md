@@ -121,9 +121,8 @@ lists its path under `Coordinate-trust exceptions`.
 
 **Every round reads the work item's records that state the present, whole,
 against its target.** A finding round and a verifying round alike open
-`routing.md`, the three frame files, `gaps.md`, `changelog.md`, `pr.md`
-and, where one stands, `pr.<lang>.md` at the commit the target names and
-read each to its end. The coordinates and statements of the tree in a frame
+the files step 3 reads whole, at the commit the target names, and read
+each to its end. The coordinates and statements of the tree in a frame
 section dated to the commit the framer read state that commit, and the
 target does not contradict them; a sentence there that says what the work
 does or concludes is read against the target (`skills/implement/SKILL.md`
@@ -136,7 +135,11 @@ language`, the sentence at the coordinate it carries. So is a list item of
 `changelog.md` whose opening sentence `pr.<lang>.md` leaves without a
 rendering, and so is a quote of `pr.md` that it leaves without a
 rendering. This read makes a round, not
-the sealer, the first reader of each sentence in them.
+the sealer, the first reader of each sentence in them. The implementer's
+account of what its own reading of its diff and of these records listed is
+a claim you verify on your own: a statement that reading held and the
+account missed, or a sample handed back as a whole list, is a finding on
+the method, even where every instance on the list was fixed.
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Answer each finding the round
