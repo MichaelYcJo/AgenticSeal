@@ -139,10 +139,10 @@ nothing:
   is a plan whose text git does not hold there, with what git answered. The
   rows are grouped by the `Judged against` cell exactly as written, in the
   order first met, the removing commits newest first. Each work item's line
-  gives the lowest
-  `vX.Y.Z` tag that holds the commit adding its plan, or says no tag holds
-  that commit, and the removing commit's short hash with its `(#N)`. A
-  `git` that fails is named with what it said, and the dry run goes on.
+  gives the lowest `vX.Y.Z` tag that holds the commit adding its plan, or
+  says no tag holds that commit, and the removing commit's short hash with
+  its `(#N)`. A `git` that fails is named with what it said, and the dry
+  run goes on.
   The section matches no row to another, so a row here sharing a cell with
   a row above is not a recurrence, and two cells spelt apart are not two
   kinds: whether two rows are one kind is the settling session's judgment
@@ -223,8 +223,8 @@ does not parse, an unordered pair and an open row are all shown.
    holds the plans the two newest removing commits deleted. Where a kind
    you read may have come before them, run `seal settle --all-earlier` and
    read the older rows its section adds; a kind standing on a section an
-   older settle rewrote is such a kind. The released routes are judgments too:
-   each released `routing.md` whose *Why this way* says the orchestrator
+   older settle rewrote is such a kind. The released routes are judgments
+   too: each released `routing.md` whose *Why this way* says the orchestrator
    chose its rows, and each released commit whose trailer reads
    `Seal-Routing: no work item`, which `git log --grep` lists, with the
    grounds its body gives. A settle's commit or a durations refresh carries

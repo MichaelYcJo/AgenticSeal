@@ -951,8 +951,8 @@ EARLIER_HEADING = (
 # How many removing commits the default dry run reads, newest first (#1481).
 # Two, because every kind the settle pull requests #1310, #1400, #1432, #1466
 # and #1495 name as recurring across releases rests on rows of the current
-# release and of the two newest removing commits before that settle, and
-# #1432's rested on the second (#1481's design, *Grounding* G11).
+# release and of the two newest removing commits before that settle, and the
+# kind #1432 names rested on the second (#1481's design, *Grounding* G11).
 EARLIER_WINDOW = 2
 # The section's last line where the window left removing commits out: a count
 # of commits, never of rows.
