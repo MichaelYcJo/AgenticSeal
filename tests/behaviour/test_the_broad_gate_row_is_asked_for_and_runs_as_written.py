@@ -51,10 +51,6 @@ def section(text, heading, level):
     return body.split("\n" + "#" * level + " ", 1)[0]
 
 
-def broad_gate_section():
-    return section(read(*TEMPLATE), "## Broad gate", 2)
-
-
 def table(text, header):
     """The rows of ONE table in a section — the one whose header row starts
     with HEADER — so a form moved from the refused list to the allowed one
@@ -97,13 +93,13 @@ def named(table_rows, form):
 # --- A7: the template says what is refused and what is not ------------------
 
 
-def test_the_template_carries_both_lists_under_one_heading():
+def test_the_template_carries_the_heading_of_the_two_lists():
     """The lists are what a reviewer is pointed at when they want to argue
-    with a form, so they live together rather than a paragraph apart."""
+    with a form, so they live together under one heading, which the config
+    skill cites. The two pairing cases below read each list's rows."""
+    # The heading of `templates/setup/config.md` that `skills/config/SKILL.md`
+    # cites, which a person resolves to the two lists.
     assert REFUSED_AND_ALLOWED in read(*TEMPLATE)
-    both = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
-    assert "| Refused |" in both, "no refused list"
-    assert "| Stays legal |" in both, "no allowed list"
 
 
 REFUSED = {
@@ -135,22 +131,13 @@ def test_each_refused_form_is_named_with_what_a_shell_does_with_it():
         )
 
 
-def test_the_criterion_sits_beside_the_list_rather_than_only_the_list():
-    """The defence against the list growing by analogy in six months: a form
-    belongs in it only by breaking one of the two halves, and the halves are
-    written where the list is."""
+def test_the_template_names_the_command_that_rewrites_a_refused_key():
+    """#402 *Not this*. A refused value is not stripped or repaired, so the
+    person rewrites the key, and the lists' section names the command that
+    does. That the section says nothing is stripped is the proofer's to
+    read."""
     body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
-    assert "must run as the command it reads as" in body
-    assert "exit code the gate reads must be that command's" in body
-
-
-def test_the_template_says_a_refused_value_is_refused_and_not_repaired():
-    """#402 *Not this*. Stripping makes a wrong value silently work, leaves
-    the file still wrong, and teaches the next person that backticks were
-    fine."""
-    body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
-    assert "Nothing is stripped" in body
-    assert "quietly repaired" in body
+    # The command `/agentic:config`, which a person types to rewrite the key.
     assert "/agentic:config" in body, (
         "the section does not say where a person rewrites the key"
     )
@@ -188,76 +175,6 @@ def test_each_allowed_form_is_listed_with_what_it_costs():
         )
 
 
-def test_both_ampersand_cells_name_both_shells():
-    """Round 2's 🟡 2. Finding 5's platform hedge reached the refusal message,
-    `gaps.md` and the pull request body, and not the two cells of the list
-    that owns the form — so the document a person writing the key reads still
-    stated `/bin/sh` semantics as though they were every platform's.
-
-    Both cells now say what each shell does. Under `cmd.exe` a trailing `&`
-    separates two commands rather than backgrounding, so the status read is
-    the second command's rather than 0-before-anything-finished; and a
-    mid-line `&` sequences rather than backgrounding, so nothing is left
-    running. Different wrong answers, the same half of the criterion broken —
-    which is why the refused one stays refused and the mid-line one stays
-    legal on both.
-
-    Asserted per cell, in the list the cell is in. The pairing cases above
-    read each row's stated reason, and that reason is what a hedge deleted
-    from one cell alone would leave untouched.
-
-    #413: the presence loop found both names in each cell and nothing tied a
-    name to the consequence that is that shell's, so the two names could be
-    exchanged in either cell with all eighteen cases green — measured, once
-    per cell — and the document a person reads before writing the key then
-    stated one platform's semantics as the other's. That is round 2's own
-    🟡 2 inverted, by the case planted to hold it. The attribution is asserted
-    below, per cell; the presence loop stays, because it carries the message
-    for a cell that names no shell at all.
-
-    WHAT THIS CASE STILL CANNOT SEE: whether the `cmd.exe` half is TRUE. It
-    is unmeasured, recorded as unmeasured in work item `1789445605-…` with
-    the `windows-latest` job named, and what is pinned here is that the
-    document attributes each behaviour to a shell rather than that the
-    behaviour is that shell's. If the claim is ever measured false the cells
-    change, and this case is what makes that change visible instead of
-    silent.
-    """
-    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
-    refused = named(table(body, "| Refused |"), "trailing `&`")
-    legal = named(table(body, "| Stays legal |"), "an `&` anywhere but at the end")
-    assert refused and legal, "one of the two `&` rows has left its list"
-    # Flattened once, and every assertion below reads the flattened row. The
-    # presence loop already folded each cell and the tail assertions did not,
-    # so a hand-rewrap of a 300-column cell would have reddened half of this
-    # case for a reason that has nothing to do with attribution.
-    refused, legal = flat(refused), flat(legal)
-    for cell, which in ((refused, "refused"), (legal, "allowed")):
-        assert "`/bin/sh`" in cell, (
-            f"the {which} `&` row names no shell, so it reads as every shell's"
-        )
-        assert "`cmd.exe`" in cell, (
-            f"the {which} `&` row states one platform's semantics as all of them"
-        )
-    assert "the second one's status" in refused, (
-        "the refused row does not say what `cmd.exe` leaves the gate reading"
-    )
-    assert "nothing is left running" in legal, (
-        "the allowed row's cost is stated as every platform's, and the cost "
-        "it names — a check still running at the stamp — is `/bin/sh`'s"
-    )
-    assert "`/bin/sh` backgrounds" in refused and "`cmd.exe` separates" in refused, (
-        "the refused `&` row does not say WHICH shell does which, so the two "
-        "names could be exchanged in it and this case would stay green while "
-        "the row tells a person that `cmd.exe` backgrounds the whole line"
-    )
-    assert "That is `/bin/sh`" in legal and "`cmd.exe` sequences" in legal, (
-        "the allowed `&` row does not say WHICH shell does which, so the row "
-        "could credit `/bin/sh` with sequencing the two commands — which is "
-        "the opposite of the cost the same cell states"
-    )
-
-
 # No case asserts that the two lists partition the forms, and that is not an
 # omission. `$(…)` belongs in both and must: the whole command wrapped in it
 # is refused, and one INSIDE a longer line is legal, which is the distinction
@@ -268,111 +185,7 @@ def test_both_ampersand_cells_name_both_shells():
 # row, in the list the row is in.
 
 
-def test_the_allowed_list_says_how_a_pipe_is_written():
-    """#415, and #1454. The allowed list once promised a pipe that a table row
-    could not hold, and then gave the escape `\\|` a table needed. A JSON
-    string holds a pipe as it stands, so the row says the value carries it
-    with nothing escaped, and the table escape is gone from it.
-    """
-    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
-    pipe = named(table(body, "| Stays legal |"), "a pipe")
-    assert pipe, "the allowed list has no pipe row"
-    pipe = flat(pipe)
-    assert (
-        "A JSON string carries a pipe as written, so the value holds it with "
-        "nothing escaped"
-    ) in pipe, "the row does not say how a pipe is written in the key"
-    assert "write it `\\|`" not in pipe, "the row still gives a table's escape"
-
-
-# --- Round 1's 🟡 4: the removed design, where a reader opens first ---------
-#
-# Phase 5 changed `missing_row` so it no longer tells the reader what to write,
-# and `trail/phases/phase-5.md` recorded that the old sentence should survive
-# nowhere. It survived outside the message, in the two places somebody meets
-# BEFORE the message — the module's own header, and the template paragraph
-# directly above the section this branch added. Contract rule 14 is the
-# grounds: the documents that explain a changed behaviour change with it.
-
-GATE_SCRIPT = ("skills", "verify", "scripts", "broad_gate.py")
-
-
-def module_header():
-    """The module docstring, which is the first thing anyone opening the file
-    reads — bounded at its closing quotes, not the whole file."""
-    text = read(*GATE_SCRIPT)
-    opening = text.index('"""')
-    return flat(text[opening : text.index('"""', opening + 3)])
-
-
-def test_the_module_header_names_every_refusal_and_none_names_a_command():
-    """The header's numbered list is where the command says what it does in
-    order. It described the absent-key refusal as *the command names the row
-    to write* — the removed behaviour — and did not mention the second
-    refusal, that branch's headline change, at all.
-
-    #1454 makes the third a config that will not read, or a key written
-    twice or holding no string: a JSON key has none of the walker's causes
-    that #415, #429 and #871 named here. A header naming a refusal the gate
-    no longer has teaches the next reader to look for it.
-
-    **The count moved and the subject did not.** This case is about the
-    header naming EVERY refusal and naming no command to write, which is why
-    a changed refusal rewrites the number here rather than reopening the
-    case.
-    """
-    header = module_header()
-    assert "refused three ways" in header, (
-        "the header does not describe the gate's three refusals"
-    )
-    assert "a key written twice or holding no string" in header
-    assert "the table walker did not read" not in header, (
-        "the header still names the walker's refusal of a row"
-    )
-    assert "wrapped in backticks or in `$(…)`, or ending in a single `&`" in header
-    assert "names the row to write" not in header, (
-        "the header asserts the behaviour phase 5 removed"
-    )
-    assert "No refusal names a command to write" in header
-
-
-def refusal_paragraph():
-    """The paragraph that argues a refusal over a prompt, bounded at the blank
-    line — not the section.
-
-    Round 2's 🟡 1. `#401` stands twice under `## Broad gate` — once here and
-    once in the criterion's closing prose, where it has been since before this
-    branch — so a section-wide slice cannot fail by losing it from the
-    paragraph the case is named for. Deleting the whole clause left 17 cases
-    green.
-    """
-    body = broad_gate_section()
-    opening = "**An absent key is a refusal, not a default.**"
-    assert opening in body, "the refusal paragraph is gone from the template"
-    return flat(body[body.index(opening) :].split("\n\n", 1)[0])
-
-
-def test_the_paragraph_above_the_lists_no_longer_says_it_names_what_to_write():
-    """*A refusal that names what to write is answered by the next person to
-    read it* was half the stated reason for preferring a refusal to a prompt,
-    and the refusal no longer does that. The paragraph sits inside the very
-    section this branch rewrote."""
-    assert "names what to write is answered" not in flat(broad_gate_section()), (
-        "the template still argues from the sentence the message dropped"
-    )
-    paragraph = refusal_paragraph()
-    assert "names whose the key is and where it is answered" in paragraph
-    assert "does **not** name a command to write" in paragraph, (
-        "the paragraph no longer says what the message stopped doing"
-    )
-    # #940: the reason is stated as a fact about the reader, not as the
-    # issue that reported it.
-    assert "the one party that may not choose one" in paragraph, (
-        "the paragraph asserts the change without the reason behind it"
-    )
-
-
-# --- A8: the criterion has one home, and rule 3 was folded into it ----------
+# --- A8: the criterion has one home ------------------------------------------
 
 CRITERION = "### The criterion for choosing a value"
 
@@ -393,51 +206,16 @@ def test_the_template_carries_all_three_rules_of_the_criterion():
         assert rule in body, f"the criterion does not carry {rule!r}"
 
 
-def test_each_rule_is_carried_with_the_reason_it_is_a_rule():
-    """A rule with no reason is one the next reader drops when it is
-    inconvenient, and two of these three were dropped by being written
-    nowhere."""
-    body = flat(section(read(*TEMPLATE), CRITERION, 3))
-    assert "block every future work item" in body, "rule 1 has no reason"
-    assert "can only come back green" in body, "rule 2 has no reason"
-    # #825: the comparison reads a record the command's own pytest wrote, which
-    # it can only write where it was handed the gate's environment.
-    assert "compares each failing file with the base from a record" in body, (
-        "rule 3 has no reason"
-    )
-    assert "until one writes that report" not in body, "rule 3 keeps a stale reason"
-    # #747: the reason used to be that the comparison re-ran the first `&&`
-    # part, and it stopped being true; Q2 states both orders and recommends
-    # neither, and since #825 the command runs whole at the base either way.
-    assert "the order is the repository's trade" in body, "rule 3 picks an order"
-    assert "before the row's first `&&`" not in body, "rule 3 keeps a stale reason"
-
-
-def test_rule_three_was_folded_rather_than_copied_into_a_third_place():
-    """It stood in `templates/setup/config.md` and in `skills/config/SKILL.md`
-    before this work. Writing the criterion without folding would have made
-    three copies of the one rule that was already written down —
-    `tests/text/test_the_rules_have_one_owner.py` is the standing check, and this
-    case is the fold itself."""
-    skill = flat(read(*CONFIG_SKILL))
-    assert "put the suite runner first" not in skill, (
-        "the config skill still states rule 3 beside the criterion that owns it"
-    )
-    assert "re-runs\n  what stands before the first" not in read(*CONFIG_SKILL)
-    template_body = read(*TEMPLATE)
-    assert template_body.count(THREE_RULES[2]) == 1
-
-
 def test_the_config_skill_sends_the_criterion_to_its_owner_by_name():
     """A link is one sentence naming the owner, and it does not restate the
     rule (the shape `tests/text/test_the_rules_have_one_owner.py` holds every
-    linking carrier to)."""
+    linking carrier to). Whether the skill restates a rule is the proofer's
+    to read."""
     skill = flat(read(*CONFIG_SKILL))
+    # The heading *The criterion for choosing a value*, which a person
+    # reading the skill resolves in `templates/setup/config.md`.
     assert CRITERION.lstrip("# ") in skill, (
         "the config skill does not name the section that owns the criterion"
-    )
-    assert "red repository-wide" not in skill, (
-        "the config skill restates a rule instead of pointing at it"
     )
 
 

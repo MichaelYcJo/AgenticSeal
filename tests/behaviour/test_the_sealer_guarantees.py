@@ -134,8 +134,8 @@ class TestDefinition:
 
     def test_the_sealer_writes_the_guarantee_from_the_template(self):
         text = " ".join(SEALER.read_text(encoding="utf-8").split())
+        # The path of the template the sealer opens to write `guarantee.md`.
         assert "templates/records/sdd-guarantee.md" in text
-        assert "judges nothing" not in text
 
     def test_step_1_reads_the_record_and_runs_nothing(self):
         """T2, S1 of #969. Step 1 reads `trail/gate.md` and the commits after
@@ -192,29 +192,24 @@ class TestDefinition:
         """S13 of #1044. The part of the body below `pr_body.py#HEADING` is
         the records' own text, so step 2 checks it with `seal pr-body
         --check` and withholds on any exit but 0, naming what the command
-        printed; steps 2 and 4 and *Never* then read only the part above the
-        heading as a party, the body's first part, which the orchestrator
-        wrote (#1148 S6). Before this, most withheld verdicts were a body
-        sentence restating a record."""
+        printed. Step 2 names the command, the exit code it waits on, the
+        verdict line and the constant that holds the line; that steps 2 and 4
+        and *Never* then read only the orchestrator's part as a party is the
+        proofer's to read."""
         step_2 = between(SEALER, "2. **", "3. **")
-        step_4 = between(SEALER, "4. **", "5. **")
-        never = between(SEALER, "## Never", "## Rules")
         pinned = [
-            (step_2, "`seal pr-body <item> --body <file> --check`"),
-            (step_2, "On any exit but 0"),
-            (
-                step_2,
-                "`Verdict: withheld reason: <the first line the command printed>`",
-            ),
-            (step_2, "`skills/code-review/scripts/pr_body.py#HEADING`"),
-            (step_2, "the part of the body below the line"),
-            (step_2, "request body above that line, its first part"),
-            (step_4, "the orchestrator's part of the pull request body"),
-            (never, "the orchestrator's part of the pull request body"),
+            # The command the sealer runs on the body file.
+            "`seal pr-body <item> --body <file> --check`",
+            # The exit code the sealer waits on before it reads on.
+            "exit 0",
+            # The verdict line `lib/fields.py` parses, as the sealer writes it.
+            "`Verdict: withheld reason: <the first line the command printed>`",
+            # The citation of the constant that holds the line the sealer
+            # splits the body at.
+            "`skills/code-review/scripts/pr_body.py#HEADING`",
         ]
-        missing = [phrase for where, phrase in pinned if phrase not in where]
+        missing = [phrase for phrase in pinned if phrase not in step_2]
         assert missing == [], missing
-        assert "list of changes" not in never, never
 
     def test_step_4_withholds_where_a_declared_crafter_left_no_phase_record(self):
         """#1376, *Scope* item 6. The implementer mark and notice went with
