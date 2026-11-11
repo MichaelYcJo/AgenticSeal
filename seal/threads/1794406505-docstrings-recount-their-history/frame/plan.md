@@ -34,7 +34,7 @@ The failure scenario of the chosen approach, six months on: a maintainer meets a
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Design *Scope* item 1 for item 2, and item 8 at the base | S1, S5 (G10's module and the case on `token_thirds`' docstring) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `386e46c8b` |
-| 2 | Item 1 for item 3 | S1, S5 (G10's module and the case on `broad_gate.py`'s docstring) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
+| 2 | Item 1 for item 3 | S1, S5 (G10's module and the case on `broad_gate.py`'s docstring) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | `ead171191` |
 | 3 | Item 1 for item 4 | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
 | 4 | Item 1 for item 5 | S1, S5 (G10's module and the two cases on `seal_stamp.py`) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
 | 5 | Item 1 for item 6 | S1, S5 (G10's module) and S6 executed; S3 and S4 read at review; the rest of the suite `unverified`, answered by the orchestrator's broad gate | |
