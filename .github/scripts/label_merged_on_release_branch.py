@@ -77,7 +77,7 @@ closer = sibling.load(".github/scripts/close_issues_on_release.py")
 # -> label `merged: X.Y.Z`. Four spellings of one fact, and until these
 # functions existed the chain was written out by hand at each end. They live
 # here, in the first of the two scripts to exist, and
-# `release_completeness_check.py` imports them: one source, the way both
+# `release_completeness_check.py` loads them: one source, the way both
 # scripts take their readers from one source.
 
 

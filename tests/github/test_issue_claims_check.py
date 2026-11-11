@@ -387,8 +387,8 @@ class Test_module:
         issue rejected. Identity, not equality: a copied literal passes an
         equality check on the day it is copied.
 
-        The sibling is taken from `sys.modules`, where the check's own import put
-        it — NOT loaded again by path. A second load builds a second module
+        The sibling is taken from `sys.modules`, where the check's own load
+        through `lib/sibling.py` put it — NOT loaded again by path. A second load builds a second module
         object, and then `KEYWORDS is KEYWORDS` is false for a module that
         imported it correctly. `CLOSING` would still pass, because `re.compile`
         caches by pattern and flags and hands both loads the same object: the two

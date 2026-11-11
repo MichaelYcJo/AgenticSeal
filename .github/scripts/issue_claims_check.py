@@ -35,7 +35,7 @@ was handed no body at all -- neither `PR_BODY` in the environment nor
 step that is green having examined nothing.
 
 **What GitHub does not read is defined once, next door.** `KEYWORDS`,
-`CLOSING` and `HIDDEN` are imported from `close_issues_on_release.py`
+`CLOSING` and `HIDDEN` are taken from `close_issues_on_release.py`
 rather than restated here, so widening one moves both. Two lists of what a
 closing keyword is would drift apart the first time either was edited.
 
