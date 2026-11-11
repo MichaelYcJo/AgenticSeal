@@ -255,7 +255,8 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
 
     A ticket is a request and a ratified document outranks it, so the buckets
     follow the policy. `gaps.md` *Where spec and implementation diverged*
-    quotes both sides."""
+    quotes both sides. The case reads the record path the `Location` row
+    names."""
     _label, source = labelled("Findings by `Location`")
     # The path the row names as a record path, which the orchestrator sorts
     # each finding's `Location` by.
