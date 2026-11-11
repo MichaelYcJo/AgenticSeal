@@ -22,6 +22,9 @@ points at where the grounds stand:
   considered*, A14 and A15.
 - Whether `rules.py` and `release_report.py` are guarded: `plan.md`
   *Alternatives considered*, A16.
+- Whether a caller that goes on past an absent module still shows the
+  loader's sentence: `frame/design.md` *Scope* item 4 and *Data &
+  interfaces*, the `going_on` bullet, after round 1's finding 1.
 - Whether `seal layout --moved` can be the check of the moved cases:
   `frame/design.md` *Grounding* G13 and scenario S8, with `plan.md`
   *Alternatives considered*, A17.
