@@ -3,16 +3,15 @@
 on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
-answers it. Nothing ever read those rows again. The measured failure: a row in
-the closing memo of work item 1787495842 (verify-the-unverified), a record
-older than this repository's first commit, said nobody had seen the
-gates render in an interactive TUI and named the user as the answerer. Months
-later the user hit exactly that, from the other side, and asked why every gate
-renders as yes/no. The record was accurate and no procedure ever closed it.
+answers it, and a row nobody reads again stays open after its answer has
+come. A closing memo's row said nobody had seen the gates render in an
+interactive TUI and named the user as the answerer; months later the user hit
+exactly that, from the other side, and asked why every gate renders as
+yes/no. The record was accurate and no procedure closed it.
 
 So this reads every `## Not verified` section and reports what is still open.
-It does **not** fail because items are open. Dozens were open the day it was
-written, and a build that goes red for an honest `unverified` row teaches
+It does **not** fail because items are open. Many are open at any time, and
+a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
 is what `seal unverified seal/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
@@ -78,7 +77,7 @@ SKIP_DIRS = {
 def overviews(paths):
     """Every gaps.md under the given paths, in a stable order.
 
-    **A walk leaves the reference roots out** (#688): a project's own
+    **A walk leaves the reference roots out**: a project's own
     `specs/` is a team's document, read as history and never as this
     plugin's record, so a malformed `## Not verified` there is not a finding.
     A path NAMED, a file or a directory inside a reference root, is read as
@@ -123,9 +122,9 @@ def references_at(top):
     (`config_at`) — or None where one of the two raises while it loads or
     reads. An absent one is `lib/sibling.py#load`'s sentence at exit 2.
 
-    None prunes nothing, which reads more and never less: the walk is the
-    one it had before reference roots existed, rather than refusing a run
-    that needed none of this. Read once per path a run is handed."""
+    None prunes nothing, which reads more and never less: the walk leaves
+    no reference root out, rather than refusing a run that needed none of
+    this. Read once per path a run is handed."""
     try:
         config, home, name = config_at(top)
         return config, config.reference_roots(home, name), name
@@ -183,8 +182,8 @@ def display_path(path, start):
     `os.path.relpath` raises `ValueError` on Windows when the two are on
     different drives, and this is the reporting footing for every line the
     tool prints. Running `seal unverified D:\repo\specs` from `C:\` is
-    an ordinary thing to do, and it died with a traceback before printing a
-    single row. The absolute path is a worse answer than a relative one and a
+    an ordinary thing to do, and unguarded it dies with a traceback before
+    printing a single row. The absolute path is a worse answer than a relative one and a
     far better one than no output at all.
     """
     try:
@@ -217,18 +216,17 @@ def repo_root(path):
 def root_name(top):
     """The name of the `seal/` root of the repository at TOP as the tree
     spells it, `lib/optin.py#home_name`'s answer; `optin.HOME` where TOP is
-    None or holds no shared root. That is the name every root had before
-    the second one (#1059), the one a local root keeps, and the one each
-    fixture that commits a `seal/` with no marker is read under."""
+    None or holds no shared root. That is the name a local root keeps, and
+    the one each fixture that commits a `seal/` with no marker is read
+    under."""
     optin = sibling.load("lib/optin.py")
     return (top and optin.home_name(top)) or optin.HOME
 
 
 def named_root(parent):
     """Whether the directory PARENT carries the name `root_name` gives for
-    the repository holding it. Only the name is read, as it was when the
-    one name was `seal`: whether PARENT is that root is not asked. PARENT
-    is a directory on disk."""
+    the repository holding it. Only the name is read: whether PARENT is
+    that root is not asked. PARENT is a directory on disk."""
     return os.path.basename(parent) == root_name(repo_root(os.path.dirname(parent)))
 
 
@@ -236,8 +234,7 @@ def settled_root(path):
     """Whether `path` is a `seal/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
-    That is the state a complete settle reaches (#517, `frame/design.md` G7), and it
-    is two states: the tree that ran `seal settle --apply` holds an empty
+    That is the state a complete settle reaches, and it is two states: the tree that ran `seal settle --apply` holds an empty
     `seal/threads/`, and a fresh checkout of the commit holds none, because git
     keeps no empty directory. A person who runs `seal unverified seal/threads/`
     after the settle hands this tool that path, and reading it as a typo would
@@ -270,9 +267,9 @@ def absent_root(path):
 
     That is a repository whose records are in local mode, under the git
     directory, or that never had any, and a teammate's pull request against
-    it declares nothing (#952). Read at the top level only, the directory
+    it declares nothing. Read at the top level only, the directory
     `git rev-parse --show-toplevel` names, so a `seal/threads` typed from
-    anywhere else is still the mistyped path it always was.
+    anywhere else is still a mistyped path.
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
@@ -301,7 +298,7 @@ def unwritten_root(path):
     items, none of which carries an `gaps.md`.
 
     Every work item that never opened a closing memo is in this state, and a
-    pull request against it has no row to read (#952). `main` asks it only
+    pull request against it has no row to read. `main` asks it only
     once the scan found no closing memo.
     """
     p = os.path.abspath(path)
