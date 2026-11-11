@@ -60,4 +60,5 @@ The items read are #1498, #1481, #1483, #1486 and #1488, as the spawn names them
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-11 | Phase 2's crafter declined *Scope* item 12, and the orchestrator folded the decline into the frame at `0ff090e04`: `.test_durations` is not edited | `CONTRIBUTING.md:180` says a work item never commits `.test_durations` (read), and #1486 removes the file in this release | `CONTRIBUTING.md` *Running the checks*; `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
+| 2026-11-11 | The title takes `refactor:`, as the issue's title does | No gate's verdict, hook's output or agent's instruction changes; the work removes code whose values nothing reads | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지* |
