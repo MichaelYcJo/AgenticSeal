@@ -40,8 +40,8 @@ run follows.
 
 - A branch cut from the open release branch, and a pull request based on it.
 - `bin/test tests/<file> -q` on each module the change touched, and
-  `bin/test tests/text tests/behaviour -q`, the tree-wide files *The test
-  layout* names. CI runs the rest, on three platforms.
+  `bin/test tests/text tests/behaviour -q`, which hold the tree-wide files
+  *The test layout* names. CI runs the rest, on three platforms.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
@@ -233,8 +233,10 @@ one named `test_refuses_<what>` for bad input. What the module does as a
 whole goes in `Test_module`. A flow across modules lives under
 `tests/e2e/<flow>/`: its `TARGET` names the command or hook the flow starts
 from, and each of its classes is a scenario that keeps the same two cases.
-A case whose assertion reads a shipped document names that document as
-`TARGET`, and its classes take any name. A helper two test files use is
+A file whose cases each read the text of one and the same tracked file that
+is not a test file, such as a document, a template, a workflow or a config
+file, and run no shipped code as their subject, names that file as
+`TARGET`, and its name and classes are free. A helper two test files use is
 defined once, in `tests/conftest.py` or in one of the two files, which the
 other imports by its name. Each module file ends with
 `test_census = census_case(TARGET)`, which runs every census in
@@ -242,9 +244,11 @@ other imports by its name. Each module file ends with
 carries `# exempt from <census>: <why>` on its own line above it, where the
 census reads it and refuses it once it excuses nothing.
 `bin/seal layout --check` refuses a file that declares `TARGET` and breaks
-this, and lists the files that do not declare one yet. A contributor writing
-a case first reads its class and the pairs `bin/seal layout --pairs` names
-in it.
+this, and lists the files that declare none. A contributor writing a case
+first reads its class and the pairs `bin/seal layout --pairs` names in it.
+Each pair the report prints carries its reason in its class's docstring: one
+sentence stating the input its two cases differ by where they call the
+function alike, such as the world a fixture or a monkeypatch builds.
 check: tests/skills/test_test_layout.py tests/test_censuses.py
 
 **A test file takes the repository root from `tests/conftest.py`.** A test
@@ -256,14 +260,30 @@ under `tests/` that holds a test file on `sys.path`, so two files of one name
 import as one module.
 check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 
-**A test file that declares no `TARGET` stands by what its cases run.** It
-stands in `tests/behaviour/` where its cases load or run shipped code, and
-in `tests/text/` where they only read text. A case that walks this
-repository's tree or a whole directory of it, lists its tracked files, or
-runs a check over its root stands in a file that declares none. The files
-that declare no `TARGET`, `tests/text/` and `tests/behaviour/`, are this
-repository's tree-wide files, which `skills/verify/SKILL.md` *Scope: cheap
-and often, broad and once* runs at every phase boundary and every fix pass.
+**A case stands in the file of what it holds, and a file that declares no
+`TARGET` says why.** What a case holds is read from the case whole, never
+from its file's name. A case that calls a function of one shipped module,
+directly or through a loader, or runs the `seal` subcommand or the script
+that one module is, and asserts on what that call returned, printed, raised
+or wrote, stands in that module's file. It goes in the class of the
+function it calls, or in `Test_module`, and keeps its name. A case that
+reads a document only to build that call's input is still the module's. A
+case that holds a document's sentence against a value it takes from a
+module is not, because what it asserts is the document's text. A case has
+no one file in the layout where it walks this repository's tree or a whole
+directory of it, lists its tracked files, or runs a check over its root;
+where it holds one rule across the text of several files; or where it holds
+one property across several shipped modules. A file that holds such a
+case, or cases that read different files, declares no `TARGET`. Its first
+line after the imports, where `TARGET = "..."` would stand, gives the
+ground in words, as
+`# No TARGET: its cases walk every rule file of the tree.` does, and no
+script reads it. Such a file stands in
+`tests/behaviour/` where its cases load or run shipped code, and in
+`tests/text/` where they only read text. The files that declare no
+`TARGET`, wherever they stand, are this repository's tree-wide files, which
+`skills/verify/SKILL.md` *Scope: cheap and often, broad and once* runs at
+every phase boundary and every fix pass.
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the

@@ -57,9 +57,9 @@ HELPER = "def read(path):\n    return path\n"
 UNDECLARED = "import os\n\n\ndef test_a():\n    assert os\n"
 
 
-def checked(tests, tracked=TRACKED, every=False):
+def checked(tests, tracked=TRACKED):
     """`check` over TESTS, the module `MODULE` standing at `lib/x.py`."""
-    return layout.check(tests, tracked, {"lib/x.py": MODULE}.get, every=every)
+    return layout.check(tests, tracked, {"lib/x.py": MODULE}.get)
 
 
 class Test_declared_target:
@@ -145,11 +145,9 @@ class Test_check:
             "report: lib/x.py: function render has no class Test_render"
         ]
 
-    def test_accepts_an_undeclared_file_as_a_report_until_every_file_is_asked(self):
+    def test_accepts_an_undeclared_file_as_a_report(self):
         tests = {"tests/lib/test_x.py": PLACED, "tests/test_old.py": UNDECLARED}
         assert checked(tests) == ([], ["report: tests/test_old.py: declares no TARGET"])
-        refused, _ = checked(tests, every=True)
-        assert refused == ["refused: tests/test_old.py: declares no TARGET"]
 
     def test_accepts_free_names_for_a_flow_and_a_document(self):
         scenario = PLACED.split("\n\nclass Test_module")[0] + CENSUS_LINE
@@ -295,6 +293,15 @@ class Test_pairs:
             f"test_refuses_nothing {why}"
         ]
 
+    def test_accepts_an_empty_display_beside_an_input_as_a_pair(self):
+        source = PLACED.replace('x.parse("a") == 1', 'x.parse("a", []) == 1').replace(
+            'x.parse("") is None', 'x.parse("a", []) is None'
+        )
+        assert layout.pairs({"tests/test_x.py": source}) == [
+            "pair: tests/test_x.py::Test_parse: test_accepts_text and "
+            "test_refuses_nothing call parse with equal arguments"
+        ]
+
     def test_refuses_two_cases_with_other_arguments_and_other_bodies(self):
         source = PLACED.replace('x.parse("") is None', 'x.parse("b") == 2')
         assert layout.pairs({"tests/test_x.py": source}) == []
@@ -307,8 +314,12 @@ class Test_pairs:
                 'text = ""\n        assert x.parse(text, strict=True) == 2',
             ),
             ("assert x.parse() == 1", "assert x.parse() == 2"),
+            (
+                "assert x.parse([], (), strict={}, other=None) == 1",
+                "assert x.parse([], (), strict={}, other=None) == 2",
+            ),
         ],
-        ids=["a-local-of-one-name", "no-argument"],
+        ids=["a-local-of-one-name", "no-argument", "only-empty-displays-and-none"],
     )
     def test_refuses_two_cases_whose_calls_show_no_input(self, first, second):
         source = PLACED.replace('assert x.parse("a") == 1', first).replace(
@@ -1112,6 +1123,9 @@ class Test_moved:
 
 
 class Test_main:
+    """Where two cases call `main` alike, the world differs: a monkeypatched
+    `_toplevel` puts the repository at a fixture directory or nowhere."""
+
     def test_accepts_a_pair_and_exits_zero(self, tmp_path, monkeypatch, capsys):
         (tmp_path / "tests").mkdir()
         source = PLACED.replace('x.parse("") is None', 'x.parse("a") is not None')
@@ -1134,12 +1148,6 @@ class Test_main:
         out = capsys.readouterr().out
         assert "tests/lib/test_x.py: class Test_render" in out
 
-    def test_refuses_all_without_check(self, capsys):
-        with pytest.raises(SystemExit) as stopped:
-            layout.main(["--pairs", "--all"])
-        assert stopped.value.code == 2
-        assert "--all" in capsys.readouterr().err
-
     def test_refuses_a_path_that_names_nothing(self, capsys):
         missing = os.path.join(ROOT, "tests", "test_no_such_file.py")
         assert layout.main(["--check", missing]) == 2
@@ -1147,7 +1155,7 @@ class Test_main:
 
     def test_refuses_a_directory_outside_a_repository(self, monkeypatch, capsys):
         monkeypatch.setattr(layout, "_toplevel", lambda start: None)
-        assert layout.main(["--check", "--all"]) == 2
+        assert layout.main(["--check"]) == 2
         assert "not inside a git repository" in capsys.readouterr().out
 
 
