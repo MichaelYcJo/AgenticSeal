@@ -63,7 +63,7 @@ Each sibling's branch is cut from `release/v0.37.4` with the asserts of this wor
 
 ## Operational impact
 
-None for a deployer: no migration, environment variable, dependency or compatibility break. This pull request does not move the version, which #1498 carries for the release. The suite loses the cases the ruling removes. `.test_durations` keeps their rows until #1486 removes the file or the release's refresh rewrites it (design G8). The settle writes the operations of design `## Rule changes` into the policy root. Where *Scope* item 6 leaves a module with no case that a `docs/` check line names, the orchestrator files one issue for its deletion after the settle, before `seal pr-body` runs.
+None for a deployer: no migration, environment variable, dependency or compatibility break. This pull request does not move the version, which #1498 carries for the release. The suite loses the cases the ruling removes. No row of `.test_durations` outlives a removed case: #1486 removed the file in this release (design G8). The settle writes the operations of design `## Rule changes` into the policy root. Where *Scope* item 6 leaves a module with no case that a `docs/` check line names, the orchestrator files one issue for its deletion after the settle, before `seal pr-body` runs.
 
 ## Judgments of the run
 
