@@ -84,12 +84,14 @@ that makes it* states. Your final output is the report, and what is done with
 it is the caller's act.
 check: tests/text/test_every_agent_reads_the_contract.py
 
-## 7 A probe is named `test_tmp_*`, one file, run once, deleted
+## 7 A probe is named `test_tmp_*`, run once, and leaves nothing outside your scratch
 
 Probe only what reading cannot settle. A probe is one file named
-`test_tmp_*`, it runs once, and it is deleted before you hand over. The rule
-is about leavings, not about files: A probe leaves nothing behind, whatever
-kind of thing it made — a worktree, a branch, a checkout, a scratch clone, a
+`test_tmp_*`, and it runs once. What stands under your scratch directory
+(rule 17) stays there: the probe file, a clone, a virtual environment
+inside one. The rule is about leavings, not about files: everything else
+the probe made is gone before you hand over, whatever kind of thing it is —
+the file itself in a working tree, a worktree, a branch, a checkout, a
 virtual environment — and those are examples, not a list. What the probe
 made for ITSELF is what goes: a thing the repository's own tooling builds to
 be reused, such as the one virtual environment a test runner keeps, stays
@@ -178,14 +180,21 @@ names. A case that passes against the defect it was written for pins
 nothing, and reverting the fix, or removing its one guard, is what catches
 one.
 
-## 17 Clean up only what you started
+## 17 Name your scratch for the work item, remove nothing, stop only what you started
 
-An agent cleans up only the processes and files it started. Record the PID
-of every process you start and the path of every file and directory you
-create, and stop or remove by that record; never kill by command name, and
-never delete in a shared directory by glob — another session's process or
-file answers to the same name. A leftover you did not start is reported in
-the hand-back, not removed.
+What you make outside the repository's working tree, such as a probe, a
+captured output, a list of files or a clone, sits under your scratch
+directory, `<scratchpad>/<work-item-id>/<leaf>/`. Your definition names the
+leaf, and where it names none the leaf is your agent's name. Agents of one
+session share one scratchpad, and that name keeps a parallel agent's files
+apart from yours. Where the directory already stands when you first need
+it, an earlier spawn made it: leave it as it is and add `-2` to the leaf,
+or the next number free. Nobody removes the scratchpad, a scratch directory
+or a file in one. Record the PID of every process you start and stop it by
+that record, never by command name. Never delete by glob in a directory
+another session shares. Another session's process or file answers to the
+same name, so a leftover you did not start is reported in the hand-back,
+not stopped and not removed.
 
 ## 18 A check that refuses correct code is fixed or reported
 
@@ -213,10 +222,7 @@ way. A list reaches a command as `xargs <runner> < list` or as
 `${(f)"$(cat list)"}` or `$=var`, and never through an unquoted variable
 expected to split, which bash splits and zsh does not. An `rm` names a
 literal path, or writes each variable in its path as `"${VAR:?}"`, which
-stops the line where the variable is unset or empty. A directory you made
-under `<scratchpad>/<work-item-id>/` is removed in one `rm -rf` of that
-directory, never file by file in a loop, and the removal never names the
-scratchpad itself, which every agent of the session shares. These forms
-are examples of the rule, not a list of it: a form not named here is held
-to the same aim, and so is a named form Claude Code stops reading.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+stops the line where the variable is unset or empty. These forms are
+examples of the rule, not a list of it: a form not named here is held to
+the same aim, and so is a named form Claude Code stops reading.
+check: tests/text/test_the_agent_contract_holds_the_universal_rules.py

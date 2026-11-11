@@ -28,8 +28,8 @@ lifetimes* states (contract rule 11).
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
-   once. The orchestrator's own commands, its commits, the broad run and
-   the removal of its scratch files among them, follow contract rule 21,
+   once. The orchestrator's own commands, its commits and the broad run
+   among them, follow contract rule 21,
    which the orchestrator opens once in `skills/agent-contract/SKILL.md`
    beside the core.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator

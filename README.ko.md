@@ -371,8 +371,9 @@ an earlier release wrote*).
 zsh 가 똑같이 읽는 평범한 POSIX 문법으로 명령을 씁니다
 (`skills/agent-contract/SKILL.md` 21번 규칙). 에이전트는 임시 파일을
 `<scratchpad>/<work-item-id>/` 아래 자기 디렉터리에 두고, crafter 는 단계와
-fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자기 디렉터리만
-지우고, 세션의 scratchpad 자체는 지우지 않습니다.
+fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자기 디렉터리도
+세션의 scratchpad 도 지우지 않고, 둘 다 scratchpad 가 남아 있는 동안
+남습니다.
 
 두 훅 모두 사용자의 코드나 경로, 프롬프트를 어디로도 보내지 않습니다.
 `SessionStart` 훅이 찍는 것은 세션이 연 파일처럼 그 세션의 컨텍스트에 들어갈

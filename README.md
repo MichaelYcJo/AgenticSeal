@@ -374,8 +374,9 @@ for you to approve, and the run waits until you answer, so every agent
 writes plain POSIX syntax that bash and zsh read the same way
 (`skills/agent-contract/SKILL.md` rule 21). An agent keeps its scratch
 files in a directory of its own under `<scratchpad>/<work-item-id>/`, and
-the crafter keeps one for each phase and each fix pass. An agent removes its
-own directory and never the session's scratchpad.
+the crafter keeps one for each phase and each fix pass. No agent removes its
+directory or the session's scratchpad, and both last as long as the
+scratchpad does.
 
 Neither hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints goes into the session's own context, as a file
