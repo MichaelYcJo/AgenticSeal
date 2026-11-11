@@ -12,8 +12,7 @@ pact anchor table of a work item's `frame/design.md`
 converter reads an earlier release's `config.md` through it
 (`skills/implement/scripts/seal.py#converted`). No setting is read through
 it: `lib/config.py` reads `config.json` with the standard library's JSON
-parser, and the walker left that module for this one when the settings
-left the markdown table (#1454).
+parser.
 
 What the walker does not read whole it refuses, naming the line, and a line
 it hides is a line nothing is read from.
@@ -48,7 +47,7 @@ except ImportError as missing:
 # A CELL is any run of characters that are neither a pipe nor a backslash, or
 # a backslash followed by anything. The second half is markdown's own escape,
 # and the tables this walker reads are markdown: `\|` is how a cell of a
-# markdown table carries a literal pipe (#415). A bare pipe is a cell
+# markdown table carries a literal pipe. A bare pipe is a cell
 # boundary, as it is to cmark-gfm.
 #
 # **This narrows in exactly one shape, and it is not a defect to repair.** A
@@ -56,8 +55,7 @@ except ImportError as missing:
 # pipe, so `| Broad gate | C:\Users\x\tools\|` is not a row. It cannot be
 # both: the escape is what the rest of this comment is for. Nothing becomes
 # unwritable, because `table_cells` strips each cell -- a space before the
-# closing pipe returns the same value byte for byte. Found by round 1 of
-# #415.
+# closing pipe returns the same value byte for byte.
 #
 # `TABLE_ROW` and `CELL_PIPE` below are built on it.
 CELL = r"(?:[^|\\]|\\.)"
@@ -72,9 +70,8 @@ def unescaped(cell):
     **Exactly those two characters, and no other backslash is touched.** A
     general unescape -- `re.sub(r"\\\\(.)", r"\\1", cell)` -- turns
     `C:\\Python\\python.exe -m pytest` into `C:Pythonpython.exe -m pytest`,
-    and that row reads back with its path intact today, on a repository
-    already synced across operating systems. Widening this would break a
-    value nobody was asking us to change, to serve an escape markdown only
+    and such a row reads back with its path intact. Widening this would
+    break a value nobody asks to change, to serve an escape markdown only
     needs for the pipe.
 
     The reduction happens HERE, before any caller sees the value, so a shell
@@ -100,12 +97,11 @@ def fence_map(lines, text=None):
     `gfm_table`'s refusals are facts about the table.
 
     **The lines it hides are `hidden_lines`' below**, which reads the file
-    through `lib/blocks.py`'s walk (#667): a closed fence, and now a
-    line-start HTML comment block that closes, hide their lines, and a line
-    the walk cannot be sure of keeps the reading this function gave it before
-    -- the fence rule alone. The name stays because every caller spells it,
-    and "outside every fenced block" now means "outside every block this
-    reader hides". TEXT is `hidden_lines`' argument of the same name.
+    through `lib/blocks.py`'s walk: a closed fence and a line-start HTML
+    comment block that closes hide their lines, and a line the walk cannot
+    be sure of keeps its base reading, the fence rule alone. The name says
+    "fenced" because every caller spells it so, and "outside every fenced
+    block" means "outside every block this reader hides". TEXT is `hidden_lines`' argument of the same name.
     """
     hidden, opened_at = hidden_lines(lines, text)
     shown = [
@@ -120,20 +116,20 @@ def hidden_lines(lines, text=None):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
 
-    A line that declares something is not taken on doubt where the older
+    A line that declares something is not taken on doubt where the base
     reading would not take it, the second of the three answers
     `docs/checks/the-fold.md` *The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration.
 
     **TEXT is the file LINES were split from, and every caller that has it
-    passes it** (#667 round 1, 🟡 1). The readers split with
+    passes it.** The readers split with
     `str.splitlines`, which ends a line at U+2028, NEL, a form feed and five
     more characters where a renderer does not; the walk reads TEXT where
     GFM breaks it (`blocks.walk_text`), so a `<!--` after such a character
     hides nothing. LINES alone is read as given, which is right for a list
     of lines nobody split from a file.
 
-    **Two readings, and every line takes one of them** (#667, #658). Where
+    **Two readings, and every line takes one of them.** Where
     `lib/blocks.py#walk` is sure, the line is hidden exactly where a
     CommonMark renderer hides it: inside a fenced block or a line-start HTML
     comment block that closes. Where the walk is not sure -- a construct
@@ -141,9 +137,9 @@ def hidden_lines(lines, text=None):
     raw HTML a line leaves open (a mid-line `<!--`, CDATA, a processing
     instruction, a declaration or a tag) and a piece of a line that starts
     inside it, everything below a construct that never closes -- the
-    line keeps this reader's reading from before #667, the fence rule alone,
-    `blocks.fence_only`. So on every line the answer is either the old one or
-    the renderer's, and never a third;
+    line keeps this reader's base reading, the fence rule alone,
+    `blocks.fence_only`. So on every line the answer is either the base
+    reading or the renderer's, and never a third;
     `tests/lib/test_tables.py`'s `Test_unfenced` holds that
     over a generated corpus.
 
@@ -153,16 +149,16 @@ def hidden_lines(lines, text=None):
         is not a row (`COMMENTED_OLD_ROW`, `COMMENTED_OLD_TABLE`), which is
         the direction this module fails in: *nothing is declared*;
       - a fence line inside such a comment opens no fence, so a header
-        comment quoting a fence no longer hides the live table under it;
+        comment quoting a fence does not hide the live table under it;
       - **a fence that is never closed still hides everything below it**,
-        because that is what it did before and a line below it is one the
+        because the base reading hides it and a line below it is one the
         walk is not sure of, and the second value names that fence;
-      - a `<!--` nobody closed hides nothing it did not hide before, and
+      - a `<!--` nobody closed hides nothing the base reading shows, and
         switches off no fence below it: it is not a construct at all.
 
     **The second value** is the fence a caller has somebody to tell about:
     the first opener that never closes, on a line where the walk is not sure
-    -- where the old reading, the one that runs such a fence to the end, is
+    -- where the base reading, the one that runs such a fence to the end, is
     the one in force. A fence line inside a closed comment opens nothing, so
     it is never named.
     """
@@ -179,22 +175,21 @@ def unfenced(lines, text=None):
     """(index, line) for each of LINES that is outside every fenced code
     block and every HTML comment block that closes, with the line's own
     ending removed and its index kept. `hidden_lines` below is the rule and
-    says which lines those are (#667); this paragraph and the ones after it
-    were written for the fence half, and hold for the comment half word for
-    word.
+    says which lines those are; this paragraph and the ones after it state
+    the fence half, and hold for the comment half word for word.
 
     **One fence rule, in front of the one walk of every table.** A line
     inside a fenced code block is not part of any table: not a header, not a
     delimiter row, not a row, and not a line somebody wrote as a row.
     `gfm_table` below reads every table this module reads through this one
-    generator, so no two callers disagree about which row is the row (#429).
+    generator, so no two callers disagree about which row is the row.
     A hidden line is a gap the walk ends the table at: a line written
     `| … |` below it is refused as a row the walk never reaches, because GFM
     does not show it as one of the table's rows.
 
     **Why a table inside a fence is not the table.** A fenced example above
     a live table is a shape a person pastes when documenting the format, and
-    before this rule the example's rows were the rows a reader got (#429).
+    without this rule the example's rows would be the rows a reader gets.
 
     **It yields positions, not surviving text alone.** `gfm_table` returns
     each row's line, so a helper handing back text could not serve that
@@ -203,7 +198,7 @@ def unfenced(lines, text=None):
     **It takes either spelling of a line.** The ending is stripped here, so
     a file written with LF and one written with CRLF get the same answer.
 
-    The edge cases past `frame/design.md`'s rule are resolved toward *not a fence*,
+    The edge cases past the fence rule are resolved toward *not a fence*,
     which is the direction that keeps a live table readable:
 
       - a BACKTICK fence's info string may not itself hold a backtick
@@ -232,13 +227,13 @@ def unfenced(lines, text=None):
     yield from fence_map(lines, text)[0]
 
 
-# --- one GFM table walker (#647) --------------------------------------------
+# --- one GFM table walker ----------------------------------------------------
 #
 # Tables are read out of markdown by name: a record's, and an earlier
 # release's `config.md`, which `seal mode` converts. One walker reads them
-# all, because two walkers are two break lists to keep in step, and round 3
-# of #735 measured exactly that drift in the one there was: an autolink row
-# ended the table, and a signer written as one was read by nobody at exit 0.
+# all, because two walkers are two break lists to keep in step, and the
+# drift between them is silent: a walker whose list ends the table at an
+# autolink row reads a signer written as one as nobody's, at exit 0.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
 # by `tests/lib/test_tables.py`'s `Test_gfm_table`, property cases
@@ -306,8 +301,7 @@ TABLE_ROW = re.compile(rf"^ {{0,3}}\|(?P<cells>(?:{CELL}|\|)*)\|[ \t]*$")
 CELL_PIPE = re.compile(rf"((?:{CELL})*)(\|?)")
 # A pipe after an even run of backslashes: `CELL` reads the backslashes in
 # pairs and splits there, and cmark-gfm does not, because its cell scanner
-# reads `\|` as an escaped pipe wherever it stands (round 1 of PR #749,
-# white 6). A line holding one is no row this walker reads.
+# reads `\|` as an escaped pipe wherever it stands. A line holding one is no row this walker reads.
 EVEN_ESCAPED_PIPE = re.compile(r"(?<!\\)(?:\\\\)+\|")
 
 
@@ -362,8 +356,7 @@ def table_end(line):
 def raw_html_open(lines):
     """True where an HTML block of CommonMark 4.6's kinds 1-5 -- the kinds no
     blank line ends -- is still open after LINES, so everything under it is
-    the block's raw text and GFM renders no table there (round 1 of PR
-    #749, yellow 5)."""
+    the block's raw text and GFM renders no table there."""
     end = None
     for line in lines:
         if end is not None:
@@ -383,7 +376,7 @@ def a_list_above(lines):
     """True where a list item stands in LINES since the last heading or
     thematic break at the start of a line, so an indented header under it
     can be more of that item: a blank line does not end a list item, and the
-    header's indent decides (round 2 of PR #749, yellow 15). The two
+    header's indent decides. The two
     patterns are matched on the line as written, so a heading indented into
     an item is the item's content and resets nothing."""
     seen = False
@@ -423,8 +416,8 @@ def opens_table(index, line, under):
     so taking one GFM would not render costs it nothing, and a second header
     of the caller's own table is named by the caller's header scan
     (`pact_check.py#first_table`) wherever it stands. Asking for a blank
-    line refused a table GitHub renders under a sentence or a thematic break
-    (round 2 of #913, finding 1)."""
+    line would refuse a table GitHub renders under a sentence or a thematic
+    break."""
     cells = table_cells(line)
     if cells is None or not under:
         return False
@@ -478,19 +471,17 @@ def gfm_table(text, header, beside=False):
     blank-line remedy, whether or not `unfenced` hides that line, because
     whether GFM renders a table there depends on block state no reader here
     tracks -- a paragraph, a list item's lazy paragraph, a table above, a
-    setext underline, an HTML block, a fence inside one -- and the first
-    walker, which mirrored those rules line by line, read tables GFM does not
-    render (round 1 of PR #749, yellow 5; round 2, yellow 15). Judging
-    the line as written closes the limit this docstring used to name, a
-    fence `unfenced` hides inside an HTML block of kinds 6 and 7, because a
-    header inside such a block always has a non-blank line above it. So is a
-    header indented under a list item since the last heading or thematic
-    break (`a_list_above`), which a blank line does not end -- the shape the
-    list-item limit named here, `- x`, a blank line, then the header, is now
-    refused -- and a header under an HTML block of kinds 1-5 left open above
-    it (`raw_html_open`), which no blank line ends. **What this cannot see**
-    is block state none of those three carries; round 2's generator found
-    none over 600,000 documents.
+    setext underline, an HTML block, a fence inside one -- and a walker that
+    mirrors those rules line by line reads tables GFM does not render.
+    Judging the line as written also covers a fence `unfenced` hides inside
+    an HTML block of kinds 6 and 7, because a header inside such a block
+    always has a non-blank line above it. So is a header indented under a
+    list item since the last heading or thematic break (`a_list_above`),
+    which a blank line does not end -- `- x`, a blank line, then the header,
+    is refused -- and a header under an HTML block of kinds 1-5 left open
+    above it (`raw_html_open`), which no blank line ends. **What this cannot
+    see** is block state none of those three carries; a generator over
+    600,000 documents found none.
 
     Each refusal reads after a noun naming the file, as `seal pact` prints
     the anchor table's after "the frame ".
@@ -512,7 +503,7 @@ def gfm_table(text, header, beside=False):
     # The line as written, hidden or not: a line `unfenced` hides directly
     # above the header is a line GFM may read the header into -- a fence
     # inside an HTML block of kinds 6-7, or a list item the fence-only reading
-    # hid (round 2 of PR #749, yellow 15).
+    # hides.
     above = lines[head_index - 1] if head_index > 0 else ""
     if shown[at][1][:1] == " " and a_list_above([ln for _i, ln in shown[:at]]):
         return [], [
