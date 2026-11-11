@@ -33,12 +33,12 @@ Usage:
                                          one row per segment of that work item
                                          no comment on the open log names
 
-**Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
-wrote the posting procedure out in full — which label, how to tell a
-repository that never made the log from one whose log somebody closed, which
-of the two logs a reading belongs to — and nothing typed it, so the meter sat unreferenced through a full day of measurements
-nobody took (#330). It refuses without `--says`, because the numbers are this
-script's and what they say is not, and it never opens an issue.
+**Why `--post` exists, in one sentence.** A posting procedure written out in
+prose — which label, how to tell a repository that never made the log from
+one whose log somebody closed, which of the two logs a reading belongs to —
+is one nobody types, so this mode types it. It refuses without `--says`,
+because the numbers are this script's and what they say is not, and it never
+opens an issue.
 
 Transcripts live under
 ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<path-with-slashes-as-dashes>/,
@@ -46,13 +46,13 @@ with subagent runs in <session-id>/subagents/. `--latest` searches both.
 
 **Why `--spawns` exists, in one sentence.** Every segment of a chain has a
 transcript of its own, so its row is the whole file; the orchestrator's holds
-every spawn cycle of the run inside it, so the whole file was the only row it
-ever had — three segment kinds have bands and this one had none (#145).
+every spawn cycle of the run inside it, so the whole file would be its only
+row, and this mode gives it one row per spawn cycle.
 
 **Why `--segments` exists, in one sentence.** An agent's own wall clock is in
 no column of any row `--spawns` prints: on this harness the `Agent` result is
 written when the spawn is ACCEPTED, so `delegated` reads seconds while the
-agent goes on working for a median of about 700 seconds (#350). That figure is
+agent goes on working for a median of about 700 seconds. That figure is
 this mode's own reading and `measure_segments` says what it was taken over.
 The number is in the segment's own transcript, and this is the reader that
 opens it.
@@ -61,7 +61,7 @@ opens it.
 between the two modes. `--spawns` slices THIS transcript into bands over the
 orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
-reads that one file, one row per stretch of work (#637) — each row one
+reads that one file, one row per stretch of work — each row one
 agent's own stretch either way. This docstring owns that distinction.
 
 **A `command` share above 100 per cent is not a broken number**: command
@@ -106,15 +106,12 @@ def projects_dir():
 # Command families, in priority order — the first match wins, so a compound
 # `ruff … && pytest …` is charged to the test run that dominates it.
 #
-# **A repository's own runner is named by PATH, and that is what the first
-# five names missed (#200).** A project that ships `bin/test` has said what
-# its test command is, in the filesystem, and every call of it was charged to
-# `other` — the row nobody reads because it is the row everything falls into.
-# Measured over the 180 transcripts on the machine that found it: of the
-# `./bin/test` calls, 266 landed in `other`, and the ones that did NOT landed
-# in four different families depending on what else shared the command line.
-# The one call the `test` family did charge was a heredoc whose body contains
-# the word `pytest`.
+# **A repository's own runner is named by PATH.** A project that ships
+# `bin/test` has said what its test command is, in the filesystem, and a
+# family list of tool names alone charges every call of it to `other` — the
+# row nobody reads because it is the row everything falls into. Over 180
+# transcripts, tool names alone put 266 `./bin/test` calls in `other` and the
+# rest in four different families, by what else shared the command line.
 #
 # What is added here is only the shapes that mean the same thing in any
 # repository: a script named `test` invoked by path, and the runners a
@@ -124,27 +121,25 @@ def projects_dir():
 # name rather than leaving the reader a `test` row that is quietly empty.
 #
 # **`git` is the one family read by command word, and its pattern below is
-# the fallback rather than the rule (#377).** It used to be the one pattern
-# anchored at the start of the line, so `cd /x && git status` -- the shape
-# nearly every worktree session writes -- was charged to `other`: 2,734 calls
-# and 21,147 seconds over the 353 transcripts it was measured on, 2026-09-28,
-# and 3,691 calls and 32,257 seconds once a command's newlines and what follows
-# a heredoc's closing line are read as well. `family`
-# now asks `runs_git`, which reads every command word on the line, and uses
-# the anchored pattern only where the tokeniser refuses the line. The other
-# three stay unanchored on purpose: `uv run --with pytest pytest` and
-# `uvx ruff check .` are #200's shapes, and their command words are `uv` and
-# `uvx`. The order is unchanged, so a line that runs a test and a `git` is
-# still the test's.
+# the fallback rather than the rule.** A pattern anchored at the start of the
+# line charges `cd /x && git status` -- the shape nearly every worktree
+# session writes -- to `other`: 3,691 calls and 32,257 seconds over 353
+# transcripts, a command's newlines and what follows a heredoc's closing line
+# read. `family` asks `runs_git`, which reads every command word on the line,
+# and uses the anchored pattern only where the tokeniser refuses the line. The
+# other three stay unanchored on purpose: the command words of
+# `uv run --with pytest pytest` and `uvx ruff check .` are `uv` and `uvx`, so
+# a reading by command word would miss them. The order holds, so a line that
+# runs a test and a `git` is the test's.
 #
 # **`read` is the fifth family, judged last and by command word, and it has
-# no pattern (#642).** A call that only read a file or listed a directory
-# was `other`, so `other` led nearly every reading. `only_reads` holds the
+# no pattern.** Without it a call that only reads a file or lists a directory
+# is `other`, and `other` leads nearly every reading. `only_reads` holds the
 # rule: every command word a read word from `READ_WORDS` or a neutral one,
 # at least one read word, no write and nothing the walk cannot see. Judged
 # last, it takes no call from the four above, so `grep -rn pytest docs/`
-# stays `test` and `ls && git status` stays `git`, the mirror #377 recorded
-# as out of scope. `READ_WORDS` states the criterion a word is admitted by.
+# stays `test` and `ls && git status` stays `git`. `READ_WORDS` states the
+# criterion a word is admitted by.
 FAMILIES = [
     (
         "test",
@@ -185,7 +180,7 @@ def parse_time(value):
 
     **A stamp carrying no zone is read as UTC.** That is the assumption the
     line below already makes when it rewrites a trailing `Z`, stated here
-    because it is now load-bearing. Every `datetime` in this file comes
+    because it is load-bearing. Every `datetime` in this file comes
     through here, and the readers do two things with one that a naive value
     beside an aware one forbids: they subtract it from another, in six
     places, and they order it against another, in `load`'s sort and
@@ -195,22 +190,21 @@ def parse_time(value):
 
     Dropping the naive row instead, the way an unparseable one is dropped,
     would leave a transcript whose stamps are ALL naive reporting nothing,
-    where today it reports numbers that are internally consistent. What the
+    where it reports numbers that are internally consistent. What the
     assumption costs is an absolute time read out of a harness writing local
     naive stamps. Nothing here prints one: every number this file produces
     is a difference between two stamps, and a difference is right whenever
     the two share a zone.
 
     **Where the two do NOT share a zone, the difference is wrong by that
-    harness's offset — and it is now wrong at exit 0, where it used to
-    raise.** That is the mixed transcript this normalisation was written
-    for, so the cost is not a corner of the assumption but its main case: a
-    naive local stamp read as UTC and subtracted from an aware one is off by
-    the writer's offset from UTC, which at UTC+9 turns a ten-second span
-    into minus nine hours. The trade is `plan.md`'s accepted alternative —
-    a number that is wrong under a stated assumption beats a report that
-    ends — and it is stated here because a silent wrong number is the one
-    outcome nobody can see."""
+    harness's offset — and it is wrong at exit 0 rather than raising.** That
+    is the mixed transcript this normalisation exists for, so the cost is
+    not a corner of the assumption but its main case: a naive local stamp
+    read as UTC and subtracted from an aware one is off by the writer's
+    offset from UTC, which at UTC+9 turns a ten-second span into minus nine
+    hours. The trade is deliberate — a number that is wrong under a stated
+    assumption beats a report that ends — and it is stated here because a
+    silent wrong number is the one outcome nobody can see."""
     try:
         stamp = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
@@ -222,37 +216,34 @@ def parse_time(value):
 # delimiter has to be QUOTED or written in the upper case every convention
 # uses -- `<<EOF`, `<<'PY'`, `<<-"SQL"` -- because a bare `<<` followed by a
 # lowercase word is more often a quoted comparison than a heredoc, and
-# removing text there would charge a real run to `other`, which is the error
-# #200 existed to remove. A heredoc with a lowercase unquoted delimiter is
-# left classified as if it were not one: a smaller error than the one the
-# looser pattern would introduce, and the direction every funnel in this file
-# takes.
+# removing text there would charge a real run to `other`, the row everything
+# falls into. A heredoc with a lowercase unquoted delimiter is left classified
+# as if it were not one: a smaller error than the one the looser pattern would
+# introduce, and the direction every funnel in this file takes.
 #
 # What is removed is the BODY, up to the first line equal to the delimiter,
-# and not everything after the operator (#377): the command after the closing
-# line ran, and cutting to the end charged a `gh issue create` after a
-# `cat > body.md <<'EOF'` to `other`. A heredoc with no closing line is still
-# cut from the operator to the end, which is every flattened command.
+# and not everything after the operator: the command after the closing line
+# ran, and cutting to the end would charge a `gh issue create` after a
+# `cat > body.md <<'EOF'` to `other`. A heredoc with no closing line is cut
+# from the operator to the end, which is every flattened command.
 #
-# Reading the newlines changes what *as if it were not one* costs. A heredoc
-# the pattern does not know -- a lowercase delimiter, or an escaped one
-# (`<<\EOF`) -- now has its body lines read as command lines, so
-# `cat <<eof⏎git push⏎eof` is `git`, where the flattened reading made the
-# body arguments of the first line. And a here-string, `<<< "$x"`, is matched
-# from its second `<` as an operator whose delimiter is `$x`; no later line is
-# that, so the command is cut from there to its end, every later line with
-# it, as it was before #377. Round 1 of #377's review found neither moving a
-# call in 358 transcripts, and the pattern is left as 0.9.4 stated it.
+# Because the newlines are read, a heredoc the pattern does not know -- a
+# lowercase delimiter, or an escaped one (`<<\EOF`) -- has its body lines read
+# as command lines, so `cat <<eof⏎git push⏎eof` is `git`. And a here-string,
+# `<<< "$x"`, is matched from its second `<` as an operator whose delimiter is
+# `$x`; no later line is that, so the command is cut from there to its end,
+# every later line with it. Neither shape moves a call over 358 transcripts,
+# which is why the pattern is not widened to read either.
 #
 # Bodies are removed before comments are (`without_comments` runs inside
 # `command_words`), so an operator written inside a comment still cuts:
-# `ls # see <<EOF⏎git push` is `other`, as it was before #377. The other
-# order would let an apostrophe in a heredoc body open a quote that hides
-# every command after it.
+# `ls # see <<EOF⏎git push` is `other`. The other order would let an
+# apostrophe in a heredoc body open a quote that hides every command after
+# it.
 #
 # A `\⏎` on the operator's own line is not joined here, so the body starts
 # one line early and takes the continued line with it:
-# `cat <<EOF \⏎&& git push⏎…⏎EOF` is `other`, as it was before #377.
+# `cat <<EOF \⏎&& git push⏎…⏎EOF` is `other`.
 HEREDOC = re.compile(r"""<<-?\s*(?:'[^']*'|"[^"]*"|[A-Z_][A-Z0-9_]*)""")
 
 
@@ -330,8 +321,8 @@ def without_comments(command):
     """The command with every shell comment removed, its newline kept.
 
     So `# cd x && git push` loses its `&&` and its `git`, while `a#b`,
-    `${#x}` and `echo '#'` keep their `#`. A comment holding an apostrophe no
-    longer reaches the tokeniser, so it no longer makes the line refused.
+    `${#x}` and `echo '#'` keep their `#`. A comment holding an apostrophe
+    never reaches the tokeniser, so it does not make the line refused.
 
     Two more things are done here because this is the one pass that still
     sees the quoting. A character the shell reads as part of a word because
@@ -345,8 +336,9 @@ def without_comments(command):
     Two bounds. A `)` inside a word starts a word boundary even when it
     closes a substitution (`echo $(ls)#x` reads `#x` as a comment), and
     quotes nested inside `"$( … )"` are read as closing the outer ones.
-    Where they lose a `git`, the rule before #377 lost it too. They can also
-    read one bash does not run, which that rule did not:
+    Where they lose a `git`, the anchored pattern `FAMILIES` carries for
+    `git` loses it too. They can also read one bash does not run, which that
+    pattern does not:
     `x="$(echo "; git log")"` reads its `git`, and so does
     `echo $(ls)#'⏎git push'`, whose `#'` removes the quote hiding it."""
     out, quote, at, boundary = [], None, 0, True
@@ -370,9 +362,9 @@ def without_comments(command):
                 quote = None
             elif char in PUNCTUATION:
                 # A quoted operator is part of a word, and `shlex` strips the
-                # quotes that would say so: `echo ';' git x` reached the walk
-                # as a bare `;`, and a quoted `(` inside `$( … )` left the
-                # substitution open to the end of the command.
+                # quotes that would say so: `echo ';' git x` would reach the
+                # walk as a bare `;`, and a quoted `(` inside `$( … )` would
+                # leave the substitution open to the end of the command.
                 char = "_"
         elif char in "'\"":
             quote = char
@@ -476,11 +468,10 @@ def shell_words(command):
 def runs_git(command):
     """Whether any command word on the line is `git` or `gh`, by basename.
 
-    This is the `git` family's rule, and #377 is why it is not a pattern: the
-    pattern was anchored at the start of the line, so every `git` after a
-    `cd` read as `other`, and un-anchoring it would read `grep -rn git` and
-    `cat .git/config` as runs of it -- #200's *wrong in both directions* from
-    the other side.
+    This is the `git` family's rule, and it is not a pattern because no
+    pattern is right in both directions: one anchored at the start of the
+    line reads every `git` after a `cd` as `other`, and an unanchored one
+    reads `grep -rn git` and `cat .git/config` as runs of it.
 
     Four bounds, each stated so a reader who meets one knows it is a bound:
 
@@ -498,26 +489,25 @@ def runs_git(command):
       status`) do not put the next word in command position, an array
       assignment's `(` does (`x=(git s)`), and the basename is `git` or `gh`
       exactly, so `git-lfs` and `git.exe` are not. None of these shapes
-      occurs in the 358 transcripts round 1 of #377's review measured.
+      occurs in 358 transcripts.
     - **Where the tokeniser refuses the line, the words it read before
       refusing still count, and a line refused before any of them is judged
-      by the anchored pattern `FAMILIES` still carries for `git`** -- the
-      rule this family had before #377. So `git log 'x` is `git` from its
-      first word, `git'x` from the pattern, and a quote the shell leaves
-      unmatched never answers worse than the old rule did, and never ends a
-      reading. A quote the walk sees unmatched only because a bound in
-      `without_comments` removed its opener can: `echo $(ls)#'⏎git push'`
-      is `git`.
+      by the anchored pattern `FAMILIES` carries for `git`.** So `git log 'x`
+      is `git` from its first word, `git'x` from the pattern, and a quote the
+      shell leaves unmatched never answers worse than that pattern does, and
+      never ends a reading. A quote the walk sees unmatched only because a
+      bound in `without_comments` removed its opener can:
+      `echo $(ls)#'⏎git push'` is `git`.
 
     `only_reads` walks the same words and meets the same bounds, each
     turned toward `other` because a write charged to reading is the worse
-    error (#642): a substitution keeps the line out rather than being read
+    error: a substitution keeps the line out rather than being read
     past, a wrapper is not a neutral word, a `case` is not one either
     because its arms' commands are never in command position, a leading
     redirection keeps the line out because the command after it is never
     seen, and a refused line is `other` with no pattern to fall back to.
-    The harness runs the user's shell, zsh on the machine #642 measured,
-    and zsh's short forms hide a command the same way: `if [[ … ]] cmd`,
+    The harness runs the user's shell, which can be zsh, and zsh's short
+    forms hide a command the same way: `if [[ … ]] cmd`,
     `if (( … )) cmd`, `for f (…) cmd` and an `always` block, so
     `only_reads` keeps those out as well."""
     try:
@@ -529,17 +519,15 @@ def runs_git(command):
         return bool(dict(FAMILIES)["git"].search(command))
 
 
-# The words that make a line `read` (#642), by basename. A word is admitted
-# when its only output is standard output, or when every option its manual
-# gives for writing a file or running a program is one `writes` refuses. That
-# is a reading of thirteen manuals, not a guarantee: `rg --hostname-bin` was
-# missed until round 2 of #642's review ran it, and an option missed the same
-# way is `read` until `writes` names it. `sed` and `awk`
-# are admitted under a stated bound: their programs can write and run, the
-# walk cannot read a quoted program, and `writes` says which commands do.
-# These thirteen are the list #642 measured, so its numbers can be set beside
-# the ticket's; the next word is added by that criterion, with a count behind
-# it, and `tee`, which writes the files it is given, never can be.
+# The words that make a line `read`, by basename. A word is admitted when its
+# only output is standard output, or when every option its manual gives for
+# writing a file or running a program is one `writes` refuses. That is a
+# reading of thirteen manuals, not a guarantee: an option the reading missed
+# is `read` until `writes` names it. `sed` and `awk` are admitted under a
+# stated bound: their programs can write and run, the walk cannot read a
+# quoted program, and `writes` says which commands do. The next word is added
+# by that criterion, with a count behind it, and `tee`, which writes the
+# files it is given, never can be.
 READ_WORDS = frozenset(
     [
         "sed",
@@ -739,23 +727,22 @@ def family(command):
     """The family of the command that RAN, with any heredoc body removed.
 
     A `cat > file <<'EOF' … EOF` writing a document carries the whole
-    document in its command, and any runner named inside used to get the
-    call. That is the second half of #200's *wrong in both directions*: the
-    family missed every real `./bin/test` run and charged one file write to
-    `test`, in the same reading. Removing the body answers it for every
-    family at once and needs no list of the words a document might contain.
+    document in its command, and read whole, any runner named inside would
+    get the call: a file write charged to `test`. Removing the body answers
+    it for every family at once and needs no list of the words a document
+    might contain.
 
     `analyse` hands this the command as the harness recorded it, newlines
-    kept (#377), so a command on a line of its own and one after a heredoc's
+    kept, so a command on a line of its own and one after a heredoc's
     closing line are both read; `without_heredoc_bodies` says what is
     removed. A flattened command has no closing line, so its heredoc is cut
-    from the operator to the end, as before.
+    from the operator to the end.
 
     `git` is judged by `runs_git`, by command word, and `test`, `lint/type`
     and `build` by their patterns anywhere on what is left. `read` is judged
     last by `only_reads`, on the command as recorded, heredoc bodies kept,
-    because any heredoc keeps a line out of it (#642). The order is
-    `FAMILIES`', first match wins."""
+    because any heredoc keeps a line out of it. The order is `FAMILIES`',
+    first match wins."""
     recorded, command = command, without_heredoc_bodies(command)
     for name, pattern in FAMILIES:
         if name == "git":
@@ -773,11 +760,11 @@ def count(value):
     """A `usage` field as a number, or 0 when it is not one.
 
     `parse_time` above states this file's rule — one odd row must not end the
-    report — and the two readers below broke it the same way, by using a value
-    taken out of a transcript as an arithmetic operand or as a dict key with
-    nothing checking what it was. A harness writing a token count as the
-    string `"12"`, or as `null`, raised `TypeError` out of a report that had
-    already read the rest of the file.
+    report — and a value taken out of a transcript and used as an arithmetic
+    operand or as a dict key with nothing checking what it is breaks it: a
+    harness writing a token count as the string `"12"`, or as `null`, would
+    raise `TypeError` out of a report that has already read the rest of the
+    file.
 
     `bool` is excluded on purpose: `True + 1` is 2, so a flag landing in a
     token column would be a wrong number rather than a missing one.
@@ -795,9 +782,8 @@ def count(value):
 
     Every usage field except `output_tokens` reaches that `round`, through
     the `input_tokens + cache_read_input_tokens` pair `load` builds. That
-    exception is why this was first recorded as harmless: `output_tokens`
-    was the field it was measured on, and it is the one field where the
-    crash does not happen."""
+    exception is why a probe on `output_tokens` alone reads as harmless: it
+    is the one field where the crash does not happen."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return 0
     try:
@@ -819,8 +805,8 @@ def message_key(message, row, number):
 
     A harness writing `message.id` as a list makes it unusable as a key, and
     both readers put it straight into a `set`. The row's own uuid is the next
-    answer and the row's position is the floor — the same three-step fallback
-    `load` already documented, with the type check the code assumed."""
+    answer and the row's position is the floor — the three-step fallback
+    `load` documents, with the type check it needs."""
     for candidate in (message.get("id"), row.get("uuid")):
         if isinstance(candidate, str) and candidate:
             return candidate
@@ -847,17 +833,17 @@ def message_key(message, row, number):
 #
 # The exclusion below is therefore right and nearly free here, and it is the
 # whole answer on a harness that writes the result at completion. What it is
-# NOT is the removal of the double count #145 set out to remove -- that one is
+# NOT is the removal of a double count of the agent's own work -- that work is
 # in no column of any row, between two of them, and moving it into
 # `delegated_s` is a decision about what that column measures rather than a
-# defect in what it measures now. `questions.md` Q4.
+# defect in what it measures.
 #
-# **A name, and `plan.md` chose disclosure over a second signal.** A spawn's
-# `input` also carries `subagent_type`, so a harness renaming the tool could
-# be survived by matching on that field instead. `plan.md`'s failure scenario
-# answers the rename the other way on purpose: the mode names the count it
-# found and refuses to print a table when it found none, rather than
-# defending a shape nobody has seen change. A defence against a rename that
+# **A name, and disclosure rather than a second signal.** A spawn's `input`
+# also carries `subagent_type`, so a harness renaming the tool could be
+# survived by matching on that field instead. The mode answers a rename the
+# other way on purpose: it names the count it found and refuses to print a
+# table when it found none, rather than defending a shape nobody has seen
+# change. A defence against a rename that
 # has not happened is a defence nothing can test; a count of zero beside the
 # transcript path is a reading somebody can act on.
 DELEGATING = ("Agent",)
@@ -865,15 +851,13 @@ DELEGATING = ("Agent",)
 # How far a segment transcript's OPENING stamp may sit from a spawn's result
 # stamp and still be read as that spawn's segment.
 #
-# The measurement the block above carries was taken over 67 spawns of three
-# runs of the 0.9.x line, 61 of them within one second. Re-measured for this
-# mode over the 43 runs on the machine that built it, with the one-to-one
-# rule `join_segments` actually uses: 296 of 349 segment transcripts are
-# named at 1.0s and 301 at 2.0s. So widening to two seconds buys five
-# segments of 349 and doubles the window a batch of two spawns can match the
-# wrong one in, and the remainder it does not buy is structural -- those 43
-# runs hold 349 segment transcripts against 305 `Agent` calls, so 44 of them
-# have no call in the parent to be named by at ANY tolerance.
+# The block above counts 61 of 67 spawns within one second. Over 43 runs,
+# with the one-to-one rule `join_segments` uses, 296 of 349 segment
+# transcripts are named at 1.0s and 301 at 2.0s. So widening to two seconds
+# buys five segments of 349 and doubles the window a batch of two spawns can
+# match the wrong one in, and the remainder it does not buy is structural --
+# those 43 runs hold 349 segment transcripts against 305 `Agent` calls, so 44
+# of them have no call in the parent to be named by at ANY tolerance.
 #
 # Which is why the report prints this number and the count on each side that
 # went unmatched, rather than treating the join as a fact. A tolerance is a
@@ -910,17 +894,15 @@ def tool_name(value):
     Two readers consume this one field and each dies on a different shape,
     which is why the check is here rather than at either of them. `analyse`
     keys `by_family` by it, so a list or an object raises `TypeError:
-    unhashable type` before anything has printed — the token block included,
-    which is the outcome `main`'s own note below says was fixed. `report`
-    prints it under a `:<12` format spec, so a `null` hashes fine, passes
-    `analyse`, and raises in the `by family` block instead, with the span and
-    token lines already on screen.
+    unhashable type` before anything has printed, the token block included.
+    `report` prints it under a `:<12` format spec, so a `null` hashes fine,
+    passes `analyse`, and raises in the `by family` block instead, with the
+    span and token lines already on screen.
 
-    `?` is the floor `load` had already written for a block carrying no
-    `name`, so a name this file cannot use reads as a name that was never
-    there. The call is charged to `?` rather than to its family, which is the
-    same direction `count` and `message_key` take: a smaller answer rather
-    than none at all."""
+    `?` is also what a block carrying no `name` gets, so a name this file
+    cannot use reads as a name that was never there. The call is charged to
+    `?` rather than to its family, which is the same direction `count` and
+    `message_key` take: a smaller answer rather than none at all."""
     return value if isinstance(value, str) and value else "?"
 
 
@@ -931,11 +913,9 @@ def load(path):
     keyed by the message id — a harness writes one message as one row per
     content block, every row carrying the same id — with the row's uuid and
     then the row itself as fallbacks. Counting per tool_use block instead
-    pinned tools-per-turn at ~1.00 structurally: five runs of two agent
-    types measured exactly 1.00, and a day's conclusions were drawn from a
-    meter that could not read anything else. A transcript with none of the
-    three keys degrades to one turn per row — the old floor, never an
-    inflated ratio."""
+    pins tools-per-turn at ~1.00 structurally: five runs of two agent types
+    read exactly 1.00 that way. A transcript with none of the three keys
+    degrades to one turn per row — a floor, never an inflated ratio."""
     pending, calls, turns = {}, [], []
     counted = set()
     with open(path, encoding="utf-8", errors="replace") as handle:
@@ -1005,8 +985,8 @@ def load(path):
                                     "tool": tool,
                                     "command": text,
                                     # The command as the harness recorded it,
-                                    # newlines kept, and what `family` reads
-                                    # (#377): flattening joins a line to the
+                                    # newlines kept, and what `family` reads:
+                                    # flattening joins a line to the
                                     # one before it and a heredoc's closing
                                     # line to its body. Every PRINTED command
                                     # reads `command`. A call with no command
@@ -1027,20 +1007,14 @@ def load(path):
             # **Input-side fields only, and the first row is the right one for
             # them.** `input_tokens` and `cache_read_input_tokens` are fixed
             # when the request is made, so every row of a split message
-            # repeats them unchanged -- measured identical first-row and
-            # last-row over 13,425 messages, which is why #202's defect in
-            # `token_totals` does not reach this reader.
+            # repeats them unchanged -- identical first-row and last-row over
+            # 13,425 messages -- so the growth across rows that `token_totals`
+            # takes the maximum over does not reach this reader.
             #
-            # The tuple used to carry a third element, this message's
-            # `output_tokens`, and NOTHING read it: `token_thirds` takes
-            # `t[1]`, `analyse` takes `len(turns)`, and no other index appears
-            # in this file. It is removed rather than repaired because
-            # `output_tokens` is the one field that does grow across rows, so
-            # what sat there was the first partial count -- a wrong number
-            # waiting for its first reader, which is exactly how #202 was
-            # written into `token_totals`. A consumer that needs it should
-            # take the maximum across the message's rows, the way
-            # `token_totals` now does.
+            # The tuple carries no `output_tokens`: that is the one field that
+            # does grow across rows, so the first row's value is a partial
+            # count. A consumer that needs it takes the maximum across the
+            # message's rows, the way `token_totals` does.
             if carries_call and turn_key not in counted:
                 counted.add(turn_key)
                 turns.append(
@@ -1065,36 +1039,17 @@ def analyse(calls, turns, delegated=()):
     """The numbers for one call list. `delegated` names the tools whose own
     duration is somebody else's work.
 
-    **Called without `delegated`, every number below is what it was before
-    `--spawns` existed**, and that is deliberate rather than incidental.
-    Changing what the plain reading prints would make every reading this
-    repository has already published incomparable with the next one, with
-    nothing on the page saying so — which is what #200 and #202 were, and
-    what `plan.md`'s *no existing output changes shape* is protecting.
+    **Called without `delegated`, every number below is the plain reading's,
+    and `--spawns` leaves it as it is**, which is deliberate rather than
+    incidental. Changing what the plain reading prints would make every
+    reading already published incomparable with the next one, with nothing
+    on the page saying so.
 
-    **Three rules moved after readings were published, each a measured change
-    and none a licence.** `span_s`'s moved at #300, from the end of the
-    last call to BEGIN to the end of the last call to END, because the old
-    one could return a window shorter than a single call inside it. The
-    comment at the arithmetic carries the measurement that says no published
-    figure moves.
-
-    The family split moved at #377: `family` reads `git` by
-    command word rather than at the start of the line, and reads the command
-    as the harness recorded it, with a heredoc's body removed rather than
-    everything after its operator. So a `git` call after a `cd`, on a line of
-    its own, or after a heredoc's closing line stopped reading as `other`,
-    and so did a test run after a closing line. That one DOES move published
-    figures -- `by_family`, `unnamed`, and the two repeats figures, which
-    keep only `test`, `lint/type` and `build` -- and `report_segments` says
-    so on the page.
-
-    The family split moved again at #642: a call whose every command only
-    reads is `read`, where it was `other`. That moves `by_family` and
-    `unnamed` and nothing else. `read` is judged after `test`, `lint/type`
-    and `build`, so no call enters or leaves the repeats figures, and
-    `report_segments` says that too. Every other number here is untouched,
-    `command_s` and `model_s` included.
+    A reading published under an earlier family rule differs from this one
+    in `by_family`, `unnamed` and the two repeats figures, which keep only
+    `test`, `lint/type` and `build`, and `report_segments` prints which rule
+    each difference comes from. No other number differs, `command_s` and
+    `model_s` included.
 
     So `delegated_s` is 0.0 for the whole-run call, and it means exactly
     *how much of this window's command time was removed because it ran
@@ -1113,18 +1068,10 @@ def analyse(calls, turns, delegated=()):
     # The last call to END, and not the last to BEGIN. `load` sorts by start,
     # so `calls[-1]` is whichever call went out last, and a long-lived one --
     # a background command, a suite spanning the whole window -- ends after
-    # it. Reading that element's end gave a window shorter than a single call
+    # it. Reading that element's end gives a window shorter than a single call
     # the window holds: 995s against a `Bash` call of 1000s, while
-    # `command_s` counted that call in full, so the share was taken against a
-    # whole that did not contain its own part.
-    #
-    # This is the one number in this function whose RULE changed after the
-    # readings above it were published (#300). Measured before it was changed:
-    # over the 169 transcripts on the machine it was measured on, one span
-    # moves, by 0.006s, and no printed figure moves at all -- `minutes` is one
-    # decimal and `share` is whole percent. So nothing already posted needs a
-    # marking line, and a transcript with a genuinely long-lived call is where
-    # the two rules would part.
+    # `command_s` counts that call in full, so the share would be taken
+    # against a whole that does not contain its own part.
     span = (max(c["end"] for c in calls) - calls[0]["start"]).total_seconds()
     command_time = delegated_time = 0.0
     for call in calls:
@@ -1155,7 +1102,7 @@ def analyse(calls, turns, delegated=()):
     by_family = defaultdict(lambda: [0, 0.0])
     unnamed = defaultdict(float)
     # Each call's family, kept beside it for `slowest`, where a posted body
-    # names a call by its family because it carries no command text (#1439).
+    # names a call by its family because it carries no command text.
     kinds = []
     for call in calls:
         key = family(call["ran"]) if call["tool"] == "Bash" else call["tool"]
@@ -1176,7 +1123,7 @@ def analyse(calls, turns, delegated=()):
             # run, and two spawns carrying the same prompt would then read as
             # a check re-run for a result already in hand. Kept out here
             # rather than everywhere, because the whole-run reading passes no
-            # `delegated` and must go on printing what it printed before.
+            # `delegated` and stays comparable with the readings published.
             continue
         if family(call["ran"]) not in ("test", "lint/type", "build"):
             continue
@@ -1196,8 +1143,8 @@ def analyse(calls, turns, delegated=()):
         # it in `--json`. It is NOT the token line's turn count: that one is
         # every assistant message carrying `usage`, over the whole run, where
         # this one is the messages of THIS transcript that sent a call.
-        # Printing the two without saying so let a reader divide one into the
-        # other — 1.08 tools per turn beside 659 turns and 211 calls.
+        # Printed without saying so, the two invite a reader to divide one
+        # into the other — 1.08 tools per turn beside 659 turns and 211 calls.
         "call_turns": len(turns),
         "tools_per_turn": len(calls) / max(len(turns), 1),
         "gap_mean_s": (sum(gaps) / len(gaps)) if gaps else 0.0,
@@ -1227,8 +1174,7 @@ def analyse(calls, turns, delegated=()):
         # The command that cost the most of what the table could not name.
         # `other` is the family with no meaning of its own, so a runner these
         # patterns do not know disappears into it and the `test` row goes on
-        # reading as *no test run happened* — which is what #200 was, silently,
-        # in every reading this repository published. Naming the command turns
+        # reading as *no test run happened*, silently. Naming the command turns
         # that into something the next reader can act on: it is the exact
         # string a family would have to learn. Grouped by `strip_pipe` so the
         # same work behind two different pipes is one entry, the way the
@@ -1310,7 +1256,7 @@ def spawn_cycles(calls, turns):
     hands over, and frames the next prompt — and no transcript field marks
     where any of those ends. The whole window is charged to cycle N. That is
     why a cycle row is read as a band and not as an attribution, and it is
-    the one thing the per-act split (#145's second candidate) would answer.
+    the one thing a split per act would answer.
 
     **The waiting is NOT in that band on the harness measured in
     `DELEGATING`, and a reader has to know where it went.** A subagent runs
@@ -1373,16 +1319,16 @@ def measure_cycles(calls, turns):
 
     `found` is the count of spawns, and it is returned even when it is zero
     because a caller that reads only `rows` cannot tell *this run delegated
-    nothing* from *this file no longer recognises a spawn*. `plan.md`'s
-    failure scenario in six months is the second one, and #200 is what the
-    first reading of an empty table costs.
+    nothing* from *this file no longer recognises a spawn*. A harness that
+    renames the tool brings the second, and an empty table read as the first
+    hides it.
 
     `delegated=DELEGATING` is the whole difference between a cycle row and
     the whole-run row: whatever interval an `Agent` call spans is work that
     ran in another transcript, and charging it here too would count it
     twice. How much of that work the interval actually covers is the
     harness's answer rather than this file's, and `DELEGATING` carries the
-    measurement for the one measured here.
+    measurement for one harness.
 
     A slice with no calls keeps its row with `numbers` at null. A head of
     nothing is a real reading — the run's first act was a spawn — and
@@ -1414,8 +1360,8 @@ def token_thirds(turns):
     **`count` answers for each value that enters; this answers for the sum.**
     Two counts it accepted as finite can add to one that is not, and this is
     the one site in the file that converts a derived number to an `int`. Both
-    routes were measured ending the report with stdout empty, on the report
-    and on `--json` alike: two floats near the top of the range summing to an
+    routes end the report with stdout empty, on the report and on `--json`
+    alike: two floats near the top of the range summing to an
     infinity, which `round` refuses; and two integers that each have a float
     where their sum does not, which the division refuses. A single third can
     also sum past the range on its own, so no per-turn guard reaches it.
@@ -1424,7 +1370,7 @@ def token_thirds(turns):
     here takes — never carried out as an infinity, which a reader would take
     for a measurement.
 
-    **The rule this site is one member of, and where it is enforced (#192).**
+    **The rule this site is one member of, and where it is enforced.**
     Every site in this module that converts a number to an `int` carries a
     guard: a finiteness test on the same operand in the enclosing
     conditional, or a `try` catching both `OverflowError` and `ValueError`.
@@ -1440,19 +1386,15 @@ def token_thirds(turns):
     the walk does not have. And the true **division** two lines up is not a
     conversion at all: `sum(part) / len(part)` raises `OverflowError` on two
     integers that each have a float where their sum does not, which is why
-    the `try` around it is doing work the finiteness test below cannot do.
-    Both are `questions.md` Q1 and Q2 of work item
-    `1788873620-two-in-range-values-make-one-that-is-not`."""
+    the `try` around it is doing work the finiteness test below cannot do."""
     # Strictly positive, not truthy. A truthiness test on a SIGNED number
     # drops a zero and KEEPS A NEGATIVE, and the negative is the half that
-    # was wrong: six turns whose first three carry minus ten input tokens gave
-    # a growth of [-10, 0, 10] and printed the context line off a baseline no
-    # harness can mean. Zero goes on being dropped and that is not a
-    # regression -- `count` answers 0 both for a field a harness never wrote
-    # and for one it wrote as 0, so this file cannot tell a turn that spent
-    # nothing from a turn nobody measured, and a mean is the wrong place to
-    # guess. What changes is only that a count below zero leaves with it
-    # (#193).
+    # matters: six turns whose first three carry minus ten input tokens would
+    # give a growth of [-10, 0, 10] and print the context line off a baseline
+    # no harness can mean. Zero is dropped too -- `count` answers 0 both for a
+    # field a harness never wrote and for one it wrote as 0, so this file
+    # cannot tell a turn that spent nothing from a turn nobody measured, and a
+    # mean is the wrong place to guess.
     inputs = [t[1] for t in turns if t[1] > 0]
     if len(inputs) < 3:
         return []
@@ -1496,17 +1438,17 @@ def subagent_transcripts(path):
 def opening_stamp(path):
     """A transcript's first parseable `timestamp`, or None.
 
-    **The one thing this file could not already read.** `load` returns PAIRED
-    tool calls only, so a transcript's opening row is in nothing any other
-    reader here produces — and the opening is exactly what the join needs,
-    because the measurement above `DELEGATING` was taken against it: a
-    subagent's transcript OPENS at its spawn's result stamp.
+    **What no other reader here returns.** `load` returns PAIRED tool calls
+    only, so a transcript's opening row is in nothing any other reader here
+    produces — and the opening is exactly what the join needs, because the
+    measurement above `DELEGATING` is taken against it: a subagent's
+    transcript OPENS at its spawn's result stamp.
 
     Joining on the segment's first tool CALL instead would be late by however
-    long the agent read and thought before calling anything — #265 measured
-    about 110,000 characters of payload arriving before an agent's first call
-    — so the tolerance would have to widen from a second to minutes, and a
-    window that wide matches the wrong spawn in a batch of two.
+    long the agent read and thought before calling anything — about 110,000
+    characters of payload can arrive before an agent's first call — so the
+    tolerance would have to widen from a second to minutes, and a window that
+    wide matches the wrong spawn in a batch of two.
 
     Stops at the first usable stamp rather than reading the file. A file that
     cannot be opened, holds no parseable line, or carries no stamp at all
@@ -1533,14 +1475,12 @@ def opening_stamp(path):
 
 
 # What a harness writes into a running agent's own transcript when the
-# coordinator sends it a new message. `skills/verify/orchestration.md`
-# prescribed the hand split at exactly these rows, in exactly these words, and
-# until this was written nothing asserted it against a file.
+# coordinator sends it a new message.
 #
-# **Measured over the 350 segment transcripts on one machine before this was
-# written.** 41 of them hold an idle gap at or above `analyse`'s 900-second
-# ceiling, 82 such gaps in all, and the row after a gap is a `type=user` row
-# carrying `isMeta` and a bare string in 61 of the 82. Of those, the ones
+# **The evidence, over 350 segment transcripts.** 41 of them hold an idle gap
+# at or above `analyse`'s 900-second ceiling, 82 such gaps in all, and the row
+# after a gap is a `type=user` row carrying `isMeta` and a bare string in 61
+# of the 82. Of those, the ones
 # beginning with the sentence below are the coordinator's; the rest are the
 # harness talking to the agent about itself -- a response cut off mid-stream,
 # a background-task notification -- and splitting at those would cut one
@@ -1562,8 +1502,8 @@ def resume_cuts(path):
     A resumed agent's transcript holds several stretches of work in one file,
     and read whole it reports a span covering every idle gap between them —
     a segment that worked for 37 seconds reading as two hours. The hand
-    method was to split the file by eye and measure one slice; these are the
-    cuts that does by hand.
+    method splits the file by eye and measures one slice; these are the cuts
+    it makes.
 
     Run through a running maximum, the way `spawn_cuts` runs its own: cuts
     that go backwards would overlap the windows they exist to partition.
@@ -1634,9 +1574,9 @@ def join_segments(openings, spawns):
     the same name and a reader adding a column counts one segment twice.
 
     **A segment that matches nothing is named by nobody rather than by its
-    nearest spawn.** The unnamed count is the reading: on the machine this
-    was measured on, 44 of 349 segment transcripts had no `Agent` call in
-    their parent at all, because a subagent of a subagent is spawned from a
+    nearest spawn.** The unnamed count is the reading: over 43 runs, 44 of
+    349 segment transcripts have no `Agent` call in their parent at all,
+    because a subagent of a subagent is spawned from a
     transcript the parent never sees. Naming those by proximity would put a
     confident wrong name on every one of them.
 
@@ -1668,9 +1608,9 @@ def segment_slices(transcript, labels):
     **One row is one segment, and a resumed agent's file holds several.** The
     coordinator sends a running agent a new message, the agent goes on in the
     same transcript, and the idle gap between the two stretches belongs to
-    neither. Read whole, the file reports a span covering that gap: measured
-    on this repository's own fixture, 140.1 minutes for an agent that worked
-    for 37 seconds.
+    neither. Read whole, the file reports a span covering that gap: on this
+    repository's own fixture, 140.1 minutes for an agent that worked for 37
+    seconds.
 
     **Every slice carries the file's name, because only the file's opening
     can be joined.** A resume has no `Agent` call of its own in any
@@ -1681,10 +1621,9 @@ def segment_slices(transcript, labels):
 
     **The token figure stays the file's and rides its first slice.**
     `token_totals` keys a streamed message by its id and keeps the largest
-    count each field reached (#202); re-deriving that per slice would
-    duplicate the rule, and a message whose rows straddled a boundary would
-    be counted in both — #202's own failure shape rebuilt one reader over.
-    So later slices carry `None` and the table prints a dash, which is a
+    count each field reached; re-deriving that per slice would duplicate the
+    rule, and a message whose rows straddled a boundary would be counted in
+    both. So later slices carry `None` and the table prints a dash, which is a
     reader seeing there is nothing to add rather than adding a number twice.
     What that gives up is a per-slice token column, stated here rather than
     left to be found.
@@ -1730,12 +1669,12 @@ def segment_slices(transcript, labels):
     )
     # A window with no call in it is not a stretch of work. The coordinator
     # can send one message and then another before the agent acts, and the
-    # empty window between them was printed as a slice the agent never worked
-    # -- which also pushed every later `N/of` up by one, so the second of two
-    # stretches read as `3/3`. It also re-used `no paired call`, which means a
+    # empty window between them would print as a slice the agent never worked
+    # -- and push every later `N/of` up by one, so the second of two stretches
+    # would read `3/3`. It would also borrow `no paired call`, which means a
     # whole transcript that read and thought and spent tokens, for a slice
     # that spent nothing. Reachable and not observed: zero call-less slices
-    # across the 43 runs on the machine this was written on.
+    # across 43 runs.
     #
     # The `or [0]` is the file that paired no call at all. It still owes its
     # row, for the reason `measure_segments`' docstring gives.
@@ -1754,8 +1693,9 @@ def segment_slices(transcript, labels):
                 # reasons, and one marker does not answer for the whole file.
                 "idle_gap_s": widest_idle_gap(window),
                 # Per SLICE and not per file: a resumed agent's breach
-                # belongs to the stretch it happened in, and #343's line has
-                # to name which agent — and which of its stretches — did it.
+                # belongs to the stretch it happened in, and the breach line
+                # `report_breaches` prints has to name which agent — and
+                # which of its stretches — did it.
                 "spawns": sum(1 for c in window if c["tool"] in DELEGATING),
                 "numbers": analyse(window, turn_windows[index]),
                 # The first KEPT slice, not window 0, which may have been
@@ -1771,7 +1711,7 @@ def measure_segments(path, calls):
     """One row per spawned segment of this run, read from that segment's own
     transcript rather than from the parent's columns — or, where `path` is a
     resumed agent's own transcript with nothing beside it, one row per
-    stretch of work in that file (#637, the branch at the end).
+    stretch of work in that file (the branch at the end).
 
     **This is the number that is in no other column.** A cycle row's
     `delegated` is the `Agent` call's own tool_use-to-tool_result interval,
@@ -1780,33 +1720,30 @@ def measure_segments(path, calls):
     of about 700 seconds, and that interval is in none of `--spawns`'
     columns, in any row. It is in the segment's own file, and this opens it.
 
-    **The 700 is this mode's own reading and it corrects an inherited one.**
-    #145 published *a median of about 1,000 seconds* and `spawn_cycles` still
-    carries it. Measured here with this mode over every segment row of the 43
-    runs with a `subagents/` directory on the machine it was built on: the
-    median is 716 s over 381 named rows and 664 s over all 433. 1,000 is the
-    MEAN (1,018), which is a different statistic wearing the same word. The
-    population grows with every run this machine takes, so re-derive rather
-    than quote — an aggregate is not a coordinate, and this mode is the first
-    instrument that could check this one.
+    **The 700 is this mode's own reading, and it is not the 1,000
+    `spawn_cycles` carries.** Over every segment row of 43 runs with a
+    `subagents/` directory, the median is 716 s over 381 named rows and 664 s
+    over all 433, and 1,000 is the MEAN (1,018), a different statistic
+    wearing the same word. The population grows with every run, so re-derive
+    rather than quote — an aggregate is not a coordinate.
 
     A row's numbers come from `analyse` with no `delegated`, which is the
     PLAIN reading — exactly what a person running this script against that
-    one transcript gets today, taken over one slice's calls and turns where
-    the coordinator restarted it. That is the point: the mode replaced the
-    hand method `skills/verify/orchestration.md` named, so a row has to be the
-    same number that method produced, not a second meter with its own rules.
+    one transcript gets, taken over one slice's calls and turns where the
+    coordinator restarted it. That is the point: the mode does what the hand
+    method does, so a row has to be the same number that method produces,
+    not a second meter with its own rules.
 
     A row's tokens cover that segment's OWN file only. The run total sums the
     whole tree, so the two are different numbers on purpose and the column is
     summable only with the parent's own row — `report_segments` says so,
-    because a column that looks summable and is not is #200's failure shape
-    in a new place.
+    because a column that looks summable and is not invites a silent wrong
+    total.
 
     A transcript with no paired tool call keeps its row with `numbers` at
     null. A segment that read and thought and called nothing is a real
     reading and it spent tokens the run paid for, which is the same case
-    `report_tokens` was split out for."""
+    `report_tokens` answers."""
     found = subagent_transcripts(path)
     spawns = sorted(
         (c for c in calls if c["tool"] in DELEGATING),
@@ -1847,22 +1784,20 @@ def measure_segments(path, calls):
         # the file's name to avoid, undone one function later. `report_breaches`
         # reconciles the contract rule 6 count against this number, so a row count makes a
         # run whose counts agree print that they do not, and sends a reader
-        # looking for a child transcript that was never missing. Measured on
-        # the machine this was written on: one of 43 runs already reads 3 for
-        # two unnamable files. The resumed count in `report_segments`
-        # de-duplicates the same way, which is what this line was missing
-        # rather than a new rule.
+        # looking for a child transcript that was never missing. Counted by
+        # rows, one of 43 runs reads 3 for two unnamable files. The resumed
+        # count in `report_segments` de-duplicates the same way.
         "unnamed": len({row["transcript"] for row in rows if not row["named"]}),
         "unclaimed": unclaimed,
         "rows": rows,
     }
-    # The agent's OWN file (#637). A harness writes every agent's transcript
-    # into its session's flat `subagents/` directory, so a file given here
-    # with nothing beside it is either a lone segment or an agent's own
-    # transcript -- and the path the orchestrator holds is the second, because
-    # that is the path the harness's task output names. Where the coordinator
-    # restarted it, the file is several stretches of work and `segment_slices`
-    # already cuts it; this is the call nothing made for the given file.
+    # The agent's OWN file. A harness writes every agent's transcript into its
+    # session's flat `subagents/` directory, so a file given here with nothing
+    # beside it is either a lone segment or an agent's own transcript -- and
+    # the path the orchestrator holds is the second, because that is the path
+    # the harness's task output names. Where the coordinator restarted it, the
+    # file is several stretches of work and `segment_slices` cuts it; this
+    # branch is what calls it for the given file.
     #
     # **The trigger is the marker, never the directory.** A marker-less file
     # keeps the empty branch byte for byte wherever it sits, and a resumed
@@ -1874,7 +1809,7 @@ def measure_segments(path, calls):
     # transcripts, and the given file is not one. Counted here, the rule 6
     # reconciliation would print a disagreement for an agent that spawned
     # nothing. `own_file` is present in this case alone, so every other
-    # reading's dict is what it was.
+    # reading's dict keeps its shape.
     if not found and resume_cuts(path):
         reading["rows"] = segment_slices(
             path,
@@ -1894,18 +1829,18 @@ def token_totals(paths):
 
     A TURN here is an assistant message carrying a `usage` block, whether or
     not it carries a tool call. That is NOT `tools_per_turn`'s denominator,
-    which counts only messages carrying a tool_use, so the ratio printed
-    since 0.9.4 stays comparable. Two counters, on purpose — a turn that only
-    thought spent tokens the run paid for, and a turn that sent no call adds
-    nothing to how many calls a turn sent.
+    which counts only messages carrying a tool_use, so the ratio stays
+    comparable with the readings already published. Two counters, on
+    purpose — a turn that only thought spent tokens the run paid for, and a
+    turn that sent no call adds nothing to how many calls a turn sent.
 
     A message's usage counts ONCE however many rows it is split across, at
     the LARGEST count each field reached: a harness writes one message as one
     row per content block and repeats the usage on each, which is the same
     trap `load` dedups against for `context_growth`. Per-row summing would
-    double a run's headline number, and keeping the first row understated
-    `output` by whatever had not been streamed yet — the block comment on the
-    loop carries the measurement (#202).
+    double a run's headline number, and keeping the first row would
+    understate `output` by whatever had not been streamed yet — the block
+    comment on the loop carries the measurement.
 
     No way this degrades ENDS the report, and almost every one of them makes
     the totals smaller: a transcript that cannot be opened is skipped, a line
@@ -1956,19 +1891,18 @@ def token_totals(paths):
                     # carrying it. A streamed assistant message is written as
                     # several rows sharing one `message.id`, and its
                     # `output_tokens` GROWS across them -- the last row carries
-                    # the completed count. Keeping the first summed however
-                    # much had been emitted when that row was written, so a
-                    # proofer round that produced a full findings report read
-                    # as 62 output tokens across 20 turns, three tokens a
-                    # turn. Measured over the 180 transcripts on the machine
-                    # that found it: 9,098 of 13,425 messages are split, and
-                    # the reported total was 4,976,637 against a real
-                    # 8,683,844.
+                    # the completed count. Keeping the first would sum however
+                    # much had been emitted when that row was written: a
+                    # proofer round that produced a full findings report reads
+                    # that way as 62 output tokens across 20 turns, three
+                    # tokens a turn. Over 180 transcripts, 9,098 of 13,425
+                    # messages are split, and the first-row total is 4,976,637
+                    # against a real 8,683,844.
                     #
                     # **The error is not a scale factor**, which is why no
                     # reader could correct for it: it is however much of each
                     # message had been written when its first row landed. Two
-                    # segments the same day were out by 3.2x and 556x.
+                    # segments of one day are out by 3.2x and 556x.
                     #
                     # Maximum rather than last-row-wins, though the two agree
                     # on every one of those 13,425 messages and 0 rows arrive
@@ -1979,10 +1913,10 @@ def token_totals(paths):
                     # of a set, and it buys a claim that does not rest on
                     # something unmeasured.
                     #
-                    # The dedup itself was right and stays: a harness writes
-                    # one message as one row per content block and repeats the
-                    # usage on each, so per-row summing would multiply a run's
-                    # headline number. Only which row wins changed.
+                    # The dedup holds as well: a harness writes one message as
+                    # one row per content block and repeats the usage on each,
+                    # so per-row summing would multiply a run's headline
+                    # number.
                     seen[key] = {
                         field: max(
                             seen.get(key, {}).get(field, 0), count(usage.get(source))
@@ -2082,8 +2016,8 @@ def report_tokens(tokens):
 
     On its own when a transcript carries `usage` and no paired tool call: a
     segment that read and thought has no span to report and still spent what
-    the run's token row is summed over. The block was inside `report`, which
-    `main` reached only after `analyse` had returned something."""
+    the run's token row is summed over. The block stands outside `report`,
+    which `main` reaches only after `analyse` has returned something."""
     print(
         f"tokens        {plural(tokens['transcripts'], 'transcript')}, "
         f"{plural(tokens['turns'], 'turn')}"
@@ -2099,12 +2033,12 @@ def share(part, whole):
 
     A transcript whose only paired call begins and ends on one timestamp has
     a span of zero, and the three lines below divide by it. Printing the span
-    line and then raising `ZeroDivisionError` is the shape `tool_name` was
-    written to end: a report that worked and then stopped, with the token
-    block and the family table lost behind the crash.
+    line and then raising `ZeroDivisionError` is the shape `tool_name` guards
+    against too: a report that worked and then stopped, with the token block
+    and the family table lost behind the crash.
 
     The guard is on the whole span being POSITIVE, not on it being non-zero.
-    Zero is the shape that was measured; a negative span — a harness writing
+    Zero is the shape a transcript gives; a negative span — a harness writing
     a result before the call it answers — is the same undefined division with
     a sign on it, and a percentage of it would be a number nobody can read.
     Neither gets one invented. What the reader sees is the times themselves,
@@ -2118,7 +2052,7 @@ def report(data, commands=True):
     note keeps its sentence without the command it would quote. `main` asks
     for that form where the reading is posted, because a command can hold a
     path, a heredoc's body or a prompt, and `CONTRIBUTING.md` *House rules*
-    keeps all three on the machine (#1439). These two lines are the only
+    keeps all three on the machine. These two lines are the only
     ones in the module that print a command, and the printed reading keeps
     both."""
     print(f"span          {minutes(data['span_s'])}   ({data['calls']} tool calls)")
@@ -2133,13 +2067,12 @@ def report(data, commands=True):
         # is say which shape the reader is looking at, because it is handed
         # the numbers and not the transcript.
         #
-        # The sentence says what the arithmetic computes, and the arithmetic
-        # moved at #300: the span is now the LAST call to end minus the first
-        # to begin, so a negative one means no call ended after the first
-        # call began -- every one of them, not just the last to begin. The
-        # rule change also made this branch rarer on purpose. A call running
-        # 10:00-12:00 beside a result written before its own call used to
-        # print a negative span for a run that plainly lasted two hours.
+        # The sentence says what the arithmetic computes: the span is the
+        # LAST call to end minus the first to begin, so a negative one means
+        # no call ended after the first call began -- every one of them, not
+        # just the last to begin. That keeps this branch rare on purpose: a
+        # call running 10:00-12:00 beside a result written before its own
+        # call does not turn a run that plainly lasted two hours negative.
         print(
             "              no call ended after the first call began, so the "
             "span is negative and there is no share to take of it"
@@ -2156,9 +2089,9 @@ def report(data, commands=True):
     idle = data["span_s"] - data["command_s"] - data["model_s"]
     # The span has to be positive before a tenth of it is a threshold. At a
     # negative span the threshold is negative too, so the comparison is true
-    # and the line printed sixty-five minutes of idle beside a span of minus
-    # thirty. At a span of zero `0 > 0` is false on its own, which is why
-    # this conjunct was dropped once and why dropping it was wrong.
+    # and the line would print sixty-five minutes of idle beside a span of
+    # minus thirty. At a span of zero `0 > 0` is false on its own, so the
+    # conjunct looks redundant there; the negative span is what it guards.
     if data["span_s"] > 0 and idle > data["span_s"] * 0.1:
         print(
             f"  idle        {minutes(idle)}"
@@ -2177,8 +2110,8 @@ def report(data, commands=True):
     # would otherwise take at face value: the family with no meaning of its
     # own holding more time than any family that has one means the rows above
     # it are describing a minority of the run. `test` reading 0 while `other`
-    # leads is the shape #200 was, and it was published for four releases with
-    # nothing on the page suggesting the number was not the number.
+    # leads would otherwise reach a reader with nothing on the page
+    # suggesting the number is not the number.
     if ranked and ranked[0][0] == "other" and data.get("unnamed"):
         print(
             "              `other` is the largest family and names nothing, so "
@@ -2200,9 +2133,9 @@ def report(data, commands=True):
     exact, same = data["repeat_exact_s"], data["repeat_same_work_s"]
     # Compared against zero rather than tested for truth. These are durations,
     # so a negative span makes them negative, and a negative number is truthy
-    # — the report claimed an hour of work re-run for a result already in
-    # hand on a transcript where nothing was re-run. The same value read as
-    # falsey would have suppressed the `nothing obvious` line below.
+    # — the report would claim an hour of work re-run for a result already
+    # in hand on a transcript where nothing was re-run. The same value read
+    # as falsey would suppress the `nothing obvious` line below.
     if same > 0:
         print(
             f"  repeats            {minutes(same)}  a check re-run for a result "
@@ -2215,11 +2148,11 @@ def report(data, commands=True):
     # third really was zero, which `token_thirds`' own input filter already
     # excludes. Neither is a baseline a multiple can be taken of, and without
     # this conjunct any positive last third clears a threshold of zero: a
-    # transcript whose FIRST third overflowed printed `0 -> 10 input tokens;
-    # later calls cost more`, where the input had collapsed by 307 orders of
-    # magnitude. With the charged third LAST the line is suppressed instead,
-    # so which direction the reader was told depended on which third
-    # overflowed. Same shape as the positive-span conjunct in `share` (#193).
+    # transcript whose FIRST third overflows would print `0 -> 10 input
+    # tokens; later calls cost more`, where the input collapsed by 307 orders
+    # of magnitude. With the charged third LAST the line is suppressed
+    # instead, so which direction the reader is told would depend on which
+    # third overflowed. Same shape as the positive-span conjunct in `share`.
     if len(growth) == 3 and growth[0] > 0 and growth[2] > growth[0] * 1.5:
         print(
             f"  context            {growth[0]:,} → {growth[2]:,} input tokens; "
@@ -2243,9 +2176,9 @@ def cycle_label(row):
     reader tells one row from the next, so `cycle 3  ?` is worth more than a
     row that reads as a blank.
 
-    **The label is cut from the right to the column it is padded to** (#712).
-    An uncut label longer than the column pushed every cell of its row to the
-    right of its header, so a reader took one column's number for the next
+    **The label is cut from the right to the column it is padded to.** An
+    uncut label longer than the column pushes every cell of its row to the
+    right of its header, so a reader takes one column's number for the next
     one's. The cut carries no mark, the way `segment_label` cuts a named
     agent, and `--json` keeps `subagent_type` whole."""
     if row["kind"] == "cycle":
@@ -2264,21 +2197,19 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
     call. Zero means the caller had no reading to give, and the line is then
     not printed at all.
 
-    **A negative is a different case and takes a different guard, and this
-    docstring used to conflate them.** `run_span` cannot go negative; the
-    DIFFERENCE between it and the rows' spans can, because the rows partition
-    the calls and not the spans. Where it does, the figure is refused rather
+    **A negative is a different case and takes a different guard.**
+    `run_span` cannot go negative; the DIFFERENCE between it and the rows'
+    spans can, because the rows partition the calls and not the spans. Where it does, the figure is refused rather
     than printed — the comment at the subtraction says why, and why the
     refusal does not name the shortfall an overlap.
 
     **The refusal is the whole reason this prints a count.** A harness that
     renames the spawn tool, or spawns arriving through a path that writes no
     `tool_use` block, would leave this mode reporting zero cycles on a run
-    that had six — and an empty table reads as *this run spawned nothing*,
-    which is #200's failure shape exactly. So the count and the transcript
-    path are printed and the table is not, which is the same repair #200
-    took: say what was found, and do not render a shape that means something
-    else when it is empty."""
+    that had six — and an empty table reads as *this run spawned nothing*.
+    So the count and the transcript path are printed and the table is not:
+    say what was found, and do not render a shape that means something else
+    when it is empty."""
     found, rows = spawns["found"], spawns["rows"]
     if not rows:
         print(f"0 spawns found in {path}\n")
@@ -2307,10 +2238,10 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
         "  verifies the report it hands over and frames the next prompt, and\n"
         "  no transcript field marks where any of those ends."
     )
-    # The measured harness writes the `Agent` result when the spawn is
-    # ACCEPTED, so `delegated` reads seconds where the agent ran for twenty
-    # minutes. A column of zeroes that a reader takes for *nothing was
-    # delegated* is #200's failure shape one column over, so the page says
+    # The harness `DELEGATING` describes writes the `Agent` result when the
+    # spawn is ACCEPTED, so `delegated` reads seconds where the agent ran for
+    # twenty minutes. A column of zeroes that a reader takes for *nothing was
+    # delegated* is a wrong reading nobody sees, so the page says
     # which of the two it is looking at rather than leaving the reader to
     # assume. It fails toward saying so: a run of genuinely quick agents gets
     # one sentence it did not need, where the silence costs a wrong reading.
@@ -2318,8 +2249,8 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
         (row["numbers"]["delegated_s"] for row in rows if row["numbers"]), default=0.0
     )
     # Compared at what the `delegated` column prints, `minutes` to one place,
-    # so the note never says a minute is not reached beside a `1.0m` cell
-    # (#701). Raw against 60, a spawn paired in 59.6 s printed `1.0m` above
+    # so the note never says a minute is not reached beside a `1.0m` cell.
+    # Raw against 60, a spawn paired in 59.6 s would print `1.0m` above
     # *never reaches a minute here — 60s at most*. The note's presence moves
     # only for a maximum in (57.0, 60) seconds, so it prints at most `57s`.
     if round(delegated_max / 60, 1) < 1.0:
@@ -2379,14 +2310,14 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
     # spans partition: a call that outlives the cut its row ends at stays in
     # the row it began in while the next row's calls have already started,
     # so two rows' spans cover the same seconds and their sum can pass the
-    # run's own span. A background `Bash` command in the head row printed `-16.5m of the
-    # run's 16.6m is BETWEEN the rows — mostly the wait`, exit 0 — the class of
-    # false printed line #145 exists to close, reintroduced by the fix for it.
+    # run's own span. A background `Bash` command in the head row would print
+    # `-16.5m of the run's 16.6m is BETWEEN the rows — mostly the wait`, exit
+    # 0: a false printed line.
     #
     # The refusal prints the two SUMS and not their difference. `minutes` is
-    # one decimal, so an overlap under three seconds printed `by 0.0m` beside
-    # a refusal and read as nothing having happened; two figures the reader
-    # subtracts carry the same fact and never round one of them away.
+    # one decimal, so an overlap under three seconds would print `by 0.0m`
+    # beside a refusal and read as nothing having happened; two figures the
+    # reader subtracts carry the same fact and never round one of them away.
     #
     # And it names the cut a row ENDS at, never a spawn's result.
     # `spawn_cuts` opens its cut list at the first spawn's START, so the head
@@ -2394,22 +2325,16 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
     # cut and still end before that spawn's result arrives, and naming the
     # result then names a cause the transcript does not carry.
     #
-    # Neither printed figure is the rows' OVERLAP, and after #300 that holds
-    # for a new reason. A row's span now ends at its own last call to END,
-    # and so does the run's, so every row's interval is a SUBINTERVAL of the
-    # run's. The difference is therefore the gaps between the rows minus
-    # their overlap, and a negative one is the overlap net of the gaps. Where
-    # the head row covers the whole run there are no gaps and the two
-    # coincide -- which is exactly why naming it the overlap would be a claim
-    # that holds on the pinned fixture and fails in general. Before #300 the
-    # grounds were different: the span read the last call TO BEGIN's end, so
-    # an outliving call shortened the RUN's span too and the difference
-    # carried both errors.
+    # Neither printed figure is the rows' OVERLAP. A row's span ends at its
+    # own last call to END, and so does the run's, so every row's interval is
+    # a SUBINTERVAL of the run's. The difference is therefore the gaps
+    # between the rows minus their overlap, and a negative one is the overlap
+    # net of the gaps. Where the head row covers the whole run there are no
+    # gaps and the two coincide -- which is exactly why naming it the overlap
+    # would be a claim that holds on the pinned fixture and fails in general.
     #
-    # That subinterval property is also why this can no longer fire on ONE
-    # row. It used to: the head row's span reached 1000s against a run of
-    # 995s, so a single row passed the whole run. Now a sum past the run's
-    # span requires two rows covering the same seconds.
+    # That subinterval property is also why this cannot fire on ONE row: a
+    # sum past the run's span requires two rows covering the same seconds.
     if run_span > 0:
         spans = sum(row["numbers"]["span_s"] for row in rows if row["numbers"])
         outside = run_span - spans
@@ -2452,9 +2377,9 @@ def segment_label(row):
     **A path too long for the column is cut from the LEFT.** A path is read
     from the right: the file name is what gets opened, and the directories
     above it are already known — they are beside the transcript that was
-    named. Cutting from the right the way every other label here is cut left
-    `main/subagents/inner/agent-dee`, which is the one part of the path a
-    reader cannot use."""
+    named. Cutting from the right the way every other label here is cut would
+    leave `main/subagents/inner/agent-dee`, which is the one part of the path
+    a reader cannot use."""
     # A resumed file's slices all carry one agent's name, so without this a
     # reader cannot tell a segment that was resumed from two agents of the
     # same kind — and the two mean completely different things about a run.
@@ -2469,14 +2394,14 @@ def segment_label(row):
 
 
 def report_breaches(segments):
-    """#343: an `Agent` call made INSIDE a segment, named where it happened.
+    """An `Agent` call made INSIDE a segment, named where it happened.
 
-    Contract rule 6 withholds four acts from every agent
-    whatever its own definition says, and one of them is spawning. Delivery
-    is not what failed: round 1 of #120 spawned two agents and disclosed
-    neither, with the rule already in that agent's payload, in a section the
-    same agent was reviewing a diff of. So this is not a second place to put
-    the rule — it is a place the act shows up whether or not anybody says so.
+    Contract rule 6 withholds four acts from every agent whatever its own
+    definition says, and one of them is spawning. Delivering the rule is not
+    enough: a reviewing agent has spawned two agents and disclosed neither,
+    with the rule already in its payload, in a section it was reviewing a
+    diff of. So this is not a second place to put the rule — it is a place
+    the act shows up whether or not anybody says so.
 
     **It notices and stops nothing, and that is the claim the evidence's
     location permits rather than a softer one chosen on taste.** The
@@ -2484,16 +2409,16 @@ def report_breaches(segments):
     it is in no commit, reaches no CI runner, and a checker that read one
     would run exactly where a person already is. A line in the reading a
     person already takes when a run ends is what that leaves. Making it an
-    exit code is a later work item's, and it will be choosing against
-    readings rather than against a guess.
+    exit code is a choice to make against these readings rather than against
+    a guess.
 
     **It says who contract rule 6 reaches, because the walk cannot tell.** The
     rule binds the agents this plugin spawns. An `Agent` call in a segment's transcript is
     all this file can see, and a `subagent_type` from somewhere else — one
     whose own procedure instructs the fan-out — looks exactly the same.
-    Measured over the 43 runs on the machine this was written on: 13 carry
-    the line, 12 of them name an agent this plugin spawns, and the thirteenth
-    names `claude-preset:code-reviewer`, which no definition here governs.
+    Over 43 runs, 13 carry the line, 12 of them name an agent this plugin
+    spawns, and the thirteenth names `claude-preset:code-reviewer`, which no
+    definition here governs.
     The row is still worth printing — a spawn made inside a segment is worth
     seeing whoever made it — so the scope is stated rather than the row
     filtered, which is the same direction the two counts below take. A line
@@ -2535,8 +2460,8 @@ def report_breaches(segments):
             "a segment and still\n  worth seeing, but which rule it answers to "
             "is for that agent's own\n  definition to say."
         )
-    # An agent's own file (#637), and a work item's segments (#1479), are read
-    # with no parent in view, so there is no second count to hold this one
+    # An agent's own file, and a work item's segments, are read with no
+    # parent in view, so there is no second count to hold this one
     # against: `unnamed` is 0 by construction, and printing the pair would
     # call every spawn a disagreement and send a reader after a child
     # transcript nobody lost.
@@ -2564,16 +2489,15 @@ def report_segments(segments, path):
     """One row per spawned segment, one row per stretch of work in a resumed
     agent's own file, or the count and no table.
 
-    **The second shape is an agent's own transcript given on its own**
-    (#637): `measure_segments` sets `own_file`, nothing was walked or joined,
-    and the header says so in place of the join counts, which would be three
-    zeroes about a join nobody attempted.
+    **The second shape is an agent's own transcript given on its own**:
+    `measure_segments` sets `own_file`, nothing was walked or joined, and the
+    header says so in place of the join counts, which would be three zeroes
+    about a join nobody attempted.
 
-    **This is the reading the hand method produced one transcript at a
-    time.** `skills/verify/orchestration.md` put a `session_cost.py` run at
-    the end of every crafter and proofer segment, which means opening each
-    segment's file by hand and, for a resumed one, splitting it by eye. The rows below are that, for every segment of a run,
-    in one command.
+    **This is the hand method's reading, for every segment at once.** By
+    hand it means opening each segment's file and, for a resumed one,
+    splitting it by eye. The rows below are that, for every segment of a
+    run, in one command.
 
     **A segment is one agent's own stretch of a chain, and a spawn cycle is
     not one.** `--spawns` slices THIS transcript into bands over the
@@ -2585,8 +2509,7 @@ def report_segments(segments, path):
     harness that moves `<session-id>/subagents/`, or stops opening a segment
     at its spawn's result, would leave this printing an empty table on a run
     that spawned six — and an empty table reads as a run that spawned
-    nothing, which is #200's failure shape exactly. So the count and the path
-    are printed and the table is not.
+    nothing. So the count and the path are printed and the table is not.
 
     Every count prints even when they agree, which is `report_spawns`'
     partition tally one reader over: a join that silently matched nothing
@@ -2608,7 +2531,7 @@ def report_segments(segments, path):
         )
         return
     if segments.get("own_file"):
-        # An agent's own file (#637): nothing was walked and nothing joined,
+        # An agent's own file: nothing was walked and nothing joined,
         # so the join counts above the table would be three zeroes about a
         # join nobody attempted. The header says what the rows are instead.
         print(
@@ -2685,8 +2608,8 @@ def report_segments(segments, path):
         )
     segment_table(rows)
     report_breaches(segments)
-    # A column that looks summable and is not is #200's failure shape in a
-    # new place, so the page says which of the two it is rather than leaving
+    # A column that looks summable and is not invites a silent wrong total,
+    # so the page says which of the two it is rather than leaving
     # the reader to find out by comparing two numbers that should have
     # agreed. `token_totals` already sums the whole tree for the run's own
     # reading, so the rows here and that total overlap completely.
@@ -2695,22 +2618,22 @@ def report_segments(segments, path):
         "reading already\n  sums the whole tree, so adding this column to it "
         "is counting the same tokens\n  twice."
     )
-    # #200 left this repository's own runner in the `other` family and #202
-    # counted a streamed message at its first partial row, so a token figure
-    # and a family row both meant something different before they were
-    # repaired. Both are fixed in the code above; a reading that does not say
-    # from when it is comparable is a number somebody will hold against one
-    # taken before the repair.
+    # A reading taken before 0.9.4 charged this repository's own runner to
+    # `other` and counted a streamed message at its first partial row, the two
+    # defects the line names by issue, so its token figure and family rows
+    # mean something different from these. A reading that does not say from
+    # when it is comparable is a number somebody will hold against one of
+    # those.
     print(
         "\n  Comparable with readings taken since 0.9.4 and not with ones "
         "taken before it:\n  #200 charged this repository's own test runner to "
         "`other`, and #202 counted a\n  streamed message at its first partial "
         "row. Both are repaired in the numbers\n  above."
     )
-    # #377 moved the family split a second time: a `git` call after a `cd`,
-    # on a line of its own or after a heredoc read as `other`, and so did a
-    # test run after a heredoc. The repeats lines filter by family and moved
-    # with it; nothing else did. This page prints neither of its own, but it
+    # A reading taken on a release without #377 charged a `git` call after a
+    # `cd`, on a line of its own or after a heredoc, to `other`, and a test
+    # run after a heredoc too. The repeats lines filter by family and differ
+    # with it; nothing else does. This page prints neither of its own, but it
     # is the page a run's readings are compared from, so the line names the
     # rows it is about -- the `by family` block and the repeats lines of the
     # run's own reading and of `--spawns` -- and the token column keeps the
@@ -2718,9 +2641,7 @@ def report_segments(segments, path):
     #
     # It names the issue and not the release, because a loaded file may not
     # name a version that has not shipped (`tests/behaviour/test_release_hygiene.py`,
-    # the timer check), and this line is written before the release that
-    # carries it. The release note is where #377 is mapped to its version:
-    # the note at that release's tag is built from the work item's fragment.
+    # the timer check). The release note maps the issue to its version.
     print(
         "\n  Family rows, in the run's own reading and in `--spawns`, are "
         "comparable only\n  with readings taken on a release that carries "
@@ -2729,12 +2650,12 @@ def report_segments(segments, path):
         "was charged to `other`, and so was a test run after\n  a heredoc. "
         "The repeats lines filter by family and moved with them."
     )
-    # #642 moved it a third time: a call that only read a file or listed a
-    # directory was `other`, and it is `read`. `read` is judged after the
-    # three families the repeats lines keep, so no call enters or leaves them,
-    # and the line says so, which is what a reader holding the #377 line
-    # above would otherwise assume moved again. It names the issue and not
-    # the release, for the same reason as the line above.
+    # A reading taken on a release without #642 charged a call that only read
+    # a file or listed a directory to `other`, with no `read` row. `read` is
+    # judged after the three families the repeats lines keep, so no call
+    # enters or leaves them, and the line says so, because a reader holding
+    # the #377 line above would otherwise assume they moved again. It names
+    # the issue and not the release, for the same reason as the line above.
     print(
         "\n  Family rows are comparable only with readings taken on a release "
         "that carries\n  #642 as well: before it, a call that only read a file "
@@ -2746,7 +2667,7 @@ def report_segments(segments, path):
 def segment_table(rows):
     """The per-segment table: its column header, then one line per row.
     `report_segments` prints it under a run's counts, and `report_work_item`
-    under one work item's (#1439)."""
+    under one work item's."""
     print(
         f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}"
         f"{'tokens':>14}{'context':>12}"
@@ -2769,7 +2690,7 @@ def segment_table(rows):
         if not numbers:
             # A real reading, not a gap in the table: a segment that read and
             # thought and called nothing has no span and still spent what the
-            # run paid for. `report_tokens` was split out for the same shape.
+            # run paid for. `report_tokens` answers the same shape.
             print(
                 f"  {segment_label(row):<{LABEL_WIDTH}}"
                 f"{'no paired call':>30}{spent:>14}{read:>12}"
@@ -2790,10 +2711,10 @@ def newest(directory):
     # `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects` encodes a cwd by replacing
     # every non-alphanumeric character, not just the separator. Replacing
     # `os.sep` alone is right on POSIX by coincidence and wrong on Windows,
-    # where a drive letter keeps its colon: `C:\GitHub\AgenticSeal` became
-    # `C:-GitHub-AgenticSeal` and the real directory is
-    # `C--GitHub-AgenticSeal`, so `seal cost --latest .` reported "no
-    # transcript found" for a directory that is right there. Measured.
+    # where a drive letter keeps its colon: `C:\GitHub\AgenticSeal` would
+    # become `C:-GitHub-AgenticSeal` where the real directory is
+    # `C--GitHub-AgenticSeal`, and `seal cost --latest .` would report "no
+    # transcript found" for a directory that is right there.
     slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
     root = os.path.join(projects_dir(), slug)
     if not os.path.isdir(root):
@@ -2806,12 +2727,10 @@ def newest(directory):
 
 # --- posting the reading to the flow log --------------------------------------
 #
-# `skills/verify/orchestration.md` wrote this procedure out in full and
-# nothing typed it: which label to look up, how to tell a repository that
-# never created the log from one whose log somebody closed, and which of the
-# two logs a reading belongs to. #330 measured what
-# that costs — the meter sat unreferenced through a full day of measurements
-# nobody took. This is the procedure as a command.
+# The posting procedure as a command: which label to look up, how to tell a
+# repository that never created the log from one whose log somebody closed,
+# and which of the two logs a reading belongs to. Written out in prose, it is
+# a procedure nobody types.
 #
 # **It never opens an issue.** The skill says opening one is not a session's
 # act: two sessions posting at the same moment both read zero and both
@@ -2862,15 +2781,15 @@ def run_gh(args):
 def open_log(label):
     """`(state, payload)` for the measurement log `label` declares.
 
-    One lookup, not two. The skill described the `--state open` reading and
-    the `--state all` reading as two questions, which they are; `--state all`
-    answers both, because every open issue is in it. The payload is the issue
+    One lookup, not two. The `--state open` reading and the `--state all`
+    reading are two questions; `--state all` answers both, because every
+    open issue is in it. The payload is the issue
     number for `ONE_OPEN`, the numbers for `MANY_OPEN`, and a sentence for
     `UNREADABLE`.
 
-    **Measured 2026-09-22, which is what settles `NO_HISTORY`** (`questions.md`
-    Q1): `gh issue list --label <a label that exists nowhere> --state all`
-    exits **0 with empty stdout and empty stderr**. So an empty reading is the
+    **What settles `NO_HISTORY`**:
+    `gh issue list --label <a label that exists nowhere> --state all` exits
+    **0 with empty stdout and empty stderr**. So an empty reading is the
     label having no history, and a non-zero exit is a lookup that failed —
     `gh` missing, no authentication, no repository. The two are not folded
     together: the caller no-ops on both and says which happened.
@@ -2935,9 +2854,9 @@ def post(reading, says, label, found=None):
     it, as `--work-item` has to before it reads the log's comments, so the
     log is looked up once.
 
-    Returns the exit code, and the direction of every refusal is the same one
-    `plan.md` states: it refuses rather than posts. A wrong refusal costs one
-    reading a person posts by hand, which is what they do today; a wrong post
+    Returns the exit code, and every refusal goes the same direction: it
+    refuses rather than posts. A wrong refusal costs one reading a person
+    posts by hand; a wrong post
     writes into a repository's issue tracker, where the repair is a person
     deleting a comment.
 
@@ -3028,7 +2947,7 @@ def emit(args, render, path=None, read_from=()):
     """Print the report, or capture it and post it. Returns the exit code.
 
     **A posted body names each transcript it was read from, on a
-    `# <file name>` line of its own, before the report** (#1439). `path` is
+    `# <file name>` line of its own, before the report.** `path` is
     the transcript given and `read_from` the others a row was measured from,
     each `--segments` row's file among them. A file is named once however
     many rows it gave, and by its name alone. Those lines are what tells a
@@ -3050,29 +2969,28 @@ def emit(args, render, path=None, read_from=()):
     hooks rather than this, which is why the rule is written here rather
     than cited.
 
-    **The rule already existed in this file and reached one place of three.**
-    `main` prints `--latest`'s `# {path}` line BEFORE calling this, so that
-    line never enters the buffer. `report_segments` and `report_spawns` print
-    the path themselves, on the empty branch that fires whenever the named
-    transcript has no subagents beside it — which is every segment measured on
-    its own that the coordinator never restarted, the case the documented
-    invocation is for — and `report_segments` prints it again as the header of
-    a resumed agent's own file (#637). This is that same rule
-    at the seam all three reports pass through: the captured body carries the
-    basename, the printed report is untouched.
+    **The rule stands at the seam all three reports pass through.** `main`
+    prints `--latest`'s `# {path}` line BEFORE calling this, so that line
+    never enters the buffer. `report_segments` and `report_spawns` print the
+    path themselves, on the empty branch that fires whenever the named
+    transcript has no subagents beside it — which is every segment measured
+    on its own that the coordinator never restarted, the case the documented
+    invocation is for — and `report_segments` prints it again as the header
+    of a resumed agent's own file. So the captured body carries the basename,
+    and the printed report is untouched.
 
     The longer form is replaced first, so a `path` given as absolute is not
     half-substituted by its own relative spelling.
 
     **The residual, stated rather than left to be found:** this replaces the
     ONE path the reading was taken over. A future report line printing some
-    other absolute path would not be covered. Today none reaches the body: a
+    other absolute path would not be covered. None reaches the body: a
     segment row's transcript is stored by `measure_segments` as
     `os.path.relpath` against the file it was measured beside, or as its
     basename where it is the agent's own file, so every row label is already
     relative. The plain reading's `slowest` list and `other` note print
     command text, with whatever path a command names, so `main` asks `report`
-    for the form without it wherever the reading is posted (#1439).
+    for the form without it wherever the reading is posted.
     """
     if not args.post:
         render()
@@ -3099,7 +3017,7 @@ def emit(args, render, path=None, read_from=()):
     return post(body, says, args.label)
 
 
-# --- one work item's readings, posted by the release (#1439) -----------------
+# --- one work item's readings, posted by the release -------------------------
 #
 # A run's reading is posted by the session that ran it, when it ends, and a
 # session forgets. The transcript stays on the machine that ran the segment,
@@ -3208,7 +3126,7 @@ def log_comments(number):
 
     `gh api --paginate` writes each page's JSON array after the last one
     rather than one merged array, so the arrays are decoded one after
-    another (`frame/questions.md` Q1)."""
+    another."""
     code, out, err = run_gh(
         ["api", "--paginate", f"repos/{{owner}}/{{repo}}/issues/{number}/comments"]
     )
@@ -3260,8 +3178,8 @@ def report_work_item(reading):
     call. A row is named by its file, as `--segments` names an agent's own
     file, because no spawn is in view to name it.
 
-    **The rule 6 line is here because this is the reading a run ends with**
-    (#1479). The run posts once, through this mode, so a line only
+    **The rule 6 line is here because this is the reading a run ends with.**
+    The run posts once, through this mode, so a line only
     `--segments` printed would reach no orchestrator. It takes an agent's
     own-file shape, the line without the pair of counts against unnamed
     segments, because no parent transcript is in view to count those."""
@@ -3453,13 +3371,12 @@ def main():
     calls, turns = load(path)
     timings = analyse(calls, turns)
     # The orchestrator's own rows. Computed for both readings that print
-    # them, because `questions.md` Q1 puts `spawns` in `--json` beside the
-    # existing keys rather than behind the flag: a reading taken with
-    # `--json` and no `--spawns` would otherwise be missing the one thing
-    # this work item exists to produce.
+    # them, because `spawns` stands in `--json` beside the other keys rather
+    # than behind the flag: a reading taken with `--json` and no `--spawns`
+    # would otherwise be missing the spawn cycles.
     #
     # And NOT computed for the plain printed report, which does not read the
-    # key. Measured on a 497-call transcript with 32 spawns: `measure_cycles`
+    # key. On a 497-call transcript with 32 spawns, `measure_cycles`
     # is 25.5ms against `analyse`'s own 42.6ms, so computing it there is half
     # again the cost of the reading being printed, for a value nothing shows.
     # `None` reaches only `report`, which reads the keys it names.
@@ -3478,27 +3395,25 @@ def main():
             path,
         )
     # The other transcripts of this run, one row each -- or a resumed agent's
-    # own file, one row per stretch of work (#637). Gated the way `spawns`
-    # is — behind its own flag, and in `--json` regardless, so a
-    # machine-readable reading is never missing it.
+    # own file, one row per stretch of work. Gated the way `spawns` is —
+    # behind its own flag, and in `--json` regardless, so a machine-readable
+    # reading is never missing it.
     #
     # **The GATING is the same and the cost is not, which is worth saying
-    # because the sentence above used to say `on the same terms` and a reader
-    # could carry the cost argument across with it.** `measure_cycles` is
-    # arithmetic over a list already in memory, measured at half again
-    # `analyse`'s own cost. This opens every transcript under the run:
+    # because a reader could carry the cost argument across with it.**
+    # `measure_cycles` is arithmetic over a list already in memory, at half
+    # again `analyse`'s own cost. This opens every transcript under the run:
     # `opening_stamp`, `load`, `resume_cuts` and `token_totals` per file, and
     # the last of those covers the same file the run-level `token_totals`
-    # below walks again. Measured over the three widest runs on the machine
-    # this was written on — 18, 30 and 35 segments — `measure_segments` takes
-    # 257ms, 698ms and 926ms against `analyse`'s 28-36ms on the same
-    # transcripts: nine to thirty-three times the reading being printed,
-    # where `spawns` was half again.
+    # below walks again. Over the three widest runs — 18, 30 and 35
+    # segments — `measure_segments` takes 257ms, 698ms and 926ms against
+    # `analyse`'s 28-36ms on the same transcripts: nine to thirty-three times
+    # the reading being printed, where `spawns` is half again.
     #
     # It stays in `--json` on the same ground `spawns` is there for — a
     # machine-readable reading missing the one thing the mode exists to
-    # produce is the failure that ground was written against — and the cost
-    # is now on the page rather than assumed away. Whether the duplicate
+    # produce is the failure that ground answers — and the cost is on the
+    # page rather than assumed away. Whether the duplicate
     # token walk is worth removing is a question about `--json`'s defaults
     # and not about this line.
     #
@@ -3514,12 +3429,12 @@ def main():
             [row["transcript"] for row in segments["rows"]],
         )
     # The whole run, not the transcript that was named: a token count covering
-    # one segment is not comparable with one that covered a run, and #170 asks
-    # for the row to be one command rather than one command per transcript.
+    # one segment is not comparable with one that covered a run, and the
+    # run's row is one command rather than one command per transcript.
     #
     # Summed BEFORE the no-tool-calls guard, not after it. A transcript with
     # `usage` and no paired tool call has no span to report and did spend
-    # tokens, and exiting there printed neither — while a segment that read
+    # tokens, and exiting there would print neither — while a segment that read
     # and thought is exactly what the run-level table's per-kind token row is
     # summed over.
     beside = subagent_transcripts(path)
@@ -3535,11 +3450,11 @@ def main():
     if args.json:
         print(json.dumps(data, indent=2))
         return 0
-    # #637, the ticket's option 3. The plain reading of a resumed agent's own
-    # file is a span covering every wait between its stretches of work, and
-    # that span is the number that gets quoted -- #601's fix passes posted
-    # exactly it. `analyse`'s docstring forbids moving any number here, so
-    # the reading keeps every line and gains one, before the span, pointing
+    # The plain reading of a resumed agent's own file is a span covering
+    # every wait between its stretches of work, and that span is the number
+    # that gets quoted. `analyse`'s docstring keeps every number of the plain
+    # reading as it is, so the reading keeps every line and gains one, before
+    # the span, pointing
     # at the mode that splits the file. The condition is `measure_segments`'
     # own-file trigger NARROWED to files whose calls those cuts put in two
     # stretches or more, and the file is read for markers only when nothing
@@ -3549,7 +3464,7 @@ def main():
     # needs two stretches. A marker does not guarantee them: a coordinator
     # message after the agent's last call, or before its first, leaves one
     # window with calls, the span covers no wait, and `--segments` prints one
-    # slice of the same figure (round 1's 🟡 1). So every file that gains the
+    # slice of the same figure. So every file that gains the
     # line is one `--segments` cuts into two rows or more, and some files the
     # mode takes as an own file print no line here.
     cuts = [] if beside else resume_cuts(path)

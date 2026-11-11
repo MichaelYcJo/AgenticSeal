@@ -6961,9 +6961,6 @@ class Test_module:
         )
         for shape in ("subscript", "division"):
             assert shape in text, f"the docstring does not name the {shape} residual"
-        assert "#192" in text, (
-            "the docstring does not name the issue the class came from"
-        )
 
 
 test_census = census_case(TARGET)
