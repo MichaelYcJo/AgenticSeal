@@ -3739,6 +3739,18 @@ class Test_threads:
         assert settle.threads(str(local)) == "seal/threads"
 
 
+class Test_policy_root:
+    def test_accepts_the_row_a_config_writes(self, tmp_path):
+        d = _committed(
+            tmp_path, {"seal/config.json": config_json(("Policy root", "rules"))}
+        )
+        assert settle.policy_root(str(d)) == "rules"
+
+    def test_refuses_to_read_anything_but_docs_with_no_row(self, tmp_path):
+        d = _committed(tmp_path, {"seal/config.json": config_json()})
+        assert settle.policy_root(str(d)) == "docs"
+
+
 class Test_show:
     def test_accepts_a_path_at_a_ref(self, plain):
         assert settle.show(str(plain), "HEAD", f"specs/{WORK}/gaps.md") == memo(
