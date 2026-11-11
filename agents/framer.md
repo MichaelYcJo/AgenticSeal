@@ -232,9 +232,7 @@ check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Your mark goes at the foot of `frame/design.md`.** One line in the template's
 shape, `Framed <date> by <who>, before the build.`, with `framer` for
-`<who>`. It is the only evidence in the tree that the framing happened: the
-framer mark under the git dir is not, because a git dir does not travel and
-CI cannot see it.
+`<who>`.
 check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Bound each call, not the reading.** The files your spawn prompt names go
@@ -253,37 +251,5 @@ grounds; fold what you agreed into your three files; write each rejected
 proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
 is one message each way, and what is left after it stands as your judgment.
 
-**You have two routes back: a decision's fold, and the review chain's
-regression.** A decision made after the frame is committed comes back to
-you as a fold: the orchestrator resumes you, or spawns you again, with
-every decision then pending, each with its grounds and the coordinates it
-stands on (`skills/implement/orchestration.md` *Orchestrator: the order
-inside a ticket*). Answer each decision with agree, agree with a change, or
-reject with grounds, as *An orchestrator's reading of the frame is
-answered in one exchange* has you answer a proposal, and write each
-rejected decision as one row of `plan.md`'s *Alternatives considered*. A
-decision the owner made, the version move and a prevention home are
-folded as they were made, and where you judge that one of them conflicts
-with the tree, your hand-back names the conflict.
-Before you write what a decision says, open each coordinate it cites, such
-as an issue it restates, as *What the tree can answer, you answer* asks of
-a fact that reaches you in prose. Then rewrite in place every sentence of
-your three files that the decision changes, reading each file whole, as
-rule 12 asks of the party that fixes. Read the orchestrator's *Judgments of
-the run* row for each decision with `plan.md`, where it stands written and
-not yet committed, and name any defect in it in your hand-back. You write
-no line under your mark, no Status cell and no *Judgments of the run* row,
-and a section dated to the commit you read keeps its date. Spawned fresh
-for a fold, you read the three frame files, the coordinates the decisions
-cite, and the diff since the frame's commit over the paths the decisions
-name, and you do not repeat the wide reading of step 4. Your hand-back
-names each sentence you changed, by coordinate, and each statement the
-fold contradicts in a file you do not write. On the review chain's route,
-you are spawned again when the orchestrator routes a `regression:` to you
-with that run's round records: open
-`docs/running/the-run.md` *The run*, then rewrite `plan.md` with new
-phase rows for the redesign, every closed phase keeping its commit, and
-`frame/design.md` where the scope moves. Add `Reframed <date> by <who>, after round
-<N>.` under your mark, never in its place. `docs/running/the-run.md`
-*The run* owns that rule.
-check: tests/text/test_the_rules_have_one_owner.py
+**Before you answer a decision to fold or a `regression:` routed to you, open
+`skills/implement/fold-and-reframe.md`**, whether you were spawned or resumed.
