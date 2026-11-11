@@ -63,7 +63,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
-# first load below; each module is named as `lib/sibling.py#load` names it.
+# first load, in `module`; each module is named as `lib/sibling.py#load`
+# names it.
 sys.path.insert(0, os.path.join(ROOT, "lib"))
 METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
@@ -98,19 +99,38 @@ class Unreadable(Exception):
     says which."""
 
 
-def meter():
-    """`payload_meter.py`, as `lib/sibling.py#load` returns it."""
-    import sibling
+def module(rel):
+    """The module at REL, as `lib/sibling.py#load` returns it, and the one
+    function every load of this script goes through. The loader is imported
+    here, at the first module asked for, so a run that ends at its usage
+    line loads nothing.
 
-    return sibling.load(METER)
+    Where `lib/sibling.py` is absent, the refusal is the loader's sentence
+    about it at exit 2, spelt here because the file that holds the
+    sentence is the one missing."""
+    try:
+        import sibling
+    except ImportError:
+        sys.stderr.write(
+            "cannot read "
+            + os.path.normpath(os.path.join(ROOT, "lib", "sibling.py"))
+            + ", which this command loads. It ships in the plugin beside this "
+            "script; a copy of one script taken on its own is not a plugin. "
+            "Nothing was read.\n"
+        )
+        raise SystemExit(2) from None
+    return sibling.load(rel)
+
+
+def meter():
+    """`payload_meter.py`, as `module` returns it."""
+    return module(METER)
 
 
 def floor():
     """The plugin's floor as a job name writes it, `3.12`, from `LAUNCH`'s
     `FLOOR`."""
-    import sibling
-
-    return ".".join(str(part) for part in sibling.load(LAUNCH).FLOOR)
+    return ".".join(str(part) for part in module(LAUNCH).FLOOR)
 
 
 def lf_bytes(path):
@@ -214,16 +234,14 @@ def documents(root):
         for pattern in DOCUMENTS
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
     ]
-    import sibling
-
-    config = sibling.load(CONFIG)
-    optin = sibling.load(OPTIN)
+    config = module(CONFIG)
+    optin = module(OPTIN)
     # The shared root's name, or `optin.HOME` where none is marked, as an
     # unmarked `seal/` was read before the second name.
     home = os.path.join(root, optin.home_name(root) or optin.HOME)
     policy = config.policy_root(home)
     if os.path.isdir(os.path.join(root, *policy.split("/"))):
-        fold = sibling.load(FOLD)
+        fold = module(FOLD)
         try:
             listed = fold.documents(root, policy)
         except fold.Unusable as refused:
@@ -392,7 +410,7 @@ def main(argv=None):
 if __name__ == "__main__":
     # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
-    # when first asked (`meter`), so an absent module ends in
+    # when first asked (`module`), so an absent module ends in
     # `lib/sibling.py`'s sentence and exit 2 after the arguments are read.
     for _name, _errors in (
         ("stdin", "replace"),

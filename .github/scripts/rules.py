@@ -126,9 +126,22 @@ class Unreadable(Exception):
 def sibling(key):
     """The module `SIBLINGS[key]` names, as `lib/sibling.py#load` returns
     it. The loader is imported here, at the first module asked for, so a
-    run that ends at its usage line loads nothing."""
-    import sibling as loader
+    run that ends at its usage line loads nothing.
 
+    Where `lib/sibling.py` is absent, the refusal is the loader's sentence
+    about it at exit 2, spelt here because the file that holds the
+    sentence is the one missing."""
+    try:
+        import sibling as loader
+    except ImportError:
+        sys.stderr.write(
+            "cannot read "
+            + os.path.normpath(os.path.join(ROOT, "lib", "sibling.py"))
+            + ", which this command loads. It ships in the plugin beside this "
+            "script; a copy of one script taken on its own is not a plugin. "
+            "Nothing was read.\n"
+        )
+        raise SystemExit(2) from None
     return loader.load(SIBLINGS[key])
 
 

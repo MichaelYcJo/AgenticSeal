@@ -681,5 +681,31 @@ class Test_module:
         )
         assert done.returncode == 0, done.stderr
 
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings, run
+        with an argument that reaches a load, exits 2 with the loader's one
+        sentence naming the absent `lib/sibling.py` by its path: 2 means
+        nothing was read. It loads on first ask, so the guard stands where
+        the loader is imported, and a run that ends at its usage line loads
+        nothing."""
+        import sibling
+
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / "rules.py"
+        with open(SCRIPT, encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(copy), "--check"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(tmp_path),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "lib", "sibling.py")
+        said = sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
 
 test_census = census_case(TARGET)
