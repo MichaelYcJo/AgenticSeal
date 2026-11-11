@@ -89,6 +89,11 @@ def test_the_orchestrators_one_removal_names_the_work_items_directory():
     )
 ```
 
+```seal
+verdict: fixed 3024a14d3
+answer: The case stands in `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py` as the paste-ready fix gives it, its two clauses unchanged, and its docstring adds that the removal runs again after each repair the orchestrator pushes to the open pull request, which the same commit adds to step 2 of `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* and to both READMEs, as the frame folded at `85a918004`. The fix was read against T22 and *Scope* item 11 before it was applied: `section` joins the step onto one line, so each pinned phrase survives the step's wrap. Each clause was seen red by `seal mutate` on `skills/implement/orchestration.md`, the directory clause with "`<scratchpad>/<work-item-id>/`, " deleted and the guard with ", and removes nothing else of the scratchpad" deleted, and each run ended `red` (executed). The module's docstring and the docstring of `test_no_contract_section_or_definition_writes_a_removal` now say the removal runs again after a later repair.
+```
+
 ## Confirmations
 
 ```seal
