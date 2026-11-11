@@ -76,8 +76,7 @@ That run's clone under `sealer/` was gone when this run began. The re-runs
 went to a new `git clone --no-local` at `5426fed88`, under
 `sealer-2/at-base/`. One command of this run lost its `cd` into that clone.
 It ran the two changed cases in the worktree instead, where 4 passed with
-the tree untouched, and wrote a log to
-`/Users/michael/Documents/GitHub/SpecSeal-worktrees/perf/h2-239.log`. That
+the tree untouched, and left a log beside the worktree, outside it. That
 log has been removed, and the worktree's `git status --short` showed only
 `guarantee.md`. No row below rests on that run.
 
