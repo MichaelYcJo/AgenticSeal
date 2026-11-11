@@ -44,7 +44,7 @@ What breaks in six months, for the approach chosen:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 14: items 1 to 12 in one commit, so that no sentence stands in two files or in none between commits, then the measurement of item 13 and the records | S1 to S11 of `frame/design.md`; each changed or added clause of *Scope* item 11 seen red as that item says; the narrow run of S10 | |
+| 1 | `frame/design.md` *Scope* items 1 to 14: items 1 to 12 in one commit, so that no sentence stands in two files or in none between commits, then the measurement of item 13 and the records | S1 to S11 of `frame/design.md`; each changed or added clause of *Scope* item 11 seen red as that item says; the narrow run of S10 | `18f699ddd` |
 
 ## Overlap with the release
 
