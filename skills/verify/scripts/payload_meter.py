@@ -20,13 +20,13 @@ hook's output reaches the session and no subagent (#1177's probe of a plugin
 `SessionStart` hook), so no agent's table carries it.
 
   bytes, chars    counted from the files.
-  tokens          NEVER counted. Every row's token figure, the session's and
-                  each agent's, is its bytes over `ASSUMED_RATIO`, and each
-                  total's is the sum of its rows', all labelled `BASIS`. A
-                  bare number is refused by the module's own tests, because
-                  the six calibration spawns put three agents at 2.7, 3.2
-                  and 3.4 bytes per token — one ratio does not fit all of
-                  them.
+  tokens          NEVER counted. Every file's token figure, the session's
+                  and each agent's, is its bytes over `ASSUMED_RATIO`, and
+                  the `CLAUDE.md` pair line and each total are the sums of
+                  the file figures they cover, all labelled `BASIS`. A bare
+                  number is refused by the module's own tests, because the
+                  six calibration spawns put three agents at 2.7, 3.2 and
+                  3.4 bytes per token — one ratio does not fit all of them.
 
 Usage:
   payload_meter.py                          one table for the session and
