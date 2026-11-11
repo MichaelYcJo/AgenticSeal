@@ -28,8 +28,8 @@ apart, because the design accepts that cost as its third failure scenario
 and a new assert is beyond the phase.
 
 Phase 3: the branch was not merged with `origin/release/v0.37.4`, which
-stands two commits past the release branch this branch took (#1523 and
-#1524). A merge is no write of the crafter's, so the phase ruled group C at
+stands two commits past the merge this branch took at `17674989a` (#1524
+and #1525). A merge is no write of the crafter's, so the phase ruled group C at
 `a484ff838` and names the overlap in `trail/phases/phase-3.md`. The kept
 `` `BROAD GATE FAILED` `` assert holds on either of the two places that
 spelling stands in its section, so `seal mutate` over one survived. No

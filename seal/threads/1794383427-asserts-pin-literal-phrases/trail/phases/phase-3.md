@@ -14,12 +14,14 @@ stand at the base (read). The fold at `a484ff838` ruled this phase's
 
 **One departure: the phase did not start after a merge of the release
 branch.** `frame/plan.md` *Phases* says each phase starts from the branch
-after it has taken `release/v0.37.4` by a merge. The local
-`release/v0.37.4` is `18a7e18fb`, which the branch holds, but
-`origin/release/v0.37.4` stands two commits further on: `10e721f11`
-(#1523) and `eec0bd040` (#1524) (executed, `git log`). A merge is no write
-the crafter's definition names, so the phase ruled group C at `a484ff838`.
-#1524 changes one module of group C. In
+after it has taken `release/v0.37.4` by a merge. The branch took
+`origin/release/v0.37.4` at `17674989a`, before phase 1, up to `10e721f11`
+(#1523), which changes no module of group C. `origin/release/v0.37.4`
+stands two commits further on: `eec0bd040` (#1524) and `957a3bc7d`
+(#1525) (executed, `git log HEAD..origin/release/v0.37.4`). A merge is no
+write the crafter's definition names, so the phase ruled group C at
+`a484ff838`. #1525 changes no module of group C (executed, `git
+diff-tree`). #1524 changes one. In
 `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` it removes
 the listed asserts at `:173` and `:178`, and the case
 `test_the_documents_name_the_ci_also_row` with its assert at `:204`
