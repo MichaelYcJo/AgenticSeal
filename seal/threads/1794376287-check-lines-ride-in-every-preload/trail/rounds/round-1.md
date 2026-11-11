@@ -49,6 +49,11 @@ A person changing such a rule finds most of its cases by `git grep` on the file'
 
 This snippet does not reach the frame's own statements, and the fix pass, or whoever folds the frame, owes them too. They are D1's block at `frame/design.md:85-86`, which should read as the paragraph above, and `frame/plan.md:11`, where "the definition's path" becomes "the definition's file name" and the sentence on `tests/skills/test_settle.py` stops saying `evals/behaviour/` holds it. `trail/phases/phase-1.md:25` says D1's words went in unchanged, and it describes the build commit it names, so it stays.
 
+```seal
+verdict: fixed bceb31f1c
+answer: The finding holds. `skills/settle/rule-changes.md:122-126` now reads as D1 at `frame/design.md:77-91` after the framer's fold at `44bf80414`: most cases are found by `git grep` on the file's name, since a case often builds the path from its parts, and the eval cases among them under `evals/behaviour/`. That differs from this round's snippet, whose "the rest under `evals/behaviour/`" would also send a person there for `tests/skills/test_settle.py`. `changelog.md:4` says most cases are found by the file's name, such as `crafter.md`, for the same reason. The frame's `frame/design.md:85-86` and `frame/plan.md:11` were the framer's to fold, and `44bf80414` folded them. `bin/seal rules --check` holds 179 lines, and the narrow run after `bceb31f1c` gave 4,669 passed.
+```
+
 ### 2. The README says a rule with no `check:` line is held by review alone, and every rule of the definitions and the contract now has none while cases still hold them
 
 ```seal
@@ -84,6 +89,11 @@ The fix for `README.ko.md:436-438`:
 ```
 
 The fix touches files that *Scope*, Out names as unchanged, so the fold owes `frame/design.md:18` and `:58` as well, with S7's file list (`frame/design.md:72`). Any case that reads the README editions against each other is the fix pass's to run. This round did not open one.
+
+```seal
+verdict: fixed bceb31f1c
+answer: The finding holds. The `## Limits` bullet now reads as this round's two fixes give it, at `README.md:441-445` and `README.ko.md:436-440`, which is *Scope* item 13 as the framer folded it at `44bf80414`. `tests/behaviour/test_both_editions_carry_the_same_folds.py` and `tests/behaviour/test_docs_line_wrap.py` pass, within the narrow run after `bceb31f1c` (4,669 passed, 9 skipped). `changelog.md:4` gains a sentence saying what the bullet now says, because the release note is built from it. `frame/design.md:18` and `:58` and S7 were the framer's to fold, and `44bf80414` folded them.
+```
 
 ## Confirmations
 
