@@ -112,11 +112,17 @@ def posix(path):
 
 
 class Test_module:
-    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+    @pytest.mark.parametrize(
+        "args", [["--root", "{root}"], ["--help"]], ids=["a-run", "help"]
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args
+    ):
         """S4 of #1482. A copy of this script taken without its siblings
         exits 2, with the loader's one sentence naming the absent
         `lib/sibling.py` by its path: 2 means nothing was read, and a
-        sibling that is not beside the command is that kind."""
+        sibling that is not beside the command is that kind. `--help` reaches the sentence too, because the guard stands at
+        import and reads no argument (#1482, A13)."""
         alone = tmp_path / "alone"
         alone.mkdir()
         copy = alone / TARGET.rsplit("/", 1)[1]
@@ -125,7 +131,7 @@ class Test_module:
         repo = tmp_path / "repo"
         repo.mkdir()
         done = subprocess.run(
-            [sys.executable, str(copy), "--root", str(repo)],
+            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
             capture_output=True,
             encoding="utf-8",
             errors="replace",

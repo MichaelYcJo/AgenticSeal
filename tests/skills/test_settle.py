@@ -3692,13 +3692,18 @@ class Test_module:
         assert "does not take its candidates from here" in doc["survey"], doc["survey"]
         assert "not taken from `survey`" in doc["apply"], doc["apply"]
 
-    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+    @pytest.mark.parametrize(
+        "args", [["--root", "{root}"], ["--help"]], ids=["a-run", "help"]
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args
+    ):
         """#590, and S4 of #1482. A copy of this script taken without its
         siblings exits 2, with the loader's one sentence naming the absent
         `lib/sibling.py` by its path: 2 means the input or the tree was
         unusable and nothing was read, and a sibling that is not beside the
-        command is that kind. The sentence names no purpose (#1482)."""
-        args = ["--root", "{root}"]
+        command is that kind. The sentence names no purpose (#1482). `--help` reaches the sentence too, because the guard stands at
+        import and reads no argument (#1482, A13)."""
         script = TARGET
         name = script.rsplit("/", 1)[1]
         alone = tmp_path / "alone"

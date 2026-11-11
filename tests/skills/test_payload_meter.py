@@ -1415,16 +1415,19 @@ class Test_module:
         text = f"intro\n\nprose{LS}## Not a section\n\n## Real\nbody\n"
         assert meter.heading_starts(text) == [text.index("## Real")]
 
+    @pytest.mark.parametrize(
+        "args", [["--root", "{root}"], ["--help"]], ids=["a-run", "help"]
+    )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, meter
+        self, tmp_path, meter, args
     ):
         """#590 and #610, and S4 of #1482. A copy of this script taken
         without its siblings exits 2, with the loader's one sentence naming
         the absent `lib/sibling.py` by its path; here 1 means an input that
         could not be measured, and 2 that nothing was read. The copy stands
         at its path in a plugin that holds nothing else, so the path is
-        under the copy's plugin root. The sentence names no purpose (#1482)."""
-        args = ["--root", "{root}"]
+        under the copy's plugin root. The sentence names no purpose (#1482). `--help` reaches the sentence too, because the guard stands at
+        import and reads no argument (#1482, A13)."""
         script = TARGET
         alone = tmp_path / "alone"
         copy = alone.joinpath(*script.split("/"))
