@@ -12,6 +12,8 @@
 | Phase 3: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, and `20a9460fa`'s binding alignment with its one rewritten case | the proofer at review |
 | Phase 4: the suite beyond the boundary set `trail/phases/phase-4.md` names | the orchestrator's broad gate |
 | Phase 4: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, `6adfab9cc`'s binding alignment with its 11 rewritten cases, and whether the seven S3 cases belong under `Test_main`'s `routing-read-first` rule | the proofer at review |
+| Phase 5: the suite beyond the boundary set `trail/phases/phase-5.md` names | the orchestrator's broad gate |
+| Phase 5: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, the three moved cases that read a document to build a script's input ruled kind M among them, and `81ec9ed53`'s binding alignment with its one rewritten case | the proofer at review |
 
 ## Not done
 
@@ -29,8 +31,16 @@ No case moved to `tests/hooks/` or `tests/evals/`, since none of kind M
 reaches `hooks/` or `evals/`. `trail/phases/phase-3.md` names each ruling.
 
 Phase 4: `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`
-is not deleted. Its one case,
+was left standing with its one case,
 `test_s5_rules_check_excuses_a_section_a_design_under_agentic_seal_removes`,
-runs `seal rules` and is bound for `tests/github/test_rules.py`, which is
-phase 5's. `trail/phases/phase-4.md` names each ruling that differs from
-design *The files*.
+which runs `seal rules` and was bound for `tests/github/test_rules.py`, phase
+5's. Phase 5 moved the case and deleted the file.
+`trail/phases/phase-4.md` names each ruling that differs from design *The
+files*.
+
+Phase 5: no case of `tests/behaviour/` moved to `tests/github/test_run_tests.py`.
+Each case the design sends there holds a workflow's install line or
+`CONTRIBUTING.md` *Running the checks* against the runner's constants, which
+design *The kinds* does not make kind M. `trail/phases/phase-5.md` names each
+ruling that differs from design *The files*, and phases 6 and 7 file those
+files.
