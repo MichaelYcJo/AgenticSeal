@@ -57,7 +57,7 @@ Out:
 
 ## Data & interfaces
 
-- `broad_gate.panel(tree, base, checks, item, copy=None, branch=None, run=None)`: the `workflow` parameter leaves. `gate` is its one caller in the plugin (executed: `git grep -n "panel("` over `skills`, `lib` and `.github`). After *Scope* item 4, no test caller passes a fifth positional argument (read: G10).
+- `broad_gate.panel(tree, base, checks, item, copy=None, branch=None, run=None)`: the `workflow` parameter leaves. `gate` is its one caller in the plugin (executed: `git grep -n "panel("` over `skills`, `lib` and `.github`). After *Scope* item 4, no test caller passes a workflow: the one test caller with a fifth positional argument, `Test_panel#test_accepts_the_item_and_the_gate_row`, passes the copy, which `copy` now takes fifth (read: G10).
 - `broad_gate.main`'s stderr loses the coverage line. Its other lines, the `BROAD GATE PASSED` form, `trail/gate.md`'s run block and the exit codes are unchanged.
 - `seal_stamp.DOT` leaves. `SEP`, `ARROW` and `TICK` stay.
 
