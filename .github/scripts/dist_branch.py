@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Add the release's commit to `dist`, the branch the plugin directory reads.
 
-The directory's submission form did not answer in time for this
-repository's whole tree, and answered for the tree without its suites and
-records (#1374). So the directory tracks `dist`, a branch whose tree at each
+The directory's submission form does not answer in time for this
+repository's whole tree, and answers for the tree without its suites and
+records. So the directory tracks `dist`, a branch whose tree at each
 release is `git archive` of the release's tag. The paths that leave are the
 ones `.gitattributes` marks `export-ignore`, read at the tag, and this script
 holds no list of them.
