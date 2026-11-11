@@ -128,7 +128,7 @@ RULES = {
 }
 
 # The files that must name a home's path and section, and for which rules.
-# `CLAUDE.md` is loaded into every session; the four code comments cited it
+# `CLAUDE.md` is loaded into every session; the code comments below cited it
 # for the identifiers rule until this work pointed them at the home.
 LINKED = {
     # The core holds the values and links only the rule its first value
@@ -141,7 +141,6 @@ LINKED = {
     "skills/core/SKILL.md": ("batch",),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/github/test_plugin_directory_check.py": ("identifiers",),
-    "tests/test_conftest.py": ("identifiers",),
     "tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py": ("identifiers",),
 }
 
@@ -156,7 +155,6 @@ CARRIERS = (
     "docs/releasing/release-checklist.md",
     ".github/scripts/plugin_directory_check.py",
     "tests/github/test_plugin_directory_check.py",
-    "tests/test_conftest.py",
     "tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py",
     "agents/proofer.md",
 )

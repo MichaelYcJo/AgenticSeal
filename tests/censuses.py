@@ -1172,11 +1172,8 @@ HISTORY_PATH = re.compile(
 # The records of a moment, which keep the names they were written under. A
 # thread is read against the commits it names until the settle after its
 # release removes it, and the thread that renames a name quotes the name it
-# renames. `.test_durations` is the cache the test runner rewrites.
-OLD_NAME_RECORDS = (
-    "seal/threads/",
-    ".test_durations",
-)
+# renames.
+OLD_NAME_RECORDS = ("seal/threads/",)
 # A replayed or seeded eval case holds a run at a recorded commit, so its
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
