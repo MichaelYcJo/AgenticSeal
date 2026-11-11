@@ -286,8 +286,8 @@ case, or whose cases read different files, declares no `TARGET`. Its first
 line after the imports, where `TARGET = "..."` would stand, gives the
 ground in words, as the line
 `# No TARGET: its cases walk every rule file of the tree.` does. No script
-reads that line. Such a file stands in `tests/behaviour/` where its cases
-load or run shipped code, and in `tests/text/` where they only read text.
+reads that line. Such a file stands in `tests/behaviour/` or in
+`tests/text/`, which together hold every file that declares none.
 The files that declare no `TARGET`, wherever they stand, are this
 repository's tree-wide files, which `skills/verify/SKILL.md` *Scope: cheap
 and often, broad and once* runs at every phase boundary and every fix pass.
