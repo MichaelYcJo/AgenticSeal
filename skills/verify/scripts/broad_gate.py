@@ -1773,14 +1773,12 @@ def job_steps(text, job):
     reader nobody can tell is partial — #424's finding 4, whose repair was the
     same move.
 
-    **No YAML parser.** This script runs with no third-party dependency, and
-    CI installs a test runner and nothing else. A step name is a `- name:`
-    line, read as text, the way
-    `tests/text/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
-    same file. A step that exists only in a comment is not a step, and that
-    falls out of both patterns rather than out of a line dropping comments:
-    each requires the first non-blank character to be the list's dash or the
-    job key's own letter. The line that dropped them was written, mutated,
+    **No YAML parser.** This script ships with the plugin, which carries no
+    third-party dependency, so a user's repository has no parser for it to
+    import. A step name is a `- name:` line, read as text. A step that exists
+    only in a comment is not a step, and that falls out of the two patterns
+    rather than out of a line dropping comments: each requires the first
+    non-blank character to be the list's dash or the job key's own letter. The line that dropped them was written, mutated,
     and found to change nothing — dead code that looks like a defence is
     worse than none.
 
@@ -1789,10 +1787,7 @@ def job_steps(text, job):
     `- name: a step  # why` reads as `a step  # why`. Not live — no `- name:`
     line in `hygiene.yml` carries one — and it fails LOUDLY if one ever does,
     because A1 goes red with the comment visible in the name it could not
-    classify. `strip_comments` in
-    `tests/text/test_ci_gives_the_checks_what_they_need.py`, the reader this one
-    follows, has the same gap, so it is a class rather than something this
-    reader opened (round 1, recorded as a correction rather than fixed).
+    classify.
 
     A file this cannot read as a workflow comes back empty rather than
     raising. The gate calls it on whatever sits at that path in the repository

@@ -99,7 +99,7 @@ def loaded():
     `.github/workflows/`, and for the shipped template under TEMPLATE."""
     names = sorted(
         n
-        for n in os.listdir(os.path.join(ROOT, WORKFLOWS))
+        for n in os.listdir(os.path.join(ROOT, *WORKFLOWS.split("/")))
         if n.endswith((".yml", ".yaml"))
     )
     paths = [f"{WORKFLOWS}/{n}" for n in names] + [TEMPLATE]

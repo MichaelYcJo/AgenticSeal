@@ -1614,9 +1614,7 @@ class Test_job_steps:
     def test_the_reader_takes_the_steps_of_the_job_it_was_asked_for(self):
         """A1's reader. In file order, this job only, and an unnamed step — the
         checkout every job opens with — is not one. Nor is a step that exists
-        only in a comment, the same reading
-        `tests/text/test_ci_gives_the_checks_what_they_need.py#strip_comments` takes
-        of the same file, for the same reason."""
+        only in a comment."""
         assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "release") == [
             "the first step",
             "the second step",
