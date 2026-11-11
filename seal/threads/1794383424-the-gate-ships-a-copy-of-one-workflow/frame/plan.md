@@ -4,7 +4,7 @@
 
 The tree as read at `5909a2776`.
 
-`skills/verify/scripts/broad_gate.py` is 2,906 lines (executed: `wc -l`). The section this work removes stands at `:1722-2059`, and `frame/design.md` G4 places every other line that reads or states it. The gate's arms are the repository's command, the chain check and the mode check, listed in the module docstring at `:12-29` and run by `main` at `:2678-2694` (read). Removing the section leaves all three, and changes no exit code and no line of `trail/gate.md`.
+`skills/verify/scripts/broad_gate.py` is 2,906 lines (executed: `wc -l`). The section this work removes stands at `:1722-2059`, and `frame/design.md` G4 places every other line that reads or states it. The gate's arms are the repository's command, the chain check and the mode check, listed in the module docstring at `:12-29` and run by `gate` at `:2678-2694` (read). Removing the section leaves all three, and changes no exit code and no line of `trail/gate.md`.
 
 The work is one vertical slice. The deleted behaviour file is named by the check line at `docs/running/the-broad-gate.md:81`, and `skills/verify/orchestration.md:69` is pinned by `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py:204`. So the code, its cases and the documents `frame/design.md` G7 names change in one commit, or the suite is red at the commit between them.
 
@@ -52,4 +52,5 @@ None for a user's repository: `seal gate` prints what it printed before (S1). In
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | 2026-11-11 | Phase 1's hand-back named three frame statements HEAD left incomplete, and the orchestrator folded them into `frame/design.md` in its own commit: the preflight clause at `broad_gate.py:107` (G4 and *Scope* item 2), the `Test_panel` rename (*Scope* item 4), and S3 reading the panel the gate prints | They record what the build changed, not what the work is | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |
+| 2026-11-11 | Round 1's two `should` findings located in frame files go to the framer to fold: finding 1, *Scope* item 2's clause naming `moved_line` as the one reader of `base.given`, which `gate()`'s refusal also reads (`broad_gate.py:2246` at `27bbbdd75`); finding 2, the frame naming `main` where the lines stand in `gate()` (`def gate` at `:2571-2803` of `5909a2776`) | The orchestrator opened both coordinates and confirmed them (executed, `grep -n` on `.given` and on `def gate`/`def main`) | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |
 | 2026-11-11 | The title takes `refactor:`, as the issue's title does | The gate's verdict and every user's output are unchanged; the work removes a copy and its readers | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지* |
