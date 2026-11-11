@@ -1778,9 +1778,9 @@ def job_steps(text, job):
     import. A step name is a `- name:` line, read as text. A step that exists
     only in a comment is not a step, and that falls out of the two patterns
     rather than out of a line dropping comments: each requires the first
-    non-blank character to be the list's dash or the job key's own letter. The line that dropped them was written, mutated,
-    and found to change nothing — dead code that looks like a defence is
-    worse than none.
+    non-blank character to be the list's dash or the job key's own letter.
+    The line that dropped them was written, mutated, and found to change
+    nothing — dead code that looks like a defence is worse than none.
 
     **Known gap: a TRAILING comment joins the step name.** YAML ends an
     unquoted scalar at ` #`, and this reader does not, so
