@@ -295,8 +295,8 @@ def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
     ubuntu, macOS and Windows at the floor stated above". So every operating
     system the matrix names holds at least one entry at `FLOOR`, whatever
     other Python it also runs (#1065) -- a floor CI does not run at is a
-    floor nothing measures. It reads a system and not its shards: one macOS
-    shard moved off the floor leaves two at it, and this case passes that."""
+    floor nothing measures. It reads a system and not its shards: one Windows
+    shard moved off the floor leaves three at it, and this case passes that."""
     entries = pytest_job()["strategy"]["matrix"]["include"]
     systems = {e.get("os") for e in entries}
     assert systems, "the pytest job names no operating system to compare"

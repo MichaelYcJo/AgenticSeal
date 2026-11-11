@@ -1,17 +1,17 @@
-"""The sharded legs run in shards whose union is the whole suite (#841, #864).
+"""The Windows leg runs in shards whose union is the whole suite (#841).
 
-The Windows leg runs in four shards (#841) and the macOS leg in three
-(#864); ubuntu runs as one job. The file keeps the name it was given when
-Windows was the only sharded leg, because the sentence is still true and a
-released ledger row anchors its three cases by this path.
+The Windows leg runs in four shards (#841); ubuntu and macOS each run as
+one job. macOS ran in three shards from #864 until #1486, which made it one
+job because its whole suite finishes inside the slowest Windows shard, so a
+shard of it shortened no run.
 
 `pytest-split` divides the suite by each case's duration, read from the
 `.test_durations` the shard restored from the cache before its pytest line,
 and every shard runs the group its matrix entry names. Where no cache
 matches, the file is absent and `pytest-split` divides by count, which
-unbalances the shards and drops no case. One file divides both legs,
-because every leg collects the same cases under the same ids: an id built
-from a path writes it with `/`, and none carries the interpreter's path.
+unbalances the shards and drops no case. The file is measured on the
+Windows leg and divides it alone, and no id carries the interpreter's path,
+a key no other runner writes.
 What decides whether a leg's union is the suite is the matrix itself: a
 group named twice runs twice and a group named by no entry runs nowhere, and
 nothing on the runner says so -- each shard passes. So the matrix is read
@@ -61,7 +61,7 @@ SPLIT = re.compile(r"--splits (\d+) --group (\d+)")
 
 # Each sharded operating system and its count of shards. A system not named
 # here runs the whole suite as one job and carries no split.
-SHARDED = {"windows-latest": 4, "macos-latest": 3}
+SHARDED = {"windows-latest": 4}
 
 
 def job(name):
@@ -240,7 +240,7 @@ def test_a_run_that_is_no_pull_request_saves_the_union_and_each_split_shard_rest
     other pull request. Each split shard restores, before its pytest line,
     the newest key the save's prefix opens. Both steps name one path and set
     the cross-system flag, because the save runs on ubuntu and the restore on
-    Windows and macOS. The upload keeps a push run's union as long as the
+    Windows. The upload keeps a push run's union as long as the
     release table reads it."""
     steps = job("durations")["steps"]
     union_at, out = union_step(steps)
@@ -294,8 +294,9 @@ def test_only_the_suite_or_the_repository_is_the_whole_collection():
 
 
 def test_no_collected_id_carries_the_interpreters_path(request):
-    """An id holding `sys.executable` is a key no other machine writes, so
-    every union would leave it unpriced on every leg but the one measured."""
+    """An id holding `sys.executable` is a key no other runner writes, so a
+    union measured on one runner leaves it unpriced on a runner whose
+    interpreter stands elsewhere."""
     config = request.config
     if not collects_the_suite(
         config.args, config.invocation_params.dir, config.rootpath

@@ -143,11 +143,12 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 --wit
 ```
 
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
-on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
+on ubuntu, macOS and Windows at the floor stated above, Windows in four
 shards that `pytest-split` divides by the durations union the cache holds,
-and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
-job; `durations`, which unions what the Windows shards measured and, on a
-run that is no pull request's, saves the union to the cache;
+and ubuntu and macOS each as one job; the suite once more on ubuntu at
+Python 3.14, as one job; `durations`, which unions what the Windows shards
+measured and, on a run that is no pull request's, saves the union to the
+cache;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
 hygiene workflow that guards releases. A change to any gate needs a test
@@ -161,8 +162,8 @@ The contributor who sees a case named makes it cheaper, splits it, or samples
 what it walks. The report reads a case's call only: time spent building a
 fixture in setup is the module's, and the release table's row for each test
 file is where that shows. Each `pytest` leg in `test.yml` carries a
-`timeout-minutes`, and the comment beside the values says which runs they
-were set from.
+`timeout-minutes`, and the comment beside the values states the rule they
+are set by.
 
 The durations union lives in `actions/cache`, never in the tree, and
 nothing refreshes it by hand. Every `tests` run measures it: each Windows
@@ -171,19 +172,14 @@ it wrote, and the `durations` job unions the parts, writes each shard's
 measured seconds and their spread to its summary, and uploads the union as
 the `test-durations` artifact. On a run that is no pull request's, a push
 to `main` among them, the job also saves the union to the cache under a key
-starting `test-durations-`, and each macOS and Windows shard restores the
-newest such key before it divides. `.gitignore` names `.test_durations`, so
+starting `test-durations-`, and each Windows shard restores the newest
+such key before it divides. `.gitignore` names `.test_durations`, so
 a restored or downloaded copy is never committed. Where no cache matches,
 or the cache was evicted, every shard splits by count: the shards come out
 unbalanced, no case is dropped, and a shard past its leg's `timeout` fails. The
-union is the Windows leg's, and it divides the macOS leg too, because every
-leg collects the same cases under the same ids: a parametrized path takes
-`ids=posix_id` from `tests/conftest.py`, and no id carries the
-interpreter's path, which `test_no_collected_id_carries_the_interpreters_path`
-holds. It prices each case as Windows ran it, so a case Windows skips is
-near zero there and its macOS cost is unseen by the division; a macOS shard
-that grows past its `timeout` fails, and the rule beside the values in
-`test.yml` sets it again.
+union is measured on the Windows leg and divides that leg alone, and no
+collected id carries the interpreter's path, a key no other runner writes,
+which `test_no_collected_id_carries_the_interpreters_path` holds.
 
 **The suite runs with `gh` logged out, on a contributor's machine as on
 CI.** CI's pytest job has no token, so `tests/conftest.py` makes the same

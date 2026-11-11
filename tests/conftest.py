@@ -808,12 +808,12 @@ def posix_id(value, sep=os.sep):
     """A parametrized path's id written with `/`, or None for a value that is
     not a string, which leaves pytest its own id.
 
-    CI's durations union, which divides the shards, is measured on Windows
-    and read on every sharded leg, so an id has to be one spelling on every
-    machine: `os.path.join` writes `\\` on Windows, and the union then prices
-    that case on Windows alone. Pass it as
-    `ids=` where a parametrization's values are paths. `sep` is the platform's
-    separator unless a case hands it Windows' to read this on POSIX.
+    `os.path.join` writes `\\` on Windows, so a path written as it stands
+    reads differently on each system. Pass it as `ids=` where a
+    parametrization's values are paths, so a case has one id on every
+    system; `repo_relative` writes a path with it for the same reason. `sep`
+    is the platform's separator unless a case hands it Windows' to read this
+    on POSIX.
     """
     if not isinstance(value, str):
         return None

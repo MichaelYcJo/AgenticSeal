@@ -40,62 +40,31 @@ jobs:
         # ubuntu at Python 3.14 as well, in the place of the `arms-grammar`
         # job, which ran one module on 3.13 and 3.14 (#1065).
         #
-        # `timeout`: each leg's budget in minutes, by `questions.md` Q6's rule
-        # (a) of work item 1791270165 -- 1.5 times the leg's slowest measured
-        # job, rounded up to 5. GitHub fails a job that runs past it, so a
-        # leg that grows names itself here rather than in a wait. The base is
-        # the slowest of the runs measured,
-        # because the same suite ran 1.2 times slower from one run to the
-        # next and one shard ran 1.7 times slower than its siblings in one
-        # run:
-        #   ubuntu  9 m 43 s, run 38332345615 (6 m 20 s in 38335775781,
-        #           9 m 03 s in 37469595104, 8 m 24 s in 37700567455,
-        #           5 m 40 s to 7 m 58 s in three runs before them)   -> 15
-        #   ubuntu at 3.14: ubuntu's base, because it runs the same suite
-        #          on the same system; its first job ran 1 m 44 s in
-        #          run 42019408766                                    -> 15
-        #   macOS, per shard: 8 m 29 s, group 3 of run 38332345615, on the
-        #          durations file before #874 refreshed it (7 m 11 s to
-        #          7 m 29 s on the refreshed file in 38335775781; 6 m 56 s
-        #          in 37700567455, the first run of the three shards; the
-        #          unsharded leg they replaced took 15 m 25 s to 20 m 52 s
-        #          and ran under 35)                                  -> 15
-        #   Windows, per shard: 12 m 42 s, group 4 of run 37576998008
-        #          (12 m 15 s in 37577753583, 11 m 52 s in 37700567455,
-        #          10 m 20 s to 11 m 27 s on the refreshed file in
-        #          38335775781; 10 m 34 s in 37469595104; 5 m 38 s to
-        #          10 m 03 s in the sharded run 37465328899)          -> 20
+        # `timeout`: each leg's budget in minutes, 1.5 times the leg's
+        # slowest measured job, rounded up to 5. The base is the slowest job
+        # of the runs measured, not a typical one, because the same suite
+        # runs slower from one run to the next. GitHub fails a job that runs
+        # past it, so a leg that grows names itself here rather than in a
+        # wait. A leg's minutes are read off a run's jobs, and the release
+        # table prints them against the last release. macOS's budget was set
+        # before its one job had run, from the case time its three shards
+        # measured plus one job's fixed cost (#1486).
         include:
-          - { os: ubuntu-latest, python: "3.12", timeout: 15 }
-          - { os: ubuntu-latest, python: "3.14", timeout: 15 }
-          # macOS in three shards (#864) and Windows in four (#841).
-          # `pytest-split` divides the suite by each case's duration, read
-          # from the `.test_durations` the shard restored from the cache, so
-          # every shard collects the whole suite and runs its own disjoint
-          # part, and a leg's parts are the whole suite. A case missing from
-          # the file is given the average, and where no file was restored
-          # every case is priced alike; either way each case runs in exactly
-          # one shard, so the shards come out unbalanced and no case is
-          # dropped. The file is measured on the Windows
-          # leg and divides the macOS leg too, because every leg collects the
-          # same cases, so group k of a count holds the same cases on both.
-          # Only each case's price differs by system, and that is read off
-          # each leg's own jobs, never off the file. A shard's job is a fixed
-          # cost plus the leg's case time over the count. On Windows the
-          # fixed cost is about 62 s: 37 s of checkout and install, and 25 s
-          # from the step's start to the first case.
-          # Four is the smallest Windows count whose
-          # slowest shard stays under 12 minutes on both run 37458654434
-          # (7,530 s of cases, 1,974 s unsharded, 1,949 s of it after the
-          # first case) and run 37457228586, which was 1.08 times slower:
-          # three gives 11.9 and 12.8 minutes, four 9.2 and 9.8.
-          # Three is the smallest macOS count the same arithmetic puts under
-          # 12 minutes on run 37577753583's 1,185 s of cases, with a fixed
-          # cost of about 45 s and a factor of 1.45 for the slowest group
-          # (the file gives three groups of 2,513 s, 2,517 s and 2,505 s).
-          # Measured in run 37700567455: the slowest macOS shard took 6 m 56 s,
-          # and the three ran 12,827 cases between them, ubuntu's count at
-          # the same SHA. ubuntu stays one job.
+          - { os: ubuntu-latest, python: "3.12", timeout: 5 }
+          - { os: ubuntu-latest, python: "3.14", timeout: 5 }
+          # macOS runs as one job (#1486): its whole suite finishes inside
+          # the slowest Windows shard, so a shard of it shortened no run and
+          # paid a job's fixed cost again.
+          - { os: macos-latest, python: "3.12", timeout: 10 }
+          # Windows in four shards (#841). `pytest-split` divides the suite by
+          # each case's duration, read from the `.test_durations` the shard
+          # restored from the cache, so every shard collects the whole suite
+          # and runs its own disjoint part, and the leg's parts are the whole
+          # suite. A case missing from the file is given the average, and
+          # where no file was restored every case is priced alike; either way
+          # each case runs in exactly one shard, so the shards come out
+          # unbalanced and no case is dropped. A shard's job is a fixed cost
+          # plus the leg's case time over the count.
           #
           # `store`: every Windows shard measures the file as it runs (#931).
           # `--store-durations --clean-durations` makes pytest-split write
@@ -104,13 +73,10 @@ jobs:
           # step after the pytest line uploads each part, and the
           # `durations` job below unions them into the `test-durations`
           # artifact. The file is the Windows leg's, so only Windows stores.
-          - { os: macos-latest, python: "3.12", split: "--splits 3 --group 1", timeout: 15 }
-          - { os: macos-latest, python: "3.12", split: "--splits 3 --group 2", timeout: 15 }
-          - { os: macos-latest, python: "3.12", split: "--splits 3 --group 3", timeout: 15 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 1", store: "--store-durations --clean-durations", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 2", store: "--store-durations --clean-durations", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 3", store: "--store-durations --clean-durations", timeout: 20 }
-          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 4", store: "--store-durations --clean-durations", timeout: 20 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 1", store: "--store-durations --clean-durations", timeout: 10 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 2", store: "--store-durations --clean-durations", timeout: 10 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 3", store: "--store-durations --clean-durations", timeout: 10 }
+          - { os: windows-latest, python: "3.12", split: "--splits 4 --group 4", store: "--store-durations --clean-durations", timeout: 10 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     steps:
@@ -148,9 +114,8 @@ jobs:
       # (#647), pinned in `run_tests.py#CMARKGFM` and held to this line too.
       # PyYAML is the parser `tests/workflows.py` reads a workflow file with
       # (#1486), pinned in `run_tests.py#PYYAML` and held to this line too.
-      # pytest-split divides the Windows and macOS legs into their shards
-      # (#841, #864), pinned in `run_tests.py#PYTEST_SPLIT` and held to this
-      # line the same way.
+      # pytest-split divides the Windows leg into its shards (#841), pinned
+      # in `run_tests.py#PYTEST_SPLIT` and held to this line the same way.
       - run: pip install pytest pytest-xdist markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 pytest-split==0.11.0
       - run: |
           git config --global user.email ci@ci
