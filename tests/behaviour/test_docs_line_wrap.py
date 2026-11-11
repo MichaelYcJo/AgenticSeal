@@ -159,6 +159,9 @@ COVERED = [
     # The framer's fold and reframe, cut from `agents/framer.md` in #1473,
     # wrapped as it was.
     "skills/implement/fold-and-reframe.md",
+    # The fix pass's procedure, cut from `skills/implement/SKILL.md` and
+    # `agents/crafter.md` in #1471, wrapped as it was.
+    "skills/implement/fix-pass.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "skills/commit-pr-convention/SKILL.md",
