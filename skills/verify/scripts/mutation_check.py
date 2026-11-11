@@ -84,14 +84,14 @@ POSIX the command runs in a session of its own and a timed-out run's whole
 process group is killed; so is the group of a run that exited, which ends
 whatever the cases left behind. The wait is on the process and the output
 goes to a temporary file, so nothing the cases leave can hold the wait open.
-Two consequences come with the session. A process that puts itself in yet another session is outside
-the group and outlives the kill; the verdict names that as the bound's
-limit, without being able to tell whether it happened. And the terminal's
-Ctrl-C now reaches this process alone, so the `KeyboardInterrupt` it raises
-here is what ends the group, before the restore. On Windows the direct child
-is ended, and the verdict says that anything it started was not: a group
-kill there needs a job object, and nobody runs this on Windows to show one
-works.
+Two consequences come with the session. A process that puts itself in yet
+another session is outside the group and outlives the kill; the verdict
+names that as the bound's limit, without being able to tell whether it
+happened. And the terminal's Ctrl-C now reaches this process alone, so the
+`KeyboardInterrupt` it raises here is what ends the group, before the
+restore. On Windows the direct child is ended, and the verdict says that
+anything it started was not: a group kill there needs a job object, and
+nobody runs this on Windows to show one works.
 
 **The cache that matters is the mutated file's, and only that one.** CPython
 reads a `.pyc` instead of the source whenever the size and the whole-second
