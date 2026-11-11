@@ -16,6 +16,8 @@
 | Phase 5: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, the three moved cases that read a document to build a script's input ruled kind M among them, and `81ec9ed53`'s binding alignment with its one rewritten case | the proofer at review |
 | Phase 6: the suite beyond the boundary set `trail/phases/phase-6.md` names | the orchestrator's broad gate |
 | Phase 6: each kept and removed assert of the range against #1488's *The criterion*, and each reason line's ground and each of the three D files against design *The kinds* | the proofer at review |
+| Phase 7: the suite beyond the boundary set `trail/phases/phase-7.md` names | the orchestrator's broad gate |
+| Phase 7: each kept and removed assert of the range against #1488's *The criterion*, each reason line's ground and each of the three D files against design *The kinds*, the four moved M cases with `edc9ba6e0`'s binding alignment and its two rewritten cases, and the pair reason in `tests/test_commonmark_oracle.py::Test_module` | the proofer at review |
 
 ## Not done
 
@@ -54,3 +56,11 @@ the file carries a reason line that states its ground. Whether the frame
 gives such a case a kind is the framer's to fold.
 `trail/phases/phase-6.md` names this and the five other rows of design
 *The files* that do not hold at `fa911da9c`.
+
+Phase 7: `CONTRIBUTING.md` *The test layout* (`:263-275`) makes a case M
+only for a shipped module, and T3 a property across several shipped
+modules, while design *The kinds* after the fold `3fc2aca87` counts a
+module under `tests/` for both. The section is phase 1's, so this phase
+left it and built to the design. `trail/phases/phase-7.md` names it and
+the eight rows of design *The files* that do not hold at `d59eda804`,
+for the framer.
