@@ -101,7 +101,8 @@ def fence_map(lines, text=None):
     comment block that closes hide their lines, and a line the walk cannot
     be sure of keeps its base reading, the fence rule alone. The name says
     "fenced" because every caller spells it so, and "outside every fenced
-    block" means "outside every block this reader hides". TEXT is `hidden_lines`' argument of the same name.
+    block" means "outside every block this reader hides". TEXT is
+    `hidden_lines`' argument of the same name.
     """
     hidden, opened_at = hidden_lines(lines, text)
     shown = [
@@ -301,7 +302,8 @@ TABLE_ROW = re.compile(rf"^ {{0,3}}\|(?P<cells>(?:{CELL}|\|)*)\|[ \t]*$")
 CELL_PIPE = re.compile(rf"((?:{CELL})*)(\|?)")
 # A pipe after an even run of backslashes: `CELL` reads the backslashes in
 # pairs and splits there, and cmark-gfm does not, because its cell scanner
-# reads `\|` as an escaped pipe wherever it stands. A line holding one is no row this walker reads.
+# reads `\|` as an escaped pipe wherever it stands. A line holding one is no
+# row this walker reads.
 EVEN_ESCAPED_PIPE = re.compile(r"(?<!\\)(?:\\\\)+\|")
 
 

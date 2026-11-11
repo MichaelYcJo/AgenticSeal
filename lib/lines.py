@@ -34,8 +34,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # `live_pieces`
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `lib/blocks.py#walk` adds a line-start HTML comment block to it for
-# `lib/config.py`, `lib/routing.py` and `lib/fields.py`, apart
-# from `live_lines` on purpose, since a row they read is safe at its base reading
+# `lib/config.py`, `lib/routing.py` and `lib/fields.py`, apart from
+# `live_lines` on purpose, since a row they read is safe at its base reading
 # where the walk is unsure, and `fields.py` refuses a fence line the walk cannot
 # place. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence

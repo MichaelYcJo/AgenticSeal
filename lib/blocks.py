@@ -46,8 +46,8 @@ The same holds for a piece of a line (below) that starts inside one.
 line carries an `uncertain` flag, and a reader reads an uncertain line by
 its own rule alone, without this walk -- its BASE reading. That is the
 whole safety argument: on every line the reader's answer is either its base
-reading or the renderer's, never a third. The contexts the walk calls uncertain, and why
-it cannot be exact there:
+reading or the renderer's, never a third. The contexts the walk calls
+uncertain, and why it cannot be exact there:
 
   - from the first construct-looking line that stands inside a container --
     indented, after a `>` or after a list marker -- or that starts some other
@@ -73,8 +73,8 @@ file's own lines and answers for each reader line by the line it starts in.
 `tests/lib/test_blocks.py`'s `Test_walk_text` holds this to a
 CommonMark parser that shares nothing with it: on every line the walk does
 not call uncertain, over that file's named shapes and a seeded generated
-corpus, the walk and the parser agree. A context is taken off the list above only
-with that case green on documents that hold it.
+corpus, the walk and the parser agree. A context is taken off the list
+above only with that case green on documents that hold it.
 
 Standard library only, and it imports nothing: every reader of a record
 loads it, where loading a skill module would cost each of them a load.
