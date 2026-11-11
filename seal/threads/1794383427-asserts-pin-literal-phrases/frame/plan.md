@@ -44,7 +44,7 @@ The failure scenario of the chosen approach, six months on. A sentence of a rule
 | 1 | Design *Scope* item 1, and items 6, 7, 8 and 9 for group A | S1 over group A, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `bd7abc923` |
 | 2 | Design *Scope* item 2, and items 6, 7, 8 and 9 for group B | S1 over group B, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `2d076f545` |
 | 3 | Design *Scope* item 3, and items 6, 7, 8 and 9 for group C | S1 over group C, S4, S5 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `e2fc0cb74` |
-| 4 | Design *Scope* items 4, 5, 10 and 11, and items 6, 7, 8 and 9 for group D | S1 over group D, S4, S5, S6, S7 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `f25de2b52` |
+| 4 | Design *Scope* items 4, 5, 10 and 11, and items 6, 7, 8 and 9 for group D | S1 over group D, S4, S5, S6, S7 and S9 executed; S2 and S3 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `63a48d5f9` |
 
 Each phase starts from the branch after it has taken `release/v0.37.4` by a merge, never a rebase. A case or a module that merge removed or rewrote is no longer the phase's: the phase rules what stands at its own base and says in its phase record which listed asserts of its group left with the merge. After phase 4 the orchestrator sends the framer the `docs/` lines the four phase records name, in one fold, before the first round.
 

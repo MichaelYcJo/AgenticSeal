@@ -24,14 +24,17 @@ merge at `ce7463471` brought #1524, the pull request of #1483, which removed
 assert at `18a7e18fb`'s `:234` (executed, `git diff 18a7e18fb HEAD`). The
 same merge removed `test_the_documents_name_the_ci_also_row` of
 `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`, as phase 3
-foresaw (executed, `git grep` lists the name nowhere at `ce7463471`). That
+foresaw (executed: `git grep` finds the name under `tests/` at
+`e2fc0cb74` and nowhere under `tests/` at `ce7463471`). That
 case is group C's.
 
 **S1, per module of group D.** The unit is one assert, a distinct
 `path:line`, as in phases 1 to 3. The 112 asserts of the base add up as 52
 kept, 17 removed and 43 not ruled (executed: the ledger summed against
 *The listing* per module). The line numbers below are the base's. The
-last column is *The listing* at `f25de2b52`.
+last column is *The listing* at `f25de2b52`. `63a48d5f9` changed only the
+old-roots module's docstring after it, and the listing gives the same
+totals there (executed).
 
 | Module of `tests/behaviour/` | Listed | Kept | Removed | Not ruled | Listed at `f25de2b52` |
 |---|---|---|---|---|---|
@@ -222,7 +225,7 @@ either (read). The removed `| Signer |` assert read
 `templates/setup/pact.md`, which the rule names, for a table the rule does
 not mention. The phase edits no file under `docs/`. The framer folds the
 line with phase 1's `docs/forms/the-round-record.md:107` and phase 3's
-`docs/running/the-broad-gate.md:33`, both of which stand at `f25de2b52`
+`docs/running/the-broad-gate.md:33`, both of which stand at `63a48d5f9`
 (executed, `grep -n`).
 
 Every other check line naming a module of group D keeps a case that reads
@@ -268,7 +271,7 @@ cells of the design reproduce (executed: 388 and 132).
   base and at `f25de2b52`, and the group split are in the phase's scratch
   directory.
 - S4: `bin/seal rules --check` exits 0, "all 177 check lines in 69 rule
-  files hold." (executed at `f25de2b52`).
+  files hold." (executed at `f25de2b52` and at `63a48d5f9`).
 - S5: `git grep -n -w -F <name> -- . ':!seal/threads' ':!.test_durations'`
   over each removed case, each removed helper with a distinct name, each
   old case name and each `path#unit` of the old-roots module lists nothing
@@ -287,7 +290,7 @@ cells of the design reproduce (executed: 388 and 132).
 - S9: the nineteen edited modules gave 209 passed before `9249b920a` was
   committed, over the same bytes (executed). The boundary set,
   `bin/test tests/text tests/behaviour -q`, gave 1788 passed and 8
-  skipped at `f25de2b52` with this record, `gaps.md`, `changelog.md` and
+  skipped at `63a48d5f9` with this record, `gaps.md`, `changelog.md` and
   the Status cell in the tree (executed). `tests/text/` and
   `tests/behaviour/` are the tree-wide files and hold every module that
   reads an edited one. No module outside them imports from an edited
