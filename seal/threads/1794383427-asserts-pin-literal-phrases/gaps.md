@@ -8,7 +8,10 @@
 | Phase 1: whether each kept literal names a fact and each removed one held wording or a removed design (S2), and that no assert on behaviour changed (S3) | the proofer at review |
 | Phase 2: the suite beyond the boundary set `trail/phases/phase-2.md` names | the orchestrator's broad gate |
 | Phase 2: whether each kept literal names a fact and each removed one held wording or a removed design (S2), and that no assert on behaviour changed (S3) | the proofer at review |
-| Phase 2: which of the frame's two sentences rules an assert that carries #1233's comment and holds words around its code span, design *Scope* item 1 and `frame/plan.md` A7, or design *The criterion*'s example at `tests/behaviour/test_first_setup_asks_once.py:415` | the framer, at the fold after phase 4 |
+| closed Phase 2: which of the frame's two sentences rules an assert that carries #1233's comment and holds words around its code span, design *Scope* item 1 and `frame/plan.md` A7, or design *The criterion*'s example at `tests/behaviour/test_first_setup_asks_once.py:415` | the framer's fold at `a484ff838`: design *Scope* item 1 and plan A7 now say every assert carrying #1233's comment stays as it stands except `:415`, which *A kept literal* names; phase 2 ruled that way, and phase 3 ruled group C by the same sentence |
+| Phase 3: the suite beyond the boundary set `trail/phases/phase-3.md` names | the orchestrator's broad gate |
+| Phase 3: whether each kept literal names a fact and each removed one held wording or a removed design (S2), and that no assert on behaviour changed (S3) | the proofer at review |
+| Phase 3: how the merge of `origin/release/v0.37.4` meets this branch, where #1524 changed `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` in the hunks phase 3 also changed | the orchestrator, at the merge before phase 4 |
 
 ## Not done
 
@@ -23,3 +26,11 @@ in the subsection, so `seal mutate` over one of them survived
 (`trail/phases/phase-2.md`). No assert was written to tell the three
 apart, because the design accepts that cost as its third failure scenario
 and a new assert is beyond the phase.
+
+Phase 3: the branch was not merged with `origin/release/v0.37.4`, which
+stands two commits past the release branch this branch took (#1523 and
+#1524). A merge is no write of the crafter's, so the phase ruled group C at
+`a484ff838` and names the overlap in `trail/phases/phase-3.md`. The kept
+`` `BROAD GATE FAILED` `` assert holds on either of the two places that
+spelling stands in its section, so `seal mutate` over one survived. No
+assert was written to tell them apart, for the reason phase 2 gives above.
