@@ -189,7 +189,7 @@ clause in the bullet *The judgments earlier settles removed* of
 `skills/settle/SKILL.md`, which lists what is named as not read.
 
 ```seal
-verdict: fixed c719f1de8
+verdict: fixed 0a354b5a7
 answer: The finding holds: the `[beside]` case named the plain plan with `name/frame/plan.md missing` before the fix. The record's fix was applied after reading it: `NO_ONE_LINE` names a plan whose path holds a newline before `blobs` is called, and that plan is never asked for (`0a354b5a7`). The `[alone]` parameter, added at `c719f1de8`, holds the branch where it is the only plan left. The docstrings and the skill bullet say the same; the frame's sentence that an id holds no newline goes to the framer.
 ```
 
