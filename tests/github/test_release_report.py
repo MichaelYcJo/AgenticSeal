@@ -150,10 +150,10 @@ class Test_module_rows:
             "| `tests/test_gone.py` | 1 | 5.0 | — | — |",
         ]
 
-    def test_accepts_a_side_with_no_union_as_no_reading_in_its_cells(self):
+    def test_refuses_a_reading_to_a_side_with_no_union(self):
         """S5: a file the other union prices reads `no union found` on the
-        side that has none, which a file absent from a present union does
-        not."""
+        side that has none, never a count or the `—` of a file absent from a
+        present union."""
         assert report.module_rows(None, NOW) == [
             "| `tests/test_new.py` | no union found | no union found | 1 | 9.0 |",
             "| `tests/test_a.py` | no union found | no union found | 1 | 1.5 |",
