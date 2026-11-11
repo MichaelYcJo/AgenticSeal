@@ -13,7 +13,7 @@ and the scripts load it through `lib/sibling.py`.
 The fence delimiter rule and the GFM line split are `lib/blocks.py`'s,
 imported beside it. `lib/blocks.py#walk` is the other walk of a markdown
 file, kept apart from `live_lines` on purpose: a row the walk's readers read
-is safe at its old reading where the walk is unsure.
+is safe at its base reading where the walk is unsure.
 
 Standard library only, and Python 3.9 syntax: `chain_check.py` and the
 `Stop` hook's `seal_stamp.py` reach it on whatever `python3` starts them.
@@ -25,7 +25,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# The fence delimiter rule, CommonMark 4.5 (#491, #444, #584): `fence_opener`
+# The fence delimiter rule, CommonMark 4.5: `fence_opener`
 # says which fence a line opens and `fence_closes` whether a line closes it.
 # The readers of this module ask them, `fence_spans` and through it
 # `blank_fences`, `_scan` and through it `liveness`
@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `lib/blocks.py#walk` adds a line-start HTML comment block to it for
 # `lib/config.py`, `lib/routing.py` and `lib/fields.py`, apart
-# from `live_lines` on purpose, since a row they read is safe at its old reading
+# from `live_lines` on purpose, since a row they read is safe at its base reading
 # where the walk is unsure, and `fields.py` refuses a fence line the walk cannot
 # place. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
@@ -47,7 +47,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
 #
-# Where GFM ends a line: LF, CR or CRLF, and nowhere else (#664). Every reader
+# Where GFM ends a line: LF, CR or CRLF, and nowhere else. Every reader
 # of markdown or record text reads its lines through `gfm_lines`, because two
 # readers of one text that split it two ways disagree about which line an
 # index names; the `splitlines` census in `tests/censuses.py` holds the
@@ -73,7 +73,7 @@ SEPARATOR = re.compile(r"^:?-+:?$")
 # for the callers that read files other than records: it holds the comment
 # state itself, so neither is looked for while it is inside a fence or a code
 # span. A record carries no comment, and `comment_lines` finds a record line
-# that begins with OPENER for the reader that refuses it (#1012).
+# that begins with OPENER for the reader that refuses it.
 OPENER = "<!--"
 CLOSER = "-->"
 # A run of backticks. `live_lines` needs it as it scans for code spans.
@@ -112,7 +112,7 @@ def fence_spans(lines):
     included, with `last` None for a block that is never closed.
 
     The walk where only the fence delimiter rule decides where a fence
-    opens: no comment state and no code-span state is kept (#1012). In this
+    opens: no comment state and no code-span state is kept. In this
     module `blank_fences` walks it, and `readable` through `blank_fences`.
     Callers in other scripts are found with `git grep`, and no list of them
     is kept here to go stale. A walk that
@@ -160,15 +160,14 @@ def blank_fences(lines):
 def comment_lines(lines):
     """The indices of LINES whose text, leading whitespace removed, begins
     with `OPENER` — the lines a reader of a record refuses with
-    `COMMENT_LINE` (#1012).
+    `COMMENT_LINE`.
 
     LINES are `readable`'s, so a line inside a fence is blank and never
     found. A record carries no HTML comment, and its readers keep no comment
     state, so a comment they met would read as text; this is where they
     find one instead. An `OPENER` anywhere later in a line is text, in a code
     span or not, and is not found: refusing it would need a code-span state
-    in `readable` and every reader of a record through it, the state #1000
-    broke."""
+    in `readable` and every reader of a record through it."""
     return [n for n, line in enumerate(lines) if line.lstrip().startswith(OPENER)]
 
 
@@ -186,11 +185,11 @@ def liveness(lines, spans_cross_lines, comments=True):
 
     `comments` False keeps no comment state, so `OPENER` is text: the
     reading of a record, which carries no comment, for
-    `rule_changes.py#parse` (#1012). Every caller that reads a file other
+    `rule_changes.py#parse`. Every caller that reads a file other
     than a record keeps the default.
 
     The flags are read from `_scan`, the one walk of fences, comments and
-    code spans, which `live_pieces` reads too (#1185).
+    code spans, which `live_pieces` reads too.
     """
     return [begins for begins, _pieces in _scan(lines, spans_cross_lines, comments)]
 
@@ -205,7 +204,7 @@ def live_pieces(lines, spans_cross_lines, comments=True):
     backtick run that opens no span is live text and stays inside its
     piece; a span's backticks and a comment's delimiters stand in none.
     `payload_meter.py#imports_of` reads a `CLAUDE.md`'s imports here, with
-    `spans_cross_lines=True` (#1185). It reads from `_scan`, the walk
+    `spans_cross_lines=True`. It reads from `_scan`, the walk
     `liveness` reads, so the two never disagree about where a line stands.
     """
     return [pieces for _begins, pieces in _scan(lines, spans_cross_lines, comments)]
@@ -296,8 +295,7 @@ def _scan(lines, spans_cross_lines, comments):
 
 def heading_level(line):
     """The level of the ATX heading LINE is, 1 to 6, or None where it is
-    not one — **the one spelling of a markdown heading in this plugin**
-    (#867).
+    not one — **the one spelling of a markdown heading in this plugin**.
 
     CommonMark 4.2: at most three spaces of indentation, then one to six
     `#`, then a space, a tab or the end of the line. So `#hello`, `#######
@@ -315,17 +313,10 @@ def heading_level(line):
     under its `---` closer, which GitHub renders as a table.
     `tests/lib/test_lines.py`'s `Test_heading_level` holds this to
     markdown-it's ATX headings, through `tests/commonmark_oracle.py`, over
-    the frame's shapes and a generated corpus;
+    that file's named shapes and a generated corpus;
     `tests/behaviour/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
     `.md` file to them, and says so the day a setext heading appears in a
     body.
-
-    It used to be spelled in five places: here inline in
-    `_paragraph_ends_at`, as `startswith("#")` in `headings` and in
-    `chain_check.py`, as `^#{1,6}\\s` in the checker and the payload meter,
-    and as a pattern in `fold_check.py`; the first two read a `#NNN`-led
-    line as a heading and ended a `## Not verified` or `## Verdicts` section
-    there.
     """
     indent = len(line) - len(line.lstrip(" "))
     if indent > 3:
@@ -354,11 +345,11 @@ def _paragraph_ends_at(line):
     which a person sees. Usually, not always: reaching further also changes
     which runs pair with which, and a run that consumes a partner early
     leaves a later run with none, so a later line goes live rather than
-    parked. Measured 2026-09-22 with the setext underline missing, which it
-    was until round 6: `["text `", "===", "text `", "plain prose", "text `"]`
-    read its last two lines live where the format parks them. The rule round
-    5 removed decided the answer by itself, so its missing stops removed a
-    directory; this one only leans, but it leans in both directions. **Add a
+    parked. Without the setext underline stop, `["text `", "===", "text `",
+    "plain prose", "text `"]` reads its last two lines live where the format
+    parks them. A rule that decided the answer by this alone would let a
+    missing stop remove a directory; this one only leans, but it leans in
+    both directions. **Add a
     stop when the format has one, and stop nowhere the format does not** — an
     over-stop shortens the reach, which is the direction that goes live.
     """
@@ -370,13 +361,12 @@ def _paragraph_ends_at(line):
     # `>` is the format's own rule (CommonMark 5.1).
     if s.startswith(("|", ">")):
         return True
-    # CommonMark 4.2, asked of the one spelling, `heading_level` (#867).
-    # `s.startswith("#")` alone stopped on `#hello` and on `####### seven`,
+    # CommonMark 4.2, asked of the one spelling, `heading_level`.
+    # `s.startswith("#")` alone would stop on `#hello` and on `####### seven`,
     # which are paragraph text — and on the issue references this repository
-    # writes constantly, 944 lines of them (round 6, finding 4). Four spaces
-    # is paragraph text too, a lazy continuation line, and the oracle
-    # `tests/lib/test_lines.py#block_ends_at` has bounded it all
-    # along (#491's round-7 comment).
+    # writes constantly. Four spaces is paragraph text too, a lazy
+    # continuation line, and the oracle `tests/lib/test_lines.py#block_ends_at`
+    # bounds it.
     if heading_level(line) is not None:
         return True
     # Only an OPENER interrupts a paragraph, and `fence_opener` is the rule.
@@ -436,7 +426,7 @@ def live_lines(lines, comments=True):
     what is done about it.** A backtick run with no partner on its own line
     is literal text if the paragraph ends before its partner arrives, and a
     code span if it does not. Knowing which needs to know where the block
-    ends, and every rule this reader has had for that was a guess:
+    ends, and any rule for that is a guess:
 
     - Reading A: the run is **not** a span. It is literal, and comment
       delimiters after it on later lines are real delimiters.
@@ -450,16 +440,14 @@ def live_lines(lines, comments=True):
     The cost is a marker or a heading not read, which a person sees as a
     refusal and can act on.
 
-    **This is what five review rounds cost.** Rounds 1 to 4 each guessed at
-    the comment state from a stateless pass; the scan that replaced them
-    guessed instead at markdown's block structure, and round 5 found the
-    shape that guess got wrong — a paragraph carrying an unclosed backtick,
-    a draft opener on the next line, the closing backtick after it, and a
-    marker below, which read live. A guess at a block model fails for the same reason
-    a guess at the comment state did, one level down. Computing both readings
-    is what ends the class: there is no third thing to be wrong about.
-    `plan.md` *Alternatives considered* carries the four formulations of the
-    pre-pass and this one's own predecessor.
+    **Both readings, and not a better guess.** A stateless pass that guesses
+    the comment state, and a scan that guesses markdown's block structure,
+    each meet a shape they read wrong: a paragraph carrying an unclosed
+    backtick, a draft opener on the next line, the closing backtick after
+    it, and a marker below, which a guess at the block reads live. A guess at
+    a block model fails for the same reason a guess at the comment state
+    does, one level down. Computing both readings is what ends the class:
+    there is no third thing to be wrong about.
 
     **What it reads, and what it does not model.** Inside a fence nothing is
     read but the closing fence; inside a comment nothing is markdown, so
@@ -473,12 +461,12 @@ def live_lines(lines, comments=True):
 
     **What this may not touch.** `blank_fences` and `readable` keep no
     comment state, because a record carries no comment, and they serve the
-    readers of a record (#1012). Neither is on this path. What this scan and
+    readers of a record. Neither is on this path. What this scan and
     `blank_fences` DO share is the fence delimiter, `fence_opener` and
-    `fence_closes`, because two spellings of it is what #491 found: the
-    three-space bound had landed here and not one function over. They share
+    `fence_closes`, because two spellings of it drift: a change to the
+    three-space bound lands in one and not one function over. They share
     the line split too: `readable` and every caller that hands this lines
-    split the text with `gfm_lines` (#664).
+    split the text with `gfm_lines`.
     """
     lines = list(lines)
     literal = liveness(lines, spans_cross_lines=False, comments=comments)
@@ -499,7 +487,7 @@ def readable(text):
 
     **A comment is text here.** A record carries no HTML comment, so this
     keeps no comment state, and the reader of a record refuses a line that
-    begins with `OPENER` at its line (`comment_lines`, #1012).
+    begins with `OPENER` at its line (`comment_lines`).
 
     Every read of a record starts here, on disk and at a ref alike, so every
     reader counts the same table. Its lines are `gfm_lines(text)`, so an
@@ -510,9 +498,9 @@ def readable(text):
 
 def headings(lines):
     """(index, text) for every heading in already-`readable` lines, by the
-    one rule, `heading_level` (#867). `startswith("#")` read a wrapped line
-    beginning `#120)` as a heading, so a `## Not verified` section ended
-    there and the rows below it went uncounted — the permissive direction."""
+    one rule, `heading_level`. `startswith("#")` would read a wrapped line
+    beginning `#120)` as a heading, so a `## Not verified` section would end
+    there and the rows below it go uncounted — the permissive direction."""
     return [
         (i, line.rstrip())
         for i, line in enumerate(lines)
