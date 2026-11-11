@@ -28,12 +28,13 @@ in one. Each definition names its own leaf and cites rule 17. A removal
 written with a variable in its path is a command Claude Code holds for a
 person (#1503), so no section of the contract and no agent definition
 writes `rm -rf`. The one removal left is the orchestrator's, of the work
-item's directory once the pull request is open, in one `rm -rf` with its
-path written out (`skills/implement/orchestration.md` *Orchestrator: the
-order inside a ticket*), which no agent preloads. This file pins rule
-17's sentences, the directory each definition names, and that absence,
-because a definition is a sentence an agent reads and a sentence can be
-dropped without a case going red.
+item's directory once the pull request is open and again after each repair
+it pushes to it, in one `rm -rf` with its path written out
+(`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*), which no agent preloads. This file pins rule 17's sentences, the
+directory each definition names, that absence, and the directory the
+orchestrator's removal names, because a definition is a sentence an agent
+reads and a sentence can be dropped without a case going red.
 
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
@@ -53,6 +54,7 @@ CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
 REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
+IMPLEMENT_ORCH = os.path.join(ROOT, "skills", "implement", "orchestration.md")
 
 CLONE = "<scratchpad>/<work-item-id>/round-<n>/clone"
 ROUND_HOME = "<scratchpad>/<work-item-id>/round-<n>/"
@@ -60,6 +62,7 @@ FRAME_HOME = "<scratchpad>/<work-item-id>/frame/"
 PHASE_HOME = "<scratchpad>/<work-item-id>/phase-<n>/"
 FIX_HOME = "<scratchpad>/<work-item-id>/fix-<n>/"
 LEAF_HOME = "<scratchpad>/<work-item-id>/<leaf>/"
+WORK_ITEM_HOME = "<scratchpad>/<work-item-id>/"
 
 
 def section(path, heading):
@@ -156,13 +159,33 @@ def test_no_contract_section_or_definition_writes_a_removal():
     variable path, which Claude Code held for the owner. No agent removes
     its scratch directory now (contract rule 17), so no section of the
     contract and no agent definition writes the command. The orchestrator's
-    one removal stands in a skill no agent preloads."""
+    removal, after the pull request opens and after each later repair of
+    it, stands in a skill no agent preloads."""
     for path in [CONTRACT, *AGENTS]:
         name = os.path.relpath(path, ROOT)
         assert "rm -rf" not in read(path), (
             f"{name} writes `rm -rf`, and no agent removes its scratch "
             "directory (contract rule 17)"
         )
+
+
+def test_the_orchestrators_one_removal_names_the_work_items_directory():
+    """#1445 S6, #1503. The one removal left is the orchestrator's, once the
+    pull request is open, and the same command again after each repair it
+    pushes to the open pull request. A removal that named the scratchpad
+    took every agent's files with it in the 0.37.0 run, so the sentence
+    names the work item's directory, written out, and says nothing else of
+    the scratchpad goes."""
+    where = section(IMPLEMENT_ORCH, "Orchestrator: the order inside a ticket")
+    assert f"`{WORK_ITEM_HOME}`, in one `rm -rf`" in where, (
+        "the orchestrator's removal does not name the work item's directory "
+        f"as `{WORK_ITEM_HOME}`, so the scratchpad reads as the directory "
+        "it removes"
+    )
+    assert "removes nothing else of the scratchpad" in where, (
+        "the orchestrator's removal does not say it removes nothing else of "
+        "the scratchpad, which every agent of the session shares"
+    )
 
 
 def test_the_gates_capture_file_carries_the_work_item_id():

@@ -373,7 +373,8 @@ zsh 가 똑같이 읽는 평범한 POSIX 문법으로 명령을 씁니다
 `<scratchpad>/<work-item-id>/` 아래 자기 디렉터리에 두고, crafter 는 단계와
 fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자기 디렉터리도
 세션의 scratchpad 도 지우지 않습니다. orchestrator 가 pull request 를 연
-뒤에 그 작업 항목의 디렉터리를 한 번 지웁니다.
+뒤에 그 작업 항목의 디렉터리를 지우고, 그 뒤 pull request 를 고칠 때마다
+다시 지웁니다.
 
 두 훅 모두 사용자의 코드나 경로, 프롬프트를 어디로도 보내지 않습니다.
 `SessionStart` 훅이 찍는 것은 세션이 연 파일처럼 그 세션의 컨텍스트에 들어갈

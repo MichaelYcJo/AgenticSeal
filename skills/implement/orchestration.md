@@ -47,7 +47,10 @@ lifetimes* states (contract rule 11).
    the orchestrator removes the work item's scratch directory,
    `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
    out in full, with no variable in it, and removes nothing else of the
-   scratchpad. No agent removes a scratch directory (contract rule 17).
+   scratchpad. It runs the same command again after each repair it pushes
+   to the open pull request, a merge from the base among them, because the
+   repair's round and audit clone again. No agent removes a scratch
+   directory (contract rule 17).
 3. The pull request body carries `Closes #N`, from the work item's `pr.md`
    where the work runs through the review chain; the release workflow
    closes the ticket when the release reaches `main`.
