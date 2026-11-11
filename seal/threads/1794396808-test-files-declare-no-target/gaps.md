@@ -14,6 +14,8 @@
 | Phase 4: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, `6adfab9cc`'s binding alignment with its 11 rewritten cases, and whether the seven S3 cases belong under `Test_main`'s `routing-read-first` rule | the proofer at review |
 | Phase 5: the suite beyond the boundary set `trail/phases/phase-5.md` names | the orchestrator's broad gate |
 | Phase 5: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, the three moved cases that read a document to build a script's input ruled kind M among them, and `81ec9ed53`'s binding alignment with its one rewritten case | the proofer at review |
+| Phase 6: the suite beyond the boundary set `trail/phases/phase-6.md` names | the orchestrator's broad gate |
+| Phase 6: each kept and removed assert of the range against #1488's *The criterion*, and each reason line's ground and each of the three D files against design *The kinds* | the proofer at review |
 
 ## Not done
 
@@ -44,3 +46,11 @@ Each case the design sends there holds a workflow's install line or
 design *The kinds* does not make kind M. `trail/phases/phase-5.md` names each
 ruling that differs from design *The files*, and phases 6 and 7 file those
 files.
+
+Phase 6: `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`
+holds three cases of `tests/gfm_table_oracle.py`, a helper of the suite
+with no module file. Design *The kinds* names no kind for such a case, so
+the file carries a reason line that states its ground. Whether the frame
+gives such a case a kind is the framer's to fold.
+`trail/phases/phase-6.md` names this and the five other rows of design
+*The files* that do not hold at `fa911da9c`.
