@@ -230,8 +230,8 @@ does not parse, an unordered pair and an open row are all shown.
    too: each released `routing.md` whose *Why this way* says the orchestrator
    chose its rows, and each released commit whose trailer reads
    `Seal-Routing: no work item`, which `git log --grep` lists, with the
-   grounds its body gives. A settle's commit or a durations refresh carries
-   that trailer with no route chosen and is not one. `git log --grep` on a
+   grounds its body gives. A settle's commit carries that trailer with no
+   route chosen and is not one. `git log --grep` on a
    commit's short hash lists the later commits that name it, which is where
    a defect such a route let through shows. Where one kind of route keeps
    letting defects through, the section to rewrite is

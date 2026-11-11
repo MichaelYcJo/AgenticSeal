@@ -7,10 +7,10 @@ The summary hook is driven through one inner pytest run, built once for the
 module, that loads this repository's `conftest.py` with the value lowered
 so the run takes a second.
 
-The workflow readers, `code_line`, `workflow_steps`, `workflow_step` and
-`step_running`, are driven over one fixture workflow, and the block that
-takes `gh`'s login away at import is read from a child process and asked of
-`gh` itself. Those cases came from two files of their own in #942's phase 7.
+`code_line`, which takes a shell comment off a line of a `run:` script, is
+driven over lines of its own, and the block that takes `gh`'s login away at
+import is read from a child process and asked of `gh` itself. Those cases
+came from two files of their own in #942's phase 7.
 The cases of `on_disk`, `shrunken_corpus`, `decline_if_shrunken` and
 `build_tracked_tree` came from `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`
 in #942's round 3 fix pass, and that file keeps its sweep across files.
@@ -45,9 +45,6 @@ from conftest import (
     on_disk,
     posix_id,
     shrunken_corpus,
-    step_running,
-    workflow_step,
-    workflow_steps,
 )
 
 TARGET = "tests/conftest.py"
@@ -101,39 +98,6 @@ def run_probe(env):
     assert r.returncode == 0, r.stderr
     return json.loads(r.stdout.strip().splitlines()[-1])
 
-
-# The workflow readers' fixture (#482, #462): a comment naming the script
-# above an unrelated step, the real step below it, a step with no name, a
-# quoted name and a second job. No YAML parser is installed where this suite
-# runs, so every case that reads `.github/workflows/*.yml` reads text through
-# `code_line`, `workflow_steps`, `workflow_step` and `step_running`, driven
-# here over this fixture. Neutral values only
-# (`CONTRIBUTING.md` *House rules*, *No real identifiers*).
-WORKFLOW = """\
-jobs:
-  release:
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # the base is diffed
-
-      # The step below runs correction_check.py, and this comment is not it.
-      - name: an unrelated step
-        run: echo unrelated
-
-      - name: "the real step"
-        shell: bash
-        run: |
-          if [ "${{ github.base_ref }}" = "main" ]; then
-            echo "skipped"; exit 0
-          fi
-
-          python3 correction_check.py --range "x...HEAD"  # the range
-  other:
-    steps:
-      - name: a step of another job
-        run: echo other
-"""
 
 INNER_CONFTEST = """\
 import importlib.util
@@ -418,29 +382,6 @@ class Test_module:
         code there, where YAML ends a plain scalar and the shell stops reading."""
         assert code_line(line) == code, repr(code_line(line))
 
-    def test_a_step_is_found_by_its_name_and_ends_at_the_next_one(self):
-        """`workflow_step` reads the name with its quotes off (`_unquote`),
-        and the block stops at the next step of its list or at the next job."""
-        step = workflow_step(WORKFLOW, "the real step")
-        assert 'github.base_ref }}" = "main"' in step, step
-        assert "exit 0" in step, step
-        assert "a step of another job" not in step, step
-        assert "echo other" not in step, step
-        unrelated = workflow_step(WORKFLOW, "an unrelated step")
-        assert [ln.strip() for ln in unrelated.splitlines() if ln.strip()] == [
-            "- name: an unrelated step",
-            "run: echo unrelated",
-        ], unrelated
-
-    def test_every_step_of_every_job_is_read_and_a_nameless_one_has_none(self):
-        names = [name for name, _ in workflow_steps(WORKFLOW)]
-        assert names == [
-            None,
-            "an unrelated step",
-            "the real step",
-            "a step of another job",
-        ], names
-
     def test_the_conftest_takes_every_gh_login_away(self, tmp_path):
         """A6, structural. With all four token variables set and `GH_CONFIG_DIR`
         naming a directory that holds a login, the conftest's import leaves the
@@ -534,34 +475,6 @@ class Test_module:
         assert posix_id(ntpath.join("agents", "framer.md"), "\\") == "agents/framer.md"
         assert posix_id("agents/framer.md") == "agents/framer.md"
         assert posix_id(None) is None
-
-
-class Test_step_running:
-    def test_accepts_the_step_a_comment_naming_its_script_cannot_move(self):
-        """B4, #482. The comment above the unrelated step names
-        `correction_check.py`, and the step that runs it is found anyway: only
-        code lines are asked whether they name the script."""
-        step = step_running(WORKFLOW, "correction_check.py")
-        assert "the real step" in step, step
-        assert "echo unrelated" not in step, step
-        assert '--range "x...HEAD"' in step, step
-        # The step's code keeps its blank line, and loses its trailing comment.
-        assert "the range" not in step, step
-
-    @pytest.mark.parametrize(
-        "call",
-        [
-            lambda: workflow_step(WORKFLOW, "no such step"),
-            lambda: step_running(WORKFLOW, "no_such_script.py"),
-            # `echo` is in three steps' code: a region that is not one step.
-            lambda: step_running(WORKFLOW, "echo"),
-        ],
-    )
-    def test_refuses_a_layout_that_is_not_exactly_one_step(self, call):
-        """A step layout the reader does not model fails loudly rather than
-        reading the wrong region."""
-        with pytest.raises(AssertionError):
-            call()
 
 
 class Test_census_case:

@@ -23,11 +23,11 @@ and its red run is recorded in that work item's ledger row C2.
 """
 
 import os
-import re
 
 import pytest
 from conftest import ROOT, read
 from test_tracker_labels import labels_module
+from workflows import load
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "close-issues-on-release.yml")
 OWNER = "docs/releasing/issues-and-milestones.md"
@@ -95,10 +95,14 @@ def test_a_failed_step_cannot_skip_the_independent_steps_after_it(step):
     was skipped, because a step with no `if:` runs only when every step before
     it succeeded. Neither step needs a step after checkout to have succeeded,
     so a failure before them must not decide whether they run."""
-    steps = re.split(r"^      - ", read(WORKFLOW), flags=re.M)
-    found = [s for s in steps if s.startswith(f"name: {step}\n")]
+    found = [
+        named
+        for job in load(WORKFLOW)["jobs"].values()
+        for named in job["steps"]
+        if named.get("name") == step
+    ]
     assert len(found) == 1, f"the workflow has {len(found)} steps named {step!r}"
-    assert re.search(r"^        if: \$\{\{ !cancelled\(\) \}\}\s*$", found[0], re.M), (
+    assert found[0].get("if") == "${{ !cancelled() }}", (
         f"{step!r} runs only when every step before it succeeded, so a failed "
         "earlier step skips it again"
     )

@@ -18,7 +18,6 @@ import os
 import shutil
 import subprocess
 import sys
-import textwrap
 
 import pytest
 from conftest import (
@@ -29,9 +28,9 @@ from conftest import (
     git,
     mark_root,
     symlink_or_skip,
-    workflow_steps,
     write,
 )
+from workflows import load
 
 TARGET = "templates/setup/hygiene.yml"
 
@@ -106,24 +105,16 @@ BASES = {
 }
 
 
-def run_blocks(text):
-    """`(step name, script)` for every step of TEXT that has a `run: |`
-    block, the script dedented as the runner hands it to the shell."""
-    out = []
-    for name, block in workflow_steps(text):
-        lines = block.split("\n")
-        at = [i for i, line in enumerate(lines) if line.strip() == "run: |"]
-        if not at:
-            continue
-        assert len(at) == 1, f"{name!r} has {len(at)} `run: |` lines"
-        floor = len(lines[at[0]]) - len(lines[at[0]].lstrip(" "))
-        body = []
-        for line in lines[at[0] + 1 :]:
-            if line.strip() and len(line) - len(line.lstrip(" ")) <= floor:
-                break
-            body.append(line)
-        out.append((name, textwrap.dedent("\n".join(body)).strip("\n") + "\n"))
-    return out
+def run_blocks(workflow):
+    """`(step name, script)` for every step of the loaded WORKFLOW that runs
+    a script, the script as the parser returns it and the runner hands it
+    to the shell."""
+    return [
+        (step.get("name"), step["run"])
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        if "run" in step
+    ]
 
 
 def without_this_run(environ):
@@ -218,15 +209,15 @@ def runner_env(tmp_path, branch=BRANCH):
 
 
 def template():
-    with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as handle:
-        return handle.read()
+    """The template, loaded."""
+    return load(os.path.join(*TARGET.split("/")))
 
 
-def steps_to_run(text):
-    """Every `run:` block of TEXT but the clone, which has to be the one step
-    holding `git clone`: a second such step cannot run offline, and it fails
-    the case rather than being skipped."""
-    blocks = run_blocks(text)
+def steps_to_run(workflow):
+    """Every `run:` script of WORKFLOW but the clone, which has to be the one
+    step holding `git clone`: a second such step cannot run offline, and it
+    fails the case rather than being skipped."""
+    blocks = run_blocks(workflow)
     clones = [name for name, script in blocks if CLONE in script]
     assert len(clones) == 1, f"{len(clones)} steps hold {CLONE!r}: {clones}"
     return [(name, script) for name, script in blocks if CLONE not in script]
@@ -277,12 +268,14 @@ class Test_a_pull_request_that_declares_nothing_owes_nothing:
     def test_refuses_a_template_whose_second_step_needs_the_network(self):
         """A step holding `git clone` beside the plugin's own is refused by
         the count, not skipped."""
-        doubled = template() + (
-            "\n"
-            "      - name: a second clone\n"
-            "        shell: bash\n"
-            "        run: |\n"
-            "          git clone https://example.com/x.git x\n"
+        doubled = template()
+        (job,) = doubled["jobs"].values()
+        job["steps"].append(
+            {
+                "name": "a second clone",
+                "shell": "bash",
+                "run": "git clone https://example.com/x.git x\n",
+            }
         )
         with pytest.raises(AssertionError, match="2 steps hold 'git clone'"):
             steps_to_run(doubled)

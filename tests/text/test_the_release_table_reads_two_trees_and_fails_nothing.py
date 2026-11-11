@@ -10,46 +10,76 @@ here.
 """
 
 import os
-import re
 
-from conftest import ROOT
+from conftest import code_lines
+from workflows import load
 
-WORKFLOW = os.path.join(ROOT, ".github", "workflows", "test.yml")
+WORKFLOW = os.path.join(".github", "workflows", "test.yml")
 
 
-def job_block(text, name):
-    """The lines of one job of a workflow, its header through the next job."""
-    found = re.search(rf"(?ms)^  {re.escape(name)}:\n(.*?)(?=^  \S|\Z)", text)
-    assert found, f"no job `{name}` in the workflow"
-    return found.group(1)
+def release_report():
+    """The tests workflow's `release-report` job, loaded."""
+    return load(WORKFLOW)["jobs"]["release-report"]
+
+
+def scripts(job):
+    """JOB's `run:` scripts, joined, each with its shell comments off."""
+    return "\n".join(
+        "\n".join(code_lines(step["run"])) for step in job["steps"] if "run" in step
+    )
 
 
 def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
-    """S9's job: after the suite whatever its verdict, on a pull request into
-    `main` alone, with the whole history to find the tag in, and its output
-    appended to the step summary."""
-    with open(WORKFLOW, encoding="utf-8") as handle:
-        text = handle.read()
-    code = "\n".join(
-        line for line in text.splitlines() if not line.lstrip().startswith("#")
+    """S9's job: after the suite and the union whatever their verdicts, on a
+    pull request into `main` alone, with the whole history to find the tag
+    in, and its output appended to the step summary."""
+    job = release_report()
+    assert job["needs"] == ["pytest", "durations"], job["needs"]
+    assert job["if"] == "${{ !cancelled() && github.base_ref == 'main' }}", job["if"]
+    checkouts = [
+        step
+        for step in job["steps"]
+        if step.get("uses", "").startswith("actions/checkout")
+    ]
+    assert [step.get("with", {}).get("fetch-depth") for step in checkouts] == ["0"], (
+        checkouts
     )
-    block = job_block(code, "release-report")
-    assert "needs: pytest" in block, block
-    assert "if: ${{ !cancelled() && github.base_ref == 'main' }}" in block, block
-    assert "fetch-depth: 0" in block, block
-    assert "python .github/scripts/release_report.py" in block, block
-    assert '>> "$GITHUB_STEP_SUMMARY"' in block, block
+    script = scripts(job)
+    assert "python .github/scripts/release_report.py" in script, script
+    assert '>> "$GITHUB_STEP_SUMMARY"' in script, script
 
 
 def test_the_table_reads_the_last_tag_s_whole_tree():
     """`--at` is the tag's tree checked out whole: `release_report.py` reads
-    `.test_durations` and `CLAUDE.md` there, and an archive of the tag leaves
-    out every path `.gitattributes` marks `export-ignore`."""
-    with open(WORKFLOW, encoding="utf-8") as handle:
-        text = handle.read()
-    code = "\n".join(
-        line for line in text.splitlines() if not line.lstrip().startswith("#")
+    `CLAUDE.md` there, and an archive of the tag leaves out every path
+    `.gitattributes` marks `export-ignore`."""
+    script = scripts(release_report())
+    assert 'git worktree add --detach "$RUNNER_TEMP/at" "$tag"' in script, script
+    assert "git archive" not in script, script
+
+
+def test_the_table_reads_this_run_s_union_and_the_tag_s_push_run_s():
+    """S5 of #1486: the unions are run artifacts, not tree files. This run's
+    comes from the `durations` job's `test-durations` artifact, and a step
+    that finds none goes on, since a refused union uploads nothing. The tag's
+    comes from the push run the job lists are read from, and a download that
+    finds none goes on as well. The script reads each as `--durations` and
+    `--durations-at`, an absent one as no reading."""
+    job = release_report()
+    (download,) = [
+        step
+        for step in job["steps"]
+        if step.get("uses", "").startswith("actions/download-artifact@")
+    ]
+    assert download["with"].get("name") == "test-durations", download
+    assert download["with"].get("path") == "${{ runner.temp }}/durations", download
+    assert download.get("continue-on-error") == "true", download
+    script = scripts(job)
+    assert (
+        'gh run download "$run" -n test-durations -D "$RUNNER_TEMP/durations-at"'
+        " || true"
+    ) in script, script
+    assert '--durations "$RUNNER_TEMP/durations/.test_durations"' in script, script
+    assert '--durations-at "$RUNNER_TEMP/durations-at/.test_durations"' in script, (
+        script
     )
-    block = job_block(code, "release-report")
-    assert 'git worktree add --detach "$RUNNER_TEMP/at" "$tag"' in block, block
-    assert "git archive" not in block, block
