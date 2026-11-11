@@ -19,7 +19,7 @@ The tree as read at `c9ed2c6ee`.
 | **G11** The release's other open work items (executed: `git diff --name-only 18a7e18fb...<branch>` for each of the five branches; `gh issue view` for #1483, #1486, #1487 and #1489) | No sibling has committed a frame. #1498's branch changes `tests/censuses.py` and `.claude-plugin/plugin.json` and no file of the two directories. `frame/plan.md` *Overlap with the release* states where the others meet this work. |
 | **G12** The latest release's `### Process changes` (executed: `gh release view --json body`, v0.37.3) | Its rows move agent rules between files. Two bear on this build: a fix pass opens `skills/implement/fix-pass.md`, and the agent definitions and the contract carry no check line, so no line of *Scope* item 8 stands in `agents/` or `skills/agent-contract/SKILL.md`. |
 | **G13** `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* (read) | The work writes a `changelog.md`. Its diff changes none of the files that owe a `### Process changes` table, so the fragment carries none. |
-| **G14** `skills/settle/scripts/rule_changes.py#parse` (executed: `parse(<this file's text>, "docs")` from a `git clone --no-local` of the worktree under the framer's scratch directory) | `parse` returns the three `change` items with no error and nothing unread. Each `from`, whitespace collapsed, stands exactly once in its section at `c9ed2c6ee` (executed). |
+| **G14** `skills/settle/scripts/rule_changes.py#parse` (executed: `parse(<this file's text>, "docs")` from a `git clone --no-local` of the worktree under the framer's scratch directory) | `parse` returns every operation of `## Rule changes` with no error and nothing unread, at the frame and again after the fold that followed phase 4, at `92337c2f9`. Each `from`, whitespace collapsed, stands exactly once in its section at the commit it was read at (executed). |
 
 ## Scope
 
@@ -33,9 +33,10 @@ In:
 6. After a ruling, a case left with no assert is removed. A helper, constant, fixture or import that nothing uses any more is removed with it. A module left with no `test_*` function is deleted, unless a check line under `docs/` names it. That module stays as a file, and the phase names it in its `trail/phases/phase-N.md`.
 7. Each docstring or comment that states what a removed assert pinned, or that cites a removed case, helper or module, is rewritten in place to state what the code now holds (contract rule 19). `tests/behaviour/test_both_editions_carry_the_same_folds.py:94` is one (G5).
 8. Each check line outside `docs/` that names a module a phase deleted, or a module that keeps no case reading the line's rule after the phase, is edited in place: the target leaves the line, and a line left with no target is removed (G6). The rule files outside the policy root are those `.github/scripts/rules.py#RULE_FILES` lists.
-9. Each check line under `docs/`, other than the two of `## Rule changes`, that names a module which keeps no case reading the line's rule after a phase's ruling is named in that phase's `trail/phases/phase-N.md` with the module. The phase edits no file under `docs/` and keeps no assert for the line's sake. The orchestrator sends the framer those lines as one decision to fold, and the framer adds one `change` per line to `## Rule changes`, with the edition's operation where the document has one.
-10. The counts of *The counts* are taken at the base and at the last phase's commit. The last phase writes both in its `trail/phases/phase-4.md` and in the work item's `changelog.md`.
-11. The work item's `changelog.md`, written by the last phase (G13).
+9. Each check line under `docs/`, other than the old-roots line and its Korean edition's, that names a module which keeps no case reading the line's rule after a phase's ruling is named in that phase's `trail/phases/phase-N.md` with the module. The phase edits no file under `docs/` and keeps no assert for the line's sake. The orchestrator sends the framer those lines as one decision to fold, and the framer adds one operation per line to `## Rule changes`, with the edition's operation where the document has one: a `change` that takes the module off a line that keeps another target, and a `remove` of a line whose one target is the module. Phases 1, 3 and 4 named one line each, in `docs/forms/the-round-record.md`, `docs/running/the-broad-gate.md` and `docs/layout/the-pact.md`, and `## Rule changes` holds them. A line phase 5 names is folded the same way before the first round.
+10. The counts of *The counts* are taken at the base and at the last phase's commit. Phase 4 wrote both in its `trail/phases/phase-4.md` and in the work item's `changelog.md`. Phase 5 takes the second again at its own commit, writes it in `trail/phases/phase-5.md`, and rewrites the fragment's after-build counts in place.
+11. The work item's `changelog.md`, written by phase 4 (G13) and brought to the tree phase 5 leaves.
+12. The merge of #1486. Once #1486 has merged into `release/v0.37.4`, the orchestrator merges that branch into this one and resolves each conflict: inside a case #1486's diff changed, the case is taken as #1486 wrote it, and everywhere else this branch's text stands. Phase 5 then lists the modules both branches changed, with `git diff --name-only <merge base> <each parent> -- tests/text tests/behaviour` at that merge, reads whole each case of those modules that #1486's diff changed or added, and rules it by items 1 to 4, with items 6 to 9. A ruling phases 1 to 4 made in a case #1486's diff did not change stands and is not made again. At `60838ede9`, #1486's branch before its last phase, the two branches both change ten modules of the two directories (executed), so the list is taken at the merge and not from this sentence.
 
 Out, each with its reason:
 
@@ -44,7 +45,7 @@ Out, each with its reason:
 - **Three modules and one case that a sibling work item removes or rewrites**: `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` (#1483), `tests/text/test_ci_gives_the_checks_what_they_need.py` and `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` (#1486), and `tests/behaviour/test_a_release_publishes_its_note.py#test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit`, which holds the lines #1486 names. An assert there is that item's.
 - **The test modules outside `tests/text/` and `tests/behaviour/`.** The issue scopes the work to the two directories.
 - **`.test_durations`** (G8).
-- **Every sentence under `docs/`.** The three operations of `## Rule changes` reach the policy root at the settle.
+- **Every sentence under `docs/`.** The operations of `## Rule changes` reach the policy root at the settle.
 - **Deleting or renaming a module a `docs/` check line names** (G6). Where item 6 leaves such a module with no case, the orchestrator files one issue for its deletion after the settle, and the pull request body names it. `tests/behaviour/test_no_document_names_the_old_roots.py` keeps three cases and is no such module. Its name is #1489's to change when it moves those cases.
 
 ## User scenarios & acceptance *(mandatory)*
@@ -57,8 +58,8 @@ Out, each with its reason:
 | S4 Every check line resolves | Given a phase's last commit, when `seal rules --check` runs, then it exits 0 | each phase boundary, executed |
 | S5 No line names a deleted module or a removed unit | Given a phase's last commit, when `git grep -n <name> -- . ':!seal/threads' ':!.test_durations'` runs for each deleted module and each removed case or helper another file cited, then it lists nothing | the phase that removes it, executed |
 | S6 The old-roots module holds the three cases of #1059 | Given phase 4's commit, when `grep -n '^def ' tests/behaviour/test_no_document_names_the_old_roots.py` runs, then it lists `tracked`, `lines_naming_the_second_root` and the three cases of #1059 and nothing else, and `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` passes | phase 4, executed |
-| S7 The counts are recorded before and after | Given phase 4's commit, when `changelog.md` and `trail/phases/phase-4.md` are read, then each gives the three counts of *The counts* at `18a7e18fb` and at that commit | phase 4, executed; the sealer reads the fragment against a re-run |
-| S8 The rule changes parse | Given this file, when `skills/settle/scripts/rule_changes.py#parse` reads it with root `docs`, then it returns the `change` items with no error and nothing unread | executed by the framer (G14); the pull request's chain check |
+| S7 The counts are recorded before and after | Given the last phase's commit, when `changelog.md` and that phase's record are read, then each gives the three counts of *The counts* at `18a7e18fb` and at that commit | phases 4 and 5, executed; the sealer reads the fragment against a re-run |
+| S8 The rule changes parse | Given this file, when `skills/settle/scripts/rule_changes.py#parse` reads it with root `docs`, then it returns each operation with no error and nothing unread | executed by the framer (G14); the pull request's chain check |
 | S9 The narrow run passes | Given a phase's last commit, when the modules *The narrow run* gives for it run in one command, then each passes | each phase boundary, executed; the rest of the suite is `unverified`, answered by the orchestrator's broad gate |
 
 ## Data & interfaces
@@ -155,7 +156,7 @@ Where one name holds a file's text in one case and a program's output in another
 
 **An absence assert on a file's text is removed where its literal is text or a design that a shipped release removed**: a former sentence, a former name, constant, row, label, path or command. Every release up to v0.37.3 has shipped, so every such assert at the base goes. The test: the literal stood in that text before a change and the assert was written to hold the change.
 
-**An absence assert is kept where a rule in force forbids its literal in that text, and the literal is a command, a path, an expression or a spelling a reader or a runner would act on were it written there.** The comment above it cites the rule as a backticked path and its heading or bold lead in italics. An absence assert whose rule the crafter cannot cite is removed. Two rows of the listing that look like this kind, each for its phase to rule after reading the case: `tests/behaviour/test_a_body_naming_two_issues_claims_one.py:56`, a pull request's body kept out of a workflow's `run:` line, and `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py:166`, `rm -rf` kept out of the contract and the definitions.
+**An absence assert is kept where a rule in force forbids its literal in that text, and the literal is a command, a path, an expression or a spelling a reader or a runner would act on were it written there.** The comment above it cites the rule as a backticked path and its heading or bold lead in italics. A kept absence assert reads the text the rule forbids the literal in. Where the case cut another text, the phase corrects the cut and names it in its phase record, as phase 4 did at `f25de2b52` for the first of the two rows below: its right side was the workflow's last `run:` block and is now the claims step's own. An absence assert whose rule the crafter cannot cite is removed. Two rows of the listing that look like this kind, each for its phase to rule after reading the case: `tests/behaviour/test_a_body_naming_two_issues_claims_one.py:56`, a pull request's body kept out of a workflow's `run:` line, and `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py:166`, `rm -rf` kept out of the contract and the definitions.
 
 **Where an old phrase's absence and a new phrase's presence are asserted together, the absence goes and the presence is ruled as any presence assert.**
 
@@ -211,6 +212,20 @@ Each phase runs, in one command at its boundary, the modules it edited and the m
   section: 루트와 그 안의 수명
   from: check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
   to: check: tests/lib/test_optin.py
+- change
+  file: docs/forms/the-round-record.md
+  section: The round record
+  from: check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
+  to: check: tests/text/test_the_rules_have_one_owner.py
+- change
+  file: docs/running/the-broad-gate.md
+  section: One act, one owner, and the owner is the orchestrator
+  from: check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
+  to: check: tests/skills/test_broad_gate.py
+- remove
+  file: docs/layout/the-pact.md
+  section: When there is a pact at all
+  from: check: tests/behaviour/test_a_signer_declares_its_pact.py
 
 ## Removes
 
@@ -224,6 +239,9 @@ The first operation of `## Rule changes` adds one clause to a rule. What goes in
 | a check line's target, at the settle | `docs/layout/one-root-by-lifetime.md` *The root and its lifetimes*, line 29, and line 29 of the Korean edition | `tests/lib/test_optin.py`, the line's other target (`## Rule changes`) |
 | a citation of a removed helper | `tests/behaviour/test_both_editions_carry_the_same_folds.py:94` | rewritten to state what its own case does (*Scope* item 7) |
 | check-line targets outside `docs/`, and docstrings and comments, that a phase's ruling makes false | the lines *Scope* items 7 and 8 reach | each phase names them in its `trail/phases/phase-N.md` |
-| check-line targets under `docs/` that a phase's ruling leaves with no reader | the lines *Scope* item 9 reaches | the `change` operations the framer folds into `## Rule changes` |
+| a check line's target, at the settle | `docs/forms/the-round-record.md` *The round record*, line 107, the line after **Each finding's close block has one writer, and the blocks written at one step reach the branch in a single commit.** | `tests/text/test_the_rules_have_one_owner.py`, the line's other target, whose `RULES` row 19 reads the rule (`trail/phases/phase-1.md`) |
+| a check line's target, at the settle | `docs/running/the-broad-gate.md` *One act, one owner, and the owner is the orchestrator*, line 33 | `tests/skills/test_broad_gate.py`, the line's other target, which reads the run's first line and that it draws nothing (`trail/phases/phase-3.md`) |
+| a check line, at the settle | `docs/layout/the-pact.md` *When there is a pact at all*, line 39 | nowhere: no case of `tests/behaviour/test_a_signer_declares_its_pact.py` reads the rule, at the base or after phase 4 (`trail/phases/phase-4.md`), and a rule no case holds carries no check line (G6) |
+| check-line targets under `docs/` that phase 5's ruling leaves with no reader | the lines *Scope* item 9 reaches | the operations the framer folds into `## Rule changes` |
 
 Framed 2026-11-11 by framer, before the build.
