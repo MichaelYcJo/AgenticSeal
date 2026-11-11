@@ -19,7 +19,7 @@ What breaks in six months, for the approach chosen:
 - **An agent removes from habit.** The texts no longer ask for a removal and rule 17 forbids one, and an agent can still write an `rm` on a variable path at its hand-back. Rule 21's `rm` sentence stays for that command. `frame/questions.md` Q2 holds the measurement.
 - **The scratch of a work item that opens no pull request stays.** Every clone of a work item stays until the orchestrator removes the work item's directory after the pull request opens: one per review round, one per audit, one per framer probe that runs the repository's code. A run that stops before the pull request, or a session that ends first, leaves them, and nothing clears a session's scratch when it ends (*Judgments of the run*, the row on the owner's decision).
 - **The orchestrator's removal names the wrong path.** It is one `rm -rf` with the path written out, and the scratchpad's own path is a prefix of it. A path cut short takes every agent's files, which is the catch of #1445. The sentence names the work item's directory and says nothing else of the scratchpad goes, and no check reads the command.
-- **The contract is larger.** It grows by 415 B (`frame/design.md` G17), so a framer, a proofer, a sealer and a tracer each preload more than before, and only the crafter less (*Operational impact*). A later item that adds to rule 17 pays that on every spawn.
+- **The contract is larger.** It grows by 442 B at `979c60b7d` (`frame/design.md` G17), so a framer, a proofer, a sealer and a tracer each preload more than before, and only the crafter less (*Operational impact*). A later item that adds to rule 17 pays that on every spawn.
 - **The policy paragraph is stale until the settle.** `docs/running/the-agent-set.md:140-142` says the name lives in the definitions until the settle writes the operation of `frame/design.md` *Rule changes*.
 
 ## Alternatives considered
@@ -61,7 +61,7 @@ The spawn names #1480 and #1475 as the release's other open items. Neither has a
 
 None for a deployer: no migration, environment variable, dependency or compatibility break. The pull request moves no version, because the release's move to 0.37.3 landed with #1471 (`frame/design.md` G25).
 
-After the release, a spawn preloads the core, the contract and its definition as follows (executed: `wc -c` at `39efee911`, `frame/design.md` G17): a crafter 32,316 B, 781 B less; a framer 36,925 B, 293 B more; a proofer 32,864 B, 179 B more; a sealer 33,159 B, 19 B more; a tracer 24,995 B, 415 B more.
+After the release, a spawn preloads the core, the contract and its definition as follows (executed: `wc -c` at `979c60b7d`, `frame/design.md` G17): a crafter 32,343 B, 754 B less; a framer 36,952 B, 320 B more; a proofer 32,891 B, 206 B more; a sealer 33,186 B, 46 B more; a tracer 25,046 B, 466 B more.
 
 A session's scratchpad keeps every agent's scratch directory of a work item until that work item's pull request opens, and the orchestrator then removes the work item's directory in one command. A user who watched the directory empty after each hand-back will see it grow through a run, one clone per review round and per audit. A work item that opens no pull request keeps its directory.
 
