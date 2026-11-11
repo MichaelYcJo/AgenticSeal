@@ -1,57 +1,54 @@
 #!/usr/bin/env python3
 """Publish the GitHub Release for the tag that was just pushed.
 
-Publishing a release note was a habit and nothing else. `docs/releasing/release-checklist.md`
-walked to the tag and stopped, no workflow did it, and **three consecutive
-releases shipped without one** -- measured on 2026-09-13 while cutting a
-release, by the run that would have made it four (#386). The note is read:
+A release note left to a person is a habit and nothing else: a checklist
+that walks to the tag and stops leaves it to nobody, and **three consecutive
+releases shipped without one**. The note is read:
 `/agentic:update` reads the GitHub Releases (`skills/update/SKILL.md` step 3),
 so a release without one is one an updating user is told nothing about.
 
 So this reads the tag instead of asking anybody to remember. It runs in the
 publish workflow after `tag_release.py`, which on the push to `main` that
 ships a release creates the release's `vX.Y.Z` tag and passes it on, and on
-a `v*` tag pushed by hand passes that tag on (#1117).
+a `v*` tag pushed by hand passes that tag on.
 
 **The body is built from the release's changelog fragments, read from the
-history at the tag** (#1053). A change writes its note once, in
+history at the tag.** A change writes its note once, in
 `seal/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
 in the tree. The fragments are the ones the commits after the previous
 `vX.Y.Z` tag added and that tag does not already hold, each read at the
 newest commit of that range whose tree holds it, so a work item a settle
 removed before the tag still has its entry.
-Each opens with a link to the pull request that added it (#1139). The range's
+Each opens with a link to the pull request that added it. The range's
 commit that adds a fragment is its pull request's squash commit, whose
 subject GitHub ends with `(#N)`, so the number is read here, once, from the
 history. The pull request's body holds the work item's records (`seal
 pr-body`), so one click leads from an entry to the reasons behind it. A
 fragment whose adding commit names no pull request is its text alone.
 
-**The note opens with a header of the release's counts** (#1153), an HTML
+**The note opens with a header of the release's counts**, an HTML
 table of one cell holding, one per line, the pull requests merged, the
 issues they closed, and the outside contributors where there are any. **The
 release's theme follows it**, the first sentence of the description of the
 milestone `release: X.Y.Z`, its `Purpose:` label left out.
 
-The fragments are also a page of reasoning per change, and a note that was
-only that read as a wall of prose to somebody asking what changed (#572). So
+The fragments are also a page of reasoning per change, and a note that is
+only that reads as a wall of prose to somebody asking what changed. So
 the note says what the pull requests merged into `release/vX.Y.Z` already
 say -- the counts in its header, then one fold per conventional-commit type
 under its name and count holding one line per pull request with the issues
-its body closes (#1153), a credit for every outside contributor, how to
+its body closes, a credit for every outside contributor, how to
 update -- and keeps the fragments beneath, folded. Nothing here composes
 prose: every line is a milestone's sentence, a pull request title, a
 number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/releasing/release-checklist.md`
-*The release pull request* prescribes. Three other sources were measured and rejected: the merge
-commit's *subject* is GitHub's `Merge pull request #N from <owner>/...` line
-and not the title at all; the `## X.Y.Z -- <date>` heading the gathered
-changelog carried until #1053 held a date and no prose, so a title taken
-from it dropped the symptom line every existing release carries; and the twenty-three hand-written release names
-reproduce neither the pull request titles nor the changelog headings, so
-nothing can reproduce them. That step's line is the only written-down source, and so
+*The release pull request* prescribes. The other sources do not hold it:
+the merge commit's *subject* is GitHub's `Merge pull request #N from
+<owner>/...` line and not the title at all, and the twenty-three
+hand-written release names reproduce no pull request title, so nothing can
+reproduce them. That step's line is the only written-down source, and so
 the only one anything can read.
 
 Three things it deliberately does not do.
@@ -81,16 +78,16 @@ The set is read instead: the pull requests' authors, less the repository
 owner and any bot. A release with none gets no credit line and no count.
 
 **The summary adds no way to fail.** A `gh` call that cannot list the pull
-requests publishes the theme line and the fragments alone, as every note
-before #572 was the section alone, and says so in the job log -- a plain
-note is fixable in one edit, and a failed job at the tag is not.
+requests publishes the theme line and the fragments alone, and says so in
+the job log -- a plain note is fixable in one edit, and a failed job at the
+tag is not.
 
-**It says whether it created the release** (#718). `created=true` or
+**It says whether it created the release.** `created=true` or
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
 `seal` job in the same workflow runs only on `true`: the seal edits the note,
 so it is held to the line above and never touches a release this run did
 not write. The header is built by `header`, and the seal's replacement for
-it by `sealed_header`, with the seal's image or without it (#1204), so every
+it by `sealed_header`, with the seal's image or without it, so every
 shape lives in the file that owns the counts and the seal finds the header
 by the function that wrote it.
 
@@ -131,7 +128,7 @@ heading_level = sibling.load("lib/lines.py").heading_level
 
 # `seal settle`, for `adding_commit`: the one reader of the commit that adds
 # a fragment and the pull request it names, kept in the settle so that the
-# note and the settle read one number (#1139).
+# note and the settle read one number.
 SETTLE = "skills/settle/scripts/settle.py"
 settle = sibling.load(SETTLE)
 
@@ -169,7 +166,7 @@ TAG_RE = settle.VERSION_RE
 # one space after each colon and after the version, read exactly so.
 #
 # **The symptoms are required, not optional.** `release: 0.12.3` with nothing
-# after it was measured in this repository's own history, and reading a title
+# after it stands in this repository's own history, and reading a title
 # out of it yields the version alone -- which is the tag name with the `v`
 # removed, so the two branches would differ by one character and the log line
 # saying which was taken would be telling a reader nothing. A line with no
@@ -237,9 +234,9 @@ def fragments(revisions):
     the settle deleted in the same range. The per-path log walks every
     parent, `--full-history`, because the tag is a merge into `main` whose
     first parent never held a fragment the settle removed on the release
-    branch (0.22.4). A fragment the range's lower tag already holds was
+    branch. A fragment the range's lower tag already holds was
     released there and is skipped, though a commit in the range restored its
-    directory (0.15.3). The added paths are read with `-z`, which ends each
+    directory. The added paths are read with `-z`, which ends each
     with a NUL and quotes none, whatever `core.quotePath` says, so a
     fragment whose id is not ASCII is read as it is.
     """
@@ -255,7 +252,7 @@ def fragments(revisions):
     out = []
     # The range's lower end, where there is one: a fragment that tag already
     # holds was released there, and a commit that restores its directory
-    # adds nothing new (0.15.3).
+    # adds nothing new.
     previous = revisions.split("..")[0] if ".." in revisions else None
     fragment = fragment_re()
     for path in sorted(set(added.split("\0"))):
@@ -267,7 +264,7 @@ def fragments(revisions):
         # `--full-history`: the tag is a merge into `main`, whose first parent
         # never held the path. Where a settle removed the fragment on the
         # release branch, the default simplification follows that first
-        # parent alone and finds no commit (0.22.4).
+        # parent alone and finds no commit.
         for commit in git(
             "log", "--full-history", "--format=%H", revisions, "--", path
         ).split():
@@ -330,12 +327,12 @@ def section(entries, repo):
     """The fragments as the note carries them: each entry's link to the pull
     request that added it, in `repo`, its body, and a blank line before the
     next. An entry with no number has no link line, and one with neither a
-    link nor a body left is not written (#1139).
+    link nor a body left is not written.
 
     Every row of every fragment's process section is lifted into one
     `### Process changes` table above them, in id order and each fragment's
     own row order, and each fragment follows without its section, so a row
-    is shown once (#1117). With no row anywhere the fragments are all there
+    is shown once. With no row anywhere the fragments are all there
     is.
     """
     heading, header, delimiter = process_shape()
@@ -360,8 +357,8 @@ def milestone_description(repo, version):
     The first element is "" where there is no description to read: the list
     could not be read, no milestone carries the title, or its description is
     empty. The second element says which, for the job log. `--paginate`
-    merges the pages into one list (`release_completeness_check.py`'s
-    `milestone_titles` measured it).
+    merges the pages into one list, as `release_completeness_check.py`'s
+    `milestone_titles` states.
     """
     out = subprocess.run(
         [
@@ -567,8 +564,9 @@ def kind_and_text(title):
     The title is written as text: each `<` outside a code span becomes
     `&lt;`, which GitHub shows as `<`, so a tag a title quotes shows as the
     tag and opens or closes no fold or other element, and a code span stays
-    code (#1153; #1293's title holds three `details` tags bare). Both the
-    fold's lines and the thanks section's read a title through here."""
+    code (one title in this repository holds three `details` tags bare).
+    Both the fold's lines and the thanks section's read a title through
+    here."""
     title = TRAILING_REF_RE.sub("", title.strip())
     found = TITLE_RE.match(title)
     heading, text = OTHER, title
@@ -631,7 +629,7 @@ def plural(count, word):
 def counts(work, closed, people):
     """The release's counts in words, one line each: the pull requests
     merged, the issues they closed, and the outside contributors only where
-    there are some. `header` states them in these words (#1153), and
+    there are some. `header` states them in these words, and
     `sealed_header` states the same counts as badges (`count_badges`)."""
     lines = [
         plural(len(work), "pull request") + " merged",
@@ -659,11 +657,12 @@ def header(work, closed, people):
     return table([html.escape(line) for line in counts(work, closed, people)])
 
 
-# The sealed header's badges (#1299), drawn by the Shields badge service
+# The sealed header's badges, drawn by the Shields badge service
 # from their address alone. Their two colours are the seal's reds, read from
 # `assets/seals/owl.svg`: the label's is the wax's dark outer edge, the
 # gradient's outer stop, and the value's is the raised relief of the owl and
-# its border. A seal redrawn in other colours is a new icon (#857), and the
+# its border. The owner chose the stamp's reds for every colour of the seal
+# (#857), so a seal redrawn in other colours is a new icon, and the
 # redraw edits these two with it.
 BADGE_LABEL_COLOUR = "8e0c12"
 BADGE_VALUE_COLOUR = "d42420"
@@ -711,17 +710,17 @@ def count_badges(work, closed, people):
 
 
 def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
-    """What replaces `header`'s table once the release seal has run (#718,
-    #1153): the same table, whose last cell holds the stamp's results as
-    badges (#1299). `sealed` and `results` are badge lines, each a list of
+    """What replaces `header`'s table once the release seal has run: the
+    same table, whose last cell holds the stamp's results as
+    badges. `sealed` and `results` are badge lines, each a list of
     `(label, value)` pairs, as `release_seal.py#results` hands them:
     `sealed` the sealed version, then the commit and its branch; then the
     counts `count_badges` states; then `results`, the stamp's other rows.
     The badges of one line are parted by a space, and the lines by `<br>`.
     Given an `image_url`, the table has two cells, and the first holds the
-    seal as an `<img>` `width` CSS pixels wide with `alt` as its text (#832:
-    the PNG is drawn at twice that for a high-density screen). Given none,
-    where the repository leaves the image off (#1204), the results' cell is
+    seal as an `<img>` `width` CSS pixels wide with `alt` as its text (the
+    PNG is drawn at twice that for a high-density screen). Given none,
+    where the repository leaves the image off, the results' cell is
     the table's one cell, and `alt` and `width` are not read. A reader
     whose client draws no image still has every number, in each badge's
     alt text. The image's URL and `alt` are escaped, as `badge` escapes
@@ -744,7 +743,7 @@ def write_output(name, value):
     """`name=value` appended to `$GITHUB_OUTPUT` where it is set. A write
     that fails is printed and ignored: the release is already published, and
     a job that went red over its own output would be a failed job at the tag
-    for nothing (#718)."""
+    for nothing."""
     path = os.environ.get("GITHUB_OUTPUT")
     if not path:
         return
@@ -763,7 +762,7 @@ def release_body(theme, rendered, pulls, owner):
     header `header` writes, which the seal later replaces -- what it is for,
     what changed -- one fold per type, its summary the type's
     name and the number of pull requests in it, holding one line per pull
-    request with the issues it closed (#1153) -- who outside the project
+    request with the issues it closed -- who outside the project
     helped, and how to get it. The fragments `section` rendered follow,
     folded, because they are the reasoning a reader wants for one change
     rather than the list they read for all of them. Every line is read from
@@ -777,7 +776,7 @@ def release_body(theme, rendered, pulls, owner):
     is text, inside a code span or out of one, and opens or closes no fold.
     A fragment is not escaped: it is the records' own text, and one holding
     a bare `details` tag is refused at `seal pr-body` before its pull
-    request opens (#1218).
+    request opens.
 
     With no pull request to read -- the list failed, or a release was cut
     with none -- the note has no header and is the theme line and
