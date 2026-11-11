@@ -129,6 +129,11 @@ the sentence and changes with it. `tests/lib/test_sibling.py` holds no
 case for `going_on`, and `test_broad_gate.py#Test_rounds_rows` holds none
 for the new line.
 
+```seal
+verdict: fixed 82b1693a0
+answer: The finding holds. `lib/sibling.py` gains `Absent`, a `SystemExit` with code 2 carrying `path`, and `going_on()`, inside which `load` raises `Absent` and writes nothing; outside it the sentence and exit 2 stand. `broad_gate.py#rounds_rows` and `release_seal.py#chain_counts` load inside the block and name the absent file in a line of their own; the other catches of `SystemExit` outside `tests/` end the run at exit 2 or catch no load. Mutants of the block's test, its decrement, and its use at each caller went red. The design sentences this changes (*Scope* item 4, *Data & interfaces*, S5) go to the framer.
+```
+
 ### 2. The changelog says every script copied alone says one sentence, and most end in a traceback
 
 ```seal
@@ -157,6 +162,11 @@ every script what holds for ten commands.
 
 ```markdown
 - **A command of the plugin copied out and run on its own says one sentence about what it lacks (#1482).** Each script under `skills/`, `.github/scripts/` and `evals/scripts/` now reaches the other modules of the plugin through `lib/sibling.py`. Where a file it loads is absent, it prints `cannot read <path>, which this command loads. It ships in the plugin beside this script; a copy of one script taken on its own is not a plugin. Nothing was read.` and exits 2. `<path>` is the absent file's absolute path. A copy of `seal.py`, `settle.py`, `fold_check.py`, `pact_check.py`, `payload_meter.py`, `chain_check.py`, `pr_body.py` or `broad_gate.py` taken alone prints that sentence about `lib/sibling.py` itself, and so do `rules.py` and `release_report.py` when their arguments reach a load. A copy of any other script taken alone ends in a traceback, as it did before. Before, the scripts that reported an absent file each did so in a sentence of their own, naming what the file was for. `chain_check.py`, `pr_body.py` and `broad_gate.py` print the new sentence where they printed a line of their own. In a whole plugin, no command's output or exit code changes.
+```
+
+```seal
+verdict: fixed 703882aae
+answer: The finding holds. The first changelog item names the commands that say the sentence when copied alone, and says a copy of any other script ends as it did before, most of them in a traceback, since `release_seal.py` exits 0 whatever fails. It also says that `seal gate` and the release seal, going on without a module, name the absent file in their own line.
 ```
 
 ### 3. The move wrote `INVISIBLE`'s seven characters into `lib/lines.py` as themselves, where the base spelt them by code point
@@ -194,6 +204,11 @@ python3 -c "t = open('lib/lines.py', encoding='utf-8').read(); print(any(chr(c) 
 
 ```python
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
+```
+
+```seal
+verdict: fixed e2d4013f0
+answer: The finding holds. A script wrote `INVISIBLE`'s seven code points as `\uXXXX` escapes again, and the record's check prints `False`. A scan of every `.py` file in the range for invisible characters finds no other this work introduced.
 ```
 
 ### 4. No case holds the exit code the diff changed for a lone copy run with `--help`
@@ -244,6 +259,11 @@ inline, so it takes the parametrize and builds its argv from `args` as
 the other three do. Each new row is shown red with the guard moved into
 the function that first loads (contract rule 15).
 
+```seal
+verdict: fixed 4b2cabc58
+answer: The finding holds. The four copied-alone cases run the copy with `--help` as well, as a second parametrize row; a mutant that lets `--help` through the guard, as moving it into the getter would, turned only the `[help]` row red in each file.
+```
+
 ### 5. `pr.md` gives A14 a reason for its rejection that the plan does not give
 
 ```seal
@@ -264,6 +284,11 @@ neither reading gives A14's actual fault.
 
 ```markdown
 - "A14. `loaded_by` reads a tracked path only where it is handed to `sibling.load`, in the call or through a module-level name" (`frame/plan.md` *Alternatives considered*, rejected: it drops `skills/settle/scripts/fold_check.py` with the eight files, so the walk reads every tracked-path string and leaves out only those under `tests/`)
+```
+
+```seal
+verdict: fixed af7b9370a
+answer: The finding holds. `pr.md` now gives A14 the reason the plan rejects it for: it drops `skills/settle/scripts/fold_check.py` with the eight files.
 ```
 
 ## Confirmations
