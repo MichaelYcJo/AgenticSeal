@@ -2,9 +2,10 @@
 defined and nowhere else: once in `skills/core/SKILL.md`, and on one line of
 each README's section on shared and local mode.
 
-`tracked` lists the scanned files, the shipped documents, skills, agents,
-templates and workflows. `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`
-names it among the scopes that apply the shared guard.
+`tracked` lists the tracked files under `SCANNED` whose names end in one of
+`SUFFIXES`, those on disk and those not.
+`tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` names it among
+the scopes that apply the shared guard.
 
 That no code of the plugin opens `.specseal/` or a top-level `specs/` on its
 own is behaviour, which `tests/lib/test_optin.py` reads.
