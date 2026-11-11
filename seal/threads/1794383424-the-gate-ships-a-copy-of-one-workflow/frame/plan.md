@@ -29,7 +29,7 @@ The work is one vertical slice. The deleted behaviour file is named by the check
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 9. | S3's case shown red against the base's `broad_gate.py`, then green. S4's `git grep` prints nothing. The narrow run: `bin/test tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py tests/behaviour/test_a_release_publishes_its_note.py tests/test_conftest.py tests/skills/test_seal_stamp.py tests/github/test_rules.py tests/behaviour/test_this_repository_passes_its_own_checks.py tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py -q`. The broad gate is the orchestrator's (S2). | |
+| 1 | `frame/design.md` *Scope* items 1 to 9. | S3's case shown red against the base's `broad_gate.py`, then green. S4's `git grep` prints nothing. The narrow run: `bin/test tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py tests/behaviour/test_a_release_publishes_its_note.py tests/test_conftest.py tests/skills/test_seal_stamp.py tests/github/test_rules.py tests/behaviour/test_this_repository_passes_its_own_checks.py tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py -q`. The broad gate is the orchestrator's (S2). | `a94a5ac72` |
 
 ## Overlap with the release
 
