@@ -22,8 +22,9 @@ The design's script prints a case whose file #1488 held *Out*. #1488's
 `frame/design.md:45` puts `tests/text/test_ci_gives_the_checks_what_they_need.py`
 in *Out* (read), and its `trail/phases/phase-5.md:243` names that module as
 *Out* again (read). So its three printed cases were never ruled. This
-phase ruled all nine of its cases, and kept every assert, because each
-one reads a workflow key the runner acts on. The same line of #1488's
+phase ruled all nine of its cases and kept each of them. Eight read a
+workflow key with the value its runner acts on. The ninth held one
+comment line whole, and is cut to the template's path in it. The same line of #1488's
 *Out* names `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`
 and one case of `tests/behaviour/test_a_release_publishes_its_note.py`.
 Both stand in design *The files*, and the script prints their cases as
@@ -63,7 +64,7 @@ assert reads* and *The criterion*.
 | `test_review_axes.py` | 5 | `test_the_tracer_names_what_the_list_of_the_surface_lacks` and `test_a_record_written_before_a_line_was_added_is_no_finding` | the located-in-both case cut to `` `location:` `` and `` `frame/design.md` ``; the resolution order to `~/.claude/agentic/parity-paths.json` and `original not found`; the later-round case to `## Probes` and `evidence: executed` |
 | `test_settle_reads_before_it_removes.py` | 1 | `test_the_skill_orders_the_row_kinds_so_only_a_needed_measurement_opens_an_issue`: row-kind labels no script reads | none |
 | `test_the_agent_contract_holds_the_universal_rules.py` | 10 | none | none |
-| `test_the_direct_answer_owes_the_sealers_record.py` | 2 | `STANDS`, `REVIEW_CHAIN_DOCS`, `review_chain_text` and the absence branch | the carrier case holds `trail/gate.md` |
+| `test_the_direct_answer_owes_the_sealers_record.py` | 2 | `STANDS` and the absence branch; `REVIEW_CHAIN_DOCS` and `review_chain_text`, which `tests/conftest.py` kept for that branch alone, go in `4b38163ee` | the carrier case holds `trail/gate.md` |
 | `test_the_handoff_before_round_one.py` | 1 | `test_the_protocol_no_longer_states_the_rules_it_points_at` | none |
 | `test_the_record_is_written_in_words.py` | 2 | none | a comment citing `docs/forms/the-round-record.md`, each definition's *Never* and `skills/verify/SKILL.md` |
 | `test_the_release_table_reads_two_trees_and_fails_nothing.py` | 1 | none | none |
@@ -169,7 +170,16 @@ check run, the census sweep, `tests/github/test_rules.py` and
 `tests/skills/test_test_layout.py`. `evals/scripts/rule_cases.py` names
 `test_no_case_tells_the_agent_it_is_evaluated.py` only in a comment. It
 gave `2161 passed` and exited 0 (S9). Run again with this record,
-`gaps.md` and the Status cell written, it gave `2161 passed` and exited 0. The suite beyond the set is
+`gaps.md` and the Status cell written, it gave `2161 passed` and exited 0.
+
+**`4b38163ee` removes what the direct-answer ruling left standing.** The
+range was read against HEAD after the records' first commit. That read
+found `REVIEW_CHAIN_DOCS` and `review_chain_text` in `tests/conftest.py`
+with no user left (executed: `git grep -n -w` over the tree). Both went.
+The same command, with `tests/test_conftest.py` added, then gave `2204
+passed` and exited 0 at `4b38163ee`. `bin/seal rules --check` exits 0
+there, and `bin/seal layout --check` still ends `138 files read, 0
+refused, 77 declare no TARGET` (all executed). The suite beyond the set is
 `unverified`, and the orchestrator's broad gate answers it.
 
 **Two reason lines were widened after a read.** The reason lines of

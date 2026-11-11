@@ -41,7 +41,7 @@ The failure scenario of the chosen approach, six months on. A change to `lib/opt
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Design *Scope* items 1, 2 and 3, and item 12 at the base | S1, S2, S7 and S9 executed; S3's wording of the rule read at review; the suite beyond design *The narrow run* `unverified`, answered by the orchestrator's broad gate | `323135210` |
-| 2 | Design *Scope* items 4 to 11 for the files of `tests/text/` in design *The files* | S4 where it moved a case, S5, S6, S7 and S9 executed; the reason lines and kept asserts read at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `685c8a739` |
+| 2 | Design *Scope* items 4 to 11 for the files of `tests/text/` in design *The files* | S4 where it moved a case, S5, S6, S7 and S9 executed; the reason lines and kept asserts read at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | `4b38163ee` |
 | 3 | Design *Scope* items 4, 5, 8, 9, 10 and 11 for the M cases of `tests/behaviour/` bound for `tests/lib/`, `tests/hooks/` and `tests/evals/` | S4, S5, S6, S7 and S9 executed; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
 | 4 | The same items for the M cases bound for `tests/skills/` | S4, S5, S6, S7 and S9 executed; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
 | 5 | The same items for the M cases bound for `tests/github/` | S4, S5, S6, S7 and S9 executed; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
