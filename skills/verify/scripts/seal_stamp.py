@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
 """seal stamp — the sealer's stamp, drawn from a `sealed` guarantee.
 
-Issue #30 *What it prints*, redrawn by #717 and #832, and since #975 drawn
-once per work item from the sealer's verdict rather than the broad gate's
-run. Two things side by side on the terminal's own background, and nothing
-else: at the left a wax disc with the disc's mark pressed into it, and three
-columns right of it the panel's text — a bold red `SEALED` and a dim rule,
-then what the records at the guarantee's commit say: the audited commit and
-its branch, the base, the work item, the newest broad run and the round
-count (`guarantee_rows` owns the list). The disc is COMPUTED — `hypot`
-and `atan2` for its edge, its lip and its step ring — and only the disc's
-mark is authored: a 16 x 16 sprite in `seal-mark.txt` beside this file, read
-as data (`read_sprite`). Four hand-typed discs came before #30's and every
-one was lopsided; a circle that is calculated cannot be off centre. #832's
-owner settled the grid on 2026-10-07 — 28 cells across and 14 lines — and
-the same day retired the parchment sheet #717 wrote the text on, so nothing
-outside the disc is painted and the stamp reads in the terminal's own
-theme. On 2026-10-28 the owner chose an owl as the disc's mark (#857),
-drawn one cell at a time: changing it is changing that file alone. On
-2026-10-31 the owner chose the little owl and a red wax seal to press it
-into (#1174): an edge that wobbles, a lip lit from the upper left with a
-gloss streak, a step ring lit the other way, the pressed field, the owl and
-its drop shadow, every cell exactly one of fifteen colours.
+Drawn once per work item from the sealer's verdict. Two things side by side
+on the terminal's own background, and nothing else: at the left a wax disc
+with the disc's mark pressed into it, and three columns right of it the
+panel's text — a bold red `SEALED` and a dim rule, then what the records at
+the guarantee's commit say: the audited commit and its branch, the base,
+the work item, the newest broad run and the round count (`guarantee_rows`
+owns the list). The disc is COMPUTED — `hypot` and `atan2` for its edge,
+its lip and its step ring — and only the disc's mark is authored: a 16 x 16
+sprite in `seal-mark.txt` beside this file, read as data (`read_sprite`).
+Four hand-typed discs were each lopsided; a circle that is calculated
+cannot be off centre. The owner chose the grid, 28 cells across and 14
+lines, and no sheet behind the text (#832), so nothing outside the disc is
+painted and the stamp reads in the terminal's own theme. The disc's mark is
+drawn one cell at a time, so changing it is changing that file alone. The
+owner chose the little owl as the mark and a red wax seal to press it into
+(#1174): an edge that wobbles, a lip lit from the upper left with a gloss
+streak, a step ring lit the other way, the pressed field, the owl and its
+drop shadow, every cell exactly one of fifteen colours.
 
 Two forms, one drawing (`compose`). The block form is half-block characters,
 the disc in truecolour and the text in the terminal's own colours and
@@ -38,23 +35,23 @@ half-blocks, and for `seal stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
 neither: no Bash call's pipe is drawn on.
 
-**The `Stop` message is held under a limit** (#717): the harness persists a
+**The `Stop` message is held under a limit**: the harness persists a
 `systemMessage` longer than `MESSAGE_LIMIT` and shows a preview instead, so
 `admitted` carries as many of the oldest stamps as fit with their disc and
 leaves the rest for the next `Stop`. Only one stamp that does not fit with
 its disc alone is drawn as the text block with no disc.
 
-The broad gate draws nothing since #975: its report is text on every stream,
+The broad gate draws nothing: its report is text on every stream,
 and it imports the panel's text rules from here (`fit`, `wrapped`, the
 owner's marks) and `sealed_names` for its head.
 
-**The stamp is drawn where a person sees it, once per work item** (#400,
-#975, #1376). The sealer runs `seal stamp --guarantee <path>` once after it
+**The stamp is drawn where a person sees it, once per work item.** The
+sealer runs `seal stamp --guarantee <path>` once after it
 writes `Verdict: sealed`, under either root; `queue_for_written_guarantee`
 reads the file, and where it reads `sealed` and no earlier run or commit
 stamped it, writes the stamp's rows to a values file under the git common
 dir of the path's clone. `seal stamp --stop` is the command of the
-plugin's `Stop` hook, which `hooks/hooks.json` registers (#1430): it draws
+plugin's `Stop` hook, which `hooks/hooks.json` registers: it draws
 each undrawn file of the clone the payload's `cwd` is in, once, at the end
 of the main session's turn. This module owns the file:
 `queue_for_written_guarantee` and `write_values`, `read_values`, `pending`
@@ -73,8 +70,8 @@ Usage:
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules.
 `.github/scripts/release_seal.py` attaches a release's seal from the page
-form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`
-(#857), and reads nothing of this file. The sample exists so a person can
+form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`,
+and reads nothing of this file. The sample exists so a person can
 see the drawing without a guarantee committed, and `--from` so a values file
 nothing drew can still be drawn by hand.
 
@@ -99,17 +96,16 @@ import time
 
 # --- the disc's colours --------------------------------------------------
 #
-# The red wax seal the owner approved on 2026-10-31 (#1174). The owner chose
-# the colours and did not name them; the names are the framer's
-# (`frame/design.md` *Data & interfaces* of work item 1793401152). The
+# The red wax seal the owner approved (#1174). The owner chose the colours
+# and did not name them, so the names are no decision of the owner's. The
 # outer edge, `EDGE_DARK` on its shadowed side and `WAX` elsewhere; the lip
 # inside it, lit from the upper left, `WAX_LIT`, `WAX` and `WAX_DARK`, with a
 # `GLOSS` streak; the step ring inside that, lit the other way round,
 # `STEP_DARK` and `STEP_LIT`; the pressed `FIELD`; and `DROP`, the shadow the
 # disc's mark casts on the field down-right of it. Then the six the owl is
-# drawn in (`SPRITE_COLOURS`), the values #857 drew it in. No mid tones and
-# no blend: every cell of the disc is exactly one of these fifteen
-# (`build`), and with `TITLE_RED` they are the only colours the stamp sets.
+# drawn in (`SPRITE_COLOURS`). No mid tones and no blend: every cell of the
+# disc is exactly one of these fifteen (`build`), and with `TITLE_RED` they
+# are the only colours the stamp sets.
 EDGE_DARK = (128, 12, 18)
 WAX = (204, 30, 34)
 WAX_LIT = (240, 92, 84)
@@ -126,20 +122,19 @@ BREAST = (186, 38, 42)
 EYE = (222, 86, 78)
 BEAK = (208, 68, 64)
 
-# `SEALED` is bold and in this red, the owner's `frames.py`'s `RED`. The rest
-# of the text is in the terminal's own colours (`STYLE_CODES`), since #832
-# retired the parchment sheet and its four 256-colour codes.
+# `SEALED` is bold and in this red, the owner's (#832). The rest of the text
+# is in the terminal's own colours (`STYLE_CODES`): nothing outside the disc
+# is painted.
 TITLE_RED = (196, 40, 44)
 
-# The letter for each disc colour in the twin (#1174): the wax in lower case
-# — `e` the edge's dark and `w` the wax, `h` and `d` the lip lit and dark and
-# `g` its gloss, `s` and `t` the step ring dark and lit — the field `.` and
-# the drop shadow `y` as #30 and #717 had them, and the owl in the sprite's
-# own letters, so the twin's owl reads as `seal-mark.txt` does. The framer
-# chose them (`frame/design.md` *Data & interfaces* of work item 1793401152):
-# the twin is for a console that cannot draw half-blocks, and no decision of
-# the owner's names its letters. Every disc cell is exactly one of these
-# colours, so a cell's letter is a lookup (`letter_row`).
+# The letter for each disc colour in the twin: the wax in lower case — `e`
+# the edge's dark and `w` the wax, `h` and `d` the lip lit and dark and `g`
+# its gloss, `s` and `t` the step ring dark and lit — the field `.`, the drop
+# shadow `y`, and the owl in the sprite's own letters, so the twin's owl
+# reads as `seal-mark.txt` does. No decision of the owner's names these
+# letters: the twin is for a console that cannot draw half-blocks. Every
+# disc cell is exactly one of these colours, so a cell's letter is a lookup
+# (`letter_row`).
 KEY = {
     EDGE_DARK: "e",
     WAX: "w",
@@ -159,40 +154,36 @@ KEY = {
 }
 
 
-# There is no scale (#853). #30 measured a band of them, 0.75 to 1.0, on the
-# lily's chart, #400 chose 0.90 and #717 drew the letter at it; since #832's
-# disc of 2026-10-07 the disc is `DISC_CELLS` across whatever a scale said,
-# because the disc's mark is drawn for that grid and has one size. The band, its
-# refusals, `--scale` on both commands and the values file's `scale` field
-# were a dial that turned nothing, and they went together.
+# There is no scale: the disc is `DISC_CELLS` across, because the disc's mark
+# is drawn for that grid and has one size.
 
-# --- what one hook message may hold (#717) ---------------------------------
+# --- what one hook message may hold ----------------------------------------
 #
 # The harness writes a `Stop` hook's `systemMessage` longer than this many
 # characters to a file and shows the person a 2 KB preview of it, so a stamp
 # past it is not seen. Counted in UTF-16 units, the length JavaScript gives a
 # string, not as bytes: a character outside the BMP is two, and Python's `str`
-# length counts it as one (`admitted` counts it as two). Measured 2026-10-02
-# on Claude Code 2.1.287, with a `Stop` hook in a scratch project and one
-# headless `claude -p` turn per size: 9,990 and 10,000 characters, and 9,990
-# `▀` (29,942 bytes), were shown with nothing written to the session's
-# `tool-results/`; 10,001, 10,010 and 12,000 each left a
-# `hook-<uuid>-<n>-systemMessage.txt` there. Then, in round 1's fix pass,
-# 4,999 U+1D54F (9,998 units) were shown and 5,001 (10,002 units),
-# 9,990 and 10,001 were persisted. This project's own sessions had
-# bracketed it before the probe: 9,919 shown, 10,090 persisted. The harness
-# can move it, and the only sign is a preview on the owner's screen; the same
-# hook at two sizes either side of this number is the whole probe again.
+# length counts it as one (`admitted` counts it as two). Measured on Claude
+# Code 2.1.287, with a `Stop` hook in a scratch project and one headless
+# `claude -p` turn per size: 9,990 and 10,000 characters, and 9,990 `▀`
+# (29,942 bytes), are shown with nothing written to the session's
+# `tool-results/`; 10,001, 10,010 and 12,000 each leave a
+# `hook-<uuid>-<n>-systemMessage.txt` there. 4,999 U+1D54F (9,998 units) are
+# shown, and 5,001 (10,002 units), 9,990 and 10,001 are persisted. This
+# project's own sessions bracket it too: 9,919 shown, 10,090 persisted. The
+# harness can move it, and the only sign is a preview on the owner's screen;
+# the same hook at two sizes either side of this number is the whole probe
+# again.
 # `--stop` holds its WHOLE message under it — every block, every label and the
 # blank line between two blocks — and nothing else shares the message.
 MESSAGE_LIMIT = 10000
 
 
 # The disc's numbers, in cells of the terminal's grid, where a cell is one
-# column by one half-row and so square. The owner's grid of 2026-10-07
-# (#832): the disc is 28 cells across and so `DISC_LINES` lines tall, and the
-# disc's mark is drawn for that grid. The owner's wax seal of 2026-10-31
-# (#1174), measured from the centre at `RADIUS`: the edge sits at `RADIUS`
+# column by one half-row and so square. The owner's grid (#832): the disc is
+# 28 cells across and so `DISC_LINES` lines tall, and the disc's mark is
+# drawn for that grid. The owner's wax seal (#1174), measured from the centre
+# at `RADIUS`: the edge sits at `RADIUS`
 # plus one sine term per `EDGE_WOBBLE` row (amplitude, frequency, phase),
 # so it wobbles, and the outer edge is the `EDGE_WIDTH` inside it; the lip
 # runs in to `LIP_INSET` short of `RADIUS`, the step ring to `STEP_INSET`,
@@ -215,21 +206,21 @@ LIP_DARK_FROM = 0.4
 GLOSS_DEGREES = (200, 250)
 GLOSS_INSETS = (1.9, 0.7)
 
-# The disc's mark (#857): one sprite in a file beside this one,
+# The disc's mark: one sprite in a file beside this one,
 # `SPRITE_CELLS` lines of `SPRITE_CELLS` characters, each a letter of
 # `SPRITE_COLOURS` drawn in its colour or `.` the field, standing
 # `SPRITE_OFFSET` cells in from the disc's left and top edges so it is
-# centred. It is the round-headed little owl the owner chose on 2026-10-31
-# (#1174), drawn one cell at a time for this grid, and changing the disc's
-# mark is replacing that file and nothing else, which is why it is data read
-# here rather than a tuple typed into this module.
+# centred. It is the round-headed little owl the owner chose (#1174), drawn
+# one cell at a time for this grid, and changing the disc's mark is
+# replacing that file and nothing else, which is why it is data read here
+# rather than a tuple typed into this module.
 SPRITE_CELLS = 16
 SPRITE_OFFSET = (DISC_CELLS - SPRITE_CELLS) // 2
 # Each letter's colour, every one of them among the fifteen, and the twin
 # writes each as the letter itself. The pupil is darker than the field, so
 # no eye is near black and none reads as a hole. The sprite carries its own
 # light and dark: `build` shades no cell by its neighbours, because shading
-# breaks a small mark (#857).
+# breaks a small mark.
 SPRITE_COLOURS = {
     "K": OUTLINE,
     "P": PUPIL,
@@ -308,9 +299,9 @@ def build():
     `RADIUS`, 13.5. A cell `dx, dy` from the centre at distance `d` and
     angle `a = atan2(dy, dx)`, y downward so 225 degrees is the upper left,
     with `lit = (dx + dy) / (|dx| + |dy|)` -1 at the upper left and +1 at
-    the lower right, is, from the outside in (#1174, the owner's wax seal of
-    2026-10-31): None past `edge = R + 0.45 sin(3a + 0.7) + 0.25 sin(5a +
-    2.1)` (`EDGE_WOBBLE`); the outer edge past `edge - EDGE_WIDTH`,
+    the lower right, is, from the outside in (the owner's wax seal, #1174):
+    None past `edge = R + 0.45 sin(3a + 0.7) + 0.25 sin(5a + 2.1)`
+    (`EDGE_WOBBLE`); the outer edge past `edge - EDGE_WIDTH`,
     `EDGE_DARK` where `lit` is over `EDGE_DARK_FROM` and `WAX` elsewhere;
     the lip past `R - LIP_INSET`, `GLOSS` strictly between the
     `GLOSS_DEGREES` and between the `GLOSS_INSETS` short of `R`, else
@@ -321,7 +312,7 @@ def build():
     and top, a cell under a letter is that letter's colour in
     `SPRITE_COLOURS`; a cell under `.`, or past the sprite's edge, whose
     up-left neighbour is under a letter is `DROP`, a pupil counting as a
-    letter; the rest are `FIELD` (#857). Every cell is exactly one of the
+    letter; the rest are `FIELD`. Every cell is exactly one of the
     fifteen colours. The edge's wobble leaves column 0 and the last half-row
     off the disc, as the approved picture is. `lit` is read only past the
     step ring's inner edge, where `d` is never 0, so it needs no guard."""
@@ -371,7 +362,7 @@ def build():
 # --- the two row writers -------------------------------------------------
 #
 # Both walk the same cells, so the two forms have one footprint: one
-# character per cell. A cell is `(char, fg, bg, style)` (#832): the
+# character per cell. A cell is `(char, fg, bg, style)`: the
 # character, or None for an empty cell; `fg` and `bg` a triple — one of the
 # disc's colours or `TITLE_RED` — or None for the terminal's own; `style`
 # None, `"dim"`, `"bold"` or `"green"`. A disc cell is `▀` with its top
@@ -388,7 +379,7 @@ HALF_BLOCKS = ("▀", "▄")
 STYLE_CODES = {"dim": "2", "bold": "1", "green": "32"}
 # The owner's characters the letter twin writes in ASCII, one for one, so a
 # console that is not UTF-8 is handed a printable line as wide as the block
-# form's (#832).
+# form's.
 TWIN_ASCII = {"·": ".", "✓": "+", "─": "-", "→": ">"}
 
 
@@ -420,21 +411,20 @@ def colour_code(ground, colour):
 
 
 def colour_row(cells):
-    """One line of the block form, lean (#832, `frame/design.md` S11, after the
-    owner's `frames.py#encode`). A code only where the next visible cell's
-    foreground, background or style differs from what is set; every part of
-    that change in one SGR; no reset inside the line, and `RESET` at its end
-    where it wrote a code. An empty cell or a space — no space carries a
-    background, because only a disc cell has one — is written as a space
-    that keeps the foreground and the style as they are set, since a space
-    shows neither; but a background would paint it, so one still set from
-    the disc ends there with `49`. A style that ends is written `22;39`
-    first, which takes the foreground back to the terminal's own as well, so
-    `39` is not written a second time in the same SGR. A green cell writes no
-    foreground part: `32` is its colour, and a `39` after it in the same SGR
-    would take the green back off — which a tick leading a `""` row beside
-    the disc met, the disc's colour being still set across the label's
-    spaces."""
+    """One line of the block form, lean. A code only where the next visible
+    cell's foreground, background or style differs from what is set; every
+    part of that change in one SGR; no reset inside the line, and `RESET` at
+    its end where it wrote a code. An empty cell or a space — no space
+    carries a background, because only a disc cell has one — is written as
+    a space that keeps the foreground and the style as they are set, since
+    a space shows neither; but a background would paint it, so one still
+    set from the disc ends there with `49`. A style that ends is written
+    `22;39` first, which takes the foreground back to the terminal's own as
+    well, so `39` is not written a second time in the same SGR. A green
+    cell writes no foreground part: `32` is its colour, and a `39` after it
+    in the same SGR would take the green back off — which a tick leading a
+    `""` row beside the disc meets, the disc's colour being still set
+    across the label's spaces."""
     out, state, wrote = [], (None, None, None), False
     for char, fg, bg, style in cells:
         if char in (None, " "):
@@ -459,8 +449,8 @@ def colour_row(cells):
 
 
 def letter_row(cells):
-    """One line of the letter twin over the same cells (#832, `frame/design.md`
-    S4): a half-block's `KEY` letter — its foreground's, which is the top
+    """One line of the letter twin over the same cells: a half-block's `KEY`
+    letter — its foreground's, which is the top
     half's colour on `▀` and the bottom half's on `▄` — the text's own
     character with `TWIN_ASCII` applied, and a space for an empty cell.
     Every disc cell is exactly one palette colour, so the letter is a
@@ -478,20 +468,17 @@ def letter_row(cells):
 
 # --- the panel's text rules ------------------------------------------------
 #
-# How a row's value is cut, continued and marked. They were the broad gate's
-# until #975, when the stamp left the gate's run: the stamp's writer
-# (`queue_for_written_guarantee`) composes rows too, and the gate's plain report
+# How a row's value is cut, continued and marked. The stamp's writer
+# (`queue_for_written_guarantee`) composes rows, and the gate's plain report
 # imports them from here, so both write a row by one set of rules.
 
-# How many columns a panel value is given (#832, `frame/design.md` S5a of work item
-# 1791270164): the widest that keeps the stamp's widest line inside an
-# 80-column terminal, the floor a command line's output is held to. The open
-# layout has no frame, so the terminal is the bound: 28 columns of disc, `GAP`
-# (3) clear, a label of seven and a space, and the value — 28 + 3 + 8 + 41 =
-# 80. Before #832 it was 23, what the 36-column frame of the stamp then left.
-# A longer value runs past the terminal's edge or wraps into the disc's
-# column, so a value is elided before it does (round 1, finding 5 of #666): a
-# cut ref would read as a whole ref.
+# How many columns a panel value is given: the widest that keeps the stamp's
+# widest line inside an 80-column terminal, the floor a command line's
+# output is held to. The open layout has no frame, so the terminal is the
+# bound: 28 columns of disc, `GAP` (3) clear, a label of seven and a space,
+# and the value — 28 + 3 + 8 + 41 = 80. A longer value runs past the
+# terminal's edge or wraps into the disc's column, so a value is elided
+# before it does: a cut ref would read as a whole ref.
 #
 # Stated here and measured over there, and neither may move without the other
 # going red: `tests/skills/test_seal_stamp.py`'s
@@ -499,7 +486,7 @@ def letter_row(cells):
 # draws a value of this width and measures the stamp's widest line.
 PANEL_VALUE_WIDTH = 41
 ELISION = "..."
-# The panel's own characters (#832 S5a, the owner's design of 2026-10-07):
+# The panel's own characters, the owner's design (#832):
 # the separator inside a value, the arrow before a deferral's homes and the
 # mark on a result row that passed. They are the owner's and not ASCII; the
 # letter twin, which exists for a console that is not UTF-8, maps them where
@@ -516,8 +503,8 @@ def fit(value, keep="head", width=None):
     reader matches to a ticket; `keep="tail"` for a ref, where the
     `origin/` a runner reads is the part a reader can infer. Every value a
     panel carries passes through here, so no row is wider than the frame
-    and none is cut by it without a marker (#666). `width` is the room a
-    ref has beside its commit on the `base` row (#832)."""
+    and none is cut by it without a marker. `width` is the room a ref has
+    beside its commit on the `base` row."""
     value = str(value)
     width = PANEL_VALUE_WIDTH if width is None else width
     if len(value) <= width:
@@ -528,13 +515,13 @@ def fit(value, keep="head", width=None):
 
 def wrapped(label, pieces):
     """A list on as many panel rows as it needs: the first row under `label`,
-    the rest as `""` rows beneath it (round 1's 🟡 1 of #666).
+    the rest as `""` rows beneath it.
 
-    The owner chose continuation rows over a wider panel (`questions.md`
-    Q1), so a list of counts or homes continues rather than losing its tail
-    to `...`; only a branch or a ref, which have no bound, are elided. Each
-    piece but the first carries the separator that joins it to the one
-    before (`", #664"`, or `" · 11 skipped"` since #832). A row is broken
+    The owner chose continuation rows over a wider panel (#666), so a list
+    of counts or homes continues rather than losing its tail to `...`; only
+    a branch or a ref, which have no bound, are elided. Each piece but the
+    first carries the separator that joins it to the one before (`", #664"`
+    or `" · 11 skipped"`). A row is broken
     before a piece that would not fit, and keeps that separator's mark — the
     comma, or the ` ·` — at its end so the reader sees the list goes on; two
     columns are held back for it on every piece but the last, because ` ·`
@@ -562,10 +549,8 @@ def item_value(item):
 
 # --- the stamp: the disc at the left, the text block at the right ---------
 #
-# #832, the owner's layout of 2026-10-07 (`frame/design.md` decision 6 of work item
-# 1791270164, the owner's `frames.py#design_open`): no parchment, no edge, no
-# frame and no background outside the disc, the text in the terminal's own
-# colours. #717's sheet, which the text was written on, is retired.
+# The owner's layout (#832): no parchment, no edge, no frame and no
+# background outside the disc, the text in the terminal's own colours.
 
 # The columns a label is padded to before the one space ahead of its value:
 # the owner's seven.
@@ -575,16 +560,16 @@ RULE_WIDTH = 30
 # The panel's first row, which is drawn as the title rather than as a row.
 TITLE_ROW = ("SEALED", "")
 # The mark that leads a value and the style it is drawn in: a result row
-# that passed, green, and a row that is not a pass, dim (#832).
+# that passed, green, and a row that is not a pass, dim.
 VALUE_MARKS = {"✓": "green", "·": "dim"}
 # The clear columns between the disc's last column and the text block's
-# first (#832, the owner's three).
+# first: the owner's three.
 GAP = 3
 
 # `disc` is where the disc's grid stands, `(left, top, w, h)`: `left` and
 # `w` in cells, `top` and `h` in half-rows from the stamp's first line, or
 # None with no disc — what a case reads to find the disc without
-# re-deriving the layout (#832).
+# re-deriving the layout.
 Letter = collections.namedtuple("Letter", "cells width height disc")
 
 
@@ -594,7 +579,7 @@ def text_cells(text, style=None, fg=None):
 
 
 def text_lines(rows):
-    """The text block of `rows`, as lines of cells (#832, `frame/design.md` S3a).
+    """The text block of `rows`, as lines of cells.
 
     Where the first row is the panel's title row, `("SEALED", "")`, the
     first line is `SEALED ` bold in `TITLE_RED` and a dim rule of
@@ -629,7 +614,7 @@ def text_lines(rows):
 def compose(rows, disc=True):
     """The stamp of `rows` as lines of cells (see the writers above), with
     its width and height and where the disc stands: `Letter(cells, width,
-    height, disc)` (#832, `frame/design.md` S3, the owner's layout of 2026-10-07).
+    height, disc)`.
 
     The disc — `disc` False leaves it off, which is the rung `fitted` steps
     down to — stands at column 0, `DISC_CELLS` wide and
@@ -666,24 +651,23 @@ def compose(rows, disc=True):
 
 
 def stamp(rows, shape=False, disc=True):
-    """The lines of the stamp: the disc beside the text block of `rows`
-    (#717, #832). `shape` picks the letter twin. `disc` False is the text
-    block with no disc, the rung `fitted` steps down to."""
+    """The lines of the stamp: the disc beside the text block of `rows`.
+    `shape` picks the letter twin. `disc` False is the text block with no
+    disc, the rung `fitted` steps down to."""
     writer = letter_row if shape else colour_row
     return [writer(line) for line in compose(rows, disc).cells]
 
 
 def admitted(blocks, budget=MESSAGE_LIMIT):
     """The drawn blocks one `Stop` message carries under `budget`, oldest
-    first (#717). `blocks` is `(label, rows)` per values file, oldest first;
-    a drawn block is its label and then its block form.
+    first. `blocks` is `(label, rows)` per values file, oldest first; a
+    drawn block is its label and then its block form.
 
-    The owner's rule of 2026-10-02 (`questions.md` Q6), which replaced one
-    rung for the whole message: a seal keeps its disc rather than share a
+    The owner's rule (#717): a seal keeps its disc rather than share a
     message without it. So the message carries as many of the oldest blocks
-    as fit together WITH the disc. A block has two rungs since #853: with its
-    disc, and the text block alone, because the disc has one size. The
-    blocks past those are not drawn here; `drawings` leaves their files
+    as fit together WITH the disc. A block has two rungs: with its disc, and
+    the text block alone, because the disc has one size. The blocks past
+    those are not drawn here; `drawings` leaves their files
     pending, and the next `Stop` draws them whole.
 
     The rung with no disc is for one block alone, the oldest, when it does
@@ -691,8 +675,7 @@ def admitted(blocks, budget=MESSAGE_LIMIT):
     nothing comes after it. So the first block is always drawn and the queue
     cannot stall. A text block with no disc is about 50 characters a row with
     its codes (925 with its label for the widest panel this tree can
-    produce, measured 2026-10-07), its width bounded by
-    `PANEL_VALUE_WIDTH`.
+    produce), its width bounded by `PANEL_VALUE_WIDTH`.
 
     A size is counted in UTF-16 units, which is what the harness counts
     (`MESSAGE_LIMIT`): a character outside the BMP is two. `budget` is a
@@ -719,7 +702,7 @@ def admitted(blocks, budget=MESSAGE_LIMIT):
 
 def fitted(blocks, budget=MESSAGE_LIMIT):
     """The message `--stop` prints for `blocks`: `admitted`'s drawn blocks
-    joined by a blank line, held under `budget` (#717). The blocks past what
+    joined by a blank line, held under `budget`. The blocks past what
     `admitted` carries are not in it; `drawings` claims only the files whose
     blocks it holds."""
     return "\n\n".join(admitted(blocks, budget))
@@ -732,11 +715,12 @@ HEX_REF = re.compile(r"[0-9a-fA-F]{4,40}")
 def sealed_names(tree, base, branch=None, ref=None):
     """`<branch> @ <tree> against <ref> @ <base>` — what the broad gate's
     `BROAD GATE PASSED` and `BROAD GATE FAILED` lines say they measured, and
-    what a drawn stamp's label says was sealed (#666, #975).
+    what a drawn stamp's label says was sealed.
 
-    A head naming two commits named neither the branch nor the base's ref,
-    so a reader matched a line to its work by hash alone. One composer for
-    the three lines, because two spellings of one sentence drift.
+    A head naming two commits alone names neither the branch nor the base's
+    ref, and leaves a reader matching a line to its work by hash. One
+    composer for the three lines, because two spellings of one sentence
+    drift.
 
     Two collapses, and each leaves a part out rather than printing it twice:
 
@@ -749,8 +733,8 @@ def sealed_names(tree, base, branch=None, ref=None):
         gate prints eight, and a branch named `b` is not the commit `b1e2…`
 
     `ref` is the RESOLVED ref (`broad_gate.Base.ref`), the one CI reads, not
-    the spelling the caller typed: #423's repair was that a reader can tell
-    `origin/<base>` from a local ref a week behind it."""
+    the spelling the caller typed, so a reader can tell `origin/<base>` from
+    a local ref a week behind it."""
     named = f"{branch} @ {tree}" if branch else f"{tree}"
     against = f"{base}" if ref_is_commit(ref, base) else f"{ref} @ {base}"
     return f"{named} against {against}"
@@ -784,7 +768,7 @@ def pick_shape(stream):
 
 def is_utf8(stream):
     """True when `stream` says its encoding is UTF-8, whatever it is attached
-    to. The half of `pick_shape` the broad gate asks on its own since #975:
+    to. The half of `pick_shape` the broad gate asks on its own:
     its report is text on every stream, and only a console that is not UTF-8
     gets the owner's marks in ASCII. Asked before the streams are
     reconfigured, for `pick_shape`'s reason."""
@@ -796,7 +780,7 @@ def is_terminal(stream):
     """True when `stream` is a terminal, whatever its encoding.
 
     The other half of `pick_shape`, beside `is_utf8`: a cp949 terminal is a
-    terminal that gets letters, and a UTF-8 pipe is not a terminal (#400).
+    terminal that gets letters, and a UTF-8 pipe is not a terminal.
     Asked with `pick_shape`, before the streams are reconfigured, so both
     answers describe the stream as the process found it."""
     isatty = getattr(stream, "isatty", None)
@@ -808,8 +792,8 @@ def is_terminal(stream):
 
 # --- a stamp's values, drawn by somebody else ------------------------------
 #
-# A Bash call's stdout is a pipe into a tool result nobody sees unfolded
-# (#400), so the stamp's rows are written here — by `seal stamp --guarantee`
+# A Bash call's stdout is a pipe into a tool result nobody sees unfolded,
+# so the stamp's rows are written here — by `seal stamp --guarantee`
 # over a `sealed` guarantee under either root (`queue_for_written_guarantee`)
 # — and `--stop`, at the end of a main session's turn in the same clone, draws
 # them. The directory is under the git COMMON dir because the worktree the
@@ -871,9 +855,9 @@ def write_values(common, values, now=None, key=None):
 def read_values(path):
     """A values file as it was written, with each row a `(label, value)`
     pair or None. Raises `ValueError` with the refusal sentence for a file
-    that cannot be read or is not in that shape. A `scale` key, which every
-    gate before #975 wrote, is read as nothing: such a file draws
-    as one written without it."""
+    that cannot be read or is not in that shape. A `scale` key, which an
+    older gate's file carries, is read as nothing: such a file draws as one
+    written without it."""
     try:
         with open(path, encoding="utf-8") as handle:
             data = json.load(handle)
@@ -943,11 +927,11 @@ def label(values):
     work item. The harness shows a hook message's first line as a dim label,
     so this is the line that must not be blank.
 
-    A file carrying `branch` — every file since #666, `null` on a detached
-    HEAD — gets `sealed_names`'s names and then ` · #<pr>` where the file
-    names a pull request (#666). **A file without the key draws the label it
-    always drew**, `SEALED <tree> against <base> · <item>`: a file an older
-    gate wrote may still be pending when a newer copy draws it."""
+    A file carrying `branch` — `null` on a detached HEAD — gets
+    `sealed_names`'s names and then ` · #<pr>` where the file names a pull
+    request. **A file without the key draws the older label**,
+    `SEALED <tree> against <base> · <item>`: a file an older gate wrote may
+    still be pending when a newer copy draws it."""
     item = values.get("item")
     where = f" · {os.path.basename(os.path.normpath(item))}" if item else ""
     if "branch" not in values:
@@ -1039,7 +1023,7 @@ def _chain_check():
 
 def already_queued(common, ident):
     """True where a values file for work item `ident` stands in the clone's
-    values directory, pending or drawn. A work item is stamped once (#975),
+    values directory, pending or drawn. A work item is stamped once,
     whatever commit its guarantee audited, so the audited commit is not part
     of the question. A name is `<ns>-<ident>-<target>.json`; a file an older
     gate wrote is `<ns>-<tree>.json` and has no middle part to match. A
@@ -1057,12 +1041,12 @@ def already_queued(common, ident):
 
 
 def guarantee_rows(target, branch, base, ident, run, rounds):
-    """The stamp's rows for a sealed guarantee (#975, `questions.md` Q1's
-    answer (a)): what the records at the commit say and nothing measured
-    again — the title, the audited commit with the branch under it, the
-    base, the work item's id, a blank, then the newest run `trail/gate.md`
-    names and the count of round records. A row whose record is absent is
-    left out; `rounds` reads `0` where the work item had none."""
+    """The stamp's rows for a sealed guarantee: what the records at the
+    commit say and nothing measured again — the title, the audited commit
+    with the branch under it, the base, the work item's id, a blank, then
+    the newest run `trail/gate.md` names and the count of round records. A
+    row whose record is absent is left out; `rounds` reads `0` where the
+    work item had none."""
     rows = [TITLE_ROW, ("tree", fit(target))]
     if branch:
         rows.append(("", fit(branch)))
@@ -1080,8 +1064,8 @@ def _guarantee_read(chain, text):
     TEXT and the blocks of its earlier runs, read through
     `lib/fields.py`, the reader the pull request's check reads it
     through; `(None, [])` where that reader refuses a line of TEXT, a fence
-    nobody closed and a line that begins `<!--` among them (#1122), or TEXT
-    holds no verdict block, as one written before #1198 does."""
+    nobody closed and a line that begins `<!--` among them, or TEXT holds no
+    verdict block, as one whose fields stand outside any block does."""
     found = chain.FIELDS.read(text, chain.FIELDS.GUARANTEE)
     if found.refusals or not found.blocks:
         return None, []
@@ -1110,7 +1094,8 @@ def sealed_before(chain, top, path, common=None, ident=None):
     them, and asks nothing of the row an agent writes. The history cannot
     tell such a `sealed` from one committed where nobody refused it, over a
     commit the branch does not hold, so that one counts too, and its work
-    item draws no stamp (#975 round 5, `questions.md` Q8). A row this clone
+    item draws no stamp: a work item is never stamped twice, and a stamp
+    missed is the failure accepted over one drawn twice. A row this clone
     refused at its write can still be committed, since no gate stops it, so
     its record is asked, as the earlier blocks are asked. A root commit
     has no parent: `git log` exits 128 and the history is empty."""
@@ -1126,18 +1111,19 @@ def sealed_before(chain, top, path, common=None, ident=None):
     return False
 
 
-# --- a `sealed` this clone refused (work item 1792363231) -------------------
+# --- a `sealed` this clone refused ------------------------------------------
 #
-# `questions.md` Q2 of work item 1792363231, answered (b). A `sealed` over a
-# commit the work item's branch does not hold drew nothing. The sealer's new
-# audit appends its block below that one, and without a record of the
-# refusal the earlier block reading `sealed` counts as the stamp, so the
-# repair draws nothing either. One writer leaves the record, for a block
-# that stands in its own clone and nowhere else: `queue_for_written_guarantee`,
-# under either root, for a block its branch does not hold. Its read of the earlier
-# blocks, and its read of the history, skip a `sealed` the record names. Nothing infers a record
-# after the fact, so nothing asks ancestry at read time, which is what
-# #975's rounds 3 to 6 kept regressing on.
+# The owner chose a record here over a limit stated in prose (#976). A
+# `sealed` over a commit the work item's branch does not hold draws nothing.
+# The sealer's new audit appends its block below that one, and without a
+# record of the refusal the earlier block reading `sealed` counts as the
+# stamp, so the repair would draw nothing either. One writer leaves the
+# record, for a block that stands in its own clone and nowhere else:
+# `queue_for_written_guarantee`, under either root, for a block its branch
+# does not hold. Its read of the earlier blocks, and its read of the
+# history, skip a `sealed` the record names. Nothing infers a record after
+# the fact, so nothing asks ancestry at read time: an ancestry check at read
+# time regressed in each of four review rounds.
 
 REFUSED_DIR = "agentic-stamp-refused"
 # The shortest SHA a record is matched on; shorter spellings find none.
@@ -1162,7 +1148,7 @@ def record_refusal(common, ident, target):
     and not in it, so neither `pending`, `already_queued` nor `--stop` lists
     it. Per clone, because the refused row stands in this clone alone. A record
     that cannot be written is skipped, and that verdict then counts as
-    stamped, which is #975 Q8's direction."""
+    stamped: a stamp missed is the failure accepted over one drawn twice."""
     directory = os.path.join(common, REFUSED_DIR)
     try:
         os.makedirs(directory, exist_ok=True)
@@ -1277,8 +1263,8 @@ def queue_for_written_guarantee(path, now=None):
     `lib/optin.py#SECOND_HOME` beside a project's own `seal/`, and
     `<common>/seal/` in local mode. It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
-    fence nobody closed and a line that begins with `<!--` among them
-    (#1122), its newest verdict block reads `sealed`, no earlier block reads
+    fence nobody closed and a line that begins with `<!--` among them,
+    its newest verdict block reads `sealed`, no earlier block reads
     `sealed` but one this clone recorded refusing, the clone holds no values
     file for the work item, in shared
     mode HEAD's history carries no `sealed` of the file (`sealed_before`
@@ -1296,7 +1282,7 @@ def queue_for_written_guarantee(path, now=None):
     seal = os.path.dirname(specs)
     # The root's own name is not compared here: `written_root` asks the
     # resolver whether SEAL is the root in force, under whichever name it
-    # has (#1059).
+    # has.
     if (os.path.basename(real), os.path.basename(specs)) != ("guarantee.md", "threads"):
         return []
     import sibling
@@ -1365,14 +1351,13 @@ def queue_for_written_guarantee(path, now=None):
 #
 # The draw the plugin's `Stop` hook runs: `hooks/hooks.json` names this
 # file with `--stop`. The harness shows a `Stop` hook's `systemMessage`
-# unfolded, in truecolour, after the turn's final text (probe D,
-# 2026-09-28), and shows its first line as a dim `Stop says: <line>`, so
-# line 1 is a label naming what was sealed and the drawing starts on line 2.
+# unfolded, in truecolour, after the turn's final text, and shows its first
+# line as a dim `Stop says: <line>`, so line 1 is a label naming what was
+# sealed and the drawing starts on line 2.
 #
 # **Only the main session's `Stop`.** `SubagentStop` carries the parent's
-# `session_id` and differs by `agent_id` alone (`questions.md` Q2 of work
-# item 1790562543, measured 2026-09-28), so a payload carrying `agent_id`
-# draws nothing, and nor does any event that is not `Stop`.
+# `session_id` and differs by `agent_id` alone, so a payload carrying
+# `agent_id` draws nothing, and nor does any event that is not `Stop`.
 #
 # **Which clone.** The payload's `cwd`, walked up to its `.git` entry; the
 # git COMMON dir is the one place a linked worktree and the main checkout
@@ -1418,12 +1403,12 @@ def drawings(directory):
     first, for `fitted`. A block is `(label, rows)`, and each is built whole
     and drawn with its disc before any file is claimed, so a file that is
     not a stamp's values, whatever it fails on, is left where it is and takes
-    no other file's drawing with it (round 1's yellow 2 of #975). The file
+    no other file's drawing with it. The file
     can be written by one copy of the plugin and read by another, so a
     format one side does not know is an ordinary state. The one rung
     `fitted` may step down to draws the same rows with no disc, so a block
     drawn here cannot fail there. Only the oldest files one message carries
-    are claimed (`admitted`, the owner's rule of 2026-10-02): the rest stay
+    are claimed (`admitted`, the owner's rule): the rest stay
     pending under their own names for the next `Stop`, or for
     `seal stamp --from`."""
     ready = []
@@ -1476,7 +1461,7 @@ def drawn_at_stop(text):
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
 # order; a case in `tests/skills/test_seal_stamp.py`'s `Test_module` holds the
-# labels against `guarantee_rows`'. Since #975 the stamp carries
+# labels against `guarantee_rows`'. The stamp carries
 # what the records say and no suite counts: those are the broad gate's
 # report's, which the gate prints as text.
 SAMPLE_ROWS = [
@@ -1571,8 +1556,7 @@ def drawn_from(path, shape):
     ):
         # The drawn file's own name, where that is what was given:
         # `drawn_path` of it is `X.drawn.drawn.json`, which does not exist,
-        # and this is the sentence a person recovers the values from (round
-        # 1's 🟡 3).
+        # and this is the sentence a person recovers the values from.
         drawn = path if path.endswith(DRAWN) else drawn_path(path)
         raise ValueError(VALUES_DRAWN.format(path=path, drawn=drawn))
     values = read_values(path)
