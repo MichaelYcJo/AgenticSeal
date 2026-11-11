@@ -692,6 +692,22 @@ class Test_chain_counts:
         assert counts == (None, None, 1, None), counts
         assert "no reader" in capsys.readouterr().out
 
+    def test_refuses_to_end_the_seal_where_a_reader_is_absent(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1482. An absent reader is `lib/sibling.py#load`'s sentence and its
+        `SystemExit(2)`, which is no `Exception`. It leaves the three tree
+        rows unread as S10's failed load does, and the seal goes on."""
+        mod = seal()
+        import sibling
+
+        monkeypatch.setattr(sibling, "ROOT", str(tmp_path / "no-plugin"))
+        counts = mod.chain_counts(
+            tree(tmp_path), [pr(20, "feat/12-an-item", "chain: capped")]
+        )
+        assert counts == (None, None, 1, None), counts
+        assert "chain_check.py, which this command loads" in capsys.readouterr().err
+
 
 class Test_main:
     def test_accepts_a_published_note_and_replaces_its_header(

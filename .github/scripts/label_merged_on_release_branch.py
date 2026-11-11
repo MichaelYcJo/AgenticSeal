@@ -48,33 +48,27 @@ run for its output sooner or later.
 Environment: `BRANCH` (`github.ref_name`), `BEFORE`, `AFTER`, `REPO`.
 """
 
-import importlib.util
 import json
 import os
 import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
+sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
+import sibling  # noqa: E402
 
 # The branch a release accumulates on. Anything else under `release/*` --
 # `release/next`, a typo -- is a shape this cannot name a version for, and it
 # says so and exits 0 rather than guessing one.
 RELEASE_BRANCH = re.compile(r"^release/v(\d+\.\d+\.\d+)$")
 
-
-def _load(name, filename):
-    path = os.path.join(HERE, filename)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# Imported by path rather than by `import close_issues_on_release`, so that a
-# test importing THIS module by path gets the same neighbour the workflow
-# does. `sys.path[0]` is this directory only when the script is the entry
-# point.
-closer = _load("close_issues_on_release", "close_issues_on_release.py")
+# Loaded through `lib/sibling.py` rather than by `import
+# close_issues_on_release`, so that a test importing THIS module by path gets
+# the same neighbour the workflow does. `sys.path[0]` is this directory only
+# when the script is the entry point.
+closer = sibling.load(".github/scripts/close_issues_on_release.py")
 
 
 # --- the name mapping -----------------------------------------------------

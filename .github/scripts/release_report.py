@@ -55,7 +55,6 @@ policy root's index, or a module it reads through cannot be read.
 import argparse
 import datetime
 import glob
-import importlib.util
 import json
 import os
 import re
@@ -63,6 +62,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first load below; each module is named as `lib/sibling.py#load` names it.
+sys.path.insert(0, os.path.join(ROOT, "lib"))
 METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
 CONFIG = "lib/config.py"
@@ -96,28 +98,19 @@ class Unreadable(Exception):
     says which."""
 
 
-def script(rel, name, purpose):
-    """The module at `rel` under this tree, loaded by path, or Unreadable
-    naming it and what it is for."""
-    path = os.path.join(ROOT, *rel.split("/"))
-    if not os.path.isfile(path):
-        raise Unreadable(f"cannot read {rel}, which {purpose}")
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def meter():
-    """`payload_meter.py`, loaded by path, or Unreadable."""
-    return script(METER, "agentic_release_meter", "measures an agent's preload")
+    """`payload_meter.py`, as `lib/sibling.py#load` returns it."""
+    import sibling
+
+    return sibling.load(METER)
 
 
 def floor():
     """The plugin's floor as a job name writes it, `3.12`, from `LAUNCH`'s
-    `FLOOR`, loaded by path, or Unreadable."""
-    launch = script(LAUNCH, "agentic_release_launch", "holds the Python floor")
-    return ".".join(str(part) for part in launch.FLOOR)
+    `FLOOR`."""
+    import sibling
+
+    return ".".join(str(part) for part in sibling.load(LAUNCH).FLOOR)
 
 
 def lf_bytes(path):
@@ -221,14 +214,16 @@ def documents(root):
         for pattern in DOCUMENTS
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
     ]
-    config = script(CONFIG, "agentic_release_config", "reads the policy root key")
-    optin = script(OPTIN, "agentic_release_optin", "names the seal/ root in the tree")
+    import sibling
+
+    config = sibling.load(CONFIG)
+    optin = sibling.load(OPTIN)
     # The shared root's name, or `optin.HOME` where none is marked, as an
     # unmarked `seal/` was read before the second name.
     home = os.path.join(root, optin.home_name(root) or optin.HOME)
     policy = config.policy_root(home)
     if os.path.isdir(os.path.join(root, *policy.split("/"))):
-        fold = script(FOLD, "agentic_release_fold", "lists the policy documents")
+        fold = sibling.load(FOLD)
         try:
             listed = fold.documents(root, policy)
         except fold.Unusable as refused:
@@ -397,8 +392,8 @@ def main(argv=None):
 if __name__ == "__main__":
     # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
-    # when first asked (`meter`), so a module that will not load ends in the
-    # script's own `Unreadable` and exit 2.
+    # when first asked (`meter`), so an absent module ends in
+    # `lib/sibling.py`'s sentence and exit 2 after the arguments are read.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

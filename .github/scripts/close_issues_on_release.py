@@ -73,12 +73,16 @@ import re
 import subprocess
 import sys
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
-import console
-import gitcmd
+import sibling
+
+console = sibling.load("lib/console.py")
+gitcmd = sibling.load("lib/gitcmd.py")
 
 # GitHub's own set. Each has to appear immediately before its number -- the
 # documentation asks for full syntax for each issue and sanctions no shorter

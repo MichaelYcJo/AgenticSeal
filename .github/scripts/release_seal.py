@@ -64,8 +64,6 @@ recorder wrote in) and `SUITE_KEY` (the key the run at the tag was handed),
 Exit code: 0, always.
 """
 
-import functools
-import importlib.util
 import json
 import os
 import subprocess
@@ -80,31 +78,27 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # a fixture without moving the first.
 CODE = os.path.abspath(os.path.join(HERE, "..", ".."))
 ROOT = CODE
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first module `module` is asked for.
+sys.path.insert(0, os.path.join(CODE, "lib"))
 
 
 # The tree's own modules are loaded when first asked for, not at import: a
 # module that will not load is one more way for the seal to fail, and every
 # way it fails has to end in today's note and an exit of 0 (`main`), which an
 # import at the top of this file would end before `main` ran.
-def module(name, *parts):
-    """The repository's module at `CODE/<parts>`, loaded once under `name`."""
-    return _module(name, os.path.join(CODE, *parts))
+def module(rel):
+    """The repository's module at REL, a `/`-joined path under `CODE`, as
+    `lib/sibling.py#load` returns it."""
+    import sibling
 
-
-@functools.cache
-def _module(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    loaded = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(loaded)
-    return loaded
+    return sibling.load(rel)
 
 
 def publisher():
     """`.github/scripts/publish_release_note.py`, which owns the note's
     header, the pull request list and how a release is counted."""
-    return module(
-        "agentic_publish_release_note", ".github", "scripts", "publish_release_note.py"
-    )
+    return module(".github/scripts/publish_release_note.py")
 
 
 # How many PNG pixels the note shows per CSS pixel. The note's `<img>`
@@ -229,13 +223,7 @@ def gate():
     """`skills/verify/scripts/broad_gate.py`, whose reader and counter the
     broad gate's panel reads the same record with (#869): one counter for the
     panel and the release, and no second reader of what pytest printed."""
-    return module(
-        "agentic_broad_gate_for_release_seal",
-        "skills",
-        "verify",
-        "scripts",
-        "broad_gate.py",
-    )
+    return module("skills/verify/scripts/broad_gate.py")
 
 
 def suite_counts(directory, key):
@@ -287,10 +275,8 @@ def readers():
     chain's own gates read round records with, so the counts here are the
     ones a gate would read and a change to where records live has to move
     these readers first. The markdown reader is the one the check loaded."""
-    chain = module(
-        "agentic_chain_check", "skills", "code-review", "scripts", "chain_check.py"
-    )
-    routing = module("agentic_routing", "lib", "routing.py")
+    chain = module("skills/code-review/scripts/chain_check.py")
+    routing = module("lib/routing.py")
     return routing, chain, chain.SHARED_READER
 
 
@@ -330,7 +316,9 @@ def chain_counts(root, pulls):
     capped = sum(1 for pull in pulls if CAPPED_LABEL in labels_of(pull))
     try:
         routing, chain, reader = readers()
-    except Exception as problem:
+    # An absent reader is `lib/sibling.py#load`'s sentence and `SystemExit`,
+    # which leaves these rows unread as any other failed load does.
+    except (Exception, SystemExit) as problem:
         print(
             f"the chain rows are not read: the round record's readers did not load ({problem})"
         )
@@ -425,8 +413,8 @@ def mark_on(root):
     and an empty one are off and say nothing; any other value, and a
     refusal the reader returns, are off and named. Nothing here refuses:
     the image is a picture, and the results go in whatever the key says."""
-    home = module("agentic_optin_for_release_seal", "lib", "optin.py").home_at(root)
-    config = module("agentic_config_for_release_seal", "lib", "config.py")
+    home = module("lib/optin.py").home_at(root)
+    config = module("lib/config.py")
     value, refused = config.declared_value(home, MARK_KEY)
     if refused is not None:
         return False, KEY_REFUSED.format(why=refused)

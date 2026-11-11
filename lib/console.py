@@ -49,18 +49,19 @@ point gives it by importing this module and calling `to_utf8()`, or by
 spelling the loop inline. A script that loads nothing from `lib/` at
 import spells the loop, because a load of this module would be one more load
 that can fail before the answer. Many of the scripts under `skills/*/scripts/`
-already reach `lib/` at import: each imports `lib/sibling.py` and loads the
-modules it reads through `sibling.load`, directly or through a sibling script,
-`skills/implement/scripts/seal.py` among them. Some under `.github/scripts/`
-load them by path.
+and `.github/scripts/` already reach `lib/` at import: each imports
+`lib/sibling.py` and loads the modules it reads through `sibling.load`,
+directly or through a sibling script, `skills/implement/scripts/seal.py`
+among them.
 `skills/code-review/scripts/chain_check.py` runs its loop before it loads any
 of them, so that the refusal it prints when one will not load does not meet a
 console's code page. None of the others says why it copies the loop rather
 than loading this module the same way.
 `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
-`.github/scripts/rules.py` load the tree's modules only when first asked, so a
-module that will not load ends in the script's own named result rather than a
-traceback. This command lists every place
+`.github/scripts/rules.py` load the tree's modules only when first asked,
+after the arguments are read, so an absent module ends the first and the last
+in `lib/sibling.py`'s sentence at exit 2 and `release_seal.py` in its note at
+exit 0, rather than in a traceback. This command lists every place
 that spells the loop, with this file among them:
 
     git grep -l "[.]reconfigure(" -- '*.py' ':!tests' ':!evals/behaviour'

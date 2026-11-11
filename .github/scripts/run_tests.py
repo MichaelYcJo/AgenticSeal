@@ -70,26 +70,24 @@ three are test-only: nothing under `lib/` or `skills/` imports them.
 """
 
 import collections
-import importlib.util
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this file reads.
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib")
+)
+import sibling
+
 # The supported floor, read from `lib/launch.py`, its one source. The
 # virtualenv is built and adopted against it. `bin/test` runs this file on
 # whatever `python3` it finds, not through the launcher, whose docstring says
-# why. Loaded by path, because `lib/` is not on this file's `sys.path`.
-_LAUNCH = importlib.util.spec_from_file_location(
-    "agentic_launch_for_run_tests",
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib", "launch.py"
-    ),
-)
-_launch = importlib.util.module_from_spec(_LAUNCH)
-_LAUNCH.loader.exec_module(_launch)
-FLOOR = tuple(_launch.FLOOR)
+# why.
+FLOOR = tuple(sibling.load("lib/launch.py").FLOOR)
 FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 
 # The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`,
