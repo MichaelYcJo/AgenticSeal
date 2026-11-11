@@ -126,22 +126,21 @@ def content_hash(lines):
 
 def heading_level(line):
     """The level of the markdown heading LINE is, or None: CommonMark 4.2's
-    ATX heading, by `lib/lines.py#heading_level` (#867).
+    ATX heading, by `lib/lines.py#heading_level`.
     """
     return shared_reader().heading_level(line)
 
 
 def markdown_lines(text):
     """TEXT's lines as GFM ends them, with every line inside a closed fence
-    blanked (`unquoted`) — the lines a renderer shows a heading on (#867).
-    The count and the line numbers are `gfm_lines(text)`'s, so a region found
+    blanked (`unquoted`) — the lines a renderer shows a heading on. The
+    count and the line numbers are `gfm_lines(text)`'s, so a region found
     here is the same region there, and its hash is taken over the lines as
     written: where a region ENDS moves, its bytes do not.
 
-    **Computed once per distinct text** (round 1 of #867, white 11): every
-    anchor graded against one version of the pact asks for its shown lines.
-    The memo is keyed on the TEXT, never on a path, and each caller gets a
-    fresh list."""
+    **Computed once per distinct text**: every anchor graded against one
+    version of the pact asks for its shown lines. The memo is keyed on the
+    TEXT, never on a path, and each caller gets a fresh list."""
     return list(_shown_lines(text))
 
 
@@ -162,7 +161,7 @@ def heading_path(lines, parts):
     that repeats across a document is disambiguated by its parent rather than
     by a line number. Zero matches or several is the caller's BROKEN.
 
-    LINES are `markdown_lines` (#867): a heading quoted in a closed fence is a
+    LINES are `markdown_lines`: a heading quoted in a closed fence is a
     blank line there, so it is no part of any path and ends no section.
     """
     regions = [(1, len(lines))]
