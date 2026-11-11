@@ -271,7 +271,7 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert f"`{COMMON_DIR}`" in own, own
 
 
-# --- Q1: the sentence a session reads, once in each place -----------------
+# --- Q1: the sentence a session reads, in each place ----------------------
 
 
 @pytest.mark.parametrize(

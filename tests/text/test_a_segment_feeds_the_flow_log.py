@@ -220,7 +220,7 @@ def test_the_token_row_names_the_command_that_prints_it():
     )
 
 
-def test_the_tokens_are_counted_rather_than_estimated():
+def test_the_section_names_the_token_fields_the_count_reads():
     body = section_body()
     # The transcript's `usage` fields the count reads.
     for field in (

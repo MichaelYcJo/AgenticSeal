@@ -1302,7 +1302,7 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     ), done.stdout
 
 
-def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
+def test_the_chain_check_loads_the_one_reader():
     """Two readers of the same markdown drifted apart in four places across
     three review rounds here, and closing one pair opened another. A 🔴 inside
     a comment or a fenced block has to be invisible to both, so the check

@@ -186,7 +186,7 @@ class TestDefinition:
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
 
-    def test_the_sealer_checks_the_copy_and_reads_only_the_orchestrators_part(
+    def test_the_sealer_checks_the_copy_with_the_command_and_its_exit(
         self,
     ):
         """S13 of #1044. The part of the body below `pr_body.py#HEADING` is

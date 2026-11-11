@@ -86,7 +86,7 @@ def test_the_bootstrap_names_the_way_back_to_its_own_questions():
     )
 
 
-def test_the_skill_says_how_a_value_carrying_a_pipe_is_written():
+def test_the_skill_says_how_a_quote_or_a_backslash_is_written():
     """#415, as #1454 leaves it. This file is where a person is told to edit
     the value in place, so it is where they meet a value that needs a
     character JSON escapes. The criterion and the two lists stay pointed at

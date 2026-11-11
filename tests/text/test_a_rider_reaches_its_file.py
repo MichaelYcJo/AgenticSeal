@@ -53,7 +53,7 @@ def test_no_schedulable_row_carries_a_coordinate():
     assert not offenders, f"coordinate-tied rows in the schedulable list: {offenders}"
 
 
-def test_the_header_says_what_belongs_and_what_does_not():
+def test_the_header_gives_the_command_that_lists_the_riders():
     text = read(FOLLOW_UP)
     # The command the header gives a reader for the list of riders.
     assert 'grep -rn "RIDER:"' in text
