@@ -205,6 +205,21 @@ class Test_measure:
         assert total["bytes"] == sum(f["bytes"] for f in files)
         assert total["chars"] == sum(f["chars"] for f in files)
 
+    def test_refuses_a_root_that_defines_no_agent(self, meter, tmp_path):
+        """A root without `agents/*.md` has nothing to measure: `measure`
+        finds no agent, and the command says so on stderr, prints no table
+        and exits 1, an input that could not be measured."""
+        root = tmp_path / "plugin"
+        home = tmp_path / "home"
+        write(str(root / "CLAUDE.md"), "## Repo rules\n")
+        assert meter.measure(str(root), str(home))["agents"] == {}
+        done = run(["--root", str(root)], home, cwd=str(tmp_path))
+        assert done.returncode == 1, (done.returncode, done.stderr)
+        assert done.stderr == f"seal payload: no agents/*.md under {root}\n", (
+            done.stderr
+        )
+        assert done.stdout == "", done.stdout
+
     def test_the_claude_md_pair_is_marked_as_the_harness_share(self, meter, tmp_path):
         """The two `CLAUDE.md` files sit in EVERY agent's prefix, so their
         rows carry the harness's share, and the text prints the pair as one
