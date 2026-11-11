@@ -121,6 +121,11 @@ and each total are the sums of the file figures they cover." The clause
 to the lines that are not indented under the pair line. No case changes:
 the fix changes no figure the meter prints.
 
+```seal
+verdict: fixed 31480faea
+answer: The finding holds: `render` prints the `CLAUDE.md` pair line as the sum of the pair's file figures, imports indented under it included. The second sentence of `changelog.md:3` and the `tokens` paragraph of `payload_meter.py:23-29` take the record's replacement text; no printed figure changes, so no case changes. The framer restated design *Scope* item 2 at `93fd4522e` and dropped the clause on the column a reader adds up.
+```
+
 ## Confirmations
 
 ```seal
