@@ -52,7 +52,8 @@ def test_every_declared_label_says_which_document_specifies_it():
             f"{label['name']!r} cites {document}, which is not in the tree"
         )
         # The section is cited by its heading text in italics, and the
-        # heading is read as it renders, its own emphasis dropped.
+        # heading is read as it renders, its own emphasis dropped: the
+        # citation a reader of the label resolves to its section.
         with open(os.path.join(ROOT, document), encoding="utf-8") as handle:
             headings = {
                 line.lstrip("#").strip().replace("*", "")
