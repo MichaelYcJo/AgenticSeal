@@ -151,6 +151,7 @@ except ImportError:
         "Nothing was read.\n"
     )
     raise SystemExit(2) from None
+
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.json"
 MAP_PARTS = (".claude", "agentic", "pact-paths.json")

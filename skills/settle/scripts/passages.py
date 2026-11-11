@@ -9,8 +9,9 @@ reads a design's `to` through the same functions, through
 `skills/settle/scripts/rule_changes.py#copies`, so the notice and the test
 agree on what a copy is. A heading line is told by
 `skills/verify/scripts/unverified_check.py#heading_level`, loaded through
-`lib/sibling.py`, so this module spells no heading rule of its own. Nothing here reads a
-document or runs a command: each caller lists and reads its own files.
+`lib/sibling.py`, so this module spells no heading rule of its own.
+Nothing here reads a document or runs a command: each caller lists and
+reads its own files.
 """
 
 import os
