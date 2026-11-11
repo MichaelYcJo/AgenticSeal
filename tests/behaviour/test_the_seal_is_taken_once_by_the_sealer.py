@@ -47,7 +47,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     had before: the mode, the command as the key wrote it, and no refusal.
     """
     module = gate_module()
-    config = module.load(module.CONFIG_READER, "agentic_config_for_this_case")
+    config = module.sibling.load(module.CONFIG_READER)
     home = os.path.join(ROOT, "seal")
 
     assert config.declared_mode(home) == ("mode", "shared"), config.declared_mode(home)

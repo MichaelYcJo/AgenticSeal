@@ -9,6 +9,7 @@ reads in the diff (`docs/running/what-a-script-gates.md` *Which gate a script
 holds*); the cases here hold each key once, over the helper.
 """
 
+import os
 import subprocess
 
 import pytest
@@ -17,6 +18,8 @@ from conftest import census_case, git, load_lib_module, write
 TARGET = "lib/gitcmd.py"
 
 gitcmd = load_lib_module("gitcmd.py", "gitcmd_for_its_own_file")
+# `git_path` and `under_root` came here from `unverified_check.py` (#1482),
+# and their cases with them.
 
 
 def new_repo(tmp_path):
@@ -155,6 +158,34 @@ class Test_module:
         """A key added to `KEYS` gets a parameter here, which shows the
         reading it changes."""
         assert [key for key, _ in gitcmd.KEYS] == [c.values[0] for c in CASES]
+
+
+class Test_git_path:
+    def test_accepts_a_windows_path_as_git_spells_it(self, monkeypatch):
+        r"""git answers and accepts `/` on every platform; `os.sep` is
+        monkeypatched because `git_path` reads it at call time, so the
+        Windows branch runs on every leg."""
+        monkeypatch.setattr(os, "sep", "\\")
+        assert gitcmd.git_path("specs\\1780000000-work\\gaps.md") == (
+            "specs/1780000000-work/gaps.md"
+        )
+        assert gitcmd.git_path("specs/1780000000-work/gaps.md") == (
+            "specs/1780000000-work/gaps.md"
+        )
+
+    def test_refuses_to_rewrite_a_backslash_in_a_posix_name(self, monkeypatch):
+        monkeypatch.setattr(os, "sep", "/")
+        assert gitcmd.git_path("specs/odd\\name.md") == "specs/odd\\name.md"
+
+
+class Test_under_root:
+    def test_accepts_a_slash_joined_path_as_the_disk_spells_it(self):
+        assert gitcmd.under_root("r", "specs/a/gaps.md") == os.path.join(
+            "r", "specs", "a", "gaps.md"
+        )
+
+    def test_refuses_to_read_the_path_as_one_name(self):
+        assert gitcmd.under_root("r", "a/b") != os.path.join("r", "a" + chr(0) + "b")
 
 
 test_census = census_case(TARGET)

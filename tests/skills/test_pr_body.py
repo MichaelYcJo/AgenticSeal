@@ -11,6 +11,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 
 import pytest
 from conftest import ROOT, census_case, config_json, load_module, mark_root, write
@@ -835,6 +836,31 @@ class Test_seal_mark:
 
 
 class Test_main:
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings
+        exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means nothing was read, and a
+        sibling that is not beside the command is that kind. It printed a
+        line of its own before."""
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / TARGET.rsplit("/", 1)[1]
+        with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), str(repo)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = PR.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_accepts_a_sealed_work_item_with_the_mark_under_the_heading(
         self, repo, tmp_path, monkeypatch, capsys
     ):

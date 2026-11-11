@@ -35,7 +35,7 @@ was handed no body at all -- neither `PR_BODY` in the environment nor
 step that is green having examined nothing.
 
 **What GitHub does not read is defined once, next door.** `KEYWORDS`,
-`CLOSING` and `HIDDEN` are imported from `close_issues_on_release.py`
+`CLOSING` and `HIDDEN` are taken from `close_issues_on_release.py`
 rather than restated here, so widening one moves both. Two lists of what a
 closing keyword is would drift apart the first time either was edited.
 
@@ -85,31 +85,21 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 
-import console  # noqa: E402
-from close_issues_on_release import CLOSING, HIDDEN, KEYWORDS  # noqa: E402
+import sibling  # noqa: E402
 
-# Where a line ends is the shared reader's rule, loaded by path (#664). A
-# reader that is moved or renamed stops this check at load with a traceback,
-# which is the loud direction.
-READER = os.path.join(
-    HERE, "..", "..", "skills", "verify", "scripts", "unverified_check.py"
-)
+console = sibling.load("lib/console.py")
+_closer = sibling.load(".github/scripts/close_issues_on_release.py")
+CLOSING, HIDDEN, KEYWORDS = _closer.CLOSING, _closer.HIDDEN, _closer.KEYWORDS
 
-
-def load_reader(path=READER):
-    """`unverified_check.py` as a module."""
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-reader = load_reader()
+# Where a line ends is `lib/blocks.py`'s rule (#664). A reader that is
+# moved or renamed stops this check at load in `lib/sibling.py`'s sentence
+# at exit 2, which is the loud direction.
+READER = "lib/blocks.py"
+reader = sibling.load(READER)
 
 # Every `#N` a body writes, claimed or not. `#L45` and `#anchor` do not match:
 # a digit has to follow the hash immediately.

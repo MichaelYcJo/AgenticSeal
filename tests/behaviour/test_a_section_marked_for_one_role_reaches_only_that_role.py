@@ -43,11 +43,13 @@ SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
 
 MARKER = "Orchestrator:"
 HEADING = re.compile(r"^(#{2,3}) (.*)$")
-READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
+READER = os.path.join(ROOT, "lib", "blocks.py")
 
 
 def _reader():
-    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", READER)
+    spec = importlib.util.spec_from_file_location(
+        "agentic_fence_rule_for_roles", READER
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

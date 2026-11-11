@@ -124,7 +124,6 @@ exit class. Nothing is ever written.
 
 import argparse
 import glob
-import importlib.util
 import json
 import os
 import re
@@ -133,7 +132,26 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
-CHECKER = os.path.join(HERE, "coordinates.py")
+# The evidence reader, as `lib/sibling.py#load` names it.
+CHECKER = "skills/verify/scripts/coordinates.py"
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2. Where it is absent itself, the
+# refusal is the same sentence about it, spelt here because the file that
+# holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.json"
 MAP_PARTS = (".claude", "agentic", "pact-paths.json")
@@ -262,22 +280,6 @@ INLINE = (
 # Which exit each finding is.
 EXIT_ONE = frozenset({SUPERSEDED, NOT_TAKEN, UNMATCHED, NOT_FOUND})
 EXIT_TWO = frozenset({BROKEN, ONE_SIDED, REFUSED, UNREADABLE})
-
-
-def load(path, name):
-    """A sibling module by path, or a sentence and exit 2."""
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"seal pact: cannot read {shown(path, home_dir=os.path.expanduser('~'))}, "
-            "which this command reads the pact "
-            "through. It ships in the plugin beside this script; a copy of one "
-            "script taken on its own is not a plugin. Nothing was read.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 def git(root, *args):
@@ -626,10 +628,10 @@ def grade(checker, pact_text, history, clause, want):
 
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
-    config = load(os.path.join(LIB, "config.py"), "agentic_config_for_pact")
-    tables = load(os.path.join(LIB, "tables.py"), "agentic_tables_for_pact")
-    optin = load(os.path.join(LIB, "optin.py"), "agentic_optin_for_pact")
-    checker = load(CHECKER, "agentic_evidence_for_pact")
+    config = sibling.load("lib/config.py")
+    tables = sibling.load("lib/tables.py")
+    optin = sibling.load("lib/optin.py")
+    checker = sibling.load(CHECKER)
     home_dir = home_dir or os.path.expanduser("~")
 
     def say(line):

@@ -1163,7 +1163,7 @@ def pact_check_modules():
         os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py"),
         "pact_check_under_test",
     )
-    return pc, pc.load(pc.CHECKER, "evidence_for_pact_tests")
+    return pc, pc.sibling.load(pc.CHECKER)
 
 
 PACT_URL = "git@example.com:org/orders-api.git"

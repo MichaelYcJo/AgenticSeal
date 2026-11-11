@@ -79,7 +79,6 @@ import argparse
 import bisect
 import contextlib
 import datetime as dt
-import importlib
 import io
 import itertools
 import json
@@ -3119,17 +3118,19 @@ POSTED_NAME = re.compile(r"# (\S+\.jsonl)")
 KEY_EDGE = "A-Za-z0-9_-"
 
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first use of a module of `lib/` (`lib_module`).
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
+)
+
+
 def lib_module(name):
-    """`lib/<name>.py` beside this plugin's `skills/`, imported on first use,
-    so a reading that is not `--work-item` imports nothing from `lib/`."""
-    lib = os.path.normpath(
-        os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib"
-        )
-    )
-    if lib not in sys.path:
-        sys.path.insert(0, lib)
-    return importlib.import_module(name)
+    """`lib/<name>.py` beside this plugin's `skills/`, loaded on first use,
+    so a reading that is not `--work-item` loads nothing from `lib/`."""
+    import sibling
+
+    return sibling.load(f"lib/{name}.py")
 
 
 def work_item_keys(directory):

@@ -62,13 +62,15 @@ DOC and `--check` were given.
 import argparse
 import ast
 import glob
-import importlib.util
 import os
 import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first module `sibling` is asked for.
+sys.path.insert(0, os.path.join(ROOT, "lib"))
 SENTENCE = re.compile(r"(.+?[.!?])(?:\s|$)")
 # Where a rule is stated, and so where a `check:` line is read, beside the
 # policy root's documents, which `fold_check.py#documents` lists.
@@ -102,33 +104,19 @@ NOT_READ = (
     f"write {EXPECTED}"
 )
 
-# The modules this reads through, each the one reader of its input: the GFM
-# line walker, the fence and comment rule, and the resolver of the repository.
+# The modules this reads through, each the one reader of its input, as
+# `lib/sibling.py#load` names it: the GFM line split, the heading rule, the
+# fence and comment rule, the policy root's reader, the resolver of the
+# repository, the reader of the rule changes the settle has not yet written,
+# and the lister of the policy root's documents.
 SIBLINGS = {
-    "unverified_check": (
-        os.path.join("skills", "verify", "scripts", "unverified_check.py"),
-        "it is what splits a document into the lines GitHub renders",
-    ),
-    "tables": (
-        os.path.join("lib", "tables.py"),
-        "it is what says which lines a fence or a comment hides",
-    ),
-    "config": (
-        os.path.join("lib", "config.py"),
-        "it is what reads the repository's policy root",
-    ),
-    "optin": (
-        os.path.join("lib", "optin.py"),
-        "it is what finds the repository the command is typed in",
-    ),
-    "rule_changes": (
-        os.path.join("skills", "settle", "scripts", "rule_changes.py"),
-        "it is what reads the rule changes the settle has not yet written",
-    ),
-    "fold_check": (
-        os.path.join("skills", "settle", "scripts", "fold_check.py"),
-        "it is what lists the policy root's documents",
-    ),
+    "blocks": "lib/blocks.py",
+    "lines": "lib/lines.py",
+    "tables": "lib/tables.py",
+    "config": "lib/config.py",
+    "optin": "lib/optin.py",
+    "rule_changes": "skills/settle/scripts/rule_changes.py",
+    "fold_check": "skills/settle/scripts/fold_check.py",
 }
 
 
@@ -136,22 +124,26 @@ class Unreadable(Exception):
     """Nothing could be read, and the sentence says why."""
 
 
-_loaded = {}
-
-
 def sibling(key):
-    """The module `SIBLINGS[key]` names, loaded by path once, or Unreadable."""
-    if key in _loaded:
-        return _loaded[key]
-    rel, purpose = SIBLINGS[key]
-    path = os.path.join(ROOT, rel)
-    if not os.path.isfile(path):
-        raise Unreadable(f"cannot read {rel}, and {purpose}")
-    spec = importlib.util.spec_from_file_location(f"agentic_rules_{key}", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    _loaded[key] = module
-    return module
+    """The module `SIBLINGS[key]` names, as `lib/sibling.py#load` returns
+    it. The loader is imported here, at the first module asked for, so a
+    run that ends at its usage line loads nothing.
+
+    Where `lib/sibling.py` is absent, the refusal is the loader's sentence
+    about it at exit 2, spelt here because the file that holds the
+    sentence is the one missing."""
+    try:
+        import sibling as loader
+    except ImportError:
+        sys.stderr.write(
+            "cannot read "
+            + os.path.normpath(os.path.join(ROOT, "lib", "sibling.py"))
+            + ", which this command loads. It ships in the plugin beside this "
+            "script; a copy of one script taken on its own is not a plugin. "
+            "Nothing was read.\n"
+        )
+        raise SystemExit(2) from None
+    return loader.load(SIBLINGS[key])
 
 
 def shown_lines(text):
@@ -159,8 +151,8 @@ def shown_lines(text):
     (`lib/blocks.py#gfm_lines`), whether a renderer shows it outside a
     fence or a comment (`lib/tables.py#unfenced`), and the text of the
     heading it stands under, "" above the first."""
-    reader = sibling("unverified_check")
-    lines = reader.gfm_lines(text)
+    reader = sibling("lines")
+    lines = sibling("blocks").gfm_lines(text)
     shown = {index for index, _ in sibling("tables").unfenced(lines)}
     out, heading = [], ""
     for index, line in enumerate(lines):
@@ -476,7 +468,7 @@ def render(root, text):
     out, heading, held = [], None, False
     by_number = {number: line for number, _, line in check_lines(text)}
     unread = {number: why for number, _, why in unread_lines(text)}
-    reader = sibling("unverified_check")
+    reader = sibling("lines")
     for number, (line, visible, _) in enumerate(shown_lines(text), 1):
         stripped = line.strip()
         if visible and reader.heading_level(line) is not None:
@@ -552,8 +544,8 @@ def main(argv=None):
 if __name__ == "__main__":
     # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
-    # when first asked (`sibling`), so a module that will not load ends in the
-    # script's own `Unreadable` and exit 2.
+    # when first asked (`sibling`), so an absent module ends in
+    # `lib/sibling.py`'s sentence and exit 2 after the arguments are read.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

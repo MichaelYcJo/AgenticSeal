@@ -46,33 +46,26 @@ Environment: `REPO`, `GH_TOKEN`.
 """
 
 import argparse
-import importlib.util
 import os
 import sys
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
-import console
+import sibling
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+console = sibling.load("lib/console.py")
 
-
-def _load(name, filename):
-    path = os.path.join(HERE, filename)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# Imported by path for the reason `label_merged_on_release_branch.py` gives:
-# a test importing THIS module by path gets the same neighbours the workflow
-# does. `existing_labels` reads the whole label list rather than asking for
-# one name, because every name here carries a space and a colon and the
-# one-label read would turn on how those are encoded in a URL path.
-signal = _load("label_merged_on_release_branch", "label_merged_on_release_branch.py")
+# Loaded through `lib/sibling.py` for the reason
+# `label_merged_on_release_branch.py` gives: a test importing THIS module by
+# path gets the same neighbours the workflow does. `existing_labels` reads
+# the whole label list rather than asking for one name, because every name
+# here carries a space and a colon and the one-label read would turn on how
+# those are encoded in a URL path.
+signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
 
 

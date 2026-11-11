@@ -692,8 +692,57 @@ class Test_chain_counts:
         assert counts == (None, None, 1, None), counts
         assert "no reader" in capsys.readouterr().out
 
+    def test_refuses_to_end_the_seal_where_a_reader_is_absent(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1482. An absent reader is `lib/sibling.py#Absent`, a `SystemExit(2)`,
+        which is no `Exception`. It leaves the three tree rows unread as S10's
+        failed load does, and the seal goes on, so the loader's sentence,
+        which says nothing was read, is kept back and the line here names
+        the absent file (round 1, finding 1)."""
+        mod = seal()
+        import sibling
+
+        plugin = tmp_path / "no-plugin"
+        monkeypatch.setattr(sibling, "ROOT", str(plugin))
+        counts = mod.chain_counts(
+            tree(tmp_path), [pr(20, "feat/12-an-item", "chain: capped")]
+        )
+        assert counts == (None, None, 1, None), counts
+        said = capsys.readouterr()
+        assert said.err == ""
+        absent = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
+        assert (
+            "the chain rows are not read: the round record's readers did not "
+            f"load ({absent} is absent)"
+        ) in said.out
+
 
 class Test_main:
+    def test_names_an_absent_module_in_its_own_line_and_exits_0(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """#1482. The seal exits 0 whatever fails, so an absent module is
+        named in the `no seal` line and the warning, and the loader's
+        sentence, whose "Nothing was read." pairs with exit 2, is kept back
+        (round 2, finding 1)."""
+        mod = seal()
+        import sibling
+
+        plugin = tmp_path / "no-plugin"
+        monkeypatch.setattr(sibling, "ROOT", str(plugin))
+        monkeypatch.setenv("TAG", "v0.0.1")
+        monkeypatch.setenv("REPO", "o/r")
+        monkeypatch.delenv("DRY_RUN", raising=False)
+        assert mod.main() == 0
+        said = capsys.readouterr()
+        assert said.err == ""
+        absent = plugin / ".github" / "scripts" / "publish_release_note.py"
+        assert said.out.splitlines() == [
+            f"no seal: {absent} is absent -- the note stays as it was published",
+            f"::warning::release seal skipped: {absent} is absent",
+        ]
+
     def test_accepts_a_published_note_and_replaces_its_header(
         self, monkeypatch, tmp_path
     ):

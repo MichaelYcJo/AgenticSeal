@@ -52,10 +52,13 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
-import console  # noqa: E402
-from publish_release_note import write_output  # noqa: E402
+import sibling  # noqa: E402
+
+console = sibling.load("lib/console.py")
+write_output = sibling.load(".github/scripts/publish_release_note.py").write_output
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 MANIFEST = ".claude-plugin/plugin.json"

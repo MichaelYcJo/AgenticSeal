@@ -41,37 +41,29 @@ Exit codes: 0 written · 2 the arguments were unusable.
 """
 
 import argparse
-import importlib.util
 import os
 import runpy
 import sys
 import tempfile
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
-import behaviour
-import console
-import optin
+import sibling
+
+behaviour = sibling.load("evals/scripts/behaviour.py")
+console = sibling.load("lib/console.py")
+optin = sibling.load("lib/optin.py")
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
-PR_BODY_MODULE = os.path.join(ROOT, "skills", "code-review", "scripts", "pr_body.py")
-
-
-def load(path, name):
-    """The Python file at PATH, imported as NAME."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
 
 # `seal pr-body`'s module: its `compose` writes the part of a sealer case's
 # pull request body that the case's records hold.
-pr_body = load(PR_BODY_MODULE, "agentic_pr_body_for_rule_cases")
+pr_body = sibling.load("skills/code-review/scripts/pr_body.py")
 
 MODELS = {
     "proofer": "claude-opus-5-5",

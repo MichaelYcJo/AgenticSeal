@@ -70,9 +70,11 @@ fold's end among them (#1405).
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `lib/fields.py` reads by the record's headings, and
 `trail/gate.md` through `lib/fields.py`, the one reader of a record's
-`seal` blocks; a record either refuses is refused here with its sentence. The other records' headings are read through `unverified_check.py`'s
-`readable` and `sections`, so a heading inside a fence is no heading. No
-record is parsed any other way.
+`seal` blocks; a record either refuses is refused here with its sentence.
+The other records' headings are read through `lib/lines.py`'s `readable`
+and `sections`, so a heading inside a fence is no heading, and every
+record's lines through `lib/blocks.py#gfm_lines`. No record is parsed any
+other way.
 
 Limits, stated here and not guarded:
 
@@ -113,7 +115,6 @@ import argparse
 import difflib
 import fnmatch
 import html
-import importlib.util
 import json
 import os
 import posixpath
@@ -132,42 +133,43 @@ if __name__ == "__main__":
             _stream.reconfigure(encoding="utf-8", errors=_errors)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CHAIN_CHECK = os.path.join(HERE, "chain_check.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
 
+# `lib/sibling.py` loads every other module this command reads. Where it is
+# absent, the refusal is its own sentence about itself, spelt here because
+# the file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
-def _load(path, name):
-    """Import a sibling script by path, or raise ImportError naming it."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# Loaded once, here: `chain_check.py` with the block reader and the shared
-# markdown reader it loads at its import,
+# Loaded once, here: `chain_check.py` with the block reader, the shared
+# markdown reader and the line split it loads at its import, `lib/gaps.py`,
+# whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
 # `lib/config.py`, the one reader of a `seal/config.json` key, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
 # reader of a closing keyword. The plugin ships from the repository root, so
-# `.github/scripts/` stands three levels above HERE in a clone and in an
-# installed copy alike. As a command, a module that will not load ends the
-# run at exit 2; imported, the error is raised to the importer.
+# `.github/scripts/` stands in an installed copy as in a clone. An absent
+# file is `lib/sibling.py#load`'s sentence and exit 2. As a command, a
+# module that raises while it loads ends the run at exit 2; imported, the
+# error is raised to the importer.
 try:
-    CHAIN = _load(CHAIN_CHECK, "agentic_chain_check_for_the_pr_body")
-    ROUTING = CHAIN.load(CHAIN.ROUTING, "agentic_routing_for_the_pr_body")
-    CONFIG = CHAIN.load(
-        os.path.join(CHAIN.LIB, "config.py"), "agentic_config_for_the_pr_body"
-    )
-    CLOSER = _load(
-        os.path.join(
-            HERE, "..", "..", "..", ".github", "scripts", "close_issues_on_release.py"
-        ),
-        "agentic_closer_for_the_pr_body",
-    )
-except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
+    CHAIN = sibling.load("skills/code-review/scripts/chain_check.py")
+    GAPS = sibling.load("lib/gaps.py")
+    ROUTING = sibling.load("lib/routing.py")
+    CONFIG = sibling.load("lib/config.py")
+    CLOSER = sibling.load(".github/scripts/close_issues_on_release.py")
+except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
     print(
@@ -176,6 +178,7 @@ except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
     )
     raise SystemExit(2) from None
 READER = CHAIN.SHARED_READER
+BLOCKS = CHAIN.BLOCKS
 OPTIN = ROUTING.optin
 
 # The line that ends the orchestrator's part, `first_part`'s files, and
@@ -195,9 +198,9 @@ FOLD_END = "</details>"
 # what follows the lookahead, up to a `>`, only names the tag as read.
 TAG = re.compile(r"</?details(?=[\s/>]|$)[^>]*>?", re.IGNORECASE)
 # The record headings the generator reads, beside `gaps.md`'s
-# `## Not verified`, which is `unverified_check.py#HEADING`.
+# `## Not verified`, which is `lib/gaps.py#HEADING`.
 PHASES = "## Phases"
-NOT_VERIFIED = READER.HEADING
+NOT_VERIFIED = GAPS.HEADING
 NOT_DONE = "## Not done"
 
 # A work item's records, by their path under its directory.
@@ -413,7 +416,7 @@ def read_own(item, name=OWN_PART):
             text = handle.read()
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused([(name, 0, f"cannot be read as UTF-8 text ({exc})")]) from None
-    for i, line in enumerate(READER.gfm_lines(text)):
+    for i, line in enumerate(BLOCKS.gfm_lines(text)):
         if line == HEADING:
             raise Refused(
                 [
@@ -628,7 +631,7 @@ def _section(rel, text, heading):
             [(rel, starts[1] + 1, f"a second `{heading}` section; the body copies one")]
         )
     return (
-        READER.gfm_lines(text),
+        BLOCKS.gfm_lines(text),
         starts[0] + 1,
         CHAIN.section_end(READER, seen, starts[0]),
     )
@@ -637,7 +640,7 @@ def _section(rel, text, heading):
 def _changed(texts):
     if CHANGELOG not in texts:
         return [_fixed(CHANGED), _fixed(ABSENT.format(path=CHANGELOG))]
-    raw = READER.gfm_lines(texts[CHANGELOG])
+    raw = BLOCKS.gfm_lines(texts[CHANGELOG])
     return [
         _fixed(CHANGED),
         _fixed(FROM.format(path=CHANGELOG)),
@@ -673,7 +676,7 @@ def _round(rel, number, text):
     parsed = CHAIN.round_read(READER, text, rel)
     if parsed.errors:
         raise Refused(parsed.errors)
-    raw = READER.gfm_lines(text)
+    raw = BLOCKS.gfm_lines(text)
 
     def whole(block):
         return _copied(rel, raw, block.line - 1, block.end)
@@ -718,7 +721,7 @@ def _gate(texts):
         raise Refused([(GATE, line, why) for line, why in found.refusals])
     if not found.blocks:
         return [_fixed(BROAD), _fixed(NO_GATE_BLOCK)]
-    raw = READER.gfm_lines(texts[GATE])
+    raw = BLOCKS.gfm_lines(texts[GATE])
     return [
         _fixed(BROAD),
         _fixed(FROM.format(path=GATE)),
@@ -741,7 +744,7 @@ def _questions(texts):
     tables = _tables(texts[QUESTIONS])
     if not tables:
         return [_fixed(ASKED), _fixed(NO_QUESTION_TABLE)]
-    raw = READER.gfm_lines(texts[QUESTIONS])
+    raw = BLOCKS.gfm_lines(texts[QUESTIONS])
     return [
         _fixed(ASKED),
         _fixed(FROM.format(path=QUESTIONS)),
@@ -861,7 +864,7 @@ def split(body):
     `HEADING`, the orchestrator's part, and the text after that line, each
     as its bytes stood. Refused where no line equals it, a body 0.25.0 wrote
     among them, and the refusal names the repair."""
-    lines = READER.gfm_lines(body, keepends=True)
+    lines = BLOCKS.gfm_lines(body, keepends=True)
     for i, line in enumerate(lines):
         if line.rstrip("\r\n") == HEADING:
             return "".join(lines[:i]), "".join(lines[i + 1 :])
@@ -916,10 +919,10 @@ def _first_part(head, parts):
     above `HEADING`, is not the lines of PARTS, `first_part`'s files in
     order, counted from the body's first line; each line PARTS give is
     named with the file that gives it."""
-    said = READER.gfm_lines(head)
+    said = BLOCKS.gfm_lines(head)
     given, owner = [], []
     for name, text in parts:
-        lines = READER.gfm_lines(text)
+        lines = BLOCKS.gfm_lines(text)
         given += lines
         owner += [name] * len(lines)
     causes = []
@@ -951,10 +954,10 @@ def _check(below, body, parts):
             [(None, 0, "is not there; `seal pr-body <item> --body <file>` writes it")]
         )
     head, generated = split(body)
-    said = READER.gfm_lines(generated)
+    said = BLOCKS.gfm_lines(generated)
     given = [line for line, _source in below]
     # The lines above the part: the first part's, and `HEADING`'s own.
-    offset = len(READER.gfm_lines(head, keepends=True)) + 1
+    offset = len(BLOCKS.gfm_lines(head, keepends=True)) + 1
     causes = _first_part(head, parts)
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():

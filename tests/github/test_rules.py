@@ -659,51 +659,6 @@ class Test_refused_lines:
         ]
 
 
-class Test_sibling:
-    @pytest.mark.parametrize(
-        "key, rel",
-        [("tables", ("lib", "tables.py")), ("config", ("lib", "config.py"))],
-        ids=["tables.py", "config.py"],
-    )
-    def test_accepts_each_key_as_the_module_its_file_holds(self, key, rel):
-        """The fence and comment rule is read from `lib/tables.py` and the
-        policy root from `lib/config.py` (#1454)."""
-        assert rules.sibling(key).__file__ == os.path.join(rules.ROOT, *rel)
-
-    @pytest.mark.parametrize(
-        "key, rel, purpose",
-        [
-            (
-                "tables",
-                ("lib", "tables.py"),
-                "it is what says which lines a fence or a comment hides",
-            ),
-            (
-                "config",
-                ("lib", "config.py"),
-                "it is what reads the repository's policy root",
-            ),
-        ],
-        ids=["tables.py", "config.py"],
-    )
-    def test_refuses_a_module_it_cannot_read_naming_what_it_is_for(
-        self, monkeypatch, key, rel, purpose
-    ):
-        """#1454 moved the fence and comment rule from `lib/config.py` to
-        `lib/tables.py`, and `lib/config.py` stays the policy root's reader,
-        so the sentence for each missing file says what this command reads
-        it for (contract rule 14)."""
-        path = os.path.join(rules.ROOT, *rel)
-        real = os.path.isfile
-        monkeypatch.setattr(rules, "_loaded", {})
-        monkeypatch.setattr(
-            os.path, "isfile", lambda p: False if p == path else real(p)
-        )
-        with pytest.raises(rules.Unreadable) as raised:
-            rules.sibling(key)
-        assert str(raised.value) == f"cannot read {os.path.join(*rel)}, and {purpose}"
-
-
 class Test_module:
     @pytest.mark.parametrize("mark", ["#", "-", "*", ">", "|", "1. ", " "])
     def test_a_long_run_of_markup_with_no_label_is_answered_at_once(self, mark):
@@ -725,6 +680,32 @@ class Test_module:
             timeout=10,
         )
         assert done.returncode == 0, done.stderr
+
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings, run
+        with an argument that reaches a load, exits 2 with the loader's one
+        sentence naming the absent `lib/sibling.py` by its path: 2 means
+        nothing was read. It loads on first ask, so the guard stands where
+        the loader is imported, and a run that ends at its usage line loads
+        nothing."""
+        import sibling
+
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / "rules.py"
+        with open(SCRIPT, encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(copy), "--check"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(tmp_path),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "lib", "sibling.py")
+        said = sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
 
 
 test_census = census_case(TARGET)

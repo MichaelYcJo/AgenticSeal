@@ -88,7 +88,6 @@ and a load that fails there draws nothing.
 
 import argparse
 import collections
-import importlib.util
 import json
 import math
 import os
@@ -992,17 +991,14 @@ def label(values):
 # this clone recorded refusing.
 
 ROUND_FILE = re.compile(r"^round-\d+\.md$")
-CHAIN_CHECK = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "..",
-    "..",
-    "code-review",
-    "scripts",
-    "chain_check.py",
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first use of each module below, each named as `lib/sibling.py#load` names
+# it.
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
 )
-GITCMD = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib", "gitcmd.py"
-)
+CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
+GITCMD = "lib/gitcmd.py"
 # The line `--guarantee` prints, which the sealer's hand-back carries to the
 # orchestrator. It names the way to draw the stamp by hand, because the
 # plugin's `Stop` hook draws nothing where it cannot: a
@@ -1048,24 +1044,18 @@ def _git(cwd, *args):
 
 def _gitcmd():
     """`lib/gitcmd.py`, which builds every git command `_git` runs."""
-    spec = importlib.util.spec_from_file_location(
-        "agentic_gitcmd_for_the_stamp", GITCMD
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    import sibling
+
+    return sibling.load(GITCMD)
 
 
 def _chain_check():
     """`chain_check.py`, which loads `lib/fields.py`, the reader of
     `guarantee.md` and `trail/gate.md` the pull request's check reads them
     through, so a verdict block has one grammar."""
-    spec = importlib.util.spec_from_file_location(
-        "agentic_chain_check_for_the_stamp", CHAIN_CHECK
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    import sibling
+
+    return sibling.load(CHAIN_CHECK)
 
 
 def already_queued(common, ident):
@@ -1330,8 +1320,10 @@ def queue_for_written_guarantee(path, now=None):
     # has (#1059).
     if (os.path.basename(real), os.path.basename(specs)) != ("guarantee.md", "threads"):
         return []
+    import sibling
+
     chain = _chain_check()
-    routing = chain.load(chain.ROUTING, "agentic_routing_for_the_stamp")
+    routing = sibling.load("lib/routing.py")
     found = written_root(routing, seal)
     if found is None:
         return []
@@ -1418,18 +1410,15 @@ def queue_for_written_guarantee(path, now=None):
 # person what a session sealed and does not stop an adversary.
 
 STOP = "Stop"
-OPTIN = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib", "optin.py"
-)
+OPTIN = "lib/optin.py"
 
 
 def _optin():
     """`lib/optin.py`, which says where a clone's common dir is and
     whether the repository opted in."""
-    spec = importlib.util.spec_from_file_location("agentic_optin_for_the_stamp", OPTIN)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    import sibling
+
+    return sibling.load(OPTIN)
 
 
 def toplevel(cwd):

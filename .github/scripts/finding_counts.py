@@ -45,20 +45,28 @@ resolve or a reader does not load, with the reason on stderr.
 """
 
 import argparse
-import importlib.util
 import os
 import sys
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads, from the repository this file
+# is in.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
-import console
+import sibling
+
+console = sibling.load("lib/console.py")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# The repository this file is in, which the readers are loaded from and
-# which `--root` defaults to.
+# The repository this file is in, which `--root` defaults to.
 CODE = os.path.abspath(os.path.join(HERE, "..", ".."))
+# The readers, each as `lib/sibling.py#load` names it.
+OPTIN = "lib/optin.py"
+ROUTING = "lib/routing.py"
+CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
+SETTLE = "skills/settle/scripts/settle.py"
 
 HEADER = "| work item | findings | regression or reopens | records alone | rounds |"
 SEPARATOR = "|---|---|---|---|---|"
@@ -78,20 +86,11 @@ NOT_ROUTED = "whether it went through the review chain is not read"
 NO_DECLARATION = "it is no declaration `lib/routing.py#parse` reads"
 
 
-def load(name, *parts):
-    """The repository's module at `CODE/<parts>`, run under `name`."""
-    path = os.path.join(CODE, *parts)
-    spec = importlib.util.spec_from_file_location(name, path)
-    loaded = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(loaded)
-    return loaded
-
-
 def threads_at(root):
     """`<name>/threads`, where the work items of the repository at ROOT
     stand in its tree: NAME is `lib/optin.py#home_name`'s, or `optin.HOME`
     where no shared root is marked, the name an unmarked `seal/` carries."""
-    optin = load("agentic_optin_for_counts", "lib", "optin.py")
+    optin = sibling.load(OPTIN)
     name = optin.home_name(root) or optin.HOME
     return f"{name}/{optin.WORK_ITEMS}"
 
@@ -100,17 +99,9 @@ def readers():
     """`(routing, chain_check, the markdown reader, settle)`: the readers the
     review chain and the settle read with, so a change to the record's
     grammar or to where records live moves them and this count with them."""
-    chain = load(
-        "agentic_chain_check_for_counts",
-        "skills",
-        "code-review",
-        "scripts",
-        "chain_check.py",
-    )
-    routing = load("agentic_routing_for_counts", "lib", "routing.py")
-    settle = load(
-        "agentic_settle_for_counts", "skills", "settle", "scripts", "settle.py"
-    )
+    chain = sibling.load(CHAIN_CHECK)
+    routing = sibling.load(ROUTING)
+    settle = sibling.load(SETTLE)
     return routing, chain, chain.SHARED_READER, settle
 
 

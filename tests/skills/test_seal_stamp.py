@@ -373,7 +373,9 @@ class Test_module:
     def test_imports_nothing_outside_the_standard_library(self):
         """The disc and its sprite are stdlib-only (#832 S1): the gate, the
         plugin's `Stop` hook and the command load this file where nothing
-        beyond the standard library is installed."""
+        beyond the standard library is installed. `sibling` is
+        `lib/sibling.py`, which ships beside it and imports the standard
+        library alone (#1482)."""
         tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
         names = {
             alias.name.split(".")[0]
@@ -385,7 +387,7 @@ class Test_module:
             for node in ast.walk(tree)
             if isinstance(node, ast.ImportFrom) and node.module
         }
-        assert names and names <= set(sys.stdlib_module_names), names
+        assert names and names - {"sibling"} <= set(sys.stdlib_module_names), names
 
     def test_the_message_is_held_under_the_measured_limit_and_nothing_else(self):
         """The harness persists a message past 10,000 UTF-16 units (#717),

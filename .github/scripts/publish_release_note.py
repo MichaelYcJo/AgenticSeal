@@ -108,7 +108,6 @@ already hold.
 """
 
 import html
-import importlib.util
 import json
 import os
 import re
@@ -117,23 +116,24 @@ import sys
 import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
-sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
-import console  # noqa: E402
-import gitcmd  # noqa: E402
-import optin  # noqa: E402
-from blocks import gfm_lines  # noqa: E402
-from close_issues_on_release import SPAN, keywords_in  # noqa: E402
-from unverified_check import heading_level  # noqa: E402
+import sibling  # noqa: E402
 
-# `seal settle`, loaded by path for `adding_commit`: the one reader of the
-# commit that adds a fragment and the pull request it names, kept in the
-# settle so that the note and the settle read one number (#1139).
-SETTLE = os.path.join(HERE, "..", "..", "skills", "settle", "scripts", "settle.py")
-_spec = importlib.util.spec_from_file_location("agentic_settle_for_the_note", SETTLE)
-settle = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(settle)
+console = sibling.load("lib/console.py")
+gitcmd = sibling.load("lib/gitcmd.py")
+optin = sibling.load("lib/optin.py")
+gfm_lines = sibling.load("lib/blocks.py").gfm_lines
+_closer = sibling.load(".github/scripts/close_issues_on_release.py")
+SPAN, keywords_in = _closer.SPAN, _closer.keywords_in
+heading_level = sibling.load("lib/lines.py").heading_level
+
+# `seal settle`, for `adding_commit`: the one reader of the commit that adds
+# a fragment and the pull request it names, kept in the settle so that the
+# note and the settle read one number (#1139).
+SETTLE = "skills/settle/scripts/settle.py"
+settle = sibling.load(SETTLE)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -308,7 +308,7 @@ def split_process(body, heading):
     """`(body without its process section, the section's rows)`.
 
     The section is the line `heading` and every line after it up to the next
-    heading (`unverified_check.py#heading_level`) or the body's end. Its rows
+    heading (`lib/lines.py#heading_level`) or the body's end. Its rows
     are its table lines after the header and delimiter rows.
     """
     kept, table, inside = [], [], False

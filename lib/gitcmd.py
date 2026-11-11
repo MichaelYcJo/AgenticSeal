@@ -26,7 +26,13 @@ script holds*). A key or a subcommand found later to change a reading is
 added here and nowhere else. `core.quotePath` is not set: a script that
 takes a path out of output git quotes under it asks for the path with `-z`,
 which quotes none.
+
+Two helpers spell a path the way git does and back: `git_path` turns a
+path built by `os.path` into git's `/`-joined form, and `under_root` turns
+a `/`-joined repository-relative path into the disk's.
 """
+
+import os
 
 KEYS = (
     ("log.showSignature", "false"),
@@ -44,3 +50,28 @@ def argv(*args):
     for key, value in KEYS:
         held += ["-c", f"{key}={value}"]
     return ["git", *held, *args]
+
+
+def git_path(path):
+    r"""`path` as git spells it: forward slashes, whatever `os.sep` is here.
+
+    Each caller builds a repo-relative path by `os.path.relpath` and then
+    reads it beside what git prints or hands it to a reader of git's paths:
+    `unverified_check.py#repo_relative`'s answer is matched against the
+    `Reference specs` key, `chain_check.py#tree_at` lists a directory on
+    disk in the form `ls-tree` lists it at a ref, and
+    `lib/console.py#annotate` names a file to GitHub. git answers and accepts `/`
+    on every platform, so on Windows a path built by `os.sep` would match
+    none of them: `threads\x\gaps.md` against `threads/x/gaps.md`.
+
+    A no-op where `os.sep` already is `/`, rather than branching on `os.name`:
+    the substitution has to be on the path Linux CI runs, or the Windows half
+    is proven by nothing. It also must not run there — a backslash is a legal
+    character in a POSIX filename, and rewriting it would corrupt a real name.
+    """
+    return path if os.sep == "/" else path.replace(os.sep, "/")
+
+
+def under_root(root, rel):
+    """The disk path of a `/`-joined repository-relative path."""
+    return os.path.join(root, *rel.split("/"))

@@ -249,7 +249,7 @@ class Test_parse:
             f"{opener}\n- remove\n  file: docs/a.md -->\n- nothing\n  why: a reason."
         )
         parsed = parse(commented)
-        said = rules.reader().COMMENT_LINE
+        said = rules.fields().COMMENT_LINE
         assert parsed.errors == [(line_of(commented, opener), said)]
         assert parsed.ops == []
 
@@ -446,13 +446,13 @@ class Test_parse:
         """#1167, *Scope* item 9: a first line that opens like the no-change
         block and is not it is read as no block, so the section is refused as
         any line outside the grammar is, and the line is named in `unread`
-        through `unverified_check.py#unread_block`, the reason built there.
+        through `lib/items.py#unread_block`, the reason built there.
         Seen red against the refusal naming the block, with nothing named."""
         text = spec(f"{first}\n")
         parsed = parse(text)
         line = line_of(text, first)
         assert parsed.errors and parsed.errors[0][0] == line, parsed
-        assert parsed.unread == [rules.reader().unread_block([(line, first)])], parsed
+        assert parsed.unread == [rules.grammar().unread_block([(line, first)])], parsed
 
     def test_a_second_block_is_refused_at_its_own_line(self):
         """The block stands alone, so a second `- nothing` is refused at its own
