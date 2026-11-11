@@ -69,7 +69,7 @@ Failure scenario of the chosen approach, six months out:
 | A6. Keep the reading unbounded and batch it | It meets the time and the call count (0.70 s, 24 calls; G13). The output stays 247,730 B and grows by every release's rows, which fails the first *Done when* item. | Rejected. |
 | A7. Shorten each earlier row, such as dropping the grounds | The output still grows with every release. The grounds cell is what tells the session whether two rows are one kind. | Rejected. |
 | A8. The window's size as an argument, `--earlier N` | The settling session would pick a number with no grounds at hand. One fixed window and one flag that reads all cover the two uses. | Rejected. |
-| A9. Batched readers beside today's `adding_commit` and `version` | Two readers of one fact can disagree on an edge, such as a tag that is not a commit, and the next fix lands in one of them (`skills/core/SKILL.md` *The rule a mechanism is kept against*, one source per fact). | Rejected. `adding_commit` and `version` call the batched readers (design *Scope* item 5). |
+| A9. Batched readers beside today's `adding_commit` and `version` | Two readers of one fact can disagree on an edge, such as a tag that is not a commit, and the next fix lands in one of them (`skills/core/SKILL.md` *The rule a mechanism is kept against*, one source per fact). | Rejected. `adding_commit` calls `adding_commits`, and `version` goes for `versions`, which `notes` calls (design *Scope* item 5). |
 | A10. Replace the structure: remove *The judgments earlier settles removed* | Each settle since #1281 used the section to name kinds that recurred across releases (design G11). Without it, each settle sees one period again, which is what #1281 fixed. | Rejected. The premise that keeps the section was checked: each settle body design G11 reads names a kind that recurred across releases. |
 
 ## Phases
@@ -95,7 +95,7 @@ this work either.
 |---|---|---|---|
 | #1498 | `tests/censuses.py#_root_names`, which every tracked file's census run reads, this work item's records and new cases among them | #1498 | It carries the version move, and the spawn orders it first. This work's records hold no user path and no real identifier, so the census reads them the same before and after #1498. |
 | #1486 | The durations `.github/scripts/durations_union.py` prices are the test ids, and this work adds cases to `tests/skills/test_settle.py` | either | No file is changed by both. `--stale-fails` runs only on the release pull request, and fails only past `STALE_SHARE`, 5 % of the union's cases unpriced (`durations_union.py:24-26`, `:70`). A handful of new cases does not cross it whichever merges first. |
-| #1482 | `skills/settle/scripts/settle.py`: #1482 changes `load` and the loaders `plan_rows` calls, and this work changes `earlier_judgments`, `adding_commit`, `version` and `main` | #1481 | The milestone orders #1481 first, and #1482's body says it builds after #1481. #1482 then moves the loaders of a reading that already reads fewer plans. |
+| #1482 | `skills/settle/scripts/settle.py`: #1482 changes `load` and the loaders `plan_rows` calls, and this work changes `earlier_judgments`, `adding_commit`, `git_out`, `notes` and `main`, adds `git_run`, `decoded`, `versions`, `blobs` and `adding_commits`, and removes `version` | #1481 | The milestone orders #1481 first, and #1482's body says it builds after #1481. #1482 then moves the loaders of a reading that already reads fewer plans. |
 
 ## Operational impact
 

@@ -134,9 +134,11 @@ Out:
   `every`. The parameter's name is the crafter's.
 - `survey` takes the same switch and passes it through. `found["earlier"]`
   carries the three values, and `report` prints `older` last in the section.
-- The batched readers return dictionaries keyed by path or by commit, so
-  that `adding_commit(root, revisions, path)` and `version(root, commit)`
-  stay one call of them each for their callers (*Scope* item 5).
+- `adding_commits` returns a dictionary keyed by path, so that
+  `adding_commit(root, revisions, path)` stays one call of it for its
+  callers; `versions` returns one keyed by commit, which `notes` calls once
+  per `--apply`, and `version` goes, having no caller left; `blobs` returns
+  a list in the order of the names it is given (*Scope* item 5).
 - The printed shape:
 
   ```
@@ -193,7 +195,7 @@ per-plan git calls.
 |---|---|---|
 | The default reading of every plan an earlier settle removed | `skills/settle/scripts/settle.py#earlier_judgments`, the loop over `deleted` | *Scope* items 1 and 3. Its catch record is G11: every recurrence the settle bodies there name rests on the window's rows. |
 | Three git calls per removed plan: `git show`, the `git log` of `adding_commit`, and the `git tag --contains` of `version` | `skills/settle/scripts/settle.py#earlier_judgments`, `#adding_commit`, `#version` | The batched reads of *Scope* items 4 and 5. G12 shows them giving the same facts for all 134 plans. |
-| The per-commit `git tag --contains` reader of the lowest version tag | `skills/settle/scripts/settle.py#version` | The batched tag read, which `version` calls (*Scope* item 5), so one reader stays. |
+| The per-commit `git tag --contains` reader of the lowest version tag | `skills/settle/scripts/settle.py#version` | `settle.py#versions`, the batched tag read, which `notes` calls; `version` goes with no caller left (*Scope* item 5), so one reader stays. |
 | "every row of every `seal/threads/<id>/frame/plan.md` a commit on `--released-at` deleted", and "Each plan is read once, at the parent of the newest commit that deleted it" as the whole of what the section reads | `skills/settle/SKILL.md` *What the dry run shows*, the bullet *The judgments earlier settles removed* | Rewritten in place by *Scope* item 7. |
 | "holds the rows of every plan an earlier settle removed" | `docs/releasing/release-checklist.md` *Settle what earlier releases left behind* | `## Rule changes` above, written at the settle after the release |
 | "those earlier settles removed", read as all of them | `docs/running/the-run.md` *The run* | `## Rule changes` above, which cites the skill's bullet instead of stating the bound a second time |
