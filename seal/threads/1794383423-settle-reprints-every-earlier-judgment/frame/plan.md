@@ -109,4 +109,5 @@ today. This pull request does not move the version; #1498 carries the move.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-11 | The orchestrator folded phase 2's departures into the frame at `e72cbe025`: the heading also names `--all-earlier`, the moved test coordinates, the units #1482 meets, and Q1 closed on the words phase 2 states | Each was a statement in a frame file that the tree at `c89db956f` contradicts, named by the crafter's hand-back and read against the tree (read) | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
+| 2026-11-11 | The title takes `perf:`, as the issue's title does | The default reading prints the plans of the two newest removing commits and names the older ones, and `--all-earlier` reads every plan as before; what changes is what the settle costs to read | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지* |
