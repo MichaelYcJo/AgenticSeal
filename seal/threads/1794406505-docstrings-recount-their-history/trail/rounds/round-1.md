@@ -79,6 +79,11 @@ Both sentences are present-tense claims a reader can hold against each
 other, so neither recounts history.
 ```
 
+```seal
+verdict: fixed d1a2f007b
+answer: The finding holds: `session_cost.py:1724-1726` gives 716 s over 381 named rows and 664 s over all 433. `gaps.md:14-17` takes the record's replacement text. The fix and the finding are in the work item's records alone, so the sealer reads it with no further round.
+```
+
 ## Confirmations
 
 What matched: design S1 holds over the whole review range. The code command
