@@ -1753,7 +1753,11 @@ class Test_main:
         released_item(repo, "1700000003-new", {"routing.md": "# new — routing\n"})
         blob = git(repo, "rev-parse", f"{adding}:seal/threads/{old}/frame/plan.md")
         blob = blob.strip()
-        (repo / ".git" / "objects" / blob[:2] / blob[2:]).unlink()
+        loose = repo / ".git" / "objects" / blob[:2] / blob[2:]
+        # Git writes a loose object read-only, and Windows refuses to unlink
+        # a read-only file.
+        os.chmod(loose, 0o644)
+        loose.unlink()
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
@@ -1789,13 +1793,30 @@ class Test_main:
                 capture_output=True,
                 encoding="utf-8",
             ).stdout.strip()
-            git(
-                repo,
-                "update-index",
-                "--add",
-                "--cacheinfo",
-                f"100644,{blob},seal/threads/{name}/frame/plan.md",
+            path = f"seal/threads/{name}/frame/plan.md"
+            added = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repo),
+                    "update-index",
+                    "--add",
+                    "--cacheinfo",
+                    f"100644,{blob},{path}",
+                ],
+                capture_output=True,
+                encoding="utf-8",
             )
+            # Asked by attempting the add: Git for Windows refuses a path
+            # holding a newline in the index, so no commit made with it can
+            # hold the defect this case is about. The plain path is held to
+            # the add like any fixture.
+            if added.returncode != 0 and name == odd:
+                pytest.skip(
+                    "this git refuses a path holding a newline in the index, so "
+                    f"no commit here can hold one: {added.stderr.strip()}"
+                )
+            assert added.returncode == 0, added.stderr
         git(repo, "commit", "-qm", "the two work items (#3)")
         git(repo, "rm", "-r", "-q", "--cached", "--", "seal/threads")
         git(repo, "commit", "-qm", "settle 0.1.0 (#7)")
