@@ -66,6 +66,11 @@ rest of the row stands.
 At this commit the section placed a file that declares none in `tests/behaviour/` or `tests/text/` by what its cases run, a placement five files of the tree did not follow (`trail/rounds/round-1.md` finding 2), and called those two directories the tree-wide files `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* runs at every phase boundary.
 ```
 
+```seal
+verdict: fixed c9b507367
+answer: The finding holds: the tree at `b9ca37404` did not follow the placement its section stated. The framer restated design G1 to say the section placed such a file by what its cases run, a placement the files round 1 finding 2 lists did not follow, with each file's imports read at `b9ca37404`. The fix and the finding are in the work item's records alone, so the sealer reads it with no further round.
+```
+
 ## Confirmations
 
 ```seal
