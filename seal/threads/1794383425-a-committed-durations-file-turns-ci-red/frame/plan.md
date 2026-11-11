@@ -17,7 +17,7 @@ tree and from this tree, and exits 2 where it cannot.
 **YAML.** `tests/text/test_ci_gives_the_checks_what_they_need.py:85-470`
 reads jobs, steps, triggers, concurrency and matrix entries by indentation
 and regular expressions. `tests/conftest.py:78-187` holds a second reading of
-steps. `tests/behaviour/test_a_release_publishes_its_note.py:63-101` holds a
+steps. `tests/behaviour/test_a_release_publishes_its_note.py:59-98` holds a
 third, by line indentation. `.github/scripts/run_tests.py:95-130` pins the
 suite's two oracles and installs them on a fresh build and into an adopted
 `.venv` through two near-copies, `add_markdown_it` (`:241`) and
