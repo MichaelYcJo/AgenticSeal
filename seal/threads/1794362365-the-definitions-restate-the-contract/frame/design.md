@@ -38,26 +38,26 @@ Each row is labelled `read` where the framer opened the text and `executed` wher
 
 In:
 
-1. **Contract rule 17, rewritten in place as T2.** It becomes the one statement of the scratch rule: where an agent's files outside the working tree go, why the name carries the work item, what an agent does where its directory already stands, and that nobody removes the scratchpad, a scratch directory or a file in one. It keeps the stopping of processes by PID, the ban on a glob delete in a shared directory, and the report of a leftover. It loses the recording of file paths and the removal by that record.
+1. **Contract rule 17, rewritten in place as T2.** It becomes the one statement of the scratch rule: where an agent's files outside the working tree go, why the name carries the work item, what an agent does where its directory already stands, and that no agent removes the scratchpad, a scratch directory or a file in one. It keeps the stopping of processes by PID, the ban on a glob delete in a shared directory, and the report of a leftover. It loses the recording of file paths and the removal by that record.
 2. **Contract rule 7, its heading and two sentences, rewritten in place as T1.** What stands under the scratch directory stays, and everything else a probe made still goes.
 3. **Contract rule 21 loses its scratch-removal sentence and the second target of its `check:` line (T3).** The `rm` sentence with the literal path and the `"${VAR:?}"` form stays.
 4. **`agents/crafter.md`.** Step 4 takes the narrowing of the rule *A declared frame that is absent stops the build*, and that rule goes (T4). Step 6 loses its second sentence (T5). Step 10 cites rules 2, 3 and 4 and its own rule (T6), and the *Never* bullet and the broad gate rule that pointed at step 10 for the labels point at the rules (T7, T10). The scratch rule keeps its directories and cites rule 17 (T8). *The handoff's facts are coordinates to open* becomes T9. The rules *Each phase closes with its record* and *The chain ends at a pull request, never a merge* go.
 5. **`agents/proofer.md`.** The scratch rule keeps its directory and the clone's path and cites rule 17 (T11). The *Never* bullet on the implementer's account goes, and the rule *The implementer's account is a claim* takes its list and cites rule 5 (T12). The broad gate rule cites rule 3 for the refusal and keeps the row of `## Not judged` (T13). The probe rule loses its removal clause (T14).
 6. **`agents/sealer.md`.** The description says when to spawn and what comes back (T15). Step 2 states once what the first part of the body is (T16). Step 7 cites rule 4 (T17). The *Never* bullet cites rule 5 and keeps the records that are claims (T18). The rule on a `seen red` cites rule 17 and loses "Remove the clone once its runs are done." (T19).
 7. **`agents/framer.md`.** The sentence on a fact in prose cites rule 5 (T20). The probe rule cites rule 17, keeps its directory, and loses the shared-scratchpad reason and "The directory is gone before you hand back (rule 17)." (T21).
-8. **`skills/implement/orchestration.md:31-32`** loses "and the removal of its scratch files" (T22).
+8. **`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*.** Step 1 (`:31-32`) loses "and the removal of its scratch files", and step 2 gains the one removal the work keeps: the orchestrator removes the work item's scratch directory once, after the pull request opens (T22; `frame/plan.md` *Judgments of the run*, the row on the owner's decision).
 9. **`skills/code-review/SKILL.md` *Probes and regression tests*.** The Probe row and the paragraph under the table send the reader to contract rule 7 for what is deleted and what stays (T23).
-10. **`README.md:377-378` and `README.ko.md:374-375`** say that no agent removes its directory or the scratchpad (T24).
+10. **`README.md:377-378` and `README.ko.md:374-375`** say that no agent removes its directory or the scratchpad, and that the orchestrator removes the work item's directory once the pull request is open (T24).
 11. **`tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`.** The cases on the crafter's, the proofer's and the framer's definitions keep their directory spellings and lose the "share" and "scratchpad" clause, which moves to a case on contract rule 17 with the spelling `<scratchpad>/<work-item-id>/<leaf>/`. The case `test_rule_21_removes_the_agents_directory_and_never_the_scratchpad` goes. One clause holds the removal form out: `rm -rf` stands in no section of the contract and in no agent definition. The module's docstring and each case's docstring are rewritten to the facts at HEAD. Each changed or added clause is seen red as rule 15 asks: the rule 17 clauses with their sentence deleted, and the `rm -rf` clause against rule 21 as it stands at `9c6907942`. The crafter reads the module as its group first, as its own rule asks.
-12. **The cases that pin a sentence this work rewrites** keep their pins, because each text of *Data & interfaces* holds the pinned words (G13). Where the crafter's narrow run shows one that does not, the case changes with its sentence in the same commit, and the phase record names it. `.test_durations:5786` names the case item 11 removes, and the crafter reads `tests/censuses.py` for what that file owes.
+12. **The cases that pin a sentence this work rewrites** keep their pins, because each text of *Data & interfaces* holds the pinned words (G13). Where the crafter's narrow run shows one that does not, the case changes with its sentence in the same commit, and the phase record names it. The pin on the tracer's sentence is one: it changes with T25 (item 17). `.test_durations:5786` names the case item 11 removes, and the crafter reads `tests/censuses.py` for what that file owes.
 13. **The measurement.** The last phase record holds `wc -c` of the definitions G16 sums and of the contract at `9c6907942` and at the work's last code commit, and the census of G18 at both, taken with a probe written to D6's method that first reproduces G18's reading at `9c6907942`. `changelog.md` carries the figures at the work's last code commit. A later commit of the branch that changes a measured file or the census's corpus, a fix or a merge of the release branch among them, has both taken again at the new HEAD; after such a merge the "before" of each is the merged release commit, so that the difference stays this work's own.
-14. **The work item's `changelog.md`**, with its `### Process changes` rows: where the scratch rule stands, that no party removes scratch files and what an agent does where its directory stands, and that a definition cites rules 2 to 5 where it restated them.
+14. **The work item's `changelog.md`**, with its `### Process changes` rows: where the scratch rule stands, that no agent removes scratch files, that the orchestrator removes the work item's directory once after the pull request opens, what an agent does where its directory stands, and that a definition cites rules 2 to 5 where it restated them.
 
-Decided, and nothing is built for it:
+Decided, and nothing is built for it except where the item names a text:
 
 15. The runner rules, `agents/crafter.md:156-162` and `agents/proofer.md:176-185`, keep their text (`frame/plan.md` *Alternatives considered*, row 5).
 16. The test-group rules, `agents/crafter.md:121-126` and `agents/proofer.md:158-164`, keep their text (`frame/plan.md` *Alternatives considered*, row 6).
-17. `agents/tracer.md` takes no edit. Rule 17 gives an agent whose definition names no directory its own name as the leaf, and the tracer's citation of rule 7 holds under T1.
+17. `agents/tracer.md` names no directory, and rule 17 gives an agent whose definition names none its own name as the leaf. Its sentence on a probe repeats rule 7's words as they stood before T1, so it takes T25, and the case `test_the_fact_finder_points_a_probe_at_rule_7` and the docstring of `tests/behaviour/test_a_probe_that_commits_says_so.py` follow in the same commit, the changed clause seen red as rule 15 asks (round 1, finding 1).
 18. `agents/framer.md` step 8 keeps its sentence on rule 4 (G6).
 19. Each definition names its directory by the whole path, not by the bare leaf (`frame/plan.md` *Alternatives considered*, row 4).
 20. Rule 17 takes no `check:` line (`frame/plan.md` *Alternatives considered*, row 9).
@@ -79,13 +79,13 @@ Out:
 | S2 The census is taken before and after | Given `9c6907942` and the work's last code commit, when the census of G18 runs on each, then the first run gives G18's reading at `9c6907942` in every cell, and both readings stand in the last phase record with the commit each measured. The issue sets no bound on the census, and S1 holds the bound | *Scope* item 13 |
 | S3 Each coordinate #1474 names holds a citation or that agent's own narrowing | Given the sentences G5, G6, G11 and G12 name, when each is read beside the contract rule or the step it repeated, then it cites that rule or step by number, or says only what is that agent's own, or is gone with a *Removes* row | review reads T4 to T21 against rules 2 to 5 and against *Removes*; `git grep -n 'read. or .unverified' -- agents`, where each `.` stands for a backtick, prints nothing, against two lines at `9c6907942` |
 | S4 The scratch rule is stated once | Given the contract and every definition after the work, when the reason a scratch directory carries the work item is looked for, then rule 17 alone states it, and each definition G7 lists with a directory names it and cites rule 17 | `git grep -n -i 'share one scratchpad' -- agents skills` prints a line of `skills/agent-contract/SKILL.md` alone; the cases of *Scope* item 11 pass |
-| S5 No text tells a party to remove scratch files | Given `agents/` and `skills/` after the work, when the search of G8 runs again, then no hit tells an agent or the orchestrator to remove its scratch directory or a file in it, and `README.md`, `README.ko.md` and the *Rule changes* operation say the same | the `git grep` of G8, each hit read, in the phase record; the `rm -rf` clause of *Scope* item 11 passes |
+| S5 No text tells a party to remove scratch files | Given `agents/` and `skills/` after the work, when the search of G8 runs again, then no hit tells an agent to remove its scratch directory or a file in it, and the one hit that tells the orchestrator to is T22's sentence in `skills/implement/orchestration.md`, the removal the owner decided; `README.md`, `README.ko.md` and the *Rule changes* operation say the same | the `git grep` of G8, each hit read, in the phase record; the `rm -rf` clause of *Scope* item 11 passes |
 | S6 The naming sentences of #544, #1047 and #1445 stand | Given those definitions after the work, when their *Rules* are read, then each holds its directory as the module's constants spell it: `round-<n>/clone` and `round-<n>/`, `frame/`, `phase-<n>/` and `fix-<n>/`, and `at-base/` | `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`, the crafter's narrow run |
 | S7 A second spawn of one work item does not fail on a standing directory | Given a scratch directory an earlier spawn left, when an agent of the same leaf starts, then rule 17 tells it to leave that directory and take the same leaf with `-2`, or the next number free | read: T2; the rule 17 case of *Scope* item 11 holds the clause |
 | S8 A probe in the working tree is still deleted | Given a crafter's `test_tmp_*` file in the branch worktree, when the crafter hands back, then rule 7 still has it deleted, and a worktree, a branch or a checkout a probe made still goes | read: T1; the `shape-no-probe-left` graders under `evals/behaviour/crafter/` read the same fact and are not run here |
 | S9 The contract grows by 500 B or less | Given `skills/agent-contract/SKILL.md` after the work, when its bytes are counted, then it holds 12,864 B or fewer, against 12,364 B at `9c6907942` | `wc -c skills/agent-contract/SKILL.md` |
 | S10 The cases that read the edited files hold | Given the edits, when the narrow cases that read any text *Scope* items 1 to 10 edit run, then they pass | the crafter's narrow run, with the modules G13 names, `tests/text/test_every_agent_reads_the_contract.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/text/test_the_rules_have_one_owner.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_both_editions_carry_the_same_folds.py` and `tests/behaviour/test_docs_line_wrap.py` among them; the broad gate is the orchestrator's |
-| S11 Nothing else changes | Given the branch's diff outside `seal/`, when it is listed, then it holds the files *Scope* items 1 to 12 name and no other | `git diff --stat 9c6907942...HEAD -- ':!seal/'` |
+| S11 Nothing else changes | Given the branch's diff outside `seal/`, when it is listed, then it holds the files *Scope* items 1 to 12 and 17 name and no other | `git diff --stat 9c6907942...HEAD -- ':!seal/'` |
 
 ## Data & interfaces
 
@@ -99,11 +99,11 @@ In place of the second and third sentences, from "A probe is one file named" to 
 
 > A probe is one file named `test_tmp_*`, and it runs once. What stands under your scratch directory (rule 17) stays there: the probe file, a clone, a virtual environment inside one. The rule is about leavings, not about files: everything else the probe made is gone before you hand over, whatever kind of thing it is — the file itself in a working tree, a worktree, a branch, a checkout, a virtual environment — and those are examples, not a list.
 
-The rule's first sentence, its last two sentences and its `check:` line stay.
+The sentence after those, which opens "What the probe made for ITSELF is what goes:", opens instead "Outside your scratch directory, what the probe made for ITSELF is what goes:", so that a clone a probe made inside the scratch directory is kept by the sentence above and by no other (round 1, finding 2). The rule's first sentence, its last sentence and its `check:` line stay.
 
-**T2, rule 17, whole.** The heading becomes `## 17 Name your scratch for the work item, remove nothing, stop only what you started`, short enough for the line limit T1 names, and the body:
+**T2, rule 17, whole.** The heading becomes `## 17 Name your scratch for the work item, keep it, stop only what you started`, short enough for the line limit T1 names, and the body:
 
-> What you make outside the repository's working tree, such as a probe, a captured output, a list of files or a clone, sits under your scratch directory, `<scratchpad>/<work-item-id>/<leaf>/`. Your definition names the leaf, and where it names none the leaf is your agent's name. Agents of one session share one scratchpad, and that name keeps a parallel agent's files apart from yours. Where the directory already stands when you first need it, an earlier spawn made it: leave it as it is and add `-2` to the leaf, or the next number free. Nobody removes the scratchpad, a scratch directory or a file in one. Record the PID of every process you start and stop it by that record, never by command name. Never delete by glob in a directory another session shares. Another session's process or file answers to the same name, so a leftover you did not start is reported in the hand-back, not stopped and not removed.
+> What you make outside the repository's working tree, such as a probe, a captured output, a list of files or a clone, sits under your scratch directory, `<scratchpad>/<work-item-id>/<leaf>/`. Your definition names the leaf, and where it names none the leaf is your agent's name. Agents of one session share one scratchpad, and that name keeps a parallel agent's files apart from yours. Where the directory already stands when you first need it, an earlier spawn made it: leave it as it is and add `-2` to the leaf, or the next number free. No agent removes the scratchpad, a scratch directory or a file in one. Record the PID of every process you start and stop it by that record, never by command name. Never delete by glob in a directory another session shares. Another session's process or file answers to the same name, so a leftover you did not start is reported in the hand-back, not stopped and not removed.
 
 **T3, rule 21.** The sentence from "A directory you made under" to "which every agent of the session shares." goes, and the next sentence, "These forms are examples of the rule", follows the `rm` sentence. The `check:` line keeps its first target alone.
 
@@ -193,6 +193,12 @@ The rule's first sentence, its last two sentences and its `check:` line stay.
 
 > its commits and the broad run among them
 
+In step 2 of the same section, after the sentence that ends "owns when).":
+
+> Once the pull request is open, the orchestrator removes the work item's scratch directory, `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written out in full, with no variable in it, and removes nothing else of the scratchpad. No agent removes a scratch directory (contract rule 17).
+
+The sentence stands in the skill the orchestrator opens and in no agent's preload. Where `routing.md` stops the work before the pull request, no pull request opens and the directory stays.
+
 **T23, `skills/code-review/SKILL.md`.** The Probe row's Handling cell:
 
 > you write it, named `test_tmp_*`, and run it once; contract rule 7 says where it is deleted and where it stays; what it settled goes into the record's `## Probes`
@@ -203,11 +209,19 @@ In place of the first sentence under the table:
 
 **T24, the two READMEs.** In `README.md`, in place of "An agent removes its own directory and never the session's scratchpad.":
 
-> No agent removes its directory or the session's scratchpad, and both last as long as the scratchpad does.
+> No agent removes its directory or the session's scratchpad. The orchestrator removes the work item's directory once, after the pull request opens.
 
 In `README.ko.md`, in place of the sentence that opens "에이전트는 자기 디렉터리만":
 
-> 에이전트는 자기 디렉터리도 세션의 scratchpad 도 지우지 않고, 둘 다 scratchpad 가 남아 있는 동안 남습니다.
+> 에이전트는 자기 디렉터리도 세션의 scratchpad 도 지우지 않습니다. orchestrator 가 pull request 를 연 뒤에 그 작업 항목의 디렉터리를 한 번 지웁니다.
+
+In each README the text stands in place of the sentence phase 1 wrote there.
+
+### `agents/tracer.md`
+
+**T25, the rule *Constraints, enums and defaults are read, not probed*,** in place of "leaves nothing behind (rule 7).":
+
+> leaves nothing outside your scratch directory (rule 7).
 
 ## Rule changes
 
@@ -215,22 +229,28 @@ In `README.ko.md`, in place of the sentence that opens "에이전트는 자기 �
   file: docs/running/the-agent-set.md
   section: What each party writes, and when
   from: The name lives in the definitions, where a rule arrives by mechanism, and one directory per work item and round is what lets the agent that made a leaving say every one of them is gone.
-  to: The rule stands in contract rule 17, which every agent receives, and each definition names its own directory under it. No agent removes its directory or a file in it. The name already keeps two agents' files apart, the one removal on record took the whole scratchpad with every other agent's files (#1445), and a removal written with a variable in its path is a command Claude Code holds for a person (#1503). An agent that finds its directory standing leaves it and takes the next free name.
+  to: The rule stands in contract rule 17, which every agent receives, and each definition names its own directory under it. No agent removes its directory or a file in it. The name already keeps two agents' files apart, the one removal on record took the whole scratchpad with every other agent's files (#1445), and a removal written with a variable in its path is a command Claude Code holds for a person (#1503). An agent that finds its directory standing leaves it and takes the next free name. The orchestrator removes the work item's directory once, after the pull request opens, in one command whose path is written out in full, because nothing clears a session's scratch when the session ends.
+- change
+  file: docs/forms/the-round-record.md
+  section: The round record
+  from: A probe the line names was deleted under the agent contract's probe rule, so the round writes it again from its `## Probes` row.
+  to: A probe the line names stands in the earlier round's scratch directory, or was deleted from a working tree under the agent contract's probe rule, so the round writes it again from its `## Probes` row.
 
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
 | the instruction to remove the crafter's scratch directory, with the shared-scratchpad reason and the list of what a phase puts there | `agents/crafter.md` *Your scratch is named for the work item and the phase*, `:100-108` | The removal goes: the directory's name keeps it apart, and the removal is the step that stopped a run (G14). The reason and the list stand once, in contract rule 17 (T2) |
-| the scratch-removal sentence of rule 21, and the second target of its `check:` line | `skills/agent-contract/SKILL.md` *21 Write each command so Claude Code's parser can read it*, `:216-219`, `:222` | It can go with the removal it made safe. "Nobody removes the scratchpad" in T2 keeps what its last clause guarded, the catch of #1445 |
+| the scratch-removal sentence of rule 21, and the second target of its `check:` line | `skills/agent-contract/SKILL.md` *21 Write each command so Claude Code's parser can read it*, `:216-219`, `:222` | It can go with the removal it made safe. "No agent removes the scratchpad" in T2 keeps what its last clause guarded, the catch of #1445, and T22 has the orchestrator's one removal name the work item's directory and nothing else |
 | the recording of each created path and the removal by that record | `skills/agent-contract/SKILL.md` *17 Clean up only what you started*, `:183-185` | It can go: no agent removes what it made under its scratch directory, and what a probe made elsewhere is rule 7's |
 | "a scratch clone" among a probe's leavings, and "it is deleted before you hand over" as a rule without a place | `skills/agent-contract/SKILL.md` *7 A probe is named `test_tmp_*`, one file, run once, deleted*, `:90-93` | T1: what stands under the scratch directory stays, and everything else still goes |
 | "The directory is gone before you hand back (rule 17)." and the shared-scratchpad reason | `agents/framer.md` *A question a command answers is answered by running it*, `:157-158`, `:164-165` | The removal goes (G14). The reason stands in T2 |
 | "everything it made is gone before you hand back", and the shared-scratchpad reason of the scratch rule | `agents/proofer.md` *A probe leaves nothing, and its files are edits*, `:188-189`; *The clone is named for the work item and the round*, `:91-94` | A proofer's probe runs in its clone, under the round's scratch directory, so T1 keeps it. The reason stands in T2 |
 | "Remove the clone once its runs are done." | `agents/sealer.md` *A `seen red` is re-run against the code before the change*, `:174` | The removal goes. A second audit takes `at-base-2/` by T2 (G15) |
-| "and the removal of its scratch files" | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, `:31-32` | The orchestrator removes none |
+| "and the removal of its scratch files" | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, `:31-32` | The orchestrator's commands follow rule 21 whatever they are, so the clause names nothing more. Its one removal is step 2's sentence (T22) |
 | "delete it" and "everything else it made goes with it" in the Probe row, and "a clone" among what goes | `skills/code-review/SKILL.md` *Probes and regression tests*, `:114`, `:117-118` | T23 cites contract rule 7, which says where a probe is deleted |
 | "An agent removes its own directory and never the session's scratchpad." and its Korean rendering | `README.md:377-378`, `README.ko.md:374-375` | T24 |
+| "leaves nothing behind (rule 7)", the words of rule 7 before T1, and the clause that pins them | `agents/tracer.md` *Constraints, enums and defaults are read, not probed*; `tests/behaviour/test_a_probe_that_commits_says_so.py#test_the_fact_finder_points_a_probe_at_rule_7` | T25, and the same case holding "outside your scratch directory (rule 7)" |
 | the rule *A declared frame that is absent stops the build* | `agents/crafter.md:111-113` | Step 4 holds the stop and takes the rule's narrowing (T4) |
 | the rule *Each phase closes with its record*, with its `check:` line | `agents/crafter.md:172-176` | The Job names both writes, step 8 names the record and its template, and `skills/implement/SKILL.md` *3. The SDD file set* holds what the record carries (G11). `agents/framer.md` and `docs/forms/the-reader-registry.md` still name the test on their own `check:` lines |
 | the rule *The chain ends at a pull request, never a merge* | `agents/crafter.md:204-206` | Rule 6 withholds a push and a pull request from every agent, so the crafter has no act the sentence governs. `docs/running/the-run.md` *The run* holds the chain's bound for the orchestrator |
@@ -245,6 +265,6 @@ In `README.ko.md`, in place of the sentence that opens "에이전트는 자기 �
 | the copy of rule 5 in the framer's sentence | `agents/framer.md:149-150` | T20 cites rule 5 and keeps the narrowing |
 | the case on rule 21's removal clause, and the "share" and "scratchpad" clause of the cases on the definitions | `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py#test_rule_21_removes_the_agents_directory_and_never_the_scratchpad`, `#test_the_wardens_clone_is_named_for_the_work_item_and_the_round`, `#test_the_framers_probe_is_named_for_the_work_item`, `#test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase` | A case on contract rule 17 holds the reason and the directory's shape, and one clause holds `rm -rf` out of the contract and the definitions (*Scope* item 11) |
 
-The work adds no gate, check script, hook, CI step, rule number, line grammar, label or mark. Rule 17 keeps its number and takes a new subject in place of the removal it held, and the clauses *Scope* item 11 adds join a module that stands, in place of the case and the clauses the last row removes.
+The work adds no gate, check script, hook, CI step, rule number, line grammar, label or mark. The orchestrator's one removal (T22) is a step, taken once per work item in place of the removal every agent made at every hand-back, which *Removes* names above. Rule 17 keeps its number and takes a new subject in place of the removal it held, and the clauses *Scope* item 11 adds join a module that stands, in place of the case and the clauses the last row removes.
 
 Framed 2026-11-11 by framer, before the build.
