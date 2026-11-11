@@ -53,7 +53,7 @@ reads them. The Windows timeout of 10 minutes covers a count split.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1 and 2 | `tests/github/test_run_tests.py`, `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py`, `tests/behaviour/test_the_release_seal_is_drawn.py`, `tests/behaviour/test_release_hygiene.py`, and the new loader case, seen red under `yaml.SafeLoader` | |
+| 1 | *Scope* items 1 and 2 | `tests/github/test_run_tests.py`, `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py`, `tests/behaviour/test_the_release_seal_is_drawn.py`, `tests/behaviour/test_release_hygiene.py`, and the new loader case, seen red under `yaml.SafeLoader` | `2fc78c903` |
 | 2 | *Scope* item 3 | `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/behaviour/test_a_release_publishes_its_note.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` | |
 | 3 | *Scope* item 4 | The enumeration's command and its list in the phase record; `tests/test_conftest.py` and each module the list names | |
 | 4 | *Scope* items 5, 6 and 7 | `tests/github/test_durations_union.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, `tests/github/test_release_report.py`, `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py`, `tests/test_censuses.py`, `tests/behaviour/test_the_release_check_watches_what_ships.py`; `git ls-files .test_durations` prints nothing | |
