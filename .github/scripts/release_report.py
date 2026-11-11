@@ -145,7 +145,7 @@ def preloads(root, kernel):
         found = kernel.agents_in(root)
         out = {}
         for agent, definition in found.items():
-            rows = kernel.composition(root, root, agent, definition, False)
+            rows = kernel.composition(root, root, agent, definition)
             out[agent] = sum(row["bytes"] for row in rows if row["share"] == "agent")
     except OSError as error:
         raise Unreadable(
