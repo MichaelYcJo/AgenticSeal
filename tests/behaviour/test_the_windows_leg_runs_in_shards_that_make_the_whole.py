@@ -6,45 +6,40 @@ Windows was the only sharded leg, because the sentence is still true and a
 released ledger row anchors its three cases by this path.
 
 `pytest-split` divides the suite by each case's duration, read from the
-committed `.test_durations`, and every shard runs the group its matrix entry
-names. One file divides both legs, because every leg collects the same
-cases under the same ids: an id built from a path writes it with `/`, and
-none carries the interpreter's path. What decides whether a leg's union is
-the suite is the matrix itself: a group named twice runs twice and a group
-named by no entry runs nowhere, and nothing on the runner says so -- each
-shard passes. So the matrix is read here, as `tests/workflows.py#load`
-parses it, and a matrix whose entries would not be its jobs is refused:
-`include:` is the matrix's only key, every entry of a sharded system is a
-shard of that system's count `K` in `SHARDED`, its groups are exactly 1 to
-`K` once each, every other entry carries no split, and the pytest line
-hands the split to pytest.
+`.test_durations` the shard restored from the cache before its pytest line,
+and every shard runs the group its matrix entry names. Where no cache
+matches, the file is absent and `pytest-split` divides by count, which
+unbalances the shards and drops no case. One file divides both legs,
+because every leg collects the same cases under the same ids: an id built
+from a path writes it with `/`, and none carries the interpreter's path.
+What decides whether a leg's union is the suite is the matrix itself: a
+group named twice runs twice and a group named by no entry runs nowhere, and
+nothing on the runner says so -- each shard passes. So the matrix is read
+here, as `tests/workflows.py#load` parses it, and a matrix whose entries
+would not be its jobs is refused: `include:` is the matrix's only key, every
+entry of a sharded system is a shard of that system's count `K` in
+`SHARDED`, its groups are exactly 1 to `K` once each, every other entry
+carries no split, and the pytest line hands the split to pytest.
 
 Every run measures the file as well (#931). Each Windows entry carries
 `store`, the pytest line hands it to pytest after the split, and pytest-split
 then writes that shard's own session to `.test_durations`; a step uploads it
 as the shard's part, and the `durations` job unions the four parts through
 `.github/scripts/durations_union.py` into the `test-durations` artifact. A
-part nobody uploads, or one that is the committed file, makes a union that is
-not the suite, so the cases below hold the entries, the line, the step and
-the job to that shape, and `tests/github/test_durations_union.py` drives the script
-over fixture parts.
+part nobody uploads, or one that is the union the shard restored, makes a
+union that is not the suite, so the cases below hold the entries, the line,
+the step and the job to that shape, and `tests/github/test_durations_union.py`
+drives the script over fixture parts.
 
-The durations file is read too. A file missing from the tree only unbalances
-the shards (`pytest-split` then divides by count), but one that does not
-parse stops every shard at collection.
-
-Its age is held where it is measured, not here (#874, #931, #1444). A case
-added since the last refresh has no price in the file, `pytest-split` gives
-it the file's mean, and the shards drift apart with nothing saying so; a
-case removed since leaves its entry behind, which the division never reads
-but the file's sum still counts. The release pull request's `durations` job
-is red when either share is past the script's `STALE_SHARE`, which is the
-whole schedule of the refresh, so no work item commits the file and no case
-here reads it against the collection. The case below holds the workflow to
-asking that verdict on that pull request alone.
+The union is kept in `actions/cache`, not in the tree (#1486). A run that is
+no pull request's saves it under a key of its own, and each split shard
+restores the newest key that shares its prefix; no file ages, because every
+push to `main` writes a new one, and pytest-split prices only the cases it
+collects. The cases below hold the save and the restore to one path, one
+prefix and one cross-system flag, since a cache saved on ubuntu restores on
+Windows only where both steps set it.
 """
 
-import json
 import os
 import re
 import sys
@@ -54,7 +49,6 @@ from conftest import COLLECTED_NODE_IDS, ROOT
 from workflows import load
 
 TEST = ".github/workflows/test.yml"
-DURATIONS = os.path.join(ROOT, ".test_durations")
 SUITE = os.path.join(ROOT, "tests")
 
 # What a storing shard hands pytest, and the one system whose shards store:
@@ -146,8 +140,8 @@ def uploads(steps):
 def test_the_upload_step_runs_always_and_only_where_store_is_set():
     """S1. `always()`: a shard with a red case still wrote its part, and
     without it the part is skipped. `matrix.store != ''`: anywhere else the
-    file is the committed one, which the union reads as every id in two
-    parts. `include-hidden-files`: the action skips a name starting with a
+    file is the union the shard restored, which the union reads as every id
+    in two parts. `include-hidden-files`: the action skips a name starting with a
     dot, and uploads nothing. Seven days and `overwrite` (round 1's 🟡 1):
     re-running failed jobs re-runs the `durations` job, which reads every
     part again, so a part is kept as long as the union it makes, and the
@@ -169,11 +163,24 @@ def test_the_upload_step_runs_always_and_only_where_store_is_set():
     assert fields.get("overwrite") == "true", fields
 
 
+def union_step(steps):
+    """`(index, options)` of the one of STEPS that runs the union script,
+    its options being each `--name` word and the word after it."""
+    (at,) = [
+        i for i, step in enumerate(steps) if "durations_union.py" in step.get("run", "")
+    ]
+    words = steps[at]["run"].split()
+    assert words[:2] == ["python", ".github/scripts/durations_union.py"], words
+    return at, {words[i]: words[i + 1] for i in range(2, len(words) - 1, 2)}
+
+
 def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
     """S2. Without `needs: pytest` the job runs before any part exists; with
     `success()`, the default, one red case anywhere loses the run's reading.
     It downloads what the shards uploaded, unions as many parts as entries
-    store, and uploads the union under the name the remedy downloads."""
+    store, and uploads the union as `test-durations`, which the release
+    table downloads. S3 of #1486: the union step's command is the parts, the
+    count and the output, and nothing reads a file's age."""
     durations = job("durations")
     assert durations.get("needs") == "pytest", durations
     assert durations.get("if") == "${{ !cancelled() }}", durations
@@ -193,64 +200,71 @@ def test_the_durations_job_needs_pytest_and_runs_unless_cancelled():
     assert "merge-multiple" not in download, (
         "merged, the four parts are one `.test_durations` written four times"
     )
-    (union,) = [step for step in steps if "durations_union.py" in step.get("run", "")]
-    words = union["run"].removesuffix(" " + ASK_THE_VERDICT).split()
-    opts = {words[i]: words[i + 1] for i in range(2, len(words) - 1, 2)}
+    _, opts = union_step(steps)
+    assert sorted(opts) == ["--count", "--out", "--parts"], (
+        f"the union step passes {sorted(opts)}: a file's age is no input (#1486)"
+    )
     stores = [e for e in matrix_entries() if "store" in e]
-    assert opts.get("--count") == str(len(stores)), (opts, len(stores))
-    assert opts.get("--parts") == download.get("path"), (opts, download)
-    assert opts.get("--committed") == ".test_durations", opts
+    assert opts["--count"] == str(len(stores)), (opts, len(stores))
+    assert opts["--parts"] == download.get("path"), (opts, download)
     ((_, step),) = uploads(steps)
     out = step.get("with", {})
     assert out.get("name") == "test-durations", out
-    assert out.get("path") == opts.get("--out"), (out, opts)
+    assert out.get("path") == opts["--out"], (out, opts)
     assert out.get("include-hidden-files") == "true", out
-    assert out.get("retention-days") == "7", out
     assert out.get("overwrite") == "true", (
         "a re-run attempt's union is refused under the name its first attempt uploaded"
     )
 
 
-# The words that end the union step's line: the verdict on the committed
-# file's age is asked on a pull request into `main` and on no other run.
-ASK_THE_VERDICT = "${{ github.base_ref == 'main' && '--stale-fails' || '' }}"
+def cache_step(steps, action):
+    """The one of STEPS that uses `actions/cache/<action>`."""
+    (step,) = [
+        step
+        for step in steps
+        if step.get("uses", "").startswith(f"actions/cache/{action}@")
+    ]
+    return step
 
 
-def test_the_verdict_is_asked_into_main_alone_and_the_upload_outlives_it():
-    """S4 of work item 1794178397. Only the release pull request's run asks
-    the verdict, so no work item's run is red on the file's age. A red
-    verdict has written the union first, and the upload runs where the union
-    file exists rather than where the step succeeded, so the red run still
-    carries the file the release's refresh commits; a refusal writes
-    nothing, and nothing is uploaded."""
+# What a run that is no pull request's keeps its union for, and what a pull
+# request's keeps it for: the release table downloads the tag's push run's
+# union (#1486 S4).
+RETENTION = "${{ github.event_name == 'pull_request' && 7 || 90 }}"
+
+
+def test_a_run_that_is_no_pull_request_saves_the_union_and_each_split_shard_restores_it():
+    """S4 of #1486. The `durations` job saves the union it wrote to the
+    cache on every run that is no pull request's, under a key of its own per
+    attempt, since a key is immutable; a pull request's cache would reach no
+    other pull request. Each split shard restores, before its pytest line,
+    the newest key the save's prefix opens. Both steps name one path and set
+    the cross-system flag, because the save runs on ubuntu and the restore on
+    Windows and macOS. The upload keeps a push run's union as long as the
+    release table reads it."""
     steps = job("durations")["steps"]
-    (union_at,) = [
-        i for i, step in enumerate(steps) if "durations_union.py" in step.get("run", "")
-    ]
-    run = steps[union_at]["run"]
-    assert run.endswith(" " + ASK_THE_VERDICT), run
-    assert sum(step.get("run", "").count("--stale-fails") for step in steps) == 1, (
-        "the verdict is asked outside the condition"
-    )
-    ((at, step),) = uploads(steps)
-    assert at > union_at, "the union is uploaded before it is written"
-    written = f"hashFiles('{step.get('with', {}).get('path')}') != ''"
-    assert step.get("if") == "${{ !cancelled() && " + written + " }}", step
+    union_at, out = union_step(steps)
+    save = cache_step(steps, "save")
+    assert steps.index(save) > union_at, "the union is saved before it is written"
+    assert "github.event_name != 'pull_request'" in save.get("if", ""), save
+    assert f"hashFiles('{out['--out']}') != ''" in save.get("if", ""), save
+    ((_, upload),) = uploads(steps)
+    assert upload["with"].get("retention-days") == RETENTION, upload
 
-
-def test_the_durations_file_parses_and_names_cases():
-    with open(DURATIONS, encoding="utf-8") as handle:
-        durations = json.load(handle)
-    assert durations, "the durations file is empty"
-    bad = [
-        node
-        for node, seconds in durations.items()
-        if not node.startswith("tests/")
-        or "::" not in node
-        or not isinstance(seconds, (int, float))
-        or seconds < 0
+    shards = job("pytest")["steps"]
+    restore = cache_step(shards, "restore")
+    (pytest_at,) = [
+        i for i, step in enumerate(shards) if step.get("run", "").startswith("pytest ")
     ]
-    assert not bad, bad[:5]
+    assert shards.index(restore) < pytest_at, "the union is restored after the split"
+    assert restore.get("if") == "matrix.split != ''", restore
+    saved, restored = save["with"], restore["with"]
+    assert saved.get("path") == restored.get("path") == out["--out"], (saved, restored)
+    prefix = restored.get("restore-keys", "")
+    assert prefix and saved.get("key", "").startswith(prefix), (saved, restored)
+    assert "github.run_attempt" in saved["key"], saved
+    assert saved.get("enableCrossOsArchive") == "true", saved
+    assert restored.get("enableCrossOsArchive") == "true", restored
 
 
 def collects_the_suite(args, invocation_dir, rootdir):
@@ -281,7 +295,7 @@ def test_only_the_suite_or_the_repository_is_the_whole_collection():
 
 def test_no_collected_id_carries_the_interpreters_path(request):
     """An id holding `sys.executable` is a key no other machine writes, so
-    every refresh would leave it unpriced on every leg but the one measured."""
+    every union would leave it unpriced on every leg but the one measured."""
     config = request.config
     if not collects_the_suite(
         config.args, config.invocation_params.dir, config.rootpath
@@ -293,57 +307,3 @@ def test_no_collected_id_carries_the_interpreters_path(request):
     collected = getattr(request.session, COLLECTED_NODE_IDS)
     bad = [node for node in collected if sys.executable in node]
     assert not bad, f"{len(bad)} collected ids carry {sys.executable}: {bad[:3]}"
-
-
-# --- the words a contributor acts on (#931) -----------------------------------
-
-
-def section(path, heading):
-    """The text of `path` under the `## ` heading `heading`, up to the next
-    `## ` heading."""
-    with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
-        text = handle.read()
-    head = f"\n## {heading}\n"
-    assert head in text, f"{path} has no `## {heading}`"
-    return text.split(head, 1)[1].split("\n## ", 1)[0]
-
-
-def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
-    """S5 of work item 1794178397. The paragraph whoever prepares the
-    release meets when the release pull request's `durations` job goes red
-    names that job as the schedule, the artifact and the download that works
-    -- into a directory of its own, because `gh` will not overwrite -- the
-    no-work-item pull request into the release branch that lands it, the
-    limit for a shard past its timeout, and that no work item commits the
-    file; and nothing of the per-branch refresh it replaced. The release
-    checklist has no refresh box: a box a person ticks was the schedule
-    0.21.1 skipped (#931)."""
-    running = section("CONTRIBUTING.md", "Running the checks")
-    (recipe,) = [p for p in running.split("\n\n") if "goes stale" in p]
-    flat = " ".join(recipe.split())
-    for said in (
-        "A work item never commits `.test_durations`",
-        "the release pull request's `durations` job",
-        "on a pull request into `main`, and on no other run",
-        "`STALE_SHARE`",
-        "entries no shard ran",
-        "`test-durations`",
-        "`gh run download <run id> -n test-durations -D <dir>`",
-        "over the committed file and commits it alone",
-        "`Seal-Routing: no work item`",
-        "on a branch cut from `release/vX.Y.Z`",
-        "A pull request merges that branch into `release/vX.Y.Z`",
-        "the newest run whose `durations` job wrote the union",
-    ):
-        assert said in flat, f"the recipe paragraph does not say {said}"
-    # The per-branch refresh's own words: the branch's run, its re-run and
-    # its dispatch, and the command that ran the suite case scheduling it.
-    for gone in (
-        "the branch's latest",
-        "gh run rerun",
-        "gh workflow run",
-        "bin/test tests -q -k",
-    ):
-        assert gone not in flat, f"the recipe paragraph still says {gone!r}"
-    before = section("docs/releasing/release-checklist.md", "Before starting")
-    assert ".test_durations" not in before, "the checklist still has a refresh box"

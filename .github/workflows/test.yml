@@ -70,11 +70,13 @@ jobs:
           - { os: ubuntu-latest, python: "3.14", timeout: 15 }
           # macOS in three shards (#864) and Windows in four (#841).
           # `pytest-split` divides the suite by each case's duration, read
-          # from the committed `.test_durations`, so every shard collects the
-          # whole suite and runs its own disjoint part, and a leg's parts are
-          # the whole suite. A case missing from the file is given the average
-          # and still runs in exactly one shard: a stale file unbalances the
-          # shards and never drops a case. The file is measured on the Windows
+          # from the `.test_durations` the shard restored from the cache, so
+          # every shard collects the whole suite and runs its own disjoint
+          # part, and a leg's parts are the whole suite. A case missing from
+          # the file is given the average, and with no file restored every
+          # case is priced alike, and either way it still runs in exactly one
+          # shard: the shards come out unbalanced and no case is dropped. The
+          # file is measured on the Windows
           # leg and divides the macOS leg too, because every leg collects the
           # same cases, so group k of a count holds the same cases on both.
           # Only each case's price differs by system, and that is read off
@@ -153,6 +155,18 @@ jobs:
       - run: |
           git config --global user.email ci@ci
           git config --global user.name ci
+      # The union the `durations` job below saved on the newest run that was
+      # no pull request's, restored for the split to divide by (#1486). A run
+      # on any branch restores a cache a run on `main` saved. The save ran on
+      # ubuntu, so the cross-system flag is set on both sides. Where no key
+      # matches, nothing is restored and pytest-split divides by count.
+      - if: matrix.split != ''
+        uses: actions/cache/restore@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.run_id }}
+          restore-keys: test-durations-
+          enableCrossOsArchive: true
       # `--durations=50`: each leg prints its own slowest cases, so a figure
       # for one operating system is read off that operating system (#841).
       # `-rfEs --no-fold-skipped`: each leg's short summary names every case
@@ -169,8 +183,9 @@ jobs:
       - run: pytest tests/ -q -n auto --durations=50 -rfEs --no-fold-skipped ${{ matrix.split }} ${{ matrix.store }}
       # A shard's part, uploaded whether its cases passed or failed: a red
       # case still has a price. Only where `store` is set, because anywhere
-      # else `.test_durations` is the committed file, and a part holding the
-      # whole suite would read to the union as every id in two parts. The
+      # else `.test_durations` is the union the shard restored, and a part
+      # holding the whole suite would read to the union as every id in two
+      # parts. The
       # name starts with a dot, which the action skips by default. A part is
       # kept as long as the union it makes: re-running failed jobs re-runs
       # the `durations` job too, which reads every part again, and the
@@ -185,20 +200,19 @@ jobs:
           overwrite: true
           retention-days: 7
 
-  # The four Windows parts unioned into the file the next refresh commits
-  # (#931). It runs after every pytest job, green or red, unless the run was
-  # cancelled, and it is red whenever the parts cannot make the whole -- a
-  # part missing, an id in two parts, a part that does not parse -- so no
-  # smaller file is ever uploaded as the suite. Its summary reports each
-  # shard's measured seconds, the spread, and the union against the
-  # committed file. On a pull request into `main`, and on no other run, the
-  # union step also asks the verdict on the committed file's age (#1444):
-  # past `STALE_SHARE`, the step is red after writing the union, and the
-  # upload runs wherever the union was written rather than where the step
-  # passed, so the red run carries the file the release's refresh commits
-  # (`CONTRIBUTING.md` *Running the checks*). Downloading an artifact of the
-  # same run needs nothing beyond the default token. `--count` is the number
-  # of entries above that carry `store`.
+  # The four Windows parts unioned into the file the next split divides by
+  # (#931, #1486). It runs after every pytest job, green or red, unless the
+  # run was cancelled, and it is red whenever the parts cannot make the
+  # whole -- a part missing, an id in two parts, a part that does not parse
+  # -- so no smaller file is ever uploaded or saved as the suite. Its summary
+  # reports each shard's measured seconds and the spread. The union is
+  # uploaded as `test-durations`, which `release-report` below reads, kept 90
+  # days on a run that is no pull request's and 7 on a pull request's. On a
+  # run that is no pull request's it is saved to the cache too, under a key
+  # of its own per attempt, because a cache key is never written twice; a
+  # pull request's cache would reach no other pull request. Downloading an
+  # artifact of the same run needs nothing beyond the default token.
+  # `--count` is the number of entries above that carry `store`.
   durations:
     needs: pytest
     if: ${{ !cancelled() }}
@@ -213,16 +227,22 @@ jobs:
         with:
           pattern: test-durations-*
           path: parts
-      - run: python .github/scripts/durations_union.py --parts parts --count 4 --committed .test_durations --out union/.test_durations ${{ github.base_ref == 'main' && '--stale-fails' || '' }}
-      - if: ${{ !cancelled() && hashFiles('union/.test_durations') != '' }}
+      - run: python .github/scripts/durations_union.py --parts parts --count 4 --out .test_durations
+      - if: ${{ !cancelled() && hashFiles('.test_durations') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: test-durations
-          path: union/.test_durations
+          path: .test_durations
           include-hidden-files: true
           if-no-files-found: error
           overwrite: true
-          retention-days: 7
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 90 }}
+      - if: ${{ !cancelled() && github.event_name != 'pull_request' && hashFiles('.test_durations') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.run_id }}-${{ github.run_attempt }}
+          enableCrossOsArchive: true
 
   # On a pull request into `main`, the release table: each agent's preload
   # bytes, the suite's seconds, each leg's minutes and each document's bytes
@@ -230,14 +250,17 @@ jobs:
   # summary. It fails nothing, and whoever prepares the release reads it
   # (`docs/releasing/release-checklist.md` *The release pull request*);
   # `.github/scripts/release_report.py` is
-  # the rule. The tag's minutes are its own commit's `tests` run on `main`.
+  # the rule. The tag's minutes and its durations union are its own commit's
+  # `tests` run on `main`, and this side's union is the `durations` job's.
   #
-  # After the suite, whatever its verdict: a red leg still spent its minutes.
-  # The token reads job lists and nothing else, declared here because this
-  # workflow states no `permissions:` of its own. A `gh` call that finds no
-  # run leaves its file empty, and the table reads that leg as no run found.
+  # After the suite and the union, whatever their verdicts: a red leg still
+  # spent its minutes. The token reads job lists and artifacts and nothing
+  # else, declared here because this workflow states no `permissions:` of its
+  # own. A `gh` call that finds no run leaves its file empty, and the table
+  # reads that leg as no run found; a union not downloaded, because the job
+  # refused it or the tag's artifact has expired, reads as no union found.
   release-report:
-    needs: pytest
+    needs: [pytest, durations]
     if: ${{ !cancelled() && github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -251,6 +274,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: test-durations
+          path: ${{ runner.temp }}/durations
       - name: the release against the last release tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -268,7 +296,10 @@ jobs:
           if [ -n "$run" ]; then
             gh api "repos/$REPO/actions/runs/$run/jobs" \
               --paginate --jq '.jobs[]' > "$RUNNER_TEMP/jobs-at.jsonl" || true
+            gh run download "$run" -n test-durations -D "$RUNNER_TEMP/durations-at" || true
           fi
           python .github/scripts/release_report.py --against "$tag" \
             --at "$RUNNER_TEMP/at" --ci-jobs "$RUNNER_TEMP/jobs.jsonl" \
-            --ci-jobs-at "$RUNNER_TEMP/jobs-at.jsonl" >> "$GITHUB_STEP_SUMMARY"
+            --ci-jobs-at "$RUNNER_TEMP/jobs-at.jsonl" \
+            --durations "$RUNNER_TEMP/durations/.test_durations" \
+            --durations-at "$RUNNER_TEMP/durations-at/.test_durations" >> "$GITHUB_STEP_SUMMARY"
