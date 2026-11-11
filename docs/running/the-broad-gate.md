@@ -63,22 +63,7 @@ value*, rule 3, names the acts after the run loop that can turn the
 command's exit into 0, and says how the gate reads a run with that stop.
 check: tests/skills/test_broad_gate.py
 
-## What the gate runs, and how the list is kept true
-
-**Every step CI runs is either mirrored by a named arm or excluded with a
-written reason. There is no third state and no silence.** An arm list kept by
-hand drifts the moment somebody adds a step to the workflow, and the drift is
-invisible: the gate goes green having not run what CI will. So the partition
-is declared in the gate and a structural case asserts it is total: a step
-name in the workflow with no classification in the gate fails the suite until
-somebody classifies it. A step CI does not run for the base is neither
-answered nor unanswered: some steps run only on a pull request into `main`
-and some are skipped there, so the panel's count and the line beside it are
-taken over the steps CI runs for the base, and the line says how many it left
-out. Which steps those are is declared beside the partition and held against
-the workflow's guards from both sides, never read off the workflow at run
-time.
-check: tests/behaviour/test_the_gate_names_every_step_ci_runs.py tests/skills/test_broad_gate.py
+## What the gate runs
 
 **The gate and CI ask about the same range, and the base is resolved once.**
 A local branch name and the remote-tracking ref CI reads are two different

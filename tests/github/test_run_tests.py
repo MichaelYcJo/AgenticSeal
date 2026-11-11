@@ -52,15 +52,15 @@ def _load_runner():
 rt = _load_runner()
 
 
-def fake_venv(root, xdist=True, markdown_it=True, cmarkgfm=True):
+def fake_venv(root, xdist=True, pin=None, held=True):
     """A directory that looks to `has_pytest` like a built environment, and
     to `has_xdist` like one that carries pytest-xdist (#337) -- the `xdist`
     package directory under site-packages, at the path each platform uses.
     `xdist=False` is the `.venv` built before #337, which the runner adopts
-    and repairs. `markdown_it` is the same for the pinned parser (#667):
-    its versioned `.dist-info` directory, or `markdown_it=False` for a
-    `.venv` built before it, or a version string for one holding another
-    version. `cmarkgfm` is the same again for the pinned renderer (#647)."""
+    and repairs. Every row of `rt.PINS` is held the same way, by its
+    versioned `.dist-info` directory, except PIN: `held=False` leaves it out,
+    the `.venv` built before it joined, and a version string holds another
+    version of it."""
     venv = root / ".venv"
     python = rt.venv_python(venv)
     python.parent.mkdir(parents=True)
@@ -76,13 +76,16 @@ def fake_venv(root, xdist=True, markdown_it=True, cmarkgfm=True):
     site.mkdir(parents=True)
     if xdist:
         (site / "xdist").mkdir()
-    if markdown_it:
-        version = rt.MARKDOWN_IT_VERSION if markdown_it is True else markdown_it
-        (site / f"markdown_it_py-{version}.dist-info").mkdir()
-    if cmarkgfm:
-        version = rt.CMARKGFM_VERSION if cmarkgfm is True else cmarkgfm
-        (site / f"cmarkgfm-{version}.dist-info").mkdir()
+    for each in rt.PINS:
+        version = held if each == pin else True
+        if version is True:
+            (site / each.dist_info).mkdir()
+        elif version:
+            (site / f"{each.dist_info.split('-')[0]}-{version}.dist-info").mkdir()
     return venv
+
+
+PIN_IDS = [pin.spec.split("==")[0] for pin in rt.PINS]
 
 
 class Recorder:
@@ -429,7 +432,9 @@ class Test_build:
     def test_a_fresh_build_installs_the_pinned_parser(self, tmp_path, monkeypatch, uv):
         """#667, phase 1. Both build strategies name the pinned markdown-it-py
         in the install step, exactly as `MARKDOWN_IT` spells it -- a bare
-        `markdown-it-py` would hand the oracle whatever the index serves today."""
+        `markdown-it-py` would hand the oracle whatever the index serves today.
+        cmarkgfm (#647) and PyYAML (#1486) are pinned the same way, and the
+        three are the rows of `PINS`, the table every other install reads."""
         recorder = Recorder()
         monkeypatch.setattr(rt.shutil, "which", lambda _: uv)
         monkeypatch.setattr(rt.subprocess, "run", recorder)
@@ -448,6 +453,17 @@ class Test_build:
             f"the pinned cmarkgfm: {install}"
         )
         assert f"cmarkgfm=={rt.CMARKGFM_VERSION}" == rt.CMARKGFM
+        # #1486: the parser `tests/workflows.py` reads a workflow with.
+        assert rt.PYYAML in install, (
+            f"the {'uv' if uv else 'pip'} strategy builds an environment without "
+            f"the pinned PyYAML: {install}"
+        )
+        assert f"PyYAML=={rt.PYYAML_VERSION}" == rt.PYYAML
+        assert [pin.spec for pin in rt.PINS] == [
+            rt.MARKDOWN_IT,
+            rt.CMARKGFM,
+            rt.PYYAML,
+        ], rt.PINS
 
 
 class Test_main:
@@ -652,17 +668,18 @@ class Test_main:
             f"the flag was passed into an environment without xdist: {calls[1]}"
         )
 
-    @pytest.mark.parametrize("held", [False, "3.0.0"], ids=["none", "another version"])
+    @pytest.mark.parametrize("pin", rt.PINS, ids=PIN_IDS)
+    @pytest.mark.parametrize("held", [False, "0.0.1"], ids=["none", "another version"])
     @pytest.mark.parametrize("uv", ["/usr/bin/uv", None])
-    def test_an_adopted_environment_is_given_the_pinned_parser_once(
-        self, tmp_path, monkeypatch, uv, held
+    def test_an_adopted_environment_is_given_each_pin_once(
+        self, tmp_path, monkeypatch, uv, held, pin
     ):
-        """#667, phase 1. A `.venv` built before #667 has no parser, and one
-        somebody filled by hand may hold another version; the runner adopts
-        either and gives it the pin in one step, `add_xdist`'s shape, then the
-        suite under `-n auto` because xdist is there."""
+        """#667, #647, #1486. A `.venv` built before a pin joined `PINS` lacks
+        it, and one somebody filled by hand may hold another version; the
+        runner adopts either and gives it the pin in one step, `add_xdist`'s
+        shape, then the suite under `-n auto` because xdist is there."""
         (tmp_path / "tests").mkdir()
-        venv = fake_venv(tmp_path, markdown_it=held)
+        venv = fake_venv(tmp_path, pin=pin, held=held)
         recorder = Recorder()
         monkeypatch.setattr(rt, "repo_root", lambda: tmp_path)
         monkeypatch.setattr(rt.shutil, "which", lambda _: uv)
@@ -672,34 +689,29 @@ class Test_main:
         install, run = recorder.calls
         python = str(rt.venv_python(venv))
         if uv:
-            assert install == [uv, "pip", "install", "--python", python, rt.MARKDOWN_IT]
+            assert install == [uv, "pip", "install", "--python", python, pin.spec]
         else:
-            assert install == [
-                python,
-                "-m",
-                "pip",
-                "install",
-                "--quiet",
-                rt.MARKDOWN_IT,
-            ]
+            assert install == [python, "-m", "pip", "install", "--quiet", pin.spec]
         assert run[:3] == [python, "-m", "pytest"]
         assert run[-2:] == ["-n", "auto"], run
 
-    def test_a_failed_parser_install_is_a_sentence_and_pytest_is_still_called(
-        self, tmp_path, monkeypatch, capsys
+    @pytest.mark.parametrize("pin", rt.PINS, ids=PIN_IDS)
+    def test_a_failed_pin_install_is_a_sentence_and_pytest_is_still_called(
+        self, tmp_path, monkeypatch, capsys, pin
     ):
-        """#667, phase 1, and round 1's finding 3. The install exits non-zero: one
-        sentence names the pinned package and says what its absence costs, as
-        pytest does it, and names the remedy. Measured 2026-09-29 in a virtualenv
-        with pytest 9.1.1 and pytest-xdist 3.8.0 and no parser, over the oracle's
-        module and one other: under `-n 2` the other module's 31 cases ran and
-        the run exited 1 with one collection error; under `-p no:xdist` pytest
-        stopped at collection, `Interrupted: 1 error during collection`, exit 2,
-        no case run. The sentence used to promise the first for every run and
-        said the error was a sentence of the oracle's own, which it is not.
-        pytest is still called, in parallel, and the exit code is pytest's."""
+        """#667, phase 1, and round 1's finding 3; #647; #1486. The install
+        exits non-zero: one sentence names the pinned package and the module
+        that imports it, says what its absence costs, as pytest does it, and
+        names the remedy. Measured 2026-09-29 in a virtualenv with pytest 9.1.1
+        and pytest-xdist 3.8.0 and no parser, over the oracle's module and one
+        other: under `-n 2` the other module's 31 cases ran and the run exited
+        1 with one collection error; under `-p no:xdist` pytest stopped at
+        collection, `Interrupted: 1 error during collection`, exit 2, no case
+        run. The sentence used to promise the first for every run and said the
+        error was a sentence of the oracle's own, which it is not. pytest is
+        still called, in parallel, and the exit code is pytest's."""
         (tmp_path / "tests").mkdir()
-        fake_venv(tmp_path, markdown_it=False)
+        fake_venv(tmp_path, pin=pin, held=False)
         calls = []
 
         def run(command, **kwargs):
@@ -713,70 +725,12 @@ class Test_main:
         monkeypatch.setattr(rt.subprocess, "run", run)
         assert rt.main([]) == 0
         err = capsys.readouterr().err
-        assert rt.MARKDOWN_IT in err, err
+        assert pin.spec in err, err
+        assert f"`{pin.module}` imports it" in err, err
         assert "fails to collect with a ModuleNotFoundError" in err, err
         assert "runs every other case and exits non-zero" in err, err
         assert "stops at collection and runs no case" in err, err
         assert "a sentence of their own" not in err, err
-        assert "run bin/test again" in err, err
-        assert "Traceback" not in err, err
-        assert len(calls) == 2 and calls[1][2] == "pytest", calls
-        assert calls[1][-2:] == ["-n", "auto"], calls[1]
-
-    @pytest.mark.parametrize(
-        "held", [False, "2024.11.20"], ids=["none", "another version"]
-    )
-    @pytest.mark.parametrize("uv", ["/usr/bin/uv", None])
-    def test_an_adopted_environment_is_given_the_pinned_renderer_once(
-        self, tmp_path, monkeypatch, uv, held
-    ):
-        """#647. A `.venv` built before cmarkgfm joined `PACKAGES` is adopted and
-        topped up in one step, `add_markdown_it`'s shape, then the suite runs
-        under `-n auto`."""
-        (tmp_path / "tests").mkdir()
-        venv = fake_venv(tmp_path, cmarkgfm=held)
-        recorder = Recorder()
-        monkeypatch.setattr(rt, "repo_root", lambda: tmp_path)
-        monkeypatch.setattr(rt.shutil, "which", lambda _: uv)
-        monkeypatch.setattr(rt.subprocess, "run", recorder)
-        assert rt.main([]) == 0
-        assert len(recorder.calls) == 2, recorder.calls
-        install, run = recorder.calls
-        python = str(rt.venv_python(venv))
-        if uv:
-            assert install == [uv, "pip", "install", "--python", python, rt.CMARKGFM]
-        else:
-            assert install == [python, "-m", "pip", "install", "--quiet", rt.CMARKGFM]
-        assert run[:3] == [python, "-m", "pytest"]
-        assert run[-2:] == ["-n", "auto"], run
-
-    def test_a_failed_renderer_install_is_a_sentence_and_pytest_is_still_called(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """#647. The top-up exits non-zero: one sentence names the pinned package,
-        says what its absence costs as pytest does it -- the walker's module fails
-        to collect, which a parallel run reports beside every other case and a
-        serial one stops at -- and names the remedy. pytest is still called, in
-        parallel, and the exit code is pytest's."""
-        (tmp_path / "tests").mkdir()
-        fake_venv(tmp_path, cmarkgfm=False)
-        calls = []
-
-        def run(command, **kwargs):
-            calls.append(list(command))
-            return subprocess.CompletedProcess(
-                command, 1 if "install" in command else 0
-            )
-
-        monkeypatch.setattr(rt, "repo_root", lambda: tmp_path)
-        monkeypatch.setattr(rt.shutil, "which", lambda _: "/usr/bin/uv")
-        monkeypatch.setattr(rt.subprocess, "run", run)
-        assert rt.main([]) == 0
-        err = capsys.readouterr().err
-        assert rt.CMARKGFM in err, err
-        assert "fails to collect with a ModuleNotFoundError" in err, err
-        assert "runs every other case and exits non-zero" in err, err
-        assert "stops at collection and runs no case" in err, err
         assert "run bin/test again" in err, err
         assert "Traceback" not in err, err
         assert len(calls) == 2 and calls[1][2] == "pytest", calls

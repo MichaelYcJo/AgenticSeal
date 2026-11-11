@@ -23,6 +23,9 @@ import sys
 import pytest
 from conftest import ROOT, load_lib_module
 
+# No TARGET: its cases hold whether a line is live across the four readers of a record line and docs/checks/the-fold.md.
+
+
 STATEMENT_DOC = os.path.join(ROOT, "docs", "checks", "the-fold.md")
 OPENING = "**Whether a line is live is asked by what the line does"
 
@@ -38,9 +41,7 @@ def _load(name, relative):
 
 
 checker = _load("agentic_checker_for_liveness", "skills/verify/scripts/coordinates.py")
-reader = _load(
-    "agentic_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
-)
+reader = _load("agentic_reader_for_liveness", "lib/lines.py")
 tables = load_lib_module("tables.py", "agentic_tables_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
@@ -141,7 +142,7 @@ def checker_quoted_lines(lines, tmp_path):
     return row_index(lines) not in checker.quoted_lines(lines)
 
 
-def unverified_live_lines(lines, tmp_path):
+def lines_live_lines(lines, tmp_path):
     """Read where the flag beside the row's line is True."""
     return list(reader.live_lines(lines))[row_index(lines)][1]
 
@@ -152,7 +153,7 @@ def tables_hidden_lines(lines, tmp_path):
     return row_index(lines) not in hidden
 
 
-def unverified_readable(lines, tmp_path):
+def lines_readable(lines, tmp_path):
     """Read where the row's line comes back non-blank."""
     return bool(reader.readable(as_text(lines))[row_index(lines)].strip())
 
@@ -171,10 +172,13 @@ TABLE = {
         "kernel's `quoted_lines`",
         (N, R, R, R, R, R, R, N, N, R),
     ),
-    "unverified_check.py#live_lines": (
-        unverified_live_lines,
+    "lines.py#live_lines": (
+        lines_live_lines,
         EXCUSES,
-        "`unverified_check.py#live_lines`",
+        # The name alone, as for `hidden_lines` below: the statement spells
+        # the module the reader stood in before #1482 moved it to
+        # `lib/lines.py`, and `docs/` is written at the settle.
+        "#live_lines`",
         (N, N, N, N, R, R, N, N, N, N),
     ),
     "tables.py#hidden_lines": (
@@ -186,10 +190,10 @@ TABLE = {
         "#hidden_lines`",
         (N, N, N, R, R, R, N, N, N, N),
     ),
-    "unverified_check.py#readable": (
-        unverified_readable,
+    "lines.py#readable": (
+        lines_readable,
         COUNTS,
-        "`unverified_check.py#readable`",
+        "#readable`",
         (N, N, R, R, R, R, R, N, N, N),
     ),
 }
@@ -200,8 +204,8 @@ BY_BIAS = {
     # "a line begins live when it begins outside a fenced block, outside an
     # HTML comment" -- a region nobody closed runs to the end of the file, and
     # a line inside it begins inside it.
-    ("unverified_check.py#live_lines", "a fence nobody closed"),
-    ("unverified_check.py#live_lines", "a comment nobody closed"),
+    ("lines.py#live_lines", "a fence nobody closed"),
+    ("lines.py#live_lines", "a comment nobody closed"),
     # `hidden_lines` on a mid-line comment is not here: the comment closes on
     # the row's own line, the walk is sure of it, and the docstring states
     # the answer -- a line is hidden only "inside a fenced block or a
@@ -270,9 +274,17 @@ def test_the_statement_names_each_reader_under_its_answer():
     reader is named in the bullet of the answer the table gives it, and in no
     other bullet."""
     found = bullets(statement())
+    # The three answers, each the bold word a bullet of the statement opens
+    # on, which a reader of `docs/` looks a reader's answer up by.
     assert set(found) == {HOLDS, EXCUSES, COUNTS}, sorted(found)
     for name, (_adapter, answer, spelling, _answers) in TABLE.items():
+        # The reader's name as the statement cites it, which a reader of
+        # `docs/` resolves to the function.
         assert spelling in found[answer], (name, answer)
         for other, text in found.items():
             if other != answer:
+                # `docs/checks/the-fold.md` *Whether a line is live is asked
+                # by what the line does*: the four readers give three
+                # answers, each reader one, so its name stands in no other
+                # answer's bullet.
                 assert spelling not in text, (name, other)

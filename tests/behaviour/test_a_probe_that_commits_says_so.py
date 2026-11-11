@@ -10,19 +10,13 @@ retired. What stays is rule 7's: a probe leaves nothing outside the
 agent's scratch directory, and its files are edits under rule 9. A commit
 a probe makes in its clone writes the clone's path after `git -C`, as rule
 6 states and `tests/behaviour/test_a_commit_names_its_repository.py`
-holds. The cases below hold that each definition that once pointed at rule
-8 points at what is left.
+holds. The cases below hold that the proofer's and the tracer's
+definitions, and the review skill, point a probe at what is left.
 """
 
 from conftest import read
 
-
-def test_no_definition_points_a_probe_at_the_retired_rule():
-    """A pointer at rule 8 now reaches a retired number and no section; each
-    definition that had one points at rules 7 and 9."""
-    for name in ("proofer.md", "tracer.md", "crafter.md"):
-        text = " ".join(read("agents", name).split())
-        assert "rule 8" not in text, f"agents/{name} still points at rule 8"
+# No TARGET: its cases hold contract rule 7's pointer across agents/proofer.md, skills/code-review/SKILL.md and agents/tracer.md.
 
 
 def test_the_reviewer_points_a_probe_at_rules_7_and_9():

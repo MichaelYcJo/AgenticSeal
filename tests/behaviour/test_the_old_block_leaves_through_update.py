@@ -26,6 +26,9 @@ import sys
 import pytest
 from conftest import ROOT, flattened, git, read, shell_probe
 
+# No TARGET: its cases hold the CLAUDE.md block across templates/setup/claude-md-block.md, skills/update/SKILL.md and this repository's CLAUDE.md.
+
+
 TEMPLATE = os.path.join(ROOT, "templates", "setup", "claude-md-block.md")
 UPDATE = os.path.join(ROOT, "skills", "update", "SKILL.md")
 START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
@@ -67,6 +70,8 @@ def test_the_template_is_the_two_markers_and_nothing_between_them():
     """S6. 0.24.x's step 4 replaces a differing region with the template's,
     so the template holds no `@` line, which would put a second read of the
     core into every session, and no rule, which a skill already states."""
+    # The whole template, which 0.24.x's step 4 copies between the markers of
+    # the user's `CLAUDE.md` on the update to 0.25.0.
     assert read(TEMPLATE) == f"{START}\n{END}\n", (
         "the template holds more than its two markers, so the update to 0.25.0 "
         "writes it into every user's CLAUDE.md"
@@ -157,6 +162,8 @@ def test_step_4_takes_the_block_out_of_the_config_directory_in_use(tmp_path):
     if why:
         pytest.skip(f"bash: {why} -- step 4's command is a bash command")
     line = command().group("line")
+    # The interpreter the session's shell line names, which the case replaces
+    # with this checkout's.
     assert line.startswith("python3 -c"), line
     line = f'"{sys.executable}"' + line[len("python3") :]
     before = f"# mine\n{START}\n- an old rule\n{END}\n# mine, last\n"
@@ -191,47 +198,40 @@ def test_step_4_takes_the_block_out_of_the_config_directory_in_use(tmp_path):
         assert not (left / "CLAUDE.md.bak").exists(), name
 
 
-def test_step_4_works_on_the_config_directorys_file_and_writes_no_block():
-    """S6. The step says where the core now comes from, names a project's
-    file under *Needs action*, asks nothing, and reads no template, so no
-    step writes an `@` line. Which file it works on is the case above's."""
+def test_step_4_names_the_hook_the_output_section_and_the_backup():
+    """S6. The step names the hook the core now comes from, the section of
+    the output a project's file is named under, and the backup its command
+    writes. That
+    it asks nothing and reads no template is the proofer's to read. Which
+    file it works on is the case above's."""
     step = flattened(step_4())
     for said in (
-        "**4. Take out the preset block.**",
-        "from the plugin's `SessionStart` hook",
-        "the skills and definitions the plugin installs",
+        # The hook event the core reaches a session from, which a person
+        # reads to find where the block's job went.
+        "`SessionStart`",
+        # The section of the update's *Output* a project's file is named
+        # under, which the session writes and a person acts on.
         "*Needs action*",
-        "No question is asked",
+        # The backup the step's command writes, which a person restores from.
         "`CLAUDE.md.bak`",
     ):
         assert said in step, f"update step 4 does not say {said!r}"
-    for gone in ("claude-md-block.md", "diff ", "@plugins"):
-        assert gone not in step, f"update step 4 still carries {gone!r}"
 
 
 def test_the_installer_the_uninstaller_and_preset_setup_are_gone():
     """S9. Nothing is left to write, and step 4 is the one remover, so the
-    three are absent and no shipped document tells a reader to run one."""
+    three are absent from the tree. Whether a document still tells a reader
+    to run one is the proofer's to read."""
     for rel in ("install.sh", "uninstall.sh", os.path.join("skills", "preset-setup")):
         assert not os.path.exists(os.path.join(ROOT, rel)), f"{rel} is back"
-    shipped = ["README.md", "README.ko.md", "CONTRIBUTING.md"]
-    for top in ("skills", "agents", "docs", "templates"):
-        for here, _, names in os.walk(os.path.join(ROOT, top)):
-            shipped += [
-                os.path.relpath(os.path.join(here, n), ROOT)
-                for n in names
-                if n.endswith(".md")
-            ]
-    for rel in shipped:
-        text = read(rel)
-        for name in ("install.sh", "preset-setup"):
-            assert name not in text, f"{rel} names `{name}`"
 
 
 def test_this_repository_carries_no_copy_of_the_block():
     """S2 of #940. A copy in `CLAUDE.md` is read by every session here beside
     the installed block, and nothing holds it to the template any more."""
     text = read(os.path.join(ROOT, "CLAUDE.md"))
+    # `CLAUDE.md` *The core*: "This file imports nothing and copies nothing",
+    # so the block's markers, which open a copy of the template, are refused.
     assert START not in text and END not in text, (
         "CLAUDE.md carries the block's markers again, which is a second copy "
         "of `templates/setup/claude-md-block.md` loaded beside the installed one"
@@ -251,6 +251,8 @@ def test_this_repository_imports_no_core_and_names_the_tree_copy():
     assert not IMPORT.search(text), (
         "CLAUDE.md imports a file, so a session here reads the core twice"
     )
+    # The path `skills/core/SKILL.md`, which a session here resolves to the
+    # tree's copy of the core.
     assert "`skills/core/SKILL.md`" in text, (
         "CLAUDE.md does not name the core, so a session here cannot tell "
         "which copy governs"

@@ -3,9 +3,9 @@ has a row for every agent `agents/` defines and every policy document, and
 `seal payload` names every shipped agent.
 
 Each case lists `agents/` or `docs/`, so it stands in a file that declares no
-`TARGET`. They came, unchanged, from `tests/github/test_release_report.py`
-and `tests/skills/test_payload_meter.py`, which keep each meter's cases over
-fixtures and the helpers these cases call.
+`TARGET`. Each meter's cases over fixtures, and the helpers these cases
+call, stand in `tests/github/test_release_report.py` and
+`tests/skills/test_payload_meter.py`.
 """
 
 import json
@@ -15,6 +15,8 @@ from censuses import POLICY_GROUPS
 from conftest import ROOT
 from test_payload_meter import run, write
 from test_release_report import report, rows_of
+
+# No TARGET: its cases list every definition under agents/ and every policy document under docs/.
 
 
 class Test_release_report:

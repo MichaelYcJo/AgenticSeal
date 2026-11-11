@@ -6,8 +6,8 @@ the part its other records hold, copied from them.
   seal pr-body <item> --body <file>           write the body
   seal pr-body <item> --body <file> --check   say whether it is still theirs
 
-#1044. A body written by hand restated the records, and most of the sealer's
-withheld verdicts were a sentence of it that restated one wrongly. This
+A body written by hand restates the records, and most of the sealer's
+withheld verdicts are over a sentence of it that restates one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
 phase records' paths, each round record's `seal` blocks and its findings'
@@ -17,13 +17,13 @@ copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
 not there is named by its own line of `FIXED`.
 
-One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
+One fixed line depends on a record's verdict: the seal mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
 between `HEADING` and the changelog's section where `seal/config.json`'s
 `Pull request seal mark` key reads `yes` and the work item's `guarantee.md`
 reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
-version, so two releases of the plugin compose one line (#1452). It carries
+version, so two releases of the plugin compose one line. It carries
 no record text, and `--check` composes it the same way, so the sealer's
 check, run before its own verdict exists, reads a part with no mark from
 that run. The key and HEAD are read in the work item's own checkout, and in
@@ -33,7 +33,7 @@ a manifest the address cannot be built from are named on one line opening
 `seal pr-body:` and change no exit code.
 
 The body opens with the orchestrator's part, its files written as their
-bytes stand, and `HEADING` follows it on its own line (#1453). The part is
+bytes stand, and `HEADING` follows it on its own line. The part is
 composed from `seal/config.json`'s `Commit and pull request language` and
 `Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
@@ -48,15 +48,13 @@ where the keys differ and it holds no such file or more than one, at a
 file's line where it equals `HEADING`, and at `pr.md` where it is not
 there. Below the line `HEADING` holds, the changelog fragment stands
 first, whole and outside any fold, so the pull request's reader meets it
-before the fold (#1478), and the rest of the copy stands in one `<details>`
-fold, whose `<summary>` names the copy and is followed by a blank line so
-the Markdown inside renders, and nothing inside it is folded again. The
-squash commit keeps the fold's tags as text. `frame/design.md` *Data &
-interfaces* of the work item that last reshaped this lays out the body line
-for line. A copied line equal to `HEADING` is refused at the record's
-line, and so is a copied line holding a `details` tag, `<details` or
-`</details` in any case followed by whitespace, `/`, `>` or the line's end,
-outside a fence, an HTML comment and a code span (#1218, #1181), and a
+before the fold, and the rest of the copy stands in one `<details>` fold,
+whose `<summary>` names the copy and is followed by a blank line so the
+Markdown inside renders, and nothing inside it is folded again. The squash
+commit keeps the fold's tags as text. A copied line equal to `HEADING` is
+refused at the record's line, and so is a copied line holding a `details`
+tag, `<details` or `</details` in any case followed by whitespace, `/`, `>`
+or the line's end, outside a fence, an HTML comment and a code span, and a
 copied line where `close_issues_on_release.py#keywords_in` reads a closing
 keyword: the `Closes` line is the orchestrator's, written in `pr.md`.
 The comment is read on the copied line alone, as
@@ -65,14 +63,16 @@ hides what it holds, and a `<!--` with no `-->` after it on the line is
 text where other text stands before it. A copied line that begins with
 such a `<!--`, after nothing but spaces, tabs and block markers, is refused
 at its line whatever follows it, since GitHub hides the lines after it, the
-fold's end among them (#1405).
+fold's end among them.
 
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `lib/fields.py` reads by the record's headings, and
 `trail/gate.md` through `lib/fields.py`, the one reader of a record's
-`seal` blocks; a record either refuses is refused here with its sentence. The other records' headings are read through `unverified_check.py`'s
-`readable` and `sections`, so a heading inside a fence is no heading. No
-record is parsed any other way.
+`seal` blocks; a record either refuses is refused here with its sentence.
+The other records' headings are read through `lib/lines.py`'s `readable`
+and `sections`, so a heading inside a fence is no heading, and every
+record's lines through `lib/blocks.py#gfm_lines`. No record is parsed any
+other way.
 
 Limits, stated here and not guarded:
 
@@ -93,9 +93,9 @@ Limits, stated here and not guarded:
   passes.
 - The opener reading reads one line, not GitHub's blocks. Where CommonMark's
   block rules make GitHub show the lines after an opener the reading treats
-  as a line start, such as one in an indented code block (#1410), the line
-  is refused too. Behind a list marker or a quote marker GitHub hides them,
-  as the refusal assumes (#1408, #1409).
+  as a line start, such as one in an indented code block, the line is
+  refused too. Behind a list marker or a quote marker GitHub hides them, as
+  the refusal assumes.
 - Exit 2's line names `<item>` as it was given, or the module that would not
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
@@ -113,7 +113,6 @@ import argparse
 import difflib
 import fnmatch
 import html
-import importlib.util
 import json
 import os
 import posixpath
@@ -132,42 +131,43 @@ if __name__ == "__main__":
             _stream.reconfigure(encoding="utf-8", errors=_errors)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CHAIN_CHECK = os.path.join(HERE, "chain_check.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
 
+# `lib/sibling.py` loads every other module this command reads. Where it is
+# absent, the refusal is its own sentence about itself, spelt here because
+# the file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
-def _load(path, name):
-    """Import a sibling script by path, or raise ImportError naming it."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# Loaded once, here: `chain_check.py` with the block reader and the shared
-# markdown reader it loads at its import,
+# Loaded once, here: `chain_check.py` with the block reader, the shared
+# markdown reader and the line split it loads at its import, `lib/gaps.py`,
+# whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
 # `lib/config.py`, the one reader of a `seal/config.json` key, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
 # reader of a closing keyword. The plugin ships from the repository root, so
-# `.github/scripts/` stands three levels above HERE in a clone and in an
-# installed copy alike. As a command, a module that will not load ends the
-# run at exit 2; imported, the error is raised to the importer.
+# `.github/scripts/` stands in an installed copy as in a clone. An absent
+# file is `lib/sibling.py#load`'s sentence and exit 2. As a command, a
+# module that raises while it loads ends the run at exit 2; imported, the
+# error is raised to the importer.
 try:
-    CHAIN = _load(CHAIN_CHECK, "agentic_chain_check_for_the_pr_body")
-    ROUTING = CHAIN.load(CHAIN.ROUTING, "agentic_routing_for_the_pr_body")
-    CONFIG = CHAIN.load(
-        os.path.join(CHAIN.LIB, "config.py"), "agentic_config_for_the_pr_body"
-    )
-    CLOSER = _load(
-        os.path.join(
-            HERE, "..", "..", "..", ".github", "scripts", "close_issues_on_release.py"
-        ),
-        "agentic_closer_for_the_pr_body",
-    )
-except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
+    CHAIN = sibling.load("skills/code-review/scripts/chain_check.py")
+    GAPS = sibling.load("lib/gaps.py")
+    ROUTING = sibling.load("lib/routing.py")
+    CONFIG = sibling.load("lib/config.py")
+    CLOSER = sibling.load(".github/scripts/close_issues_on_release.py")
+except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
     print(
@@ -176,6 +176,7 @@ except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
     )
     raise SystemExit(2) from None
 READER = CHAIN.SHARED_READER
+BLOCKS = CHAIN.BLOCKS
 OPTIN = ROUTING.optin
 
 # The line that ends the orchestrator's part, `first_part`'s files, and
@@ -185,7 +186,7 @@ HEADING = "## From the records"
 # opened under the changelog's section and ended on the part's last line.
 FOLD = "<details>"
 FOLD_END = "</details>"
-# A `details` tag on a copied line, as GitHub reads one (#1218): `<details`
+# A `details` tag on a copied line, as GitHub reads one: `<details`
 # or `</details`, in any case and anywhere in the line, followed by
 # whitespace, `/`, `>` or the line's end, read once fences and code spans
 # are blanked. It opens a second fold, or, on a line inside the copy's one
@@ -195,9 +196,9 @@ FOLD_END = "</details>"
 # what follows the lookahead, up to a `>`, only names the tag as read.
 TAG = re.compile(r"</?details(?=[\s/>]|$)[^>]*>?", re.IGNORECASE)
 # The record headings the generator reads, beside `gaps.md`'s
-# `## Not verified`, which is `unverified_check.py#HEADING`.
+# `## Not verified`, which is `lib/gaps.py#HEADING`.
 PHASES = "## Phases"
-NOT_VERIFIED = READER.HEADING
+NOT_VERIFIED = GAPS.HEADING
 NOT_DONE = "## Not done"
 
 # A work item's records, by their path under its directory.
@@ -213,7 +214,7 @@ QUESTIONS = OPTIN.QUESTIONS
 OWN_PART = OPTIN.PR
 NO_OWN_PART = "is not there; the orchestrator writes it before the first round"
 
-# #1453: the two keys `first_part` composes the first part from, read through
+# The two keys `first_part` composes the first part from, read through
 # `lib/config.py#declared_value` as `MARK_KEY` is, and the translated file
 # beside `pr.md` the keys ask for where they name different languages: a
 # file matching `TRANSLATED`, whose middle part nothing reads.
@@ -269,7 +270,7 @@ NO_NOT_VERIFIED = f"`{GAPS}` has no `{NOT_VERIFIED}` section."
 NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
 
-# #1204: the seal mark, one fixed line between `HEADING`'s blank line and
+# The seal mark, one fixed line between `HEADING`'s blank line and
 # `FOLD`, written where `seal/config.json`'s `MARK_KEY` reads `MARK_ON`
 # exactly and the work item is sealed at HEAD (`seal_mark`). Its address is
 # built from the plugin's manifest, which stands three levels above HERE as
@@ -413,7 +414,7 @@ def read_own(item, name=OWN_PART):
             text = handle.read()
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused([(name, 0, f"cannot be read as UTF-8 text ({exc})")]) from None
-    for i, line in enumerate(READER.gfm_lines(text)):
+    for i, line in enumerate(BLOCKS.gfm_lines(text)):
         if line == HEADING:
             raise Refused(
                 [
@@ -432,7 +433,7 @@ def read_own(item, name=OWN_PART):
 def first_part(item, root):
     """`[(name, text)]`, the files of the body's part above `HEADING` for the
     work item's directory ITEM in the repository at ROOT, in their order,
-    each as `read_own` reads it (#1453).
+    each as `read_own` reads it.
 
     The two language keys are read from the root's `config.json` through
     `lib/config.py#declared_value`, in the same checkout `seal_mark` reads,
@@ -491,8 +492,8 @@ def _names(parts):
 def _in_tree(root):
     """The `/`-joined name the records stand under in the repository at
     ROOT: the shared root's name in the tree, `lib/optin.py#home_name`'s,
-    which is `seal` or, beside a project's own `seal/`, the second name
-    (#1059); and `lib/optin.py#HOME` where the root is local or absent,
+    which is `seal` or, beside a project's own `seal/`, the second name;
+    and `lib/optin.py#HOME` where the root is local or absent,
     the name the text gives the root, since no path in the tree holds it."""
     return OPTIN.home_name(root) or OPTIN.HOME
 
@@ -507,7 +508,7 @@ def _seal_at_head(item, root, base=None):
     against is BASE where it is given, the base the pull request's check
     runs against and its guarantee arm reads, so a commit the base gained
     after the seal, which the merge commit CI checks out reaches, is not
-    read as following the seal (#1452); and otherwise the base the same
+    read as following the seal; and otherwise the base the same
     `target:` line names, which is right at the branch head, where no later
     base commit is reachable. NOTE names what ROOT cannot read the seal
     against: a base it cannot resolve, where `follows` would list no later
@@ -548,8 +549,8 @@ def _mark_line(manifest):
     dropped, escaped; or None and the sentence naming what the manifest
     lacks. The address names no version: the installed plugin writes the
     body and the pull request check's copy composes it again, and the two
-    can be different releases, so the line reads nothing they differ in
-    (#1452). GitHub resolves `HEAD` to the repository's default branch."""
+    can be different releases, so the line reads nothing they differ in.
+    GitHub resolves `HEAD` to the repository's default branch."""
     try:
         with open(manifest, encoding="utf-8") as handle:
             fields = json.load(handle)
@@ -574,7 +575,7 @@ def _mark_line(manifest):
 def seal_mark(item, root, manifest=None, base=None):
     """`(line, note)` for the work item's directory ITEM in the repository
     at ROOT: the mark `_composed` writes under `HEADING`, or None, and the
-    one sentence `seal pr-body` prints about it, or None (#1204).
+    one sentence `seal pr-body` prints about it, or None.
 
     The mark is written where `MARK_KEY` in the root's `config.json`, read
     through `lib/config.py#declared_value`, reads `MARK_ON` exactly
@@ -628,7 +629,7 @@ def _section(rel, text, heading):
             [(rel, starts[1] + 1, f"a second `{heading}` section; the body copies one")]
         )
     return (
-        READER.gfm_lines(text),
+        BLOCKS.gfm_lines(text),
         starts[0] + 1,
         CHAIN.section_end(READER, seen, starts[0]),
     )
@@ -637,7 +638,7 @@ def _section(rel, text, heading):
 def _changed(texts):
     if CHANGELOG not in texts:
         return [_fixed(CHANGED), _fixed(ABSENT.format(path=CHANGELOG))]
-    raw = READER.gfm_lines(texts[CHANGELOG])
+    raw = BLOCKS.gfm_lines(texts[CHANGELOG])
     return [
         _fixed(CHANGED),
         _fixed(FROM.format(path=CHANGELOG)),
@@ -669,11 +670,11 @@ def _round(rel, number, text):
     record's order: each `seal` block outside every finding, the prose under
     `## Findings` before its first finding, and each finding's heading one
     level down followed by its finding block and its close block, each
-    block copied whole (#1198)."""
+    block copied whole."""
     parsed = CHAIN.round_read(READER, text, rel)
     if parsed.errors:
         raise Refused(parsed.errors)
-    raw = READER.gfm_lines(text)
+    raw = BLOCKS.gfm_lines(text)
 
     def whole(block):
         return _copied(rel, raw, block.line - 1, block.end)
@@ -710,7 +711,7 @@ def _tables(text):
 def _gate(texts):
     """The broad run's blocks, each copied whole through
     `lib/fields.py`, the reader the pull request's check reads them
-    through; a record it refuses is refused with its sentence (#1198)."""
+    through; a record it refuses is refused with its sentence."""
     if GATE not in texts:
         return [_fixed(BROAD), _fixed(ABSENT.format(path=GATE))]
     found = CHAIN.FIELDS.read(texts[GATE], CHAIN.FIELDS.GATE)
@@ -718,7 +719,7 @@ def _gate(texts):
         raise Refused([(GATE, line, why) for line, why in found.refusals])
     if not found.blocks:
         return [_fixed(BROAD), _fixed(NO_GATE_BLOCK)]
-    raw = READER.gfm_lines(texts[GATE])
+    raw = BLOCKS.gfm_lines(texts[GATE])
     return [
         _fixed(BROAD),
         _fixed(FROM.format(path=GATE)),
@@ -741,7 +742,7 @@ def _questions(texts):
     tables = _tables(texts[QUESTIONS])
     if not tables:
         return [_fixed(ASKED), _fixed(NO_QUESTION_TABLE)]
-    raw = READER.gfm_lines(texts[QUESTIONS])
+    raw = BLOCKS.gfm_lines(texts[QUESTIONS])
     return [
         _fixed(ASKED),
         _fixed(FROM.format(path=QUESTIONS)),
@@ -776,7 +777,7 @@ def _composed(name, texts, mark=None, home=OPTIN.HOME):
     """`[(line, source)]` for the generated part below `HEADING`, that line
     left out: a blank line, the line MARK and a blank line where it is
     given, the changelog's section followed by a blank line, outside any
-    fold so the reader meets it before the fold (#1478), `FOLD`, the summary
+    fold so the reader meets it before the fold, `FOLD`, the summary
     naming the copy under HOME, the root's name as `_in_tree` gives it, a
     blank line, each other section followed by a blank line, and
     `FOLD_END`. `source`
@@ -861,7 +862,7 @@ def split(body):
     `HEADING`, the orchestrator's part, and the text after that line, each
     as its bytes stood. Refused where no line equals it, a body 0.25.0 wrote
     among them, and the refusal names the repair."""
-    lines = READER.gfm_lines(body, keepends=True)
+    lines = BLOCKS.gfm_lines(body, keepends=True)
     for i, line in enumerate(lines):
         if line.rstrip("\r\n") == HEADING:
             return "".join(lines[:i]), "".join(lines[i + 1 :])
@@ -899,7 +900,7 @@ def _source(pair):
 def _run(named):
     """The lines NAMED, a run a differ added or took out, each as it is
     named, in one phrase: a refusal names every line of the run, so a body
-    lacking the mark and the blank line under it names the mark (#1452)."""
+    lacking the mark and the blank line under it names the mark."""
     return ", then ".join(named)
 
 
@@ -916,10 +917,10 @@ def _first_part(head, parts):
     above `HEADING`, is not the lines of PARTS, `first_part`'s files in
     order, counted from the body's first line; each line PARTS give is
     named with the file that gives it."""
-    said = READER.gfm_lines(head)
+    said = BLOCKS.gfm_lines(head)
     given, owner = [], []
     for name, text in parts:
-        lines = READER.gfm_lines(text)
+        lines = BLOCKS.gfm_lines(text)
         given += lines
         owner += [name] * len(lines)
     causes = []
@@ -951,10 +952,10 @@ def _check(below, body, parts):
             [(None, 0, "is not there; `seal pr-body <item> --body <file>` writes it")]
         )
     head, generated = split(body)
-    said = READER.gfm_lines(generated)
+    said = BLOCKS.gfm_lines(generated)
     given = [line for line, _source in below]
     # The lines above the part: the first part's, and `HEADING`'s own.
-    offset = len(READER.gfm_lines(head, keepends=True)) + 1
+    offset = len(BLOCKS.gfm_lines(head, keepends=True)) + 1
     causes = _first_part(head, parts)
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
@@ -983,7 +984,7 @@ def compared(item, body, root, manifest=None, base=None):
     `config.json`'s or the body's, empty where BODY is that composition.
     `main --check` and the pull request's check, `chain_check.py#body`, both
     call this, so the body is read by one code path at the sealer and at
-    the pull request (#1452)."""
+    the pull request."""
     mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     try:

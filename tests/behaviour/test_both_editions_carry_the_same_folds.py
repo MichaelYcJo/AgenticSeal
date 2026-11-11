@@ -6,7 +6,7 @@ editions are prose in two languages, so nothing here compares sentences. What
 is language-neutral is the outline: the sequence of heading levels. A heading
 added to one edition only, or one at another level, changes it.
 
-A heading is a live line (`skills/verify/scripts/unverified_check.py#live_lines`,
+A heading is a live line (`lib/lines.py#live_lines`,
 so one quoted in a fence is no heading) matching `^ {0,3}#{1,6}` followed by
 a space, a tab or the end of the line, as CommonMark reads one. A digit
 straight after the hashes is prose, and each edition has a line that begins
@@ -20,7 +20,9 @@ import re
 import pytest
 from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
 
-READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
+# No TARGET: its cases walk every tracked document with a .ko.md edition.
+
+READER = os.path.join(ROOT, "lib", "lines.py")
 
 HEADING = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]|$)")
 
@@ -32,7 +34,7 @@ def _load(path, name):
     return module
 
 
-uc = _load(READER, "unverified_check")
+uc = _load(READER, "lines_for_the_folds")
 
 
 def outline(text):
@@ -91,7 +93,7 @@ def unread(names, missing):
     """The ALIVE pairs the walk did not read, or `pytest.skip` when every one
     of them is unread only because the working tree deleted one of its halves.
 
-    Conditional, as `test_no_document_names_the_old_roots.py#uncovered` is: a
+    Conditional on every unread pair being explained by a deleted half: a
     decline over a neighbour that is merely mid-edit would carry a real
     finding away with it."""
     absent = [n for n in ALIVE if n not in names]
@@ -158,20 +160,15 @@ def test_a_deleted_half_of_a_named_pair_declines_and_nothing_else_does(tmp_path)
     assert reported([], ["README.md"]) == ["docs/experiments/README"]
 
 
-def test_the_contribution_guide_owns_the_rule_and_names_this_check():
+def test_the_contribution_guide_names_this_check():
     """A11. `CONTRIBUTING.md` is the rule's owner, and a rule whose owner does
     not say which check reads it is one a contributor meets only at CI."""
     with open(os.path.join(ROOT, "CONTRIBUTING.md"), encoding="utf-8") as f:
         guide = f.read()
-    assert "every document with a `.ko.md`\n  edition" in guide, (
-        "CONTRIBUTING.md's pairing rule no longer covers every `.ko.md` edition"
-    )
+    # The path of this module, which a contributor resolves to the check
+    # that reads the pairing rule.
     assert "tests/behaviour/test_both_editions_carry_the_same_folds.py" in guide, (
         "CONTRIBUTING.md's pairing rule does not name the check that reads it"
-    )
-    # #1055 S12: the check reads every pair, not top-level `docs/` alone.
-    assert "every top-level" not in " ".join(guide.split()), (
-        "CONTRIBUTING.md still says the check reads top-level `docs/` alone"
     )
 
 

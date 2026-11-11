@@ -1,37 +1,19 @@
 """Issue #359, the signal half: the workflow that runs
 `.github/scripts/label_merged_on_release_branch.py` on a squash into
-`release/vX.Y.Z`. These cases read the workflow and wait for #923.
+`release/vX.Y.Z`. These cases read the workflow.
 
-#942's phase 6 placed the cases of the script's functions in
+The cases of the script's functions stand in
 `tests/github/test_label_merged_on_release_branch.py`.
 """
 
 import os
-import re
 
-from conftest import ROOT, read
+from conftest import ROOT, census_case, read
+from workflows import load
 
-WORKFLOW = os.path.join(
-    ROOT, ".github", "workflows", "label-merged-on-release-branch.yml"
-)
+TARGET = ".github/workflows/label-merged-on-release-branch.yml"
 
-
-def workflow_settings():
-    """The workflow with its comment lines removed.
-
-    A setting that exists only in a comment is not a setting, which is
-    `tests/text/test_ci_gives_the_checks_what_they_need.py`'s measured reason for
-    the same helper: dropping a real `types:` line and keeping the comment
-    above it left that file's checks green. It is also what lets the trigger
-    below be read at all — this workflow carries a comment block between
-    `on:` and `permissions:`, and a reader that stops at the first
-    unindented line stops there.
-    """
-    return "\n".join(
-        line
-        for line in read(WORKFLOW).splitlines()
-        if not line.lstrip().startswith("#")
-    )
+WORKFLOW = os.path.join(ROOT, *TARGET.split("/"))
 
 
 def test_the_token_is_the_smallest_that_can_add_a_label():
@@ -42,10 +24,8 @@ def test_the_token_is_the_smallest_that_can_add_a_label():
     handed a pull request body somebody else wrote, and the only thing that
     keeps that from mattering is how little it can do.
     """
-    workflow = workflow_settings()
-    block = re.search(r"^permissions:\n((?:  [\w-]+:.*\n)+)", workflow, re.M)
-    assert block, "the workflow states no permissions block, so it inherits all"
-    granted = dict(re.findall(r"^  ([\w-]+):\s*(\S+)\s*$", block.group(1), re.M))
+    granted = load(WORKFLOW).get("permissions")
+    assert granted, "the workflow states no permissions block, so it inherits all"
     assert granted == {"contents": "read", "issues": "write"}, (
         f"the token's scopes changed: {granted}. Its only writes are a label "
         "create and a label add"
@@ -59,12 +39,9 @@ def test_the_trigger_is_a_push_to_a_release_branch_and_nothing_else():
     branch is pushed to by a squash merge, which needs write access to the
     repository.
     """
-    workflow = workflow_settings()
-    on = re.search(r"^on:\n((?:  .*\n|\n)*?)^\w", workflow, re.M)
-    assert on and re.findall(r"^  ([\w_]+):", on.group(1), re.M) == ["push"], (
-        "the workflow gained a second trigger"
-    )
-    assert re.search(r"^\s*branches:\s*\['release/\*'\]\s*$", workflow, re.M), (
+    on = load(WORKFLOW)["on"]
+    assert list(on) == ["push"], "the workflow gained a second trigger"
+    assert on["push"] == {"branches": ["release/*"]}, (
         "the push trigger no longer names `release/*` alone"
     )
 
@@ -73,4 +50,9 @@ def test_the_checkout_has_the_range_the_script_reads():
     """`arrived()` reads `git log before..after`. At depth 1 neither end of
     that range is in the clone, and the run reads the tip alone — which is the
     fallback that dropped three of four pull requests when it fired."""
+    # The checkout key and value the runner acts on, which give the step the
+    # whole history `arrived()` reads.
     assert "fetch-depth: 0" in read(WORKFLOW)
+
+
+test_census = census_case(TARGET)

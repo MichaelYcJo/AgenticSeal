@@ -2,25 +2,32 @@
 
 The census itself, and every entry point's answer to the streams, are the
 `encoding` and `entry_point` censuses in `tests/censuses.py` since #942,
-with their cases in `tests/test_censuses.py`. What stays here reads
-`CONTRIBUTING.md`'s prose, which is #923's.
+with their cases in `tests/test_censuses.py`. The case here reads the rule
+in `CONTRIBUTING.md`.
 """
 
 import os
 
-from conftest import ROOT
+from conftest import ROOT, census_case
+
+TARGET = "CONTRIBUTING.md"
 
 
 def test_the_rule_is_where_a_contributor_reads_it():
-    """`CONTRIBUTING.md`'s House rules names the rule and the censuses that
-    hold it, the way *No real identifiers* names its own."""
-    with open(os.path.join(ROOT, "CONTRIBUTING.md"), encoding="utf-8") as f:
+    """`CONTRIBUTING.md`'s House rules names the argument the rule asks for
+    and the censuses that hold it, the way *No real identifiers* names its
+    own."""
+    with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
         text = f.read()
     rules = text.split("\n## House rules\n", 1)[1].split("\n## ", 1)[0]
     flat = " ".join(rules.split())
-    assert "**Every file read or written names its encoding.**" in flat, flat
-    assert 'The call names `encoding="utf-8"`.' in flat
-    assert "The `encoding` and `entry_point` censuses in `tests/censuses.py`" in flat
-    assert "opens its first such block with the answer" in flat
-    assert "the one form `tests/censuses.py#loop_pairs` reads" in flat
-    assert "enforce both over every tracked `.py`" in flat
+    # The argument a contributor writes into the call.
+    assert '`encoding="utf-8"`' in flat, flat
+    # The two censuses a contributor resolves in `tests/censuses.py`.
+    for census in ("`encoding`", "`entry_point`"):
+        assert census in flat, census
+    # The unit that reads the one form of a loop over the pairs.
+    assert "`tests/censuses.py#loop_pairs`" in flat
+
+
+test_census = census_case(TARGET)

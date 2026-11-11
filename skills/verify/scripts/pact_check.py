@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Does every signer still agree with the pact? Run at the pact's repository.
 
-Issue #647. A work item that commits in more than one repository, where those
+A work item that commits in more than one repository, where those
 repositories keep a contract together, keeps the one copy of that contract in
 `seal/pact.md` in one of them -- the pact's repository -- and every repository
 of the work item is a signer (`docs/layout/the-pact.md`). A signer cites each
@@ -19,7 +19,7 @@ row naming this pact against the clause as the pact holds it now.
   seal pact ROOT        the pact's repository at ROOT
 
 **Local only.** No CI runs it: a signer's pull request can read one
-repository, and this needs all of them (#647's decision 2). A signer's CI
+repository, and this needs all of them. A signer's CI
 reads nothing of the pact.
 
 ## What each frame is read for
@@ -124,7 +124,6 @@ exit class. Nothing is ever written.
 
 import argparse
 import glob
-import importlib.util
 import json
 import os
 import re
@@ -133,7 +132,26 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
-CHECKER = os.path.join(HERE, "coordinates.py")
+# The evidence reader, as `lib/sibling.py#load` names it.
+CHECKER = "skills/verify/scripts/coordinates.py"
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2. Where it is absent itself, the
+# refusal is the same sentence about it, spelt here because the file that
+# holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.json"
 MAP_PARTS = (".claude", "agentic", "pact-paths.json")
@@ -150,13 +168,12 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     where it lies under HOME_DIR, and otherwise whole, with `/` for every
     separator.
 
-    **Every path this command prints goes through here** (#647, the separator
-    note). A sentence that joins a native absolute path with `/` prints
-    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, as the
-    `UNREADABLE` sentence once did, and a path line printed without this
-    function carries whatever separators the platform gave it. One function,
-    so the class is closed by construction rather than one sentence at a
-    time.
+    **Every path this command prints goes through here.** A sentence that
+    joins a native absolute path with `/` prints
+    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, and a path line
+    printed without this function carries whatever separators the platform
+    gave it. One function, so the class is closed by construction rather
+    than one sentence at a time.
 
     The comparison is by whole segment and literal: nothing is case-folded,
     resolved or normalised, so a path reached by another spelling of the
@@ -264,22 +281,6 @@ EXIT_ONE = frozenset({SUPERSEDED, NOT_TAKEN, UNMATCHED, NOT_FOUND})
 EXIT_TWO = frozenset({BROKEN, ONE_SIDED, REFUSED, UNREADABLE})
 
 
-def load(path, name):
-    """A sibling module by path, or a sentence and exit 2."""
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"seal pact: cannot read {shown(path, home_dir=os.path.expanduser('~'))}, "
-            "which this command reads the pact "
-            "through. It ships in the plugin beside this script; a copy of one "
-            "script taken on its own is not a plugin. Nothing was read.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def git(root, *args):
     """Git's stdout in ROOT, or None where git refused."""
     try:
@@ -333,7 +334,7 @@ def near_headers(tables, text):
     each through `header_key`, are the anchor header's and that is not the
     anchor header: a table no row of which is read. Whether it meant the
     anchor table is the judgment of the person reading the report and of
-    the proofer reading the frame (#1167)."""
+    the proofer reading the frame."""
     # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
     want = tuple(map(header_key, ANCHOR_TABLE))
@@ -510,9 +511,10 @@ class History:
 
     def commits(self, *revs):
         # `--full-history`: by default git follows only the TREESAME parent
-        # of a merge, so a clause version on the side a merge did not keep
-        # vanished from HEAD's list (and `--not HEAD` kept it out of the
-        # other one), and its hash read UNMATCHED where SUPERSEDED is true.
+        # of a merge, so without it a clause version on the side a merge did
+        # not keep would vanish from HEAD's list (and `--not HEAD` would keep
+        # it out of the other one), and its hash would read UNMATCHED where
+        # SUPERSEDED is true.
         # A merge listed this way carries one parent's text, so it changes
         # no verdict.
         out = git(self.root, "rev-list", "--full-history", *revs, "--", self.rel)
@@ -576,7 +578,7 @@ def clause_hash(checker, text, clause):
     if parts is None:
         return None, "names no heading path, and a pact clause is addressed by one"
     lines = checker.gfm_lines(text)
-    # The clause's region as the checker reads a document's (#867): headings
+    # The clause's region as the checker reads a document's: headings
     # on the lines a renderer shows, the hash over the lines as written.
     regions = checker.heading_path(checker.markdown_lines(text), parts)
     if len(regions) != 1:
@@ -626,10 +628,10 @@ def grade(checker, pact_text, history, clause, want):
 
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
-    config = load(os.path.join(LIB, "config.py"), "agentic_config_for_pact")
-    tables = load(os.path.join(LIB, "tables.py"), "agentic_tables_for_pact")
-    optin = load(os.path.join(LIB, "optin.py"), "agentic_optin_for_pact")
-    checker = load(CHECKER, "agentic_evidence_for_pact")
+    config = sibling.load("lib/config.py")
+    tables = sibling.load("lib/tables.py")
+    optin = sibling.load("lib/optin.py")
+    checker = sibling.load(CHECKER)
     home_dir = home_dir or os.path.expanduser("~")
 
     def say(line):
@@ -712,8 +714,7 @@ def check(root, out=sys.stdout, home_dir=None):
         if signer[1] == ours:
             # The owner's definition makes the pact's repository a signer
             # too, so listing it is a plausible slip; the sibling search
-            # skips this repository and would call it not found here (round
-            # 1 of #647, white 9).
+            # skips this repository and would call it not found here.
             found(
                 REFUSED,
                 written,

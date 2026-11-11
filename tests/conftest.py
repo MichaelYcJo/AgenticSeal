@@ -12,7 +12,6 @@ import io
 import json
 import os
 import pathlib
-import re
 import shutil
 import subprocess
 import sys
@@ -36,64 +35,37 @@ for _directory, _subdirectories, _names in os.walk(_TESTS):
     ):
         sys.path.append(_directory)
 
-# The review run's documents: the round record, the guarantee, the run, the
-# pull request check, the stamp, the routing check, and what each
-# arm wants. A case that reads one of them for what is THERE reads the one
-# that holds the section; a case asserting what is NOT there reads all of them
-# through `review_chain_text`, because a sentence forbidden in one that
-# returns in a sibling is the same sentence back, and an absence that holds in
-# one part of the text proves nothing about the rest.
-REVIEW_CHAIN_DOCS = (
-    ("docs", "forms", "the-round-record.md"),
-    ("docs", "forms", "the-guarantee.md"),
-    ("docs", "running", "the-run.md"),
-    ("docs", "checks", "the-pull-request-check.md"),
-    ("docs", "checks", "the-stamp.md"),
-    ("docs", "checks", "the-routing-check.md"),
-    ("docs", "running", "the-review-and-parity-arms.md"),
-)
 
-
-def review_chain_text(root):
-    """The review chain's documents under `root`, each whitespace-collapsed,
-    joined."""
-    texts = []
-    for parts in REVIEW_CHAIN_DOCS:
-        with open(os.path.join(root, *parts), encoding="utf-8") as handle:
-            texts.append(" ".join(handle.read().split()))
-    return "\n".join(texts)
-
-
-# --- a workflow's text, read the one way -------------------------------------
+# --- a `run:` script's code lines ------------------------------------------
 #
-# No YAML parser is installed anywhere this suite runs, so every case that
-# reads `.github/workflows/*.yml` reads text. Each one that re-derived what a
-# comment is got it slightly differently: a flag in a comment counted as a
-# base (#462), and a comment naming a script moved the region a case sliced
-# out (#482). These three helpers are the one reading, driven over fixtures
-# in `tests/test_conftest.py`. They are a test helper
-# and refuse nothing.
+# A case reads a workflow through `tests/workflows.py#load`, and the parser
+# drops YAML's comments. A `run:` script it returns still holds the shell's
+# own comments, which do not run, so a case that reads a script for a flag or
+# a command reads its code lines here: a flag in a comment is no flag (#462).
+# `code_line` is driven over lines in `tests/test_conftest.py`. The two
+# helpers are a test helper and refuse nothing.
 
 
 def code_line(line):
-    """`line` with any comment taken off, or `None` where all of it is one.
+    """`line` of a `run:` script with its shell comment taken off, or `None`
+    where all of it is one.
 
-    A line whose first non-blank character is `#` is a comment. So is the
-    rest of a line from a `#` that follows a blank and stands outside `"…"`
-    and `'…'`: YAML ends a plain scalar there, and inside a `run:` block the
-    shell ignores the rest of the line there, so both layers agree it does
-    not run. Inside `"…"` a backslash escapes the next character, so `\"`
-    does not close the string, as in YAML and the shell alike; `'…'` has no
-    escape. A quote is tracked from wherever it stands, so a stray
-    apostrophe in a plain scalar keeps a later ` #` as text, which reads a
+    This is the one reading a parser does not give: what a workflow's YAML
+    holds is read through `tests/workflows.py#load`, and only a script's
+    lines come here. A line whose first non-blank character is `#` is a
+    comment. So is the rest of a line from a `#` that follows a blank and
+    stands outside `"…"` and `'…'`, where the shell stops reading. Inside
+    `"…"` a backslash escapes the next character, so `\"` does not close
+    the string; `'…'` has no escape. A quote is tracked from wherever it
+    stands, so a stray apostrophe keeps a later ` #` as text, which reads a
     comment as code.
 
     **Not tracked, and named rather than claimed:** quotes are read one line
-    at a time, so a double-quoted string that spans lines of a `run: |`
-    block is not seen, and a line inside it whose first non-blank character
-    is `#` is dropped as a comment. That one drops code. No workflow line in
-    this repository had the shape when round 1 of work item 1790297086
-    looked for it.
+    at a time, so a double-quoted string that spans lines of a script is not
+    seen, and a line inside it whose first non-blank character is `#` is
+    dropped as a comment. That one drops code. No workflow line in this
+    repository had the shape when round 1 of work item 1790297086 looked for
+    it.
     """
     if line.lstrip().startswith("#"):
         return None
@@ -116,75 +88,6 @@ def code_line(line):
 def code_lines(text):
     """`text` with every comment removed, one line per line that is code."""
     return [kept for kept in map(code_line, text.splitlines()) if kept is not None]
-
-
-def _indent(line):
-    return len(line) - len(line.lstrip(" "))
-
-
-def _unquote(value):
-    """A YAML scalar with its matching quotes off, as `broad_gate.py#unquote`
-    reads a step's name."""
-    for mark in ('"', "'"):
-        if len(value) >= 2 and value.startswith(mark) and value.endswith(mark):
-            return value[1:-1]
-    return value
-
-
-_STEP_NAME = re.compile(r"^\s*-\s+name:\s*(\S.*?)\s*$")
-
-
-def workflow_steps(text):
-    """Every step of every job's `steps:` list: `(name, code lines)` pairs.
-
-    A step runs from its `- ` at the list's own indentation to the next item
-    at that indentation, or to the first code line shallower than the list,
-    which is the next key of its job or the next job. A step's code lines
-    keep their blank ones. `name` is the step's
-    `- name:` value, read the way `broad_gate.py#STEP_RE` and `#unquote` read
-    it, or `None` for a step with no name (`- uses: …`).
-    """
-    lines = code_lines(text)
-    steps, i = [], 0
-    while i < len(lines):
-        if lines[i].strip() != "steps:":
-            i += 1
-            continue
-        floor, i, level = _indent(lines[i]), i + 1, None
-        # A blank line ends nothing: `run: |` blocks and the gaps between
-        # steps both carry them.
-        while i < len(lines) and (not lines[i].strip() or _indent(lines[i]) > floor):
-            line = lines[i]
-            if level is None and line.lstrip().startswith("- "):
-                level = _indent(line)
-            if (
-                level is not None
-                and _indent(line) == level
-                and line.lstrip()[:2] == "- "
-            ):
-                steps.append([None, []])
-                named = _STEP_NAME.match(line)
-                if named:
-                    steps[-1][0] = _unquote(named.group(1))
-            if steps and level is not None:
-                steps[-1][1].append(line)
-            i += 1
-    return [(name, "\n".join(block)) for name, block in steps]
-
-
-def workflow_step(text, name):
-    """The code lines of the one step called `name`. Asserts there is one."""
-    found = [block for called, block in workflow_steps(text) if called == name]
-    assert len(found) == 1, f"{len(found)} steps are called {name!r}"
-    return found[0]
-
-
-def step_running(text, script):
-    """The code lines of the one step whose code names `script`. Asserts
-    there is one, so a comment naming it can never move the region."""
-    found = [block for _, block in workflow_steps(text) if script in block]
-    assert len(found) == 1, f"{len(found)} steps run {script!r}"
-    return found[0]
 
 
 def _build_repo(d):
@@ -878,11 +781,12 @@ def posix_id(value, sep=os.sep):
     """A parametrized path's id written with `/`, or None for a value that is
     not a string, which leaves pytest its own id.
 
-    `.test_durations` is measured on Windows and read on every leg, so an id
-    has to be one spelling on every machine: `os.path.join` writes `\\` on
-    Windows, and the file then prices that case on Windows alone. Pass it as
-    `ids=` where a parametrization's values are paths. `sep` is the platform's
-    separator unless a case hands it Windows' to read this on POSIX.
+    `os.path.join` writes `\\` on Windows, so a path written as it stands
+    reads differently on each system. Pass it as `ids=` where a
+    parametrization's values are paths, so a case has one id on every
+    system; `repo_relative` writes a path with it for the same reason. `sep`
+    is the platform's separator unless a case hands it Windows' to read this
+    on POSIX.
     """
     if not isinstance(value, str):
         return None
@@ -1213,6 +1117,56 @@ def parity_file(sha):
     return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
 
 
+# --- a repository whose own `seal/` is a package (#1059) ---------------------
+#
+# Each command's cases that keep its records under `agentic-seal/` beside a
+# project's own `seal/` package share this world: the module files of
+# `tests/skills/` that hold them, and the `seal rules` case of
+# `tests/github/test_rules.py`.
+
+ITEM = "1794200000-a-work-item"
+REMOTE = "git@example.com:org/thing.git"
+# The project's own package, which no command of the plugin may write into.
+PACKAGE = {
+    "seal/__init__.py": "VERSION = 1\n",
+    "seal/README.md": "# seal\n\nThis package's own notes.\n",
+}
+ROOT_RECORDS = {
+    "follow-up.md": "# follow-up\n",
+    f"threads/{ITEM}/routing.md": "# routing\n",
+}
+
+
+def records_at(home):
+    """HOME made a root holding ROOT_RECORDS."""
+    mark_root(home)
+    for rel, text in ROOT_RECORDS.items():
+        write(home, rel, text)
+    return home
+
+
+@pytest.fixture
+def package(tmp_path):
+    """A repository on `main` whose committed `seal/` is the package, with
+    REMOTE as `origin` and no root at either place."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "main")
+    git(repo, "remote", "add", "origin", REMOTE)
+    for rel, text in PACKAGE.items():
+        write(repo, rel, text)
+    commit_everything_as_e(repo, "the package")
+    return repo
+
+
+@pytest.fixture
+def shared(package):
+    """PACKAGE's repository with its root committed at `agentic-seal/`."""
+    records_at(package / "agentic-seal")
+    commit_everything_as_e(package, "the root")
+    return package
+
+
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
@@ -1232,7 +1186,7 @@ def pact_check_modules():
         os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py"),
         "pact_check_under_test",
     )
-    return pc, pc.load(pc.CHECKER, "evidence_for_pact_tests")
+    return pc, pc.sibling.load(pc.CHECKER)
 
 
 PACT_URL = "git@example.com:org/orders-api.git"

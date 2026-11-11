@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Report which issues a pull request body CLAIMS and which it only mentions.
 
-PR #162's body wrote `Closes #153 and #150`. At the 0.8.0 release,
-`close_issues_on_release.py` closed #153 and left #150 open, and somebody
-closed it by hand afterwards.
+A body that writes `Closes #153 and #150` gets #153 closed at the release
+by `close_issues_on_release.py`, and #150 stays open until somebody closes
+it by hand.
 
-**Nothing malfunctioned.** A closing keyword claims the one number that follows
+**Nothing malfunctions.** A closing keyword claims the one number that follows
 it and nothing else -- GitHub reads it that way, and the sibling script says so
-in a comment two lines above its own regex. The sentence claimed #153 and said
+in the comment above its `KEYWORDS`. The sentence claims #153 and says
 nothing about #150.
 
 So the repair is not a wider regex. Widening `CLOSING` would make this
@@ -16,7 +16,7 @@ what a body means, which is worse than the loss it repairs. The repair is that
 somebody is TOLD, at the pull request, while the author is still looking.
 
 This is the same shape as the defect the release workflow itself exists for:
-an answer was written and nothing acted on it. The rule is already written
+an answer written down with nothing acting on it. The rule is already written
 down, in the one file whose author needs it least at the moment the prose is
 written -- the session writing a pull request body is not reading
 `close_issues_on_release.py`.
@@ -26,7 +26,7 @@ written -- the session writing a pull request body is not reading
 
 **It reports; it never fails a pull request.** A check that goes red on prose
 stops a release for a false positive, and a check people learn to scroll past
-is a check that is not there. One occurrence has been measured; that does not
+is a check that is not there. One occurrence is on record; that does not
 buy a gate.
 
 Exit codes: **0** for every body it read, whatever it found. **2** only when it
@@ -35,7 +35,7 @@ was handed no body at all -- neither `PR_BODY` in the environment nor
 step that is green having examined nothing.
 
 **What GitHub does not read is defined once, next door.** `KEYWORDS`,
-`CLOSING` and `HIDDEN` are imported from `close_issues_on_release.py`
+`CLOSING` and `HIDDEN` are taken from `close_issues_on_release.py`
 rather than restated here, so widening one moves both. Two lists of what a
 closing keyword is would drift apart the first time either was edited.
 
@@ -54,8 +54,8 @@ wrong. A segment ends at the first of:
 
 **A single newline is not a boundary.** Every body in this repository is
 hard-wrapped, so one sentence spans lines routinely and `Closes #1 and\\n#2` is
-this defect wrapped at column 88. Measured on #162's own body: its `Closes`
-sentence runs across three lines.
+this defect wrapped at column 88. The occurrence on record runs its
+`Closes` sentence across three lines.
 
 What that gives up, in the one direction it is allowed to: `e.g.` and `i.e.`
 end a segment, because nothing here can tell an abbreviation from a full stop.
@@ -71,8 +71,8 @@ A closing keyword inside a fenced block, an HTML comment or an inline code
 span is invisible, the way it is to GitHub and to the sibling script -- this
 repository's own documents carry `Closes #88` in a fence as the example to
 copy, and its bodies quote its documents routinely. A `#N` the masking hides
-is not mentioned either: GitHub renders neither the number nor its keyword
-(#1181). The masking here replaces each hidden character with a space, where
+is not mentioned either: GitHub renders neither the number nor its keyword.
+The masking here replaces each hidden character with a space, where
 the sibling collapses each match to one space: a fence or a comment
 collapsing to a single space would join the line above it to the line below,
 and this module segments by line structure.
@@ -85,31 +85,21 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 
-import console  # noqa: E402
-from close_issues_on_release import CLOSING, HIDDEN, KEYWORDS  # noqa: E402
+import sibling  # noqa: E402
 
-# Where a line ends is the shared reader's rule, loaded by path (#664). A
-# reader that is moved or renamed stops this check at load with a traceback,
-# which is the loud direction.
-READER = os.path.join(
-    HERE, "..", "..", "skills", "verify", "scripts", "unverified_check.py"
-)
+console = sibling.load("lib/console.py")
+_closer = sibling.load(".github/scripts/close_issues_on_release.py")
+CLOSING, HIDDEN, KEYWORDS = _closer.CLOSING, _closer.HIDDEN, _closer.KEYWORDS
 
-
-def load_reader(path=READER):
-    """`unverified_check.py` as a module."""
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-reader = load_reader()
+# Where a line ends is `lib/blocks.py`'s rule. A reader that is
+# moved or renamed stops this check at load in `lib/sibling.py`'s sentence
+# at exit 2, which is the loud direction.
+READER = "lib/blocks.py"
+reader = sibling.load(READER)
 
 # Every `#N` a body writes, claimed or not. `#L45` and `#anchor` do not match:
 # a digit has to follow the hash immediately.
@@ -177,9 +167,9 @@ def segments(text):
     two boundaries is a segment too, and holds no `#N` for `read` to find.
 
     A line is a line where GitHub renders one, the shared reader's
-    `gfm_lines` with ends kept (#664). Split with `str.splitlines`, a
-    block-start shape after a U+2028 mid-line cut a segment GitHub renders
-    as one.
+    `gfm_lines` with ends kept. Split with `str.splitlines`, a
+    block-start shape after a U+2028 mid-line would cut a segment GitHub
+    renders as one.
     """
     cuts = {0, len(text)}
     for m in SENTENCE_END.finditer(text):
@@ -229,9 +219,9 @@ def read(body):
             claimed.append(number)
     # A number is filtered by its VALUE, never by the position it was claimed
     # at. The two are not alternatives: every claimed position holds a number
-    # that is in `claimed`, so a position test beside this one is dead. It was
-    # here, and the mutation that deleted it left the module green — which is
-    # what a redundant guard looks like from the outside.
+    # that is in `claimed`, so a position test beside this one is dead: a
+    # mutation that deletes it leaves the module green, which is what a
+    # redundant guard looks like from the outside.
     for m in ISSUE_REF.finditer(text):
         number = m.group(1)
         if number in claimed or number in mentioned:

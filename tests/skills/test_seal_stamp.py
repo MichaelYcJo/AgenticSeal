@@ -8,6 +8,10 @@ module asks git: the shared writer over one repository built once for the
 module and copied for each case, where a second common directory stands for a
 second clone of it, and the write-time writer over that repository and over
 one local-mode repository built the same way.
+
+The cases that run `main` beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
 import ast
@@ -25,7 +29,15 @@ import sys
 
 import conftest
 import pytest
-from conftest import census_case, git, git_out, load_module, mark_root, write
+from conftest import (
+    census_case,
+    commit_everything_as_e,
+    git,
+    git_out,
+    load_module,
+    mark_root,
+    write,
+)
 from conftest import commit_everything_as_e as commit
 
 TARGET = "skills/verify/scripts/seal_stamp.py"
@@ -272,6 +284,11 @@ def owners_cell(top, bottom):
     return EMPTY
 
 
+def strip_ansi(s):
+    """S with every SGR taken out, the text a person reads."""
+    return SGR.sub("", s)
+
+
 def trimmed(cells):
     """CELLS without the blank cells at their end."""
     cells = list(cells)
@@ -373,7 +390,9 @@ class Test_module:
     def test_imports_nothing_outside_the_standard_library(self):
         """The disc and its sprite are stdlib-only (#832 S1): the gate, the
         plugin's `Stop` hook and the command load this file where nothing
-        beyond the standard library is installed."""
+        beyond the standard library is installed. `sibling` is
+        `lib/sibling.py`, which ships beside it and imports the standard
+        library alone (#1482)."""
         tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
         names = {
             alias.name.split(".")[0]
@@ -385,7 +404,7 @@ class Test_module:
             for node in ast.walk(tree)
             if isinstance(node, ast.ImportFrom) and node.module
         }
-        assert names and names <= set(sys.stdlib_module_names), names
+        assert names and names - {"sibling"} <= set(sys.stdlib_module_names), names
 
     def test_the_message_is_held_under_the_measured_limit_and_nothing_else(self):
         """The harness persists a message past 10,000 UTF-16 units (#717),
@@ -661,15 +680,6 @@ class Test_letter_row:
         assert any(line.endswith(f"tree    {value}") for line in twin), twin
 
 
-class Test_strip_ansi:
-    def test_accepts_a_line_with_its_codes_removed(self):
-        assert stamp.strip_ansi("\x1b[1;38;2;1;2;3mA\x1b[0m b") == "A b"
-
-    @pytest.mark.parametrize("text", ["[1m a ;m", "\x1b[2Ja", "\x1b[1;2H"])
-    def test_refuses_to_touch_text_or_a_code_that_sets_no_colour(self, text):
-        assert stamp.strip_ansi(text) == text
-
-
 # --- the panel's text rules -----------------------------------------------------------
 
 
@@ -820,7 +830,7 @@ class Test_compose:
                 assert (top if y % 2 == 0 else bottom) == colours[key], (x, y)
         ascii_ = str.maketrans(stamp.TWIN_ASCII)
         for line, twin in zip(stamp.stamp(REFERENCE_ROWS), REFERENCE_TWIN, strict=True):
-            text = stamp.strip_ansi(line).translate(ascii_)
+            text = strip_ansi(line).translate(ascii_)
             assert len(text) == len(twin)
             assert all(a == b for a, b in zip(text, twin, strict=True) if a not in "▀▄")
 
@@ -861,7 +871,7 @@ class Test_stamp:
         width = stamp.PANEL_VALUE_WIDTH
         rows = [("SEALED", ""), ("CI also", "x" * width)]
         for shape in (False, True):
-            lines = [stamp.strip_ansi(line) for line in stamp.stamp(rows, shape)]
+            lines = [strip_ansi(line) for line in stamp.stamp(rows, shape)]
             widest = max(len(line) for line in lines)
             assert widest == 80, f"a value of {width} columns draws {widest}"
             assert any(line.endswith(" " + "x" * width) for line in lines), lines
@@ -2206,6 +2216,10 @@ class Test_drawn_from:
 
 
 class Test_main:
+    """Where two cases call `main` alike, the world differs: a stamp waits to
+    be drawn in one, and a monkeypatched `drawn_at_stop` raises in the
+    other."""
+
     def test_accepts_the_sample_in_the_form_the_console_takes(self, capsys):
         assert stamp.main([], console_wants_letters=False) == 0
         assert (
@@ -2349,6 +2363,28 @@ class Test_main:
         out = done.stdout.decode("utf-8")
         assert out.strip(), done.stderr.decode("utf-8", "replace")[-300:]
         assert message(out).startswith("SEALED feat/x @ aaa1111"), out
+
+    def test_s4_the_stamp_queues_a_sealed_guarantee_under_agentic_seal(
+        self, package, capsys
+    ):
+        """`seal stamp --guarantee` given `agentic-seal/threads/<id>/guarantee.md`,
+        written and not yet committed, queues the work item's stamp in the
+        clone, as it does under `seal/`."""
+        mark_root(package / "agentic-seal")
+        commit_everything_as_e(package, "the root")
+        git(package, "switch", "-qc", "feat/x")
+        write(package, "work.txt", "the work\n")
+        commit_everything_as_e(package, "the work")
+        target = git(package, "rev-parse", "--short", "HEAD").stdout.strip()
+        base = git(package, "rev-parse", "--short", "main").stdout.strip()
+        item = package / "agentic-seal" / "threads" / ITEM_NAME
+        closing_records(item, target, base)
+        write(item, "routing.md", routing_text())
+        code = stamp.main(["--guarantee", str(item / "guarantee.md")])
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert out.startswith(f"agentic: the stamp for {ITEM_ID} is queued in "), out
+        assert len(queued(package / ".git")) == 1
 
 
 test_census = census_case(TARGET)

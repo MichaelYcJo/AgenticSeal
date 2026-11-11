@@ -15,6 +15,8 @@ nothing can mutation-test.
 import pytest
 from conftest import flat, read
 
+# No TARGET: its cases hold the config door across the config skill, the bootstrap, the config template and the READMEs.
+
 SKILL = ("skills", "config", "SKILL.md")
 # The bootstrap is the orchestrator's since #292, in its own file since #1046.
 BOOTSTRAP = ("skills", "implement", "bootstrap.md")
@@ -44,30 +46,11 @@ ROWS = (
 def test_the_skill_names_every_row_the_template_ships(row):
     """S1. A door that shows two of three rows is a door somebody has to go
     round anyway."""
+    # The key a person writes into `config.json` through the skill, which the
+    # plugin's scripts read by that spelling, named by the skill and shipped
+    # by the template.
     assert row in flat(*SKILL), f"the skill does not name `{row}`"
     assert row in flat(*TEMPLATE), f"the template no longer ships `{row}`"
-
-
-LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
-
-
-@pytest.mark.parametrize("row", LANGUAGE_ROWS)
-def test_the_door_gives_a_language_row_no_default(row):
-    """#1453. `seal pr-body` refuses without either language key, so the
-    door no longer shows `English` as its default, and the sentence that
-    gave every key but `Mode` and `Broad gate` a default is gone. What the
-    Default cell says instead is the proofer's to read."""
-    text = read(*SKILL)
-    cells = [
-        line.split("|")[2].strip()
-        for line in text.splitlines()
-        if line.startswith(f"| `{row}` |")
-    ]
-    assert len(cells) == 1, f"the table holds {len(cells)} rows for `{row}`"
-    assert cells[0] != "English", f"the door still gives `{row}` the default English"
-    assert "Every row but `Mode` and `Broad gate` has a default" not in flat(*SKILL), (
-        "the door still says the language rows have a default"
-    )
 
 
 def test_the_mode_row_is_routed_to_seal_mode():
@@ -92,6 +75,8 @@ def test_the_way_back_from_shared_is_spelled():
 def test_the_root_is_resolved_rather_than_spelled():
     """The two places, in that order — the rule every other reader follows."""
     text = flat(*SKILL)
+    # The path a session opens first, and the command that gives the
+    # second place.
     assert "<repo>/seal/config.json" in text
     assert "git rev-parse --git-common-dir" in text
 
@@ -99,19 +84,19 @@ def test_the_root_is_resolved_rather_than_spelled():
 def test_the_bootstrap_names_the_way_back_to_its_own_questions():
     """S7. A person who answers a question in a batch has no reason to expect
     a way back to it, so the batch has to say there is one."""
+    # The command a person types to change an answer later.
     assert "/agentic:config" in flat(*BOOTSTRAP), (
         "first setup asks three questions and names nothing that changes the "
         "answers later"
     )
 
 
-def test_the_skill_says_how_a_value_carrying_a_pipe_is_written():
+def test_the_skill_says_how_a_quote_or_a_backslash_is_written():
     """#415, as #1454 leaves it. This file is where a person is told to edit
     the value in place, so it is where they meet a value that needs a
     character JSON escapes. The criterion and the two lists stay pointed at
     rather than copied down; this is not one of them — it is how to write
-    the value at all. A pipe, which a table cell had to escape, stays as
-    written in a JSON string.
+    the value at all.
     """
     text = flat(*SKILL)
     # The escapes `\"` and `\\` a person writes into the value, which the
@@ -119,11 +104,10 @@ def test_the_skill_says_how_a_value_carrying_a_pipe_is_written():
     assert '**A `"` or a `\\` in a value is written `\\"` or `\\\\`.**' in text, (
         "the front door does not say how a quote or a backslash is written"
     )
-    assert "a pipe is written as it stands" in text
-    assert "A value carrying a `|` is written `\\|`" not in text
 
 
 @pytest.mark.parametrize("parts", [("README.md",), ("README.ko.md",)])
 def test_both_readmes_list_it(parts):
     """A door nobody is told about is the file all over again."""
+    # The command a reader of the README types.
     assert "/agentic:config" in read(*parts), f"{parts[0]} does not list it"

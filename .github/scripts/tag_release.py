@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Tag the release a push to `main` shipped, and pass the tag on.
 
-A release ended with a tag the owner pushed by hand, after the release pull
-request merged (#1117). Nothing else could push it: a tag pushed with the
-workflow's own token starts no other workflow, so a tag a workflow pushed
-would never have fired the note. So the publish workflow runs on the push to
+A tag pushed with the workflow's own token starts no other workflow, so a
+tag a workflow pushes cannot fire the note from a workflow of its own, and a
+tag left to a person is pushed by hand after the release pull request
+merges. So the publish workflow runs on the push to
 `main` itself, and this step decides there whether that push shipped a
 release, creates the tag where it did, and hands the tag to the note step of
 the same job, which publishes for it.
@@ -52,10 +52,13 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
-import console  # noqa: E402
-from publish_release_note import write_output  # noqa: E402
+import sibling  # noqa: E402
+
+console = sibling.load("lib/console.py")
+write_output = sibling.load(".github/scripts/publish_release_note.py").write_output
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 MANIFEST = ".claude-plugin/plugin.json"

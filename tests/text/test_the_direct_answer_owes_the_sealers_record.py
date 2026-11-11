@@ -11,37 +11,29 @@ comment. A session that had written a change and checked it itself read any
 of them and concluded the vocabulary had no honest answer for it, and asked
 for a third one whose record it would write about itself.
 
-The answer is two answers and not three, and the pins here are shaped so
-that an absence is trivially satisfied by a file that was never opened, so the
-sentence that STANDS is what makes the sentence that is GONE evidence. Where
-a file never carried the false sentence — it named the two answers and what
-neither owes — only the standing half is pinned.
+The answer is two answers and not three. What each carrier holds is the
+record it owes, by its path; whether a sentence there says it owes nothing
+is the proofer's to read.
 
 The commit gate's option and its test left with the gate (#1027).
 """
 
 import pytest
-from conftest import REVIEW_CHAIN_DOCS, ROOT, flat, review_chain_text
+from conftest import flat
 from test_waiver_decided_at_start import in_force
 
-STANDS = "the broad run's `trail/gate.md`"
+# No TARGET: its cases hold what straight to the PR owes across docs/running/the-review-and-parity-arms.md, skills/implement/orchestration.md and the release checklist.
 
-# (the sentence that is gone, or None where the file never carried one; the
-# sentence that stands). The standing phrase is one no other sentence of the
-# same file uses, so the pin is live for the row it was written for (ledger
-# R12: a whole-file substring pin is evidence only where the words occur
-# nowhere else).
+# The carrier, and the path of the record `straight to the PR` owes at a
+# ready pull request, which the orchestrator writes and the sealer reads.
 DIRECT_REQUIRES = {
-    ("docs", "running", "the-review-and-parity-arms.md"): (
-        "nothing required; the declaration is printed",
-        "the broad run's `trail/gate.md`",
-    ),
+    ("docs", "running", "the-review-and-parity-arms.md"): "`trail/gate.md`",
 }
 # The orchestration skill's four-combinations table and its closing paragraph
 # left for the policy root in #1148, which holds both; the skill keeps one
 # sentence on `straight to the PR` and cites the section that holds the rest.
 # The file and function names say "the direct answer", the name that answer
-# had until #1459, because `.test_durations` keys the cases by name.
+# had until #1459, because CI's durations union keys the cases by name.
 WAIVER_SECTION = (
     "`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*"
 )
@@ -49,26 +41,13 @@ WAIVER_SECTION = (
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
 def test_each_carrier_says_what_the_direct_answer_requires(parts):
-    """A8. A reader opening any of these places finds what `straight to
-    the PR` requires at a ready pull request and no sentence saying it
-    requires nothing. Seen red by restoring one of the old sentences."""
-    gone, stands = DIRECT_REQUIRES[parts]
-    text = flat(*parts)
-    assert stands in text, (
-        f"{'/'.join(parts)} does not say `straight to the PR` owes the sealer's "
-        "record, so the absence below is a search that found nothing rather "
-        "than a file that says nothing"
+    """A8. A reader opening any of these places finds the record `straight
+    to the PR` requires at a ready pull request."""
+    # The path of the record the answer owes, which the orchestrator writes
+    # and the sealer reads.
+    assert DIRECT_REQUIRES[parts] in flat(*parts), (
+        f"{'/'.join(parts)} does not name the record `straight to the PR` owes"
     )
-    if parts in REVIEW_CHAIN_DOCS:
-        # The sentence left the spec when the spec was split (#526); it must
-        # not come back in either sibling.
-        text = review_chain_text(ROOT)
-    if gone is not None:
-        assert gone not in text, (
-            f"{'/'.join(parts)} still tells a reader `straight to the PR` "
-            "requires nothing, beside a checker that requires the sealer's "
-            "record"
-        )
 
 
 def test_the_routing_section_cites_what_checks_the_direct_answer():

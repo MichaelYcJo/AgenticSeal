@@ -2,8 +2,8 @@
 Python files under `tests/` share a name (`CONTRIBUTING.md` *The test
 layout*).
 
-Both cases walk `tests/` whole. They came, unchanged, from
-`tests/test_conftest.py`, which keeps the cases of the conftest's helpers.
+Both cases walk `tests/` whole. The cases of the conftest's helpers stand
+in `tests/test_conftest.py`.
 """
 
 import ast
@@ -12,6 +12,8 @@ import os
 import conftest
 from conftest import posix_id
 from test_conftest import TESTS
+
+# No TARGET: its cases walk every Python file under tests/.
 
 
 def python_files(top):

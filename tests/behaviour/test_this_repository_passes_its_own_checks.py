@@ -5,9 +5,8 @@ The cases here run a shipped command over the tree itself rather than over a
 fixture: `seal rules --check`, `seal layout --check`, `seal fold`,
 `seal unverified` and `lib/routing.py`'s reader of the routing declarations.
 Each reads files beyond its script, so it stands in a file that declares no
-`TARGET` (`CONTRIBUTING.md` *The test layout*). Each came, unchanged, from
-its script's own file, which keeps the cases over fixtures and the helpers
-these cases call.
+`TARGET` (`CONTRIBUTING.md` *The test layout*). Each script's own file
+keeps the cases over fixtures and the helpers these cases call.
 """
 
 import fnmatch
@@ -22,6 +21,9 @@ from test_routing import _absent_optional_rows_read_as_nothing
 from test_rules import rules
 from test_test_layout import layout
 from test_unverified_check import run
+
+# No TARGET: its cases run each shipped check over this repository's own tree.
+
 
 # The bucket the tree-wide case plants one defect in for the policy root's
 # documents, which no `RULE_FILES` glob names (`rules.py#policy_documents`).

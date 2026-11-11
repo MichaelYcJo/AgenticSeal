@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Put the release's seal in the note: the stamp's results, and the seal's
-PNG beside them where the repository turns the image on (#718, #1204).
+PNG beside them where the repository turns the image on.
 
-**The image is one key's to turn on** (#1204). `MARK_KEY` in the
+**The image is one key's to turn on.** `MARK_KEY` in the
 `config.json` of the tree's `seal/` root, read through `lib/config.py`,
 turns it on where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is
 attached as `ASSET` and the note's header becomes a table of two cells, the
@@ -13,7 +13,7 @@ refuses, are named on a `::warning::` line, and the results still go in.
 The plugin ships no release workflow, so the key is read in this repository
 alone.
 
-**The seal is the page form of the stamp's mark** (#857). The mark has two
+**The seal is the page form of the stamp's mark.** The mark has two
 forms: a sprite the terminal stamp draws
 (`skills/verify/scripts/seal_stamp.py`), and a vector drawn once to the PNG
 that `.claude-plugin/plugin.json` names as its `icon`. `draw` copies that PNG
@@ -43,7 +43,7 @@ cannot be drawn costs the image and never the counts -- the rule
 `publish_release_note.py`'s docstring states for its summary. Every failure
 here is one log line and one `::warning::` with an exit of 0, and nothing is
 edited unless the note's header is still in it exactly once as
-`publish_release_note.py#header` wrote it (#1153). A note somebody edited
+`publish_release_note.py#header` wrote it. A note somebody edited
 after publication is left alone, and so is its asset list; so is a note a
 run of this job already sealed, whose header is the sealed one by then, with
 the image or without it, so a re-run uploads and edits nothing. The upload
@@ -64,8 +64,6 @@ recorder wrote in) and `SUITE_KEY` (the key the run at the tag was handed),
 Exit code: 0, always.
 """
 
-import functools
-import importlib.util
 import json
 import os
 import subprocess
@@ -80,31 +78,27 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # a fixture without moving the first.
 CODE = os.path.abspath(os.path.join(HERE, "..", ".."))
 ROOT = CODE
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first module `module` is asked for.
+sys.path.insert(0, os.path.join(CODE, "lib"))
 
 
 # The tree's own modules are loaded when first asked for, not at import: a
 # module that will not load is one more way for the seal to fail, and every
 # way it fails has to end in today's note and an exit of 0 (`main`), which an
 # import at the top of this file would end before `main` ran.
-def module(name, *parts):
-    """The repository's module at `CODE/<parts>`, loaded once under `name`."""
-    return _module(name, os.path.join(CODE, *parts))
+def module(rel):
+    """The repository's module at REL, a `/`-joined path under `CODE`, as
+    `lib/sibling.py#load` returns it."""
+    import sibling
 
-
-@functools.cache
-def _module(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    loaded = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(loaded)
-    return loaded
+    return sibling.load(rel)
 
 
 def publisher():
     """`.github/scripts/publish_release_note.py`, which owns the note's
     header, the pull request list and how a release is counted."""
-    return module(
-        "agentic_publish_release_note", ".github", "scripts", "publish_release_note.py"
-    )
+    return module(".github/scripts/publish_release_note.py")
 
 
 # How many PNG pixels the note shows per CSS pixel. The note's `<img>`
@@ -120,17 +114,16 @@ DENSITY = 2
 # text could grow past the eight-wide label column the panel was drawn in, and
 # a dry run still prints the rows in. That column is `{label:<8}`, not the
 # longest label: `deferred` is exactly eight, which is the only reason the
-# column looked set by it. Since #832 the image carries no rows: they reach
-# the note as the badges in the header's results cell (`results`, #1299).
+# column looks set by it. The image carries no rows: they reach the note as
+# the badges in the header's results cell (`results`).
 LABELS = ("SEALED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
 # The widest value a release's panel carries before the frame would cut it.
-# #832 widened the gate's panel value to 41 for the open layout's 80 columns
-# and left a release's rows out of its scope, so this one stays 23, and the
-# case that held the two to one number holds this one apart from the gate's.
+# The gate's panel value is 41 wide, for the open layout's 80 columns, and a
+# release's rows are outside that layout, so this one is 23, and a case holds
+# this one apart from the gate's.
 PANEL_VALUE_WIDTH = 23
 # What a row says when the source it is read from could not be read: the row
-# stays, because a dropped row reads as none and a 0 reads as a count
-# (`questions.md` Q8).
+# stays, because a dropped row reads as none and a 0 reads as a count.
 NOT_READ = "not read"
 # The label the review chain puts on a pull request whose run ended at the
 # round cap (`docs/running/the-run.md`).
@@ -148,7 +141,7 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
     `suite` is `(passed, skipped)`; `chain` is `chain_counts`' four, each a
     number or None for not read. A suite value wider than
     `PANEL_VALUE_WIDTH` moves `S skipped` to a continuation row under
-    `P passed` (`questions.md` Q6): only the suite can overflow, a five-digit
+    `P passed`: only the suite can overflow, a five-digit
     count and a three-digit skip being 25. The items row needs both its
     numbers and the capped row both of its own, so either missing says
     `not read`."""
@@ -185,7 +178,7 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
 def results(rows):
     """`(sealed, lines)`: the stamp's results as badge lines, each a list of
     `(label, value)` pairs, which the note's header shows as badges in its
-    results cell (#1153, #1299). `sealed` is the sealed version, then the
+    results cell. `sealed` is the sealed version, then the
     tagged commit with each branch it is on. `lines` are the suite and its
     skips, the review rounds and the work items, and how many were capped
     and the issues deferred, two to a line; a row not read gives `not read`
@@ -227,20 +220,14 @@ def results(rows):
 
 def gate():
     """`skills/verify/scripts/broad_gate.py`, whose reader and counter the
-    broad gate's panel reads the same record with (#869): one counter for the
+    broad gate's panel reads the same record with: one counter for the
     panel and the release, and no second reader of what pytest printed."""
-    return module(
-        "agentic_broad_gate_for_release_seal",
-        "skills",
-        "verify",
-        "scripts",
-        "broad_gate.py",
-    )
+    return module("skills/verify/scripts/broad_gate.py")
 
 
 def suite_counts(directory, key):
     """`(passed, skipped)` from the record the broad gate's recorder wrote
-    under `directory` for the sessions carrying `key` (#869).
+    under `directory` for the sessions carrying `key`.
 
     The run at the tag loads the recorder as the broad gate loads it
     (`.github/workflows/publish-release.yml`), and `broad_gate.read_record`
@@ -287,10 +274,8 @@ def readers():
     chain's own gates read round records with, so the counts here are the
     ones a gate would read and a change to where records live has to move
     these readers first. The markdown reader is the one the check loaded."""
-    chain = module(
-        "agentic_chain_check", "skills", "code-review", "scripts", "chain_check.py"
-    )
-    routing = module("agentic_routing", "lib", "routing.py")
+    chain = module("skills/code-review/scripts/chain_check.py")
+    routing = module("lib/routing.py")
     return routing, chain, chain.SHARED_READER
 
 
@@ -310,12 +295,12 @@ def chain_counts(root, pulls):
     branch (`lib/routing.py#item_dir`), and its rounds are
     `lib/routing.py#rounds`. `deferred` is the number of distinct issues
     that are the home of a finding whose close block's `verdict:` reads
-    `deferred <home>`, read with `chain_check.record_findings` and `#issue_of`
-    (#866): a home names an issue only where it is exactly `#N`, so a file,
+    `deferred <home>`, read with `chain_check.record_findings` and `#issue_of`:
+    a home names an issue only where it is exactly `#N`, so a file,
     the frame, or a home with words after the issue counts none. A finding
     with no close block is open and counts none. A round record the check's
-    reader refuses anything of -- one from before #1198, in the old table's
-    shape or in labelled lines, which holds no round block; a line of a
+    reader refuses anything of -- one in an older shape, a table or
+    labelled lines, which holds no round block; a line of a
     `seal` block that does not parse; a block out of its place; a finding
     with no finding block -- leaves
     `deferred` None -- an incomplete count is a wrong number -- a `rounds`
@@ -325,12 +310,21 @@ def chain_counts(root, pulls):
 
     A tree with no declaration at all, or a pull request labelled
     `CAPPED_LABEL` that resolves to no work item, is a count known to be
-    incomplete -- records moved (#715) or retired before the tag -- so the
-    three tree rows are not read rather than drawn as 0 (round 1's 🔴 1)."""
+    incomplete -- records moved or retired before the tag -- so the
+    three tree rows are not read rather than drawn as 0."""
     capped = sum(1 for pull in pulls if CAPPED_LABEL in labels_of(pull))
     try:
-        routing, chain, reader = readers()
-    except Exception as problem:
+        import sibling
+
+        # The seal goes on without these rows, so an absent reader raises
+        # `lib/sibling.py#Absent` with no sentence of the loader's, and the
+        # line below names it.
+        with sibling.going_on():
+            routing, chain, reader = readers()
+    except (Exception, SystemExit) as problem:
+        # `Absent`'s path; an `ImportError` carries a `path` of its own.
+        if isinstance(problem, SystemExit) and getattr(problem, "path", None):
+            problem = f"{problem.path} is absent"
         print(
             f"the chain rows are not read: the round record's readers did not load ({problem})"
         )
@@ -400,7 +394,7 @@ def chain_counts(root, pulls):
 # The asset's name on the release, and so the last part of its URL.
 ASSET = "seal.png"
 
-# #1204: the key of the tree's `seal/config.json` that turns the image on,
+# The key of the tree's `seal/config.json` that turns the image on,
 # and the one value that does. What `mark_on` says where a key is written
 # and does not turn it on, printed after `IMAGE_WARNING`.
 MARK_KEY = "Release note seal mark"
@@ -425,8 +419,8 @@ def mark_on(root):
     and an empty one are off and say nothing; any other value, and a
     refusal the reader returns, are off and named. Nothing here refuses:
     the image is a picture, and the results go in whatever the key says."""
-    home = module("agentic_optin_for_release_seal", "lib", "optin.py").home_at(root)
-    config = module("agentic_config_for_release_seal", "lib", "config.py")
+    home = module("lib/optin.py").home_at(root)
+    config = module("lib/config.py")
     value, refused = config.declared_value(home, MARK_KEY)
     if refused is not None:
         return False, KEY_REFUSED.format(why=refused)
@@ -605,13 +599,22 @@ def main():
     if dry:
         print("DRY_RUN -- nothing will be uploaded or edited")
     try:
-        seal_release(tag, repo, dry)
+        import sibling
+
+        # The job exits 0 whatever fails, and the loader's "Nothing was
+        # read." pairs with exit 2, so an absent module raises
+        # `lib/sibling.py#Absent` with no sentence and the line below names
+        # it.
+        with sibling.going_on():
+            seal_release(tag, repo, dry)
     except (Exception, SystemExit) as problem:
-        reason = (
-            str(problem)
-            if isinstance(problem, Refused)
-            else (f"{type(problem).__name__}: {problem}")
-        )
+        if isinstance(problem, Refused):
+            reason = str(problem)
+        # `Absent`'s path; an `ImportError` carries a `path` of its own.
+        elif isinstance(problem, SystemExit) and getattr(problem, "path", None):
+            reason = f"{problem.path} is absent"
+        else:
+            reason = f"{type(problem).__name__}: {problem}"
         reason = " ".join(reason.split())
         print(f"no seal: {reason} -- the note stays as it was published")
         print(f"::warning::release seal skipped: {reason}")

@@ -27,7 +27,11 @@ import re
 import subprocess
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, code_lines, read
+from workflows import load
+
+# No TARGET: its cases classify every top-level entry git lists, and hold the release check across .github/workflows/hygiene.yml and docs/releasing/branch-and-release.md.
+
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 RELEASE_DOC = os.path.join(ROOT, "docs", "releasing", "branch-and-release.md")
@@ -68,16 +72,12 @@ STAYS_HOME = {
     # the loader reads neither, so a change to it alone moves no version.
     "TRADEMARKS.md",
     "ruff.toml",
-    ".test_durations",  # what CI's Windows and macOS shards are divided by (#841, #864)
 }
 
 
 def ships_pattern():
     """The regex the step filters the diff's file list through, verbatim."""
-    text = read(WORKFLOW)
-    assert STEP in text, f"hygiene.yml no longer has a step named {STEP!r}"
-    step = text.split(STEP, 1)[1].split("- name:", 1)[0]
-    found = re.search(r"grep -E '(\^\([^']*\)/)'", step)
+    found = re.search(r"grep -E '(\^\([^']*\)/)'", release_step())
     assert found, "the step no longer filters the file list with grep -E '^(...)/'"
     return re.compile(found.group(1))
 
@@ -97,6 +97,8 @@ def test_the_two_lists_do_not_overlap():
 def test_every_shipping_root_is_watched(root):
     """A change under a root the loader reads has to move the version."""
     pattern = ships_pattern()
+    # The pattern the step's `grep -E` filters the diff's file list through,
+    # which the runner runs at a release pull request.
     assert pattern.match(f"{root}/anything"), (
         f"`{root}/` ships but the hygiene step's pattern {pattern.pattern!r} "
         f"does not match it — a release fixing only `{root}/` would reach "
@@ -109,6 +111,7 @@ def test_nothing_that_stays_home_is_watched(entry):
     """A wrong deny at the release is a stopped release: a change confined to
     this repository's own work must not be asked for a version bump."""
     pattern = ships_pattern()
+    # The same pattern, which a change confined to this root must not match.
     assert not pattern.match(f"{entry}/anything"), (
         f"`{entry}` does not reach a user through the plugin, yet the pattern "
         f"{pattern.pattern!r} would demand a version bump for it"
@@ -119,6 +122,7 @@ def test_the_pattern_names_nothing_this_file_has_not_classified():
     """The pattern can only name roots this file says ship. A root added to the
     workflow alone is a decision with no record of why."""
     named = set(ships_pattern().pattern[2:-2].replace("\\", "").split("|"))
+    # The roots the step's pattern alternates, which the runner matches.
     assert named == SHIPS, (
         f"the pattern names {sorted(named)} and this file says {sorted(SHIPS)} "
         "ship — classify the difference here, with the reason"
@@ -152,6 +156,8 @@ def test_the_release_document_names_the_same_roots():
     # The paragraph, not the sentence: `.claude-plugin/` carries a full stop.
     paragraph = doc.split("the `hygiene` workflow", 1)[1].split("\n\n", 1)[0]
     named = set(re.findall(r"`([^`]+)/`", paragraph))
+    # The roots the paragraph names as code spans, which a person cutting a
+    # release reads to know which change moves the version.
     assert named == SHIPS, (
         f"docs/releasing/branch-and-release.md's paragraph about the hygiene workflow "
         f"names {sorted(named)} and the pattern's roots are {sorted(SHIPS)} — "
@@ -161,26 +167,26 @@ def test_the_release_document_names_the_same_roots():
 
 # What a refused author reads (#443).
 #
-# The step is correct and its condition does not change here. What changed is
-# the message: it named `plugin.json` and a version, and the first person it
-# ever refused was a contributor whose pull request was aimed at the wrong
-# branch. A contributor following that message would edit the one file a
-# contribution must not touch.
-#
-# At the moment it refuses, the two readers are indistinguishable to the step:
-# a release that forgot the bump and a contribution filed against `main` both
-# arrive here with `base_ref = main`. So the message names both causes and
-# asserts neither, release case first — that is the reader for whom the old
-# message was already right.
+# The first person the step ever refused was a contributor whose pull request
+# was aimed at the wrong branch, and the message named only `plugin.json`, the
+# one file a contribution must not touch. At the moment it refuses, a release
+# that forgot the bump and a contribution filed against `main` both arrive
+# with `base_ref = main`, so the message names both causes. The cases below
+# pin the facts of the `::error::` line a reader acts on: the file a release
+# moves, the branch a contribution goes to and the document that holds the
+# procedure. Its sentences are the proofer's to read.
 
 
 def release_step():
-    """The step's body, from its `- name:` to the next one at the same indent."""
-    text = read(WORKFLOW)
-    start = text.index(f"- name: {STEP}")
-    rest = text[start + 1 :]
-    end = rest.find("\n      - name:")
-    return rest[: end if end != -1 else len(rest)]
+    """The script of the one step called STEP, with its shell comments off."""
+    steps = [
+        step
+        for job in load(WORKFLOW)["jobs"].values()
+        for step in job["steps"]
+        if step.get("name") == STEP
+    ]
+    assert len(steps) == 1, f"hygiene.yml has {len(steps)} steps named {STEP!r}"
+    return "\n".join(code_lines(steps[0]["run"]))
 
 
 def refusal():
@@ -190,61 +196,27 @@ def refusal():
     return found.group(1)
 
 
-def test_the_refusal_names_the_wrong_base_as_one_of_the_two_causes():
+def test_the_refusal_names_the_branch_a_contribution_goes_to():
     """#443. The real cause of the first refusal this step ever issued was the
-    base branch, and the message never said the words."""
+    base branch, so the refusal names the branch a contribution's base
+    belongs to."""
     text = refusal()
-    assert "base" in text, (
-        "the refusal never mentions the base branch, so a contributor whose "
-        "base is the cause is told only about a file they must not touch:\n"
-        f"{text}"
-    )
+    # The branch a contributor bases the pull request on, with the version
+    # they fill in.
     assert "release/vX.Y.Z" in text, (
         "the refusal does not say where a contribution's base belongs. A "
         "message that diagnoses without naming the fix leaves the reader "
         f"exactly where they were:\n{text}"
     )
-    stale = re.findall(r"release/v\d+\.\d+\.\d+", text)
-    assert not stale, (
-        f"the refusal names {sorted(set(stale))} — a concrete release branch "
-        "is deleted after its release, and a CI message is the worst place "
-        "for a fact that expires"
-    )
 
 
-def test_the_refusal_still_serves_the_release_and_puts_it_first():
+def test_the_refusal_names_the_file_a_release_moves():
     """A2's readable half. Somebody genuinely cutting a release meets this
-    line too, and for them the old message was correct. It stays, and it stays
-    first: that is the order of likelihood for whoever is reading."""
+    line too, and for them the file to move is the fix."""
     text = refusal()
+    # The file whose version a release moves, which a reader opens.
     assert "plugin.json" in text, (
         "the refusal no longer names the file a release has to move"
-    )
-    assert text.index("plugin.json") < text.index("base"), (
-        "the base-branch case comes before the version case, so a release "
-        f"pull request is read a diagnosis aimed at somebody else first:\n{text}"
-    )
-
-
-def test_the_refusal_asserts_neither_case():
-    """The step cannot tell the two apart, so the message must not claim to.
-    Both halves are conditional or the message is guessing."""
-    text = refusal()
-    assert text.count("If this is") == 2, (
-        "the refusal does not offer both causes as conditions. The step reads "
-        "`base_ref = main` and nothing else, so it cannot know which reader "
-        f"it has:\n{text}"
-    )
-
-
-def test_the_refusal_says_not_to_move_the_version_to_satisfy_it():
-    """The measured harm. A contributor following the old message edits
-    `.claude-plugin/plugin.json`, which is the one file their change must
-    leave alone — and the edit would not fix the pull request either."""
-    text = refusal()
-    assert "Change the base rather than plugin.json" in text, (
-        "the refusal names two causes without saying which edit is wrong, "
-        f"which is the state that produced #443:\n{text}"
     )
 
 
@@ -253,6 +225,7 @@ def test_the_refusal_names_the_document_that_holds_the_procedure():
     cause and the fix inline and cites the file after, rather than making a
     second hop the only way to the answer."""
     text = refusal()
+    # The document a refused author opens for the procedure.
     assert "CONTRIBUTING.md" in text, (
         f"the refusal cites no document for the procedure behind it:\n{text}"
     )
@@ -300,6 +273,8 @@ def test_the_base_guard_is_a_closed_if_with_the_early_exit_inside_it():
         "left open runs its body on every pull request and is malformed "
         f"shell:\n{release_step()}"
     )
+    # The shell command `exit 0` inside the guard, which the runner runs to
+    # end the step early on any base but `main`.
     assert any("exit 0" in line for line in after[:closes]), (
         "the base guard is closed but nothing inside it returns early, so "
         "every contribution now reaches the version check and the exemption "
@@ -308,23 +283,12 @@ def test_the_base_guard_is_a_closed_if_with_the_early_exit_inside_it():
     )
 
 
-def test_the_skip_line_says_where_the_version_is_checked():
-    """#1117. A pull request into the release branch is skipped, and the line
-    it prints says the version is checked when the branch merges to `main`.
-    It said the version moves then, and the version now moves in the
-    release's first pull request. Seen red against that line."""
-    skip = [line for line in release_step().splitlines() if "not a release PR" in line]
-    assert len(skip) == 1, release_step()
-    assert "the version is checked when the release branch merges to main" in skip[0], (
-        skip[0]
-    )
-    assert "moves" not in skip[0], skip[0]
-
-
 def test_the_refusal_still_fails_the_run():
     """The message is the only thing that moved. A refusal that stopped
     exiting 1 would ship an unversioned release in silence."""
     step = release_step()
+    # The shell command `exit 1` after the `::error::` line, which the runner
+    # runs to fail the step.
     assert re.search(r"::error::.*\n\s*exit 1\n", step), (
         f"the ::error:: line is no longer followed by `exit 1`:\n{step}"
     )

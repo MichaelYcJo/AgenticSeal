@@ -1,6 +1,6 @@
 """A markdown heading has one spelling, and a renderer holds it (#867).
 
-`skills/verify/scripts/unverified_check.py#heading_level` is the one rule every
+`lib/lines.py#heading_level` is the one rule every
 reader of a section asks: the checker's regions, the chain check's `## Verdicts`, the survivor sweep's ledger headings, the
 payload meter's sections and `seal unverified`'s `## Not verified`. Five of
 them spelled it themselves until #867, two as `startswith("#")`, which read a
@@ -11,9 +11,9 @@ markdown-it and nothing of this repository's: on every line a renderer shows,
 `heading_level` answers what the parser's top-level ATX headings answer. Three
 corpora, as `frame/design.md` S10 names them: the frame's shapes, a seeded generated
 corpus, and every tracked `.md` file. #942 moved the first two, which read no
-file of this repository, into `tests/skills/test_unverified_check.py`'s
-`Test_heading_level`, with the comparison they share; the tracked files'
-corpus stays here and imports it.
+file of this repository, into `Test_heading_level`, with the comparison
+they share, and #1482 moved that class to `tests/lib/test_lines.py`; the
+tracked files' corpus stays here and imports it.
 
 **One limit, stated rather than generated away.** A heading indented one to
 three spaces under a list item is that item's content, and a rule that reads
@@ -32,7 +32,9 @@ import subprocess
 
 from commonmark_oracle import setext_lines
 from conftest import ROOT, on_disk
-from test_unverified_check import disagreements
+from test_lines import disagreements
+
+# No TARGET: its cases read every tracked Markdown file against the CommonMark oracle.
 
 
 def tracked_markdown():

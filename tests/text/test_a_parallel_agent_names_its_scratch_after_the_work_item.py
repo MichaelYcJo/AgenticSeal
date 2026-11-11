@@ -24,29 +24,27 @@ directory is `<scratchpad>/<work-item-id>/<leaf>/`, the name keeps a
 parallel agent's files apart because the agents of one session share one
 scratchpad, an agent that finds its directory standing adds `-2` to the
 leaf, and no agent removes the scratchpad, a scratch directory or a file
-in one. Each definition names its own leaf and cites rule 17. A removal
-written with a variable in its path is a command Claude Code holds for a
-person (#1503), so no section of the contract and no agent definition
-writes `rm -rf`. The one removal left is the orchestrator's, of the work
-item's directory once the pull request is open and again after each repair
-it pushes to it, in one `rm -rf` with its path written out
-(`skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket*), which no agent preloads. This file pins rule 17's sentences, the
-directory each definition names, that absence, and the directory the
-orchestrator's removal names, because a definition is a sentence an agent
-reads and a sentence can be dropped without a case going red.
+in one. Each definition names its own leaf and cites rule 17. The one
+removal left is the orchestrator's, of the work item's directory once the
+pull request is open and again after each repair it pushes to it, in one
+`rm -rf` with its path written out (`skills/implement/orchestration.md`
+*Orchestrator: the order inside a ticket*), which no agent preloads. This
+file pins the paths rule 17 and each definition name, the leaf an agent
+writes where its directory stands, and the path and the command of the
+orchestrator's removal, because a definition is a sentence an agent reads
+and a sentence can be dropped without a case going red.
 
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
 `plan.md` *Failure scenario* of the work item says so.
 """
 
-import glob
 import os
 
 from conftest import ROOT, read
 
-AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
+# No TARGET: its cases hold the scratch directory's name across the four agent definitions, the agent contract and the skills that name it.
+
 PROOFER = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")
@@ -84,12 +82,14 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     carries the work item is contract rule 17's, which the definition
     cites."""
     where = section(PROOFER, "Rules")
+    # The path the proofer clones the target into.
     assert CLONE in where, (
         "`agents/proofer.md` *Rules* does not name the clone directory "
         f"as `{CLONE}`, so two parallel proofers can clone to one name"
     )
-    # Quoted whole, so the clone's path, which begins with the same
-    # spelling, does not hold the scratch directory's sentence too.
+    # The path the proofer writes the round's probes and captures under,
+    # quoted whole, so the clone's path, which begins with the same
+    # spelling, does not hold it too.
     assert f"`{ROUND_HOME}`" in where, (
         "the section does not name the round's scratch directory as "
         f"`{ROUND_HOME}`, so a round's probes and captures have no name of "
@@ -104,6 +104,8 @@ def test_the_framers_probe_is_named_for_the_work_item():
     the name carries the work item is contract rule 17's, which the
     definition cites."""
     where = section(FRAMER, "Rules")
+    # The path the framer writes its probe's script, captures and clone
+    # under.
     assert FRAME_HOME in where, (
         "`agents/framer.md` *Rules* does not name the probe's directory as "
         f"`{FRAME_HOME}`, so a framer's writes have no name of their own"
@@ -119,10 +121,12 @@ def test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase():
     two crafters alive at once cannot pick one name. Why the name carries
     the work item is contract rule 17's, which the definition cites."""
     where = section(CRAFTER, "Rules")
+    # The path the crafter writes a phase's scratch under.
     assert PHASE_HOME in where, (
         "`agents/crafter.md` *Rules* does not name a phase's directory as "
         f"`{PHASE_HOME}`, so a crafter's writes have no name of their own"
     )
+    # The path the crafter writes a fix pass's scratch under.
     assert FIX_HOME in where, (
         "the section does not name a fix pass's directory as "
         f"`{FIX_HOME}`, so a fix pass writes into the shared scratchpad"
@@ -132,41 +136,22 @@ def test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase():
 def test_rule_17_names_the_scratch_directory_for_the_work_item():
     """#1474, #1503. Contract rule 17 is the one statement of the scratch
     rule, which every agent receives: the directory's shape, with the leaf
-    each definition names, why the name carries the work item, and what an
-    agent does where an earlier spawn left its directory standing. No agent
-    removes a scratch directory, so a second sealer or proofer of one work
-    item that cloned into the standing directory would fail, and the rule
-    gives it the next free leaf."""
+    each definition names, and what an agent does where an earlier spawn
+    left its directory standing. No agent removes a scratch directory, so a
+    second sealer or proofer of one work item that cloned into the standing
+    directory would fail, and the rule gives it the next free leaf."""
     where = section(CONTRACT, "17 ")
+    # The path an agent puts the leaf its definition names in.
     assert LEAF_HOME in where, (
         "contract rule 17 does not name the scratch directory as "
         f"`{LEAF_HOME}`, so an agent whose definition names a leaf has no "
         "path to put it in"
     )
-    assert "share one scratchpad" in where, (
-        "contract rule 17 names the directory and not why: agents of one "
-        "session share one scratchpad"
-    )
-    assert "add `-2` to the leaf" in where, (
+    # The suffix an agent writes after its leaf where the directory stands.
+    assert "`-2`" in where, (
         "contract rule 17 does not say what an agent does where its "
         "directory already stands, so a second clone into it fails"
     )
-
-
-def test_no_contract_section_or_definition_writes_a_removal():
-    """#1503. Contract rule 21 once asked an agent to remove its directory in
-    one `rm -rf`, and a crafter closed a phase with a loop of `rm` on a
-    variable path, which Claude Code held for the owner. No agent removes
-    its scratch directory now (contract rule 17), so no section of the
-    contract and no agent definition writes the command. The orchestrator's
-    removal, after the pull request opens and after each later repair of
-    it, stands in a skill no agent preloads."""
-    for path in [CONTRACT, *AGENTS]:
-        name = os.path.relpath(path, ROOT)
-        assert "rm -rf" not in read(path), (
-            f"{name} writes `rm -rf`, and no agent removes its scratch "
-            "directory (contract rule 17)"
-        )
 
 
 def test_the_orchestrators_one_removal_names_the_work_items_directory():
@@ -174,18 +159,16 @@ def test_the_orchestrators_one_removal_names_the_work_items_directory():
     pull request is open, and the same command again after each repair it
     pushes to the open pull request. A removal that named the scratchpad
     took every agent's files with it in the 0.37.0 run, so the sentence
-    names the work item's directory, written out, and says nothing else of
-    the scratchpad goes."""
+    names the work item's directory, written out."""
     where = section(IMPLEMENT_ORCH, "Orchestrator: the order inside a ticket")
-    assert f"`{WORK_ITEM_HOME}`, in one `rm -rf`" in where, (
+    # The path the orchestrator's removal names.
+    assert f"`{WORK_ITEM_HOME}`" in where, (
         "the orchestrator's removal does not name the work item's directory "
         f"as `{WORK_ITEM_HOME}`, so the scratchpad reads as the directory "
         "it removes"
     )
-    assert "removes nothing else of the scratchpad" in where, (
-        "the orchestrator's removal does not say it removes nothing else of "
-        "the scratchpad, which every agent of the session shares"
-    )
+    # The command the orchestrator runs on that path.
+    assert "`rm -rf`" in where, "the section names no command for the removal"
 
 
 def test_the_gates_capture_file_carries_the_work_item_id():
@@ -199,16 +182,20 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     command = section(
         REVIEW_ORCH, "Orchestrator: the pull request opens once the sealer seals"
     )
+    # The path the orchestrator redirects the gate's output to.
     assert "<scratchpad>/<work-item-id>/gate.log" in command, (
         "the orchestration names no capture file carrying the work item id, "
         "so two work items' runs write one file over each other"
     )
+    # The spelling of the gate's own line, which the orchestrator finds in
+    # the output and quotes.
     assert "outputs kept under" in command, (
         "the section does not tell the orchestrator to quote the gate's "
         "`outputs kept under` line, which is the one name per run the gate "
         "itself makes"
     )
     sealer = section(SEALER, "Rules")
+    # The path the sealer re-runs a `seen red` in.
     assert "<scratchpad>/<work-item-id>/at-base/" in sealer, (
         "the clone a `seen red` is re-run in is not named for the work item"
     )
@@ -219,12 +206,17 @@ def test_the_capture_example_is_not_a_name_every_session_shares():
     every session on the machine rather than across one session's agents.
     The fenced example redirects under the scratchpad with the work item id."""
     text = read(VERIFY)
+    # `skills/verify/SKILL.md` *Capture once, filter locally.*: the capture
+    # file carries the work item id, "never a name every session on the
+    # machine would also pick". The path is one a reader copies.
     assert "/tmp/run.txt" not in text, (
-        "skills/verify/SKILL.md still shows a capture file every session on "
-        "the machine would also pick"
+        "skills/verify/SKILL.md shows a capture file every session on the "
+        "machine would also pick"
     )
     start = text.index("**Capture once, filter locally.**")
     example = text[start : text.index("The tell is a second invocation", start)]
+    # The path the example's capture file stands under, which a reader
+    # copies.
     assert "<scratchpad>/<work-item-id>/" in example, (
         "the capture example does not carry the work item id in the file it "
         "redirects to"

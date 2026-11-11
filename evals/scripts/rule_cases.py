@@ -11,8 +11,7 @@ whether a sentence of today's definition was followed:
 
   proofer  one review of a diff with one defect against its spec: the
            defect found, the round record in the template's shape, and
-           any truth `recurred_truths.json` adds for the case
-           (`replay_targets.py#truths_with`)
+           the second defect its own runs found, no case for `shout_twice`
   crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
@@ -42,38 +41,29 @@ Exit codes: 0 written · 2 the arguments were unusable.
 """
 
 import argparse
-import importlib.util
 import os
 import runpy
 import sys
 import tempfile
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
-import behaviour
-import console
-import optin
-import replay_targets as rt
+import sibling
+
+behaviour = sibling.load("evals/scripts/behaviour.py")
+console = sibling.load("lib/console.py")
+optin = sibling.load("lib/optin.py")
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
-PR_BODY_MODULE = os.path.join(ROOT, "skills", "code-review", "scripts", "pr_body.py")
-
-
-def load(path, name):
-    """The Python file at PATH, imported as NAME."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
 
 # `seal pr-body`'s module: its `compose` writes the part of a sealer case's
 # pull request body that the case's records hold.
-pr_body = load(PR_BODY_MODULE, "agentic_pr_body_for_rule_cases")
+pr_body = sibling.load("skills/code-review/scripts/pr_body.py")
 
 MODELS = {
     "proofer": "claude-opus-5-5",
@@ -313,9 +303,16 @@ def proofer_case():
         r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
         "`shout_twice` joins the two shouts with no space, against S2.",
     )
+    # A real defect the case's own runs found and the case did not list: no
+    # case covers `shout_twice`.
+    uncovered = (
+        "shout-twice-uncovered",
+        r"^location: .*(?:tests\/test_textutil\.py(?![\w./#-]))",
+        "No case covers shout_twice, so plan.md's phase 1 check passes over "
+        "the defect it names S2 for.",
+    )
     graders = behaviour.report_shape("proofer", report)
-    # A fixture has no commit, and an entry's location never needs one.
-    for name, pattern, body in rt.truths_with(PROOFER_CASE, [shout], None):
+    for name, pattern, body in (shout, uncovered):
         graders.append(behaviour.report_regex("truth", name, report, pattern, body))
     return PROOFER_CASE, {
         "agent": "proofer",

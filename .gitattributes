@@ -20,7 +20,6 @@
 /tests/ export-ignore
 /evals/ export-ignore
 /seal/ export-ignore
-/.test_durations export-ignore
 /CLAUDE.md export-ignore
 /.github/workflows/ export-ignore
 /.github/scripts/dist_branch.py export-ignore

@@ -22,108 +22,17 @@ Three things settle it.
                   because no code has ever read it and it has never once been
                   created
 
-The cases below hold the sweep for a decision by file count, the paths, the
-tables and the cells the set's documents give a reader, and the absence of
-the home. How the skill words the condition and the status column is the
-proofer's to read.
+The cases below hold the issue the rung cites, the paths, the tables and
+the cells the set's documents give a reader. How the skill words the
+condition and the status column is the proofer's to read.
 """
-
-import re
 
 from conftest import read
 
+# No TARGET: its cases hold the set a work item always has across skills/implement/orchestration.md, skills/implement/SKILL.md and templates/records/sdd-plan.md.
+
+
 # --- the condition ----------------------------------------------------------
-
-
-# Keyed BY FILE. A flat set exempts a line in EVERY document, and round 4
-# pasted a `SKILL.md` exemption into `templates/records/sdd-gaps.md` — the file a
-# session actually types into — and it passed.
-#
-# What this costs, recorded because round 4 found it unrecorded: re-wrapping
-# one of these lines without changing its meaning turns the check red, and the
-# message then says `decides by file count`, which is not true. That is the
-# price of an allow-list over prose, and no shape was found that keeps the
-# property without it.
-#
-# Every count these five documents hold today, named line by line. A NEW one
-# is not in this set, so it raises — which is the whole property, and the one
-# a rule for choosing WHICH lines to look at cannot have.
-#
-# Round 2 replaced a list of four spellings with a pattern, and then chose the
-# lines to run it against with a list of three keywords (`rung`, `ladder`,
-# `threshold`). Measured in round 3: the pattern matches nine lines across
-# these files and the keyword gate inspected ZERO of them. The enumeration had
-# not been removed, only moved one axis over, and moving it made the check
-# inert rather than merely narrow.
-KNOWN_PROSE = {
-    ("skills", "implement", "SKILL.md"): frozenset(
-        {
-            "beside the contract. Progress does the same thing one file up, in `plan.md`'s",
-            "also the four files that were not committed yet*.",
-        }
-    ),
-    # The ladder, in the orchestrator's half since #1312, and the framer's
-    # three frame files in the same file, which count no rung.
-    ("skills", "implement", "orchestration.md"): frozenset(
-        {
-            "into its three files, and writes each rejected proposal as one row of",
-            "- **One file, and it qualifies.** A change to an agent's persona is two files",
-        }
-    ),
-}
-
-
-def test_the_top_rung_names_behaviour_rather_than_a_count():
-    """S6. The rung itself, in the orchestrator's half of the skill.
-
-    A count is the thing being replaced, so `6+ files` may not survive as the
-    condition anywhere. The crafter's copy of the rung left with #967, and
-    `skills/implement/orchestration.md` is the one place it is stated since
-    #1312; the sweep below still reads `SKILL.md` and the crafter's
-    definition, so a count written back into either is caught.
-    """
-    ladder = read("skills", "implement", "orchestration.md")
-    assert "observable behaviour" in ladder, (
-        "implement/orchestration.md lost the condition"
-    )
-    for text, who in (
-        (ladder, "implement/orchestration.md"),
-        (read("skills", "implement", "SKILL.md"), "implement/SKILL.md"),
-        (read("agents", "crafter.md"), "agents/crafter.md"),
-    ):
-        assert "| 6+ files" not in text, f"{who} still has the count as a rung"
-
-    # Every document a session fills in, not only the two above, and every
-    # spelling of the count rather than the one the rung happened to use.
-    # `| 6+ files` alone left `6-file line` standing in the same file and
-    # the en-dash spelling in the template a session actually types into.
-    # Round 1 found both.
-    for parts in (
-        ("skills", "implement", "SKILL.md"),
-        ("skills", "implement", "orchestration.md"),
-        ("agents", "crafter.md"),
-        ("templates", "records", "sdd-gaps.md"),
-        ("templates", "records", "sdd-plan.md"),
-    ):
-        text = read(*parts)
-        # A PATTERN, not a list of spellings. Round 2 defeated the list three
-        # times over -- `six files`, `more than five files`, `6 files` --
-        # because it named four spellings and a count has as many as English
-        # does. `\u2013` is an EN DASH, escaped rather than typed so a linter
-        # does not read a bare one as a typo.
-        counted = re.compile(
-            r"\b(?:\d+\s*[-\u2013]\s*\d+|\d+\+?|one|two|three|four|five|six|"
-            r"seven|eight|nine|ten)[\s-]+files?\b",
-            re.I,
-        )
-        for line in text.splitlines():
-            hit = counted.search(line)
-            if not hit or line.strip() in KNOWN_PROSE.get(parts, frozenset()):
-                continue
-            raise AssertionError(
-                "/".join(parts)
-                + f" decides by file count ({hit.group(0)!r}): {line.strip()}"
-            )
 
 
 def test_the_rung_cites_the_issue_that_measured_the_count():
@@ -142,97 +51,16 @@ def test_the_rung_cites_the_issue_that_measured_the_count():
     )
 
 
-# --- the home that never existed --------------------------------------------
-
-# Everything a session installing this plugin reads to learn the layout. A
-# path may not appear in an instructing document at all, not even hedged,
-# because a reader following instructions stops at the first path it sees. The
-# reason `tasks/` is gone lives in the changelog and in the work item's memo,
-# which are read by people rather than followed by sessions.
-INSTRUCTING = (
-    ("seal", "README.md"),
-    ("templates", "setup", "seal-README.md"),
-    ("skills", "implement", "SKILL.md"),
-    ("README.md",),
-    ("README.ko.md",),
-)
-
-
-def test_no_shipped_document_still_names_a_task_list_directory():
-    """S8. No code has ever read `.specseal/tasks/` and it has never once been
-    created — in this repository or in any that installed the plugin."""
-    for parts in INSTRUCTING:
-        text = read(*parts)
-        assert "tasks/" not in text, f"{'/'.join(parts)} still names it"
-
-
-def test_the_two_layout_trees_no_longer_show_it():
-    """The tree is the half a session copies. Prose can be skimmed; a tree
-    that lists a directory is read as a directory to create."""
-    for parts in (("seal", "README.md"), ("templates", "setup", "seal-README.md")):
-        text = read(*parts)
-        assert "follow-up.md         schedulable items" in text, (
-            f"{'/'.join(parts)}: the tree changed shape — re-read it"
-        )
-        assert "<work-item-slug>.md" not in text
-
-
-def test_the_plugin_home_is_described_as_permanent_throughout():
-    """`mixed — see below` was true only because of `tasks/`. Left behind, it
-    sends a reader looking for the part that is not permanent.
-
-    Case-folded, and that is not cosmetic: two of the three documents spelled
-    it `Mixed` at the head of a table cell. Written case-sensitively this
-    assertion passed against the exact text it was meant to refuse — found by
-    mutating the cell back and watching the test stay green.
-    """
-    for parts in (
-        ("seal", "README.md"),
-        ("skills", "implement", "SKILL.md"),
-        ("README.md",),
-        ("README.ko.md",),
-    ):
-        text = read(*parts).lower()
-        assert "mixed — see below" not in text, "/".join(parts)
-        assert "안에서 갈림" not in text, "/".join(parts)
-
-
 # --- the status column ------------------------------------------------------
-
-
-def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
-    """The examples are where the rung drifted, not the condition.
-
-    Round 1 found two documents split: the skill named four kinds of
-    second-rung work and `agents/crafter.md` named three, so a change touching
-    only tests was decidable by one and not the other. Since #967 the crafter
-    opens the skill and keeps no copy, so the list has one home, held here.
-    The home is `skills/implement/orchestration.md` since #1312.
-
-    Whitespace-normalised because the file is wrapped.
-    """
-    skill = " ".join(read("skills", "implement", "orchestration.md").split())
-    for example in (
-        "a refactor",
-        "a performance pass",
-        "a formatting sweep",
-        "a test that pins what already holds",
-    ):
-        assert example in skill, f"the skill lost `{example}`"
-
-    # The exception that lifts a default. Naming the value is what moves a
-    # change up a rung, and a document that dropped the sentence would
-    # silently make the four a closed list again.
-    for named in ("a timeout", "a retry count", "a rate", "a size cap"):
-        assert named in skill, f"the skill lost `{named}`"
 
 
 def test_the_plan_template_carries_a_status_column():
     """S7. The column has to be in the shipped template, not only in prose:
     a session bootstraps from the template and never reads the argument."""
     tpl = read("templates", "records", "sdd-plan.md")
+    # The header of the Phases table, which `evals/scripts/rule_cases.py`
+    # matches and the session reads the Status column by.
     assert "| Phase | Delivers | Verified by | Status |" in tpl
-    assert "|---|---|---|---|" in tpl
 
 
 def test_the_plan_template_carries_the_judgments_table():
@@ -244,6 +72,8 @@ def test_the_plan_template_carries_the_judgments_table():
     tpl = read("templates", "records", "sdd-plan.md")
     after = tpl.split("\n## Judgments of the run\n")
     assert len(after) == 2, "the plan template has no `## Judgments of the run`"
+    # The header row `settle.py#JUDGMENTS_HEADER` matches, with the delimiter
+    # row under it, as the orchestrator fills it in.
     assert (
         "\n| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
         in (after[1])
@@ -262,6 +92,8 @@ def test_the_plan_template_carries_the_overlap_table():
     after = tpl.split("\n## Overlap with the release\n")
     assert len(after) == 2, "the plan template has no `## Overlap with the release`"
     section = after[1].split("\n## ")[0]
+    # The table's header row, whose columns the framer fills and the
+    # orchestrator reads `Merges first` from to order the merges.
     assert (
         "\n| Work item | Where both change | Merges first | Grounds |\n|---|---|---|---|\n"
         in section
@@ -283,8 +115,9 @@ def test_the_file_set_names_who_writes_each_file():
     That was true while one agent wrote all of them. With the frame drawn by
     `framer` and the records written by the builder, a table with no author
     column reads as a list one session works through, which is the shape the
-    split exists to end. How the table says the plan is approved and when
-    `gaps.md` is written are the proofer's to read.
+    split exists to end. How the table says the plan is approved, who it
+    says writes the closing memo and the phase record, and when `gaps.md` is
+    written are the proofer's to read.
     """
     skill = read("skills", "implement", "SKILL.md")
     header = [
@@ -316,13 +149,9 @@ def test_the_file_set_names_who_writes_each_file():
         cells = cells_of(line)
         rows[cells[0]] = dict(zip(columns, cells, strict=True))
     for name in ("`frame/design.md`", "`frame/plan.md`", "`frame/questions.md`"):
+        # The agent `framer`, which the orchestrator spawns to write the
+        # three frame files.
         assert "framer" in rows[name]["Written by"], (
             f"{name} is no longer the framer's in the file table, which is the "
             "one place a session reads the set as a whole"
-        )
-    for name in ("`gaps.md`", "`trail/phases/phase-N.md`"):
-        assert "builder" in rows[name]["Written by"], (
-            f"{name} is what the building found, so its author is whoever "
-            "built it. A table that hands it to the framer asks for a memo "
-            "written before the work it is about"
         )

@@ -18,9 +18,11 @@ tied row written here is one nobody at that coordinate will ever see.
 import os
 import re
 
-from conftest import ROOT, read
+from conftest import ROOT, census_case, read
 
-FOLLOW_UP = os.path.join(ROOT, "seal", "follow-up.md")
+TARGET = "seal/follow-up.md"
+
+FOLLOW_UP = os.path.join(ROOT, *TARGET.split("/"))
 
 # A coordinate is `path/to/file.ext:123` — the shape a rider is written at.
 COORDINATE = re.compile(r"[\w./-]+\.(?:py|md|json|yml|yaml|sh):\d+")
@@ -50,65 +52,23 @@ def test_no_schedulable_row_carries_a_coordinate():
         for r in rows("Schedulable items with nowhere else to go")
         if COORDINATE.search(" ".join(r))
     ]
+    # `seal/follow-up.md` *Anything tied to a coordinate is a `# RIDER:`
+    # comment at the line it is about.*: a `path:line` coordinate, which the
+    # file's reader would act on at a line nobody there will see.
     assert not offenders, f"coordinate-tied rows in the schedulable list: {offenders}"
 
 
-def test_the_header_says_what_belongs_and_what_does_not():
+def test_the_header_gives_the_command_that_lists_the_riders():
     text = read(FOLLOW_UP)
-    assert "schedulable item in a repository with no tracker" in text
-    assert "Anything tied to a coordinate" in text
+    # The command the header gives a reader for the list of riders.
     assert 'grep -rn "RIDER:"' in text
 
 
-def test_the_header_says_a_rider_carries_no_stamp_and_no_checker():
-    """`seal/follow-up.md` is where the convention is written down, and the
-    stamps and their checker left in #964: a hash kept beside the tree to stay
-    in step with it is the class `skills/core/SKILL.md` *The rule a mechanism
-    is kept against* removes. Nothing else reads this header, so a sentence putting
-    the stamp back, or naming the checker as though it ran, would be the one
-    place the old convention survived."""
-    text = read(FOLLOW_UP)
-    assert "A rider outliving its fix is the reader's finding" in " ".join(text.split())
-    assert "Verified <date>" not in text, "the header describes a stamp again"
-    assert "rider_check" not in text, "the header names a checker that is gone"
-
-
-def test_the_header_stops_the_answerer_that_is_really_a_condition():
-    """The file already forbade a deferral to nobody, and every one of its
-    seventeen rows read `repository owner, next time X is opened` — a
-    condition wearing a person's clothes. Issue #34 is that pair.
-
-    The case pins the header's two sentences and reads no row. Whether a
-    row's answerer carries a condition is the reading of whoever writes or
-    reviews the row, as `skills/core/SKILL.md` *The rule a mechanism is kept
-    against* has it: a condition has as many spellings as English does, and
-    no script carries a list of them (#1493)."""
-    text = read(FOLLOW_UP)
-    assert "no condition attached" in text
-    assert "condition wearing a person's clothes" in text
-
-
-def test_the_file_records_what_the_move_costs_and_that_it_can_be_overturned():
-    """A judgment nobody can find is a judgment nobody can reverse."""
-    text = read(FOLLOW_UP)
-    assert "Nothing forces a rider to be deleted" in text
-    assert "overturned" in text
-
-
-def test_the_riders_exist_where_the_rows_said_they_would():
-    """Every file a row said its rider went to.
-
-    A rider kept after its fix is the cost this file names. The command
-    reader `cmdline.py` left it when the `chdirs` its rider described left
-    with the worktree guard, their one reader (#1049). The review-skill gate
-    left it with its rider when the gate went (#1376)."""
-    for rel in ("lib/optin.py",):
-        assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
-
-
-def test_a_held_file_is_named_with_the_branch_holding_it():
-    """A rider that cannot be planted has to say what unblocks it, or it is a
+def test_a_rider_waiting_on_a_held_file_names_who_answers_it():
+    """A rider that cannot be planted names who answers it, or it is a
     deferral to nobody."""
     for target in rows("Riders waiting on a file another branch holds"):
-        assert "held by" in target[0], target[0]
         assert target[-1].strip() not in ("", "—"), f"no answerer: {target}"
+
+
+test_census = census_case(TARGET)

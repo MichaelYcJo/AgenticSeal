@@ -61,6 +61,8 @@ import re
 import pytest
 from conftest import ROOT, load_module, read
 
+# No TARGET: its cases walk every shipped document under agents/, skills/ and templates/.
+
 SEAL = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
     "seal_for_the_locator_rule",
@@ -80,7 +82,8 @@ SHIPPED_ROOTS = ("agents", "skills", "templates")
 # item 1788302682 -- a gap somebody notices while writing something up.
 NO_SUBCOMMAND = {
     "rule_changes.py": (
-        "A module `settle.py` and `unverified_check.py` load by path, with no "
+        "A module `settle.py` and `chain_check.py` load through "
+        "`lib/sibling.py`, with no "
         "command line of its own: no shipped document shows it with a flag."
     ),
     "chain_check.py": (

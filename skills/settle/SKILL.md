@@ -50,6 +50,9 @@ seal settle --from DIR       the dry run, and every document of DIR, a
 seal settle --draft          write every released operation into the policy
                              root in merge order, and name each one not
                              placed; it decides nothing
+seal settle --all-earlier    the dry run, with the judgments of the plans
+                             every earlier settle removed, not only those of
+                             the two newest removing commits
 seal settle --apply          remove each released directory whose record
                              holds no open row and whose version's published
                              note, where one is read, carries its entry
@@ -113,30 +116,44 @@ nothing:
   a section whose table is not under the exact header. A `trail/rounds`
   that is not a directory the dry run can list is named in place of a
   count.
-- **The judgments earlier settles removed**: every row of every
-  `seal/threads/<id>/frame/plan.md` a commit on `--released-at` deleted,
-  where no directory `<id>` stands in the working tree. One `git log -z
-  --no-renames --full-history --diff-filter=D` of the ref over
-  `seal/threads` lists the deletions. `-z` keeps a path holding a
-  character past ASCII unquoted, and `--no-renames` keeps a deletion a
-  deletion where the same commit adds a similar plan, such as another work
-  item's. Each plan is read once, at the
-  parent of the newest commit that deleted it, by the reader *The
-  judgments* uses: a near heading and a table not under the exact header
-  are named as not read, at the coordinate `<short>^:<path>`. The rows are
-  grouped by the `Judged against` cell exactly as written, in the order
-  first met, the removing commits newest first. Each work item's line gives
-  the lowest `vX.Y.Z` tag that holds the commit adding its plan, or says no
-  tag holds that commit, and the removing commit's short hash with its
-  `(#N)`. A `git` that fails is named with what it said, and the dry run
-  goes on. The section counts nothing and matches no row to another, so a
-  row here sharing a cell with a row above is not a recurrence, and two
-  cells spelt apart are not two kinds: whether two rows are one kind is the
-  settling session's judgment (step 5). The section is printed only where
-  it holds a row or a line not read. Two limits no guard covers: a shallow
-  clone lists no plan deleted past its boundary, and a plan only a merge
-  commit's own resolution deleted is not listed, because the query reads
-  non-merge diffs.
+- **The judgments earlier settles removed**: every row of the
+  `seal/threads/<id>/frame/plan.md` files that the two newest removing
+  commits on `--released-at` deleted, where no directory `<id>` stands in
+  the working tree. One `git log -z --no-renames --full-history
+  --diff-filter=D` of the ref over `seal/threads` lists the deletions.
+  `-z` keeps a path holding a character past ASCII unquoted, and
+  `--no-renames` keeps a deletion a deletion where the same commit adds a
+  similar plan, such as another work item's. Each plan is read once, at
+  the parent of the newest commit that deleted it. A removing commit is a
+  commit at which a plan is read that way, so a commit whose every deleted
+  plan was deleted again later, or belongs to a directory that stands, is
+  none. Where older removing commits stand, the section ends with a line
+  counting them, never their rows, and naming `seal settle --all-earlier`,
+  which reads the plans of every removing commit and prints no such line.
+  The plans' texts are read in one `git cat-file --batch`, their adding
+  commits in one `git log` of the ref, and the tags that hold those in one
+  list of the tags, one peel of each to the object it names, which follows
+  a tag of a tag to its commit on every git, and one walk of their
+  history, so the git calls do not grow with the plans read, with or
+  without `--all-earlier`. Each plan is read by the reader *The judgments*
+  uses: a near heading and a table not under the exact header are named as
+  not read, at the coordinate `<short>^:<path>`, and so is a plan whose
+  text git does not hold there, with what git answered, and a plan whose
+  path holds a newline, which `git cat-file --batch` would read as two
+  names and so is never asked for. The rows are grouped by the `Judged
+  against` cell exactly as written, in the order first met, the removing
+  commits newest first. Each work item's line gives the lowest `vX.Y.Z`
+  tag that holds the commit adding its plan, or says no tag holds that
+  commit, and the removing commit's short hash with its `(#N)`. A `git`
+  that fails is named with what it said, and the dry run goes on.
+  The section matches no row to another, so a row here sharing a cell with
+  a row above is not a recurrence, and two cells spelt apart are not two
+  kinds: whether two rows are one kind is the settling session's judgment
+  (step 5). The section is printed only where it holds a row, a line not
+  read, or the line counting older removing commits. Two limits no guard
+  covers: a shallow clone lists no plan deleted past its boundary, and a
+  plan only a merge commit's own resolution deleted is not listed, because
+  the query reads non-merge diffs.
 - **The named directories**, printed only with `--from`: each directory
   named, with its count of documents, and under it one line per document.
   A document is every file
@@ -205,12 +222,16 @@ does not parse, an unordered pair and an open row are all shown.
    document, and is written down with both*). Whether an earlier row is one
    kind with a current row is your judgment, read from what each row says
    and not from its cell's spelling: the dry run groups by the cell as
-   written and decides no kind. The released routes are judgments too:
-   each released `routing.md` whose *Why this way* says the orchestrator
+   written and decides no kind. *The judgments earlier settles removed*
+   holds the plans the two newest removing commits deleted. Where a kind
+   you read may have come before them, run `seal settle --all-earlier` and
+   read the older rows its section adds; a kind standing on a section an
+   older settle rewrote is such a kind. The released routes are judgments
+   too: each released `routing.md` whose *Why this way* says the orchestrator
    chose its rows, and each released commit whose trailer reads
    `Seal-Routing: no work item`, which `git log --grep` lists, with the
-   grounds its body gives. A settle's commit or a durations refresh carries
-   that trailer with no route chosen and is not one. `git log --grep` on a
+   grounds its body gives. A settle's commit carries that trailer with no
+   route chosen and is not one. `git log --grep` on a
    commit's short hash lists the later commits that name it, which is where
    a defect such a route let through shows. Where one kind of route keeps
    letting defects through, the section to rewrite is

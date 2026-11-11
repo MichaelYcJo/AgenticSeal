@@ -6,8 +6,8 @@ project's own `seal/` stands (#1059), and `<git-common-dir>/seal/` is where
 local mode keeps it (#80). The root's presence is the whole declaration, and
 there is no config key. `.specseal/` and `_ai/` are not addresses at all, and
 the throwaway opt-out is a file under the git directory, where nothing can
-commit it. The migration config is `seal/parity.json` and only that. A reader
-that decoded nothing answers "not opted in" and never raises.
+commit it. A reader that decoded nothing answers "not opted in" and never
+raises.
 
 The cases come from `tests/test_optin_home.py` and
 `tests/test_gates_do_not_fail_open.py` (#942's phase 6), and the case of
@@ -100,7 +100,6 @@ class Test_repo_root:
         monkeypatch.setattr(optin.subprocess, "run", decoded_nothing)
         assert optin.repo_root(str(ROOT)) == ""
         assert optin.opted_in(str(ROOT)) is False
-        assert optin.parity_config(str(ROOT)) == ""
 
     def test_accepts_gits_answer_in_this_platforms_spelling(
         self, tmp_path, monkeypatch, optin
@@ -139,7 +138,7 @@ class Test_repo_root:
 class Test_git_common_dir:
     def test_accepts_a_main_worktree_without_asking_git(self, optin, repo, monkeypatch):
         """A `.git` directory at the toplevel is the git directory, so the common
-        case costs no process. The rider on `repo_root` counts why."""
+        case costs no process, which every gated command would pay."""
         monkeypatch.setattr(
             optin.subprocess,
             "run",
@@ -234,9 +233,9 @@ class Test_home_paths:
         assert optin.home_at(str(repo)) == optin.home_paths(str(repo))[0]
 
     def test_accepts_a_common_dir_passed_and_asks_git_no_second_time(self, optin, repo):
-        """The rider on `repo_root` counts `git` calls per gated command. A caller
-        that already resolved the common directory passes it, and nothing here
-        asks git again."""
+        """A second `git` call here would be paid on every gated command. A
+        caller that already resolved the common directory passes it, and
+        nothing here asks git again."""
         common = optin.git_common_dir(str(repo))
 
         def refuse(*a, **k):
@@ -635,64 +634,6 @@ class Test_opted_in:
         )
         mark_root(other / "seal")
         assert not optin.opted_in(str(other))
-
-
-class Test_parity_config:
-    def test_accepts_the_one_address(self, optin, repo):
-        home(repo)
-        (repo / "seal" / "parity.json").write_text(
-            '{"Original repo": "org/legacy"}\n', encoding="utf-8"
-        )
-        # The address, not one platform's spelling of it: `parity_config`
-        # builds this with `os.path.join`, and a literal `/` here asserted
-        # that the module answers in POSIX on a platform where nothing else
-        # does.
-        assert optin.parity_config(str(repo)).endswith(
-            os.path.join("seal", "parity.json")
-        )
-
-    def test_refuses_the_legacy_addresses(self, optin, repo):
-        """`.specseal/parity.md` was the 0.3 location, `docs/parity.md` the
-        pre-0.10 one, and `seal/parity.md` the table an earlier release read
-        before #1454. None is read: leaving a read in meant the documents
-        describing one address while the code accepted two."""
-        home(repo)
-        (repo / "seal" / "parity.md").write_text(
-            "| Original repo | org/legacy |\n", encoding="utf-8"
-        )
-        (repo / "docs").mkdir(exist_ok=True)
-        (repo / "docs" / "parity.md").write_text(
-            "| Original repo | org/legacy |\n", encoding="utf-8"
-        )
-        (repo / ".specseal").mkdir(exist_ok=True)
-        (repo / ".specseal" / "parity.md").write_text(
-            "| Original repo | org/legacy |\n", encoding="utf-8"
-        )
-        assert optin.parity_config(str(repo)) == ""
-
-    def test_refuses_a_scratch_repository(self, optin, repo):
-        """The second arm reads the same root, and a repository that is not
-        under review has nothing to compare against an original either."""
-        home(repo)
-        scratch(repo)
-        (repo / "seal" / "parity.json").write_text(
-            '{"Original repo": "org/legacy"}\n', encoding="utf-8"
-        )
-        assert optin.parity_config(str(repo)) == ""
-
-    def test_refuses_a_repository_with_no_root_whatever_the_cwd_holds(
-        self, optin, repo, tmp_path, monkeypatch
-    ):
-        """No root, no migration config, even where this process sits beside a
-        `parity.json`: the config is read under the root and nowhere else
-        (#1017, the body's `parity_config` row)."""
-        here = tmp_path / "here"
-        here.mkdir()
-        (here / "parity.json").write_text(
-            '{"Original repo": "org/legacy"}\n', encoding="utf-8"
-        )
-        monkeypatch.chdir(here)
-        assert optin.parity_config(str(repo)) == ""
 
 
 class Test_module:

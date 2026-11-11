@@ -10,10 +10,13 @@ where a line is out of grammar or a target is gone, and one case of
 `tests/behaviour/test_this_repository_passes_its_own_checks.py` runs it over
 the tree, so the suite is where the fact is read.
 
-#942's phase 6 placed these cases from
-`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`, which keeps
-the cases that read the record layout document, the marker's registration
-and the settle skill.
+The case that reads the `rule` marker's registration stands in
+`tests/test_conftest.py`'s `Test_module`, and the case that reads the settle
+skill's grammar in
+`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`. The case
+that runs `seal rules --check` in a repository whose own `seal/` is a package
+builds `tests/conftest.py`'s `shared` repository, whose root stands at
+`agentic-seal/`.
 """
 
 import importlib.util
@@ -22,7 +25,8 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ITEM, ROOT, census_case, write
+from test_seal import configured
 
 TARGET = ".github/scripts/rules.py"
 
@@ -132,6 +136,10 @@ EXPECTED = "write `check: <targets>`"
 
 
 class Test_main:
+    """Where two cases have one body, the document differs: the `tree`
+    fixture writes a prose line that opens like a check line in one, and a
+    heading that does in the other."""
+
     @pytest.mark.parametrize(
         "target, said",
         [
@@ -632,6 +640,31 @@ class Test_main:
         assert captured.out == "", captured.out
         assert "seal rules: name a document, or --check, and not both." in captured.err
 
+    def test_s5_rules_check_excuses_a_section_a_design_under_agentic_seal_removes(
+        self, shared, capsys
+    ):
+        """`seal rules --check` reads the designs under `agentic-seal/threads/`
+        and the `Policy root` key of `agentic-seal/config.json`: a refused `check:`
+        line in a section a design there removes is excused and named by its
+        path under the root."""
+        configured(shared / "agentic-seal", ("Policy root", "policy"))
+        write(shared, HELD, TESTS)
+        write(shared, "policy/a.md", doc(rule("check: tests/test_gone.py")))
+        write(
+            shared / "agentic-seal" / "threads" / ITEM,
+            "frame/design.md",
+            "# Design\n\n## Rule changes\n\n- remove\n  file: policy/a.md\n"
+            "  section: The heading\n",
+        )
+        code = rules.main(["--check", "--root", str(shared)])
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert (
+            "seal rules: excused: policy/a.md:6: The heading: tests/test_gone.py does "
+            f"not exist; agentic-seal/threads/{ITEM}/ removes this section at the "
+            "settle\n"
+        ) in out, out
+
 
 class Test_refused_lines:
     def test_accepts_a_text_whose_lines_hold_in_the_tree_at_the_root(self, tmp_path):
@@ -659,51 +692,6 @@ class Test_refused_lines:
         ]
 
 
-class Test_sibling:
-    @pytest.mark.parametrize(
-        "key, rel",
-        [("tables", ("lib", "tables.py")), ("config", ("lib", "config.py"))],
-        ids=["tables.py", "config.py"],
-    )
-    def test_accepts_each_key_as_the_module_its_file_holds(self, key, rel):
-        """The fence and comment rule is read from `lib/tables.py` and the
-        policy root from `lib/config.py` (#1454)."""
-        assert rules.sibling(key).__file__ == os.path.join(rules.ROOT, *rel)
-
-    @pytest.mark.parametrize(
-        "key, rel, purpose",
-        [
-            (
-                "tables",
-                ("lib", "tables.py"),
-                "it is what says which lines a fence or a comment hides",
-            ),
-            (
-                "config",
-                ("lib", "config.py"),
-                "it is what reads the repository's policy root",
-            ),
-        ],
-        ids=["tables.py", "config.py"],
-    )
-    def test_refuses_a_module_it_cannot_read_naming_what_it_is_for(
-        self, monkeypatch, key, rel, purpose
-    ):
-        """#1454 moved the fence and comment rule from `lib/config.py` to
-        `lib/tables.py`, and `lib/config.py` stays the policy root's reader,
-        so the sentence for each missing file says what this command reads
-        it for (contract rule 14)."""
-        path = os.path.join(rules.ROOT, *rel)
-        real = os.path.isfile
-        monkeypatch.setattr(rules, "_loaded", {})
-        monkeypatch.setattr(
-            os.path, "isfile", lambda p: False if p == path else real(p)
-        )
-        with pytest.raises(rules.Unreadable) as raised:
-            rules.sibling(key)
-        assert str(raised.value) == f"cannot read {os.path.join(*rel)}, and {purpose}"
-
-
 class Test_module:
     @pytest.mark.parametrize("mark", ["#", "-", "*", ">", "|", "1. ", " "])
     def test_a_long_run_of_markup_with_no_label_is_answered_at_once(self, mark):
@@ -725,6 +713,51 @@ class Test_module:
             timeout=10,
         )
         assert done.returncode == 0, done.stderr
+
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings, run
+        with an argument that reaches a load, exits 2 with the loader's one
+        sentence naming the absent `lib/sibling.py` by its path: 2 means
+        nothing was read. It loads on first ask, so the guard stands where
+        the loader is imported, and a run that ends at its usage line loads
+        nothing."""
+        import sibling
+
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / "rules.py"
+        with open(SCRIPT, encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(copy), "--check"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(tmp_path),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "lib", "sibling.py")
+        said = sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
+    def test_the_slice_document_resolves_every_target(self):
+        """`docs/layout/the-record-layout.md`, the document #944's phase 1 gave every
+        rule its test, prints a section line for each of its targets and none
+        that does not resolve."""
+        path = os.path.join(ROOT, "docs", "layout", "the-record-layout.md")
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+        out = rules.render(ROOT, text)
+        assert out.count("  check, line ") >= 7, out
+        # The render's own two line shapes are read, not the bare words, since a
+        # marker name or a docstring the render prints may say "refused", as the
+        # marker `record-comment-line-refused` does.
+        failed = [
+            line
+            for line in out.splitlines()
+            if line.startswith("    refused: ") or ": does not resolve: " in line
+        ]
+        assert not failed, out
 
 
 test_census = census_case(TARGET)

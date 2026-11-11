@@ -12,12 +12,18 @@ not hold, and the signer beside it, which names the pact in its
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the cases of `lib/config.py` that run `check`
 over a signer's config are in `tests/lib/test_config.py` since #942's phase 6.
+
+The cases that run `check` beside a project's own `seal/` package
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 """
 
+import io
 import ntpath
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 from conftest import (
@@ -26,6 +32,7 @@ from conftest import (
     MOBILE_URL,
     PACT,
     PACT_URL,
+    REMOTE,
     ROOT,
     SIGNER_URL,
     SPEC,
@@ -35,11 +42,13 @@ from conftest import (
     anchor_table,
     census_case,
     clause,
+    commit_everything_as_e,
     config_json,
     init,
     load_module,
     pact,
     pact_check_modules,
+    pact_config,
     signer_config,
     symlink_or_skip,
     write,
@@ -57,7 +66,7 @@ WRAPPER = os.path.join(ROOT, "bin", "seal")
 # texts and the `world` fixture are there too, since `tests/lib/test_config.py`
 # runs the pact walker's cases through them.
 pc, checker = pact_check_modules()
-config = pc.load(os.path.join(pc.LIB, "config.py"), "config_for_pact_tests")
+config = pc.sibling.load("lib/config.py")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
@@ -111,6 +120,36 @@ def posix(path):
 
 
 class Test_module:
+    @pytest.mark.parametrize(
+        "args", [["--root", "{root}"], ["--help"]], ids=["a-run", "help"]
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args
+    ):
+        """S4 of #1482. A copy of this script taken without its siblings
+        exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means nothing was read, and a
+        sibling that is not beside the command is that kind. `--help` reaches the sentence too, because the guard stands at
+        import and reads no argument (#1482, A13)."""
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / TARGET.rsplit("/", 1)[1]
+        with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = pc.sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_accepts_the_map_named_in_posix_form_under_windows_joins(
         self, monkeypatch, tmp_path
     ):
@@ -191,18 +230,6 @@ class Test_shown:
         got = pc.shown(path, repo, home, flavour=ntpath)
         assert got == want
         assert "\\" not in got
-
-
-class Test_load:
-    def test_accepts_a_sibling_module_by_its_path(self):
-        assert hasattr(pc.load(pc.CHECKER, "evidence_loaded_again"), "content_hash")
-
-    def test_refuses_a_module_that_is_not_there_with_a_sentence(self, tmp_path, capsys):
-        with pytest.raises(SystemExit) as stopped:
-            pc.load(str(tmp_path / "gone.py"), "gone")
-        assert stopped.value.code == 2
-        err = capsys.readouterr().err
-        assert "seal pact: cannot read " in err and "Nothing was read." in err, err
 
 
 class Test_git:
@@ -1185,6 +1212,21 @@ class Test_check:
             "has no origin remote, so no pact anchor can be matched to the pact "
             "— set `origin` and run it again"
         ), out
+
+    def test_s5_pact_names_the_signers_key_under_agentic_seal(self, shared, tmp_path):
+        """`seal pact` reads `agentic-seal/pact.md` and the `Pact signers` key of
+        `agentic-seal/config.json`, and names the config by that path: a key
+        that lists the pact's own repository is refused at it."""
+        write(shared / "agentic-seal", "pact.md", pact(V2))
+        write(shared / "agentic-seal", "config.json", pact_config(REMOTE))
+        commit_everything_as_e(shared, "the pact")
+        out = io.StringIO()
+        code = pc.check(str(shared), out=out, home_dir=str(tmp_path))
+        assert code == 2, out.getvalue()
+        assert (
+            f"REFUSED {REMOTE} agentic-seal/config.json — the `Pact signers` key "
+            "lists the pact's own repository"
+        ) in out.getvalue(), out.getvalue()
 
 
 @pytest.fixture

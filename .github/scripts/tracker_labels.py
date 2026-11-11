@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
 """Create the labels this repository's documents specify but the tracker lacks.
 
-`docs/releasing/issues-and-milestones.md` has specified `size: now` since 0.11.1 -- two
-states, the prefix argument, what its absence means -- and **the label was
-never created**. Measured 2026-09-20 for #450 and again 2026-09-22:
-`gh label list` does not list it and no issue has ever carried it. So a
-section described a mechanism, and the paragraph arguing why the prefix and
-not a bare `now` argued carefully about a label nobody could apply.
+`docs/releasing/issues-and-milestones.md` specifies `size: now` -- two
+states, the prefix argument, what its absence means -- and a specified label
+the tracker lacks leaves that section describing a mechanism, and its
+argument for the prefix over a bare `now` arguing about a label nobody can
+apply.
 
-**Why it was nobody's, which is the half worth keeping.** The work item that
-wrote the section ended its changelog entry with *creating the label and
-applying it are the repository owner's, after this merges*. The act was
-assigned to a **person**, and a person has no queue this repository can read
--- no open issue, no checklist row, no failing check. Three releases were cut
-in between, and the cost came due at the fourth: six issue bodies re-read to
-decide which had to be in effect next, which is exactly the reading the label
-exists to make unnecessary.
+**Creating the label is nobody's act unless a workflow does it.** Assigned
+to a **person**, it has no queue this repository can read -- no open issue,
+no checklist row, no failing check -- and `size: now` went uncreated across
+three releases that way. What it costs is the reading the label exists to
+make unnecessary: issue bodies re-read to decide which has to be in effect
+next.
 
 The repair is not *remember harder* and not a ticket, which is the same act
 one queue over. It is this: a label a document specifies is the same kind of
 object as a label a release needs, and
-`label_merged_on_release_branch.py` has been creating one of those from a
-workflow all along, with the `issues: write` the job already holds. So the
+`label_merged_on_release_branch.py` creates one of those from a
+workflow, with the `issues: write` the job already holds. So the
 declaration below is what a document specifies, and the workflow that runs
 when `main` moves reconciles it.
 
@@ -33,11 +30,9 @@ release rather than immediately, and that is the accepted cost of hanging
 this off a trigger that already exists rather than inventing one.
 
 **It is not a gate and must not become one.** A hygiene step failing a pull
-request for a missing label was considered and rejected: it would be red on
+request for a missing label would be red on
 the very branch that adds the label, because no agent in this repository's
-chain may write to the tracker, and it would have to be added to
-`broad_gate.py`'s partition as well. A step that performs the act costs
-neither.
+chain may write to the tracker. A step that performs the act does not.
 
   tracker_labels.py --check   report what is missing, exit 0
   tracker_labels.py --apply   create what is missing
@@ -48,33 +43,26 @@ Environment: `REPO`, `GH_TOKEN`.
 """
 
 import argparse
-import importlib.util
 import os
 import sys
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
-import console
+import sibling
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+console = sibling.load("lib/console.py")
 
-
-def _load(name, filename):
-    path = os.path.join(HERE, filename)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# Imported by path for the reason `label_merged_on_release_branch.py` gives:
-# a test importing THIS module by path gets the same neighbours the workflow
-# does. `existing_labels` reads the whole label list rather than asking for
-# one name, because every name here carries a space and a colon and the
-# one-label read would turn on how those are encoded in a URL path.
-signal = _load("label_merged_on_release_branch", "label_merged_on_release_branch.py")
+# Loaded through `lib/sibling.py` for the reason
+# `label_merged_on_release_branch.py` gives: a test importing THIS module by
+# path gets the same neighbours the workflow does. `existing_labels` reads
+# the whole label list rather than asking for one name, because every name
+# here carries a space and a colon and the one-label read would turn on how
+# those are encoded in a URL path.
+signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
 
 
@@ -92,19 +80,18 @@ closer = signal.closer
 #
 # It is also at most `LABEL_DESCRIPTION_LIMIT` characters, GitHub's cap, and
 # that is why `size: now`'s is the document's clause rather than its whole
-# sentence. The first version carried both halves in 119 characters, the
-# tracker refused it with a 422, and the step behind it in the workflow was
-# skipped (#515). Shortening keeps both halves and drops the words that say
+# sentence. Both halves in full come to 119 characters, which the tracker
+# refuses with a 422, skipping the step behind it in the workflow.
+# Shortening keeps both halves and drops the words that say
 # neither: the subject a label is always about, and which release -- `its`
 # is the one carrying the ticket.
 #
 # The colour is `chain: capped`'s. That is this repository's other
 # `<subject>: <state>` label and the shape `size: now`'s name was taken from
 # -- the specifying section says so in as many words -- so two labels of one
-# shape read as one shape on the tracker. `frame/design.md` *Judgments* 11
-# expected the topic labels' family instead; they carry five different colours
-# between them, so there was no one family colour to join, and `gaps.md` records
-# the divergence. Nothing turns on it either way.
+# shape read as one shape on the tracker. The topic labels carry five
+# different colours between them, so there is no one family colour to join.
+# Nothing turns on it either way.
 LABELS = (
     {
         "name": "size: now",
@@ -188,6 +175,6 @@ if __name__ == "__main__":
     # `--check`, which is the one a person types: under cp949, cp932, cp936
     # or a bare `LC_ALL=C` the em dash `main` prints raises
     # `UnicodeEncodeError` and the process dies. The workflow's runner is
-    # UTF-8, so `--apply` was never the exposed one. Round 1, finding 3.
+    # UTF-8, so `--apply` is not the exposed one.
     console.to_utf8()
     sys.exit(main())

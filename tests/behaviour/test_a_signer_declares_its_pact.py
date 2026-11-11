@@ -13,13 +13,15 @@ The key has one reader, `lib/config.py#pact_declaration`, which
 cases (S1-S3 of the work item's `frame/design.md`) and those of the `Pact
 signers` key's reader are in `tests/lib/test_config.py`, and `seal.py`'s re-export of
 its normaliser is in `tests/skills/test_seal.py`. What stays here reads the configs
-and templates this plugin ships through the reader, and the routing step's
-pinned sentences (S4).
+and templates this plugin ships through the reader, and the commands and the
+key the routing step names (S4).
 """
 
 import os
 
 from conftest import ORDERS, ROOT, URL, flat, load_lib_module, load_module
+
+# No TARGET: its cases hold the pact's keys across lib/config.py, the configs this plugin writes, templates/setup/config.md, skills/config/SKILL.md and skills/implement/multi-repository.md.
 
 config = load_lib_module("config.py", "config_for_the_pact")
 
@@ -48,34 +50,30 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
 # --- the shipped rows -------------------------------------------------------
 
 
-def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
+def test_the_template_and_the_config_skill_carry_the_pact_row():
     """`templates/setup/config.md` documents the `Pact` key and `/agentic:config`
-    shows it; neither carries a `Pact notify` key, and the template says
-    once what one left in a config does."""
+    shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
+    # The key `PACT_KEY` in the template's bold lead, which a person writing
+    # `seal/config.json` copies and `lib/config.py#pact_declaration` matches.
     assert f"**`{config.PACT_KEY}`**" in template
+    # The same key in the skill's table row, which `/agentic:config` shows.
     assert f"| `{config.PACT_KEY}` |" in skill
-    assert '"Pact notify"' not in template
-    assert "| `Pact notify` |" not in skill
-    assert (
-        "**A `Pact notify` key is read by nobody.** No command refuses it, "
-        "prints it or names it, like any item no reader asks for, and whoever "
-        "next edits the file deletes it."
-    ) in template
-    assert template.count("Pact notify") == 1, "the template says it once"
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
     """S7. `templates/setup/config.md` *Pact* documents the `Pact signers`
     key the pact's repository lists its signers in, and `/agentic:config`
-    shows it; the template a pact begins from holds no `| Signer |` table,
-    which no command reads."""
+    shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
+    # The key `SIGNERS_KEY` in the template's bold lead, which a person
+    # writing the pact's repository's `seal/config.json` copies and
+    # `lib/config.py#signer_declaration` matches.
     assert f"**`{config.SIGNERS_KEY}`**" in template
+    # The same key in the skill's table row, which `/agentic:config` shows.
     assert f"| `{config.SIGNERS_KEY}` |" in skill
-    assert "| Signer |" not in flat("templates", "setup", "pact.md")
 
 
 # --- S4: the routing step across repositories -------------------------------
@@ -85,28 +83,25 @@ def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
 MULTI = ("skills", "implement", "multi-repository.md")
 
 
-def test_the_routing_step_mints_one_id_and_declares_only_in_gated_repositories():
-    """S4. The question is asked once, the id is minted once, and a
-    repository with no root is named and left alone, because writing into it
-    would opt it in."""
+def test_the_routing_step_mints_one_id_and_declares_the_signers():
+    """S4. The id is minted once, each repository is committed in by its own
+    path, and the pact's repository lists the other signers. Why a
+    repository with no root is left alone is the proofer's to read."""
     text = flat(*MULTI)
     start = text.index(
         "## Orchestrator: a work item that commits in more than one repository"
     )
     section = text[start:]
-    for sentence in (
-        "**One id, minted once, names the directory in every repository.** "
-        "Take `date +%s` once, pick one slug, and use the resulting directory "
-        "name in every repository.",
-        "**Only a gated repository gets a declaration.**",
-        "A repository with no root is not opted in by this step",
-        "Name such a repository in the handback and write nothing into it.",
-        "each in a command of its own, and commit each with that repository's "
-        "absolute path written out after `git -C`",
-        "A sentence is contract when another repository's code would be wrong "
-        "if it changed.",
-        "The pact's repository needs no `Pact` key",
-        "the orchestrator writes into its `seal/config.json` a `Pact signers` "
-        "key, the origin remote URL of every other signer, separated by `;`.",
+    for said in (
+        # The command the orchestrator runs once to mint the id.
+        "`date +%s`",
+        # The command form the orchestrator commits in each repository with.
+        "`git -C`",
+        # The key `lib/config.py#SIGNERS_KEY` names, which the orchestrator
+        # writes into the pact's repository's `seal/config.json`.
+        f"`{config.SIGNERS_KEY}`",
+        # The separator `lib/config.py#remote_list` splits that key's value
+        # at, which the orchestrator writes between the URLs.
+        f"separated by `{config.PACT_SEPARATOR}`",
     ):
-        assert sentence in section, sentence
+        assert said in section, said

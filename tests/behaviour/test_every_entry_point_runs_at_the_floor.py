@@ -7,8 +7,7 @@ through the launcher. What runs before any floor is checked, which this file
 derives from `hooks/hooks.json` and `bin/` over the tracked files, is linted
 at the version `ruff.toml`'s `per-file-target-version` names. Each case
 lists the tracked files or `bin/`, so it stands in a file that declares no
-`TARGET`. They came, unchanged, from `tests/lib/test_launch.py`, which keeps
-the launcher's own cases.
+`TARGET`. The launcher's own cases stand in `tests/lib/test_launch.py`.
 """
 
 import ast
@@ -21,6 +20,8 @@ import shlex
 from censuses import matches, ruff_targets
 from conftest import ROOT, decline_if_shrunken, git_listing, on_disk, read
 from test_launch import LAUNCH, load
+
+# No TARGET: its cases hold the Python floor across lib/launch.py, the runner, ruff.toml, every wrapper under bin/ and what the hooks run.
 
 BIN = os.path.join(ROOT, "bin")
 RUNNER = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
@@ -115,6 +116,33 @@ def test_a_script_reaches_the_modules_under_lib():
     }
 
 
+def test_a_script_reaches_what_it_hands_the_loader():
+    """S9 of #1482. A script loads every module but `lib/sibling.py`
+    through `sibling.load("<rel>")`, the path under the plugin root, so
+    `loaded_by` reads a string that is a tracked path in full. A walk that
+    read only the import of `sibling` would stop at the loader, and the set
+    above would shrink without failing."""
+    tracked = {"skills/x/g.py", "skills/y/d.py", "lib/sibling.py"}
+    text = 'import sibling\nD = sibling.load("skills/y/d.py")\n'
+    assert loaded_by("skills/x/g.py", text, tracked) == {
+        "lib/sibling.py",
+        "skills/y/d.py",
+    }
+
+
+def test_a_script_reaches_no_module_under_tests():
+    """S9 of #1482. A path under `tests/` is no load: `tests/` holds no
+    module of the plugin, and pytest imports a test module in the
+    virtualenv's process, at the floor. The runner names its pins' test
+    modules by tracked path, so a walk that read them would lint test
+    helpers at a floor nothing runs them under."""
+    tracked = {".github/scripts/r.py", "tests/t.py", "lib/a.py"}
+    text = 'import a\nPINS = (("x", "tests/t.py"),)\n'
+    assert loaded_by(".github/scripts/r.py", text, tracked) == {"lib/a.py"}
+    reached, _missing = before_any_floor()
+    assert not sorted(r for r in reached if r.startswith("tests/"))
+
+
 # --- one number --------------------------------------------------------------
 
 
@@ -183,6 +211,8 @@ ASSIGNED = re.compile(r'^\s*(?:set ")?(\w+)="?([^"\n]*?)"?\s*$', re.M)
 VARIABLE = re.compile(r"\$(\w+)|%(\w+)%")
 # A file named by itself, beside the module that names it.
 BARE_SCRIPT = re.compile(r"[\w-]+\.py")
+# The suite's own files, which no process of the plugin loads.
+TESTS = "tests/"
 
 
 def handed_first(text):
@@ -204,9 +234,13 @@ def loaded_by(rel, text, tracked):
     """The tracked `.py` files the module at `rel` loads in its own process:
     one it imports that sits beside it, where its `sys.path[0]` is, or in
     `lib/`, which a script that imports from it inserts before it; a bare
-    `<name>.py` beside it; and the path an
-    `os.path.join` spells whose last string part ends in `.py`, `..` left
-    out. A module that does not parse here loads nothing."""
+    `<name>.py` beside it; a string that is a tracked path in full, the
+    `/`-joined path under the root `lib/sibling.py#load` is handed; and
+    the path an `os.path.join` spells whose last string part ends in
+    `.py`, `..` left out. A path under `tests/` is none of them: `tests/`
+    holds no module of the plugin, and pytest imports a test module in the
+    virtualenv's process, at the floor. A module that does not parse here
+    loads nothing."""
     here = posixpath.dirname(rel)
     try:
         tree = ast.parse(text)
@@ -223,6 +257,8 @@ def loaded_by(rel, text, tracked):
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             if BARE_SCRIPT.fullmatch(node.value):
                 found.add(posixpath.join(here, node.value))
+            elif node.value in tracked:
+                found.add(node.value)
         if isinstance(node, ast.Call) and getattr(node.func, "attr", "") == "join":
             parts = [
                 a.value
@@ -232,7 +268,7 @@ def loaded_by(rel, text, tracked):
             if parts and parts[-1].endswith(".py"):
                 tail = "/".join(p for p in parts if p not in ("..", "."))
                 found |= {t for t in tracked if t == tail or t.endswith("/" + tail)}
-    return found & tracked
+    return {t for t in found & tracked if not t.startswith(TESTS)}
 
 
 def hooked(root=ROOT):
@@ -263,9 +299,10 @@ def before_any_floor(root=ROOT):
     It starts from what is handed an interpreter with nothing in front of it:
     the script each command of `hooks/hooks.json` hands its interpreter
     (`hooked`), and the file each `bin/` wrapper hands its interpreter
-    first. Then it follows `loaded_by` until nothing new is found. It errs
-    over, since a string can name a file nothing loads, and under, for a
-    module reached by a path built any other way. No git hook of this plugin
+    first. Then it follows `loaded_by` until nothing new is found, so it
+    reaches no file under `tests/`. It errs over, since a string can name a
+    file nothing loads, and under, for a module reached by a path built any
+    other way. No git hook of this plugin
     runs a script since #1027."""
     listed, missing = on_disk(root, git_listing(root, "ls-files", "*.py"))
     tracked = set(listed)

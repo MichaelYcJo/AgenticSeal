@@ -93,6 +93,8 @@ from conftest import (
 from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
 from test_the_agent_contract_holds_the_universal_rules import read as read_at_root
 
+# No TARGET: its cases read every tracked file's citations and the archive git builds of the tree.
+
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
     "agentic_rule_changes_for_citations",
@@ -949,6 +951,8 @@ def test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs
     assert lead in doc, "the paragraph's lead is gone"
     paragraph = re.sub(r"\s+", " ", doc.split(lead, 1)[1].split("\n\n", 1)[0])
     for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
+        # The path of each script `dist` keeps and of the shipped file that
+        # runs it, which a reader of the `dist` paragraph resolves.
         assert f"`{script}`" in paragraph and f"`{runner}`" in paragraph, (
             f"the paragraph does not name `{script}` and `{runner}`, which runs it"
         )

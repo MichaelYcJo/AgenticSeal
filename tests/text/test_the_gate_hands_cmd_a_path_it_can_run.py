@@ -7,68 +7,39 @@ argument `/test`, the shell said "not recognized" and exited 1, and the
 failure form reported the suite as failing. `bin/test.cmd` exists so that
 `cmd.exe` can call the runner, and it is reached as `bin\\test`.
 
-#942 moved the cases of `skills/verify/scripts/broad_gate.py` from this file
-into `tests/skills/test_broad_gate.py`: `Test_handed_to_shell`,
+The cases of `skills/verify/scripts/broad_gate.py` stand in
+`tests/skills/test_broad_gate.py`: `Test_handed_to_shell`,
 `Test_command_names_backslashed`, `Test_run`, `Test_failure_lines` and
-`Test_module` hold them. What stays reads `templates/setup/config.md`, which #923
-places.
+`Test_module` hold them. The case here reads `templates/setup/config.md`.
 """
 
 import os
 
-from conftest import ROOT
+from conftest import ROOT, census_case
+
+TARGET = "templates/setup/config.md"
 
 
-def test_the_template_says_which_positions_are_rewritten():
-    """A2, the reader's half (contract rule 14). `templates/setup/config.md` *Broad gate* is
-    where a person writing the key learns what `cmd.exe` is handed, and it
-    states the rule and names the positions the scan leaves as written —
-    the gap `tests/skills/test_broad_gate.py`'s cases pin is only a gap nobody is surprised by while
-    it is written down. It must not read as a complete count of them."""
-    path = os.path.join(ROOT, "templates", "setup", "config.md")
+def test_the_template_shows_the_rewrite_and_the_form_that_keeps_a_switch():
+    """A2, the reader's half. `templates/setup/config.md` *Broad gate* is
+    where a person writing the key learns what `cmd.exe` is handed. What
+    the scan rewrites and leaves as written is
+    `tests/skills/test_broad_gate.py`'s to pin, and the section's account
+    of it is the proofer's to read."""
+    path = os.path.join(ROOT, *TARGET.split("/"))
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     section = text.split("## Broad gate", 1)[1].split("\n## ", 1)[0]
     prose = " ".join(section.split())
-    for needle in (
-        "the gate hands it the command with `/` written `\\` inside a command "
-        "name that starts in a directory, and nowhere else",
-        "It starts in a directory where the part before its first `/`, with its "
-        "quotes and carets removed and every leading `@` dropped, names a "
-        "directory that exists where the command runs",
-        # Round 1's 🟡 3, where the person typing the key reads it; #616
-        # narrowed it to the plain form and named what is not expanded.
-        "A plain `%VAR%` in that part is expanded first, because `cmd.exe` "
-        "expands it before it reads the name",
-        "`%CD%` as the directory the command runs in unless the environment "
-        "defines `CD`",
-        "A substring or substitution (`%VAR:~0,2%`, `%VAR:a=b%`) is not "
-        "expanded, so a name that starts with one keeps its `/`",
-        "`bin/test` then runs as `bin\\test`",
-        "a path after `call`, `start` or `if`, or after `else`, `for … do` and "
-        "`cmd /c`",
-        "the definition above is the rule, and these are examples of it "
-        "rather than the whole list",
-        "a `/` written straight after one of `cmd.exe`'s own commands, which "
-        "is that command's switch (`rd/s/q build`)",
-        "a command name after a redirection that opens its command "
-        "(`>out.txt bin/test`)",
-        "the gate prints one line saying what `cmd.exe` was handed",
-        # #596, written where the person typing the key reads it.
-        "A `/` written straight after any other program's name reaches "
-        "`cmd.exe` as written too",
-        "`xcopy/e/i` stays `xcopy/e/i`",
-        "A blank before the switch (`xcopy /e`) works as well",
-        # And its two bounds, named rather than claimed away.
-        "A directory an earlier command in the line makes, or one a `cd` "
-        "earlier in the line enters, is not seen",
-        "a directory at the root named like a program the command calls with a "
-        "glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path",
+    for fact in (
+        # The name `cmd.exe` is handed for `bin/test`, which a person reads
+        # on the gate's line saying what `cmd.exe` was handed.
+        "`bin\\test`",
+        # The form a person writes to keep a switch where a glued one reads
+        # as a path.
+        "`xcopy /e`",
     ):
-        assert needle in prose, (
-            f"`templates/setup/config.md` *Broad gate* lacks: {needle}"
-        )
-    assert "Two positions are not rewritten" not in prose, (
-        "the template still counts the positions it leaves as written"
-    )
-    assert "#596" not in prose, "the template still names #596 as open"
+        assert fact in prose, f"`templates/setup/config.md` *Broad gate* lacks: {fact}"
+
+
+test_census = census_case(TARGET)

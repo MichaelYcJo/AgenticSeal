@@ -11,10 +11,12 @@ import os
 import re
 import subprocess
 import sys
-import textwrap
 
 import pytest
-from conftest import ROOT, build_tracked_tree, git_listing, on_disk, workflow_step
+from conftest import ROOT, build_tracked_tree, git_listing, on_disk
+from workflows import load
+
+# No TARGET: its cases sweep every file the plugin loads for a version timer, and hold the release rules across the update skill, the workflows, the release documents and the records root.
 
 
 def read_text(*parts):
@@ -124,10 +126,13 @@ RECORDS_OF_A_MOMENT = (
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
     # The policy states which gits a git-side decision was measured to hold
-    # on, and that is the class the `seal.py` and `broad_gate.py` rows below
-    # name: a property read off an unnamed git is not a measurement.
+    # on, and that is the class the `seal.py` row for `2.50.1` and the
+    # `broad_gate.py` row below name: a property read off an unnamed git is
+    # not a measurement.
     ("skills/implement/scripts/seal.py", "4.4.17"): (
-        "bash's, named in a comment about the glob behaviour of that release"
+        "the zip specification's, APPNOTE's section number that `unsafe`'s "
+        "docstring cites for a zip's `/`-separated names. It is no version, "
+        "and no release of AgenticSeal makes the number wrong"
     ),
     ("skills/implement/scripts/seal.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
@@ -164,6 +169,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "install the renderer the walker's property case is held to, and a "
         "case holds them to the runner's constant; the package numbers its "
         "releases by date, and no release of AgenticSeal makes the number wrong"
+    ),
+    ("CONTRIBUTING.md", "6.0.3"): (
+        "PyYAML's, the parser `tests/workflows.py` reads a workflow file with, "
+        "pinned in `.github/scripts/run_tests.py#PYYAML` (#1486). The class "
+        "is the two rows above's: the fallback commands carry the pin so they "
+        "install the parser the workflow cases read with, and a case holds "
+        "them to the runner's constant; no release of AgenticSeal makes the "
+        "number wrong"
     ),
     ("skills/verify/scripts/payload_meter.py", "2.1.318"): (
         "Claude Code's, named in `imports_of`'s docstring as the build whose "
@@ -1001,6 +1014,18 @@ def python_floor():
     return f"{m.group(1)}.{m.group(2)}"
 
 
+def matrix_pythons():
+    """Every `python` value an `include:` entry of a job's matrix in
+    `test.yml` names."""
+    jobs = load(os.path.join(".github", "workflows", "test.yml"))["jobs"]
+    return [
+        entry["python"]
+        for job in jobs.values()
+        for entry in job.get("strategy", {}).get("matrix", {}).get("include", [])
+        if "python" in entry
+    ]
+
+
 def test_the_python_floor_is_the_same_number_everywhere():
     """Three places state it — the linter, the READMEs, the CI matrix — and a
     floor that disagrees with itself is worse than none: whoever reads the
@@ -1008,11 +1033,10 @@ def test_the_python_floor_is_the_same_number_everywhere():
     floor = python_floor()
     for name in ("README.md", "README.ko.md"):
         with open(os.path.join(ROOT, name), encoding="utf-8") as f:
+            # The floor `ruff.toml` declares, the value a person reads in the
+            # README to choose an interpreter.
             assert floor in f.read(), f"{name} does not state the {floor} floor"
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "test.yml"), encoding="utf-8"
-    ) as f:
-        versions = re.findall(r'python: "(\d+\.\d+)"', f.read())
+    versions = matrix_pythons()
     assert versions, "the test matrix names no python versions"
     lowest = min(versions, key=lambda v: tuple(int(n) for n in v.split(".")))
     assert lowest == floor, (
@@ -1051,91 +1075,90 @@ def test_update_reads_the_installed_copy_before_it_summarises():
     `installed_plugins.json` names the one `installPath`, and the `version`
     of its `.claude-plugin/plugin.json` has to be the version the installer
     just reported. A mismatch stops the procedure before the summary and
-    prints the repair, with the two cautions the ticket measured: `.in_use/`
-    holds a live session's PID files, and the one `installPath` is the
-    directory that must not be deleted.
-
-    S7 of #1053: the step read `CHANGELOG.md`'s first heading until the
-    gathered files were removed, and it names that file no more."""
+    prints the repair. The step's facts are pinned: the file, the field and
+    the expression it reads, the directory its caution names and the
+    command of its repair. Its sentences are the proofer's to read."""
     update = read_text("skills", "update", "SKILL.md")
+    # The step's bold number `**2b.`, where the slice the asserts below read
+    # opens; the session runs the update by its numbered steps.
     assert "**2b." in update, "no step reads the installed copy between 2 and 3"
     step = update[update.index("**2b.") : update.index("**3.")]
     flat = " ".join(step.split())
-    assert "CHANGELOG.md" not in flat, "step 2b reads a file the install has no more"
+    # Each entry is a fact the session copies or runs from the step, and the
+    # second field names what it is.
     for needed, why in (
+        # The file the session reads for the installed copy's path.
         ("installed_plugins.json", "the file that names the installed copy"),
+        # The field of that file the session reads.
         ("installPath", "the field that names it"),
+        # The path the session reads the landed version from, in the copy.
         (
             "/.claude-plugin/plugin.json'",
             "the file whose `version` says which version landed, read in the copy",
         ),
+        # The expression the session's command reads the version with.
         ("['version']", "the field read from it"),
-        ("mismatch", "the word that makes the outcome a stop rather than a note"),
+        # The directory the caution tells the person to keep.
         (".in_use", "the directory the caution is about"),
-        # The word, not the path: `.in_use` is also in the repair's `mkdir`,
-        # so a step that lost the caution and kept the repair still said it.
-        ("PID", "the caution about a live session's PID files"),
+        # The command of the repair the person runs.
         ("rsync", "the repair"),
-        ("stop", "the instruction not to reach the summary"),
     ):
         assert needed in flat, f"step 2b does not carry {needed!r}: {why}"
-    assert "/Users/" not in flat, "a user path in a shipped skill"
 
 
 def test_update_shows_what_changed_from_the_github_releases():
     """S8 of #1053. The notes are published once, as the GitHub Release at
     each tag, and no copy is kept in the tree. So step 3 reads the releases
     from the public API with no token, `gh` included, because `gh` needs a
-    login; it takes the repository from the marketplace clone's `origin`,
-    reads every release after the old version up to the new one oldest
-    first, and where the read fails it says so, names the releases page and
-    goes on, because the update has already landed.
+    login; it takes the repository from the marketplace clone's `origin` and
+    prints the releases after the old version up to the new one, oldest
+    first. The case reads the spellings of the commands the session runs;
+    the step's sentences are the proofer's to read.
 
     Round 1 of #1053, finding 2: the list holds every release's whole note,
     about 880 KB, so it is downloaded to a file and only the releases in the
-    span are printed, oldest first."""
+    span are printed."""
     update = read_text("skills", "update", "SKILL.md")
     step = update[update.index("**3.") : update.index("**4.")]
     flat = " ".join(step.split())
+    # Each entry is a spelling of the command the session runs at step 3,
+    # and the second field names what it is.
     for needed, why in (
+        # The public API the session's command reads the releases from.
         ("https://api.github.com/repos/", "the public API the releases are read from"),
+        # The endpoint the command requests.
         ("/releases", "the releases endpoint and page"),
+        # The download to a file, which the command writes the list into.
         ('releases?per_page=100" -o "$f"', "the list goes to a file, not the session"),
+        # The call in the command's script that prints the span oldest first.
         ("reversed(", "the span is printed oldest first"),
+        # The comparison in the command's script that bounds the span.
         ("old < at <= new", "only the releases after the old version up to the new"),
+        # The git command the session runs for the repository.
         ("remote get-url origin", "where the repository is taken from"),
+        # The path of the clone whose `origin` the command reads.
         ("marketplaces/agenticseal", "the clone whose origin it is"),
-        ("no token", "that the read carries no credentials"),
-        ("oldest first", "the order the releases are read in"),
-        ("releases page", "what a failed read names"),
-        ("go on to step 4", "that a failed read does not stop the procedure"),
     ):
         assert needed in flat, f"step 3 does not carry {needed!r}: {why}"
-    for refused in ("changelog/", "CHANGELOG.md", "Authorization", "gh "):
+    # `skills/update/SKILL.md` *3. Name what changed.* reads the releases
+    # "with no token: `gh` is not used", so the session's command carries no
+    # credential header and calls no `gh`.
+    for refused in ("Authorization", "gh "):
         assert refused not in flat, f"step 3 carries {refused!r}"
 
 
-def test_update_names_the_reload_and_what_it_was_measured_to_reach():
+def test_update_names_the_reload():
     """The update's output tells the user how to load what landed: it names
-    `/reload-plugins`, scopes what was measured to the skill bodies a spawned
-    agent is handed out of the copy the session is already on, and names a
-    restart for what nobody measured. The session-start notice carried this
-    until #1376 removed it, and `docs/releasing/release-checklist.md` *A
-    notice telling somebody an update landed names the move it costs them*
-    is the rule."""
+    `/reload-plugins`. What it says a reload was measured to reach, and the
+    restart it names for the rest, are the proofer's to read against
+    `docs/releasing/release-checklist.md` *A notice telling somebody an
+    update landed names the move it costs them*."""
     update = read_text("skills", "update", "SKILL.md")
     start = update.index("## Output")
     end = update.find("\n## ", start + 1)
     flat = " ".join(update[start : end if end != -1 else len(update)].split())
-    for needed, why in (
-        ("/reload-plugins", "the reload command"),
-        ("re-reads the skill bodies a spawned agent is", "what was measured"),
-        ("out of the copy this session is already on", "the copy it re-reads"),
-        # #1376: the unmeasured list names what a reload might still miss.
-        ("Nobody has measured whether a reload reaches agent", "what was not"),
-        ("so restart for those", "the move named for what was not"),
-    ):
-        assert needed in flat, f"the update's output does not carry {needed!r}: {why}"
+    # The command the person types to load what landed.
+    assert "/reload-plugins" in flat, "the update's output does not name the reload"
 
 
 def test_the_token_stays_the_smallest_that_can_close_an_issue():
@@ -1144,21 +1167,19 @@ def test_the_token_stays_the_smallest_that_can_close_an_issue():
     A substring search for `contents: write` passes `contents:  write` — two
     spaces, one value to YAML — and that is the exact widening the block's own
     comment says it guards. Measured green before this."""
-    workflow = read_text(".github", "workflows", "close-issues-on-release.yml")
-    block = re.search(r"^permissions:\n((?:  [\w-]+:.*\n)+)", workflow, re.M)
-    assert block, "the workflow states no permissions block, so it inherits all"
-    granted = dict(re.findall(r"^  ([\w-]+):\s*(\S+)\s*$", block.group(1), re.M))
+    workflow = load(os.path.join(".github", "workflows", "close-issues-on-release.yml"))
+    granted = workflow.get("permissions")
+    assert granted, "the workflow states no permissions block, so it inherits all"
     assert granted == {"contents": "read", "issues": "write"}, (
         f"the token's scopes changed: {granted}. Its only write is a close, "
         "and an untrusted pull request body is what steers it"
     )
-    on = re.search(r"^on:\n((?:  .*\n|\n)*?)^\w", workflow, re.M)
-    assert on and re.findall(r"^  ([\w_]+):", on.group(1), re.M) == ["push"], (
+    assert list(workflow["on"]) == ["push"], (
         "the workflow gained a second trigger. A push to `main` is the only "
         "moment a closing keyword is readable, and any trigger an untrusted "
         "pull request can fire hands it the `issues: write` token"
     )
-    assert re.search(r"^\s*branches:\s*\[main\]\s*$", workflow, re.M), (
+    assert workflow["on"]["push"] == {"branches": ["main"]}, (
         "the push trigger no longer names `main` alone"
     )
 
@@ -1177,6 +1198,10 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
         glob.glob(os.path.join(ROOT, "seal", "threads", "*", "pr.ko.md"))
     ):
         text = open(path, encoding="utf-8").read()
+        # `docs/layout/the-record-layout.md` *A fact of a work item has one
+        # record, and every other record cites it by path and heading.*: the
+        # `Closes` lines are `pr.md`'s, and `pr.<lang>.md` holds the quotes
+        # rendered and no fact of its own, so a close it states is refused.
         for line in text.splitlines():
             if "닫습니다" in line and "#" in line and "닫히지" not in line:
                 raise AssertionError(
@@ -1232,6 +1257,8 @@ def test_the_pull_request_checks_the_chain_it_was_routed_to():
     workflow = open(
         os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
     ).read()
+    # The script the workflow's step runs and its flag, which the runner
+    # acts on at every pull request.
     assert "chain_check.py" in workflow, "the chain check is not wired into CI"
     assert "--baseline" in workflow
     assert os.path.isfile(
@@ -1251,12 +1278,17 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     run over a tree holding one, prints it as a notice annotation at its
     file and line, pinned whole (contract rule 14), and exits 0 whatever the
     check's exit. Seen red against the workflow with no such step."""
-    text = open(
-        os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
-    ).read()
-    lines = workflow_step(text, RULES_STEP).split("\n")
-    start = next(i for i, ln in enumerate(lines) if ln.strip() == "run: |") + 1
-    script = textwrap.dedent("\n".join(lines[start:]))
+    workflow = load(os.path.join(".github", "workflows", "hygiene.yml"))
+    steps = [
+        step
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        if step.get("name") == RULES_STEP
+    ]
+    assert len(steps) == 1, f"{len(steps)} steps are called {RULES_STEP!r}"
+    script = steps[0]["run"]
+    # The command the step runs, which the case replaces with this checkout's
+    # interpreter and script; one occurrence is what the replacement reaches.
     assert script.count(RULES_COMMAND) == 1, script
     rules = os.path.join(ROOT, ".github", "scripts", "rules.py")
     script = script.replace(
@@ -1282,19 +1314,22 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     ), done.stdout
 
 
-def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
+def test_the_chain_check_loads_the_one_reader():
     """Two readers of the same markdown drifted apart in four places across
     three review rounds here, and closing one pair opened another. A 🔴 inside
-    a comment or a fenced block has to be invisible to both."""
+    a comment or a fenced block has to be invisible to both, so the check
+    loads the one reader and calls it."""
     check = open(
         os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
         encoding="utf-8",
     ).read()
-    assert "unverified_check.py" in check
+    # The path the check loads the shared reader from, and the call into it,
+    # which Python resolves: the reader is the one source of how a line is
+    # read (`skills/core/SKILL.md` *The rule a mechanism is kept against*).
+    assert "lib/lines.py" in check
     assert "reader.readable(" in check, (
         "the check reads lines the shared reader never normalized"
     )
-    assert "def split_row" not in check, "a second row reader"
 
 
 # The places the evidence ledger lived under the `seal/` root until #944

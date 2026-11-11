@@ -3,7 +3,7 @@
 
 `skills/settle/SKILL.md` gives a document one read, and
 `skills/settle/rule-changes.md` gives the policy root one index. This is the
-reader of both, shipped (#566, #953).
+reader of both.
 
   seal fold                      every check, with the values seal/config.json states
   seal fold --ceiling N          report documents past N estimated tokens, this run
@@ -18,8 +18,8 @@ of, and anything below a group, is not read.
 **One read.** Each document whose estimate (`tokens`) is past the `Document
 token ceiling` key is named as one to split by who opens each section and at
 which step. That is a report and never a failure: the estimate is a guess from bytes, and a
-document past one tool's per-call cap is still read in more calls (the
-owner's answer of 2026-10-20).
+document past one tool's per-call cap is still read in more calls. The
+owner chose a report over a failure (#953).
 
 **One index.** Where `<policy root>/README.md` exists, each other document
 is named on exactly one row of its tables, and every row names one.
@@ -34,9 +34,9 @@ absent key means *not declared*, as every optional key of that file does:
 the check it governs is not run, and the output says so in one line rather
 than refusing. A flag overrides its key for one run.
 
-Live lines and table rows come from
-`skills/verify/scripts/unverified_check.py` (`live_lines`, `gfm_lines`,
-`split_row`), loaded rather than re-spelled (#664).
+Live lines and table rows come from `lib/lines.py` (`live_lines`,
+`split_row`) and a text's lines from `lib/blocks.py#gfm_lines`, loaded rather
+than re-spelled.
 
 Typed with no `--root`, it reads the repository the current directory is in,
 so a run from a subdirectory checks that repository and not nothing.
@@ -51,16 +51,36 @@ refuses `seal` with 2 first.
 """
 
 import argparse
-import importlib.util
 import io
 import os
 import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-CONFIG_READER = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
+# The modules this command reads, each as `lib/sibling.py#load` names it.
+READER = "lib/lines.py"
+BLOCKS = "lib/blocks.py"
+CONFIG_READER = "lib/config.py"
+OPTIN = "lib/optin.py"
+
+# `lib/sibling.py` loads every other module this command reads, and an
+# absent one is its sentence and exit 2: nothing about the tree has been
+# read, and 1 is a problem found in `docs/`. Where it is absent
+# itself, the refusal is the same sentence about it, spelt here because the
+# file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
 
 CONFIG = "config.json"
 INDEX = "README.md"
@@ -74,43 +94,9 @@ WHOLE = re.compile(r"[0-9]+")
 BYTES_PER_TOKEN = 2
 
 
-def load(path, name, purpose):
-    """Import a sibling script by path, or refuse with a sentence that says
-    what the missing file is for — `purpose` — rather than one reason for
-    every file (round 1, note 7).
-
-    The refusal is exit 2, written to stderr: nothing about the tree has been
-    read, which is what 2 means here, and 1 is a problem found in `docs/`.
-    It used to be `SystemExit(<sentence>)`, and a string argument exits 1, so
-    a copy missing its sibling read as a finding (#590)."""
-    if not os.path.isfile(path):
-        sys.stderr.write(
-            f"seal fold: cannot read {path}, and {purpose}. This command "
-            "ships beside it in the plugin; a copy of one script taken on its "
-            "own is not a plugin. Nothing was read.\n"
-        )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        sys.stderr.write(f"seal fold: cannot load {path}, and {purpose}.\n")
-        raise SystemExit(2)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-_loaded = {}
-
-
 def reader():
-    """`unverified_check.py`, loaded once on first use."""
-    if "reader" not in _loaded:
-        _loaded["reader"] = load(
-            READER,
-            "agentic_unverified_reader_for_folds",
-            "it is where a document's lines and table rows are read from",
-        )
-    return _loaded["reader"]
+    """`lib/lines.py`, loaded on first use."""
+    return sibling.load(READER)
 
 
 class Unusable(Exception):
@@ -168,7 +154,7 @@ def index_rows(root, index):
     index at INDEX after the header and the separator."""
     uc = reader()
     rows, in_table = [], False
-    lines = uc.live_lines(uc.gfm_lines(read(root, index)))
+    lines = uc.live_lines(sibling.load(BLOCKS).gfm_lines(read(root, index)))
     for number, (line, live) in enumerate(lines, 1):
         cells = uc.split_row(line) if live else None
         if cells is None or not in_table or uc.is_separator(cells):
@@ -188,7 +174,7 @@ def why(error):
 
 
 def read(root, rel):
-    """A document's text, or `Unusable` naming it (round 1, finding 2)."""
+    """A document's text, or `Unusable` naming it."""
     try:
         with open(os.path.join(root, *rel.split("/")), encoding="utf-8") as f:
             return f.read()
@@ -243,14 +229,8 @@ def index_problems(root, policy):
 
 
 def optin():
-    """`lib/optin.py`, the one resolver, loaded once on first use."""
-    if "optin" not in _loaded:
-        _loaded["optin"] = load(
-            OPTIN,
-            "agentic_optin_for_folds",
-            "it is what finds the repository's seal/ root",
-        )
-    return _loaded["optin"]
+    """`lib/optin.py`, the one resolver, loaded on first use."""
+    return sibling.load(OPTIN)
 
 
 def located(root):
@@ -260,9 +240,7 @@ def located(root):
     Through `lib/optin.py#home_at`, the way `settle.py#main` reaches it:
     the places `home_at` reads, in its order. `home_at`
     answers "" for two states, and they are given two sentences, because
-    one was false for the other: a repository that opted out HAS a root, and
-    settle met the same defect as its own round 2 finding 7 (round 1,
-    finding 3)."""
+    one is false for the other: a repository that opted out HAS a root."""
     resolver = optin()
     common = resolver.git_common_dir(root)
     home = resolver.home_at(root, common)
@@ -284,11 +262,7 @@ def seal_home(root):
 
 def config_reader():
     """`lib/config.py`, the one reader of `seal/config.json`, or exit 2."""
-    return load(
-        CONFIG_READER,
-        "agentic_config_for_folds",
-        "it is what reads the keys of seal/config.json",
-    )
+    return sibling.load(CONFIG_READER)
 
 
 def declared(home):
@@ -296,7 +270,7 @@ def declared(home):
     None for a ceiling key that is absent or empty, or `Unusable` naming
     what will not read. No root and no file are no key at all; a file
     `lib/config.py#config_pairs` refuses is `Unusable` in the reader's own
-    sentence (#867), because reading it as no key turned every check this
+    sentence, because reading it as no key would turn every check this
     command runs off at exit 0. Each value is the reader's own answer,
     `lib/config.py#config_value`, so a key written twice is `Unusable`
     rather than one of the two; the policy root is
@@ -393,8 +367,8 @@ def main(argv=None):
         # Typed anywhere inside a repository, the command reads that
         # repository, the way `seal.py` and `chain_check.py` resolve theirs.
         # Read from the directory it was typed in, a subdirectory has no
-        # `seal/` and no `docs/`, and the run passed having checked nothing
-        # (round 1, finding 1).
+        # `seal/` and no `docs/`, and the run would pass having checked
+        # nothing.
         root = optin().repo_root(root) or root
     home, where = located(root)
     try:
@@ -417,7 +391,7 @@ def main(argv=None):
         )
         return 2
     # The run's lines are held until it has a result, so a file it cannot read
-    # stops it with nothing on stdout that reads as one (round 1, finding 2).
+    # stops it with nothing on stdout that reads as one.
     out = io.StringIO()
     try:
         problems = run(root, (ceiling, policy), where, out)
@@ -433,8 +407,7 @@ def main(argv=None):
 if __name__ == "__main__":
     # The console's encoding is not UTF-8 everywhere — cp1252 on Windows —
     # and every line this prints carries an em dash, so stdio is reconfigured
-    # before `main()`, as every other shipped script does (found by CI's
-    # `windows-latest` leg after the seal).
+    # before `main()`, as every other shipped script does.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

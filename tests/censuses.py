@@ -22,10 +22,6 @@ flagged line, because the formatter moves a comment that ends a long line
 and splits the code around it. Above a line the census does not flag, the
 comment excuses nothing, and the census refuses it, so an exemption leaves
 the tree with the line it excused. No census keeps a list of exemptions.
-
-This module imports nothing from `tests/conftest.py`:
-`evals/scripts/noninferiority.py` loads it by path, without pytest, to mask
-a record with `real_identifiers`' own readers.
 """
 
 import ast
@@ -871,8 +867,7 @@ def code_lines(text):
 
 def heading_rule(rel, root=None):
     """No shipped script spells the markdown heading rule again: a reader of
-    a document's sections asks
-    `skills/verify/scripts/unverified_check.py#heading_level`. A docstring
+    a document's sections asks `lib/lines.py#heading_level`. A docstring
     and a whole-line comment are prose about the rule and are not read."""
     text = _python(rel, root, SHIPPED)
     if text is None:
@@ -880,8 +875,7 @@ def heading_rule(rel, root=None):
     flagged = {
         number: (
             "a second spelling of the heading rule; a reader of a document's "
-            "sections asks `skills/verify/scripts/unverified_check.py"
-            "#heading_level`"
+            "sections asks `lib/lines.py#heading_level`"
         )
         for number, line in code_lines(text)
         if HEADING_SPELLING.search(line)
@@ -1053,11 +1047,7 @@ NOT_TEXT = (".gif", ".png", ".jpg")
 
 
 def refused_domains(line):
-    """The match of every domain in `line` outside the allowlist, in order.
-
-    `evals/scripts/noninferiority.py#masked` reads a kept round record by
-    this function, so the record a committed side holds is masked by the
-    census that reads it."""
+    """The match of every domain in `line` outside the allowlist, in order."""
     refused = []
     for m in DOMAIN_RE.finditer(line):
         d = m.group(0)
@@ -1180,36 +1170,22 @@ HISTORY_PATH = re.compile(
 # The records of a moment, which keep the names they were written under. A
 # thread is read against the commits it names until the settle after its
 # release removes it, and the thread that renames a name quotes the name it
-# renames. The truths measured on recorded eval runs name the trees those
-# runs read. `.test_durations` is the cache the test runner rewrites.
-OLD_NAME_RECORDS = (
-    "seal/threads/",
-    "evals/scripts/recurred_truths.json",
-    ".test_durations",
-)
+# renames.
+OLD_NAME_RECORDS = ("seal/threads/",)
 # A replayed or seeded eval case holds a run at a recorded commit, so its
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
-# The replay and seeded cases' generators read round records in both layouts
-# a release has kept them in, the one before 0.23.0 among them, spelt once
-# and exempted at
-# `evals/scripts/replay_targets.py#LAYOUTS`, and their cases build records in
-# both.
-KEPT_FILES = (
-    "tests/evals/test_replay_targets.py",
-    "tests/evals/test_seed_defects.py",
-)
 
 
 def old_names(rel, root=None):
     """No living file writes a name the rename to AgenticSeal replaced:
     the brand, the old prefix and identifiers, the old agents, the old
     record layout, the old commands and the tagline. A spelling kept on
-    purpose is in KEPT_OLD_NAMES, a record or a file of KEPT_FILES is passed over
+    purpose is in KEPT_OLD_NAMES, a record or a recorded case is passed over
     whole, a released work item's record passes only cited at a commit
     (HISTORY_PATH), and any other line that keeps an old name carries its
     exemption. A file that is not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS + KEPT_FILES) or RECORDED_CASE.match(rel):
+    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
         return []
     text = _text(rel, root)
     if text is None:
@@ -1442,8 +1418,8 @@ def slash_in_join(rel, root=None):
 # What the walk cannot see, and passes: a name built from other strings, a
 # name a pattern spells after another character, such as `^seal/`, and
 # `optin.HOME` joined under a repository where the root may have the second
-# name. A reader written that way is held by the cases built on the fixture
-# of `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`.
+# name. A reader written that way is held by the cases built on the
+# `package` and `shared` fixtures of `tests/conftest.py`.
 
 ROOT_NAME_HOME = "lib/optin.py"
 ROOT_NAME_SKIPPED = ("tests/", "evals/")
@@ -1451,10 +1427,12 @@ _names_read = []
 
 
 def _root_names():
-    """`(HOME, SECOND_HOME)` as this repository's `lib/optin.py` holds them,
-    read once."""
+    """`(HOME, SECOND_HOME)` as `lib/optin.py` holds them, read once from the
+    repository this module stands in. The names are the plugin's own, and a
+    case may point `ROOT` at a fixture tree that holds no `lib/optin.py`."""
     if not _names_read:
-        path = os.path.join(ROOT, *ROOT_NAME_HOME.split("/"))
+        here = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        path = os.path.join(here, *ROOT_NAME_HOME.split("/"))
         spec = importlib.util.spec_from_file_location("agentic_optin_for_census", path)
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)

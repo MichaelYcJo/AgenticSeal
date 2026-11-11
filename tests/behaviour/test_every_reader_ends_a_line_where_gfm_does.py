@@ -8,8 +8,7 @@ a heading that stands mid-line read as a line of its own, a line number one
 off the one `grep -n` prints, and, where the reader wrote the text back, the
 character turned into a line break.
 
-One splitter, `lib/blocks.py#gfm_lines`, which `unverified_check.py` hands
-its callers, is what
+One splitter, `lib/blocks.py#gfm_lines`, is what
 every such reader now reads, and two readers of one text split it alike.
 Each scenario is stated at the case or the census that holds it, under the
 number #664's work gave it.
@@ -33,7 +32,9 @@ import sys
 
 from conftest import ROOT, texts
 
-READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
+# No TARGET: its cases hold one line splitter across lib/blocks.py and skills/verify/scripts/coordinates.py.
+
+READER = os.path.join(ROOT, "lib", "blocks.py")
 CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 
 

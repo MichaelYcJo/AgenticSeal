@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Run this repository's own suite from a virtualenv that is built once.
 
-Issue #156. `CONTRIBUTING.md` already named a command --
-`uvx --with pytest python3 -m pytest tests/ -q` -- so nothing was missing.
-What was missing is a command that is cheap the second time it runs: that
-form resolves and installs its environment on every call, 55-58 seconds each,
-paid on all seventeen test calls of one measured segment (#133).
+A command such as `uvx --with pytest python3 -m pytest tests/ -q` runs the
+suite, and it is not cheap the second time it runs: that form resolves and
+installs its environment on every call, 55-58 seconds each, and one session
+segment paid that on all seventeen of its test calls.
 
 So the environment is built once, at `.venv` in the repository root, and
 reused afterwards. The first call pays for it; every call after it pays for
@@ -30,7 +29,7 @@ against.
 `hide_from_git` holds the only write this module makes to the working tree
 itself -- everything else that lands there is made by a builder subprocess,
 whose failure is already a return code -- so that one write carries the guard
-that keeps a read-only `.venv` from ending the run in a traceback (#177). The
+that keeps a read-only `.venv` from ending the run in a traceback. The
 guard belongs to the module and not to that function: a second write added
 beside it owes its own, and the class is one write only for as long as nobody
 adds a second.
@@ -44,64 +43,62 @@ settle and before the sealer is spawned: `skills/agent-contract/SKILL.md`
 forbids it to every agent, which is why naming one module is the ordinary
 use.
 
-The suite runs in parallel by default (#337). `pytest-xdist` is installed
+The suite runs in parallel by default. `pytest-xdist` is installed
 beside `pytest` on both build strategies and added to an adopted `.venv` that
 lacks it, and `main` passes `-n auto` unless the caller's own arguments settle
 the question (`caller_decided`) or the install step failed, in which case one
 sentence says so and the run is serial. This suite is a process-spawn
-benchmark rather than a computation -- `.github/workflows/test.yml` has run it
-`-n auto` on three platforms for every release -- and the runner ran it
-serially for ten releases because the environment it built had no xdist and
-the flag would have failed on every fresh build. What a figure for the run
-costs is measured, with its date and machine, in the work item that made it
-parallel; no figure is stated here because a figure stated with no date or
-machine cannot be checked later.
+benchmark rather than a computation -- `.github/workflows/test.yml` runs it
+`-n auto` on three platforms. No figure for what the run costs is stated
+here, because a figure stated with no date or machine cannot be checked
+later.
 
-One package beyond those two is installed the same way, `markdown-it-py`,
-pinned in `MARKDOWN_IT` (#667). It is the CommonMark parser the suite's
-oracle reads, so the readers under `lib/` are checked against a parser that
-shares nothing with them. It is test-only: nothing under `lib/` or `skills/`
-imports it.
-
-A second is `cmarkgfm`, pinned in `CMARKGFM` (#647): GitHub's own renderer,
-which `tests/gfm_table_oracle.py` reads to hold the table walker in
-`lib/config.py` to what GitHub renders. Test-only, on the parser's terms.
+Three packages beyond those two are installed the same way, each pinned to
+one version and listed in `PINS`, and one pair of functions,
+`has_pin` and `add_pin`, serves the three. `markdown-it-py`, pinned in
+`MARKDOWN_IT`, is the CommonMark parser the suite's oracle reads, so
+the readers under `lib/` are checked against a parser that shares nothing
+with them. `cmarkgfm`, pinned in `CMARKGFM`, is GitHub's own
+renderer, which `tests/gfm_table_oracle.py` reads to hold the table walker in
+`lib/tables.py` to what GitHub renders. `PyYAML`, pinned in `PYYAML`,
+is the parser `tests/workflows.py` reads a workflow file with. All
+three are test-only: nothing under `lib/` or `skills/` imports them.
 """
 
-import importlib.util
+import collections
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this file reads.
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib")
+)
+import sibling
+
 # The supported floor, read from `lib/launch.py`, its one source. The
 # virtualenv is built and adopted against it. `bin/test` runs this file on
 # whatever `python3` it finds, not through the launcher, whose docstring says
-# why. Loaded by path, because `lib/` is not on this file's `sys.path`.
-_LAUNCH = importlib.util.spec_from_file_location(
-    "agentic_launch_for_run_tests",
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib", "launch.py"
-    ),
-)
-_launch = importlib.util.module_from_spec(_LAUNCH)
-_LAUNCH.loader.exec_module(_launch)
-FLOOR = tuple(_launch.FLOOR)
+# why.
+FLOOR = tuple(sibling.load("lib/launch.py").FLOOR)
 FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 
-# The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`,
-# #667), and the one package the suite needs beyond pytest. Pinned to one
-# version, because the oracle is what the readers' property cases are
-# held to, and an oracle that moved under the suite would move every verdict
-# with it. Test-only: the gates themselves stay stdlib-only, and a plugin user
-# installs nothing new. `.github/workflows/test.yml` and `CONTRIBUTING.md`'s
-# fallback carry the same string, and a case holds each to this one.
+# The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`).
+# Pinned to one version, because the oracle is what the readers'
+# property cases are held to, and an oracle that moved under the suite would
+# move every verdict with it. Test-only: the gates themselves stay
+# stdlib-only, and a plugin user installs nothing new.
+# `.github/workflows/test.yml`, `.github/workflows/publish-release.yml` and
+# `CONTRIBUTING.md`'s fallback carry the same string, and a case holds each
+# to this one.
 MARKDOWN_IT_VERSION = "4.2.0"
 MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 
 # GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
-# `lib/tables.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
+# `lib/tables.py#gfm_table` is held to (`tests/gfm_table_oracle.py`).
 # Pinned for the parser's reason -- a renderer that moved under the suite would
 # move every verdict of the walker's property case with it -- and test-only on
 # the same terms: nothing under `lib/` or `skills/` imports it. The version
@@ -112,9 +109,20 @@ MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 CMARKGFM_VERSION = "2025.10.22"
 CMARKGFM = f"cmarkgfm=={CMARKGFM_VERSION}"
 
+# The YAML parser `tests/workflows.py` reads a workflow file with, so
+# no case reads a job, a step or a key by indentation. Pinned for the
+# parser's reason -- a parser that moved under the suite would move what
+# every workflow case reads -- and test-only on the same terms. 6.0.3 has a
+# wheel for CPython 3.12 and 3.14 on Windows, macOS and Linux, so no runner
+# compiles it. `.github/workflows/test.yml`,
+# `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
+# carry the same string, and a case holds each to this one.
+PYYAML_VERSION = "6.0.3"
+PYYAML = f"PyYAML=={PYYAML_VERSION}"
+
 # `pytest-split`, the plugin the Windows leg of `.github/workflows/test.yml`
-# stores its per-case durations with (#841), and that divides the suite by
-# them into the shards of the Windows and macOS legs (#841, #864).
+# stores its per-case durations with, and that divides the suite by
+# them into that leg's shards.
 # Pinned for the parser's reason, since the file it writes is what the
 # division is computed from. CI-only, so it is NOT in `PACKAGES` below:
 # `bin/test` never stores durations or divides the suite, and a local build
@@ -123,11 +131,38 @@ CMARKGFM = f"cmarkgfm=={CMARKGFM_VERSION}"
 PYTEST_SPLIT_VERSION = "0.11.0"
 PYTEST_SPLIT = f"pytest-split=={PYTEST_SPLIT_VERSION}"
 
+# One row per pinned package the suite imports: what `pip` installs, the
+# `.dist-info` directory that version leaves under site-packages, the module
+# under `tests/` that imports it, and what that module is, for the sentence
+# `add_pin` prints. A pin added here is built, adopted and reported with the
+# others, and its cases in `tests/github/test_run_tests.py` run over this
+# table.
+Pin = collections.namedtuple("Pin", "spec dist_info module role")
+PINS = (
+    Pin(
+        MARKDOWN_IT,
+        f"markdown_it_py-{MARKDOWN_IT_VERSION}.dist-info",
+        "tests/commonmark_oracle.py",
+        "the parser the suite's CommonMark oracle reads",
+    ),
+    Pin(
+        CMARKGFM,
+        f"cmarkgfm-{CMARKGFM_VERSION}.dist-info",
+        "tests/gfm_table_oracle.py",
+        "the renderer the table walker's oracle reads",
+    ),
+    Pin(
+        PYYAML,
+        f"pyyaml-{PYYAML_VERSION}.dist-info",
+        "tests/workflows.py",
+        "the parser the suite reads a workflow file with",
+    ),
+)
+
 # What a built environment holds. `pytest-xdist` is here because the suite
-# runs `-n auto` by default (#337): a build without it is the build whose
-# first call refused the flag. The parser is here for the oracle above, and
-# cmark-gfm for the table walker's.
-PACKAGES = ("pytest", "pytest-xdist", MARKDOWN_IT, CMARKGFM)
+# runs `-n auto` by default: a build without it refuses the flag on its
+# first call. The pins are here for the modules `PINS` names.
+PACKAGES = ("pytest", "pytest-xdist", *(pin.spec for pin in PINS))
 
 
 def repo_root():
@@ -146,7 +181,7 @@ def has_pytest(venv):
     """True when `venv` holds an interpreter and a pytest to run it with.
 
     Filesystem only, no subprocess: this runs on every warm call, and the
-    whole point of the work item is that a warm call costs nothing.
+    whole point of this runner is that a warm call costs nothing.
 
     Whether that interpreter is new enough is a separate question and
     `ensure` asks it, by reading `pyvenv.cfg` rather than by starting
@@ -182,9 +217,9 @@ def add_xdist(venv):
     """Install pytest-xdist into `venv` where it is missing. Returns a
     sentence, or None when the environment has it -- found, or just added.
 
-    An adopted `.venv` built before #337 has pytest and no xdist, and the
-    ticket's middle row is what that costs: the same command meaning three
-    things in one repository. It is repaired rather than refused, because a
+    An adopted `.venv` built with pytest alone has no xdist, and what that
+    costs is the same command meaning three things in one repository. It is
+    repaired rather than refused, because a
     missing speed-up is not a wrong interpreter -- the suite runs correctly
     without it -- so the failure mode is a sentence and a serial run, never
     a suite nobody can run. One step, by the same tool order `build` uses.
@@ -225,99 +260,53 @@ def add_xdist(venv):
     return None
 
 
-def has_markdown_it(venv):
-    """True when `venv` holds the pinned markdown-it-py: its own
+def has_pin(venv, pin):
+    """True when `venv` holds PIN at its pinned version: the pin's own
     `.dist-info` directory, version in the name, under site-packages.
 
-    The VERSIONED directory rather than the `markdown_it` package, because
-    the pin is the point: an adopted `.venv` holding another version would
-    hand the oracle a different parser and pass a check on the package
-    directory. Filesystem only, for `has_xdist`'s reason.
+    The VERSIONED directory rather than the package directory, because the
+    pin is the point: an adopted `.venv` holding another version would hand
+    the suite a different parser and pass a check on the package directory.
+    Filesystem only, for `has_xdist`'s reason.
     """
-    name = f"markdown_it_py-{MARKDOWN_IT_VERSION}.dist-info"
-    return any((site / name).is_dir() for site in site_packages(venv))
+    return any((site / pin.dist_info).is_dir() for site in site_packages(venv))
 
 
-def add_markdown_it(venv):
-    """Install the pinned markdown-it-py into `venv` where it is missing.
-    Returns a sentence, or None when the environment has it.
+def add_pin(venv, pin):
+    """Install PIN into `venv` where it is missing. Returns a sentence, or
+    None when the environment has it.
 
-    `add_xdist`'s shape and its reason: an adopted `.venv` built before #667
-    has no parser, and it is repaired rather than refused. What a failed
-    install costs is different, and the sentence says what pytest then does
-    (#667 round 1, 🟡 3): the module that imports the oracle fails to collect
-    with a `ModuleNotFoundError`, and pytest's answer to a collection error
-    depends on the run. Measured 2026-09-29 with pytest 9.1.1 and
-    pytest-xdist 3.8.0: under `-n 2` every other module's cases ran and the
-    run exited 1; under `-p no:xdist` pytest stopped at collection, ran no
-    case and exited 2. The sentence used to promise the first for every run.
+    `add_xdist`'s shape and its reason: an adopted `.venv` built before a pin
+    joined `PINS` lacks it, and it is repaired rather than refused. What a
+    failed install costs is different, and the sentence says what pytest then
+    does: the module that imports the pin's module fails
+    to collect with a `ModuleNotFoundError`, and pytest's answer to a
+    collection error depends on the run. With pytest 9.1.1 and pytest-xdist
+    3.8.0, under `-n 2` every other module's cases run and the run exits 1;
+    under `-p no:xdist` pytest stops at collection, runs no case and exits 2.
     """
-    if has_markdown_it(venv):
+    if has_pin(venv, pin):
         return None
     uv = shutil.which("uv")
     if uv:
-        step = [uv, "pip", "install", "--python", str(venv_python(venv)), MARKDOWN_IT]
+        step = [uv, "pip", "install", "--python", str(venv_python(venv)), pin.spec]
     else:
-        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", MARKDOWN_IT]
+        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", pin.spec]
     print(
-        f"bin/test: adding {MARKDOWN_IT} to {venv}, the parser the suite's "
-        "CommonMark oracle reads. This run pays for it; every run after it "
-        "finds it there.",
+        f"bin/test: adding {pin.spec} to {venv}, {pin.role}. This run pays for "
+        "it; every run after it finds it there.",
         file=sys.stderr,
     )
     if subprocess.run(step).returncode != 0:
         return (
-            f"bin/test: could not install {MARKDOWN_IT} into {venv} (the "
-            "command above exited non-zero). The suite's CommonMark oracle "
-            "imports it, so a module that reads the oracle fails to collect "
-            "with a ModuleNotFoundError: a parallel run runs every other case "
-            "and exits non-zero, and a serial one -- `-p no:xdist`, `--pdb`, "
-            "or no pytest-xdist -- stops at collection and runs no case. "
-            "Remove that directory and run bin/test again to build it afresh "
-            "with the parser in it."
-        )
-    return None
-
-
-def has_cmarkgfm(venv):
-    """True when `venv` holds the pinned cmarkgfm: its own versioned
-    `.dist-info` directory under site-packages, for `has_markdown_it`'s
-    reason -- the pin is the point -- and filesystem only, for `has_xdist`'s."""
-    name = f"cmarkgfm-{CMARKGFM_VERSION}.dist-info"
-    return any((site / name).is_dir() for site in site_packages(venv))
-
-
-def add_cmarkgfm(venv):
-    """Install the pinned cmarkgfm into `venv` where it is missing. Returns a
-    sentence, or None when the environment has it.
-
-    `add_markdown_it`'s shape, and the same cost when the install fails: the
-    table walker's case imports the oracle at module level, so that module
-    fails to collect, and what pytest then does depends on the run.
-    """
-    if has_cmarkgfm(venv):
-        return None
-    uv = shutil.which("uv")
-    if uv:
-        step = [uv, "pip", "install", "--python", str(venv_python(venv)), CMARKGFM]
-    else:
-        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", CMARKGFM]
-    print(
-        f"bin/test: adding {CMARKGFM} to {venv}, the renderer the table "
-        "walker's oracle reads. This run pays for it; every run after it "
-        "finds it there.",
-        file=sys.stderr,
-    )
-    if subprocess.run(step).returncode != 0:
-        return (
-            f"bin/test: could not install {CMARKGFM} into {venv} (the command "
-            "above exited non-zero). The table walker's oracle imports it, so "
-            "the module that reads the oracle fails to collect with a "
+            f"bin/test: could not install {pin.spec} into {venv} (the command "
+            f"above exited non-zero). `{pin.module}` imports it, so a module "
+            f"that imports `{pin.module}` fails to collect with a "
             "ModuleNotFoundError: a parallel run runs every other case and "
             "exits non-zero, and a serial one -- `-p no:xdist`, `--pdb`, or no "
             "pytest-xdist -- stops at collection and runs no case. Remove that "
-            "directory and run bin/test again to build it afresh with the "
-            "renderer in it."
+            f"directory and run bin/test again to build it afresh with "
+            f"{pin.spec} in it."
         )
     return None
 
@@ -329,24 +318,24 @@ def caller_decided(argv):
     A worker count of their own (`-n 4`, `-n4`, `-nauto`, `--numprocesses`),
     the plugin switched off (`-p no:xdist`, `-pno:xdist`), and `--pdb`. That
     last is on the list because a debugger and distribution do not mix, not
-    because it is a spelling of `-n`: measured with pytest-xdist 3.8.0 on
-    2026-09-24, `-n 2 --pdb` exits 4 with its `UsageError` ("--pdb is
+    because it is a spelling of `-n`: with pytest-xdist 3.8.0,
+    `-n 2 --pdb` exits 4 with its `UsageError` ("--pdb is
     incompatible with distributing tests"), and `-n auto --pdb` is collapsed
     by xdist itself to zero workers, so withholding the flag and passing it
     reach the same serial run and withholding is the shorter route. The same
-    measurement tried `--sw`, `--lf -x`, `-s`, `-x` and `--trace` beside
-    `-n auto` and pytest accepted each, so none joins the list. The list is
+    build accepts `--sw`, `--lf -x`, `-s`, `-x` and `--trace` beside
+    `-n auto`, so none joins the list. The list is
     what bounds the failure scenario of a default: a flag pytest refuses
-    beside `-n auto` would be the ticket's middle row (exit 4) arriving from
-    the other side, and the remedy, `-p no:xdist`, is on the list too.
+    beside `-n auto` would fail the run with exit 4, and the remedy,
+    `-p no:xdist`, is on the list too.
 
     A short option clustered behind another, `-qn 2`, is outside the list
     and stays undetected on purpose: reading a `-n` out of every cluster
     would also read one out of `-rn` (a value of `-r`), and a count the
     caller clusters is then overridden by `-n auto` rather than refused —
-    the same suite at the machine's worker count instead of the caller's
-    (round 1's ⬜ 2). `-p=no:xdist` is on the list although pytest 9.1.1
-    refuses that spelling itself (measured 2026-09-24: `Error importing
+    the same suite at the machine's worker count instead of the caller's.
+    `-p=no:xdist` is on the list although pytest 9.1.1
+    refuses that spelling itself (`Error importing
     plugin "=no:xdist"`, exit 1): the caller's intent is settled either way,
     and a runner that appended `-n auto` to it would put a second reason
     into a failure that already has one.
@@ -408,15 +397,14 @@ def hide_from_git(venv):
     Called from `ensure`'s `finally`, and from `build`'s so that `build`
     keeps its own house in order for the directory it makes.
 
-    NAMING the paths is what this used to do, and the enumeration came up
-    short twice. Review round 1 added a build that failed partway and a
-    `.venv` the runner merely adopts; round 2 found a third the list had
-    missed -- the one adopted `.venv` the FLOOR refuses, which is also the
+    **The guarantee is stated over exits, not paths.** Four paths leave a
+    `.venv` behind: a build that fails partway, a `.venv` the runner merely
+    adopts, the one adopted `.venv` the FLOOR refuses -- which is also the
     one least likely to carry an ignore of its own, since every version that
     refusal rejects is older than the 3.13 where `python -m venv` began
-    writing one -- and a probe for that one found a fourth beside it, a
-    directory an earlier run left on a machine where neither builder can now
-    finish. A list of paths goes short again the next time one is added.
+    writing one -- and a directory an earlier run left on a machine where
+    neither builder can now finish. A list of paths goes short the next
+    time one is added.
 
     A guarantee stated over EXITS cannot, because `main` reaches a virtualenv
     through `ensure` and through nothing else: nothing returns from `ensure`
@@ -424,7 +412,7 @@ def hide_from_git(venv):
     is what makes that safe on the exits that never made one.
 
     Stating it over exits is also what puts this write on the two exits whose
-    entire product is a sentence, so the write is guarded (#177). A `.venv`
+    entire product is a sentence, so the write is guarded. A `.venv`
     the operator has made read-only is theirs, and the runner does not try to
     win the argument: it says which file it could not write and what that
     costs the reader, and leaves the refusal above it standing.
@@ -432,9 +420,8 @@ def hide_from_git(venv):
     **The remedy clause names no cause**, because `OSError` is four cases and
     not one: permissions, a read-only filesystem, a full disk, and the path
     being a directory. `strerror` carries which one it was, so the sentence
-    says what has to become true rather than what to change — an earlier
-    wording said *make it writable*, which is wrong advice on a full disk
-    (round 1's finding 3).
+    says what has to become true rather than what to change — *make it
+    writable* would be wrong advice on a full disk.
     """
     if not venv.is_dir():
         return
@@ -493,8 +480,8 @@ def build(venv):
     # branch above returns a string for a path that never makes a directory,
     # and the ignore is owed by every path that does. The install step is the
     # one that fails on a machine with no network, and by then `uv venv` has
-    # already made the directory -- so the run that ends in a sentence was the
-    # run leaving a virtualenv in `git status`.
+    # already made the directory -- so without it the run that ends in a
+    # sentence would be the run leaving a virtualenv in `git status`.
     try:
         for step in steps:
             if subprocess.run(step).returncode != 0:
@@ -514,16 +501,16 @@ def ensure(venv):
 
     The floor is asked of an ADOPTED environment as well as of a built one.
     `build` holds it two ways -- `uv venv --python ">=3.12"`, and the refusal
-    below it -- and neither runs on the warm path, so a `.venv` left by an
-    older interpreter ran the suite on a version nothing here supports and
-    said nothing about it.
+    below it -- and neither runs on the warm path, so without this a `.venv`
+    left by an older interpreter would run the suite on a version nothing
+    here supports and say nothing about it.
 
     The `finally` is where the ignore is written, and it is the whole of the
     guarantee: this function is the only way `main` reaches a virtualenv, so
     every path that can leave one behind is an exit of this function. It
     covers the directory this call built and the one it merely found, on the
     exit that succeeds and on every exit that refuses -- including the refusal
-    directly below, which returned one line above the ignore it owed. No
+    directly below, whose `return` would otherwise skip the ignore. No
     count, deliberately: a number here is a list again, and the next `return`
     falsifies it. `hide_from_git` does nothing when there is no directory.
     """
@@ -577,25 +564,17 @@ def main(argv=None):
     problem = add_xdist(root / ".venv")
     if problem:
         print(problem, file=sys.stderr)
-    # The parser the oracle reads (#667). Its failure is a sentence, and
-    # pytest is still called: in parallel the oracle's module is a collection
-    # error beside every other case, and serially pytest stops at collection
-    # (`add_markdown_it` says both). It decides nothing about `-n auto`.
-    parser_problem = add_markdown_it(root / ".venv")
-    if parser_problem:
-        print(parser_problem, file=sys.stderr)
-    # The table walker's renderer (#647). The parser's terms: a sentence, and
-    # pytest is still called; it decides nothing about `-n auto`.
-    renderer_problem = add_cmarkgfm(root / ".venv")
-    if renderer_problem:
-        print(renderer_problem, file=sys.stderr)
-    # `-n auto` by default (#337). The comment that stood here withheld it,
-    # because this virtualenv was built with pytest alone and the flag failed
-    # on every fresh build -- so the runner ran serially for ten releases
-    # while CI ran the same suite `-n auto` on three platforms, and the recipe
-    # for parallel sat in this comment as *add xdist and pass it yourself*.
-    # The build now carries xdist, an adopted environment is given it above,
-    # and the caller's own `-n`, `-p no:xdist` or `--pdb` still wins.
+    # The pinned packages (`PINS`). Each failure is a sentence, and pytest is
+    # still called: in parallel the importing module is a collection error
+    # beside every other case, and serially pytest stops at collection
+    # (`add_pin` says both). None decides anything about `-n auto`.
+    for pin in PINS:
+        pin_problem = add_pin(root / ".venv", pin)
+        if pin_problem:
+            print(pin_problem, file=sys.stderr)
+    # `-n auto` by default. The build carries xdist, an adopted environment is
+    # given it above, and the caller's own `-n`, `-p no:xdist` or `--pdb`
+    # still wins.
     command = [str(python), "-m", "pytest", *(argv or ["tests"])]
     if not problem and not caller_decided(argv):
         command += ["-n", "auto"]

@@ -8,24 +8,20 @@ costs in tokens -- with every token figure carrying its basis.
 #1177, each file their `@` lines import, and for a session the core the
 plugin's `SessionStart` hook prints) and
 reports bytes, characters and tokens. Bytes and characters are counted;
-tokens are never — they are either MEASURED from a transcript, by
-`--calibrate`, or ESTIMATED from a bytes-per-token ratio, and the label on
-each figure says which. A bare token number is the defect this module
-exists to refuse, because the six calibration spawns in `frame/design.md` showed
-bytes tracking tokens at 2.7 to 3.4 per token across three agents.
+tokens are never — each is ESTIMATED from the row's bytes at one assumed
+bytes-per-token ratio, and the label on each figure says so. A bare token
+number is the defect this module exists to refuse, because the six
+calibration spawns in `frame/design.md` showed bytes tracking tokens at 2.7
+to 3.4 per token across three agents.
 
-The fixtures are a hand-built tree with known sizes and a hand-built
-transcript pair (main + `subagents/`) with hand-written `usage` blocks, so a
-change that quietly stops subtracting the baseline, or starts printing a
-number with no basis, fails here.
+The fixtures are a hand-built tree with known sizes, so a change that
+starts printing a number with no basis fails here.
 
 #942's phase 6 placed these cases from
 `tests/test_the_payload_meter_says_what_it_measured.py`. Its round 9 fix pass
 placed in `Test_module` the two rows that run a copy of this script without
-its siblings, from `tests/test_a_script_copied_alone_exits_2.py`, and the
-heading after a U+2028, from
-`tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, each a case of this
-module alone.
+its siblings, from `tests/test_a_script_copied_alone_exits_2.py`, a case of
+this module alone.
 """
 
 import importlib.util
@@ -36,7 +32,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import LS, ROOT, census_case, names_path, symlink_or_skip
+from conftest import LS, ROOT, census_case, symlink_or_skip
 
 TARGET = "skills/verify/scripts/payload_meter.py"
 
@@ -140,117 +136,14 @@ def hook_output(root):
 
 HOOK_ROW = "SessionStart hook: skills/core/SKILL.md"
 
+# The basis every token figure carries, the session's and each agent's.
+BASIS = "estimated (3.2 B/token, an assumed ratio)"
+
 
 def size_of(path):
     with open(path, "rb") as handle:
         raw = handle.read()
     return len(raw), len(raw.decode("utf-8"))
-
-
-def stamp(second):
-    return f"2026-09-10T10:00:{second:02d}.000Z"
-
-
-def spawn_rows(spawns):
-    """Main-transcript rows for a list of (subagent_type, agent_id): one
-    `tool_use` block naming the type and one `tool_result` carrying the
-    `agentId:` line the harness writes."""
-    rows = []
-    for number, (kind, agent_id) in enumerate(spawns):
-        call_id = f"toolu_{number}"
-        rows.append(
-            {
-                "timestamp": stamp(number * 2),
-                "message": {
-                    "id": f"msg_{number}",
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "tool_use",
-                            "id": call_id,
-                            "name": "Agent",
-                            "input": {"subagent_type": kind, "prompt": "reply ready"},
-                        }
-                    ],
-                    "usage": {"input_tokens": 1},
-                },
-            }
-        )
-        text = (
-            "Async agent launched successfully.\n"
-            f"agentId: {agent_id} (internal ID - do not mention to user.)\n"
-        )
-        rows.append(
-            {
-                "timestamp": stamp(number * 2 + 1),
-                "message": {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": call_id,
-                            "content": [{"type": "text", "text": text}],
-                        }
-                    ],
-                },
-            }
-        )
-    return rows
-
-
-def subagent_rows(cache_write, cache_read, inputs=2):
-    """A subagent transcript: a user row with no usage, then the first
-    assistant message whose `usage` carries the whole prefix, then a later
-    assistant message with a DIFFERENT usage that must not be the one read."""
-    first = {
-        "input_tokens": inputs,
-        "cache_creation_input_tokens": cache_write,
-        "cache_read_input_tokens": cache_read,
-        "output_tokens": 4,
-    }
-    later = {
-        "input_tokens": 500,
-        "cache_creation_input_tokens": 0,
-        "cache_read_input_tokens": cache_write + cache_read,
-        "output_tokens": 40,
-    }
-    return [
-        {"timestamp": stamp(0), "message": {"role": "user", "content": "hi"}},
-        {
-            "timestamp": stamp(1),
-            "message": {
-                "id": "msg_a",
-                "role": "assistant",
-                "content": [{"type": "text", "text": "ready"}],
-                "usage": first,
-            },
-        },
-        {
-            "timestamp": stamp(2),
-            "message": {
-                "id": "msg_b",
-                "role": "assistant",
-                "content": [{"type": "text", "text": "done"}],
-                "usage": later,
-            },
-        },
-    ]
-
-
-def a_transcript(tmp_path, spawns, prefixes):
-    """`spawns` is a list of (subagent_type, agent_id); `prefixes` maps
-    agent_id → (cache_write, cache_read). Returns the main transcript path."""
-    main = tmp_path / "session-0001.jsonl"
-    with open(main, "w", encoding="utf-8") as handle:
-        for row in spawn_rows(spawns):
-            handle.write(json.dumps(row) + "\n")
-    for agent_id, (write_count, read_count) in prefixes.items():
-        path = tmp_path / "session-0001" / "subagents" / f"agent-{agent_id}.jsonl"
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as handle:
-            for row in subagent_rows(write_count, read_count):
-                handle.write(json.dumps(row) + "\n")
-    return str(main)
 
 
 def run(args, home, cwd=None, extra=None):
@@ -275,34 +168,6 @@ def rows_of(table_text):
             cells = [c.strip() for c in line.strip().strip("|").split("|")]
             out.append(cells)
     return out
-
-
-def _before_and_a_changed_tree(meter, tmp_path):
-    """A calibrated run, then the tree changes and NO new spawn is taken —
-    the shape #292's own after-number had: the transcript's smallest probe
-    spawn read `alpha` as it stood before the cut."""
-    root, home = a_tree(tmp_path)
-    transcript = a_transcript(
-        tmp_path,
-        [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-        {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-    )
-    before = meter.measure(str(root), str(home), calibrate=transcript)
-    before_path = tmp_path / "before.json"
-    with open(before_path, "w", encoding="utf-8") as handle:
-        json.dump(before, handle)
-    write(str(root / "skills" / "alpha" / "SKILL.md"), "# alpha\n\nintro\n")
-    return root, home, transcript, before, str(before_path)
-
-
-NOT_A_FENCE = {
-    # A prose line that begins with a four-backtick code span. A backtick opener's info string
-    # may not hold a backtick, so it opens nothing (CommonMark 4.5).
-    "backtick info": "```` ```` ```` is how a block quoting ``` is fenced.\n",
-    # Four spaces is an indented code block or a lazy continuation, never a
-    # fence delimiter.
-    "four spaces": "    ```\n",
-}
 
 
 class Test_measure:
@@ -340,10 +205,25 @@ class Test_measure:
         assert total["bytes"] == sum(f["bytes"] for f in files)
         assert total["chars"] == sum(f["chars"] for f in files)
 
+    def test_refuses_a_root_that_defines_no_agent(self, meter, tmp_path):
+        """A root without `agents/*.md` has nothing to measure: `measure`
+        finds no agent, and the command says so on stderr, prints no table
+        and exits 1, an input that could not be measured."""
+        root = tmp_path / "plugin"
+        home = tmp_path / "home"
+        write(str(root / "CLAUDE.md"), "## Repo rules\n")
+        assert meter.measure(str(root), str(home))["agents"] == {}
+        done = run(["--root", str(root)], home, cwd=str(tmp_path))
+        assert done.returncode == 1, (done.returncode, done.stderr)
+        assert done.stderr == f"seal payload: no agents/*.md under {root}\n", (
+            done.stderr
+        )
+        assert done.stdout == "", done.stdout
+
     def test_the_claude_md_pair_is_marked_as_the_harness_share(self, meter, tmp_path):
-        """The two `CLAUDE.md` files sit in EVERY agent's prefix, the baseline
-        agent's included, so a calibrated delta never covers them. The row says
-        so, and the pair is reported as the agent's own line in the text."""
+        """The two `CLAUDE.md` files sit in EVERY agent's prefix, so their
+        rows carry the harness's share, and the text prints the pair as one
+        line that says where it stands."""
         root, home = a_tree(tmp_path)
         data = meter.measure(str(root), str(home))
         files = data["agents"]["probe"]["files"]
@@ -356,7 +236,8 @@ class Test_measure:
             "skills/beta/SKILL.md",
         ]
         text = meter.render(data)
-        assert "CLAUDE.md pair" in text
+        pair_line = next(c for c in rows_of(text) if c[0].startswith("CLAUDE.md pair"))
+        assert pair_line[4] == f"{BASIS} — inside every agent's prefix", pair_line
 
     def test_an_import_in_either_file_of_the_pair_is_a_harness_row_under_it(
         self, meter, tmp_path
@@ -528,8 +409,7 @@ class Test_measure:
         """#1177, S8. `session` holds the pair with each file their `@` lines
         import, as the agents' tables do, then the hook's row, and a total that
         sums them. Every token figure is estimated at the assumed ratio and
-        says so, calibrated run or not: a transcript calibrates a subagent's
-        prefix, and no transcript calibrates a session's."""
+        carries the one basis every agent's figure carries."""
         root, home = a_tree(tmp_path)
         a_core(root)
         write(str(home / ".claude" / "CLAUDE.md"), "# my rules\n@rules/mine.md\n")
@@ -547,17 +427,9 @@ class Test_measure:
         assert session["total"]["chars"] == sum(f["chars"] for f in session["files"])
         assert session["total"]["tokens"] == sum(f["tokens"] for f in session["files"])
         assert str(tmp_path) not in done.stdout, "an absolute path reached the JSON"
-        transcript = a_transcript(
-            tmp_path,
-            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-        )
-        calibrated = meter.measure(str(root), str(home), calibrate=transcript)
-        assert calibrated["ratios"]["probe"]["bytes_per_token"] != meter.ASSUMED_RATIO
-        for row in [*calibrated["session"]["files"], calibrated["session"]["total"]]:
-            assert row["basis"].startswith(f"estimated ({meter.ASSUMED_RATIO} "), row
-            assert "assumed" in row["basis"], row
-        for row in calibrated["session"]["files"]:
+        for row in [*session["files"], session["total"]]:
+            assert row["basis"] == BASIS, row
+        for row in session["files"]:
             assert row["tokens"] == round(row["bytes"] / meter.ASSUMED_RATIO), row
 
     def test_no_agent_table_carries_the_hook_row(self, meter, tmp_path):
@@ -601,30 +473,6 @@ class Test_measure:
         assert line[4].startswith("missing"), line
         assert "so no hook prints one" in line[4], line
 
-    def test_sections_split_each_file_at_its_headings_and_sum_to_the_file(
-        self, meter, tmp_path
-    ):
-        root, home = a_tree(tmp_path)
-        data = meter.measure(str(root), str(home), sections=True)
-        alpha = next(
-            f
-            for f in data["agents"]["probe"]["files"]
-            if f["path"] == "skills/alpha/SKILL.md"
-        )
-        names = [s["heading"] for s in alpha["sections"]]
-        assert names == [
-            "(before the first heading)",
-            "## First",
-            "### Nested",
-            "## Second",
-        ]
-        assert sum(s["bytes"] for s in alpha["sections"]) == alpha["bytes"]
-        assert sum(s["chars"] for s in alpha["sections"]) == alpha["chars"]
-        text = meter.render(data)
-        assert "### Nested" in text
-        without = meter.measure(str(root), str(home))
-        assert "sections" not in without["agents"]["probe"]["files"][1]
-
     def test_a_root_on_another_drive_than_the_cwd_is_named_as_given(
         self, meter, monkeypatch, tmp_path
     ):
@@ -659,7 +507,7 @@ class Test_measure:
 
     # --- every token figure carries a basis -----------------------------------
 
-    def test_without_calibration_every_token_figure_reads_estimated_and_names_its_origin(
+    def test_every_token_figure_reads_estimated_at_the_assumed_ratio(
         self, meter, tmp_path
     ):
         """Every figure is an estimate at the assumed ratio; each FILE row is that
@@ -680,12 +528,7 @@ class Test_measure:
         data = meter.measure(str(root), str(home))
         probe = data["agents"]["probe"]
         for row in [*probe["files"], probe["total"]]:
-            assert row["basis"].startswith("estimated ("), row
-            assert "B/token" in row["basis"], row
-            assert "assumed" in row["basis"], (
-                "no ratio was measured, so the label has to say the figure rests on "
-                f"an assumption: {row['basis']}"
-            )
+            assert row["basis"] == BASIS, row
         for row in probe["files"]:
             assert row["tokens"] == round(row["bytes"] / meter.ASSUMED_RATIO), row
         assert probe["total"]["tokens"] == sum(f["tokens"] for f in probe["files"])
@@ -725,138 +568,16 @@ class Test_measure:
             if len(cells) >= 5 and cells[4].startswith("missing"):
                 continue
             if len(cells) >= 5 and re.fullmatch(r"[\d,]+", cells[3]):
-                assert cells[4].startswith(("estimated", "measured")), cells
+                assert cells[4].startswith(BASIS), cells
 
-    # --- S2: measured beside estimated ----------------------------------------
-
-    def test_calibrate_subtracts_the_baseline_and_derives_one_ratio_per_agent(
-        self, meter, tmp_path
-    ):
-        root, home = a_tree(tmp_path)
-        own = sum(
-            size_of(p)[0]
-            for p in (
-                root / "agents" / "probe.md",
-                root / "skills" / "alpha" / "SKILL.md",
-                root / "skills" / "beta" / "SKILL.md",
-            )
-        )
-        transcript = a_transcript(
-            tmp_path,
-            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-        )
-        data = meter.measure(str(root), str(home), calibrate=transcript)
-        # 2 input + 30002 + 10000 = 40004 against 2 + 20000 + 10000 = 30002.
-        delta = 40004 - 30002
-        probe = data["agents"]["probe"]
-        assert probe["prefix"] == {
-            "measured": 40004,
-            "baseline": 30002,
-            "baseline_agent": "general-purpose",
-            "from": "agent-bbbb2.jsonl",
-            "spawns": 1,
-            "subagent_type": "plugin:probe",
-        }
-        ratio = data["ratios"]["probe"]
-        assert ratio["from"] == "agent-bbbb2.jsonl"
-        assert ratio["bytes_per_token"] == round(own / delta, 2)
-        assert ratio["over_bytes"] == own
-        assert ratio["tokens"] == delta
-        assert probe["total"]["basis"].startswith("measured (agent-bbbb2.jsonl)")
-        assert "estimated" in probe["total"]["basis"], (
-            "the CLAUDE.md pair is inside the baseline, so its share is an estimate "
-            "even on a calibrated row and the total's basis has to say so"
-        )
-        pair = [f for f in probe["files"] if f["share"] == "harness"]
-        own_rows = [f for f in probe["files"] if f["share"] == "agent"]
-        assert probe["total"]["tokens"] == delta + sum(f["tokens"] for f in pair)
-        for row in own_rows + pair:
-            assert (
-                row["basis"]
-                == f"estimated ({ratio['bytes_per_token']} B/token, from probe)"
-            )
-            assert row["tokens"] == round(row["bytes"] / ratio["bytes_per_token"])
-        assert data["calibrated_from"] == "session-0001.jsonl"
-
-    def test_refuses_a_transcript_that_never_spawned_the_baseline_agent(
-        self, meter, tmp_path
-    ):
-        """Subtracting zero would print a measured total that is the whole
-        harness prefix, labelled as the agent's own. The refusal names what it
-        wanted and what it saw."""
-        root, home = a_tree(tmp_path)
-        transcript = a_transcript(
-            tmp_path, [("plugin:probe", "bbbb2")], {"bbbb2": (30002, 10000)}
-        )
-        with pytest.raises(meter.CalibrationError) as caught:
-            meter.measure(str(root), str(home), calibrate=transcript)
-        message = str(caught.value)
-        assert "general-purpose" in message
-        assert "plugin:probe" in message
-        result = run(
-            ["--root", str(root), "--calibrate", transcript], home, cwd=str(tmp_path)
-        )
-        assert result.returncode == 1
-        assert "general-purpose" in result.stderr
-        assert "measured" not in result.stdout
-
-    def test_two_spawns_of_one_agent_take_the_smallest_prefix_and_say_how_many(
-        self, meter, tmp_path
-    ):
-        """A spawn's first message carries the payload PLUS its prompt, so the
-        smallest prefix seen is the closest to the bare payload; the six
-        calibration spawns were told `reply with one word` for this reason."""
-        root, home = a_tree(tmp_path)
-        transcript = a_transcript(
-            tmp_path,
-            [
-                ("general-purpose", "aaaa1"),
-                ("plugin:probe", "bbbb2"),
-                ("plugin:probe", "cccc3"),
-            ],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000), "cccc3": (0, 35000)},
-        )
-        data = meter.measure(str(root), str(home), calibrate=transcript)
-        prefix = data["agents"]["probe"]["prefix"]
-        assert prefix["spawns"] == 2
-        assert prefix["measured"] == 35002
-        assert prefix["from"] == "agent-cccc3.jsonl"
-
-    def test_a_spawn_whose_result_carries_no_agent_id_is_reported_not_counted(
-        self, meter, tmp_path
-    ):
-        """The three `tmp-probe-*` spawns in the calibration session failed with
-        `Agent type not found` and no agentId; a meter that died on them would
-        never have read the six that worked."""
-        root, home = a_tree(tmp_path)
-        transcript = a_transcript(
-            tmp_path,
-            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-        )
-        with open(transcript, "a", encoding="utf-8") as handle:
-            rows = spawn_rows([("tmp-probe", "zzzz9")])
-            rows[1]["message"]["content"][0]["content"] = [
-                {"type": "text", "text": "Agent type 'tmp-probe' not found."}
-            ]
-            for row in rows:
-                handle.write(json.dumps(row) + "\n")
-        data = meter.measure(str(root), str(home), calibrate=transcript)
-        assert data["agents"]["probe"]["prefix"]["measured"] == 40004
-        assert data["calibration"]["unread"] == [
-            {"subagent_type": "tmp-probe", "why": "no agentId in the tool result"}
-        ]
-
-    def test_a_user_level_skill_shadows_the_trees_and_the_ratio_says_so(
+    def test_a_user_level_skill_shadows_the_trees_and_the_row_says_so(
         self, meter, tmp_path
     ):
         """Measured on the machine that wrote this: `agents/crafter.md` lists
-        `writing-style`, the harness resolved the bare name to
+        `writing-style`, and the harness resolved the bare name to
         `~/.claude/skills/writing-style/SKILL.md` (25,834 B) rather than the
-        plugin's (19,762 B), and adding the difference is what brought the
-        proofer's ratio to the tracer's. The row reports the tree's file, notes
-        the shadow, and the calibration divides by the bytes the spawn READ."""
+        plugin's (19,762 B). The row reports the tree's file and notes the
+        shadow."""
         root, home = a_tree(tmp_path)
         shadow = home / ".claude" / "skills" / "alpha" / "SKILL.md"
         write(str(shadow), "# alpha, the user's own\n" + "x" * 500 + "\n")
@@ -869,219 +590,6 @@ class Test_measure:
             "bytes": size_of(shadow)[0],
         }
         assert "shadowed" in meter.render(data)
-        transcript = a_transcript(
-            tmp_path,
-            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-        )
-        calibrated = meter.measure(str(root), str(home), calibrate=transcript)
-        ratio = calibrated["ratios"]["probe"]
-        seen = (
-            size_of(root / "agents" / "probe.md")[0]
-            + size_of(shadow)[0]
-            + size_of(root / "skills" / "beta" / "SKILL.md")[0]
-        )
-        assert ratio["over_bytes"] == seen
-        assert ratio["shadowed"] == ["skills/alpha/SKILL.md"]
-
-    # --- S3: before and after --------------------------------------------------
-
-    def test_a_baseline_json_lends_its_ratios_and_the_delta_names_what_moved(
-        self, meter, tmp_path
-    ):
-        root, home = a_tree(tmp_path)
-        transcript = a_transcript(
-            tmp_path,
-            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-        )
-        before = meter.measure(str(root), str(home), calibrate=transcript)
-        before_path = tmp_path / "before.json"
-        with open(before_path, "w", encoding="utf-8") as handle:
-            json.dump(before, handle)
-        # Then the tree changes: alpha loses a section, a new skill appears.
-        write(str(root / "skills" / "alpha" / "SKILL.md"), "# alpha\n\nintro\n")
-        write(
-            str(root / "agents" / "probe.md"),
-            "---\nname: probe\nskills:\n  - alpha\n  - beta\n  - gamma\n---\n# probe\n",
-        )
-        write(str(root / "skills" / "gamma" / "SKILL.md"), "# gamma\n\nnew\n")
-        after = meter.measure(str(root), str(home), baseline=str(before_path))
-        ratio = before["ratios"]["probe"]["bytes_per_token"]
-        alpha = after["agents"]["probe"]["files"][1]
-        assert alpha["basis"] == (
-            f"estimated ({ratio} B/token, from probe in before.json)"
-        )
-        assert alpha["tokens"] == round(alpha["bytes"] / ratio)
-        delta = after["delta"]["probe"]
-        alpha_before = before["agents"]["probe"]["files"][1]
-        assert delta["files"]["skills/alpha/SKILL.md"] == {
-            "bytes": alpha["bytes"] - alpha_before["bytes"],
-            "tokens": alpha["tokens"] - alpha_before["tokens"],
-            "basis": alpha["basis"],
-        }
-        assert delta["added"] == ["skills/gamma/SKILL.md"]
-        assert delta["removed"] == []
-        assert delta["total"]["bytes"] == (
-            after["agents"]["probe"]["total"]["bytes"]
-            - before["agents"]["probe"]["total"]["bytes"]
-        )
-        text = meter.render(after)
-        assert "## Delta against before.json" in text
-        assert "skills/gamma/SKILL.md" in text and "added" in text
-
-    def test_calibrating_the_same_spawn_over_a_changed_tree_keeps_the_ratio_it_read(
-        self, meter, tmp_path
-    ):
-        """The measured token count belongs to the bytes that spawn READ. Divided
-        by the bytes the tree holds now it is a ratio nobody measured, and the
-        first after-run of #292 printed exactly that: the crafter at 2.49 B/token
-        against the 2.87 its spawn paid, and +979 tokens on a file whose bytes
-        had not moved. When the baseline names the same spawn over other bytes,
-        the baseline's ratio is kept, the row says so, and nothing in the run
-        claims to be measured."""
-        root, home, transcript, before, before_path = _before_and_a_changed_tree(
-            meter, tmp_path
-        )
-        after = meter.measure(
-            str(root), str(home), calibrate=transcript, baseline=before_path
-        )
-        kept = before["ratios"]["probe"]
-        ratio = after["ratios"]["probe"]
-        assert ratio["bytes_per_token"] == kept["bytes_per_token"]
-        assert "tokens" not in ratio, "a lent ratio has no measurement of its own"
-        assert ratio["over_bytes"] == kept["over_bytes"]
-        assert "before.json" in ratio["from"] and "same spawn" in ratio["from"]
-        probe = after["agents"]["probe"]
-        note = probe["prefix"]["note"]
-        assert "agent-bbbb2.jsonl" in note and "before.json" in note
-        assert f"{kept['over_bytes']:,}" in note, "the bytes the spawn read are named"
-        assert "take a spawn after the change" in note
-        assert probe["total"]["basis"].startswith("estimated ("), probe["total"]
-        assert probe["total"]["tokens"] == sum(f["tokens"] for f in probe["files"])
-        alpha = probe["files"][1]
-        assert alpha["path"] == "skills/alpha/SKILL.md"
-        assert alpha["tokens"] == round(alpha["bytes"] / kept["bytes_per_token"])
-        assert alpha["basis"] == (
-            f"estimated ({kept['bytes_per_token']} B/token, from probe in before.json)"
-        )
-        text = meter.render(after)
-        assert note in text
-        assert "bytes the spawn read over" not in text.split("## probe")[1], (
-            "the ratio line would claim the spawn read this tree's bytes"
-        )
-
-    def test_a_delta_between_a_measured_total_and_an_estimated_one_sums_the_files(
-        self, meter, tmp_path
-    ):
-        """Subtracting an estimated total from a measured one reports the gap
-        between two bases as if it were a change in the tree: -6,773 tokens on
-        #292's after-run, where the files summed to -4,691. Where the two totals
-        rest on different bases the token delta is the sum over the files and
-        the basis says so; bytes are exact either way and are still subtracted."""
-        root, home, _transcript, before, before_path = _before_and_a_changed_tree(
-            meter, tmp_path
-        )
-        write(str(root / "skills" / "gamma" / "SKILL.md"), "# gamma\n\nnew\n")
-        write(
-            str(root / "agents" / "probe.md"),
-            "---\nname: probe\nskills:\n  - alpha\n  - gamma\n---\n# probe\n",
-        )
-        after = meter.measure(str(root), str(home), baseline=before_path)
-        delta = after["delta"]["probe"]
-        assert delta["added"] == ["skills/gamma/SKILL.md"]
-        assert delta["removed"] == ["skills/beta/SKILL.md"]
-        now = {f["path"]: f for f in after["agents"]["probe"]["files"]}
-        then = {f["path"]: f for f in before["agents"]["probe"]["files"]}
-        summed = (
-            sum(d["tokens"] for d in delta["files"].values())
-            + now["skills/gamma/SKILL.md"]["tokens"]
-            - then["skills/beta/SKILL.md"]["tokens"]
-        )
-        assert delta["total"]["tokens"] == summed
-        assert delta["total"]["bytes"] == (
-            after["agents"]["probe"]["total"]["bytes"]
-            - before["agents"]["probe"]["total"]["bytes"]
-        )
-        assert "summed over the files" in delta["total"]["basis"]
-        assert "measured" in delta["total"]["basis"]
-        assert "estimated" in delta["total"]["basis"]
-        assert "summed over the files" in meter.render(after)
-
-    def test_a_lent_ratio_keeps_the_spawn_it_was_measured_from(self, meter, tmp_path):
-        """Round 1, finding 1. The after-run of #292 is #120's before-run, and a
-        lent entry that names only the file it was lent from loses the spawn
-        behind it: one hop later the meter re-derived 2.49 B/token over bytes
-        the spawn never read, +5,381 tokens over 0 bytes, and called the total
-        measured. `spawn` and `over_bytes` ride every entry shape a baseline can
-        carry, and the same-spawn rule reads `spawn` first.
-
-        Round 2, finding 12. `payload-before.json` was written before a ratio
-        entry carried `spawn`: a derived entry names its spawn in `from` and
-        marks itself a measurement with `tokens`. `_spawn_of` reads that shape
-        too, and nothing pinned it — with that arm deleted every case here
-        stayed green while the committed before-file re-derived 2.49 B/token
-        over bytes its spawn never read, +982 tokens, and called the total
-        measured. The last block strips `spawn` from the derived entry before
-        lending it."""
-        root, home, transcript, before, before_path = _before_and_a_changed_tree(
-            meter, tmp_path
-        )
-        kept = before["ratios"]["probe"]
-        assert kept["spawn"] == "agent-bbbb2.jsonl", "the derived entry names its spawn"
-        after = meter.measure(
-            str(root), str(home), calibrate=transcript, baseline=before_path
-        )
-        assert after["ratios"]["probe"]["spawn"] == "agent-bbbb2.jsonl"
-        assert after["ratios"]["probe"]["over_bytes"] == kept["over_bytes"]
-        after_path = tmp_path / "after.json"
-        with open(after_path, "w", encoding="utf-8") as handle:
-            json.dump(after, handle)
-        again = meter.measure(
-            str(root), str(home), calibrate=transcript, baseline=str(after_path)
-        )
-        ratio = again["ratios"]["probe"]
-        assert ratio["bytes_per_token"] == kept["bytes_per_token"], ratio
-        assert "tokens" not in ratio, "a second hop re-derived a measurement"
-        assert ratio["spawn"] == "agent-bbbb2.jsonl"
-        probe = again["agents"]["probe"]
-        assert "note" in probe["prefix"], probe["prefix"]
-        assert probe["total"]["basis"].startswith("estimated ("), probe["total"]
-        delta = again["delta"]["probe"]
-        assert delta["total"] == {
-            "bytes": 0,
-            "tokens": 0,
-            "basis": delta["total"]["basis"],
-        }, delta["total"]
-        # The plain lent shape carries the same two facts, so a third hop that
-        # starts from a run with no --calibrate still knows the spawn.
-        plain = meter.measure(str(root), str(home), baseline=before_path)
-        assert plain["ratios"]["probe"]["spawn"] == "agent-bbbb2.jsonl"
-        assert plain["ratios"]["probe"]["over_bytes"] == kept["over_bytes"]
-        # Finding 8, folded in: the delta heading names the file it was taken
-        # against, whichever entry shape the ratio has.
-        assert after["baseline"] == "before.json"
-        assert "## Delta against before.json" in meter.render(after)
-        assert "## Delta against after.json" in meter.render(again)
-        # Round 2, finding 12: the shape the committed before-file has — a
-        # derived entry with `from` and `tokens` and no `spawn` — is recognised
-        # as the same spawn, and the lent entry restores both facts.
-        old_shape = json.loads(json.dumps(before))
-        assert "tokens" in old_shape["ratios"]["probe"]
-        assert old_shape["ratios"]["probe"]["from"] == "agent-bbbb2.jsonl"
-        del old_shape["ratios"]["probe"]["spawn"]
-        old_path = tmp_path / "before-without-spawn.json"
-        with open(old_path, "w", encoding="utf-8") as handle:
-            json.dump(old_shape, handle)
-        hop = meter.measure(
-            str(root), str(home), calibrate=transcript, baseline=str(old_path)
-        )
-        ratio = hop["ratios"]["probe"]
-        assert ratio["bytes_per_token"] == kept["bytes_per_token"], ratio
-        assert "tokens" not in ratio, "the old shape went unrecognised; re-derived"
-        assert ratio["spawn"] == "agent-bbbb2.jsonl"
-        assert ratio["over_bytes"] == kept["over_bytes"]
-        assert hop["agents"]["probe"]["total"]["basis"].startswith("estimated (")
 
     def test_an_inline_skills_list_is_read(self, meter, tmp_path):
         """Round 1, finding 3. `skills: [a, b]` is the same field in YAML's
@@ -1131,91 +639,15 @@ class Test_measure:
         pins the universal newlines the LF split comes after."""
         assert meter.frontmatter(text) == expected
 
-    def test_the_baseline_agent_may_be_named_with_its_namespace(self, meter, tmp_path):
-        """Round 1, finding 4. The refusal listed `agentic:tracer` among the
-        agents the transcript spawned and refused `--baseline-agent
-        agentic:tracer` in the same breath, because `seen` is keyed by the
-        short name and the argument was compared raw."""
-        root, home = a_tree(tmp_path)
-        transcript = a_transcript(
-            tmp_path,
-            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
-            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
-        )
-        spelled = meter.calibration_of(transcript, "plugin:probe")
-        assert spelled["baseline"]["measured"] == 40004
-        assert spelled["baseline_agent"] == "probe"
-        data = meter.measure(
-            str(root), str(home), calibrate=transcript, baseline_agent="plugin:probe"
-        )
-        assert data["calibration"]["baseline_agent"] == "probe"
-        assert "probe" not in data["ratios"], (
-            "the baseline agent is not measured against itself"
-        )
-
-    def test_the_delta_lists_an_agent_the_baseline_has_and_the_tree_lost(
-        self, meter, tmp_path
-    ):
-        root, home = a_tree(tmp_path, extra_agent=True)
-        before = meter.measure(str(root), str(home))
-        before_path = tmp_path / "before.json"
-        with open(before_path, "w", encoding="utf-8") as handle:
-            json.dump(before, handle)
-        os.remove(root / "agents" / "other.md")
-        after = meter.measure(str(root), str(home), baseline=str(before_path))
-        assert after["delta"]["other"] == {"removed_agent": True}
-        assert "other" in meter.render(after)
-
-
-class Test_sections_of:
-    def test_refuses_a_heading_inside_a_fence_as_a_section(self, meter, tmp_path):
-        """Round 1, finding 2. A skill quotes headings as examples inside a
-        fence, and `--sections` listed four of `agents/proofer.md`'s fenced
-        template headings as sections with real byte counts — a number that
-        sends #120 to cut an example. The check one file over already reads a
-        fence as a quotation; the meter reads it the same way, and the pieces
-        still sum to the file.
-
-        Round 2, finding 13: a fence closes only on a fence of the same character
-        at least as long, so a heading inside a ``` block nested in a ```` block,
-        or between ~~~ inside a ``` block, is fenced too — a plain toggle counted
-        each of those as a section."""
-        text = (
-            "# alpha\n\nintro\n\n## First\n\nreal\n\n```markdown\n## Example\n"
-            "### Nested example\n```\n\n~~~\n## Tilde example\n~~~\n\n"
-            "````markdown\n```\n## Inner example\n```\n## Still fenced\n````\n\n"
-            "```\n~~~\n## Tilde inside backticks\n~~~\n## Also fenced\n```\n\n"
-            "## Second\n\nlast\n"
-        )
-        pieces = meter.sections_of(text)
-        assert [p["heading"] for p in pieces] == [
-            "(before the first heading)",
-            "## First",
-            "## Second",
-        ], [p["heading"] for p in pieces]
-        assert sum(p["bytes"] for p in pieces) == len(text.encode("utf-8"))
-        assert sum(p["chars"] for p in pieces) == len(text)
-
-    @pytest.mark.parametrize("shape", sorted(NOT_A_FENCE))
-    def test_accepts_a_heading_after_a_line_the_shared_rule_does_not_fence(
-        self, meter, shape
-    ):
-        """#584, S12. `heading_starts` kept a fence rule of its own — any
-        indentation, any delimiter line of the right character opening — so a
-        line the shared rule does not read as a fence hid every heading after
-        it. The walk is `lib/blocks.py#fence_opener` and `fence_closes`
-        now."""
-        text = f"# alpha\n\n## First\n\n{NOT_A_FENCE[shape]}\n## H\n\nlast\n"
-        headings = [p["heading"] for p in meter.sections_of(text)]
-        assert headings == ["(before the first heading)", "## First", "## H"], headings
-
 
 class Test_imports_of:
     """#1177, `frame/design.md` *Scope* item 5: how an `@` line resolves, as
     code.claude.com/docs/en/memory.md states it -- relative to the file that
     holds it, `~` as the home, at most four hops. #1185: where an import is
     read, as the same page states it -- in the file's live text alone, with
-    a backslash carrying a path past a space."""
+    a backslash carrying a path past a space. Where two cases have one body,
+    the text they write differs: a fence of each shape, a code span, an HTML
+    comment, or a backtick its paragraph never closes."""
 
     def test_accepts_a_tilde_path_as_the_home_it_was_given(
         self, meter, monkeypatch, tmp_path
@@ -1346,7 +778,7 @@ class Test_imports_of:
         """#1185, S3. The docs skip a code span in the same sentence as a
         fence. A span runs from a backtick run to the next run of the same
         length, on its line or, before its paragraph ends, on a later one
-        (`unverified_check.py#_partner_ahead`), and the import after it is
+        (`lib/lines.py#_partner_ahead`), and the import after it is
         read."""
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
@@ -1397,67 +829,19 @@ class Test_imports_of:
 
 
 class Test_module:
-    def test_a_section_heading_is_read_by_the_one_heading_rule(self, meter):
-        """#867. `heading_starts` cuts at the levels 2 and 3 of the one rule,
-        `unverified_check.py#heading_level`: a heading indented up to three
-        spaces or followed by a tab is one, and `#120)` and `##B` are not. The
-        pattern it kept, `^#{2,3} `, missed the first two. Seen red against it."""
-        text = "intro\n   ## Indented\nx\n##\tTabbed\ny\n#120) prose\n##B\n### Three\n"
-        starts = meter.heading_starts(text)
-        lines = [text[at:].split("\n", 1)[0] for at in starts]
-        assert lines == ["   ## Indented", "##\tTabbed", "### Three"], lines
-
-    def test_a_heading_after_a_separator_starts_no_section(self, meter):
-        """S12 of #664. No section starts mid-line: a heading after a U+2028,
-        which GFM does not end a line at, starts none, and the one that does
-        start is at its offset in the file, which is where the ends kept put
-        it."""
-        text = f"intro\n\nprose{LS}## Not a section\n\n## Real\nbody\n"
-        assert meter.heading_starts(text) == [text.index("## Real")]
-
     @pytest.mark.parametrize(
-        "args, purpose, absent",
-        [
-            (
-                ["--root", "{root}", "--calibrate", "{root}/main.jsonl"],
-                "it is what reads a transcript's spawns",
-                None,
-            ),
-            # #584 and #1185: `--sections` loads `unverified_check.py` before
-            # it reads the root, and so does every read of a `CLAUDE.md` that
-            # exists. The sentence names both uses, and its purpose must not
-            # be the transcript sibling's.
-            (
-                ["--root", "{root}", "--sections"],
-                "it is what says where a fenced example, an HTML comment or a "
-                "code span stands in a file, so --sections cannot split a skill "
-                "at its headings and no import of a `CLAUDE.md` can be read",
-                "transcript",
-            ),
-            # #1430: every run counts the core hook's output, which
-            # `lib/core.py#rendered` defines, so a copy alone reaches it with
-            # no flag at all.
-            (
-                ["--root", "{root}"],
-                "it is what says what the core hook prints into a session",
-                "transcript",
-            ),
-        ],
-        ids=["session_cost.py", "unverified_check.py", "core.py"],
+        "args", [["--root", "{root}"], ["--help"]], ids=["a-run", "help"]
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
-        self, tmp_path, args, purpose, absent
+        self, tmp_path, meter, args
     ):
-        """#590 and #610. A copy of this script taken without its siblings exits
-        2, with a sentence naming the missing path and what it is for; here 1
-        means an input that could not be measured, and 2 that nothing was read.
-        It loads `session_cost.py` only under `--calibrate`, and `measure` calls
-        the loader before it opens the transcript, so the transcript named need
-        not exist; under `--sections` it calls that loader before it reads the
-        root, so the row reaches it in a directory with no `agents/` at all.
-        The copy stands at its path in a plugin that holds nothing else, so
-        `lib/core.py`, which every run loads after the calibration (#1430),
-        is named under the copy's plugin root too."""
+        """#590 and #610, and S4 of #1482. A copy of this script taken
+        without its siblings exits 2, with the loader's one sentence naming
+        the absent `lib/sibling.py` by its path; here 1 means an input that
+        could not be measured, and 2 that nothing was read. The copy stands
+        at its path in a plugin that holds nothing else, so the path is
+        under the copy's plugin root. The sentence names no purpose (#1482). `--help` reaches the sentence too, because the guard stands at
+        import and reads no argument (#1482, A13)."""
         script = TARGET
         alone = tmp_path / "alone"
         copy = alone.joinpath(*script.split("/"))
@@ -1474,27 +858,21 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), (
-            f"the refusal does not name the missing path: {done.stderr}"
-        )
-        assert purpose in done.stderr, (
-            f"the refusal does not say what the missing file is for: {done.stderr}"
-        )
-        if absent:
-            assert absent not in done.stderr, done.stderr
+        said = meter.sibling.MISSING.format(path=str(alone / "lib" / "sibling.py"))
+        assert done.stderr == said + "\n", done.stderr
 
     def test_a_copy_without_the_scan_exits_2_on_a_run_that_reads_a_claude_md(
-        self, tmp_path
+        self, tmp_path, meter
     ):
         """#1185. Every read of a `CLAUDE.md` that exists asks
-        `unverified_check.py` where its live text is, so a copy that holds
-        the core hook's module and not that sibling exits 2 with no flag at
-        all, and its sentence names the import reading. The row above with
-        no flag stops at `lib/core.py` first, so this copy carries it and
+        `lib/blocks.py` for its lines and `lib/lines.py` where its live text
+        is, so a copy that holds the loader and the core hook's module and
+        neither of those exits 2 with no flag at all, in the loader's
+        sentence naming the first it loads, `lib/blocks.py`.
+        Every run loads `lib/core.py` first, so this copy carries it and
         `lib/optin.py`, the one module it loads."""
         alone = tmp_path / "alone"
-        for rel in (TARGET, "lib/core.py", "lib/optin.py"):
+        for rel in (TARGET, "lib/sibling.py", "lib/core.py", "lib/optin.py"):
             copy = alone.joinpath(*rel.split("/"))
             copy.parent.mkdir(parents=True, exist_ok=True)
             with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:
@@ -1519,8 +897,10 @@ class Test_module:
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
         assert "Traceback" not in done.stderr, done.stderr
-        assert names_path(str(alone), done.stderr), done.stderr
-        assert "no import of a `CLAUDE.md` can be read" in done.stderr, done.stderr
+        reader = alone / "lib" / "blocks.py"
+        assert meter.sibling.MISSING.format(path=str(reader)) in done.stderr, (
+            done.stderr
+        )
 
     def test_json_carries_the_same_numbers_as_the_text_and_no_machine_path(
         self, tmp_path

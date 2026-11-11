@@ -421,7 +421,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 | `seal fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `seal/config.json` 의 `Document token ceiling` 키와 `Policy root` 키에 견주어 확인한다 (`templates/setup/config.md` *The fold's values*) |
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
-| `seal payload` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트와 토큰으로 잰다 (`skills/verify/scripts/payload_meter.py`) |
+| `seal payload [--json] [--agent <name>] [--root <dir>]` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트로 재고, 토큰은 그 바이트에서 추정한다 (`skills/verify/scripts/payload_meter.py`) |
 | `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `seal/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
 | `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |

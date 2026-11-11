@@ -38,9 +38,11 @@ import os
 import re
 
 import pytest
-from conftest import ROOT
+from conftest import ROOT, census_case
 
-CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
+TARGET = "skills/agent-contract/SKILL.md"
+
+CONTRACT = os.path.join(*TARGET.split("/"))
 
 # The one reader of a contract heading, `## <N> <title>`. Every other module
 # that walks the contract's rules imports it from here.
@@ -113,10 +115,18 @@ def missing_facts(text):
 
 def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
     head = frontmatter(read())
+    # The front-matter name the harness resolves each definition's
+    # `skills:` entry to.
     assert "name: agent-contract" in head
+    # The front-matter key and value the harness reads to keep the skill out
+    # of the `/` menu.
     assert "user-invocable: false" in head, (
         "the contract would show in the `/` menu as though it were a command"
     )
+    # The flag the harness reads to block a preload, which
+    # `docs/running/the-agent-set.md` *One contract every agent receives, and
+    # one definition each* rules out: every agent receives the contract
+    # before its first tool call.
     assert "disable-model-invocation: true" not in head, (
         "that flag blocks preload — the contract would stop reaching agents "
         "and nothing would say so (docs/experiments/2026-09-03-…)"
@@ -276,3 +286,6 @@ def test_a_heading_in_the_old_spelling_is_refused_at_its_line():
     old = f"## \N{SECTION SIGN}{first.group(1)} {first.group(2)}"
     mutated = text[: first.start()] + old + text[first.end() :]
     assert misspelled_headings(mutated) == [text.count("\n", 0, first.start()) + 1]
+
+
+test_census = census_case(TARGET)

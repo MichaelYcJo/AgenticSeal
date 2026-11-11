@@ -44,8 +44,8 @@ jobs:
       # body wrote `Closes #153 and #150`; the 0.8.0 release closed #153 and
       # left #150 open, and somebody closed it by hand afterwards. Nothing
       # malfunctioned — GitHub reads it that way and so does
-      # `close_issues_on_release.py`, whose own comment says so two lines
-      # above its regex. The rule was written down in the one file whose
+      # `close_issues_on_release.py`, whose own comment over `KEYWORDS` says
+      # so. The rule was written down in the one file whose
       # author needs it least while the prose is being written.
       #
       # So this reports the split — every number the body claims, every one it

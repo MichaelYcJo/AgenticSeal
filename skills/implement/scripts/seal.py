@@ -16,10 +16,8 @@ way:
   seal export --check         the release reminder; writes nothing
   seal import <zip>           merge a zip's records in, overwriting nothing
 
-Switching between the two modes was two shell lines in `README.md` that a
-person had to find, and a repository arriving from the 0.3.x layout was
-never asked which mode it wanted (#104). `seal mode` is that section made
-runnable, and the section on the mode below this one is its reasoning:
+`seal mode` makes the switch between the two modes one command, and the
+section on the mode below this one is its reasoning:
 
   seal mode                   the folder, the `Mode` key, and whether they
                               agree; first converts an earlier release's
@@ -31,7 +29,7 @@ runnable, and the section on the mode below this one is its reasoning:
 
 The switch moves the root and nothing else. Whether CI checks pull requests
 is a second answer, and its record is the workflow file itself, so no key
-says it (#952):
+says it:
 
   seal pr-checks              whether .github/workflows/hygiene.yml is this
                               plugin's, and the release it pins; writes nothing
@@ -45,7 +43,7 @@ Every other command of the plugin is a subcommand of this one, and `TOOLS`
 says which script each runs. `seal gate --base <base> --record <item>` hands
 `--base <base> --record <item>` to `broad_gate.py` untouched, `--help` among
 any arguments, so each script keeps its own parser and its own help, and a
-subcommand is a dispatch and not a copy (#1051).
+subcommand is a dispatch and not a copy.
 
 **The root is its own directory, and that is what makes the export safe.**
 Beside it under the git directory sit the stamp's queue and refusal records,
@@ -55,9 +53,8 @@ walks the root and nothing else. A symbolic link inside the root is the one
 way back out, so links are skipped and named rather than followed.
 
 **A zip is untrusted input**, and `ZipFile.extractall` is not used on it.
-What that buys is narrower than the usual telling, so it is written down
-measured rather than repeated: on the CPython this ships on (3.12 to 3.14,
-checked 2026-09-03) `extractall` already strips `..` and a leading `/` from a
+What that buys is narrower than the usual telling: on the CPython this ships
+on, 3.12 to 3.14, `extractall` already strips `..` and a leading `/` from a
 member's name, and writes a link entry as an ordinary file. It is **not** a
 path-traversal sink there.
 
@@ -88,11 +85,8 @@ work away.
 `N work items changed since the last export`, where a work item is
 its directory `threads/<id>/`. A root-level file, any file the root holds
 outside `threads/` (`docs/layout/the-record-layout.md` *seal/* names each), is NOT
-counted, because the line
-the design specifies says *work items* and this command does not get to widen
-it. So a release whose only change was to `follow-up.md` reports 0. That gap
-is Q1 in the work item's `questions.md`, with the owner named; it is written
-here as well because this docstring is where the next reader meets the count.
+counted, because the line says *work items* and this command does not get to
+widen it. So a release whose only change was to `follow-up.md` reports 0.
 
 Exit codes: 0 done · 1 nothing was written, and the message says why · 2 a
 file this command loads from `lib/` is not there, so nothing was read, or
@@ -174,55 +168,33 @@ TOOLS = {
     ),
 }
 
-# What each module this command imports from `lib/` is for, in the sentence
-# printed when it is missing. They are checked before the `import` lines,
-# because a plain `import` of an absent module dies with a
-# `ModuleNotFoundError` traceback at exit 1 (#610) -- and a search for
-# by-path loaders cannot see this shape, which is how #590 missed it.
-LIB_PURPOSES = {
-    "config.py": "it is what reads the root's config.json, whose Mode key "
-    "this command keeps",
-    "optin.py": "it is what finds the repository's seal/ root",
-    "tables.py": "it is the walker seal mode reads an old config.md through",
-    # `tables.py` imports it, so a `lib/` without it fails that import.
-    "blocks.py": "it is the walk tables.py reads a table through, which "
-    "tells a live row from one quoted in a fence or parked in a comment",
-    "gitcmd.py": "it is what builds the `git status` this command reads, the "
-    "same under any git configuration",
-}
-
-
-def refuse_without_lib(lib=LIB):
-    """Exit 2 with one sentence per `LIB_PURPOSES` module absent from
-    `lib`, naming its path and what it is for; return where all are there.
-
-    2 and not 1, because 1 here means *nothing was written* about a root this
-    command read, and a missing sibling means nothing was read at all. A
-    `SystemExit` carrying a string exits 1, so the sentences go to stderr and
-    the code is the int -- the shape `settle.py#load` has."""
-    missing = [
-        name for name in LIB_PURPOSES if not os.path.isfile(os.path.join(lib, name))
-    ]
-    if not missing:
-        return
-    for name in missing:
-        sys.stderr.write(
-            f"seal: cannot read {os.path.join(lib, name)}, and {LIB_PURPOSES[name]}.\n"
-        )
+# `lib/sibling.py` loads every module this command reads from `lib/`. Where
+# it is absent, the refusal is its own sentence about itself, spelt here
+# because the file that holds the sentence is the one missing; a plain
+# `import` of an absent module dies with a `ModuleNotFoundError` traceback at
+# exit 1. It runs at import, so any invocation argparse accepts
+# reaches it.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
     sys.stderr.write(
-        "This command ships under `skills/`, in the plugin that holds "
-        "`lib/`; a copy of one script taken on its own is not a plugin. "
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
         "Nothing was read.\n"
     )
-    raise SystemExit(2)
+    raise SystemExit(2) from None
 
-
-refuse_without_lib()
-sys.path.insert(0, LIB)
-import config as repo_config  # noqa: E402
-import gitcmd  # noqa: E402
-import optin  # noqa: E402
-import tables  # noqa: E402
+repo_config = sibling.load("lib/config.py")
+gitcmd = sibling.load("lib/gitcmd.py")
+optin = sibling.load("lib/optin.py")
+# `lib/tables.py` imports `lib/blocks.py` by its plain name, which finds this
+# instance, so a `lib/` without it is the loader's sentence at exit 2 rather
+# than the import's traceback.
+sibling.load("lib/blocks.py")
+tables = sibling.load("lib/tables.py")
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -243,15 +215,15 @@ ADDED, IDENTICAL, COLLIDED = "added", "identical", "collided"
 
 # A record is markdown, and `write_members` reads each member whole. The zip
 # arrives from another machine, so its declared sizes are the sender's choice
-# rather than this root's honest contents: measured 2026-09-03, a 408 KB zip
-# declaring 400 MB in one member wrote 419 MB and added as much to memory in
-# 0.2 s. All three limits are read before a byte is written.
+# rather than this root's honest contents: unbounded, a 408 KB zip declaring
+# 400 MB in one member writes 419 MB and adds as much to memory in 0.2 s.
+# All three limits are read before a byte is written.
 MEMBER_LIMIT = 32 * 1024 * 1024
 ARCHIVE_LIMIT = 512 * 1024 * 1024
 # The other axis. A member declaring zero bytes passes the member limit and
 # adds nothing to the total, so neither byte bound sees a zip that is only a
-# count: measured 2026-09-03, a 31 MB zip of 300,000 empty members wrote
-# 300,002 files into the root at exit 0, in 34.5 s. A root of records is one
+# count: unbounded, a 31 MB zip of 300,000 empty members writes 300,002 files
+# into the root at exit 0, in 34.5 s. A root of records is one
 # directory per work item.
 MEMBER_COUNT_LIMIT = 20_000
 
@@ -263,14 +235,12 @@ def git_asked(root, *args, answered=(0,)):
     """(`git -C root <args>` stdout stripped, "") — or (None, why).
 
     **The one place that can say why**, which is what separates *there is no
-    remote* from *the question could not be answered*. `porcelain`, `tracked`
-    and `gitlinks_under_root` each grew this shape for themselves; this is it
-    promoted, so a fourth spelling is not what a caller needing the
-    distinction has to write. `git()` below is this function with the
-    distinction thrown away — the right reading for a caller that has nothing
-    to do with `why`, and the wrong one for a caller that reads "" as a FACT
-    about the repository. #111 found four call sites doing the second, one of
-    which switched off `seal import`'s refusal.
+    remote* from *the question could not be answered*, and a caller needing
+    the distinction calls this rather than spelling it again. `git()` below
+    is this function with the distinction thrown away — the right reading
+    for a caller that has nothing to do with `why`, and the wrong one for a
+    caller that reads "" as a FACT about the repository: a failure read as
+    *no remote* switches off `seal import`'s refusal.
 
     `answered` is the return codes that count as an answer, because for one
     command a non-zero code IS one: `git config --get` exits 1 when the key is
@@ -294,7 +264,7 @@ def git_asked(root, *args, answered=(0,)):
         return None, f"{named} could not be run ({exc})"
     # The return code, not the output alone. `git rev-parse HEAD` on a branch
     # with no commit yet exits 128 and still prints `HEAD`, which the manifest
-    # would record as this export's SHA (measured 2026-09-03).
+    # would record as this export's SHA.
     if done.returncode not in answered:
         return None, (done.stderr or "").strip() or (
             f"{named} exited {done.returncode}"
@@ -323,7 +293,7 @@ def remote_url(root):
 
     **`git config --get` exits 1 with nothing on either stream when the key is
     not set**, so this is the one command here whose exit 1 is an answer
-    (measured 2026-09-07 against git 2.50.1: unset gives `(1, '', '')` and a
+    (git 2.50.1: unset gives `(1, '', '')` and a
     `.git/config` git cannot parse gives `(128, '', 'fatal: bad config line
     9 …')`). Two other states exit 1 with both streams empty, so **exit 1 is
     an answer only for a caller whose `root` git has already resolved**:
@@ -348,16 +318,16 @@ def head_sha(root):
 
     There is no empty answer. `git rev-parse HEAD` prints a SHA whenever it
     succeeds and exits 128 on a branch with no commit yet — printing `HEAD`,
-    which is what #81's round 1 measured reaching the manifest as an export's
-    SHA. So a repository with no commit is *unanswered* here, and the manifest
+    which would otherwise reach the manifest as an export's SHA. So a
+    repository with no commit is *unanswered* here, and the manifest
     leaves the field out rather than writing a string that is not a SHA.
     """
     return git_asked(root, "rev-parse", "HEAD")
 
 
-# Moved to `lib/config.py` (#647), where the `Pact` reader needs it and
-# cannot import this file; the alias keeps one normaliser under the name every
-# caller here already spells, as the config aliases below do.
+# Defined in `lib/config.py`, where the `Pact` reader needs it and cannot
+# import this file; the alias keeps one normaliser under the name every
+# caller here spells, as the config aliases below do.
 normalise_remote = repo_config.normalise_remote
 
 
@@ -474,9 +444,9 @@ def manifest_of(repo, mode, files):
 
     Absent and empty are different facts, and `remote` needs all three states:
     a URL, `""` for a repository with no `origin`, and absent for a question
-    that went unanswered. Freezing `""` in for the third switched off the
-    receiving machine's own refusal (#111) — an export cannot ask the importer
-    to tell two facts apart while writing one string for both.
+    that went unanswered. Writing `""` for the third would switch off the
+    receiving machine's own refusal — an export cannot ask the importer to
+    tell two facts apart while writing one string for both.
 
     `head` has no empty state at all. `git rev-parse HEAD` prints a SHA
     whenever it succeeds, so present here means a SHA was read, and a
@@ -485,18 +455,17 @@ def manifest_of(repo, mode, files):
     **The reasons come back rather than being dropped.** An omitted `remote`
     is refused on arrival, and the machine running THIS command is the only
     one that can clear the failure by running it again — so an export that
-    said nothing left the diagnosis on the machine that cannot act on it.
+    said nothing would leave the diagnosis on the machine that cannot act on
+    it.
 
     They come back KEYED BY FIELD, because only `remote` is refused on
     arrival. A caller handed a flat list has to match on the sentences to
-    tell which field went unread, and the first cut of this did not try:
-    it printed *the other machine takes in without a flag* for an export
-    that had read the remote and only missed the HEAD SHA, promising a fix
-    for a refusal that was never going to happen.
+    tell which field went unread, or it prints *the other machine takes in
+    without a flag* for an export that read the remote and only missed the
+    HEAD SHA, promising a fix for a refusal that never comes.
 
-    The format number does not move for this. No field was renamed or
-    repurposed, and format 1's only reader of these two already goes through
-    `manifest.get`.
+    A field left out keeps format 1: no field is renamed or repurposed, and
+    format 1's only reader of these two goes through `manifest.get`.
     """
     manifest = {
         "format": FORMAT,
@@ -515,8 +484,8 @@ def manifest_of(repo, mode, files):
     # `is not None`, the same test as the line above. `if head` behaves
     # identically today — `head_sha`'s docstring argues there is no empty
     # answer — but it is the spelling that would silently drop a legitimate
-    # empty one, and two spellings of one question five lines apart is what
-    # sent a reader looking for a difference that is not there.
+    # empty one, and two spellings of one question five lines apart send a
+    # reader looking for a difference that is not there.
     head, head_why = head_sha(repo)
     if head is not None:
         manifest["head"] = head
@@ -528,15 +497,14 @@ def manifest_of(repo, mode, files):
 def unused(directory, stem, suffix):
     """`<stem><suffix>`, then `<stem>-2<suffix>`, … — the first free path.
 
-    The zip's name goes through this. (`place` has its own chain for the
-    `.incoming` siblings, because it also compares bytes — this docstring used
-    to claim both went through here, and a fix to one therefore missed the
-    other.) The cap is a refusal to spin rather than a limit anyone should
-    reach.
+    The zip's name goes through this. `place` has its own chain for the
+    `.incoming` siblings, because it also compares bytes, so a fix to one of
+    the two does not reach the other. The cap is a refusal to spin rather
+    than a limit anyone should reach.
 
     `lexists`, for the reason `place` uses it: a symbolic link to nothing
-    reads as absent to `exists`, so this returned a name somebody had made a
-    link, and `os.replace` then removed it.
+    reads as absent to `exists`, so `exists` would return a name somebody had
+    made a link, and `os.replace` would then remove it.
     """
     for n in range(1, 1000):
         tail = suffix if n == 1 else f"-{n}{suffix}"
@@ -560,19 +528,17 @@ def write_zip(path, home, files, manifest):
 
     `lexists` and then `O_EXCL`, in that order and for two different reasons.
     This name is predictable — `seal-<repo>-<date>.zip.partial`, beside the
-    clone, which is where the default export writes — and a broken link
-    planted there put the manifest and every record outside the clone at exit
-    0, printing `wrote <path>` for a path that was the link (measured
-    2026-09-03).
+    clone, which is where the default export writes — and with no check, a
+    broken link planted there puts the manifest and every record outside the
+    clone at exit 0, printing `wrote <path>` for a path that is the link.
 
     `lexists` is the check: a link to nothing reads as absent to `exists`, so
     only the l-form sees it. `O_EXCL` is the backstop for the moment between
     the check and the open — **on POSIX**, where the kernel refuses to satisfy
-    it through a symbolic link. It does not carry that meaning on Windows:
-    CI's windows leg wrote the manifest and every record through a broken link
-    at this name, at exit 0, with `O_EXCL` set and nothing else in front of it
-    (run 33715420379, 2026-09-03). Seven review rounds and the broad gate all
-    ran on macOS and none of them could see it.
+    it through a symbolic link. It does not carry that meaning on Windows,
+    where a write with `O_EXCL` set and nothing else in front of it puts the
+    manifest and every record through a broken link at this name, at exit 0.
+    A run on macOS alone cannot see that.
 
     So the check is the defence on every platform and the flag narrows the
     race on one. The race stays open on Windows, recorded rather than closed:
@@ -582,9 +548,8 @@ def write_zip(path, home, files, manifest):
     # The check and the open sit OUTSIDE the try. A name this call did not
     # create is not this call's to remove, and the cleanup below exists so a
     # failed write leaves no half archive — a `.partial` that was already
-    # there is not one. Round 3 graded `os.replace` removing a link at the
-    # zip's own name; this was that same removal one name over, and it took a
-    # concurrent export's in-flight temporary file too.
+    # there is not one. Removing it would remove a link somebody planted at
+    # this name, or a concurrent export's in-flight temporary file.
     if os.path.lexists(partial):
         raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), partial)
     opened = os.open(partial, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o666)
@@ -705,12 +670,11 @@ def export(args, cwd):
 def plural(count, noun):
     """`1 file` · `2 files`.
 
-    `check()` does NOT use this. Its line is quoted text — the design and the
-    issue's done-when list both write `N work items changed since the last
-    export` — so it stays that, and at N=1 it reads `1 work items`. Reading
-    the quoted line as a template with a grammar rule attached is a change to
-    an acceptance criterion, which is not this command's to make; the work
-    item's `gaps.md` records it where the owner can overturn it.
+    `check()` does NOT use this. Its line is quoted acceptance text, `N work
+    items changed since the last export`, so it stays that, and at N=1 it
+    reads `1 work items`. Reading the quoted line as a template with a
+    grammar rule attached is a change to an acceptance criterion, which is
+    not this command's to make.
     """
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
@@ -831,7 +795,7 @@ def unsafe(info):
       - any `..` segment, which is the escape itself;
       - a NUL, which truncates the path at the C boundary underneath. Kept
         as a guard rather than a claim: `zipfile` cuts the name at the NUL
-        before this reads it (measured 2026-09-03), so such a member arrives
+        before this reads it, so such a member arrives
         under a shortened name inside the root rather than being refused;
       - a symbolic link entry. A link written into the root is a way to reach
         outside it on the NEXT export, which is the loop this closes;
@@ -871,22 +835,20 @@ def unsafe(info):
 def linked_path(into, archive):
     """A path inside the root that is a symbolic link, or "".
 
-    This is the way a member can still land outside the root, and it is
-    measured rather than assumed. `extractall` on the CPython this ships on
-    (3.12 to 3.14, checked 2026-09-03) strips `..` and a leading `/` from a
-    member's name and writes a link entry as an ordinary file, so those are
-    not what a member can escape through. A path in the DESTINATION that is a
-    symbolic link is: `extractall` follows it, and so does the plain `open()`
-    this module writes with. `seal/threads` pointed elsewhere puts every work
-    item there.
+    This is the way a member can still land outside the root. `extractall`
+    on the CPython this ships on, 3.12 to 3.14, strips `..` and a leading `/`
+    from a member's name and writes a link entry as an ordinary file, so
+    those are not what a member can escape through. A path in the
+    DESTINATION that is a symbolic link is: `extractall` follows it, and so
+    does the plain `open()` this module writes with. `seal/threads` pointed
+    elsewhere puts every work item there.
 
     The leaf counts, not only the directories above it. A link named
     `threads/w1/frame/design.md` whose target does not exist reads as absent to
     `os.path.exists`, so `place` calls the member ADDED and `open(target,
-    "wb")` follows the link and writes outside the root — measured
-    2026-09-03, exit 0 with no warning. A link whose target does exist is
-    caught by the byte comparison instead and lands as `.incoming`, which is
-    why only the broken one leaked.
+    "wb")` follows the link and writes outside the root, at exit 0 with no
+    warning. A link whose target does exist is caught by the byte comparison
+    instead and lands as `.incoming`, so only the broken one would leak.
 
     So it is refused before anything is written, and the whole import is
     refused rather than the member: the link is this clone's own state, not
@@ -915,10 +877,10 @@ def blocked_path(into, archive):
 
     `write_members` calls `os.makedirs(exist_ok=True)`, which raises
     `FileExistsError` when the name exists and is not a directory — uncaught,
-    mid-write, with the records before it already on disk. Measured
-    2026-09-03: a zip holding `seal/a` and `seal/a/b.md` left two records
-    written, lost the one after them, and printed a traceback with no line of
-    this command's own.
+    mid-write, with the records before it already on disk. Unchecked, a zip
+    holding `seal/a` and `seal/a/b.md` leaves two records written, loses the
+    one after them, and prints a traceback with no line of this command's
+    own.
 
     Both the zip's own members and what the root already holds, because the
     clash comes from either side. Refused whole, like every other refusal
@@ -937,8 +899,8 @@ def blocked_path(into, archive):
             here = os.path.join(into, *prefix)
             # `isfile` is not the question `makedirs` answers. It is False for
             # a FIFO, a socket and a device node, and `makedirs(exist_ok=True)`
-            # raises on all three — measured 2026-09-03, a FIFO at `seal/a`
-            # left one record on disk and lost the rest. `lexists and not
+            # raises on all three: unchecked, a FIFO at `seal/a` leaves one
+            # record on disk and loses the rest. `lexists and not
             # isdir` is the condition `makedirs` itself checks.
             if prefix in members or (os.path.lexists(here) and not os.path.isdir(here)):
                 return "/".join(prefix)
@@ -987,8 +949,8 @@ def place(destination, data):
 
     `lexists`, not `exists`. A candidate that is a symbolic link to nothing
     reads as absent to `exists`, and returning it would have the caller write
-    THROUGH the link — round 2 measured a record leaving the root that way,
-    at exit 0, reported as an ordinary collision. `lexists` calls such a name
+    THROUGH the link — a record leaving the root at exit 0, reported as an
+    ordinary collision. `lexists` calls such a name
     taken, `read_bytes` on it raises, and the copy moves to the next name.
     `linked_path` refuses the member's own name before any of this; the
     fallback names it never sees are what this covers.
@@ -1024,10 +986,9 @@ def destination_root(repo, home, shared, local, into):
     plugin's files into a repository that may be someone else's, which is the
     harm local mode exists to prevent, so the safe guess is the one made.
 
-    Both roots present refuses whatever `--into` says, including nothing.
-    The refusal used to sit inside the `--into` branch, which left the case
-    a work item's design and both READMEs describe — `seal import` with no
-    flag — writing into whichever root the gates happen to read first. A
+    Both roots present refuses whatever `--into` says, including nothing:
+    inside the `--into` branch, the refusal would leave `seal import` with no
+    flag writing into whichever root the gates happen to read first. A
     clone holding two roots is a clone whose owner has not said which is the
     real one, and a copy landing in one of them is not the moment to decide
     it.
@@ -1074,10 +1035,9 @@ def import_(args, cwd):
         return 1
 
     with archive:
-        # The order here is the fix for four separate measurements, and it is
-        # the order itself rather than any one check: how big, then whether
-        # the data reads, then the manifest, and only then the names. The
-        # names go last because a later format is exactly what moves them.
+        # The order here holds as much as any one check does: how big, then
+        # whether the data reads, then the manifest, and only then the names.
+        # The names go last because a later format is exactly what moves them.
         # `read_manifest` reads its member whole, so the bounds above it are
         # what keep that read affordable — and the member bound, which lives
         # in `unsafe`, is therefore read after the manifest rather than before.
@@ -1100,14 +1060,14 @@ def import_(args, cwd):
             return 1
 
         # The manifest's own size, before it is read. It is exempt from the
-        # name checks in `unsafe` and used to inherit the size exemption with
-        # them, so a 400 MB one cost 400 MB of memory on its way to a verdict.
+        # name checks in `unsafe`, and without a bound of its own a 400 MB
+        # one costs 400 MB of memory on its way to a verdict.
         fat = [
             info
             for info in members
             # `rstrip("/")`, matching the spelling `unsafe` exempts. The two
-            # asked one question by different tests, so `manifest.json/`
-            # passed the exemption there and the bound here.
+            # ask one question, and by different tests `manifest.json/` would
+            # pass the exemption there and the bound here.
             if info.filename.rstrip("/") == MANIFEST and info.file_size > MEMBER_LIMIT
         ]
         if fat:
@@ -1119,9 +1079,9 @@ def import_(args, cwd):
             return 1
 
         # Every member's data, before the manifest is decoded and before the
-        # first record is written. The manifest is a member too: a bad CRC on
-        # it reached the console as a `BadZipFile` traceback, because
-        # `read_manifest` ran first and its own `except` does not name that
+        # first record is written. The manifest is a member too: with
+        # `read_manifest` first, a bad CRC on it would reach the console as a
+        # `BadZipFile` traceback, because its own `except` does not name that
         # type.
         #
         # `testzip` catches `BadZipFile` itself and answers with the member's
@@ -1129,7 +1089,7 @@ def import_(args, cwd):
         # that would still be right if `testzip` stopped swallowing it. What
         # does leave `testzip` is an encrypted member (`RuntimeError`) and a
         # compression method this build has no decompressor for
-        # (`NotImplementedError`), both measured 2026-09-03 as tracebacks.
+        # (`NotImplementedError`), each a traceback where nothing catches it.
         # `NotImplementedError` is a subclass of `RuntimeError`, so the one
         # name catches both.
         #
@@ -1153,10 +1113,10 @@ def import_(args, cwd):
             return 1
 
         # The names AFTER the format, because a later format is exactly what
-        # moves the names this checks. Measured 2026-09-03: a zip declaring
-        # format 2 with its records under `records/` answered "is not under
-        # seal/", which reads as a malformed zip where the truth is a build
-        # too old — and that field exists for no other day.
+        # moves the names this checks. Checked first, the names would answer
+        # a zip declaring format 2 with its records under `records/` with "is
+        # not under seal/", which reads as a malformed zip where the truth is
+        # a build too old — and that field exists for no other day.
         refusals = [reason for info in members if (reason := unsafe(info))]
         if refusals:
             print(f"{path} holds members this command will not write:")
@@ -1168,18 +1128,16 @@ def import_(args, cwd):
             )
             return 1
 
-        # Two facts, and they used to have one spelling. *There is no remote*
-        # switches the check below off on purpose; *the question could not be
-        # answered* switched it off just the same, so a git that timed out or
-        # exited non-zero merged another project's records with no word about
-        # it (#111). The unanswerable question refuses, which is the direction
-        # `gitlinks_under_root` states and `porcelain` and `indexed` take.
+        # Two facts, with two spellings. *There is no remote* switches the
+        # check below off on purpose. *The question could not be answered*
+        # refuses: read as no remote, a git that timed out or exited non-zero
+        # would merge another project's records with no word about it. That
+        # is the direction `gitlinks_under_root` states and `porcelain` and
+        # `indexed` take.
         #
-        # Read ONCE. The refusal below used to ask git a second time for the
-        # URL it had already read and print whatever that call answered, so a
-        # failure between the two put a blank where the message promises this
-        # clone's URL — this ticket's own failure inside the message reporting
-        # it.
+        # Read ONCE. A second read for the refusal below could fail where the
+        # first did not, and print a blank where the message promises this
+        # clone's URL.
         mine, why = remote_url(repo)
         theirs = manifest.get("remote")
         unreadable = []
@@ -1192,8 +1150,9 @@ def import_(args, cwd):
             # writer produces from the `None` this file's own `remote_url`
             # returns. Every other non-string reduces to "" in
             # `normalise_remote`, which is the empty ANSWER this check exists
-            # to tell apart from silence, so presence alone let `null`, `42`,
-            # `[]`, `{}` and `true` through at exit 0 with both guards off.
+            # to tell apart from silence, so presence alone would let `null`,
+            # `42`, `[]`, `{}` and `true` through at exit 0 with both guards
+            # off.
             # An older build always wrote a string here, so a zip carrying
             # anything else either comes from a build that could not look or
             # was not written by `seal export` at all, and neither answers the
@@ -1217,14 +1176,11 @@ def import_(args, cwd):
             # git that failed HERE may answer on the next run; a zip that
             # records no remote reads the same on every run there is, so the
             # export has to happen again on the machine that wrote it. One
-            # line for both sent a person into a re-run loop that can never
-            # end.
+            # line for both would send a person into a re-run loop that can
+            # never end.
             #
             # The ZIP's silence decides, not this clone's, and the two can be
-            # silent at once. A first cut branched on `mine is None`, which
-            # sent exactly the both-silent case back to the re-run advice —
-            # this ticket's own defect, re-entered at a narrower coordinate
-            # by the fix for it. Re-running here cannot clear the zip side no
+            # silent at once. Re-running here cannot clear the zip side no
             # matter what this clone's git does next, so that side wins.
             if the_zip_is_silent:
                 print(
@@ -1281,8 +1237,8 @@ def import_(args, cwd):
             # Two sides, two remedies. The clash comes from this clone (move
             # the file) or from the zip alone (there is nothing here to move,
             # and the machine that exported it is who has to send another).
-            # Measured 2026-09-03: the second answered with the first's words,
-            # sending a person to rename a file they do not have.
+            # The first's words for the second would send a person to rename
+            # a file they do not have.
             if os.path.lexists(os.path.join(into, *blocked.split("/"))):
                 print(
                     f"{root_name}/{blocked} in this clone is not a directory, "
@@ -1306,8 +1262,8 @@ def import_(args, cwd):
             # Every refusal above happens before the first byte, and this is
             # the one failure that cannot: the filesystem can say no with
             # records already written — a directory in the root that is not
-            # writable, a full disk. Measured 2026-09-03, both left a partial
-            # copy and a traceback with no line of this command's own.
+            # writable, a full disk. Uncaught, either leaves a partial copy and
+            # a traceback with no line of this command's own.
             print(f"the copy stopped part-way: {stopped}")
             print(
                 "\nSome records were written and some were not. Fix what the "
@@ -1329,11 +1285,11 @@ def import_(args, cwd):
     for name in refused:
         print(f"  {name} was not written — its name was taken during the import")
     # Both fields read the way `remote` is read, and for the same reason: they
-    # come from a manifest another machine wrote. `head` was guarded and
-    # `exported_at` was not, so a manifest carrying one without the other
-    # raised `KeyError` HERE — after every record was written, so the person
-    # saw exit 1 and a traceback for a copy that had succeeded, and the two
-    # lines below never printed.
+    # come from a manifest another machine wrote. With either unguarded, a
+    # manifest carrying one without the other would raise `KeyError` HERE —
+    # after every record is written, so the person would see exit 1 and a
+    # traceback for a copy that succeeded, and the two lines below would
+    # never print.
     head = manifest.get("head")
     when = manifest.get("exported_at")
     if isinstance(head, str) and head:
@@ -1372,9 +1328,9 @@ def write_members(archive, into):
         # is taken by the time of this open is a name something else took in
         # between. `lexists` asks that question on every platform; `O_EXCL`
         # narrows the moment between the asking and the answering, and it
-        # refuses to open THROUGH a symbolic link only on POSIX — CI's windows
-        # leg wrote through a broken link with the flag set (run 33715420379,
-        # 2026-09-03). Both answers are the same: do not write here.
+        # refuses to open THROUGH a symbolic link only on POSIX — on Windows
+        # a write with the flag set goes through a broken link. Both answers
+        # are the same: do not write here.
         # Counted after the write, so the report never names a file that was
         # not written.
         try:
@@ -1402,14 +1358,12 @@ def write_members(archive, into):
 
 # --- the mode: a key that is declared, and a folder that decides ------------
 #
-# `README.md`'s *Shared or local* section carried both directions as two shell
-# lines, a `mv` and a commit. They are correct, and a person who has not read
-# that section has no way to arrive at them. This is that section made
-# runnable, plus the three things a `mv` cannot do: refuse when the other
+# Either direction is a `mv` and a commit, and a person who has not read
+# `README.md`'s *Shared or local* section has no way to arrive at them. This
+# runs them, plus the three things a `mv` cannot do: refuse when the other
 # root is already there, refuse when the tree is dirty under what it is about
 # to stage, and write the key so the file and the folder agree afterwards.
-# The workflow file is not among them: `.github/` is `seal pr-checks`'s
-# (#952).
+# The workflow file is not among them: `.github/` is `seal pr-checks`'s.
 #
 # **Nothing at runtime reads the key.** Every script resolves the root through
 # `lib/optin.py#home_at`, which reads the places `home_paths` gives in
@@ -1539,11 +1493,10 @@ def write_mode(home, value):
 
     The file is read by `lib/config.py#config_pairs` and written by
     `serialized`, so where the key lands is the serializer's and no line of
-    the file is searched for it (#1454, which retired the table writer of
-    #429). An existing key keeps its place, a file without one gains it
-    last, and no file gets `{"Mode": VALUE}`; every other key keeps its
-    value and its order. A file `config_pairs` refuses, and one writing a
-    key twice, is refused: no write can make either agree.
+    the file is searched for it. An existing key keeps its place, a file
+    without one gains it last, and no file gets `{"Mode": VALUE}`; every
+    other key keeps its value and its order. A file `config_pairs` refuses,
+    and one writing a key twice, is refused: no write can make either agree.
     """
     path = config_path(home)
     pairs, refused = repo_config.config_pairs(home)
@@ -1570,7 +1523,7 @@ def converted(text):
     refuses converts to nothing, in the walker's sentence: a row it did not
     read may be any key, so a file written without it drops an answer. A
     row written twice converts to nothing too, because no one of the two is
-    the answer (#867). A value comes as the walker reads it, stripped and
+    the answer. A value comes as the walker reads it, stripped and
     with `\\|` reduced to a plain pipe, so a JSON string carries it as
     written."""
     rows, refusals = tables.gfm_table(text, repo_config.OLD_TABLE)
@@ -1621,15 +1574,14 @@ def porcelain(repo, *paths):
     """`git status --porcelain` lines under PATHS, or one line saying git
     could not answer.
 
-    **Both paths this command stages, not just the root.** The switch stages
-    a removal or an addition of the workflow file too, and a guard watching
-    only the root would leave that path's uncommitted work to be taken by
-    `git rm`. Enumerating the class is the point; `frame/design.md` *What the switch
-    touches* lists all five.
+    **PATHS are every path the switch stages**, which is the root alone,
+    since `.github/` is `seal pr-checks`'s. A guard watching fewer paths
+    than the switch stages would leave a path's uncommitted work to be taken
+    by `git rm`.
 
     An unanswerable question reads as dirty: moving on a guess is the one
     direction with no undo. `git rm -r --cached` drops a staged edit out of
-    the index and prints nothing about it (measured 2026-09-03).
+    the index and prints nothing about it.
     """
     try:
         done = subprocess.run(
@@ -1652,14 +1604,14 @@ def indexed(line, name, moved=False):
     is the shared root's name in the tree, as `display` gives it.
 
     **Untracked is not.** The guard exists because `git rm -r --cached` takes
-    a staged edit out of the index and prints nothing about it (measured
-    2026-09-03); a file the index has never heard of cannot be taken out of
-    it, and it travels with the folder in both directions — moved out with
-    the root going to local, staged by `git add` going to shared. Refusing
-    over one was not a stricter version of the same rule, it was a different
-    rule with no grounds, and it made the ordinary first run refuse: `seal
-    mode` writes an absent key, and the switch a person runs next met the
-    file it had just written.
+    a staged edit out of the index and prints nothing about it; a file the
+    index has never heard of cannot be taken out of it, and it travels with
+    the folder in both directions — moved out with the root going to local,
+    staged by `git add` going to shared. Refusing over one would not be a
+    stricter version of the same rule but a different rule with no grounds,
+    and it would make the ordinary first run refuse: `seal mode` writes an
+    absent key, and the switch a person runs next meets the file it has just
+    written.
 
     **A pure deletion is not, once the move has already happened.** That is
     the shape a stopped run — or a person who ran the README's `mv` by hand —
@@ -1673,10 +1625,10 @@ def indexed(line, name, moved=False):
     **The key this command wrote itself is not, either.** `seal mode` fills
     an absent key in from the folder, so the switch a person runs next meets
     a worktree-only modification of the one file the switch rewrites anyway.
-    The `??` exception above was written for this and reached half of it: an
-    untracked config passed and a TRACKED one still refused, which is every
-    shared root that commits its config. Measured 2026-09-03: `seal mode`
-    then `seal mode local` exits 1.
+    The `??` exception above reaches half of it: an untracked config passes,
+    and without this one a TRACKED config, which every shared root that
+    commits its config has, would still refuse, so `seal mode` then `seal
+    mode local` would exit 1.
 
     A STAGED edit to it still refuses, for the reason every staged edit does:
     `git rm -r --cached` drops it without a word.
@@ -1696,8 +1648,8 @@ def indexed(line, name, moved=False):
 def tracked(repo, rel):
     """True when git tracks anything under REL.
 
-    `git rm -r --cached` on a pathspec matching no index entry exits 128
-    (measured 2026-09-03), so the step is skipped rather than run and
+    `git rm -r --cached` on a pathspec matching no index entry exits 128,
+    so the step is skipped rather than run and
     excused — which is also what makes a second run of a stopped switch
     finish it instead of failing.
     """
@@ -1747,30 +1699,29 @@ def staged_text(repo, rel):
 def other_worktrees(repo):
     """Every other worktree of this clone, by path.
 
-    Measured 2026-09-03: switching shared → local from one worktree leaves
-    every other one holding the committed `<repo>/seal/` on its own branch,
-    so the two read two different roots until the commit reaches both. It
-    heals itself and loses nothing, so it is named rather than refused.
+    Switching shared → local from one worktree leaves every other one
+    holding the committed `<repo>/seal/` on its own branch, so the two read
+    two different roots until the commit reaches both. It heals itself and
+    loses nothing, so it is named rather than refused.
 
     **A git that cannot answer here is silent by design, and this is the one
-    call site left that asks through `git()`.** `git()` reads every failure as
+    call site that asks through `git()`.** `git()` reads every failure as
     `""`, so a timeout or a non-zero exit reads here as *this clone has no
     other worktrees* and the note does not print. That is the whole
     consequence: the note is advisory, nothing is lost and nothing is claimed
-    falsely. The other four call sites read `""` as a fact somebody acts on
-    and now ask through `git_asked` (#111) — this one is the member of that
-    class that is right to.
+    falsely. The call sites that read `""` as a fact somebody acts on ask
+    through `git_asked`; this one reads it as a fact nobody acts on, and is
+    right to ask through `git()`.
     """
     # RIDER: `git worktree list --porcelain` prints the GIT DIRECTORY as the
     # worktree path for a repository built with `--separate-git-dir`, and for
-    # a bare clone, with no `bare` line on the first to tell it by. Measured
-    # 2026-09-08 against a scratch `--separate-git-dir` repository: this
-    # returns `['<...>/sepgit']`, and `git -C <that> rev-parse --show-toplevel`
+    # a bare clone, with no `bare` line on the first to tell it by. Against a
+    # scratch `--separate-git-dir` repository this returns
+    # `['<...>/sepgit']`, and `git -C <that> rev-parse --show-toplevel`
     # answers `fatal: this operation must be run in a work tree`. So `seal
     # mode` there prints a note calling the git directory another worktree of
-    # this clone. Nothing decides on it and nothing is lost -- the caller at
-    # `mode_switch` only prints -- which is why it was named here rather than
-    # fixed in a round-1 fix pass that had no finding on this function.
+    # this clone. Nothing decides on it and nothing is lost: the caller,
+    # `switch`, only prints.
     # The fix is to compare the clone by common git directory and refuse a
     # path that is not a work tree. Filter this list that way when this
     # function is next opened.
@@ -1862,7 +1813,7 @@ def left_workflow_line(text):
     Pinned to the installed release, the steps read a tree with no root as
     nothing declared and pass. Pinned to an older one they fail every pull
     request there, so any other pin, and a version that cannot be read, is
-    named with the two ways out rather than promised to pass (#952).
+    named with the two ways out rather than promised to pass.
     """
     pin, version = pinned(text), plugin_version()
     if version and pin == "v" + version:
@@ -1898,7 +1849,7 @@ def install_workflow(repo):
     if not shared or not optin.marked(shared):
         # The shared place by its own name: beside a project's own `seal/`
         # it is `optin.SECOND_HOME`, and the project's `seal/` stands in the
-        # tree, so "seal/ is not in this tree" would be false there (#1059).
+        # tree, so "seal/ is not in this tree" would be false there.
         name = display(repo, shared) or optin.HOME
         return "no-root", (
             f"{WORKFLOW} was NOT written: no root stands at {name}/ in this "
@@ -1955,10 +1906,10 @@ def install_workflow(repo):
         )
     # The return code here for the reason the root's `git add` in `switch`
     # reads it: `git()` answers "" for a failure, and an ignore rule matching
-    # `.github/` reaches this one. Measured 2026-09-03 — the file was written,
-    # nothing entered the index, and the command said `staged it` and `Now
-    # commit`. This command exists to get the checks running, so a workflow
-    # that never reaches the commit is the whole point lost, silently.
+    # `.github/` reaches this one. Read through `git()`, the file is written,
+    # nothing enters the index, and the command says `staged it`. This
+    # command exists to get the checks running, so a workflow that never
+    # reaches the commit is the whole point lost, silently.
     done = subprocess.run(
         ["git", "-C", repo, "add", "--", WORKFLOW],
         capture_output=True,
@@ -1998,11 +1949,10 @@ def remove_workflow(repo):
             return "absent", f"there is no {WORKFLOW}, so there is nothing to remove"
         # Gone from the working tree is not gone from the next commit, which
         # is made from the index: a person deleted by hand the file `install`
-        # staged, or a committed copy whose deletion is not staged (round 5,
-        # finding 1). `git rm` of a path missing from the working tree exits
-        # 0 and drops its index entry in both states (measured, round 5),
-        # and with the file gone git's refusal of a staged change does not
-        # fire, so it would drop a staged edit unasked (measured, round 6).
+        # staged, or a committed copy whose deletion is not staged. `git rm`
+        # of a path missing from the working tree exits 0 and drops its index
+        # entry in both states, and with the file gone git's refusal of a
+        # staged change does not fire, so it would drop a staged edit unasked.
         # The index copy is taken only where a copy survives it: byte for
         # byte the copy HEAD carries, or what `install` writes back now.
         staged = staged_text(repo, WORKFLOW)
@@ -2024,7 +1974,7 @@ def remove_workflow(repo):
         # Exit 0 where the index's blob and mode are HEAD's. Every other
         # exit is read as "not HEAD's", so the arm fails closed: 1 where they
         # differ, HEAD lacks the path, or the branch has no commit (git
-        # 2.50.1 compares with the empty tree there, measured round 6).
+        # 2.50.1 compares with the empty tree there).
         as_head = subprocess.run(
             ["git", "-C", repo, "diff", "--cached", "--quiet", "--", WORKFLOW],
             capture_output=True,
@@ -2072,9 +2022,9 @@ def remove_workflow(repo):
     if not tracked(repo, WORKFLOW):
         # git holds no copy, so removing it would take the only one — unless
         # this plugin can write it back byte for byte, which is the state
-        # `seal pr-checks install` followed by a `git reset` leaves. Round 1's
-        # guard was reasoned about SOMEBODY ELSE'S file and applied to one
-        # this command had written a moment earlier.
+        # `seal pr-checks install` followed by a `git reset` leaves. A guard
+        # reasoned about SOMEBODY ELSE'S file would otherwise refuse one this
+        # command wrote a moment earlier.
         if text != plugin_workflow():
             return "kept", (
                 f"{WORKFLOW} is not tracked and is not byte for byte what "
@@ -2202,8 +2152,8 @@ def mode_report(args, repo, home, shared, local, current):
     """`seal mode` and `seal mode --check`: the folder, the key, and whether
     they agree. The folder is never moved here.
 
-    **Bare `seal mode` converts an earlier release's `config.md` first**
-    (#1454), where the root holds it and no `config.json`: `convert` writes
+    **Bare `seal mode` converts an earlier release's `config.md` first**,
+    where the root holds it and no `config.json`: `convert` writes
     `config.json` from its table and removes it, or writes nothing and the
     command exits 2 with the sentence. A `config.md` standing beside a
     `config.json` is named and left alone: the JSON is the file read.
@@ -2213,16 +2163,16 @@ def mode_report(args, repo, home, shared, local, current):
     default, because there is none. `--check` writes nothing at all: it runs
     in CI, and a check that mutates the tree it checks is not a check.
 
-    **A refused file is reported and exits 2, with or without `--check`**
-    (#867): a `config.json` that will not read or parse, a `config.md`
+    **A refused file is reported and exits 2, with or without `--check`**:
+    a `config.json` that will not read or parse, a `config.md`
     standing without one, or a `Mode` key written twice or holding no
     string. The folder is still reported, because where things stand does
     not need the key; nothing is written, because a key written into a file
     nobody can read, or beside one that already disagrees, cannot make it
     agree.
 
-    **An earlier release's `parity.md` is named, never converted** (#1454):
-    where it stands without a `parity.json`, a note names the keys to write
+    **An earlier release's `parity.md` is named, never converted**: where it
+    stands without a `parity.json`, a note names the keys to write
     (`lib/config.py#unconverted_parity`), and the exit is what the mode
     gives. Its prose and its exceptions table are a person's to move.
     """
@@ -2313,12 +2263,8 @@ def gitlinks_under_root(repo, name):
 
     `git rm -r --cached <root>` drops a gitlink from the index and leaves
     `.gitmodules` naming the path, and moving the root breaks the submodule's
-    relative gitdir. Measured 2026-09-03: the switch exited 0 and `git
-    status` in the moved root died with `fatal: not a git repository`.
-
-    A sixth member of the class `frame/design.md`'s *What the switch touches* table
-    enumerates — the table that says it is enumerated rather than fixed where
-    a finding points, and then listed five.
+    relative gitdir. Unguarded, the switch exits 0 and `git status` in the
+    moved root dies with `fatal: not a git repository`.
     """
     try:
         done = subprocess.run(
@@ -2345,9 +2291,11 @@ def gitlinks_under_root(repo, name):
 def refusals(repo, home, shared, local, wanted):
     """Every reason not to switch, gathered before anything is written.
 
-    The list is the class in `frame/design.md` *What the switch touches*, walked in
-    order, rather than the guards a reader thinks of first. The switch
-    stages nothing outside the root, so nothing outside it is guarded.
+    The list walks, in order, everything the switch touches: the key it
+    writes, a submodule under the root, the root itself, the place it moves
+    to, the index under it and the config file. It is that class rather than
+    the guards a reader thinks of first. The switch stages nothing outside
+    the root, so nothing outside it is guarded.
     """
     if not local:
         return ["the common git directory could not be resolved"]
@@ -2361,8 +2309,8 @@ def refusals(repo, home, shared, local, wanted):
     name = display(repo, shared)
     found = []
 
-    # The key this switch ends by writing is refused before anything moves
-    # (#867): a config `config_pairs` refuses, or one writing a key twice,
+    # The key this switch ends by writing is refused before anything moves:
+    # a config `config_pairs` refuses, or one writing a key twice,
     # would stop `write_mode` after the folder had already gone.
     refused = mode_refusal(home)
     if refused:
@@ -2430,8 +2378,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     """Move the root, write the key, and stage the index; `.github/` is left
     alone, and the pull-request checks are `seal pr-checks`'s.
 
-    In the order of `frame/design.md` *Order, and what a stopped run leaves*: the
-    rename first, because it is the step that can fail for reasons outside
+    The rename first, because it is the step that can fail for reasons outside
     this command and until it succeeds nothing has happened. Every step after
     it is idempotent, so `seal mode <the same mode>` finishes a stopped run —
     and so does a person who already ran the README's `mv` by hand.
@@ -2472,10 +2419,10 @@ def switch(args, repo, home, shared, local, current, wanted):
             "and `seal import` there is how a teammate gets a copy."
         )
     for line in porcelain(repo, name):
-        # `??` itself, not `indexed`. That function has three exceptions now
-        # and only this one means untracked — reading its answer as the
-        # question called a tracked, modified `config.json` untracked, in a
-        # note whose whole subject is what the index can lose.
+        # `??` itself, not `indexed`. That function has three exceptions and
+        # only this one means untracked — reading its answer as the question
+        # would call a tracked, modified `config.json` untracked, in a note
+        # whose whole subject is what the index can lose.
         if line[:2] == "??":
             print(
                 f"note: {line[3:]} is untracked, so the index cannot lose it "
@@ -2549,10 +2496,10 @@ def switch(args, repo, home, shared, local, current, wanted):
     else:
         # The return code, not the call. `git()` reads a failure as "" — and
         # `git add` exits non-zero for an ignore rule matching the root, or a
-        # held `index.lock`. Measured 2026-09-03: the root moved into the
-        # tree, nothing was staged, and the command printed `staged seal/`
-        # and `Now commit`. The local direction has read this code since it
-        # was written; this side had not.
+        # held `index.lock`. Read through `git()`, the root moves into the
+        # tree, nothing is staged, and the command prints `staged seal/` and
+        # `Now commit`. The local direction reads its return code the same
+        # way.
         done = subprocess.run(
             ["git", "-C", repo, "add", "--", name],
             capture_output=True,
@@ -2594,8 +2541,8 @@ def mode(args, cwd):
             if not repo:
                 # Not the same answer as "there is no root". A repository
                 # that could not be resolved is a check that did not RUN, and
-                # a gate that cannot tell reads exactly like an allow — the
-                # shape issue #28 was opened on. `optin.repo_root` answers ""
+                # a gate that cannot tell reads exactly like an allow.
+                # `optin.repo_root` answers ""
                 # for a timeout or a git that is not on PATH, and a shared
                 # root committed beside a key saying `local` is what CI is
                 # here to catch.
@@ -2692,10 +2639,11 @@ def tool_command(name, argv):
 def hand_over(command):
     """Run `command` in place of this one and answer its exit code.
 
-    On POSIX the process is replaced, as the `exec` of a `bin/` wrapper
-    replaced it, so the script's signals and exit code are the command's.
+    On POSIX the process is replaced, as the `exec` in `bin/seal` replaces
+    the shell, so the script's signals and exit code are the command's.
     Windows has no replacement that keeps the exit code, so the script runs
-    as a child and its code is returned, as a `.cmd` wrapper returned it."""
+    as a child and its code is returned, as `bin/seal.cmd` returns its
+    child's."""
     if os.name == "nt":
         return subprocess.call(command)
     sys.stdout.flush()
@@ -2749,7 +2697,7 @@ def main(argv=None, cwd=None):
     # A flag of its own, not a second meaning for the one above. Typing
     # `--allow-other-repo` is saying *I have read both URLs and they are one
     # repository under two spellings*; a person whose git could not answer has
-    # read neither and is saying something else (#111).
+    # read neither and is saying something else.
     im.add_argument(
         "--allow-unreadable-remote",
         action="store_true",

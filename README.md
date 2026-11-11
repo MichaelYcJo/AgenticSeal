@@ -425,7 +425,7 @@ after `!` in a session, or ask the session to run it.
 | `seal fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `seal/config.json` (`templates/setup/config.md` *The fold's values*) |
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
-| `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
+| `seal payload [--json] [--agent <name>] [--root <dir>]` | measures what a session's and each agent's startup context is made of, in bytes, with the tokens estimated from the bytes (`skills/verify/scripts/payload_meter.py`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | shows every key of `seal/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
 | `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |

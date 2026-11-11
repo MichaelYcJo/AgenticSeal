@@ -20,6 +20,8 @@ each framer report.
 
 from conftest import read
 
+# No TARGET: its cases hold the answerer column across the questions template and skills/implement/SKILL.md.
+
 ANSWERERS = ("a person", "a measurement", "the work")
 
 
@@ -41,12 +43,16 @@ def test_the_questions_template_carries_the_answerer_column():
         "| # | Question | Who can answer | Options & what each implies "
         "| Default until answered | Status |"
     )
+    # The table header a session fills its rows into, `Who can answer`
+    # among its columns.
     assert header in tpl, (
         "`templates/records/sdd-questions.md` has no `Who can answer` column in its "
         "table header. Prose about the three kinds is worth nothing here -- "
         "the header is what a session fills in"
     )
     body = tpl[tpl.index(header) :]
+    # The separator row with one cell per column, which a Markdown renderer
+    # reads to draw the six columns.
     assert "|---|---|---|---|---|---|" in body, (
         "the separator row still has the old column count, so the table "
         "renders with the answerer cell folded into its neighbour"

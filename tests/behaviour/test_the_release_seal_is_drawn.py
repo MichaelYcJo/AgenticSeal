@@ -1,42 +1,50 @@
 """The release seal is drawn and attached at publish time (#718).
 
-The cases here read the publishing workflow and `docs/releasing/release-checklist.md`,
-and wait for #923; `docs/releasing/branch-and-release.md` names this file on its
-`check:` line, and its bullet on the seal is the proofer's to read.
+The cases here read the publishing workflow and
+`docs/releasing/release-checklist.md`; `docs/releasing/branch-and-release.md`
+names this file on its `check:` line, and its bullet on the seal is the
+proofer's to read.
 
-#942's phase 6 placed the cases of `.github/scripts/release_seal.py`'s
-functions in `tests/github/test_release_seal.py`.
+The cases of `.github/scripts/release_seal.py`'s functions stand in
+`tests/github/test_release_seal.py`.
 """
 
 import os
 
-from conftest import ROOT, flat
+from conftest import ROOT, code_lines, flat
 from conftest import load_module as load
+from workflows import load as load_workflow
+
+# No TARGET: its cases hold the release seal across .github/workflows/publish-release.yml, .github/scripts/run_tests.py and docs/releasing/release-checklist.md.
 
 
 def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
     """S16 (#718). The `seal` job's install line carries the parser exactly
     as `run_tests.py` pins it, so the suite at the tag runs on the version
-    every other run of the suite uses. Since #857 the seal is a copy of a
-    committed PNG, so the line installs no Pillow."""
+    every other run of the suite uses."""
     runner = load(
         os.path.join(ROOT, ".github", "scripts", "run_tests.py"), "rt_for_seal"
     )
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "publish-release.yml"),
-        encoding="utf-8",
-    ) as handle:
-        installs = [
-            line.split("run:", 1)[1].split()
-            for line in handle
-            if "run: pip install" in line
-        ]
+    workflow = load_workflow(
+        os.path.join(".github", "workflows", "publish-release.yml")
+    )
+    installs = [
+        line.split()
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        for line in code_lines(step.get("run", ""))
+        if line.split()[:2] == ["pip", "install"]
+    ]
     assert len(installs) == 1, installs
+    # The pinned parser `run_tests.py#MARKDOWN_IT` names, which the runner
+    # installs before the suite at the tag runs.
     assert runner.MARKDOWN_IT in installs[0], installs
-    assert not any(word.lower().startswith("pillow") for word in installs[0]), installs
     # #647: the suite at the tag collects the table walker's case, which
     # imports the pinned renderer.
     assert runner.CMARKGFM in installs[0], installs
+    # #1486: the suite at the tag collects the modules that read a workflow,
+    # which import the pinned YAML parser.
+    assert runner.PYYAML in installs[0], installs
 
 
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():

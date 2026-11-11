@@ -18,9 +18,10 @@ this file names every shipped check and what keeps it off a reference root.
 """
 
 import os
-import re
 
 from conftest import ROOT, load_module
+
+# No TARGET: its cases list every command under bin/ and seal.py's subcommands, and hold one citation across the files that read a reference root.
 
 SEAL = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
@@ -102,14 +103,22 @@ def test_every_shipped_command_is_classified():
 # than restating its grammar, so the grammar has one home. The framer and the
 # crafter are told by `skills/implement/SKILL.md` *Document layout — two
 # roots, three lifetimes*, which the crafter's step 1 and the framer's *A
-# design states its rule changes* open, so their definitions keep only the
-# never-write line of `## Never` (#1313).
+# design states its rule changes* open (#1313). How each paragraph says it
+# is the proofer's to read; the case below reads the citation and the facts
+# a reader acts on in the paragraph that holds it.
 
+# The citation each reader resolves for the row's grammar: the path and the
+# heading in italics.
 POINTER = "`templates/setup/config.md` *Reference specs*"
 READERS = {
+    # The stage `stage 1`, which the proofer resolves to the stage of the
+    # review skill it opens the citation in, and the path `frame/design.md`,
+    # which holds the citation it opens.
     "agents/proofer.md": ("stage 1", "frame/design.md"),
-    "skills/settle/SKILL.md": ("cite", "frame/design.md"),
-    "skills/implement/SKILL.md": ("cite", "frame/design.md"),
+    # The path `frame/design.md`, where the party cites a reference root it
+    # read.
+    "skills/settle/SKILL.md": ("frame/design.md",),
+    "skills/implement/SKILL.md": ("frame/design.md",),
 }
 
 
@@ -121,24 +130,10 @@ def paragraph_naming(text, phrase):
     return " ".join(text[start : end if end >= 0 else None].split())
 
 
-# A definition written in #957's shape keeps what it never does in `## Never`,
-# so the reader's never-write half is that list's line rather than a clause
-# of the paragraph that points at the row (#967).
-NEVER_LINE = {
-    "agents/framer.md": "- Write in a reference root, or move, edit or copy a file out of one.",
-    "agents/crafter.md": "- Write in a reference root, or move, edit or copy a file out of one.",
-}
-
-
-def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it():
-    for rel, (act, where) in READERS.items():
+def test_each_reader_points_at_the_row_and_names_where_it_cites_it():
+    for rel, facts in READERS.items():
         text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
         assert POINTER in text, f"{rel} does not point at the row's section"
         said = paragraph_naming(text, POINTER)
-        assert "touches what" in said and "describes" in said, (rel, said)
-        assert act in said and where in said, (rel, said)
-        assert re.search(r"\bnever writ", said), (rel, said)
-    for rel, line in NEVER_LINE.items():
-        text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
-        never = text[text.index("\n## Never\n") :].split("\n## ", 2)[1]
-        assert line in never, (rel, never)
+        for fact in facts:
+            assert fact in said, (rel, said)

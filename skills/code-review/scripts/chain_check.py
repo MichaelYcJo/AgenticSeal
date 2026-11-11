@@ -138,7 +138,6 @@ and changes no exit code.
 
 import argparse
 import collections
-import importlib.util
 import json
 import os
 import posixpath
@@ -160,16 +159,19 @@ if __name__ == "__main__":
             _stream.reconfigure(encoding="utf-8", errors=_errors)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
-ROUTING = os.path.join(LIB, "routing.py")
-FIELDS_READER = os.path.join(LIB, "fields.py")
+# The modules this check reads, each as `lib/sibling.py#load` names it.
+# `lib/lines.py` is the reader of a record's lines, and
+# `skills/settle/scripts/rule_changes.py` the one reader of a design's
+# `## Rule changes`.
+READER = "lib/lines.py"
+ROUTING = "lib/routing.py"
+FIELDS_READER = "lib/fields.py"
+RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
 # `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
 # rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
-CHECK_LINES_READER = os.path.join(
-    HERE, "..", "..", "..", ".github", "scripts", "rules.py"
-)
+CHECK_LINES_READER = ".github/scripts/rules.py"
 
 # A thread's files, relative to its directory: `lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
@@ -183,7 +185,7 @@ PLAN_FILE = "frame/plan.md"
 # guarantee names, since the sealer audited everything else on the branch.
 CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
 # A round record's fields stand in `seal` blocks, and `lib/fields.py`
-# is the one spelling of their grammar (#1198). What this file holds is where
+# is the one spelling of their grammar. What this file holds is where
 # a block stands, which turns on headings that module does not read: the one
 # `## Findings` section, and a finding's `### <n>. <symptom>` heading in it,
 # whose number names the finding across rounds.
@@ -229,7 +231,7 @@ ISSUE_RE = re.compile(r"#(\d+)")
 
 MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
 # Of the mark and each `Reframed` line the frame arm compares who alone with
-# `Planning`, and reads neither the date nor the round (#1319).
+# `Planning`, and reads neither the date nor the round.
 REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(.+?)\.$")
 
 VERIFYING_ROUND = "a verifying round is owed"
@@ -256,16 +258,6 @@ CARRIED_SAYS = (
 )
 
 
-def load(path, name):
-    """Import a sibling script by path, or raise SystemExit naming it."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise SystemExit(f"chain-check: cannot load {path}")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def section_end(reader, lines, start):
     """The index of the line that ends the section opened at `start`: the
     first heading of its level or shallower, else `len(lines)`."""
@@ -277,17 +269,41 @@ def section_end(reader, lines, start):
     return len(lines)
 
 
+# `lib/sibling.py` loads every other module this check reads. Where it is
+# absent, the refusal is its own sentence about itself, spelt here because
+# the file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
 # Loaded once, here, and read by `main` and by every importer through this
-# name. As a command, a reader that will not load ends the run at exit 2
-# naming the file; imported, the error is raised and the importer decides
+# name. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As a
+# command, a reader that raises while it loads ends the run at exit 2
+# naming the error; imported, the error is raised and the importer decides
 # what a check that cannot read a record means to it.
 try:
-    SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
+    SHARED_READER = sibling.load(READER)
+    # `lib/blocks.py`, the one split of a text into GFM lines.
+    BLOCKS = sibling.load("lib/blocks.py")
     # `lib/fields.py`, the one reader of a record's `seal` blocks.
-    FIELDS = load(FIELDS_READER, "agentic_fields_for_the_chain")
-    # `lib/gitcmd.py`, which builds every git command `git` runs.
-    GITCMD = load(os.path.join(LIB, "gitcmd.py"), "agentic_gitcmd_for_the_chain")
-except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
+    FIELDS = sibling.load(FIELDS_READER)
+    # `lib/gitcmd.py`, which builds every git command `git` runs and spells
+    # a path as git does.
+    GITCMD = sibling.load("lib/gitcmd.py")
+    # `lib/optin.py`, which finds the repository and its `seal/` root.
+    OPTIN = sibling.load("lib/optin.py")
+    # `lib/console.py`, whose `annotate` prints a line about a file.
+    CONSOLE = sibling.load("lib/console.py")
+except (OSError, SyntaxError, ImportError) as _exc:
     if __name__ != "__main__":
         raise
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
@@ -366,7 +382,7 @@ def changed(root, base):
     check reads declarations, not file identity, so a deleted declaration
     is never paired away with a similar added one. `moved` is both names of
     every exact move — a deleted file whose bytes an added file of the same
-    name carries — which is what the root move of #90 does to every
+    name carries — which is what moving the records root does to every
     declaration at once. Under `WORKTREE` the diff is against the working
     tree and untracked files count as added."""
     if WORKTREE:
@@ -1055,7 +1071,7 @@ def frame_foot(reader, text):
     """(the `Framed` mark as (when, who) or None, [(when, who, round)] for
     every `Reframed` line under it), read from the last non-empty line up."""
     reframes = []
-    for line in reversed(reader.gfm_lines(text or "")):
+    for line in reversed(BLOCKS.gfm_lines(text or "")):
         line = line.strip()
         if not line:
             continue
@@ -1153,11 +1169,11 @@ _check_lines = None
 
 
 def check_lines_reader():
-    """`CHECK_LINES_READER`, loaded by path once, or Unreadable naming it."""
+    """`CHECK_LINES_READER`, loaded once, or Unreadable naming it."""
     global _check_lines
     if _check_lines is None:
         try:
-            _check_lines = load(CHECK_LINES_READER, "agentic_rules_for_the_chain")
+            _check_lines = sibling.load(CHECK_LINES_READER)
         except (OSError, SyntaxError, ImportError, SystemExit) as exc:
             raise Unreadable(
                 f"the check-line reader `.github/scripts/rules.py` would not load "
@@ -1279,7 +1295,7 @@ def _section_text(rules, root, op):
     span, why = rules.section_lines(text, op.section)
     if span is None:
         return None, why
-    return "\n".join(rules.reader().gfm_lines(text)[span[0] - 1 : span[1]]), None
+    return "\n".join(BLOCKS.gfm_lines(text)[span[0] - 1 : span[1]]), None
 
 
 def pins_and_copies_in(reader, root, rel, ops, sources):
@@ -1302,7 +1318,7 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
     `from` cannot read is named as not read at the operation's line."""
     if not ops:
         return []
-    rules = reader.rule_changes()
+    rules = rule_changes_reader()
     out = []
     if not sources:
         sources.update(_read_tree(rules, root))
@@ -1344,6 +1360,20 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
     return out
 
 
+def rule_changes_reader():
+    """`RULE_CHANGES_READER`, as `lib/sibling.py#load` returns it, loaded on
+    first use. An absent file is the loader's `SystemExit(2)`, which
+    `rule_changes_of` catches beside a module that raises."""
+    return sibling.load(RULE_CHANGES_READER)
+
+
+def policy_root(root):
+    """The policy root of the repository at ROOT: `lib/config.py#policy_root`
+    of the `seal/` root `lib/optin.py#home_at` resolves there."""
+    config = sibling.load("lib/config.py")
+    return config.policy_root(OPTIN.home_at(root, OPTIN.git_common_dir(root)))
+
+
 def rule_changes_read(reader, root, item, notices=None, sources=None):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
@@ -1353,13 +1383,13 @@ def rule_changes_read(reader, root, item, notices=None, sources=None):
     not read, and each line of a `to` `rules.py` names so, goes to NOTICES
     (`RULE_CHANGES_UNREAD`), and so does each test pin and copy of its
     operations (`pins_and_copies_in`), read into SOURCES. The reader is
-    reached through `unverified_check.py#rule_changes`, which raises where
-    it will not load."""
+    reached through `rule_changes_reader`, which raises where it will not
+    load."""
     rel = f"{item}/{SPEC_FILE}"
     text = read_record(root, rel)
     if text is None:
         return []
-    parsed = reader.rule_changes().parse(text, reader.policy_root(root))
+    parsed = rule_changes_reader().parse(text, policy_root(root))
     if notices is not None:
         notices.extend(
             (rel, line, RULE_CHANGES_UNREAD.format(why=why))
@@ -1505,7 +1535,7 @@ def records(reader, routing, root, item, rel, base):
     return problems
 
 
-# The parity arm at the pull request (#988). Under a routing declaration
+# The parity arm at the pull request. Under a routing declaration
 # answering the review chain, each round record carries the comparison on the
 # `original:` line of its round block, which these read.
 NO_ORIGINAL = (
@@ -1528,11 +1558,11 @@ NO_BASELINE = (
 
 
 def parity_readers():
-    """`(config, gate)`: `lib/config.py` and `lib/gate.py`, loaded by path.
-    `gate.py` imports nothing since #1027, so the order no longer matters.
-    Raises what `load` raises."""
-    config = load(os.path.join(LIB, "config.py"), "agentic_config_for_parity")
-    gate = load(os.path.join(LIB, "gate.py"), "agentic_gate_for_parity")
+    """`(config, gate)`: `lib/config.py` and `lib/gate.py`. `gate.py`
+    imports nothing, so the order does not matter. Raises what
+    `lib/sibling.py#load` raises."""
+    config = sibling.load("lib/config.py")
+    gate = sibling.load("lib/gate.py")
     return config, gate
 
 
@@ -1575,7 +1605,7 @@ def guarantee_original(text, rel, sha, config):
     commit` of the migration config at CONFIG: a newest block with no such
     line, at its opener, and one naming a commit that is not a prefix of SHA
     and of which SHA is not a prefix, at its line. An earlier block's line
-    stands for no later run (#1198). A guarantee `lib/fields.py`
+    stands for no later run. A guarantee `lib/fields.py`
     refuses, or one holding no verdict block, is the guarantee arm's
     refusal, and none is added here."""
     found = FIELDS.read(text, FIELDS.GUARANTEE)
@@ -1605,8 +1635,7 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     verdict block's (`guarantee_original`). A config whose `Baseline commit`
     names no SHA is one refusal naming it, and so is an earlier release's
     `parity.md` git carries with no `parity.json` beside it, naming the
-    keys to write (#1454). None where `lib/` would not load, said on
-    stderr."""
+    keys to write. None where `lib/` would not load, said on stderr."""
     config = f"{home}/{routing.optin.PARITY_CONFIG}"
     old = f"{home}/{routing.optin.OLD_PARITY_CONFIG}"
     text = read_record(root, config)
@@ -1639,8 +1668,8 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     return found
 
 
-# A gate record with no run block: one written before the run stood in a
-# block, or one nobody wrote a run into (#1198, *Scope* item 9).
+# A gate record with no run block: one of the older shape, its run written
+# outside any block, or one nobody wrote a run into.
 NO_RUN_BLOCK = (
     "no run block: since #1198 the run stands in a `seal` block holding "
     "`run: <tree> against <base commit>`, which `seal gate --base <base> "
@@ -1686,8 +1715,8 @@ def broad_gate(reader, root, item, base, notices=None):
     return [(rel, 0, follows_reason(behind, "the newest gate run"))]
 
 
-# A guarantee with no verdict block: one written before the verdict stood in
-# a block, or one the sealer never filled (#1198, *Scope* item 9).
+# A guarantee with no verdict block: one of the older shape, its verdict
+# written outside any block, or one the sealer never filled.
 NO_VERDICT_BLOCK = (
     "no verdict block: since #1198 the sealer's verdict stands in a `seal` "
     "block holding `target: <sha> against <base>`, the `original:` line where "
@@ -1748,11 +1777,11 @@ def guarantee(reader, root, item, base, notices=None):
     return problems
 
 
-# The pull request's body (#1452), read from the event payload, against what
+# The pull request's body, read from the event payload, against what
 # `seal pr-body` composes at HEAD for the one judged work item it carries.
 # `pr_body.py` loads this module at its own import, so the arm loads it
 # inside `pr_body_reader` and never at module level.
-PR_BODY = os.path.join(HERE, "pr_body.py")
+PR_BODY = "skills/code-review/scripts/pr_body.py"
 PR_FILE = "pr.md"
 BODY_LINE = "the pull request's body, line {line}: {why}"
 BODY_WHOLE = "the pull request's body: {why}"
@@ -1777,11 +1806,11 @@ _pr_body = None
 
 
 def pr_body_reader():
-    """`PR_BODY`, loaded by path once, or Unreadable naming it."""
+    """`PR_BODY`, loaded once, or Unreadable naming it."""
     global _pr_body
     if _pr_body is None:
         try:
-            _pr_body = load(PR_BODY, "agentic_pr_body_for_the_chain")
+            _pr_body = sibling.load(PR_BODY)
         except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as exc:
             raise Unreadable(
                 f"the body reader `skills/code-review/scripts/pr_body.py` would "
@@ -1804,8 +1833,8 @@ def body(root, items, text, why, base=None):
     read for each, in the sentence for that shape. A line of the body is
     refused on the work item's directory, naming the body's line; a record
     `compared` refuses is refused at its line, by its path from the work
-    item's directory, which names the root's `config.json` for a language key
-    (#1453); `seal_mark`'s sentence is a notice. Unreadable where
+    item's directory, which names the root's `config.json` for a language
+    key; `seal_mark`'s sentence is a notice. Unreadable where
     `pr_body.py` will not load."""
     if text is None:
         return [], [("", 0, BODY_UNREAD.format(why=why))]
@@ -1848,17 +1877,17 @@ def local_root(root, routing):
 def root_name(routing, root, fork):
     """The root's repository-relative name the check reads the declarations
     under: the name `lib/optin.py#home_name_in` gives for the tree the check
-    reads, `seal`, or the second name beside a project's own `seal/`
-    (#1059). That tree is HEAD, and the working tree under `WORKTREE`, as
+    reads, `seal`, or the second name beside a project's own `seal/`. That
+    tree is HEAD, and the working tree under `WORKTREE`, as
     `read_record` reads it.
 
     Where that tree has no marked root, the name is the one the merge base
     FORK gives, so a pull request that deletes only the marker keeps its
     declarations judged, and one that deletes the root is read under the
     name the root had. Where neither has one, or FORK is None, it is
-    `lib/optin.py#HOME`: a committed `seal/` with no marker is read as this
-    check read it before the marker decided the root, and a repository
-    whose root is local has nothing committed under any name.
+    `lib/optin.py#HOME`: a committed `seal/` with no marker is still read
+    under that name, and a repository whose root is local has nothing
+    committed under any name.
 
     A pull request that renames the root, the marker under one name at the
     merge base and under the other at HEAD, is read under the new name, and
@@ -1937,7 +1966,7 @@ SETTLE_SAYS = (
 )
 
 # The pull request that moves the root to local mode deletes every
-# declaration with the root (#952).
+# declaration with the root.
 ROOT_LEFT_SAYS = (
     "the tree the check reads has no top-level `{home}` entry, so nothing is "
     "declared: the routing declarations this pull request deletes left the "
@@ -1975,7 +2004,7 @@ def routing_trailers(root, base):
     other than its author committed is not judged: a person's cherry-pick or
     rebase of a session's commit, and GitHub's squash or rebase-merge, carry
     a trailer their committer did not write, and a session's own commit is
-    committed by its author (round 1 of #1027, finding 2). The two emails are
+    committed by its author. The two emails are
     compared as git records them, case-folded, so a session whose committer
     email differs from its author email is not judged either."""
     out = git(
@@ -2009,8 +2038,7 @@ def trailer_findings(trailers, judged, local=False):
     naming a work item that is not among JUDGED, the ids of the declarations
     this pull request judges, is a problem; `no work item` is a notice. Where
     LOCAL, the root is under the common git directory and no declaration is
-    ever committed, so a work item's value is a notice too (round 1 of #1027,
-    finding 1)."""
+    ever committed, so a work item's value is a notice too."""
     problems, notices = [], []
     for sha, value in trailers:
         if value == NO_WORK_ITEM:
@@ -2022,15 +2050,105 @@ def trailer_findings(trailers, judged, local=False):
     return problems, notices
 
 
+def commit_of(root, ref):
+    """The commit `ref` names in `root`, or None. `resolves` asks it."""
+    r = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or None
+
+
+def resolves(root, ref):
+    """Whether `ref` names a commit in `root`.
+
+    `main` asks this of its `--baseline` before it reads anything at that
+    ref, so a CI checkout too shallow to hold the base branch is exit 2
+    rather than a diff read against nothing."""
+    return commit_of(root, ref) is not None
+
+
+def merge_base(root, ref):
+    """The last commit `ref` and `HEAD` agreed on, or None.
+
+    `main` asks `settled` at this commit, and not at `ref`. The ref it
+    passes is the branch the pull request merges into, and that branch
+    MOVES: the moment one work item squashes into it, every sibling branch
+    cut before that squash has the squashed item's files at the ref and never
+    had them at all.
+
+    On a branch checkout the merge base is the fork point. In CI, whose
+    checkout of a pull request is the head already merged into the base, it is
+    the base's tip. Either way a directory present there and absent here was
+    removed by THIS branch, and one that arrived on the base after the branch
+    was cut is not this branch's business.
+
+    None for two states: unrelated histories (exit 1, empty output) and a
+    `HEAD` that names no commit (exit 128). A shallow clone whose base ref
+    resolves while their common ancestor sits beyond the graft lands in the
+    first."""
+    r = subprocess.run(
+        ["git", "-C", root, "merge-base", ref, "HEAD"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or None
+
+
+def settled(root, ref, directories):
+    """The DIRECTORIES that stood at REF, each a settle where it is gone whole.
+
+    **The one predicate**, which `retired` asks of the merge base `main`
+    computes, handing it only directories absent on its head side. Its rule
+    is `docs/checks/the-fold.md` *The fold, and what tells it from a
+    deletion*. A directory is settled when it held a
+    file at REF. What its record held there and what the policy root holds
+    of its design are not read: the settling session writes each section in
+    its own words, and the settle's pull request states each decision for
+    review. A directory a pull request empties only in part never reaches
+    here, since its caller passes only the directories that are gone."""
+    return {d for d in directories if tree_at(root, ref, d)}
+
+
+def tree_at(root, ref, directory):
+    """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
+    None. `directory` is `/`-joined, and so is every path returned. At a ref
+    the paths come from `-z`, which quotes none, whatever `core.quotePath`
+    says."""
+    if ref is None:
+        top = GITCMD.under_root(root, directory)
+        out = []
+        for here, dirs, files in os.walk(top):
+            dirs.sort()
+            for name in sorted(files):
+                rel = os.path.relpath(os.path.join(here, name), root)
+                out.append(GITCMD.git_path(rel))
+        return out
+    r = subprocess.run(
+        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
+
+
 def retired(reader, root, fork, records):
     """The work item directories of the removed declarations that read as a
     settle: each stood at the merge base and is gone whole, asked of the one
-    predicate, `unverified_check.py#settled`. RECORDS maps each declaration
+    predicate, `settled`. RECORDS maps each declaration
     to its text at HEAD; a directory the disk still holds is a deletion of
     part of it, and never reaches the predicate."""
     gone = [os.path.dirname(rel) for rel, text in records.items() if text is None]
     gone = [d for d in gone if not os.path.isdir(os.path.join(root, d))]
-    return reader.settled(root, fork, gone)
+    return settled(root, fork, gone)
 
 
 def main(argv=None):
@@ -2050,15 +2168,15 @@ def main(argv=None):
 
     reader = SHARED_READER
     try:
-        routing = load(ROUTING, "agentic_routing")
-    except (OSError, SyntaxError, ImportError, SystemExit) as exc:
+        routing = sibling.load(ROUTING)
+    except (OSError, SyntaxError, ImportError) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2
-    root = reader.repo_root(os.path.abspath(args.root))
-    if root is None:
+    root = OPTIN.repo_root(os.path.abspath(args.root))
+    if not root:
         print(f"chain-check: {args.root} is not in a git repository", file=sys.stderr)
         return 2
-    if not reader.resolves(root, args.baseline):
+    if not resolves(root, args.baseline):
         print(
             f"chain-check: --baseline {args.baseline} does not resolve in {root}; "
             "a shallow checkout lands here",
@@ -2070,7 +2188,7 @@ def main(argv=None):
         print(f"chain-check: cannot diff against {args.baseline}", file=sys.stderr)
         return 2
     paths, moved = diff
-    fork = reader.merge_base(root, args.baseline)
+    fork = merge_base(root, args.baseline)
     home = root_name(routing, root, fork)
     work_items = f"{home}/{routing.optin.WORK_ITEMS}"
     own, why = declared_for_this_branch(root, routing, work_items)
@@ -2093,7 +2211,7 @@ def main(argv=None):
     # directory, so a root that is not a directory, or one whose marker alone
     # left, keeps the declarations judged. A root that left is named by the
     # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
-    # root that stayed (#1059). Where git cannot answer, `git()` is None and
+    # root that stayed. Where git cannot answer, `git()` is None and
     # the declarations stay judged.
     if WORKTREE:
         gone = not os.path.lexists(os.path.join(root, home))
@@ -2114,7 +2232,7 @@ def main(argv=None):
     if WORKTREE:
         print("chain-check: reading the working tree (--worktree); CI reads HEAD")
     for rel, line, message in carried:
-        print(reader.annotate("notice", rel, line, message))
+        print(CONSOLE.annotate("notice", rel, line, message))
     trailers = routing_trailers(root, args.baseline)
     if trailers is None:
         print(
@@ -2128,11 +2246,11 @@ def main(argv=None):
     )
     kind = "error" if strict else "notice"
     if not declarations:
-        print(reader.annotate("notice", "", 0, why))
+        print(CONSOLE.annotate("notice", "", 0, why))
         for rel, line, message in notices:
-            print(reader.annotate("notice", rel, line, message))
+            print(CONSOLE.annotate("notice", rel, line, message))
         for rel, line, message in problems:
-            print(reader.annotate(kind, rel, line, message))
+            print(CONSOLE.annotate(kind, rel, line, message))
         return 1 if problems and strict else 0
 
     # A declared work item's commit can write another work item's section
@@ -2226,9 +2344,9 @@ def main(argv=None):
             problems.append((rel, line, message))
 
     for rel, line, message in notices:
-        print(reader.annotate("notice", rel, line, message))
+        print(CONSOLE.annotate("notice", rel, line, message))
     for rel, line, message in problems:
-        print(reader.annotate(kind, rel, line, message))
+        print(CONSOLE.annotate(kind, rel, line, message))
     return 1 if problems and strict else 0
 
 

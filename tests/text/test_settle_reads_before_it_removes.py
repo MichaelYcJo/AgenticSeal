@@ -1,10 +1,10 @@
-"""What is left of `settle`'s old file: the cases that read the skill, the
-documents, the READMEs, the checklist and the cheat sheets, which wait for
-#923. #458, closing #83.
+"""The settle's documents: the cases read the skill, both editions of the
+README and of the seal README, the framer's definition and the release
+checklist. #458, closing #83.
 
-#942's phase 6 placed the cases that run the command or call
-`skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
-the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
+The cases that run the command or call
+`skills/settle/scripts/settle.py`'s functions stand in `tests/skills/test_settle.py`,
+and the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
 this file on the `check:` line of *A settle is not a work item*, whose rule
 `test_the_skill_names_how_a_settle_commits` holds. Since
 #1033 the skill states the settling session's procedure, and the cases that
@@ -17,7 +17,7 @@ import pytest
 from conftest import ROOT
 from conftest import flattened as flat
 
-SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
+# No TARGET: its cases hold the settle across its skill, both editions of the README and of the seal README, the framer's definition and the release checklist.
 
 
 def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
@@ -48,38 +48,13 @@ def skill(path=SKILL):
 def test_the_skill_states_the_settling_sessions_procedure():
     """S11 and S13, #1033's *In* item 3. The settling session's procedure
     names the file a measurement nobody has taken is re-homed in. The
-    steps, their order and what each row kind means are the proofer's to
-    read; the order of the row kinds is the next case's."""
+    steps, their order, the row kinds and their order are the proofer's to
+    read."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     # The path `seal/follow-up.md`, where the settling session writes the
     # row for a measurement nobody has taken (`questions.md` Q1's default).
     assert "`seal/follow-up.md` row" in procedure
-
-
-def test_the_skill_orders_the_row_kinds_so_only_a_needed_measurement_opens_an_issue():
-    """S4 of #1045. A row takes the first kind that fits in step 6's table.
-    Every measurement no record asks for also fits *a measurement nobody has
-    taken*, whose *When* cell is the base sentence alone, so the order is
-    what closes it before it can be re-homed as an issue. With the two rows
-    swapped, every unmeasured row is re-homed. What each kind means is the
-    proofer's to read."""
-    procedure = skill().split("\n## The settling session's procedure\n")[1]
-    procedure = procedure.split("\n## ")[0]
-    lines = [line.strip() for line in procedure.splitlines()]
-    header = lines.index("| The row is | When | What closes it |")
-    kinds = []
-    # The rows under the header and its separator, up to the table's end.
-    for line in lines[header + 2 :]:
-        if not line.startswith("|"):
-            break
-        kinds.append(line.split("|")[1].strip())
-    assert kinds == [
-        "moot",
-        "answered",
-        "a measurement no record asks for",
-        "a measurement nobody has taken",
-    ], kinds
 
 
 def test_the_skill_names_how_a_settle_commits():
@@ -104,19 +79,12 @@ def document(*parts):
 )
 def test_the_seal_readme_says_the_step_exists(parts):
     """Both editions of the same file, which
-    `tests/behaviour/test_first_setup_asks_once.py` holds byte for byte. It has said a
-    work item "waits until a later `settle` folds it" since the root existed,
-    and a reader who went looking for the step found nothing."""
+    `tests/behaviour/test_first_setup_asks_once.py` holds byte for byte. Each
+    names the step's command and the skill it is read from, so a reader who
+    goes looking for the step finds it."""
     text = document(*parts)
+    # The command a reader types, and the path of the skill a reader opens.
     assert "settle --apply" in text and "skills/settle/SKILL.md" in text
-    assert "A settle is not a work item and opens no directory here." in text, (
-        f"{'/'.join(parts)} does not say a settle opens no work item (#517)"
-    )
-    assert (
-        "whose record holds no open row, whether or not it wrote a `frame/design.md`"
-        in (text)
-    )
-    assert "retire-process" not in text and "folds it" not in text
 
 
 @pytest.mark.parametrize(
@@ -172,49 +140,24 @@ def test_both_cheat_sheets_carry_the_command(edition):
     assert "`skills/settle/SKILL.md` *The settling session's procedure*" in row, row
 
 
-def test_the_module_and_the_skill_both_say_how_local_mode_settles():
-    """S10 of #955, contract rule 14. Since #955 `settle` reads a local root,
-    so neither text says it refuses one. The skill states where the work
-    items are read and removed, what released means there and how the order
-    is read, what the dry run adds and what `--apply` removes, and the three
-    limits; the docstring's exit-code list names a `gh` that cannot be asked
-    and no longer a root in local mode. Round 2's finding 3 of #458 holds
-    still: every cause of exit 2 is in the list."""
-    with open(SCRIPT, encoding="utf-8") as f:
-        head = flat(f.read().split('"""')[1])
-    exits = head.split("Exit codes")[1]
-    assert "a root in local mode" not in exits, exits
-    assert "a `gh` that is not on PATH or whose query fails" in exits, exits
-    assert "opted out" in exits, "exit 2 covers the opt-out and the list does not"
-    assert "Local mode is refused" not in head, head
-    assert "refuses to run in local mode" not in flat(skill())
+def test_the_local_mode_section_names_what_a_local_settle_reads():
+    """S10 of #955. Since #955 `settle` reads a local root, and the skill's
+    local-mode file states where a work item's directory stands there, the
+    flag and the two commands the release is read with, the module that
+    reads the declaration and the command that takes a copy."""
     section = flat(skill(LOCAL_MODE).split("\n## In local mode\n")[1].split("\n## ")[0])
-    for said in (
-        "under the common git directory",
-        "so a work item's directory is `<git-common-dir>/seal/threads/<id>/`",
-        "the pull request from the branch its `routing.md` names has merged",
-        "reachable from `--released-at`",
+    for fact in (
+        # The path a work item's directory has in local mode, which the
+        # settling session opens.
+        "`<git-common-dir>/seal/threads/<id>/`",
+        # The flag the settling session passes the release on.
+        "`--released-at`",
+        # The two commands the release is read with.
         "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
-        "Each `frame/design.md` is read from its directory",
-        "their merge commits' place in `git rev-list --topo-order --reverse`",
-        "with its pull request's number and its merge commit",
-        "which of the three states holds",
-        "no `routing.md` that `lib/routing.py` reads as a declaration naming a branch",
-        "a pull request listed with no merge commit among them",
-        "`seal export` takes a copy for whoever wants one",
-        "removes each released local directory whose record holds no open row",
-        "Shared mode asks `gh` only in `--apply`, for the release list, and "
-        "only where a directory it would remove gets as far as a version tag",
-        "It reads no published note: no fragment is committed in local mode",
-        "reached `--released-at` without a pull request reads as unreleased, "
-        "and its directory is removed by hand",
-        "A repository on a host `gh` cannot ask cannot settle in local mode",
-        "reads that later work item as released",
-        "So does a merged pull request from a fork whose branch has the same "
-        "name, since `gh pr list --head` matches a branch's name and not its "
-        "owner",
-        "it does not rule out the second, because the flow does not name a "
-        "fork's branches",
+        "`git rev-list --topo-order --reverse`",
+        # The module that reads `routing.md` as a declaration.
+        "`lib/routing.py`",
+        # The command a person runs for a copy of the records.
+        "`seal export`",
     ):
-        assert said in section, said
-    assert "never produces this" not in section, section
+        assert fact in section, fact

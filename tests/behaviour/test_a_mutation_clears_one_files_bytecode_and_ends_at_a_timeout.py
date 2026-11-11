@@ -9,10 +9,10 @@ that file lives
 in #326). Nothing bounded a mutated run either, and one hung for 32 minutes
 (#577).
 
-The cases that run the command moved to `tests/skills/test_mutation_check.py` in
-#942's phase 6. What stays here reads the sentences a session acts on: the
-crafter's definition, the verify skill's section, and the bound both of them
-state.
+The cases that run the command stand in `tests/skills/test_mutation_check.py`.
+What stays here reads the sentences a session acts on: the
+crafter's definition, `skills/verify/seal-mutate.md`, and the bound both of
+them state.
 
 **How the script is loaded here.** By path, with an `importlib` spec,
 registered in `sys.modules` before it executes, so nothing has to be put on
@@ -25,6 +25,8 @@ import re
 import sys
 
 from conftest import ROOT, flat
+
+# No TARGET: its cases hold seal mutate's command and bound across agents/crafter.md, skills/verify/seal-mutate.md and the script's constant.
 
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
 
@@ -54,8 +56,7 @@ def test_the_crafters_definition_names_the_command_and_its_flag():
     # The `seal mutate` command line with its `--replace` and `--tests`
     # arguments, which the crafter copies for each unit it mutates.
     # Any runner: the definition ships to repositories with no `bin/test`,
-    # and `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it
-    # to naming none.
+    # so the pattern names none.
     assert re.search(r"seal mutate \S+ --replace .+? --tests \"", crafter), (
         "`agents/crafter.md` does not show the mutation loop as one command, "
         "with its replacement and the cases it runs"
@@ -68,24 +69,28 @@ def test_the_crafters_definition_names_the_command_and_its_flag():
     )
 
 
-def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends():
-    """The section a reader opens to learn the command: its verdicts with
-    their exit codes, its bound, and what that bound ends on each platform.
-    The section is `skills/verify/seal-mutate.md`'s since #1312, and runs to
-    the end of that file."""
+def test_the_verify_skill_says_what_each_verdict_means():
+    """The section a reader opens to learn the command: the command line and
+    its verdicts with their exit codes. The section is
+    `skills/verify/seal-mutate.md`'s since #1312, and runs to the end of that
+    file; its bound is the next case's."""
     skill = flat("skills", "verify", "seal-mutate.md")
     section = skill[skill.index("## `seal mutate`") :]
     for said in (
+        # The command line a reader copies for each break.
         "seal mutate <file> --replace",
+        # The verdicts `skills/verify/scripts/mutation_check.py#RED` and
+        # `skills/verify/scripts/mutation_check.py#SURVIVED` print, with the
+        # exit codes a caller's `&&` chain acts on.
         "`red`, exit 0",
         "`SURVIVED`, exit 1",
+        # The exit code a caller reads as a run that measured nothing.
         "exit 2",
-        "300 seconds",
-        "process group",
-        "Windows",
+        # The variable the cases inherit, which a case that plants a `.pyc`
+        # has to switch off.
         "PYTHONDONTWRITEBYTECODE",
-        # Round 1, 🔴 1: the baseline, and the verdict it gives.
-        "first runs `--tests` against the file as it is",
+        # The verdict `skills/verify/scripts/mutation_check.py#NO_BASELINE`
+        # prints.
         "`no baseline`",
     ):
         assert said in section, f"the section does not say {said!r}"
@@ -108,5 +113,8 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert mc.main([str(target), "--replace", "1", "2", "--tests", "x"]) == 0
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
-    assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "crafter.md")
-    assert f"{bound} seconds by default" in flat("skills", "verify", "seal-mutate.md")
+    # The bound in seconds, which the crafter waits on for a run with no
+    # `--timeout`.
+    assert f" {bound} s " in flat("agents", "crafter.md")
+    # The same bound, which a reader of the command's section waits on.
+    assert f" {bound} seconds " in flat("skills", "verify", "seal-mutate.md")

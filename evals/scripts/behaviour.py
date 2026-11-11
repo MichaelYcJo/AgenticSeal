@@ -5,15 +5,20 @@ A case is a directory `claude plugin eval` reads: `case.yaml` (config under
 and `model`), `prompt.md` (the prompt and nothing else), `scaffold.sh` (named
 by `context.scaffold_script`, a path relative to the case) and one file per
 grader under `graders/`. A grader's file name is its name, and its prefix is
-its kind for `noninferiority.py`: `reach-`, `shape-`, `truth-`.
+its kind for `noninferiority.py`: `reach-`, `shape-`, `truth-`. `grader_from`
+reads a grader file back in the shape a side records it.
 """
 
 import json
 import os
+import re
 import shutil
 
 KINDS = ("reach", "shape", "truth")
 ORCHESTRATOR_TOOLS = ("Agent", "Task", "Bash", "Read", "Write", "Edit", "Glob", "Grep")
+# One scalar of the front matter `grader` writes: single-quoted, a quote
+# doubled inside, or a bare word up to the next `,` or `}`.
+SCALAR = r"'(?:[^']|'')*'|[^,}]+"
 
 
 def js_escape(text):
@@ -43,6 +48,42 @@ def grader(kind, name, body, **fields):
             lines.append(f"{key}: {squote(str(value))}")
     lines += ["---", body.strip(), ""]
     return f"{kind}-{name}.md", "\n".join(lines)
+
+
+def scalar(text):
+    """The value of one front-matter scalar of a truth grader: a one-level
+    flow map, a single-quoted string, or an integer; anything else is kept
+    as its text."""
+    text = text.strip()
+    if text.startswith("{"):
+        return {k: scalar(v) for k, v in re.findall(rf"(\w+): ({SCALAR})", text[1:-1])}
+    if text.startswith("'"):
+        return text[1:-1].replace("''", "'")
+    return int(text) if re.fullmatch(r"-?\d+", text) else text
+
+
+def grader_from(path, text):
+    """The grader file PATH holding TEXT in the shape a side records it:
+    `name`, `type`, `weight` (1 where the file names none) and `config`,
+    every other front-matter field, with `match` `contains` where the file
+    names none.
+
+    A file with no front matter raises ValueError."""
+    m = re.match(r"---\n(?P<head>.*?)\n---\n", text, re.S)
+    if not m:
+        raise ValueError(f"{path} has no front matter")
+    fields = {}
+    for line in m["head"].split("\n"):
+        key, _, value = line.partition(": ")
+        fields[key] = scalar(value)
+    config = {k: v for k, v in fields.items() if k not in ("type", "weight")}
+    config.setdefault("match", "contains")
+    return {
+        "name": path.rsplit("/", 1)[-1][: -len(".md")],
+        "type": fields.get("type"),
+        "weight": fields.get("weight", 1),
+        "config": config,
+    }
 
 
 def report_regex(kind, name, path, pattern, body, flags="m", **extra):

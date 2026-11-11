@@ -3,18 +3,25 @@
 
   release_report.py --against TAG --at DIR [--root DIR]
                     [--ci-jobs FILE] [--ci-jobs-at FILE]
+                    [--durations FILE] [--durations-at FILE]
 
 Prints one markdown table, `| What | <TAG> | Now | Change |`, under
 `### Against <TAG>`: each agent's preload bytes, the suite's seconds, each CI
 leg's minutes and each document's bytes, read from the tree at `--at` (the
 tag's) and the tree at `--root` (this one, by default the repository this
-script is in). The tests workflow runs it after the suite on a pull request
-into `main` and appends what it prints to the job's summary.
+script is in), and from the files each side's run left. The tests workflow
+runs it after the suite on a pull request into `main` and appends what it
+prints to the job's summary.
 
   preload `<agent>`   the bytes of `agents/<agent>.md` and of each skill its
                       `skills:` list names, the agent's own share of
                       `skills/verify/scripts/payload_meter.py#composition`
-  the suite           the seconds `.test_durations` prices every case at
+  the suite           the seconds the durations union prices every case at,
+                      read from `--durations` (this run's) and
+                      `--durations-at` (the tag's push run's), each the
+                      `.test_durations` of a run's `test-durations`
+                      artifact; `no union found` where the file is not given
+                      or absent
   `<leg>` leg         the minutes of one run's `pytest (<leg>-latest, <python>,
                       …)` jobs at the floor `lib/launch.py#FLOOR`
                       holds, summed, each `completed_at` less `started_at`,
@@ -33,22 +40,21 @@ into `main` and appends what it prints to the job's summary.
                       each CRLF counted as the LF git stores
 
 Under it, a second table under `### Test files against <TAG>` gives one row
-per test file `.test_durations` prices in either tree: its cases and seconds
-at the tag and now, slowest now first.
+per test file either union prices: its cases and seconds at the tag and now,
+slowest now first, `no union found` in the cells of a side with no union.
 
 It fails nothing: no row is held to a number, and its reader is whoever
 prepares the release. A leg's minutes compare one run with one run, which
 swing on the same code, and the table's header says so.
 
 Exit codes: **0** the table was printed, whatever it shows · **2** a tree,
-its `.test_durations`, an agent definition, its policy root's index, or a
-module it reads through cannot be read.
+a durations union that is there and does not parse, an agent definition, its
+policy root's index, or a module it reads through cannot be read.
 """
 
 import argparse
 import datetime
 import glob
-import importlib.util
 import json
 import os
 import re
@@ -56,12 +62,15 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first load, in `module`; each module is named as `lib/sibling.py#load`
+# names it.
+sys.path.insert(0, os.path.join(ROOT, "lib"))
 METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
 CONFIG = "lib/config.py"
 OPTIN = "lib/optin.py"
 LAUNCH = "lib/launch.py"
-DURATIONS = ".test_durations"
 # Beside these, each document of the policy root `FOLD`'s `documents` lists.
 DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md")
 # The legs of the tests workflow at the floor, in the order a reader compares
@@ -70,6 +79,7 @@ DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md")
 LEGS = ("ubuntu", "windows", "macos")
 PYTEST_JOB = re.compile(r"pytest \(([a-z]+)-[^,)]*, ([^,)]+)(?:,.*)?\)")
 NO_RUN = "no run found"
+NO_UNION = "no union found"
 ABSENT = "—"
 HEADER = (
     "Each agent's preload, the suite's seconds, each CI leg's minutes and "
@@ -78,7 +88,7 @@ HEADER = (
     "same code, so no row is a verdict."
 )
 FILES_HEADER = (
-    "Each test file's priced cases and seconds in `.test_durations`, at the "
+    "Each test file's priced cases and seconds in the durations union, at the "
     "last release tag and now, slowest now first. A report and never a "
     "ceiling: a heavily exercised module needs the cases it needs."
 )
@@ -89,28 +99,38 @@ class Unreadable(Exception):
     says which."""
 
 
-def script(rel, name, purpose):
-    """The module at `rel` under this tree, loaded by path, or Unreadable
-    naming it and what it is for."""
-    path = os.path.join(ROOT, *rel.split("/"))
-    if not os.path.isfile(path):
-        raise Unreadable(f"cannot read {rel}, which {purpose}")
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def module(rel):
+    """The module at REL, as `lib/sibling.py#load` returns it, and the one
+    function every load of this script goes through. The loader is imported
+    here, at the first module asked for, so a run that ends at its usage
+    line loads nothing.
+
+    Where `lib/sibling.py` is absent, the refusal is the loader's sentence
+    about it at exit 2, spelt here because the file that holds the
+    sentence is the one missing."""
+    try:
+        import sibling
+    except ImportError:
+        sys.stderr.write(
+            "cannot read "
+            + os.path.normpath(os.path.join(ROOT, "lib", "sibling.py"))
+            + ", which this command loads. It ships in the plugin beside this "
+            "script; a copy of one script taken on its own is not a plugin. "
+            "Nothing was read.\n"
+        )
+        raise SystemExit(2) from None
+    return sibling.load(rel)
 
 
 def meter():
-    """`payload_meter.py`, loaded by path, or Unreadable."""
-    return script(METER, "agentic_release_meter", "measures an agent's preload")
+    """`payload_meter.py`, as `module` returns it."""
+    return module(METER)
 
 
 def floor():
     """The plugin's floor as a job name writes it, `3.12`, from `LAUNCH`'s
-    `FLOOR`, loaded by path, or Unreadable."""
-    launch = script(LAUNCH, "agentic_release_launch", "holds the Python floor")
-    return ".".join(str(part) for part in launch.FLOOR)
+    `FLOOR`."""
+    return ".".join(str(part) for part in module(LAUNCH).FLOOR)
 
 
 def lf_bytes(path):
@@ -125,7 +145,7 @@ def preloads(root, kernel):
         found = kernel.agents_in(root)
         out = {}
         for agent, definition in found.items():
-            rows = kernel.composition(root, root, agent, definition, False)
+            rows = kernel.composition(root, root, agent, definition)
             out[agent] = sum(row["bytes"] for row in rows if row["share"] == "agent")
     except OSError as error:
         raise Unreadable(
@@ -134,26 +154,25 @@ def preloads(root, kernel):
     return out
 
 
-def suite_seconds(root):
-    """The seconds `.test_durations` in the tree at `root` prices every case
-    at, summed, or Unreadable."""
-    return sum(durations(root).values())
-
-
-def durations(root):
-    """`.test_durations` in the tree at `root`, `{case id: seconds}`, or
-    Unreadable."""
-    path = os.path.join(root, DURATIONS)
+def durations(path):
+    """The durations union at `path`, `{case id: seconds}`; None where no
+    path is given or no file is there, as a run that uploaded no union or a
+    tag whose artifact has expired leaves it; Unreadable where the file is
+    there and is no such map."""
+    if not path or not os.path.isfile(path):
+        return None
     try:
         with open(path, encoding="utf-8") as handle:
             data = json.load(handle)
     except (OSError, ValueError) as error:
-        raise Unreadable(f"{DURATIONS} under {root} cannot be read: {error}") from None
+        raise Unreadable(
+            f"the durations union {path} cannot be read: {error}"
+        ) from None
     if not isinstance(data, dict) or not all(
         isinstance(v, (int, float)) and not isinstance(v, bool) for v in data.values()
     ):
         raise Unreadable(
-            f"{DURATIONS} under {root} is no object of case ids to seconds"
+            f"the durations union {path} is no object of case ids to seconds"
         )
     return data
 
@@ -168,10 +187,15 @@ def by_file(priced):
 
 
 def module_rows(at, now):
-    """One table row per test file `.test_durations` prices in the tree at
-    `at` or the tree at `now`: its cases and seconds in each, slowest now
-    first, a file absent from one tree shown absent there."""
-    old, new = by_file(durations(at)), by_file(durations(now))
+    """One table row per test file the union `at` or the union `now` prices,
+    each `durations`' reading: its cases and seconds in each, slowest now
+    first, a file absent from one union shown absent there, and both cells
+    of a side with no union reading `NO_UNION`."""
+    sides = [
+        ({}, NO_UNION) if priced is None else (by_file(priced), ABSENT)
+        for priced in (at, now)
+    ]
+    old, new = sides[0][0], sides[1][0]
 
     def slowest(path):
         return (-new.get(path, (0, 0.0))[1], -old.get(path, (0, 0.0))[1], path)
@@ -179,9 +203,9 @@ def module_rows(at, now):
     rows = []
     for path in sorted(set(old) | set(new), key=slowest):
         cells = [f"`{path}`"]
-        for side in (old, new):
+        for side, missing in sides:
             cases, seconds = side.get(path, (None, None))
-            cells += [cell(cases), cell(seconds, 1)]
+            cells += [cell(cases, 0, missing), cell(seconds, 1, missing)]
         rows.append("| " + " | ".join(cells) + " |")
     return rows
 
@@ -210,14 +234,14 @@ def documents(root):
         for pattern in DOCUMENTS
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
     ]
-    config = script(CONFIG, "agentic_release_config", "reads the policy root key")
-    optin = script(OPTIN, "agentic_release_optin", "names the seal/ root in the tree")
-    # The shared root's name, or `optin.HOME` where none is marked, as an
-    # unmarked `seal/` was read before the second name.
+    config = module(CONFIG)
+    optin = module(OPTIN)
+    # The shared root's name, or `optin.HOME` where none is marked, so an
+    # unmarked `seal/` is read under the name `seal`.
     home = os.path.join(root, optin.home_name(root) or optin.HOME)
     policy = config.policy_root(home)
     if os.path.isdir(os.path.join(root, *policy.split("/"))):
-        fold = script(FOLD, "agentic_release_fold", "lists the policy documents")
+        fold = module(FOLD)
         try:
             listed = fold.documents(root, policy)
         except fold.Unusable as refused:
@@ -309,12 +333,13 @@ def table(tag, at, now, jobs_at, jobs_now):
         rows.append(
             (f"preload `{agent}` (bytes)", cell(old), cell(new), change(old, new))
         )
+    old, new = at[1], now[1]
     rows.append(
         (
             "the suite (seconds)",
-            cell(at[1]),
-            cell(now[1]),
-            change(round(at[1]), round(now[1])),
+            cell(old, 0, NO_UNION),
+            cell(new, 0, NO_UNION),
+            ABSENT if old is None or new is None else change(round(old), round(new)),
         )
     )
     for leg in (*LEGS, *other_legs(jobs_at, jobs_now)):
@@ -342,11 +367,14 @@ def table(tag, at, now, jobs_at, jobs_now):
     return "\n".join(lines) + "\n"
 
 
-def reading(root, kernel):
-    """`(preloads, seconds, documents)` of the tree at `root`, or Unreadable."""
+def reading(root, kernel, priced=None):
+    """`(preloads, seconds, documents)` of the tree at `root`, the seconds
+    being what the union `priced` sums to, None where there is no union; or
+    Unreadable."""
     if not os.path.isdir(root):
         raise Unreadable(f"{root} is no directory")
-    return preloads(root, kernel), suite_seconds(root), documents(root)
+    seconds = None if priced is None else sum(priced.values())
+    return preloads(root, kernel), seconds, documents(root)
 
 
 def main(argv=None):
@@ -358,18 +386,22 @@ def main(argv=None):
     parser.add_argument("--root", default=ROOT, metavar="DIR")
     parser.add_argument("--ci-jobs", metavar="FILE")
     parser.add_argument("--ci-jobs-at", metavar="FILE")
+    parser.add_argument("--durations", metavar="FILE")
+    parser.add_argument("--durations-at", metavar="FILE")
     args = parser.parse_args(argv)
     try:
+        priced_at = durations(args.durations_at)
+        priced_now = durations(args.durations)
         kernel = meter()
-        at = reading(os.path.abspath(args.at), kernel)
-        now = reading(os.path.abspath(args.root), kernel)
+        at = reading(os.path.abspath(args.at), kernel, priced_at)
+        now = reading(os.path.abspath(args.root), kernel, priced_now)
         at_floor = floor()
     except Unreadable as error:
         sys.stderr.write(f"release-report: {error}. Nothing was compared.\n")
         return 2
     jobs_at = leg_minutes(args.ci_jobs_at, at_floor)
     jobs_now = leg_minutes(args.ci_jobs, at_floor)
-    rows = module_rows(os.path.abspath(args.at), os.path.abspath(args.root))
+    rows = module_rows(priced_at, priced_now)
     sys.stdout.write(table(args.against, at, now, jobs_at, jobs_now))
     sys.stdout.write("\n" + files_table(args.against, rows))
     return 0
@@ -378,8 +410,8 @@ def main(argv=None):
 if __name__ == "__main__":
     # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
-    # when first asked (`meter`), so a module that will not load ends in the
-    # script's own `Unreadable` and exit 2.
+    # when first asked (`module`), so an absent module ends in
+    # `lib/sibling.py`'s sentence and exit 2 after the arguments are read.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

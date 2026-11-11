@@ -56,45 +56,6 @@ as the last fetch, which is why the gate's report names the ref beside the
 commit on the `base` row rather than the commit alone, and the `BROAD GATE
 PASSED` line names it as `<ref> @ <commit>`.
 
-**What the broad run covers is declared rather than remembered.** The arms
-exist so that the one run says what CI will say.
-`skills/verify/scripts/broad_gate.py`'s `PARTITION` is the declaration: every
-step of the `release` job of `.github/workflows/hygiene.yml` is mirrored by a
-named arm or excluded with a written reason, there is no third state, and a
-case holds the table against the workflow from both sides. A step added to
-the workflow fails the suite until somebody classifies it, and a row naming a
-step that was renamed away fails it too.
-
-**A run says what it did not answer.** Where the repository being gated has
-that workflow, the panel carries a `CI also` row, *· <n> more steps*, and the
-names of those steps go to stderr beside the line that names the
-repository's own command, with the total they are counted out of. The dim
-`·` is the owner's mark for a row that is not a pass. The count is on the
-panel because a panel value is 41 columns and a step name is a sentence; the
-names are printed because a number alone sends the reader back to the two
-files this declaration exists to stop them opening. A repository with no
-such workflow sees neither, and nothing else about its run changes. Both are
-counted over the steps CI runs for the base: a step CI does not ask of this
-pull request, such as one of AgenticSeal's that runs only on a pull request into
-`main`, is neither answered nor unanswered, so the count leaves it out and
-the line says how many it left out and why.
-
-**What the count does not say** is whether a mirrored arm asks the same
-question its step asks. The partition says a step is on the list; two readers
-of one question can still disagree about what they are checking. The gate
-runs every arm at every base, and a case holds that no mirrored step of
-AgenticSeal's workflow skips a pull request into `main`; a second case holds
-`broad_gate.py#ONLY_AT_MAIN`, the steps that run only into `main`, against
-their guard. The cases read a guard on the base and no other kind of
-condition, so the class stays open for the next kind.
-
-**The arms the plugin ships are the arms the gate can run.** One step of
-AgenticSeal's own `release` job has a local answer and no arm: one is shell
-written inline in the workflow with no script either side can share. A
-repository that wants checks of its own run names them in the `Broad gate`
-key of `seal/config.json`, the command this gate already runs first, rather
-than in the arm list of a script that ships to everybody.
-
 A full suite carries failures that were already there. Attributing them to
 this work is a wrong finding; passing over them is a silent pass. Both are
 avoided the same way: read the run against the base commit.

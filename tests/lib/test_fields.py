@@ -6,8 +6,10 @@ it to. Each refusal path has a case that names its line and its sentence.
 """
 
 import os
+import pathlib
 import time
 
+import conftest
 import pytest
 from conftest import ROOT, census_case, load_lib_module
 from conftest import seal_block as block
@@ -15,6 +17,9 @@ from conftest import seal_block as block
 TARGET = "lib/fields.py"
 
 fields = load_lib_module("fields.py", "agentic_fields_under_test")
+# The guarantee template, which the unfilled-template case reads and
+# `tests/behaviour/test_the_sealer_guarantees.py` imports from here.
+TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-guarantee.md")
 
 FENCE = "`" * 3
 SHA = "abc1234"
@@ -455,6 +460,10 @@ class Test_read:
         ):
             read(block("severity: must", line), fields.ROUND_RECORD)
         assert time.monotonic() - start < 5.0
+
+    def test_the_unfilled_template_is_no_guarantee(self):
+        found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
+        assert found.blocks == [] and found.refusals, found
 
 
 class Test_assemble:

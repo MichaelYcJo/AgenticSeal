@@ -1,24 +1,24 @@
 """Shared opt-in: does this repository run the AgenticSeal workflow?
 
-Imported by the gates rather than copied into each, because the answer moved
-once already and four divergent copies is how half of them keep the old answer.
+Imported by the gates rather than copied into each, because where the answer
+moves, divergent copies are how half of them keep the old one.
 
 The signal is `seal/` — the root the plugin maintains, whose existence is the
 declaration — at the first of three places that has it with its `README.md`
 opening with `MARKER`: `<repo>/seal/`, which shared mode commits, then
 `<repo>/agentic-seal/`, the shared root's second name, then
-`<git-common-dir>/seal/`, where local mode keeps it (#80). One root, read one
+`<git-common-dir>/seal/`, where local mode keeps it. One root, read one
 way, and no config key (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
 keeps for itself, as a package named `seal` does, and declares nothing; the
-shared root then takes the second name, found by the same marker (#1059).
+shared root then takes the second name, found by the same marker.
 
 `<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
 decision, which is what developing these gates consists of — carries the same
 `seal/` as a repository under review, and the gates cannot tell them apart:
-every probe stopped for a prompt about a repository that would be deleted
-before the answer meant anything. The opt-out file is written once, by a
+every probe would stop for a prompt about a repository that is deleted
+before the answer means anything. The opt-out file is written once, by a
 person, in the repository being thrown away. It lives under the git directory
 rather than inside the root because the root is committed: a file committed
 in the root would silence every gate in every clone with nothing in the diff
@@ -35,7 +35,7 @@ import subprocess
 
 HOME = "seal"
 # The shared root's second name, taken where the repository's own `seal/`
-# belongs to something else (#1059). The local root keeps `HOME`: nothing of
+# belongs to something else. The local root keeps `HOME`: nothing of
 # a project's own lives under its git directory.
 SECOND_HOME = "agentic-seal"
 # The sub-directory of the root that holds the work items.
@@ -60,12 +60,13 @@ CHANGELOG = "changelog.md"
 # `seal pr-body` writes above the copy of the records, after the work item's
 # `pr.<lang>.md` where the two language keys differ.
 PR = "pr.md"
-# The migration config, directly under the root: `parity_config` below opens
-# it, and `chain_check.py` reads it at HEAD under the shared root (#988).
+# The migration config, directly under the root: `chain_check.py` reads it at
+# HEAD under the shared root, and `seal mode` looks for it beside an
+# earlier release's `OLD_PARITY_CONFIG`.
 PARITY_CONFIG = "parity.json"
 # The migration config an earlier release read, a `| Field | Value |` table:
 # `chain_check.py` refuses it where git carries it without `PARITY_CONFIG`,
-# and `seal mode` names it where it stands without one (#1454).
+# and `seal mode` names it where it stands without one.
 OLD_PARITY_CONFIG = "parity.md"
 # An empty FILE under the common git directory; its existence is the whole
 # signal, read the way the root is read. It is not an entry inside an existing
@@ -82,12 +83,6 @@ README = "README.md"
 
 def repo_root(cwd):
     """The repository root containing cwd, or "" when there is none."""
-    # RIDER: every caller of this module resolves the root again. Counted with
-    # a logging `git` on PATH: one gated command costs five `git` calls per
-    # target and three of them are `rev-parse --show-toplevel` -- the commit
-    # gate's own `root_of`, then `opted_in` and `parity_config` below. Fixing
-    # it means passing the root in or memoising here, and three gates import
-    # this module, so it is a change to all of them at once.
     if not cwd or not os.path.isdir(cwd):
         return ""
     try:
@@ -99,7 +94,7 @@ def repo_root(cwd):
             # parent had; git answers UTF-8, so a repository under a path this
             # locale cannot decode kills subprocess's reader thread -- and that
             # exception DOES NOT PROPAGATE. The call returns with `stdout` set
-            # to None, and `.strip()` then raised `AttributeError`, which is
+            # to None, and `.strip()` then raises `AttributeError`, which is
             # neither of the classes caught here.
             #
             # Measured on a cp949 console against a repository under a Korean
@@ -117,8 +112,8 @@ def repo_root(cwd):
     # Spelled the way this platform spells a path, because that is what every
     # caller does with it: `os.path.join` below, and the gates print it to
     # someone who has to recognise their own repository in it. git answers
-    # with forward slashes on every platform, so on Windows the root arrived
-    # in one dialect and was joined in another -- `C:/proj` and then
+    # with forward slashes on every platform, so on Windows the root would
+    # arrive in one dialect and be joined in another -- `C:/proj` and then
     # `C:/proj\seal\parity.json`. Both halves work; neither
     # equals a path the caller built, and the address is the whole point of a
     # module named for having ONE.
@@ -135,8 +130,8 @@ def git_common_dir(root):
     `.git` at the toplevel, when it is a directory, IS the repository's git
     directory, and for a main worktree the common directory is that same
     place — so that case is answered without a process. Every gated command
-    in every opted-in repository reaches this through `home_at()`, and the
-    rider on `repo_root` counts what one more `git` per call costs. A `.git`
+    in every opted-in repository reaches this through `home_at()`, so a
+    `git` process started here is paid on every gated command. A `.git`
     that is a file (a linked worktree, a submodule) or absent is asked of git,
     which answers relative to the directory it ran in unless the path is
     absolute; `os.path.join` handles both spellings.
@@ -167,7 +162,7 @@ def home_paths(root, common=None):
     directory could not be resolved. The local entry is `<common>/seal`. The
     shared entry is `<root>/seal` where that directory carries the marker,
     else `<root>/agentic-seal` where that one does, else `<root>/seal` where
-    nothing stands at that path, else `<root>/agentic-seal` (#1059). Neither
+    nothing stands at that path, else `<root>/agentic-seal`. Neither
     entry is tested for being the root: this answers *where would it be*,
     and `home_at` below answers *where is it*.
 
@@ -185,8 +180,8 @@ def home_paths(root, common=None):
     that answer and lives here with it.
 
     `common` is passed by a caller that has already resolved the common git
-    directory, so nothing here costs a second `git` call; the rider on
-    `repo_root` counts what one more per gated command is worth.
+    directory, so nothing here costs a second `git` call, which every gated
+    command would pay.
     """
     if not root:
         return ("", "")
@@ -194,13 +189,12 @@ def home_paths(root, common=None):
         common = git_common_dir(root)
     # `normpath` on the git-derived half, and it is not tidying. `git
     # rev-parse --git-common-dir` answers with `/` on Windows as well, so
-    # joining `seal` onto it produced `C:/Users/x/repo\.git\seal` -- one
+    # joining `seal` onto it would produce `C:/Users/x/repo\.git\seal` -- one
     # path spelled two ways, printed to a person in the gate's question and
     # in chain-check's local-mode sentence. Nothing here hands `home` to
     # git, so the native spelling is the right one, and normalising at the
     # source closes it for every caller rather than at each of the four
-    # places that print it. Found by CI's Windows leg on a branch whose two
-    # authors both said Windows was CI's to answer.
+    # places that print it.
     shared = home_name_in(_on_disk(root))
     if not shared:
         shared = SECOND_HOME if os.path.lexists(os.path.join(root, HOME)) else HOME
@@ -308,22 +302,21 @@ def home_at(root, common=None):
     `common` is passed by a caller that needs the common git directory for
     something else too, so one invocation asks git for it once rather than
     once per unit that wants it — the same parameter, for the same reason, as
-    `home_paths` above. Measured 2026-09-08 from a linked worktree, where
-    `.git` is a file and the fast path below does not apply, a gate that
-    resolved the root, the opt-in and its own marker separately ran the same
-    `rev-parse --git-common-dir` three times on every Bash call.
+    `home_paths` above. From a linked worktree, where `.git` is a file and
+    the fast path below does not apply, a gate that resolves the root, the
+    opt-in and its own marker separately runs the same `rev-parse
+    --git-common-dir` three times on every Bash call.
     """
     if not root:
         return ""
-    # One `git_common_dir` call, which is what this cost before `home_paths`
-    # existed too: the opt-out below needs the common directory even when the
-    # shared root is the answer, so the old fast path never actually skipped
-    # it. Hoisting it is what lets the two places be produced in one place.
+    # One `git_common_dir` call: the opt-out below needs the common directory
+    # even when the shared root is the answer, so no path skips it, and asking
+    # once is what lets the two places be produced in one place.
     if common is None:
         common = git_common_dir(root)
     # A FILE, which is what this module and `seal/README.md` both say the
-    # signal is. `os.path.exists` also accepted a DIRECTORY of that name, so
-    # a directory created where the opt-out goes would have turned every
+    # signal is. `os.path.exists` would also accept a DIRECTORY of that name,
+    # so a directory created where the opt-out goes would turn every
     # gate off with nothing in the diff that reads as the workflow being
     # switched off.
     if common and os.path.isfile(os.path.join(common, SCRATCH)):
@@ -342,12 +335,3 @@ def home(cwd):
 def opted_in(cwd):
     """True when this repository runs the workflow."""
     return bool(home(cwd))
-
-
-def parity_config(cwd):
-    """Path to the migration config, or "" when there is none."""
-    root = home(cwd)
-    if not root:
-        return ""
-    path = os.path.join(root, PARITY_CONFIG)
-    return path if os.path.isfile(path) else ""

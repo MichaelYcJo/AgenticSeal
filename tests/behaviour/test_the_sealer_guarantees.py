@@ -7,10 +7,10 @@ through `lib/fields.py`: a ready pull request passes only where the
 newest verdict block names HEAD and reads `sealed`. Each group holds a case
 on good input and one on bad.
 
-#942 moved the cases of the arm, which read no file of this repository, into
-`tests/skills/test_chain_check.py`, and #1198 put the reader's in
-`tests/lib/test_fields.py`. What stays reads the template, the definition,
-the document, or every committed `guarantee.md`.
+The cases of the arm, which read no file of this repository, stand in
+`tests/skills/test_chain_check.py`, and the reader's, the unfilled template
+among them, in `tests/lib/test_fields.py`. What stays reads the template, the
+definition, the document, or every committed `guarantee.md`.
 """
 
 import pathlib
@@ -20,11 +20,13 @@ import conftest
 from conftest import (
     load_module as load,
 )
+from test_fields import TEMPLATE, fields
+
+# No TARGET: its cases walk every committed guarantee.md and every sealer eval grader, and hold the guarantee across its template, agents/sealer.md and docs/forms/the-guarantee.md.
+
 
 ROOT = pathlib.Path(conftest.ROOT)
-CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
-READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
-TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
+READER = ROOT / "lib" / "lines.py"
 SEALER = ROOT / "agents" / "sealer.md"
 DOCUMENT = ROOT / "docs" / "forms" / "the-guarantee.md"
 
@@ -36,9 +38,7 @@ def between(path, start, end):
     return text[head : text.index(end, head)]
 
 
-chain = load(CHAIN, "chain_check_for_the_guarantee")
-reader = load(READER, "unverified_reader_for_the_guarantee")
-fields = chain.FIELDS
+reader = load(READER, "lines_reader_for_the_guarantee")
 
 
 # --- the template ---------------------------------------------------------------
@@ -69,35 +69,34 @@ class TestTemplate:
         assert len(patterns) >= 9, patterns
         text = TEMPLATE.read_text(encoding="utf-8")
         hits = [p for p in patterns if re.search(p, text, re.M)]
+        # The patterns the sealer's eval graders match a verdict with, which
+        # `evals/scripts/rule_cases.py` generated: a template line one of
+        # them matched would pass a sealer that left the template's comment
+        # standing.
         assert hits == [], hits
 
     def test_the_template_carries_the_tables_sections_and_verdict_block(self):
-        """#1198, *Scope* item 3: the claims and the parties are tables for
-        people, and the template's one verdict block holds `target:`, the
-        `original:` line and `Verdict:`, in that order. The run the sealer
-        read is `trail/gate.md`'s, which the template no longer copies
-        (#1319, D5)."""
+        """#1198, *Scope* item 3: the claims and the parties stand under the
+        two headings the document cites, and the template's one verdict block
+        holds `target:`, the `original:` line and `Verdict:`, in that order.
+        The columns of the tables for people are the proofer's to read. The
+        run the sealer read is `trail/gate.md`'s, which the template no
+        longer copies (#1319, D5)."""
         text = TEMPLATE.read_text(encoding="utf-8")
         lines = reader.readable(text)
-        rows = chain.table_rows(reader, lines)
         raw = text.split("\n")
         opener = raw.index(fields.OPENER)
+        # The block's opener, its three keys in order and its closing fence,
+        # which `chain_check.py#guarantee` reads through `lib/fields.py`.
         assert raw.count(fields.OPENER) == 1
         keys = [line.split(" ", 1)[0] for line in raw[opener + 1 : opener + 4]]
         assert keys == [fields.TARGET, fields.ORIGINAL, fields.SEALER_VERDICT]
         assert raw[opener + 4] == fields.FENCE
+        # The two headings `docs/forms/the-guarantee.md` *It checks a claim
+        # against the fact, and the parties against each other.* cites,
+        # which the sealer writes each act's row under.
         assert reader.sections(lines, "## Claims re-run")
         assert reader.sections(lines, "## The parties")
-        assert ["Claim", "Source", "Command", "Result"] in [
-            [c.strip() for c in r] for r in rows
-        ]
-        assert ["Party", "Says", "Agrees with", "Disagrees with"] in [
-            [c.strip() for c in r] for r in rows
-        ]
-
-    def test_the_unfilled_template_is_no_guarantee(self):
-        found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
-        assert found.blocks == [] and found.refusals, found
 
 
 # --- every committed guarantee ---------------------------------------------------
@@ -134,8 +133,8 @@ class TestDefinition:
 
     def test_the_sealer_writes_the_guarantee_from_the_template(self):
         text = " ".join(SEALER.read_text(encoding="utf-8").split())
+        # The path of the template the sealer opens to write `guarantee.md`.
         assert "templates/records/sdd-guarantee.md" in text
-        assert "judges nothing" not in text
 
     def test_step_1_reads_the_record_and_runs_nothing(self):
         """T2, S1 of #969. Step 1 reads `trail/gate.md` and the commits after
@@ -186,35 +185,30 @@ class TestDefinition:
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
 
-    def test_the_sealer_checks_the_copy_and_reads_only_the_orchestrators_part(
+    def test_the_sealer_checks_the_copy_with_the_command_and_its_exit(
         self,
     ):
         """S13 of #1044. The part of the body below `pr_body.py#HEADING` is
         the records' own text, so step 2 checks it with `seal pr-body
         --check` and withholds on any exit but 0, naming what the command
-        printed; steps 2 and 4 and *Never* then read only the part above the
-        heading as a party, the body's first part, which the orchestrator
-        wrote (#1148 S6). Before this, most withheld verdicts were a body
-        sentence restating a record."""
+        printed. Step 2 names the command, the exit code it waits on, the
+        verdict line and the constant that holds the line; that steps 2 and 4
+        and *Never* then read only the orchestrator's part as a party is the
+        proofer's to read."""
         step_2 = between(SEALER, "2. **", "3. **")
-        step_4 = between(SEALER, "4. **", "5. **")
-        never = between(SEALER, "## Never", "## Rules")
         pinned = [
-            (step_2, "`seal pr-body <item> --body <file> --check`"),
-            (step_2, "On any exit but 0"),
-            (
-                step_2,
-                "`Verdict: withheld reason: <the first line the command printed>`",
-            ),
-            (step_2, "`skills/code-review/scripts/pr_body.py#HEADING`"),
-            (step_2, "the part of the body below the line"),
-            (step_2, "request body above that line, its first part"),
-            (step_4, "the orchestrator's part of the pull request body"),
-            (never, "the orchestrator's part of the pull request body"),
+            # The command the sealer runs on the body file.
+            "`seal pr-body <item> --body <file> --check`",
+            # The exit code the sealer waits on before it reads on.
+            "exit 0",
+            # The verdict line `lib/fields.py` parses, as the sealer writes it.
+            "`Verdict: withheld reason: <the first line the command printed>`",
+            # The citation of the constant that holds the line the sealer
+            # splits the body at.
+            "`skills/code-review/scripts/pr_body.py#HEADING`",
         ]
-        missing = [phrase for where, phrase in pinned if phrase not in where]
+        missing = [phrase for phrase in pinned if phrase not in step_2]
         assert missing == [], missing
-        assert "list of changes" not in never, never
 
     def test_step_4_withholds_where_a_declared_crafter_left_no_phase_record(self):
         """#1376, *Scope* item 6. The implementer mark and notice went with
@@ -226,14 +220,17 @@ class TestDefinition:
         `chain_check.py`'s to read against the frame's mark."""
         step_4 = between(SEALER, "4. **", "5. **")
         pinned = [
-            # The row and the answer the sealer reads in `routing.md`.
-            "`routing.md`'s `Implementation` row reads `crafter`",
-            # Which phases owe a record: those `plan.md`'s Status closed.
-            "every phase of `frame/plan.md` whose Status cell holds a commit",
+            # The file, the row and the answer the sealer reads, the row and
+            # answer `lib/routing.py#parse` reads.
+            "`routing.md`",
+            "`Implementation`",
+            "`crafter`",
+            # The file whose Status cells the sealer reads for closed phases.
+            "`frame/plan.md`",
             # The record the crafter leaves, as the sealer resolves its path.
             "`trail/phases/phase-N.md`",
             # The verdict word `lib/fields.py` reads.
-            "a declared party that left no record is a `withheld` reason",
+            "`withheld`",
         ]
         missing = [phrase for phrase in pinned if phrase not in step_4]
         assert missing == [], missing

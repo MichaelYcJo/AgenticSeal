@@ -55,6 +55,8 @@ import os
 import pytest
 from conftest import ROOT, git_listing, load_module, on_disk
 
+# No TARGET: its cases read every tracked Markdown file under docs/, skills/, agents/ and templates/, with the three root documents.
+
 passages = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
     "agentic_passages_for_the_paste_check",
