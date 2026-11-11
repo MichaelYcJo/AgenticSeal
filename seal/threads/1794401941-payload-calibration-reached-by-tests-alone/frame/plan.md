@@ -32,7 +32,7 @@ The failure scenario of the chosen approach, six months on: a person wants the p
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Design *Scope* items 1 to 7 | S1, S2, S3, S5, S6 and S7 executed, with the narrow run `bin/test tests/skills/test_payload_meter.py tests/github/test_release_report.py tests/behaviour/test_every_shipped_agent_and_document_is_measured.py tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py tests/behaviour/test_a_cited_section_stands_in_its_file.py -q`; the suite beyond it `unverified`, answered by the orchestrator's broad gate | `2ec7b9776` |
-| 2 | Design *Scope* items 8 to 12 | S4 and S6 executed, with the narrow run `bin/test tests/lib/test_routing.py tests/lib/test_optin.py tests/lib/test_lines.py tests/skills/test_seal_stamp.py tests/behaviour/test_a_cited_section_stands_in_its_file.py -q`; the suite beyond it `unverified`, answered by the orchestrator's broad gate | |
+| 2 | Design *Scope* items 8 to 12 | S4 and S6 executed, with the narrow run `bin/test tests/lib/test_routing.py tests/lib/test_optin.py tests/lib/test_lines.py tests/skills/test_seal_stamp.py tests/behaviour/test_a_cited_section_stands_in_its_file.py -q`; the suite beyond it `unverified`, answered by the orchestrator's broad gate | `ad8a55543` |
 
 The two phases touch no file in common but `lib/lines.py`, where each edits its own name in the comment at `:31-34`. Phase 2 can start from phase 1's commit or from the base; where it starts from the base, the orchestrator merges the two, never rebases.
 

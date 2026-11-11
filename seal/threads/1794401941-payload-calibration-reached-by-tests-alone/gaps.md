@@ -5,6 +5,7 @@
 | Item | Who must answer |
 |---|---|
 | the suite, the repository-wide lint and the format check beyond phase 1's boundary set | the orchestrator's broad gate |
+| the suite, the repository-wide lint and the format check beyond phase 2's boundary set, the module test files that reach `lib/optin.py`, `lib/routing.py`, `lib/lines.py` or `seal_stamp.py` only through a script that loads them among it | the orchestrator's broad gate |
 
 ## Not done
 
