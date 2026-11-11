@@ -274,16 +274,15 @@ no one file in the layout where it walks this repository's tree or a whole
 directory of it, lists its tracked files, or runs a check over its root;
 where it holds one rule across the text of several files; or where it holds
 one property across several shipped modules. A file that holds such a
-case, or cases that read different files, declares no `TARGET`. Its first
+case, or whose cases read different files, declares no `TARGET`. Its first
 line after the imports, where `TARGET = "..."` would stand, gives the
-ground in words, as
-`# No TARGET: its cases walk every rule file of the tree.` does, and no
-script reads it. Such a file stands in
-`tests/behaviour/` where its cases load or run shipped code, and in
-`tests/text/` where they only read text. The files that declare no
-`TARGET`, wherever they stand, are this repository's tree-wide files, which
-`skills/verify/SKILL.md` *Scope: cheap and often, broad and once* runs at
-every phase boundary and every fix pass.
+ground in words, as the line
+`# No TARGET: its cases walk every rule file of the tree.` does. No script
+reads that line. Such a file stands in `tests/behaviour/` where its cases
+load or run shipped code, and in `tests/text/` where they only read text.
+The files that declare no `TARGET`, wherever they stand, are this
+repository's tree-wide files, which `skills/verify/SKILL.md` *Scope: cheap
+and often, broad and once* runs at every phase boundary and every fix pass.
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
