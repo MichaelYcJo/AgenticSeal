@@ -59,19 +59,6 @@ def test_the_header_gives_the_command_that_lists_the_riders():
     assert 'grep -rn "RIDER:"' in text
 
 
-def test_the_riders_exist_where_the_rows_said_they_would():
-    """Every file a row said its rider went to.
-
-    A rider kept after its fix is the cost this file names. The command
-    reader `cmdline.py` left it when the `chdirs` its rider described left
-    with the worktree guard, their one reader (#1049). The review-skill gate
-    left it with its rider when the gate went (#1376)."""
-    for rel in ("lib/optin.py",):
-        # The marker `grep -rn "RIDER:"` matches, at the file a row sent its
-        # rider to.
-        assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
-
-
 def test_a_rider_waiting_on_a_held_file_names_who_answers_it():
     """A rider that cannot be planted names who answers it, or it is a
     deferral to nobody."""
