@@ -29,7 +29,7 @@ Failure scenario of the chosen approach, in six months: a person changing a rule
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 11. Item 4's case is written first and seen red against the base; the other items follow, and all of them land in one commit; then the records | S1 to S5 and S7 by their commands at the build commit. S5 is D2 shown red at the base. S6 is the crafter's narrow run | `e9658c727` |
+| 1 | `frame/design.md` *Scope* items 1 to 12. Item 4's case is written first and seen red against the base; the other items follow, and all of them land in one commit; then the records | S1 to S5 and S7 by their commands at the build commit. S5 is D2 shown red at the base. S6 is the crafter's narrow run | `e9658c727` |
 
 ## Overlap with the release
 
@@ -46,3 +46,4 @@ No migration, environment variable or dependency changes. After an update, each 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-11 | The crafter's departure, `(rule 2)` on `agents/sealer.md` step 1's last sentence, is kept and folded as *Scope* item 12, and the hand-back's six stale statements are folded in `frame/design.md` G4, G14, *Scope*, D1, D3 and *Removes*, and in *Phases* | The removed rule held the file's only citation of rule 2, which `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py#test_the_sealer_cites_contract_rule_2` reads; keeping the rule is *Alternatives considered* row 5, rejected, and *Scope*, Out, removes no case. Each fold records what the build changed or a count the build re-took, not what the work is, so no framer is spawned | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, **The framer writes a decision's fold, because the framer judges what the work should be.** |
