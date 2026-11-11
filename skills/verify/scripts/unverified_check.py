@@ -4,10 +4,10 @@ on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
 answers it, and a row nobody reads again stays open after its answer has
-come. A closing memo's row said nobody had seen the gates render in an
-interactive TUI and named the user as the answerer; months later the user hit
-exactly that, from the other side, and asked why every gate renders as
-yes/no. The record was accurate and no procedure closed it.
+come. A closing memo's row can say nobody has seen the gates render in an
+interactive TUI and name the user as the answerer; months later the user
+meets exactly that, from the other side, and asks why every gate renders as
+yes/no. The record is accurate and no procedure closes it.
 
 So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Many are open at any time, and
@@ -183,8 +183,8 @@ def display_path(path, start):
     different drives, and this is the reporting footing for every line the
     tool prints. Running `seal unverified D:\repo\specs` from `C:\` is
     an ordinary thing to do, and unguarded it dies with a traceback before
-    printing a single row. The absolute path is a worse answer than a relative one and a
-    far better one than no output at all.
+    printing a single row. The absolute path is a worse answer than a
+    relative one and a far better one than no output at all.
     """
     try:
         return os.path.relpath(path, start)

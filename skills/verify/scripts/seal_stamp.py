@@ -1123,7 +1123,7 @@ def sealed_before(chain, top, path, common=None, ident=None):
 # does not hold. Its read of the earlier blocks, and its read of the
 # history, skip a `sealed` the record names. Nothing infers a record after
 # the fact, so nothing asks ancestry at read time: an ancestry check at read
-# time regressed in each of four review rounds.
+# time has regressed in each of four review rounds.
 
 REFUSED_DIR = "agentic-stamp-refused"
 # The shortest SHA a record is matched on; shorter spellings find none.

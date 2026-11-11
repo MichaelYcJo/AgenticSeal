@@ -7,7 +7,7 @@ the part its other records hold, copied from them.
   seal pr-body <item> --body <file> --check   say whether it is still theirs
 
 A body written by hand restates the records, and most of the sealer's
-withheld verdicts were over a sentence of it that restated one wrongly. This
+withheld verdicts are over a sentence of it that restates one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
 phase records' paths, each round record's `seal` blocks and its findings'
