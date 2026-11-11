@@ -249,6 +249,8 @@ first reads its class and the pairs `bin/seal layout --pairs` names in it.
 Each pair the report prints carries its reason in its class's docstring: one
 sentence stating the input its two cases differ by where they call the
 function alike, such as the world a fixture or a monkeypatch builds.
+Where the two read one input, the sentence says so and names the fact
+each holds, and the pair counts toward the threshold below.
 check: tests/skills/test_test_layout.py tests/test_censuses.py
 
 **A test file takes the repository root from `tests/conftest.py`.** A test

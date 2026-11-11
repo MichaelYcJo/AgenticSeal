@@ -1533,8 +1533,10 @@ class Test_main:
     """Where two cases have one body, the fixture they read differs: a run
     with segments, or a segment that spawned an agent.
     `test_the_reading_names_the_release_it_is_comparable_from` and
-    `test_the_reading_says_its_family_rows_moved_at_642` read one world, and
-    differ only by the note of the report each holds."""
+    `test_the_reading_says_its_family_rows_moved_at_642` read one input,
+    `run_with_segments`: the first holds that the report names 0.9.4 as the
+    release its readings compare from, and the second that it says the
+    family rows moved at #642."""
 
     def test_accepts_a_transcript_and_separates_command_time_from_model_time(
         self, transcript
