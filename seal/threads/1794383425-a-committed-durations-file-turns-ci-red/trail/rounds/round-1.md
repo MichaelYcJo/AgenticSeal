@@ -67,6 +67,11 @@ The slowest Windows shard is recorded before, from the measurement in *Grounding
 this work item's own CI run (the `workflow_dispatch` run 42996432567 at `25133f410`), its job times written in the phase record
 ```
 
+```seal
+verdict: fixed 1e0704773
+answer: The finding holds. The framer's fold at `1e0704773` rewrites the three locations. `design.md:39` says the release-note module's third case left with #1483 (`eec0bd040`), which this branch took at `3ed9a1bff`. `design.md:44` and `plan.md:60` name the after reading's source as the `workflow_dispatch` run 42996432567 at `25133f410`. The same fact was also corrected at `design.md:60` and `:69` and in `questions.md` Q2 and Q3. The same commit adds the settle skill's refresh clause to *Scope* item 7 and `## Removes`.
+```
+
 ### 3. `skills/settle/SKILL.md` keeps an exception for a durations refresh, a commit this work ends
 
 ```seal
