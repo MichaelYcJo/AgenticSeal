@@ -3,8 +3,8 @@
 The rule generator writes the behaviour suite's rule cases, and a recurred
 truth entry adds a `truth-` grader to the case it names, widens one it
 already has, or stops the generator where the case cannot take it. A
-generated truth is read back through `noninferiority.py#grader_from`, the
-one reader of a grader file.
+generated truth is read back through `behaviour.py#grader_from`, the one
+reader of a grader file.
 
 #942's phase 6 placed these cases from one behaviour module, whose
 remaining case, the one that reads the committed proofer cases, stands in
@@ -23,7 +23,7 @@ from test_replay_targets import load_script
 
 TARGET = "evals/scripts/rule_cases.py"
 
-ni = load_script("noninferiority")
+behaviour = load_script("behaviour")
 PR = load_module(
     os.path.join(ROOT, "skills", "code-review", "scripts", "pr_body.py"),
     "pr_body_for_rule_cases",
@@ -101,7 +101,7 @@ def rule_truths(tmp_path, monkeypatch, *entries):
 
 def truth_regex(name, text):
     return re.compile(
-        ni.grader_from(f"graders/{name}", text)["config"]["pattern"], re.M
+        behaviour.grader_from(f"graders/{name}", text)["config"]["pattern"], re.M
     )
 
 
@@ -300,7 +300,7 @@ def case_graders(name):
     case = dict(rc.cases())[name]
     out = {}
     for grader, text in case["graders"]:
-        config = ni.grader_from(f"graders/{grader}", text)["config"]
+        config = behaviour.grader_from(f"graders/{grader}", text)["config"]
         if "pattern" in config:
             out[grader[: -len(".md")]] = (
                 re.compile(config["pattern"], re.M),

@@ -21,21 +21,14 @@ reads the new side's shape and reach graders against a recorded baseline
 side.** A pass claims nothing about whether a rewrite is worse or means the
 same, which the proofer's reading of the diff judges.
 `scripts/noninferiority.py run` runs one agent's cases on one side and
-records, per run, the graders, the round record the session printed and the
-cost its trace's `result` event carries (spend, seconds and `modelUsage`,
-every model's tokens) and its tool calls (every `tool_use` block in the
-trace, the session's and the agent's), beside the preload's bytes. The
-record is kept whole as `report_text`, with each user path and host that
-the `real_identifiers` census in `tests/censuses.py` refuses replaced by the
-fixture one.
-Whenever `compare` or `regrade` reads a side, a run's findings are the
-`### ` sections of the record's one `## Findings` section, split by
-`chain_check.py#finding_spans` over the lines its shared reader leaves, so a
-`location:` line in a fence or a comment is no finding, and a finding in a
-shape the check refuses still counts. A `truth-` grader over the round
-record is graded on those findings, so recall and the false-finding rate
-are read by one reader. `compare` writes the record the three pass rules of
-`noninferiority.py#verdict` judge:
+records, per run, the graders' results, the cost its trace's `result` event
+carries (spend, seconds and `modelUsage`, every model's tokens) and its tool
+calls (every `tool_use` block in the trace, the session's and the agent's),
+beside the preload's bytes. The trace itself, with the round record the
+session printed, stays under `<out>.raw/` beside the side. Every grader, a
+`truth-` grader among them, counts the result the eval recorded. `compare`
+writes the record the three pass rules of `noninferiority.py#verdict`
+judge:
 
 1. the shape and reach graders both sides ran, pooled, pass no fewer runs
    on the new side than on the baseline;
@@ -43,45 +36,21 @@ are read by one reader. `compare` writes the record the three pass rules of
    once, and one that does fails the side by name;
 3. a shape or reach grader the baseline lacks passes every new run.
 
-Recall, the false-finding rate, the tokens read across every model, the
-spawned agent's included, and those tokens per tool call are written in
-the record and judge nothing, beside tokens per true find, spend, wall
-seconds and the preload's bytes. The preload's bytes are read with no run:
-`.github/scripts/release_report.py` prints each agent's preload bytes
-against the last tag on every pull request into `main`. A side cut short, a
-case the baseline ran and the new side did not, whatever its graders, and
-a case run a different number of times each give no result, never a pass.
+The truth graders, the tokens read across every model, the spawned agent's
+included, and those tokens per tool call are written in the record and
+judge nothing, beside spend, wall seconds and the preload's bytes. The
+preload's bytes are read with no run: `.github/scripts/release_report.py`
+prints each agent's preload bytes against the last tag on every pull
+request into `main`. A side cut short, a case the baseline ran and the new
+side did not, whatever its graders, and a case run a different number of
+times each give no result, never a pass.
 `tests/evals/test_noninferiority.py` recomputes the record. Nothing in the tree
-makes a later edit owe a run. `check` finds each of the record's four row
-counts only on a line spelt `| <name> | <value> |`, with nothing before the
-first pipe or after the last, one space on each side of the name, and at
-least one on each side of the value. A row spelt otherwise is not found and
-its count reads as 0, which no pass rule reads.
+makes a later edit owe a run. A record written before #1487 carries header
+rows `compare` no longer writes, which `check` and `model` read past.
 
-**A side already paid for is read again under another suite's truths
-without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV
---out OUT.json` grades each run of IN on REV's `truth-` graders, the
-grader's regex searched over the run's findings. It writes OUT naming
-REV's suite and the one IN's runs answered, which a side regraded again
-keeps. It refuses, naming the case, a side whose own suite does not give
-back, from each run's whole `report_text`, the truth results it recorded,
-and a suite at REV that differs from IN's in anything but `truth-` graders
-or holds other cases: a change to a prompt, a scaffold or a `shape-` grader
-asks the agent something its runs never answered, and only a run measures
-that.
-
-**A side that keeps no `report_text` is refused.** `compare` and `regrade`
-exit 2 on such a side, naming its file: it was taken before #986, it keeps
-the rows the old reader matched and not the record, and no reader can read
-it again. Its committed record stays as it was judged, and `check` and
-`model`, which read a record and no side, still read it.
-
-**A proofer comparison compares two sides taken from the same point.** The
-squash commit that lands #1229 on `release/v0.27.2` is that point for the
-proofer's suite: from it, both sides run the replay and seeded cases cut
-from thread-layout round records, and both keep `report_text`. No side
-taken before it compares with one taken after it, because the suite trees
-differ and `compare` refuses such a pair.
+**Two sides compare only over one suite.** `compare` refuses, with exit 2, a
+pair whose trees of `evals/behaviour/<agent>/` differ, since a changed
+suite needs a new baseline.
 
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`

@@ -22,10 +22,6 @@ flagged line, because the formatter moves a comment that ends a long line
 and splits the code around it. Above a line the census does not flag, the
 comment excuses nothing, and the census refuses it, so an exemption leaves
 the tree with the line it excused. No census keeps a list of exemptions.
-
-This module imports nothing from `tests/conftest.py`:
-`evals/scripts/noninferiority.py` loads it by path, without pytest, to mask
-a record with `real_identifiers`' own readers.
 """
 
 import ast
@@ -1053,11 +1049,7 @@ NOT_TEXT = (".gif", ".png", ".jpg")
 
 
 def refused_domains(line):
-    """The match of every domain in `line` outside the allowlist, in order.
-
-    `evals/scripts/noninferiority.py#masked` reads a kept round record by
-    this function, so the record a committed side holds is masked by the
-    census that reads it."""
+    """The match of every domain in `line` outside the allowlist, in order."""
     refused = []
     for m in DOMAIN_RE.finditer(line):
         d = m.group(0)
