@@ -1,5 +1,5 @@
-"""The rules `CLAUDE.md` once named have one home each, and no carrier this
-module lists restates a home's own sentences (#730).
+"""The rules `CLAUDE.md` once named have one home each, and the files that
+carry one of them name its home (#730).
 
 #715 gave the ledger and fragment rules one home each and left the rest of
 `CLAUDE.md` alone. Three more of its rows restated a rule another file held,
@@ -13,37 +13,29 @@ So each rule was given one home, which states it:
 
   the merge method per direction   docs/releasing/branch-and-release.md
   no real identifiers              CONTRIBUTING.md
-  the commit cadence               skills/implement/SKILL.md, step 2
   the question batch               skills/implement/orchestration.md,
                                    *Orchestrator: what needs a person is
                                    asked in one batch, before the first
                                    edit*, since #1312
 
 `CLAUDE.md` kept a row for each that linked the home, until #940, #1169 and
-#1177 took the rows out, as the comment above `LINKED` says. It keeps none of
-them now, and each home stays pinned here so no carrier restates it.
+#1177 took the rows out, as the comment above `LINKED` says.
 
 #1177 retired the preset block, and the core now reaches a session from
-the plugin's `SessionStart` hook. Three of the block's bullets moved to the file
-that applies each, pinned here the same way:
+the plugin's `SessionStart` hook. Two of the block's bullets moved to the file
+that applies each:
 
-  lint, format and typecheck       skills/implement/SKILL.md, step 2
   the project's package manager    skills/implement/SKILL.md, step 2
   a worktree only when concurrent  skills/implement/orchestration.md,
                                    *Orchestrator: the order inside a ticket*
 
-The cases hold three things. Each home states its rule under its section:
-`RULES` gives the home, the section, and the needles, sentences only the home
-writes. No carrier contains a needle, the home aside: `CARRIERS` lists the
-carriers, `CLAUDE.md` first. Each file in `LINKED` names the home's path
-and its section for each rule it carries.
-
-What this does not hold: a carrier can state a rule in its own words, with
-none of the home's needles, and a later change to the rule's values (a seventh
-merge direction, a second fixture domain) has to reach those words as well.
-Only the home's sentences are pinned here, so a stale value in a carrier's own
-words is a reviewer's finding. That cost is narrower than a whole table
-drifting unseen.
+The cases hold two things. Each home states, under its section, the facts
+`RULES` gives it: a table row a reader matches, and the commands a reader
+runs. Each file in `LINKED` names the home's path and its section for each
+rule it carries. Whether a carrier restates a home in other words, or in the
+home's own, is the proofer's to read, and
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads a pasted
+passage.
 """
 
 import os
@@ -56,73 +48,42 @@ CONTRIBUTING = "CONTRIBUTING.md"
 IMPLEMENT = "skills/implement/SKILL.md"
 ORCH = "skills/implement/orchestration.md"
 
-# rule: (home, section heading, needles only the home writes)
+# rule: (home, section heading, the facts the home states under it)
 RULES = {
     "merge": (
         BRANCHES,
         "Work accumulates on a release branch",
         (
+            # The table row a person matches against the direction of a
+            # merge, and the merge method it gives.
             "| a feature branch | `release/vX.Y.Z` | **squash** | *Squash and merge* |",
-            "Pick the other one and something downstream stops resolving, so "
-            "this table is the whole rule and the paragraphs below are why.",
-            "A hotfix squash costs nothing only while no round record names its "
-            "commits",
         ),
     ),
-    "identifiers": (
-        CONTRIBUTING,
-        "House rules",
-        (
-            "a contributor extends its allowlist deliberately, never to make a "
-            "test pass.",
-            "a real domain, path or organisation name inlined into an example "
-            "is the leak that forces a rewrite of the repository's history",
-        ),
-    ),
-    "cadence": (
-        IMPLEMENT,
-        "2. Implement test-first, and let each rule name its test",
-        (
-            "What an intermediate commit costs is a property of the repository "
-            "rather than a fact about committing",
-            "**Commit at the smallest step that stands on its own.**",
-        ),
-    ),
+    # The home and the section `LINKED` resolves; the rule's words are the
+    # proofer's to read.
+    "identifiers": (CONTRIBUTING, "House rules", ()),
     "batch": (
         ORCH,
         "Orchestrator: what needs a person is asked in one batch, before the first edit",
-        (
-            "Asking one at a time is the same failure spread out: three "
-            "interruptions cost three waits.",
-            "**A question you can answer is not a question.**",
-        ),
+        (),
     ),
-    # The preset block's tooling, lint and worktree bullets, each moved to
-    # the step that applies it when the block retired (#1177).
-    "lint": (
-        IMPLEMENT,
-        "2. Implement test-first, and let each rule name its test",
-        (
-            "**Before each commit, lint, format and typecheck the files it changes**",
-            "Nothing runs them when a file is saved, so the party that commits "
-            "runs them.",
-        ),
-    ),
+    # The preset block's tooling and worktree bullets, each moved to the step
+    # that applies it when the block retired (#1177).
     "tooling": (
         IMPLEMENT,
         "2. Implement test-first, and let each rule name its test",
         (
-            "The project's own package manager wins; where it names none, "
-            "Python runs through `uv` and Node.js through `pnpm`.",
+            # The two runners a session uses where the project names none.
+            "`uv`",
+            "`pnpm`",
         ),
     ),
     "worktree": (
         ORCH,
         "Orchestrator: the order inside a ticket",
         (
-            "The orchestrator makes the branch with `git switch`, and a "
-            "worktree only where another session works in the same clone at "
-            "the same time.",
+            # The command the orchestrator makes the branch with.
+            "`git switch`",
         ),
     ),
 }
@@ -137,27 +98,12 @@ LINKED = {
     # rows with #1169: no agent merges. `agents/proofer.md` linked the
     # identifiers rule until #1148, which took the link out: a shipped
     # definition names no file of this repository's own, and its bullet
-    # stands on its own words. It stays a carrier below.
+    # stands on its own words.
     "skills/core/SKILL.md": ("batch",),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/github/test_plugin_directory_check.py": ("identifiers",),
     "tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py": ("identifiers",),
 }
-
-# Every file in the class. A home is a carrier of the other rules, so a rule's
-# own home is skipped when that rule's needles are looked for.
-CARRIERS = (
-    "CLAUDE.md",
-    "skills/core/SKILL.md",
-    CONTRIBUTING,
-    BRANCHES,
-    IMPLEMENT,
-    "docs/releasing/release-checklist.md",
-    ".github/scripts/plugin_directory_check.py",
-    "tests/github/test_plugin_directory_check.py",
-    "tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py",
-    "agents/proofer.md",
-)
 
 
 def flat(rel):
@@ -184,20 +130,6 @@ def section(rel, heading):
     return " ".join(text[start.end() : end].split())
 
 
-def restated(texts):
-    """(carrier, needle) for every needle a carrier other than its home holds.
-
-    TEXTS maps a carrier to its flattened text, so a case can hand in a copy."""
-    return [
-        (rel, needle)
-        for home, _, needles in RULES.values()
-        for rel, text in texts.items()
-        if rel != home
-        for needle in needles
-        if " ".join(needle.split()) in text
-    ]
-
-
 def unlinked(texts):
     """(file, rule) for every rule a linked file does not name the home of."""
     missing = []
@@ -211,43 +143,29 @@ def unlinked(texts):
 
 
 def tree():
-    return {rel: flat(rel) for rel in sorted(set(CARRIERS) | set(LINKED))}
+    return {rel: flat(rel) for rel in sorted(LINKED)}
 
 
 def test_each_home_states_its_rule_under_its_section():
-    for rule, (home, heading, needles) in RULES.items():
+    for rule, (home, heading, facts) in RULES.items():
         body = section(home, heading)
-        missing = [n for n in needles if " ".join(n.split()) not in body]
+        missing = [n for n in facts if " ".join(n.split()) not in body]
         assert not missing, f"{home} *{heading}* does not state {rule}: {missing}"
-
-
-def test_no_carrier_restates_a_home():
-    found = restated(tree())
-    assert not found, (
-        f"a carrier states a home's own sentence: {found}. Link to the home "
-        "instead, per `docs/layout/the-record-layout.md`: a rule written in two "
-        "files is two rules after the first edit to either"
-    )
 
 
 def test_every_linked_file_names_each_home_and_section():
     """A link is the home's path and its section's name, in the file."""
     missing = unlinked(tree())
+    # The home's path and its section's heading, which a reader of the
+    # linking file resolves.
     assert not missing, (
         f"these files do not name the home of a rule they carry: {missing}"
     )
 
 
-def test_a_restored_copy_is_named():
-    """The check can fail: the old merge table's row put back is named."""
-    texts = tree()
-    texts["CLAUDE.md"] += " " + RULES["merge"][2][0]
-    assert ("CLAUDE.md", RULES["merge"][2][0]) in restated(texts)
-
-
 def test_a_removed_link_is_named():
-    """The other half can fail too: a row that drops its home's path is named,
-    and so is one that keeps the path and drops the section."""
+    """The check can fail: a row that drops its home's path is named, and so
+    is one that keeps the path and drops the section."""
     linked = ".github/scripts/plugin_directory_check.py"
     texts = tree()
     texts[linked] = texts[linked].replace(CONTRIBUTING, "the guide")
@@ -255,11 +173,3 @@ def test_a_removed_link_is_named():
     texts = tree()
     texts[linked] = texts[linked].replace("House rules", "")
     assert (linked, "identifiers") in unlinked(texts)
-
-
-def test_a_section_stops_at_its_sibling():
-    """*Under its section* means that section: step 1 of `implement` does not
-    run on into step 2, so a needle moved between them is caught."""
-    first = section(IMPLEMENT, "1. Read the documents that outrank the code first")
-    for needle in RULES["cadence"][2]:
-        assert " ".join(needle.split()) not in first

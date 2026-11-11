@@ -70,6 +70,12 @@ def test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block():
         for m in PROOF_BLOCK.finditer(text):
             n = text.count("\n", 0, m.start()) + 1
             found.append(f"{rel}:{n}: a proof block: {m.group().strip()}")
+    # `docs/forms/the-round-record.md` *A round is one file the proofer
+    # writes.*, the *Never* of `agents/crafter.md`, `agents/proofer.md` and
+    # `agents/tracer.md`, and `skills/verify/SKILL.md` *The hand-back's
+    # labels carry the claims, and the one seal is the sealer's*: a mark, or
+    # a proof block's `applied` or `sealed @` line, which an agent reading
+    # this file would copy into a record or a hand-back.
     assert not found, (
         "a mark or a proof block in a file an agent reads; write the word:\n"
         + "\n".join(found)

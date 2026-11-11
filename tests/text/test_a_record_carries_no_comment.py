@@ -45,6 +45,9 @@ def test_the_record_templates_are_found():
 def test_no_record_template_carries_a_comment():
     """S10 of #1005."""
     found = comments()
+    # `docs/layout/the-record-layout.md` *A record a template starts carries
+    # no HTML comment.*: the comment opener, which every record started from
+    # the template would copy and every reader of the record would model.
     assert not found, (
         "a record template opens an HTML comment; its guidance belongs in the "
         "skill or definition the record's writer reads:\n" + "\n".join(found)

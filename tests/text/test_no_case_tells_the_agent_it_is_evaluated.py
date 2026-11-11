@@ -74,6 +74,9 @@ def test_no_case_file_holds_a_refused_word():
     recorded case; each hit is named by its file, line and word."""
     assert case_files(SUITE), "no case file was read under evals/behaviour/"
     found = hits(SUITE)
+    # `evals/README.md` *No case tells the agent under test that the run is a
+    # measurement.*: a word that names the run as one, which the agent under
+    # test would act on were it written in the files it is shown.
     assert found == [], "\n".join(f"{p}:{n}: {word}" for p, n, word in found)
 
 

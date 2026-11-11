@@ -44,6 +44,9 @@ ROWS = (
 def test_the_skill_names_every_row_the_template_ships(row):
     """S1. A door that shows two of three rows is a door somebody has to go
     round anyway."""
+    # The key a person writes into `config.json` through the skill, which the
+    # plugin's scripts read by that spelling, named by the skill and shipped
+    # by the template.
     assert row in flat(*SKILL), f"the skill does not name `{row}`"
     assert row in flat(*TEMPLATE), f"the template no longer ships `{row}`"
 

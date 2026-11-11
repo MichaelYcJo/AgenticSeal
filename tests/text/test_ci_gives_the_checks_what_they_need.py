@@ -397,10 +397,6 @@ def test_the_shipped_workflow_states_its_token_scope_and_reads_the_whole_history
     ), f"{TEMPLATE} checks out one commit: {found}"
 
 
-# The comment `.github/workflows/hygiene.yml` carries above each step it
-# shares with the template: the template is the step's one source.
-POINTER = f"One source: `{TEMPLATE}`, the workflow the plugin ships."
-
 # Where the chain checker's refusals are listed, which the template's comment
 # on the chain step names instead of listing them.
 REFUSALS = (
@@ -462,9 +458,10 @@ def test_the_steps_the_template_shares_have_one_source():
         assert command(ours[name].get("run", "")) == command(template[name]["run"]), (
             name
         )
-        assert comment_above(HYGIENE, name) == [POINTER], (
-            name,
-            comment_above(HYGIENE, name),
-        )
+        above = comment_above(HYGIENE, name)
+        # The one comment line `.github/workflows/hygiene.yml` carries above
+        # each step it shares with the template, and the template's path in
+        # it, which a reader of the step opens as the step's one source.
+        assert len(above) == 1 and f"`{TEMPLATE}`" in above[0], (name, above)
     comment = " ".join(comment_above(TEMPLATE, CHAIN_STEP))
     assert REFUSALS in comment, comment

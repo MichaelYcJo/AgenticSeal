@@ -50,6 +50,9 @@ def test_no_schedulable_row_carries_a_coordinate():
         for r in rows("Schedulable items with nowhere else to go")
         if COORDINATE.search(" ".join(r))
     ]
+    # `seal/follow-up.md` *Anything tied to a coordinate is a `# RIDER:`
+    # comment at the line it is about.*: a `path:line` coordinate, which the
+    # file's reader would act on at a line nobody there will see.
     assert not offenders, f"coordinate-tied rows in the schedulable list: {offenders}"
 
 

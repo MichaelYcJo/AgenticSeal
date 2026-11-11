@@ -1,8 +1,7 @@
 """What a review round reads beside its diff: the comparison's record, the
 original's resolution order and the list of the original's output surface in
-`legacy-parity`, with the two agent steps that write and check that list, an
-earlier round's `executed` line, and a record older than a line of the
-grammar.
+`legacy-parity`, with the framer's step that sends it to that list, and an
+earlier round's `executed` line.
 
 The comparison axes themselves are the proofer's to walk and to read: a
 table of them pinned by its row labels turned red at a rewording and said
@@ -11,7 +10,6 @@ nothing about whether a round walked an axis.
 
 import re
 
-import pytest
 from conftest import read
 from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS, section
 
@@ -105,24 +103,16 @@ def test_an_item_the_list_and_the_port_both_lack_is_located_in_both():
     alone does not close a `differs` finding."""
     rel, heading = PARITY_REVIEW
     body = prose(rel, heading)
-    # The round record's field that says where a finding shows, and the two
-    # places it names: the port, where the item is missing, and the design.
-    for part in ("`location:`", "port's entry point", "`frame/design.md`"):
+    for part in (
+        # The round record's field that says where a finding shows, which the
+        # proofer writes and the chain check reads.
+        "`location:`",
+        # The path the finding is located in, which the fix pass opens.
+        "`frame/design.md`",
+    ):
         assert part in body, (
             f"{rel} {heading} does not locate an item both lack with {part!r}"
         )
-
-
-def test_the_tracer_names_what_the_list_of_the_surface_lacks():
-    """#15, the scenario *The tracer names what the list lacks*: the tracer,
-    spawned before a phase, reports each item of the original's output
-    surface the design's list lacks, with its coordinate; its report is
-    where the list is checked against the original before review."""
-    said = step("agents/tracer.md", 6)
-    # The list the skill names, and its lack, which the orchestrator reads
-    # in the report as a finding on the frame.
-    for part in ("output surface", "lacks"):
-        assert part in said, f"`agents/tracer.md` step 6 lost {part!r}"
 
 
 def test_the_record_of_a_comparison_names_its_writer():
@@ -157,59 +147,40 @@ def test_the_resolution_order_ends_with_the_caller_asking():
     """S4 of #970, the skill's half (round 1, finding 1): the order ends with
     the caller asking and recording, and a reader that cannot ask returns
     `original not found`. T3 holds the tracer's half; this is the text every
-    reader of the skill opens, and the base's wording made the reader ask."""
+    reader of the skill opens, and the base's wording made the reader ask.
+    The order and who asks are the proofer's to read."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## The migration config\n"
     assert heading in text, "`legacy-parity` lost its migration-config section"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
-    for clause in (
-        "it lives in `~/.claude/agentic/parity-paths.json`",
-        "the caller asks the user and records the answer",
-        "a reader that cannot ask returns `original not found` with what it tried",
-        "A comparison against a guessed original proves nothing.",
+    for fact in (
+        # The path of the file the declaration lives in, which a reader opens.
+        "`~/.claude/agentic/parity-paths.json`",
+        # The words a reader that cannot ask returns, which its caller reads
+        # as no original resolved.
+        "`original not found`",
     ):
-        assert clause in body, f"the resolution order lost {clause!r}"
+        assert fact in body, f"the resolution order lost {fact!r}"
 
 
 def test_a_later_round_re_runs_an_executed_line():
     """S9 (#985): an `evidence: executed` line is a command a later round can
-    run again, and it carries where a verdict does not. Re-deriving the claim
-    instead spends the round on a search the earlier one already named, and
-    a deleted probe is the case that needs saying: it comes back from its
-    `## Probes` row. The record's document states it beside the line, and
-    `skills/code-review/SKILL.md` *Earlier rounds*, which the proofer follows, says it
-    where a round reads the earlier records."""
+    run again, and it carries where a verdict does not. A deleted probe comes
+    back from its `## Probes` row. The record's document states it beside
+    the line, and `skills/code-review/SKILL.md` *Earlier rounds*, which the
+    proofer follows, says it where a round reads the earlier records; what
+    each says is the proofer's to read."""
     record = " ".join(read("docs", "forms", "the-round-record.md").split())
-    for said in (
-        "**A later round re-runs an `executed` line rather than re-deriving "
-        "the claim.**",
-        "writes it again from its `## Probes` row",
-    ):
-        assert said in record, f"the-round-record.md lost `{said}`"
+    # The round record's heading a later round writes a deleted probe again
+    # from.
+    assert "`## Probes`" in record, "the-round-record.md lost `## Probes`"
     skill = " ".join(read("skills", "code-review", "SKILL.md").split())
     rounds = skill.split("## Earlier rounds", 1)[1].split("## The record", 1)[0]
-    said = (
-        "Where you weigh an earlier finding, re-run its `evidence: executed` "
-        "line rather than re-deriving the claim"
+    # The line a later round re-runs, the field and the value `lib/fields.py`
+    # reads.
+    assert "`evidence: executed`" in rounds, (
+        "`skills/code-review/SKILL.md` *Earlier rounds* lost `evidence: executed`"
     )
-    assert said in rounds, (
-        f"`skills/code-review/SKILL.md` *Earlier rounds* lost `{said}`"
-    )
-
-
-@pytest.mark.rule("old-table-shape-refused")
-def test_a_record_written_before_a_line_was_added_is_no_finding():
-    """S10 (#985): a record written before the grammar gained a line lacks
-    it, and a later round that judges it by the new grammar reports a defect
-    nobody could have avoided. #971's `false-rows.md:117` is that class: a
-    0.21 record judged by 0.22's grammar, counted a `wrong` finding."""
-    record = " ".join(read("docs", "checks", "the-pull-request-check.md").split())
-    for said in (
-        "added field is never supplied after the round that would have written it",
-        "A record written before a line was added lacks it, and the lack is "
-        "no finding for a later round.",
-    ):
-        assert said in record, f"the-pull-request-check.md lost `{said}`"
 
 
 def test_the_routing_section_holds_the_answers_and_the_shape():

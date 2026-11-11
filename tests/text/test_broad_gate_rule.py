@@ -123,19 +123,18 @@ def joined(lines):
     return " ".join(" ".join(lines).split())
 
 
-def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
+def test_the_order_inside_a_ticket_names_the_preflight():
     """The order section sequences the sealer's spawn, so the step before it
-    is written in where the spawn is."""
+    is written in where the spawn is. Where it stands in the order is the
+    proofer's to read."""
     text = joined(
         section(
             read("skills", "implement", "orchestration.md"),
             "Orchestrator: the order inside a ticket",
         )
     )
+    # The command the orchestrator runs before it spawns the sealer.
     assert PREFLIGHT in text, "the order does not name the preflight"
-    assert text.index(PREFLIGHT) < text.index("then the sealer, and then the pull"), (
-        text
-    )
 
 
 EXAMPLE_ROW = (
