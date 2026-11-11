@@ -600,13 +600,22 @@ def main():
     if dry:
         print("DRY_RUN -- nothing will be uploaded or edited")
     try:
-        seal_release(tag, repo, dry)
+        import sibling
+
+        # The job exits 0 whatever fails, and the loader's "Nothing was
+        # read." pairs with exit 2, so an absent module raises
+        # `lib/sibling.py#Absent` with no sentence and the line below names
+        # it.
+        with sibling.going_on():
+            seal_release(tag, repo, dry)
     except (Exception, SystemExit) as problem:
-        reason = (
-            str(problem)
-            if isinstance(problem, Refused)
-            else (f"{type(problem).__name__}: {problem}")
-        )
+        if isinstance(problem, Refused):
+            reason = str(problem)
+        # `Absent`'s path; an `ImportError` carries a `path` of its own.
+        elif isinstance(problem, SystemExit) and getattr(problem, "path", None):
+            reason = f"{problem.path} is absent"
+        else:
+            reason = f"{type(problem).__name__}: {problem}"
         reason = " ".join(reason.split())
         print(f"no seal: {reason} -- the note stays as it was published")
         print(f"::warning::release seal skipped: {reason}")

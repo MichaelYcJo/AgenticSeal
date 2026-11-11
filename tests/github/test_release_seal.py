@@ -719,6 +719,30 @@ class Test_chain_counts:
 
 
 class Test_main:
+    def test_names_an_absent_module_in_its_own_line_and_exits_0(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """#1482. The seal exits 0 whatever fails, so an absent module is
+        named in the `no seal` line and the warning, and the loader's
+        sentence, whose "Nothing was read." pairs with exit 2, is kept back
+        (round 2, finding 1)."""
+        mod = seal()
+        import sibling
+
+        plugin = tmp_path / "no-plugin"
+        monkeypatch.setattr(sibling, "ROOT", str(plugin))
+        monkeypatch.setenv("TAG", "v0.0.1")
+        monkeypatch.setenv("REPO", "o/r")
+        monkeypatch.delenv("DRY_RUN", raising=False)
+        assert mod.main() == 0
+        said = capsys.readouterr()
+        assert said.err == ""
+        absent = plugin / ".github" / "scripts" / "publish_release_note.py"
+        assert said.out.splitlines() == [
+            f"no seal: {absent} is absent -- the note stays as it was published",
+            f"::warning::release seal skipped: {absent} is absent",
+        ]
+
     def test_accepts_a_published_note_and_replaces_its_header(
         self, monkeypatch, tmp_path
     ):
