@@ -30,9 +30,10 @@ person (#1503), so no section of the contract and no agent definition
 writes `rm -rf`. The one removal left is the orchestrator's, of the work
 item's directory once the pull request is open, in one `rm -rf` with its
 path written out (`skills/implement/orchestration.md` *Orchestrator: the
-order inside a ticket*), which no agent preloads. This file pins rule 17's sentences, the directory each
-definition names, and that absence, because a definition is a sentence an
-agent reads and a sentence can be dropped without a case going red.
+order inside a ticket*), which no agent preloads. This file pins rule
+17's sentences, the directory each definition names, and that absence,
+because a definition is a sentence an agent reads and a sentence can be
+dropped without a case going red.
 
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
