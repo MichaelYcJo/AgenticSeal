@@ -321,12 +321,17 @@ def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
 
 # Every shape #462 names, in one workflow: a flag in a whole-line comment, a
 # flag in a trailing comment, a flag in a shell comment inside a script, a
-# `BASE:` under `with:` and one inside a `run: |` block beside the one `env:`
-# carries, and an empty quoted value. Neutral values only (`CONTRIBUTING.md`
-# *House rules*, *No real identifiers*).
+# `BASE:` under `with:` and one inside a `run: |` block beside the one a
+# step's `env:` carries, the workflow's and a job's `env:`, and an empty quoted
+# value. Neutral values only (`CONTRIBUTING.md` *House rules*, *No real
+# identifiers*).
 MISLEADING_WORKFLOW = """\
+env:
+  BASE: origin/the-workflow
 jobs:
   release:
+    env:
+      BASE: origin/the-job
     steps:
       # --baseline origin/other
       - name: a flag in a trailing comment
@@ -364,9 +369,12 @@ def test_a_flag_in_a_comment_is_not_a_base(tmp_path):
 
 
 def test_only_a_base_keyed_under_env_is_a_base(tmp_path):
-    """B2, #462. The `BASE:` under `env:` counts; the one under `with:` and
-    the one inside a `run: |` block do not. The whole reading, in order."""
+    """B2, #462. A `BASE:` under the workflow's, a job's or a step's `env:`
+    counts; the one under `with:` and the one inside a `run: |` block do not.
+    The whole reading, in order."""
     assert base_spellings(misleading(tmp_path)) == [
+        "origin/the-workflow",
+        "origin/the-job",
         "foo",
         REMOTE_TRACKING,
         "$BASE",
