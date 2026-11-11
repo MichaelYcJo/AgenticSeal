@@ -9,27 +9,35 @@ that read the hygiene workflow's step, which wait for #923.
 import os
 import re
 
-from conftest import ROOT, read
+from conftest import ROOT, code_lines
+from workflows import load
 
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
+STEP = "the milestone this release claims"
 
 
 def hygiene_step():
-    """The gate's step, from `- name:` to the next one at the same indent."""
-    text = read(HYGIENE)
-    start = text.index("- name: the milestone this release claims")
-    rest = text[start + 1 :]
-    end = rest.find("\n      - name:")
-    return rest[: end if end != -1 else len(rest)]
+    """The gate's step, loaded: the one step whose name opens with STEP."""
+    steps = [
+        step
+        for job in load(HYGIENE)["jobs"].values()
+        for step in job["steps"]
+        if step.get("name", "").startswith(STEP)
+    ]
+    assert len(steps) == 1, f"{len(steps)} steps of hygiene.yml open with {STEP!r}"
+    return steps[0]
+
+
+def guarded_script():
+    """The gate step's script, with its shell comments off."""
+    return "\n".join(code_lines(hygiene_step()["run"]))
 
 
 def test_the_gate_runs_only_for_a_release_pull_request():
     """It is the fifth release-only step in this file. A feature pull request
     carries no milestone of its own and the release branch it targets is not
     finished, so running it there is noise at best."""
-    step = hygiene_step()
-    # The step's `if` condition the runner acts on, which skips every base
-    # but `main`.
+    step = guarded_script()
     assert 'github.base_ref }}" != "main" ]' in step, (
         "the step is missing the base guard the other release-only steps use"
     )
@@ -58,9 +66,8 @@ def test_the_head_shape_reaches_the_script_rather_than_the_guard():
     """A hotfix branch merging into `main` is the other shape that gets here,
     and what it does about that is a case (S7) rather than a shell condition
     nothing can test."""
-    step = hygiene_step()
-    # The environment binding the runner hands the script.
-    assert "HEAD_BRANCH: ${{ github.head_ref }}" in step, (
+    env = hygiene_step().get("env", {})
+    assert env.get("HEAD_BRANCH") == "${{ github.head_ref }}", (
         "the head branch does not reach the script, so the skip it is "
         "supposed to make is unreachable"
     )
@@ -91,16 +98,14 @@ def test_every_input_the_script_reads_is_handed_to_it_by_the_step():
     default), `GH_TOKEN` 1 (`gh` fails). The module docstring carries the
     same table.
     """
-    env = hygiene_step().split("shell:")[0]
+    env = hygiene_step().get("env", {})
     for name in ("GH_TOKEN", "HEAD_BRANCH", "HEAD_SHA", "BASE", "REPO"):
-        # The environment key the runner hands the script.
-        assert f"{name}:" in env, (
+        assert name in env, (
             f"the gate step no longer passes {name}. Every one of these is "
             "an input of `release_completeness_check.py`, and two absences "
             "are silent"
         )
-    # The value the runner binds `HEAD_SHA` to.
-    assert "github.event.pull_request.head.sha" in env, (
+    assert "github.event.pull_request.head.sha" in env["HEAD_SHA"], (
         "HEAD_SHA no longer names the pull request's own head commit, so the "
         "fork point is measured against whatever the checkout left at HEAD"
     )
@@ -112,18 +117,13 @@ def test_the_job_asks_for_a_token_that_can_read_issues():
     default happened to be. The gate writes nothing, so the block is
     read-only in both scopes — narrower than any default, and stated rather
     than inherited."""
-    text = "\n".join(
-        line for line in read(HYGIENE).splitlines() if not line.lstrip().startswith("#")
-    )
-    block = re.search(r"^permissions:\n((?:  [\w-]+:.*\n)+)", text, re.M)
-    assert block, "hygiene.yml states no permissions block, so it inherits a default"
-    granted = dict(re.findall(r"^  ([\w-]+):\s*(\S+)\s*$", block.group(1), re.M))
+    granted = load(HYGIENE).get("permissions")
+    assert granted, "hygiene.yml states no permissions block, so it inherits a default"
     assert granted == {"contents": "read", "issues": "read"}, (
         f"the token's scopes changed: {granted}. Every step in this job reads "
         "and none of them writes"
     )
-    # The environment binding that hands `gh` the job's token.
-    assert "GH_TOKEN: ${{ github.token }}" in hygiene_step(), (
+    assert hygiene_step().get("env", {}).get("GH_TOKEN") == "${{ github.token }}", (
         "the step does not pass a token, so `gh` falls back to whatever the "
         "runner happens to have"
     )

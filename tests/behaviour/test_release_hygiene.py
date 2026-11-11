@@ -11,10 +11,10 @@ import os
 import re
 import subprocess
 import sys
-import textwrap
 
 import pytest
-from conftest import ROOT, build_tracked_tree, git_listing, on_disk, workflow_step
+from conftest import ROOT, build_tracked_tree, git_listing, on_disk
+from workflows import load
 
 
 def read_text(*parts):
@@ -164,6 +164,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "install the renderer the walker's property case is held to, and a "
         "case holds them to the runner's constant; the package numbers its "
         "releases by date, and no release of AgenticSeal makes the number wrong"
+    ),
+    ("CONTRIBUTING.md", "6.0.3"): (
+        "PyYAML's, the parser `tests/workflows.py` reads a workflow file with, "
+        "pinned in `.github/scripts/run_tests.py#PYYAML` (#1486). The class "
+        "is the two rows above's: the fallback commands carry the pin so they "
+        "install the parser the workflow cases read with, and a case holds "
+        "them to the runner's constant; no release of AgenticSeal makes the "
+        "number wrong"
     ),
     ("skills/verify/scripts/payload_meter.py", "2.1.318"): (
         "Claude Code's, named in `imports_of`'s docstring as the build whose "
@@ -1001,6 +1009,18 @@ def python_floor():
     return f"{m.group(1)}.{m.group(2)}"
 
 
+def matrix_pythons():
+    """Every `python` value an `include:` entry of a job's matrix in
+    `test.yml` names."""
+    jobs = load(os.path.join(".github", "workflows", "test.yml"))["jobs"]
+    return [
+        entry["python"]
+        for job in jobs.values()
+        for entry in job.get("strategy", {}).get("matrix", {}).get("include", [])
+        if "python" in entry
+    ]
+
+
 def test_the_python_floor_is_the_same_number_everywhere():
     """Three places state it — the linter, the READMEs, the CI matrix — and a
     floor that disagrees with itself is worse than none: whoever reads the
@@ -1009,10 +1029,7 @@ def test_the_python_floor_is_the_same_number_everywhere():
     for name in ("README.md", "README.ko.md"):
         with open(os.path.join(ROOT, name), encoding="utf-8") as f:
             assert floor in f.read(), f"{name} does not state the {floor} floor"
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "test.yml"), encoding="utf-8"
-    ) as f:
-        versions = re.findall(r'python: "(\d+\.\d+)"', f.read())
+    versions = matrix_pythons()
     assert versions, "the test matrix names no python versions"
     lowest = min(versions, key=lambda v: tuple(int(n) for n in v.split(".")))
     assert lowest == floor, (
@@ -1144,21 +1161,19 @@ def test_the_token_stays_the_smallest_that_can_close_an_issue():
     A substring search for `contents: write` passes `contents:  write` — two
     spaces, one value to YAML — and that is the exact widening the block's own
     comment says it guards. Measured green before this."""
-    workflow = read_text(".github", "workflows", "close-issues-on-release.yml")
-    block = re.search(r"^permissions:\n((?:  [\w-]+:.*\n)+)", workflow, re.M)
-    assert block, "the workflow states no permissions block, so it inherits all"
-    granted = dict(re.findall(r"^  ([\w-]+):\s*(\S+)\s*$", block.group(1), re.M))
+    workflow = load(os.path.join(".github", "workflows", "close-issues-on-release.yml"))
+    granted = workflow.get("permissions")
+    assert granted, "the workflow states no permissions block, so it inherits all"
     assert granted == {"contents": "read", "issues": "write"}, (
         f"the token's scopes changed: {granted}. Its only write is a close, "
         "and an untrusted pull request body is what steers it"
     )
-    on = re.search(r"^on:\n((?:  .*\n|\n)*?)^\w", workflow, re.M)
-    assert on and re.findall(r"^  ([\w_]+):", on.group(1), re.M) == ["push"], (
+    assert list(workflow["on"]) == ["push"], (
         "the workflow gained a second trigger. A push to `main` is the only "
         "moment a closing keyword is readable, and any trigger an untrusted "
         "pull request can fire hands it the `issues: write` token"
     )
-    assert re.search(r"^\s*branches:\s*\[main\]\s*$", workflow, re.M), (
+    assert workflow["on"]["push"] == {"branches": ["main"]}, (
         "the push trigger no longer names `main` alone"
     )
 
@@ -1253,12 +1268,15 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     run over a tree holding one, prints it as a notice annotation at its
     file and line, pinned whole (contract rule 14), and exits 0 whatever the
     check's exit. Seen red against the workflow with no such step."""
-    text = open(
-        os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
-    ).read()
-    lines = workflow_step(text, RULES_STEP).split("\n")
-    start = next(i for i, ln in enumerate(lines) if ln.strip() == "run: |") + 1
-    script = textwrap.dedent("\n".join(lines[start:]))
+    workflow = load(os.path.join(".github", "workflows", "hygiene.yml"))
+    steps = [
+        step
+        for job in workflow["jobs"].values()
+        for step in job["steps"]
+        if step.get("name") == RULES_STEP
+    ]
+    assert len(steps) == 1, f"{len(steps)} steps are called {RULES_STEP!r}"
+    script = steps[0]["run"]
     assert script.count(RULES_COMMAND) == 1, script
     rules = os.path.join(ROOT, ".github", "scripts", "rules.py")
     script = script.replace(

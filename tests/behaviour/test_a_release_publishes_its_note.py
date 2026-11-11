@@ -7,16 +7,20 @@ names this file on its `check:` line.
 #942's phase 6 placed the cases of `.github/scripts/publish_release_note.py`'s
 functions in `tests/github/test_publish_release_note.py`, and this file loads the
 script through that file's `module`.
+
+The workflow is read as `tests/workflows.py#load` parses it, so a setting
+that stands only in a comment is no setting.
 """
 
 import os
 
-from conftest import ROOT, read
+from conftest import ROOT
 from test_publish_release_note import module
+from workflows import load
 
 SCRIPTS = os.path.join(ROOT, ".github", "scripts")
 SCRIPT = os.path.join(SCRIPTS, "publish_release_note.py")
-WORKFLOW = os.path.join(ROOT, ".github", "workflows", "publish-release.yml")
+WORKFLOW = ".github/workflows/publish-release.yml"
 
 # `tests/behaviour/test_release_hygiene.py` refuses a loaded document naming the running
 # version or anything above it. These are illustrative, which is the form that
@@ -56,45 +60,17 @@ def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
     assert spaced == title, spaced
 
 
-def workflow():
-    """The workflow with its comment lines removed.
-
-    A setting that exists only in a comment is not a setting —
-    `tests/text/test_ci_gives_the_checks_what_they_need.py` measured that dropping
-    a real line and keeping the comment above it left its checks green.
-    """
-    return "\n".join(
-        line
-        for line in read(WORKFLOW).splitlines()
-        if not line.lstrip().startswith("#")
-    )
-
-
-def job(text, name):
-    """One job's lines of the comment-free workflow, from its `  <name>:`
-    line to the next job or the end."""
-    lines = text.splitlines()
-    start = lines.index(f"  {name}:")
-    end = next(
-        (
-            i
-            for i in range(start + 1, len(lines))
-            if lines[i].startswith("  ") and not lines[i].startswith("   ")
-        ),
-        len(lines),
-    )
-    return lines[start:end]
-
-
-def steps(lines):
-    """A job's steps, each as its lines, split at every `      - ` line."""
-    out = []
-    for line in lines:
-        if line.startswith("      - "):
-            out.append([line])
-        elif out:
-            out[-1].append(line)
-    return out
+def strings(node):
+    """Every key and every scalar under a loaded NODE, depth first."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield key
+            yield from strings(value)
+    elif isinstance(node, list):
+        for item in node:
+            yield from strings(item)
+    else:
+        yield node
 
 
 def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit():
@@ -120,72 +96,73 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     `seal` job, the two round-1 halves against the workflow without them,
     #1009's against the job with the SVG renderer's install step, and
     #1117's against the workflow that fired on the tag alone."""
-    text = workflow()
-    assert "    branches: [main]" in text, "the workflow does not fire on `main`"
-    assert "    tags: ['v*']" in text, "a tag pushed by hand no longer publishes"
-    assert "github.ref_name" not in text, (
+    workflow = load(WORKFLOW)
+    push = workflow["on"]["push"]
+    assert push.get("branches") == ["main"], "the workflow does not fire on `main`"
+    assert push.get("tags") == ["v*"], "a tag pushed by hand no longer publishes"
+    said = list(strings(workflow))
+    assert not any("github.ref_name" in s for s in said), (
         "a step reads the ref's name, which is `main` on the push to `main`"
     )
-    assert "contents: write" in text
-    for scope in ("issues:", "pull-requests:", "packages:"):
-        assert scope not in text, (
-            f"the workflow declares {scope}, which it does not use"
-        )
-    publish = job(text, "publish")
-    assert not any(line.strip().startswith("needs:") for line in publish), publish
-    assert "      created: ${{ steps.note.outputs.created }}" in publish, publish
-    assert "      tag: ${{ steps.tag.outputs.tag }}" in publish, publish
-    made = steps(publish)
-    tagging = [i for i, step in enumerate(made) if "        id: tag" in step]
-    noting = [i for i, step in enumerate(made) if "        id: note" in step]
+    assert workflow.get("permissions") == {"contents": "write"}, (
+        "the workflow declares a scope other than `contents: write`, which it "
+        f"does not use: {workflow.get('permissions')}"
+    )
+    jobs = workflow["jobs"]
+    assert not [name for name, job in jobs.items() if "permissions" in job], jobs
+    publish = jobs["publish"]
+    assert "needs" not in publish, publish
+    outputs = publish.get("outputs", {})
+    assert outputs.get("created") == "${{ steps.note.outputs.created }}", publish
+    assert outputs.get("tag") == "${{ steps.tag.outputs.tag }}", publish
+    made = publish["steps"]
+    tagging = [i for i, step in enumerate(made) if step.get("id") == "tag"]
+    noting = [i for i, step in enumerate(made) if step.get("id") == "note"]
     assert len(tagging) == 1 and len(noting) == 1, made
     assert tagging[0] < noting[0], "the note step runs before the tag exists"
-    assert any("tag_release.py" in line for line in made[tagging[0]])
+    assert "tag_release.py" in made[tagging[0]].get("run", "")
     note = made[noting[0]]
-    assert any("publish_release_note.py" in line for line in note), note
-    assert "        if: steps.tag.outputs.tag != ''" in note, note
-    assert "          TAG: ${{ steps.tag.outputs.tag }}" in note, note
-    seal = job(text, "seal")
-    assert "    needs: publish" in seal, seal
-    assert "    if: needs.publish.outputs.created == 'true'" in seal, seal
-    assert "          ref: ${{ needs.publish.outputs.tag }}" in seal, seal
-    assert "          TAG: ${{ needs.publish.outputs.tag }}" in seal, seal
-    assert (
-        "    timeout-minutes: 60" in seal and "    continue-on-error: true" in seal
-    ), seal
-    held = steps(seal)
+    assert "publish_release_note.py" in note.get("run", ""), note
+    assert note.get("if") == "steps.tag.outputs.tag != ''", note
+    assert note.get("env", {}).get("TAG") == "${{ steps.tag.outputs.tag }}", note
+    seal = jobs["seal"]
+    assert seal.get("needs") == "publish", seal
+    assert seal.get("if") == "needs.publish.outputs.created == 'true'", seal
+    assert seal.get("timeout-minutes") == "60", seal
+    assert seal.get("continue-on-error") == "true", seal
+    held = seal["steps"]
     assert len(held) == 5, held
-    assert not any("apt-get" in line for step in held for line in step), held
-    assert any(line.strip() == "persist-credentials: false" for line in held[0]), held[
-        0
-    ]
-    for step in held:
-        assert any(line.strip() == "continue-on-error: true" for line in step), step
-    tokened = [step for step in held if any("GH_TOKEN" in line for line in step)]
-    assert len(tokened) == 1 and any("release_seal.py" in line for line in tokened[0])
-    suite = [step for step in held if any("id: suite" in line for line in step)]
-    assert len(suite) == 1, suite
-    assert any(line.strip() == "timeout-minutes: 30" for line in suite[0]), suite
     assert any(
-        "SUITE_OUTCOME: ${{ steps.suite.outcome }}" in line for line in tokened[0]
-    ), tokened
+        step.get("with", {}).get("ref") == "${{ needs.publish.outputs.tag }}"
+        for step in held
+    ), held
+    assert not any("apt-get" in s for s in strings(held)), held
+    assert held[0].get("with", {}).get("persist-credentials") == "false", held[0]
+    for step in held:
+        assert step.get("continue-on-error") == "true", step
+    tokened = [step for step in held if "GH_TOKEN" in step.get("env", {})]
+    assert len(tokened) == 1 and "release_seal.py" in tokened[0].get("run", "")
+    assert any(
+        step.get("env", {}).get("TAG") == "${{ needs.publish.outputs.tag }}"
+        for step in held
+    ), held
+    suite = [step for step in held if step.get("id") == "suite"]
+    assert len(suite) == 1, suite
+    assert suite[0].get("timeout-minutes") == "30", suite
+    assert tokened[0]["env"].get("SUITE_OUTCOME") == "${{ steps.suite.outcome }}", (
+        tokened
+    )
     # #869 (S12 of 1791384158): the suite runs with the broad gate's recorder
     # loaded as the gate loads it, writes no JUnit file, and the drawing
     # step is handed the directory and the key the suite step wrote with.
-    said = {
-        line.strip().split(":", 1)[0]: line.strip().split(":", 1)[1].strip()
-        for line in suite[0] + tokened[0]
-        if line.strip().split(":", 1)[0].isupper()
-    }
-    assert said["PYTHONPATH"] == (
+    env = {**suite[0].get("env", {}), **tokened[0]["env"]}
+    assert env.get("PYTHONPATH") == (
         "${{ github.workspace }}/skills/verify/scripts/pytest_record"
-    ), said
-    assert said["PYTEST_ADDOPTS"] == "-p agentic_pytest_record", said
-    assert said["SUITE_RECORDS"] == said["AGENTIC_RECORD_DIR"], said
-    assert said["SUITE_KEY"] == said["AGENTIC_RECORD_KEY"], said
-    assert not any(
-        "junitxml" in line or "SUITE_XML" in line for line in text.splitlines()
-    )
+    ), env
+    assert env.get("PYTEST_ADDOPTS") == "-p agentic_pytest_record", env
+    assert env.get("SUITE_RECORDS") == env.get("AGENTIC_RECORD_DIR"), env
+    assert env.get("SUITE_KEY") == env.get("AGENTIC_RECORD_KEY"), env
+    assert not any("junitxml" in s or "SUITE_XML" in s for s in said)
 
 
 def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
@@ -200,38 +177,22 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     committer alike. No `continue-on-error` stands
     anywhere in it, so a release that did not reach `dist` is a red run.
     Seen red against the workflow with no `dist` job."""
-    dist = job(workflow(), "dist")
-    # The job's `needs` line, which the runner orders the job by.
-    assert "    needs: publish" in dist, dist
-    # The job's `if` line, which the runner decides whether to run it by.
-    assert "    if: ${{ !cancelled() && needs.publish.outputs.tag != '' }}" in dist, (
+    dist = load(WORKFLOW)["jobs"]["dist"]
+    assert dist.get("needs") == "publish", dist
+    assert dist.get("if") == "${{ !cancelled() && needs.publish.outputs.tag != '' }}", (
         dist
     )
-    # `.github/workflows/publish-release.yml`, the header comment's paragraph
-    # on `dist`: the job has no `continue-on-error`, so a release that did
-    # not reach `dist` is a red run. The key, written in the job, is one the
-    # runner acts on.
-    assert not any("continue-on-error" in line for line in dist), dist
-    held = steps(dist)
+    assert not any("continue-on-error" in s for s in strings(dist)), dist
+    held = dist["steps"]
     assert len(held) == 2, held
     checkout, run = held
-    assert checkout[0] == "      - uses: actions/checkout@v4", checkout
-    assert any(line.strip() == "fetch-depth: 0" for line in checkout), checkout
-    # The same workflow, the comment above the job's checkout: the checkout
-    # keeps its credentials, because the script pushes `dist` with them. The
-    # key `persist-credentials`, written there, would drop them.
-    assert not any("persist-credentials" in line for line in checkout), checkout
-    # The step's command, which the runner runs with the tag.
-    assert "        run: python3 .github/scripts/dist_branch.py" in run, run
-    said = {
-        line.strip().split(":", 1)[0]: line.strip().split(":", 1)[1].strip()
-        for line in run
-        if line.strip().split(":", 1)[0].isupper()
-    }
-    assert said["TAG"] == "${{ needs.publish.outputs.tag }}", said
+    assert checkout.get("uses") == "actions/checkout@v4", checkout
+    assert checkout.get("with", {}).get("fetch-depth") == "0", checkout
+    assert "persist-credentials" not in checkout.get("with", {}), checkout
+    assert run.get("run") == "python3 .github/scripts/dist_branch.py", run
+    said = run.get("env", {})
+    assert said.get("TAG") == "${{ needs.publish.outputs.tag }}", said
     bot = "github-actions[bot]"
-    assert said["GIT_AUTHOR_NAME"] == said["GIT_COMMITTER_NAME"] == bot, said
-    assert said["GIT_AUTHOR_EMAIL"] == said["GIT_COMMITTER_EMAIL"], said
-    # The bot's address in the environment binding, which the commit the
-    # script makes carries as its author.
-    assert "+github-actions[bot]@" in said["GIT_AUTHOR_EMAIL"], said
+    assert said.get("GIT_AUTHOR_NAME") == said.get("GIT_COMMITTER_NAME") == bot, said
+    assert said.get("GIT_AUTHOR_EMAIL") == said.get("GIT_COMMITTER_EMAIL"), said
+    assert "+github-actions[bot]@" in said.get("GIT_AUTHOR_EMAIL", ""), said

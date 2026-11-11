@@ -1058,7 +1058,6 @@ class Test_vacated_paths:
         records = (
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
-            ".test_durations",
         )
         for rel in records:
             plant(tmp_path, rel, "`hooks/moved.py`\n")

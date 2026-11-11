@@ -11,8 +11,9 @@ on a `check:` line beside the new one.
 import os
 
 import pytest
-from conftest import ROOT, step_running
+from conftest import ROOT, code_lines
 from test_issue_claims_check import read
+from workflows import load
 
 
 def test_the_document_that_teaches_the_rule_carries_no_instance_of_it():
@@ -45,24 +46,26 @@ def test_the_workflow_runs_the_check_on_every_pull_request():
     )
 
 
+BODY = "${{ github.event.pull_request.body }}"
+
+
 def test_the_body_reaches_the_script_through_the_environment():
     """A pull request body is attacker-controlled text and `${{ }}` inside a
     `run:` block is textual substitution into a shell script. Interpolating a
-    body there hands whoever opens the pull request the runner."""
-    with open(
-        os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
-    ) as f:
-        workflow = f.read()
-    step = step_running(workflow, "issue_claims_check.py")
-    # The environment binding `PR_BODY`, through which the runner hands the
-    # script the body.
-    assert "PR_BODY: ${{ github.event.pull_request.body }}" in step
-    # `.github/workflows/hygiene.yml`, the comment above the step *every issue
-    # this pull request claims, and every one it only names*: the body goes
-    # through `env:`, because `${{ }}` inside `run:` is substituted into the
-    # shell script the runner executes. The step's `run:` block is read.
-    assert "${{ github.event.pull_request.body }}" not in step.split("run:", 1)[1], (
-        "the body is interpolated into a shell line"
+    body there hands whoever opens the pull request the runner, so no step's
+    script holds the expression."""
+    workflow = load(os.path.join(".github", "workflows", "hygiene.yml"))
+    steps = [step for job in workflow["jobs"].values() for step in job["steps"]]
+    running = [
+        step
+        for step in steps
+        if "issue_claims_check.py" in "\n".join(code_lines(step.get("run", "")))
+    ]
+    assert len(running) == 1, f"{len(running)} steps run issue_claims_check.py"
+    assert running[0].get("env", {}).get("PR_BODY") == BODY, running[0]
+    interpolated = [step.get("name") for step in steps if BODY in step.get("run", "")]
+    assert not interpolated, (
+        f"the body is interpolated into a shell line: {interpolated}"
     )
 
 

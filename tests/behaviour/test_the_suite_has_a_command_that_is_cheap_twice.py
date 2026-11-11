@@ -14,11 +14,15 @@ import subprocess
 
 import pytest
 from conftest import ROOT, read
-from test_ci_gives_the_checks_what_they_need import jobs, matrix_include_entries
-from test_ci_gives_the_checks_what_they_need import read as read_workflow
 from test_run_tests import rt
+from workflows import load
 
 BIN = os.path.join(ROOT, "bin")
+
+
+def pytest_job():
+    """`test.yml`'s `pytest` job, as `tests/workflows.py#load` reads it."""
+    return load(".github/workflows/test.yml")["jobs"]["pytest"]
 
 
 def posix_entries():
@@ -118,11 +122,10 @@ def test_ci_installs_the_parser_the_runner_pins():
     """#667, phase 1. The pin is chosen once, in `MARKDOWN_IT`, and CI's
     pytest job installs its own list. A version bumped in one place and not
     the other runs the oracle's cases against two parsers."""
-    job = jobs(read_workflow("test.yml"))["pytest"]
     installs = [
-        line.split("run:", 1)[1].split()
-        for line in job.splitlines()
-        if "run: pip install" in line
+        step["run"].split()
+        for step in pytest_job()["steps"]
+        if step.get("run", "").startswith("pip install")
     ]
     assert installs, "the pytest job installs nothing to compare"
     assert any(rt.MARKDOWN_IT in words for words in installs), installs
@@ -140,6 +143,13 @@ def test_ci_installs_the_parser_the_runner_pins():
     assert any(rt.CMARKGFM in words for words in installs), installs
     assert not any(
         word.lower().startswith("cmarkgfm") and word != rt.CMARKGFM
+        for words in installs
+        for word in words
+    ), installs
+    # #1486: PyYAML joins the same line, at the version the runner pins.
+    assert any(rt.PYYAML in words for words in installs), installs
+    assert not any(
+        word.lower().startswith("pyyaml") and word != rt.PYYAML
         for words in installs
         for word in words
     ), installs
@@ -170,8 +180,15 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
     # #647: the renderer's package and its constant, and the fallback
     # commands carrying its pin after the parser's, which a reader copies.
     assert "`cmarkgfm`" in section and "`CMARKGFM`" in section, section
-    assert f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} " in section, section
-    assert f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} " in section, section
+    # #1486: the YAML parser is named with its constant, and the fallbacks
+    # carry its pin after the renderer's.
+    assert "`PyYAML`" in section and "`PYYAML`" in section, section
+    assert (
+        f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} --with {rt.PYYAML} " in section
+    ), section
+    assert (
+        f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} {rt.PYYAML} " in section
+    ), section
 
 
 # A command nobody is pointed at costs what the old one cost. Three documents
@@ -242,9 +259,9 @@ def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
     ubuntu, macOS and Windows at the floor stated above". So every operating
     system the matrix names holds at least one entry at `FLOOR`, whatever
     other Python it also runs (#1065) -- a floor CI does not run at is a
-    floor nothing measures. It reads a system and not its shards: one macOS
-    shard moved off the floor leaves two at it, and this case passes that."""
-    entries = matrix_include_entries(read_workflow("test.yml"))
+    floor nothing measures. It reads a system and not its shards: one Windows
+    shard moved off the floor leaves three at it, and this case passes that."""
+    entries = pytest_job()["strategy"]["matrix"]["include"]
     systems = {e.get("os") for e in entries}
     assert systems, "the pytest job names no operating system to compare"
     at_floor = {e.get("os") for e in entries if e.get("python") == rt.FLOOR_TEXT}
