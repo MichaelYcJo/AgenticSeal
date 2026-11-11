@@ -110,6 +110,11 @@ framer to fold the other way, the two kept absences go instead.
 `changelog.md:3` ("An absence assert stays only where a rule in force
 forbids its literal") reads true under either fold.
 
+```seal
+verdict: fixed 4864f032d
+answer: The finding holds, and the framer's fold at `d664a9194` decided the overlap differently from the record's paste: where an absence meets both paragraphs, the keep paragraph rules, but only for a rule of that text itself; a rule binding every text alike, such as the core's one-source rule, keeps no absence (plan A14). So `seal stamp --from` stays, the `copied` block-key absence goes (its case renamed `test_the_exclusion_list_points_at_the_block_grammar`), and the close-block values and `def split_row` stay removed. Reading all 141 removed `not in` lines against that rule brought back two whose own texts forbid the literal: `/tmp/run.txt` (`skills/verify/SKILL.md` *Capture once, filter locally.*) and `` `.git/seal/` `` in the Bootstrap section (`skills/implement/bootstrap.md` *Orchestrator: Bootstrap*), each red under its mutant. The `rm -rf` removal stays, since contract rule 17 forbids the act and not the command; that call is for the next round. Records at `e1375088c`.
+```
+
 ### 2. Seven listed asserts on a workflow's text were left unruled under a reading the frame does not state
 
 ```seal
@@ -150,6 +155,11 @@ The snippet does not reach the policy root. The settle carries only
 call. The other route is for a phase to rule the seven by *The criterion*.
 Then the skip line's absence goes, and each kept assert takes the comment
 *Scope* item 1 asks for.
+
+```seal
+verdict: fixed 3368a3111
+answer: The finding holds. The fold at `d664a9194` states in design *What an assert reads* that a printed line read from its file without running it is a file's text, and rejected a separate kind for it (plan A15). The seven asserts were ruled by *The criterion*: `release/vX.Y.Z`, `plugin.json` and `CONTRIBUTING.md` in the `::error::` line stay with a comment each, red under three mutants of `hygiene.yml`; the base wording, the skip sentence and its `moves` absence go, with the order assert and the skip line's count. Two cases left with no assert went and two were renamed for what they still read.
+```
 
 ### 3. Seven cases keep a name or a comment stating what a removed assert pinned
 
@@ -222,6 +232,11 @@ def test_the_reviewer_points_at_the_edit_rule():
 # tests/behaviour/test_release_hygiene.py:1305, only where finding 1 leaves
 # the absence removed
 def test_the_chain_check_loads_the_one_reader():
+```
+
+```seal
+verdict: fixed e94c791e9
+answer: The finding holds. The six cases and the first-setup section comment take the record's names; the last case is `test_the_chain_check_loads_the_one_reader`, since the `split_row` absence stays removed under the fold of finding 1. No file outside `seal/threads/` cites an old name, and `changelog.md:18`'s claim that such cases are renamed now holds.
 ```
 
 ## Confirmations
