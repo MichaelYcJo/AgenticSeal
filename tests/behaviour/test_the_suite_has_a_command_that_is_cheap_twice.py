@@ -169,6 +169,13 @@ def test_ci_installs_the_parser_the_runner_pins():
         for words in installs
         for word in words
     ), installs
+    # #1486: PyYAML joins the same line, at the version the runner pins.
+    assert any(rt.PYYAML in words for words in installs), installs
+    assert not any(
+        word.lower().startswith("pyyaml") and word != rt.PYYAML
+        for words in installs
+        for word in words
+    ), installs
     # #841: pytest-split joins the same line, at the version the runner pins.
     # It is CI's alone, so it is not in `PACKAGES` and `bin/test` never
     # installs it.
@@ -196,8 +203,15 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
     # #647: the renderer is named with its constant, and the fallbacks carry
     # its pin after the parser's.
     assert "`cmarkgfm`" in section and "`CMARKGFM`" in section, section
-    assert f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} " in section, section
-    assert f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} " in section, section
+    # #1486: the YAML parser is named with its constant, and the fallbacks
+    # carry its pin after the renderer's.
+    assert "`PyYAML`" in section and "`PYYAML`" in section, section
+    assert (
+        f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} --with {rt.PYYAML} " in section
+    ), section
+    assert (
+        f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} {rt.PYYAML} " in section
+    ), section
 
 
 # A command nobody is pointed at costs what the old one cost. Three documents

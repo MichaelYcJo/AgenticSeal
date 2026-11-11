@@ -37,6 +37,9 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
     # #647: the suite at the tag collects the table walker's case, which
     # imports the pinned renderer.
     assert runner.CMARKGFM in installs[0], installs
+    # #1486: the suite at the tag collects the modules that read a workflow,
+    # which import the pinned YAML parser.
+    assert runner.PYYAML in installs[0], installs
 
 
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():

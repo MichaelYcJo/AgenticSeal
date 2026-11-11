@@ -165,6 +165,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "case holds them to the runner's constant; the package numbers its "
         "releases by date, and no release of AgenticSeal makes the number wrong"
     ),
+    ("CONTRIBUTING.md", "6.0.3"): (
+        "PyYAML's, the parser `tests/workflows.py` reads a workflow file with, "
+        "pinned in `.github/scripts/run_tests.py#PYYAML` (#1486). The class "
+        "is the two rows above's: the fallback commands carry the pin so they "
+        "install the parser the workflow cases read with, and a case holds "
+        "them to the runner's constant; no release of AgenticSeal makes the "
+        "number wrong"
+    ),
     ("skills/verify/scripts/payload_meter.py", "2.1.318"): (
         "Claude Code's, named in `imports_of`'s docstring as the build whose "
         "import reader was read for #1185, the source of each shape the meter "

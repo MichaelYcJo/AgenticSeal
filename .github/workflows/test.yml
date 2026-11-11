@@ -144,10 +144,12 @@ jobs:
       # place the version is chosen, and a case holds this line to it.
       # cmarkgfm is GitHub's renderer, which the table walker's oracle reads
       # (#647), pinned in `run_tests.py#CMARKGFM` and held to this line too.
+      # PyYAML is the parser `tests/workflows.py` reads a workflow file with
+      # (#1486), pinned in `run_tests.py#PYYAML` and held to this line too.
       # pytest-split divides the Windows and macOS legs into their shards
       # (#841, #864), pinned in `run_tests.py#PYTEST_SPLIT` and held to this
       # line the same way.
-      - run: pip install pytest pytest-xdist markdown-it-py==4.2.0 cmarkgfm==2025.10.22 pytest-split==0.11.0
+      - run: pip install pytest pytest-xdist markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 pytest-split==0.11.0
       - run: |
           git config --global user.email ci@ci
           git config --global user.name ci

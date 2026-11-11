@@ -57,17 +57,19 @@ costs is measured, with its date and machine, in the work item that made it
 parallel; no figure is stated here because a figure stated with no date or
 machine cannot be checked later.
 
-One package beyond those two is installed the same way, `markdown-it-py`,
-pinned in `MARKDOWN_IT` (#667). It is the CommonMark parser the suite's
-oracle reads, so the readers under `lib/` are checked against a parser that
-shares nothing with them. It is test-only: nothing under `lib/` or `skills/`
-imports it.
-
-A second is `cmarkgfm`, pinned in `CMARKGFM` (#647): GitHub's own renderer,
-which `tests/gfm_table_oracle.py` reads to hold the table walker in
-`lib/config.py` to what GitHub renders. Test-only, on the parser's terms.
+Three packages beyond those two are installed the same way, each pinned to
+one version and listed in `PINS`, and one pair of functions,
+`has_pin` and `add_pin`, serves the three. `markdown-it-py`, pinned in
+`MARKDOWN_IT` (#667), is the CommonMark parser the suite's oracle reads, so
+the readers under `lib/` are checked against a parser that shares nothing
+with them. `cmarkgfm`, pinned in `CMARKGFM` (#647), is GitHub's own
+renderer, which `tests/gfm_table_oracle.py` reads to hold the table walker in
+`lib/tables.py` to what GitHub renders. `PyYAML`, pinned in `PYYAML`
+(#1486), is the parser `tests/workflows.py` reads a workflow file with. All
+three are test-only: nothing under `lib/` or `skills/` imports them.
 """
 
+import collections
 import importlib.util
 import os
 import shutil
@@ -91,12 +93,13 @@ FLOOR = tuple(_launch.FLOOR)
 FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 
 # The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`,
-# #667), and the one package the suite needs beyond pytest. Pinned to one
-# version, because the oracle is what the readers' property cases are
-# held to, and an oracle that moved under the suite would move every verdict
-# with it. Test-only: the gates themselves stay stdlib-only, and a plugin user
-# installs nothing new. `.github/workflows/test.yml` and `CONTRIBUTING.md`'s
-# fallback carry the same string, and a case holds each to this one.
+# #667). Pinned to one version, because the oracle is what the readers'
+# property cases are held to, and an oracle that moved under the suite would
+# move every verdict with it. Test-only: the gates themselves stay
+# stdlib-only, and a plugin user installs nothing new.
+# `.github/workflows/test.yml`, `.github/workflows/publish-release.yml` and
+# `CONTRIBUTING.md`'s fallback carry the same string, and a case holds each
+# to this one.
 MARKDOWN_IT_VERSION = "4.2.0"
 MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 
@@ -112,6 +115,17 @@ MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 CMARKGFM_VERSION = "2025.10.22"
 CMARKGFM = f"cmarkgfm=={CMARKGFM_VERSION}"
 
+# The YAML parser `tests/workflows.py` reads a workflow file with (#1486), so
+# no case reads a job, a step or a key by indentation. Pinned for the
+# parser's reason -- a parser that moved under the suite would move what
+# every workflow case reads -- and test-only on the same terms. 6.0.3 has a
+# wheel for CPython 3.12 and 3.14 on Windows, macOS and Linux, so no runner
+# compiles it. `.github/workflows/test.yml`,
+# `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
+# carry the same string, and a case holds each to this one.
+PYYAML_VERSION = "6.0.3"
+PYYAML = f"PyYAML=={PYYAML_VERSION}"
+
 # `pytest-split`, the plugin the Windows leg of `.github/workflows/test.yml`
 # stores its per-case durations with (#841), and that divides the suite by
 # them into the shards of the Windows and macOS legs (#841, #864).
@@ -123,11 +137,38 @@ CMARKGFM = f"cmarkgfm=={CMARKGFM_VERSION}"
 PYTEST_SPLIT_VERSION = "0.11.0"
 PYTEST_SPLIT = f"pytest-split=={PYTEST_SPLIT_VERSION}"
 
+# One row per pinned package the suite imports: what `pip` installs, the
+# `.dist-info` directory that version leaves under site-packages, the module
+# under `tests/` that imports it, and what that module is, for the sentence
+# `add_pin` prints. A pin added here is built, adopted and reported with the
+# others, and its cases in `tests/github/test_run_tests.py` run over this
+# table.
+Pin = collections.namedtuple("Pin", "spec dist_info module role")
+PINS = (
+    Pin(
+        MARKDOWN_IT,
+        f"markdown_it_py-{MARKDOWN_IT_VERSION}.dist-info",
+        "tests/commonmark_oracle.py",
+        "the parser the suite's CommonMark oracle reads",
+    ),
+    Pin(
+        CMARKGFM,
+        f"cmarkgfm-{CMARKGFM_VERSION}.dist-info",
+        "tests/gfm_table_oracle.py",
+        "the renderer the table walker's oracle reads",
+    ),
+    Pin(
+        PYYAML,
+        f"pyyaml-{PYYAML_VERSION}.dist-info",
+        "tests/workflows.py",
+        "the parser the suite reads a workflow file with",
+    ),
+)
+
 # What a built environment holds. `pytest-xdist` is here because the suite
 # runs `-n auto` by default (#337): a build without it is the build whose
-# first call refused the flag. The parser is here for the oracle above, and
-# cmark-gfm for the table walker's.
-PACKAGES = ("pytest", "pytest-xdist", MARKDOWN_IT, CMARKGFM)
+# first call refused the flag. The pins are here for the modules `PINS` names.
+PACKAGES = ("pytest", "pytest-xdist", *(pin.spec for pin in PINS))
 
 
 def repo_root():
@@ -225,99 +266,54 @@ def add_xdist(venv):
     return None
 
 
-def has_markdown_it(venv):
-    """True when `venv` holds the pinned markdown-it-py: its own
+def has_pin(venv, pin):
+    """True when `venv` holds PIN at its pinned version: the pin's own
     `.dist-info` directory, version in the name, under site-packages.
 
-    The VERSIONED directory rather than the `markdown_it` package, because
-    the pin is the point: an adopted `.venv` holding another version would
-    hand the oracle a different parser and pass a check on the package
-    directory. Filesystem only, for `has_xdist`'s reason.
+    The VERSIONED directory rather than the package directory, because the
+    pin is the point: an adopted `.venv` holding another version would hand
+    the suite a different parser and pass a check on the package directory.
+    Filesystem only, for `has_xdist`'s reason.
     """
-    name = f"markdown_it_py-{MARKDOWN_IT_VERSION}.dist-info"
-    return any((site / name).is_dir() for site in site_packages(venv))
+    return any((site / pin.dist_info).is_dir() for site in site_packages(venv))
 
 
-def add_markdown_it(venv):
-    """Install the pinned markdown-it-py into `venv` where it is missing.
-    Returns a sentence, or None when the environment has it.
+def add_pin(venv, pin):
+    """Install PIN into `venv` where it is missing. Returns a sentence, or
+    None when the environment has it.
 
-    `add_xdist`'s shape and its reason: an adopted `.venv` built before #667
-    has no parser, and it is repaired rather than refused. What a failed
-    install costs is different, and the sentence says what pytest then does
-    (#667 round 1, 🟡 3): the module that imports the oracle fails to collect
-    with a `ModuleNotFoundError`, and pytest's answer to a collection error
-    depends on the run. Measured 2026-09-29 with pytest 9.1.1 and
-    pytest-xdist 3.8.0: under `-n 2` every other module's cases ran and the
-    run exited 1; under `-p no:xdist` pytest stopped at collection, ran no
-    case and exited 2. The sentence used to promise the first for every run.
+    `add_xdist`'s shape and its reason: an adopted `.venv` built before a pin
+    joined `PINS` lacks it, and it is repaired rather than refused. What a
+    failed install costs is different, and the sentence says what pytest then
+    does (#667 round 1, finding 3): the module that imports the pin's module fails
+    to collect with a `ModuleNotFoundError`, and pytest's answer to a
+    collection error depends on the run. Measured 2026-09-29 with pytest
+    9.1.1 and pytest-xdist 3.8.0: under `-n 2` every other module's cases ran
+    and the run exited 1; under `-p no:xdist` pytest stopped at collection,
+    ran no case and exited 2.
     """
-    if has_markdown_it(venv):
+    if has_pin(venv, pin):
         return None
     uv = shutil.which("uv")
     if uv:
-        step = [uv, "pip", "install", "--python", str(venv_python(venv)), MARKDOWN_IT]
+        step = [uv, "pip", "install", "--python", str(venv_python(venv)), pin.spec]
     else:
-        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", MARKDOWN_IT]
+        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", pin.spec]
     print(
-        f"bin/test: adding {MARKDOWN_IT} to {venv}, the parser the suite's "
-        "CommonMark oracle reads. This run pays for it; every run after it "
-        "finds it there.",
+        f"bin/test: adding {pin.spec} to {venv}, {pin.role}. This run pays for "
+        "it; every run after it finds it there.",
         file=sys.stderr,
     )
     if subprocess.run(step).returncode != 0:
         return (
-            f"bin/test: could not install {MARKDOWN_IT} into {venv} (the "
-            "command above exited non-zero). The suite's CommonMark oracle "
-            "imports it, so a module that reads the oracle fails to collect "
-            "with a ModuleNotFoundError: a parallel run runs every other case "
-            "and exits non-zero, and a serial one -- `-p no:xdist`, `--pdb`, "
-            "or no pytest-xdist -- stops at collection and runs no case. "
-            "Remove that directory and run bin/test again to build it afresh "
-            "with the parser in it."
-        )
-    return None
-
-
-def has_cmarkgfm(venv):
-    """True when `venv` holds the pinned cmarkgfm: its own versioned
-    `.dist-info` directory under site-packages, for `has_markdown_it`'s
-    reason -- the pin is the point -- and filesystem only, for `has_xdist`'s."""
-    name = f"cmarkgfm-{CMARKGFM_VERSION}.dist-info"
-    return any((site / name).is_dir() for site in site_packages(venv))
-
-
-def add_cmarkgfm(venv):
-    """Install the pinned cmarkgfm into `venv` where it is missing. Returns a
-    sentence, or None when the environment has it.
-
-    `add_markdown_it`'s shape, and the same cost when the install fails: the
-    table walker's case imports the oracle at module level, so that module
-    fails to collect, and what pytest then does depends on the run.
-    """
-    if has_cmarkgfm(venv):
-        return None
-    uv = shutil.which("uv")
-    if uv:
-        step = [uv, "pip", "install", "--python", str(venv_python(venv)), CMARKGFM]
-    else:
-        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", CMARKGFM]
-    print(
-        f"bin/test: adding {CMARKGFM} to {venv}, the renderer the table "
-        "walker's oracle reads. This run pays for it; every run after it "
-        "finds it there.",
-        file=sys.stderr,
-    )
-    if subprocess.run(step).returncode != 0:
-        return (
-            f"bin/test: could not install {CMARKGFM} into {venv} (the command "
-            "above exited non-zero). The table walker's oracle imports it, so "
-            "the module that reads the oracle fails to collect with a "
+            f"bin/test: could not install {pin.spec} into {venv} (the command "
+            f"above exited non-zero). `{pin.module}` imports it, so a module "
+            f"that imports `{pin.module}` fails to collect with a "
             "ModuleNotFoundError: a parallel run runs every other case and "
             "exits non-zero, and a serial one -- `-p no:xdist`, `--pdb`, or no "
             "pytest-xdist -- stops at collection and runs no case. Remove that "
-            "directory and run bin/test again to build it afresh with the "
-            "renderer in it."
+            f"directory and run bin/test again to build it afresh with "
+            f"{pin.spec} in it."
         )
     return None
 
@@ -577,18 +573,14 @@ def main(argv=None):
     problem = add_xdist(root / ".venv")
     if problem:
         print(problem, file=sys.stderr)
-    # The parser the oracle reads (#667). Its failure is a sentence, and
-    # pytest is still called: in parallel the oracle's module is a collection
-    # error beside every other case, and serially pytest stops at collection
-    # (`add_markdown_it` says both). It decides nothing about `-n auto`.
-    parser_problem = add_markdown_it(root / ".venv")
-    if parser_problem:
-        print(parser_problem, file=sys.stderr)
-    # The table walker's renderer (#647). The parser's terms: a sentence, and
-    # pytest is still called; it decides nothing about `-n auto`.
-    renderer_problem = add_cmarkgfm(root / ".venv")
-    if renderer_problem:
-        print(renderer_problem, file=sys.stderr)
+    # The pinned packages (`PINS`). Each failure is a sentence, and pytest is
+    # still called: in parallel the importing module is a collection error
+    # beside every other case, and serially pytest stops at collection
+    # (`add_pin` says both). None decides anything about `-n auto`.
+    for pin in PINS:
+        pin_problem = add_pin(root / ".venv", pin)
+        if pin_problem:
+            print(pin_problem, file=sys.stderr)
     # `-n auto` by default (#337). The comment that stood here withheld it,
     # because this virtualenv was built with pytest alone and the flag failed
     # on every fresh build -- so the runner ran serially for ten releases
