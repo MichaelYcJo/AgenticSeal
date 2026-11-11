@@ -84,6 +84,11 @@ in a directory that has already landed, or here, where the stale row
 stands. This record names this plan, because the fix pass and the
 orchestrator can reach it on this branch.
 
+```seal
+verdict: fixed 5e642ab63
+answer: The finding holds. The framer folded it into frame/plan.md: the #1473 row of Overlap with the release now names #1473 as merged first, as af923302c (#1514), with this branch's base merge at ac4930298 keeping both COVERED entries, and Operational impact no longer calls this item the first to merge and says its 0083fe9e2 still moves the version. The orchestrator's row appended to Judgments of the run states the grounds the snippet left marked: the owner merged #1514 before this item, #1473 leaves plugin.json at 0.37.2, and the hygiene workflow holds the release pull request into main to the move. The row stands in this plan, not #1473's, because #1473's directory has landed. The fix touched this work item's records alone.
+```
+
 ## Confirmations
 
 What matched: the merge's one conflict resolution
