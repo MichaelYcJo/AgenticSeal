@@ -81,7 +81,9 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
         "`agents/proofer.md` *Rules* does not name the clone directory "
         f"as `{CLONE}`, so two parallel proofers can clone to one name"
     )
-    assert ROUND_HOME in where, (
+    # Quoted whole, so the clone's path, which begins with the same
+    # spelling, does not hold the scratch directory's sentence too.
+    assert f"`{ROUND_HOME}`" in where, (
         "the section does not name the round's scratch directory as "
         f"`{ROUND_HOME}`, so a round's probes and captures have no name of "
         "their own"
