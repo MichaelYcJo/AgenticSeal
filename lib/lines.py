@@ -30,8 +30,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # The readers of this module ask them, `fence_spans` and through it
 # `blank_fences` and `closed_fence_lines`, `_scan` and through it `liveness`
 # and `live_pieces`, and `_paragraph_ends_at`; so do
-# `coordinates.py#quoted_lines`, `payload_meter.py#heading_starts`,
-# `payload_meter.py#imports_of` through `live_pieces`
+# `coordinates.py#quoted_lines`, `payload_meter.py#imports_of` through
+# `live_pieces`
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `lib/blocks.py#walk` adds a line-start HTML comment block to it for
 # `lib/config.py`, `lib/routing.py` and `lib/fields.py`, apart
