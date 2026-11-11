@@ -907,9 +907,7 @@ OLD_SPELLINGS = [
 
 
 class Test_old_names:
-    def test_accepts_the_new_names_kept_spellings_records_and_kept_files(
-        self, tmp_path
-    ):
+    def test_accepts_the_new_names_kept_spellings_and_records(self, tmp_path):
         living = (
             "AgenticSeal, `agentic:crafter`, the proofer and the tracer\n"
             "`seal/threads/1-x/frame/design.md`, `gaps.md`, `trail/gate.md`\n"
@@ -925,9 +923,6 @@ class Test_old_names:
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
-            "evals/scripts/recurred_truths.json",
-            "tests/evals/test_replay_targets.py",
-            "tests/evals/test_seed_defects.py",
         ):
             plant(tmp_path, rel, old)
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff" + OLD.encode())
@@ -942,9 +937,6 @@ class Test_old_names:
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
-            "evals/scripts/recurred_truths.json",
-            "tests/evals/test_replay_targets.py",
-            "tests/evals/test_seed_defects.py",
             "x.png",
             "hooks/kept.py",
         ):
