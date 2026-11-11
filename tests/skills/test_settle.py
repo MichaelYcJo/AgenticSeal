@@ -3164,48 +3164,74 @@ class Test_adding_commit:
             settle.adding_commit(str(repo), "nosuch", path)
 
 
+def tagged(repo):
+    """`(first, second, third)`, three commits over REPO's base: an
+    annotated `v1.2.3` and a `v1.0` of another shape on the first, a
+    `v1.10.0` on the second and a `v0.0.1` on its tree, and nothing on the
+    third."""
+    held = []
+    for name, tags in (
+        ("a", [("-a", "-m", "annotated", "v1.2.3"), ("v1.0",)]),
+        ("b", [("v1.10.0",), ("v0.0.1", "HEAD^{tree}")]),
+        ("c", []),
+    ):
+        write(repo, f"{name}.txt", f"{name}\n")
+        commit(repo, name)
+        held.append(git(repo, "rev-parse", "HEAD").strip())
+        for tag in tags:
+            git(repo, "tag", *tag)
+    return tuple(held)
+
+
 class Test_versions:
-    def test_labels_each_commit_by_the_lowest_version_tag_that_holds_it(self, repo):
+    def test_accepts_the_lowest_version_tag_by_number_an_annotated_one_peeled(
+        self, repo
+    ):
         """#1481, design *Scope* item 5. Each commit is labelled by the
         lowest `vX.Y.Z` tag that holds it, by number and not by text, an
-        annotated tag read at the commit it peels to; a tag of another shape,
-        or one on a tree, is no version, and a commit no tag holds is not
-        labelled. Seen red with the peel of an annotated tag alone removed,
-        and with the tags walked highest first."""
-        write(repo, "a.txt", "a\n")
-        commit(repo, "a")
-        first = git(repo, "rev-parse", "HEAD").strip()
-        git(repo, "tag", "-a", "-m", "annotated", "v1.2.3")
-        git(repo, "tag", "v1.0")
-        write(repo, "b.txt", "b\n")
-        commit(repo, "b")
-        second = git(repo, "rev-parse", "HEAD").strip()
-        git(repo, "tag", "v1.10.0")
-        git(repo, "tag", "v0.0.1", "HEAD^{tree}")
-        write(repo, "c.txt", "c\n")
-        commit(repo, "c")
-        third = git(repo, "rev-parse", "HEAD").strip()
+        annotated tag read at the commit it peels to. Seen red with the peel
+        of an annotated tag alone removed, with the tags walked highest
+        first, and with the numbers compared as text."""
+        first, second, _third = tagged(repo)
         labels = settle.versions(str(repo))
         assert labels[first] == "v1.2.3", labels
         assert labels[second] == "v1.10.0", labels
+
+    def test_refuses_a_tag_of_another_shape_one_on_a_tree_and_an_untagged_commit(
+        self, repo
+    ):
+        """#1481, design *Scope* item 5. A tag of another shape, or one on
+        a tree, labels nothing, and a commit no tag holds is not labelled.
+        Seen red with a tag on a tree taken as a tip."""
+        _first, _second, third = tagged(repo)
+        labels = settle.versions(str(repo))
         assert third not in labels, labels
         assert set(labels.values()) == {"v1.2.3", "v1.10.0"}, labels
 
 
 class Test_blobs:
-    def test_reads_each_name_in_order_and_names_what_holds_no_text(self, repo):
-        """#1481, design *Scope* item 6. One `git cat-file --batch` gives
-        each name's text as `git_out` decodes it, a line ending `\\r\\n` read
-        as a newline, and where git holds no file's text there, what it
-        answered: `missing`, or the kind of object it holds. Seen red with
-        the read past each object's text taken one byte short, and with the
-        kind of object left unread."""
+    def test_accepts_each_names_text_in_order(self, repo):
+        """#1481, design *Scope* item 4. One `git cat-file --batch` gives
+        each name's text in the order asked, as `git_out` decodes it, a line
+        ending `\\r\\n` read as a newline. Seen red with the read past each
+        object's text taken one byte short, and with the line endings left
+        as git gave them."""
         (repo / "crlf.md").write_bytes(b"one\r\ntwo\r\n")
         git(repo, "config", "core.autocrlf", "false")
         commit(repo, "crlf")
+        assert settle.blobs(str(repo), ["HEAD:crlf.md", "HEAD:docs/a.md"]) == [
+            ("one\ntwo\n", None),
+            (DOC, None),
+        ]
+
+    def test_refuses_a_name_git_holds_no_text_for(self, repo):
+        """#1481, design *Scope* item 6. Where git holds no file's text at
+        a name, the batch gives what it answered, `missing` or the kind of
+        object it holds, and the names after it are still read. Seen red
+        with the kind of object left unread."""
         assert settle.blobs(
-            str(repo), ["HEAD:crlf.md", "HEAD:docs", "HEAD:nope.md", "HEAD:docs/a.md"]
-        ) == [("one\ntwo\n", None), (None, "tree"), (None, "missing"), (DOC, None)]
+            str(repo), ["HEAD:docs", "HEAD:nope.md", "HEAD:docs/a.md"]
+        ) == [(None, "tree"), (None, "missing"), (DOC, None)]
 
 
 class Test_module:
