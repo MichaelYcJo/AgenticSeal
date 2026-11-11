@@ -39,7 +39,7 @@ What breaks in six months. First, a party that fixes without the crafter's defin
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 8, in one commit for items 1 to 7 so that no sentence stands in two files between commits | S1 to S8 of `frame/design.md`; each changed or added clause seen red with its sentence deleted; the narrow run of S7 | |
+| 1 | `frame/design.md` *Scope* items 1 to 8, in one commit for items 1 to 7 so that no sentence stands in two files between commits | S1 to S8 of `frame/design.md`; each changed or added clause seen red with its sentence deleted; the narrow run of S7 | `3acdc8065` |
 
 ## Overlap with the release
 
