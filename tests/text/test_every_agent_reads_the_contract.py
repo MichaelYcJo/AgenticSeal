@@ -114,6 +114,7 @@ def test_the_sentence_names_the_contract():
     """The sentence names a file that is the contract, so a sentence pointing
     at another skill that happens to exist is red here rather than nowhere."""
     with open(os.path.join(ROOT, *CONTRACT.split("/")), encoding="utf-8") as handle:
+        # The numbered heading a `contract rule <N>` citation resolves to.
         assert "## 1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
 
 

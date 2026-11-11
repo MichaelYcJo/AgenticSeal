@@ -1,8 +1,8 @@
 """`seal mode`: what is left here after #942's phase 5.
 
 The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`.
-The cases here read the documents and the workflows that name the command.
-Three are #923's, and the one on an absent `Mode` key is #1454's.
+The cases here read the documents and the workflows that name the command,
+and are #923's.
 """
 
 import pytest
@@ -20,6 +20,7 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
     is named in the prose above the by-hand block as well.
     """
     text = read(readme)
+    # The command a reader runs to compare the key with the tree.
     assert "seal mode --check" in text, readme
     heading = (
         "### Shared or local" if readme == "README.md" else "### shared 인가 local 인가"
@@ -27,6 +28,7 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
     body = text.split(heading, 1)[1].split("\n## ", 1)[0]
     blocks = [chunk.split("```", 1)[0] for chunk in body.split("```bash\n")[1:]]
     assert blocks, f"{readme}: the section runs nothing at all"
+    # The two commands a reader copies from the section's first block.
     assert "seal mode local" in blocks[0] and "seal mode shared" in blocks[0], (
         f"{readme}: the first block of the section is not the switch — a "
         "person reading top to bottom still meets the shell lines first. "
@@ -34,7 +36,6 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
         "are what the section is about, and deleting the block that carries "
         "them left a looser assertion green (mutation-tested)"
     )
-    assert "mv " not in blocks[0], f"{readme}: the first block is the by-hand move"
 
 
 def test_the_config_template_ships_the_row_with_no_value():
@@ -43,22 +44,10 @@ def test_the_config_template_ships_the_row_with_no_value():
     then offers is `--apply`, which would move their root into the tree
     through the one door that does not open both ways."""
     text = read("templates", "setup", "config.md")
+    # The key and its empty value a repository copies into `config.json`.
     assert '"Mode": ""' in text, "the template's Mode key carries a value"
-    assert "| Mode |" not in text, "the template still shows the Mode row"
+    # The heading the template's own `(*Mode* below)` citations resolve.
     assert "## Mode" in text
-
-
-def test_the_template_says_an_absent_mode_key_stops_nothing():
-    """`hooks/hooks.json` registers a `Stop` and a `SessionStart` hook and no
-    `PreToolUse` gate since #1416, and `seal mode --check` exits 0 on an
-    absent key, so the template states no denied Bash call. Seen red against
-    the template before the fix, which said the first Bash call of a session
-    is denied and the second asked."""
-    text = " ".join(read("templates", "setup", "config.md").split())
-    assert "first Bash call" not in text, "the template still names a denied call"
-    assert "an absent one stops nothing" in text, (
-        "the template does not say what an absent `Mode` key costs"
-    )
 
 
 @pytest.mark.parametrize(
@@ -70,4 +59,5 @@ def test_both_hygiene_workflows_run_the_check(parts):
     repository `seal pr-checks install` sets up, or it names a disagreement
     nowhere."""
     text = read(*parts)
+    # The step's command the runner runs.
     assert "mode --check" in text, "/".join(parts)

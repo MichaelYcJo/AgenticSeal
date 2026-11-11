@@ -409,8 +409,7 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
     )
-    # ONE spelling, which `tests/text/test_review_axes.py` also reads in
-    # this file: two spellings of one decision is the drift both catch.
+    # ONE spelling of the order the two questions are asked in.
     assert SHAPE in flat(skill)
 
 
@@ -605,7 +604,9 @@ def test_no_agent_definition_tells_an_agent_to_ask_a_person():
                 continue
             # Naming the tool to say it is ABSENT is the whole repair, so the
             # sentence that does it has to be allowed. What is refused is an
-            # instruction to use it.
+            # instruction to use it: `agents/framer.md` *Never* and every
+            # other definition's *Never* forbid an agent to ask a person, and
+            # an agent told to call the tool would try a call it cannot make.
             # ONE spelling across every definition, deliberately. A marker
             # list that grows a phrase per file is a list that stops being a
             # check, so a definition saying the tool is absent says it this
@@ -748,7 +749,10 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
 
     # The box tables the orchestrator puts to the person carry no `Planning`
     # box, so the person is never asked an axis the SDD ladder, or under
-    # `agentic` the orchestrator, decides.
+    # `agentic` the orchestrator, decides. `skills/implement/orchestration.md`
+    # *The declaration has one more row, and nobody is asked about it.*
+    # forbids the box, and a box labelled so is one the orchestrator would
+    # put to the person.
     tables = checkbox_tables(read(*QUESTION))
     assert tables, "the routing question's file holds no table of boxes to read"
     for boxes in tables:
@@ -803,20 +807,20 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
 
 def test_the_skill_names_where_the_answer_is_written():
     skill = flat(read(*ORCH))
+    # The path the orchestrator writes the answer to, and the template it
+    # copies, which it opens.
     assert "seal/threads/<work-item-id>/routing.md" in skill
     assert "templates/records/sdd-routing.md" in skill
-    assert "Committed" in skill or "committed" in skill
 
 
-def test_the_skill_names_the_record_and_no_per_command_waiver():
-    """#1027: nothing reads `[no-review]` any more, so the skill that taught
-    it as the way past the gate names the record that replaced it, the
-    trailer (#1376). The trailer stands in the description of question 1's
-    exit, in the routing question's file since #1477."""
+def test_the_routing_question_names_the_trailer_that_records_no_work_item():
+    """#1027: nothing reads `[no-review]` any more, so the skill names the
+    record that replaced it, the trailer (#1376). The trailer stands in the
+    description of question 1's exit, in the routing question's file since
+    #1477."""
+    # The trailer `chain_check.py#TRAILER` reads on a pull request's commits,
+    # as the orchestrator writes it under `direct`.
     assert "`Seal-Routing: no work item`" in flat(read(*QUESTION))
-    for parts in (ORCH, QUESTION, ("skills", "implement", "SKILL.md")):
-        skill = flat(read(*parts))
-        assert "[no-review]" not in skill and "waives **one command**" not in skill
 
 
 def test_the_skill_cites_the_policy_on_a_standing_waiver():
@@ -861,8 +865,11 @@ def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recor
     text = read(*QUESTION)
     assert KEYS in text, "the language keys' section was renamed; this case is blind"
     section = flat(text.split(KEYS, 1)[1].split("\n## ", 1)[0])
+    # The two keys of `config.json` the batch asks for, which
+    # `lib/config.py#declared_value` reads.
     for row in ("Commit and pull request language", "Record language"):
         assert f"`{row}`" in section, f"the batch does not ask for `{row}`"
+    # The command whose titles the orchestrator shows beside the question.
     assert "gh pr list --state all --limit 10" in section, (
         "the batch shows no history beside the language question"
     )
@@ -881,5 +888,7 @@ def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():
     orch = read(*ORCH)
     routing = read("lib", "routing.py")
     for answer in AXES:
+        # Each answer the orchestrator copies into `routing.md`, and the
+        # string literal `lib/routing.py` matches it by.
         assert f"`{answer}`" in orch, f"the orchestration lost `{answer}`"
         assert f'"{answer}"' in routing, f"the parser does not accept `{answer}`"

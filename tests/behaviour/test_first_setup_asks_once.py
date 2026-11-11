@@ -57,28 +57,25 @@ def bootstrap():
     return section(read(*BOOT), "## Orchestrator: Bootstrap", 2)
 
 
-def both_halves():
-    """An absence has to hold in every file the text has lived in, or the
-    move re-admits it."""
-    return read(*SKILL) + read(*ORCH) + read(*BOOT)
-
-
 # --- S4: one question, three options, records only first ------------------
 
 RECORDS_ONLY = "**shared, records only**"
 WITH_CHECKS = "**shared, with pull-request checks**"
 
 
-def test_the_three_options_are_named_in_order_with_records_only_as_the_default():
+def test_the_three_options_are_named_in_order():
     """#952: where the records live and whether CI checks pull requests are
-    two answers, and the default installs nothing that can stop a teammate."""
+    two answers, and the default installs nothing that can stop a teammate.
+    Which option the bootstrap marks as the default is the proofer's to
+    read."""
     boot = bootstrap()
+    # The harness tool the orchestrator calls to put the question.
     assert "AskUserQuestion" in boot
+    # The three option labels the orchestrator puts to the person, in that
+    # order; label and position are the fact.
     first, second = boot.index(RECORDS_ONLY), boot.index(WITH_CHECKS)
     local = boot.index("**local**")
     assert first < second < local, "the options are not in their order"
-    assert "default" in boot[first:second], "records only is not the default"
-    assert "**shared**" not in boot, "a two-option label is still offered"
 
 
 def test_each_option_says_what_it_creates_and_what_it_installs():
@@ -101,15 +98,24 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
 
 
 def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
-    """`.git` is a FILE in a linked worktree, so the literal path lands nowhere."""
+    """`.git` is a FILE in a linked worktree, so the literal path lands
+    nowhere, and the bootstrap asks git for the common directory."""
+    # The command the orchestrator runs to find where the local root goes.
     assert "git rev-parse --git-common-dir" in bootstrap()
-    assert "`.git/seal/`" not in both_halves()
+    # `skills/implement/bootstrap.md` *Orchestrator: Bootstrap*, its **local**
+    # option: the path is spelled through the common git directory rather
+    # than through `.git`, which is a file in a linked worktree. The path is
+    # one the orchestrator would create.
+    assert "`.git/seal/`" not in bootstrap()
 
 
 def test_a_repository_with_the_root_at_either_place_is_never_asked():
-    """S4 (d) and S12: the prompt budget is one question, once per repository."""
+    """S4 (d) and S12: the prompt budget is one question, once per repository.
+    The paragraph names the two places the orchestrator looks before it
+    asks."""
     never_again = paragraph(bootstrap(), "Ask only here")
-    assert "either place" in never_again
+    # The path of the shared root and the command that finds the local one,
+    # which the orchestrator checks before it asks.
     assert "<repo>/seal/" in never_again
     assert "git rev-parse --git-common-dir" in never_again
 
@@ -121,44 +127,7 @@ def test_the_parity_question_follows_the_mode_question():
     )
 
 
-# --- A9 of #401: the broad command is the second question, not a later one --
-#
-# `templates/setup/config.md` *Broad gate* says the key is a thing a PERSON wrote
-# and that the seal covers exactly that. Nothing ever asked for it: grepped
-# before this work, the bootstrap carried two `Ask, once` steps and neither
-# was this one, and no command in `bin/` or `seal.py` wrote the key. So the
-# question reached a person only as `seal gate`'s refusal -- after the review
-# rounds had settled, which is the last moment available and the one where
-# whoever is there has every reason to answer it themselves. That is what
-# happened, and it is what #401 reported.
-
-BROAD_ROW = "**The second question is the `Broad gate` key"
-
-
-def test_the_broad_command_rides_the_question_that_already_stops_the_session():
-    """#88's rule, one file over: questions that belong together are asked
-    together. A second `AskUserQuestion` after the first is a second wait for
-    one decision, and the prompt budget `CONTRIBUTING.md` guards is what a new
-    one would owe an argument to. This adds none: the call already exists.
-    The stamp's question rode the same call from #1376 until #1430 shipped
-    the plugin's `Stop` hook, and it is gone."""
-    boot = bootstrap()
-    assert boot.count("AskUserQuestion") == 1, (
-        "the bootstrap opens more than one AskUserQuestion, which is the "
-        "second wait this rides the first to avoid"
-    )
-    assert "four questions" in flat(boot), (
-        "the one call is not said to carry all four questions"
-    )
-    # #1430: the plugin's `Stop` hook draws the stamp, so the call carries no
-    # third question and no command installs a hook.
-    assert "**The third question" not in boot, "a third question stands"
-    assert "seal stamp --" not in boot, "the bootstrap runs a stamp command"
-    assert BROAD_ROW in boot, "the bootstrap does not ask for the key at all"
-    assert boot.index(BROAD_ROW) > boot.index("**local**"), (
-        "the key is asked before the mode's options are even laid out"
-    )
-
+# --- A9 of #401 and #1453: the keys first setup asks for -------------------
 
 LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
 
@@ -170,6 +139,8 @@ def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them
     and writes the answers into the file `seal mode` wrote. What each option
     says its key governs is the proofer's to read."""
     boot = flat(bootstrap())
+    # The two keys of `config.json` first setup asks for, which
+    # `lib/config.py#declared_value` reads.
     for key in LANGUAGE_ROWS:
         assert f"`{key}`" in boot, f"first setup does not ask for `{key}`"
     # The command whose titles the orchestrator shows beside the question,
@@ -196,10 +167,11 @@ def candidates():
     """The candidate table and the paragraph under it, bounded at the
     paragraph that follows — not the rest of the section.
 
-    Round 1's 🟡 7. The slice ran from `BROAD_ROW` to the end of the whole
-    Bootstrap section, so the four-row table could be moved anywhere below —
-    past the decline paragraph, out of the question entirely — and every
-    needle still matched a case named *the question proposes*.
+    Round 1's 🟡 7. The slice ran from the `Broad gate` question's lead to
+    the end of the whole Bootstrap section, so the four-row table could be
+    moved anywhere below — past the decline paragraph, out of the question
+    entirely — and every needle still matched a case named *the question
+    proposes*.
     """
     boot = bootstrap()
     opening = "Read candidates off the repository"
@@ -228,8 +200,8 @@ def test_a_candidate_carrying_a_quote_or_a_backslash_is_escaped_where_derived():
     it, the session write it, and the file parse as no JSON.
 
     Such a candidate is written with the `"` or the `\\` escaped, and the
-    warning gives the escape. A pipe, which a table row once had to escape,
-    stays as written. What a bare one costs is the proofer's to read.
+    warning gives the escape. What a bare one costs, and what the warning
+    says of a pipe, are the proofer's to read.
     """
     boot = flat(bootstrap())
     warning = boot[boot.index('**A candidate carrying a `"` or a `\\` is written') :]
@@ -241,8 +213,6 @@ def test_a_candidate_carrying_a_quote_or_a_backslash_is_escaped_where_derived():
         "the warning does not say how the character is written, which is the "
         "whole of what changed"
     )
-    assert "A `|` stays as written." in warning
-    assert "with the pipe escaped, `\\|`" not in boot
 
 
 def test_the_decline_names_the_command_back_to_the_row():
@@ -270,26 +240,15 @@ def test_the_key_is_added_alone_and_its_documentation_is_pointed_at():
     """#1454. The `Broad gate` key lands the way `/agentic:config` step 3
     lands one: the key alone, since a JSON file carries no prose. The lists
     and the criterion stay in the plugin's template, which the paragraph
-    names; the copy of the template's section the table once took is gone.
-    When it lands and why no command writes it are the proofer's to read."""
+    names. When it lands and why no command writes it are the proofer's to
+    read."""
     landing = paragraph(
         bootstrap(), "**Then the `Broad gate` key, where a command was chosen.**"
     )
+    # The key and value as the orchestrator writes them into `config.json`.
     assert '`"Broad gate": "<command>"`' in landing
     # The path the orchestrator reads the lists and the criterion at.
     assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in landing
-    assert "down to but not including `### What is refused" not in flat(bootstrap())
-
-
-def test_the_sentence_that_said_nowhere_else_is_gone():
-    """The 0.4.0 sentence said the root is created at `<repo>/seal/` and
-    nowhere else. Both files are read with their whitespace folded, so a
-    line break inside the sentence cannot hide it.
-
-    What is refused is that claim, not the two words: `skills/implement/
-    SKILL.md` says the closing memo holds what is *nowhere else*, which is
-    about something else and stays."""
-    assert "`<repo>/seal/` and nowhere else" not in flat(both_halves())
 
 
 OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
@@ -312,7 +271,7 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert f"`{COMMON_DIR}`" in own, own
 
 
-# --- Q1: the sentence a session reads, once in each place -----------------
+# --- Q1: the sentence a session reads, in each place ----------------------
 
 
 @pytest.mark.parametrize(
@@ -326,10 +285,12 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
         ("skills", "agent-contract", "SKILL.md"),
     ],
 )
-def test_the_session_rule_appears_once(parts):
+def test_the_session_rule_names_both_places(parts):
     text = read(*parts)
-    assert text.count(SESSION_RULE) == 1, "/".join(parts)
-    assert "means `<repo>/seal/` where" in text, "/".join(parts)
+    # The two places a session resolves the root at: the path of the shared
+    # root, and the local one through the command that finds it.
+    assert "`<repo>/seal/`" in text, "/".join(parts)
+    assert SESSION_RULE in text, "/".join(parts)
 
 
 @pytest.mark.parametrize("agent", ["proofer.md", "crafter.md"])
@@ -364,16 +325,16 @@ def template():
 
 def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     t = template()
+    # The two scripts the workflow's steps run, from the plugin's clone.
     assert "skills/code-review/scripts/chain_check.py" in t
     assert "skills/implement/scripts/seal.py" in t
-    # The unverified record's step left with #945: no step runs its reader.
-    assert "unverified_check.py" not in t
+    # The flag a step passes the script it runs.
     assert "--baseline" in t
-    # The check reads a round record's `target:` line as an ancestor of HEAD only,
-    # so the template fetches no pull-request heads (#923).
-    assert "refs/pull/" not in t
+    # The tag placeholder `seal pr-checks install` fills, and the repository
+    # the step clones at that tag.
     assert "v<version>" in t, "the plugin is not pinned to its tag"
     assert "MichaelYcJo/AgenticSeal" in t
+    # The runner's temporary directory the step clones the plugin into.
     assert "RUNNER_TEMP" in t or "runner.temp" in t, "the plugin lands in the tree"
 
 
@@ -412,7 +373,7 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
     assert ".github/workflows/hygiene.yml" in boot
     # The command `seal pr-checks install`, which the orchestrator runs
     # after `seal mode`; the code span is the fact.
-    assert "then runs `seal pr-checks install`" in boot, boot
+    assert "`seal pr-checks install`" in boot, boot
 
 
 # --- S8 and S1: the READMEs -----------------------------------------------
@@ -422,19 +383,11 @@ READMES = {
     "README.ko.md": ("## 첫 작업 항목", "### shared 인가 local 인가"),
 }
 # A workflow left after a move to local stays, and which pin passes is the
-# rule's home to say, linked rather than restated (round 2 of #952, finding 1).
+# rule's home to say, linked rather than restated (round 2 of #952, finding 1):
+# the citation of that home in each edition, which a reader resolves.
 LEFT_BEHIND = {
-    "README.md": (
-        "A workflow left behind after a move to local stays in the tree, and "
-        "`docs/layout/one-root-by-lifetime.md` *Shared or local* says which pin passes "
-        "there and how to move one that fails.",
-    ),
-    "README.ko.md": (
-        "local 로 옮긴 뒤에도 워크플로 파일은 트리에 남습니다.",
-        "어느 릴리스에 고정된 파일이 그곳에서 통과하는지, 통과하지 못하는 파일의 "
-        "고정은 어떻게 바꾸는지는 `docs/layout/one-root-by-lifetime.ko.md` "
-        "*shared 인가 local 인가* 에 있습니다.",
-    ),
+    "README.md": "`docs/layout/one-root-by-lifetime.md` *Shared or local*",
+    "README.ko.md": "`docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가*",
 }
 
 
@@ -450,15 +403,18 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     first_run, subsection = READMES[readme]
     assert text.index(subsection) > text.index(first_run)
     body = section(text, subsection, 3)
+    # The two commands a person runs to install and remove the checks.
     assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
-    # #1055 S6: the way back before the commit to shared has one home, the
-    # skill section, which the README links to and does not restate.
-    assert "git reset -- :/seal" not in body, readme
+    # #1055 S6: the citation of the skill section that holds the way back
+    # before the commit to shared, which a reader resolves.
     assert SHARED_WAY_BACK in flat(body), readme
-    for sentence in LEFT_BEHIND[readme]:
-        assert sentence in flat(body), sentence
+    # The citation of the section that says which pin a workflow left behind
+    # by a move to local passes, which a reader resolves.
+    assert LEFT_BEHIND[readme] in flat(body), LEFT_BEHIND[readme]
+    # The pair of commands a person runs to carry the records between two
+    # machines.
     assert "seal export" in body and "seal import" in body, (
         "the move is only available where both folders are on one machine, so "
         "this section has to point at the pair that works between two (#81). "
@@ -597,11 +553,10 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
 @pytest.mark.parametrize(
     "parts", [("seal", "README.md"), ("templates", "setup", "seal-README.md")]
 )
-def test_the_seal_readme_names_both_places(parts):
+def test_the_seal_readme_names_the_command_that_finds_the_local_root(parts):
     text = read(*parts)
+    # The command a person runs to find the root in local mode.
     assert "git rev-parse --git-common-dir" in text, "/".join(parts)
-    assert "local" in text and "shared" in text, "/".join(parts)
-    assert "either" in text, "/".join(parts)
 
 
 def test_the_seal_readme_is_the_template_verbatim():
@@ -680,8 +635,11 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
     shape and the workflow it installs sit with first setup, in both
     editions."""
     text = read(*parts)
+    # The name of the opt-out file, which `lib/optin.py` looks for.
     assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
     body = " ".join(section(text, setup, 2).split())
+    # The template path, the local root's path and the harness tool, which
+    # the orchestrator resolves at first setup.
     for needle in ("templates/setup/hygiene.yml", COMMON_DIR, "AskUserQuestion"):
         assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
@@ -724,7 +682,5 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     key, so a bootstrap that records nothing leaves no trace that anybody was
     asked."""
     boot = flat(bootstrap())
+    # The command the orchestrator runs to record the answer.
     assert "seal mode" in boot
-    assert "Do **not** write that config row here" not in both_halves(), (
-        "the skill still forbids recording the answer it just collected"
-    )

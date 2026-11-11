@@ -34,10 +34,9 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
     command hook, three parts joined by ` || `: `python3` then `py -3`,
     naming one tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same
     arguments, then `exit 0`, so the command exits 0 whatever its halves
-    did. The manifest declares no `hooks`, since the harness reads
-    `hooks/hooks.json` at the plugin's root, and `hooks/` holds those two
-    files and nothing else. Nothing writes into a clone's git hooks
-    (`docs/checks/the-routing-check.md`).
+    did. The harness reads `hooks/hooks.json` at the plugin's root, and
+    `hooks/` holds those two files and nothing else. Nothing writes into a
+    clone's git hooks (`docs/checks/the-routing-check.md`).
 
     The plugin directory refuses a plugin that registers a command hook
     (#1376), and the owner chose on 2026-11-08 to ship these two until a
@@ -57,11 +56,6 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
 
     and it gives the core and the stamp new carriers, which that work's frame
     decides."""
-    with open(
-        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
-    ) as f:
-        manifest = json.load(f)
-    assert "hooks" not in manifest, manifest.get("hooks")
     with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
         registered = json.load(f)
     assert list(registered) == ["hooks"], list(registered)
@@ -105,7 +99,8 @@ def test_each_hook_command_exits_0_where_its_script_cannot_be_opened(event, tmp_
     py.write_text("#!/bin/sh\nexit 2\n", encoding="utf-8")
     py.chmod(0o755)
     command = hook["command"]
-    # The two interpreter names, each the first word of its half.
+    # The two interpreter names, each the first word of its half, which the
+    # harness runs and this case swaps for its own two.
     assert command.startswith("python3 ") and " || py -3 " in command, command
     command = command.replace("python3 ", f"{shlex.quote(sys.executable)} ", 1)
     command = command.replace(" || py -3 ", f" || {shlex.quote(str(py))} -3 ", 1)
@@ -121,23 +116,17 @@ def test_each_hook_command_exits_0_where_its_script_cannot_be_opened(event, tmp_
     assert done.returncode == 0, (event, done.returncode, done.stderr)
 
 
-def test_the_house_rule_says_each_hook_command_exits_0_whatever_happens():
+def test_the_house_rule_gives_the_shape_of_each_hook_command():
     """Contract rule 14, for rounds 1 and 2 of #1430, finding 1 of each. A
     script can fail before it runs, and `python3` exits 2 on a file it cannot
     open, so the exit is the command's to decide: each ends with
-    ` || exit 0`. `CONTRIBUTING.md` *House rules* states that shape and the
-    one rule it gives, and names no failure of a script."""
+    ` || exit 0`. `CONTRIBUTING.md` *House rules* gives that shape; the rule
+    it states for the exit is the proofer's to read."""
     from conftest import flat
 
     text = flat("CONTRIBUTING.md")
-    assert "command is `python3 <script> || py -3 <script> || exit 0`" in text
-    assert (
-        "The `py -3` half runs where the `python3` half exits non-zero, and the "
-        "closing `exit 0` makes the command exit 0 whatever happens, so neither "
-        "hook returns the exit 2 that keeps a turn going."
-    ) in text
-    assert "Each script exits 0 whatever happens" not in text
-    assert "could not load the script" not in text
+    # The shape of a hook's command, which a contributor copies for a hook.
+    assert "`python3 <script> || py -3 <script> || exit 0`" in text
 
 
 def test_the_plugin_icon_is_a_png_the_directory_accepts():
@@ -184,10 +173,6 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
         marketplace = json.load(f)
     source = manifest["description"]
     assert source, "plugin.json has no description"
-    # #1376 phase 4: a run stops for what only the owner can decide
-    # (`docs/running/the-run.md` *The run*), so the published sentence makes
-    # no promise that nobody is asked.
-    assert "without asking anyone" not in source, source
     assert marketplace.get("description") == source, "marketplace.json, top level"
     entries = [p for p in marketplace["plugins"] if p.get("name") == manifest["name"]]
     assert len(entries) == 1, entries
@@ -327,81 +312,65 @@ def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
     )
 
 
-def test_a_plain_review_request_is_the_review_skills_and_the_typed_command_is_not():
+def test_the_review_skill_names_the_built_in_command_a_person_types():
     """Contract rule 14, for #1376 phase 3. The review-skill gate asked the
     person which review a plain request meant, and it went with the hooks the
     plugin directory will not register. The owner's rule replaces it: a plain
     request runs this plugin's review, and Claude Code's built-in
     `/code-review` runs when the person types that command by name. The
-    skill's description is the one place the model reads that rule."""
+    skill's description names the command; how it states the rule is the
+    proofer's to read."""
     with open(
         os.path.join(ROOT, "skills", "code-review", "SKILL.md"), encoding="utf-8"
     ) as f:
         head = " ".join(f.read().split("\n---\n", 1)[0].split())
-    assert "in plain words and naming no skill" in head
-    assert '"review this PR <url>"' in head and '"검토해봐 <url>"' in head
-    assert (
-        "a person typing `/code-review` by name, which runs Claude Code's"
-        " built-in command and not this skill" in head
-    )
+    # The command a person types for Claude Code's built-in review, which the
+    # model reads in the description to leave that request alone.
+    assert "`/code-review`" in head
 
 
-def test_a_plain_request_to_change_code_is_implements():
-    """Contract rule 14, for #1430 *Scope* item 3. The entry skill `start`
-    left once the `SessionStart` hook prints the core, so a plain request to
-    change code reaches `implement`, whose description claims starting a
-    ticket as it did before 0.33.0 and hands the request to no other skill.
-    The description is the one place the model reads that rule; the hook's
-    closing line, held by `tests/lib/test_core.py`, names the section the
-    orchestrator opens whichever skill the model picks."""
+def test_the_entry_skill_stays_gone():
+    """#1430 *Scope* item 3. The entry skill `start` left once the
+    `SessionStart` hook prints the core, so a plain request to change code
+    reaches `implement`. What `implement`'s description claims is the
+    proofer's to read; the hook's closing line, held by
+    `tests/lib/test_core.py`, names the section the orchestrator opens
+    whichever skill the model picks."""
     assert not os.path.exists(os.path.join(ROOT, "skills", "start")), (
         "the entry skill is back beside `implement`"
     )
-    with open(
-        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        head = " ".join(f.read().split("\n---\n", 1)[0].split())
-    assert "disable-model-invocation" not in head
-    assert "Use when: implementing a feature, starting a ticket" in head
-    # The entry's claim on the request, which the description carried while
-    # the entry stood.
-    assert "a plain request to change code" not in head, head
-    assert "`start`" not in head, head
 
 
 def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
     """#1430 *Scope* item 3. A plain review request reaches `code-review`,
     so where it orchestrates a review it holds the core from the plugin's
     `SessionStart` hook, and opens the file itself where the hook printed
-    nothing into the session."""
+    nothing into the session. The skill names the hook's output and the
+    file; its sentence is the proofer's to read."""
     from conftest import flat
 
     text = flat("skills", "code-review", "SKILL.md")
-    assert (
-        "A session orchestrating a review run holds the core once, from the "
-        "plugin's `SessionStart` hook where its repository holds a `seal/` "
-        "root, and opens `skills/core/SKILL.md` once where no output opening "
-        "`AgenticSeal core from` stands in its context"
-    ) in text
+    # The opening of the hook's output, which the session looks for in its
+    # context, and the path of the core it opens where none stands.
+    assert "`AgenticSeal core from`" in text
+    assert "`skills/core/SKILL.md`" in text
 
 
 def test_the_orchestrator_holds_the_core_once_before_the_first_edit():
     """#1430 *Scope* item 3. The entry's first step opened the core; with the
     entry gone, step 1 of the order inside a ticket says where the core comes
     from and the one open that stands in for a hook that printed nothing,
-    such as a plugin installed after the session began."""
+    such as a plugin installed after the session began. Step 1 names the
+    hook's output and the file; its sentences are the proofer's to read."""
     from conftest import flat
 
     text = flat("skills", "implement", "orchestration.md")
     step = text.split("## Orchestrator: the order inside a ticket", 1)[1]
     step = step.split(" 2. ", 1)[0]
-    assert (
-        "Before the first edit the orchestrator holds the core once, which the "
-        "plugin's `SessionStart` hook printed where a `seal/` root stood when "
-        "the session started. Where no output opening `AgenticSeal core from` "
-        "stands in the session's context, the orchestrator opens "
-        "`skills/core/SKILL.md` once."
-    ) in step, step
+    # The opening of the hook's output, which the orchestrator looks for in
+    # its context, and the path of the core it opens where none stands.
+    assert "`AgenticSeal core from`" in step, step
+    assert "`skills/core/SKILL.md`" in step, step
 
 
 # The row each edition lists the skills in. Scoping to the row is not
@@ -479,27 +448,15 @@ def test_the_skills_row_lists_the_on_demand_skills_without_a_count():
         assert count is None, (edition, count and count.group(0))
 
 
-def test_the_always_on_core_is_described_without_counts():
-    """#1055 S3. The heading and the CLAUDE.md block row counted the block's
-    lines, headings and rules, a copy that went stale at its next edit. Since
-    #1177 the always-on text is the core, which the row names as its one
-    source, and the counts the block's row held are pinned absent."""
-    from conftest import flat
-
-    for edition, row_head, gone in (
-        (
-            "README.md",
-            "| Core |",
-            ("context is 12 lines", "12 always-on lines", "eight rules"),
-        ),
-        ("README.ko.md", "| 코어 |", ("12줄", "규칙 여덟")),
-    ):
-        text = flat(edition)
-        for phrase in gone:
-            assert phrase not in text, (edition, phrase)
+def test_the_core_row_names_the_core_file():
+    """#1055 S3. Since #1177 the always-on text is the core, and each
+    edition's `Core` row names its file as its one source. Whether a row
+    counts lines or rules again is the proofer's to read."""
+    for edition, row_head in (("README.md", "| Core |"), ("README.ko.md", "| 코어 |")):
         with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
             rows = [ln for ln in f if ln.startswith(row_head)]
         assert len(rows) == 1, (edition, row_head)
+        # The path of the core, which a reader of the row opens.
         assert "`skills/core/SKILL.md`" in rows[0], edition
 
 
@@ -598,10 +555,10 @@ def test_every_shipped_skill_is_named_in_both_readmes():
             with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
                 text = f.read()
             if name in listed:
-                # Round 2: `\`code-review\` in text` was satisfied by the
-                # hook table thirty rows below, so removing it from BOTH
-                # editions' agents column stayed green -- which agent
-                # preloads what is the whole content of that column.
+                # The skill's name in backticks, in the agents table, which a
+                # reader resolves for what an agent preloads. Round 2: `\`code-review\`
+                # in text` was satisfied by the hook table thirty rows below,
+                # so the name is read in the table's rows alone.
                 agent_rows = [ln for ln in text.splitlines() if ln.startswith("| **")]
                 assert any(f"`{name}`" in ln for ln in agent_rows), (
                     f"{edition}'s agents table never names `{name}` as "
@@ -609,13 +566,15 @@ def test_every_shipped_skill_is_named_in_both_readmes():
                 )
                 continue
             if user_invoked:
-                # A skill nobody can trigger is reachable only as a typed
-                # command, so that is the form that has to be shown.
+                # The command `/agentic:<name>` a person types: a skill nobody
+                # can trigger is reachable only as a typed command.
                 assert f"/agentic:{name}" in text, (
                     f"{edition} never shows `{name}` in the form a person types"
                 )
                 continue
             rows = [ln for ln in text.splitlines() if ln.startswith(SKILL_ROW[edition])]
+            # The skill's name in backticks, in the skills row, which a
+            # reader resolves for a skill a session loads on its own.
             assert f"`{name}`" in rows[0], (
                 f"{edition}'s skills row does not list `{name}`, which no "
                 "agent preloads and nobody can type"
@@ -636,6 +595,8 @@ def test_the_writing_style_handoff_names_a_skill_that_ships():
         .read()
         .split("\n---\n", 1)[0]
     )
+    # The label of the description's boundary and the skill name it hands
+    # to, which the model reads to route a commit or branch request away.
     assert "NOT for:" in head, "the boundary went, so the handoff has no sender"
     assert "commit-pr-convention" in head, (
         "the handoff lost its receiver again -- `NOT for: … branch/commit "

@@ -38,6 +38,8 @@ def test_the_workflow_runs_the_check_on_every_pull_request():
         os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
     ) as f:
         workflow = f.read()
+    # The script `issue_claims_check.py`, which a step of the workflow runs
+    # on every pull request.
     assert "issue_claims_check.py" in workflow
     assert os.path.isfile(
         os.path.join(ROOT, ".github", "scripts", "issue_claims_check.py")

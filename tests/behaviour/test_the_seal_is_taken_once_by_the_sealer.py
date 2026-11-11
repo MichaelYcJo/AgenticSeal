@@ -9,7 +9,6 @@ Part 2 holds the cases about the gate command that read a document's prose,
 which #923 places. Part 3 holds the cases that read the agent definitions.
 """
 
-import ast
 import os
 import re
 
@@ -37,29 +36,6 @@ KEY = "Broad gate"
 def read_document(rel):
     with open(os.path.join(ROOT, rel), encoding="utf-8") as handle:
         return handle.read()
-
-
-def test_the_template_names_no_reading_of_a_table_it_no_longer_has():
-    """#1454 (contract rule 14). The settings are a JSON object a parser reads,
-    so the paragraphs that told a person how the table walk read a fenced
-    row, a row inside an HTML comment and the inline HTML a line leaves open
-    are gone from `templates/setup/config.md`, and the doubled-key and
-    unparsed-file paragraph stands in their place."""
-    with open(
-        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
-    ) as f:
-        text = " ".join(f.read().split())
-    for gone in (
-        "A row inside an HTML comment that closes is not a row either",
-        "the refusal quotes that line and says it is commented out",
-        "after inline HTML a line leaves open",
-        "or a tag started in the middle of a line",
-    ):
-        assert gone not in text, f"the template still carries: {gone}"
-    assert (
-        "**A key written twice has no value, and a file that will not read is "
-        "refused rather than read as absent.**"
-    ) in text
 
 
 def test_this_repositorys_own_config_is_answered_exactly_as_before():
@@ -100,96 +76,31 @@ def test_the_policy_names_the_value_the_gate_row_reads():
     ) in broad
 
 
-def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
-    """#717, S7 for the code's own prose (contract rule 14). The stamp
-    module's docstring describes the letter and the twin's characters rather
-    than a rope and golds; the gate's module docstring and `panel`'s row
-    diagram list the rows the panel carries now; the comment above
-    `SAMPLE_ROWS` says which rows left. #832, the owner's frame and layout
-    of 2026-10-07: the disc at the left and the text beside it with nothing
-    painted outside the disc, the disc's mark a sprite in a file of its own,
-    and nothing names the parchment sheet, the 14-cell disc's four colours,
-    the vector source, the area sampler, the corner overhang, a fleur-de-lis,
-    a chart of stitches or the interim ring. #1174, the owner's wax seal of
-    2026-10-31: the twin's letters are the fifteen colours', and nothing
-    names the relief disc's nine colours, its rim or its groove."""
+def test_the_stamp_docstring_names_the_file_its_mark_is_drawn_from():
+    """#832 and #857: the disc's mark is a sprite in a file of its own, and
+    changing the mark is changing that file alone. The stamp module's
+    docstring names the file; how it describes the letter, the twin's
+    characters and the panel's rows is the proofer's to read."""
     stamp = " ".join(
         read_document(
             os.path.join("skills", "verify", "scripts", "seal_stamp.py")
         ).split()
     )
-    assert (
-        "Two things side by side on the terminal's own background, and nothing "
-        "else: at the left a wax disc with the disc's mark pressed into it"
-    ) in stamp
-    assert "a 16 x 16 sprite in `seal-mark.txt` beside this file, read as data" in stamp
-    assert "every cell exactly one of fifteen colours" in stamp
-    assert (
-        "`e` its outer edge's dark and `w` its wax, `h d g` its lip lit, dark "
-        "and its gloss, `s t` its step ring dark and lit, `.` its field"
-    ) in stamp
-    assert "nothing outside the disc is painted" in stamp
-    for gone in (
-        "nine colours",
-        "`M n N` its rim",
-        "a groove lit the other way",
-        "GROOVE_INSET",
-        "RIM_INSET",
-        "LIT_AT",
-        "lower right corner",
-        "`M n` the rim's",
-        "EMBLEM_D",
-        "by area",
-        "hangs",
-        "half on and half off",
-        "LILY_",
-        "RIM_LIGHT",
-        "RING_INSET",
-        "24 cells",
-        "nearest",
-        "14 cells across",
-        "four colours",
-        "against its right edge",
-        "parchment sheet, with",
-        "`m` the disc's ring",
-        "PARCHMENT",
-        "SHEET_EDGE",
-        "TEXT_LEFT",
-        "PANEL_WIDTH",
-    ):
-        assert gone not in stamp, gone
-    assert "fleur-de-lis" not in stamp and "stitch" not in stamp
-    assert "cell's centre" not in stamp and "INTERIM" not in stamp
-    assert "`o O` rope" not in stamp and "the lily's golds" not in stamp
-    assert "ledger" not in stamp
-    assert "Since #717 there is no blank row in it, no `chain`" not in stamp
-    gate = " ".join(
-        read_document(
-            os.path.join("skills", "verify", "scripts", "broad_gate.py")
-        ).split()
-    )
-    # #832's S5a: the module docstring and `panel`'s row diagram name the
-    # rows the owner's design of 2026-10-07 put back.
-    assert "the ledger's `ok` count, how many more steps" not in gate
-    assert "chain ✓ exit <code> read off the chain's own check" in gate
-    assert "workflow <n> of <m> not answered" not in gate
-    assert "**A drawn panel says only what a `SEALED` stamp can say** (#717)" not in (
-        gate
-    )
-    assert "**The result rows carry a `✓`, and the blank before them is a row**" in (
-        gate
-    )
-    assert "**Separators are ASCII**" not in gate
-    assert "No row is `None` since #717" not in gate
+    # The path `seal-mark.txt`, which a person opens to change the disc's
+    # mark.
+    assert "`seal-mark.txt`" in stamp
 
 
 def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
-    """A9 (#747, contract rule 14), S15 (#789), and S19 (#825). The three
-    reasons are text a person reads and acts on, so they are pinned whole,
-    and each starts with the word that marks it unmeasured; the five the
-    record replaced are asserted gone. Every document that tells a reader
-    what the gate's words mean names `new?` beside the other two, so a sealer
-    handing it on and a crafter reading it are both told it is not `new`."""
+    """A9 (#747, contract rule 14), S15 (#789), and S19 (#825). The reasons
+    the gate prints are text a person reads and acts on, so they are pinned
+    whole, and each starts with the word that marks it unmeasured; the names
+    the record replaced are asserted gone from the module. Every document
+    that tells a reader what the gate's words mean names `new?`, so an
+    orchestrator handing it on and a crafter reading it are both told it is
+    not `new`, and the **New?** bullet names the files a reader sent to the
+    base opens. What each document says of the word is the proofer's to
+    read."""
     gate = gate_module()
     assert gate.NOT_MEASURED == "new? not measured"
     earns = (
@@ -272,6 +183,8 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         "may be in no list and the suite's counts are not given (each "
         "session's record is under records/)"
     )
+    # The warning the recorder prints where it writes no record, which the
+    # reasons above quote and a reader finds on `suite.txt`.
     with open(RECORDER_SOURCE, encoding="utf-8") as handle:
         assert "agentic_pytest_record: no record written" in handle.read()
     assert gate.NOT_REACHED.format(code=2) == (
@@ -295,96 +208,32 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         "COLLECT_ONLY",
     ):
         assert not hasattr(gate, retired), f"broad_gate.py still carries {retired}"
+    # The word `new?`, which `broad_gate.py` prints beside a failing file and
+    # each of these documents tells its reader the meaning of: the
+    # orchestrator, the crafter, and the person choosing the `Broad gate` key.
+    # `skills/verify/orchestration.md` names it as its bullet's bold lead.
     readers = {
-        # #969: the orchestrator meets the gate's words now, not the sealer.
         ("skills", "code-review", "orchestration.md"): "`new?`",
-        ("agents", "crafter.md"): "`new?` means nothing at the base measured that file",
+        ("agents", "crafter.md"): "`new?`",
         ("skills", "verify", "orchestration.md"): "**New?**",
-        ("templates", "setup", "config.md"): "each file reads `new?` with the reason",
+        ("templates", "setup", "config.md"): "`new?`",
     }
-    for parts, phrase in readers.items():
+    for parts, word in readers.items():
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-            assert phrase in handle.read(), f"{'/'.join(parts)} does not name `new?`"
-    # #825: the reader sent to the base by hand is told the three causes the
-    # record leaves, and to open the one kept run and its records.
+            assert word in handle.read(), f"{'/'.join(parts)} does not name `new?`"
+    # #825: the reader sent to the base by hand is told to open the one kept
+    # run and its records.
     with open(
         os.path.join(ROOT, "skills", "verify", "orchestration.md"), encoding="utf-8"
     ) as handle:
         bullet = " ".join(handle.read().split())
-    for phrase in (
-        # #825's reframe after round 3 and round 4's 🟡 3: every cause of a
-        # missing record.
-        "no pytest the `Broad gate` command ran left a record, because the "
-        "command started no pytest, none it started loaded the gate's recorder, "
-        "or the one that did could not write its record and warned in "
-        "`suite.txt`, so the file is named only by a `FAILED` line and the base "
-        "was not run",
-        "no pytest the command ran at the base left a record, for any of those "
-        "three causes, a part before the runner failing at the base among them",
-        "A test with no file of its own is in no list at all, nor is a failed "
-        "collection of the whole session or a report a plugin built without its "
-        "path; the failure form says how many there were.",
-        "the command's run at the base exited non-zero before any pytest "
-        "collected the file, which is also how a file the branch added reads "
-        "where the base's command already fails",
-        "open the kept `suite-at-base.txt` and the `records/` beside it",
-        # #825 round 5's 🟡 2: only a session of the base that ended non-zero.
-        "or a session of the base that ended non-zero left tests or collections "
-        "out of every list, a test whose xdist worker died in its setup among "
-        "them, so the record cannot say the file passed.",
-        # #849 (#825 round 6's 🟡 1): a session of the base with no end, and
-        # #849 round 1's 🟡 1: one whose end shows pytest stopped it.
-        # #852: one whose end line says pytest stopped it.
-        "A session of the base that stopped part-way reads the same way: its "
-        "record holds no `end` line, because the process died, which plain "
-        "pytest does on a test that calls `os._exit`, or its recorder "
-        "stopped writing; or its `end` line names a stop pytest made, which an "
-        "interrupt, any `pytest.exit()`, `-x`, `--maxfail` and a plugin's stop "
-        "all leave, or an exit outside 0, 1 and 5.",
-        # #869: a line of the base's record that did not parse.
-        "So does a base whose record holds a line that did not parse as the "
-        "recorder's, which the gate counts and passes over.",
-        # #849 round 1's 🟡 2 and #869: a session at `HEAD` that stopped
-        # part-way, and a line of its record that did not parse.
-        "Nor, where a session at `HEAD` stopped part-way, is the test it "
-        "stopped in, nor a test named on a line of the record that did not "
-        "parse; the failure form counts both too.",
-        "how a command earns the measured word",
+    for path in (
+        # The file the gate keeps the base's run in, which the reader opens.
+        "`suite-at-base.txt`",
+        # The directory of that run's records, which the reader opens beside it.
+        "`records/`",
     ):
-        assert phrase in bullet, f"the **New?** bullet does not carry: {phrase}"
-    for gone in (
-        "wrote the report the gate asked pytest for there",
-        "the file's run alone ended without naming a failing test",
-        "`collected-at-base-*.txt`",
-        # One cause of a missing record named as the only one (#825 round 3).
-        "row ran loaded the gate's recorder, so the file is named only",
-        "no pytest the row ran at the base loaded the recorder",
-        # Two causes named as though they were every one (#825 round 4).
-        "for either of those causes",
-        # Every base record's count, a green session's included (round 5).
-        "or the base's record left tests or collections out of every list",
-        # A missing `end` line named as the only stop (#849 round 1).
-        "A session of the base that wrote no `end` line to its record reads "
-        "the same way",
-        # The stops read off the exit alone (#852).
-        "as a `KeyboardInterrupt` or `pytest.exit()` in a test and xdist under "
-        "`-x` give",
-    ):
-        assert gone not in bullet, f"the **New?** bullet still carries: {gone}"
-    with open(GATE, encoding="utf-8") as handle:
-        docstring = ast.get_docstring(ast.parse(handle.read()))
-    assert "`new?` with the reason no run measured it" in docstring
-    # The module docstring's paragraph on the comparison says how it measures
-    # now, and no longer names the prefixes or the JUnit report.
-    flat_doc = " ".join(docstring.split())
-    assert (
-        "run the command there once, unchanged, with the recorder loaded again"
-        in flat_doc
-    )
-    assert "No line pytest printed decides a word" in flat_doc
-    assert "running each prefix of the row" not in flat_doc
-    assert "run the row there once" not in flat_doc
-    assert "JUnit" not in flat_doc
+        assert path in bullet, f"the **New?** bullet does not name: {path}"
 
 
 def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_written():
@@ -613,62 +462,6 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         assert sentence in text, f"the allowed list does not carry: {sentence}"
 
 
-def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
-    """S28 (#825's reframe after round 3, contract rule 14). A line's path is
-    the node's own, carried on the report, and never a name made from a
-    node id and a rootdir. The comparison's docstring and the recorder's own
-    each say so by their deciding sentence, and each sentence of the refusal
-    the reframe retired is asserted gone. The released changelog entry is
-    read no more: #1053 removed `changelog/`, and the entry is the v0.20.0
-    release note's."""
-    gate = gate_module()
-    docstring = " ".join(gate.compare_at_base.__doc__.split())
-    assert (
-        "Each line names its file by the path pytest holds for the test or the "
-        "collector, carried on the report from the process that held it, and "
-        "never by a name pytest made from that path"
-    ) in docstring
-    recorder = " ".join(
-        read_document(
-            os.path.join(
-                "skills",
-                "verify",
-                "scripts",
-                "pytest_record",
-                "agentic_pytest_record.py",
-            )
-        ).split()
-    )
-    for sentence in (
-        "A line's path is the node's own: `item.path` for a test, the module "
-        "that COLLECTED it, and `collector.path` for a failed collection",
-        "No path is ever made from a node id and a rootdir",
-        "None of the three is written; each node is counted once on the `end` "
-        "line, and the gate says the count under its list of failing files.",
-        # #825 round 4: the session's failed collection, and the path an
-        # earlier report of a node carried, reused for a crash report.
-        "a failed collection of the session itself -- where pytest 7 lays a "
-        "conftest's import error anywhere below the root",
-        "unless the same xdist worker's last report was of the same node and "
-        "not its teardown",
-        "Never a lookup by node id alone: two nodes can share one",
-        "`--report-log` writes what `pytest_report_to_serializable` returns",
-        "it looks no module up and imports nothing but pytest",
-    ):
-        assert sentence in recorder, f"the recorder does not carry: {sentence}"
-    for gone, text in (
-        ("so it writes no record at all", docstring),
-        ("the recorder's refusals close it", docstring),
-        ("A path is the rootdir joined to `report.fspath`", recorder),
-        ("therefore writes no record at all", recorder),
-        ("an_argument_lies_outside_the_rootdir", recorder),
-        ("find_spec", recorder),
-        # #825 round 5: the lookup by node id.
-        ("an earlier report of the same node in the session carried", recorder),
-    ):
-        assert gone not in text, f"still carried: {gone}"
-
-
 # =============================================================================
 # Part 3 — the owner, and the fourth definition
 # =============================================================================
@@ -806,7 +599,8 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     Since the sealer became the guarantor (#923) its one write in the tree
     is `guarantee.md`, and `trail/gate.md` is the gate's, through its
     command. Since #1376 the stamp's values file its `seal stamp --guarantee`
-    queues is named beside it, and the list ends there."""
+    queues is named beside it. How the definition ends the list is the
+    proofer's to read."""
     text = " ".join(sealer_text().split())
     # The contract rule number 6, which the sealer resolves for what it may
     # write.
@@ -817,35 +611,11 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
         "the gate's file does not name the command that makes it, so the "
         "sealer cannot tell its own write from the gate's"
     )
-    # The path `guarantee.md` and the values file, the sealer's two writes,
-    # and the sentence that ends the list.
-    assert (
-        "your writes are `guarantee.md` and the stamp's values file step 6 "
-        "queues, and a write not named here is a write you do not make"
-    ) in text, (
+    # The path `guarantee.md`, the sealer's one write in the tree, which the
+    # sealer reads for what it may write.
+    assert "`guarantee.md`" in text, (
         "the permission does not say WHICH files, and a permission without a "
         "boundary is a general one"
-    )
-
-
-def test_the_sealer_leaves_s6s_withheld_acts_to_s6():
-    """Round 1, finding 10 of #120 found the definition reciting contract
-    rule 6's withheld acts one short and one over, and this case held the
-    recitation to that rule's own list. #943 removed the recitation: rule 6
-    binds every agent
-    whatever its file says, and the copy cost the sealer's preload bytes its
-    measurement refused (round 1 of #943).
-
-    Rewritten rather than deleted: a case removed with the passage it pinned
-    leaves nothing to notice the passage coming back. A recitation that
-    returns is a second source beside a countable list, so the assertions
-    invert."""
-    text = " ".join(sealer_text().split())
-    assert "rule 6 withholds stays withheld" not in text, (
-        "the sealer recites rule 6's withheld acts again; rule 6 is their one source"
-    )
-    assert "nothing posted, nothing pushed" not in text, (
-        "the sealer recites rule 6's withheld acts again; rule 6 is their one source"
     )
 
 

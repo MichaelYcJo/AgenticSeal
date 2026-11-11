@@ -84,8 +84,7 @@ codes read directly (#362):
 
 Two absences are silent, and neither is caught here: the case
 `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py#test_every_input_the_script_reads_is_handed_to_it_by_the_step`
-holds the step to every entry of the table, and its sibling holds this
-paragraph and that case's docstring to each other.
+holds the step to every entry of the table.
 """
 
 import json

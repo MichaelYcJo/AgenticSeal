@@ -251,6 +251,8 @@ def test_this_repository_imports_no_core_and_names_the_tree_copy():
     assert not IMPORT.search(text), (
         "CLAUDE.md imports a file, so a session here reads the core twice"
     )
+    # The path `skills/core/SKILL.md`, which a session here resolves to the
+    # tree's copy of the core.
     assert "`skills/core/SKILL.md`" in text, (
         "CLAUDE.md does not name the core, so a session here cannot tell "
         "which copy governs"

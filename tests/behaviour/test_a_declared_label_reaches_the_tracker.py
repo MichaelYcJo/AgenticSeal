@@ -75,7 +75,9 @@ def test_the_workflow_runs_the_apply_arm_and_needs_no_new_permission():
         for line in read(WORKFLOW).splitlines()
         if not line.lstrip().startswith("#")
     )
+    # The step's command `tracker_labels.py --apply`, which the runner runs.
     assert "tracker_labels.py --apply" in text
+    # The permission `issues: write`, which the runner grants the job.
     assert "issues: write" in text
     assert text.count("permissions:") == 1, (
         "the job grew a second permissions block, so the claim that this "

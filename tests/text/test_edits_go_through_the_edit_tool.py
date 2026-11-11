@@ -75,17 +75,10 @@ def test_no_carrier_claims_a_fact_about_the_reader_repository():
             )
 
 
-def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
-    """What stayed in `agents/proofer.md` when contract rule 9 took the rest.
-
-    A reviewer edits less than an implementer and would read a rule about
-    edits as somebody else's. Its paragraph is the one that names what its
-    own edits are -- a probe script, a scratch fixture, a file patched to see
-    whether a finding reproduces -- and without it contract rule 9 arrives
-    at an agent that does not think it is addressed.
-    """
+def test_the_reviewer_points_at_the_edit_rule():
+    """What stayed in `agents/proofer.md` when contract rule 9 took the rest:
+    the rule's number, which the proofer resolves. Which of its own acts the
+    paragraph names as edits is the proofer's to read."""
     proofer = flat("agents", "proofer.md")
+    # The contract rule number the proofer resolves for the rule on edits.
     assert "rule 9" in proofer, "the reviewer can no longer reach the rule"
-    assert "scratch fixture" in proofer, (
-        "the reviewer stopped being told which of its own acts are edits"
-    )

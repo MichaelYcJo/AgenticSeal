@@ -139,7 +139,10 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
     assert section_body(lines, "## Rule changes") == []
     assert raw.index("## Rule changes") < raw.index("## Removes")
     framer = " ".join(read(FRAMER_AGENT).split())
+    # The citation the framer resolves for the grammar of the section it
+    # fills: the path and the heading in italics.
     assert "`skills/settle/rule-changes.md` *Rule changes*" in framer
+    # The heading that citation resolves to.
     assert (
         "## Rule changes"
         in read(os.path.join(ROOT, "skills", "settle", "rule-changes.md")).splitlines()
@@ -184,9 +187,11 @@ def test_crafter_is_told_to_write_the_phase_record():
 
 def test_skill_file_set_table_carries_the_phase_row():
     skill = read(IMPLEMENT_SKILL)
+    # The path of the phase record, which the builder writes.
     assert "trail/phases/phase-N.md" in skill, (
         "skills/implement/SKILL.md's SDD file-set table has no `trail/phases/phase-N.md` row"
     )
+    # The template path the builder starts the record from.
     assert "templates/records/sdd-phase.md" in skill, (
         "skills/implement/SKILL.md does not name the template the "
         "`trail/phases/phase-N.md` row starts from"
@@ -206,12 +211,11 @@ def test_the_skill_names_the_records_one_section():
         "`trail/phases/phase-N.md` holds one section, `## What this phase found`"
         in (skill)
     )
-    # #1442, Scope item 4: the scope a spawn adds is a decision, so the
-    # framer folds it.
+    # The citation a reader resolves for where a scope a spawn adds is
+    # folded (#1442): the path and the heading in italics.
     assert (
-        "a scope a spawn gives beyond it is a decision the framer folds into "
-        "the plan before the spawn (`skills/implement/orchestration.md` "
-        "*Orchestrator: the order inside a ticket*)" in skill
+        "`skills/implement/orchestration.md` "
+        "*Orchestrator: the order inside a ticket*" in skill
     )
 
 
@@ -231,4 +235,5 @@ PROSE_CARRIERS = (
 @pytest.mark.parametrize("parts", PROSE_CARRIERS)
 def test_the_phase_record_path_is_spelled_the_same_in_every_prose_carrier(parts):
     text = read(os.path.join(ROOT, *parts))
+    # The path of the phase record, which a reader greps for in each file.
     assert "trail/phases/phase-N.md" in text, "/".join(parts)
