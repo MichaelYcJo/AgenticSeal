@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """Run mutations of one file, each alone, and say whether a case noticed it.
 
-#641, with #129. `agents/crafter.md` asks the implementer to break every unit
-that adds behaviour, one at a time, and watch a case go red. Typed by hand that is three
-acts per mutation -- an edit, a run, an edit back -- and every one of them
-has gone wrong in this repository's history:
+`agents/crafter.md` asks the implementer to break every unit that adds
+behaviour, one at a time, and watch a case go red. Typed by hand that is
+three acts per mutation -- an edit, a run, an edit back -- and each of them
+has been seen to go wrong:
 
-  the break      a pattern that missed by two spaces wrote nothing, and the
-                 run recorded a verdict for a mutation never applied
-  the run        a stale `.pyc` beside the mutated file made the interpreter
-                 run the previous mutation instead of this one (#89, #370),
-                 and nothing bounded a run that hung -- one did, for 32
-                 minutes (#577)
+  the break      a pattern that misses by two spaces writes nothing, and the
+                 run records a verdict for a mutation never applied
+  the run        a stale `.pyc` beside the mutated file makes the interpreter
+                 run the previous mutation instead of this one, and a run
+                 that hangs runs on unbounded -- one ran for 32 minutes
   the edit back  `git checkout -- <file>` restores the committed state and
                  takes every uncommitted fix in the file with it
 
@@ -23,8 +22,8 @@ It refuses a replacement that does not land exactly once, before anything is
 run. For a file whose name ends in `.py` it then compiles the mutant with the
 builtin `compile` over the bytes the write would put on disk, and refuses one
 that does not compile: cases that load the module fail on the syntax error
-whatever the unit does, and that red read as a case noticing the break
-(#898). The file as it is is compiled first, and where it does not compile
+whatever the unit does, and that red would read as a case noticing the
+break. The file as it is is compiled first, and where it does not compile
 under the interpreter running this command, no mutant is compiled and the
 first line printed says so with that interpreter's version: the cases may
 run under another interpreter that reads the file. No other kind of file is
@@ -55,7 +54,7 @@ seal mutate ...` stops at the first unit nothing watches or the first run
 that could not say.
 
 **Several mutants in one call.** `--replace OLD NEW` given more than once is
-a batch, #942's instrument for a module's sample of mutants:
+a batch, the instrument for a module's sample of mutants:
 
     seal mutate <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
 
@@ -73,41 +72,42 @@ A run with no verdict does not stop the batch, but `no baseline`, `not
 restored` and `interrupted` do. Stopping each mutant's run at its first
 failing case is the tests command's job, not this one's: pass `-x` in
 `--tests`, and a red mutant then costs only the cases up to the first one
-that notices it. One pair is the single run above, printed as it always was.
+that notices it. One pair is the single run above, and prints as that run
+does.
 
 **The bound ends what the run started, not only the process it spawned.**
 `subprocess.run`'s timeout kills the direct child, and `bin/test` execs a
 runner that starts pytest as a child of its own, so a run bounded that way
-leaves the suite running past the verdict -- #313 measured it, and the case
-for S5 re-measures it here. On POSIX the command runs in a
-session of its own and a timed-out run's whole process group is killed; so
-is the group of a run that exited, which ends whatever the cases left
-behind. The wait is on the process and the output goes to a temporary file,
-so nothing the cases leave can hold the wait open. Two consequences come with
-the session. A process that puts itself in yet another session is outside
+leaves the suite running past the verdict, which a case of
+`tests/skills/test_mutation_check.py` on a run past the bound measures. On
+POSIX the command runs in a session of its own and a timed-out run's whole
+process group is killed; so is the group of a run that exited, which ends
+whatever the cases left behind. The wait is on the process and the output
+goes to a temporary file, so nothing the cases leave can hold the wait open.
+Two consequences come with the session. A process that puts itself in yet another session is outside
 the group and outlives the kill; the verdict names that as the bound's
 limit, without being able to tell whether it happened. And the terminal's
 Ctrl-C now reaches this process alone, so the `KeyboardInterrupt` it raises
 here is what ends the group, before the restore. On Windows the direct child
 is ended, and the verdict says that anything it started was not: a group
 kill there needs a job object, and nobody runs this on Windows to show one
-works (#313's third option).
+works.
 
 **The cache that matters is the mutated file's, and only that one.** CPython
 reads a `.pyc` instead of the source whenever the size and the whole-second
 mtime it recorded still match, and a same-length mutation written inside one
 second is that match. An importer's bytecode is valid for its unchanged
-source and is never stale, so clearing `tests/__pycache__` removed caches
-that were right and missed the one that was not. The removal is
+source and is never stale, so clearing `tests/__pycache__` would remove
+caches that are right and miss the one that is not. The removal is
 `clear_bytecode_cache`, which takes `<stem>.*.pyc` rather than the one name
 `importlib.util.cache_from_source` gives: that name is the calling
-interpreter's tag, and on the machine this was built on `python3` is 3.14
-while `bin/test`'s virtualenv reads 3.13.
+interpreter's tag, and on one machine `python3` is 3.14 while `bin/test`'s
+virtualenv reads 3.13.
 
 **What it does not protect.** The original is held in this process's memory
 for the length of one run and nowhere else, so a `SIGKILL` delivered between
 the write and the restore leaves the mutation on disk. `agents/crafter.md`'s
-*Commit before you mutate* is what bounds that loss; a copy on disk is #312.
+*Commit before you mutate* is what bounds that loss.
 
 Nothing is read from or written to git.
 """
@@ -126,9 +126,9 @@ import tempfile
 import time
 import warnings
 
-# Seconds the command is waited for. `questions.md` Q4 of work item
-# 1790815610 holds the grounds: about twice the slowest legitimate mutated run
-# the flow logs record (158 s), and a sixth of the hang that cost 32 minutes.
+# Seconds the command is waited for: about twice the slowest legitimate
+# mutated run the flow logs record (158 s), and a sixth of the hang that cost
+# 32 minutes.
 DEFAULT_TIMEOUT = 300.0
 
 RED = "red"
@@ -158,7 +158,7 @@ def clear_bytecode_cache(path: str, cwd: str | None = None) -> list[str]:
     (`importlib._bootstrap_external.cache_from_source`), so the importing
     process resolves it against its own working directory -- the cases', not
     this process's. Cleared from here, a relative prefix names a different
-    mirror and the stale `.pyc` stays where the cases read it (#703). `None`
+    mirror and the stale `.pyc` stays where the cases read it. `None`
     reads it against this process's directory; an absolute prefix is the
     same from anywhere.
 
@@ -230,11 +230,11 @@ def command_words(text, windows=None):
     that on Windows a backslash is a character of the word it is in.
 
     `shlex.split` reads `\\` as an escape, which is a POSIX shell's rule and
-    takes every separator out of a Windows path: `C:\\py\\python.exe` came
-    back `C:pypython.exe`, and nothing could start it (PR #939's
-    `windows-latest` leg). There a backslash is the path separator, so it is
-    kept, and a quote still groups a word. How it errs: on Windows a `\\"`
-    is not an escaped quote. `--tests` is split here.
+    takes every separator out of a Windows path: `C:\\py\\python.exe` comes
+    back `C:pypython.exe`, and nothing can start it. There a backslash is
+    the path separator, so it is kept, and a quote still groups a word. How
+    it errs: on Windows a `\\"` is not an escaped quote. `--tests` is split
+    here.
 
     `windows` defaults to this machine's, and is an argument so both
     readings can be driven from either platform.
@@ -308,7 +308,7 @@ def compiled(path: str, original: bytes, afters, numbered: bool) -> str:
     `Refused` for the first mutant that does not compile, naming its pair by
     its place where `numbered`: the cases would fail on the syntax error
     whatever the unit does, and that red would read as a case noticing the
-    break (#898). A file that does not compile as it is under this
+    break. A file that does not compile as it is under this
     interpreter may still run under the cases' own, so its mutants are not
     compiled, and the clause returned says so for the first line printed;
     `""` otherwise, and for any file whose name does not end in `.py`."""
@@ -356,8 +356,8 @@ def _wait(proc: subprocess.Popen, timeout: float | None):
     """The one wait, a function of its own so a case can interrupt it.
 
     On the process and not on a pipe. A process the cases started can hold a
-    pipe open after they exit, and a wait on the pipe then read a run that
-    finished red at once as one that never returned (round 1, 🟡 4)."""
+    pipe open after they exit, and a wait on the pipe then reads a run that
+    finished red at once as one that never returned."""
     return proc.wait(timeout=timeout)
 
 
@@ -366,7 +366,7 @@ def _end(proc: subprocess.Popen, how: str) -> None:
 
     The group on POSIX: `bin/test` execs a runner that starts pytest as a
     child of its own, so ending the direct child alone leaves the suite
-    running past the verdict (#313). Called after a normal exit too, so what
+    running past the verdict. Called after a normal exit too, so what
     the cases left in the group goes with them. A group already gone is not
     an error: the command can finish between the bound and the kill."""
     if how == GROUP:
@@ -414,7 +414,7 @@ def run_cases(
             # Named from the command, not from the error's text: on Windows
             # the `FileNotFoundError` `Popen` raises carries no filename, and
             # its text says *the system cannot find the file specified*
-            # without saying which (PR #698's `windows-latest` leg).
+            # without saying which.
             program = exc.filename or command[0]
             return COULD_NOT_START, f"{program}: {type(exc).__name__}: {exc}", ""
         try:
@@ -464,13 +464,12 @@ def mutation_run(
     env = _environment()
 
     # Every removal is handed `cwd`: a relative `PYTHONPYCACHEPREFIX` names a
-    # mirror under the directory the cases import from, not this process's
-    # (round 1, ⬜ 7; #703).
+    # mirror under the directory the cases import from, not this process's.
     clear_bytecode_cache(path, cwd=cwd)
     # The restore's reach starts here, at the baseline, not at the write: the
     # cases may write the file themselves, and every exit -- an interrupt in
     # the baseline included -- is reported as the file holding the bytes it
-    # held before the command started (round 3, 🟡 15). The compare in
+    # held before the command started. The compare in
     # `_put_back` restores only bytes that differ, so a baseline that leaves
     # the file alone still writes nothing.
     try:
@@ -578,8 +577,8 @@ def _baseline(command, *, cwd, env, timeout):
     The cases must pass against the file as it is first. Otherwise a failure
     under the mutation says nothing about the mutation: a `-k` that selects
     nothing exits 5, a mistyped module exits 4, a case already failing exits
-    1, and each read `red` -- *a case watches this unit* -- for a unit no case
-    ran against (round 1, 🔴 1)."""
+    1, and each would read `red` -- *a case watches this unit* -- for a unit
+    no case ran against."""
     before, detail, output = run_cases(command, cwd=cwd, env=env, timeout=timeout)
     if before == RED:
         # The baseline's own exit: pytest's 5 and 4 are what tell a mistyped
@@ -593,7 +592,7 @@ def _baseline(command, *, cwd, env, timeout):
         )
     if before != SURVIVED:
         # A sentence of its own, so it reads as the verdict's and not as the
-        # last clause of the detail's (round 2, ⬜ 12).
+        # last clause of the detail's.
         return (
             before,
             f"{detail}. This was the run against the file as it is, before "
@@ -615,7 +614,7 @@ def _put_back(path: str, original: bytes, original_sha: str, cwd: str) -> None:
         # Only over bytes that differ. A write that never reached the file
         # -- it was read-only before the command started -- leaves nothing
         # to put back, and a restore tried anyway raises the same error
-        # and reads `not restored` over the original (round 2, 🟡 9). A
+        # and reads `not restored` over the original. A
         # file that cannot be read, or that the cases removed, differs.
         try:
             with open(path, "rb") as f:
@@ -630,7 +629,7 @@ def _put_back(path: str, original: bytes, original_sha: str, cwd: str) -> None:
         # A write that raised -- the cases made the file read-only or
         # removed its directory, or a second Ctrl-C landed inside the
         # write -- is a restore that did not land as surely as a hash
-        # that differs (round 1, 🟡 2).
+        # that differs.
         raise NotRestored(
             f"{path} was not restored: writing it back raised "
             f"{type(exc).__name__}: {exc}."
@@ -736,8 +735,8 @@ def main(argv=None) -> int:
     except Exception as exc:
         # Anything else measured nothing. Left to Python, an uncaught
         # exception exits 1, which is SURVIVED's code, so a mistyped path or
-        # a cache that could not be removed read as "nothing watches this
-        # unit" (round 1, 🟡 3). The file was restored on the way out, or
+        # a cache that could not be removed would read as "nothing watches
+        # this unit". The file was restored on the way out, or
         # `NotRestored` above would have been raised instead.
         print(
             f"{COULD_NOT_RUN}: {type(exc).__name__}: {exc}. No verdict.",
@@ -778,7 +777,7 @@ def _report_batch(results, started: float) -> int:
         if verdict == RED:
             # The cases' exit code, printed and never decided on: under
             # pytest a 2 is a collection error, and a 1 is a failing case or
-            # an import error raised inside one (#898).
+            # an import error raised inside one.
             print(f"{lead}{verdict} ({_exit_of(detail)}, {seconds:.1f}s)", flush=True)
             continue
         if verdict == SURVIVED:
