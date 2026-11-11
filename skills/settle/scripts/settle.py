@@ -97,7 +97,7 @@ reads what a document says. A root holding no work item lists them before
 its settled line.
 
 **`--draft` writes the released operations as they are written, and decides
-nothing (#1217).** It reads what the dry run reads, and applies each
+nothing.** It reads what the dry run reads, and applies each
 operation of each design the dry run groups, in merge order and in the order
 its design writes them, through `rule_changes.py#apply_op` to the policy
 root in the working tree, each over the text the earlier ones left. A
@@ -133,7 +133,7 @@ holds that commit. The version is the lowest such tag by number, and its
 note is its release in one `gh api --paginate` list of the repository's
 releases, drafts left out. The note carries the entry where it links that
 pull request, under any owner and name, or holds `<!-- specs/<id> -->`,
-which the notes published before #1139 carry. The workflow that builds a
+the line older notes carry. The workflow that builds a
 note from the fragments is this repository's, and the plugin ships none, so
 notes are read only where some published release holds a whole line
 `BUILT_RE` reads, the line that opens an entry. A directory whose note does
@@ -206,7 +206,7 @@ TABLES = "lib/tables.py"
 GITCMD = "lib/gitcmd.py"
 
 # `lib/sibling.py` loads every other module this command reads, and an
-# absent one is its sentence and exit 2 (#590). Where it is absent itself,
+# absent one is its sentence and exit 2. Where it is absent itself,
 # the refusal is the same sentence about it, spelt here because the file
 # that holds the sentence is the one missing.
 sys.path.insert(0, LIB)
@@ -359,10 +359,10 @@ def adding_commits(root, revisions, pathspec):
     last is the pull request's, because GitHub appends it after the title.
     This is the one reader of that number, so the release note's link,
     which this plugin's own publish workflow writes, and any other reader
-    of it cannot name different pull requests (#1139).
+    of it cannot name different pull requests.
 
     `--full-history` walks every parent, because a release's tag is a merge
-    into `main` whose first parent never held the path (0.22.4). A merge
+    into `main` whose first parent never held the path. A merge
     shows no diff here, so a path only a merge's own resolution added has
     no adding commit. `--no-renames` reads a path a rename under PATHSPEC
     would pair with another as the add it is, and `-z` quotes no path.
@@ -461,7 +461,7 @@ def merged_pull_requests(root, branch):
     return out
 
 
-# --- the published note `--apply` reads where the root is shared (#1139) ----
+# --- the published note `--apply` reads where the root is shared -----------
 
 # A version tag, `vX.Y.Z`. The publish workflow publishes a release's note
 # at such a tag, and `.github/scripts/publish_release_note.py` reads tags
@@ -470,7 +470,7 @@ VERSION_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 # The line that opens an entry of a release note built from the fragments:
 # this plugin's own publish workflow writes it from this, and `BUILT_RE`
-# reads it. Before #1139 an entry opened with `MARKER` instead.
+# reads it. An older note's entry opens with `MARKER` instead.
 PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
 MARKER = "<!-- specs/{work_item_id} -->"
 
@@ -666,8 +666,7 @@ def published_releases(root):
 def carries(body, number, work_item_id):
     """Whether a note's BODY carries a work item's entry: a link to pull
     request NUMBER under any owner and name, since a renamed repository's
-    old links redirect, or the marker (`MARKER`) that the notes published
-    before #1139 carry."""
+    old links redirect, or the marker (`MARKER`) older notes carry."""
     link = rf"https://github\.com/[^/\s]+/[^/\s]+/pull/{number}(?!\d)"
     marker = MARKER.format(work_item_id=work_item_id)
     return bool(re.search(link, body)) or marker in body
@@ -948,10 +947,9 @@ JUDGMENTS_HEADING = (
     "kept costing rounds (`skills/settle/SKILL.md`):"
 )
 # Its neighbour, the rows of the plans earlier settles removed, read from the
-# history of `--released-at` (#1281) and bounded to the two newest removing
-# commits unless `--all-earlier` is given (#1481), and what a work item's
-# line says where no release can be named for it. The heading says who
-# decides the kind.
+# history of `--released-at` and bounded to the two newest removing commits
+# unless `--all-earlier` is given, and what a work item's line says where no
+# release can be named for it. The heading says who decides the kind.
 EARLIER_HEADING = (
     "the judgments earlier settles removed: the rows of each `frame/plan.md` "
     "deleted by\none of the two newest commits on `--released-at` that deleted "
@@ -962,11 +960,10 @@ EARLIER_HEADING = (
     "and it rewrites a section where a kind recurs across releases\n"
     "(`skills/settle/SKILL.md`):"
 )
-# How many removing commits the default dry run reads, newest first (#1481).
-# Two, because every kind the settle pull requests #1310, #1400, #1432, #1466
-# and #1495 name as recurring across releases rests on rows of the current
-# release and of the two newest removing commits before that settle, and the
-# kind #1432 names rested on the second (#1481's design, *Grounding* G11).
+# How many removing commits the default dry run reads, newest first. Two,
+# because over five settle pull requests every kind named as recurring across
+# releases rests on rows of the current release and of the two newest
+# removing commits before that settle, and one of them rests on the second.
 EARLIER_WINDOW = 2
 # The section's last line where the window left removing commits out: a count
 # of commits, never of rows.
@@ -1000,7 +997,7 @@ READERS_HEADING = (
     "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
 )
-# The named directories' listing (#1054), printed only with `--from`.
+# The named directories' listing, printed only with `--from`.
 DOCUMENTS_HEADING = (
     "named directories: every document of each directory named with `--from`, "
     "with the\ncommit that added it and the commit that last changed it. The "
@@ -1032,7 +1029,7 @@ FROM_UNDER_ROOT = (
     "this runs in, so nothing was read.\n"
 )
 
-# What `--draft` refuses, each with exit 2 before anything is read (#1217).
+# What `--draft` refuses, each with exit 2 before anything is read.
 DRAFT_WITH_APPLY = (
     "settle: --draft and --apply cannot be given together: the draft is "
     "written and read before anything is removed, so nothing was written and "
@@ -1045,8 +1042,8 @@ DRAFT_WITH_FROM = (
     "written.\n"
 )
 
-# What `--all-earlier` refuses, each with exit 2 before anything is read
-# (#1481): it widens only what the dry run prints.
+# What `--all-earlier` refuses, each with exit 2 before anything is read:
+# it widens only what the dry run prints.
 EARLIER_WITH_APPLY = (
     "settle: --all-earlier and --apply cannot be given together: --apply "
     "prints none of the judgments earlier settles removed, so nothing was read "
@@ -1577,7 +1574,7 @@ def survey(root, ref, home=None, every=False):
     return found
 
 
-# --- the directories a person names (#1054) ---------------------------------
+# --- the directories a person names ----------------------------------------
 
 
 def inside(path, top):
@@ -1919,7 +1916,7 @@ def report(found, ref, out):
     return 0
 
 
-# --- the draft (#1217) -----------------------------------------------------
+# --- the draft -------------------------------------------------------------
 
 
 def draft(found, root, out):
@@ -2177,7 +2174,7 @@ def main(argv=None):
         named.append(rel)
     listed = documents(root, named) if named else None
     local, records = records_of(root, home)
-    # A settled root is not an unusable one (#517): an empty `seal/threads/`, or
+    # A settled root is not an unusable one: an empty `seal/threads/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
     if not work_items(records, threads(home)):
         if listed is not None:
