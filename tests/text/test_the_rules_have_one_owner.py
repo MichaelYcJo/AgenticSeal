@@ -18,6 +18,8 @@ import re
 import pytest
 from conftest import flat
 
+# No TARGET: its cases hold each review-chain rule's owner across the skills, the definitions and the documents that carry it.
+
 RECORD = ("docs", "running", "the-run.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).

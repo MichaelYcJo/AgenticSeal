@@ -1,12 +1,14 @@
-"""`seal mode`: what is left here after #942's phase 5.
+"""`seal mode`: the documents and the workflows that name the command.
 
 The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`.
-The cases here read the documents and the workflows that name the command,
-and are #923's.
+The cases here read the READMEs, the config template and the hygiene
+workflows that name the command.
 """
 
 import pytest
 from conftest import read
+
+# No TARGET: its cases hold seal mode across the READMEs, the config template and the two hygiene workflows.
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])

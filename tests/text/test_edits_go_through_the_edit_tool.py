@@ -20,6 +20,8 @@ pins the tool's name.
 
 from conftest import flat
 
+# No TARGET: its cases hold the edit rule across the agent contract and agents/proofer.md.
+
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 CARRIERS = (CONTRACT,)
 

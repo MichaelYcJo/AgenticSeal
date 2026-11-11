@@ -38,9 +38,11 @@ import os
 import re
 
 import pytest
-from conftest import ROOT
+from conftest import ROOT, census_case
 
-CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
+TARGET = "skills/agent-contract/SKILL.md"
+
+CONTRACT = os.path.join(*TARGET.split("/"))
 
 # The one reader of a contract heading, `## <N> <title>`. Every other module
 # that walks the contract's rules imports it from here.
@@ -284,3 +286,6 @@ def test_a_heading_in_the_old_spelling_is_refused_at_its_line():
     old = f"## \N{SECTION SIGN}{first.group(1)} {first.group(2)}"
     mutated = text[: first.start()] + old + text[first.end() :]
     assert misspelled_headings(mutated) == [text.count("\n", 0, first.start()) + 1]
+
+
+test_census = census_case(TARGET)

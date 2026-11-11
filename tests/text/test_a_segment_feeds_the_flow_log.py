@@ -47,6 +47,8 @@ import os
 
 from conftest import ROOT
 
+# No TARGET: its cases hold the flow log's measurement across skills/verify/orchestration.md and skills/verify/SKILL.md.
+
 # Since #940 the section is the orchestrator's, in the verify skill's
 # orchestration file; the crafter's and the sealer's `SKILL.md` no longer
 # carries it.

@@ -1,10 +1,10 @@
-"""What is left of `settle`'s old file: the cases that read the skill, the
-documents, the READMEs, the checklist and the cheat sheets, which wait for
-#923. #458, closing #83.
+"""The settle's documents: the cases read the skill, both editions of the
+README and of the seal README, the framer's definition and the release
+checklist. #458, closing #83.
 
-#942's phase 6 placed the cases that run the command or call
-`skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
-the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
+The cases that run the command or call
+`skills/settle/scripts/settle.py`'s functions stand in `tests/skills/test_settle.py`,
+and the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
 this file on the `check:` line of *A settle is not a work item*, whose rule
 `test_the_skill_names_how_a_settle_commits` holds. Since
 #1033 the skill states the settling session's procedure, and the cases that
@@ -16,6 +16,8 @@ import os
 import pytest
 from conftest import ROOT
 from conftest import flattened as flat
+
+# No TARGET: its cases hold the settle across its skill, both editions of the README and of the seal README, the framer's definition and the release checklist.
 
 
 def test_the_cheat_sheets_name_the_design_file_the_settle_reads():

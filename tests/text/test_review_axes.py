@@ -13,6 +13,8 @@ import re
 from conftest import read
 from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS, section
 
+# No TARGET: its cases hold what a review round reads and how the work is routed across the parity skill, the review skill, the implement skill's orchestrator files, the round record's form and the framer's definition.
+
 PARITY = "skills/legacy-parity/SKILL.md"
 
 

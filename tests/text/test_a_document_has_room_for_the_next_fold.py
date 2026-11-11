@@ -1,8 +1,7 @@
-"""What is left of `seal fold`'s old file: the two cases that read the
-cheat sheets and the settle skill, which wait for #923.
+"""The cheat sheets' `seal fold` row, in both editions.
 
-#942's phase 6 placed the cases that run `seal fold` or call
-`skills/settle/scripts/fold_check.py` in `tests/skills/test_fold_check.py`, which
+The cases that run `seal fold` or call
+`skills/settle/scripts/fold_check.py` stand in `tests/skills/test_fold_check.py`, which
 `docs/layout/the-record-layout.md` *The size a reader takes whole* names on its
 `check:` line.
 """
@@ -11,6 +10,8 @@ import os
 
 import pytest
 from conftest import ROOT
+
+# No TARGET: its cases hold the seal fold row across README.md and README.ko.md.
 
 
 @pytest.mark.parametrize("edition", ["README.md", "README.ko.md"])

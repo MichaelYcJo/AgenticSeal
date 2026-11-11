@@ -13,6 +13,8 @@ import os
 
 from conftest import ROOT
 
+# No TARGET: its cases walk every template under templates/records/.
+
 OPENER = "<" + "!--"
 
 # The record templates, `templates/records/`: a work item's records, and

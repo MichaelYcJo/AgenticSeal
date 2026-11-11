@@ -20,6 +20,8 @@ import re
 
 from conftest import ROOT, read
 
+# No TARGET: its cases hold the rider rule across seal/follow-up.md and the files a rider stands in.
+
 FOLLOW_UP = os.path.join(ROOT, "seal", "follow-up.md")
 
 # A coordinate is `path/to/file.ext:123` — the shape a rider is written at.

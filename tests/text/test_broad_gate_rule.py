@@ -23,6 +23,8 @@ import re
 
 from conftest import flat, read
 
+# No TARGET: its cases hold the one broad run across the agent definitions, the skills and the documents that state it.
+
 
 def test_the_broad_gate_section_cites_the_owner_of_its_timing():
     """The section that runs the gate cites the section that owns when the

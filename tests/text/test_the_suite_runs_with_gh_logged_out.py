@@ -7,21 +7,23 @@ on CI, whose pytest job has no token. `tests/conftest.py` takes `gh`'s login
 away at import, so the local answer is CI's answer. The two cases of that
 block, the structural one that reads what the conftest does to an
 environment and the behavioural one that asks `gh` which token it would
-send, are `tests/test_conftest.py`'s `Test_module` since #942's phase 7. The
-case left here reads `CONTRIBUTING.md`'s prose, which is #923's.
+send, are `tests/test_conftest.py`'s `Test_module`. The case here reads
+`CONTRIBUTING.md`.
 """
 
 import os
 
-from conftest import ROOT
+from conftest import ROOT, census_case
 from test_conftest import TOKENS
+
+TARGET = "CONTRIBUTING.md"
 
 
 def test_contributing_says_the_suite_runs_logged_out():
     """A6, the reader's half (contract rule 14). A contributor whose case
     goes red on a machine where `gh` works everywhere else needs to find why
     in the section that tells them how to run the suite."""
-    path = os.path.join(ROOT, "CONTRIBUTING.md")
+    path = os.path.join(ROOT, *TARGET.split("/"))
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     section = text.split("## Running the checks", 1)[1].split("\n## ", 1)[0]
@@ -41,3 +43,6 @@ def test_contributing_says_the_suite_runs_logged_out():
         assert needle in prose, (
             f"`CONTRIBUTING.md` *Running the checks* lacks: {needle}"
         )
+
+
+test_census = census_case(TARGET)

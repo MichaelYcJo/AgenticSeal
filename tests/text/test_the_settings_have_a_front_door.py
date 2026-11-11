@@ -15,6 +15,8 @@ nothing can mutation-test.
 import pytest
 from conftest import flat, read
 
+# No TARGET: its cases hold the config door across the config skill, the bootstrap, the config template and the READMEs.
+
 SKILL = ("skills", "config", "SKILL.md")
 # The bootstrap is the orchestrator's since #292, in its own file since #1046.
 BOOTSTRAP = ("skills", "implement", "bootstrap.md")

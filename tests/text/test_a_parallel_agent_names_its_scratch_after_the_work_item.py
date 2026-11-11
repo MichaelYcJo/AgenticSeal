@@ -43,6 +43,8 @@ import os
 
 from conftest import ROOT, read
 
+# No TARGET: its cases hold the scratch directory's name across the four agent definitions, the agent contract and the skills that name it.
+
 PROOFER = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")

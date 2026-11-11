@@ -41,6 +41,8 @@ import re
 
 from conftest import ROOT
 
+# No TARGET: its cases hold the release's tail across the release checklist, the branch and release document and the workflows and scripts its boxes name.
+
 CHECKLIST = "docs/releasing/release-checklist.md"
 AFTER_THE_MERGE = "*After the merge*"
 BRANCHING = "docs/releasing/branch-and-release.md"

@@ -76,6 +76,8 @@ from conftest import flattened as flat
 from conftest import repo_relative as name
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
+# No TARGET: its cases hold every rule of the agent contract against every definition under agents/.
+
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 

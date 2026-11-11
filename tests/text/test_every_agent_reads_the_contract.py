@@ -31,6 +31,8 @@ import pytest
 from conftest import ROOT, load, read
 from conftest import repo_relative as name
 
+# No TARGET: its cases walk every definition under agents/ and each skill their skills: lists preload.
+
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 rules = load(".github/scripts/rules.py", "agentic_rules_for_the_preloads")
 

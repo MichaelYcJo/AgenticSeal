@@ -20,6 +20,8 @@ import re
 from censuses import RECORDED_CASE
 from conftest import ROOT
 
+# No TARGET: its cases walk every case file under evals/behaviour/.
+
 SUITE = os.path.join(ROOT, "evals", "behaviour")
 FILES = ("prompt.md", "scaffold.sh")
 

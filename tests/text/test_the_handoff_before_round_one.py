@@ -17,6 +17,8 @@ import re
 
 from conftest import flat, read
 
+# No TARGET: its cases hold the handoff before round 1 across docs/running/the-run.md, the implement skill and the crafter's and framer's definitions.
+
 # --- the handoff before round 1 ---------------------------------------------
 
 

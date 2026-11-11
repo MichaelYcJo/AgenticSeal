@@ -68,6 +68,8 @@ import pytest
 from conftest import ROOT, code_lines, read
 from workflows import load
 
+# No TARGET: its cases read every workflow under .github/workflows/ and the shipped hygiene template.
+
 WORKFLOWS = ".github/workflows"
 TEST = f"{WORKFLOWS}/test.yml"
 HYGIENE = f"{WORKFLOWS}/hygiene.yml"

@@ -22,6 +22,8 @@ import pytest
 from conftest import flat
 from test_waiver_decided_at_start import in_force
 
+# No TARGET: its cases hold what straight to the PR owes across docs/running/the-review-and-parity-arms.md, skills/implement/orchestration.md and the release checklist.
+
 # The carrier, and the path of the record `straight to the PR` owes at a
 # ready pull request, which the orchestrator writes and the sealer reads.
 DIRECT_REQUIRES = {

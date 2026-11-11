@@ -43,6 +43,8 @@ import re
 
 from conftest import ROOT
 
+# No TARGET: its cases hold each rule's home across the documents that state it and the files that link it.
+
 BRANCHES = "docs/releasing/branch-and-release.md"
 CONTRIBUTING = "CONTRIBUTING.md"
 IMPLEMENT = "skills/implement/SKILL.md"

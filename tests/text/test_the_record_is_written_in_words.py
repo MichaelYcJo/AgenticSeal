@@ -20,6 +20,8 @@ import re
 import pytest
 from conftest import ROOT, read
 
+# No TARGET: its cases read every definition under agents/, every file of a skill's directory and every template.
+
 # Pictographs, the dingbats and miscellaneous symbols the old marks came from
 # (U+2600-U+27BF: the check mark, the cross), the technical block
 # (U+2300-U+23FF: the hourglass, the stopwatch), the arrows-and-shapes block
