@@ -164,8 +164,9 @@ def candidates():
 
     Round 1's 🟡 7. The slice ran from the `Broad gate` question's lead to
     the end of the whole Bootstrap section, so the four-row table could be
-    moved anywhere below — past the decline paragraph, out of the question entirely — and every
-    needle still matched a case named *the question proposes*.
+    moved anywhere below — past the decline paragraph, out of the question
+    entirely — and every needle still matched a case named *the question
+    proposes*.
     """
     boot = bootstrap()
     opening = "Read candidates off the repository"
@@ -404,6 +405,8 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     # #1055 S6: the citation of the skill section that holds the way back
     # before the commit to shared, which a reader resolves.
     assert SHARED_WAY_BACK in flat(body), readme
+    # The citation of the section that says which pin a workflow left behind
+    # by a move to local passes, which a reader resolves.
     assert LEFT_BEHIND[readme] in flat(body), LEFT_BEHIND[readme]
     # The pair of commands a person runs to carry the records between two
     # machines.
