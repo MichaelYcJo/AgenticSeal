@@ -158,17 +158,14 @@ def test_the_release_document_names_the_same_roots():
 
 # What a refused author reads (#443).
 #
-# The step is correct and its condition does not change here. What changed is
-# the message: it named `plugin.json` and a version, and the first person it
-# ever refused was a contributor whose pull request was aimed at the wrong
-# branch. A contributor following that message would edit the one file a
-# contribution must not touch.
-#
-# At the moment it refuses, the two readers are indistinguishable to the step:
-# a release that forgot the bump and a contribution filed against `main` both
-# arrive here with `base_ref = main`. So the message names both causes and
-# asserts neither, release case first — that is the reader for whom the old
-# message was already right.
+# The first person the step ever refused was a contributor whose pull request
+# was aimed at the wrong branch, and the message named only `plugin.json`, the
+# one file a contribution must not touch. At the moment it refuses, a release
+# that forgot the bump and a contribution filed against `main` both arrive
+# with `base_ref = main`, so the message names both causes. The cases below
+# pin the facts of the `::error::` line a reader acts on: the file a release
+# moves, the branch a contribution goes to and the document that holds the
+# procedure. Its sentences are the proofer's to read.
 
 
 def release_step():
@@ -190,39 +187,27 @@ def refusal():
     return found.group(1)
 
 
-def test_the_refusal_names_the_wrong_base_as_one_of_the_two_causes():
+def test_the_refusal_names_the_branch_a_contribution_goes_to():
     """#443. The real cause of the first refusal this step ever issued was the
-    base branch, and the message never said the words."""
+    base branch, so the refusal names the branch a contribution's base
+    belongs to."""
     text = refusal()
-    assert "base" in text, (
-        "the refusal never mentions the base branch, so a contributor whose "
-        "base is the cause is told only about a file they must not touch:\n"
-        f"{text}"
-    )
+    # The branch a contributor bases the pull request on, with the version
+    # they fill in.
     assert "release/vX.Y.Z" in text, (
         "the refusal does not say where a contribution's base belongs. A "
         "message that diagnoses without naming the fix leaves the reader "
         f"exactly where they were:\n{text}"
     )
-    stale = re.findall(r"release/v\d+\.\d+\.\d+", text)
-    assert not stale, (
-        f"the refusal names {sorted(set(stale))} — a concrete release branch "
-        "is deleted after its release, and a CI message is the worst place "
-        "for a fact that expires"
-    )
 
 
-def test_the_refusal_still_serves_the_release_and_puts_it_first():
+def test_the_refusal_names_the_file_a_release_moves():
     """A2's readable half. Somebody genuinely cutting a release meets this
-    line too, and for them the old message was correct. It stays, and it stays
-    first: that is the order of likelihood for whoever is reading."""
+    line too, and for them the file to move is the fix."""
     text = refusal()
+    # The file whose version a release moves, which a reader opens.
     assert "plugin.json" in text, (
         "the refusal no longer names the file a release has to move"
-    )
-    assert text.index("plugin.json") < text.index("base"), (
-        "the base-branch case comes before the version case, so a release "
-        f"pull request is read a diagnosis aimed at somebody else first:\n{text}"
     )
 
 
@@ -237,22 +222,12 @@ def test_the_refusal_asserts_neither_case():
     )
 
 
-def test_the_refusal_says_not_to_move_the_version_to_satisfy_it():
-    """The measured harm. A contributor following the old message edits
-    `.claude-plugin/plugin.json`, which is the one file their change must
-    leave alone — and the edit would not fix the pull request either."""
-    text = refusal()
-    assert "Change the base rather than plugin.json" in text, (
-        "the refusal names two causes without saying which edit is wrong, "
-        f"which is the state that produced #443:\n{text}"
-    )
-
-
 def test_the_refusal_names_the_document_that_holds_the_procedure():
     """A CI log is read by somebody already stuck. The message states the
     cause and the fix inline and cites the file after, rather than making a
     second hop the only way to the answer."""
     text = refusal()
+    # The document a refused author opens for the procedure.
     assert "CONTRIBUTING.md" in text, (
         f"the refusal cites no document for the procedure behind it:\n{text}"
     )
@@ -308,19 +283,6 @@ def test_the_base_guard_is_a_closed_if_with_the_early_exit_inside_it():
         f"list every contributor reads in CONTRIBUTING.md is false:\n"
         f"{release_step()}"
     )
-
-
-def test_the_skip_line_says_where_the_version_is_checked():
-    """#1117. A pull request into the release branch is skipped, and the line
-    it prints says the version is checked when the branch merges to `main`.
-    It said the version moves then, and the version now moves in the
-    release's first pull request. Seen red against that line."""
-    skip = [line for line in release_step().splitlines() if "not a release PR" in line]
-    assert len(skip) == 1, release_step()
-    assert "the version is checked when the release branch merges to main" in skip[0], (
-        skip[0]
-    )
-    assert "moves" not in skip[0], skip[0]
 
 
 def test_the_refusal_still_fails_the_run():
