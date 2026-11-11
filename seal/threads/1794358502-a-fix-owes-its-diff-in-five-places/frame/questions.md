@@ -8,7 +8,7 @@ The issue left these judgments open, and the tree answered each. Nobody needs to
 - Whether the proofer's two lists of the records count against "once across all preloaded files": `frame/plan.md` *Alternatives considered*, row 7.
 - Whether `agents/framer.md`, which the issue lists, takes an edit after #1473: `frame/design.md` G8.
 - What becomes of the citations of rule 12 in the orchestrator's and the framer's files: `frame/design.md` G8.
-- Whether 0.8 KB is 800 B or 820 B: `frame/design.md` G18.
+- Whether 0.8 KB is 800 B or 820 B: `frame/plan.md` *Judgments of the run*, row 1, which `frame/design.md` G18 and S1 follow.
 - Whether the sentences on a dated frame section, which the issue lists as a copy, change: `frame/plan.md` *Alternatives considered*, row 8.
 - Whether a case holds the move: `frame/plan.md` *Alternatives considered*, rows 11 and 12.
 
