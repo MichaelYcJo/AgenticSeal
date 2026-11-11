@@ -56,6 +56,11 @@ In `frame/design.md:29`, the clause becomes:
 `gate`'s comment at `:2610-2620` names `moved_line` and the refusal of a base that does not resolve as the readers of `base.given`
 ```
 
+```seal
+verdict: fixed d0d00e0c9
+answer: The finding holds: `grep -n '\.given\b'` lists `moved_line` and the refusal at `broad_gate.py:2247`, both readers. The comment above `resolve_base` now carries the paste-ready text, read against `gate()` first, and no other comment in the file counts the readers of `base.given`. The frame half, `frame/design.md` *Scope* item 2, was folded at `15d57e9bb`.
+```
+
 ### 2. The frame and the phase record name `gate()` as `main`
 
 ```seal
@@ -89,6 +94,11 @@ design.md:60  `gate` is its one caller in the plugin (executed: `git grep -n "pa
 design.md:78  `broad_gate.py#panel` rows at `:2314-2337`, `#unanswered`, `#coverage_line`, and `gate` at `:2655-2664`
 plan.md:7     The gate's arms are the repository's command, the chain check and the mode check, listed in the module docstring at `:12-29` and run by `gate` at `:2678-2694` (read).
 phase-1.md:12 `gate`'s comment above the chain arm gave `PARTITION`'s cases as the reason a preflight keeps one list of arms.
+```
+
+```seal
+verdict: fixed 15d57e9bb
+answer: The finding holds: `def gate` stands at `broad_gate.py:2197` and `def main` at `:2414`, and `running_line` is the stderr line `main` writes (`:2490`). The framer folded the frame's coordinates at `15d57e9bb`. `d0d00e0c9` changed `trail/phases/phase-1.md:12` to name `gate`, and rewrote `:5` to say the build's reading checked each line number and not the function the frame named, which this finding found. No other sentence in the range names `main` for a line in `gate()`.
 ```
 
 ## Confirmations
