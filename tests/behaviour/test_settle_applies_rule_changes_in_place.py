@@ -33,4 +33,6 @@ def test_the_skills_example_reads_as_the_skill_says():
             line for line in section.splitlines() if line.startswith(f"| `{kind}`")
         )
         fields = row.split("|")[2]
+        # Each field name of `rules.GRAMMAR`, which a framer writing an
+        # operation copies and the parser matches.
         assert all(f"`{name}`" in fields for name in need + may), row

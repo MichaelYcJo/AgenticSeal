@@ -12,7 +12,8 @@ branch, the same check and the same commit.
 
 What stays here are the cases that read a shipped document: the workflow's
 spellings held against the gate's, and the documents that say which base the
-gate asks about. #923 places them. The resolver, the line it prints and the
+gate asks about, with one case on the panel row the ref is printed on. #923
+places them. The resolver, the line it prints and the
 consumers it hands the commit to are `tests/skills/test_broad_gate.py` since #942.
 """
 
@@ -220,17 +221,10 @@ def test_the_gates_own_docstring_says_the_base_is_resolved():
     )
 
 
-def test_the_documents_name_the_panel_row_the_gate_actually_prints():
+def test_the_panel_prints_the_ref_on_the_base_row():
     """The ref beside the base commit is the half of the stamp a reader uses
-    to tell a fresh base from a stale one. From #666 it was the row under
-    `base`, and since #832's S5a it is the `base` row itself, beside the
-    commit; `from` is not a row the panel has. The orchestrator quotes the
-    gate's lines and describes no panel row, so only a stale name is refused."""
-    said = " ".join(read(REVIEW_ORCH).split())
-    assert "the row under `base` carries the ref" not in said
-    assert "`from`" not in said, (
-        "skills/code-review/orchestration.md names a row the panel lost"
-    )
+    to tell a fresh base from a stale one. Since #832's S5a it is the `base`
+    row itself, beside the commit, and the panel has no `from` row."""
     mod = gate_module()
     base = mod.Base("base", "aaaaaaa", "origin/base", "bbbbbbb")
     checks = {

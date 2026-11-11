@@ -410,4 +410,6 @@ def test_the_readme_names_the_behaviour_suite_and_every_case_outside_it():
         rel(d) for d in case_dirs() if d not in behaviour and rel(d) not in readme
     ]
     assert not unlisted, unlisted
+    # The directory `behaviour/`, which a reader of the README resolves to
+    # the behaviour suite's cases.
     assert "behaviour/" in readme

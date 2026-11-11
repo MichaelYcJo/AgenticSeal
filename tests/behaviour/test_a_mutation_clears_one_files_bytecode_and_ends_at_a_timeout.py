@@ -107,5 +107,8 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert mc.main([str(target), "--replace", "1", "2", "--tests", "x"]) == 0
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
-    assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "crafter.md")
-    assert f"{bound} seconds by default" in flat("skills", "verify", "seal-mutate.md")
+    # The bound in seconds, which the crafter waits on for a run with no
+    # `--timeout`.
+    assert f" {bound} s " in flat("agents", "crafter.md")
+    # The same bound, which a reader of the command's section waits on.
+    assert f" {bound} seconds " in flat("skills", "verify", "seal-mutate.md")

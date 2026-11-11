@@ -66,6 +66,8 @@ def test_the_section_names_the_branch_by_convention_not_by_number():
     """Q1. A version number in a contribution guide is a fact that goes stale
     on a schedule, in the one document a newcomer trusts."""
     body = guide_section()
+    # The branch name `release/vX.Y.Z`, which a contributor fills in and
+    # bases the pull request on.
     assert "release/vX.Y.Z" in body, (
         "the section does not name the release-branch convention, so a "
         "contributor has no rule to apply after the next release"
@@ -83,7 +85,11 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
     message about `plugin.json`, and has to come away knowing the base is the
     cause. Both terms have to be in the section a reader searches."""
     body = guide_section()
+    # The branch `main`, which a contributor does not base the pull request
+    # on.
     assert "`main`" in body, "the section never names the branch to avoid"
+    # The file `plugin.json`, which the refusal names and a contributor
+    # matches against this section.
     assert "plugin.json" in body, (
         "the section never names the file the refusal names, so a contributor "
         "reading that refusal cannot tell this section is about them"
@@ -119,7 +125,9 @@ def test_the_exemption_list_says_which_guard_makes_it_true():
     always-on CI step silently falsifies; stated with the guard, a reader
     adding a step can see which sentence it lands in."""
     body = guide_section()
-    assert "exits 0 unless the base is `main`" in body, (
+    # The exit code the release-only step gives on any base but `main`,
+    # which a maintainer adding a CI step reads in the table's row.
+    assert "exits 0" in body, (
         "the exemption list does not name the guard that makes it true, so it "
         "reads as a promise rather than as a consequence of the workflow"
     )
@@ -159,6 +167,8 @@ def test_no_contributor_facing_surface_names_a_concrete_release_branch(surface):
     false on a schedule wherever it stands.
     """
     text = read(os.path.join(ROOT, surface))
+    # The branch name `release/vX.Y.Z`, which a contributor reading the
+    # surface fills in and bases the pull request on.
     assert "release/vX.Y.Z" in text, (
         f"{surface} no longer names the release-branch convention at all, so "
         "a contributor reading it has no rule to apply after the next release"

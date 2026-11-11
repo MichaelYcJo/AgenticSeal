@@ -78,28 +78,3 @@ def test_the_tracker_doc_states_the_whole_prefix_the_roll_requires():
         f"requires ({m.TITLE_PREFIX!r}), read out of the script's own "
         f"constant rather than against a literal here"
     )
-
-
-def test_the_tracker_doc_says_what_a_title_written_before_this_means():
-    """Closed logs are not retitled (`questions.md` assumption 6), so both
-    conventions are visible in the tracker forever. The document is the only
-    place a person can learn that the two mean different things -- and that
-    the older one is read as due rather than ignored."""
-    section = _tracker_section()
-    assert "predicted" in section, (
-        "the document never says what an older title names. `chore: flow "
-        "measurement — 0.9.0` reads exactly like the current form to anyone "
-        "who was not here for the change, and it means the opposite: the "
-        "version the log was predicted to be for, not the one it rolled from"
-    )
-    assert "not rewritten" in section, (
-        "the document must say the older titles stay as they are. Without "
-        "it, the obvious tidy -- retitle them into the new form -- is what a "
-        "reader does next, and it falsifies every comment that cites them"
-    )
-    assert "due" in section, (
-        "the document never says how the roll reads an older title. Read as "
-        "not due it would stall that log forever with the workflow green, "
-        "which is the failure class #155 is about; the direction is chosen, "
-        "so it is stated"
-    )

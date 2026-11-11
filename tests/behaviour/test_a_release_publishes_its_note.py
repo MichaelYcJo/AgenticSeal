@@ -201,17 +201,27 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     anywhere in it, so a release that did not reach `dist` is a red run.
     Seen red against the workflow with no `dist` job."""
     dist = job(workflow(), "dist")
+    # The job's `needs` line, which the runner orders the job by.
     assert "    needs: publish" in dist, dist
+    # The job's `if` line, which the runner decides whether to run it by.
     assert "    if: ${{ !cancelled() && needs.publish.outputs.tag != '' }}" in dist, (
         dist
     )
+    # `.github/workflows/publish-release.yml`, the header comment's paragraph
+    # on `dist`: the job has no `continue-on-error`, so a release that did
+    # not reach `dist` is a red run. The key, written in the job, is one the
+    # runner acts on.
     assert not any("continue-on-error" in line for line in dist), dist
     held = steps(dist)
     assert len(held) == 2, held
     checkout, run = held
     assert checkout[0] == "      - uses: actions/checkout@v4", checkout
     assert any(line.strip() == "fetch-depth: 0" for line in checkout), checkout
+    # The same workflow, the comment above the job's checkout: the checkout
+    # keeps its credentials, because the script pushes `dist` with them. The
+    # key `persist-credentials`, written there, would drop them.
     assert not any("persist-credentials" in line for line in checkout), checkout
+    # The step's command, which the runner runs with the tag.
     assert "        run: python3 .github/scripts/dist_branch.py" in run, run
     said = {
         line.strip().split(":", 1)[0]: line.strip().split(":", 1)[1].strip()
@@ -222,4 +232,6 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     bot = "github-actions[bot]"
     assert said["GIT_AUTHOR_NAME"] == said["GIT_COMMITTER_NAME"] == bot, said
     assert said["GIT_AUTHOR_EMAIL"] == said["GIT_COMMITTER_EMAIL"], said
+    # The bot's address in the environment binding, which the commit the
+    # script makes carries as its author.
     assert "+github-actions[bot]@" in said["GIT_AUTHOR_EMAIL"], said

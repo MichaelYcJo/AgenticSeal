@@ -37,6 +37,8 @@ def test_the_workflow_runs_the_check_on_every_pull_request():
         os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
     ) as f:
         workflow = f.read()
+    # The script `issue_claims_check.py`, which a step of the workflow runs
+    # on every pull request.
     assert "issue_claims_check.py" in workflow
     assert os.path.isfile(
         os.path.join(ROOT, ".github", "scripts", "issue_claims_check.py")
@@ -52,7 +54,13 @@ def test_the_body_reaches_the_script_through_the_environment():
     ) as f:
         workflow = f.read()
     step = step_running(workflow, "issue_claims_check.py")
+    # The environment binding `PR_BODY`, through which the runner hands the
+    # script the body.
     assert "PR_BODY: ${{ github.event.pull_request.body }}" in step
+    # `.github/workflows/hygiene.yml`, the comment above the step *every issue
+    # this pull request claims, and every one it only names*: the body goes
+    # through `env:`, because `${{ }}` inside `run:` is substituted into the
+    # shell script the runner executes.
     assert "${{ github.event.pull_request.body }}" not in workflow.split("run:")[-1], (
         "the body is interpolated into a shell line"
     )

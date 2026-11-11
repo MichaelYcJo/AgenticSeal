@@ -300,6 +300,8 @@ def test_the_base_guard_is_a_closed_if_with_the_early_exit_inside_it():
         "left open runs its body on every pull request and is malformed "
         f"shell:\n{release_step()}"
     )
+    # The shell command `exit 0` inside the guard, which the runner runs to
+    # end the step early on any base but `main`.
     assert any("exit 0" in line for line in after[:closes]), (
         "the base guard is closed but nothing inside it returns early, so "
         "every contribution now reaches the version check and the exemption "
