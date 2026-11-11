@@ -106,6 +106,11 @@ The changelog fragment already states the folded rule
 (`changelog.md:3`), and so does the `to:` line at `frame/design.md:206`, so
 neither needs a change.
 
+```seal
+verdict: fixed 5416a887c
+answer: The finding holds. The framer's fold at `5416a887c` gives design *The criterion*'s removal paragraph (`:157`) and the first `## Removes` row (`:238`) the exception for a literal a rule of that text itself forbids, and narrows plan A1 to that reading, so none of the three answers the overlap the old way. Reading every frame sentence on absences, it also brought S2, G1 and the #1482, #1484 and #1485 rows of *Overlap with the release* to the same reading. The tests already held it, as this round confirms.
+```
+
 ### 2. One fold row of Judgments of the run still cites the framer's fold file, which the orchestrator does not act from
 
 ```seal
@@ -133,6 +138,11 @@ framer acts from. The commit fixed two of the three rows of the class.
 
 ```markdown
 | 2026-11-11 | The `docs/` check lines phases 1, 3 and 4 named, and the frame statements phase 4's hand-back names, went to the framer in the one fold after phase 4 | The plan's opening line holds the fold to after phase 4, so the framer reads every such line once | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+```
+
+```seal
+verdict: fixed 65407e62a
+answer: The finding holds. The row of the fold after phase 4 now cites `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, as the two rows `21ca6ecff` moved do.
 ```
 
 ## Confirmations
