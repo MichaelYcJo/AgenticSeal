@@ -1,0 +1,42 @@
+# Phase 5: 1794383425-a-committed-durations-file-turns-ci-red
+
+## What this phase found
+
+**The frame holds for this phase, with two corrections.** Each coordinate *Scope* item 8 and S10 name was opened at `a0c2b1a39` before the build (read).
+
+- `frame/design.md` *Out of scope* keeps `tests/conftest.py#posix_id` because it keeps a reason. The reason its docstring gave was that the union is measured on Windows and read on every sharded leg. That reason ended when macOS became one job. The union is now measured and read on the Windows leg alone, so an id written with `\` would be priced the same way on both sides. The docstring now states what remains: a case has one id on every system, and `repo_relative` writes a path with the function. The one `ids=posix_id` parametrization, `tests/behaviour/test_the_contributor_has_a_procedure.py:144`, stays, as *Out of scope* asks. `gaps.md` `## Not done` says so.
+- `frame/plan.md` *Overlap with the release* writes the #1487 row as a merge still to come. #1487 merged into `release/v0.37.4` as #1525 (`957a3bc7d`), and this branch holds it since the merge `3ed9a1bff` (executed: `git merge-base --is-ancestor 957a3bc7d HEAD`). The before reading in `frame/design.md` *Grounding* comes from runs up to 2026-11-11 08:51, before #1525 merged, so it includes #1487's test cases. The issue puts them at 115 s on Windows. An after reading taken on this branch does not include them, so the two readings are not of one suite.
+
+**Decisions, each judged against `frame/design.md` *Scope* item 8 and S10.**
+
+- **The timeouts are 5, 5, 10 and 10 minutes.** The rule the comment states is 1.5 times the leg's slowest measured job, rounded up to 5. The bases are the slowest jobs in `frame/design.md` *Grounding*, over 39 runs from 2026-11-09 to 2026-11-11 (read there, measured by the framer): ubuntu 3.12 130 s, ubuntu 3.14 140 s, and a Windows shard 242 s. macOS as one job has no measured run, so its base is the framer's model of 222 s on the slowest run. The arithmetic: 195 s, 210 s, 333 s and 363 s, rounded up to 5, 5, 10 and 10 minutes.
+- **The comment states the rule and holds no measurement.** `skills/core/SKILL.md` *The rule a mechanism is kept against* says nothing is kept beside the tree to stay in step with it. A base written into the comment would age the way the run ids did. The measurement stands here instead. The comment says where a leg's minutes are read: a run's jobs, and the release table's leg rows.
+- **The comment no longer cites `questions.md` Q6's rule (a) of work item 1791270165.** That work item's directory is not in the tree (executed: `ls seal/threads`), so the citation pointed at nothing. The comment states the rule itself.
+- **The comment says macOS's budget was set before its one job had run, from its shards' case time plus one fixed cost.** A reader holding the rule against a measured run then knows that 10 rests on a model, which `frame/questions.md` Q3 asks a run to settle.
+- **The sizing argument left with the run ids.** That is the 62 s and 45 s fixed costs, the 7,530 s suite, and the per-count minutes. `frame/design.md` *Removes* names those lines. What stays is the one sentence that says why a shard count matters: a shard's job is a fixed cost plus the leg's case time over the count.
+
+**Seen red (executed).**
+
+- `SHARDED` lost its macOS row before `test.yml` changed. `test_every_group_of_each_sharded_leg_runs_exactly_once` then failed at its line 104, `assert others and not any("split" in e for e in others)`, and the message listed the three macOS entries that still carried `split`. It passed once the workflow held one macOS entry.
+- `seal mutate` on `.github/workflows/test.yml` at `60838ede9`, over `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, ran 2 mutants and both were red. Each gave the macOS entry a split, `--splits 3 --group 1` in one and `--splits 1 --group 1` in the other. The second shows that a split of one is refused too, even though it would run the whole suite.
+- The other changes are prose: the `test.yml` comments, `CONTRIBUTING.md`, the comment above `PYTEST_SPLIT_VERSION` in `.github/scripts/run_tests.py`, and docstrings in `tests/conftest.py` and two test modules. Each module still imports and ran in the set below. No case reads the sentences that changed.
+
+**S10 (executed, at `60838ede9`).** `grep -c -E '[0-9]{11}' .github/workflows/test.yml` prints 0. The matrix holds ubuntu at 3.12 and 3.14 with `timeout: 5`, one `macos-latest` entry with no split and `timeout: 10`, and four Windows shards with `timeout: 10` (read).
+
+**The old fact's other statements (a sample).** `git grep -n -i` was run over the whole tree less `seal/threads/`, on `three shards`, `macos shard`, `macos leg`, `splits 3`, `#864`, `shards of the`, `sharded leg`, `macOS and Windows`, `Windows and macOS`, `four shards`, `15 minutes`, `20 minutes`, `timeout: 15`, `timeout: 20` and `which runs they`. A second search ran on `shard` and `timeout-minutes` over `docs`, `skills`, `agents`, `templates`, `lib`, `hooks` and the READMEs, which found nothing. Every hit that stated the macOS shards or the old sizing was rewritten:
+
+- `CONTRIBUTING.md` *Running the checks*: the list of CI jobs, the sentence on where the timeouts come from, the restore sentence, and the paragraph saying the union divides the macOS leg too.
+- The comment above `run_tests.py#PYTEST_SPLIT_VERSION`.
+- The docstring of `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py#test_ci_runs_the_suite_at_the_floor_the_runner_holds`, whose example was a macOS shard.
+- The module docstring of the shard module, and the docstrings of its S4 case and its interpreter-path case.
+- The `pytest-split` comment in `test.yml`.
+
+A search for wording is a sample. A sentence that states the macOS shards in other words is not reached by it.
+
+**The phase-boundary run (executed, at `60838ede9`, clean tree).** The set was the plan row's two modules; each test file this phase changed; and each test file that reads a path it changed. Those readers are `tests/test_conftest.py`, `tests/test_censuses.py`, `tests/test_workflows.py`, `tests/github/test_run_tests.py`, `tests/github/test_release_report.py`, `tests/skills/test_deferral_check.py`, `tests/skills/test_passages.py` and `tests/skills/test_chain_check.py`, plus the tree-wide `tests/text` and `tests/behaviour`. The command was `bin/test tests/text tests/behaviour tests/test_conftest.py tests/test_censuses.py tests/test_workflows.py tests/github/test_run_tests.py tests/github/test_release_report.py tests/skills/test_deferral_check.py tests/skills/test_passages.py tests/skills/test_chain_check.py -q`. It gave 2455 passed and 8 skipped.
+
+**This work item's CI run: not taken here (unverified).** The spawn asked this phase to push the branch, dispatch `tests` on it, and write each job's time here. Contract rule 6 withholds a push from every agent. The dispatched run runs the full suite, and contract rule 2 gives the full suite to the orchestrator. So neither act was taken. No run of this branch exists (executed: `git ls-remote origin refactor/1486-a-committed-durations-file-turns-ci-red` printed nothing, and `gh run list --branch` listed no run). This record therefore holds no job times. It also holds no after reading for S11, no count-split reading for `frame/questions.md` Q2, and no answer to Q3. `gaps.md` `## Not verified` names the orchestrator for each.
+
+What such a run would exercise, from the workflow text (read): a `workflow_dispatch` run is no pull request's. Each Windows shard runs the restore step, which matches no key, because nothing has saved one yet (`frame/design.md` *Grounding*). So the shards split by count and log `No test durations found`, which is S2. The macOS job does not restore, since it carries no split. The `durations` job uploads the union with a 90-day retention and runs the cache save step, which is the save half of S4. That cache entry is scoped to this branch. `release-report` does not run, because a dispatched run has no `base_ref`. Whether a later pull request restores the cache saved on this branch is `frame/questions.md` Q1's open half, and no run here answers it.
+
+**The before reading** is `frame/design.md` *Grounding*'s: the slowest Windows shard took a median 200 s and at most 242 s over 38 runs. #1487 had not merged when it was taken. The after reading is the orchestrator's, from this work item's own run, and #1487 is merged in it.
