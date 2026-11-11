@@ -33,7 +33,7 @@ The failure scenario of the chosen approach, six months on: a person wants to me
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 1, 2, 3, 4, 5 | `tests/evals/test_noninferiority.py` and `tests/evals/test_rule_cases.py`, each changed case seen red first (contract rule 15); S1 with its exit code read directly; S2 to S5 | |
+| 1 | Scope 1, 2, 3, 4, 5 | `tests/evals/test_noninferiority.py` and `tests/evals/test_rule_cases.py`, each changed case seen red first (contract rule 15); S1 with its exit code read directly; S2 to S5 | `7d718955b` |
 | 2 | Scope 6, 7, 8, 9, 10, 11, 12 | `tests/evals/test_rule_cases.py`, `tests/behaviour/test_evals_layout.py`, `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`, `tests/test_censuses.py`; S6 with each case's `diff -rq` recorded in the phase record; S7, S8 and S9 | |
 
 S10 rests on the full suite, which the orchestrator's broad gate runs.
