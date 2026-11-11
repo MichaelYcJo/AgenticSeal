@@ -8,7 +8,7 @@ above a table does not hide the table from it.
 
 The walker's cases against the oracle, over the corpus enumerated from the
 CommonMark and GFM block kinds, are `tests/lib/test_tables.py`'s
-`Test_gfm_table`, with the corpus, and #1489's phase 3 moved them there.
+`Test_gfm_table`, with the corpus.
 """
 
 import gfm_table_oracle as oracle

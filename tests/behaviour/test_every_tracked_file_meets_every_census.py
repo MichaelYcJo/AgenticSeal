@@ -4,9 +4,8 @@ module file runs the censuses over itself.
 A module file runs every census over its own target through
 `test_census = census_case(TARGET)`. The sweep here runs them over every
 other tracked file, the documents and every module no module file
-declares, and lists the tracked files once. It came, unchanged, from
-`tests/test_censuses.py`, which keeps each census's own cases over files they
-write into a temporary root.
+declares, and lists the tracked files once. Each census's own cases, over
+files they write into a temporary root, stand in `tests/test_censuses.py`.
 """
 
 import ast

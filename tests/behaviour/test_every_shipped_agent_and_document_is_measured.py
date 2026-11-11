@@ -3,9 +3,9 @@ has a row for every agent `agents/` defines and every policy document, and
 `seal payload` names every shipped agent.
 
 Each case lists `agents/` or `docs/`, so it stands in a file that declares no
-`TARGET`. They came, unchanged, from `tests/github/test_release_report.py`
-and `tests/skills/test_payload_meter.py`, which keep each meter's cases over
-fixtures and the helpers these cases call.
+`TARGET`. Each meter's cases over fixtures, and the helpers these cases
+call, stand in `tests/github/test_release_report.py` and
+`tests/skills/test_payload_meter.py`.
 """
 
 import json

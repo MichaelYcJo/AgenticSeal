@@ -9,8 +9,8 @@ that file lives
 in #326). Nothing bounded a mutated run either, and one hung for 32 minutes
 (#577).
 
-The cases that run the command moved to `tests/skills/test_mutation_check.py` in
-#942's phase 6. What stays here reads the sentences a session acts on: the
+The cases that run the command stand in `tests/skills/test_mutation_check.py`.
+What stays here reads the sentences a session acts on: the
 crafter's definition, `skills/verify/seal-mutate.md`, and the bound both of
 them state.
 

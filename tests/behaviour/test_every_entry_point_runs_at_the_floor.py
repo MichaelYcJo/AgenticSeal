@@ -7,8 +7,7 @@ through the launcher. What runs before any floor is checked, which this file
 derives from `hooks/hooks.json` and `bin/` over the tracked files, is linted
 at the version `ruff.toml`'s `per-file-target-version` names. Each case
 lists the tracked files or `bin/`, so it stands in a file that declares no
-`TARGET`. They came, unchanged, from `tests/lib/test_launch.py`, which keeps
-the launcher's own cases.
+`TARGET`. The launcher's own cases stand in `tests/lib/test_launch.py`.
 """
 
 import ast
