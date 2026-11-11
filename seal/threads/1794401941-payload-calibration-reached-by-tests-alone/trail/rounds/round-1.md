@@ -87,6 +87,11 @@ The attribution line stays below `Closes #1484.` as it stands. The repair
 is the orchestrator's, since no crafter writes `pr.md`
 (`skills/code-review/orchestration.md:446-449`).
 
+```seal
+verdict: fixed 2e534f6ad
+answer: The finding holds. `pr.md` now quotes each rejected row with its verdict cell as written, and the *Judgments of the run* title row, each with its coordinate alone; no sentence of the orchestrator's own account stands in it.
+```
+
 ### 2. The release note and the module docstring say every total is its bytes over 3.2, and the total is the sum of its rounded rows
 
 ```seal
@@ -145,6 +150,11 @@ session's, is the row's bytes over `ASSUMED_RATIO`, and each total's is the
 sum of its rows'". S2 and S5 (`frame/design.md:57`, `:60`) state only the
 basis label and stay as they read. No case changes, since the existing
 case already pins the sum.
+
+```seal
+verdict: fixed df5b6d30b
+answer: The finding holds: `_estimated` rounds each row and each total is the sum of its rounded rows. The second sentence of `changelog.md:3` and the `tokens` paragraph of `payload_meter.py:22-28` take the record's replacement text; the existing `test_every_token_figure_reads_estimated_at_the_assumed_ratio` already pins the sum. The framer restated design *Scope* item 2 and the plan's failure scenario at `9cd2aaf1e`.
+```
 
 ## Confirmations
 
