@@ -22,16 +22,12 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, code_lines, load_module, read
+from conftest import ROOT, code_lines, read
+from test_broad_gate import gate_module
 from workflows import load
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
-
-
-def gate_module():
-    return load_module(GATE, "agentic_broad_gate_for_range_tests")
-
 
 # --- the two readers, held against each other --------------------------------
 #

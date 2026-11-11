@@ -27,7 +27,7 @@ from conftest import (
     commit_everything_as_e,
     config_json,
     git,
-    load_module,
+    git_out,
     local_home,
     mark_root,
     pact,
@@ -36,45 +36,35 @@ from conftest import (
     symlink_or_skip,
     write,
 )
+from test_chain_check import chain
+from test_pact_check import pc
 from test_pr_body import (
     EXPECTED,
     LANGUAGES,
     MANIFEST,
     MARK_LINE,
+    NAME,
     OWN,
+    PR,
+    RECORDS,
+    ROW,
     manifest_of,
 )
-from test_pr_body import NAME as BODIED
-from test_pr_body import PR as PR_BODY
-from test_pr_body import RECORDS as BODY_RECORDS
-from test_pr_body import ROW as MARK_ROW
 from test_rules import HELD as RULES_HELD
 from test_rules import TESTS as RULES_TESTS
 from test_rules import doc as rules_doc
 from test_rules import rule as rules_rule
 from test_rules import rules as RULES
-from test_seal import status, unanswered
-from test_seal_stamp import ITEM_ID as STAMPED_ID
-from test_seal_stamp import ITEM_NAME as STAMPED
-from test_seal_stamp import closing_records, queued, routing_text
-from test_seal_stamp import stamp as STAMP
-
-SEAL = load_module(
-    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
-    "seal_beside_a_foreign_seal_dir",
+from test_seal import SEAL, said, status, unanswered
+from test_seal_stamp import (
+    ITEM_ID,
+    ITEM_NAME,
+    closing_records,
+    queued,
+    routing_text,
+    stamp,
 )
-CHAIN = load_module(
-    os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
-    "chain_check_beside_a_foreign_seal_dir",
-)
-UNVERIFIED = load_module(
-    os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py"),
-    "unverified_check_beside_a_foreign_seal_dir",
-)
-PACT = load_module(
-    os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py"),
-    "pact_check_beside_a_foreign_seal_dir",
-)
+from test_unverified_check import UC
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"
@@ -83,7 +73,7 @@ PACKAGE = {
     "seal/__init__.py": "VERSION = 1\n",
     "seal/README.md": "# seal\n\nThis package's own notes.\n",
 }
-RECORDS = {
+ROOT_RECORDS = {
     "follow-up.md": "# follow-up\n",
     f"threads/{ITEM}/routing.md": "# routing\n",
 }
@@ -105,9 +95,9 @@ def files_under(path):
 
 
 def records_at(home):
-    """HOME made a root holding RECORDS."""
+    """HOME made a root holding ROOT_RECORDS."""
     mark_root(home)
-    for rel, text in RECORDS.items():
+    for rel, text in ROOT_RECORDS.items():
         write(home, rel, text)
     return home
 
@@ -132,12 +122,6 @@ def shared(package):
     records_at(package / "agentic-seal")
     commit_everything_as_e(package, "the root")
     return package
-
-
-def said(capsys, cwd, *argv):
-    """(exit code, stdout) of `seal <argv>` run in CWD."""
-    code = SEAL.main(list(argv), cwd=str(cwd))
-    return code, capsys.readouterr().out
 
 
 def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
@@ -194,7 +178,7 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     assert "note: agentic-seal/notes.md is untracked" in out
     assert not (shared / "agentic-seal").exists()
     local = files_under(shared / ".git" / "seal")
-    for rel in RECORDS:
+    for rel in ROOT_RECORDS:
         assert local[rel] == written[rel], rel
     assert status(shared) and all(
         line.startswith("D  agentic-seal/") for line in status(shared)
@@ -331,7 +315,7 @@ def test_s6_a_copy_travels_as_seal_and_lands_under_agentic_seal(
     with zipfile.ZipFile(archive) as opened:
         names = sorted(opened.namelist())
     assert names == sorted(
-        ["manifest.json", "seal/README.md", *(f"seal/{rel}" for rel in RECORDS)]
+        ["manifest.json", "seal/README.md", *(f"seal/{rel}" for rel in ROOT_RECORDS)]
     )
 
     clone = tmp_path / "clone"
@@ -341,7 +325,7 @@ def test_s6_a_copy_travels_as_seal_and_lands_under_agentic_seal(
     code, out = said(capsys, clone, "import", str(archive), "--into", "shared")
     assert code == 0, out
     landed = files_under(clone / "agentic-seal")
-    for rel in RECORDS:
+    for rel in ROOT_RECORDS:
         assert landed[rel] == written[rel], rel
     assert files_under(clone / "seal") == before
 
@@ -396,7 +380,7 @@ def declared(shared, tmp_path, monkeypatch):
     request."""
     write(shared, f"{DECLARED}/routing.md", DECLARATION)
     commit_everything_as_e(shared, "the declaration")
-    git(shared, "switch", "-qc", "feature")
+    git_out(shared, "switch", "-qc", "feature")
     event = tmp_path / "event.json"
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
@@ -405,7 +389,7 @@ def declared(shared, tmp_path, monkeypatch):
 
 def checked(capsys, repo):
     """(exit code, stdout) of `chain_check.py` run on REPO against `main`."""
-    code = CHAIN.main(["--baseline", "main", "--root", str(repo)])
+    code = chain.main(["--baseline", "main", "--root", str(repo)])
     return code, capsys.readouterr().out
 
 
@@ -418,7 +402,7 @@ def test_s3_the_check_judges_the_declaration_under_agentic_seal(
     marker: the merge base's root is still an entry at HEAD."""
     write(declared, "docs/a.md", "# a\n")
     if removed:
-        git(declared, "rm", "-q", removed)
+        git_out(declared, "rm", "-q", removed)
     commit_everything_as_e(declared, "the change")
     code, out = checked(capsys, declared)
     assert code == 1, out
@@ -494,11 +478,11 @@ def test_s3_the_pull_request_that_adds_agentic_seal_is_judged_under_it(
     pull request that adds `agentic-seal/` has its declaration judged,
     and so it does where the same pull request takes the package's `seal/`
     out of the tree."""
-    git(package, "switch", "-qc", "feature")
+    git_out(package, "switch", "-qc", "feature")
     mark_root(package / "agentic-seal")
     write(package, f"{DECLARED}/routing.md", DECLARATION)
     if package_left:
-        git(package, "rm", "-rq", "seal")
+        git_out(package, "rm", "-rq", "seal")
     commit_everything_as_e(package, "the root")
     event = tmp_path / "event.json"
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
@@ -513,7 +497,7 @@ def test_s3_a_branch_nothing_declares_is_told_to_add_it_under_agentic_seal(
 ):
     """With no declaration naming the branch, the check names the place it
     searched and the file to add by the root's own name."""
-    git(shared, "switch", "-qc", "feature")
+    git_out(shared, "switch", "-qc", "feature")
     write(shared, "docs/a.md", "# a\n")
     commit_everything_as_e(shared, "the change")
     code, out = checked(capsys, shared)
@@ -532,9 +516,9 @@ def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(
     the declaration with it, and the package's `seal/` standing at HEAD is
     not the root that stayed. Under `--worktree` the deletion, staged and
     not committed, reads the same."""
-    git(declared, "rm", "-rq", "agentic-seal")
+    git_out(declared, "rm", "-rq", "agentic-seal")
     if worktree:
-        code = CHAIN.main(["--baseline", "main", "--root", str(declared), "--worktree"])
+        code = chain.main(["--baseline", "main", "--root", str(declared), "--worktree"])
         out = capsys.readouterr().out
     else:
         commit_everything_as_e(declared, "the root leaves the tree")
@@ -561,13 +545,13 @@ def test_s4_the_stamp_queues_a_sealed_guarantee_under_agentic_seal(package, caps
     commit_everything_as_e(package, "the work")
     target = git(package, "rev-parse", "--short", "HEAD").stdout.strip()
     base = git(package, "rev-parse", "--short", "main").stdout.strip()
-    item = package / "agentic-seal" / "threads" / STAMPED
+    item = package / "agentic-seal" / "threads" / ITEM_NAME
     closing_records(item, target, base)
     write(item, "routing.md", routing_text())
-    code = STAMP.main(["--guarantee", str(item / "guarantee.md")])
+    code = stamp.main(["--guarantee", str(item / "guarantee.md")])
     out = capsys.readouterr().out
     assert code == 0, out
-    assert out.startswith(f"agentic: the stamp for {STAMPED_ID} is queued in "), out
+    assert out.startswith(f"agentic: the stamp for {ITEM_ID} is queued in "), out
     assert len(queued(package / ".git")) == 1
 
 
@@ -583,35 +567,35 @@ def test_s5_pr_body_check_reads_the_seal_and_the_records_under_agentic_seal(
     exits 0. A refusal names the record by its path under `agentic-seal/`."""
     git(package, "switch", "-qc", "feature")
     home = mark_root(package / "agentic-seal")
-    write(home, "config.json", config_json(*LANGUAGES, *MARK_ROW))
-    item = home / "threads" / BODIED
-    for rel, text in BODY_RECORDS.items():
+    write(home, "config.json", config_json(*LANGUAGES, *ROW))
+    item = home / "threads" / NAME
+    for rel, text in RECORDS.items():
         write(item, rel, text)
     (item / "pr.md").write_bytes(OWN.encode("utf-8"))
     sha = commit_everything_as_e(package, "the build")
     write(
         item,
         "guarantee.md",
-        f"# Guarantee: {BODIED}\n\n```seal\ntarget: {sha} against main\n"
+        f"# Guarantee: {NAME}\n\n```seal\ntarget: {sha} against main\n"
         "Verdict: sealed\n```\n",
     )
     commit_everything_as_e(package, "the seal")
-    monkeypatch.setattr(PR_BODY, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+    monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
     monkeypatch.chdir(package)
     body = tmp_path / "pr-body.md"
-    assert PR_BODY.main([str(item), "--body", str(body)]) == 0
+    assert PR.main([str(item), "--body", str(body)]) == 0
     marked = EXPECTED.replace(
         "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
-    ).replace(f" seal/threads/{BODIED}/ ", f" agentic-seal/threads/{BODIED}/ ", 1)
+    ).replace(f" seal/threads/{NAME}/ ", f" agentic-seal/threads/{NAME}/ ", 1)
     assert body.read_bytes() == (OWN + marked).encode("utf-8")
     capsys.readouterr()
-    assert PR_BODY.main([str(item), "--body", str(body), "--check"]) == 0
+    assert PR.main([str(item), "--body", str(body), "--check"]) == 0
     assert "seal pr-body:" not in capsys.readouterr().out
     (item / "pr.md").unlink()
     for check in (["--check"], []):
-        assert PR_BODY.main([str(item), "--body", str(body), *check]) == 1
+        assert PR.main([str(item), "--body", str(body), *check]) == 1
         assert capsys.readouterr().out.startswith(
-            f"refused: agentic-seal/threads/{BODIED}/pr.md: is not there"
+            f"refused: agentic-seal/threads/{NAME}/pr.md: is not there"
         )
 
 
@@ -695,7 +679,7 @@ def test_s5_unverified_reads_agentic_seal_threads_as_the_roots_own(
     elif state == "absent":
         shutil.rmtree(shared / "agentic-seal")
     monkeypatch.chdir(shared)
-    code = UNVERIFIED.main(["agentic-seal/threads"])
+    code = UC.main(["agentic-seal/threads"])
     out = capsys.readouterr().out
     assert code == 0, out
     assert out.startswith(f"seal unverified: agentic-seal/threads {said_of_it}"), out
@@ -720,7 +704,7 @@ def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
         "# theirs\n\n## Not verified\n\nnot a table, and not a none line either\n",
     )
     monkeypatch.chdir(shared)
-    code = UNVERIFIED.main(["."])
+    code = UC.main(["."])
     out = capsys.readouterr().out
     assert code == 0, out
     assert "\n1 closing memos · 0 open · 0 closed · 0 unreadable\n" in out, out
@@ -744,7 +728,7 @@ def test_s5_pact_names_the_signers_key_under_agentic_seal(shared, tmp_path):
     write(shared / "agentic-seal", "config.json", pact_config(REMOTE))
     commit_everything_as_e(shared, "the pact")
     out = io.StringIO()
-    code = PACT.check(str(shared), out=out, home_dir=str(tmp_path))
+    code = pc.check(str(shared), out=out, home_dir=str(tmp_path))
     assert code == 2, out.getvalue()
     assert (
         f"REFUSED {REMOTE} agentic-seal/config.json — the `Pact signers` key "

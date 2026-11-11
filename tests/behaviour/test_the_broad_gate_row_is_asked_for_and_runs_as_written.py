@@ -20,10 +20,13 @@ read.
 """
 
 import os
+import pathlib
 import re
 
-from conftest import ROOT, read
+import conftest
+from conftest import read
 
+ROOT = pathlib.Path(conftest.ROOT)
 TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
