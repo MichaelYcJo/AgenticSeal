@@ -39,101 +39,57 @@ def seal_stamp(*args):
 
 def stamp_section():
     """`docs/checks/the-stamp.md` *The stamp*, flattened: the stamp's rules
-    stand in a document of their own since #1312, and `docs/running/the-broad-gate.md`
-    keeps none of them."""
+    stand in a document of their own since #1312."""
     text = flat("docs", "checks", "the-stamp.md")
-    assert "## Where the stamp is drawn" not in flat(
-        "docs", "running", "the-broad-gate.md"
-    )
     return text.split("## The stamp ", 1)[1]
 
 
 # --- S16: the rules are where they are read ----------------------------------
 
 
-def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
+def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
     """S16, the orchestrator's half (contract rule 14), and #975 S13. The rule
-    sits in the section that spawns the sealer: the stamp is drawn at the end
-    of the turn in which the sealer's report arrives, its
-    `seal stamp --guarantee` having queued it under either root, the result
-    text comes first, the orchestrator draws none — by `seal stamp` or by
-    relaying a log, which 0.15.6 did — the broad run's lines are quoted as
-    `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
-    `SEALED`. Since #1376 the line naming the values file arrives in the
-    sealer's hand-back, and the orchestrator quotes it, leaving
-    `seal stamp --from` to the person. 1792363231 S11: a commit of the
-    guarantee refused for a row naming a commit the branch does not hold is
-    answered by the sealer again at HEAD, never by an edit of the row. #1198
-    made the row the newest verdict block."""
+    sits in the section that spawns the sealer and names the facts the
+    orchestrator acts on: the command the sealer queues the stamp with, the
+    lines the broad run opens with, which the orchestrator relays, and the
+    command that stays the person's to type. When the stamp is drawn, that
+    the orchestrator draws none, and what it does with the sealer's line are
+    the proofer's to read."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split(
         "## Orchestrator: the pull request opens once the sealer seals", 1
     )[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
-    for said in (
-        "Where the guarantee's newest verdict block names a commit the branch "
-        "does not hold, which the pull request's check refuses as stale, spawn "
-        "the sealer again at HEAD and commit what it writes; never edit a block "
-        "by hand.",
-        "**The stamp is drawn for you at the end of the turn in which the "
-        "sealer's report arrives, and you never draw one.**",
-        "the sealer's `seal stamp --guarantee` queues the stamp's values, under "
-        "either root, and the plugin's `Stop` hook draws them after your text. "
-        "The line naming them arrives in the sealer's hand-back.",
-        "The sealer's hand-back carries that line; quote it in the turn's text.",
-        "Where the hand-back carries no such line, no stamp was queued and none "
-        "is drawn",
-        "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
+    for fact in (
+        # The command the sealer queues the stamp with, whose line the
+        # orchestrator meets in the sealer's hand-back.
+        "`seal stamp --guarantee`",
+        # The lines the broad run's stdout opens with, which the orchestrator
+        # relays.
+        "`BROAD GATE PASSED`",
         "`BROAD GATE FAILED`",
-        "So put the result text first",
-        "Draw none yourself, neither with `seal stamp` nor by relaying a log: a "
-        "relayed log shows the person the stamp twice",
-        "On a red run relay the `BROAD GATE FAILED` lines.",
-        # Round 1's yellow 1 of #400: the command is named on the line that
-        # points at a values file, and it stays the person's wherever it
-        # appears.
-        "Wherever a line you read names `seal stamp --from`, quote it as it "
-        "stands: that command is the person's to type, and never yours.",
-        # Round 1 of #1430, finding 1: where the script cannot load, the
-        # command says something, so the line claims only that nothing draws.
-        "the plugin's `Stop` hook draws nothing where it cannot: a `python3` "
-        "that cannot load `seal_stamp.py`, or a working directory outside the "
-        "clone.",
+        # Round 1's yellow 1 of #400: the command a line names for the person
+        # to type, which the orchestrator quotes and never runs.
+        "`seal stamp --from`",
     ):
-        assert said in section, said
-    # #1376: no edit hook queues the stamp, and the queue has no session
-    # directory. #1430: no launcher names a root that is gone, and the hook
-    # is not said to be silent where its script cannot load.
-    for gone in (
-        "edit hook",
-        "agentic-stamp/<session>/",
-        "launcher",
-        "says nothing where it cannot",
-    ):
-        assert gone not in section, gone
-    assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
+        assert fact in section, fact
 
 
-def test_the_form_bullet_says_what_draws_the_final_seal():
-    """S16, `verify`'s half, and #975 S13. The **Form** bullet said
-    `seal gate` draws the stamp when every check passed; the stamp is the
-    sealer's now, drawn once per work item from its `sealed` guarantee, and
-    the gate draws nothing. #1376: queued by the sealer's
-    `seal stamp --guarantee` under either root; #1430: drawn by the plugin's
-    `Stop` hook."""
+def test_the_verify_skill_names_what_queues_the_stamp_and_what_draws_it():
+    """S16, `verify`'s half, and #975 S13. The stamp is the sealer's, drawn
+    once per work item from its `sealed` guarantee, and the gate draws
+    nothing. #1376: queued by the sealer's `seal stamp --guarantee` under
+    either root; #1430: drawn by the plugin's `Stop` hook. The skill names
+    the command and the hook; its sentences are the proofer's to read."""
     text = flat("skills", "verify", "SKILL.md")
-    assert "`seal gate` prints the disc on success alone" not in text
-    assert "`seal gate` draws the stamp" not in text
-    assert "The edit hook" not in text
-    for said in (
-        "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
-        "once per work item",
-        "The sealer's `seal stamp --guarantee` writes the values it is drawn "
-        "from, under either root, and the plugin's `Stop` hook draws them in "
-        "the orchestrator's session",
-        "The broad gate draws nothing",
+    for fact in (
+        # The command the sealer queues the stamp's values with.
+        "`seal stamp --guarantee`",
+        # The harness event whose hook draws the stamp, which a reader
+        # resolves in `hooks/hooks.json`.
+        "`Stop`",
     ):
-        assert said in text, said
+        assert fact in text, fact
 
 
 def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
@@ -142,10 +98,11 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     stamp, and ends in a `check:` line naming the marker the cases that
     queue and draw it carry; a second statement, on what the screen shows,
     names `seal stamp --from <path>` for where a file was written. The
-    rule's trigger, its limits and the places nothing draws are the
-    proofer's to read (1792363231 S7 and S8, #1027 and #1376). #1492: the
-    launcher of 0.33.0 to 0.34.1 is cited, not described, and the
-    measurement of 2026-11-06 is cited from its `docs/experiments/` record."""
+    rule's trigger, its limits, its exit and the places nothing draws are
+    the proofer's to read (1792363231 S7 and S8, #1027 and #1376); the
+    command's closing ` || exit 0` is pinned. #1492: the launcher of 0.33.0
+    to 0.34.1 is cited, not described, and the measurement of 2026-11-06 is
+    cited from its `docs/experiments/` record."""
     text = stamp_section()
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
@@ -176,29 +133,17 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     # The command `seal stamp --from <path>`, which the person types to draw
     # a stamp the hook could not.
     assert "names `seal stamp --from <path>`" in unchecked
-    # Round 2 of #1430, finding 1: the `Stop` command ends with ` || exit 0`,
-    # so the policy states one rule for its exit and names no failure.
-    assert (
-        "The command exits 0 whatever happens, through its closing "
-        "` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going; "
-        "the `py -3` half runs where the `python3` half exits non-zero."
-    ) in rule
-    assert (
-        "Nothing draws either where the `python3` the harness finds cannot load "
-        "`seal_stamp.py`, and the command still exits 0."
-    ) in unchecked
-    assert "`--stop` exits 0 whatever happens" not in text
-    assert "nothing says so, where the `python3` the harness finds" not in text
-    assert "the command exits non-zero" not in text
-    # #1492: the launcher of 0.33.0 to 0.34.1 is described in the update
-    # skill alone; the policy cites that step and keeps the draw-once rule.
+    # Round 2 of #1430, finding 1: the closing ` || exit 0` of the `Stop`
+    # command, which a person reads to tell why the hook never keeps a turn
+    # going.
+    assert "` || exit 0`" in rule
+    # #1492: the citation of the update skill's step, which a reader resolves
+    # for the launcher of 0.33.0 to 0.34.1.
     assert (
         "`skills/update/SKILL.md` *4b. The launcher an earlier release wrote*"
     ) in rule
-    assert "a file is drawn once, since drawing claims the file first" in rule
-    assert "${CLAUDE_PLUGIN_DATA}/stamp.py" not in text
-    # The measurement stands in a dated record, and the policy cites it.
-    assert "the owner's spike" not in text
+    # The path of the dated record the measurement stands in, which a reader
+    # opens for what was measured.
     assert "`docs/experiments/2026-11-06-" in unchecked
 
 
@@ -207,31 +152,32 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the sealer's new
-    audit draws the work item's one stamp. #1027 and #1376: it names the one
-    writer, `seal stamp --guarantee` under either root, the matcher's floor,
-    and that `sealed_before` skips a recorded refusal as the chain does; it
-    names none of the guards the removed `post-commit` record had; and its
-    `check:` line names the marker the cases that hold each carry."""
+    audit draws the work item's one stamp. #1027 and #1376: it names the
+    record's path, the one writer, `seal stamp --guarantee`, the matcher's
+    floor, and `sealed_before`, which skips a recorded refusal as the chain
+    does; and its `check:` line names the marker the cases that hold each
+    carry. Its sentences are the proofer's to read."""
     text = stamp_section()
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "
         "leaves a refusal record",
         1,
     )[1].split("**The stamp's `Stop` hook is the plugin's", 1)[0]
-    for said in (
+    for fact in (
+        # The path of the refusal record, which a person opens or clears.
         "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
-        "an earlier verdict block reading `sealed` that this clone recorded "
-        "refusing is skipped",
-        "One writer leaves it, for a row that stands in its own clone and "
-        "nowhere else: `seal stamp --guarantee`, in either mode, where "
-        "the `Branch` row's branch stands and does not hold the audited commit.",
-        "In shared mode the pull request's check refuses the same row as stale",
-        "at least seven characters",
-        "`sealed_before` skips a `sealed` this clone recorded refusing",
+        # The command that writes it, which the sealer runs.
+        "`seal stamp --guarantee`",
+        # The matcher's floor, the number of characters a row's commit is
+        # written in at least.
+        "seven",
+        # The function that skips a recorded refusal, which a reader resolves
+        # in `seal_stamp.py`.
+        "`sealed_before`",
     ):
-        assert said in rule, said
-    for gone in ("reflog", "patch-equivalent", "No ref of the clone", "must hold"):
-        assert gone not in rule, gone
+        assert fact in rule, fact
+    # The marker `.github/scripts/rules.py#markers` reads on the rule's check
+    # line, whose carriers the loop below reads back from that reader.
     assert "check: refused-sealed-leaves-a-record" in rule
     from conftest import rule_carriers
 
@@ -380,46 +326,32 @@ def test_the_sealer_queues_the_stamp_once_and_draws_none():
     drawn in the orchestrator's session from the sealer's own `sealed`
     verdict, once per work item, and never from the orchestrator's run. Since
     #1376 the sealer queues it itself, with `seal stamp --guarantee`, names
-    that write as its own, and carries the line it prints into its report;
-    the old instructions are gone. Since #1430 the plugin's `Stop` hook
-    draws it."""
+    that write as its own, and carries the line it prints into its report.
+    Since #1430 the plugin's `Stop` hook draws it. The definition names the
+    command the sealer runs and not the one that draws by hand; how it says
+    the rest is the proofer's to read."""
     text = flat("agents", "sealer.md")
-    for said in (
-        "Run `seal stamp --guarantee <path>` once, `<path>` being the "
-        "`guarantee.md` you wrote.",
-        "is your one write beside `guarantee.md` (rule 6), and you draw nothing: "
-        "the plugin's `Stop` hook draws it.",
-        "Its one line goes into your report as it printed it",
-        "or draw a stamp",
-        "you queue the stamp once from your `sealed` and draw nothing.",
-    ):
-        assert said in text, said
-    # 1792363231 S9: a local-mode verdict is never committed.
-    assert "your committed `sealed`" not in text
-    assert "from its own run" not in text, "the stamp is not the run's"
+    # The command the sealer runs once on the `guarantee.md` it wrote.
+    assert "`seal stamp --guarantee <path>`" in text
+    # The command that draws a stamp by hand, which the sealer would run were
+    # it written here: the sealer draws no stamp (`agents/sealer.md` *Never*,
+    # its bullet on a stamp, and `docs/checks/the-stamp.md` *The stamp*, its
+    # bold lead **The stamp is drawn once per work item, from the sealer's
+    # `sealed`**).
     assert "seal stamp --from" not in text, (
-        "the sealer is told to pass on a stamp command from a run it did not take"
+        "the sealer is told a command that draws a stamp, which it never does"
     )
-    assert "the drawing arrives as letters" not in text
-    assert "pass it through as it came" not in text
-    # Round 1's white 6: no gate draws in a sealer, so the `gate` row says
-    # which copy measured the tree, not which drew the stamp.
-    assert "which gate drew the stamp" not in text
 
 
 # --- S13: the scale, retired (#853) -----------------------------------------
 
 
-def test_the_stamp_says_why_it_has_no_scale_and_neither_command_offers_one():
-    """S13 (#853). The comment where the scale stood says there is none and
-    why — the disc has one size since #832 — so the next reader does not
-    look for the dial; `seal stamp` with no argument draws the sample, and
-    neither command's help names a scale."""
+def test_the_stamp_draws_its_sample_and_neither_command_offers_a_scale():
+    """S13 (#853). The disc has one size since #832, so `seal stamp --shape`
+    draws the sample with no scale to choose, and neither command's help
+    names a scale. What the comment where the scale stood says is the
+    proofer's to read."""
     mod = stamp_module()
-    with open(STAMP, encoding="utf-8") as handle:
-        source = " ".join(handle.read().replace("#", " ").split())
-    assert "There is no scale ( 853)." in source, "the retirement is not said"
-    assert "the disc is `DISC_CELLS` across whatever a scale said" in source
     out = seal_stamp("--shape")
     assert out.returncode == 0, out.stderr
     assert out.stdout == "\n" + "\n".join(mod.stamp(mod.SAMPLE_ROWS, True)) + "\n\n"

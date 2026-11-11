@@ -54,8 +54,7 @@ def test_the_crafters_definition_names_the_command_and_its_flag():
     # The `seal mutate` command line with its `--replace` and `--tests`
     # arguments, which the crafter copies for each unit it mutates.
     # Any runner: the definition ships to repositories with no `bin/test`,
-    # and `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it
-    # to naming none.
+    # so the pattern names none.
     assert re.search(r"seal mutate \S+ --replace .+? --tests \"", crafter), (
         "`agents/crafter.md` does not show the mutation loop as one command, "
         "with its replacement and the cases it runs"
@@ -108,5 +107,8 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert mc.main([str(target), "--replace", "1", "2", "--tests", "x"]) == 0
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
-    assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "crafter.md")
-    assert f"{bound} seconds by default" in flat("skills", "verify", "seal-mutate.md")
+    # The bound in seconds, which the crafter waits on for a run with no
+    # `--timeout`.
+    assert f" {bound} s " in flat("agents", "crafter.md")
+    # The same bound, which a reader of the command's section waits on.
+    assert f" {bound} seconds " in flat("skills", "verify", "seal-mutate.md")

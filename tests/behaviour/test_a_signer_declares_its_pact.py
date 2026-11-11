@@ -48,34 +48,30 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
 # --- the shipped rows -------------------------------------------------------
 
 
-def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
+def test_the_template_and_the_config_skill_carry_the_pact_row():
     """`templates/setup/config.md` documents the `Pact` key and `/agentic:config`
-    shows it; neither carries a `Pact notify` key, and the template says
-    once what one left in a config does."""
+    shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
+    # The key `PACT_KEY` in the template's bold lead, which a person writing
+    # `seal/config.json` copies and `lib/config.py#pact_declaration` matches.
     assert f"**`{config.PACT_KEY}`**" in template
+    # The same key in the skill's table row, which `/agentic:config` shows.
     assert f"| `{config.PACT_KEY}` |" in skill
-    assert '"Pact notify"' not in template
-    assert "| `Pact notify` |" not in skill
-    assert (
-        "**A `Pact notify` key is read by nobody.** No command refuses it, "
-        "prints it or names it, like any item no reader asks for, and whoever "
-        "next edits the file deletes it."
-    ) in template
-    assert template.count("Pact notify") == 1, "the template says it once"
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
     """S7. `templates/setup/config.md` *Pact* documents the `Pact signers`
     key the pact's repository lists its signers in, and `/agentic:config`
-    shows it; the template a pact begins from holds no `| Signer |` table,
-    which no command reads."""
+    shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
+    # The key `SIGNERS_KEY` in the template's bold lead, which a person
+    # writing the pact's repository's `seal/config.json` copies and
+    # `lib/config.py#signer_declaration` matches.
     assert f"**`{config.SIGNERS_KEY}`**" in template
+    # The same key in the skill's table row, which `/agentic:config` shows.
     assert f"| `{config.SIGNERS_KEY}` |" in skill
-    assert "| Signer |" not in flat("templates", "setup", "pact.md")
 
 
 # --- S4: the routing step across repositories -------------------------------

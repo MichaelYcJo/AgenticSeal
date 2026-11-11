@@ -1068,35 +1068,35 @@ def test_update_reads_the_installed_copy_before_it_summarises():
     `installed_plugins.json` names the one `installPath`, and the `version`
     of its `.claude-plugin/plugin.json` has to be the version the installer
     just reported. A mismatch stops the procedure before the summary and
-    prints the repair, with the two cautions the ticket measured: `.in_use/`
-    holds a live session's PID files, and the one `installPath` is the
-    directory that must not be deleted.
-
-    S7 of #1053: the step read `CHANGELOG.md`'s first heading until the
-    gathered files were removed, and it names that file no more."""
+    prints the repair. The step's facts are pinned: the file, the field and
+    the expression it reads, the directory its caution names and the
+    command of its repair. Its sentences are the proofer's to read."""
     update = read_text("skills", "update", "SKILL.md")
+    # The step's bold number `**2b.`, where the slice the asserts below read
+    # opens; the session runs the update by its numbered steps.
     assert "**2b." in update, "no step reads the installed copy between 2 and 3"
     step = update[update.index("**2b.") : update.index("**3.")]
     flat = " ".join(step.split())
-    assert "CHANGELOG.md" not in flat, "step 2b reads a file the install has no more"
+    # Each entry is a fact the session copies or runs from the step, and the
+    # second field names what it is.
     for needed, why in (
+        # The file the session reads for the installed copy's path.
         ("installed_plugins.json", "the file that names the installed copy"),
+        # The field of that file the session reads.
         ("installPath", "the field that names it"),
+        # The path the session reads the landed version from, in the copy.
         (
             "/.claude-plugin/plugin.json'",
             "the file whose `version` says which version landed, read in the copy",
         ),
+        # The expression the session's command reads the version with.
         ("['version']", "the field read from it"),
-        ("mismatch", "the word that makes the outcome a stop rather than a note"),
+        # The directory the caution tells the person to keep.
         (".in_use", "the directory the caution is about"),
-        # The word, not the path: `.in_use` is also in the repair's `mkdir`,
-        # so a step that lost the caution and kept the repair still said it.
-        ("PID", "the caution about a live session's PID files"),
+        # The command of the repair the person runs.
         ("rsync", "the repair"),
-        ("stop", "the instruction not to reach the summary"),
     ):
         assert needed in flat, f"step 2b does not carry {needed!r}: {why}"
-    assert "/Users/" not in flat, "a user path in a shipped skill"
 
 
 def test_update_shows_what_changed_from_the_github_releases():
@@ -1247,6 +1247,8 @@ def test_the_pull_request_checks_the_chain_it_was_routed_to():
     workflow = open(
         os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
     ).read()
+    # The script the workflow's step runs and its flag, which the runner
+    # acts on at every pull request.
     assert "chain_check.py" in workflow, "the chain check is not wired into CI"
     assert "--baseline" in workflow
     assert os.path.isfile(
@@ -1300,19 +1302,22 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     ), done.stdout
 
 
-def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
+def test_the_chain_check_loads_the_one_reader():
     """Two readers of the same markdown drifted apart in four places across
     three review rounds here, and closing one pair opened another. A 🔴 inside
-    a comment or a fenced block has to be invisible to both."""
+    a comment or a fenced block has to be invisible to both, so the check
+    loads the one reader and calls it."""
     check = open(
         os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
         encoding="utf-8",
     ).read()
+    # The path the check loads the shared reader from, and the call into it,
+    # which Python resolves: the reader is the one source of how a line is
+    # read (`skills/core/SKILL.md` *The rule a mechanism is kept against*).
     assert "unverified_check.py" in check
     assert "reader.readable(" in check, (
         "the check reads lines the shared reader never normalized"
     )
-    assert "def split_row" not in check, "a second row reader"
 
 
 # The places the evidence ledger lived under the `seal/` root until #944

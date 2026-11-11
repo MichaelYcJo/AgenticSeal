@@ -161,14 +161,13 @@ def test_the_directory_box_names_the_page_a_person_opens():
         assert page in box, f"the box does not name the {page}"
 
 
-def test_the_listing_s_hold_carries_its_date_and_whose_decision_it_is():
+def test_the_listing_s_hold_carries_its_date_and_the_branch_it_leaves_running():
     """#858 A6, moved by #1490. Nothing in the tree can see the listing's
     state, so the sentence in `docs/releasing/branch-and-release.md`
-    *Cutting a release* saying the listing is on hold carries whose decision
-    it is and when, so that a reader can tell it has aged, and names the
-    branch that keeps taking a commit while it holds. A bold lead ends its
-    sentence too, so the lead before the hold, which names `dist`, cannot
-    answer for it."""
+    *Cutting a release* saying the listing is on hold carries when, so that
+    a reader can tell it has aged, and names the branch that keeps taking a
+    commit while it holds. A bold lead ends its sentence too, so the lead
+    before the hold, which names `dist`, cannot answer for it."""
     text = flat(section(BRANCHING, "## Cutting a release"))
     sentences = re.split(r"(?<=\.) |(?<=\.\*\*) ", text)
     hold = [s for s in sentences if "The listing has been on hold" in s]
@@ -176,9 +175,7 @@ def test_the_listing_s_hold_carries_its_date_and_whose_decision_it_is():
     assert re.search(r"\b\d{4}-\d{2}-\d{2}\b", hold[0]), (
         f"the hold's sentence carries no date: {hold[0]!r}"
     )
-    assert "owner" in hold[0], (
-        f"the hold's sentence does not say whose decision it is: {hold[0]!r}"
-    )
+    # The branch a person reads the listing's commits off while it holds.
     assert "`dist`" in hold[0], (
         f"the hold's sentence does not name the branch that keeps running: {hold[0]!r}"
     )

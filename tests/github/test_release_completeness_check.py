@@ -21,8 +21,7 @@ the subjects and that either one fails the step.
 
 #942's phase 6 placed these cases from
 `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`, which keeps the
-cases that read the hygiene workflow's step and the two docstrings that
-draw the input boundary.
+cases that read the hygiene workflow's step.
 """
 
 import importlib.util

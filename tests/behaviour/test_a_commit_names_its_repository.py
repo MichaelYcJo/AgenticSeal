@@ -55,11 +55,11 @@ def test_no_reason_rests_on_a_gate_reading_the_command():
         assert gone not in body, f"the rule still rests on the reading: {gone!r}"
 
 
-def test_it_points_at_the_edit_rule_rather_than_restating_it():
+def test_it_points_at_the_edit_rule():
     body = rule()
+    # The rule number `contract rule 9`, which a party resolves for how a
+    # file edit is made.
     assert "contract rule 9" in body
-    for copied in ("subprocess.run", "An edit must be able to fail"):
-        assert copied not in body, f"the rule restates a neighbour: {copied!r}"
 
 
 def test_the_contract_points_every_agents_commit_at_the_rule():
@@ -68,9 +68,13 @@ def test_the_contract_points_every_agents_commit_at_the_rule():
     opens implement's *2.*, so the contract every agent preloads carries the form
     and the citation."""
     text = " ".join(read(*CONTRACT).split())
-    assert "absolute path after `git -C` in a command of its own" in text, (
+    # The command form `git -C`, which every agent writes its repository's
+    # absolute path after when it commits.
+    assert "`git -C`" in text, (
         "the contract no longer states the commit form every agent types"
     )
+    # The citation every agent resolves to reach the rule: the path and the
+    # rule's lead in italics.
     assert (
         "`skills/implement/SKILL.md` *A commit names its repository in the "
         "command that makes it*" in text

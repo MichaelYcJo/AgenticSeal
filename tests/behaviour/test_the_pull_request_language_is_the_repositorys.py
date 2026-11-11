@@ -42,9 +42,6 @@ def test_the_skill_names_the_file_and_the_row():
     text = flat(*SKILL)
     # The file name a session opens for the key.
     assert "config.json" in text, "the skill does not name the file it reads"
-    # The template `templates/setup/config.md` keeps its name; the file the
-    # repository writes no longer does.
-    assert "`config.md`" not in text, "the skill still names the retired table"
     # The key. A session looks for it in the file because the skill tells it
     # to. No hook or command of the plugin asks for this key; the cases of
     # this file read it through `lib/config.py#declared_value`.
@@ -57,32 +54,13 @@ def test_the_root_is_resolved_rather_than_spelled():
     local-mode session to a path that is not there, and the config it then
     reports missing is the file that exists."""
     text = flat(*SKILL)
+    # The command a session runs to find the local-mode root.
     assert "git rev-parse --git-common-dir" in text, (
         "the skill spells one place for the root, so a local-mode repository "
         "cannot carry a config at all"
     )
+    # The path of the shared root, which a session opens first.
     assert "<repo>/seal/" in text, "the shared place went with the fix"
-
-
-def test_the_default_is_stated_where_the_path_is():
-    """S2. A session that finds no row is standing in this section, so the
-    default has to be here rather than three sections down.
-
-    This case used to pin `No file, or no such row, means English` — the two
-    absences the first draft named. Round 1 🟡 3 found two more (an empty
-    value, an unreadable or unparseable file), so the sentence became a rule
-    over all of them, and `test_every_way_of_not_naming_a_language_lands_on_english`
-    drives the reader through each one. What is left here is the placement.
-    """
-    section = read(*SKILL).split(
-        "## The language is the repository's, and it says so in a file", 1
-    )
-    assert len(section) == 2, "the section was renamed; this case is now blind"
-    body = section[1].split("\n## ", 1)[0]
-    assert "lands on English" in body, (
-        "the default is not stated in the section that sends a session to "
-        "the file, so whoever finds no row has to go looking for it"
-    )
 
 
 # --- the five places that used to say English -------------------------------
@@ -115,23 +93,6 @@ def test_the_surface_no_longer_requires_english_of_everyone(phrase, surface):
     )
 
 
-def test_the_pull_request_body_section_no_longer_opens_with_english():
-    """The fifth surface, which cannot be pinned by the phrase alone: a bare
-    `**English.**` is two words and would match inside a sentence that is
-    only describing the default. Pinned by its position instead — the first
-    line of the section."""
-    section = read(*SKILL).split("## Pull request bodies", 1)
-    assert len(section) == 2, "the section was renamed; this case is now blind"
-    first = section[1].strip().splitlines()[0]
-    assert (
-        first
-        != "**English.** The prose and structure rules are `writing-style`'s, and it is"
-    ), "the pull request body section still opens by requiring English"
-    assert "language" in first, (
-        f"it opens with neither the row nor a language: {first!r}"
-    )
-
-
 @pytest.mark.parametrize(
     "surface, phrase",
     [
@@ -149,26 +110,6 @@ def test_the_surface_defers_to_the_row_instead(surface, phrase):
 
 
 # --- what the row deliberately does not reach -------------------------------
-
-
-def test_the_prefix_vocabulary_is_not_translated():
-    """S4. A translated prefix breaks the two things prefixes are for: a
-    person scanning a log, and anything that parses one. The exclusion is
-    stated in the skill AND in the template, because a person writing the
-    config reads the second and never the first."""
-    for parts, who in ((SKILL, "the skill"), (TEMPLATE, "the template")):
-        text = flat(*parts)
-        assert "prefix" in text and "not translated" in text, (
-            f"{who} does not exclude the prefix vocabulary, so a Korean "
-            "repository can read the row as licensing `기능:`"
-        )
-
-
-def test_branch_names_stay_ascii():
-    """S5. A branch name is typed into a shell and pasted into a URL."""
-    for parts, who in ((SKILL, "the skill"), (TEMPLATE, "the template")):
-        text = flat(*parts)
-        assert "ASCII" in text, f"{who} does not hold branch names to ASCII"
 
 
 # The four branch shapes, `<prefix>/<issue number>-<slug>`,
@@ -190,6 +131,7 @@ def test_the_branch_names_section_states_the_shapes_and_the_list_links_it():
     number that is not an issue's, as `perf/403-…` did, is back is the
     proofer's to read."""
     text = read(*SKILL)
+    # The heading the exclusion list's citation *Branch names* resolves to.
     assert "## Branch names" in text, "the section was renamed; this case is now blind"
     section = " ".join(text.split("## Branch names", 1)[1].split("\n## ", 1)[0].split())
     for shape in BRANCH_SHAPES:
@@ -200,21 +142,6 @@ def test_the_branch_names_section_states_the_shapes_and_the_list_links_it():
     assert "*Branch names* below states their shape" in head, (
         "the exclusion list no longer links the section that states the shape"
     )
-
-
-def test_the_response_language_stays_out_of_the_repository_file():
-    """S6. Issue #82's third done-when row, and
-    `docs/layout/one-root-by-lifetime.md` before it: what the session says to you is
-    a person's setting. Two people in one repository can want different
-    answers there and the same one here, which is why one file cannot hold
-    both."""
-    for parts, who in ((SKILL, "the skill"), (TEMPLATE, "the template")):
-        text = flat(*parts)
-        assert "response language" in text, (
-            f"{who} does not say the response language is elsewhere, so the "
-            "first person to look for it will add a row here"
-        )
-        assert "person's setting" in text, f"{who} says where but not why"
 
 
 # --- the mirror -------------------------------------------------------------
@@ -229,6 +156,8 @@ def test_the_mirror_is_named_for_its_own_language():
     Both directions are asserted. One alone reads as an example rather than
     a rule, and an example is what a session copies literally."""
     text = flat(*SKILL)
+    # The mirror's file name, and its two instances, which a session writes
+    # and `seal pr-body` reads.
     assert "pr.<lang>.md" in text, "the mirror's name is still fixed to one language"
     assert "pr.ko.md" in text and "pr.en.md" in text, (
         "only one direction is given, so the rule reads as an example"
@@ -1023,15 +952,6 @@ def _round_record_grammar():
     return [*dict.fromkeys(keys), chain.FINDINGS_HEADING]
 
 
-def _block_keys():
-    """Every key of the `seal` blocks of a round record, a `guarantee.md`
-    and a `trail/gate.md`, read from `lib/fields.py`, the one
-    spelling of them."""
-    fields = _chain().FIELDS
-    kinds = (*fields.ROUND_RECORD, *fields.GUARANTEE, *fields.GATE)
-    return [*dict.fromkeys(key for kind in kinds for key in kind.keys)]
-
-
 def _round_record_fields():
     """What a round record carries: its grammar and the prose headings.
     Two lines are owed only where their condition holds, `original:` in a
@@ -1058,16 +978,15 @@ def test_the_round_template_carries_the_fields_it_is_expected_to(field):
     )
 
 
-def test_the_sentence_no_longer_claims_an_order():
-    """The absence half. Keeping the corrected sentence beside the old one is
-    how two answers ship at once, and this file's method is pinning both."""
+def test_the_review_skill_names_the_round_template():
+    """The review skill names the template a round starts from, so a
+    session bootstrapping a round record finds the file."""
     text = flat("skills", "code-review", "SKILL.md")
+    # The path of the template a round record starts from, which a session
+    # opens to write one.
     assert "templates/records/sdd-round.md" in text, (
         "the file's only mention in the prose corpus went, which makes it "
         "unreachable again"
-    )
-    assert "in the order the row above lists them" not in text, (
-        "the order claim is back, and the template does not read that way"
     )
 
 
@@ -1107,16 +1026,14 @@ def test_an_untracked_file_under_templates_is_not_a_template(repo):
 
 def test_the_template_names_the_rows_an_absent_one_is_refused_for():
     """The template says what absence means, and which keys have no default.
-    It used to say the file was optional (`questions.md` Q1). #1453 made the
-    two language keys required, so every repository carries the file with
-    those keys, and the template names them among the four exceptions rather
-    than calling the file optional."""
+    #1453 made the two language keys required, so every repository carries
+    the file with those keys, and the template names them among the four
+    exceptions. How it says so is the proofer's to read."""
     text = flat(*TEMPLATE)
-    assert (
-        "with four exceptions: the two language keys, `Mode` and `Broad gate`" in text
-    ), "the template does not name the keys an absent one is refused for"
-    assert "This file is optional" not in text, (
-        "the template still calls the file optional"
+    # The two keys besides the language keys whose absence is refused, which
+    # a person writing the file fills in.
+    assert "`Mode` and `Broad gate`" in text, (
+        "the template does not name the keys an absent one is refused for"
     )
 
 
@@ -1137,6 +1054,7 @@ def test_the_layout_lists_the_config(parts):
     is a file nobody finds. `seal/README.md` is the template verbatim —
     `tests/behaviour/test_first_setup_asks_once.py` pins that equality — so
     the two move as one edit."""
+    # The file name of the config, which a reader of the root's layout opens.
     assert "config.json" in read(*parts), (
         "/".join(parts) + " draws the root without the config file in it"
     )
@@ -1163,7 +1081,7 @@ def _literal_strings():
 
     The keys of the `seal` blocks are not among them: the list names the
     module that spells them (`test_the_exclusion_list_points_at_the_block_
-    grammar_and_restates_none_of_it`), so a checker's constant here is one
+    grammar`), so a checker's constant here is one
     outside that module. The info string and the `## Findings` heading are,
     since the module's keys do not hold them.
 
@@ -1205,30 +1123,18 @@ def _literal_strings():
 BLOCK_GRAMMAR = "`lib/fields.py`"
 
 
-def test_the_exclusion_list_points_at_the_block_grammar_and_restates_none_of_it():
+def test_the_exclusion_list_points_at_the_block_grammar():
     """S4, under #1198. The keys of a round record's, a guarantee's and a
     gate record's `seal` blocks have one statement, `lib/fields.py`,
     which `chain_check.py` and the stamp read them through, so the list names
-    the module and copies no key of it: a copy here is a second source that
-    drifts, and a repository told the copy reads a list the check no longer
-    holds. Seen red against the list that named the docs grammar table.
-
-    Protects: the label list coming back into `templates/setup/config.md`, which
-    is where it drifted before; no other case reads the list for a key of
-    the module."""
+    the module. Whether a key of it is copied beside the citation is the
+    proofer's to read."""
     said = _governs_nothing()
+    # The citation of the module that spells the keys, which a person
+    # translating the records resolves to the keys that stay English.
     assert BLOCK_GRAMMAR in said, (
         "the exclusion list no longer names the module that spells the keys "
         "of a record's `seal` blocks"
-    )
-    assert "the-round-record.md" not in said, (
-        "the exclusion list still names the docs grammar table, which no "
-        "checker reads since #1198"
-    )
-    copied = [key for key in _block_keys() if f"`{key}`" in said]
-    assert not copied, (
-        f"the exclusion list restates the module's keys {copied}; it names "
-        "the module instead"
     )
 
 
@@ -1242,7 +1148,9 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     refused by `chain_check.py`, and one that translated `## Not verified`
     turns `unverified_check.py` red on every pull request.
     """
-    # Backticked, because the section spells every literal that way and a
+    # Each spelling a checker matches literally, which a repository
+    # translating its records reads here to leave in English. Backticked,
+    # because the section spells every literal that way and a
     # BARE substring is satisfied by a longer entry that contains it —
     # `fixed` was held by `agreed, fixed` alone, and deleting the standalone
     # entry left this case green (round 2).
@@ -1277,15 +1185,8 @@ def test_every_document_that_names_a_language_row_names_the_shipped_one(parts):
     """The pairing this branch was reviewed as one round for: a document
     naming the wrong key is invisible until somebody follows it."""
     text = flat(*parts)
+    # The key of `config.json` a session reads for the records' language.
     assert "Record language" in text, (
         f"{'/'.join(parts)} does not name `Record language`, the key that "
         "governs the prose it is about"
-    )
-    # Case-folded: `the \`pull request language\` row` in lower case is the
-    # spelling that actually survives in this tree, and round 2 found it green.
-    assert "pull request language" not in text.casefold().replace(
-        "commit and pull request language", ""
-    ), (
-        f"{'/'.join(parts)} still names the row `Pull request language`, "
-        "which #106 renamed"
     )

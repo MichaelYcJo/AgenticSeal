@@ -113,10 +113,18 @@ def missing_facts(text):
 
 def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
     head = frontmatter(read())
+    # The front-matter name the harness resolves each definition's
+    # `skills:` entry to.
     assert "name: agent-contract" in head
+    # The front-matter key and value the harness reads to keep the skill out
+    # of the `/` menu.
     assert "user-invocable: false" in head, (
         "the contract would show in the `/` menu as though it were a command"
     )
+    # The flag the harness reads to block a preload, which
+    # `docs/running/the-agent-set.md` *One contract every agent receives, and
+    # one definition each* rules out: every agent receives the contract
+    # before its first tool call.
     assert "disable-model-invocation: true" not in head, (
         "that flag blocks preload — the contract would stop reaching agents "
         "and nothing would say so (docs/experiments/2026-09-03-…)"
