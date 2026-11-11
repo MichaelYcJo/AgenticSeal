@@ -34,7 +34,7 @@ The failure scenario of the chosen approach, six months on: a person wants to me
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Scope 1, 2, 3, 4, 5 | `tests/evals/test_noninferiority.py` and `tests/evals/test_rule_cases.py`, each changed case seen red first (contract rule 15); S1 with its exit code read directly; S2 to S5 | `7d718955b` |
-| 2 | Scope 6, 7, 8, 9, 10, 11, 12 | `tests/evals/test_rule_cases.py`, `tests/behaviour/test_evals_layout.py`, `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`, `tests/test_censuses.py`; S6 with each case's `diff -rq` recorded in the phase record; S7, S8 and S9 | `88a1d8a6d` |
+| 2 | Scope 6, 7, 8, 9, 10, 11 | `tests/evals/test_rule_cases.py`, `tests/behaviour/test_evals_layout.py`, `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`, `tests/test_censuses.py`; S6 with each case's `diff -rq` recorded in the phase record; S7, S8 and S9 | `88a1d8a6d` |
 
 S10 rests on the full suite, which the orchestrator's broad gate runs.
 
@@ -45,7 +45,7 @@ The items read are #1498, #1481, #1483, #1486 and #1488, as the spawn names them
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
 | #1498 | `tests/censuses.py`: #1498 changes `#_root_names`; this work changes the module docstring, `#refused_domains`'s docstring, `#OLD_NAME_RECORDS` and `#KEPT_FILES` (Scope 5 and 10) | #1498 | The spawn names #1498 first, as it carries the version move to 0.37.4. The hunks are apart, so this work's merge from the release branch takes #1498's change without a conflict. |
-| #1486 | `.test_durations`: #1486 removes the file; this work removes the entries of the cases it deletes (Scope 12) | #1487 | Whichever merges second meets one modify/delete conflict, settled by keeping the deletion, so neither order costs more there. #1487 first leaves the release branch with no dead durations past `STALE_SHARE` while #1486 is open. In the other order Scope 12 drops out, and the phase record says so. |
+| #1486 | `.test_durations`: #1486 removes the file; this work leaves the entries of the cases it deletes, since a work item never commits the file (Scope 12) | #1487 | The two never touch the file together, so no conflict arises there. #1487 first leaves the release branch with dead durations past `STALE_SHARE` until #1486 removes the file; the release pull request's `durations` job reads the file only while it stands. |
 | #1488 | `tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`, which this work deletes, and `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`, which this work edits; #1488 counts and removes literal-phrase asserts across `tests/text/` and `tests/behaviour/` | #1487 | #1488 records its counts before and after, and builds after the items that remove their own pins so none is counted twice (#1488 *Done when*). #1487 first removes these files' asserts before #1488 counts them. |
 
 ## Operational impact
