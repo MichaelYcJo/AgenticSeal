@@ -42,10 +42,12 @@ import subprocess
 import sys
 
 import pytest
+import test_unverified_check
 from conftest import (
     DOC,
     ROOT,
     census_case,
+    commit_everything_as_e,
     config_json,
     line_of,
     load_module,
@@ -56,12 +58,16 @@ from conftest import (
     write,
 )
 from conftest import flattened as flat
+from test_unverified_check import CANONICAL, WORK, _committed, memo
 
 TARGET = "skills/settle/scripts/settle.py"
 
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
 
 settle = load_module(SCRIPT, "settle")
+# `show` came here from `unverified_check.py` (#1482), and its cases read
+# the world that file builds once.
+plain = test_unverified_check.plain
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
     "agentic_rule_changes",
@@ -1381,7 +1387,7 @@ class Test_main:
 
     def test_accepts_a_near_heading_inside_a_comment_without_a_word(self, repo, capfd):
         """Round 10's edge of round 9's finding 2: a heading inside an HTML
-        comment is no live heading (`unverified_check.py#live_lines`), so
+        comment is no live heading (`lib/lines.py#live_lines`), so
         the reader names nothing for it."""
         item(repo, "1700000001-a", "- nothing\n  why: x.")
         (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
@@ -3731,6 +3737,29 @@ class Test_threads:
         read (`records_of`)."""
         local = tmp_path / ".git" / "seal"
         assert settle.threads(str(local)) == "seal/threads"
+
+
+class Test_show:
+    def test_accepts_a_path_at_a_ref(self, plain):
+        assert settle.show(str(plain), "HEAD", f"specs/{WORK}/gaps.md") == memo(
+            CANONICAL
+        )
+
+    def test_refuses_a_path_the_ref_does_not_hold(self, plain):
+        assert settle.show(str(plain), "HEAD", "specs/none/gaps.md") is None
+
+    def test_refuses_to_raise_on_a_byte_that_is_not_utf8(self, tmp_path):
+        """#19: a revision read at a ref decodes as `check_file` decodes the
+        disk, U+FFFD for a byte UTF-8 cannot read, or one such byte aborts
+        the whole read."""
+        d = _committed(tmp_path, {"gaps.md": memo(CANONICAL)})
+        path = d / "gaps.md"
+        path.write_bytes(memo(CANONICAL).encode("utf-8") + b"| a \xff b | c |\n")
+        commit_everything_as_e(d, "a byte that is not UTF-8")
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            on_disk = handle.read()
+        assert "�" in on_disk
+        assert settle.show(str(d), "HEAD", "gaps.md") == on_disk
 
 
 test_census = census_case(TARGET)

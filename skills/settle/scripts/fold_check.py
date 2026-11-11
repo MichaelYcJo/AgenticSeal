@@ -34,9 +34,9 @@ absent key means *not declared*, as every optional key of that file does:
 the check it governs is not run, and the output says so in one line rather
 than refusing. A flag overrides its key for one run.
 
-Live lines and table rows come from
-`skills/verify/scripts/unverified_check.py` (`live_lines`, `gfm_lines`,
-`split_row`), loaded rather than re-spelled (#664).
+Live lines and table rows come from `lib/lines.py` (`live_lines`,
+`split_row`) and a text's lines from `lib/blocks.py#gfm_lines`, loaded rather
+than re-spelled (#664).
 
 Typed with no `--root`, it reads the repository the current directory is in,
 so a run from a subdirectory checks that repository and not nothing.
@@ -59,7 +59,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
 # The modules this command reads, each as `lib/sibling.py#load` names it.
-READER = "skills/verify/scripts/unverified_check.py"
+READER = "lib/lines.py"
+BLOCKS = "lib/blocks.py"
 CONFIG_READER = "lib/config.py"
 OPTIN = "lib/optin.py"
 
@@ -94,7 +95,7 @@ BYTES_PER_TOKEN = 2
 
 
 def reader():
-    """`unverified_check.py`, loaded on first use."""
+    """`lib/lines.py`, loaded on first use."""
     return sibling.load(READER)
 
 
@@ -153,7 +154,7 @@ def index_rows(root, index):
     index at INDEX after the header and the separator."""
     uc = reader()
     rows, in_table = [], False
-    lines = uc.live_lines(uc.gfm_lines(read(root, index)))
+    lines = uc.live_lines(sibling.load(BLOCKS).gfm_lines(read(root, index)))
     for number, (line, live) in enumerate(lines, 1):
         cells = uc.split_row(line) if live else None
         if cells is None or not in_table or uc.is_separator(cells):

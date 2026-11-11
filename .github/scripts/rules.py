@@ -105,12 +105,13 @@ NOT_READ = (
 )
 
 # The modules this reads through, each the one reader of its input, as
-# `lib/sibling.py#load` names it: the GFM line walker, the fence and comment
-# rule, the policy root's reader, the resolver of the repository, the reader
-# of the rule changes the settle has not yet written, and the lister of the
-# policy root's documents.
+# `lib/sibling.py#load` names it: the GFM line split, the heading rule, the
+# fence and comment rule, the policy root's reader, the resolver of the
+# repository, the reader of the rule changes the settle has not yet written,
+# and the lister of the policy root's documents.
 SIBLINGS = {
-    "unverified_check": "skills/verify/scripts/unverified_check.py",
+    "blocks": "lib/blocks.py",
+    "lines": "lib/lines.py",
     "tables": "lib/tables.py",
     "config": "lib/config.py",
     "optin": "lib/optin.py",
@@ -150,8 +151,8 @@ def shown_lines(text):
     (`lib/blocks.py#gfm_lines`), whether a renderer shows it outside a
     fence or a comment (`lib/tables.py#unfenced`), and the text of the
     heading it stands under, "" above the first."""
-    reader = sibling("unverified_check")
-    lines = reader.gfm_lines(text)
+    reader = sibling("lines")
+    lines = sibling("blocks").gfm_lines(text)
     shown = {index for index, _ in sibling("tables").unfenced(lines)}
     out, heading = [], ""
     for index, line in enumerate(lines):
@@ -467,7 +468,7 @@ def render(root, text):
     out, heading, held = [], None, False
     by_number = {number: line for number, _, line in check_lines(text)}
     unread = {number: why for number, _, why in unread_lines(text)}
-    reader = sibling("unverified_check")
+    reader = sibling("lines")
     for number, (line, visible, _) in enumerate(shown_lines(text), 1):
         stripped = line.strip()
         if visible and reader.heading_level(line) is not None:

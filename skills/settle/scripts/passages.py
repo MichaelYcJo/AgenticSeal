@@ -8,8 +8,8 @@ files are compared by (`windows`). `skills/code-review/scripts/chain_check.py`
 reads a design's `to` through the same functions, through
 `skills/settle/scripts/rule_changes.py#copies`, so the notice and the test
 agree on what a copy is. A heading line is told by
-`skills/verify/scripts/unverified_check.py#heading_level`, loaded through
-`lib/sibling.py`, so this module spells no heading rule of its own.
+`lib/lines.py#heading_level`, loaded through `lib/sibling.py`, so this
+module spells no heading rule of its own.
 Nothing here reads a document or runs a command: each caller lists and
 reads its own files.
 """
@@ -23,7 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # import stands at the first read of a heading, so a copy of this module
 # taken on its own loads nothing until it reads one.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
-READER = "skills/verify/scripts/unverified_check.py"
+READER = "lib/lines.py"
 
 # A run of this many consecutive words is longer than any phrase two rule
 # documents share by writing about the same mechanism, and shorter than the
@@ -43,7 +43,7 @@ STRIP = str.maketrans("", "", "`*|>#")
 
 
 def _heading_level(line):
-    """`unverified_check.py#heading_level` of LINE, its module loaded once."""
+    """`lib/lines.py#heading_level` of LINE, its module loaded once."""
     import sibling
 
     return sibling.load(READER).heading_level(line)

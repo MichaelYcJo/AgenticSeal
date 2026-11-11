@@ -1172,9 +1172,7 @@ def _literal_strings():
     the first line of `templates/records/process.md`, and a design's `to`
     holds `check:` lines that `.github/scripts/rules.py` reads (#1319).
     """
-    unverified = _checker(
-        "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
-    )
+    unverified = _checker("gaps", "lib", "gaps.py")
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
     body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
     settle = _checker("settle", "skills", "settle", "scripts", "settle.py")

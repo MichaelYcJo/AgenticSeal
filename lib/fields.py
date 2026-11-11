@@ -40,10 +40,10 @@ this module does not read.
 `assemble` is the one way a command writes a block: it builds the block from
 `(key, value)` pairs and refuses pairs this reader would refuse.
 
-Standard library only; it imports `blocks` beside it. `chain_check.py`,
-`broad_gate.py` and `unverified_check.py` load it through `lib/sibling.py`,
-as they load `lib/routing.py`; `seal_stamp.py`, which `seal stamp` runs,
-and `pr_body.py` reach it through `chain_check.FIELDS`.
+Standard library only; it imports `blocks` beside it. `chain_check.py`
+and `broad_gate.py` load it through `lib/sibling.py`, as they load
+`lib/routing.py`; `lib/gaps.py` imports it beside it; `seal_stamp.py`, which
+`seal stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
 import collections
@@ -237,8 +237,8 @@ GATE = (RUN_BLOCK,)
 UNCLOSED = (
     "a fence opened here never closes, so every line after it is hidden from the reader"
 )
-# `skills/verify/scripts/unverified_check.py#COMMENT_LINE` is this sentence,
-# for every other reader of a record.
+# Every other reader of a record refuses a comment line in this sentence,
+# `lib/gaps.py#check_text` among them.
 COMMENT_LINE = (
     "the line begins with `<!--`, and a record carries no HTML comment: the "
     "check reads one as text, so delete the comment"

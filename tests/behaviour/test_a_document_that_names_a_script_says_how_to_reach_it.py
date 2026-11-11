@@ -80,7 +80,7 @@ SHIPPED_ROOTS = ("agents", "skills", "templates")
 # item 1788302682 -- a gap somebody notices while writing something up.
 NO_SUBCOMMAND = {
     "rule_changes.py": (
-        "A module `settle.py` and `unverified_check.py` load through "
+        "A module `settle.py` and `chain_check.py` load through "
         "`lib/sibling.py`, with no "
         "command line of its own: no shipped document shows it with a flag."
     ),

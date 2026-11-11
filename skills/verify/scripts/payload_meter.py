@@ -58,9 +58,9 @@ agent's own files.
 Exit codes: 0 measured · 1 the input could not be measured -- a transcript
 the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
 `--calibrate` was given and `session_cost.py`, the sibling it loads, is not
-beside this script, `unverified_check.py`, which says where a fence, a
-comment or a code span stands, is not beside it where `--sections` was
-given or a `CLAUDE.md` the meter reads exists, `lib/core.py`, which says
+beside this script, `lib/blocks.py` or `lib/lines.py`, which say where a
+fence, a comment or a code span stands, is not in the plugin around it where
+`--sections` was given or a `CLAUDE.md` the meter reads exists, `lib/core.py`, which says
 what the core hook prints, is not in the plugin around it, or the arguments
 were unusable
 (argparse's usage error). An interpreter below the floor never reaches this
@@ -129,7 +129,7 @@ ASSUMED_RATIO = 3.2
 BASELINE_AGENT = "general-purpose"
 
 # The heading levels a section is cut at; whether a line IS a heading is the
-# one rule's, `unverified_check.py#heading_level` (#867).
+# one rule's, `lib/lines.py#heading_level` (#867).
 SECTION_LEVELS = (2, 3)
 AGENT_ID = re.compile(r"\bagentId:\s*([0-9a-f]+)")
 
@@ -162,12 +162,18 @@ def _session_cost():
 
 
 def _fence_rule():
-    """`unverified_check.py`, for its two uses here: the fence delimiter
-    rule `heading_starts` asks where `--sections` splits a skill at its
-    headings (#584), and the scan of fences, HTML comments and code spans
-    `imports_of` asks for each `CLAUDE.md` and imported file that exists
-    (#1185)."""
-    return sibling.load("skills/verify/scripts/unverified_check.py")
+    """`lib/blocks.py`, the fence delimiter rule `heading_starts` asks where
+    `--sections` splits a skill at its headings (#584), and the line split
+    both readers here read a text through."""
+    return sibling.load("lib/blocks.py")
+
+
+def _line_reader():
+    """`lib/lines.py`, for its two uses here: the heading rule
+    `heading_starts` asks, and the scan of fences, HTML comments and code
+    spans `imports_of` asks for each `CLAUDE.md` and imported file that
+    exists (#1185)."""
+    return sibling.load("lib/lines.py")
 
 
 def _core():
@@ -270,7 +276,7 @@ def heading_starts(text):
     shows.
 
     Whether a line is a heading is the one rule's too,
-    `unverified_check.py#heading_level` (#867), asked for levels 2 and 3:
+    `lib/lines.py#heading_level` (#867), asked for levels 2 and 3:
     the pattern this kept, `^#{2,3} `, missed a heading indented up to three
     spaces and one followed by a tab."""
     rule = _fence_rule()
@@ -281,7 +287,7 @@ def heading_starts(text):
                 fence = None
         elif (opened := rule.fence_opener(line)) is not None:
             fence = opened
-        elif rule.heading_level(line) in SECTION_LEVELS:
+        elif _line_reader().heading_level(line) in SECTION_LEVELS:
             starts.append(offset)
         offset += len(line)
     return starts
@@ -333,7 +339,7 @@ def imports_of(path, home, depth=HOPS, seen=None):
     An import is read in the file's live text alone (#1185), the docs'
     "Import parsing skips Markdown code spans and fenced code blocks". Live
     text is text outside a fenced code block, an HTML comment and a code
-    span, as `unverified_check.py#live_pieces` places them with spans read
+    span, as `lib/lines.py#live_pieces` places them with spans read
     across the lines of a paragraph; a fence or a comment nobody closed
     hides the rest of the file. There an import is `@` at the start of a
     line or after whitespace, then a path (`IMPORT`). The path runs to the
@@ -360,7 +366,7 @@ def imports_of(path, home, depth=HOPS, seen=None):
     by its first character and skips an imported file whose extension is
     not text, and the meter follows either.
 
-    Two differences come from the shared scan, `unverified_check.py#_scan`,
+    Two differences come from the shared scan, `lib/lines.py#_scan`,
     which keeps no model of markdown's blocks. Its fence rule reads each
     line with no list item or block quote around it. So it opens no fence
     behind `>` or a list marker, and the meter reads an import inside such
@@ -387,7 +393,9 @@ def imports_of(path, home, depth=HOPS, seen=None):
     found = (
         match.group(1)
         for line, pieces in zip(
-            lines, rule.live_pieces(lines, spans_cross_lines=True), strict=True
+            lines,
+            _line_reader().live_pieces(lines, spans_cross_lines=True),
+            strict=True,
         )
         for start, end in pieces
         for match in IMPORT.finditer(line, start, end)
@@ -763,6 +771,7 @@ def measure(
         # Before anything is read, so a copy missing the fence rule says so
         # at exit 2 rather than after a partial measurement (#584).
         _fence_rule()
+        _line_reader()
     baseline_data = None
     if baseline:
         with open(baseline, encoding="utf-8") as handle:

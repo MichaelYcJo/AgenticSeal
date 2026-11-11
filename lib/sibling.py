@@ -7,7 +7,7 @@ included:
     sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
     import sibling
 
-    reader = sibling.load("skills/verify/scripts/unverified_check.py")
+    reader = sibling.load("lib/lines.py")
 
 `load` names a module in `sys.modules` by its file's stem, the name a
 `lib/` module already imports its neighbour by (`lib/tables.py` imports

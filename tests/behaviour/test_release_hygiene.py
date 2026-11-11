@@ -1308,7 +1308,7 @@ def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
         os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
         encoding="utf-8",
     ).read()
-    assert "unverified_check.py" in check
+    assert "lib/lines.py" in check
     assert "reader.readable(" in check, (
         "the check reads lines the shared reader never normalized"
     )

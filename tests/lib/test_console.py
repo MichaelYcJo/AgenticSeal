@@ -12,9 +12,14 @@ The case of the stamp's drawer on such a console, the script the plugin's
 import io
 import sys
 
+import pytest
 from conftest import census_case, load_lib_module
 
 TARGET = "lib/console.py"
+
+# `annotate` came here from `unverified_check.py` (#1482), and its cases
+# with it.
+console = load_lib_module("console.py", "console_for_its_own_file")
 
 
 def cp949_stream():
@@ -48,6 +53,25 @@ class Test_to_utf8:
         monkeypatch.setattr(sys, "stderr", stderr)
         console.to_utf8()
         assert (stderr.encoding, stderr.errors) == ("utf-8", "backslashreplace")
+
+
+class Test_annotate:
+    def test_accepts_a_path_as_git_spells_it_in_ci_and_plain_elsewhere(
+        self, monkeypatch
+    ):
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        assert (
+            console.annotate("error", "a/b.md", 3, "m")
+            == "::error file=a/b.md,line=3::m"
+        )
+        monkeypatch.delenv("GITHUB_ACTIONS")
+        assert console.annotate("error", "a/b.md", 3, "m") == "a/b.md:3  m"
+
+    @pytest.mark.parametrize("in_ci, line", [(True, "::notice::m"), (False, "m")])
+    def test_refuses_to_name_a_path_it_was_not_given(self, monkeypatch, in_ci, line):
+        if in_ci:
+            monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        assert console.annotate("notice", None, 1, "m") == line
 
 
 test_census = census_case(TARGET)

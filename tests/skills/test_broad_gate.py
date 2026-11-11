@@ -46,7 +46,7 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
-READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
+READER = ROOT / "lib" / "lines.py"
 ITEM = "seal/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.

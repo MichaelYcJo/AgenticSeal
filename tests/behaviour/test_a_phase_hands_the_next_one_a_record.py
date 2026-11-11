@@ -47,12 +47,12 @@ FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 
 
 def reader_module():
-    """`unverified_check.py`, whose `readable` is the same reader
+    """`lib/lines.py`, whose `readable` is the same reader
     `chain_check.py` loads for `trail/rounds/round-N.md`. A second implementation
     here would be free to drift from what actually reads these records."""
     spec = importlib.util.spec_from_file_location(
         "agentic_phase_reader_for_tests",
-        os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py"),
+        os.path.join(ROOT, "lib", "lines.py"),
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

@@ -3,8 +3,8 @@
 
 The grammar is `skills/settle/rule-changes.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
-the no-change block are spelt once in `unverified_check.py`, which reads
-`## Not verified` with the same block. `parse` reads a section into operations,
+the no-change block are spelt once in `lib/items.py`, which `lib/gaps.py`
+reads `## Not verified` with as well. `parse` reads a section into operations,
 refusing at its line any block that does not match whole, and names, without
 refusing it, a line that opens like one of the section's forms and is not it.
 Each operation carries its fields' lines at their lines in the design
@@ -28,10 +28,10 @@ through `lib/tables.py`, loaded on first use.
 `settle` prints what they read and writes what `apply_op` returns; nothing
 here writes a file.
 
-Headings and fences are read through
-`skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
-`liveness`, `gfm_lines`, `blank_fences`, `comment_lines`), loaded on first use,
-so this module spells no fence or heading rule of its own. A design is a
+Headings and fences are read through `lib/lines.py` (`live_lines`,
+`heading_level`, `liveness`, `blank_fences`, `comment_lines`) and a text's
+lines through `lib/blocks.py#gfm_lines`, each loaded on first use, so this
+module spells no fence or heading rule of its own. A design is a
 record and carries no HTML comment, so `parse` reads it with no comment
 state and refuses a section line that begins with `<!--` (#1012); `headings`
 keeps the comment state for `section_lines` and `overlapping`, which read the
@@ -52,15 +52,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # of this script taken on its own loads nothing until it is asked to read.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
 # The modules this reads, each as `lib/sibling.py#load` names it.
-READER = "skills/verify/scripts/unverified_check.py"
+READER = "lib/lines.py"
+GRAMMAR_READER = "lib/items.py"
+BLOCKS = "lib/blocks.py"
+FIELDS = "lib/fields.py"
 PASSAGES = "skills/settle/scripts/passages.py"
 TABLES = "lib/tables.py"
 GITCMD = "lib/gitcmd.py"
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
-# and the no-change block are `unverified_check.py`'s (`items`,
-# `field_values`, `nothing_block`).
+# and the no-change block are `lib/items.py`'s (`items`, `field_values`,
+# `nothing_block`).
 GRAMMAR = {
     "add": (("file", "to"), ("section",)),
     "change": (("file", "section", "from", "to"), ()),
@@ -85,10 +88,34 @@ NEAR_HEADING = (
 
 
 def reader():
-    """`unverified_check.py`, the line reader, loaded on first use."""
+    """`lib/lines.py`, the line reader, loaded on first use."""
     import sibling
 
     return sibling.load(READER)
+
+
+def grammar():
+    """`lib/items.py`, the reader of a section's items and of the no-change
+    block, loaded on first use."""
+    import sibling
+
+    return sibling.load(GRAMMAR_READER)
+
+
+def blocks():
+    """`lib/blocks.py`, whose `gfm_lines` splits a text where GFM ends a
+    line, loaded on first use."""
+    import sibling
+
+    return sibling.load(BLOCKS)
+
+
+def fields():
+    """`lib/fields.py`, whose `COMMENT_LINE` is what a reader of a record says
+    of a line that opens an HTML comment, loaded on first use."""
+    import sibling
+
+    return sibling.load(FIELDS)
 
 
 def passages():
@@ -152,11 +179,11 @@ def parse(text, policy_root):
     below level 2 inside the section is a line of the section, refused as
     the items refuse a line outside them, and is not named. A first
     line of the section that opens like the no-change block and is not it
-    goes there too (`unverified_check.py#unread_block`), beside the refusal
+    goes there too (`lib/items.py#unread_block`), beside the refusal
     the items give it. Whether either meant the form is the judgment of the
     agent that reads the design."""
-    r = reader()
-    lines = r.gfm_lines(text)
+    r, g = reader(), grammar()
+    lines = blocks().gfm_lines(text)
     marks = headings(lines, comments=False)
     found = [(n, lv) for n, lv, t in marks if lv == 2 and t == HEADING]
     # A section runs to the next heading of level 2 or higher, so a heading
@@ -203,7 +230,7 @@ def parse(text, policy_root):
             )
             return done([], [(n + 1, why)])
         if n in commented:
-            return done([], [(n + 1, r.COMMENT_LINE)])
+            return done([], [(n + 1, fields().COMMENT_LINE)])
         if not literal[n]:
             continue
         body.append((n + 1, line))
@@ -214,22 +241,22 @@ def parse(text, policy_root):
     if not body:
         return done([], [(start + 1, "the section is empty")])
 
-    block = r.nothing_block(body)
+    block = g.nothing_block(body)
     if block is not None:
         return done([], block)
     # A first line that opens like the block and is not it is read as the
     # items read it, and named.
-    near = r.unread_block(body)
+    near = g.unread_block(body)
     if near is not None:
         unread.append(near)
 
-    ops, error = r.items(body)
+    ops, error = g.items(body)
     # An item's kind is judged before a later line's error, in line order.
     for item in ops:
-        if item["kind"] == r.NOTHING:
-            error = (item["line"], f"`- {r.NOTHING}` is the section's one item")
+        if item["kind"] == g.NOTHING:
+            error = (item["line"], f"`- {g.NOTHING}` is the section's one item")
         elif item["kind"] not in GRAMMAR:
-            kinds = ", ".join([*GRAMMAR, r.NOTHING])
+            kinds = ", ".join([*GRAMMAR, g.NOTHING])
             error = (item["line"], f"`{item['kind']}` is not one of {kinds}")
         else:
             continue
@@ -240,7 +267,7 @@ def parse(text, policy_root):
     out = []
     numbers = [no for no, _ in body]
     for item in ops:
-        values, error = r.field_values(item, *GRAMMAR[item["kind"]])
+        values, error = g.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
         # No separator of either system and no drive colon in a name, so a
         # value joins to one file on every platform: at the top level, or in
@@ -278,7 +305,7 @@ def value_lines(numbers, first, parts):
     first at line FIRST, NUMBERS being the line numbers of the section's body
     in order: each part takes the number of its body line, and the leading
     empty parts and the trailing blank ones are dropped and the last part's
-    end trimmed, as `unverified_check.py#field_values` strips its value."""
+    end trimmed, as `lib/items.py#field_values` strips its value."""
     at = numbers.index(first)
     lines = list(zip(numbers[at : at + len(parts)], parts))
     while lines and lines[0][1] == "":
@@ -314,7 +341,7 @@ def section_lines(text, section):
     a policy document keeps."""
     if text is None:
         return None, "the document is not in the tree"
-    lines = reader().gfm_lines(text)
+    lines = blocks().gfm_lines(text)
     if section is None:
         return (1, len(lines)), None
     marks = headings(lines)
@@ -397,7 +424,7 @@ def apply_op(text, op):
         return op.new + "\n", None
     if text is None:
         return None, f"{op.file} does not exist"
-    lines = reader().gfm_lines(text, keepends=True)
+    lines = blocks().gfm_lines(text, keepends=True)
     marks = headings([line.rstrip("\r\n") for line in lines])
     at = [(n, lv) for n, lv, t in marks if t == op.section]
     if not at:
@@ -611,7 +638,7 @@ def overlapping(read):
     def lineage(p):
         if p not in held_by:
             text, found = read(p[0]), {p[1]}
-            marks = headings(reader().gfm_lines(text)) if text and p[1] else []
+            marks = headings(blocks().gfm_lines(text)) if text and p[1] else []
             at = [n for n, (_, _, t) in enumerate(marks) if t == p[1]]
             if len(at) == 1:
                 level = marks[at[0]][1]

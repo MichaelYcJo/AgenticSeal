@@ -68,14 +68,14 @@ POLICY_DOCUMENTS = set(rules.policy_documents(ROOT))
 
 
 def _fence_reader():
-    path = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
+    path = os.path.join(ROOT, "lib", "blocks.py")
     spec = importlib.util.spec_from_file_location("agentic_fence_rule_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-# What is fenced is asked of the shared delimiter rule, `unverified_check.py`'s
+# What is fenced is asked of the shared delimiter rule, `lib/blocks.py`'s
 # `fence_opener` and `fence_closes`, rather than a toggle of this file's own
 # (#658): a toggle on any line starting with three backticks closed a
 # four-backtick block at the three-backtick line it quotes, and knew no tilde.
@@ -305,7 +305,7 @@ def test_a_fence_is_read_by_the_shared_rule():
     starting with three backticks, so a ```` ```` ```` block quoting a
     ```` ``` ```` block closed at the inner delimiter and its content was
     held to the limit as prose, and a tilde fence was no fence at all. The
-    rule is `unverified_check.py#fence_spans`."""
+    rule is `lib/lines.py#fence_spans`."""
     nested = "````\n```\nquoted inside\n```\n````\nplain\n"
     assert [line for _, line in prose_lines(nested)] == ["plain"]
     tilde = "~~~\nquoted\n~~~\nplain\n"

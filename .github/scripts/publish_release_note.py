@@ -127,7 +127,7 @@ optin = sibling.load("lib/optin.py")
 gfm_lines = sibling.load("lib/blocks.py").gfm_lines
 _closer = sibling.load(".github/scripts/close_issues_on_release.py")
 SPAN, keywords_in = _closer.SPAN, _closer.keywords_in
-heading_level = sibling.load("skills/verify/scripts/unverified_check.py").heading_level
+heading_level = sibling.load("lib/lines.py").heading_level
 
 # `seal settle`, for `adding_commit`: the one reader of the commit that adds
 # a fragment and the pull request it names, kept in the settle so that the
@@ -308,7 +308,7 @@ def split_process(body, heading):
     """`(body without its process section, the section's rows)`.
 
     The section is the line `heading` and every line after it up to the next
-    heading (`unverified_check.py#heading_level`) or the body's end. Its rows
+    heading (`lib/lines.py#heading_level`) or the body's end. Its rows
     are its table lines after the header and delimiter rows.
     """
     kept, table, inside = [], [], False

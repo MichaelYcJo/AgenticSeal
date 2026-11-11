@@ -1346,7 +1346,7 @@ class Test_imports_of:
         """#1185, S3. The docs skip a code span in the same sentence as a
         fence. A span runs from a backtick run to the next run of the same
         length, on its line or, before its paragraph ends, on a later one
-        (`unverified_check.py#_partner_ahead`), and the import after it is
+        (`lib/lines.py#_partner_ahead`), and the import after it is
         read."""
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
@@ -1399,7 +1399,7 @@ class Test_imports_of:
 class Test_module:
     def test_a_section_heading_is_read_by_the_one_heading_rule(self, meter):
         """#867. `heading_starts` cuts at the levels 2 and 3 of the one rule,
-        `unverified_check.py#heading_level`: a heading indented up to three
+        `lib/lines.py#heading_level`: a heading indented up to three
         spaces or followed by a tab is one, and `#120)` and `##B` are not. The
         pattern it kept, `^#{2,3} `, missed the first two. Seen red against it."""
         text = "intro\n   ## Indented\nx\n##\tTabbed\ny\n#120) prose\n##B\n### Three\n"
@@ -1448,9 +1448,10 @@ class Test_module:
         self, tmp_path, meter
     ):
         """#1185. Every read of a `CLAUDE.md` that exists asks
-        `unverified_check.py` where its live text is, so a copy that holds
-        the loader and the core hook's module and not that sibling exits 2
-        with no flag at all, in the loader's sentence naming that sibling.
+        `lib/blocks.py` for its lines and `lib/lines.py` where its live text
+        is, so a copy that holds the loader and the core hook's module and
+        neither of those exits 2 with no flag at all, in the loader's
+        sentence naming the first it loads, `lib/blocks.py`.
         Every run loads `lib/core.py` first, so this copy carries it and
         `lib/optin.py`, the one module it loads."""
         alone = tmp_path / "alone"
@@ -1479,7 +1480,7 @@ class Test_module:
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
         assert "Traceback" not in done.stderr, done.stderr
-        reader = alone / "skills" / "verify" / "scripts" / "unverified_check.py"
+        reader = alone / "lib" / "blocks.py"
         assert meter.sibling.MISSING.format(path=str(reader)) in done.stderr, (
             done.stderr
         )

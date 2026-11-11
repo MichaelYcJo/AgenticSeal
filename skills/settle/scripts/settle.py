@@ -191,7 +191,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
 # The modules this command reads, each as `lib/sibling.py#load` names it.
-READER = "skills/verify/scripts/unverified_check.py"
+# `lib/gaps.py` reads a closing memo's `## Not verified`, `lib/items.py`
+# holds the no-change block's word, and `lib/blocks.py` splits a text into
+# GFM lines.
+READER = "lib/gaps.py"
+ITEMS = "lib/items.py"
+BLOCKS = "lib/blocks.py"
+CONFIG = "lib/config.py"
 OPTIN = "lib/optin.py"
 ROUTING = "lib/routing.py"
 RULES = "skills/settle/scripts/rule_changes.py"
@@ -242,6 +248,25 @@ GH_TIMEOUT = 60
 def under(root, rel):
     """The disk path of a `/`-joined repository-relative path."""
     return os.path.join(root, *rel.split("/"))
+
+
+def policy_root(root):
+    """The policy root of the repository at ROOT: `lib/config.py#policy_root`
+    of the `seal/` root `lib/optin.py#home_at` resolves there."""
+    optin = sibling.load(OPTIN)
+    return sibling.load(CONFIG).policy_root(
+        optin.home_at(root, optin.git_common_dir(root))
+    )
+
+
+def show(root, ref, rel):
+    r = subprocess.run(
+        ["git", "-C", root, "show", f"{ref}:{rel}"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return r.stdout if r.returncode == 0 else None
 
 
 def plural(count, many="s", one=""):
@@ -1087,7 +1112,7 @@ def in_tree(root, records, work_item_id, path, names, specs):
 def open_rows(root, records, ids, reader, specs):
     """`[(id, [(file, item, [(path, in the tree)])])]` for each of IDS whose
     record under SPECS (`threads`) in RECORDS holds an open row in the
-    working tree (`unverified_check.py#open_record_rows`)."""
+    working tree (`lib/gaps.py#open_record_rows`)."""
     out, names = [], None
     for work_item_id in ids:
         rows = reader.open_record_rows(records, f"{specs}/{work_item_id}")
@@ -1118,7 +1143,7 @@ def misplaced(records, work_item_id, reader, specs):
     directory under SPECS (`threads`) in RECORDS, sorted: a regular file, or
     a link to one, whose
     name is the last part of a record this reads in the directory, the
-    closing memo (`unverified_check.py#OVERVIEW`), `DESIGN` or `PLAN`, and
+    closing memo (`lib/gaps.py#OVERVIEW`), `DESIGN` or `PLAN`, and
     whose path from the directory is not that record's. PATH is that path,
     and PLACE is the record's.
 
@@ -1202,12 +1227,12 @@ def plan_rows(text):
               it cannot read
 
     A heading inside a fence or an HTML comment is no heading
-    (`unverified_check.py#live_lines`). The table is read through
+    (`lib/lines.py#live_lines`). The table is read through
     `lib/tables.py#gfm_table` over the section's lines alone, and
     nothing here grades a cell."""
     rules = sibling.load(RULES)
     tables = sibling.load(TABLES)
-    lines = rules.reader().gfm_lines(text)
+    lines = sibling.load(BLOCKS).gfm_lines(text)
     marks = rules.headings(lines)
     unread = [
         NEAR_JUDGMENTS.format(line=n + 1, written=lines[n].strip(), heading=JUDGMENTS)
@@ -1380,7 +1405,7 @@ def facts(root, op, rules):
     span, _ = rules.section_lines(text, op.section)
     region = ""
     if span:
-        lines = rules.reader().gfm_lines(text)
+        lines = sibling.load(BLOCKS).gfm_lines(text)
         region = "\n".join(lines[span[0] - 1 : span[1]])
     return [
         (field, bool(span) and bool(rules.pattern(value).search(region)))
@@ -1407,7 +1432,7 @@ def timeline(root, ref, ids, reader, records, specs, merged=None):
     block has nothing to write; a directory with no `frame/design.md` states no
     rule."""
     rules = sibling.load(RULES)
-    policy = reader.policy_root(root)
+    policy = policy_root(root)
     parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
         if not has_spec(records, work_item_id, specs):
@@ -1415,7 +1440,7 @@ def timeline(root, ref, ids, reader, records, specs, merged=None):
             continue
         rel = f"{specs}/{work_item_id}/{DESIGN}"
         if merged is None:
-            text = reader.show(root, ref, rel) or ""
+            text = show(root, ref, rel) or ""
         else:
             text = read_text(records, rel) or ""
         found = rules.parse(text, policy)
@@ -1546,7 +1571,7 @@ def survey(root, ref, home=None, every=False):
         ],
         "judgments": judgments(records, ids, specs),
         "earlier": earlier_judgments(root, ref, present, specs, every),
-        "nothing": reader.NOTHING,
+        "nothing": sibling.load(ITEMS).NOTHING,
     }
     found["citations"], found["readers"] = citations(root, ids, specs)
     return found
@@ -1930,7 +1955,7 @@ def draft(found, root, out):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8", newline="") as f:
             f.write(text)
-    policy = sibling.load(READER).policy_root(root)
+    policy = policy_root(root)
     out.write(f"placed {placed} of {total} operation{plural(total)} in {policy}/\n")
     out.write(DRAFTED)
     return 0
@@ -1966,7 +1991,7 @@ def write_after(root, policy, out):
 def closed_rows(records, directory, reader):
     """`[(item, what closed it)]` for each closed row of DIRECTORY's record
     under RECORDS in the working tree, read by
-    `unverified_check.py#check_text`."""
+    `lib/gaps.py#check_text`."""
     text = read_text(records, f"{directory}/{reader.OVERVIEW}")
     if text is None:
         return []
@@ -2034,7 +2059,7 @@ def apply(found, root, out):
         for item, who in closed:
             out.write(f"    closed in {reader.OVERVIEW}: {item}\n")
             out.write(f"        what closed it: {who}\n")
-    policy = reader.policy_root(root)
+    policy = policy_root(root)
     if os.path.isdir(under(root, policy)):
         write_after(root, policy, out)
     out.write(

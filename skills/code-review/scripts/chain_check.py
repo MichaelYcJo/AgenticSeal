@@ -161,9 +161,13 @@ if __name__ == "__main__":
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
 # The modules this check reads, each as `lib/sibling.py#load` names it.
-READER = "skills/verify/scripts/unverified_check.py"
+# `lib/lines.py` is the reader of a record's lines, and
+# `skills/settle/scripts/rule_changes.py` the one reader of a design's
+# `## Rule changes`.
+READER = "lib/lines.py"
 ROUTING = "lib/routing.py"
 FIELDS_READER = "lib/fields.py"
+RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
 # `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
 # rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
@@ -288,10 +292,17 @@ except ImportError:
 # what a check that cannot read a record means to it.
 try:
     SHARED_READER = sibling.load(READER)
+    # `lib/blocks.py`, the one split of a text into GFM lines.
+    BLOCKS = sibling.load("lib/blocks.py")
     # `lib/fields.py`, the one reader of a record's `seal` blocks.
     FIELDS = sibling.load(FIELDS_READER)
-    # `lib/gitcmd.py`, which builds every git command `git` runs.
+    # `lib/gitcmd.py`, which builds every git command `git` runs and spells
+    # a path as git does.
     GITCMD = sibling.load("lib/gitcmd.py")
+    # `lib/optin.py`, which finds the repository and its `seal/` root.
+    OPTIN = sibling.load("lib/optin.py")
+    # `lib/console.py`, whose `annotate` prints a line about a file.
+    CONSOLE = sibling.load("lib/console.py")
 except (OSError, SyntaxError, ImportError) as _exc:
     if __name__ != "__main__":
         raise
@@ -1060,7 +1071,7 @@ def frame_foot(reader, text):
     """(the `Framed` mark as (when, who) or None, [(when, who, round)] for
     every `Reframed` line under it), read from the last non-empty line up."""
     reframes = []
-    for line in reversed(reader.gfm_lines(text or "")):
+    for line in reversed(BLOCKS.gfm_lines(text or "")):
         line = line.strip()
         if not line:
             continue
@@ -1284,7 +1295,7 @@ def _section_text(rules, root, op):
     span, why = rules.section_lines(text, op.section)
     if span is None:
         return None, why
-    return "\n".join(rules.reader().gfm_lines(text)[span[0] - 1 : span[1]]), None
+    return "\n".join(BLOCKS.gfm_lines(text)[span[0] - 1 : span[1]]), None
 
 
 def pins_and_copies_in(reader, root, rel, ops, sources):
@@ -1307,7 +1318,7 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
     `from` cannot read is named as not read at the operation's line."""
     if not ops:
         return []
-    rules = reader.rule_changes()
+    rules = rule_changes_reader()
     out = []
     if not sources:
         sources.update(_read_tree(rules, root))
@@ -1349,6 +1360,20 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
     return out
 
 
+def rule_changes_reader():
+    """`RULE_CHANGES_READER`, as `lib/sibling.py#load` returns it, loaded on
+    first use. An absent file is the loader's `SystemExit(2)`, which
+    `rule_changes_of` catches beside a module that raises."""
+    return sibling.load(RULE_CHANGES_READER)
+
+
+def policy_root(root):
+    """The policy root of the repository at ROOT: `lib/config.py#policy_root`
+    of the `seal/` root `lib/optin.py#home_at` resolves there."""
+    config = sibling.load("lib/config.py")
+    return config.policy_root(OPTIN.home_at(root, OPTIN.git_common_dir(root)))
+
+
 def rule_changes_read(reader, root, item, notices=None, sources=None):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
@@ -1358,13 +1383,13 @@ def rule_changes_read(reader, root, item, notices=None, sources=None):
     not read, and each line of a `to` `rules.py` names so, goes to NOTICES
     (`RULE_CHANGES_UNREAD`), and so does each test pin and copy of its
     operations (`pins_and_copies_in`), read into SOURCES. The reader is
-    reached through `unverified_check.py#rule_changes`, which raises where
-    it will not load."""
+    reached through `rule_changes_reader`, which raises where it will not
+    load."""
     rel = f"{item}/{SPEC_FILE}"
     text = read_record(root, rel)
     if text is None:
         return []
-    parsed = reader.rule_changes().parse(text, reader.policy_root(root))
+    parsed = rule_changes_reader().parse(text, policy_root(root))
     if notices is not None:
         notices.extend(
             (rel, line, RULE_CHANGES_UNREAD.format(why=why))
@@ -2027,15 +2052,105 @@ def trailer_findings(trailers, judged, local=False):
     return problems, notices
 
 
+def commit_of(root, ref):
+    """The commit `ref` names in `root`, or None. `resolves` asks it."""
+    r = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or None
+
+
+def resolves(root, ref):
+    """Whether `ref` names a commit in `root`.
+
+    `main` asks this of its `--baseline` before it reads anything at that
+    ref, so a CI checkout too shallow to hold the base branch is exit 2
+    rather than a diff read against nothing."""
+    return commit_of(root, ref) is not None
+
+
+def merge_base(root, ref):
+    """The last commit `ref` and `HEAD` agreed on, or None.
+
+    `main` asks `settled` at this commit, and not at `ref`. The ref it
+    passes is the branch the pull request merges into, and that branch
+    MOVES: the moment one work item squashes into it, every sibling branch
+    cut before that squash has the squashed item's files at the ref and never
+    had them at all (#272).
+
+    On a branch checkout the merge base is the fork point. In CI, whose
+    checkout of a pull request is the head already merged into the base, it is
+    the base's tip. Either way a directory present there and absent here was
+    removed by THIS branch, and one that arrived on the base after the branch
+    was cut is not this branch's business.
+
+    None for two states: unrelated histories (exit 1, empty output) and a
+    `HEAD` that names no commit (exit 128). A shallow clone whose base ref
+    resolves while their common ancestor sits beyond the graft lands in the
+    first."""
+    r = subprocess.run(
+        ["git", "-C", root, "merge-base", ref, "HEAD"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or None
+
+
+def settled(root, ref, directories):
+    """The DIRECTORIES that stood at REF, each a settle where it is gone whole.
+
+    **The one predicate**, which `retired` asks of the merge base `main`
+    computes, handing it only directories absent on its head side. Its rule
+    is `docs/checks/the-fold.md` *The fold, and what tells it from a
+    deletion*. A directory is settled when it held a
+    file at REF. What its record held there and what the policy root holds
+    of its design are not read: the settling session writes each section in
+    its own words, and the settle's pull request states each decision for
+    review. A directory a pull request empties only in part never reaches
+    here, since its caller passes only the directories that are gone."""
+    return {d for d in directories if tree_at(root, ref, d)}
+
+
+def tree_at(root, ref, directory):
+    """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
+    None. `directory` is `/`-joined, and so is every path returned. At a ref
+    the paths come from `-z`, which quotes none, whatever `core.quotePath`
+    says."""
+    if ref is None:
+        top = GITCMD.under_root(root, directory)
+        out = []
+        for here, dirs, files in os.walk(top):
+            dirs.sort()
+            for name in sorted(files):
+                rel = os.path.relpath(os.path.join(here, name), root)
+                out.append(GITCMD.git_path(rel))
+        return out
+    r = subprocess.run(
+        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
+
+
 def retired(reader, root, fork, records):
     """The work item directories of the removed declarations that read as a
     settle: each stood at the merge base and is gone whole, asked of the one
-    predicate, `unverified_check.py#settled`. RECORDS maps each declaration
+    predicate, `settled`. RECORDS maps each declaration
     to its text at HEAD; a directory the disk still holds is a deletion of
     part of it, and never reaches the predicate."""
     gone = [os.path.dirname(rel) for rel, text in records.items() if text is None]
     gone = [d for d in gone if not os.path.isdir(os.path.join(root, d))]
-    return reader.settled(root, fork, gone)
+    return settled(root, fork, gone)
 
 
 def main(argv=None):
@@ -2059,11 +2174,11 @@ def main(argv=None):
     except (OSError, SyntaxError, ImportError) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2
-    root = reader.repo_root(os.path.abspath(args.root))
-    if root is None:
+    root = OPTIN.repo_root(os.path.abspath(args.root))
+    if not root:
         print(f"chain-check: {args.root} is not in a git repository", file=sys.stderr)
         return 2
-    if not reader.resolves(root, args.baseline):
+    if not resolves(root, args.baseline):
         print(
             f"chain-check: --baseline {args.baseline} does not resolve in {root}; "
             "a shallow checkout lands here",
@@ -2075,7 +2190,7 @@ def main(argv=None):
         print(f"chain-check: cannot diff against {args.baseline}", file=sys.stderr)
         return 2
     paths, moved = diff
-    fork = reader.merge_base(root, args.baseline)
+    fork = merge_base(root, args.baseline)
     home = root_name(routing, root, fork)
     work_items = f"{home}/{routing.optin.WORK_ITEMS}"
     own, why = declared_for_this_branch(root, routing, work_items)
@@ -2119,7 +2234,7 @@ def main(argv=None):
     if WORKTREE:
         print("chain-check: reading the working tree (--worktree); CI reads HEAD")
     for rel, line, message in carried:
-        print(reader.annotate("notice", rel, line, message))
+        print(CONSOLE.annotate("notice", rel, line, message))
     trailers = routing_trailers(root, args.baseline)
     if trailers is None:
         print(
@@ -2133,11 +2248,11 @@ def main(argv=None):
     )
     kind = "error" if strict else "notice"
     if not declarations:
-        print(reader.annotate("notice", "", 0, why))
+        print(CONSOLE.annotate("notice", "", 0, why))
         for rel, line, message in notices:
-            print(reader.annotate("notice", rel, line, message))
+            print(CONSOLE.annotate("notice", rel, line, message))
         for rel, line, message in problems:
-            print(reader.annotate(kind, rel, line, message))
+            print(CONSOLE.annotate(kind, rel, line, message))
         return 1 if problems and strict else 0
 
     # A declared work item's commit can write another work item's section
@@ -2231,9 +2346,9 @@ def main(argv=None):
             problems.append((rel, line, message))
 
     for rel, line, message in notices:
-        print(reader.annotate("notice", rel, line, message))
+        print(CONSOLE.annotate("notice", rel, line, message))
     for rel, line, message in problems:
-        print(reader.annotate(kind, rel, line, message))
+        print(CONSOLE.annotate(kind, rel, line, message))
     return 1 if problems and strict else 0
 
 

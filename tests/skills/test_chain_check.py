@@ -6,13 +6,17 @@ process over a repository built once for the module and copied for each
 case that judges it: a branch with a routing declaration, a code commit, two
 round records and the closing records, judged as a ready or a draft pull
 request through the event payload GitHub writes. Each copy is the reset.
-`Test_module` holds the case that reads this module's source for a call of
-`unverified_check.py#settled` and no second definition of it, which #942
-moved from `tests/behaviour/test_unverified_rows_close.py`; the copy run without its
-siblings, from `tests/test_a_script_copied_alone_exits_2.py`; and the
-framer's mark after a U+2028, `frame_foot`'s one case, from
-`tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`. The last two came in
+`Test_module` holds the copy run without its siblings, from
+`tests/test_a_script_copied_alone_exits_2.py`, and the framer's mark after
+a U+2028, `frame_foot`'s one case, from
+`tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, which came in
 its round 9 fix pass, each a case of this module alone.
+
+The predicates the check asks git, `commit_of`, `resolves`, `merge_base`,
+`settled` and `tree_at`, and the policy root's reader came here from
+`skills/verify/scripts/unverified_check.py` (#1482), and their cases from
+`tests/skills/test_unverified_check.py`, unchanged but for the module they
+call. They read the worlds that file builds once, imported from it.
 """
 
 import functools
@@ -26,6 +30,7 @@ import sys
 
 import conftest
 import pytest
+import test_unverified_check
 from conftest import (
     BASELINE,
     LS,
@@ -33,6 +38,7 @@ from conftest import (
     chain_check_run,
     commit_everything_as_e,
     config_json,
+    git_out,
     mark_root,
     parity_file,
     write,
@@ -41,12 +47,24 @@ from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
 from conftest import seal_block as block
+from test_unverified_check import (
+    CANONICAL,
+    CLOSED_ITEM,
+    DROPPED,
+    OPEN_ITEM,
+    SETTLE_A,
+    SETTLE_BAD,
+    SETTLE_C,
+    _committed,
+    copy_of,
+    memo,
+)
 
 TARGET = "skills/code-review/scripts/chain_check.py"
 
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / TARGET
-READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
+READER = ROOT / "lib" / "lines.py"
 ITEM = "seal/threads/1791999999-a-work-item"
 # The pictographs and symbols a mark is drawn from: the colour circles and
 # squares, the check and cross marks, the question mark ornament and the
@@ -54,8 +72,16 @@ ITEM = "seal/threads/1791999999-a-work-item"
 EMOJI = re.compile("[⌀-⏿☀-➿⬀-⯿️\U0001f000-\U0001faff]")
 
 chain = load(CHAIN, "chain_check_under_test")
-reader = load(READER, "unverified_reader_for_chain_tests")
+reader = load(READER, "lines_reader_for_chain_tests")
 check = functools.partial(chain_check_run, chain)
+# The worlds the predicates moved from `unverified_check.py` read, fixtures
+# built once in the file this one imports them from.
+plain = test_unverified_check.plain
+forked = test_unverified_check.forked
+settle = test_unverified_check.settle
+joined = test_unverified_check.joined
+# A work item id git quotes under the default `core.quotePath` (#1283).
+NON_ASCII = "1780000012-정렬"
 
 ROUTING = """# a work item -- routing
 
@@ -452,12 +478,16 @@ def copied_tree(tree):
     script = tree / "skills" / "code-review" / "scripts" / "chain_check.py"
     script.parent.mkdir(parents=True)
     script.write_text(CHAIN.read_text(encoding="utf-8"), encoding="utf-8")
-    (tree / "skills" / "verify" / "scripts").mkdir(parents=True)
-    (tree / "skills" / "verify" / "scripts" / "unverified_check.py").write_text(
-        READER.read_text(encoding="utf-8"), encoding="utf-8"
-    )
     (tree / "lib").mkdir(parents=True)
-    for name in ("blocks.py", "fields.py", "gitcmd.py"):
+    for name in (
+        "blocks.py",
+        "console.py",
+        "fields.py",
+        "gitcmd.py",
+        "lines.py",
+        "optin.py",
+        "sibling.py",
+    ):
         (tree / "lib" / name).write_text(
             (ROOT / "lib" / name).read_text(encoding="utf-8"),
             encoding="utf-8",
@@ -1139,7 +1169,7 @@ class Test_record_findings:
         )
         found, errors = chain.record_findings(reader, text, "r.md")
         line = text.splitlines().index(note) + 1
-        assert errors == [("r.md", line, reader.COMMENT_LINE)], errors
+        assert errors == [("r.md", line, chain.FIELDS.COMMENT_LINE)], errors
         assert [f.number for f in found] == [1, 2]
 
     @pytest.mark.rule("location-touched-by-fix")
@@ -1405,7 +1435,7 @@ class Test_frame:
 
 # --- rule_changes_read, at the pull request --------------------------------------
 
-RULES = reader.rule_changes()
+RULES = chain.rule_changes_reader()
 # The refusal's text before the parser's reason, pinned here so an edit to
 # `chain.RULE_CHANGES_SAYS` meets a case.
 SAYS = (
@@ -1451,7 +1481,7 @@ def put_spec(root, text, committed=True):
 def refusal(root, text, item=ITEM):
     """The line the check prints for ITEM's spec reading TEXT outside CI,
     built from `rule_changes.parse`'s own error so no reason is spelt here."""
-    ((line, reason),) = RULES.parse(text, reader.policy_root(str(root))).errors
+    ((line, reason),) = RULES.parse(text, chain.policy_root(str(root))).errors
     return f"{item}/frame/design.md:{line}  {chain.RULE_CHANGES_SAYS.format(reason=reason)}"
 
 
@@ -1459,7 +1489,7 @@ def unread_heading(root, text, item=ITEM):
     """The notice the check prints outside CI for ITEM's spec reading TEXT,
     whose one near heading `rule_changes.parse` names, built from the
     parser's own reason."""
-    ((line, why),) = RULES.parse(text, reader.policy_root(str(root))).unread
+    ((line, why),) = RULES.parse(text, chain.policy_root(str(root))).unread
     return f"{item}/frame/design.md:{line}  {chain.RULE_CHANGES_UNREAD.format(why=why)}"
 
 
@@ -1680,7 +1710,7 @@ class Test_rule_changes_read:
         """S10: exit 2 naming the reader, for the judged item's spec and for
         an edited spec; a work item with no `frame/design.md` never reaches it."""
         root, _code = branch
-        monkeypatch.setattr(chain.SHARED_READER, "rule_changes", will_not_load)
+        monkeypatch.setattr(chain, "rule_changes_reader", will_not_load)
         code, out = check(root, capsys)
         assert code == 0, out
         write(root, f"{MERGED_ITEM}/frame/design.md", spec_with(NOTHING))
@@ -2266,7 +2296,7 @@ class Test_pins_and_copies_in:
         root, _code = branch
         write(root, "tests/test_deep.py", "x = 1  # deep\n")
         planted_spec(root, spec_with(change_to("a new rule.")))
-        rules = chain.SHARED_READER.rule_changes()
+        rules = chain.rule_changes_reader()
         literals = rules.literals
 
         def gives_up(source):
@@ -2950,7 +2980,7 @@ class Test_guarantee:
         commit(root, "a verdict in a comment")
         line = text.splitlines().index("<!-- Verdict: sealed -->") + 1
         assert chain.guarantee(reader, str(root), ITEM, "main") == [
-            (rel, line, reader.COMMENT_LINE)
+            (rel, line, chain.FIELDS.COMMENT_LINE)
         ]
 
     @pytest.mark.parametrize("line", NEAR_MISSES)
@@ -3100,7 +3130,7 @@ class Test_broad_gate:
         write(root, rel, "<!-- the gate's guidance -->\n\n" + gate_file(sha))
         commit(root, "a comment in the gate record")
         assert chain.broad_gate(reader, str(root), ITEM, "main") == [
-            (rel, 1, reader.COMMENT_LINE)
+            (rel, 1, chain.FIELDS.COMMENT_LINE)
         ]
 
     def test_refuses_a_record_with_no_run_block_naming_the_command(self, item):
@@ -4590,34 +4620,6 @@ class Test_retired:
 
 
 class Test_module:
-    def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
-        """One reader asks whether a removed directory was settled, this one,
-        and it reaches the answer by calling `settled` on the module that
-        owns it rather than spelling the rule inline, so the next condition
-        added to the predicate reaches it, and a second `settled` defined
-        here goes red even while it agrees today. `settle` asks no predicate
-        since #1033: it reads the open rows of the working tree."""
-        import ast
-
-        script = TARGET.split("/")
-        with open(os.path.join(ROOT, *script), encoding="utf-8") as f:
-            tree = ast.parse(f.read())
-        calls = [
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "settled"
-        ]
-        assert calls, (
-            f"{'/'.join(script)} decides a removal without asking the predicate"
-        )
-        assert not [
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.FunctionDef) and node.name == "settled"
-        ], f"{'/'.join(script)} defines a second `settled`"
-
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
         """#590, and S4 of #1482. A copy of this script taken without its
         siblings exits 2, with the loader's one sentence naming the absent
@@ -4673,7 +4675,7 @@ class Test_module:
             cwd=str(repo),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        reader = plugin / "skills" / "verify" / "scripts" / "unverified_check.py"
+        reader = plugin / "lib" / "lines.py"
         said = chain.sibling.MISSING.format(path=str(reader))
         assert done.stderr == said + "\n", done.stderr
 
@@ -4764,6 +4766,133 @@ def test_the_template_is_the_record_the_check_reads():
     found, errors = chain.record_findings(reader, quoted, "t")
     assert errors == [] and [f.verdict for f in found] == [(chain.OPEN, None)]
     assert [c for c in text if EMOJI.match(c)] == []
+
+
+# --- what git answers, and the policy root (#1482) ---------------------------
+
+
+class Test_policy_root:
+    def test_accepts_the_row_a_config_writes(self, joined, tmp_path):
+        d = copy_of(joined, tmp_path)
+        write(
+            d,
+            "seal/config.json",
+            config_json(("Policy root", "rules")),
+        )
+        assert chain.policy_root(str(d)) == "rules"
+
+    def test_refuses_to_read_anything_but_docs_with_no_row(self, joined):
+        assert chain.policy_root(str(joined)) == "docs"
+
+
+def answering(monkeypatch, word, stdout):
+    """`subprocess.run` in the module answering exit 0 with STDOUT to every
+    git call that carries WORD, and running every other call."""
+    real_run = subprocess.run
+
+    def stub(argv, *a, **kw):
+        if isinstance(argv, list) and word in argv:
+            return subprocess.CompletedProcess(argv, 0, stdout, "")
+        return real_run(argv, *a, **kw)
+
+    monkeypatch.setattr(chain.subprocess, "run", stub)
+
+
+class Test_commit_of:
+    def test_accepts_a_ref_as_its_commit(self, plain):
+        assert chain.commit_of(str(plain), "HEAD") == git_out(
+            plain, "rev-parse", "HEAD"
+        )
+
+    def test_refuses_a_ref_that_does_not_resolve_or_answers_nothing(
+        self, plain, monkeypatch
+    ):
+        assert chain.commit_of(str(plain), "origin/nosuchbranch") is None
+        answering(monkeypatch, "--verify", "\n")
+        assert chain.commit_of(str(plain), "HEAD") is None
+
+
+class Test_resolves:
+    def test_accepts_a_ref_that_names_a_commit(self, plain):
+        assert chain.resolves(str(plain), "HEAD") is True
+
+    def test_refuses_a_ref_git_answers_with_nothing(self, plain, monkeypatch):
+        """`chain_check.py` loads this for whether a ref resolves; an empty
+        answer is a refusal, not a sentinel travelling out as resolved."""
+        answering(monkeypatch, "--verify", "\n")
+        assert chain.resolves(str(plain), "HEAD") is False
+
+
+class Test_merge_base:
+    def test_accepts_the_fork_point_of_a_moved_base(self, forked):
+        assert chain.merge_base(str(forked), "base") == git_out(
+            forked, "rev-parse", "fork"
+        )
+
+    def test_refuses_an_unrelated_history_and_an_empty_answer(
+        self, forked, monkeypatch
+    ):
+        assert chain.merge_base(str(forked), "unrelated") is None
+        answering(monkeypatch, "merge-base", "\n")
+        assert chain.merge_base(str(forked), "base") is None
+
+
+class Test_tree_at:
+    def test_accepts_a_directory_at_a_ref_and_on_disk(self, settle):
+        listed = [f"specs/{SETTLE_A}/design.md", f"specs/{SETTLE_A}/gaps.md"]
+        assert chain.tree_at(str(settle), "HEAD", f"specs/{SETTLE_A}") == listed
+        assert chain.tree_at(str(settle), None, f"specs/{SETTLE_A}") == listed
+
+    def test_accepts_a_directory_whose_id_is_not_ascii(self, tmp_path):
+        """#1283. At a ref the paths come from `ls-tree -z`, so they are
+        returned as they are and as the disk gives them, not in git's
+        quoting. Seen red against the listing without `-z`."""
+        directory = f"specs/{NON_ASCII}"
+        d = _committed(tmp_path, {f"{directory}/gaps.md": memo(CANONICAL)})
+        listed = [f"{directory}/gaps.md"]
+        assert chain.tree_at(str(d), "HEAD", directory) == listed
+        assert chain.tree_at(str(d), None, directory) == listed
+
+    @pytest.mark.parametrize("ref", ["HEAD", None, "nosuch"])
+    def test_refuses_a_directory_that_is_not_there(self, settle, ref):
+        directory = "specs/none" if ref != "nosuch" else f"specs/{SETTLE_A}"
+        assert chain.tree_at(str(settle), ref, directory) == []
+
+
+class Test_settled:
+    def test_accepts_every_directory_that_stood_at_the_ref(self, settle):
+        """S6 at the predicate (#1033): a directory that stood at the ref is
+        settled whatever its record and its spec say: an open row, a spec an
+        earlier commit dropped, a rule `docs/` does not hold, a section that
+        does not parse, a spec with no section, and no spec at all."""
+        dirs = [
+            f"specs/{n}"
+            for n in (
+                OPEN_ITEM,
+                DROPPED,
+                SETTLE_A,
+                SETTLE_BAD,
+                SETTLE_C,
+                CLOSED_ITEM,
+            )
+        ]
+        assert chain.settled(str(settle), "HEAD", dirs) == set(dirs)
+
+    @pytest.mark.parametrize(
+        "ref, name",
+        [("HEAD", "1780000099-none"), ("nosuch", OPEN_ITEM)],
+        ids=["a directory the ref never held", "a ref that does not resolve"],
+    )
+    def test_refuses_a_directory_the_ref_does_not_hold(self, settle, ref, name):
+        assert chain.settled(str(settle), ref, [f"specs/{name}"]) == set()
+
+
+class Test_rule_changes_reader:
+    def test_accepts_the_one_reader_of_a_specs_rule_changes(self):
+        assert callable(chain.rule_changes_reader().parse)
+
+    def test_refuses_to_load_it_twice(self):
+        assert chain.rule_changes_reader() is chain.rule_changes_reader()
 
 
 test_census = census_case(TARGET)

@@ -20,17 +20,19 @@ import sys
 
 HASH_LEN = 8
 
-# The fence, heading and line rules are the shared reader's,
-# `unverified_check.py` beside this file, which every reader of markdown and
-# record text asks. `lib/` stands first on `sys.path`, where `lib/sibling.py`
-# is imported from at the reader's first use.
+# The fence and line rules are `lib/blocks.py`'s and the heading rule is
+# `lib/lines.py`'s, which every reader of markdown and record text asks.
+# `lib/` stands first on `sys.path`, where `lib/sibling.py` is imported from
+# at the first use of either.
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
-READER = "skills/verify/scripts/unverified_check.py"
+READER = "lib/lines.py"
+BLOCKS = "lib/blocks.py"
 
 
 def shared_reader():
-    """The shared reader's module, loaded on first use.
+    """`lib/lines.py`, the shared reader of a text's lines, loaded on first
+    use.
 
     A reader that is not there, or will not load, ends the run or raises: a
     plugin whose shared reader is broken has every other gate broken too,
@@ -39,6 +41,14 @@ def shared_reader():
     import sibling
 
     return sibling.load(READER)
+
+
+def fence_rule():
+    """`lib/blocks.py`, the fence delimiter rule and the line split, loaded
+    on first use, and ending the run or raising as `shared_reader` does."""
+    import sibling
+
+    return sibling.load(BLOCKS)
 
 
 def quoted_lines(lines):
@@ -56,7 +66,7 @@ def quoted_lines(lines):
     lines are read. An HTML comment is read too: a commented-out line is a
     claim somebody parked, and dropping it is silent.
     """
-    reader = shared_reader()
+    reader = fence_rule()
     out, opener, first = set(), None, None
     for n, line in enumerate(lines):
         if opener is None:
@@ -80,7 +90,7 @@ def gfm_lines(text, keepends=False):
     walk of lines here, the lines a hash covers and a clause spans included,
     reads these.
     """
-    return shared_reader().gfm_lines(text, keepends)
+    return fence_rule().gfm_lines(text, keepends)
 
 
 def unquoted(text):
@@ -116,7 +126,7 @@ def content_hash(lines):
 
 def heading_level(line):
     """The level of the markdown heading LINE is, or None: CommonMark 4.2's
-    ATX heading, by `unverified_check.py#heading_level` (#867).
+    ATX heading, by `lib/lines.py#heading_level` (#867).
     """
     return shared_reader().heading_level(line)
 

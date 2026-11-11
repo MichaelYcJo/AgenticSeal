@@ -70,9 +70,11 @@ fold's end among them (#1405).
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `lib/fields.py` reads by the record's headings, and
 `trail/gate.md` through `lib/fields.py`, the one reader of a record's
-`seal` blocks; a record either refuses is refused here with its sentence. The other records' headings are read through `unverified_check.py`'s
-`readable` and `sections`, so a heading inside a fence is no heading. No
-record is parsed any other way.
+`seal` blocks; a record either refuses is refused here with its sentence.
+The other records' headings are read through `lib/lines.py`'s `readable`
+and `sections`, so a heading inside a fence is no heading, and every
+record's lines through `lib/blocks.py#gfm_lines`. No record is parsed any
+other way.
 
 Limits, stated here and not guarded:
 
@@ -149,8 +151,9 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-# Loaded once, here: `chain_check.py` with the block reader and the shared
-# markdown reader it loads at its import,
+# Loaded once, here: `chain_check.py` with the block reader, the shared
+# markdown reader and the line split it loads at its import, `lib/gaps.py`,
+# whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
 # `lib/config.py`, the one reader of a `seal/config.json` key, and
@@ -162,6 +165,7 @@ except ImportError:
 # error is raised to the importer.
 try:
     CHAIN = sibling.load("skills/code-review/scripts/chain_check.py")
+    GAPS = sibling.load("lib/gaps.py")
     ROUTING = sibling.load("lib/routing.py")
     CONFIG = sibling.load("lib/config.py")
     CLOSER = sibling.load(".github/scripts/close_issues_on_release.py")
@@ -174,6 +178,7 @@ except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     )
     raise SystemExit(2) from None
 READER = CHAIN.SHARED_READER
+BLOCKS = CHAIN.BLOCKS
 OPTIN = ROUTING.optin
 
 # The line that ends the orchestrator's part, `first_part`'s files, and
@@ -193,9 +198,9 @@ FOLD_END = "</details>"
 # what follows the lookahead, up to a `>`, only names the tag as read.
 TAG = re.compile(r"</?details(?=[\s/>]|$)[^>]*>?", re.IGNORECASE)
 # The record headings the generator reads, beside `gaps.md`'s
-# `## Not verified`, which is `unverified_check.py#HEADING`.
+# `## Not verified`, which is `lib/gaps.py#HEADING`.
 PHASES = "## Phases"
-NOT_VERIFIED = READER.HEADING
+NOT_VERIFIED = GAPS.HEADING
 NOT_DONE = "## Not done"
 
 # A work item's records, by their path under its directory.
@@ -411,7 +416,7 @@ def read_own(item, name=OWN_PART):
             text = handle.read()
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused([(name, 0, f"cannot be read as UTF-8 text ({exc})")]) from None
-    for i, line in enumerate(READER.gfm_lines(text)):
+    for i, line in enumerate(BLOCKS.gfm_lines(text)):
         if line == HEADING:
             raise Refused(
                 [
@@ -626,7 +631,7 @@ def _section(rel, text, heading):
             [(rel, starts[1] + 1, f"a second `{heading}` section; the body copies one")]
         )
     return (
-        READER.gfm_lines(text),
+        BLOCKS.gfm_lines(text),
         starts[0] + 1,
         CHAIN.section_end(READER, seen, starts[0]),
     )
@@ -635,7 +640,7 @@ def _section(rel, text, heading):
 def _changed(texts):
     if CHANGELOG not in texts:
         return [_fixed(CHANGED), _fixed(ABSENT.format(path=CHANGELOG))]
-    raw = READER.gfm_lines(texts[CHANGELOG])
+    raw = BLOCKS.gfm_lines(texts[CHANGELOG])
     return [
         _fixed(CHANGED),
         _fixed(FROM.format(path=CHANGELOG)),
@@ -671,7 +676,7 @@ def _round(rel, number, text):
     parsed = CHAIN.round_read(READER, text, rel)
     if parsed.errors:
         raise Refused(parsed.errors)
-    raw = READER.gfm_lines(text)
+    raw = BLOCKS.gfm_lines(text)
 
     def whole(block):
         return _copied(rel, raw, block.line - 1, block.end)
@@ -716,7 +721,7 @@ def _gate(texts):
         raise Refused([(GATE, line, why) for line, why in found.refusals])
     if not found.blocks:
         return [_fixed(BROAD), _fixed(NO_GATE_BLOCK)]
-    raw = READER.gfm_lines(texts[GATE])
+    raw = BLOCKS.gfm_lines(texts[GATE])
     return [
         _fixed(BROAD),
         _fixed(FROM.format(path=GATE)),
@@ -739,7 +744,7 @@ def _questions(texts):
     tables = _tables(texts[QUESTIONS])
     if not tables:
         return [_fixed(ASKED), _fixed(NO_QUESTION_TABLE)]
-    raw = READER.gfm_lines(texts[QUESTIONS])
+    raw = BLOCKS.gfm_lines(texts[QUESTIONS])
     return [
         _fixed(ASKED),
         _fixed(FROM.format(path=QUESTIONS)),
@@ -859,7 +864,7 @@ def split(body):
     `HEADING`, the orchestrator's part, and the text after that line, each
     as its bytes stood. Refused where no line equals it, a body 0.25.0 wrote
     among them, and the refusal names the repair."""
-    lines = READER.gfm_lines(body, keepends=True)
+    lines = BLOCKS.gfm_lines(body, keepends=True)
     for i, line in enumerate(lines):
         if line.rstrip("\r\n") == HEADING:
             return "".join(lines[:i]), "".join(lines[i + 1 :])
@@ -914,10 +919,10 @@ def _first_part(head, parts):
     above `HEADING`, is not the lines of PARTS, `first_part`'s files in
     order, counted from the body's first line; each line PARTS give is
     named with the file that gives it."""
-    said = READER.gfm_lines(head)
+    said = BLOCKS.gfm_lines(head)
     given, owner = [], []
     for name, text in parts:
-        lines = READER.gfm_lines(text)
+        lines = BLOCKS.gfm_lines(text)
         given += lines
         owner += [name] * len(lines)
     causes = []
@@ -949,10 +954,10 @@ def _check(below, body, parts):
             [(None, 0, "is not there; `seal pr-body <item> --body <file>` writes it")]
         )
     head, generated = split(body)
-    said = READER.gfm_lines(generated)
+    said = BLOCKS.gfm_lines(generated)
     given = [line for line, _source in below]
     # The lines above the part: the first part's, and `HEADING`'s own.
-    offset = len(READER.gfm_lines(head, keepends=True)) + 1
+    offset = len(BLOCKS.gfm_lines(head, keepends=True)) + 1
     causes = _first_part(head, parts)
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():

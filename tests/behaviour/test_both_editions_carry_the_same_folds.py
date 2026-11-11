@@ -6,7 +6,7 @@ editions are prose in two languages, so nothing here compares sentences. What
 is language-neutral is the outline: the sequence of heading levels. A heading
 added to one edition only, or one at another level, changes it.
 
-A heading is a live line (`skills/verify/scripts/unverified_check.py#live_lines`,
+A heading is a live line (`lib/lines.py#live_lines`,
 so one quoted in a fence is no heading) matching `^ {0,3}#{1,6}` followed by
 a space, a tab or the end of the line, as CommonMark reads one. A digit
 straight after the hashes is prose, and each edition has a line that begins
@@ -20,7 +20,7 @@ import re
 import pytest
 from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
 
-READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
+READER = os.path.join(ROOT, "lib", "lines.py")
 
 HEADING = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]|$)")
 
@@ -32,7 +32,7 @@ def _load(path, name):
     return module
 
 
-uc = _load(READER, "unverified_check")
+uc = _load(READER, "lines_for_the_folds")
 
 
 def outline(text):

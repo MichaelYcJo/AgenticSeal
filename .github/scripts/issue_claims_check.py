@@ -95,10 +95,10 @@ console = sibling.load("lib/console.py")
 _closer = sibling.load(".github/scripts/close_issues_on_release.py")
 CLOSING, HIDDEN, KEYWORDS = _closer.CLOSING, _closer.HIDDEN, _closer.KEYWORDS
 
-# Where a line ends is the shared reader's rule (#664). A reader that is
+# Where a line ends is `lib/blocks.py`'s rule (#664). A reader that is
 # moved or renamed stops this check at load in `lib/sibling.py`'s sentence
 # at exit 2, which is the loud direction.
-READER = "skills/verify/scripts/unverified_check.py"
+READER = "lib/blocks.py"
 reader = sibling.load(READER)
 
 # Every `#N` a body writes, claimed or not. `#L45` and `#anchor` do not match:
