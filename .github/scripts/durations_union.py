@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Union the Windows shards' durations parts into one file, and report it (#931).
+"""Union the Windows shards' durations parts into one file, and report it.
 
 Every Windows shard of `.github/workflows/test.yml` runs with
 `--store-durations --clean-durations`, so pytest-split writes that shard's own
@@ -15,7 +15,7 @@ indent, LF line ends, the shape pytest-split writes -- and reports the union.
 The report goes to `$GITHUB_STEP_SUMMARY` when that is set and to stdout
 otherwise. The job uploads the union as the `test-durations` artifact and,
 on a run that is no pull request's, saves it to the cache every split shard
-restores before it divides (#1486). No file's age is read: the union is
+restores before it divides. No file's age is read: the union is
 measured on every run, and pytest-split prices only the cases it collects.
 
 **The union is the whole suite or nothing.** A part missing, an id in two
@@ -30,7 +30,7 @@ The report names parts by their directory under `--parts`, which in CI is the
 artifact's name, and never prints a path of the machine it ran on. A shard's
 *measured seconds* is the sum of its part, every case's setup, call and
 teardown as pytest-split adds them, summed over the xdist workers; the spread
-is the slowest part's seconds over the parts' mean, the reading #874's S5 took.
+is the slowest part's seconds over the parts' mean.
 A count split, where no shard restored a union, widens the spread.
 
 Exit codes: 0 wrote the union and its report; 2 refused and wrote nothing.
