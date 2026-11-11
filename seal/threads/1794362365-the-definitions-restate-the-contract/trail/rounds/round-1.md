@@ -165,6 +165,11 @@ preloads grow by 19 B to 415 B as the contract grows by the 415 B of
 pr.md, line 2: the same sentence in place of the old one inside the quote.
 ```
 
+```seal
+verdict: fixed 3ad1c31fa
+answer: The finding holds. The framer folded it into frame/plan.md Alternatives considered row 2, which now names a framer, a proofer, a sealer and a tracer as the agents whose preloads grow and cites Operational impact for each figure rather than restating one, so the row does not go stale when the fix pass moves the contract's bytes. The orchestrator requoted the row word for word into pr.md at e4e6158ed. The fix touched this work item's records alone.
+```
+
 ### 4. The round-record form will still say a round's probe was deleted, and no rule change rewrites it
 
 ```seal
@@ -196,6 +201,11 @@ The operation is the frame's, for the orchestrator to fold.
   section: The round record
   from: A probe the line names was deleted under the agent contract's probe rule, so the round writes it again from its `## Probes` row.
   to: A probe the line names stands in the earlier round's scratch directory, or was deleted from a working tree under the agent contract's probe rule, so the round writes it again from its `## Probes` row.
+```
+
+```seal
+verdict: fixed 3ad1c31fa
+answer: The finding holds. The framer added the change operation on docs/forms/the-round-record.md The round record to frame/design.md Rule changes as the finding gives it, from and to unchanged, so the settle rewrites the sentence's reason and keeps its action. The form has no Korean copy, so one operation covers it. The fix touched this work item's records alone.
 ```
 
 ## Confirmations
