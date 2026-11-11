@@ -67,6 +67,11 @@ keeps both of the reason's conditions. The repeat is the orchestrator's
 judgment, not the owner's words
 ```
 
+```seal
+verdict: fixed 6b27a65dc
+answer: The finding holds. The orchestrator rewrote the Grounds cell of its own row in frame/plan.md Judgments of the run as the finding gives it: the owner's decision says once, its reason is that nothing clears a session's scratch and a literal path holds no run for a person, and the repeat after a repair is the orchestrator's judgment from that reason, not the owner's words. The fix touched this work item's records alone.
+```
+
 ### 2. The rule change's `to` restates the README's sentence on the orchestrator's removal
 
 ```seal
@@ -101,6 +106,11 @@ a session's scratch when the session ends.":
 The one removal is the orchestrator's, in
 `skills/implement/orchestration.md` *Orchestrator: the order inside a
 ticket*, because nothing clears a session's scratch when the session ends.
+```
+
+```seal
+verdict: fixed 6b27a65dc
+answer: The finding holds. The framer rewrote the last sentence of the Rule changes to: for docs/running/the-agent-set.md to name where the removal stands, skills/implement/orchestration.md Orchestrator: the order inside a ticket, and keep the reason, without the word one the finding's sentence carried, since the removal runs again after a repair. The README keeps its sentence for people. The fix touched this work item's records alone.
 ```
 
 ## Confirmations
