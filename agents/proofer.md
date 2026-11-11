@@ -136,10 +136,11 @@ language`, the sentence at the coordinate it carries. So is a list item of
 rendering, and so is a quote of `pr.md` that it leaves without a
 rendering. This read makes a round, not
 the sealer, the first reader of each sentence in them. The implementer's
-account of what its own reading of its diff and of these records listed is
-a claim you verify on your own: a statement that reading held and the
-account missed, or a sample handed back as a whole list, is a finding on
-the method, even where every instance on the list was fixed.
+account of what its own reading of its diff and of these records listed,
+`pr.md` and `pr.<lang>.md` aside, is a claim you verify on your own: a
+statement that reading held and the account missed, or a sample handed back
+as a whole list, is a finding on the method, even where every instance on
+the list was fixed.
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Answer each finding the round
