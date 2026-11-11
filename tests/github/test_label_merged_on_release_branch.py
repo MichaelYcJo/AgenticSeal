@@ -161,6 +161,10 @@ class PagedTracker(Tracker):
 
 
 class Test_existing_labels:
+    """Where two cases call `existing_labels` alike, the world differs: the
+    monkeypatched tracker holds forty `merged:` labels, past gh's page of 30,
+    or one other label."""
+
     def test_accepts_every_label_of_a_tracker_past_thirty(self, monkeypatch):
         """A tracker grows a `merged:` label per release and keeps every one,
         so gh's default page of 30 is soon a part of the list. A label read

@@ -62,6 +62,10 @@ class Test_create:
 
 
 class Test_main:
+    """Where two cases call `main` alike, the world differs: the fake tracker
+    lacks one declared label, holds every one, or holds none under
+    `DRY_RUN=1`."""
+
     def test_accepts_a_missing_label_and_creates_it_with_the_documents_sentence(
         self, monkeypatch, capsys
     ):

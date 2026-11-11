@@ -136,6 +136,10 @@ EXPECTED = "write `check: <targets>`"
 
 
 class Test_main:
+    """Where two cases have one body, the document differs: the `tree`
+    fixture writes a prose line that opens like a check line in one, and a
+    heading that does in the other."""
+
     @pytest.mark.parametrize(
         "target, said",
         [

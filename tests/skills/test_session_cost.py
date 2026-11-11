@@ -1530,6 +1530,12 @@ PREAMBLE = (
 
 
 class Test_main:
+    """Where two cases have one body, the fixture they read differs: a run
+    with segments, or a segment that spawned an agent.
+    `test_the_reading_names_the_release_it_is_comparable_from` and
+    `test_the_reading_says_its_family_rows_moved_at_642` read one world, and
+    differ only by the note of the report each holds."""
+
     def test_accepts_a_transcript_and_separates_command_time_from_model_time(
         self, transcript
     ):
@@ -5048,6 +5054,11 @@ class Test_emit:
 
 
 class Test_post:
+    """Where two cases call `post` alike, the world differs: `_gh` answers
+    the lookup with no log, a failure, no `gh`, a closed log, one or two open
+    logs, or text that is not JSON, and answers the comment with success or a
+    failure."""
+
     # --- A6: a repository that never made the log is the expected case ------------
 
     def test_no_history_posts_nothing_and_does_not_fail(self, monkeypatch, capsys):

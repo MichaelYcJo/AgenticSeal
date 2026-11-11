@@ -1000,6 +1000,10 @@ class Test_rolled_from:
 
 
 class Test_find_baseline_issue:
+    """Where two cases call `find_baseline_issue` alike, the world differs:
+    the monkeypatched `try_run` answers nothing, no log or one log in one,
+    and two open logs in the other."""
+
     def test_accepts_one_open_log_and_answers_none_where_there_is_none(
         self, monkeypatch
     ):

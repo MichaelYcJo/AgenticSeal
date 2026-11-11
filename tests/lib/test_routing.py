@@ -110,6 +110,12 @@ class Test_table_rows:
 
 
 class Test_parse:
+    """Where two cases call `parse` alike on the two-axis declaration, the
+    declaration they hold it against differs: none, one carrying a row the
+    reader no longer reads, or one answering `no` for automation. Where two
+    have one body, the Implementation answer they write differs: an old name
+    or a sentence."""
+
     def test_accepts_a_two_axis_declaration_with_no_optional_row_answered(self):
         """S1, and S8 at the parser. Twelve of these are committed in this
         repository at the base of this work, thirteen at its head. A third or

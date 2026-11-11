@@ -496,6 +496,11 @@ class Test_pytest_configure:
 
 
 class Test_Recorder:
+    """Where two cases build `Recorder` alike, the reports they send to
+    `path_of` differ: another worker, another node and a teardown in one,
+    and a freed worker's address taken again, unhashable workers and equal
+    workers in the other."""
+
     def test_accepts_a_path_only_from_its_own_workers_report_of_it(self):
         """#825 round 5's 🔴 1, at `Recorder.path_of`, for the orders a pytest
         run does not produce on demand. A report with no path takes the path of

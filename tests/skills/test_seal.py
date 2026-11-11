@@ -2270,6 +2270,9 @@ class Test_workflow_at:
 
 
 class Test_pinned:
+    """Where two cases have one body, the text differs: a clone line naming
+    a release, or a file naming none."""
+
     def test_accepts_the_release_the_clone_line_names(self):
         assert SEAL.pinned("git clone --depth 1 --branch v1.2.3 \\\n") == "v1.2.3"
 

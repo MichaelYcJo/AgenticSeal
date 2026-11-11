@@ -2216,6 +2216,10 @@ class Test_drawn_from:
 
 
 class Test_main:
+    """Where two cases call `main` alike, the world differs: a stamp waits to
+    be drawn in one, and a monkeypatched `drawn_at_stop` raises in the
+    other."""
+
     def test_accepts_the_sample_in_the_form_the_console_takes(self, capsys):
         assert stamp.main([], console_wants_letters=False) == 0
         assert (
