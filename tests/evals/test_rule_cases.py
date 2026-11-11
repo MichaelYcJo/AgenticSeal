@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 
+import pytest
 from conftest import ROOT, census_case, load_module
 
 TARGET = "evals/scripts/rule_cases.py"
@@ -61,6 +62,32 @@ def scaffold_files(scaffold):
 
 
 class Test_main:
+    def test_accepts_an_out_directory_and_writes_the_proofer_case_with_both_truths(
+        self, tmp_path, capsys
+    ):
+        """Guards #1487 Scope 7: the proofer's rule case is written with its
+        own truth and the uncovered `shout_twice` its classed runs named,
+        which reads a `location:` line naming `tests/test_textutil.py` and
+        no line of `src/textutil.py`."""
+        assert RC.main(["--out", str(tmp_path)]) == 0
+        capsys.readouterr()
+        graders = tmp_path / "proofer" / RULE / "graders"
+        truths = sorted(p.name for p in graders.glob("truth-*.md"))
+        assert truths == ["truth-shout-twice-uncovered.md", "truth-shout-twice.md"]
+        name = "truth-shout-twice-uncovered.md"
+        text = (graders / name).read_text(encoding="utf-8")
+        assert text.endswith("the defect it names S2 for.\n")
+        config = behaviour.grader_from(f"graders/{name}", text)["config"]
+        found = re.compile(config["pattern"], re.M)
+        assert found.search("location: `tests/test_textutil.py`")
+        assert not found.search("location: `src/textutil.py:8`")
+
+    def test_refuses_an_out_option_with_no_directory(self):
+        """An `--out` with no directory after it is argparse's exit 2."""
+        with pytest.raises(SystemExit) as stopped:
+            RC.main(["--out"])
+        assert stopped.value.code == 2
+
     def test_a_sealer_case_body_is_its_own_part_then_its_records(
         self, tmp_path, capsys
     ):
