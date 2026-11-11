@@ -18,11 +18,11 @@ tied row written here is one nobody at that coordinate will ever see.
 import os
 import re
 
-from conftest import ROOT, read
+from conftest import ROOT, census_case, read
 
-# No TARGET: its cases hold the rider rule across seal/follow-up.md and the files a rider stands in.
+TARGET = "seal/follow-up.md"
 
-FOLLOW_UP = os.path.join(ROOT, "seal", "follow-up.md")
+FOLLOW_UP = os.path.join(ROOT, *TARGET.split("/"))
 
 # A coordinate is `path/to/file.ext:123` — the shape a rider is written at.
 COORDINATE = re.compile(r"[\w./-]+\.(?:py|md|json|yml|yaml|sh):\d+")
@@ -69,3 +69,6 @@ def test_a_rider_waiting_on_a_held_file_names_who_answers_it():
     deferral to nobody."""
     for target in rows("Riders waiting on a file another branch holds"):
         assert target[-1].strip() not in ("", "—"), f"no answerer: {target}"
+
+
+test_census = census_case(TARGET)
