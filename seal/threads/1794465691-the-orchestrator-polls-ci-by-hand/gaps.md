@@ -10,4 +10,11 @@
 
 ## Not done
 
-nothing
+Cases for four of the eleven exit 2 guards in `pr_wait.py`: a `gh` call
+past `GH_TIMEOUT`, an `OSError` that starts no `gh`, an `OSError` that
+starts no `git`, and an entry of `gh pr checks`' list that is not an
+object. The fix pass over round 1 listed every `raise Unanswered` in the
+module and gave a case to the three guards finding 3 named. These four
+still have none. Each ends at exit 2 and never at a pass, and none is a
+value `frame/design.md` *Data & interfaces* names. Round 1 read the
+timeout and opened no finding for it.
