@@ -127,7 +127,7 @@ class Test_pytest_jobs:
             "jobs:\n"
             "  installs:\n"
             "    steps:\n"
-            "      - run: pip install pytest-xdist pytest-split==0.11.0\n"
+            "      - run: pip install pytest-xdist pytest-split==0.11.0 allure-pytest\n"
             "      - run: |\n"
             "          cat pytest.ini\n"
             "          rm -rf .pytest_cache\n",
