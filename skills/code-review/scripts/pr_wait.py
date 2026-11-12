@@ -36,16 +36,18 @@ What each poll reads, every ten seconds, in this order:
      rollup holds a check: `gh pr checks <N> --json name,workflow,event,bucket`
   3. once a check of event `pull_request` is listed and none is pending:
      `gh run list --commit <HEAD> --event pull_request --json
-     status,workflowName`, and where every run has completed, `gh pr checks`
-     once more, and the command decides on that read where nothing in it
-     is pending
+     status,workflowName`, and where every run it lists has completed, an
+     empty list among such answers, `gh pr checks` once more, and the
+     command decides on that read where nothing in it is pending
 
 Exits 4, 5 and 6 are taken at whichever read first shows them. The
 two-minute limit runs from the start until the first check of a
 `pull_request` run is listed on HEAD, and nothing limits the wait after
-that: CI's own job timeouts bound it, and a feature pull request's checks
-take ten minutes and more here. So a head that leaves HEAD after the start,
-by another party's push, keeps the command waiting.
+that: CI's own job timeouts bound it, and a job that waits for a runner
+can run longer than any limit short enough to help. So a head that leaves
+HEAD after the start, by another party's push, keeps the command waiting.
+Each `gh` call is bounded at `GH_TIMEOUT`, so a call that hangs ends the
+wait at exit 2.
 
 Why each read is there:
 
@@ -64,8 +66,8 @@ Why each read is there:
 - **A read with nothing pending is held against the workflow runs.** A job
   that `needs:` another gets its check only when the job it needs ends, so
   between the two every listed check has finished while the run has not.
-  `.github/workflows/test.yml`'s `durations` and `release-report` are such
-  jobs. A run's `status` stays short of `completed` until its last job
+  `.github/workflows/test.yml` holds such jobs. A run's `status` stays
+  short of `completed` until its last job
   ends, and a newer run that cancelled an older one on the same commit is
   not `completed` while the older run's cancelled check is still listed.
 - **A cancelled check is not a pass.** `gh` puts `CANCELLED` in the
@@ -84,7 +86,8 @@ exit 2 naming the value, or at exit 3, and never at a pass.
 
 Every exit prints one line on stdout that opens `seal pr-wait:` and names
 the pull request, the commit where one was read, and the outcome; exits 1
-and 2 add indented lines below it.
+and 2 add indented lines below it. An unusable argument is argparse's
+usage error on stderr, at exit 2.
 """
 
 import argparse
