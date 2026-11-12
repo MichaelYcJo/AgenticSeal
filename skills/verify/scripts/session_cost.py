@@ -3082,10 +3082,17 @@ def work_item_keys(directory):
 def run_git(cwd, args, stdin=None):
     """`git -C CWD` with ARGS, as `(exit code, stdout bytes)`, or `(None, b"")`
     where git could not start. Bytes, because `cat-file --batch` gives each
-    object's size in bytes. Every call here only reads."""
+    object's size in bytes. Every call here only reads, and none fetches: in
+    a partial clone `cat-file` would fetch a blob the clone lacks from its
+    remote, and `GIT_NO_LAZY_FETCH` makes it answer `missing` instead, which
+    `branch_declarations` reads as a directory with no `routing.md`. A git
+    too old to know the variable ignores it and fetches."""
     try:
         done = subprocess.run(
-            ["git", "-C", cwd, *args], input=stdin, capture_output=True
+            ["git", "-C", cwd, *args],
+            input=stdin,
+            capture_output=True,
+            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
         )
     except OSError:
         return None, b""
@@ -3294,9 +3301,11 @@ def report_work_item(reading):
     names an agent's own file, because no spawn is in view to name it.
 
     **The lines on other work items print before either early return**, so
-    a later run whose segments are all in the log still shows the segment it
-    shares with the run that posted it. None of them is a `# <file name>`
-    line, which `posted_names` would read as a posted segment.
+    a later read without `--post` whose segments are all in the log still
+    shows the segment it shares with the run that posted it. With `--post`,
+    `work_item` returns before this page when nothing is left to post. None
+    of these lines is a `# <file name>` line, which `posted_names` would
+    read as a posted segment.
 
     **The rule 6 line is here because this is the reading a run ends with.**
     The run posts once, through this mode, so a line only

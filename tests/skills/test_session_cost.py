@@ -5660,6 +5660,54 @@ class Test_work_item:
         ), out
         assert "also names" not in out, out
 
+    def test_a_partial_clone_fetches_nothing(self, monkeypatch, capsys, tmp_path):
+        """#1510. A blobless clone holds no blob of a branch it never checked
+        out, and `cat-file` would fetch one from the clone's remote. The
+        branch read fetches nothing: the other item's `routing.md` reads as
+        missing, the page does not name that item, and the blob is still
+        absent from the clone afterwards."""
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+        source = tmp_path / "source"
+        self.declare(source / "seal" / "threads" / self.NAME, self.BRANCH)
+        git(source, "init", "-q")
+        git(source, "config", "user.email", "t@t")
+        git(source, "config", "user.name", "t")
+        git(source, "config", "uploadpack.allowFilter", "true")
+        git(source, "add", "-A")
+        git(source, "commit", "-qm", "this item")
+        git(source, "checkout", "-q", "-b", "other")
+        self.declare(source / "seal" / "threads" / self.OTHER, self.OTHER_BRANCH)
+        git(source, "add", "-A")
+        git(source, "commit", "-qm", "the other item")
+        blob = git(
+            source, "rev-parse", f"other:seal/threads/{self.OTHER}/routing.md"
+        ).stdout.strip()
+        git(source, "checkout", "-q", "-")
+        repo = tmp_path / "repo"
+        git(tmp_path, "clone", "-q", "--filter=blob:none", source.as_uri(), "repo")
+        git(repo, "branch", "-q", "other", "origin/other")
+        item = repo / "seal" / "threads" / self.NAME
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Records: seal/threads/{self.NAME}/. {self.OTHER_BRANCH} runs beside.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert (
+            "  0 also naming another work item, with 0 other work items read "
+            "beside it\n" in out
+        ), out
+        # Asked without the variable, `cat-file -e` would fetch the blob itself.
+        held = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", blob],
+            capture_output=True,
+            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        )
+        assert held.returncode != 0, "the branch read fetched the blob"
+
     def test_a_local_mode_root_reads_its_siblings_and_no_branch(
         self, monkeypatch, capsys, tmp_path
     ):
