@@ -104,7 +104,8 @@ class Test_pytest_jobs:
         self, tmp_path
     ):
         """The jobs that run the suite are read by what their scripts run,
-        so a leg moved into a job of another name is still read (#1516)."""
+        so a leg moved into a job of another name is still read (#1516), and
+        a job that names pytest in `needs:` or in a shell comment is not."""
         path = tmp_path / "fixture.yml"
         path.write_text(SUITE_JOBS, encoding="utf-8")
         loaded = workflows.load(str(path))
@@ -112,11 +113,27 @@ class Test_pytest_jobs:
         assert list(found) == ["first", "second"], list(found)
         assert found["second"] is loaded["jobs"]["second"]
 
-    def test_refuses_a_job_that_names_pytest_and_runs_nothing(self, tmp_path):
+    def test_refuses_a_job_whose_script_names_a_plugin_or_a_file_of_pytest(
+        self, tmp_path
+    ):
+        """`pytest` is read as a word: a plugin installed by its package
+        name, the config file and the cache directory run no suite. The
+        install line of `test.yml` names `pytest-xdist` and `pytest-split`
+        beside `pytest`, so a substring reading would select a job that
+        only installs them."""
         path = tmp_path / "fixture.yml"
-        path.write_text(SUITE_JOBS, encoding="utf-8")
-        found = workflows.pytest_jobs(workflows.load(str(path)))
-        assert "reads-a-part" not in found and "comments-on-it" not in found, found
+        path.write_text(
+            "on: push\n"
+            "jobs:\n"
+            "  installs:\n"
+            "    steps:\n"
+            "      - run: pip install pytest-xdist pytest-split==0.11.0\n"
+            "      - run: |\n"
+            "          cat pytest.ini\n"
+            "          rm -rf .pytest_cache\n",
+            encoding="utf-8",
+        )
+        assert workflows.pytest_jobs(workflows.load(str(path))) == {}
 
 
 test_census = census_case(TARGET)
