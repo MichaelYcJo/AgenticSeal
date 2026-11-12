@@ -43,4 +43,4 @@ No migration, no new environment variable and no new dependency. `seal cost --wo
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-12 | The title takes `refactor:` | Every segment the command counted it still counts, and every exit code stays; the reading adds lines naming the segments that also match another work item, and no gate, check or hook is added. The milestone plans this item as one of the release's two non-feats, and the issue was filed as `refactor:` | `skills/commit-pr-convention/SKILL.md`; the description of milestone `release: 0.38.0` |
