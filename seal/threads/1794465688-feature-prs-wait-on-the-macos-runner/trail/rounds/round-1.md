@@ -81,6 +81,11 @@ class Test_pytest_jobs:
         assert found["second"] is loaded["jobs"]["second"]
 ```
 
+```seal
+verdict: fixed 65d6671a5
+answer: The paste-ready fix was read against the layout rule and changed. Removing the refusal case leaves `Test_pytest_jobs` with no `test_refuses_` case, which `seal layout --check tests/test_workflows.py` refuses (executed), so the case was replaced rather than removed. The first case's docstring now says it refuses the `needs:` and comment decoys, as the finding gave it, and a `True or` mutant of `pytest_jobs` fails it on its equality (executed). The new `test_refuses_a_job_whose_script_names_a_plugin_or_a_file_of_pytest` holds the word boundary of `RUNS_PYTEST`, which no case held: three `seal mutate` mutants, dropping the lookbehind, the lookahead or both, are red against it (executed). The first commit, 9455b9bb5, left the lookbehind-only mutant alive, and 65d6671a5 adds `allure-pytest` to the fixture to hold it.
+```
+
 ### 2. The title judgment `chore:` does not stand on the prefix table it cites
 
 ```seal
@@ -122,6 +127,11 @@ The row of `frame/plan.md` *Judgments of the run*:
 `:173-176`, the orchestrator retitles #1516 when it titles the pull request.
 The fix pass owes that act, and this snippet does not cover it.
 
+```seal
+verdict: fixed 2999c5e77
+answer: The orchestrator rewrote the row of `frame/plan.md` *Judgments of the run* and `pr.md:5` to `refactor:` at 2999c5e77, and retitled issue #1516 outside the tree. This fix pass made no change for this finding.
+```
+
 ### 3. The closing memo waits for the release pull request to run `pytest-wide`, when a dispatch on this branch runs it before the merge
 
 ```seal
@@ -162,6 +172,11 @@ reading of the alias.
 | whether GitHub reads the `&pytest-steps` alias for `pytest-wide` and its legs report under the names G7 lists. The cache restore and the upload skip, and the pytest line ends with two empty expansions, on an entry with no `split` or `store`, as run 43143655875 showed (round 1). actionlint 1.7.12 reports the same two properties as undefined, and it is not a check of this repository | the orchestrator, from a `workflow_dispatch` run of `tests` on this branch before the pull request merges (`gh workflow run test.yml --ref chore/1516-feature-prs-wait-on-the-macos-runner`, then `gh api …/runs/<id>/jobs`): `github.base_ref` is empty on a dispatch, so `pytest-wide` runs |
 ```
 
+```seal
+verdict: fixed 155eddbb4
+answer: The row at `gaps.md:9` now reads as the finding gives it. The orchestrator answers it from a `workflow_dispatch` run of `tests` on this branch before the merge, and the step half of the row stands on jobs 130936327013 and 130936327217 of run 43143655875, which this pass opened: the cache restore and the upload `skipped`, the pytest step run with the flags alone, both `success` (executed). `phase-1.md:100-102` stays as the phase's history, as the finding says.
+```
+
 ### 4. The design says the work adds one case, and the target adds three
 
 ```seal
@@ -185,6 +200,11 @@ finding 1 applied, the work adds two cases.
 
 ```markdown
 This work adds a CI job, its condition, the case of *Scope* item 3, and `tests/workflows.py#pytest_jobs` in the place of `runs_pytest`, with the case of `tests/test_workflows.py#Test_pytest_jobs` that holds it. In return it removes the two legs from every pull request into `release/*`.
+```
+
+```seal
+verdict: fixed 1f5944325
+answer: The framer folded the sentence and the orchestrator committed it at 1f5944325. This fix pass made no change for this finding.
 ```
 
 ## Confirmations
