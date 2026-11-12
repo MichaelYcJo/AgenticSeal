@@ -53,4 +53,4 @@ The spawn names three other open work items, and none has a committed frame yet,
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-12 | The title takes `feat:` | A new subcommand, `seal pr-wait`, takes the place of a procedure every orchestrating session ran by hand after each push, and it answers a cancelled check, which `gh pr checks --watch` passed, as a failure; the issue was filed as `feat:` | `skills/commit-pr-convention/SKILL.md`; `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* |
