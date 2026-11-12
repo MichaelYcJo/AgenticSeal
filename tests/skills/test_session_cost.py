@@ -5665,7 +5665,8 @@ class Test_work_item:
         out, and `cat-file` would fetch one from the clone's remote. The
         branch read fetches nothing: the other item's `routing.md` reads as
         missing, the page does not name that item, and the blob is still
-        absent from the clone afterwards."""
+        absent from the clone afterwards. The case skips where git does not
+        know `GIT_NO_LAZY_FETCH`, because the read fetches there."""
         monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
         source = tmp_path / "source"
         self.declare(source / "seal" / "threads" / self.NAME, self.BRANCH)
@@ -5686,6 +5687,18 @@ class Test_work_item:
         repo = tmp_path / "repo"
         git(tmp_path, "clone", "-q", "--filter=blob:none", source.as_uri(), "repo")
         git(repo, "branch", "-q", "other", "origin/other")
+        # A git that does not know the variable fetches the blob here, as the
+        # read would; `run_git` says so, and there is nothing left to test.
+        known = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", blob],
+            capture_output=True,
+            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        )
+        if known.returncode == 0:
+            pytest.skip(
+                "this git fetched a blob with GIT_NO_LAZY_FETCH set, so it does "
+                "not know the variable, and the branch read fetches there"
+            )
         item = repo / "seal" / "threads" / self.NAME
         self.agent(
             tmp_path,
