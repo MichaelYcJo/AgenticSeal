@@ -485,8 +485,11 @@ class Test_main:
             PR.main(["0"])
         assert raised.value.code == 2
 
-    def test_refuses_where_git_cannot_read_head(self, tmp_path, monkeypatch, capsys):
-        """S9: nothing is asked of `gh` without a HEAD to wait on."""
+    def test_refuses_where_git_cannot_read_head(
+        self, tmp_path, monkeypatch, clock, capsys
+    ):
+        """S9: nothing is asked of `gh` without a HEAD to wait on. The fake
+        clock is there for a wait that starts anyway."""
         monkeypatch.chdir(tmp_path)
         monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
         hub = serve(monkeypatch, views=[view()])
