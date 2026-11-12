@@ -1,0 +1,15 @@
+### Added
+
+- **`seal pr-wait <N>` waits on a pull request's checks at HEAD and answers with one exit code per outcome (#1494).** Every ten seconds it reads the pull request's state, its mergeable state, its head commit and its checks, each through `gh`'s JSON. The wait starts once the head is HEAD and a check of a `pull_request` run is listed on it, and the command gives that start two minutes. After the start it waits with no limit until no check is pending. It then confirms that every `pull_request` workflow run on HEAD has completed, and decides on one more read of the checks. Exit 0 means every check passed or was skipped. Exit 1 means a check failed or was cancelled, and the output names each such check by its workflow and its name. Exit 2 means the command could not ask `gh` or `git`, or could not read the answer, and the output names the command and what it printed. Exit 3 means no check of a `pull_request` run was listed on HEAD within two minutes, and the output names the SHA and why. Exits 4, 5 and 6 mean the pull request is merged, closed, or open with a conflict with its base, and the command takes them at whichever read first shows them.
+- **`seal pr-wait <N> --once` reads the pull request's state once and waits on nothing (#1494).** It exits 0 for an open pull request, 4 for a merged one and 5 for a closed one, and reads nothing else.
+- **The command does not pass two results that `gh pr checks --watch` passes (#1494).** `--watch` exits 0 where the only bad check was cancelled, because `gh` counts a cancelled check as neither failed nor pending. `seal pr-wait` exits 1 and names that check. `--watch` also ends once nothing listed is pending, which happens between the end of a job and the creation of a job that `needs:` it. `seal pr-wait` decides only after every `pull_request` run on HEAD has completed.
+
+`docs/running/what-a-script-gates.md` *The checks* lists the command once the settle after this release writes the rule change of this work item's `frame/design.md`.
+
+Updating: an orchestrating session that loaded the skill before the upgrade keeps the old procedure until it loads the skill again. `seal cost` counts the CI wait outside its `git` row from this release on, because the line that runs it opens with `seal` and not with `gh`, so a reading compared across this release moves for that reason alone.
+
+### Process changes
+
+| Date | Change | Why | Source |
+|---|---|---|---|
+| 2026-11-12 | `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*: the orchestrator runs `seal pr-wait <N> --once` before each push to the pull request's branch and `seal pr-wait <N>` when the pull request opens and after each push, and acts on the exit code as the section's table gives it, in place of reading `gh pr view` by hand, polling, and running `gh pr checks --watch` | Every orchestrating session ran a read, a ten-second poll of two commands under a two-minute limit, and a watch by hand after every push, and the watch passed a cancelled check and could end before a dependent job had its check | https://github.com/MichaelYcJo/AgenticSeal/issues/1494 |

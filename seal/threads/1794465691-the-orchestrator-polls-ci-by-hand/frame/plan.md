@@ -29,7 +29,7 @@ The constraint that shapes the reads is gh's own: `--json` never reports a check
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `frame/design.md` *Scope* items 1, 2 and 3 | `bin/test -q tests/skills/test_pr_wait.py tests/skills/test_seal.py tests/behaviour/test_a_reference_root_is_read_and_never_taken.py tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`; each case of S1 to S9 seen red against the guard it names (contract rule 15); `seal mutate` on the unit that maps a read to an exit code | a48e77f8a |
-| 2 | `frame/design.md` *Scope* items 4, 5 and 6 | `bin/test -q tests/text/test_the_rules_have_one_owner.py`, the pin seen red with each new string deleted from the paragraph; the proofer reads the paragraph against design G3 and S10 for an act that was lost | |
+| 2 | `frame/design.md` *Scope* items 4, 5 and 6 | `bin/test -q tests/text/test_the_rules_have_one_owner.py`, the pin seen red with each new string deleted from the paragraph; the proofer reads the paragraph against design G3 and S10 for an act that was lost | 06ac413c2 |
 
 ## Overlap with the release
 
