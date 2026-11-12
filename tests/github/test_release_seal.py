@@ -253,7 +253,8 @@ HEADER = "<p>2 pull requests merged<br>2 issues closed<br>1 outside contributor<
 
 # A badge's two colours by its label, as `(value, label)` (#1496): the seal's
 # reds for `SEALED`, green for the suite's passed count, grey for the
-# skipped, capped and deferred counts, and blue on grey for every other.
+# skipped, capped and deferred counts, and a blue value beside a grey label
+# for every other.
 SEAL_RED = ("d42420", "8e0c12")
 GREEN = ("2ea44f", "555555")
 GREY = ("6e7781", "555555")

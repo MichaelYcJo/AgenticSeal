@@ -278,7 +278,8 @@ HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contribu
 BADGES = "https://img.shields.io/badge/"
 # A badge's two colours by its label, as `(value, label)` (#1496): the seal's
 # reds for `SEALED`, green for the suite's passed count, grey for the
-# skipped, capped and deferred counts, and blue on grey for every other.
+# skipped, capped and deferred counts, and a blue value beside a grey label
+# for every other.
 SEAL_RED = ("d42420", "8e0c12")
 GREEN = ("2ea44f", "555555")
 GREY = ("6e7781", "555555")
@@ -1022,7 +1023,8 @@ class Test_module:
         So a label and a value holding a `-`, a `_`, a space and the
         characters a URL or an attribute gives a meaning to come back
         exactly as written, and the alt text is the same two words. The
-        label has no colours of its own, so it is blue on grey (#1496 S4).
+        label has no colours of its own, so its value is blue and its label
+        grey (#1496 S4).
         Seen red against an encoder that percent-encoded alone, without
         doubling, and against the `badge` that coloured every label with the
         seal's two reds."""
@@ -1070,13 +1072,16 @@ class Test_module:
     def test_a_badge_takes_its_two_colours_from_its_label(self, label, colours):
         """#1496 S4, colours C3. A badge's value colour and label colour are
         read by its label, so a passing result does not read like a failure:
-        `SEALED` keeps the seal's bright red on its dark red, the suite's
-        passed count is green, the skipped, capped and deferred counts are
-        grey, and every other label of the sealed header is blue, each on a
-        grey label. The value is `not read`, the one a source that could not
-        be read gives, and the label alone still decides the colours; a
-        label with no colours of its own is the case above. Seen red against
-        the `badge` that coloured every label with the seal's two reds."""
+        `SEALED` keeps the seal's dark red label beside its bright red value,
+        and every other label is grey. The suite's passed count is green, the
+        skipped, capped and deferred counts are grey, and every other value
+        of the sealed header is blue. The value is `not read`, the one a
+        source that could not be read gives, and the label alone still
+        decides the colours; a label with no colours of its own is the case
+        above. Seen red against the `badge` that coloured every label with
+        the seal's two reds, at every parameter but `SEALED`, whose two reds
+        that `badge` already gave; `SEALED`'s was seen red with its entry
+        removed."""
         mod = publisher()
         img = mod.badge(label, "not read")
         src = html.unescape(re.search(r'src="([^"]*)"', img).group(1))
