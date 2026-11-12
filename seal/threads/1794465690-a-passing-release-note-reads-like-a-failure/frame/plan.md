@@ -16,7 +16,7 @@ Failure scenario of the chosen approach, six months on:
 
 - GitHub's sanitizer drops `align` from `<img>`. The seal would then stand above the badges instead of beside them. The note stays readable, and nothing in this repository would notice until a person looks at a release page.
 - A changelog fragment quotes a whole header paragraph with the release's exact counts. The seal would then find the header twice and refuse with a warning, and that release would have no seal. That costs the image and never the counts (`release_seal.py` docstring).
-- A badge label added later takes grey on blue without anyone choosing a colour for it. That is the owner's rule for every other value (issue #1496, *Colours C3*).
+- A badge label added later takes a blue value on a grey label without anyone choosing a colour for it. That is the owner's rule for every other value (issue #1496, *Colours C3*).
 
 ## Alternatives considered
 
