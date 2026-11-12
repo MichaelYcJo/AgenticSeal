@@ -23,7 +23,7 @@ The tree as read at `3a75cc23d`.
 | G15. Statements that remain true (read: `templates/setup/config.md:463-468`, `skills/config/SKILL.md:57`, `.github/workflows/publish-release.yml:20-35`) | Each one says the header "shows it beside the results" or that the job "rewrites the note's header". Each one still holds under layout C, so none changes. |
 | G16. Duplicates, libraries, cause (executed: `git grep -n 'labelColor\|shields'`; read: the imports of both scripts) | Nothing else in the tree builds a badge or colours one, so nothing can be extended instead. The scripts use only the standard library (`html`, `urllib.parse`), so no installed version is in question. The cause is shown by G9 and G13: the border belongs to the table, and the reds belong to the single pair of constants. |
 | G17. `seal/follow-up.md`, `seal/parity.json`, `### Process changes` (read) | `seal/follow-up.md` has no rows. `seal/parity.json` is absent. The latest release, v0.37.5, has no `### Process changes` table, and none of the tables in the fragments under `seal/threads/` concerns the release note. |
-| G18. `skills/settle/rule-changes.md` *A rule has one shape* (read) | Each operation below rewrites one sentence inside the existing bullet, which has no bold rule sentence and no check line. The cases that hold the new text are named in *User scenarios & acceptance*. The proofer reads whether the bullet should carry a check line. |
+| G18. `skills/settle/rule-changes.md` *A rule has one shape* (read) | Each operation below rewrites sentences inside the existing bullet, which has no bold rule sentence and no check line. After the settle, the policy sentence that follows each operation's `from:` still has the antecedent it has now, because no `to:` puts a new sentence between the two. The cases that hold the new text are named in *User scenarios & acceptance*. The proofer reads whether the bullet should carry a check line. |
 
 ## Scope
 
@@ -32,7 +32,7 @@ In:
 1. `publish_release_note.py#header` writes the counts in words as one HTML paragraph on one line: `<p>`, each count line escaped and parted by `<br>`, then `</p>`. The note holds no `<table>`.
 2. `publish_release_note.py#sealed_header` writes layout C in the same one-line paragraph. Given an image, the paragraph opens with the seal's `<img … width="W" align="left">`, the badge lines follow parted by `<br>`, and `<br clear="left">` ends the paragraph's text. Given no image, the paragraph holds the badge lines alone, with no `align` and no `clear`. One builder makes the paragraph for both headers and replaces `table`.
 3. `release_seal.py#seal_release` finds and replaces the new header by the reading it uses now: `body.count(header) != 1` refuses, and `body.replace(header, replacement)` seals. Its local variable `table` is renamed `header`. The `<p>` and `</p>` that open and close the header are its delimiters. A note whose header line holds the seal's header inside a longer line (a count with one more digit, or one more count line) is refused, not replaced.
-4. Every badge's two colours come from one table keyed by its label (colours C3). `SEALED` is value `d42420` on label `8e0c12`. `suite` is value `2ea44f`. `skipped`, `capped` and `deferred` are value `6e7781`. Those four labels, and every other label, sit on label `555555`. Every other label's value is `0969da`. The pair `BADGE_LABEL_COLOUR` and `BADGE_VALUE_COLOUR` leaves.
+4. Every badge's two colours come from one table keyed by its label (colours C3). `SEALED`'s value colour is `d42420` and its label colour `8e0c12`. `suite`'s value colour is `2ea44f`. The value colour of `skipped`, `capped` and `deferred` is `6e7781`. Every label but `SEALED` has the label colour `555555`, and every other label's value colour is `0969da`. The pair `BADGE_LABEL_COLOUR` and `BADGE_VALUE_COLOUR` leaves.
 5. The docstrings and comments of both scripts that state the old shape or the two reds are rewritten to state the new ones: `publish_release_note.py:29-33`, `table`'s docstring, `header`'s, the comment at `:659-666`, `badge`'s, and `sealed_header`'s; `release_seal.py:7-10`, `:116-118` and `results`' docstring.
 6. `tests/github/test_publish_release_note.py` and `tests/github/test_release_seal.py` hold the new header in both its forms, the colours by label, and the delimiters' refusals (*User scenarios & acceptance*).
 7. The policy text of G3 changes through `## Rule changes`, and the pull request leaves `docs/` as it is (G4).
@@ -82,19 +82,19 @@ A badge stays `<img src="https://img.shields.io/badge/{label}-{value}-{colour}?l
   file: docs/releasing/branch-and-release.md
   section: Cutting a release
   from: The note opens with a header, an HTML table whose one cell holds the release's counts as text, one per line: the pull requests merged, the issues they closed, and the outside contributors where there are any.
-  to: The note opens with a header, one HTML paragraph holding the release's counts as text, one per line: the pull requests merged, the issues they closed, and the outside contributors where there are any. The paragraph's opening and closing tags bound the header, so the seal finds it by its whole text and never inside a longer line.
+  to: The note opens with a header, one HTML paragraph holding the release's counts as text, one per line: the pull requests merged, the issues they closed, and the outside contributors where there are any. The paragraph's opening and closing tags keep the seal from matching a longer line of counts, so the seal finds only the whole header.
 
 - change
   file: docs/releasing/branch-and-release.md
   section: Cutting a release
-  from: It runs the suite at the tag and replaces the note's header with a table whose last cell holds the results the stamp states, as badges, one or two to a line.
-  to: It runs the suite at the tag and replaces the note's header with a paragraph holding the results the stamp states, as badges, one or two to a line. The header holds no table: GitHub draws a border around every table cell whatever the note's HTML asks, and in dark mode that border frames the seal in grey.
+  from: It runs the suite at the tag and replaces the note's header with a table whose last cell holds the results the stamp states, as badges, one or two to a line. They are the sealed version and commit, the pull requests merged, the issues closed, the outside contributors where there are any, the suite's counts, the work items and their review rounds, how many were capped, and the issues deferred.
+  to: It runs the suite at the tag and replaces the note's header with a paragraph holding the results the stamp states, as badges, one or two to a line. They are the sealed version and commit, the pull requests merged, the issues closed, the outside contributors where there are any, the suite's counts, the work items and their review rounds, how many were capped, and the issues deferred. The header holds no table: GitHub draws a border around every table cell whatever the note's HTML asks, and in dark mode that border frames the seal in grey.
 
 - change
   file: docs/releasing/branch-and-release.md
   section: Cutting a release
   from: A badge is a static image from the Shields badge service showing a label and a value in two of the seal's reds, and its alt text is that label and value in words.
-  to: A badge is a static image from the Shields badge service showing a label and a value, and its alt text is that label and value in words. Its colours are read by its label from one table, so that a passing result does not read like a failure. Every label is grey except `SEALED`'s, which keeps the seal's dark red under the seal's bright red value. The suite's passed count is green, the skipped, capped and deferred counts are grey, and every other value is blue.
+  to: A badge is a static image from the Shields badge service showing a label and a value in colours read by its label from one table, so that a passing result does not read like a failure. Every label is grey except `SEALED`'s, which keeps the seal's dark red beside the seal's bright red value. The suite's passed count is green, the skipped, capped and deferred counts are grey, and every other value is blue. A badge's alt text is that label and value in words.
 
 - change
   file: docs/releasing/branch-and-release.md
