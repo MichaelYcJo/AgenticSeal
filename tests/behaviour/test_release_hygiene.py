@@ -149,6 +149,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "exemption is keyed on (file, token) so the number gets through "
         "nowhere else"
     ),
+    ("skills/code-review/scripts/pr_wait.py", "2.92.0"): (
+        "gh's, named in the module docstring as the tag of `cli/cli` whose "
+        "`pkg/cmd/pr/checks/aggregate.go` puts `CANCELLED` in the `cancel` "
+        "bucket, the grounds for reading a cancelled check as not passed. The "
+        "class is the `broad_gate.py` row's: a loaded file naming the tool "
+        "build a reading was taken on, and no release of AgenticSeal makes "
+        "the number wrong"
+    ),
     # A pytest build and a pytest-xdist build had rows here, keyed on
     # `broad_gate.py`, for the comments over the JUnit report and the
     # collection-only proof. #825 retired both, and the recorder that replaced
