@@ -236,9 +236,8 @@ def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
     """`CONTRIBUTING.md` *Running the checks* says CI runs the suite on
     ubuntu, Windows and macOS at the floor stated above, macOS in
     `pytest-wide`. So every operating system the matrices name holds at
-    least one entry at `FLOOR`, whatever
-    other Python it also runs (#1065) -- a floor CI does not run at is a
-    floor nothing measures. The entries of every job that runs the suite are
+    least one entry at `FLOOR`, whatever other Python it also runs (#1065)
+    -- a floor CI does not run at is a floor nothing measures. The entries of every job that runs the suite are
     read together (#1516): ubuntu's floor leg and its 3.14 leg stand in two
     jobs. It reads a system and not its shards: one Windows shard moved off
     the floor leaves three at it, and this case passes that. Seen red with

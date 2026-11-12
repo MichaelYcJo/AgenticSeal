@@ -16,10 +16,10 @@ group named twice runs twice and a group named by no entry runs nowhere, and
 nothing on the runner says so -- each shard passes. So the matrix is read
 here, as `tests/workflows.py#load` parses it, and a matrix whose entries
 would not be its jobs is refused: `include:` is the only key of the matrix
-of each job that runs the suite, every
-entry of a sharded system is a shard of that system's count `K` in
-`SHARDED`, its groups are exactly 1 to `K` once each, every other entry
-carries no split, and the pytest line hands the split to pytest.
+of each job that runs the suite, every entry of a sharded system is a shard
+of that system's count `K` in `SHARDED`, its groups are exactly 1 to `K`
+once each, every other entry carries no split, and the pytest line hands
+the split to pytest.
 
 Every run measures the file as well (#931). Each Windows entry carries
 `store`, the pytest line hands it to pytest after the split, and pytest-split

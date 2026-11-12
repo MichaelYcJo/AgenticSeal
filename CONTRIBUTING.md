@@ -33,9 +33,9 @@ ready.** Every push to an open pull request into the release branch runs the
 suite on Linux and Windows, and a branch with no pull request runs nothing.
 macOS and Python 3.14 run on the release pull request into `main`. So the
 branch is pushed as often as the contributor likes, and the pull request
-opens once nothing is left to push. `skills/code-review/orchestration.md` *Orchestrator:
-the pull request opens once the sealer seals* owns the order a maintainer's
-run follows.
+opens once nothing is left to push. `skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals* owns the order
+a maintainer's run follows.
 
 ### What a contribution is asked for
 

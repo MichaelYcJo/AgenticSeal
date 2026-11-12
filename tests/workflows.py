@@ -4,6 +4,8 @@ A case that reads a job, a step or a key of `.github/workflows/*.yml` or
 `templates/setup/hygiene.yml` reads what `load` returns. The file is parsed
 by PyYAML, pinned in `.github/scripts/run_tests.py#PYYAML`, so no case reads
 a workflow's structure by indentation or by a regular expression over lines.
+`pytest_jobs` is the suite's one reading of which jobs of a loaded workflow
+run the suite.
 
 **`yaml.BaseLoader`, not `yaml.safe_load`.** PyYAML reads YAML 1.1, where a
 bare `on` is a boolean, so `safe_load` returns the trigger key of every

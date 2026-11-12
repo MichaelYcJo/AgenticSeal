@@ -74,9 +74,9 @@ class Test_load:
             workflows.load(str(tmp_path / "missing.yml"))
 
 
-# Three jobs a workflow runs the suite from, each a way a job here calls
-# pytest, and two that name it and run nothing: `needs:` names a job, and
-# a shell comment is not run.
+# Two jobs that run the suite, each in a way a job here calls pytest, and
+# two that name it and run nothing: `needs:` names a job, and a shell
+# comment is not run.
 SUITE_JOBS = """\
 on: push
 jobs:
