@@ -38,7 +38,7 @@ Failure scenario of the chosen approach, six months on:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3, and items 5 and 6 for the layout | `tests/github/test_publish_release_note.py` and `tests/github/test_release_seal.py`, run narrowly. S1, S2, S3, S5 and S7 pass. S6 is a new case, seen red against a `header` that writes no `<p>` and `</p>`. | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3, and items 5 and 6 for the layout | `tests/github/test_publish_release_note.py` and `tests/github/test_release_seal.py`, run narrowly. S1, S2, S3, S5 and S7 pass. S6 is a new case, seen red against a `header` that writes no `<p>` and `</p>`. | `aec18b104` |
 | 2 | `frame/design.md` *Scope* items 4, and 5 and 6 for the colours | The same two test files. S4 is seen red against the `badge` that read the one pair of constants. | |
 
 ## Overlap with the release
