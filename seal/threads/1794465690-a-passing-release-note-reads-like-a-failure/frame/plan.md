@@ -63,4 +63,4 @@ None for a deployer. Nothing migrates, and no environment variable or dependency
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-12 | The title takes `feat:` | A reader of every later release note meets a new header: no table, the seal floated beside its badges, and each badge coloured by its label; the issue's *Why it is a feat* gives the same grounds, as #1299, which made the badges, was a feat | `skills/commit-pr-convention/SKILL.md`; issue #1496 *Why it is a feat* |
