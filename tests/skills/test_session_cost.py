@@ -5600,7 +5600,8 @@ class Test_work_item:
         """#1510. Side by side, each other work item's directory stands on its
         own branch until it merges, so the checkout holds none of them. The
         page reads every local branch's `routing.md` and names the segment
-        whose prompt names those items' branches."""
+        whose prompt names those items' branches. A directory a branch holds
+        with no `routing.md` is no work item."""
         repo = item.parents[2]
         git(repo, "init", "-q")
         git(repo, "config", "user.email", "t@t")
@@ -5614,6 +5615,9 @@ class Test_work_item:
         ):
             git(repo, "checkout", "-q", "-b", branch)
             self.declare(item.parent / directory, declared)
+            notes = item.parent / f"{directory}-notes"
+            notes.mkdir()
+            (notes / "notes.md").write_text("no routing\n", encoding="utf-8")
             git(repo, "add", "-A")
             git(repo, "commit", "-qm", directory)
             git(repo, "checkout", "-q", "-")
@@ -5639,8 +5643,10 @@ class Test_work_item:
     ):
         """#1510. Where no counted segment names another work item, the count
         line says so and gives how many other items were read, so a reader
-        sees the reach of the read, and no segment's line prints."""
+        sees the reach of the read, and no segment's line prints. A sibling
+        directory with no `routing.md` is no work item."""
         self.sibling(item)
+        (item.parent / "1790000003-no-routing").mkdir()
         self.by_dir_and_by_branch(tmp_path)
         module = _cost()
         self.gh(monkeypatch, module, _listing((42, "OPEN")))

@@ -3137,9 +3137,12 @@ def branch_declarations(parent):
         if end < 0:
             break
         header, at = out[at:end].split(b" "), end + 1
-        if len(header) != 3 or not header[2].isdigit():
-            continue  # `<request> missing`: the directory holds no routing.md
-        size = int(header[2])
+        # `<oid> <type> <size>`, or `<request> missing` where the directory
+        # holds no routing.md, whose last word is no size and has no content.
+        try:
+            size = int(header[-1])
+        except (OverflowError, ValueError):
+            continue
         if header[1] == b"blob":
             text = out[at : at + size].decode("utf-8", "replace")
             found += [(name, text) for name in sorted(names[tree])]
