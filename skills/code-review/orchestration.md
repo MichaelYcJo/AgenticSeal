@@ -266,15 +266,14 @@ No sealer runs for it, since the body is not a record.
 **The orchestrator runs `seal pr-wait <N> --once` before each push to the
 pull request's branch, and `seal pr-wait <N>` when the pull request opens
 and after each push, and acts on the exit code as the table below gives
-it.** `seal pr-wait <N>` waits on pull request N's checks at the
-checkout's HEAD, which is the commit the orchestrator pushed last. It reads
-the checks of every workflow on the pull request, because a single
-workflow's run, watched alone, can pass while another workflow's check
-fails. Its one limit is on the start, the time for a check of a
-`pull_request` run to be listed on HEAD. Once one is listed, the command
-waits with no limit until no check is pending. `seal pr-wait <N> --once`
-reads the pull request's state alone, waits on nothing, and exits 0, 4 or
-5.
+it.** The wait reads pull request N's checks at the checkout's HEAD, which
+is the commit the orchestrator pushed last. It reads the checks of every
+workflow on the pull request, because a single workflow's run, watched
+alone, can pass while another workflow's check fails. Its one limit is on
+the start, the time for a check of a `pull_request` run to be listed on
+HEAD. Once one is listed, the wait has no limit and ends when no check is
+pending. The read before a push reads the pull request's state alone,
+waits on nothing, and exits 0, 4 or 5.
 
 | Exit | When | What the orchestrator does |
 |---|---|---|
