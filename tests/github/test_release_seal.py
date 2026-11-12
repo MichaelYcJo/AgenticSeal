@@ -248,41 +248,51 @@ def note(pulls=PULLS, theme=""):
 
 
 # The header `publish` writes for `PULLS`, which the seal finds and replaces.
-HEADER = (
-    "<table>\n<tr>\n"
-    "<td>2 pull requests merged<br>2 issues closed<br>1 outside contributor</td>\n"
-    "</tr>\n</table>"
-)
+HEADER = "<p>2 pull requests merged<br>2 issues closed<br>1 outside contributor</p>"
 
 
-def badge(path, alt):
+# A badge's two colours by its label, as `(value, label)` (#1496): the seal's
+# reds for `SEALED`, green for the suite's passed count, grey for the
+# skipped, capped and deferred counts, and a blue value beside a grey label
+# for every other.
+SEAL_RED = ("d42420", "8e0c12")
+GREEN = ("2ea44f", "555555")
+GREY = ("6e7781", "555555")
+BLUE = ("0969da", "555555")
+
+
+def badge(path, alt, colours=BLUE):
     """One badge exactly as the sealed header carries it (#1299): `path` is
-    the label and the value as the badge service's address spells them."""
+    the label and the value as the badge service's address spells them, and
+    `colours` the value's colour and the label's."""
+    colour, edge = colours
     return (
-        f'<img src="https://img.shields.io/badge/{path}-d42420?labelColor=8e0c12" '
+        f'<img src="https://img.shields.io/badge/{path}-{colour}?labelColor={edge}" '
         f'alt="{alt}">'
     )
 
 
-# The results cell the seal writes for `PULLS` and the fixture tree, as
-# badges one or two to a line, in the two-cell header and in the one-cell
-# header alike (#1299).
-RESULTS_CELL = "<br>".join(
+# The badge lines the seal writes for `PULLS` and the fixture tree, one or
+# two badges to a line and the lines parted by `<br>`, in the header with the
+# image and in the header without it alike (#1299, #1496).
+BADGE_LINES = "<br>".join(
     [
-        badge("SEALED-v1.2.3", "SEALED: v1.2.3"),
+        badge("SEALED-v1.2.3", "SEALED: v1.2.3", SEAL_RED),
         badge("commit-aaa11111", "commit: aaa11111")
         + " "
         + badge("on-main", "on: main"),
         badge("pull%20requests-2%20merged", "pull requests: 2 merged"),
         badge("issues-2%20closed", "issues: 2 closed"),
         badge("outside%20contributors-1", "outside contributors: 1"),
-        badge("suite-7003%20passed", "suite: 7003 passed")
+        badge("suite-7003%20passed", "suite: 7003 passed", GREEN)
         + " "
-        + badge("skipped-66", "skipped: 66"),
+        + badge("skipped-66", "skipped: 66", GREY),
         badge("review-1%20round", "review: 1 round")
         + " "
         + badge("work%20items-1", "work items: 1"),
-        badge("capped-1", "capped: 1") + " " + badge("deferred-1", "deferred: 1"),
+        badge("capped-1", "capped: 1", GREY)
+        + " "
+        + badge("deferred-1", "deferred: 1", GREY),
     ]
 )
 # Why the seal leaves a note whose header is not `publish`'s.
@@ -390,6 +400,8 @@ REASONS = {
     "gh release upload fails": "gh release upload failed",
     "the header is not there": "not in the note exactly once",
     "the header is there twice": "not in the note exactly once",
+    "the note's header holds one more count line": "not in the note exactly once",
+    "the note's header holds one more digit": "not in the note exactly once",
     "gh release edit fails": "gh release edit failed",
     "a module will not load": "ImportError: no publisher",
 }
@@ -746,18 +758,20 @@ class Test_main:
     def test_accepts_a_published_note_and_replaces_its_header(
         self, monkeypatch, tmp_path
     ):
-        """S1, S7, #1009 S3, and #1153 S3. The PNG is uploaded as `seal.png`
-        before the edit, and the edited note is the published one with its
-        header replaced by the two-cell table: the image at the
-        release-download URL with alt text naming it and the display width
-        `draw` answered, then the stamp's results as badges (#1299 S6) --
-        every other byte unchanged, so the theme and the first fold follow.
-        The PNG is `DENSITY` times that width (#1009 S1), so the width is
-        what keeps it from showing twice its size. Seen red before `main`
+        """S1, S7, #1009 S3, #1153 S3, and #1496 S5. The PNG is uploaded as
+        `seal.png` before the edit, and the edited note is the published one
+        with its header paragraph replaced by the sealed one: the image at
+        the release-download URL with alt text naming it and the display
+        width `draw` answered, floated left, then the stamp's results as
+        badges (#1299 S6), then the break that clears the float -- every
+        other byte unchanged, so the theme and the first fold follow. The
+        PNG is `DENSITY` times that width (#1009 S1), so the width is what
+        keeps it from showing twice its size. Seen red before `main`
         existed, before the image carried a width, by a width the note
         computed apart from `draw`, against the seal that replaced the
         glance table with a heading, the image and one line of the counts,
-        and against the seal that wrote the results as text."""
+        against the seal that wrote the results as text, and against the
+        header that was a table of two cells."""
         published = note(theme="A theme.")
         mod, hub = wired(monkeypatch, tmp_path, body=published)
         assert mod.main() == 0
@@ -770,11 +784,8 @@ class Test_main:
         body = edit[edit.index("--notes") + 1]
         image = f"https://github.com/{REPO}/releases/download/{TAG}/seal.png"
         sealed = (
-            "<table>\n<tr>\n"
-            f'<td><img src="{image}" alt="The 1.2.3 release seal" '
-            f'width="{DRAWN_WIDTH}"></td>\n'
-            f"<td>{RESULTS_CELL}</td>\n"
-            "</tr>\n</table>"
+            f'<p><img src="{image}" alt="The 1.2.3 release seal" '
+            f'width="{DRAWN_WIDTH}" align="left">{BADGE_LINES}<br clear="left"></p>'
         )
         assert published.count(HEADER) == 1, published[:400]
         assert body == published.replace(HEADER, sealed), body[:800]
@@ -818,22 +829,23 @@ class Test_main:
     def test_a_row_other_than_yes_attaches_nothing_and_puts_the_results_alone(
         self, monkeypatch, tmp_path, capsys, mark, warned
     ):
-        """#1204 S6, and #1299 S6. Where the tree's `Release note seal mark`
-        row is absent, empty, any value but `yes`, or refused, the seal draws
-        and uploads nothing, and replaces `publish`'s header with a table of
-        one cell holding the badges the two-cell header's second cell holds,
-        every other byte of the note unchanged. Absent and empty say
-        nothing; any other value, and a refusal, are named on one
+        """#1204 S6, #1299 S6, and #1496 S5. Where the tree's `Release note
+        seal mark` row is absent, empty, any value but `yes`, or refused, the
+        seal draws and uploads nothing, and replaces `publish`'s header with
+        a paragraph of the badges the header with the image holds, with no
+        float to clear, every other byte of the note unchanged. Absent and
+        empty say nothing; any other value, and a refusal, are named on one
         `::warning::` line, and the exit stays 0. Seen red with the row's
-        read alone removed: the upload then runs; and against the seal that
-        wrote the results as text."""
+        read alone removed: the upload then runs; against the seal that
+        wrote the results as text; and against the header that was a table
+        of one cell."""
         published = note(theme="A theme.")
         mod, hub = wired(monkeypatch, tmp_path, body=published, mark=mark)
         assert mod.main() == 0
         assert hub.writes("upload") == [], hub.calls
         (edit,) = hub.writes("edit")
         body = edit[edit.index("--notes") + 1]
-        results = f"<table>\n<tr>\n<td>{RESULTS_CELL}</td>\n</tr>\n</table>"
+        results = f"<p>{BADGE_LINES}</p>"
         assert body == published.replace(HEADER, results), body[:800]
         out = capsys.readouterr().out.splitlines()
         assert not any(line.startswith("copied the icon") for line in out), out
@@ -886,6 +898,8 @@ class Test_main:
             "gh release upload fails",
             "the header is not there",
             "the header is there twice",
+            "the note's header holds one more count line",
+            "the note's header holds one more digit",
             "gh release edit fails",
             "a module will not load",
         ],
@@ -903,7 +917,13 @@ class Test_main:
         names a file that is not there or one that is not a PNG, or whose
         copy has no directory to land in. The first four were seen red
         against the draw that painted the stamp's cells, which read no
-        manifest; the fifth is that draw's own refusal, kept."""
+        manifest; the fifth is that draw's own refusal, kept. The two cases
+        of #1496 S6 give the seal a header the note holds inside a longer
+        line: the note counts an outside contributor the seal's list does
+        not, or 12 pull requests where the seal counts 2. The paragraph's
+        `<p>` and `</p>` are what keep the seal's header from matching
+        there, so both were seen red against a `header` that wrote the count
+        lines with no `<p>` and `</p>` around them."""
         env, fails, body, pulls = {}, (), None, PULLS
         stand_in = case not in REASONS_OF_THE_DRAW
         if case == "the suite step failed":
@@ -937,6 +957,11 @@ class Test_main:
             fails = ("edit",)
         elif case == "the header is not there":
             body = note().replace("2 issues closed", "3 issues closed")
+        elif case == "the note's header holds one more count line":
+            body = note()
+            pulls = [{**p, "author": {"login": OWNER, "is_bot": False}} for p in PULLS]
+        elif case == "the note's header holds one more digit":
+            body = note().replace("2 pull requests merged", "12 pull requests merged")
         elif case == "the header is there twice":
             body = note() + "\n\n" + note().split("\n\n<details>")[0]
         mod, hub = wired(

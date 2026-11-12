@@ -15,10 +15,11 @@ What decides whether a leg's union is the suite is the matrix itself: a
 group named twice runs twice and a group named by no entry runs nowhere, and
 nothing on the runner says so -- each shard passes. So the matrix is read
 here, as `tests/workflows.py#load` parses it, and a matrix whose entries
-would not be its jobs is refused: `include:` is the matrix's only key, every
-entry of a sharded system is a shard of that system's count `K` in
-`SHARDED`, its groups are exactly 1 to `K` once each, every other entry
-carries no split, and the pytest line hands the split to pytest.
+would not be its jobs is refused: `include:` is the only key of the matrix
+of each job that runs the suite, every entry of a sharded system is a shard
+of that system's count `K` in `SHARDED`, its groups are exactly 1 to `K`
+once each, every other entry carries no split, and the pytest line hands
+the split to pytest.
 
 Every run measures the file as well (#931). Each Windows entry carries
 `store`, the pytest line hands it to pytest after the split, and pytest-split
@@ -45,7 +46,7 @@ import sys
 
 import pytest
 from conftest import COLLECTED_NODE_IDS, ROOT
-from workflows import load
+from workflows import load, pytest_jobs
 
 # No TARGET: its cases read every node id the suite collects, and hold the shards across .github/workflows/test.yml and .github/scripts/durations_union.py.
 
@@ -71,20 +72,34 @@ def job(name):
     return load(TEST)["jobs"][name]
 
 
-def matrix_entries():
-    """The `pytest` job's `include:` entries, each one job.
+def entries_of(name, found):
+    """The `include:` entries of FOUND, the `test.yml` job NAME, each one job.
 
     GitHub runs each entry as a job of its own only where `include:` is the
     matrix's only key: beside a base axis an entry is merged into the axis'
     combinations, and an `exclude:` takes combinations away, so three shards
     can become fewer jobs while every entry still reads as a shard. A matrix
-    with another key is refused here, naming the keys."""
-    matrix = job("pytest")["strategy"]["matrix"]
+    with another key is refused here, naming the job and the keys."""
+    matrix = found["strategy"]["matrix"]
     assert list(matrix) == ["include"], (
-        f"a `matrix:` key beside `include:` changes which jobs the entries "
-        f"are: {sorted(matrix)}"
+        f"`{name}`: a `matrix:` key beside `include:` changes which jobs the "
+        f"entries are: {sorted(matrix)}"
     )
     return matrix["include"]
+
+
+def matrix_entries():
+    """The `pytest` job's `include:` entries, where the shards stand."""
+    return entries_of("pytest", job("pytest"))
+
+
+def suite_entries():
+    """`(job name, entry)` for each `include:` entry of every `test.yml` job
+    that runs the suite: the legs stand in two jobs (#1516), and an entry of
+    either is one job only where its matrix is `include:` alone."""
+    jobs = pytest_jobs(load(TEST))
+    assert jobs, "no job of test.yml runs pytest"
+    return [(name, e) for name, found in jobs.items() for e in entries_of(name, found)]
 
 
 def test_every_group_of_each_sharded_leg_runs_exactly_once():
@@ -102,8 +117,11 @@ def test_every_group_of_each_sharded_leg_runs_exactly_once():
             f"{system} groups {groups} of {k}: a group named twice runs twice, "
             "and one named by no entry runs nowhere"
         )
-    others = [e for e in entries if e.get("os") not in SHARDED]
-    assert others and not any("split" in e for e in others), others
+    # Every other entry of every job that runs the suite, `pytest-wide`'s
+    # among them, carries no split. Seen red with a split added to
+    # `pytest-wide`'s macOS entry (#1516).
+    others = [(n, e) for n, e in suite_entries() if e.get("os") not in SHARDED]
+    assert others and not any("split" in e for _, e in others), others
 
 
 def test_the_pytest_line_hands_the_split_to_pytest():
@@ -123,13 +141,15 @@ def test_the_pytest_line_hands_the_split_to_pytest():
 def test_the_windows_entries_store_and_the_other_entries_do_not():
     """S1 of work item 1791876667. A Windows entry without `store` leaves its
     group out of every union, and a `store` anywhere else prices the file on
-    a second system."""
+    a second system. The entries of every job that runs the suite are read
+    for the second (#1516): seen red with a `store` added to `pytest-wide`'s
+    ubuntu entry."""
     entries = matrix_entries()
     windows = [e for e in entries if e.get("os") == STORING]
     assert windows, entries
     assert all(e.get("store") == STORE for e in windows), windows
-    others = [e for e in entries if e.get("os") != STORING]
-    assert others and not any("store" in e for e in others), others
+    others = [(n, e) for n, e in suite_entries() if e.get("os") != STORING]
+    assert others and not any("store" in e for _, e in others), others
 
 
 def uploads(steps):

@@ -40,8 +40,8 @@ and the cases one helper skips fold under that helper's line, so every case
 `tests/conftest.py#symlink_or_skip` skips reads as the line of its
 `pytest.skip` call.
 Rows that deferred a Windows question to the Windows legs met a log that could
-not answer them (#1221). Each `pytest` leg therefore passes `-rfEs
---no-fold-skipped`, which names every skipped case with its reason. `-r`
+not answer them (#1221). Each leg that runs the suite therefore passes
+`-rfEs --no-fold-skipped`, which names every skipped case with its reason. `-r`
 replaces pytest's default `fE` rather than adding to it, so a leg passing
 `-rs` would also stop naming the cases that failed.
 
@@ -65,8 +65,8 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, code_lines, read
-from workflows import load
+from conftest import ROOT, read
+from workflows import job_scripts, load, pytest_jobs
 
 # No TARGET: its cases read every workflow under .github/workflows/ and the shipped hygiene template.
 
@@ -108,19 +108,6 @@ def loaded():
     return {path: load(path) for path in paths}
 
 
-def job_scripts(job):
-    """Each `run:` script of JOB's steps, with its shell comments off.
-
-    The parser keeps a comment inside a script, where the shell does not run
-    it, so each script's comments come off through `tests/conftest.py#code_line`.
-    """
-    return [
-        "\n".join(code_lines(step["run"]))
-        for step in job.get("steps", [])
-        if "run" in step
-    ]
-
-
 def scripts(workflow):
     """Each `run:` script of every job of WORKFLOW, comments off."""
     return [script for job in workflow["jobs"].values() for script in job_scripts(job)]
@@ -142,32 +129,12 @@ def checkouts(job):
     ]
 
 
-# A job runs pytest where a line of one of its `run:` scripts names it as a
-# word: `run: pytest …`, `uvx --with pytest pytest`, `uv run pytest`,
-# `PYTHONPATH=x pytest`, `cd sub && pytest`, `python -m pytest`, a line of a
-# `run: |` block. This is the reach the old substring test had. Only the
-# scripts are read, so `needs: pytest`, which names the job of that name and
-# runs nothing (#931's `durations` job and the `release-report` job, neither
-# of which runs the suite), is not; a script's comments are off before a
-# line is read.
-RUNS_PYTEST = re.compile(r"(?<![\w.-])pytest(?:\s|$)")
-
-
-def runs_pytest(job):
-    """Whether a line of one of JOB's scripts names pytest as a word."""
-    return any(
-        RUNS_PYTEST.search(line)
-        for script in job_scripts(job)
-        for line in script.splitlines()
-    )
-
-
 def shallow_pytest_jobs(workflow):
     """The jobs of a loaded WORKFLOW that run pytest on a checkout without
     the whole history."""
     found = []
-    for name, job in workflow["jobs"].items():
-        if not runs_pytest(job) or not checkouts(job):
+    for name, job in pytest_jobs(workflow).items():
+        if not checkouts(job):
             continue
         if not any(
             step.get("with", {}).get("fetch-depth") == "0" for step in checkouts(job)
@@ -343,18 +310,23 @@ def test_a_newer_pull_request_run_cancels_the_older_and_no_other_run_waits():
 
 
 def test_every_pytest_leg_has_a_timeout_and_the_job_reads_it():
-    """Each `pytest` leg of `test.yml` carries a `timeout-minutes` past which
-    GitHub fails the job (#841). It moved here from the slow-case module when
-    that module's ceiling became a report (#942)."""
-    job = load(TEST)["jobs"]["pytest"]
-    entries = job["strategy"]["matrix"]["include"]
-    assert entries
-    budgets = [e.get("timeout", "") for e in entries]
-    assert all(b.isdigit() for b in budgets), f"a leg with no timeout: {entries}"
-    assert all(int(b) > 0 for b in budgets), entries
-    assert job.get("timeout-minutes") == "${{ matrix.timeout }}", (
-        "the job does not read the matrix's timeout"
-    )
+    """Each leg of every job of `test.yml` that runs the suite carries a
+    `timeout-minutes` past which GitHub fails the job (#841). The legs stand
+    in two jobs (#1516), so each job that runs pytest is read. Seen red with
+    the `timeout` taken off `pytest-wide`'s macOS entry."""
+    jobs = pytest_jobs(load(TEST))
+    assert jobs, "no job of test.yml runs pytest"
+    for name, job in jobs.items():
+        entries = job["strategy"]["matrix"]["include"]
+        assert entries, name
+        budgets = [e.get("timeout", "") for e in entries]
+        assert all(b.isdigit() for b in budgets), (
+            f"`{name}` has a leg with no timeout: {entries}"
+        )
+        assert all(int(b) > 0 for b in budgets), (name, entries)
+        assert job.get("timeout-minutes") == "${{ matrix.timeout }}", (
+            f"`{name}` does not read the matrix's timeout"
+        )
 
 
 # What every `pytest` leg hands pytest so that its short summary names each
@@ -364,22 +336,76 @@ REPORT_FLAGS = ("-rfEs", "--no-fold-skipped")
 
 def test_every_pytest_leg_names_each_case_it_skipped_and_each_it_failed():
     """#1221. A row that defers a platform question to a leg is answered by
-    that leg's log, and only where the log names the case. Seen red with
-    `--no-fold-skipped` deleted from the line, and with `-rfEs` written
-    `-rs`."""
-    runs = [
-        step["run"]
-        for step in load(TEST)["jobs"]["pytest"]["steps"]
-        if step.get("run", "").startswith("pytest ")
-    ]
-    assert len(runs) == 1, runs
-    words = runs[0].split()
-    missing = [flag for flag in REPORT_FLAGS if flag not in words]
-    assert not missing, (
-        f"the pytest line does not pass {missing}: {runs[0]}. `-r` replaces "
-        "pytest's default `fE`, so a leg passing `-rs` drops its FAILED lines, "
-        "and without `--no-fold-skipped` the cases one helper skips fold under "
-        "the helper's line and no case is named"
+    that leg's log, and only where the log names the case. Every job that
+    runs the suite is read (#1516). Seen red with `--no-fold-skipped` deleted
+    from the line, with `-rfEs` written `-rs`, and with `pytest-wide`'s
+    steps a copy whose pytest line drops `--no-fold-skipped`."""
+    jobs = pytest_jobs(load(TEST))
+    assert jobs, "no job of test.yml runs pytest"
+    for name, job in jobs.items():
+        runs = [
+            step["run"]
+            for step in job["steps"]
+            if step.get("run", "").startswith("pytest ")
+        ]
+        assert len(runs) == 1, (name, runs)
+        words = runs[0].split()
+        missing = [flag for flag in REPORT_FLAGS if flag not in words]
+        assert not missing, (
+            f"`{name}`'s pytest line does not pass {missing}: {runs[0]}. `-r` "
+            "replaces pytest's default `fE`, so a leg passing `-rs` drops its "
+            "FAILED lines, and without `--no-fold-skipped` the cases one helper "
+            "skips fold under the helper's line and no case is named"
+        )
+
+
+# The legs each job runs, as `(os, python)` in the file's order: the owner's
+# decision on #1516. `pytest` runs on every run. `pytest-wide` runs on every
+# run but a pull request into `release/*`, so a pull request into `main`, a
+# push to `main` and a dispatch run all seven.
+RELEASE_BRANCH_LEGS = [
+    ("ubuntu-latest", "3.12"),
+    *[("windows-latest", "3.12")] * 4,
+]
+WIDE_LEGS = [("ubuntu-latest", "3.14"), ("macos-latest", "3.12")]
+# The condition GitHub evaluates before `pytest-wide`'s matrix expands, and
+# the name its legs report, which is the name the `pytest` job's legs take
+# by default and the one `.github/scripts/release_report.py#PYTEST_JOB`
+# reads a leg's minutes by.
+WIDE_IF = "${{ !startsWith(github.base_ref, 'release/') }}"
+WIDE_NAME = "pytest (${{ matrix.os }}, ${{ matrix.python }}, ${{ matrix.timeout }})"
+
+
+def test_a_pull_request_into_a_release_branch_runs_ubuntu_3_12_and_windows():
+    """#1516. A pull request into `release/*` runs ubuntu at Python 3.12 and
+    the four Windows shards. A pull request into `main`, a push to `main` and
+    a dispatch run those and ubuntu at Python 3.14 and macOS as well, so the
+    release pull request is where those two legs first read a release's
+    code.
+
+    The two leg sets stand in two jobs because a job's `if` cannot read the
+    matrix and an `exclude:` cannot remove an `include:` entry. The jobs that
+    run the suite are read by what their scripts run, so a third job or a
+    leg moved between the two fails here. `pytest-wide` runs the steps of
+    `pytest` through a YAML alias, so it runs them as `pytest` does."""
+    jobs = pytest_jobs(load(TEST))
+    legs = {
+        name: [
+            (e.get("os"), e.get("python")) for e in job["strategy"]["matrix"]["include"]
+        ]
+        for name, job in jobs.items()
+    }
+    assert legs == {"pytest": RELEASE_BRANCH_LEGS, "pytest-wide": WIDE_LEGS}, legs
+    release, wide = jobs["pytest"], jobs["pytest-wide"]
+    assert "if" not in release, release["if"]
+    assert wide.get("if") == WIDE_IF, wide.get("if")
+    assert wide.get("name") == WIDE_NAME, wide.get("name")
+    for key in ("runs-on", "timeout-minutes"):
+        assert wide.get(key) == release.get(key), (key, wide.get(key))
+    assert wide["strategy"].get("fail-fast") == release["strategy"].get("fail-fast")
+    assert wide["steps"] == release["steps"], (
+        "`pytest-wide` runs steps that are not `pytest`'s, so a leg of one job "
+        "runs the suite another way than a leg of the other"
     )
 
 
