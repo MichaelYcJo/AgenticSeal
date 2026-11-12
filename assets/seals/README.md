@@ -19,7 +19,10 @@ are under.
 Each entry is two files, and no code reads either of them. Each owl's entry
 holds a third, an `.svg`, the form a page shows, and the little owl's holds
 the social preview's `.svg` and `.png` and two drawings of the directory
-icon besides, each described in its entry.
+icon besides, each described in its entry. The `.ans` and `.svg` files
+leave `dist`, the branch the plugin directory reads, because the directory
+refuses both types and nothing installed reads them, so its copy of this
+page draws no vector drawing.
 
 - **`<name>.ans`** — the stamp as a terminal prints it: half-block
   characters and ANSI colour codes, a code only where the colour changes.
