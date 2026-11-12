@@ -91,7 +91,7 @@ Out:
 
 ## Removes
 
-This work adds a CI job, its condition, the case of *Scope* item 3, and `tests/workflows.py#pytest_jobs` in the place of `tests/text/test_ci_gives_the_checks_what_they_need.py#runs_pytest`, with the case of `tests/test_workflows.py#Test_pytest_jobs` that holds it. In return it removes the two legs from every pull request into `release/*`.
+This work adds a CI job, its condition, the case of *Scope* item 3, and `tests/workflows.py#pytest_jobs` in the place of `tests/text/test_ci_gives_the_checks_what_they_need.py#runs_pytest`, with the cases of `tests/test_workflows.py#Test_pytest_jobs` that hold it. In return it removes the two legs from every pull request into `release/*`.
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
