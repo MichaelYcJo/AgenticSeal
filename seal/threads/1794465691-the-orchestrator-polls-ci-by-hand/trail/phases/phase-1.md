@@ -82,7 +82,8 @@ failed on argparse's "invalid choice: 'pr-wait'", and
   2.** The design names no bound. Without one, a `gh` call that hangs on the
   network makes an unlimited wait that CI's timeouts do not bound. This
   follows `chain_check.py#pull_request_from_gh`, which bounds its own `gh`
-  call. No case pins the bound.
+  call. No case pins the bound. The module docstring states it, and states
+  the empty list's reading.
 - **Under `--once` the line names the pull request's head, not HEAD.**
   *Data & interfaces* says every line names the SHA, and *Scope* S8 says
   `--once` runs nothing else. So `--once` reads no HEAD, and its line names
@@ -102,8 +103,9 @@ failed on argparse's "invalid choice: 'pr-wait'", and
   `frame/design.md` G7 from a shipped script would point at nothing after the
   settle. Each reason in `pr_wait.py`'s docstring states its fact with the
   source a reader can still open: `gh`'s `pkg/cmd/pr/checks/aggregate.go` at
-  v2.92.0, and `.github/workflows/test.yml`'s `durations` and
-  `release-report` jobs. Judged against `skills/core/SKILL.md` *The rule a
+  v2.92.0, and `.github/workflows/test.yml`, which holds jobs that `needs:`
+  another. The docstring names none of those jobs, since #1516 changes the
+  workflow's matrix in this release. Judged against `skills/core/SKILL.md` *The rule a
   mechanism is kept against*: a fact has one source, and nothing is kept
   beside the tree to stay in step with it.
 - **`tests/behaviour/test_release_hygiene.py#VERSIONS_OF_ANOTHER_PRODUCT`
@@ -143,8 +145,10 @@ holds that it carries the subcommand.
 **The phase boundary run.** `bin/test -q tests/skills/test_pr_wait.py
 tests/skills/test_seal.py tests/lib/test_config.py tests/lib/test_tables.py
 tests/e2e/teammate/test_teammate_flow.py tests/text tests/behaviour` ran at
-`e9c45b77d` with this record, `gaps.md` and the plan's Status cell in the
-working tree: 2194 passed, 9 skipped, exit 0 (executed). The set is the plan
+`a48e77f8a`, after `8d9b8eb73` committed this record, `gaps.md` and the
+plan's Status cell: 2194 passed, 9 skipped, exit 0 (executed). `a48e77f8a`
+changed only `pr_wait.py`'s docstring, and the run before it, at
+`e9c45b77d` with the records in the working tree, gave the same count. The set is the plan
 row's files, each test file the phase changed, each test file that names
 `seal.py` or `pr_wait.py` (`git grep -l` over `tests/`), and `tests/text`
 and `tests/behaviour`, which `CONTRIBUTING.md` names as the tree-wide files.
