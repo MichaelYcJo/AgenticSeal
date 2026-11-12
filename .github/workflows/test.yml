@@ -36,9 +36,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The whole suite, at the stated floor on every platform, and on
-        # ubuntu at Python 3.14 as well, in the place of the `arms-grammar`
-        # job, which ran one module on 3.13 and 3.14 (#1065).
+        # The legs are split by a pull request's base (#1516). This job runs
+        # the whole suite on ubuntu and on Windows at the stated floor, on
+        # every run. `pytest-wide` below runs it on macOS at the floor and on
+        # ubuntu at Python 3.14, on every run but a pull request into
+        # `release/*`: a pull request into `main`, a push to `main` and a
+        # dispatch run every leg. Over the feature pull requests before the
+        # split, macOS met no defect and every long wait was a macOS job
+        # queued for a runner, and ubuntu at 3.14 never failed where ubuntu
+        # at 3.12 passed. So the release pull request is where those two legs
+        # first read a release's code, and a defect only they meet is fixed
+        # by a pull request into the release branch. A job's `if` cannot read
+        # the matrix, and an `exclude:` cannot remove an `include:` entry, so
+        # the two sets stand in two jobs.
         #
         # `timeout`: each leg's budget in minutes, 1.5 times the leg's
         # slowest measured job, rounded up to 5. The base is the slowest job
@@ -51,11 +61,6 @@ jobs:
         # measured plus one job's fixed cost (#1486).
         include:
           - { os: ubuntu-latest, python: "3.12", timeout: 5 }
-          - { os: ubuntu-latest, python: "3.14", timeout: 5 }
-          # macOS runs as one job (#1486): its whole suite finishes inside
-          # the slowest Windows shard, so a shard of it would shorten no run
-          # and would pay a job's fixed cost again.
-          - { os: macos-latest, python: "3.12", timeout: 10 }
           # Windows in four shards (#841). `pytest-split` divides the suite by
           # each case's duration, read from the `.test_durations` the shard
           # restored from the cache, so every shard collects the whole suite
@@ -79,7 +84,7 @@ jobs:
           - { os: windows-latest, python: "3.12", split: "--splits 4 --group 4", store: "--store-durations --clean-durations", timeout: 10 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
-    steps:
+    steps: &pytest-steps
       # Not shallow, so the tags come too. `tests/behaviour/test_release_hygiene.py`
       # reads this repository's `v*` tags to tell a shipped version from one
       # being cut, and a depth-1 checkout fetches no tag, so its cases fail on
@@ -164,9 +169,31 @@ jobs:
           overwrite: true
           retention-days: 7
 
+  # The legs a pull request into `release/*` does not run, `pytest` above
+  # says why (#1516). The steps are `pytest`'s, through the YAML alias, and
+  # the name is the one `pytest`'s legs take by default, which the release
+  # table reads a leg's minutes by.
+  pytest-wide:
+    if: ${{ !startsWith(github.base_ref, 'release/') }}
+    name: pytest (${{ matrix.os }}, ${{ matrix.python }}, ${{ matrix.timeout }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # `timeout` as `pytest` above states it.
+        include:
+          - { os: ubuntu-latest, python: "3.14", timeout: 5 }
+          # macOS runs as one job (#1486): its whole suite finishes inside
+          # the slowest Windows shard, so a shard of it would shorten no run
+          # and would pay a job's fixed cost again.
+          - { os: macos-latest, python: "3.12", timeout: 10 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.timeout }}
+    steps: *pytest-steps
+
   # The four Windows parts unioned into the file the next split divides by
-  # (#931, #1486). It runs after every pytest job, green or red, unless the
-  # run was cancelled, and it is red whenever the parts cannot make the
+  # (#931, #1486). It runs after every leg of the `pytest` job, which holds
+  # the Windows shards, green or red, unless the run was cancelled, and it
+  # is red whenever the parts cannot make the
   # whole -- a part missing, an id in two parts, a part that does not parse
   # -- so no smaller file is ever uploaded or saved as the suite. Its summary
   # reports each shard's measured seconds and the spread. The union is
@@ -217,14 +244,14 @@ jobs:
   # the rule. The tag's minutes and its durations union are its own commit's
   # `tests` run on `main`, and this side's union is the `durations` job's.
   #
-  # After the suite and the union, whatever their verdicts: a red leg still
-  # spent its minutes. The token reads job lists and artifacts and nothing
+  # After every leg of `pytest` and `pytest-wide` and the union, whatever
+  # their verdicts: a red leg still spent its minutes. The token reads job lists and artifacts and nothing
   # else, declared here because this workflow states no `permissions:` of its
   # own. A `gh` call that finds no run leaves its file empty, and the table
   # reads that leg as no run found; a union not downloaded, because the job
   # refused it or the tag's artifact has expired, reads as no union found.
   release-report:
-    needs: [pytest, durations]
+    needs: [pytest, pytest-wide, durations]
     if: ${{ !cancelled() && github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

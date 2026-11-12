@@ -74,4 +74,49 @@ class Test_load:
             workflows.load(str(tmp_path / "missing.yml"))
 
 
+# Three jobs a workflow runs the suite from, each a way a job here calls
+# pytest, and two that name it and run nothing: `needs:` names a job, and
+# a shell comment is not run.
+SUITE_JOBS = """\
+on: push
+jobs:
+  first:
+    steps:
+      - run: pytest tests/ -q
+  reads-a-part:
+    needs: first
+    steps:
+      - run: echo needs-names-a-job
+  second:
+    steps:
+      - run: |
+          git config --global user.name ci
+          python -m pytest tests/ -q
+  comments-on-it:
+    needs: pytest
+    steps:
+      - run: echo a-comment-runs-nothing  # pytest -q
+"""
+
+
+class Test_pytest_jobs:
+    def test_accepts_each_job_whose_script_runs_pytest_in_the_file_s_order(
+        self, tmp_path
+    ):
+        """The jobs that run the suite are read by what their scripts run,
+        so a leg moved into a job of another name is still read (#1516)."""
+        path = tmp_path / "fixture.yml"
+        path.write_text(SUITE_JOBS, encoding="utf-8")
+        loaded = workflows.load(str(path))
+        found = workflows.pytest_jobs(loaded)
+        assert list(found) == ["first", "second"], list(found)
+        assert found["second"] is loaded["jobs"]["second"]
+
+    def test_refuses_a_job_that_names_pytest_and_runs_nothing(self, tmp_path):
+        path = tmp_path / "fixture.yml"
+        path.write_text(SUITE_JOBS, encoding="utf-8")
+        found = workflows.pytest_jobs(workflows.load(str(path)))
+        assert "reads-a-part" not in found and "comments-on-it" not in found, found
+
+
 test_census = census_case(TARGET)

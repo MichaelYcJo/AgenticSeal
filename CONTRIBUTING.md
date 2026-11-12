@@ -29,10 +29,11 @@ contribution is not a release and must not touch that file. Changing the base
 instead takes the refusal with it.
 
 **The contributor opens the pull request when the work is done, and opens it
-ready.** Every push to an open pull request runs the suite on Linux, macOS and
-Windows, and a branch with no pull request runs nothing. So the branch is
-pushed as often as the contributor likes, and the pull request opens once
-nothing is left to push. `skills/code-review/orchestration.md` *Orchestrator:
+ready.** Every push to an open pull request into the release branch runs the
+suite on Linux and Windows, and a branch with no pull request runs nothing.
+macOS and Python 3.14 run on the release pull request into `main`. So the
+branch is pushed as often as the contributor likes, and the pull request
+opens once nothing is left to push. `skills/code-review/orchestration.md` *Orchestrator:
 the pull request opens once the sealer seals* owns the order a maintainer's
 run follows.
 
@@ -41,7 +42,8 @@ run follows.
 - A branch cut from the open release branch, and a pull request based on it.
 - `bin/test tests/<file> -q` on each module the change touched, and
   `bin/test tests/text tests/behaviour -q`, which hold the tree-wide files
-  *The test layout* names. CI runs the rest, on three platforms.
+  *The test layout* names. CI runs the rest on Linux and Windows, and macOS
+  and Python 3.14 run on the release pull request.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
@@ -142,13 +144,15 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 --wit
 # or: pip install pytest markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 && python3 -m pytest tests/
 ```
 
-CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
-on ubuntu, macOS and Windows at the floor stated above, Windows in four
+CI runs these jobs: lint (`ruff check` and `ruff format --check`); `pytest`,
+the suite on ubuntu and Windows at the floor stated above, Windows in four
 shards that `pytest-split` divides by the durations union the cache holds,
-and ubuntu and macOS each as one job; the suite once more on ubuntu at
-Python 3.14, as one job; `durations`, which unions what the Windows shards
-measured and, on a run that is no pull request's, saves the union to the
-cache;
+and ubuntu as one job, on every run; `pytest-wide`, the suite on macOS at
+the floor and on ubuntu at Python 3.14, each as one job, on every run but a
+pull request into a release branch, so a contribution's pull request skips
+it and the release pull request into `main` runs it; `durations`, which
+unions what the Windows shards measured and, on a run that is no pull
+request's, saves the union to the cache;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
 hygiene workflow that guards releases. A change to any gate needs a test
@@ -182,7 +186,7 @@ collected id carries the interpreter's path, a key no other runner writes,
 which `test_no_collected_id_carries_the_interpreters_path` holds.
 
 **The suite runs with `gh` logged out, on a contributor's machine as on
-CI.** CI's pytest job has no token, so `tests/conftest.py` makes the same
+CI.** CI's pytest jobs have no token, so `tests/conftest.py` makes the same
 true locally when it is imported: it points `GH_CONFIG_DIR` at an empty
 directory, removes `GITHUB_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`, and sets
 `GH_TOKEN` and `GH_ENTERPRISE_TOKEN` to a value no server accepts, because

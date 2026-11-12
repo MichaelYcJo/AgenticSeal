@@ -15,7 +15,7 @@ import subprocess
 import pytest
 from conftest import ROOT, read
 from test_run_tests import rt
-from workflows import load
+from workflows import load, pytest_jobs
 
 # No TARGET: its cases list every command under bin/, and hold the runner's floor and parser across .github/workflows/test.yml, CONTRIBUTING.md and the agent definitions.
 
@@ -23,9 +23,13 @@ from workflows import load
 BIN = os.path.join(ROOT, "bin")
 
 
-def pytest_job():
-    """`test.yml`'s `pytest` job, as `tests/workflows.py#load` reads it."""
-    return load(".github/workflows/test.yml")["jobs"]["pytest"]
+def suite_jobs():
+    """{job name: job} for each job of `test.yml` that runs the suite, as
+    `tests/workflows.py#pytest_jobs` reads it: the legs stand in two jobs
+    (#1516)."""
+    jobs = pytest_jobs(load(".github/workflows/test.yml"))
+    assert jobs, "no job of test.yml runs pytest"
+    return jobs
 
 
 def posix_entries():
@@ -104,46 +108,49 @@ def test_a_copy_without_the_runner_beside_it_says_so(tmp_path):
 
 
 def test_ci_installs_the_parser_the_runner_pins():
-    """#667, phase 1. The pin is chosen once, in `MARKDOWN_IT`, and CI's
-    pytest job installs its own list. A version bumped in one place and not
-    the other runs the oracle's cases against two parsers."""
-    installs = [
-        step["run"].split()
-        for step in pytest_job()["steps"]
-        if step.get("run", "").startswith("pip install")
-    ]
-    assert installs, "the pytest job installs nothing to compare"
-    # The pinned parser `run_tests.py#MARKDOWN_IT` names, which the runner
-    # installs before the suite runs, and no other version of it.
-    assert any(rt.MARKDOWN_IT in words for words in installs), installs
-    assert not any(
-        word.startswith("markdown-it-py") and word != rt.MARKDOWN_IT
-        for words in installs
-        for word in words
-    ), installs
-    # #647: cmarkgfm joins the same line, at the version the runner pins.
-    assert any(rt.CMARKGFM in words for words in installs), installs
-    assert not any(
-        word.lower().startswith("cmarkgfm") and word != rt.CMARKGFM
-        for words in installs
-        for word in words
-    ), installs
-    # #1486: PyYAML joins the same line, at the version the runner pins.
-    assert any(rt.PYYAML in words for words in installs), installs
-    assert not any(
-        word.lower().startswith("pyyaml") and word != rt.PYYAML
-        for words in installs
-        for word in words
-    ), installs
-    # #841: pytest-split joins the same line, at the version the runner pins.
-    # It is CI's alone, so it is not in `PACKAGES` and `bin/test` never
-    # installs it.
-    assert any(rt.PYTEST_SPLIT in words for words in installs), installs
-    assert not any(
-        word.lower().startswith("pytest-split") and word != rt.PYTEST_SPLIT
-        for words in installs
-        for word in words
-    ), installs
+    """#667, phase 1. The pin is chosen once, in `MARKDOWN_IT`, and each CI
+    job that runs the suite installs its own list. A version bumped in one
+    place and not the other runs the oracle's cases against two parsers.
+    Seen red with `pytest-wide`'s steps a copy whose install line names
+    another PyYAML (#1516)."""
+    for name, job in suite_jobs().items():
+        installs = [
+            step["run"].split()
+            for step in job["steps"]
+            if step.get("run", "").startswith("pip install")
+        ]
+        assert installs, f"`{name}` installs nothing to compare"
+        # The pinned parser `run_tests.py#MARKDOWN_IT` names, which the runner
+        # installs before the suite runs, and no other version of it.
+        assert any(rt.MARKDOWN_IT in words for words in installs), (name, installs)
+        assert not any(
+            word.startswith("markdown-it-py") and word != rt.MARKDOWN_IT
+            for words in installs
+            for word in words
+        ), (name, installs)
+        # #647: cmarkgfm joins the same line, at the version the runner pins.
+        assert any(rt.CMARKGFM in words for words in installs), (name, installs)
+        assert not any(
+            word.lower().startswith("cmarkgfm") and word != rt.CMARKGFM
+            for words in installs
+            for word in words
+        ), (name, installs)
+        # #1486: PyYAML joins the same line, at the version the runner pins.
+        assert any(rt.PYYAML in words for words in installs), (name, installs)
+        assert not any(
+            word.lower().startswith("pyyaml") and word != rt.PYYAML
+            for words in installs
+            for word in words
+        ), (name, installs)
+        # #841: pytest-split joins the same line, at the version the runner pins.
+        # It is CI's alone, so it is not in `PACKAGES` and `bin/test` never
+        # installs it.
+        assert any(rt.PYTEST_SPLIT in words for words in installs), (name, installs)
+        assert not any(
+            word.lower().startswith("pytest-split") and word != rt.PYTEST_SPLIT
+            for words in installs
+            for word in words
+        ), (name, installs)
     assert rt.PYTEST_SPLIT not in rt.PACKAGES, rt.PACKAGES
 
 
@@ -226,15 +233,23 @@ def test_the_section_and_the_runner_state_the_same_floor():
 
 
 def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
-    """`CONTRIBUTING.md` *Running the checks* says CI runs the suite "on
-    ubuntu, macOS and Windows at the floor stated above". So every operating
-    system the matrix names holds at least one entry at `FLOOR`, whatever
+    """`CONTRIBUTING.md` *Running the checks* says CI runs the suite on
+    ubuntu, Windows and macOS at the floor stated above, macOS in
+    `pytest-wide`. So every operating system the matrices name holds at
+    least one entry at `FLOOR`, whatever
     other Python it also runs (#1065) -- a floor CI does not run at is a
-    floor nothing measures. It reads a system and not its shards: one Windows
-    shard moved off the floor leaves three at it, and this case passes that."""
-    entries = pytest_job()["strategy"]["matrix"]["include"]
+    floor nothing measures. The entries of every job that runs the suite are
+    read together (#1516): ubuntu's floor leg and its 3.14 leg stand in two
+    jobs. It reads a system and not its shards: one Windows shard moved off
+    the floor leaves three at it, and this case passes that. Seen red with
+    `pytest-wide`'s macOS entry moved to 3.13."""
+    entries = [
+        entry
+        for job in suite_jobs().values()
+        for entry in job["strategy"]["matrix"]["include"]
+    ]
     systems = {e.get("os") for e in entries}
-    assert systems, "the pytest job names no operating system to compare"
+    assert systems, "no job that runs the suite names an operating system"
     at_floor = {e.get("os") for e in entries if e.get("python") == rt.FLOOR_TEXT}
     missing = sorted(systems - at_floor)
     assert not missing, (
