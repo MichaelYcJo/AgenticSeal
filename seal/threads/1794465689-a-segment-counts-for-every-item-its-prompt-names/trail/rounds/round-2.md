@@ -45,6 +45,11 @@ The case can test the capability exactly, on the clone it has just built, with n
 
 The fix pass also owes `gaps.md:9`. Its "on an older git the read fetches the blob and the case goes red" becomes "on an older git the case skips, naming the reason". The case's docstring also gains one sentence, that it skips where git does not know the variable. The snippet does not cover either. Contract rule 15 applies to the guard: show the skip taken by running the case with the env line removed from `known` only. The `cat-file -e` then fetches, and the case must report the skip, not a pass or a failure.
 
+```seal
+verdict: fixed aef3641f6
+answer: The paste-ready capability check was inserted word for word after the local branch is made, and the case's docstring gained the sentence that it skips where git does not know `GIT_NO_LAZY_FETCH`, because the read fetches there. `gaps.md:9` now says that on an older git the case skips, naming the reason, and that no leg's git version was read, so whether each leg runs the case or skips it is unknown. The skip was shown taken with `seal mutate` over the test file, deleting the env line of `known` only: pytest printed "SKIPPED [1] tests/skills/test_session_cost.py:5697: this git fetched a blob with GIT_NO_LAZY_FETCH set …" and "1 skipped". `seal mutate` reads that exit 0 as SURVIVED, and the skip line is the evidence the finding asks for. On git 2.50.1 the case runs and passes, and it is not skipped.
+```
+
 ## Confirmations
 
 ```seal
