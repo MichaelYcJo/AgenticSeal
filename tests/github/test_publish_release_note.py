@@ -276,13 +276,22 @@ HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contribu
 
 # The address the sealed header's badges are drawn from (#1299).
 BADGES = "https://img.shields.io/badge/"
+# A badge's two colours by its label, as `(value, label)` (#1496): the seal's
+# reds for `SEALED`, green for the suite's passed count, grey for the
+# skipped, capped and deferred counts, and blue on grey for every other.
+SEAL_RED = ("d42420", "8e0c12")
+GREEN = ("2ea44f", "555555")
+GREY = ("6e7781", "555555")
+BLUE = ("0969da", "555555")
 
 
-def badge(path, alt):
+def badge(path, alt, colours=BLUE):
     """One badge exactly as the sealed header carries it: `path` is the
-    label and the value as the address spells them, and `alt` the escaped
-    text a reader whose client draws no image reads in its place."""
-    return f'<img src="{BADGES}{path}-d42420?labelColor=8e0c12" alt="{alt}">'
+    label and the value as the address spells them, `alt` the escaped text
+    a reader whose client draws no image reads in its place, and `colours`
+    the value's colour and the label's."""
+    colour, edge = colours
+    return f'<img src="{BADGES}{path}-{colour}?labelColor={edge}" alt="{alt}">'
 
 
 # `sealed_header`'s results as `release_seal.py#results` hands them (#1299):
@@ -294,17 +303,17 @@ RESULTS = [[("suite", "5 passed"), ("skipped", "0")], [("capped", "not read")]]
 # results.
 BADGE_LINES = "<br>".join(
     [
-        badge("SEALED-v1.2.3", "SEALED: v1.2.3"),
+        badge("SEALED-v1.2.3", "SEALED: v1.2.3", SEAL_RED),
         badge("commit-aaa11111", "commit: aaa11111")
         + " "
         + badge("on-main", "on: main"),
         badge("pull%20requests-7%20merged", "pull requests: 7 merged"),
         badge("issues-4%20closed", "issues: 4 closed"),
         badge("outside%20contributors-2", "outside contributors: 2"),
-        badge("suite-5%20passed", "suite: 5 passed")
+        badge("suite-5%20passed", "suite: 5 passed", GREEN)
         + " "
-        + badge("skipped-0", "skipped: 0"),
-        badge("capped-not%20read", "capped: not read"),
+        + badge("skipped-0", "skipped: 0", GREY),
+        badge("capped-not%20read", "capped: not read", GREY),
     ]
 )
 
@@ -970,7 +979,7 @@ class Test_module:
             'width="80" align="left">'
             + "<br>".join(
                 [
-                    badge("SEALED-v%3C1%3E", "SEALED: v&lt;1&gt;"),
+                    badge("SEALED-v%3C1%3E", "SEALED: v&lt;1&gt;", SEAL_RED),
                     badge("pull%20requests-1%20merged", "pull requests: 1 merged"),
                     badge("issues-1%20closed", "issues: 1 closed"),
                     badge("a%20%26%20b-say%20%22x%22", "a &amp; b: say &quot;x&quot;"),
@@ -1012,8 +1021,11 @@ class Test_module:
         as `_`, a single `_` as a space, and the rest is percent-decoded.
         So a label and a value holding a `-`, a `_`, a space and the
         characters a URL or an attribute gives a meaning to come back
-        exactly as written, and the alt text is the same two words. Seen red
-        against an encoder that percent-encoded alone, without doubling."""
+        exactly as written, and the alt text is the same two words. The
+        label has no colours of its own, so it is blue on grey (#1496 S4).
+        Seen red against an encoder that percent-encoded alone, without
+        doubling, and against the `badge` that coloured every label with the
+        seal's two reds."""
         mod = publisher()
         label, value = "a-b_c d", '50% & ? # / < " x-y__z'
         img = mod.badge(label, value)
@@ -1028,9 +1040,50 @@ class Test_module:
             )
             for field in held.split("-")
         ]
-        assert read == [label, value, "d42420"], (src, read)
-        assert urllib.parse.parse_qs(address.query) == {"labelColor": ["8e0c12"]}, src
+        assert read == [label, value, BLUE[0]], (src, read)
+        assert urllib.parse.parse_qs(address.query) == {"labelColor": [BLUE[1]]}, src
         assert alt == f"{label}: {value}", img
+
+    @pytest.mark.parametrize(
+        "label, colours",
+        [
+            pytest.param("SEALED", SEAL_RED, id="SEALED"),
+            pytest.param("suite", GREEN, id="suite"),
+            *(
+                pytest.param(label, GREY, id=label)
+                for label in ("skipped", "capped", "deferred")
+            ),
+            *(
+                pytest.param(label, BLUE, id=label)
+                for label in (
+                    "commit",
+                    "on",
+                    "pull requests",
+                    "issues",
+                    "outside contributors",
+                    "review",
+                    "work items",
+                )
+            ),
+        ],
+    )
+    def test_a_badge_takes_its_two_colours_from_its_label(self, label, colours):
+        """#1496 S4, colours C3. A badge's value colour and label colour are
+        read by its label, so a passing result does not read like a failure:
+        `SEALED` keeps the seal's bright red on its dark red, the suite's
+        passed count is green, the skipped, capped and deferred counts are
+        grey, and every other label of the sealed header is blue, each on a
+        grey label. The value is `not read`, the one a source that could not
+        be read gives, and the label alone still decides the colours; a
+        label with no colours of its own is the case above. Seen red against
+        the `badge` that coloured every label with the seal's two reds."""
+        mod = publisher()
+        img = mod.badge(label, "not read")
+        src = html.unescape(re.search(r'src="([^"]*)"', img).group(1))
+        address = urllib.parse.urlsplit(src)
+        colour = address.path.rsplit("-", 1)[1]
+        edge = urllib.parse.parse_qs(address.query)["labelColor"]
+        assert (colour, edge) == (colours[0], [colours[1]]), src
 
     @pytest.mark.parametrize(
         "description, theme",

@@ -251,11 +251,22 @@ def note(pulls=PULLS, theme=""):
 HEADER = "<p>2 pull requests merged<br>2 issues closed<br>1 outside contributor</p>"
 
 
-def badge(path, alt):
+# A badge's two colours by its label, as `(value, label)` (#1496): the seal's
+# reds for `SEALED`, green for the suite's passed count, grey for the
+# skipped, capped and deferred counts, and blue on grey for every other.
+SEAL_RED = ("d42420", "8e0c12")
+GREEN = ("2ea44f", "555555")
+GREY = ("6e7781", "555555")
+BLUE = ("0969da", "555555")
+
+
+def badge(path, alt, colours=BLUE):
     """One badge exactly as the sealed header carries it (#1299): `path` is
-    the label and the value as the badge service's address spells them."""
+    the label and the value as the badge service's address spells them, and
+    `colours` the value's colour and the label's."""
+    colour, edge = colours
     return (
-        f'<img src="https://img.shields.io/badge/{path}-d42420?labelColor=8e0c12" '
+        f'<img src="https://img.shields.io/badge/{path}-{colour}?labelColor={edge}" '
         f'alt="{alt}">'
     )
 
@@ -265,20 +276,22 @@ def badge(path, alt):
 # image and in the header without it alike (#1299, #1496).
 BADGE_LINES = "<br>".join(
     [
-        badge("SEALED-v1.2.3", "SEALED: v1.2.3"),
+        badge("SEALED-v1.2.3", "SEALED: v1.2.3", SEAL_RED),
         badge("commit-aaa11111", "commit: aaa11111")
         + " "
         + badge("on-main", "on: main"),
         badge("pull%20requests-2%20merged", "pull requests: 2 merged"),
         badge("issues-2%20closed", "issues: 2 closed"),
         badge("outside%20contributors-1", "outside contributors: 1"),
-        badge("suite-7003%20passed", "suite: 7003 passed")
+        badge("suite-7003%20passed", "suite: 7003 passed", GREEN)
         + " "
-        + badge("skipped-66", "skipped: 66"),
+        + badge("skipped-66", "skipped: 66", GREY),
         badge("review-1%20round", "review: 1 round")
         + " "
         + badge("work%20items-1", "work items: 1"),
-        badge("capped-1", "capped: 1") + " " + badge("deferred-1", "deferred: 1"),
+        badge("capped-1", "capped: 1", GREY)
+        + " "
+        + badge("deferred-1", "deferred: 1", GREY),
     ]
 )
 # Why the seal leaves a note whose header is not `publish`'s.

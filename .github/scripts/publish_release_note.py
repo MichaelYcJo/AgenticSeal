@@ -664,15 +664,27 @@ def header(work, closed, people):
     return paragraph([html.escape(line) for line in counts(work, closed, people)])
 
 
-# The sealed header's badges, drawn by the Shields badge service
-# from their address alone. Their two colours are the seal's reds, read from
-# `assets/seals/owl.svg`: the label's is the wax's dark outer edge, the
-# gradient's outer stop, and the value's is the raised relief of the owl and
-# its border. The owner chose the stamp's reds for every colour of the seal
-# (#857), so a seal redrawn in other colours is a new icon, and the
-# redraw edits these two with it.
-BADGE_LABEL_COLOUR = "8e0c12"
-BADGE_VALUE_COLOUR = "d42420"
+# The sealed header's badges, drawn by the Shields badge service from their
+# address alone. A badge's two colours, the value's and then the label's, are
+# read by its label from `BADGE_COLOURS`, so that a passing result does not
+# read like a failure (#1496). Every label is grey except `SEALED`'s. The
+# suite's passed count is green, and the skipped, capped and deferred counts
+# are grey. Every other label has no entry, so its value takes
+# `BADGE_DEFAULT_COLOURS`, which is blue.
+BADGE_LABEL_GREY = "555555"
+BADGE_COLOURS = {
+    # The seal's reds, read from `assets/seals/owl.svg`: the label's is the
+    # wax's dark outer edge, the gradient's outer stop, and the value's is
+    # the raised relief of the owl and its border. The owner chose the
+    # stamp's reds for every colour of the seal (#857), so a seal redrawn in
+    # other colours is a new icon, and the redraw edits this entry with it.
+    "SEALED": ("d42420", "8e0c12"),
+    "suite": ("2ea44f", BADGE_LABEL_GREY),
+    "skipped": ("6e7781", BADGE_LABEL_GREY),
+    "capped": ("6e7781", BADGE_LABEL_GREY),
+    "deferred": ("6e7781", BADGE_LABEL_GREY),
+}
+BADGE_DEFAULT_COLOURS = ("0969da", BADGE_LABEL_GREY)
 BADGE_URL = "https://img.shields.io/badge/{label}-{value}-{colour}?labelColor={edge}"
 
 
@@ -686,19 +698,22 @@ def badge_text(text):
 
 
 def badge(label, value):
-    """One badge as an `<img>`: `label` on the seal's dark red, `value` on
-    its bright red, in the service's default style. Its alt text is the
+    """One badge as an `<img>`, in the service's default style: `label` and
+    `value` on the two colours `BADGE_COLOURS` gives `label`, or
+    `BADGE_DEFAULT_COLOURS` where it gives none. The value never changes
+    them, so a `not read` takes its label's colours. Its alt text is the
     label and the value in words, so a reader whose client draws no image,
     or who opens the note while the service does not answer, still reads
     the result. The alt text is escaped, so a quote cannot end the
     attribute and a `<` opens no tag. The address needs no escape:
     `badge_text` leaves only letters, digits, `_.-~` and `%` in it, and
     `BADGE_URL`'s own characters mean nothing to HTML."""
+    colour, edge = BADGE_COLOURS.get(label, BADGE_DEFAULT_COLOURS)
     url = BADGE_URL.format(
         label=badge_text(label),
         value=badge_text(value),
-        colour=BADGE_VALUE_COLOUR,
-        edge=BADGE_LABEL_COLOUR,
+        colour=colour,
+        edge=edge,
     )
     return f'<img src="{url}" alt="{html.escape(f"{label}: {value}")}">'
 
