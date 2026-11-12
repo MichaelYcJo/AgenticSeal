@@ -23,8 +23,9 @@ moved — the diff lists those already. -->
 ## How it was verified
 
 <!-- The command you ran and what it said. `bin/test tests/<file> -q` on the
-module you touched is enough; CI runs the rest on three platforms. Say which
-things you read rather than ran. -->
+module you touched is enough; CI runs the rest on Linux and Windows, and
+macOS and Python 3.14 run on the release pull request. Say which things you
+read rather than ran. -->
 
 <!-- CHANGING A GATE? Anything under lib/ or .github/workflows/ carries a
 higher bar, because a gate decides whether somebody else's pull request or
