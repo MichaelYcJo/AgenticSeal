@@ -167,7 +167,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, git
 
 TARGET = "skills/verify/scripts/session_cost.py"
 
@@ -5260,22 +5260,34 @@ class Test_work_item:
 
     NAME = "1790000000-a-work-item"
     BRANCH = "feat/12-a-work-item"
+    OTHER = "1790000001-another-item"
+    OTHER_BRANCH = "feat/13-another-item"
     SAYS = "the release's sentence on these readings"
+
+    @staticmethod
+    def declare(directory, branch):
+        """DIRECTORY made a work item whose `routing.md` names BRANCH."""
+        directory.mkdir(parents=True)
+        (directory / "routing.md").write_text(
+            "# Routing\n\n| Axis | Answer |\n|---|---|\n"
+            "| Review | through the review chain |\n"
+            "| Destination | open the pull request |\n"
+            f"| Branch | {branch} |\n",
+            encoding="utf-8",
+        )
+        return directory
 
     @pytest.fixture
     def item(self, tmp_path, monkeypatch):
         """The work item directory, with the config directory set beside it."""
         monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
-        item = tmp_path / "repo" / "seal" / "threads" / self.NAME
-        item.mkdir(parents=True)
-        (item / "routing.md").write_text(
-            "# Routing\n\n| Axis | Answer |\n|---|---|\n"
-            "| Review | through the review chain |\n"
-            "| Destination | open the pull request |\n"
-            f"| Branch | {self.BRANCH} |\n",
-            encoding="utf-8",
+        return self.declare(
+            tmp_path / "repo" / "seal" / "threads" / self.NAME, self.BRANCH
         )
-        return item
+
+    def sibling(self, item):
+        """The other work item, `OTHER` on `OTHER_BRANCH`, beside ITEM."""
+        return self.declare(item.parent / self.OTHER, self.OTHER_BRANCH)
 
     @staticmethod
     def agent(tmp_path, name, prompt, session="s1", second=0):
@@ -5526,6 +5538,113 @@ class Test_work_item:
             f"{self.BRANCH}" in said
         ), said
         assert "1 segment transcript walked on this machine, 0 naming" in said, said
+
+    def test_a_segment_naming_another_work_item_is_named_on_both_pages(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. A framer's prompt names the release's other work items, so
+        its segment counts for each. The page of either item names that
+        segment's file beside the other item's directory, and the posted
+        comment carries the same line inside its fence, where `posted_names`
+        reads only the `# <file name>` lines."""
+        other = self.sibling(item)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Frame seal/threads/{self.NAME}/ beside seal/threads/{self.OTHER}/.",
+        )
+        self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
+        module = _cost()
+        for reading, beside in ((item, self.OTHER), (other, self.NAME)):
+            self.gh(monkeypatch, module, _listing((42, "OPEN")))
+            assert self.main(monkeypatch, tmp_path, module, reading) == 0
+            out = capsys.readouterr().out
+            assert f"\n    agent-a.jsonl also names {beside}\n" in out, out
+            assert "agent-b.jsonl also names" not in out, out
+
+        _seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        fence = bodies[0].split("```\n", 1)[1].rsplit("```", 1)[0]
+        assert f"\n    agent-a.jsonl also names {self.OTHER}\n" in fence, fence
+        assert Test_emit.named_in_fence(bodies[0]) == ["agent-a.jsonl", "agent-b.jsonl"]
+        assert module.posted_names(bodies) == {"agent-a.jsonl", "agent-b.jsonl"}
+
+    def test_a_segment_already_in_the_log_is_still_named_with_the_other_item(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. The first item's run posted the shared segment, so the
+        other item's run leaves it out of its rows. Its page still lists the
+        file, marked as already in the log, with the item it also names, and
+        prints that line above the sentence that every segment is in the
+        log."""
+        other = self.sibling(item)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Frame seal/threads/{self.NAME}/ beside seal/threads/{self.OTHER}/.",
+        )
+        module = _cost()
+        page = json.dumps([self.comment("# agent-a.jsonl")])
+        self.gh(monkeypatch, module, _listing((42, "OPEN")), pages=(page,))
+        assert self.main(monkeypatch, tmp_path, module, other) == 0
+        out = capsys.readouterr().out
+        line = f"\n    agent-a.jsonl, already in the log, also names {self.NAME}\n"
+        assert line in out, out
+        every = "every segment transcript that names it is already in the log"
+        assert out.index(line) < out.index(every), out
+
+    def test_a_work_item_on_another_local_branch_is_read(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. Side by side, the other work item's directory stands on its
+        own branch until it merges, so the checkout holds none of it. The
+        page reads every local branch's `routing.md` and names the segment
+        whose prompt names that item's branch."""
+        repo = item.parents[2]
+        git(repo, "init", "-q")
+        git(repo, "config", "user.email", "t@t")
+        git(repo, "config", "user.name", "t")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "this item")
+        git(repo, "checkout", "-q", "-b", "other")
+        other = self.sibling(item)
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "the other item")
+        git(repo, "checkout", "-q", "-")
+        assert not other.exists()
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Records: seal/threads/{self.NAME}/. {self.OTHER_BRANCH} runs beside.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert f"\n    agent-a.jsonl also names {self.OTHER}\n" in out, out
+        assert (
+            "  1 also naming another work item, with 1 other work item read "
+            "beside it\n" in out
+        ), out
+
+    def test_a_segment_naming_this_work_item_alone_is_counted_and_not_listed(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. Where no counted segment names another work item, the count
+        line says so and gives how many other items were read, so a reader
+        sees the reach of the read, and no segment's line prints."""
+        self.sibling(item)
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert (
+            "  0 also naming another work item, with 1 other work item read "
+            "beside it\n" in out
+        ), out
+        assert "also names" not in out, out
 
     @pytest.mark.parametrize(
         "listing, list_code, code, said",
