@@ -958,6 +958,43 @@ def test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs
         )
 
 
+# The file types the plugin directory accepts from an organization that is
+# not Verified, and the names it lets stay whatever their type (#1535).
+DIRECTORY_ACCEPTS = {
+    ".md", ".txt", ".json", ".yml", ".yaml",
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico",
+}  # fmt: skip
+DIRECTORY_LETS_STAY = {"LICENSE", ".gitignore"}
+
+
+def is_code(rel):
+    """Whether REL is the plugin's own code, which the directory refuses and
+    the installed plugin runs: a script, a Windows launcher, or a file under
+    `bin/`."""
+    return rel.endswith((".py", ".cmd")) or rel.startswith("bin/")
+
+
+def test_this_repository_s_archive_ships_no_file_of_a_refused_type_but_its_code():
+    """A9: the directory refuses a file outside the types it accepts, and the
+    archive holds none but the plugin's code. A drawing's source, a lint
+    config or `.gitattributes` itself leaves `dist` by an `export-ignore`
+    line, since nothing installed reads it (#1535)."""
+    held = [p for p in archived(ROOT) if os.path.isfile(os.path.join(ROOT, p))]
+    assert ".claude-plugin/plugin.json" in held, sorted(held)[:20]
+    refused = sorted(
+        p
+        for p in held
+        if os.path.splitext(p)[1].lower() not in DIRECTORY_ACCEPTS
+        and os.path.basename(p) not in DIRECTORY_LETS_STAY
+        and not is_code(p)
+    )
+    assert not refused, (
+        f"the archive holds {refused}, of a type the plugin directory refuses; "
+        "a file nothing installed reads gets an `export-ignore` line in "
+        "`.gitattributes`"
+    )
+
+
 @pytest.mark.parametrize("record", RECORDS)
 def test_a_record_is_not_read(tmp_path, record):
     """S8: a file under a prefix of `tests/censuses.py#RECORDS` keeps what it

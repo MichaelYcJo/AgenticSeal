@@ -152,7 +152,11 @@ organization that is not Verified, and refused v0.34.0 on 2026-11-07
 issues that wait for the listing are in the milestone
 `backlog: marketplace listing (on hold)`. The directory's form does not
 answer in time for this repository's whole tree, and answers for the tree
-without its suites and records (#1374). The paths that leave are marked
+without its suites and records (#1374). The files of a type the directory
+refuses that nothing installed reads leave too: the drawings' `.svg` and
+`.ans` sources under `assets/seals/`, `ruff.toml` and `.gitattributes`
+itself, and a census case fails where the archive holds any other file of
+a refused type but the plugin's code (#1535). The paths that leave are marked
 `export-ignore` in
 `.gitattributes`, and the tree of each commit of `dist` is `git archive`
 of the release's tag. So the list lives in that one file and the workflow

@@ -17,6 +17,13 @@
 # stays would be missing from every copy the directory serves with nothing
 # in this repository to show it. A pull request that adds a path only
 # development reads adds its line here.
+#
+# The last block leaves for the directory's sake alone. The directory
+# refuses a file outside the types it accepts from an organization that is
+# not Verified, and nothing installed reads these: the drawings' vector and
+# terminal sources under `assets/seals/`, from which the shipped PNGs are
+# drawn, the linter's config, and this file, which the archive reads at the
+# tag and `dist` never needs.
 /tests/ export-ignore
 /evals/ export-ignore
 /seal/ export-ignore
@@ -35,3 +42,7 @@
 /.github/scripts/roll_flow_measurement_issue.py export-ignore
 /.github/scripts/tag_release.py export-ignore
 /.github/scripts/tracker_labels.py export-ignore
+/assets/seals/*.svg export-ignore
+/assets/seals/*.ans export-ignore
+/ruff.toml export-ignore
+/.gitattributes export-ignore
