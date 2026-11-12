@@ -181,8 +181,10 @@ def results(rows):
     `sealed` is the sealed version, then the tagged commit with each branch
     it is on. `lines` are the suite and its skips, the review rounds and the
     work items, and how many were capped and the issues deferred, two to a
-    line; a row not read gives `not read` on each badge it feeds. The pull requests and issues are left out:
-    `publish_release_note.py#count_badges` states them."""
+    line; a row not read gives `not read` on each badge it feeds. The pull
+    requests and issues are left out: `publish_release_note.py#count_badges`
+    states them. Each badge's colours are `publish_release_note.py#badge`'s,
+    read by its label."""
     by = {}
     for label, value in rows:
         if label:
