@@ -48,6 +48,11 @@ so this finding reopens it.
 This work adds a CI job, its condition, the case of *Scope* item 3, and `tests/workflows.py#pytest_jobs` in the place of `tests/text/test_ci_gives_the_checks_what_they_need.py#runs_pytest`, with the cases of `tests/test_workflows.py#Test_pytest_jobs` that hold it. In return it removes the two legs from every pull request into `release/*`.
 ```
 
+```seal
+verdict: fixed f46ec0b0f
+answer: The framer folded the sentence and the orchestrator committed it at f46ec0b0f. That commit changes `frame/design.md:94` to the finding's snippet word for word: "with the cases of `tests/test_workflows.py#Test_pytest_jobs` that hold it", which matches the two cases at `tests/test_workflows.py:103` and `:116`. It also adds a judgment row to `frame/plan.md`. This fix pass made no change for this finding (read).
+```
+
 ## Confirmations
 
 ```seal
