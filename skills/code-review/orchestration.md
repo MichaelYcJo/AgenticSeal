@@ -271,8 +271,9 @@ is the commit the orchestrator pushed last. It reads the checks of every
 workflow on the pull request, because a single workflow's run, watched
 alone, can pass while another workflow's check fails. Its one limit is on
 the start, the time for a check of a `pull_request` run to be listed on
-HEAD. Once one is listed, the wait has no limit and ends when no check is
-pending. The read before a push reads the pull request's state alone,
+HEAD. Once one is listed, no time limit applies: the wait ends when no
+check is pending, or at exit 3 where the pull request's head leaves HEAD,
+since no check of HEAD can be read after that. The read before a push reads the pull request's state alone,
 waits on nothing, and exits 0, 4 or 5.
 
 | Exit | When | What the orchestrator does |
@@ -280,7 +281,7 @@ waits on nothing, and exits 0, 4 or 5.
 | 0 | every check on HEAD passed or was skipped; under `--once`, the pull request is open | treats the pull request as checked at HEAD; under `--once`, pushes |
 | 1 | a check on HEAD failed or was cancelled, and the output names each such check | reads the named checks' logs and repairs the work |
 | 2 | the command could not ask `gh` or `git`, or could not read the answer, and the output names the command and what it printed | reads the output, and takes nothing about the pull request as known |
-| 3 | no check of a `pull_request` run was listed on HEAD within the limit on the start, and the output names the SHA and why | says in its report that no check of a `pull_request` run reported on that SHA, waits no longer, and does not treat the pull request as checked |
+| 3 | within the limit on the start, the pull request's head never became HEAD, GitHub never said whether the pull request is mergeable, or no check of a `pull_request` run was listed on HEAD; or, after the start, the head left HEAD. The output names the one cause that held and the commits it concerns | says in its report the cause the output names about those commits, waits no longer, and does not treat the pull request as checked |
 | 4 | `state` is `MERGED` | pushes nothing more to the branch, and puts the repair on a new branch cut from the base, which holds the work |
 | 5 | `state` is `CLOSED` | pushes nothing, and says in its report that the pull request was closed with a repair pending |
 | 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as the next paragraph states |

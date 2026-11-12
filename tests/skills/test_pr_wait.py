@@ -304,6 +304,28 @@ class Test_wait:
         assert PR.wait(12, HEAD)[0] == 0
         assert hub.verbs()[:3] == ["view", "view", "view"]
 
+    def test_refuses_a_head_that_leaves_the_pushed_commit_after_the_start(
+        self, monkeypatch, clock
+    ):
+        """S4: a check of HEAD is listed and pending, and then the head moves
+        to a commit another party pushed, such as a merge of the base. The
+        command ends at that read, naming both commits, and reads no check
+        of the new head."""
+        hub = serve(
+            monkeypatch,
+            views=[view(), view(head=BEFORE)],
+            checks=[[check("pytest", "pending")], [check("pytest", "pass")]],
+            runs=[[run("completed")]],
+        )
+        assert PR.wait(12, HEAD) == (
+            3,
+            [
+                f"the pull request's head moved from {HEAD} to {BEFORE} after its "
+                f"checks started, so no check of {HEAD} can be read any more"
+            ],
+        )
+        assert hub.verbs() == ["view", "checks", "view"]
+
     def test_refuses_to_start_on_another_events_finished_check(
         self, monkeypatch, clock
     ):
@@ -408,9 +430,10 @@ class Test_wait:
         assert hub.verbs() == ["view", "checks", "view"]
 
     def test_refuses_to_start_while_mergeable_is_never_known(self, monkeypatch, clock):
-        """S8: `UNKNOWN` is read again, and past the limit it is said. The
-        checks on HEAD have all passed, and the command asks for none of
-        them while GitHub has not said the pull request can be merged."""
+        """S8: `UNKNOWN` is read again, and past the limit it is said, and
+        nothing about the checks, which the command did not read. The checks
+        on HEAD have all passed, and the command asks for none of them while
+        GitHub has not said the pull request can be merged."""
         hub = serve(
             monkeypatch,
             views=[view(mergeable="UNKNOWN")],
@@ -420,11 +443,26 @@ class Test_wait:
         assert PR.wait(12, HEAD) == (
             3,
             [
-                f"no check of a pull_request run was listed on {HEAD} within 120 "
-                "seconds, and GitHub never said whether the pull request is mergeable"
+                "GitHub never said within 120 seconds whether the pull request is mergeable"
             ],
         )
         assert len(hub.calls) == 13
+        assert set(hub.verbs()) == {"view"}
+
+    def test_accepts_a_mergeable_that_goes_unknown_after_the_start(
+        self, monkeypatch, clock
+    ):
+        """S8: once a check of HEAD is listed, `UNKNOWN` reads the checks as
+        `MERGEABLE` does, so a base that moves under the wait does not keep
+        it from ending."""
+        hub = serve(
+            monkeypatch,
+            views=[view(), view(mergeable="UNKNOWN")],
+            checks=[[check("pytest", "pending")], [check("pytest", "pass")]],
+            runs=[[run("completed")]],
+        )
+        assert PR.wait(12, HEAD) == (0, ["every check passed or was skipped"])
+        assert hub.verbs() == ["view", "checks", "view", "checks", "runs", "checks"]
 
     def test_refuses_a_bucket_gh_does_not_name(self, monkeypatch, clock):
         """S9: a bucket none of gh's five is never read as `pass`."""
@@ -465,6 +503,44 @@ class Test_once:
         assert raised.value.lines() == [
             "could not read the answer: `gh pr view` answered state 'DRAFT', which is none of "
             "OPEN, MERGED, CLOSED"
+        ]
+
+    @pytest.mark.parametrize(
+        "answer, said",
+        [
+            (
+                view(mergeable="BLOCKED"),
+                "could not read the answer: `gh pr view` answered mergeable "
+                "'BLOCKED', which is none of MERGEABLE, CONFLICTING, UNKNOWN",
+            ),
+            (
+                {**view(), "headRefOid": None},
+                "could not read the answer: `gh pr view` answered no headRefOid "
+                "string or no statusCheckRollup list",
+            ),
+            (
+                {**view(), "statusCheckRollup": None},
+                "could not read the answer: `gh pr view` answered no headRefOid "
+                "string or no statusCheckRollup list",
+            ),
+        ],
+    )
+    def test_refuses_a_view_gh_does_not_shape(self, monkeypatch, answer, said):
+        """S9: a `mergeable` value `gh` does not name, or an answer without a
+        head string or a rollup list, is exit 2 and never read as open."""
+        serve(monkeypatch, views=[answer])
+        with pytest.raises(PR.Unanswered) as raised:
+            PR.once(12)
+        assert raised.value.lines() == [said]
+
+    def test_refuses_an_answer_that_is_not_json_of_its_kind(self, monkeypatch):
+        """S9: `gh` printing a list where a dict is read is exit 2."""
+        monkeypatch.setattr(PR, "gh", lambda *args: "[]")
+        with pytest.raises(PR.Unanswered) as raised:
+            PR.once(12)
+        assert raised.value.lines() == [
+            "could not read the answer: `gh pr view 12 --json "
+            "state,mergeable,headRefOid,statusCheckRollup` printed no JSON dict"
         ]
 
 
