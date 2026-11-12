@@ -51,8 +51,8 @@ runner can run longer than any limit short enough to help. After the
 start, a read whose head is not HEAD ends the wait at exit 3, and a
 `mergeable` of `UNKNOWN` reads the checks as `MERGEABLE` does: GitHub
 can compute it again while the checks of HEAD run, as when the base
-moves, and those checks are still the ones to read. Each `gh` call is bounded at `GH_TIMEOUT`, so a call that hangs ends the
-wait at exit 2.
+moves, and those checks are still the ones to read. Each `gh` call is
+bounded at `GH_TIMEOUT`, so a call that hangs ends the wait at exit 2.
 
 Why each read is there:
 
@@ -75,9 +75,10 @@ Why each read is there:
   on the pushed commit lists its checks on the pull request too, often
   finished before the pull request opens.
   `.github/workflows/label-merged-on-release-branch.yml` runs on a push to
-  `release/*`, so a pull request from a release branch lists its check. A check of another CI service,
-  or of another event, counts toward the result and never toward the start,
-  so a pull request whose checks all come from elsewhere ends at exit 3.
+  `release/*`, so a pull request from a release branch lists its check. A
+  check of another CI service, or of another event, counts toward the
+  result and never toward the start, so a pull request whose checks all
+  come from elsewhere ends at exit 3.
 - **A read with nothing pending is held against the workflow runs.** A job
   that `needs:` another gets its check only when the job it needs ends, so
   between the two every listed check has finished while the run has not.
