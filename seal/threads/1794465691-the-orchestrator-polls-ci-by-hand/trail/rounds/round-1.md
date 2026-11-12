@@ -81,6 +81,12 @@ against the code as it stands, where it ends on the fake clock's guard.
 `frame/design.md:85` and `:90` state the exit and the limit, and they are
 the orchestrator's to amend with the frame.
 
+```seal
+verdict: fixed a02ca9542
+location: `seal/threads/1794465691-the-orchestrator-polls-ci-by-hand/changelog.md:3`
+answer: Applied in my own words, with the frame part folded by the framer at e0deb977e. After the start, a read whose head is not HEAD returns exit 3 with "the pull request's head moved from <HEAD> to <head> after its checks started, so no check of <HEAD> can be read any more" (`pr_wait.py#wait`). The docstring's exit 3 entry and its paragraph on the limit say so, and the sentence that the command keeps waiting is gone. The paragraph at `orchestration.md:274-276` says the wait ends at exit 3 where the head leaves HEAD, and row 3 names the moved head. The changelog's exit 3 sentence names it too, which is the path this block's `location:` adds. `Test_wait::test_refuses_a_head_that_leaves_the_pushed_commit_after_the_start` serves `[view(), view(head=BEFORE)]` with a pending check and asserts the exit, the line and that no check of the new head is read. It was seen red against be4b321da's code on the fake clock's "the wait never ended", and red again under `seal mutate` with `if moved and started:` replaced by `if False:`, on the same line (executed). `trail/phases/phase-1.md:92-95` stays as written.
+```
+
 ### 2. Under a `mergeable` that stays `UNKNOWN`, exit 3 says no check was listed, and the paragraph has the orchestrator report it, though the command read no check
 
 ```seal
@@ -136,6 +142,11 @@ other statements of this fact. These are the docstring's exit 3 entry at
 exit 3 sentence of `changelog.md:3`. The orchestrator owes the frame's cell
 at `frame/design.md:85`. Findings 1 and 2 both change exit 3's lines, so one
 fix pass takes them together.
+
+```seal
+verdict: fixed a02ca9542
+answer: Applied in my own words. Before the start, an exit 3 under `UNKNOWN` prints "GitHub never said within 120 seconds whether the pull request is mergeable" and says nothing about checks. The proofer's "so no check on <SHA> was read" is left out, because the folded S8 asks that the line say only that. The framer's extension at e0deb977e is built too: after the start, `UNKNOWN` reads the checks as `MERGEABLE` does. Row 3 at `orchestration.md:285` lists the mergeable cause apart, and its act now reports "the cause the output names about those commits". The docstring's exit 3 entry and the changelog's exit 3 sentence say the same. `test_refuses_to_start_while_mergeable_is_never_known` now asserts the new line and that every call was a `view`. It was seen red against be4b321da's code on the old line, and red under `seal mutate` with the `if unknown:` branch disabled (executed). The new case `test_accepts_a_mergeable_that_goes_unknown_after_the_start` was seen red against be4b321da's code on "the wait never ended". It was red again with `and not started` removed from `unknown` (executed).
+```
 
 ### 3. Three exit-2 guards the frame states hold no case: an unknown `mergeable`, a `gh pr view` answer without a head or rollup, and an answer that is not JSON
 
@@ -204,6 +215,11 @@ case fails on `DID NOT RAISE`. With `_answer`'s guard gone, the list reaches
 command prints without the guard, as phase 1 read its `KeyError` and
 `TypeError` reds.
 
+```seal
+verdict: fixed a02ca9542
+answer: The proofer's two cases are in `Test_once` as written. `test_refuses_a_view_gh_does_not_shape` takes three parameters, and `test_refuses_an_answer_that_is_not_json_of_its_kind` is one case. Each was green against the code, since the guards stood, so each was seen red under `seal mutate` with only its guard removed, and its failing line was read (executed). With the `mergeable` guard as `if False:`, the `BLOCKED` parameter failed on DID NOT RAISE. With the `headRefOid` half of the shape guard removed, the `headRefOid` parameter failed on DID NOT RAISE, and with the `statusCheckRollup` half neutralised, the rollup parameter failed on DID NOT RAISE. With `_answer`'s guard as `if False:`, the case failed on `AttributeError: 'list' object has no attribute 'get'`, which is what the command prints without the guard. Listing every `raise Unanswered` in the module leaves four exit 2 guards with no case: the `gh` timeout, an `OSError` from `gh` or from `git`, and a non-object entry in `gh pr checks`' list. `gaps.md` `## Not done` names them, at 573882a23.
+```
+
 ### 4. The docstring cites no source for two of the four reasons *Scope* item 1 names, while the frame and the phase record say every reason cites one
 
 ```seal
@@ -245,6 +261,11 @@ The bullet's remaining lines stay as they are. The other way to close the
 finding is to narrow `frame/design.md:32` to the reasons that rest on `gh`'s
 code or on the workflow. That way leaves the measurements with no source.
 
+```seal
+verdict: fixed a02ca9542
+answer: Applied in part and in my own words, and the line wraps landed at cab760882. Two reasons gain a source in the shape the docstring already uses. The rollup reason now cites `pkg/cmd/pr/checks/checks.go` in `cli/cli` at v2.92.0, where `populateStatusChecks` returns the `no checks reported` error before the exporter writes any JSON (executed: fetched the file at v2.92.0 with `gh api` and read lines 184-191 and 302-303). The `pull_request` reason now cites `.github/workflows/label-merged-on-release-branch.yml`, which runs on a push to `release/*` and so lists its check on a pull request from a release branch. I did not take the citation "work item #1222, at tag v0.27.2" for the head reason, because #1222's own design at that tag labels the asynchronous head move `unverified` (`git show v0.27.2:seal/threads/1793521560-the-checks-wait-starts-before-a-check-reports/frame/design.md`, line 13). Citing it would give an unmeasured claim a source. The head reason is restated so it rests on no measurement. The command answers for HEAD, and `gh pr checks` lists the head's checks, so it reads them only while the two are one commit. The docstring says how long GitHub takes to move the head has not been measured. `frame/design.md` *Scope* item 1 still says each reason cites a source, and it is the orchestrator's to narrow for the head reason.
+```
+
 ### 5. `frame/design.md` says every exit's line names the SHA, and `--once` names the pull request's head while an early exit 2 names none
 
 ```seal
@@ -267,6 +288,11 @@ commit where one was read".
 
 ```markdown
 **What it prints.** An argument `argparse` refuses prints its usage error on stderr at exit 2. Every other exit prints one line on stdout that opens `seal pr-wait:` and names N, the commit where one was read (HEAD for the wait, the pull request's head under `--once`, none where an exit 2 came before any read), and the outcome. Exit 1 adds a line for each check in `fail` or `cancel`, and exit 2 adds the `gh` or `git` command and its stderr. The crafter writes each line's words, and a case pins each (contract rule 14).
+```
+
+```seal
+verdict: fixed e0deb977e
+answer: The framer folded the paste-ready sentence into `frame/design.md` *Data & interfaces*, *What it prints*, at e0deb977e. The line names the commit where one was read: HEAD for the wait, the pull request's head under `--once`, and none for an exit 2 before any read. The code and `pr_wait.py`'s docstring already said so, and this pass changed neither.
 ```
 
 ## Confirmations
