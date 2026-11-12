@@ -57,4 +57,4 @@ A later pull request of the release needs no merge of the release branch to run 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| 2026-11-12 | The title takes `chore:` | The diff changes which CI jobs a pull request into `release/*` runs, the cases that read the workflow and the contributing guide; nothing the plugin ships to a user changes, and the issue was filed as `chore:` | `skills/commit-pr-convention/SKILL.md` |
+| 2026-11-12 | The title takes `refactor:` | A contributor's pull request into `release/*` no longer runs the ubuntu 3.14 and macOS legs, which the release pull request still runs: the same kinds of outcome reached another way, as the table's example of a gate retired because what it caught did not outweigh its cost. `chore:` is upkeep nobody meets, and an issue takes the prefix of the pull request that closes it, so the issue's `chore:` is no ground; the orchestrator first wrote `chore:`, and round 1 finding 2 corrected it | `skills/commit-pr-convention/SKILL.md` *Commit messages*; `trail/rounds/round-1.md` finding 2 |
