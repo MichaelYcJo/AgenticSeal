@@ -33,7 +33,7 @@ Failure scenario of the chosen approach, six months on: a leg added later goes i
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1 to 5 of `frame/design.md`. The version move of item 5 is made in the commit that adds `changelog.md`. | The case of *Scope* item 3 seen red against `test.yml` at `6a3b74ba8`, and each generalised case of *Scope* item 2 seen red with one `pytest-wide` entry or line changed (S3, S4). Run narrowly: `bin/test tests/text/test_ci_gives_the_checks_what_they_need.py tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/behaviour/test_release_hygiene.py tests/test_workflows.py tests/github/test_release_report.py -q`. The GitHub side is S1 and S2, read by the orchestrator. | |
+| 1 | *Scope* items 1 to 5 of `frame/design.md`. The version move of item 5 is made in the commit that adds `changelog.md`. | The case of *Scope* item 3 seen red against `test.yml` at `6a3b74ba8`, and each generalised case of *Scope* item 2 seen red with one `pytest-wide` entry or line changed (S3, S4). Run narrowly: `bin/test tests/text/test_ci_gives_the_checks_what_they_need.py tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/behaviour/test_release_hygiene.py tests/test_workflows.py tests/github/test_release_report.py -q`. The GitHub side is S1 and S2, read by the orchestrator. | `f8e784871` |
 
 ## Overlap with the release
 
