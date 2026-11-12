@@ -179,10 +179,9 @@ def results(rows):
     """`(sealed, lines)`: the stamp's results as badge lines, each a list of
     `(label, value)` pairs, which the note's header shows as badges.
     `sealed` is the sealed version, then the tagged commit with each branch
-    it is on. `lines` are the suite and its
-    skips, the review rounds and the work items, and how many were capped
-    and the issues deferred, two to a line; a row not read gives `not read`
-    on each badge it feeds. The pull requests and issues are left out:
+    it is on. `lines` are the suite and its skips, the review rounds and the
+    work items, and how many were capped and the issues deferred, two to a
+    line; a row not read gives `not read` on each badge it feeds. The pull requests and issues are left out:
     `publish_release_note.py#count_badges` states them."""
     by = {}
     for label, value in rows:

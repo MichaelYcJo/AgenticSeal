@@ -658,8 +658,9 @@ def header(work, closed, people):
     published note by this text, so a note edited by hand afterwards, or one
     whose header a run of the seal already replaced, is left alone. The
     paragraph's `<p>` and `</p>` bound the text, so the header the seal
-    computes never matches inside a longer header line: one that counts one
-    more outside contributor line, or a count with one more leading digit."""
+    computes never matches inside a longer header line, such as one that
+    holds an outside contributors line the seal's header lacks, or one whose
+    count has one more leading digit."""
     return paragraph([html.escape(line) for line in counts(work, closed, people)])
 
 
