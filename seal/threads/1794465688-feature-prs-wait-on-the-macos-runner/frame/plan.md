@@ -57,4 +57,4 @@ A later pull request of the release needs no merge of the release branch to run 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-12 | The title takes `chore:` | The diff changes which CI jobs a pull request into `release/*` runs, the cases that read the workflow and the contributing guide; nothing the plugin ships to a user changes, and the issue was filed as `chore:` | `skills/commit-pr-convention/SKILL.md` |
