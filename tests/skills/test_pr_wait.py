@@ -75,6 +75,9 @@ class Hub:
     def gh(self, *args):
         self.calls.append(args)
         queue = self.served[VERBS[args[:2]]]
+        assert queue, (
+            f"the command asked `gh {' '.join(args)}`, which this case does not serve"
+        )
         answer = queue.pop(0) if len(queue) > 1 else queue[0]
         return json.dumps(answer)
 
@@ -387,8 +390,14 @@ class Test_wait:
     def test_refuses_a_pull_request_that_is_not_open_and_mergeable(
         self, monkeypatch, clock, answer, code, outcome
     ):
-        """S8, at the first read and at a later one."""
-        serve(monkeypatch, views=[answer])
+        """S8, at the first read and at a later one. The checks on HEAD have
+        all passed, and the state decides first."""
+        serve(
+            monkeypatch,
+            views=[answer],
+            checks=[[check("pytest", "pass")]],
+            runs=[[run("completed")]],
+        )
         assert PR.wait(12, HEAD) == (code, [outcome])
         hub = serve(
             monkeypatch,
@@ -423,6 +432,7 @@ class Test_wait:
             monkeypatch,
             views=[view()],
             checks=[[check("pytest", "pass"), check("lint", "succeeded")]],
+            runs=[[run("completed")]],
         )
         with pytest.raises(PR.Unanswered) as raised:
             PR.wait(12, HEAD)
