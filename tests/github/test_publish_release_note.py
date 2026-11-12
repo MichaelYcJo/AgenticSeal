@@ -264,9 +264,9 @@ FOLDED = [
 
 
 def header(*lines):
-    """A note's header holding `lines` in one cell, exactly as the note
-    carries it (#1153)."""
-    return f"<table>\n<tr>\n<td>{'<br>'.join(lines)}</td>\n</tr>\n</table>"
+    """A note's header holding `lines` in one paragraph on one line, parted
+    by `<br>`, exactly as the note carries it (#1496)."""
+    return f"<p>{'<br>'.join(lines)}</p>"
 
 
 # The header `publish` writes for `RELEASE`: seven pull requests, four
@@ -276,34 +276,45 @@ HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contribu
 
 # The address the sealed header's badges are drawn from (#1299).
 BADGES = "https://img.shields.io/badge/"
+# A badge's two colours by its label, as `(value, label)` (#1496): the seal's
+# reds for `SEALED`, green for the suite's passed count, grey for the
+# skipped, capped and deferred counts, and a blue value beside a grey label
+# for every other.
+SEAL_RED = ("d42420", "8e0c12")
+GREEN = ("2ea44f", "555555")
+GREY = ("6e7781", "555555")
+BLUE = ("0969da", "555555")
 
 
-def badge(path, alt):
+def badge(path, alt, colours=BLUE):
     """One badge exactly as the sealed header carries it: `path` is the
-    label and the value as the address spells them, and `alt` the escaped
-    text a reader whose client draws no image reads in its place."""
-    return f'<img src="{BADGES}{path}-d42420?labelColor=8e0c12" alt="{alt}">'
+    label and the value as the address spells them, `alt` the escaped text
+    a reader whose client draws no image reads in its place, and `colours`
+    the value's colour and the label's."""
+    colour, edge = colours
+    return f'<img src="{BADGES}{path}-{colour}?labelColor={edge}" alt="{alt}">'
 
 
 # `sealed_header`'s results as `release_seal.py#results` hands them (#1299):
 # badge lines, each a list of `(label, value)` pairs.
 SEALED = [[("SEALED", "v1.2.3")], [("commit", "aaa11111"), ("on", "main")]]
 RESULTS = [[("suite", "5 passed"), ("skipped", "0")], [("capped", "not read")]]
-# The results cell `sealed_header` builds from them for `RELEASE`: the
-# sealed part, the counts `header` states as badges, then the results.
-RESULTS_CELL = "<br>".join(
+# The badge lines `sealed_header` builds from them for `RELEASE`, parted by
+# `<br>`: the sealed part, the counts `header` states as badges, then the
+# results.
+BADGE_LINES = "<br>".join(
     [
-        badge("SEALED-v1.2.3", "SEALED: v1.2.3"),
+        badge("SEALED-v1.2.3", "SEALED: v1.2.3", SEAL_RED),
         badge("commit-aaa11111", "commit: aaa11111")
         + " "
         + badge("on-main", "on: main"),
         badge("pull%20requests-7%20merged", "pull requests: 7 merged"),
         badge("issues-4%20closed", "issues: 4 closed"),
         badge("outside%20contributors-2", "outside contributors: 2"),
-        badge("suite-5%20passed", "suite: 5 passed")
+        badge("suite-5%20passed", "suite: 5 passed", GREEN)
         + " "
-        + badge("skipped-0", "skipped: 0"),
-        badge("capped-not%20read", "capped: not read"),
+        + badge("skipped-0", "skipped: 0", GREY),
+        badge("capped-not%20read", "capped: not read", GREY),
     ]
 )
 
@@ -736,17 +747,21 @@ class Test_main:
         ]
 
     def test_the_note_opens_with_a_header_of_its_counts(self, monkeypatch, tmp_path):
-        """A5 and #1153 S2. The note opens with a table of one cell holding
-        the release's counts in words, one per line -- seven changes, four
-        distinct issues closed, two outside people -- then the theme and the
-        first fold. A release of one pull request closing one issue says each
-        in the singular, and has no contributors' line. No glance heading or
-        table is left. Seen red against the note that opened with the theme
-        and carried the glance table under it."""
+        """A5, #1153 S2 and #1496 S1. The note opens with one paragraph on
+        one line holding the release's counts in words, parted by `<br>` --
+        seven changes, four distinct issues closed, two outside people --
+        then the theme and the first fold. A release of one pull request
+        closing one issue says each in the singular, and has no
+        contributors' line. No glance heading or table is left, and the note
+        holds no HTML table, because GitHub draws a border around every
+        cell of one. Seen red against the note that opened with the theme
+        and carried the glance table under it, and against the header that
+        was a table of one cell."""
         theme = [milestone("Purpose: a theme. And more.")]
         _, body = published(monkeypatch, tmp_path, RELEASE, milestones=theme)
         assert body.startswith(f"{HEADER}\n\nA theme.\n\n{fold(*FOLDED[0])}\n\n"), body
         assert "At a glance" not in body, body
+        assert "<table>" not in body, body[:400]
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         _, body = published(monkeypatch, tmp_path, alone)
         one = header("1 pull request merged", "1 issue closed")
@@ -912,23 +927,24 @@ class Test_module:
     def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
     ):
-        """#718's shape, #1153 S2, and #1299 S1 and S3. The note's header is
-        exactly `header`'s, so the seal can find it by the same function.
-        `sealed_header` is the same table with two cells: the image, and the
-        results as badges, one or two to a line: the sealed version, the
-        commit and its branch, the counts `header` states in its order, then
-        the stamp's other results. Since #832 the image is an `<img>`
-        carrying its display width, because the PNG is drawn at twice that
-        size for a high-density screen. Each badge's alt text is its label
-        and value, so a reader whose client draws no image reads every
-        result in words; the whole-string assertion pins every alt
-        attribute, which is #1299 S3. The image's URL and alt text, and each
-        badge's alt text, are escaped, so a quote cannot end an attribute
-        and a `<` opens no tag; a badge's address is percent-encoded and
-        needs no escape. Seen red
-        against the `sealed_header` that wrote `SEALED` in bold and the
-        results as text, one per line, and with the badge's alt attribute
-        alone left out."""
+        """#718's shape, #1153 S2, #1299 S1 and S3, and #1496 S2. The note's
+        header is exactly `header`'s, so the seal can find it by the same
+        function. `sealed_header` is the same one-line paragraph: the image
+        floated left, then the results as badges, one or two to a line, then
+        a `<br clear="left">` that ends the float before the theme. The
+        badges are the sealed version, the commit and its branch, the counts
+        `header` states in its order, then the stamp's other results. Since
+        #832 the image is an `<img>` carrying its display width, because the
+        PNG is drawn at twice that size for a high-density screen. Each
+        badge's alt text is its label and value, so a reader whose client
+        draws no image reads every result in words; the whole-string
+        assertion pins every alt attribute, which is #1299 S3. The image's
+        URL and alt text, and each badge's alt text, are escaped, so a quote
+        cannot end an attribute and a `<` opens no tag; a badge's address is
+        percent-encoded and needs no escape. Seen red against the
+        `sealed_header` that wrote `SEALED` in bold and the results as text,
+        one per line, with the badge's alt attribute alone left out, and
+        against the header that was a table of two cells."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         assert mod.header(work, closed, people) == HEADER
@@ -944,10 +960,8 @@ class Test_module:
             people,
         )
         assert sealed == (
-            "<table>\n<tr>\n"
-            '<td><img src="https://example.com/seal.png" alt="a seal" width="160"></td>\n'
-            f"<td>{RESULTS_CELL}</td>\n"
-            "</tr>\n</table>"
+            '<p><img src="https://example.com/seal.png" alt="a seal" width="160" '
+            f'align="left">{BADGE_LINES}<br clear="left"></p>'
         ), sealed
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         work, closed, people = mod.tally(alone, OWNER)
@@ -961,40 +975,45 @@ class Test_module:
             closed,
             people,
         )
-        assert (
-            '<td><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
-            'width="80"></td>\n<td>'
+        assert odd == (
+            '<p><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
+            'width="80" align="left">'
             + "<br>".join(
                 [
-                    badge("SEALED-v%3C1%3E", "SEALED: v&lt;1&gt;"),
+                    badge("SEALED-v%3C1%3E", "SEALED: v&lt;1&gt;", SEAL_RED),
                     badge("pull%20requests-1%20merged", "pull requests: 1 merged"),
                     badge("issues-1%20closed", "issues: 1 closed"),
                     badge("a%20%26%20b-say%20%22x%22", "a &amp; b: say &quot;x&quot;"),
                 ]
             )
-            + "</td>"
-        ) in odd, odd
+            + '<br clear="left"></p>'
+        ), odd
 
-    def test_the_sealed_header_given_no_image_is_its_results_cell_alone(
+    def test_the_sealed_header_given_no_image_is_its_badges_alone(
         self, monkeypatch, tmp_path
     ):
-        """#1204 S7, and #1299 S2. Where the repository leaves the release
-        note's seal image off, `sealed_header` is given no image and builds
-        a table of one cell: the same badges, in the same order and escaped
-        the same way, as the two-cell header's second cell holds. Seen red
-        against the `sealed_header` that always drew the image's cell, and
-        against the one that wrote the results as text."""
+        """#1204 S7, #1299 S2 and #1496 S3. Where the repository leaves the
+        release note's seal image off, `sealed_header` is given no image and
+        builds the paragraph of the badges alone: the same badges, in the
+        same order and escaped the same way, as the header with the image
+        holds, with no float to clear. Seen red against the `sealed_header`
+        that always drew the image's cell, against the one that wrote the
+        results as text, and against the header that was a table of one
+        cell."""
         mod, _body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         said = (SEALED, RESULTS, work, closed, people)
         two = mod.sealed_header("https://example.com/seal.png", "a seal", 160, *said)
         one = mod.sealed_header(None, None, None, *said)
-        assert one == f"<table>\n<tr>\n<td>{RESULTS_CELL}</td>\n</tr>\n</table>", one
+        assert one == f"<p>{BADGE_LINES}</p>", one
         image = (
-            '<td><img src="https://example.com/seal.png" alt="a seal" '
-            'width="160"></td>\n'
+            '<img src="https://example.com/seal.png" alt="a seal" '
+            'width="160" align="left">'
         )
-        assert two.replace(image, "") == one, (two, one)
+        assert two.replace(image, "").replace('<br clear="left">', "") == one, (
+            two,
+            one,
+        )
 
     def test_a_badge_spells_its_label_and_value_as_the_service_reads_them(self):
         """#1299 S4. The badge service reads a static badge's address by its
@@ -1003,8 +1022,12 @@ class Test_module:
         as `_`, a single `_` as a space, and the rest is percent-decoded.
         So a label and a value holding a `-`, a `_`, a space and the
         characters a URL or an attribute gives a meaning to come back
-        exactly as written, and the alt text is the same two words. Seen red
-        against an encoder that percent-encoded alone, without doubling."""
+        exactly as written, and the alt text is the same two words. The
+        label has no colours of its own, so its value is blue and its label
+        grey (#1496 S4).
+        Seen red against an encoder that percent-encoded alone, without
+        doubling, and against the `badge` that coloured every label with the
+        seal's two reds."""
         mod = publisher()
         label, value = "a-b_c d", '50% & ? # / < " x-y__z'
         img = mod.badge(label, value)
@@ -1019,9 +1042,53 @@ class Test_module:
             )
             for field in held.split("-")
         ]
-        assert read == [label, value, "d42420"], (src, read)
-        assert urllib.parse.parse_qs(address.query) == {"labelColor": ["8e0c12"]}, src
+        assert read == [label, value, BLUE[0]], (src, read)
+        assert urllib.parse.parse_qs(address.query) == {"labelColor": [BLUE[1]]}, src
         assert alt == f"{label}: {value}", img
+
+    @pytest.mark.parametrize(
+        "label, colours",
+        [
+            pytest.param("SEALED", SEAL_RED, id="SEALED"),
+            pytest.param("suite", GREEN, id="suite"),
+            *(
+                pytest.param(label, GREY, id=label)
+                for label in ("skipped", "capped", "deferred")
+            ),
+            *(
+                pytest.param(label, BLUE, id=label)
+                for label in (
+                    "commit",
+                    "on",
+                    "pull requests",
+                    "issues",
+                    "outside contributors",
+                    "review",
+                    "work items",
+                )
+            ),
+        ],
+    )
+    def test_a_badge_takes_its_two_colours_from_its_label(self, label, colours):
+        """#1496 S4, colours C3. A badge's value colour and label colour are
+        read by its label, so a passing result does not read like a failure:
+        `SEALED` keeps the seal's dark red label beside its bright red value,
+        and every other label is grey. The suite's passed count is green, the
+        skipped, capped and deferred counts are grey, and every other value
+        of the sealed header is blue. The value is `not read`, the one a
+        source that could not be read gives, and the label alone still
+        decides the colours; a label with no colours of its own is the case
+        above. Seen red against the `badge` that coloured every label with
+        the seal's two reds, at every parameter but `SEALED`, whose two reds
+        that `badge` already gave; `SEALED`'s was seen red with its entry
+        removed."""
+        mod = publisher()
+        img = mod.badge(label, "not read")
+        src = html.unescape(re.search(r'src="([^"]*)"', img).group(1))
+        address = urllib.parse.urlsplit(src)
+        colour = address.path.rsplit("-", 1)[1]
+        edge = urllib.parse.parse_qs(address.query)["labelColor"]
+        assert (colour, edge) == (colours[0], [colours[1]]), src
 
     @pytest.mark.parametrize(
         "description, theme",
