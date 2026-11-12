@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/seals/owl.svg" width="150"
+  <img src=".claude-plugin/icon.png" width="150"
        alt="AgenticSeal 의 문장. 작은 올빼미가 붉은 밀랍 인장에 찍혀 있다">
 </p>
 
