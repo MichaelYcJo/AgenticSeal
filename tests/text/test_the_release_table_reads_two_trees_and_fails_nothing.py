@@ -31,11 +31,13 @@ def scripts(job):
 
 
 def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
-    """S9's job: after the suite and the union whatever their verdicts, on a
-    pull request into `main` alone, with the whole history to find the tag
-    in, and its output appended to the step summary."""
+    """S9's job: after every leg of the suite and the union whatever their
+    verdicts, on a pull request into `main` alone, with the whole history to
+    find the tag in, and its output appended to the step summary. The legs
+    stand in two jobs (#1516), and a leg the table reads before its job ends
+    has no minutes yet."""
     job = release_report()
-    assert job["needs"] == ["pytest", "durations"], job["needs"]
+    assert job["needs"] == ["pytest", "pytest-wide", "durations"], job["needs"]
     assert job["if"] == "${{ !cancelled() && github.base_ref == 'main' }}", job["if"]
     checkouts = [
         step
