@@ -26,7 +26,7 @@ The build adds a reader of the other work items' `routing.md` (D1), one more val
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6 | S1, S2, S3 and S5 as new cases of `Test_work_item`, each seen red against `c26981960`; S4 by the narrow run of `tests/skills/test_session_cost.py`; S6 read by the proofer; S7 at the orchestrator's read of the run | |
+| 1 | `frame/design.md` *Scope* items 1 to 6 | S1, S2, S3 and S5 as new cases of `Test_work_item`, each seen red against `c26981960`; S4 by the narrow run of `tests/skills/test_session_cost.py`; S6 read by the proofer; S7 at the orchestrator's read of the run | `da6335ff8` |
 
 ## Overlap with the release
 
