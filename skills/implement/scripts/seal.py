@@ -166,6 +166,10 @@ TOOLS = {
         "skills/code-review/scripts/pr_body.py",
         "write a pull request body from a work item's pr.md and records, or check it",
     ),
+    "pr-wait": (
+        "skills/code-review/scripts/pr_wait.py",
+        "wait on a pull request's checks at HEAD, and answer with one exit code",
+    ),
 }
 
 # `lib/sibling.py` loads every module this command reads from `lib/`. Where
