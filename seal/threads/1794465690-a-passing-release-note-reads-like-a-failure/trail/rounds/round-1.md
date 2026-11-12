@@ -55,6 +55,12 @@ Now every label is grey except `SEALED`'s, which keeps the seal's dark red besid
 
 The snippet does not reach the case names `frame/design.md` gives the operations, since no `to:` changes the facts a case holds. Nothing else in the work item quotes these three `to:` values (read: `pr.md`, `gaps.md`, the two phase records).
 
+```seal
+verdict: fixed 191599e1e
+location: `seal/threads/1794465690-a-passing-release-note-reads-like-a-failure/changelog.md:4`, `tests/github/test_publish_release_note.py:281`, `tests/github/test_publish_release_note.py:1026`, `tests/github/test_publish_release_note.py:1075`, `tests/github/test_release_seal.py:256`
+answer: The frame part, rule changes 1 to 3 with Scope item 4 and G18, was folded at 68a00d031. In 191599e1e, `changelog.md:4` says `SEALED` keeps the seal's dark red beside its bright red value, the sentence the fix gives. I read the fragment whole against the folded frame, and its other sentences agree with rule changes 1 to 3. The class is a sentence that places a badge's label colour under, on or behind its value colour. Grepping the work item's added lines for under, on and beside found three more in the tests of this range, and the same commit fixes them: the colour-case docstring said the bright red stands on the dark red, and the two test comments and the spelling case's docstring said blue on grey. Each now says the value and the label stand beside each other, or names the value's colour and the label's. The search covered the words above, so it is a sample.
+```
+
 ### 2. The new colour case's docstring says it was seen red against the old `badge`, and its `SEALED` parameter passed against it
 
 ```seal
@@ -70,6 +76,11 @@ Why it matters: the claim is "Seen red against the `badge` that coloured every l
         the `badge` that coloured every label with the seal's two reds, at
         every parameter but `SEALED`, whose two reds that `badge` already
         gave; `SEALED`'s was seen red with its entry removed."""
+```
+
+```seal
+verdict: fixed 191599e1e
+answer: In 191599e1e, the docstring of `test_a_badge_takes_its_two_colours_from_its_label` ends with the sentence the fix gives: it was seen red against the old `badge` at every parameter but `SEALED`, and `SEALED`'s red came from removing its entry. The same commit rewrites the sentence before it, which said the bright red stands on the dark red (finding 1's class). No assertion changed. The two test files with `tests/text` and `tests/behaviour` passed 1,221, with 8 skipped.
 ```
 
 ## Confirmations
