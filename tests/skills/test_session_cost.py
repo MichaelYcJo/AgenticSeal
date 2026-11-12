@@ -5646,6 +5646,57 @@ class Test_work_item:
         ), out
         assert "also names" not in out, out
 
+    def test_a_local_mode_root_reads_its_siblings_and_no_branch(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """#1510. A local-mode root sits under the git directory, outside
+        every work tree, where `ls-tree` would list the repository's root as
+        if it were the records directory. So the siblings on disk are read
+        and no branch is: a directory at the repository's root that holds a
+        `routing.md` is no work item."""
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+        repo = tmp_path / "repo"
+        self.declare(repo / self.OTHER, self.OTHER_BRANCH)
+        git(repo, "init", "-q")
+        git(repo, "config", "user.email", "t@t")
+        git(repo, "config", "user.name", "t")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "a directory at the root")
+        threads = repo / ".git" / "seal" / "threads"
+        item = self.declare(threads / self.NAME, self.BRANCH)
+        third, third_branch = "1790000002-a-third-item", "feat/14-a-third-item"
+        self.declare(threads / third, third_branch)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Records: seal/threads/{self.NAME}/, beside {self.OTHER_BRANCH} "
+            f"and {third_branch}.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert f"\n    agent-a.jsonl also names {third}\n" in out, out
+        assert "with 1 other work item read beside it" in out, out
+
+    def test_a_git_that_cannot_start_leaves_the_siblings_read(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. With no git on PATH the branches give nothing, the
+        siblings on disk are still read, and the exit is unchanged."""
+        self.sibling(item)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Frame seal/threads/{self.NAME}/ beside seal/threads/{self.OTHER}/.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        monkeypatch.setenv("PATH", str(tmp_path / "no-git-here"))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert f"\n    agent-a.jsonl also names {self.OTHER}\n" in out, out
+
     @pytest.mark.parametrize(
         "listing, list_code, code, said",
         [

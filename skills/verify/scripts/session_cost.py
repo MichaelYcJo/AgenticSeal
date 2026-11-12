@@ -3098,38 +3098,37 @@ def branch_declarations(parent):
     inside a git work tree or a git read fails.
 
     The other work items of a release stand on their own branches until each
-    merges, so the checkout holds none of them. Each distinct tip's
-    directories are listed by `ls-tree`, and one `cat-file --batch` reads
-    each directory's `routing.md` by the directory's tree id, so a directory
-    the same at several tips is read once and no path is written into the
-    batch."""
-    code, out = run_git(parent, ["rev-parse", "--show-toplevel"])
+    merges, so the checkout holds none of them. Run from PARENT, `ls-tree`
+    lists PARENT's own entries at a tip, by name. Each distinct tip is
+    listed, and one `cat-file --batch` reads each directory's `routing.md` by
+    the directory's tree id, so a directory the same at several tips is read
+    once and no path is written into the batch.
+
+    **A local-mode root is outside every work tree**, under the common git
+    directory, and there `ls-tree` lists the repository's root instead. So
+    `rev-parse --show-toplevel`, which fails outside a work tree, is asked
+    first, and its siblings on disk are all a local-mode root is read from."""
+    code, _out = run_git(parent, ["rev-parse", "--show-toplevel"])
     if code != 0:
         return []
-    top = out.decode("utf-8", "replace").rstrip("\n")
-    try:
-        rel = os.path.relpath(os.path.realpath(parent), os.path.realpath(top))
-    except ValueError:  # another drive, on Windows
-        return []
-    if rel == os.pardir or rel.startswith(os.pardir + os.sep):
-        return []
-    under = [] if rel == os.curdir else ["--", lib_module("gitcmd").git_path(rel) + "/"]
-    code, out = run_git(top, ["for-each-ref", "--format=%(objectname)", "refs/heads"])
+    code, out = run_git(
+        parent, ["for-each-ref", "--format=%(objectname)", "refs/heads"]
+    )
     if code != 0:
         return []
     names = {}
     for tip in sorted(set(out.decode("ascii", "replace").split())):
-        code, out = run_git(top, ["ls-tree", "-z", tip, *under])
+        code, out = run_git(parent, ["ls-tree", "-z", tip])
         if code != 0:
             return []
         for entry in out.decode("utf-8", "replace").split("\0"):
-            meta, _, path = entry.partition("\t")
+            meta, _, name = entry.partition("\t")
             parts = meta.split()
             if len(parts) == 3 and parts[1] == "tree":
-                names.setdefault(parts[2], set()).add(path.rsplit("/", 1)[-1])
+                names.setdefault(parts[2], set()).add(name)
     trees = sorted(names)
     batch = "".join(f"{tree}:routing.md\n" for tree in trees).encode("ascii")
-    code, out = run_git(top, ["cat-file", "--batch"], stdin=batch)
+    code, out = run_git(parent, ["cat-file", "--batch"], stdin=batch)
     if code != 0:
         return []
     found, at = [], 0
