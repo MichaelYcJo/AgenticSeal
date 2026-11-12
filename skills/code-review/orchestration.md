@@ -263,54 +263,28 @@ Such a refusal asks for `seal pr-body` once more on the body file, and the
 file sent to the open pull request with the `gh api -X PATCH` call below.
 No sealer runs for it, since the body is not a record.
 
-**The orchestrator reads `gh pr view <N> --json state,mergeable` when the
-pull request opens, before each push to its branch and after each push, and
-waits on CI only under `OPEN` and `MERGEABLE`.** A `state` of `MERGED` or
-`CLOSED` stops the push. The owner may merge or close the pull request at
-any time after it opens, and a commit pushed to its branch after that is in
-no pull request: nothing checks, reviews or merges it. Under `MERGED` the
-repair goes on a new branch cut from the base, which holds the work. Under
-`CLOSED` the base does not hold the work and the owner closed it, so the
-orchestrator pushes nothing and says in its report that the pull request was
-closed with a repair pending. `CONFLICTING` means GitHub made no merge
-ref for the pull request and runs no `pull_request` CI on it, and nothing
-else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
-the orchestrator reads it again.
+**The orchestrator runs `seal pr-wait <N> --once` before each push to the
+pull request's branch, and `seal pr-wait <N>` when the pull request opens
+and after each push, and acts on the exit code as the table below gives
+it.** `seal pr-wait <N>` waits on pull request N's checks at the
+checkout's HEAD, which is the commit the orchestrator pushed last. It reads
+the checks of every workflow on the pull request, because a single
+workflow's run, watched alone, can pass while another workflow's check
+fails. Its one limit is on the start, the time for a check of a
+`pull_request` run to be listed on HEAD. Once one is listed, the command
+waits with no limit until no check is pending. `seal pr-wait <N> --once`
+reads the pull request's state alone, waits on nothing, and exits 0, 4 or
+5.
 
-**The orchestrator waits on CI with `gh pr checks <N> --watch`, and starts
-the wait only once the commit it pushed last has a check of a `pull_request`
-run.** The wait reads the checks of every workflow on the pull request; a
-single workflow's run, watched alone, can pass while another workflow's
-check fails. Run before any
-check has reported on the pull request's head commit, the wait exits 1
-without waiting. A failed check also exits 1, so right
-after a push the orchestrator reads that exit neither as a failure nor as
-nothing to wait for. The wait follows a short poll. Every ten seconds the
-orchestrator runs
-
-```
-gh pr view <N> --json headRefOid --jq .headRefOid
-gh pr checks <N> --json event --jq '[.[] | select(.event == "pull_request")] | length'
-```
-
-and stops once the first prints the commit it pushed last and the second
-prints a count above 0. It then runs the wait. The SHA keeps the wait off
-the finished checks of the commit before the push. The count keeps it off
-the checks of another event on the pushed commit itself. A run of another
-event on that commit, such as a `push` run, lists its checks on the pull
-request too, often finished before the pull request opens, and `--watch`
-over finished checks alone exits 0 at once. With `--json`, a failed check exits
-0, and the second command exits 1 while no check at all has reported, so
-that exit means the poll goes on. The count reads the checks of GitHub
-Actions runs on `pull_request` alone. Where the pull request's checks come
-from another CI service or another event, the poll reaches the limit below,
-and the report says so. A poll that has not got there within two minutes is
-not a pass. The orchestrator then reads
-`gh pr view <N> --json state,mergeable` once more, and the paragraph above
-says what each reading means. Under `OPEN` and `MERGEABLE` it says in its
-report that no check of a `pull_request` run reported on that commit and
-names the SHA. It waits no longer, and it does not treat the pull request
-as checked.
+| Exit | When | What the orchestrator does |
+|---|---|---|
+| 0 | every check on HEAD passed or was skipped; under `--once`, the pull request is open | treats the pull request as checked at HEAD; under `--once`, pushes |
+| 1 | a check on HEAD failed or was cancelled, and the output names each such check | reads the named checks' logs and repairs the work |
+| 2 | the command could not ask `gh` or `git`, or could not read the answer, and the output names the command and what it printed | reads the output, and takes nothing about the pull request as known |
+| 3 | no check of a `pull_request` run was listed on HEAD within the limit on the start, and the output names the SHA and why | says in its report that no check of a `pull_request` run reported on that SHA, waits no longer, and does not treat the pull request as checked |
+| 4 | `state` is `MERGED` | pushes nothing more to the branch, and puts the repair on a new branch cut from the base, which holds the work |
+| 5 | `state` is `CLOSED` | pushes nothing, and says in its report that the pull request was closed with a repair pending |
+| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as the next paragraph states |
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A work item's branch is not rebased for any

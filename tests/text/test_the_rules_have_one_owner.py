@@ -324,13 +324,18 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     reads every workflow's checks rather than one workflow's run. A conflict
     is integrated by a merge, never a rebase, and the chain check reads no
     merge commit, so a resolution outside the records gets a verifying
-    round. #1222 adds the poll before the wait, because the wait run before a
-    check has reported exits 1 without waiting. Round 1 of #1222 counts the
-    checks of `pull_request` runs alone, because a finished check of another
-    event on the pushed commit ended the poll before the pull request's own
-    checks were listed. The case holds the commands, states, numbers and
-    flag the orchestrator acts on; the order and the stop condition's words
-    are the proofer's to read."""
+    round. #1222 adds a poll before the wait, because the wait run before a
+    check has reported exits 1 without waiting, and counts the checks of
+    `pull_request` runs alone. #1494 replaces the read, the poll and the wait
+    with `seal pr-wait`, which reads `gh`'s JSON and answers with an exit
+    code: `gh pr checks --watch` exits 0 where the only bad check was
+    cancelled, and ends before a job that waits on another has its check.
+    The command's reads, its limit and their reasons stand in its docstring
+    and in `tests/skills/test_pr_wait.py`, so the section gives the two
+    commands the orchestrator types and what it does at each exit code. The
+    case holds those commands, each exit code with the states that name
+    exits 4 to 6, and the flag the orchestrator reads the branch's commits
+    with; each row's act is the proofer's to read."""
     text = flat(*ORCH)
     section = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
@@ -338,24 +343,20 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         )
     ]
     for said in (
-        # The read the orchestrator types before and after each push, and the
-        # two states that stop the push.
-        "`gh pr view <N> --json state,mergeable`",
-        "`MERGED`",
-        "`CLOSED`",
-        # The wait, and the exit code it gives where no check has reported.
-        "`gh pr checks <N> --watch`",
-        "exits 1",
-        # The poll's interval and the two commands it runs.
-        "ten seconds",
-        "gh pr view <N> --json headRefOid --jq .headRefOid",
-        "gh pr checks <N> --json event --jq "
-        "'[.[] | select(.event == \"pull_request\")] | length'",
-        # The poll's bound.
-        "two minutes",
-        # The two `mergeable` values the orchestrator acts on.
-        "`CONFLICTING`",
-        "`UNKNOWN`",
+        # The read the orchestrator types before each push, and the wait it
+        # types when the pull request opens and after each push.
+        "`seal pr-wait <N> --once`",
+        "`seal pr-wait <N>`",
+        # Each exit code the command answers with, as a row of the table that
+        # gives the orchestrator's act at it.
+        "| 0 |",
+        "| 1 |",
+        "| 2 |",
+        "| 3 |",
+        # The three states that stop the push or the wait, each with its code.
+        "| 4 | `state` is `MERGED` |",
+        "| 5 | `state` is `CLOSED` |",
+        "| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` |",
         # The flag the orchestrator reads the branch's commits with, so a
         # merge commit is left out.
         "`--no-merges`",
