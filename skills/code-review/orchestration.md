@@ -273,8 +273,9 @@ alone, can pass while another workflow's check fails. Its one limit is on
 the start, the time for a check of a `pull_request` run to be listed on
 HEAD. Once one is listed, no time limit applies: the wait ends when no
 check is pending, or at exit 3 where the pull request's head leaves HEAD,
-since no check of HEAD can be read after that. The read before a push reads the pull request's state alone,
-waits on nothing, and exits 0, 4 or 5.
+since no check of HEAD can be read after that. The read before a push
+reads the pull request's state alone, waits on nothing, and exits 0, 4 or
+5.
 
 | Exit | When | What the orchestrator does |
 |---|---|---|
