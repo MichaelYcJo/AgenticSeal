@@ -342,6 +342,40 @@ class Test_wait:
             "checks",
         ]
 
+    def test_refuses_to_decide_on_a_last_read_that_holds_a_pending_check(
+        self, monkeypatch, clock
+    ):
+        """The read after every run completed lists `hygiene` pending: a
+        new run, started by an edit of the body, cancelled the one before it
+        and has not been listed among the runs yet. The command polls on and
+        decides on the read where `hygiene` has failed."""
+        passed = [check("pytest", "pass")]
+        rerun = [*passed, check("hygiene", "pending", workflow="hygiene")]
+        hub = serve(
+            monkeypatch,
+            views=[view()],
+            checks=[
+                passed,
+                rerun,
+                [*passed, check("hygiene", "fail", workflow="hygiene")],
+            ],
+            runs=[[run("completed")]],
+        )
+        assert PR.wait(12, HEAD) == (
+            1,
+            ["a check failed or was cancelled", "  failed: hygiene / hygiene"],
+        )
+        assert hub.verbs() == [
+            "view",
+            "checks",
+            "runs",
+            "checks",
+            "view",
+            "checks",
+            "runs",
+            "checks",
+        ]
+
     @pytest.mark.parametrize(
         "answer, code, outcome",
         [
@@ -365,8 +399,15 @@ class Test_wait:
         assert hub.verbs() == ["view", "checks", "view"]
 
     def test_refuses_to_start_while_mergeable_is_never_known(self, monkeypatch, clock):
-        """S8: `UNKNOWN` is read again, and past the limit it is said."""
-        hub = serve(monkeypatch, views=[view(mergeable="UNKNOWN")])
+        """S8: `UNKNOWN` is read again, and past the limit it is said. The
+        checks on HEAD have all passed, and the command asks for none of
+        them while GitHub has not said the pull request can be merged."""
+        hub = serve(
+            monkeypatch,
+            views=[view(mergeable="UNKNOWN")],
+            checks=[[check("pytest", "pass")]],
+            runs=[[run("completed")]],
+        )
         assert PR.wait(12, HEAD) == (
             3,
             [
