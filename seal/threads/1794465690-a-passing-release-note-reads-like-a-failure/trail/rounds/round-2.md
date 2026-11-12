@@ -29,6 +29,11 @@ The frame before the fold said only that each operation rewrites one sentence. T
 
 No other line of the work item states this reason. It appears in `frame/plan.md:67`, the judgment row, only as the aim ("still leans on the sentence it leaned on"), which is true (read).
 
+```seal
+verdict: fixed 7a91dbcd9
+answer: The framer folded the finding into G18, and the orchestrator committed it at 7a91dbcd9. G18 now gives the reason for each operation, with the proofer's sentences for operations 1 to 3 word for word, and adds two more. Operation 4's `to:` holds the alt-text sentence that stood inside its `from:`. Operation 5 ends on a semicolon whose clause names its own subject. Against `docs/releasing/branch-and-release.md:96-107`, the sentence after operation 4's `from:` ("Under any other value…") leans on nothing before it, and the clause after operation 5's semicolon opens with `templates/setup/config.md` as its subject, so both added sentences hold. The same commit adds a judgment row at `frame/plan.md:68`. No other file changed.
+```
+
 ## Confirmations
 
 ```seal
