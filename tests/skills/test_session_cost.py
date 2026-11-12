@@ -5256,7 +5256,9 @@ class Test_work_item:
     `CLAUDE_CONFIG_DIR`, with agent transcripts under
     `projects/<project>/<session>/subagents/`, and a work item directory whose
     `routing.md` names `BRANCH`. `gh` is the stub below, which answers the
-    log lookup, the comment pages and the comment itself."""
+    log lookup, the comment pages and the comment itself. The cases on
+    segments that name several work items add other work items beside it,
+    on disk or on a branch of a git repository the case builds."""
 
     NAME = "1790000000-a-work-item"
     BRANCH = "feat/12-a-work-item"
