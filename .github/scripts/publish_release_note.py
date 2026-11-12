@@ -26,11 +26,11 @@ history. The pull request's body holds the work item's records (`seal
 pr-body`), so one click leads from an entry to the reasons behind it. A
 fragment whose adding commit names no pull request is its text alone.
 
-**The note opens with a header of the release's counts**, an HTML
-table of one cell holding, one per line, the pull requests merged, the
-issues they closed, and the outside contributors where there are any. **The
-release's theme follows it**, the first sentence of the description of the
-milestone `release: X.Y.Z`, its `Purpose:` label left out.
+**The note opens with a header of the release's counts**, one HTML
+paragraph on one line holding, parted by `<br>`, the pull requests merged,
+the issues they closed, and the outside contributors where there are any.
+**The release's theme follows it**, the first sentence of the description
+of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
 
 The fragments are also a page of reasoning per change, and a note that is
 only that reads as a wall of prose to somebody asking what changed. So
@@ -640,21 +640,27 @@ def counts(work, closed, people):
     return lines
 
 
-def table(*cells):
-    """An HTML table of one row holding `cells`, each line of a cell parted
-    by `<br>`. No line inside it is blank, so GitHub reads the whole table
-    as one HTML block, and the Markdown after it starts on the blank line
-    that follows."""
-    row = [f"<td>{'<br>'.join(cell)}</td>" for cell in cells]
-    return "\n".join(["<table>", "<tr>", *row, "</tr>", "</table>"])
+def paragraph(lines, before="", after=""):
+    """One HTML paragraph on one source line: `<p>`, then `before`, then
+    `lines` parted by `<br>`, then `after`, then `</p>`. GitHub reads a line
+    that opens with `<p>` as the start of one HTML block, and the Markdown
+    after it starts on the blank line that follows. It is one line because
+    a line holding only an `<img>` would start a block of its own, and
+    GitHub would then wrap each image in a paragraph of its own. It is no
+    table, because GitHub draws a border around every table cell whatever
+    the note's HTML asks."""
+    return f"<p>{before}{'<br>'.join(lines)}{after}</p>"
 
 
 def header(work, closed, people):
     """The header the note opens with, exactly as the note carries it: a
-    table of one cell holding `counts`. `release_seal.py` finds the header
-    in a published note by this text, so a note edited by hand afterwards,
-    or one whose header a run of the seal already replaced, is left alone."""
-    return table([html.escape(line) for line in counts(work, closed, people)])
+    paragraph holding `counts`. `release_seal.py` finds the header in a
+    published note by this text, so a note edited by hand afterwards, or one
+    whose header a run of the seal already replaced, is left alone. The
+    paragraph's `<p>` and `</p>` bound the text, so the header the seal
+    computes never matches inside a longer header line: one that counts one
+    more outside contributor line, or a count with one more leading digit."""
+    return paragraph([html.escape(line) for line in counts(work, closed, people)])
 
 
 # The sealed header's badges, drawn by the Shields badge service
@@ -710,33 +716,34 @@ def count_badges(work, closed, people):
 
 
 def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
-    """What replaces `header`'s table once the release seal has run: the
-    same table, whose last cell holds the stamp's results as
-    badges. `sealed` and `results` are badge lines, each a list of
-    `(label, value)` pairs, as `release_seal.py#results` hands them:
-    `sealed` the sealed version, then the commit and its branch; then the
-    counts `count_badges` states; then `results`, the stamp's other rows.
-    The badges of one line are parted by a space, and the lines by `<br>`.
-    Given an `image_url`, the table has two cells, and the first holds the
-    seal as an `<img>` `width` CSS pixels wide with `alt` as its text (the
-    PNG is drawn at twice that for a high-density screen). Given none,
-    where the repository leaves the image off, the results' cell is
-    the table's one cell, and `alt` and `width` are not read. A reader
-    whose client draws no image still has every number, in each badge's
-    alt text. The image's URL and `alt` are escaped, as `badge` escapes
-    each badge's alt text, so a quote cannot end an attribute and a `<`
-    opens no tag."""
+    """What replaces `header`'s paragraph once the release seal has run: a
+    paragraph of the same shape holding the stamp's results as badges.
+    `sealed` and `results` are badge lines, each a list of `(label, value)`
+    pairs, as `release_seal.py#results` hands them: `sealed` the sealed
+    version, then the commit and its branch; then the counts `count_badges`
+    states; then `results`, the stamp's other rows. The badges of one line
+    are parted by a space, and the lines by `<br>`. Given an `image_url`,
+    the paragraph opens with the seal as an `<img>` `width` CSS pixels wide
+    with `alt` as its text (the PNG is drawn at twice that for a
+    high-density screen), floated left by `align="left"` so the badges stand
+    beside it, and ends with a `<br clear="left">` that clears the float
+    before the theme. Given none, where the repository leaves the image
+    off, the paragraph holds the badges alone, with no float to clear, and
+    `alt` and `width` are not read. A reader whose client draws no image
+    still has every number, in each badge's alt text. The image's URL and
+    `alt` are escaped, as `badge` escapes each badge's alt text, so a quote
+    cannot end an attribute and a `<` opens no tag."""
     lines = [
         " ".join(badge(label, value) for label, value in line)
         for line in [*sealed, *count_badges(work, closed, people), *results]
     ]
     if image_url is None:
-        return table(lines)
+        return paragraph(lines)
     image = (
         f'<img src="{html.escape(image_url)}" alt="{html.escape(alt)}" '
-        f'width="{int(width)}">'
+        f'width="{int(width)}" align="left">'
     )
-    return table([image], lines)
+    return paragraph(lines, before=image, after='<br clear="left">')
 
 
 def write_output(name, value):

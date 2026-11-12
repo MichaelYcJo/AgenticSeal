@@ -264,9 +264,9 @@ FOLDED = [
 
 
 def header(*lines):
-    """A note's header holding `lines` in one cell, exactly as the note
-    carries it (#1153)."""
-    return f"<table>\n<tr>\n<td>{'<br>'.join(lines)}</td>\n</tr>\n</table>"
+    """A note's header holding `lines` in one paragraph on one line, parted
+    by `<br>`, exactly as the note carries it (#1496)."""
+    return f"<p>{'<br>'.join(lines)}</p>"
 
 
 # The header `publish` writes for `RELEASE`: seven pull requests, four
@@ -289,9 +289,10 @@ def badge(path, alt):
 # badge lines, each a list of `(label, value)` pairs.
 SEALED = [[("SEALED", "v1.2.3")], [("commit", "aaa11111"), ("on", "main")]]
 RESULTS = [[("suite", "5 passed"), ("skipped", "0")], [("capped", "not read")]]
-# The results cell `sealed_header` builds from them for `RELEASE`: the
-# sealed part, the counts `header` states as badges, then the results.
-RESULTS_CELL = "<br>".join(
+# The badge lines `sealed_header` builds from them for `RELEASE`, parted by
+# `<br>`: the sealed part, the counts `header` states as badges, then the
+# results.
+BADGE_LINES = "<br>".join(
     [
         badge("SEALED-v1.2.3", "SEALED: v1.2.3"),
         badge("commit-aaa11111", "commit: aaa11111")
@@ -736,17 +737,21 @@ class Test_main:
         ]
 
     def test_the_note_opens_with_a_header_of_its_counts(self, monkeypatch, tmp_path):
-        """A5 and #1153 S2. The note opens with a table of one cell holding
-        the release's counts in words, one per line -- seven changes, four
-        distinct issues closed, two outside people -- then the theme and the
-        first fold. A release of one pull request closing one issue says each
-        in the singular, and has no contributors' line. No glance heading or
-        table is left. Seen red against the note that opened with the theme
-        and carried the glance table under it."""
+        """A5, #1153 S2 and #1496 S1. The note opens with one paragraph on
+        one line holding the release's counts in words, parted by `<br>` --
+        seven changes, four distinct issues closed, two outside people --
+        then the theme and the first fold. A release of one pull request
+        closing one issue says each in the singular, and has no
+        contributors' line. No glance heading or table is left, and the note
+        holds no HTML table, because GitHub draws a border around every
+        cell of one. Seen red against the note that opened with the theme
+        and carried the glance table under it, and against the header that
+        was a table of one cell."""
         theme = [milestone("Purpose: a theme. And more.")]
         _, body = published(monkeypatch, tmp_path, RELEASE, milestones=theme)
         assert body.startswith(f"{HEADER}\n\nA theme.\n\n{fold(*FOLDED[0])}\n\n"), body
         assert "At a glance" not in body, body
+        assert "<table>" not in body, body[:400]
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         _, body = published(monkeypatch, tmp_path, alone)
         one = header("1 pull request merged", "1 issue closed")
@@ -912,23 +917,24 @@ class Test_module:
     def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
     ):
-        """#718's shape, #1153 S2, and #1299 S1 and S3. The note's header is
-        exactly `header`'s, so the seal can find it by the same function.
-        `sealed_header` is the same table with two cells: the image, and the
-        results as badges, one or two to a line: the sealed version, the
-        commit and its branch, the counts `header` states in its order, then
-        the stamp's other results. Since #832 the image is an `<img>`
-        carrying its display width, because the PNG is drawn at twice that
-        size for a high-density screen. Each badge's alt text is its label
-        and value, so a reader whose client draws no image reads every
-        result in words; the whole-string assertion pins every alt
-        attribute, which is #1299 S3. The image's URL and alt text, and each
-        badge's alt text, are escaped, so a quote cannot end an attribute
-        and a `<` opens no tag; a badge's address is percent-encoded and
-        needs no escape. Seen red
-        against the `sealed_header` that wrote `SEALED` in bold and the
-        results as text, one per line, and with the badge's alt attribute
-        alone left out."""
+        """#718's shape, #1153 S2, #1299 S1 and S3, and #1496 S2. The note's
+        header is exactly `header`'s, so the seal can find it by the same
+        function. `sealed_header` is the same one-line paragraph: the image
+        floated left, then the results as badges, one or two to a line, then
+        a `<br clear="left">` that ends the float before the theme. The
+        badges are the sealed version, the commit and its branch, the counts
+        `header` states in its order, then the stamp's other results. Since
+        #832 the image is an `<img>` carrying its display width, because the
+        PNG is drawn at twice that size for a high-density screen. Each
+        badge's alt text is its label and value, so a reader whose client
+        draws no image reads every result in words; the whole-string
+        assertion pins every alt attribute, which is #1299 S3. The image's
+        URL and alt text, and each badge's alt text, are escaped, so a quote
+        cannot end an attribute and a `<` opens no tag; a badge's address is
+        percent-encoded and needs no escape. Seen red against the
+        `sealed_header` that wrote `SEALED` in bold and the results as text,
+        one per line, with the badge's alt attribute alone left out, and
+        against the header that was a table of two cells."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         assert mod.header(work, closed, people) == HEADER
@@ -944,10 +950,8 @@ class Test_module:
             people,
         )
         assert sealed == (
-            "<table>\n<tr>\n"
-            '<td><img src="https://example.com/seal.png" alt="a seal" width="160"></td>\n'
-            f"<td>{RESULTS_CELL}</td>\n"
-            "</tr>\n</table>"
+            '<p><img src="https://example.com/seal.png" alt="a seal" width="160" '
+            f'align="left">{BADGE_LINES}<br clear="left"></p>'
         ), sealed
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         work, closed, people = mod.tally(alone, OWNER)
@@ -961,9 +965,9 @@ class Test_module:
             closed,
             people,
         )
-        assert (
-            '<td><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
-            'width="80"></td>\n<td>'
+        assert odd == (
+            '<p><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
+            'width="80" align="left">'
             + "<br>".join(
                 [
                     badge("SEALED-v%3C1%3E", "SEALED: v&lt;1&gt;"),
@@ -972,29 +976,34 @@ class Test_module:
                     badge("a%20%26%20b-say%20%22x%22", "a &amp; b: say &quot;x&quot;"),
                 ]
             )
-            + "</td>"
-        ) in odd, odd
+            + '<br clear="left"></p>'
+        ), odd
 
-    def test_the_sealed_header_given_no_image_is_its_results_cell_alone(
+    def test_the_sealed_header_given_no_image_is_its_badges_alone(
         self, monkeypatch, tmp_path
     ):
-        """#1204 S7, and #1299 S2. Where the repository leaves the release
-        note's seal image off, `sealed_header` is given no image and builds
-        a table of one cell: the same badges, in the same order and escaped
-        the same way, as the two-cell header's second cell holds. Seen red
-        against the `sealed_header` that always drew the image's cell, and
-        against the one that wrote the results as text."""
+        """#1204 S7, #1299 S2 and #1496 S3. Where the repository leaves the
+        release note's seal image off, `sealed_header` is given no image and
+        builds the paragraph of the badges alone: the same badges, in the
+        same order and escaped the same way, as the header with the image
+        holds, with no float to clear. Seen red against the `sealed_header`
+        that always drew the image's cell, against the one that wrote the
+        results as text, and against the header that was a table of one
+        cell."""
         mod, _body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         said = (SEALED, RESULTS, work, closed, people)
         two = mod.sealed_header("https://example.com/seal.png", "a seal", 160, *said)
         one = mod.sealed_header(None, None, None, *said)
-        assert one == f"<table>\n<tr>\n<td>{RESULTS_CELL}</td>\n</tr>\n</table>", one
+        assert one == f"<p>{BADGE_LINES}</p>", one
         image = (
-            '<td><img src="https://example.com/seal.png" alt="a seal" '
-            'width="160"></td>\n'
+            '<img src="https://example.com/seal.png" alt="a seal" '
+            'width="160" align="left">'
         )
-        assert two.replace(image, "") == one, (two, one)
+        assert two.replace(image, "").replace('<br clear="left">', "") == one, (
+            two,
+            one,
+        )
 
     def test_a_badge_spells_its_label_and_value_as_the_service_reads_them(self):
         """#1299 S4. The badge service reads a static badge's address by its

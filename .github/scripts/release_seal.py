@@ -5,9 +5,9 @@ PNG beside them where the repository turns the image on.
 **The image is one key's to turn on.** `MARK_KEY` in the
 `config.json` of the tree's `seal/` root, read through `lib/config.py`,
 turns it on where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is
-attached as `ASSET` and the note's header becomes a table of two cells, the
-image beside the results. Under any other answer nothing is drawn or
-attached, and the header becomes a table of the results' cell alone. An
+attached as `ASSET` and the note's header becomes a paragraph holding the
+image floated beside the results. Under any other answer nothing is drawn
+or attached, and the header becomes a paragraph of the results alone. An
 absent or empty key says nothing; any other value, and a key the reader
 refuses, are named on a `::warning::` line, and the results still go in.
 The plugin ships no release workflow, so the key is read in this repository
@@ -115,7 +115,7 @@ DENSITY = 2
 # a dry run still prints the rows in. That column is `{label:<8}`, not the
 # longest label: `deferred` is exactly eight, which is the only reason the
 # column looks set by it. The image carries no rows: they reach the note as
-# the badges in the header's results cell (`results`).
+# the badges in its header (`results`).
 LABELS = ("SEALED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
 # The widest value a release's panel carries before the frame would cut it.
 # The gate's panel value is 41 wide, for the open layout's 80 columns, and a
@@ -177,9 +177,9 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
 
 def results(rows):
     """`(sealed, lines)`: the stamp's results as badge lines, each a list of
-    `(label, value)` pairs, which the note's header shows as badges in its
-    results cell. `sealed` is the sealed version, then the
-    tagged commit with each branch it is on. `lines` are the suite and its
+    `(label, value)` pairs, which the note's header shows as badges.
+    `sealed` is the sealed version, then the tagged commit with each branch
+    it is on. `lines` are the suite and its
     skips, the review rounds and the work items, and how many were capped
     and the issues deferred, two to a line; a row not read gives `not read`
     on each badge it feeds. The pull requests and issues are left out:
@@ -554,8 +554,8 @@ def seal_release(tag, repo, dry):
         ]
     except (ValueError, KeyError, TypeError) as problem:
         raise Refused(f"gh release view printed no note: {problem}") from problem
-    table = note.header(work, closed, people)
-    if body.count(table) != 1:
+    header = note.header(work, closed, people)
+    if body.count(header) != 1:
         raise Refused(
             "the header is not in the note exactly once as `header` writes it "
             "for this release -- the note was edited after publication, a run "
@@ -573,7 +573,7 @@ def seal_release(tag, repo, dry):
         replacement = note.sealed_header(
             None, None, None, said, lines, work, closed, people
         )
-    sealed = body.replace(table, replacement)
+    sealed = body.replace(header, replacement)
     if dry:
         print("DRY_RUN -- nothing uploaded and nothing edited; the note would read:")
         print(sealed)
