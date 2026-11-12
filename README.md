@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/seals/owl.svg" width="150"
+  <img src=".claude-plugin/icon.png" width="150"
        alt="The AgenticSeal emblem: a little owl pressed into a red wax seal">
 </p>
 
