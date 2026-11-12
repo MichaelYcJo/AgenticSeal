@@ -169,11 +169,11 @@ names. A segment whose prompt also names another work item, as a framer's
 prompt names the release's other items (`skills/implement/merge-order.md`),
 is counted for each, and the reading names it with those items. Which run
 it belongs to is the orchestrator's judgment, written in the `--says`
-sentence. The command posts one row per segment that no comment on the open log names,
-each segment's file named on a `# <file name>` line inside its fence, and
-where no segment transcript on the machine names the work item, the comment
-says so. A reading that spans versions takes `--label flow-baseline` on both
-the read and the post.
+sentence. The command posts one row per segment that no comment on the open
+log names, each segment's file named on a `# <file name>` line inside its
+fence, and where no segment transcript on the machine names the work item,
+the comment says so. A reading that spans versions takes
+`--label flow-baseline` on both the read and the post.
 
 The release runs the posting command for each work item it ships
 (`docs/releasing/release-checklist.md` *The release pull request*), and for
