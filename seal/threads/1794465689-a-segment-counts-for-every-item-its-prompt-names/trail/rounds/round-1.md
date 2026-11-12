@@ -50,6 +50,12 @@ def run_git(cwd, args, stdin=None):
 
 The snippet does not cover the other statements of the claim, and the fix pass owes them too. In `changelog.md:4`, the sentence becomes "The four `git` commands it runs only read and fetch nothing, so in a partial clone an item whose `routing.md` the clone does not hold is not read." In `frame/plan.md:40`, "All four only read, and none reaches the network" gains the same clause. The fix also owes a case in `Test_work_item` in `tests/skills/test_session_cost.py`. The case builds a source repository with `uploadpack.allowFilter` set and a second branch holding another item. It clones it with `--filter=blob:none` over `file://` and makes a local branch from the remote one without checking it out. It then asserts that the page does not name that item and that `git cat-file -e <blob>` still fails afterwards. Contract rule 15 has it seen red with the `env` line removed.
 
+```seal
+verdict: fixed 58fbabd7e
+location: `seal/threads/1794465689-a-segment-counts-for-every-item-its-prompt-names/gaps.md`
+answer: The frame part, `frame/plan.md:40` among it, was folded by the framer at 0c7d94ed0. 58fbabd7e applies the paste-ready `run_git`, its env line and docstring as given, and adds a last docstring sentence that a git too old to know the variable ignores it and fetches. It rewrites `changelog.md:4` to the finding's sentence, plus one sentence on that older git. It also adds `Test_work_item::test_a_partial_clone_fetches_nothing` (S8), built as the finding describes; its check that the blob is still absent runs `cat-file -e` with `GIT_NO_LAZY_FETCH=1`, because without it that check would fetch the blob itself. Before the env line existed, the case failed on its count line, because the read fetched the blob and named the other item. `seal mutate` with only the env line deleted gave red on that line. 163ef9fc3 adds a `gaps.md` row: the case on each CI leg's git is unverified, because an older git fetches and the case then goes red.
+```
+
 ### 2. `README.md` *What runs on your machine* does not say the posted comment now names other work items, read from every local branch
 
 ```seal
@@ -72,6 +78,12 @@ In `README.ko.md:395`, after "수치를 읽은 트랜스크립트는 하나하�
 
 ```markdown
 `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다.
+```
+
+```seal
+verdict: fixed 5a69812a9
+location: `seal/threads/1794465689-a-segment-counts-for-every-item-its-prompt-names/changelog.md`
+answer: Both insertions were applied word for word at the anchors the finding names, after reading them against `session_cost.py#other_work_items` and `#report_work_item`. The same commit adds one sentence to `changelog.md`'s second bullet saying the two rows now say this, because the fragment lists what the release ships.
 ```
 
 ### 3. The changelog says a later run whose segments are all in the log still prints the shared segments, and a `--post` run prints none of them
@@ -99,6 +111,11 @@ Replace `skills/verify/scripts/session_cost.py:3296-3299` with:
     `work_item` returns before this page when nothing is left to post. None
     of these lines is a `# <file name>` line, which `posted_names` would
     read as a posted segment.
+```
+
+```seal
+verdict: fixed 58fbabd7e
+answer: Both replacements were applied word for word: the sentence at `changelog.md:3` and the `report_work_item` docstring paragraph. Before applying them I read them against `work_item`'s `--post` return, which comes before `other_work_items` runs. No behaviour changes, so no case was added or changed.
 ```
 
 ## Confirmations
