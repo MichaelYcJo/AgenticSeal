@@ -5597,34 +5597,40 @@ class Test_work_item:
     def test_a_work_item_on_another_local_branch_is_read(
         self, monkeypatch, capsys, tmp_path, item
     ):
-        """#1510. Side by side, the other work item's directory stands on its
-        own branch until it merges, so the checkout holds none of it. The
+        """#1510. Side by side, each other work item's directory stands on its
+        own branch until it merges, so the checkout holds none of them. The
         page reads every local branch's `routing.md` and names the segment
-        whose prompt names that item's branch."""
+        whose prompt names those items' branches."""
         repo = item.parents[2]
         git(repo, "init", "-q")
         git(repo, "config", "user.email", "t@t")
         git(repo, "config", "user.name", "t")
         git(repo, "add", "-A")
         git(repo, "commit", "-qm", "this item")
-        git(repo, "checkout", "-q", "-b", "other")
-        other = self.sibling(item)
-        git(repo, "add", "-A")
-        git(repo, "commit", "-qm", "the other item")
-        git(repo, "checkout", "-q", "-")
-        assert not other.exists()
+        third, third_branch = "1790000002-a-third-item", "feat/14-a-third-item"
+        for branch, directory, declared in (
+            ("other", self.OTHER, self.OTHER_BRANCH),
+            ("third", third, third_branch),
+        ):
+            git(repo, "checkout", "-q", "-b", branch)
+            self.declare(item.parent / directory, declared)
+            git(repo, "add", "-A")
+            git(repo, "commit", "-qm", directory)
+            git(repo, "checkout", "-q", "-")
+            assert not (item.parent / directory).exists()
         self.agent(
             tmp_path,
             "agent-a",
-            f"Records: seal/threads/{self.NAME}/. {self.OTHER_BRANCH} runs beside.",
+            f"Records: seal/threads/{self.NAME}/. {self.OTHER_BRANCH} and "
+            f"{third_branch} run beside.",
         )
         module = _cost()
         self.gh(monkeypatch, module, _listing((42, "OPEN")))
         assert self.main(monkeypatch, tmp_path, module, item) == 0
         out = capsys.readouterr().out
-        assert f"\n    agent-a.jsonl also names {self.OTHER}\n" in out, out
+        assert f"\n    agent-a.jsonl also names {self.OTHER}, {third}\n" in out, out
         assert (
-            "  1 also naming another work item, with 1 other work item read "
+            "  1 also naming another work item, with 2 other work items read "
             "beside it\n" in out
         ), out
 
