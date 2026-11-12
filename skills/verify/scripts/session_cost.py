@@ -31,7 +31,9 @@ Usage:
                                          to the repository's measurement log
   session_cost.py --work-item <dir> [--post --says <path|->]
                                          one row per segment of that work item
-                                         no comment on the open log names
+                                         no comment on the open log names, and
+                                         each segment whose spawn prompt also
+                                         names another work item
 
 **Why `--post` exists, in one sentence.** A posting procedure written out in
 prose — which label, how to tell a repository that never made the log from
@@ -3027,6 +3029,9 @@ def emit(args, render, path=None, read_from=()):
 # log already names on a `# <file name>` line, and posts the rest as one
 # comment. Where no transcript on the machine names the work item, the
 # comment says so, so the log does not close empty because a session forgot.
+# A segment whose prompt names several work items, as a framer's prompt names
+# the release's other items, is counted for each, and the reading names it
+# beside the other items it names (`other_work_items`).
 
 # The line `emit` writes into a posted fence, in its one spelling.
 POSTED_NAME = re.compile(r"# (\S+\.jsonl)")
@@ -3072,6 +3077,119 @@ def work_item_keys(directory):
             f"Nothing was read"
         )
     return name, declared["branch"]
+
+
+def run_git(cwd, args, stdin=None):
+    """`git -C CWD` with ARGS, as `(exit code, stdout bytes)`, or `(None, b"")`
+    where git could not start. Bytes, because `cat-file --batch` gives each
+    object's size in bytes. Every call here only reads, and none fetches: in
+    a partial clone `cat-file` would fetch a blob the clone lacks from its
+    remote, and `GIT_NO_LAZY_FETCH` makes it answer `missing` instead, which
+    `branch_declarations` reads as a directory with no `routing.md`. A git
+    too old to know the variable ignores it and fetches."""
+    try:
+        done = subprocess.run(
+            ["git", "-C", cwd, *args],
+            input=stdin,
+            capture_output=True,
+            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        )
+    except OSError:
+        return None, b""
+    return done.returncode, done.stdout
+
+
+def branch_declarations(parent):
+    """`(directory name, routing.md text)` for each work item directory under
+    PARENT at the tip of every local branch, or nothing where PARENT is not
+    inside a git work tree or a git read fails.
+
+    The other work items of a release stand on their own branches until each
+    merges, so the checkout holds none of them. Run from PARENT, `ls-tree`
+    lists PARENT's own entries at a tip, by name. Each distinct tip is
+    listed, and one `cat-file --batch` reads each directory's `routing.md` by
+    the directory's tree id, so a directory the same at several tips is read
+    once and no path is written into the batch.
+
+    **A local-mode root is outside every work tree**, under the common git
+    directory, and there `ls-tree` lists the repository's root instead. So
+    `rev-parse --show-toplevel`, which fails outside a work tree, is asked
+    first, and its siblings on disk are all a local-mode root is read from."""
+    code, _out = run_git(parent, ["rev-parse", "--show-toplevel"])
+    if code != 0:
+        return []
+    code, out = run_git(
+        parent, ["for-each-ref", "--format=%(objectname)", "refs/heads"]
+    )
+    if code != 0:
+        return []
+    names = {}
+    for tip in sorted(set(out.decode("ascii", "replace").split())):
+        code, out = run_git(parent, ["ls-tree", "-z", tip])
+        if code != 0:
+            return []
+        for entry in out.decode("utf-8", "replace").split("\0"):
+            meta, _, name = entry.partition("\t")
+            parts = meta.split()
+            if len(parts) == 3 and parts[1] == "tree":
+                names.setdefault(parts[2], set()).add(name)
+    trees = sorted(names)
+    batch = "".join(f"{tree}:routing.md\n" for tree in trees).encode("ascii")
+    code, out = run_git(parent, ["cat-file", "--batch"], stdin=batch)
+    if code != 0:
+        return []
+    found, at = [], 0
+    for tree in trees:
+        end = out.find(b"\n", at)
+        if end < 0:
+            break
+        header, at = out[at:end].split(b" "), end + 1
+        # `<oid> <type> <size>`, or `<request> missing` where the directory
+        # holds no routing.md, whose last word is no size and has no content.
+        try:
+            size = int(header[-1])
+        except (OverflowError, ValueError):
+            continue
+        if header[1] == b"blob":
+            text = out[at : at + size].decode("utf-8", "replace")
+            found += [(name, text) for name in sorted(names[tree])]
+        at += size + 1
+    return found
+
+
+def other_work_items(directory, name):
+    """`{directory name: [branches]}` for every work item beside DIRECTORY
+    whose `routing.md` `lib/routing.py` reads, NAME's own left out.
+
+    Two sources: the directory's siblings on disk, which hold every item of
+    a local-mode root and every item merged into the checkout, and every
+    local branch (`branch_declarations`). A directory found in several
+    places keeps every branch they name. A source that cannot be read gives
+    nothing, and the reading goes on without it."""
+    routing = lib_module("routing")
+    parent = os.path.dirname(os.path.abspath(directory))
+    texts = []
+    try:
+        entries = sorted(os.listdir(parent))
+    except OSError:
+        entries = []
+    for entry in entries:
+        try:
+            with open(
+                os.path.join(parent, entry, "routing.md"),
+                encoding="utf-8",
+                errors="replace",
+            ) as handle:
+                texts.append((entry, handle.read()))
+        except OSError:
+            continue
+    texts += branch_declarations(parent)
+    found = {}
+    for entry, text in texts:
+        declared = routing.parse(text)
+        if entry != name and declared:
+            found.setdefault(entry, set()).add(declared["branch"])
+    return {entry: sorted(branches) for entry, branches in found.items()}
 
 
 def segment_transcripts():
@@ -3173,11 +3291,21 @@ def posted_names(bodies):
 
 
 def report_work_item(reading):
-    """One work item's reading: the counts, then the `# <file name>` line of
-    each transcript in it, then one row per segment, one per slice for a
-    resumed agent, then the Contract rule 6 line where a row made an `Agent`
-    call. A row is named by its file, as `--segments` names an agent's own
-    file, because no spawn is in view to name it.
+    """One work item's reading: the counts, then how many of the counted
+    segments also name another work item, out of how many other items were
+    read, with one line per such segment naming its file, whether a comment
+    already names it, and the other items' directories. Then the
+    `# <file name>` line of each transcript in it, then one row per segment,
+    one per slice for a resumed agent, then the Contract rule 6 line where a
+    row made an `Agent` call. A row is named by its file, as `--segments`
+    names an agent's own file, because no spawn is in view to name it.
+
+    **The lines on other work items print before either early return**, so
+    a later read without `--post` whose segments are all in the log still
+    shows the segment it shares with the run that posted it. With `--post`,
+    `work_item` returns before this page when nothing is left to post. None
+    of these lines is a `# <file name>` line, which `posted_names` would
+    read as a posted segment.
 
     **The rule 6 line is here because this is the reading a run ends with.**
     The run posts once, through this mode, so a line only
@@ -3195,6 +3323,17 @@ def report_work_item(reading):
     )
     if reading["log_note"]:
         print(f"  {reading['log_note']}")
+    shared = [t for t in reading["named"] if reading["also"][t]]
+    print(
+        f"  {len(shared)} also naming another work item, with "
+        f"{plural(reading['others_read'], 'other work item')} read beside it"
+    )
+    for transcript in shared:
+        logged = ", already in the log," if transcript in reading["in_log"] else ""
+        print(
+            f"    {os.path.basename(transcript)}{logged} also names "
+            f"{', '.join(reading['also'][transcript])}"
+        )
     if not reading["named"]:
         print(
             f"\nno segment transcript on this machine names {name} or "
@@ -3214,8 +3353,9 @@ def report_work_item(reading):
 
 def work_item(args):
     """`--work-item <dir>`: print, or post, the readings of the work item's
-    segments that no comment on the open log names. Returns the exit code,
-    which is `post`'s, and 0 where nothing is due."""
+    segments that no comment on the open log names, and name each counted
+    segment whose spawn prompt also names another work item. Returns the exit
+    code, which is `post`'s, and 0 where nothing is due."""
     name, branch = work_item_keys(args.work_item)
     says = None
     if args.post:
@@ -3247,11 +3387,11 @@ def work_item(args):
             f"no open `{args.label}` log was read ({state}), so nothing was left out"
         )
     walked = segment_transcripts()
+    prompts = {t: spawn_prompt(t) for t in walked}
     named = [
         t
         for t in walked
-        if (prompt := spawn_prompt(t))
-        and (names_key(prompt, name) or names_key(prompt, branch))
+        if names_key(prompts[t], name) or names_key(prompts[t], branch)
     ]
     left = [t for t in named if os.path.basename(t) not in in_log]
     if args.post and named and not left:
@@ -3261,6 +3401,18 @@ def work_item(args):
             f"posted"
         )
         return 0
+    # A segment counted here that names another work item too is counted for
+    # that item as well. Which run it belongs to is a judgment about its
+    # prompt, so the reading names the other items and picks no owner.
+    others = other_work_items(args.work_item, name)
+    also = {
+        t: [
+            other
+            for other, branches in sorted(others.items())
+            if any(names_key(prompts[t], key) for key in (other, *branches))
+        ]
+        for t in named
+    }
     rows = []
     for transcript in left:
         rows += segment_slices(
@@ -3281,6 +3433,8 @@ def work_item(args):
         "left": left,
         "log_note": log_note,
         "rows": rows,
+        "also": also,
+        "others_read": len(others),
     }
     if not args.post:
         report_work_item(reading)
@@ -3322,7 +3476,8 @@ def main():
         metavar="DIR",
         help="the readings of the segments whose spawn prompt names this work "
         "item directory or its routing.md's branch, leaving out each one a "
-        "comment on the open log already names",
+        "comment on the open log already names, and naming each one whose "
+        "spawn prompt also names another work item",
     )
     args = parser.parse_args()
 

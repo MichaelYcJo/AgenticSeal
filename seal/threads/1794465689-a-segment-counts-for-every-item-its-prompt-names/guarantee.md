@@ -1,0 +1,40 @@
+# Guarantee: 1794465689-a-segment-counts-for-every-item-its-prompt-names
+
+The audit read the worktree at `cf7b71fc6` against the base `release/v0.38.0`, which resolves to `79f815a74` through `release/v0.38.0@{upstream}`. `trail/gate.md` names the broad run at `a4f31f83c`, an ancestor of HEAD, and the one commit after it, `cf7b71fc6`, touches only `trail/gate.md` (executed, `git log --no-merges --name-only a4f31f83c..HEAD ^79f815a74`). `seal pr-body <item> --body <file> --check` exited 0 and printed `matches` (executed). The claims were re-run in a `git clone --no-local` at `cf7b71fc6` under the sealer's scratch directory, on git 2.50.1. No earlier `guarantee.md` stood, so this is the first audit. No `seal/parity.json` is tracked, so no original is compared.
+
+## Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The new cases of `Test_work_item` were seen red against the code before the change, and the 21 existing cases pass there | `trail/phases/phase-1.md:23`, `trail/rounds/round-1.md` *Probes* row 2 | in the clone, `git checkout 79f815a74 -- skills/verify/scripts/session_cost.py`, then `bin/test tests/skills/test_session_cost.py -q -p no:xdist -k Test_work_item` | holds: exit 1, 7 failed and 21 passed. The six phase-1 cases and the S8 case each failed on their first assertion of a new line, at `tests/skills/test_session_cost.py:5564`, `:5595`, `:5637`, `:5657`, `:5712`, `:5754` and `:5773` |
+| S8, `test_a_partial_clone_fetches_nothing`, is red with only `run_git`'s `GIT_NO_LAZY_FETCH` env line removed | `trail/rounds/round-1.md` finding 1 close, `frame/design.md` S8 | in the clone at HEAD, the `env=` line of `run_git` deleted alone, then `bin/test tests/skills/test_session_cost.py -q -p no:xdist -rs -k test_a_partial_clone_fetches_nothing` | holds: exit 1, the case failed at `:5712`, its count line reading `1 also naming another work item, with 1 other work item read beside it`. So the read fetched the blob and named the other item, and the guard it names is the one that holds it |
+| The local-mode case is red with only the failed `rev-parse` gate removed, because the repository's root is then read as a second item | `trail/phases/phase-1.md:25`, mutant 2 | in the clone at HEAD, the `if code != 0: return []` after `rev-parse --show-toplevel` deleted alone, then `-k test_a_local_mode_root_reads_its_siblings_and_no_branch` | holds: exit 1, failed at `:5754`; the page read `2 other work items` and named `1790000001-another-item`, the directory at the repository's root |
+| S5's `"also names" not in out` is red where every counted segment gets a line and the count stays 0 | `trail/phases/phase-1.md:25`, mutant 14 | in the clone at HEAD, `for transcript in shared:` changed to `for transcript in reading["named"]:`, then `-k test_a_segment_naming_this_work_item_alone_is_counted_and_not_listed` | holds: exit 1, failed on `assert "also names" not in out`, with the count line still reading `0 also naming another work item` |
+| The module passes at HEAD, with no skip on this git, the census case among it | `trail/rounds/round-3.md` *Probes* row 3, `trail/phases/phase-1.md:33` | in the clone, module restored (`git diff --quiet HEAD` exit 0), `bin/test tests/skills/test_session_cost.py -q -rs` | holds: exit 0, 276 passed, no skip |
+| The operation under `## Rule changes` parses and places its `to` in `docs/running/measuring-a-run.md` *Where a reading goes* after `1794312072`'s operations | `frame/design.md` G18, `trail/rounds/round-1.md` *Probes* row 3 | `python3 test_tmp_rule.py <clone>`: `rule_changes.parse` over both designs, then `apply_op` of each operation on the document in order | holds: exit 0, one `change` operation parsed for this design, and the document then holds the `to` sentence. The parse's error list was not printed in full, so that part is read from `trail/rounds/round-1.md` and not executed here |
+| `## Removes` reads `nothing`, and the changelog names no removal; the phase record says `realpath` and `git_path` left the branch read | `frame/design.md` *Removes*, `trail/phases/phase-1.md:7` | `git grep -n "git_path\|realpath" -- skills/verify/scripts/session_cost.py` at HEAD | holds: no hit |
+| Both quotes of `pr.md` stand word for word in `frame/plan.md` | `pr.md:1-2` | `grep -c -F` of each quote on `frame/plan.md` | holds: 1 match each, in *Operational impact* and in the title row of *Judgments of the run* |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | `--work-item` reads the other work items from the directory's siblings and from every local branch, fetching nothing (D1), names each counted segment whose prompt also names another item (D2, D3), and picks no owner; *Removes* is `nothing` | issue #1510 *Done when*, second option, and its *Change* sentence that a script reports the match and does not guess the owner; the diff at `skills/verify/scripts/session_cost.py#branch_declarations`, `#other_work_items`, `#report_work_item`, `#work_item` (read); D4 at `skills/verify/orchestration.md:166-176` (read) | none |
+| the build | phase 1 delivers *Scope* items 1 to 6 at `3102602f1`, with three departures: the tree-id read, two guard cases, and S3 with two other items | `frame/plan.md` *Phases*, whose Status cell holds `3102602f1`, and `trail/phases/phase-1.md`, the record the declared crafter owes (read); `frame/design.md` D1 as folded at `c4ea14c83`; the seen-red and guard runs above (executed) | none |
+| the last round | round 3 at `61d4688c5` has no finding and confirms round 2's one close; every change after it is the round's own record and `trail/gate.md` | the chain (executed, step 1); the S8 skip check standing at `tests/skills/test_session_cost.py:5690-5701` (read); `gaps.md:9` saying an older git skips (read) | none |
+| the changelog | the page names each segment that also names another item, read from siblings and every local branch; four read-only git commands run with `GIT_NO_LAZY_FETCH=1` and an older git fetches; the README rows say the comment names those directories; `orchestration.md` says the orchestrator judges the owner | the diff of `session_cost.py`, `README.md:399`, `README.ko.md:395` and `skills/verify/orchestration.md` (read); the four git commands are `rev-parse`, `for-each-ref`, `ls-tree`, `cat-file` (read); the `--post` early return before `other_work_items` (read) | none |
+| the orchestrator's part of the pull request body | `pr.md`: two quotes, the version note and the `refactor:` title, and `Closes #1510`; `Record language` and `Commit and pull request language` are both English, so no `pr.<lang>.md` stands | `frame/plan.md` *Operational impact* and *Judgments of the run* (executed, `grep -c -F`); the milestone description, which counts #1494 and #1496 as the release's two feats; the title the orchestrator gives equals issue #1510's title | none |
+
+`routing.md` *Why this way* says the orchestrator chose the rows under `agentic`. Its grounds name a change to what the run's one post to the flow log carries, read by the review chain. The diff changes `session_cost.py`, its tests, one section of `skills/verify/orchestration.md` and one row of each README, and adds no gate, check or hook, so the grounds describe the diff. The last round's record holds no `fixed` finding, so no close is read here in place of a round.
+
+Left `unverified`, each with its answerer, as `gaps.md` names them:
+
+- S7, the page over this machine's four framer transcripts of release 0.38.0: the orchestrator, by `bin/seal cost --work-item` at the run's read, before the post.
+- The new cases on the Linux and Windows legs, and whether each leg's git runs the S8 case or skips it: the `test` workflow at the pull request.
+- The broad gate's counts the spawn prompt gives, `5705 passed, 8 skipped`: `trail/gate.md` records the run at `a4f31f83c` and no count, and the sealer runs nothing broad (contract rule 2).
+- The mutation run of 17 breaks the phase record reports: three of its breaks were re-run above, and the other fourteen stay the crafter's claim.
+
+```seal
+target: cf7b71fc6 against 79f815a74
+Verdict: sealed
+```

@@ -167,7 +167,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, git
 
 TARGET = "skills/verify/scripts/session_cost.py"
 
@@ -5256,26 +5256,40 @@ class Test_work_item:
     `CLAUDE_CONFIG_DIR`, with agent transcripts under
     `projects/<project>/<session>/subagents/`, and a work item directory whose
     `routing.md` names `BRANCH`. `gh` is the stub below, which answers the
-    log lookup, the comment pages and the comment itself."""
+    log lookup, the comment pages and the comment itself. The cases on
+    segments that name several work items add other work items beside it,
+    on disk or on a branch of a git repository the case builds."""
 
     NAME = "1790000000-a-work-item"
     BRANCH = "feat/12-a-work-item"
+    OTHER = "1790000001-another-item"
+    OTHER_BRANCH = "feat/13-another-item"
     SAYS = "the release's sentence on these readings"
+
+    @staticmethod
+    def declare(directory, branch):
+        """DIRECTORY made a work item whose `routing.md` names BRANCH."""
+        directory.mkdir(parents=True)
+        (directory / "routing.md").write_text(
+            "# Routing\n\n| Axis | Answer |\n|---|---|\n"
+            "| Review | through the review chain |\n"
+            "| Destination | open the pull request |\n"
+            f"| Branch | {branch} |\n",
+            encoding="utf-8",
+        )
+        return directory
 
     @pytest.fixture
     def item(self, tmp_path, monkeypatch):
         """The work item directory, with the config directory set beside it."""
         monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
-        item = tmp_path / "repo" / "seal" / "threads" / self.NAME
-        item.mkdir(parents=True)
-        (item / "routing.md").write_text(
-            "# Routing\n\n| Axis | Answer |\n|---|---|\n"
-            "| Review | through the review chain |\n"
-            "| Destination | open the pull request |\n"
-            f"| Branch | {self.BRANCH} |\n",
-            encoding="utf-8",
+        return self.declare(
+            tmp_path / "repo" / "seal" / "threads" / self.NAME, self.BRANCH
         )
-        return item
+
+    def sibling(self, item):
+        """The other work item, `OTHER` on `OTHER_BRANCH`, beside ITEM."""
+        return self.declare(item.parent / self.OTHER, self.OTHER_BRANCH)
 
     @staticmethod
     def agent(tmp_path, name, prompt, session="s1", second=0):
@@ -5526,6 +5540,237 @@ class Test_work_item:
             f"{self.BRANCH}" in said
         ), said
         assert "1 segment transcript walked on this machine, 0 naming" in said, said
+
+    def test_a_segment_naming_another_work_item_is_named_on_both_pages(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. A framer's prompt names the release's other work items, so
+        its segment counts for each. The page of either item names that
+        segment's file beside the other item's directory, and the posted
+        comment carries the same line inside its fence, where `posted_names`
+        reads only the `# <file name>` lines."""
+        other = self.sibling(item)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Frame seal/threads/{self.NAME}/ beside seal/threads/{self.OTHER}/.",
+        )
+        self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
+        module = _cost()
+        for reading, beside in ((item, self.OTHER), (other, self.NAME)):
+            self.gh(monkeypatch, module, _listing((42, "OPEN")))
+            assert self.main(monkeypatch, tmp_path, module, reading) == 0
+            out = capsys.readouterr().out
+            assert f"\n    agent-a.jsonl also names {beside}\n" in out, out
+            assert "agent-b.jsonl also names" not in out, out
+
+        _seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        fence = bodies[0].split("```\n", 1)[1].rsplit("```", 1)[0]
+        assert f"\n    agent-a.jsonl also names {self.OTHER}\n" in fence, fence
+        assert Test_emit.named_in_fence(bodies[0]) == ["agent-a.jsonl", "agent-b.jsonl"]
+        assert module.posted_names(bodies) == {"agent-a.jsonl", "agent-b.jsonl"}
+
+    def test_a_segment_already_in_the_log_is_still_named_with_the_other_item(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. The first item's run posted the shared segment, so the
+        other item's run leaves it out of its rows. Its page still lists the
+        file, marked as already in the log, with the item it also names, and
+        prints that line above the sentence that every segment is in the
+        log."""
+        other = self.sibling(item)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Frame seal/threads/{self.NAME}/ beside seal/threads/{self.OTHER}/.",
+        )
+        module = _cost()
+        page = json.dumps([self.comment("# agent-a.jsonl")])
+        self.gh(monkeypatch, module, _listing((42, "OPEN")), pages=(page,))
+        assert self.main(monkeypatch, tmp_path, module, other) == 0
+        out = capsys.readouterr().out
+        line = f"\n    agent-a.jsonl, already in the log, also names {self.NAME}\n"
+        assert line in out, out
+        every = "every segment transcript that names it is already in the log"
+        assert out.index(line) < out.index(every), out
+
+    def test_a_work_item_on_another_local_branch_is_read(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. Side by side, each other work item's directory stands on its
+        own branch until it merges, so the checkout holds none of them. The
+        page reads every local branch's `routing.md` and names the segment
+        whose prompt names those items' branches. A directory a branch holds
+        with no `routing.md` is no work item."""
+        repo = item.parents[2]
+        git(repo, "init", "-q")
+        git(repo, "config", "user.email", "t@t")
+        git(repo, "config", "user.name", "t")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "this item")
+        third, third_branch = "1790000002-a-third-item", "feat/14-a-third-item"
+        for branch, directory, declared in (
+            ("other", self.OTHER, self.OTHER_BRANCH),
+            ("third", third, third_branch),
+        ):
+            git(repo, "checkout", "-q", "-b", branch)
+            self.declare(item.parent / directory, declared)
+            notes = item.parent / f"{directory}-notes"
+            notes.mkdir()
+            (notes / "notes.md").write_text("no routing\n", encoding="utf-8")
+            git(repo, "add", "-A")
+            git(repo, "commit", "-qm", directory)
+            git(repo, "checkout", "-q", "-")
+            assert not (item.parent / directory).exists()
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Records: seal/threads/{self.NAME}/. {self.OTHER_BRANCH} and "
+            f"{third_branch} run beside.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert f"\n    agent-a.jsonl also names {self.OTHER}, {third}\n" in out, out
+        assert (
+            "  1 also naming another work item, with 2 other work items read "
+            "beside it\n" in out
+        ), out
+
+    def test_a_segment_naming_this_work_item_alone_is_counted_and_not_listed(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. Where no counted segment names another work item, the count
+        line says so and gives how many other items were read, so a reader
+        sees the reach of the read, and no segment's line prints. A sibling
+        directory with no `routing.md` is no work item."""
+        self.sibling(item)
+        (item.parent / "1790000003-no-routing").mkdir()
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert (
+            "  0 also naming another work item, with 1 other work item read "
+            "beside it\n" in out
+        ), out
+        assert "also names" not in out, out
+
+    def test_a_partial_clone_fetches_nothing(self, monkeypatch, capsys, tmp_path):
+        """#1510. A blobless clone holds no blob of a branch it never checked
+        out, and `cat-file` would fetch one from the clone's remote. The
+        branch read fetches nothing: the other item's `routing.md` reads as
+        missing, the page does not name that item, and the blob is still
+        absent from the clone afterwards. The case skips where git does not
+        know `GIT_NO_LAZY_FETCH`, because the read fetches there."""
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+        source = tmp_path / "source"
+        self.declare(source / "seal" / "threads" / self.NAME, self.BRANCH)
+        git(source, "init", "-q")
+        git(source, "config", "user.email", "t@t")
+        git(source, "config", "user.name", "t")
+        git(source, "config", "uploadpack.allowFilter", "true")
+        git(source, "add", "-A")
+        git(source, "commit", "-qm", "this item")
+        git(source, "checkout", "-q", "-b", "other")
+        self.declare(source / "seal" / "threads" / self.OTHER, self.OTHER_BRANCH)
+        git(source, "add", "-A")
+        git(source, "commit", "-qm", "the other item")
+        blob = git(
+            source, "rev-parse", f"other:seal/threads/{self.OTHER}/routing.md"
+        ).stdout.strip()
+        git(source, "checkout", "-q", "-")
+        repo = tmp_path / "repo"
+        git(tmp_path, "clone", "-q", "--filter=blob:none", source.as_uri(), "repo")
+        git(repo, "branch", "-q", "other", "origin/other")
+        # A git that does not know the variable fetches the blob here, as the
+        # read would; `run_git` says so, and there is nothing left to test.
+        known = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", blob],
+            capture_output=True,
+            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        )
+        if known.returncode == 0:
+            pytest.skip(
+                "this git fetched a blob with GIT_NO_LAZY_FETCH set, so it does "
+                "not know the variable, and the branch read fetches there"
+            )
+        item = repo / "seal" / "threads" / self.NAME
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Records: seal/threads/{self.NAME}/. {self.OTHER_BRANCH} runs beside.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert (
+            "  0 also naming another work item, with 0 other work items read "
+            "beside it\n" in out
+        ), out
+        # Asked without the variable, `cat-file -e` would fetch the blob itself.
+        held = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", blob],
+            capture_output=True,
+            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        )
+        assert held.returncode != 0, "the branch read fetched the blob"
+
+    def test_a_local_mode_root_reads_its_siblings_and_no_branch(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """#1510. A local-mode root sits under the git directory, outside
+        every work tree, where `ls-tree` would list the repository's root as
+        if it were the records directory. So the siblings on disk are read
+        and no branch is: a directory at the repository's root that holds a
+        `routing.md` is no work item."""
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+        repo = tmp_path / "repo"
+        self.declare(repo / self.OTHER, self.OTHER_BRANCH)
+        git(repo, "init", "-q")
+        git(repo, "config", "user.email", "t@t")
+        git(repo, "config", "user.name", "t")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "a directory at the root")
+        threads = repo / ".git" / "seal" / "threads"
+        item = self.declare(threads / self.NAME, self.BRANCH)
+        third, third_branch = "1790000002-a-third-item", "feat/14-a-third-item"
+        self.declare(threads / third, third_branch)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Records: seal/threads/{self.NAME}/, beside {self.OTHER_BRANCH} "
+            f"and {third_branch}.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert f"\n    agent-a.jsonl also names {third}\n" in out, out
+        assert "with 1 other work item read beside it" in out, out
+
+    def test_a_git_that_cannot_start_leaves_the_siblings_read(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """#1510. With no git on PATH the branches give nothing, the
+        siblings on disk are still read, and the exit is unchanged."""
+        self.sibling(item)
+        self.agent(
+            tmp_path,
+            "agent-a",
+            f"Frame seal/threads/{self.NAME}/ beside seal/threads/{self.OTHER}/.",
+        )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        monkeypatch.setenv("PATH", str(tmp_path / "no-git-here"))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert f"\n    agent-a.jsonl also names {self.OTHER}\n" in out, out
 
     @pytest.mark.parametrize(
         "listing, list_code, code, said",
