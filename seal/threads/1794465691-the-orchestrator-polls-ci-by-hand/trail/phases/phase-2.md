@@ -90,3 +90,18 @@ did not change. The `check:` lines that name
 `docs/forms/the-round-record.md`, `docs/running/the-run.md`,
 `skills/code-review/SKILL.md` and `skills/implement/fold-and-reframe.md`,
 cite the file for other rules (read).
+
+**The phase boundary run.** `bin/test -q tests/text tests/behaviour` ran
+at `f8efe8b45`, the commit that holds this record, the fragment, the
+closing memo and the plan's Status cell: 1096 passed, 9 skipped, exit 0
+(executed). The set is the plan row's file, which is the one test file the
+phase changed, and the two directories `CONTRIBUTING.md` names as the
+tree-wide files. Every test file that names
+`skills/code-review/orchestration.md` is in them (`git grep -l` over
+`tests/` and `evals/`); the three outside them, `tests/lib/test_core.py`,
+`tests/skills/test_settle.py` and `tests/skills/test_session_cost.py`, name
+the `orchestration.md` of `skills/implement/` or `skills/verify/`. The
+test files that name `changelog.md` outside them build the fragments they
+read in a temporary repository (read). The commit that adds this paragraph
+changes nothing else. Its three warnings name rule changes pending in other
+work items.
