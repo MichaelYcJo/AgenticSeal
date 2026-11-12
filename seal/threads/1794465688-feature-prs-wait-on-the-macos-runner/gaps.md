@@ -6,7 +6,7 @@
 |---|---|
 | the suite, the repository-wide lint and the format check beyond phase 1's boundary set | the orchestrator's broad gate |
 | whether GitHub reads the `&pytest-steps` alias, runs `pytest`'s legs and skips `pytest-wide` on this pull request's first `pull_request` run, and the name the skipped check shows (`frame/questions.md` Q1, S1) | the orchestrator, from this pull request's first run with `gh api …/runs/<id>/jobs` |
-| whether `pytest-wide`'s legs run under the names G7 lists, skip the cache restore and the upload, and end the pytest line with two empty expansions, where actionlint 1.7.12 reports `split` and `store` as matrix properties `pytest-wide` does not define (phase 1's record) | the orchestrator, from the release pull request's run for 0.38.0 (S2), the first run of `pytest-wide` |
+| whether GitHub reads the `&pytest-steps` alias for `pytest-wide` and its legs report under the names G7 lists. On an entry with no `split` or `store`, the cache restore and the upload skip and the pytest line ends with two empty expansions, as jobs 130936327013 and 130936327217 of run 43143655875 showed (round 1). actionlint 1.7.12 reports the same two properties as undefined, and it is not a check of this repository | the orchestrator, from a `workflow_dispatch` run of `tests` on this branch before the pull request merges (`gh workflow run test.yml --ref chore/1516-feature-prs-wait-on-the-macos-runner`, then `gh api …/runs/<id>/jobs`): `github.base_ref` is empty on a dispatch, so `pytest-wide` runs |
 
 ## Not done
 
