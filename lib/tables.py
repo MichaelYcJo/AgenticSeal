@@ -20,10 +20,9 @@ import os
 import re
 import sys
 
-# `lib/blocks.py` is a sibling, found by this file's own directory, so the
-# callers that load this module through `lib/sibling.py` -- `pact_check.py`,
-# `settle.py`, `rule_changes.py` -- find it too. `lib/routing.py` reaches
-# `optin.py` the same way.
+# `lib/blocks.py` is a sibling, found by this file's own directory, so a
+# script that loads this module through `lib/sibling.py` finds it too.
+# `lib/routing.py` reaches `optin.py` the same way.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     import blocks
