@@ -27,8 +27,10 @@ The constraints the build works under:
   `remove` item that quotes it (G11). No phase edits `docs/`.
 
 **The failure scenario of the chosen approach, six months on.** A
-repository last set up by 0.36.x or earlier updates past this release
-without reading its note. Its `seal/config.md` is read as no file: `seal
+repository still holds the `seal/config.md` a release up to 0.36.0 wrote,
+because no command that read a setting ran there while the plugin was on
+0.37.x, and the plugin reaches this release without anyone reading its
+note. Its `seal/config.md` is read as no file: `seal
 gate` exits 2 naming a missing `Broad gate` key in a `config.json` that does
 not exist (G6), `seal pr-body` refuses for the language keys, and `seal
 mode` writes a `config.json` holding `Mode` alone beside the old table. A
@@ -36,22 +38,23 @@ migration repository there fares worse: its `seal/parity.md` declares
 nothing, so the parity arm stops asking for `original:` lines without a
 word (G7). Each command's refusal names `config.json` and the key, which
 leads a person to `templates/setup/config.md`. Nothing names `parity.md`.
-The owner judged on 2026-11-13 that no such repository needs the path
-(G3), and the 0.38.1 note's *Updating* line is the one place that tells
-such a person what to do.
+The owner judged on 2026-11-13 that no person on 0.36.x or earlier needs
+the path (G3). The 0.38.1 note's *Updating* line is the one place that
+tells a person holding such a file what to do, and it names the file, not
+a release (`frame/design.md` *Scope* item 12).
 
 ## Alternatives considered
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| A1. Remove all three paths together, in this release (chosen) | The scenario under *Technical context*: a repository on 0.36.x or earlier that skips the note reads its settings as absent | Chosen. The owner's comment of 2026-11-12 decides the release and the scope; the *Done when* items name all three |
-| A2. Keep the structure: keep the `config_pairs` refusal and the `parity.md` refusal, naming a by-hand conversion, and remove only the converter and the update steps | The refusals stay with no date to leave by, and a reader of the code keeps meeting a file no release has written since 0.36.0. The premise that keeps them is that a repository on 0.36.x or earlier still exists and updates. Checked: the owner's comment judges that no such person needs the path, and nothing in the tree counts such repositories | Rejected. The issue's table lists the refusal arm of `#config_pairs` and both refusals as what the removal takes out |
+| A1. Remove all three paths together, in this release (chosen) | The scenario under *Technical context*: a repository still holding an unconverted `seal/config.md`, whose note nobody read, reads its settings as absent | Chosen. The owner's comment of 2026-11-12 decides the release and the scope; the *Done when* items name all three |
+| A2. Keep the structure: keep the `config_pairs` refusal and the `parity.md` refusal, naming a by-hand conversion, and remove only the converter and the update steps | The refusals stay with no date to leave by, and a reader of the code keeps meeting a file no release has written since 0.36.0. The premise that keeps them is that a repository still holds a `seal/config.md` or `seal/parity.md` a release up to 0.36.0 wrote. Checked: the owner's comment judges that no person on 0.36.x or earlier needs the path, and nothing in the tree counts the repositories that still hold either file | Rejected. The issue's table lists the refusal arm of `#config_pairs` and both refusals as what the removal takes out |
 | A3. Keep update steps 4 and 4b as steps that find nothing | Every `/agentic:update` run pays to read 97 lines of `skills/update/SKILL.md` and runs two commands that answer `nothing` for every person on 0.25.0 or later. The premise that keeps them is a person on 0.24.2 or earlier, or on 0.33.0 to 0.34.1, who updates. The owner judged none needs it | Rejected, on the owner's decision |
 | A4. Edit the `docs/` sentences in this pull request, as a work item whose subject is the policy root | The subject here is code. Edited directly, the five sentences would bypass the settle, which writes each section as the latest decision of the released designs in merge order (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*). Two unsettled designs already change two of these sections (G2) | Rejected. The sentences go into `frame/design.md` *Rule changes*. The one dangling citation is excused until the settle (G11) |
 | A5a. The walker's two-cell cases stay on a header literal the test file holds, and the pin to `OLD_TABLE` goes (chosen) | The pass walks a header no shipped reader hands the walker, against the premise `test_the_config_pass_is_the_config_readers_header` stated. The walker builds every shape from the header's width alone, so a two-cell pass still holds its multi-cell behaviour, which the three- and four-cell readers depend on (G9) | Chosen. It keeps the corpus count (`test_the_corpus_is_counted`'s `5455`) and every case's text |
 | A5b. Delete the two-cell pass and the `_Old_config_*` cases with the converter | The walker's multi-cell readers, `pact_check.py#ANCHOR_TABLE` and `settle.py#JUDGMENTS_HEADER`, lose every corpus case, and a defect in a row of more than one cell goes uncaught | Rejected |
 | A5c. Re-point the two-cell pass to a live reader's header, such as `pact_check.py#ANCHOR_TABLE` | Every case text in `_Old_config_table`, `_Old_config_shapes` and the conftest fixtures is a two-cell table, so each would be rewritten to three cells, with the corpus count measured again. The cost lands in a file the removal only has to unhook | Rejected. A5a keeps the coverage at none of that cost |
-| A6. Keep the README's two by-hand sentences on the pact's `| Signer |` table and `pact-paths.md` | They serve only a person coming from 0.36.x or earlier, the reader the owner judged needs no path. Kept alone, they would describe one half of a migration whose other half the same paragraph no longer names | Rejected. The 0.38.1 note's *Updating* line carries both acts (`frame/design.md` *Scope* item 12) |
+| A6. Keep the README's two by-hand sentences on the pact's `| Signer |` table and `pact-paths.md` | They serve only a repository or machine that still holds the files a release up to 0.36.0 left, the same reader as the rest of the paragraph. Kept alone, they would describe one half of a migration whose other half the same paragraph no longer names | Rejected. The 0.38.1 note's *Updating* line carries both acts (`frame/design.md` *Scope* item 12) |
 | A7a. Rewrite #1492's *Updating* line in its `changelog.md` (chosen) | The fragment then differs from the published v0.37.1 note it was built from. Nothing reads the fragment for a note again (G13), and the settle removes it | Chosen, because the owner's comment names that line as part of what changes |
 | A7b. Leave #1492's fragment as the record of what 0.37.1 said | The tree keeps a line giving a date the owner overturned, which the owner asked to change | Rejected |
 | A8. Delete the two `CLAUDE.md` import cases with `tests/behaviour/test_the_old_block_leaves_through_update.py` | `CLAUDE.md` *The core* says the file imports nothing, and nothing else holds it. An `@` line would load the core twice in every session here | Rejected. The cases move to `tests/text/test_the_rules_claude_md_names_have_one_home.py` |
@@ -89,10 +92,12 @@ judgment of the run.
   `version` from `0.38.0` to `0.38.1` in the commit that adds this work
   item's `changelog.md`, and the fragment's `### Removed` section ends with
   the line `- The version moves to 0.38.1.`
-- **A compatibility break, by the owner's decision.** A repository last set
-  up by 0.36.x or earlier, or a machine last updated by 0.24.2 or earlier,
-  or by 0.33.0 to 0.34.1, keeps what that release left, and nothing in
-  this release reads or names it. The fragment's *Updating* line is the
+- **A compatibility break, by the owner's decision.** A repository holding
+  the `seal/config.md` or `seal/parity.md` a release up to 0.36.0 wrote,
+  or a machine holding the `CLAUDE.md` block of 0.23.0 to 0.24.2 or the
+  launcher of 0.33.0 to 0.34.1, keeps it whatever release the plugin has
+  reached since, where `/agentic:update` or `seal mode` never ran there,
+  and nothing in this release reads or names it. The fragment's *Updating* line is the
   account a person reads, through `/agentic:update` step 3, which prints
   every note between their version and the new one.
 - **No new dependency, environment variable or migration.** The release
@@ -112,4 +117,5 @@ judgment of the run.
 | 2026-11-13 | Phase 1's census grep in *Phases* matches whole words and checks `unconverted_` apart | Phase 1's crafter found that the grep as framed could not print nothing: `OLD_TABLE` matched `COMMENTED_OLD_TABLE` and `config_shapes` matched `_Old_config_shapes`, both of which A5a keeps. The orchestrator ran the corrected form at `bf4f41711` and both commands exited 1. A crafter's statement in a frame file records what the build found, so the orchestrator folds it and spawns no framer | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening *The framer writes a decision's fold* |
 | 2026-11-13 | Phase 2's Verified by cell, `frame/design.md` S8 and R22 are folded to what phase 2's build found | Phase 2's crafter found that the census grep also matches `docs/checks/the-stamp.md:95`, which a `## Rule changes` item removes, the dated experiment *Scope* puts out, and this work item's own records; that S8's search finds this work item's records; that the case reading no file cannot be reddened by a plant in `CLAUDE.md`, so its red came from mutating `IMPORT`; and that R22 did not name the *Procedure* clause that stood for step 4. The orchestrator ran both greps at `84631d9dc` and each printed what the folded cells name | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening *The framer writes a decision's fold* |
 | 2026-11-13 | The second frame census that HEAD contradicted gets its prevention home in #1548, an issue on `agents/framer.md`, not in this work item | Both phases found a census command in a Verified by cell whose stated result its own patterns or scope made impossible. No spawn left in this run writes a census, so the problem cannot recur before the pull request; `agents/framer.md` is a file this work item does not change and #1422 of the same release may change, so a rule there built here would overlap that item | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening *A problem that recurs within a run gets a prevention home at once*, and *Orchestrator: where a decision or a lesson is written* |
-| 2026-11-13 | The title takes `refactor:` | Issue #1500 names the change `refactor:`. For a repository on 0.37.0 or later, which is every repository the owner judged the release serves (`frame/design.md` G3), no command's output, exit code or step changes; only a root an earlier release left reads differently. The kind that came closest is `fix:`, which would say a behaviour was wrong, and none was | `skills/commit-pr-convention/SKILL.md`, and issue #1500's title |
+| 2026-11-13 | The title takes `refactor:` | Issue #1500 names the change `refactor:`. Where a repository and a machine hold none of the files the removed paths dealt with, no command's output, exit code or step changes. Where one is held, what changes is that nothing reads it any more, which is the removal itself. The kind that came closest is `fix:`, which would say a behaviour was wrong, and none was; `feat:` would say a behaviour was added, and none is | `skills/commit-pr-convention/SKILL.md`, and issue #1500's title |
+| 2026-11-13 | Round 1 finding 1 is a decision on *Scope* item 12: the *Updating* line names what a person may still hold by the files themselves, not by the plugin version they run | `trail/rounds/round-1.md` finding 1: the removed paths dealt with files on one machine or in one repository, and reaching 0.37.0 took none of them out; base `skills/update/SKILL.md:39-43` ran step 4b on an already-current update for that reason (the orchestrator read it at `8f6acbb0e`). `frame/plan.md` *Operational impact* already scopes the break by repository and machine | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening *A decision made after the frame is committed is folded* |
