@@ -13,9 +13,9 @@ on <version>", which is a number, not a reason to reload or restart.
 
 ## Procedure
 
-The plugins Claude Code installs, and the `CLAUDE.md` it reads as the
-user's, stand in the directory Claude Code is configured to use, which the
-shell spells `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Each command below
+The plugins Claude Code installs stand in the directory Claude Code is
+configured to use, which the shell spells
+`${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Each command below
 carries that spelling on its own, because no two of them share a shell: a
 session runs each block as a call of its own, and the user types the repair
 in a terminal of their own.
@@ -36,11 +36,9 @@ installs from it. Run alone, the second reports *already at the latest
 version* against whatever the clone last knew: the failure is silent and
 looks like success.
 
-If the second command reports it is already current, say so, take step 4b,
-and stop. Nothing arrived, so there is nothing to load and neither move below
-is needed; step 4b still runs, because a person who reached this release by
-`claude plugin update` alone may still hold the launcher an earlier release
-wrote.
+If the second command reports it is already current, say so and stop.
+Nothing arrived, so there is nothing to load and neither move below is
+needed.
 
 **2b. Read the installed copy before believing the installer.** The install
 path is keyed by the version string, and extraction is skipped when a
@@ -134,105 +132,7 @@ surprised later:
 - **anything the user has to do**: a path that moved, a setting that was
   renamed, a compatibility fallback with an expiry.
 
-**4. Take out the preset block.** Earlier releases wrote a preset block
-into the user's `CLAUDE.md`, between `<!-- agentic:start -->` and
-`<!-- agentic:end -->`. The core now reaches a session from the plugin's
-`SessionStart` hook, and the rules an older block stated stand
-in the skills and definitions the plugin installs, so the block carries
-nothing a session needs. `claude plugin update` never opens `CLAUDE.md`, so
-without this step the block stays. Everything between the markers was
-written by the plugin and everything outside them is the user's, so taking
-the region out cannot touch a line the user wrote. No question is asked.
-
-The command below backs the file up to `CLAUDE.md.bak` and takes each marker
-region out with its markers, in the `CLAUDE.md` the harness reads as the
-user's. It then looks for a marker in the current repository's `CLAUDE.md`,
-which it never edits:
-
-```bash
-python3 -c '
-import os, shutil, subprocess, sys
-
-PAIRS = (
-    ("<!-- agentic:start -->", "<!-- agentic:end -->"),
-)
-
-
-def text_of(path):
-    if not os.path.isfile(path):
-        return ""
-    with open(path, encoding="utf-8", newline="") as handle:
-        return handle.read()
-
-
-def holds_a_block(text):
-    return any(start in text for start, _ in PAIRS)
-
-
-def without_blocks(text):
-    kept, inside = [], None
-    for line in text.splitlines(keepends=True):
-        if inside is None:
-            inside = next((end for start, end in PAIRS if start in line), None)
-            if inside is None:
-                kept.append(line)
-        elif inside in line:
-            inside = None
-    return None if inside else "".join(kept)
-
-
-user = sys.argv[1]
-text = text_of(user)
-if holds_a_block(text):
-    after = without_blocks(text)
-    if after is None:
-        print(user + " holds a start marker with no end marker after it, so nothing was changed")
-        sys.exit(1)
-    shutil.copyfile(user, user + ".bak")
-    with open(user, "w", encoding="utf-8", newline="") as handle:
-        handle.write(after)
-    print("took the preset block out of " + user + ", backed up to " + user + ".bak")
-try:
-    top = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True, encoding="utf-8",
-    ).stdout.strip()
-except OSError:
-    top = ""
-project = os.path.join(top, "CLAUDE.md") if top else ""
-if project and holds_a_block(text_of(project)):
-    print("needs action: " + project + " holds a preset block, the committed text of this repository, so it was not edited")
-' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"
-```
-
-| Output | What happens |
-|---|---|
-| nothing | no block stood; nothing is said |
-| `took the preset block out of <file>, backed up to <file>.bak` | say so, with the two facts this step opens with: where the core now comes from, and where the rules an older block stated stand |
-| `<file> holds a start marker with no end marker after it, so nothing was changed`, exit 1 | the block is damaged, and nothing says where it ends. Say so, leave the file to the user, and go on to step 4b |
-| `needs action: <file> holds a preset block, …` | an earlier release's installer could write the block into a project's `CLAUDE.md`, which is that project's committed text. Name the file under *Needs action* in the output; the user deletes the lines between its markers |
-
-**4b. The launcher an earlier release wrote.** The plugin's `Stop` hook
-draws the sealer's stamp (`docs/checks/the-stamp.md` *The stamp*). A release
-from 0.33.0 to 0.34.1 drew it instead through a launcher,
-`${CLAUDE_PLUGIN_DATA}/stamp.py`, which it wrote on the person's yes together
-with one `Stop` entry in their settings that runs it. Until the person takes
-both out, that launcher runs at the end of every turn beside the plugin's
-hook, and a stamp is still drawn once, since drawing claims the file first.
-This step asks nothing and writes nothing. It reads whether the launcher
-stands:
-
-```bash
-d="${CLAUDE_PLUGIN_DATA}"; if [ -z "$d" ]; then echo "no data directory"; elif [ -f "$d/stamp.py" ]; then echo "launcher $d/stamp.py"; else echo "no launcher"; fi
-```
-
-| Output | What happens |
-|---|---|
-| `launcher <path>` | name under *Needs action* the two things the person removes by hand, in this order: the `Stop` entry of `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json` whose command is `python3 "<path>" \|\| py -3 "<path>"`, with `<path>` written out, and then the file at `<path>`. An entry whose file is gone fails at the end of every turn, so the entry goes first |
-| `no launcher` | nothing stands; nothing is said |
-| `no data directory` | the data directory did not reach this step, so whether a launcher stands could not be read. Say so, and go on to step 5 |
-
-**5. Name both moves, cheapest first, and say what each one is known to do.**
+**4. Name both moves, cheapest first, and say what each one is known to do.**
 The user can finish the work in hand either way: the running session keeps
 the version it started with, because the old directory stays in the plugin
 cache and `$CLAUDE_PLUGIN_ROOT` still resolves to it. Nothing is half-updated
@@ -271,11 +171,6 @@ and a built-in CLI command is not a skill, so `/reload-plugins` is not
 something this procedure can invoke on the user's behalf either. Naming the
 cheaper move and running it are different acts, and only the first is this
 command's job.
-
-**It does not delete anything the user wrote.** The preset block is taken
-out with its markers, which is the whole of what the plugin wrote, and no
-line outside them is touched; a project's `CLAUDE.md` is named, never
-edited.
 
 **It does not decide the update is wanted.** If a release changes behavior the
 user relies on, the summary in step 3 is where the user finds that out, which

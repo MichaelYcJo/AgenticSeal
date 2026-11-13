@@ -96,20 +96,6 @@ claude plugin update agentic@agenticseal
 최신이라고 답합니다. 릴리스는 `plugin.json` 의 버전이 바뀔 때만 사용자에게
 닿습니다.
 
-이전 릴리스에서 업데이트하면 할 일이 남을 수 있습니다. `/agentic:update` 는
-이전 릴리스가 `CLAUDE.md` 에 써 넣은 것을 들어내고, 이전 릴리스가 남긴 것
-가운데 사용자만 지울 수 있는 것을 짚어
-줍니다([`skills/update/SKILL.md`](skills/update/SKILL.md)). 손으로
-업데이트한다면 두 가지는 직접 합니다. 이전 릴리스가 설정 표로 쓰던
-`seal/config.md` 가 아직 있는 저장소마다 `seal mode` 를 한 번 실행합니다. 이
-명령은 그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 어떤 명령도
-바꿔 주지 않는 세 파일은 손으로 다시 씁니다. `seal/parity.md` 는
-`templates/setup/parity.json` 에서 시작해 `seal/parity.json` 으로 씁니다.
-`seal/pact.md` 의 `| Signer |` 표는 그 저장소 `seal/config.json` 의
-`Pact signers` 키가 되고, 원격 URL 은 `;` 로 구분합니다.
-`~/.claude/agentic/pact-paths.md` 는 원격 URL 에서 체크아웃 경로로 가는 JSON
-객체 하나인 `~/.claude/agentic/pact-paths.json` 이 됩니다.
-
 `seal pr-checks install` 이 쓴 pull request 검사는 그 파일을 쓸 때의 릴리스를
 받아 돌고, 업데이트해도 그 고정은 그대로입니다. 지금 쓰는 릴리스로 고정을
 옮기려면 `seal pr-checks remove` 를 실행한 뒤 `seal pr-checks install` 을
@@ -356,11 +342,7 @@ Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅 두 개
 두 명령은 모두 `python3 "<script>" || py -3 "<script>" || exit 0` 꼴이고,
 스크립트는 플러그인 자기 디렉터리 아래에 있습니다. 그래서 업데이트하면 두 훅도
 함께 옮겨 갑니다. 끝의 `exit 0` 때문에 두 명령은 무슨 일이 있어도 0 으로
-끝나고, 어느 훅도 턴을 멈추지 않습니다. 0.33.0 부터 0.34.1
-까지의 릴리스가 따로 남긴 실행기가 있으면 그 실행기도 턴이 끝날 때마다 돌고,
-`/agentic:update` 가 그것을 알려 주면 사용자가
-지웁니다([`skills/update/SKILL.md`](skills/update/SKILL.md) *4b. The launcher
-an earlier release wrote*).
+끝나고, 어느 훅도 턴을 멈추지 않습니다.
 
 다른 세션이 쓰고 있는 작업 트리의 브랜치를 한 세션이 바꾸는 것은 아무것도
 막지 않습니다. 동시에 도는 세션에는 각자 worktree 를 하나씩 주세요.

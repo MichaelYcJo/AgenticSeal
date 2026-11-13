@@ -1053,23 +1053,6 @@ def test_the_python_floor_is_the_same_number_everywhere():
     )
 
 
-def test_update_names_the_marker_of_the_block_it_takes_out():
-    """`claude plugin update` installs the plugin and never opens `CLAUDE.md`,
-    so a block a release before 0.25.0 wrote stays unless the update command
-    takes it out (#1177). The command names the marker that opens the
-    region; `tests/behaviour/test_the_old_block_leaves_through_update.py`
-    runs the step's command, which takes the region and nothing outside it."""
-    with open(
-        os.path.join(ROOT, "skills", "update", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        update = f.read()
-    # The marker `agentic:start`, which the update step's command matches in
-    # the user's `CLAUDE.md` to find the block it takes out.
-    assert "agentic:start" in update, (
-        "the update command stopped taking the preset block out"
-    )
-
-
 def test_update_reads_the_installed_copy_before_it_summarises():
     """#157. `claude plugin update` keys the install path by the version
     string and skips extraction when that directory already exists, so on a

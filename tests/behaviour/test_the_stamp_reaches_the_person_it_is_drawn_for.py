@@ -104,9 +104,8 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     names `seal stamp --from <path>` for where a file was written. The
     rule's trigger, its limits, its exit and the places nothing draws are
     the proofer's to read (1792363231 S7 and S8, #1027 and #1376); the
-    command's closing ` || exit 0` is pinned. #1492: the launcher of 0.33.0
-    to 0.34.1 is cited, not described, and the measurement of 2026-11-06 is
-    cited from its `docs/experiments/` record."""
+    command's closing ` || exit 0` is pinned. #1492: the measurement of
+    2026-11-06 is cited from its `docs/experiments/` record."""
     text = stamp_section()
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
@@ -141,11 +140,6 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     # command, which a person reads to tell why the hook never keeps a turn
     # going.
     assert "` || exit 0`" in rule
-    # #1492: the citation of the update skill's step, which a reader resolves
-    # for the launcher of 0.33.0 to 0.34.1.
-    assert (
-        "`skills/update/SKILL.md` *4b. The launcher an earlier release wrote*"
-    ) in rule
     # The path of the dated record the measurement stands in, which a reader
     # opens for what was measured.
     assert "`docs/experiments/2026-11-06-" in unchecked
@@ -212,12 +206,6 @@ README_FACTS = (
     "`seal_stamp.py --stop`",
     # The one command shape both hooks run, as `hooks/hooks.json` spells it.
     '`python3 "<script>" || py -3 "<script>" || exit 0`',
-    # The citation of the update skill's step, which a user resolves for the
-    # launcher an earlier release may have left.
-    "[`skills/update/SKILL.md`](skills/update/SKILL.md) "
-    "*4b. The launcher an earlier release wrote*",
-    # The command that names that launcher for the user to remove.
-    "`/agentic:update`",
     # The command that writes the stamp's values, and the two directories
     # the queue and a refusal leave under the git common dir.
     "`seal stamp --guarantee`",
@@ -230,8 +218,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     """Round 1's yellow 4. The inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition. Since
     #1430 the plugin ships two hooks again, so each edition names both, the
-    files and commands they run, the launcher of 0.33.0 to 0.34.1 as
-    `/agentic:update`'s to name, and the directories the queue leaves. The
+    files and commands they run, and the directories the queue leaves. The
     editions move together, so both are read, each in its section alone,
     since *Install* names the two hooks too. What each edition says of them
     is the proofer's to read."""

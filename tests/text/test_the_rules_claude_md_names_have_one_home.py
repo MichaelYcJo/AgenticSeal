@@ -36,12 +36,15 @@ rule it carries. Whether a carrier restates a home in other words, or in the
 home's own, is the proofer's to read, and
 `tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads a pasted
 passage.
+
+The last two cases hold `CLAUDE.md` *The core*: the file imports nothing,
+and it names the tree's copy of the core.
 """
 
 import os
 import re
 
-from conftest import ROOT
+from conftest import ROOT, read
 
 # No TARGET: its cases hold each rule's home across the documents that state it and the files that link it.
 
@@ -175,3 +178,31 @@ def test_a_removed_link_is_named():
     texts = tree()
     texts[linked] = texts[linked].replace("House rules", "")
     assert (linked, "identifiers") in unlinked(texts)
+
+
+# An `@` import as Claude Code reads one: `@` at the start of a line or after
+# whitespace, then a path. A backticked `@` is a code span, not an import.
+IMPORT = re.compile(r"(?:^|\s)@[^\s`]")
+
+
+def test_this_repository_imports_no_core_and_names_the_tree_copy():
+    """S3 of #1177. A session here reads the tree's core, which the plugin's
+    `SessionStart` hook prints, so an `@` line in `CLAUDE.md` would load it a
+    second time; and `CLAUDE.md` names the tree's copy, which governs here."""
+    text = read(os.path.join(ROOT, "CLAUDE.md"))
+    assert not IMPORT.search(text), (
+        "CLAUDE.md imports a file, so a session here reads the core twice"
+    )
+    # The path `skills/core/SKILL.md`, which a session here resolves to the
+    # tree's copy of the core.
+    assert "`skills/core/SKILL.md`" in text, (
+        "CLAUDE.md does not name the core, so a session here cannot tell "
+        "which copy governs"
+    )
+
+
+def test_an_import_line_is_told_from_a_code_span():
+    """The check can fail: a planted import is found, a code span is not."""
+    assert IMPORT.search("intro\n@skills/core/SKILL.md\n")
+    assert IMPORT.search("see @docs/x.md here")
+    assert not IMPORT.search("the block's `@` line imports it")
