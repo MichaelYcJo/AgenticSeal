@@ -4,9 +4,9 @@ function its cases reach.
 #1454 moved the settings out of a markdown table, so the cases that pinned
 the walker's refusals of the `| Item | Value |` table as a settings reader
 left with that reader. The walker moved to `lib/tables.py`, and its own
-cases are in `tests/lib/test_tables.py`. The cases of the pact's `| Signer |` table and
-of the header 0.18.x wrote left with their reader too, and the pact's
-signers are read from a `Pact signers` key.
+cases are in `tests/lib/test_tables.py`. The cases of the pact's
+`| Signer |` table and of the header 0.18.x wrote left with their reader
+too, and the pact's signers are read from a `Pact signers` key.
 
 #942's phase 6 placed here the reference-root reader's cases from
 `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`, the policy root's

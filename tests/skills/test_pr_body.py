@@ -1146,8 +1146,9 @@ class Test_main:
         parse, and a key written twice, reach the command as a refusal at
         `config.json`, in `lib/config.py`'s sentence. The file is named once,
         by its path under the `seal/` root and not by the machine's, since
-        the sealer copies the line into a committed `guarantee.md`. Seen red against `pr_body.py` as the merged
-        base left it, where the command exited 0."""
+        the sealer copies the line into a committed `guarantee.md`. Seen red
+        against `pr_body.py` as the merged base left it, where the command
+        exited 0."""
         rows = [*LANGUAGES, ("Record language", "English")]
         item = item_of(tmp_path, RECORDS, rows=rows)
         config = tmp_path / "seal" / "config.json"

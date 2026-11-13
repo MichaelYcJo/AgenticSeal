@@ -2077,8 +2077,9 @@ def say_report(repo, home, shared, local, current, kind, value):
 def mode_refusal(home):
     """The sentence `seal mode` refuses the root's `config.json` in, or "":
     `lib/config.py#config_pairs`' own sentence for a file it refuses, and
-    for a key written twice the writer's (`doubled_keys`) -- the two things `write_mode` would refuse,
-    so a switch is refused before anything moves."""
+    for a key written twice the writer's (`doubled_keys`) -- the two things
+    `write_mode` would refuse, so a switch is refused before anything
+    moves."""
     pairs, refused = repo_config.config_pairs(home)
     if refused:
         return refused
@@ -2097,10 +2098,10 @@ def mode_report(args, repo, home, shared, local, current):
 
     **A refused file is reported and exits 2, with or without `--check`**:
     a `config.json` that will not read or parse, or a `Mode` key written
-    twice or holding no string. The folder is still reported, because where things stand does
-    not need the key; nothing is written, because a key written into a file
-    nobody can read, or beside one that already disagrees, cannot make it
-    agree.
+    twice or holding no string. The folder is still reported, because where
+    things stand does not need the key; nothing is written, because a key
+    written into a file nobody can read, or beside one that already
+    disagrees, cannot make it agree.
     """
     kind, value = declared(home)
     if kind == "refused":
