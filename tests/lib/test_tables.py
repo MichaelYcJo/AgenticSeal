@@ -4,10 +4,10 @@ reach.
 #1454 moved the walker out of `lib/config.py`, which reads the settings as
 JSON, and its cases came with it from `tests/lib/test_config.py`. Each
 keeps its body, except that it calls the walker as `tables.<name>` and no
-longer takes the `config` and `seal` fixtures it did not read. The cases over an earlier release's `| Item | Value |`
-table stay as the walker's cases over the table `seal mode` converts, run
-under `Test_gfm_table` through `_Old_config_table` and
-`_Old_config_shapes`.
+longer takes the `config` and `seal` fixtures it did not read. The cases
+over an earlier release's `| Item | Value |` table stay as the walker's
+two-cell cases, run under `Test_gfm_table` through `_Old_config_table` and
+`_Old_config_shapes`; no shipped reader hands the walker that header.
 
 #942's phase 6 and its round 9 fix pass had placed in `tests/lib/test_config.py`
 three of the walker's cases and the refusal of a line shown directly above
@@ -77,7 +77,6 @@ from conftest import (
     census_case,
     crlf,
     load_lib_module,
-    load_module,
     names_path,
     shape_text,
 )
@@ -86,14 +85,6 @@ from test_blocks import CORPUS, as_read
 TARGET = "lib/tables.py"
 
 tables = load_lib_module("tables.py", "tables_under_test")
-# The old table's header, `lib/config.py#OLD_TABLE`, which `seal mode`'s
-# converter reads through the walker.
-config = load_lib_module("config.py", "config_for_the_walker_cases")
-# `seal mode`'s converter, which one case reads the walker's rows through.
-seal = load_module(
-    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
-    "seal_for_the_walker_cases",
-)
 
 # `tests/block_shapes.py`'s config shapes the comment cases read (#667).
 COMMENTED_OLD_ROW = shape_text("C5")
@@ -108,9 +99,11 @@ HEADERS = {
     # A one-cell table; the header's word is the corpus's, and no reader
     # asks for it.
     "signer": ("Signer",),
-    # An earlier release's `seal/config.md` table, read by this walker since
-    # #871 and, since #1454, only by `seal mode`'s conversion through
-    # `lib/config.py#OLD_TABLE` (`test_the_config_pass_is_the_config_readers_header`).
+    # A two-cell table, an earlier release's `seal/config.md` header, which
+    # the cases of `_Old_config_table` and `_Old_config_shapes` walk. No
+    # reader asks for it: the pass holds the walk over a header of more than
+    # one cell, which `pact_check.py#ANCHOR_TABLE` and
+    # `settle.py#JUDGMENTS_HEADER` hand it.
     "config": ("Item", "Value"),
 }
 
@@ -461,11 +454,10 @@ def leaves_both(new, base, renderer, count):
 def walk(text):
     """(rows, refusals) for TEXT's `| Item | Value |` table as
     `lib/tables.py#gfm_table` reads it: the table an earlier release's
-    `config.md` holds, which `seal mode` converts. ROWS are `(item, value)`
-    pairs in order, and REFUSALS the walker's sentences joined into one, its
-    `holds no` sentence left out: a text with no such table converts to no
-    key (`seal.py#converted`)."""
-    rows, refusals = tables.gfm_table(text, config.OLD_TABLE)
+    `config.md` holds. ROWS are `(item, value)` pairs in order, and
+    REFUSALS the walker's sentences joined into one, its `holds no`
+    sentence left out: a text with no such table reads as no row."""
+    rows, refusals = tables.gfm_table(text, HEADERS["config"])
     said = [line for line in refusals if not line.startswith("holds no ")]
     return [tuple(cells) for _line, cells in rows], " ".join(said)
 
@@ -476,10 +468,8 @@ def items(text):
 
 
 class _Old_config_table:
-    """`gfm_table` over an earlier release's `config.md` table, which
-    `seal mode` converts: what it reads is what the converter writes, and
-    what it refuses the converter refuses to write (#1454). `Test_gfm_table`
-    runs these cases."""
+    """`gfm_table` over an earlier release's `config.md` table, the walker's
+    two-cell cases. `Test_gfm_table` runs these cases."""
 
     def test_refuses_an_item_below_a_separator_out_of_place(self):
         """tests-todo row 9, from round 2 🟡 5, first shape — shape 8 of #871.
@@ -497,16 +487,12 @@ class _Old_config_table:
         assert rows == [(LANGUAGE_ROW, "Korean")]
         assert "stops at `|---|---|`, a delimiter row out of place" in said, said
 
-    def test_a_repeated_header_is_read_as_a_row_and_the_doubled_item_is_refused(
-        self,
-    ):
+    def test_a_repeated_header_is_read_as_a_row(self):
         """tests-todo row 9, second shape — shape 9 of #871. A second
         `| Item | Value |` line under the table with no delimiter row of its own
         is one of this table's rows to cmark-gfm, so the walker reads it as one,
-        and the row below it with it: the language is then written twice, which
-        has no value, so the converter writes nothing. Seen red against the
-        stop rule, which ended the table at the repeated header and read
-        `Korean`."""
+        and the row below it with it. Seen red against the stop rule, which
+        ended the table at the repeated header and read `Korean`."""
         text = (
             "| Item | Value |\n"
             "|---|---|\n"
@@ -519,8 +505,6 @@ class _Old_config_table:
             ("Item", "Value"),
             (LANGUAGE_ROW, "English"),
         ]
-        pairs, said = seal.converted(text)
-        assert pairs is None and f"`{LANGUAGE_ROW}` row written more" in said, said
 
     def test_a_blank_line_above_the_first_row_ends_the_table_and_the_row_is_refused(
         self,
@@ -616,8 +600,8 @@ class _Old_config_table:
             "escape is markdown's and is undone before anything else sees it"
         )
         assert dict(rows)["Mode"] == "shared", (
-            "the `Mode` row sits below the piped one, which is what `seal mode` "
-            "reads before deciding whether to write one"
+            "the `Mode` row sits below the piped one, so it arrives only where "
+            "the piped row did not end the table"
         )
 
     def test_a_windows_path_survives_the_reader_exactly_as_written(self):
@@ -914,7 +898,7 @@ class _Old_config_shapes:
         of the table's rows and the walk refuses it -- naming THAT line, never
         the fenced one.
         """
-        rows, refusals = tables.gfm_table(FENCED_REFUSAL, config.OLD_TABLE)
+        rows, refusals = tables.gfm_table(FENCED_REFUSAL, HEADERS["config"])
         assert rows == [], rows
         assert len(refusals) == 1, refusals
         assert "tee out.txt" not in refusals[0], (
@@ -1305,13 +1289,6 @@ class Test_gfm_table(_Old_config_table, _Old_config_shapes):
             "signer": 5454,
             "config": 5455,
         }, sizes
-
-    def test_the_config_pass_is_the_config_readers_header(self):
-        """The config pass is the config table's only where the header it walks
-        is the one `seal mode`'s conversion hands the walker (#871, #1454): a
-        pass over a header no reader uses would hold nothing. Seen red before
-        the header was a name of `lib/config.py`, as an `AttributeError`."""
-        assert HEADERS["config"] == config.OLD_TABLE
 
     @pytest.mark.parametrize(
         "above",

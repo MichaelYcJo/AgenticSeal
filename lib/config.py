@@ -35,15 +35,14 @@ clause being softened.
 
 Everything here fails toward "nothing is declared" -- except where a written
 answer would be read as absent. A file that is there and will not read or
-parse, a `config.md` an earlier release wrote standing without a
-`config.json`, and a key written twice or holding no string are refused by
+parse, and a key written twice or holding no string, are refused by
 `config_pairs` and `config_value` rather than read as nothing, and a
 command prints the refusal and stops: exit 2, or exit 1 for `seal pr-body`,
 which exits 1 on every refusal.
 
-The GFM table walker, which reads the tables of records and `seal mode`'s
-converter of a `config.md`, is `lib/tables.py`; no setting is read through
-it, and this module imports nothing beside the standard library.
+The GFM table walker, which reads the tables of records, is
+`lib/tables.py`; no setting is read through it, and this module imports
+nothing beside the standard library.
 """
 
 import json
@@ -55,9 +54,6 @@ CONFIG = "config.json"
 # by decoding `utf-8-sig`; `baseline_commit` and `pact_check.py#path_map` are
 # handed text already decoded, and take it off before they parse.
 BOM = chr(0xFEFF)
-# The file an earlier release wrote, a `| Item | Value |` table: refused
-# where it stands without a `config.json`, and converted by `seal mode`.
-OLD_CONFIG = "config.md"
 MODE_KEY = "Mode"
 
 # The two modes, spelled the way every document in this repository spells
@@ -65,18 +61,9 @@ MODE_KEY = "Mode"
 LOCAL, SHARED = "local", "shared"
 MODES = (LOCAL, SHARED)
 
-# The old file's table header, as the cells `lib/tables.py#gfm_table`
-# matches a header by: what `seal mode`'s converter reads `OLD_CONFIG`
-# through, and nothing else.
-OLD_TABLE = ("Item", "Value")
-
 
 def config_path(home):
     return os.path.join(home, CONFIG)
-
-
-def old_config_path(home):
-    return os.path.join(home, OLD_CONFIG)
 
 
 class Members(list):
@@ -110,14 +97,13 @@ def config_pairs(home):
     opened, and the one place an absent file is told from one nobody can
     read.
 
-      (None, None)     no `config.json` and no `config.md`, or a falsy HOME:
-                       nothing is declared
+      (None, None)     no `config.json`, or a falsy HOME: nothing is
+                       declared
       (pairs, None)    the file's object, as `Members` in file order
-      (None, refusal)  a `config.md` an earlier release wrote, with no
-                       `config.json` beside it; or a `config.json` that will
-                       not read as UTF-8, will not parse as JSON, or whose
-                       top level is not an object. REFUSAL is one sentence
-                       opening with the `config.json` path
+      (None, refusal)  a `config.json` that will not read as UTF-8, will
+                       not parse as JSON, or whose top level is not an
+                       object. REFUSAL is one sentence opening with the
+                       `config.json` path
 
     **A file nobody can read is refused, never read as absent.** An
     absent file is what every repository had before it wrote a key, so it
@@ -125,9 +111,7 @@ def config_pairs(home):
     one whose answer nobody can read, and a command a person runs prints the
     sentence and stops with nothing judged (exit 2, or exit 1 for
     `seal pr-body`), because a command that reads a
-    written answer as absent acts as if the person had written none. A
-    `config.md` standing alone is such an answer, written in the table an
-    earlier release read and no command reads now: `seal mode` converts it.
+    written answer as absent acts as if the person had written none.
 
     The text is decoded as `utf-8-sig`, so a byte order mark an editor wrote
     reads. A name that `lexists` but will not open -- a symbolic link to
@@ -137,8 +121,6 @@ def config_pairs(home):
         return None, None
     path = config_path(home)
     if not os.path.lexists(path):
-        if os.path.lexists(old_config_path(home)):
-            return None, unconverted_config(path)
         return None, None
     try:
         with open(path, encoding="utf-8-sig") as handle:
@@ -146,18 +128,6 @@ def config_pairs(home):
     except (OSError, ValueError) as exc:
         return None, unreadable_config(path, exc)
     return parse_config(text, path)
-
-
-def unconverted_config(path):
-    """The sentence `config_pairs` refuses a root holding `config.md` and no
-    `config.json` in, PATH being the `config.json` it looked for. It opens
-    with that path and ends with no full stop, so it reads after a
-    command's own prefix."""
-    return (
-        f"{path} is not there, and the {OLD_CONFIG} beside it is the table an "
-        f"earlier release read, which no command reads now — run `seal mode` "
-        f"once, which writes {CONFIG} from that table and removes {OLD_CONFIG}"
-    )
 
 
 def unreadable_config(path, exc):
@@ -579,16 +549,6 @@ def declared_pacts(home):
 # round record's `original:` line with it, and reads it through this one
 # function. Agents read the other keys.
 
-# The template's keys, in its order: what the sentence below names for a
-# person converting an earlier release's `parity.md`.
-PARITY_KEYS = (
-    "Original repo",
-    "Module",
-    "Baseline commit",
-    "Policy root",
-    "Coordinate-trust exceptions",
-    "Scope notes",
-)
 BASELINE_KEY = "Baseline commit"
 BASELINE_SHA = re.compile(r"[0-9a-f]{7,40}")
 
@@ -623,18 +583,3 @@ def baseline_commit(text):
             "commit is that value alone, 7 to 40 lowercase hex digits"
         )
     return value, None
-
-
-def unconverted_parity(path):
-    """The sentence an earlier release's `parity.md` standing without the
-    `parity.json` at PATH is named in, by the parity arm of `chain_check.py`
-    and by `seal mode`: the file to write, the template it is written from,
-    and each key of it. It reads after the old file's name and ends with no
-    full stop."""
-    keys = ", ".join(f"`{key}`" for key in PARITY_KEYS[:-1])
-    return (
-        "is the migration config an earlier release read, a table no check "
-        f"reads now — write {path} from `templates/setup/parity.json`, one "
-        f"JSON object holding {keys} and `{PARITY_KEYS[-1]}`, with "
-        f"`{BASELINE_KEY}` the SHA alone, then delete the old file"
-    )

@@ -8,10 +8,8 @@ pact anchor table of a work item's `frame/design.md`
 (`skills/verify/scripts/pact_check.py`), a plan's *Judgments of the run*
 (`skills/settle/scripts/settle.py`), the row `settle --draft` places
 (`skills/settle/scripts/rule_changes.py`) and the lines `seal rules` reads
-(`.github/scripts/rules.py`). `seal mode`'s
-converter reads an earlier release's `config.md` through it
-(`skills/implement/scripts/seal.py#converted`). No setting is read through
-it: `lib/config.py` reads `config.json` with the standard library's JSON
+(`.github/scripts/rules.py`). No setting is read through it:
+`lib/config.py` reads `config.json` with the standard library's JSON
 parser.
 
 What the walker does not read whole it refuses, naming the line, and a line
@@ -24,7 +22,8 @@ import sys
 
 # `lib/blocks.py` is a sibling, found by this file's own directory, so the
 # callers that load this module through `lib/sibling.py` -- `pact_check.py`,
-# `seal.py` -- find it too. `lib/routing.py` reaches `optin.py` the same way.
+# `settle.py`, `rule_changes.py` -- find it too. `lib/routing.py` reaches
+# `optin.py` the same way.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     import blocks
@@ -32,8 +31,7 @@ except ImportError as missing:
     # A sentence rather than a bare `ModuleNotFoundError`, and an exception
     # rather than an exit, because this is a module other code imports: a
     # script that loads this file catches the error or loads `blocks.py`
-    # first, which `lib/sibling.py#load` refuses in its own sentence
-    # (`skills/implement/scripts/seal.py`).
+    # first, which `lib/sibling.py#load` refuses in its own sentence.
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
@@ -230,9 +228,8 @@ def unfenced(lines, text=None):
 
 # --- one GFM table walker ----------------------------------------------------
 #
-# Tables are read out of markdown by name: a record's, and an earlier
-# release's `config.md`, which `seal mode` converts. One walker reads them
-# all, because two walkers are two break lists to keep in step, and the
+# Tables are read out of markdown by name, each a record's. One walker reads
+# them all, because two walkers are two break lists to keep in step, and the
 # drift between them is silent: a walker whose list ends the table at an
 # autolink row reads a signer written as one as nobody's, at exit 0.
 #
@@ -461,9 +458,10 @@ def gfm_table(text, header, beside=False):
                    a table of its own (`opens_table`): the walk steps over
                    that table, its delimiter row and every line under it up
                    to its end, and goes on refusing a `| … |` line after it.
-                   A caller whose file holds one table, an old `config.md`,
-                   leaves BESIDE false; the anchor table's reader sets it,
-                   because a frame's section holds other tables
+                   A caller whose text holds one table, the section of a
+                   plan's *Judgments of the run*, leaves BESIDE false; the
+                   anchor table's reader sets it, because a frame's section
+                   holds other tables
       a row        written `| … |` with the header's width
       anything     refused, saying what it is: a delimiter row out of place,
         else       a row of another width or without its outer pipes, or a

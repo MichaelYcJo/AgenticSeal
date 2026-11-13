@@ -61,13 +61,8 @@ CHANGELOG = "changelog.md"
 # `pr.<lang>.md` where the two language keys differ.
 PR = "pr.md"
 # The migration config, directly under the root: `chain_check.py` reads it at
-# HEAD under the shared root, and `seal mode` looks for it beside an
-# earlier release's `OLD_PARITY_CONFIG`.
+# HEAD under the shared root.
 PARITY_CONFIG = "parity.json"
-# The migration config an earlier release read, a `| Field | Value |` table:
-# `chain_check.py` refuses it where git carries it without `PARITY_CONFIG`,
-# and `seal mode` names it where it stands without one.
-OLD_PARITY_CONFIG = "parity.md"
 # An empty FILE under the common git directory; its existence is the whole
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory

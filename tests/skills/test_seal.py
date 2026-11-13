@@ -25,11 +25,10 @@ each case, whose root stands at `agentic-seal/`.
 `tests/test_the_mode_question_is_asked_once.py`, and the two cases of
 `seal.py`'s re-exports of the config reader, from that file and from
 `tests/behaviour/test_a_signer_declares_its_pact.py`. #1454 replaced the table
-writer with `write_mode`, which the serializer writes for, and added the
-converter of an earlier release's `config.md`. Its round 9 fix pass placed
-in `Test_module` the case that runs a copy of this script without `lib/`,
-from `tests/test_a_script_copied_alone_exits_2.py`, a case of this module
-alone.
+writer with `write_mode`, which the serializer writes for. Its round 9 fix
+pass placed in `Test_module` the case that runs a copy of this script
+without `lib/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
+of this module alone.
 """
 
 import datetime
@@ -43,10 +42,8 @@ import sys
 import types
 import zipfile
 
-import config_shapes
 import pytest
 from conftest import (
-    PIPED_TABLE,
     REMOTE,
     ROOT,
     ROOT_MARKER,
@@ -95,13 +92,6 @@ BESIDE_THE_ROOT = (
     "agentic-last-export.json",
 )
 WORKFLOW_PATH = os.path.join(".github", "workflows", "hygiene.yml")
-HEAD = "| Item | Value |\n|---|---|\n"
-# An earlier release's `config.md` writing `Mode` twice, which `seal mode`
-# converts to nothing.
-TWO_MODE_ROWS = (
-    "# Repository config\n\n" + HEAD + "| Mode | local |\n"
-    "| Record language | Korean |\n| Mode | shared |\n"
-)
 TWO_MODE_KEYS = config_json(
     ("Mode", "local"), ("Record language", "Korean"), ("Mode", "shared")
 )
@@ -400,37 +390,6 @@ class Test_module:
         assert done.returncode == 2, (done.returncode, done.stderr)
         lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
         said = SEAL.sibling.MISSING.format(path=os.path.normpath(lib))
-        assert done.stderr == said + "\n", done.stderr
-
-    def test_a_lib_without_the_table_walks_reader_exits_2_in_one_sentence(
-        self, tmp_path
-    ):
-        """#667. `lib/tables.py` imports `lib/blocks.py` by its plain name,
-        so this script loads `blocks.py` first: a `lib/` without it is the
-        loader's sentence at exit 2, not the import's traceback at 1."""
-        plugin = tmp_path / "plugin"
-        for rel in (TARGET, "lib/sibling.py", "lib/config.py", "lib/gitcmd.py"):
-            copy = plugin.joinpath(*rel.split("/"))
-            copy.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(os.path.join(ROOT, *rel.split("/")), copy)
-        shutil.copy(os.path.join(ROOT, "lib", "optin.py"), plugin / "lib")
-        shutil.copy(os.path.join(ROOT, "lib", "tables.py"), plugin / "lib")
-        repo = tmp_path / "repo"
-        repo.mkdir()
-        done = subprocess.run(
-            [
-                sys.executable,
-                str(plugin.joinpath(*TARGET.split("/"))),
-                "mode",
-                "--check",
-            ],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=str(repo),
-        )
-        assert done.returncode == 2, (done.returncode, done.stderr)
-        said = SEAL.sibling.MISSING.format(path=str(plugin / "lib" / "blocks.py"))
         assert done.stderr == said + "\n", done.stderr
 
     def test_the_template_carries_the_marker_and_the_placeholder(self):
@@ -2023,7 +1982,6 @@ class Test_write_mode:
             ("a key written twice", " writes `Broad gate` more than once"),
             ("a file that will not parse", " does not parse as JSON"),
             ("bytes that are not utf-8", " is there and cannot be read"),
-            ("a config.md standing alone", " is not there"),
         ],
     )
     def test_refuses_a_file_it_cannot_write_the_key_into_and_leaves_it(
@@ -2034,15 +1992,13 @@ class Test_write_mode:
         one of its two answers, which drops the other. Seen red against a
         writer over a dict: the doubled `Broad gate` came back as one key."""
         path = tmp_path / "config.json"
-        before, beside = None, tmp_path / "config.md"
+        before = None
         outside = tmp_path / "outside.json"
         if shape == "a link":
             outside.write_bytes(b"{}\n")
             symlink_or_skip(str(outside), str(path))
         elif shape == "a directory":
             path.mkdir()
-        elif shape == "a config.md standing alone":
-            beside.write_bytes(mode_row("local").encode())
         else:
             before = {
                 "a Mode key written twice": config_json(
@@ -2065,47 +2021,6 @@ class Test_write_mode:
             assert path.read_bytes() == before
         if shape == "a link":
             assert outside.read_bytes() == b"{}\n"
-        if shape == "a config.md standing alone":
-            assert (
-                not path.exists() and beside.read_bytes() == mode_row("local").encode()
-            )
-
-
-class Test_converted:
-    @pytest.mark.parametrize("number", sorted(config_shapes.SHAPES))
-    def test_accepts_each_shape_the_walker_reads_and_no_shape_it_refuses(self, number):
-        """S4 over the sixteen shapes of #871. A shape the walker reads whole
-        converts to its rows; a shape it refuses converts to nothing, in its
-        sentence, because a row it did not read may be any key and a file
-        written without it drops an answer. Seen red against a converter that
-        wrote the rows read above the stopping line: shapes 5 to 9 and 14
-        wrote a file."""
-        pairs, said = SEAL.converted(config_shapes.SHAPES[number])
-        stops = config_shapes.STOPS[number]
-        if stops is None:
-            assert (pairs, said) == (config_shapes.READ[number], "")
-        else:
-            assert pairs is None and stops in said, (pairs, said)
-
-    def test_accepts_a_piped_value_plain_and_a_file_with_no_table_as_no_key(self):
-        """S4. The walker reduces `\\|` to a plain pipe, and the JSON string
-        carries it as written; a text holding no `| Item | Value |` table is a
-        config that declared nothing."""
-        pairs, said = SEAL.converted(PIPED_TABLE)
-        assert said == "" and pairs == [
-            ("Record language", "English"),
-            ("Broad gate", "bin/test -q | tee out.txt"),
-            ("Mode", "shared"),
-            ("Commit and pull request language", "English"),
-        ]
-        assert SEAL.converted("# notes\n\nnothing here.\n") == ([], "")
-
-    def test_refuses_a_row_written_twice(self):
-        """S4 and #867. A row written twice has no value, so no file is
-        written from it. Seen red against a converter that kept the last."""
-        pairs, said = SEAL.converted(TWO_MODE_ROWS)
-        assert pairs is None, pairs
-        assert said.startswith("has a `Mode` row written more than once"), said
 
 
 class Test_porcelain:
@@ -2534,105 +2449,6 @@ class Test_mode_report:
         assert code == 0, out
         assert "not declared" in out
         assert not os.path.exists(os.path.join(home, "config.json"))
-
-    @pytest.mark.parametrize("mode", ["shared", "local"])
-    def test_converts_an_earlier_releases_config_md_and_removes_it(
-        self, take, capsys, mode
-    ):
-        """S4. Bare `seal mode` over a root holding `config.md` and no
-        `config.json` writes `config.json` with every row in order, the
-        pipe plain, removes `config.md`, and `seal mode --check` then
-        passes. Seen red against a `seal mode` that read the root as
-        declaring nothing and wrote `{"Mode": ...}` beside the old file."""
-        repo = take(mode)
-        old = config_at(repo, PIPED_TABLE.replace("shared", mode), "config.md")
-        code, out = said(capsys, repo, "mode")
-        assert code == 0, out
-        assert "config.md was converted: " in out, out
-        assert not os.path.lexists(old)
-        path = os.path.join(os.path.dirname(old), "config.json")
-        with open(path, encoding="utf-8") as handle:
-            assert handle.read() == config_json(
-                ("Record language", "English"),
-                ("Broad gate", "bin/test -q | tee out.txt"),
-                ("Mode", mode),
-                ("Commit and pull request language", "English"),
-            )
-        code, out = said(capsys, repo, "mode", "--check")
-        assert code == 0 and out.endswith("\nThey agree.\n"), out
-
-    @pytest.mark.parametrize(
-        "text, why",
-        [
-            (TWO_MODE_ROWS, "has a `Mode` row written more than once"),
-            (
-                PIPED_TABLE.replace("\\|", "|"),
-                "stops at `| Broad gate | bin/test -q | tee out.txt |`",
-            ),
-        ],
-        ids=["a row written twice", "a table the walker refuses"],
-    )
-    def test_refuses_to_convert_a_table_it_cannot_read_whole(
-        self, take, capsys, text, why
-    ):
-        """S4. A table the walker refuses, or one writing a row twice, is
-        converted to nothing: the sentence is printed, the command exits 2,
-        and the person's file is left as it was."""
-        repo = take("shared")
-        old = config_at(repo, text, "config.md")
-        before = snapshot(repo)
-        code, out = said(capsys, repo, "mode")
-        assert code == 2, out
-        assert out.startswith(old + " ") and why in out, out
-        assert "Nothing was written and config.json was not made." in out, out
-        assert snapshot(repo) == before
-
-    def test_check_refuses_an_unconverted_config_and_names_seal_mode(
-        self, take, capsys
-    ):
-        """S3. `seal mode --check` writes nothing, so over an unconverted
-        `config.md` it exits 2 naming the command that converts it."""
-        repo = take("shared")
-        old = config_at(repo, HEAD + "| Mode | shared |\n", "config.md")
-        before = snapshot(repo)
-        code, out = said(capsys, repo, "mode", "--check")
-        assert code == 2, out
-        assert "run `seal mode` once" in out and out.endswith("Nothing was written.\n")
-        assert os.path.lexists(old) and snapshot(repo) == before
-
-    def test_reads_config_json_and_names_a_config_md_beside_it(self, take, capsys):
-        """S4. With both files, `config.json` is the one read, and the old file
-        is named and left in place for the person to delete."""
-        repo = take("shared")
-        old = config_at(repo, TWO_MODE_ROWS, "config.md")
-        config_at(repo, mode_row("shared"))
-        code, out = said(capsys, repo, "mode")
-        assert code == 0 and out.endswith("\nThey agree.\n"), out
-        assert out.startswith("note: seal/config.md stands beside config.json"), out
-        assert os.path.lexists(old)
-
-    @pytest.mark.parametrize("check", [[], ["--check"]], ids=["bare", "checked"])
-    def test_names_a_parity_md_standing_without_a_parity_json_and_its_keys(
-        self, take, capsys, check
-    ):
-        """Design *Scope* items 2 and 4. `seal mode` converts no migration
-        config, so where an earlier release's `parity.md` stands without a
-        `parity.json` it names the file and the keys to write, writes
-        nothing for it and exits as the mode alone gives; a `parity.json`
-        beside it ends the note. Seen red against a `seal mode` that said
-        nothing of it."""
-        repo = take("shared")
-        config_at(repo, mode_row("shared"))
-        old = config_at(repo, "| Field | Value |\n|---|---|\n", "parity.md")
-        before = snapshot(repo)
-        code, out = said(capsys, repo, "mode", *check)
-        assert code == 0 and out.endswith("\nThey agree.\n"), out
-        sentence = SEAL.repo_config.unconverted_parity("seal/parity.json")
-        assert out.startswith(f"note: seal/parity.md {sentence}\n"), out
-        assert snapshot(repo) == before and os.path.lexists(old)
-        config_at(repo, "{}\n", "parity.json")
-        code, out = said(capsys, repo, "mode", *check)
-        assert code == 0 and "parity.md" not in out, out
 
     @pytest.mark.parametrize("mode, other", [("shared", "local"), ("local", "shared")])
     def test_refuses_a_row_naming_the_other_mode_and_names_both_ways_out(

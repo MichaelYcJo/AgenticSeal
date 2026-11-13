@@ -20,8 +20,7 @@ way:
 section on the mode below this one is its reasoning:
 
   seal mode                   the folder, the `Mode` key, and whether they
-                              agree; first converts an earlier release's
-                              seal/config.md into seal/config.json
+                              agree
   seal mode --check           the same, writing nothing; exit 1 when they
                               disagree. This is what CI runs
   seal mode local|shared      switch, and write the key
@@ -194,11 +193,6 @@ except ImportError:
 repo_config = sibling.load("lib/config.py")
 gitcmd = sibling.load("lib/gitcmd.py")
 optin = sibling.load("lib/optin.py")
-# `lib/tables.py` imports `lib/blocks.py` by its plain name, which finds this
-# instance, so a `lib/` without it is the loader's sentence at exit 2 rather
-# than the import's traceback.
-sibling.load("lib/blocks.py")
-tables = sibling.load("lib/tables.py")
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -1381,11 +1375,9 @@ def write_members(archive, into):
 # The config is READ in `lib/config.py` and WRITTEN here. Every script that
 # reads a setting imports that module and never this command, and these
 # aliases keep one implementation, reached by the name each caller already
-# spells. The writer -- `write_mode`, `serialized` -- and the
-# converter of an earlier release's `config.md` -- `convert` -- stay here,
-# because writing the file is this command's job and nothing else does it.
+# spells. The writer -- `write_mode`, `serialized` -- stays here, because
+# writing the file is this command's job and nothing else does it.
 CONFIG = repo_config.CONFIG
-OLD_CONFIG = repo_config.OLD_CONFIG
 MODE_KEY = repo_config.MODE_KEY
 LOCAL, SHARED = repo_config.LOCAL, repo_config.SHARED
 MODES = repo_config.MODES
@@ -1428,7 +1420,6 @@ def under(root, rel):
 
 
 config_path = repo_config.config_path
-old_config_path = repo_config.old_config_path
 
 
 declared = repo_config.declared_mode
@@ -1446,7 +1437,7 @@ def plain(value):
 
 def serialized(pairs):
     """PAIRS, a config's members with no key written twice, as the file
-    `write_mode` and `convert` write: the standard library's serializer,
+    `write_mode` writes: the standard library's serializer,
     two spaces of indentation, every character as written, one `\\n` at the
     end."""
     members = plain(repo_config.Members(pairs))
@@ -1516,62 +1507,6 @@ def write_mode(home, value):
     else:
         pairs[at] = (MODE_KEY, value)
     return write_file(path, serialized(pairs))
-
-
-def converted(text):
-    """(pairs, refusal) for TEXT, an earlier release's `config.md`: every
-    row of its `| Item | Value |` table, as `lib/tables.py#gfm_table` reads
-    it, in order, or the sentence nothing is written for.
-
-    A text holding no such table converts to no key. A table the walker
-    refuses converts to nothing, in the walker's sentence: a row it did not
-    read may be any key, so a file written without it drops an answer. A
-    row written twice converts to nothing too, because no one of the two is
-    the answer. A value comes as the walker reads it, stripped and
-    with `\\|` reduced to a plain pipe, so a JSON string carries it as
-    written."""
-    rows, refusals = tables.gfm_table(text, repo_config.OLD_TABLE)
-    if refusals and refusals[0].startswith("holds no "):
-        return [], ""
-    if refusals:
-        return None, refusals[0]
-    pairs = [(item, value) for _line, (item, value) in rows]
-    doubled = [item for k, (item, _v) in enumerate(pairs) if item in dict(pairs[:k])]
-    if doubled:
-        return None, (
-            f"has a `{doubled[0]}` row written more than once, and a row written "
-            "twice has no value — delete all but one"
-        )
-    return pairs, ""
-
-
-def convert(home):
-    """Write `<home>/config.json` from `<home>/config.md`'s table and remove
-    `config.md`; "" or why not, where the root holds `config.md` and no
-    `config.json`, and "" with nothing done otherwise.
-
-    Nothing is written where the table does not convert (`converted`), and
-    `config.md` is removed only once `config.json` is written, so a refusal
-    or a failed write leaves the person's file exactly as it was."""
-    path, old = config_path(home), old_config_path(home)
-    if os.path.lexists(path) or not os.path.lexists(old):
-        return ""
-    try:
-        with open(old, encoding="utf-8-sig") as handle:
-            text = handle.read()
-    except (OSError, ValueError) as exc:
-        return f"{old} could not be read ({exc}). Nothing was written"
-    pairs, refused = converted(text)
-    if refused:
-        return f"{old} {refused}. Nothing was written and {CONFIG} was not made"
-    failed = write_file(path, serialized(pairs))
-    if failed:
-        return f"{failed}. {OLD_CONFIG} was left as it was"
-    try:
-        os.remove(old)
-    except OSError as exc:
-        return f"{path} was written, and {old} could not be removed ({exc})"
-    return ""
 
 
 def porcelain(repo, *paths):
@@ -2141,9 +2076,8 @@ def say_report(repo, home, shared, local, current, kind, value):
 
 def mode_refusal(home):
     """The sentence `seal mode` refuses the root's `config.json` in, or "":
-    `lib/config.py#config_pairs`' own sentence for a file it refuses, a
-    `config.md` standing alone among them, and for a key written twice the
-    writer's (`doubled_keys`) -- the two things `write_mode` would refuse,
+    `lib/config.py#config_pairs`' own sentence for a file it refuses, and
+    for a key written twice the writer's (`doubled_keys`) -- the two things `write_mode` would refuse,
     so a switch is refused before anything moves."""
     pairs, refused = repo_config.config_pairs(home)
     if refused:
@@ -2156,50 +2090,18 @@ def mode_report(args, repo, home, shared, local, current):
     """`seal mode` and `seal mode --check`: the folder, the key, and whether
     they agree. The folder is never moved here.
 
-    **Bare `seal mode` converts an earlier release's `config.md` first**,
-    where the root holds it and no `config.json`: `convert` writes
-    `config.json` from its table and removes it, or writes nothing and the
-    command exits 2 with the sentence. A `config.md` standing beside a
-    `config.json` is named and left alone: the JSON is the file read.
-
     An absent key is written from the folder. The value is an observation
     this command just made, so it cannot be wrong; nothing falls back to a
     default, because there is none. `--check` writes nothing at all: it runs
     in CI, and a check that mutates the tree it checks is not a check.
 
     **A refused file is reported and exits 2, with or without `--check`**:
-    a `config.json` that will not read or parse, a `config.md`
-    standing without one, or a `Mode` key written twice or holding no
-    string. The folder is still reported, because where things stand does
+    a `config.json` that will not read or parse, or a `Mode` key written
+    twice or holding no string. The folder is still reported, because where things stand does
     not need the key; nothing is written, because a key written into a file
     nobody can read, or beside one that already disagrees, cannot make it
     agree.
-
-    **An earlier release's `parity.md` is named, never converted**: where it
-    stands without a `parity.json`, a note names the keys to write
-    (`lib/config.py#unconverted_parity`), and the exit is what the mode
-    gives. Its prose and its exceptions table are a person's to move.
     """
-    parity = os.path.join(home, optin.PARITY_CONFIG)
-    old_parity = os.path.join(home, optin.OLD_PARITY_CONFIG)
-    if os.path.lexists(old_parity) and not os.path.lexists(parity):
-        said = repo_config.unconverted_parity(display(repo, parity))
-        print(f"note: {display(repo, old_parity)} {said}")
-    old, path = old_config_path(home), config_path(home)
-    if os.path.lexists(old) and os.path.lexists(path):
-        print(
-            f"note: {display(repo, old)} stands beside {CONFIG}, and nothing "
-            f"reads it — delete it once {CONFIG} holds what it says"
-        )
-    elif os.path.lexists(old) and not args.check:
-        failed = convert(home)
-        if failed:
-            print(f"{failed}.")
-            return 2
-        print(
-            f"{display(repo, old)} was converted: {display(repo, path)} holds "
-            f"its rows as keys, and {OLD_CONFIG} was removed"
-        )
     kind, value = declared(home)
     if kind == "refused":
         say_report(repo, home, shared, local, current, kind, value)

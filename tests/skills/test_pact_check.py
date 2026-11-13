@@ -853,29 +853,17 @@ class Test_check:
         ) in out, out
         assert f"READ {SIGNER_URL} " in out and " 1 ok " in out, out
 
-    @pytest.mark.parametrize(
-        "name, text, said",
-        [
-            ("config.json", '{"Pact signers": "x",}\n', "does not parse as JSON ("),
-            (
-                "config.md",
-                "| Item | Value |\n|---|---|\n| Mode | shared |\n",
-                "is not there, and the config.md beside it is the table an "
-                "earlier release read",
-            ),
-        ],
-        ids=["will not parse", "an earlier release's config.md"],
-    )
-    def test_refuses_a_pact_config_that_will_not_read(self, world, name, text, said):
+    def test_refuses_a_pact_config_that_will_not_read(self, world):
         """The pact's repository's config refused by
         `lib/config.py#config_pairs` is `UNREADABLE` at exit 2, in the
         reader's sentence after the path, and nothing else is read."""
-        (world.api / "seal" / "config.json").unlink()
-        write(world.api, f"seal/{name}", text)
+        write(world.api, "seal/config.json", '{"Pact signers": "x",}\n')
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
-        assert out.startswith(f"UNREADABLE seal/config.json — {said}"), out
+        assert out.startswith(
+            "UNREADABLE seal/config.json — does not parse as JSON ("
+        ), out
         assert "READ" not in out.replace("UNREADABLE", ""), out
 
     @pytest.mark.parametrize(

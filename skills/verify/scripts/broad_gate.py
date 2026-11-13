@@ -649,10 +649,8 @@ def broad_command(home):
     one: no file, no key, and an empty value.
 
     **What will not read is refused, not read as no key**: a config
-    `lib/config.py#config_pairs` refuses -- one that will not read or
-    parse, or a `config.md` an earlier release wrote standing without a
-    `config.json` -- and a `Broad gate` key written twice or holding no
-    string. Each raises `Refused` naming the path, so the broad gate exits 2
+    `lib/config.py#config_pairs` refuses, one that will not read or
+    parse, and a `Broad gate` key written twice or holding no string. Each raises `Refused` naming the path, so the broad gate exits 2
     with nothing run. Read as no key, an unreadable file would be reported
     as a missing one, which sends a person to add a key the file already
     holds, and a doubled key would run one of its commands."""

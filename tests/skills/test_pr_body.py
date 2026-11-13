@@ -1132,25 +1132,21 @@ class Test_main:
                 "`Record language` appears 2 times — one value",
             ),
             ("unparseable", "does not parse as JSON ("),
-            ("unconverted", "is not there, and the config.md beside it"),
         ],
         ids=[
             "a config that will not read",
             "a row written twice",
             "a config that will not parse",
-            "an unconverted config",
         ],
     )
     def test_refuses_a_language_row_no_one_reads_naming_no_machine_path(
         self, tmp_path, capsys, unread, said
     ):
         """#1453, *Data & interfaces*: a `config.json` that will not read or
-        parse, a key written twice, and since #1454 an earlier release's
-        `config.md` standing alone, which names `seal mode`, reach the
-        command as a refusal at `config.json`, in `lib/config.py`'s
-        sentence. The file is named once, by its path under the `seal/` root
-        and not by the machine's, since the sealer copies the line into a
-        committed `guarantee.md`. Seen red against `pr_body.py` as the merged
+        parse, and a key written twice, reach the command as a refusal at
+        `config.json`, in `lib/config.py`'s sentence. The file is named once,
+        by its path under the `seal/` root and not by the machine's, since
+        the sealer copies the line into a committed `guarantee.md`. Seen red against `pr_body.py` as the merged
         base left it, where the command exited 0."""
         rows = [*LANGUAGES, ("Record language", "English")]
         item = item_of(tmp_path, RECORDS, rows=rows)
@@ -1160,20 +1156,12 @@ class Test_main:
             config.mkdir()
         elif unread == "unparseable":
             config.write_text('{"Record language": "English",}\n', encoding="utf-8")
-        elif unread == "unconverted":
-            config.unlink()
-            (tmp_path / "seal" / "config.md").write_text(
-                "| Item | Value |\n|---|---|\n| Record language | English |\n",
-                encoding="utf-8",
-            )
         body = tmp_path / "pr-body.md"
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body)]) == 1
         [line] = capsys.readouterr().out.splitlines()
         assert line.startswith(f"refused: seal/config.json: {said}"), line
         assert str(tmp_path) not in line
-        if unread == "unconverted":
-            assert "run `seal mode` once" in line, line
 
     @pytest.mark.parametrize(
         "rows, translations, first, names",

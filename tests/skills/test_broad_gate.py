@@ -583,15 +583,13 @@ class Test_broad_command:
         [
             ("config.json", b'{"Mode": "\xff\xfe"}\n', "is there and cannot be read"),
             ("config.json", b'{"Broad gate": "x",}\n', "does not parse as JSON"),
-            ("config.md", b"| Item | Value |\n|---|---|\n", "run `seal mode` once"),
         ],
-        ids=["undecodable", "unparseable", "unconverted"],
+        ids=["undecodable", "unparseable"],
     )
     def test_refuses_a_file_that_will_not_read(self, tmp_path, name, data, said):
-        """S2 and S3. A file the reader refuses is refused for the gate, in
-        the reader's sentence opening with the `config.json` path, so the
-        gate exits 2 with nothing run; an earlier release's `config.md`
-        standing alone names the command that converts it."""
+        """S2. A file the reader refuses is refused for the gate, in the
+        reader's sentence opening with the `config.json` path, so the gate
+        exits 2 with nothing run."""
         mark_root(tmp_path / "seal")
         (tmp_path / "seal" / name).write_bytes(data)
         path = os.path.join(str(tmp_path / "seal"), "config.json")
@@ -631,15 +629,13 @@ class Test_missing_row:
         assert "Take it to whoever owns the repository" in said
         assert said.endswith("Nothing ran.")
 
-    def test_refuses_to_send_a_person_to_the_table_no_command_reads(self, tmp_path):
-        """#1454. The key is missing from `config.json`, the file every command
-        reads, so the refusal names that file and not the root's `config.md`,
-        which a person would open and add a row to that nothing reads. Seen
-        red against the refusal that joined `config.md` to the root."""
+    def test_names_the_config_json_path_the_key_is_missing_from(self, tmp_path):
+        """The key is missing from `config.json`, the file every command
+        reads, so the refusal names that file by its path, which a person
+        opens to add the key."""
         home = home_with(tmp_path, config_of(None))
         said = gate.missing_row(home)
         assert f"seal gate: {os.path.join(home, 'config.json')} has no" in said
-        assert os.path.join(home, "config.md") not in said, said
 
     def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one(self):
         """The only reader standing in front of this message is a session, so
@@ -2230,18 +2226,6 @@ class Test_gate:
         write(repo, "seal/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
-            gate.gate(namespace(repo, keep))
-        assert not keep.exists()
-
-    def test_refuses_an_unconverted_config_and_names_seal_mode(self, repo, tmp_path):
-        """S3. A root an earlier release wrote holds `config.md` and no
-        `config.json`: the gate refuses naming `seal mode`, which `main`
-        exits 2 on, and nothing runs. Seen red against a gate that read the
-        root as declaring nothing and asked a person for the key."""
-        os.remove(repo / "seal" / "config.json")
-        write(repo, "seal/config.md", f"| Item | Value |\n|---|---|\n| {ROW} | x |\n")
-        keep = tmp_path / "out"
-        with pytest.raises(gate.Refused, match=r"run `seal mode` once.*Nothing ran$"):
             gate.gate(namespace(repo, keep))
         assert not keep.exists()
 

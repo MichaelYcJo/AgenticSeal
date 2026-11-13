@@ -4,8 +4,7 @@ function its cases reach.
 #1454 moved the settings out of a markdown table, so the cases that pinned
 the walker's refusals of the `| Item | Value |` table as a settings reader
 left with that reader. The walker moved to `lib/tables.py`, and its own
-cases, those over an earlier release's `config.md` among them, are in
-`tests/lib/test_tables.py`. The cases of the pact's `| Signer |` table and
+cases are in `tests/lib/test_tables.py`. The cases of the pact's `| Signer |` table and
 of the header 0.18.x wrote left with their reader too, and the pact's
 signers are read from a `Pact signers` key.
 
@@ -38,7 +37,6 @@ from conftest import (
     PACT_URL,
     ROOT,
     SIGNER_URL,
-    TABLE,
     URL,
     V2,
     census_case,
@@ -52,7 +50,6 @@ from conftest import (
     signer_config,
     write,
     write_config,
-    write_old_config,
     write_unreadable,
 )
 from conftest import config_json as table
@@ -301,22 +298,18 @@ class Test_config_pairs:
         )
         assert config.declared_mode(str(tmp_path)) == ("refused", refusal)
 
-    def test_refuses_a_config_md_standing_alone_and_names_seal_mode(
-        self, config, tmp_path
-    ):
+    def test_reads_a_config_md_standing_alone_as_no_file(self, config, tmp_path):
         """S3. A root an earlier release wrote holds `config.md` and no
-        `config.json`. Its rows are answers in the table no reader reads now,
-        so every key is refused naming the command that converts it, and none
-        reads as absent; beside a `config.json` it is not read at all. Seen red
-        against a reader that answered the root as declaring nothing."""
-        write_old_config(tmp_path, TABLE.format(rows="| Mode | shared |\n"))
-        path = str(tmp_path / "config.json")
-        pairs, refusal = config.config_pairs(str(tmp_path))
-        assert pairs is None and refusal.startswith(path + " is not there"), refusal
-        assert "run `seal mode` once" in refusal, refusal
-        assert config.declared_mode(str(tmp_path))[0] == "refused"
-        write_config(tmp_path, table(("Mode", "local")))
-        assert config.declared_mode(str(tmp_path)) == ("mode", "local")
+        `config.json`. No reader opens that table, so the root declares
+        nothing, as a root holding no file does: no key, and no refusal
+        naming the old file or a command that converts it. Seen red against
+        the reader that refused the root naming `seal mode`."""
+        (tmp_path / "config.md").write_text(
+            "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
+            encoding="utf-8",
+        )
+        assert config.config_pairs(str(tmp_path)) == (None, None)
+        assert config.declared_mode(str(tmp_path)) == ("none", "")
 
 
 class Test_unreadable_config:
@@ -752,27 +745,6 @@ class Test_baseline_commit:
 
 
 class Test_module:
-    def test_an_old_parity_md_is_named_with_every_key_the_template_holds(self):
-        """S6 and design *Scope* item 4: `unconverted_parity`, the sentence
-        the parity arm refuses an earlier release's `parity.md` in and `seal
-        mode` names one in, names the file to write, the template it is
-        written from and each of the template's keys, so a person converts
-        it without opening another page. The sentence builds from
-        `PARITY_KEYS`, held here to the template's keys in order. Its
-        readers' cases are in `tests/skills/test_chain_check.py` and
-        `tests/skills/test_seal.py`."""
-        with open(
-            os.path.join(ROOT, "templates", "setup", "parity.json"), encoding="utf-8"
-        ) as handle:
-            template = handle.read()
-        keys = tuple(k for k, _v in parity_members(template))
-        assert keys == config.PARITY_KEYS
-        said = config.unconverted_parity("seal/parity.json")
-        assert "write seal/parity.json" in said, said
-        assert "`templates/setup/parity.json`" in said, said
-        for key in keys:
-            assert f"`{key}`" in said, (key, said)
-
     @pytest.mark.parametrize(
         "value, root",
         [

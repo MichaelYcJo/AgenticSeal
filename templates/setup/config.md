@@ -52,18 +52,6 @@ nothing written. `seal rules`,
 Whoever writes the file repairs it by deleting the extra key or by
 correcting the JSON.
 
-**An earlier release's `config.md` is converted once, by `seal mode`.**
-Earlier releases kept these items in `config.md`, a `| Item | Value |`
-table. Where the root holds `config.md` and no `config.json`, every command
-that refuses a config it cannot read (`seal fold`, `seal gate`, `seal mode`,
-`seal pact`, `seal pr-body`) refuses it and names `seal mode`, and the
-readers of `Policy root` and `Reference specs` read their defaults. Bare
-`seal mode` writes `config.json` from the table's rows, in their order, and
-removes `config.md`. A table it cannot read whole, or a row written twice,
-writes nothing and prints why.
-Where both files stand, `config.json` is read and `seal mode` names
-`config.md` as left in place.
-
 ```json
 {
   "Commit and pull request language": "English",
