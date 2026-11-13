@@ -382,8 +382,8 @@ def main(argv=None):
         prog="seal pr-wait",
         description="Wait on a pull request's checks at HEAD, and answer with "
         "one exit code per outcome: 0 passed, 1 failed or cancelled, 2 could "
-        "not ask, 3 no check within two minutes, 4 merged, 5 closed, "
-        "6 conflicting.",
+        "not ask, 3 the wait never reached HEAD's checks within two minutes "
+        "or the head left HEAD, 4 merged, 5 closed, 6 conflicting.",
     )
     parser.add_argument("number", type=_number, help="the pull request's number")
     parser.add_argument(
