@@ -629,7 +629,9 @@ class Test_missing_row:
         assert "Take it to whoever owns the repository" in said
         assert said.endswith("Nothing ran.")
 
-    def test_names_the_config_json_path_the_key_is_missing_from(self, tmp_path):
+    def test_refuses_naming_the_config_json_path_the_key_is_missing_from(
+        self, tmp_path
+    ):
         """The key is missing from `config.json`, the file every command
         reads, so the refusal names that file by its path, which a person
         opens to add the key."""
