@@ -82,6 +82,12 @@ below stands, whatever release the plugin is on, and that a person who
 holds one does by hand what the removed paths did, each as one clause:
 ```
 
+```seal
+verdict: fixed 874b25a46
+location: `seal/threads/1794530293-three-compatibility-paths-still-stand/gaps.md:10`
+answer: The finding holds, and its frame half is the orchestrator's fold in `567f4d78e`. `874b25a46` rewrites the opening of the *Updating* line at `changelog.md:8` from the folded *Scope* item 12, in the fix pass's own words rather than the paste-ready text: "nothing to do where none of the files below stands, whatever release the plugin is on", then that until this release `/agentic:update` and `seal mode` dealt with these files only where they ran, so reaching 0.37.0 or later took none of them out, then "Where one stands, do by hand what the removed paths did." The paste-ready second sentence said a repository "where no command read a setting on 0.37.x" can still hold `seal/config.md`; a repository where such a command ran and refused the file also still holds it, since only `seal mode` converted it, so the line states the cause, not one instance of it. The five acts after it are unchanged. `acecc2e12` rewrites the S7 row of `gaps.md`, which said "for a person on 0.36.x or earlier", to the folded S7.
+```
+
 ### 2. The comment above `lib/tables.py`'s import of `blocks` lists three callers that load the walker through `lib/sibling.py`, and a fourth does
 
 ```seal
@@ -111,6 +117,11 @@ the next caller, so the fix drops it rather than adding the fourth name:
 The phase record's sentence at `trail/phases/phase-1.md:43-44` states the
 same list, and the fix pass owes it too: either the same rewording, or a
 clause that `rules.py` was missed.
+
+```seal
+verdict: fixed 305a9b838
+answer: The finding holds: `.github/scripts/rules.py#SIBLINGS` maps `tables` to `lib/tables.py` and reads it through `lib/sibling.py` (read, `:112-120`, `:156`). `305a9b838` applies the paste-ready comment at `lib/tables.py:23-25` as given, so it names no caller; the module still imports (executed). The phase record's sentence is left as it stands: a fix pass writes no phase record (`skills/implement/fix-pass.md` *The close blocks, last*), and `trail/phases/phase-1.md` records what phase 1 found at `3fb5b69cd`, which this close block corrects: the list it names missed `rules.py`.
+```
 
 ## Confirmations
 
