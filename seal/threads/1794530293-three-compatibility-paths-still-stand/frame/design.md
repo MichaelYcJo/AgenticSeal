@@ -107,11 +107,17 @@ The tree as read at `dda87704c`.
     0.38.1.`, then an *Updating* line. The *Updating* line names who holds
     what by the files themselves, not by the release the plugin runs: the
     plugin version is one machine's, and reaching 0.37.0 took none of these
-    files out, since until this release `/agentic:update` and `seal mode`
-    dealt with them only where they ran. It says that nothing is to do
-    where none of the files below stands, whatever release the plugin is
-    on, and that a person who holds one does by hand what the removed paths
-    did, each as one clause:
+    files out. Until this release each command dealt with its file only
+    where it ran, and two files no command ever dealt with: `seal mode`
+    converted `seal/config.md`; `seal mode` and `chain-check` named
+    `seal/parity.md` and the keys to write, and converted nothing;
+    `/agentic:update` took the `CLAUDE.md` block out and named the
+    launcher; no command converted the pact's `| Signer |` table or
+    `~/.claude/agentic/pact-paths.md` (base `README.md:101-108`, "Three
+    files no command converts", read at `8f6acbb0e`). It says that nothing
+    is to do where none of the files below stands, whatever release the
+    plugin is on, and that a person who holds one does each act below by
+    hand, each as one clause:
     write `seal/config.json` from `templates/setup/config.md` with the rows
     of `seal/config.md` as its keys and delete `seal/config.md`, since no
     command reads that file and every key reads as absent until then (G6);
@@ -168,7 +174,7 @@ which the settle writes (G1). No phase edits `docs/`.
 | S4. The update takes nothing out | Given `/agentic:update`, when a session follows `skills/update/SKILL.md`, then its steps are 1, 2, 2b, 3 and 4, none opens a `CLAUDE.md` or reads `${CLAUDE_PLUGIN_DATA}`, and an already-current update stops at step 2 | `tests/behaviour/test_update_reads_the_config_directory_in_use.py`; `git grep -n -E 'agentic:start\|CLAUDE_PLUGIN_DATA\|4b' skills/update` finds nothing |
 | S5. The template and its exemption leave together | Given the tree after phase 2, when `test_every_template_is_named_by_a_document_that_ships` runs, then it exempts no template and finds every template named | that case; `git ls-files templates/setup/claude-md-block.md` lists nothing |
 | S6. The READMEs name no path | Given both editions, when a person reads *Updating* / *업데이트* and *What runs on your machine* / *내 컴퓨터에서 도는 것*, then neither names `seal/config.md`, `seal/parity.md`, the `CLAUDE.md` block or the launcher | `git grep -n -E 'config\.md\|parity\.md\|launcher\|실행기\|4b' README.md README.ko.md` finds only `templates/setup/config.md` if anything; `tests/behaviour/test_both_editions_carry_the_same_folds.py` |
-| S7. A person who still holds a file a removed path dealt with is told what to do | Given the 0.38.1 note, when `/agentic:update` step 3 prints it, then its *Updating* line names each by-hand act of *Scope* item 12, each by the file it acts on, and ties none to the release the plugin runs | the proofer and the sealer read `changelog.md` against *Scope* item 12 |
+| S7. A person who still holds a file the *Updating* line names is told what to do | Given the 0.38.1 note, when `/agentic:update` step 3 prints it, then its *Updating* line names each by-hand act of *Scope* item 12, each by the file it acts on, and ties none to the release the plugin runs | the proofer and the sealer read `changelog.md` against *Scope* item 12 |
 | S8. No tree text gives the old date | Given the tree after phase 2, when searched, then 2027-02-07 stands only in #1492's records other than its `changelog.md`, and in this work item's records, which quote it | `git grep -n 2027-02-07` |
 | S9. The version moves with the fragment | Given the phase 2 commit that adds this work item's `changelog.md`, then `.claude-plugin/plugin.json` reads `0.38.1` at that commit | `git show <commit> -- .claude-plugin/plugin.json` |
 
