@@ -881,7 +881,8 @@ def git_repo(where):
     return where
 
 
-# An earlier release's `config.md` text with its `Item | Value` table;
+# An earlier release's `config.md` text with its `Item | Value` table, which
+# the table walker's two-cell cases in `tests/lib/test_tables.py` read;
 # `{rows}` takes the rows.
 TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
@@ -891,11 +892,10 @@ def config():
     return load_lib_module("config.py", "agentic_config_for_tests")
 
 
-# Earlier releases' `config.md` texts, which the table walker's cases in
-# `tests/lib/test_tables.py` and `seal mode`'s converter's in
-# `tests/skills/test_seal.py` both read. A row that parses comes first in the
-# piped table, because the walker stops at the first line it refuses (#415,
-# #871).
+# Earlier releases' `config.md` texts, which the table walker's two-cell
+# cases in `tests/lib/test_tables.py` read. A row that parses comes first in
+# the piped table, because the walker stops at the first line it refuses
+# (#415, #871).
 PIPED_TABLE = (
     "# Repository config\n\n"
     "| Item | Value |\n|---|---|\n"
@@ -974,14 +974,6 @@ def write_config(home, text):
     """TEXT written as `<home>/config.json`, HOME made where it is missing."""
     os.makedirs(str(home), exist_ok=True)
     with open(os.path.join(str(home), "config.json"), "w", encoding="utf-8") as f:
-        f.write(text)
-
-
-def write_old_config(home, text):
-    """TEXT written as `<home>/config.md`, the file an earlier release read,
-    HOME made where it is missing."""
-    os.makedirs(str(home), exist_ok=True)
-    with open(os.path.join(str(home), "config.md"), "w", encoding="utf-8") as f:
         f.write(text)
 
 

@@ -282,15 +282,13 @@ class Test_main:
             ("directory", "is there and cannot be read"),
             ("undecodable", "is there and cannot be read"),
             ("unparseable", "does not parse as JSON"),
-            ("unconverted", "run `seal mode` once"),
         ],
     )
     def test_an_unreadable_config_is_refused_not_read_as_no_row(
         self, tmp_path, shape, said
     ):
-        """S3 of #867 and S2 and S3 of #1454, `seal fold`'s half. A
-        `config.json` that is there and will not read or parse, or an earlier
-        release's `config.md` standing without one, is refused at exit 2 naming
+        """S3 of #867 and S2 of #1454, `seal fold`'s half. A `config.json`
+        that is there and will not read or parse is refused at exit 2 naming
         the path, never read as no key, and nothing is checked."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         config = tmp_path / "seal" / "config.json"
@@ -299,13 +297,8 @@ class Test_main:
             config.mkdir()
         elif shape == "undecodable":
             config.write_bytes(b'{"Document token ceiling": "10 \xff"}\n')
-        elif shape == "unparseable":
-            config.write_bytes(b'{"Document token ceiling": "10",}\n')
         else:
-            (tmp_path / "seal" / "config.md").write_text(
-                "| Item | Value |\n|---|---|\n| Document token ceiling | 10 |\n",
-                encoding="utf-8",
-            )
+            config.write_bytes(b'{"Document token ceiling": "10",}\n')
         code, out, err = command("--root", root)
         assert code == 2 and not out, (out, err)
         assert f"{config} " in err and said in err, err

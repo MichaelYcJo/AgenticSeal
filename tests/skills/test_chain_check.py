@@ -2345,9 +2345,6 @@ class Test_pins_and_copies_in:
 # --- the parity arm at the pull request (#988) -------------------------------------
 
 PARITY = "seal/parity.json"
-# The migration config an earlier release read, a `| Field | Value |` table.
-OLD_PARITY = "seal/parity.md"
-OLD_PARITY_TEXT = f"| Field | Value |\n|---|---|\n| Baseline commit | `{BASELINE}` |\n"
 routing_module = load(chain.ROUTING, "agentic_routing_for_chain_tests")
 
 
@@ -2449,40 +2446,6 @@ class Test_originals_of:
         (line,) = original_lines(out)
         assert line.startswith(f"{PARITY}:0  "), line
         assert "`Baseline commit`" in line and "`<SHA>`" in line, line
-
-    def test_refuses_an_earlier_releases_parity_md_once_naming_the_keys(
-        self, branch, ready, capsys
-    ):
-        """S6: a `seal/parity.md` git carries at HEAD with no
-        `seal/parity.json` is refused once, at the old file, in the sentence
-        naming the file and the keys to write, and no record is compared
-        with a baseline nobody can read. A change confined to the document
-        roots owes nothing, and with `parity.json` beside it the JSON is the
-        config read. Seen red against the arm that read `parity.md`'s
-        table."""
-        root, _code = branch
-        on_main(root, OLD_PARITY, OLD_PARITY_TEXT)
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1, out
-        said = chain.parity_readers()[0].unconverted_parity(PARITY)
-        assert [ln for ln in out.splitlines() if ln.startswith("seal/parity")] == [
-            f"{OLD_PARITY}:0  {said}"
-        ], out
-        assert original_lines(out) == [], out
-
-        def owed(paths):
-            return chain.originals_of(
-                reader, routing_module, str(root), "seal", paths, [ITEM]
-            )
-
-        assert owed(["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]) == []
-        write(root, PARITY, parity_file(BASELINE))
-        commit(root, "the migration config written as JSON beside the old one")
-        assert [p for p, _n, _w in owed(["f.txt"])] == [
-            f"{ITEM}/trail/rounds/round-1.md",
-            f"{ITEM}/trail/rounds/round-2.md",
-        ]
 
     def test_accepts_a_change_confined_to_the_document_roots(self, branch):
         """S7 and S11: a change confined to `docs/` and `seal/` owes no line,
@@ -4545,25 +4508,6 @@ class Test_main:
             assert "`Baseline commit`" in line, line
         else:
             assert refused == [], out
-
-    def test_s3_an_earlier_releases_parity_md_under_agentic_seal_is_refused_there(
-        self, declared, capsys
-    ):
-        """#1454 beside #1059: an `agentic-seal/parity.md` git carries with no
-        `agentic-seal/parity.json` beside it is refused once, at its path under
-        the root's own name, naming the file to write, where a change reaches
-        the package. Red with `chain_check.py#originals_of` reading the old
-        file at `optin.HOME`."""
-        write(declared, "agentic-seal/parity.md", "# Migration config\n")
-        write(declared, "seal/__init__.py", "VERSION = 2\n")
-        commit_everything_as_e(declared, "the change")
-        _code, out = checked(capsys, declared)
-        refused = [
-            ln for ln in out.splitlines() if ln.startswith("agentic-seal/parity")
-        ]
-        (line,) = refused
-        assert line.startswith("agentic-seal/parity.md:0  "), line
-        assert "agentic-seal/parity.json" in line, line
 
     def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
         self, declared, capsys

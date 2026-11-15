@@ -683,16 +683,6 @@ def unreachable_templates(root, listed):
     return [name for name in shipped_templates(root) if name not in corpus]
 
 
-# Templates no session bootstraps from, so no shipped document has to name
-# them. `templates/setup/claude-md-block.md` holds the two markers alone
-# because the update to 0.25.0 runs 0.24.x's own update step, which diffs the
-# marketplace clone's copy against the person's `CLAUDE.md`
-# (`tests/behaviour/test_the_old_block_leaves_through_update.py`). The README
-# named it until #1492 left that account to `skills/update/SKILL.md`, and it
-# leaves the tree with the block's compatibility path.
-READ_BY_AN_EARLIER_RELEASE = ("templates/setup/claude-md-block.md",)
-
-
 def test_every_template_is_named_by_a_document_that_ships():
     """tests-todo row 4, from round 1 🟡 1.
 
@@ -712,10 +702,6 @@ def test_every_template_is_named_by_a_document_that_ships():
     a session bootstraps from, so the corpus is prose — `.md` only. Two
     narrowings went with it: the glob returned a subdirectory as one entry
     and never descended, and it skipped dotfiles.
-
-    #1492: a template only an earlier release's update step reads is no file
-    a session bootstraps, so `READ_BY_AN_EARLIER_RELEASE` names it and the
-    case asks no document to; an entry the tree no longer holds is refused.
     """
     # The same three arguments `shipped_templates` carries, for the same
     # reason. Round 5 finding 3: round 4 applied them to one of two sibling
@@ -755,14 +741,7 @@ def test_every_template_is_named_by_a_document_that_ships():
         "no shipped prose documents were listed — this case is blind"
     )
     assert shipped_templates(ROOT), "no templates found — this case is blind"
-    # #1492: an entry the tree no longer holds is a stale exemption.
-    stale = [n for n in READ_BY_AN_EARLIER_RELEASE if n not in shipped_templates(ROOT)]
-    assert not stale, f"exempted templates the tree no longer holds: {stale}"
-    unreachable = [
-        name
-        for name in unreachable_templates(ROOT, listed)
-        if name not in READ_BY_AN_EARLIER_RELEASE
-    ]
+    unreachable = unreachable_templates(ROOT, listed)
     assert not unreachable, (
         "templates no shipped prose document names, so a session "
         f"bootstrapping one has nothing to copy: {unreachable}"

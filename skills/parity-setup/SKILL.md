@@ -22,8 +22,6 @@ layout that predates the question, or an original that changes.
 
 1. **Stop if it already exists.** If `seal/parity.json` is present, show it and
    ask what should change instead of overwriting a declaration someone made.
-   An earlier release's `seal/parity.md` without it is a declaration too:
-   show it, write its rows into `seal/parity.json` by step 6, and delete it.
 
 2. **Find candidates for the original.** Do not ask the user to type a path
    from memory when the machine can propose one:
