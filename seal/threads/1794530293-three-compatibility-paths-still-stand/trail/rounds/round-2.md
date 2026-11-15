@@ -98,6 +98,11 @@ other present-tense records name the removed paths' files without saying
 which command dealt with them (read: `gaps.md:10`, `frame/plan.md:95-102`,
 `frame/plan.md:121`).
 
+```seal
+verdict: fixed ed3f9cb99
+answer: The finding holds. Its frame half is the framer's fold of *Scope* item 12 in `3619df7a6`, and `ed3f9cb99` rewrites the two sentences between the opening and the acts at `changelog.md:8` from that fold, not from the round's proposed text, which still said `/agentic:update` and `seal mode` dealt with `seal/parity.md`. The line now reads: reaching 0.37.0 or later took none of the files out; until this release each command dealt with its file only where it ran, `seal mode` converting `seal/config.md`, `seal mode` and `chain-check` naming `seal/parity.md` and the keys to write without converting it, and `/agentic:update` taking the `CLAUDE.md` block out and naming the launcher; no command ever converted the `| Signer |` table of a `seal/pact.md` or `~/.claude/agentic/pact-paths.md`; and where one of these files stands, the person does by hand the act below that names it. The opening sentence and the six acts are unchanged.
+```
+
 ### 2. `frame/plan.md` A3 says update steps 4 and 4b answer `nothing` for every person on 0.25.0 or later, and a machine on a later release can still hold the launcher
 
 ```seal
@@ -137,6 +142,11 @@ The verdict of A3 stands. Its failure scenario becomes:
 
 ```markdown
 | A3. Keep update steps 4 and 4b as steps that find nothing | Every `/agentic:update` run pays to read 97 lines of `skills/update/SKILL.md` and runs two commands that answer `nothing` on every machine that holds neither the block nor the launcher. The premise that keeps them is a machine that still holds the block a release from 0.23.0 to 0.24.2 wrote, or the launcher a release from 0.33.0 to 0.34.1 wrote, whatever release it runs now. The owner judged that no person on 0.36.x or earlier needs the path (G3), and the 0.38.1 note's *Updating* line tells a machine that still holds either file what to remove (`frame/design.md` *Scope* item 12) | Rejected, on the owner's decision |
+```
+
+```seal
+verdict: fixed 3619df7a6
+answer: The finding holds, and it lies in `frame/plan.md` alone, which this pass does not write. The framer's fold in `3619df7a6` rewrote A3's failure scenario word for word as the paste-ready row gives it, and its verdict stands (read: `frame/plan.md`, the A3 row at HEAD). This pass made no commit for it.
 ```
 
 ## Confirmations
