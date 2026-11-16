@@ -27,7 +27,7 @@ Failure scenario of the chosen approach, in six months: the framer runs the sear
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 and 2 | `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_release_hygiene.py` green. The proofer reads the new paragraph against *Data & interfaces* C1 to C5. `git grep -n -F '0.38.1' -- . ':!seal/threads'` prints nothing; at `75a725770` it printed `.claude-plugin/plugin.json:4` alone, the line this phase changes (design G10) | |
+| 1 | `frame/design.md` *Scope* items 1 and 2 | `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_release_hygiene.py` green. The proofer reads the new paragraph against *Data & interfaces* C1 to C5. `git grep -n -F '0.38.1' -- . ':!seal/threads'` prints nothing; at `75a725770` it printed `.claude-plugin/plugin.json:4` alone, the line this phase changes (design G10) | 19a111be9 |
 
 ## Overlap with the release
 
@@ -41,4 +41,5 @@ This work item is the first and only pull request into `release/v0.38.2`, so it 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-16 | The title takes `fix:` | The framer's definition already asked it to answer by running a command, and two frame cells in #1500 stated results no build could give; the work corrects what the framer writes rather than adding a behaviour the plugin lacked | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지*, the `fix:` row |
+| 2026-11-16 | `routing.md` *Why this way* no longer names a case that pins the rule | The frame adds no case (`frame/design.md` *Scope*, Out; `frame/plan.md` A8), and the routing row had named one before the frame was drawn | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening *The framer writes a decision's fold* |
