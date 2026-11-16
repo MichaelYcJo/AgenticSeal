@@ -58,8 +58,6 @@ judged (`carried_by`). The arms are nine:
                 request changes a path outside the document roots
                 `lib/gate.py#touches_code` reads: the config's `Baseline
                 commit` key names a SHA (`lib/config.py#baseline_commit`),
-                an earlier release's `seal/parity.md` carried without it is
-                refused naming the keys to write,
                 and one `original:` line naming it stands in the round block
                 of every round record under `Review | through the review
                 chain`, and in
@@ -1633,14 +1631,11 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here; a guarantee's line is its newest
     verdict block's (`guarantee_original`). A config whose `Baseline commit`
-    names no SHA is one refusal naming it, and so is an earlier release's
-    `parity.md` git carries with no `parity.json` beside it, naming the
-    keys to write. None where `lib/` would not load, said on stderr."""
+    names no SHA is one refusal naming it. None where `lib/` would not
+    load, said on stderr."""
     config = f"{home}/{routing.optin.PARITY_CONFIG}"
-    old = f"{home}/{routing.optin.OLD_PARITY_CONFIG}"
     text = read_record(root, config)
-    unconverted = text is None and read_record(root, old) is not None
-    if (text is None and not unconverted) or not (items or direct):
+    if text is None or not (items or direct):
         return []
     try:
         reads, gate = parity_readers()
@@ -1651,8 +1646,6 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
         return None
     if not gate.touches_code(paths, home):
         return []
-    if unconverted:
-        return [(old, 0, reads.unconverted_parity(config))]
     sha, why = reads.baseline_commit(text)
     if sha is None:
         return [(config, 0, NO_BASELINE.format(why=why))]
