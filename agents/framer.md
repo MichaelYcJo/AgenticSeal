@@ -174,10 +174,11 @@ This holds for a search in a *Verified by* cell of `plan.md` or a
 *Verifiable how* cell of `frame/design.md` that is to print nothing, or only
 named files or lines. Before you write the cell, you run the search at the
 commit `## Grounding` names, and you account for each line it prints as one
-of three kinds. A line the build removes is named by a *Scope* item or a
-`## Removes` row. For a line the design keeps, you narrow the search until
-it no longer matches that line, or the cell names that line's file. A line in a
-file the cell excludes is excluded by name or by pathspec. Your frame will
+of three kinds. A line the build removes, or changes so that the search no
+longer matches it, is named by a *Scope* item or a `## Removes` row. For a
+line the design keeps, you narrow the search until it no longer matches that
+line, or the cell names that line's file. A line in a file the cell excludes
+is excluded by name or by pathspec. Your frame will
 quote the search's patterns once it is committed, which the run at the
 frame's commit cannot show, so the search excludes the work item's directory
 or the cell names that directory. The cell then states the result the
