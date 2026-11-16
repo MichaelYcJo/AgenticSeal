@@ -29,11 +29,6 @@ setup copies from `templates/setup/seal-README.md`, is what opts a repository in
 a root is the bootstrap's to create, and a `seal/` made here without that
 README would read as the project's own directory.
 
-**A `config.md` standing in the root without a `config.json`** is an
-earlier release's table, which no command reads now. Say so, and run
-`seal mode` once: it writes `config.json` from the table and removes
-`config.md`, or prints why it wrote nothing. Then read the new file.
-
 ## Procedure
 
 **1. Show every key, present or not.** Read the file, and print every key of

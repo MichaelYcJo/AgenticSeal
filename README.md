@@ -92,21 +92,6 @@ The second alone reports that you are at the latest version, against
 whatever that copy last knew. A release reaches you only when the version in
 `plugin.json` changes.
 
-An update from an earlier release can leave work behind.
-`/agentic:update` takes out what an earlier release wrote into your
-`CLAUDE.md`, and names what an earlier release left that only you can
-remove ([`skills/update/SKILL.md`](skills/update/SKILL.md)). If you update
-by hand instead, two things are yours. Run `seal mode` once in each repository that
-still holds `seal/config.md`, the settings table earlier releases kept: it
-writes `seal/config.json` from the table and removes the old file. Three
-files no command converts are rewritten by hand.
-`seal/parity.md` becomes `seal/parity.json`, written from
-`templates/setup/parity.json`. The `| Signer |` table of a `seal/pact.md`
-becomes a `Pact signers` key in that repository's `seal/config.json`, the
-remote URLs separated by `;`. `~/.claude/agentic/pact-paths.md` becomes
-`~/.claude/agentic/pact-paths.json`, one JSON object from remote URL to
-checkout path.
-
 The pull-request checks `seal pr-checks install` wrote clone the release
 they were written against, and an update leaves that pin where it is. Run
 `seal pr-checks remove` and then `seal pr-checks install` to pin them to the
@@ -359,11 +344,7 @@ writes into your settings.**
 Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
 the script under the plugin's own directory, so an update moves both hooks
 with it. The closing `exit 0` makes each command exit 0 whatever happens,
-so neither hook ever stops a turn. A release from 0.33.0 to 0.34.1 may have
-left a launcher of its own that also runs at the end of each turn, and
-`/agentic:update` names it for you to remove
-([`skills/update/SKILL.md`](skills/update/SKILL.md) *4b. The launcher an
-earlier release wrote*).
+so neither hook ever stops a turn.
 
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.
