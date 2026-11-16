@@ -33,6 +33,11 @@ The fix pass adds one row to `frame/plan.md` *Judgments of the run* and two quot
 
 The second quote is the sentence finding 2's snippet writes at `frame/design.md:68`. Where the fix pass words that sentence otherwise, it quotes the sentence as it then stands.
 
+```seal
+verdict: fixed 761976093
+answer: The finding holds. The orchestrator added the row titled "What the rule carries as a mechanism" to frame/plan.md Judgments of the run in 414648619, with the proposed text. pr.md now quotes that row's prompt budget sentence, and the Removes why as the framer's fold left it, in two quotes: its catch record sentence and its sentence on the fold that stays. The proposed quote of the Removes sentence restated the count, which the framer's fold keeps in G2 alone, so pr.md quotes the sentence as it stands.
+```
+
 ### 2. The changelog and two frame sentences count two failed cells in #1500, and the frame's own G2 shows three
 
 ```seal
@@ -57,6 +62,11 @@ The framer's definition already asked it to answer by running a command, and thr
 
 frame/design.md:68, the second sentence of the why:
 Its catch record is G2 and G3: three searches in one run whose stated results no build could give, two of them visible at the frame's commit and the third, scenario S8's, caught by C3.
+```
+
+```seal
+verdict: fixed d66f6eb75
+answer: The finding holds. The framer's fold in 414648619 states the count once, in G2's grounds, and the Removes why, G3, G4, G6 and plan.md row A3 name the cells G2 lists without restating the number. The orchestrator corrected its own row titled "The title takes `fix:`" in the same commit. The changelog in d66f6eb75 says three cells, and says what each search matched as #1500's frame/plan.md Judgments of the run records it.
 ```
 
 ### 3. The rule's first kind of line, "a line the build removes", leaves no kind for a line the build edits
@@ -86,6 +96,11 @@ account for each line it prints as one the build removes or changes so the searc
 
 The `agents/framer.md` snippet ends mid-sentence at the line where the original's line 179 ends, so the fix pass joins it to the unchanged line 180. It reruns `tests/behaviour/test_docs_line_wrap.py` after the edit.
 
+```seal
+verdict: fixed d66f6eb75
+answer: The finding holds, and the fix takes the proposed wording. agents/framer.md and changelog.md file a line the build changes so the search no longer matches it with the lines it removes, in d66f6eb75, and tests/behaviour/test_docs_line_wrap.py passed after the rewrap (executed, 51 passed). The framer folded C2 with the same words in 414648619, and also G5 and C5, which carried the same kind.
+```
+
 ### 4. Two grounding rows cite commits that #1500's squash left on no branch
 
 ```seal
@@ -102,6 +117,11 @@ frame/design.md:10, the parenthesis closing G2's first cell:
 
 frame/design.md:11, the head of G3's first cell:
 **G3** The two searches as framed, run at `dda87704c`, the commit #1500's frame names at the head of its *Grounding*, which only #1500's pull request ref, `refs/pull/1549/head`, still holds (executed: `git fetch origin pull/1549/head`, then `git show 9dc095ac6:seal/threads/1794530293-three-compatibility-paths-still-stand/frame/design.md`, then ...
+```
+
+```seal
+verdict: fixed 414648619
+answer: The finding holds. The framer's fold in 414648619 names refs/pull/1549/head and the squash c97514d67 in G2's left cell, and G3 cites the two commits by name with their paths in prose. The proposed commit-colon-path form was not taken: tests/text/test_a_cited_commit_outlives_the_squash.py reads that form and counts only main and release branches as reaching, so the suite would refuse it. The framer ran git ls-remote and git merge-base --is-ancestor for both commits, exit 0.
 ```
 
 ## Confirmations
