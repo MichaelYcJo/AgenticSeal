@@ -35,6 +35,11 @@ pr.md:4, replacing the quote of trail/phases/phase-1.md:
 
 Where the fix pass moves the new quote below `pr.md`'s prompt-budget quote, the two read in the row's order. A later edit of `agents/framer.md` before the pull request owes the same figure again.
 
+```seal
+verdict: fixed 22664790a
+answer: The finding holds, and the fix takes the proposed text. pr.md quotes the rewritten Grounds cell of the row titled "What the rule carries as a mechanism" in place of the phase record's 1,226-byte sentence, in 5550d6ae7, and the row itself carries the 1,279-byte figure in 22664790a. agents/framer.md holds 15,812 bytes at HEAD and 14,533 at 75a725770 (executed: wc -c). trail/phases/phase-1.md keeps its figure, since it states phase 1 at its own commit. The fix touched this work item's records alone.
+```
+
 ### 2. Plan row A3 now says #1500 paid a phase-record paragraph and a judgment row for each of three cells, and it paid two of each
 
 ```seal
@@ -54,6 +59,11 @@ Each search a framer writes wrong costs a crafter's search for the cause, a para
 ```
 
 The snippet names no count, so G2 stays the one statement of it. G4's "a fold for each cell G2 lists" and plan row 46's "all three folds" hold, since #1500's row 2 folds S8 by name, and the fix leaves them.
+
+```seal
+verdict: fixed 22664790a
+answer: The finding holds. The framer folded the proposed text into row A3's Failure scenario cell word for word, in 22664790a, and found no other statement of the frame that charges a phase-record paragraph or a judgment row to each cell. G4's fold for each cell stands, since #1500's second judgment row folds phase 2's cell and S8 together by name. The fix touched this work item's records alone.
+```
 
 ## Confirmations
 
