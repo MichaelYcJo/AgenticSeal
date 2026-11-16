@@ -169,6 +169,24 @@ written only where no probe can run in your environment, such as a CI leg
 on another platform or a harness behaviour no subagent can trigger, and
 its reason says which.
 
+**A search you write into a cell is run before the cell states its result.**
+This holds for a search in a *Verified by* cell of `plan.md` or a
+*Verifiable how* cell of `frame/design.md` that is to print nothing, or only
+named files or lines. Before you write the cell, you run the search at the
+commit `## Grounding` names, and you account for each line it prints as one
+of three kinds. A line the build removes is named by a *Scope* item or a
+`## Removes` row. For a line the design keeps, you narrow the search until
+it no longer matches that line, or the cell names that line's file. A line in a
+file the cell excludes is excluded by name or by pathspec. Your frame will
+quote the search's patterns once it is committed, which the run at the
+frame's commit cannot show, so the search excludes the work item's directory
+or the cell names that directory. The cell then states the result the
+account leaves. Where any line stays, the cell names where it stays and does
+not say that the search finds nothing. The run goes into `## Grounding`,
+labelled `executed`, with its command and commit. Whether the search can
+fail is judged as `skills/verify/SKILL.md` *An absence claim is only as good
+as the search behind it* states.
+
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
