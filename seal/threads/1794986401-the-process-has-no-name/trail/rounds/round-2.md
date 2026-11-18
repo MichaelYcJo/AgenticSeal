@@ -63,6 +63,11 @@ sentence of `gaps.md` *Not done* returns to the words `pr.md:1` quotes, and
 - "The places outside `frame/design.md` *Scope* where "the workflow" means the process, in `docs/`, `skills/` and `agents/`, and in test docstrings and comments other than those *Scope* item 4 names, keep the word, by the owner's scope (issue #1557 *Decision*)." (`gaps.md` *Not done*)
 ```
 
+```seal
+verdict: fixed ae5441cfa
+answer: The finding holds. In ae5441cfa `gaps.md` *Not done* is restored to the sentence `pr.md` quotes, word for word, so the quote stands in its source again (executed: a substring check of the quote against `gaps.md`).
+```
+
 ### 2. `gaps.md` *Not done* calls the list of remaining places a sample and files test docstrings under the owner's scope, though one search makes the list whole and it holds one more docstring naming the process
 
 ```seal
@@ -118,6 +123,11 @@ The `gaps.md` snippet states a search the fix pass runs and reads before it
 writes the sentence. The fix pass also owes the `frame/plan.md:44` row a
 mention of the docstring, since the row lists what *Scope* item 4 names.
 
+```seal
+verdict: fixed ae5441cfa
+answer: The finding holds. In ae5441cfa the sample sentence and the test-docstring clause leave `gaps.md`, the docstring at `tests/behaviour/test_the_contributor_has_a_procedure.py:2` names the AgenticSeal process, and *Scope* item 4 names it. That module and the cited-section module pass, 81 cases (executed).
+```
+
 ### 3. *Removes* says no assertion reads "the workflow", that the suite passed, and that *Scope* item 4 updates the heading, and the records and the tree say otherwise
 
 ```seal
@@ -165,6 +175,11 @@ The snippet reaches every statement of the paragraph. No other record
 restates it: `frame/plan.md:43` cites *Removes* for its reason and quotes
 none of its words.
 
+```seal
+verdict: fixed ae5441cfa
+answer: The finding holds. In ae5441cfa the *Removes* why states only that the work replaces a word at the places *Scope* lists, adds the definitions, and removes no copy, reader or check. The four claims the finding names are gone.
+```
+
 ### 4. Round 1's close block for finding 4 stands after `## Probes`, outside its finding, so the chain check reads finding 4 as open
 
 ```seal
@@ -193,6 +208,11 @@ the file unchanged, with the blank line before them. Put them after
 `round-1.md:246`, the last line of finding 4's paste-ready text, with one
 blank line on each side, so they stand before `## Confirmations`. The file
 then ends with the `## Probes` table.
+
+```seal
+verdict: fixed ae5441cfa
+answer: The finding holds. In ae5441cfa round 1's close block for finding 4 stands under that finding, before `## Confirmations`, with its four lines unchanged.
+```
 
 ## Confirmations
 
