@@ -1,5 +1,6 @@
 """`CONTRIBUTING.md` tells an outside contributor where a pull request goes,
-and what this repository's own workflow does not ask of them.
+and what the AgenticSeal process this repository runs on itself does not ask
+of them.
 
 A first-time contributor opened #443 against `main`, because nothing this
 repository shows a contributor said where a pull request goes. The hygiene

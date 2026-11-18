@@ -24,7 +24,7 @@ In:
 1. `README.md` and `README.ko.md`: the tagline names the process; one paragraph after the opening paragraph defines the name; each place G2 lists as the process uses the name; the "workflow run" inside the network table's row becomes a GitHub Actions workflow run.
 2. `.claude-plugin/plugin.json` and both descriptions in `.claude-plugin/marketplace.json` carry the README's new tagline.
 3. `skills/core/SKILL.md`: the opening sentence names and defines the process; lines 19, 30, 32, 37, 43 and 45 use the name; line 111 says a GitHub Actions workflow. The new heading is cited at each of the six places G3 lists.
-4. `lib/optin.py`'s docstrings and comments, the sentence at `lib/core.py:14` that restates them, the docstrings at `tests/lib/test_core.py:219` and `tests/skills/test_seal_stamp.py:1564`, the comment at `tests/behaviour/test_chain_hooks_hardening.py:415-419` that names the README's network row, `CONTRIBUTING.md:58`, `templates/setup/seal-README.md` with `seal/README.md`, the header comment of `templates/setup/hygiene.yml`, and the row of `docs/layout/one-root-by-lifetime.md` and its Korean edition use the name.
+4. `lib/optin.py`'s docstrings and comments, the sentence at `lib/core.py:14` that restates them, the docstrings at `tests/lib/test_core.py:219` and `tests/skills/test_seal_stamp.py:1564`, the comment at `tests/behaviour/test_chain_hooks_hardening.py:415-419` that names the README's network row, the docstring at `tests/behaviour/test_the_contributor_has_a_procedure.py:2`, `CONTRIBUTING.md:58`, `templates/setup/seal-README.md` with `seal/README.md`, the header comment of `templates/setup/hygiene.yml`, and the row of `docs/layout/one-root-by-lifetime.md` and its Korean edition use the name.
 5. The work item's `changelog.md` with its `### Process changes` table, and `.claude-plugin/plugin.json` moved to `0.38.3`, in one commit.
 
 Out, each with its reason:
@@ -59,6 +59,6 @@ Out, each with its reason:
 ## Removes
 
 - nothing
-  why: the work replaces a word at each place G2 lists and adds one definition paragraph per README and one clause to the core. No assertion reads "the workflow": `git grep -n -i 'the workflow' -- tests` printed 106 lines at `c637848af` (executed), and the suite's cases passed after the rename (`trail/phases/phase-1.md`). Two of those lines named the process by an old label, the heading at `tests/text/test_every_agent_reads_the_contract.py:139` and the comment at `tests/behaviour/test_chain_hooks_hardening.py:415-419` naming the README's network row, and *Scope* item 4 updates both. The rest are docstrings and comments, the ones *Scope* item 4 names among them.
+  why: the work replaces a word at the places *Scope* lists and adds one definition paragraph per README and one clause to the core. It removes no copy, reader or check.
 
 Framed 2026-11-18 by the session, before the build.

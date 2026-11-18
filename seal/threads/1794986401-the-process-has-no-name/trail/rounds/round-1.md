@@ -245,6 +245,11 @@ line, which `tests/behaviour/test_a_cited_section_stands_in_its_file.py`
 reads across line breaks, as it does at the three citations the phase
 moved.
 
+```seal
+verdict: fixed bc092878b
+answer: The finding holds. The six lines are refilled within 76 columns in bc092878b, and `trail/phases/phase-1.md` says round 1's fix pass refilled them. The phase's cases and the two modules round 1 named pass, 476 cases (executed), and `uvx ruff check` and `uvx ruff format --check` pass on the changed Python files (executed).
+```
+
 ## Confirmations
 
 What matched: *Data & interfaces* D1, read against `README.md:23-28`. The
@@ -335,8 +340,3 @@ apart from the one finding 4 names.
 | `git grep -n -i 'the workflow' c637848af -- tests` | 106 lines; three name the process, the rest a GitHub Actions workflow |
 | the two S2 searches at `c637848af` | 48 and 16 lines |
 | `git grep -n -F '0.38.2' -- . ':!seal/threads'` at the target | exit 1, no line |
-
-```seal
-verdict: fixed bc092878b
-answer: The finding holds. The six lines are refilled within 76 columns in bc092878b, and `trail/phases/phase-1.md` says round 1's fix pass refilled them. The phase's cases and the two modules round 1 named pass, 476 cases (executed), and `uvx ruff check` and `uvx ruff format --check` pass on the changed Python files (executed).
-```
