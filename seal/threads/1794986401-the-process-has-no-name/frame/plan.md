@@ -24,7 +24,7 @@ Failure scenario of the chosen approach, in six months: a new document or skill 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 5 | `frame/design.md` S2's two searches print only the kept lines that scenario lists. `bin/test tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_release_hygiene.py tests/text/test_every_agent_reads_the_contract.py tests/lib/test_optin.py -q` green. `git grep -n -F '0.38.2' -- . ':!seal/threads'` prints nothing; at `c637848af` it printed `.claude-plugin/plugin.json:4` alone, the line this phase changes (design G8). The proofer reads the definitions against *Data & interfaces* D1 to D5 | |
+| 1 | `frame/design.md` *Scope* items 1 to 5 | `frame/design.md` S2's two searches print only the kept lines that scenario lists. `bin/test tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_release_hygiene.py tests/text/test_every_agent_reads_the_contract.py tests/lib/test_optin.py -q` green. `git grep -n -F '0.38.2' -- . ':!seal/threads'` prints nothing; at `c637848af` it printed `.claude-plugin/plugin.json:4` alone, the line this phase changes (design G8). The proofer reads the definitions against *Data & interfaces* D1 to D5 | 61c98fac8 |
 
 ## Overlap with the release
 
@@ -39,3 +39,4 @@ This work item is the first and only pull request into `release/v0.38.3`, so it 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | 2026-11-18 | The title takes `docs:` | The change renames the process in documents, a skill's prose and code comments, and changes no behaviour any party or check has | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지*, the `docs:` row |
+| 2026-11-18 | Design G3 and *Scope* item 3 name the three citations of the core's heading that G3's one-line search missed | The phase found them when the cited-section case refused them (`trail/phases/phase-1.md`), and G3 states the tree at `c637848af`, where all six stood | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening *The framer writes a decision's fold* |

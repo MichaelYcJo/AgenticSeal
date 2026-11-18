@@ -1,0 +1,10 @@
+# Phase 1: 1794986401-the-process-has-no-name
+
+## What this phase found
+
+- **Three more citations of the core's renamed heading stood than `frame/design.md` G3 counted.** G3's search matched the heading's words on one line, and three citations break the heading across a line or sit in a line past the wrap: `docs/releasing/branch-and-release.md:122`, `skills/settle/SKILL.md:448-449` and `tests/behaviour/test_chain_hooks_hardening.py:774-775`. `tests/behaviour/test_a_cited_section_stands_in_its_file.py` refused all three (executed). The phase updated them, and a search across line breaks (executed: a Python `re.finditer(r"through\s+(#\s*)?the\s+workflow")` over every tracked file outside `seal/threads/`) now finds one line, `tests/github/test_release_completeness_check.py:436`, a docstring about a GitHub Actions workflow, which design *Removes* already names.
+- **The edits were applied by a script that asserts each pattern matches exactly once**, and every one matched (executed). The paragraphs whose lines grew past their width were refilled at 76 display columns, or 80 for Korean prose, so some lines move inside each such paragraph beyond the word that changed.
+- **The phase's cases pass**: 271 cases (executed: `bin/test tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_release_hygiene.py tests/text/test_every_agent_reads_the_contract.py tests/lib/test_optin.py -q`). `uvx ruff check` and `uvx ruff format --check` pass on the three Python files the phase changed (executed).
+- **S2's searches print only GitHub Actions lines after the build** (executed), the same set design S2 lists at `c637848af`, at the line numbers the build moved.
+- **The version search prints nothing** (executed: `git grep -n -F '0.38.2' -- . ':!seal/threads'`, exit 1).
+- **The core grows by 154 bytes**, from 9,322 to 9,476 (executed: `wc -c skills/core/SKILL.md`), for every spawn and every session that loads it.
