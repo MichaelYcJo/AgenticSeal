@@ -119,7 +119,7 @@ the key's values and who reads it. The PNG is drawn from
   outside plugins through the directory's submission and a nightly mirror of
   its review pipeline, and says per file whether the plugin has an entry, which
   commit it pins, and which of `main` and `dist` holds that commit. It exits 0
-  whatever it finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the workflow* is against. The directory's own
+  whatever it finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the AgenticSeal process* is against. The directory's own
   state, whether the plugin is published there and at which version, is not
   among its answers, because no script can reach the directory; the command
   says so and prints the page a person opens. Nothing fires it; a person runs

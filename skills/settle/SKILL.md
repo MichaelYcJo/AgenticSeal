@@ -446,7 +446,7 @@ After the removals, `--apply` names each document past the `Document token
 ceiling` key in `seal/config.json`, as `seal fold` does, and neither refuses
 it. Such a document is recommended to be split by who opens each section
 and at which step, as `skills/core/SKILL.md` *The first value: efficient
-development through the workflow* states, in that pull request or a later
+development through the AgenticSeal process* states, in that pull request or a later
 one, and nothing is cut to fit.
 The plugin sets no ceiling; a repository states its own.
 

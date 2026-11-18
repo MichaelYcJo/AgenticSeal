@@ -772,7 +772,7 @@ def test_the_batch_phrase_is_found_by_its_claim_not_by_one_spelling():
     this repair — the first is the batch rule as `CLAUDE.md:39` spelled it
     then. That spelling left with #767, and the rule now stands in
     `skills/core/SKILL.md` *The first value: efficient development through
-    the workflow* in other words.
+    the AgenticSeal process* in other words.
 
     This case holds the two PIECES and their reasons, and it is not the
     guard: `test_the_sweep_refuses_a_planted_instruction_in_every_spelling`

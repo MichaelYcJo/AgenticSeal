@@ -390,8 +390,8 @@ adds any mechanism by what it takes away:
   a question in front of a person, per session, and what each one costs when
   nobody is at the keyboard. Asking a person is the most expensive step
   `skills/core/SKILL.md` *The first value: efficient development through the
-  workflow* names, so an interruption is a price paid against that value rather than a
-  neutral design choice. A change that adds one says why
+  AgenticSeal process* names, so an interruption is a price paid against
+  that value rather than a neutral design choice. A change that adds one says why
   nothing cheaper reaches the same guarantee: a value read from a file, a
   default assumed in writing, a refusal the agent makes on its own. Where a
   question really is the only answer, it belongs in the batch asked before

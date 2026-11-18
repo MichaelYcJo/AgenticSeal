@@ -15,7 +15,7 @@ the command behind it. A work item's directory is safe to delete wholesale
 where to read: nothing that must survive is allowed to live only there.
 
 It lives at one of two places, and its presence at either, with this file's
-first line as it stands, is what opts the repository into the workflow.
+first line as it stands, is what opts the repository into the AgenticSeal process.
 There is no config key. **Shared mode** keeps
 it at `<repo>/seal/` and commits it (gitignored files don't follow worktrees
 or other machines), so every clone reads it and CI can check pull requests
@@ -75,7 +75,7 @@ committed.** Where it exists, every gate reads the repository as one that
 never opted in and says nothing. It is for a repository built to be thrown
 away, such as a fixture made by hand to reproduce a gate decision. It lives
 under the git directory because a marker committed in the tree would turn
-the workflow off in every clone.
+the AgenticSeal process off in every clone.
 
 ## Export rules
 
