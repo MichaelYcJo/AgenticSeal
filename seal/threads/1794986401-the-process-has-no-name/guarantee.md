@@ -44,3 +44,49 @@ seal/threads/1794986401-the-process-has-no-name --body <scratchpad>/1794986401-t
 target: b8b92e55b against fab41dc91
 Verdict: withheld reason: trail/phases/phase-1.md:5, the build's phase record, says tests/github/test_release_completeness_check.py:436 is a line "which design *Removes* already names"; frame/design.md:62 at b8b92e55b names no line, since ae5441cfa cut the sentence that named it, and no other record names it
 ```
+
+## Re-audit at `3229d7ff8`
+
+Audited at `3229d7ff8`, against `release/v0.38.3`, which resolves through
+`release/v0.38.3@{upstream}` to `fab41dc91` (executed: `git rev-parse
+--verify --quiet`). The block above withheld at `b8b92e55b`. Two commits
+follow it: `a8eaa8e3e` adds this file, and `3229d7ff8` changes one line,
+`trail/phases/phase-1.md:5` (executed: `git log --no-merges --name-only
+625c88f1f..HEAD ^fab41dc91`, `git show 3229d7ff8`). No path outside
+`seal/threads/1794986401-the-process-has-no-name/` changed since `625c88f1f`
+(executed: `git diff --stat 625c88f1f HEAD -- . ':!seal/threads'`, no
+line), so `trail/gate.md`'s run `625c88f1f against fab41dc91` still covers
+the code at HEAD, and `625c88f1f` is an ancestor of HEAD (executed: `git
+merge-base --is-ancestor`). `seal pr-body
+seal/threads/1794986401-the-process-has-no-name --body <scratchpad>/1794986401-the-process-has-no-name/pr-body.md
+--check` exits 0 (executed). `seal/parity.json` is still not tracked (executed: `git
+ls-files`).
+
+This audit re-runs the claims at the one coordinate a commit since
+`b8b92e55b` touched, `trail/phases/phase-1.md:5`, and reads the parties
+again. The other rows of the block above stand on files no commit since
+touched.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The repair removes the clause "which design *Removes* already names" and nothing else | `3229d7ff8` | `git show 3229d7ff8` | holds: one line changed, the clause cut after "a docstring about a GitHub Actions workflow"; the rest of the line is byte for byte as before (executed) |
+| The cited-section case refused the three heading citations the design's search missed (`executed`) | `trail/phases/phase-1.md:5` | in a `git clone --no-local` at `3229d7ff8` under `<scratchpad>/1794986401-the-process-has-no-name/sealer-2/at-base/`, `docs/releasing/branch-and-release.md` and `tests/behaviour/test_chain_hooks_hardening.py` restored from `fab41dc91`, then `bin/test tests/behaviour/test_a_cited_section_stands_in_its_file.py -q` | holds for the two citations the block above did not sample: exit 1, 2 failed, the failing lines name `docs/releasing/branch-and-release.md:122` and `tests/behaviour/test_chain_hooks_hardening.py:774` citing *The first value: efficient development through the workflow* (executed). With both restored to HEAD the module passes, 64 cases, and the clone is clean (executed). The block above showed the third, `skills/settle/SKILL.md:448` |
+| A search across line breaks finds one line, `tests/github/test_release_completeness_check.py:436`, a docstring about a GitHub Actions workflow (`executed`) | `trail/phases/phase-1.md:5` | `re.finditer(r"through\s+(#\s*)?the\s+workflow")` over every `git ls-files` path outside `seal/threads/` at HEAD | holds: one line, `tests/github/test_release_completeness_check.py:436`, "arriving through the workflow rather than through the code", of the job that checks out `HEAD` (executed; read) |
+| The line no longer says what *Removes* names | `trail/phases/phase-1.md:5`; `frame/design.md:59-62` | read both at HEAD; `grep -rn "already names"` over the work item's records | holds: `frame/design.md:61-62` names no line, and `trail/phases/phase-1.md:5` no longer claims it does. The phrase stands only in this file's block above, which quotes the withheld claim (executed) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | As the block above reads it; unchanged since `b8b92e55b` (executed: `git diff --stat b8b92e55b HEAD`) | the issue's *Decision*, *Change* and *Done when*, and the tree, by the block above's rows (read) | none |
+| the build (the diff, `trail/phases/phase-1.md`, `frame/plan.md` phase 1 at `61c98fac8`) | As the block above reads it, with `trail/phases/phase-1.md:5` now claiming only what the search finds | the design: *Removes* reads "nothing" and the phase record no longer says it names a line (read); the tree, by the rows above. `routing.md` answers Implementation `the session`, so no crafter's phase record is owed (read) | none. The disagreement the block above withheld on is gone |
+| the last round (`trail/rounds/round-3.md`, target `f92ee32bd`) | Round 2's four closes hold; it opens nothing | the tree, by the block above's rows (executed there); no finding reads `fixed`, so no fix pass awaits a reader (read). `3229d7ff8` touches the work item's records alone and closes no finding, so it owes no round | none |
+| the changelog | Unchanged since `b8b92e55b`: the process is named, the version moves to 0.38.3, two process rows | the diff (read) | none |
+| the orchestrator's part of the pull request body (`pr.md`), and `routing.md` *Why this way* | Unchanged: seven quotes of the records and `Closes #1557`; the route under `agentic` | none of the seven quotes is `trail/phases/phase-1.md:5`, so the repair moves none (read: `pr.md:5` quotes the last item, line 10); `seal pr-body --check` exits 0, so the body's records part is the records' text at HEAD (executed); the grounds still describe the diff, which no commit since `625c88f1f` changed outside the records (executed) | none |
+
+```seal
+target: 3229d7ff8 against fab41dc91
+Verdict: sealed
+```
