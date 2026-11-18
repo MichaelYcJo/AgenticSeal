@@ -10,4 +10,4 @@
 
 ## Not done
 
-The places outside `frame/design.md` *Scope* where "the workflow" means the process, in `docs/`, `skills/` and `agents/`, keep the word, by the owner's scope (issue #1557 *Decision*).
+The places outside `frame/design.md` *Scope* where "the workflow" means the process, in `docs/`, `skills/` and `agents/`, and in test docstrings and comments other than those *Scope* item 4 names, keep the word, by the owner's scope (issue #1557 *Decision*). Round 1 found its places by searching for wording, so the list is a sample (`trail/rounds/round-1.md` finding 2).

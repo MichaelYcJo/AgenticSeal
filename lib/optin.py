@@ -22,9 +22,9 @@ before the answer means anything. The opt-out file is written once, by a
 person, in the repository being thrown away. It lives under the git directory
 rather than inside the root because the root is committed: a file committed
 in the root would silence every gate in every clone with nothing in the diff
-that read as the AgenticSeal process being switched off. Nothing under `.git/` can be
-committed, and a linked worktree shares the common directory, so it shares
-the opt-out. `seal/README.md` says so too.
+that read as the AgenticSeal process being switched off. Nothing under
+`.git/` can be committed, and a linked worktree shares the common directory,
+so it shares the opt-out. `seal/README.md` says so too.
 
 Everything here fails toward "not opted in": a gate that cannot tell should do
 nothing rather than act on a guess.
@@ -312,8 +312,8 @@ def home_at(root, common=None):
     # A FILE, which is what this module and `seal/README.md` both say the
     # signal is. `os.path.exists` would also accept a DIRECTORY of that name,
     # so a directory created where the opt-out goes would turn every
-    # gate off with nothing in the diff that reads as the AgenticSeal process being
-    # switched off.
+    # gate off with nothing in the diff that reads as the AgenticSeal
+    # process being switched off.
     if common and os.path.isfile(os.path.join(common, SCRATCH)):
         return ""
     for found in home_paths(root, common):
@@ -323,7 +323,8 @@ def home_at(root, common=None):
 
 
 def home(cwd):
-    """This repository's `seal/`, or "" when it does not run the AgenticSeal process."""
+    """This repository's `seal/`, or "" when it does not run the AgenticSeal
+    process."""
     return home_at(repo_root(cwd))
 
 

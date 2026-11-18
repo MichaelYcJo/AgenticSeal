@@ -414,8 +414,8 @@ def test_the_core_row_names_the_core_file():
 
 # The name each place that reaches the network carries in the READMEs' passage,
 # spelt alike in both editions: `/agentic:update`, `seal cost --post`, the
-# chain arm of `seal gate`, `seal settle`, the workflow's own steps (which
-# open the pull request with `gh pr create`), and the checks
+# chain arm of `seal gate`, `seal settle`, the AgenticSeal process's own steps
+# (which open the pull request with `gh pr create`), and the checks
 # `seal pr-checks install` writes.
 NETWORK_PLACES = (
     "/agentic:update",

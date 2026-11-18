@@ -55,7 +55,7 @@ a maintainer's run follows.
 
 ### What a contribution is not asked for
 
-This repository runs a spec-driven workflow on itself: work items under
+This repository runs the AgenticSeal process on itself: work items under
 `seal/threads/`, review rounds, a version that moves once per release. **A
 contribution is asked for none of it.** The version and milestone steps
 belong to a release and exit early on any base but `main`. The others run on

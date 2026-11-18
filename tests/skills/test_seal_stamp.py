@@ -1561,7 +1561,7 @@ class Test_queue_for_written_guarantee:
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_root_in_an_opted_out_repository_queues_nothing(self, shared):
         """`seal/` under a worktree is the root only while the repository
-        runs the workflow; the throwaway marker takes it back."""
+        runs the AgenticSeal process; the throwaway marker takes it back."""
         uncommitted(shared)
         write(shared.common, "agentic-scratch", "")
         assert queue_written(shared) == [] and queued(shared.common) == []

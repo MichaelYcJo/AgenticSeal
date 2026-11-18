@@ -15,8 +15,8 @@ the command behind it. A work item's directory is safe to delete wholesale
 where to read: nothing that must survive is allowed to live only there.
 
 It lives at one of two places, and its presence at either, with this file's
-first line as it stands, is what opts the repository into the AgenticSeal process.
-There is no config key. **Shared mode** keeps
+first line as it stands, is what opts the repository into the AgenticSeal
+process. There is no config key. **Shared mode** keeps
 it at `<repo>/seal/` and commits it (gitignored files don't follow worktrees
 or other machines), so every clone reads it and CI can check pull requests
 against it. **Local mode** keeps the
