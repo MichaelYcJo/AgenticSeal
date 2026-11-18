@@ -67,6 +67,11 @@ stays inside the width.
 This repository runs the AgenticSeal process on itself: work items under
 ```
 
+```seal
+verdict: fixed bc092878b
+answer: The finding holds. `CONTRIBUTING.md:58` now says the repository runs the AgenticSeal process on itself, in bc092878b, and *Scope* item 4 of `frame/design.md` names the line.
+```
+
 ### 2. `lib/core.py:14` restates the opt-in fact that `lib/optin.py`'s renamed docstrings state, and keeps "runs the workflow"; nothing in the records names it
 
 ```seal
@@ -123,6 +128,11 @@ The snippets reach the three lines in `lib/` and `tests/`. Where the fix
 pass keeps any of them instead, `gaps.md:13` owes a sentence naming it,
 since the line as it stands names only the three directories.
 
+```seal
+verdict: fixed bc092878b
+answer: The finding holds. `lib/core.py:14`, `tests/lib/test_core.py:219` and `tests/skills/test_seal_stamp.py:1564` use the name in bc092878b, and *Scope* item 4 names them. `gaps.md` *Not done* now says the remaining test docstrings keep the word and that the list is a sample found by wording.
+```
+
 ### 3. `frame/design.md` reports two searches at `c637848af` that print otherwise, and *Removes* says no copy stands on "the workflow" while a test comment names the README row by its old label
 
 ```seal
@@ -170,6 +180,11 @@ In `frame/design.md:42`, "the two searches printed 58 lines" becomes "the
 two searches printed 64 lines". The *Removes* snippet assumes the fix pass
 renames the two docstrings of finding 2. Where it keeps them, the sentence
 names them as kept instead.
+
+```seal
+verdict: fixed bc092878b
+answer: The finding holds. In bc092878b S2 counts 64 lines, 48 and 16, and *Removes* gives the 106 lines, names the two that held an old label, and says *Scope* item 4 updates both. The comment at `tests/behaviour/test_chain_hooks_hardening.py:415-419` now names the row as the AgenticSeal process's own steps. `frame/plan.md` *Judgments of the run* records the fold.
+```
 
 ### 4. The phase says every paragraph whose lines grew past their width was refilled, and six lines the build lengthened stand past 76 columns
 
@@ -320,3 +335,8 @@ apart from the one finding 4 names.
 | `git grep -n -i 'the workflow' c637848af -- tests` | 106 lines; three name the process, the rest a GitHub Actions workflow |
 | the two S2 searches at `c637848af` | 48 and 16 lines |
 | `git grep -n -F '0.38.2' -- . ':!seal/threads'` at the target | exit 1, no line |
+
+```seal
+verdict: fixed bc092878b
+answer: The finding holds. The six lines are refilled within 76 columns in bc092878b, and `trail/phases/phase-1.md` says round 1's fix pass refilled them. The phase's cases and the two modules round 1 named pass, 476 cases (executed), and `uvx ruff check` and `uvx ruff format --check` pass on the changed Python files (executed).
+```
