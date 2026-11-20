@@ -116,8 +116,9 @@ Limits, stated here and not guarded:
 Exit: 0 written, or under `--check` the part above the heading is the lines
 of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
-opens with `refused:` naming the body file by its name, or a record or
-`config.json` by its path under the `seal/` root, and the line; 2 the
+opens with `refused:` naming the body file by its name, or a record, the
+work item's directory or `config.json` by its path under the `seal/`
+root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
 """
