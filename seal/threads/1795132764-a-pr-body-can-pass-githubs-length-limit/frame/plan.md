@@ -40,7 +40,7 @@ The spawn names one other open work item of `release/v0.38.3`, #1557 (`docs/1557
 
 ## Operational impact
 
-None for a deployer. The fold changes the body only where the body would pass GitHub's limit, so every body within it is composed as before (S3). A work item past the limit whose `pr.md` and `changelog.md` alone pass it now stops at `seal pr-body` with exit 1 instead of at `gh pr create`. This pull request moves no version (`routing.md` *Version*).
+A deployer whose `.github/workflows/hygiene.yml` pins 0.38.2 or earlier reinstalls it with `seal pr-checks remove` and `seal pr-checks install` before a pull request whose body folds, as the changelog's *Updating* paragraph states, because the pinned check composes no fold. The fold changes a body only where, counted in UTF-16 code units with room for the seal mark's line, it would pass GitHub's limit, so every other body is composed as before (S3). A body GitHub would keep can still fold in two bands: within the mark's room of the limit, and where characters outside the Basic Multilingual Plane, counted twice, take it past. A work item past the limit whose `pr.md` and `changelog.md` alone pass it now stops at `seal pr-body` with exit 1 instead of at `gh pr create`. This pull request moves no version (`routing.md` *Version*).
 
 ## Judgments of the run
 
