@@ -65,6 +65,21 @@ such a `<!--`, after nothing but spaces, tabs and block markers, is refused
 at its line whatever follows it, since GitHub hides the lines after it, the
 fold's end among them.
 
+Where the whole body, the first part, `HEADING` and the part below it,
+would pass `LIMIT`, GitHub's limit, counted in UTF-16 code units, the
+sections after the changelog's fold one at a time, the longest first,
+until the body fits. A folded section keeps its heading, and a line of
+`FIXED`, `FOLDED`, stands in place of its text for each record `SECTIONS`
+names for it, a directory named once. The changelog's section never folds.
+The body is measured with room for the seal mark's line whether or not the
+mark is written, so the run after the seal folds what the sealer's check
+folded. Both forms name the folded sections on one line opening
+`seal pr-body:`, and both refuse on the work item's directory where the
+body passes `LIMIT` with every section folded that a fold shortens,
+naming the length of the first part's files and of the changelog. Every
+copied line is refused or passed before any fold, so a line's refusal
+does not hang on the length of the other records.
+
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `lib/fields.py` reads by the record's headings, and
 `trail/gate.md` through `lib/fields.py`, the one reader of a record's
@@ -76,8 +91,6 @@ other way.
 
 Limits, stated here and not guarded:
 
-- GitHub refuses a pull request body over its length limit, and
-  `gh pr create` prints the refusal; nothing here repeats it.
 - In local mode the records sit under the git directory, so a reader of the
   pull request cannot open the paths the generated part names. The copied
   text still stands in the body.
@@ -103,8 +116,9 @@ Limits, stated here and not guarded:
 Exit: 0 written, or under `--check` the part above the heading is the lines
 of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
-opens with `refused:` naming the body file by its name, or a record or
-`config.json` by its path under the `seal/` root, and the line; 2 the
+opens with `refused:` naming the body file by its name, or a record, the
+work item's directory or `config.json` by its path under the `seal/`
+root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
 """
@@ -182,6 +196,15 @@ OPTIN = ROUTING.optin
 # The line that ends the orchestrator's part, `first_part`'s files, and
 # opens the generated one.
 HEADING = "## From the records"
+# The longest pull request body GitHub keeps. The number is GitHub's, not
+# this repository's: `gh pr create` and `gh api -X PATCH` with a longer body
+# are refused with `Body is too long (maximum is 65536 characters)`. A body
+# is measured against it by `_units`, in UTF-16 code units, which counts a
+# character outside the Basic Multilingual Plane as two and is never less
+# than the code-point count GitHub is reported to use, so a body within it
+# fits under either count. Raising it does not make a longer body reach a
+# pull request; it moves the refusal back to `gh pr create`, after the seal.
+LIMIT = 65536
 # The fold the generated part's sections after the changelog's stand in,
 # opened under the changelog's section and ended on the part's last line.
 FOLD = "<details>"
@@ -269,6 +292,28 @@ NO_GATE_BLOCK = f"`{GATE}` holds no run block."
 NO_NOT_VERIFIED = f"`{GAPS}` has no `{NOT_VERIFIED}` section."
 NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
+# The line a folded section holds under its heading for each record
+# `SECTIONS` names for it, in place of what it copies.
+FOLDED = (
+    f"Not copied here, so the body stays within GitHub's {LIMIT:,} characters: "
+    "`{path}` holds what this section copies."
+)
+# What `seal pr-body` says where it folded a section, after `seal pr-body: `,
+# and `compared`'s note beside `seal_mark`'s sentence.
+FOLD_NOTE = (
+    f"folded {{headings}} so the body stays within GitHub's {LIMIT:,} "
+    "characters; each folded section names the record that holds it"
+)
+# The refusal on the work item's directory where folding every section that
+# a fold shortens leaves the body, measured with the seal mark's room
+# (`_room`), past `LIMIT`. The length it gives is that measure, so the line
+# says the room is in it.
+TOO_LONG = (
+    "the body, counted with room for the seal mark's line whether or not it "
+    "is written, would be {length:,} characters with every section after "
+    f"`{CHANGED}` folded that a fold shortens, past GitHub's {LIMIT:,}; "
+    "{files}, so {which} is shortened before `seal pr-body` runs again"
+)
 
 # The seal mark, one fixed line between `HEADING`'s blank line and
 # `FOLD`, written where `seal/config.json`'s `MARK_KEY` reads `MARK_ON`
@@ -333,6 +378,7 @@ FIXED = (
     NO_NOT_VERIFIED,
     NO_NOT_DONE,
     NO_QUESTION_TABLE,
+    FOLDED,
 )
 
 
@@ -574,7 +620,7 @@ def _mark_line(manifest):
 
 def seal_mark(item, root, manifest=None, base=None):
     """`(line, note)` for the work item's directory ITEM in the repository
-    at ROOT: the mark `_composed` writes under `HEADING`, or None, and the
+    at ROOT: the mark `_unfolded` writes under `HEADING`, or None, and the
     one sentence `seal pr-body` prints about it, or None.
 
     The mark is written where `MARK_KEY` in the root's `config.json`, read
@@ -773,41 +819,81 @@ def _laid(blocks):
     return [pair for block in blocks if block for pair in (*block, ("", None))]
 
 
-def _composed(name, texts, mark=None, home=OPTIN.HOME):
-    """`[(line, source)]` for the generated part below `HEADING`, that line
-    left out: a blank line, the line MARK and a blank line where it is
-    given, the changelog's section followed by a blank line, outside any
-    fold so the reader meets it before the fold, `FOLD`, the summary
-    naming the copy under HOME, the root's name as `_in_tree` gives it, a
-    blank line, each other section followed by a blank line, and
-    `FOLD_END`. `source`
-    is `(path, line)` for a copied line and None for a fixed one. Refused at
-    the record's line where a copied line is equal to `HEADING`, which would
-    stand in the copy as a second boundary line, or begins with a `<!--`
-    that no `-->` closes on the line, as `CLOSER.COMMENT`'s second arm
-    matches it at the line's start, since GitHub would hide the lines after
-    it and the fold's end among them, or holds a `TAG` outside a fence, a
-    comment and a code span, which would fold a part again or, inside the
-    fold, end it early, or holds a closing keyword outside a fence, a comment and a code
+# The sections after the changelog's, in body order: the builder of each,
+# whose first block is its heading, and the records a fold names in its
+# place, by their path under the work item. A directory is named once, as
+# the directory, so a folded section's length does not grow with the
+# records it holds. A section built without a row here is never folded.
+SECTIONS = (
+    (_built, (PLAN, PHASE_DIR + "/")),
+    (_rounds, (ROUND_DIR + "/",)),
+    (_gate, (GATE,)),
+    (lambda texts: _gaps(texts, NOT_VERIFIED, NO_NOT_VERIFIED), (GAPS,)),
+    (lambda texts: _gaps(texts, NOT_DONE, NO_NOT_DONE), (GAPS,)),
+    (_questions, (QUESTIONS,)),
+)
+
+
+def _units(text):
+    """TEXT's length as `LIMIT` is held to it: its UTF-16 code units, two
+    for a character outside the Basic Multilingual Plane and one for every
+    other."""
+    return len(text.encode("utf-16-le", "surrogatepass")) // 2
+
+
+def _length(pairs):
+    """The units the lines of PAIRS take in the body, each line's end
+    among them."""
+    return sum(_units(line) + 1 for line, _source in pairs)
+
+
+def _listed(phrases):
+    """PHRASES in one phrase: `a`, `a and b`, or `a, b and c`."""
+    phrases = list(phrases)
+    if len(phrases) < 2:
+        return "".join(phrases)
+    return ", ".join(phrases[:-1]) + " and " + phrases[-1]
+
+
+def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
+    """`(top, sections)` for the generated part below `HEADING`, that line
+    left out, before any section is folded. TOP is `[(line, source)]`: a
+    blank line, the line MARK and a blank line where it is given, the
+    changelog's section followed by a blank line, outside any fold so the
+    reader meets it before the fold, `FOLD`, the summary naming the copy
+    under HOME, the root's name as `_in_tree` gives it, and a blank line.
+    SECTIONS holds one `(heading, whole, folded)` per row of `SECTIONS`, in
+    body order: WHOLE its lines each block followed by a blank line, and
+    FOLDED its heading and one `FOLDED` line per record its row names, laid
+    out the same way. `source` is `(path, line)` for a copied line and None
+    for a fixed one.
+
+    Refused at the record's line, over every section whether or not a fold
+    later removes it, so a line passes or not whatever the other records'
+    length: where a copied line is equal to `HEADING`, which would stand in
+    the copy as a second boundary line, or begins with a `<!--` that no
+    `-->` closes on the line, as `CLOSER.COMMENT`'s second arm matches it at
+    the line's start, since GitHub would hide the lines after it and the
+    fold's end among them, or holds a `TAG` outside a fence, a comment and a
+    code span, which would fold a part again or, inside the fold, end it
+    early, or holds a closing keyword outside a fence, a comment and a code
     span, since GitHub and the release's closer would close the issue it
-    names. The tag and the keyword are read on one line, blanked one way, by
-    `CLOSER.HIDDEN`."""
-    blocks = _built(texts)
-    blocks += _rounds(texts)
-    blocks += _gate(texts)
-    blocks += _gaps(texts, NOT_VERIFIED, NO_NOT_VERIFIED)
-    blocks += _gaps(texts, NOT_DONE, NO_NOT_DONE)
-    blocks += _questions(texts)
-    below = [("", None)]
+    names. The tag and the keyword are read on one line, blanked one way,
+    by `CLOSER.HIDDEN`."""
+    sections = []
+    for build, paths in SECTIONS:
+        blocks = build(texts)
+        folded = [blocks[0], *(_fixed(FOLDED.format(path=path)) for path in paths)]
+        sections.append((blocks[0][0][0], _laid(blocks), _laid(folded)))
+    top = [("", None)]
     if mark:
-        below += [(mark, None), ("", None)]
-    below += _laid(_changed(texts))
-    below += [(FOLD, None), (SUMMARY.format(home=home, name=name), None), ("", None)]
-    below += _laid(blocks)
-    below.append((FOLD_END, None))
+        top += [(mark, None), ("", None)]
+    top += _laid(_changed(texts))
+    top += [(FOLD, None), (SUMMARY.format(home=home, name=name), None), ("", None)]
+    copied = top + [pair for _heading, whole, _folded in sections for pair in whole]
     seen = {rel: READER.readable(text) for rel, text in texts.items()}
     causes = []
-    for said, (rel, line) in (pair for pair in below if pair[1]):
+    for said, (rel, line) in (pair for pair in copied if pair[1]):
         if said == HEADING:
             causes.append(
                 (
@@ -842,19 +928,94 @@ def _composed(name, texts, mark=None, home=OPTIN.HOME):
         causes += _claims(rel, line, seen[rel])
     if causes:
         raise Refused(causes)
-    return below
+    return top, sections
+
+
+def _room(mark, manifest=None):
+    """The units the seal mark's line and the blank line under it would take
+    where MARK, the mark `seal_mark` gave, is not given: the line
+    `_mark_line` builds from MANIFEST or the plugin's own, `MANIFEST`. Zero
+    where MARK is given, since it stands in the body then, and where the
+    line cannot be built. The fold measures the body with this room, so
+    the run before the seal and the run after it fold the same sections."""
+    if mark:
+        return 0
+    line, _note = _mark_line(manifest or MANIFEST)
+    return _units(line) + 2 if line else 0
+
+
+def _folded(top, sections, parts=(), texts=None, room=0):
+    """`(below, headings)`: `_unfolded`'s TOP and SECTIONS laid out as the
+    part below `HEADING`, each section whole or folded, and `FOLD_END`; and
+    the headings of the folded sections, in body order.
+
+    The body is measured as `main` writes it, PARTS, `first_part`'s files,
+    then `HEADING` and its line end, then the part, with ROOM added, by
+    `_units`. Where it passes `LIMIT`, the sections fold one at a time, the
+    longest first and, between two of one length, the earlier, until the
+    body fits; a section whose folded form is not shorter than its copy is
+    not folded. Refused on the work item's directory where the body still
+    passes `LIMIT`, naming its length with ROOM counted, each file of PARTS
+    and the changelog of TEXTS with theirs."""
+    whole = [_length(lines) for _heading, lines, _folded in sections]
+    short = [_length(lines) for _heading, _whole, lines in sections]
+    length = (
+        sum(_units(text) for _name, text in parts)
+        + _units(HEADING)
+        + 1
+        + _length(top)
+        + sum(whole)
+        + _units(FOLD_END)
+        + 1
+        + room
+    )
+    chosen = set()
+    for i in sorted(range(len(sections)), key=lambda i: (-whole[i], i)):
+        if length <= LIMIT:
+            break
+        if short[i] < whole[i]:
+            chosen.add(i)
+            length -= whole[i] - short[i]
+    if length > LIMIT:
+        files = [(name, text) for name, text in parts]
+        if texts and CHANGELOG in texts:
+            files.append((CHANGELOG, texts[CHANGELOG]))
+        held = [f"`{name}` holds {_units(text):,}" for name, text in files]
+        which = "one of them" if len(held) > 1 else "it"
+        why = TOO_LONG.format(length=length, files=_listed(held), which=which)
+        raise Refused([("", 0, why)])
+    below = list(top)
+    for i, (_heading, lines, folded) in enumerate(sections):
+        below += folded if i in chosen else lines
+    below.append((FOLD_END, None))
+    return below, [sections[i][0] for i in sorted(chosen)]
+
+
+def _noted(note, headings):
+    """NOTE, `seal_mark`'s sentence, and `FOLD_NOTE` naming HEADINGS where
+    any section was folded, joined by `; `; None where neither stands."""
+    fold = None
+    if headings:
+        fold = FOLD_NOTE.format(headings=_listed(f"`{h}`" for h in headings))
+    return "; ".join(said for said in (note, fold) if said) or None
 
 
 def _joined(below):
     return "\n".join(line for line, _source in below) + "\n"
 
 
-def compose(name, texts, mark=None, home=OPTIN.HOME):
+def compose(name, texts, mark=None, home=OPTIN.HOME, parts=()):
     """The generated part of the body for the work item called NAME, from
-    `read_item`'s mapping TEXTS: `HEADING`, then `_composed`'s lines, the
-    seal mark MARK first where `seal_mark` gave one, the summary naming the
-    copy under HOME, the fold's end the last."""
-    return HEADING + "\n" + _joined(_composed(name, texts, mark, home))
+    `read_item`'s mapping TEXTS: `HEADING`, then the part `_folded` lays
+    out, the seal mark MARK first where `seal_mark` gave one, the summary
+    naming the copy under HOME, the fold's end the last. PARTS are the
+    files of the body's first part, as `first_part` gives them, which the
+    caller writes in front of the text: the fold measures the body they
+    and the text make, and the plugin's own `MANIFEST` gives the mark's
+    room."""
+    top, sections = _unfolded(name, texts, mark, home)
+    below, _headings = _folded(top, sections, parts, texts, _room(mark))
+    return HEADING + "\n" + _joined(below)
 
 
 def split(body):
@@ -979,20 +1140,26 @@ def compared(item, body, root, manifest=None, base=None):
     directory ITEM in the repository at ROOT: the first part `first_part`
     gives from the two language keys, `HEADING`, the seal mark `seal_mark`
     gives from MANIFEST or the plugin's own, read against BASE where it is
-    given, and the records' copy. NOTE is `seal_mark`'s sentence, or None;
-    CAUSES are the `(where, line, why)` of `Refused`, a record's, the root's
-    `config.json`'s or the body's, empty where BODY is that composition.
-    `main --check` and the pull request's check, `chain_check.py#body`, both
-    call this, so the body is read by one code path at the sealer and at
-    the pull request."""
+    given, and the records' copy, folded as `_folded` folds the body `main`
+    writes, with the mark's room from MANIFEST or the plugin's own. NOTE is
+    `seal_mark`'s sentence and, where a section was folded, `FOLD_NOTE`,
+    joined by `; `, or None where neither stands; CAUSES are the `(where,
+    line, why)` of `Refused`, a record's, the root's `config.json`'s or the
+    body's, empty where BODY is that composition. `main --check` and the
+    pull request's check, `chain_check.py#body`, both call this, so the
+    body is read by one code path at the sealer and at the pull request."""
     mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
+    headings = []
     try:
-        below = _composed(name, read_item(item), mark, _in_tree(root))
-        _check(below, body, first_part(item, root))
+        texts = read_item(item)
+        top, sections = _unfolded(name, texts, mark, _in_tree(root))
+        parts = first_part(item, root)
+        below, headings = _folded(top, sections, parts, texts, _room(mark, manifest))
+        _check(below, body, parts)
     except Refused as refused:
-        return note, refused.causes
-    return note, []
+        return _noted(note, headings), refused.causes
+    return _noted(note, headings), []
 
 
 def _place(where, line, item, body, home):
@@ -1058,10 +1225,11 @@ def main(argv=None):
         )
         return 0
     mark, note = seal_mark(args.item, root)
-    said = f"seal pr-body: {note}\n" if note else ""
     try:
-        below = _composed(name, read_item(args.item), mark, home)
+        texts = read_item(args.item)
+        top, sections = _unfolded(name, texts, mark, home)
         parts = first_part(args.item, root)
+        below, headings = _folded(top, sections, parts, texts, _room(mark))
         try:
             with open(args.body, "w", encoding="utf-8", newline="") as handle:
                 handle.write(
@@ -1076,6 +1244,8 @@ def main(argv=None):
         for where, line, why in refused.causes:
             print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         return 1
+    note = _noted(note, headings)
+    said = f"seal pr-body: {note}\n" if note else ""
     print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0
 
