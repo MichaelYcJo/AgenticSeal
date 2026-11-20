@@ -657,6 +657,18 @@ class Test_compose:
             assert section_of(text, heading) == section_of(EXPECTED, heading)
         assert unsourced(text, texts) == []
 
+    def test_folds_by_the_body_the_first_part_opens(self):
+        """D7 of #1559. The fold measures the body the caller writes, the
+        first part's files in front of the text `compose` returns, so
+        records that fit alone fold behind a long `pr.md`, and the two
+        together fit. Seen red with `parts` left out of the measure."""
+        texts = {**RECORDS, "gaps.md": long_gaps(400)}
+        assert "Not copied here" not in PR.compose(NAME, texts)
+        own = OWN + "p" * 20000 + "\n"
+        text = PR.compose(NAME, texts, parts=[("pr.md", own)])
+        assert FOLDED.format(path="gaps.md") in text.split("\n")
+        assert units(own + text) <= LIMIT, units(own + text)
+
     def test_folds_only_the_longer_of_two_sections_either_of_which_fits(self):
         """S2 of #1559. Where folding either of two long sections would fit
         the body, the longer one folds, here `## Questions`, and the shorter
