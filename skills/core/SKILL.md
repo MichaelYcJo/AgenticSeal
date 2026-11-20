@@ -15,39 +15,40 @@ user-invocable: false
 
 # The core
 
-This file governs work run through the AgenticSeal workflow; a session
-doing other work is not bound by it to start the workflow. Each path this
-file cites is relative to the plugin's root, the directory holding this file's
-`skills/`, never to the session's repository, except `seal/`, the records
-root `skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes* places. `seal/` is that root's name in every text this plugin
-ships, except where a text says a `seal/` is the project's own or that its
-`README.md` does not open with the marker: that is the directory named
-`seal`. Where the repository's own `seal/` belongs to something else, the
-shared root is `agentic-seal/`, recognised by the same marker,
-`lib/optin.py#MARKER`, as the first line of its `README.md`.
+This file governs work run through the AgenticSeal process, everything the
+plugin does with one issue from the routing question to the sealer's
+guarantee; a session doing other work is not bound by it to start the
+process. Each path this file cites is relative to the plugin's root, the
+directory holding this file's `skills/`, never to the session's repository,
+except `seal/`, the records root `skills/implement/SKILL.md` *Document
+layout — two roots, three lifetimes* places. `seal/` is that root's name in
+every text this plugin ships, except where a text says a `seal/` is the
+project's own or that its `README.md` does not open with the marker: that is
+the directory named `seal`. Where the repository's own `seal/` belongs to
+something else, the shared root is `agentic-seal/`, recognised by the same
+marker, `lib/optin.py#MARKER`, as the first line of its `README.md`.
 
-## The first value: efficient development through the workflow
+## The first value: efficient development through the AgenticSeal process
 
-**AgenticSeal exists for efficient development through an agent workflow,
+**AgenticSeal exists for efficient development through a process of agents,
 and two things make it: judgment where judgment is needed, and the source
 documents a judgment is made against.** Neither does it alone. An agent that
 judges everything spends more tokens than the work is worth and drifts from
 what the source documents decided; one that only runs scripts and sequences
-adds nothing a script would not. Verification through the workflow serves
-this value by buying time and stability. The value decides between two
-designs that break no rule below.
+adds nothing a script would not. Verification through the AgenticSeal
+process serves this value by buying time and stability. The value decides
+between two designs that break no rule below.
 
 **Judgment is spent where meaning is the question, and a script answers the
 rest.** Whether two things mean the same or give the same result is the
-judgment the workflow delegates, and the proofer's findings and the sealer's
-verdict gate a pull request on it. A script that answers "these differ"
-where the meaning is the same is the worst result the workflow can give, so
-a script does not re-encode that judgment as a grammar rule: it reads what a
-command wrote or what a real parser returns. What a script answers
-exactly, such as the suite, the lint, the broad gate and the merge check,
-stays a script, and the session waits on its exit code rather than
-reasoning about what it would print.
+judgment the AgenticSeal process delegates, and the proofer's findings and
+the sealer's verdict gate a pull request on it. A script that answers "these
+differ" where the meaning is the same is the worst result the AgenticSeal
+process can give, so a script does not re-encode that judgment as a grammar
+rule: it reads what a command wrote or what a real parser returns. What a
+script answers exactly, such as the suite, the lint, the broad gate and the
+merge check, stays a script, and the session waits on its exit code rather
+than reasoning about what it would print.
 
 **Each agent judges its own target, independently of the others.** The
 framer judges what the work should be, the crafter whether the build holds
@@ -108,9 +109,9 @@ one of those protections, is guidance.
 | No seal without the broad run at HEAD | the sealer guarantees a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; the same check's broad gate arm |
 | No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the seal mark among it |
 
-The check refuses only a ready pull request, where its workflow is
-installed; before the pull request, and in local mode, the four rows
-are held by `agents/sealer.md` step 1 and by the orchestrator keeping
+The check refuses only a ready pull request, where its GitHub Actions
+workflow is installed; before the pull request, and in local mode, the four
+rows are held by `agents/sealer.md` step 1 and by the orchestrator keeping
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
 once the sealer seals*.
 
