@@ -315,6 +315,66 @@ def unsourced(text, texts):
     ]
 
 
+# #1559: GitHub's limit on a pull request body, and the count the body is held
+# to it in, UTF-16 code units, written here apart from `pr_body.py`'s own, so
+# a case measures a body with a count it does not take from the module.
+LIMIT = 65536
+# The line a folded section holds for each record it names, as a person
+# reads it.
+FOLDED = (
+    "Not copied here, so the body stays within GitHub's 65,536 characters: "
+    "`{path}` holds what this section copies."
+)
+# What `seal pr-body` says where the fold folded one section, `## Not
+# verified`.
+FOLDED_NOT_VERIFIED = (
+    "folded `## Not verified` so the body stays within GitHub's 65,536 "
+    "characters; each folded section names the record that holds it"
+)
+
+
+# The length of the body S5's case refuses, with every section a fold shortens
+# folded: its `pr.md`, the heading line, and the copy under it with the room
+# of the fixture's mark. `## Broad gate`, `## Not verified` and `## Not done`
+# stay whole there, since each one's fold line is longer than its copy;
+# folding them as well would give 71,379.
+LENGTH = 71260
+
+
+def units(text):
+    """TEXT's length in UTF-16 code units."""
+    return len(text.encode("utf-16-le")) // 2
+
+
+def long_gaps(rows, cell="x" * 90):
+    """`GAPS` with ROWS more rows in its `## Not verified` table, each
+    holding CELL."""
+    first = "| the full suite | the orchestrator |\n"
+    extra = "".join(f"| item {n} {cell} | the orchestrator |\n" for n in range(rows))
+    return GAPS.replace(first, first + extra)
+
+
+def long_questions(rows, cell="x" * 90):
+    """`QUESTIONS` with ROWS more rows in its table, each holding CELL."""
+    extra = "".join(
+        f"| Q{n + 3} | {cell} | a person | (a) | (a) | open |\n" for n in range(rows)
+    )
+    return QUESTIONS + extra
+
+
+def section_of(text, heading):
+    """The lines of TEXT from the line HEADING to the next `## ` line, or to
+    the fold's end."""
+    lines = text.split("\n")
+    first = lines.index(heading)
+    stop = next(
+        i
+        for i in range(first + 1, len(lines))
+        if lines[i].startswith("## ") or lines[i] == "</details>"
+    )
+    return lines[first:stop]
+
+
 # #1204: a manifest with the two fields the mark's address is built from and
 # a `version`, which the address does not read (#1452), and the line `seal
 # pr-body` writes from it.
@@ -574,6 +634,154 @@ class Test_compose:
         text = PR.compose(NAME, {**RECORDS, "changelog.md": changelog})
         for line in lines:
             assert line in text.split("\n"), line
+
+    def test_folds_a_section_until_the_body_fits(self):
+        """S1 of #1559. A body past GitHub's limit folds its longest section,
+        here `## Not verified`, to its heading and one fixed line naming
+        `gaps.md`, and then measures within the limit. `## What changed`
+        stands whole above the fold, the other sections are copied whole,
+        and every line is a record's or a line of `FIXED`. Seen red against
+        `_composed` as 0.38.2 shipped it, whose body passed the limit."""
+        texts = {**RECORDS, "gaps.md": long_gaps(700)}
+        text = PR.compose(NAME, texts)
+        assert units(text) <= LIMIT, units(text)
+        assert section_of(text, "## Not verified") == [
+            "## Not verified",
+            "",
+            FOLDED.format(path="gaps.md"),
+            "",
+        ]
+        fold = EXPECTED.index(PR.FOLD)
+        assert text[:fold] == EXPECTED[:fold]
+        for heading in ("## How it was built", "## Review rounds", "## Not done"):
+            assert section_of(text, heading) == section_of(EXPECTED, heading)
+        assert unsourced(text, texts) == []
+
+    def test_folds_by_the_body_the_first_part_opens(self):
+        """D7 of #1559. The fold measures the body the caller writes, the
+        first part's files in front of the text `compose` returns, so
+        records that fit alone fold behind a long `pr.md`, and the two
+        together fit. Seen red with `parts` left out of the measure."""
+        texts = {**RECORDS, "gaps.md": long_gaps(400)}
+        assert "Not copied here" not in PR.compose(NAME, texts)
+        own = OWN + "p" * 20000 + "\n"
+        text = PR.compose(NAME, texts, parts=[("pr.md", own)])
+        assert FOLDED.format(path="gaps.md") in text.split("\n")
+        assert units(own + text) <= LIMIT, units(own + text)
+
+    def test_folds_only_the_longer_of_two_sections_either_of_which_fits(self):
+        """S2 of #1559. Where folding either of two long sections would fit
+        the body, the longer one folds, here `## Questions`, and the shorter
+        one, earlier in the body, is copied whole. Seen red with the sort by
+        length removed, where the sections folded in body order and
+        `## Not verified` folded."""
+        texts = {
+            **RECORDS,
+            "gaps.md": long_gaps(280),
+            "frame/questions.md": long_questions(300),
+        }
+        text = PR.compose(NAME, texts)
+        assert units(text) <= LIMIT, units(text)
+        assert section_of(text, "## Questions") == [
+            "## Questions",
+            "",
+            FOLDED.format(path="frame/questions.md"),
+            "",
+        ]
+        assert len(section_of(text, "## Not verified")) > 280
+
+    def test_folds_the_same_sections_with_the_mark_and_without(self):
+        """S4 of #1559. A body within the limit without the seal mark's line
+        and past it with the line folds the same sections either way, so
+        the body written after the seal differs from the one written before
+        it by the mark and its blank line alone; and a body that fits with
+        the line folds nothing either way. Seen red with the mark's room
+        removed, where the body without the mark folded nothing, and with
+        the room added beside a mark the body holds, where the body that
+        fits with the mark folded."""
+        mark = PR._mark_line(PR.MANIFEST)[0]
+        room = units(mark) + 2
+        base = {**RECORDS, "gaps.md": long_gaps(450)}
+        plain = PR.compose(NAME, base)
+        assert "Not copied here" not in plain
+        heading = PR.HEADING + "\n\n"
+        for pad, folds in (
+            (LIMIT - room // 2 - units(plain), True),
+            (LIMIT - room - units(plain), False),
+        ):
+            texts = {**base, "changelog.md": CHANGELOG + "- " + "y" * (pad - 3) + "\n"}
+            without = PR.compose(NAME, texts)
+            marked = PR.compose(NAME, texts, mark)
+            assert (FOLDED.format(path="gaps.md") in without.split("\n")) is folds
+            assert marked == without.replace(heading, f"{heading}{mark}\n\n", 1)
+            assert units(marked) <= LIMIT, units(marked)
+
+    def test_folds_the_earlier_of_two_sections_of_one_length(self):
+        """D3 of #1559. Of two sections of one length, either of which fits
+        the body when folded, the earlier in the body folds, here `## Not
+        verified` before `## Not done`. Seen red with the tie given to the
+        later section."""
+        rows = "".join(
+            f"| item {n} {'x' * 90} | the orchestrator |\n" for n in range(330)
+        )
+        table = "| Item | Who must answer |\n|---|---|\n" + rows
+        # `## Not verified` is four characters longer than `## Not done`, and
+        # the line `abc` with its line end gives those four back.
+        gaps = (
+            f"# Closing memo\n\n## Not verified\n\n{table}\n## Not done\n\n{table}abc\n"
+        )
+        text = PR.compose(NAME, {**RECORDS, "gaps.md": gaps})
+        assert section_of(text, "## Not verified") == [
+            "## Not verified",
+            "",
+            FOLDED.format(path="gaps.md"),
+            "",
+        ]
+        assert section_of(text, "## Not done")[-2:] == ["abc", ""]
+
+    def test_refuses_a_copied_line_in_a_section_the_fold_removes(self):
+        """S8 of #1559. A copied line `_unfolded` refuses, here one holding a
+        `details` tag, is refused at its line in a section that the fold
+        removes from the page, so whether a line passes does not hang on
+        the length of other records. Seen red with the refusal run over the
+        sections as they are folded, where the line passed."""
+        gaps = long_gaps(700).replace(
+            "| the full suite |", "| the full suite <details> |", 1
+        )
+        with pytest.raises(PR.Refused) as refused:
+            PR.compose(NAME, {**RECORDS, "gaps.md": gaps})
+        assert [(where, at) for where, at, _ in refused.value.causes] == [
+            ("gaps.md", 7)
+        ]
+        assert "`<details>`" in refused.value.causes[0][2]
+
+    def test_counts_a_character_outside_the_basic_plane_as_two(self):
+        """S10 of #1559. A body within the limit counted in code points and
+        past it counted in UTF-16 code units, its rows holding emoji, folds
+        a section, so it fits under either count. Seen red with the count
+        replaced by `len`, where nothing folded."""
+        texts = {**RECORDS, "gaps.md": long_gaps(700, "\U0001f916" * 40)}
+        assert sum(map(len, texts.values())) + 10_000 < LIMIT
+        assert sum(map(units, texts.values())) > LIMIT
+        text = PR.compose(NAME, texts)
+        assert FOLDED.format(path="gaps.md") in text.split("\n")
+        assert units(text) <= LIMIT, units(text)
+
+    def test_refuses_a_first_part_alone_past_the_limit(self):
+        """D5 of #1559. Where the first part alone passes the limit and the
+        work item holds no `changelog.md`, the refusal names the one file
+        and asks for it to be shortened. Seen red with the refusal's words
+        for several files written for one."""
+        texts = {rel: text for rel, text in RECORDS.items() if rel != "changelog.md"}
+        own = "p" * 70000 + "\n"
+        with pytest.raises(PR.Refused) as refused:
+            PR.compose(NAME, texts, parts=[("pr.md", own)])
+        [(where, line, why)] = refused.value.causes
+        assert (where, line) == ("", 0)
+        assert why.endswith(
+            f"; `pr.md` holds {units(own):,}, so it is shortened before "
+            "`seal pr-body` runs again"
+        )
 
 
 class Test_split:
@@ -1427,6 +1635,83 @@ class Test_main:
         assert PR.main([str(item), "--body", str(body)]) == 1
         assert capsys.readouterr().out.startswith("refused: ")
         assert body.read_bytes() == text.encode("utf-8")
+
+    def test_refuses_a_first_part_and_changelog_past_the_limit(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """S5 of #1559. Where the first part, here `pr.ko.md` and `pr.md`,
+        and `changelog.md`, none of which folds, pass GitHub's limit
+        together, both forms exit 1 on one `refused:` line on the work
+        item's directory naming the body's length with every section that a
+        fold shortens folded, the seal mark's room counted and said to be,
+        the limit, and each of the three files with its length; the body
+        file is left as it stood. The length is
+        `LENGTH` with `pr.ko.md`'s text and the line end `read_own` gives it.
+        Seen red against `main` as 0.38.2 shipped it, which exited 0 and
+        wrote the body."""
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        own = OWN + "p" * 40000 + "\n"
+        changelog = CHANGELOG + "- " + "c" * 30000 + "\n"
+        item = item_of(
+            tmp_path,
+            {**RECORDS, "changelog.md": changelog},
+            own=own,
+            rows=DIFFERING,
+            translations={"pr.ko.md": TRANSLATION},
+        )
+        body = tmp_path / "pr-body.md"
+        body.write_bytes(b"as it stood\n")
+        translation = units(TRANSLATION) + 1
+        said = (
+            f"refused: seal/threads/{NAME}: the body, counted with room for the "
+            "seal mark's line whether or not it is written, would be "
+            f"{LENGTH + translation:,} characters with every section after "
+            "`## What changed` folded that a fold shortens, past GitHub's "
+            f"65,536; `pr.ko.md` holds {translation:,}, `pr.md` holds "
+            f"{units(own):,} and `changelog.md` holds {units(changelog):,}, so "
+            "one of them is shortened before `seal pr-body` runs again\n"
+        )
+        for extra in ([], ["--check"]):
+            assert PR.main([str(item), "--body", str(body), *extra]) == 1
+            assert capsys.readouterr().out == said
+        assert body.read_bytes() == b"as it stood\n"
+
+    def test_names_the_folded_sections_when_writing_and_checking(
+        self, tmp_path, capsys
+    ):
+        """S6 of #1559. The command that writes a folded body says on one
+        line which sections it folded, after the mark key's sentence and
+        `; `, `--check` on that body exits 0 and says the same, and a body
+        with the folded section's text copied back in place of its fixed
+        line is refused at that line."""
+        item = item_of(
+            tmp_path,
+            {**RECORDS, "gaps.md": long_gaps(700)},
+            rows=[*LANGUAGES, ("Pull request seal mark", "Yes")],
+        )
+        body = tmp_path / "pr-body.md"
+        note = f"seal pr-body: {NOT_YES.format(value='Yes')}; {FOLDED_NOT_VERIFIED}\n"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        assert capsys.readouterr().out == (
+            f"{note}wrote: {body} from {item}'s `pr.md` and records\n"
+        )
+        written = body.read_bytes().decode("utf-8")
+        assert units(written) <= LIMIT, units(written)
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 0
+        assert capsys.readouterr().out == (
+            f"{note}matches: {body} is `pr.md` above `{PR.HEADING}` and the "
+            "records' text below it\n"
+        )
+        folded = FOLDED.format(path="gaps.md")
+        line = written.split("\n").index(folded) + 1
+        body.write_bytes(
+            written.replace(
+                folded, "From `gaps.md`.\n\n" + GAPS.split("\n")[6], 1
+            ).encode("utf-8")
+        )
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 1
+        out = capsys.readouterr().out
+        assert out.startswith(f"refused: pr-body.md:{line}: reads `From `gaps.md`.`")
 
     def test_refuses_an_item_that_is_not_a_directory_at_exit_2(self, tmp_path):
         body = tmp_path / "pr-body.md"

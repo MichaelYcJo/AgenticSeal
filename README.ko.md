@@ -5,8 +5,8 @@
 
 # AgenticSeal
 
-변경을 설계하고, 만들고, 검사한 뒤, 커밋 하나에 묶인 seal 을 남기는
-에이전트 워크플로입니다.
+AgenticSeal 프로세스: 에이전트들이 변경을 설계하고, 만들고, 검사한 뒤, 커밋
+하나에 묶인 seal 을 남깁니다.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · [English](./README.md) · **한국어**
 
@@ -21,6 +21,13 @@ seal 은 마지막 에이전트가 쓰는 보증서입니다. 커밋 하나를 �
 이슈와 트리에 맞는다고 적습니다. 세션이 `direct` 처럼 직접 고친 변경이거나
 사용자가 브랜치를 돌려 달라고 한 경우가 아니면, 실행은 그 seal 을 기록에 담은
 pull request 에서 끝납니다. 머지는 하지 않습니다. 머지는 사용자가 합니다.
+
+라우팅 질문부터 sealer 의 보증까지, 위에서 말한 일 전체를 **AgenticSeal
+프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른 저장소에서 이 과정을
+가리킬 때도 이 이름을 씁니다. 제품 이름이므로 번역하지 않고, "도장 체인"이나
+"인장 과정"처럼 옮기지 않습니다. seal 은 마지막 에이전트의 보증서 하나만 뜻하고,
+이 문서가 뒤에서 말하는 도장은 그 seal 을 터미널에 그린 그림입니다. 리뷰 체인은
+이 프로세스 안의 리뷰 회차만 가리킵니다.
 
 ```mermaid
 flowchart LR
@@ -58,12 +65,12 @@ Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으�
 지우려면 `/plugin uninstall agentic` 을 실행합니다. 그 전에 따로 되돌릴 것은
 없습니다.
 
-이 워크플로는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과 다릅니다. 방금
-쓴 것을 리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그 추론에 동의합니다.
-여기서는 만드는 쪽이 리뷰하거나 seal 을 남기는 쪽이 되는 일이 없습니다. 각
-에이전트는 다른 에이전트가 쓴 것을 사실이 아니라 확인할 주장으로 읽습니다
-(`skills/core/SKILL.md` *Each agent judges its own target, independently of
-the others*).
+AgenticSeal 프로세스는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과
+다릅니다. 방금 쓴 것을 리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그
+추론에 동의합니다. 여기서는 만드는 쪽이 리뷰하거나 seal 을 남기는 쪽이 되는 일이
+없습니다. 각 에이전트는 다른 에이전트가 쓴 것을 사실이 아니라 확인할 주장으로
+읽습니다 (`skills/core/SKILL.md` *Each agent judges its own target,
+independently of the others*).
 
 에이전트가 돌려주는 보고에는 주장마다 라벨이 붙습니다. `executed` 는 명령을
 실제로 돌렸다는 뜻이고, `read` 는 코드나 글을 읽었다는 뜻이며, `unverified` 는
@@ -115,7 +122,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 `implement` 에 닿고, `implement` 는 세션을 `skills/implement/orchestration.md`
 로 보냅니다. 리뷰 요청은 `code-review` 에 닿습니다.
 `skills/implement/orchestration.md` 도 `code-review` 도 열지 않은 세션은 아무것도
-선언하지 않으며 워크플로 밖에 있습니다.
+선언하지 않으며 AgenticSeal 프로세스 밖에 있습니다.
 
 세션이 어떤 저장소에서 처음 일할 때는 질문 네 개를 한꺼번에 먼저 묻습니다.
 기록을 어디에 둘지(아래 *shared 인가 local 인가*), broad gate 가 돌릴 명령,
@@ -368,8 +375,8 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 파일을 남깁니다. 이 파일도 지우는 것이 없습니다.
 
 두 훅 모두 네트워크를 타지 않습니다. 아래 자리가 네트워크를 탑니다. 이것들은
-명령이나 워크플로의 단계입니다. 그래서 사용자나 세션이 시작할 때 돌고,
-마지막 행만은 pull request 마다 사용자의 CI 에서 돕니다.
+명령이나 AgenticSeal 프로세스의 단계입니다. 그래서 사용자나 세션이 시작할 때
+돌고, 마지막 행만은 pull request 마다 사용자의 CI 에서 돕니다.
 
 | 무엇이 | 어디로 | 무엇을 보내나 | 언제 |
 |---|---|---|---|
@@ -377,14 +384,13 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
 | `seal gate`, 곧 broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `chain_check.py` 를 돌리는 단계가 `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `chain_check.py` 를 따로 돌려도 똑같이 묻는다 | GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
-| 워크플로 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
+| AgenticSeal 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 | `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
 
-사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 이 두
-훅뿐입니다. 위 표에서 사용자 자신의 `gh` 로그인으로 닿는 행은 모두 사용자가
-일하는 저장소에만 닿습니다. 워크플로의 단계는 그 저장소에
-브랜치를 코드째 push 하고 pull request 의 글을 올립니다. 그 일을 하려고 있는
-단계입니다.
+사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 이 두 훅뿐입니다. 위
+표에서 사용자 자신의 `gh` 로그인으로 닿는 행은 모두 사용자가 일하는 저장소에만
+닿습니다. AgenticSeal 프로세스의 단계는 그 저장소에 브랜치를 코드째 push 하고
+pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니다.
 
 ## 명령
 
@@ -452,17 +458,17 @@ request 나 실행을 진행시킬지 말지를 정하기 때문입니다. 고�
 전부는 [CONTRIBUTING.md](./CONTRIBUTING.md) 의 *What a change to a gate must
 carry* 절에 있고, 나머지는 *Opening a pull request* 절에 있습니다.
 거기에는 기여에 요구하지 않는 것도 적혀 있습니다. 이 저장소가 스스로에게
-적용하는 워크플로는 기여에 하나도 해당하지 않습니다.
+적용하는 AgenticSeal 프로세스는 기여에 하나도 해당하지 않습니다.
 
 ## 언어 정책
 
-기능 파일(스킬, 에이전트, 스크립트)은 영어로만 씁니다. 모델의 컨텍스트에 로드되는
-파일이라, 번역본을 따로 두면 원본과 어긋나기 때문입니다. 한국어는
+기능 파일(스킬, 에이전트, 스크립트)은 영어로만 씁니다. 모델의 컨텍스트에
+로드되는 파일이라, 번역본을 따로 두면 원본과 어긋나기 때문입니다. 한국어는
 `README.ko.md` 처럼 사람이 읽는 문서에 씁니다. writing-style 스킬 하나는
-예외입니다. 언어마다 문장 규칙 절을 따로 담는데, 두 절은 서로의 번역이 아니라
-각 언어의 독립된 규범입니다. Claude 가 어느 언어로 답하는지는 사용자 자신의
-`CLAUDE.md` 를 따릅니다. 워크플로가 사용자 저장소에 쓰는 커밋, pull request,
-기록의 언어는 그 저장소가 정하며, `seal/config.json` 의 두 언어 키가 그
+예외입니다. 언어마다 문장 규칙 절을 따로 담는데, 두 절은 서로의 번역이 아니라 각
+언어의 독립된 규범입니다. Claude 가 어느 언어로 답하는지는 사용자 자신의
+`CLAUDE.md` 를 따릅니다. AgenticSeal 프로세스가 사용자 저장소에 쓰는 커밋, pull
+request, 기록의 언어는 그 저장소가 정하며, `seal/config.json` 의 두 언어 키가 그
 답입니다.
 
 ## 라이선스

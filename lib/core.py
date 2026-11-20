@@ -11,8 +11,8 @@ harness's skill listing. `seal payload` counts `rendered`'s bytes, so the
 hook and the meter cannot disagree about what a session received.
 
 **A session in a repository with no `seal/` root receives nothing**: the
-root is what says the repository runs the workflow (`optin.opted_in`), and
-a session doing other work pays for no core.
+root is what says the repository runs the AgenticSeal process
+(`optin.opted_in`), and a session doing other work pays for no core.
 
 **Where the session's repository is a clone of the running plugin, the file
 printed is the clone's** (`origin`), so the tree's core governs a session

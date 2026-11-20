@@ -970,7 +970,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     body = f"{evidence}/pr-body.md"
     lines += [
         write(f"{evidence}/issue-101.md", ISSUE),
-        write(body, own + pr_body.compose(item, records)),
+        write(body, own + pr_body.compose(item, records, parts=[("pr.md", own)])),
         fill(body, built + (ran if gate else [])),
     ]
     guarantee = f"{folder}/guarantee.md"

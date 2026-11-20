@@ -136,7 +136,7 @@ def test_the_sentence_names_the_core():
     for heading in (
         # The two headings every citation of the core names, which a reader
         # of such a citation resolves.
-        "## The first value: efficient development through the workflow",
+        "## The first value: efficient development through the AgenticSeal process",
         "## The rule a mechanism is kept against",
     ):
         assert heading in text.splitlines(), f"{CORE} has no `{heading}`"

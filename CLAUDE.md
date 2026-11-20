@@ -16,8 +16,8 @@ An agent spawned here receives the installed plugin's copy, the last
 release's, through `skills:`, as it receives every other installed skill.
 
 `CONTRIBUTING.md` *What a change to a gate must carry* is where a pull
-request to this repository answers the rule `skills/core/SKILL.md` *The
-rule a mechanism is kept against* states and the value its *The first
-value: efficient development through the workflow* states. The core is read
-in every user's repository, so this repository's own files are cited here
-and not there.
+request to this repository answers the rule `skills/core/SKILL.md` *The rule
+a mechanism is kept against* states and the value its *The first value:
+efficient development through the AgenticSeal process* states. The core is
+read in every user's repository, so this repository's own files are cited
+here and not there.
