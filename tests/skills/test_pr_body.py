@@ -682,21 +682,50 @@ class Test_compose:
         """S4 of #1559. A body within the limit without the seal mark's line
         and past it with the line folds the same sections either way, so
         the body written after the seal differs from the one written before
-        it by the mark and its blank line alone. Seen red with the mark's
-        room removed, where the body without the mark folded nothing."""
+        it by the mark and its blank line alone; and a body that fits with
+        the line folds nothing either way. Seen red with the mark's room
+        removed, where the body without the mark folded nothing, and with
+        the room added beside a mark the body holds, where the body that
+        fits with the mark folded."""
         mark = PR._mark_line(PR.MANIFEST)[0]
         room = units(mark) + 2
         base = {**RECORDS, "gaps.md": long_gaps(450)}
         plain = PR.compose(NAME, base)
         assert "Not copied here" not in plain
-        pad = LIMIT - room // 2 - units(plain)
-        texts = {**base, "changelog.md": CHANGELOG + "- " + "y" * (pad - 3) + "\n"}
-        without = PR.compose(NAME, texts)
-        marked = PR.compose(NAME, texts, mark)
-        assert FOLDED.format(path="gaps.md") in without.split("\n")
         heading = PR.HEADING + "\n\n"
-        assert marked == without.replace(heading, f"{heading}{mark}\n\n", 1)
-        assert units(marked) <= LIMIT, units(marked)
+        for pad, folds in (
+            (LIMIT - room // 2 - units(plain), True),
+            (LIMIT - room - units(plain), False),
+        ):
+            texts = {**base, "changelog.md": CHANGELOG + "- " + "y" * (pad - 3) + "\n"}
+            without = PR.compose(NAME, texts)
+            marked = PR.compose(NAME, texts, mark)
+            assert (FOLDED.format(path="gaps.md") in without.split("\n")) is folds
+            assert marked == without.replace(heading, f"{heading}{mark}\n\n", 1)
+            assert units(marked) <= LIMIT, units(marked)
+
+    def test_folds_the_earlier_of_two_sections_of_one_length(self):
+        """D3 of #1559. Of two sections of one length, either of which fits
+        the body when folded, the earlier in the body folds, here `## Not
+        verified` before `## Not done`. Seen red with the tie given to the
+        later section."""
+        rows = "".join(
+            f"| item {n} {'x' * 90} | the orchestrator |\n" for n in range(330)
+        )
+        table = "| Item | Who must answer |\n|---|---|\n" + rows
+        # `## Not verified` is four characters longer than `## Not done`, and
+        # the line `abc` with its line end gives those four back.
+        gaps = (
+            f"# Closing memo\n\n## Not verified\n\n{table}\n## Not done\n\n{table}abc\n"
+        )
+        text = PR.compose(NAME, {**RECORDS, "gaps.md": gaps})
+        assert section_of(text, "## Not verified") == [
+            "## Not verified",
+            "",
+            FOLDED.format(path="gaps.md"),
+            "",
+        ]
+        assert section_of(text, "## Not done")[-2:] == ["abc", ""]
 
     def test_refuses_a_copied_line_in_a_section_the_fold_removes(self):
         """S8 of #1559. A copied line `_unfolded` refuses, here one holding a
@@ -1582,24 +1611,33 @@ class Test_main:
     def test_refuses_a_first_part_and_changelog_past_the_limit(
         self, tmp_path, monkeypatch, capsys
     ):
-        """S5 of #1559. Where `pr.md` and `changelog.md`, which never fold,
-        pass GitHub's limit together, both forms exit 1 on one `refused:`
-        line on the work item's directory naming the body's length with
-        every section that a fold shortens folded, the limit, and each of
-        the two files with its length; the body file is left as it stood.
-        The length is the one a section-by-section sum of the composition
-        gives with the fixture's manifest. Seen red against `main` as 0.38.2
-        shipped it, which exited 0 and wrote the body."""
+        """S5 of #1559. Where the first part, here `pr.ko.md` and `pr.md`,
+        and `changelog.md`, none of which folds, pass GitHub's limit
+        together, both forms exit 1 on one `refused:` line on the work
+        item's directory naming the body's length with every section that a
+        fold shortens folded, the limit, and each of the three files with
+        its length; the body file is left as it stood. The length is
+        `LENGTH` with `pr.ko.md`'s text and the line end `read_own` gives it.
+        Seen red against `main` as 0.38.2 shipped it, which exited 0 and
+        wrote the body."""
         monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
         own = OWN + "p" * 40000 + "\n"
         changelog = CHANGELOG + "- " + "c" * 30000 + "\n"
-        item = item_of(tmp_path, {**RECORDS, "changelog.md": changelog}, own=own)
+        item = item_of(
+            tmp_path,
+            {**RECORDS, "changelog.md": changelog},
+            own=own,
+            rows=DIFFERING,
+            translations={"pr.ko.md": TRANSLATION},
+        )
         body = tmp_path / "pr-body.md"
         body.write_bytes(b"as it stood\n")
+        translation = units(TRANSLATION) + 1
         said = (
-            f"refused: seal/threads/{NAME}: the body would be {LENGTH:,} "
-            "characters with every section after `## What changed` folded that a "
-            "fold shortens, past GitHub's 65,536; `pr.md` holds "
+            f"refused: seal/threads/{NAME}: the body would be "
+            f"{LENGTH + translation:,} characters with every section after "
+            "`## What changed` folded that a fold shortens, past GitHub's "
+            f"65,536; `pr.ko.md` holds {translation:,}, `pr.md` holds "
             f"{units(own):,} and `changelog.md` holds {units(changelog):,}, so "
             "one of them is shortened before `seal pr-body` runs again\n"
         )
@@ -1612,12 +1650,17 @@ class Test_main:
         self, tmp_path, capsys
     ):
         """S6 of #1559. The command that writes a folded body says on one
-        line which sections it folded, `--check` on that body exits 0 and
-        says the same, and a body with the folded section's text copied
-        back in place of its fixed line is refused at that line."""
-        item = item_of(tmp_path, {**RECORDS, "gaps.md": long_gaps(700)})
+        line which sections it folded, after the mark key's sentence and
+        `; `, `--check` on that body exits 0 and says the same, and a body
+        with the folded section's text copied back in place of its fixed
+        line is refused at that line."""
+        item = item_of(
+            tmp_path,
+            {**RECORDS, "gaps.md": long_gaps(700)},
+            rows=[*LANGUAGES, ("Pull request seal mark", "Yes")],
+        )
         body = tmp_path / "pr-body.md"
-        note = f"seal pr-body: {FOLDED_NOT_VERIFIED}\n"
+        note = f"seal pr-body: {NOT_YES.format(value='Yes')}; {FOLDED_NOT_VERIFIED}\n"
         assert PR.main([str(item), "--body", str(body)]) == 0
         assert capsys.readouterr().out == (
             f"{note}wrote: {body} from {item}'s `pr.md` and records\n"
