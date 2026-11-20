@@ -39,6 +39,11 @@ In `_folded`'s docstring, `pr_body.py:954-956`:
     and the changelog of TEXTS with theirs."""
 ```
 
+```seal
+verdict: fixed 3536256a5
+answer: fixed in 3536256a5, in my own wording: `TOO_LONG` now reads "the body, counted with room for the seal mark's line whether or not it is written, would be {length:,} characters ...", its comment and `_folded`'s docstring say the length counts ROOM, S5's expected line and docstring take the words, and `changelog.md` says the length counts the mark's line whether or not it is written. Seen red with the room clause taken out of `TOO_LONG`, where S5 failed on the line (executed: `seal mutate`). `frame/design.md` D5, "`why` gives the body's length", now departs from HEAD; it is a frame line, named in the hand-back for the orchestrator to fold.
+```
+
 ### 2. The changelog's *Updating* paragraph says only a body past GitHub's limit folds, so no open pull request changes
 
 ```seal
@@ -51,6 +56,11 @@ Why it matters: the paragraph reads "Only a body past GitHub's limit folds, and 
 
 ```markdown
 Updating: where `seal pr-checks install` wrote `.github/workflows/hygiene.yml` pinned to 0.38.2 or earlier, the pull request's check composes no fold, and it refuses a folded body at its first folded section. A body folds only where it would pass GitHub's limit counted in UTF-16 code units with room for the seal mark's line. So an open pull request changes only where its body came within that room of the limit, or held characters outside the Basic Multilingual Plane. To open or update one whose body folds, run `seal pr-checks remove` and then `seal pr-checks install` once the plugin is 0.38.3, and commit the result.
+```
+
+```seal
+verdict: fixed dae62ca25
+answer: fixed in dae62ca25, in my own wording: the *Updating* paragraph says a body folds where, counted in UTF-16 code units with room for the seal mark's line, it would pass 65,536 characters, that an open pull request's body can fold under this release in either band, and that the reinstall applies to opening or updating one. The first bullet says a body with no mark folds once it comes within that line's length of the limit, and 9f34ceb37 puts the room in that bullet's heading, the same class. `frame/plan.md` *Operational impact* and the first sentence of `frame/design.md`'s `## Rule changes` add state the old trigger; they are frame lines, named in the hand-back for the orchestrator to fold.
 ```
 
 ### 3. `orchestration.md` still lists the places a `refused:` line of `seal pr-body` names without the work item's directory, which the build's length refusal names
@@ -73,6 +83,12 @@ and line, `pr.md` and `pr.<lang>.md` among the records, a language key
 `config.json` lacks, or the work item's directory with the files to repair
 named in the line: repair that record or write that key, commit it, and run
 the command again.
+```
+
+```seal
+verdict: fixed 6d00248ed
+location: `seal/threads/1795132764-a-pr-body-can-pass-githubs-length-limit/changelog.md`
+answer: fixed in 6d00248ed: the sentence at `skills/code-review/orchestration.md:434-438` lists the work item's directory with the files to repair named in the line, and its repair reads "repair that record or file or write that key", rewritten in place with no sentence added. The commit also gives `changelog.md` a bullet for the change and the `### Process changes` row `docs/layout/the-record-layout.md` asks of a diff that changes a `skills/*/orchestration.md` file, a path the finding's location does not name. `frame/design.md:43`, *Scope*'s Out bullet on the file, now departs from HEAD; it is a frame line, named in the hand-back for the orchestrator to fold.
 ```
 
 ### 4. The one-file form of the length refusal holds no case, and `gaps.md` says one would need a fixture
@@ -100,6 +116,11 @@ Why it matters: `which = "one of them" if len(held) > 1 else "it"` (`pr_body.py:
             f"; `pr.md` holds {units(own):,}, so it is shortened before "
             "`seal pr-body` runs again"
         )
+```
+
+```seal
+verdict: fixed 0a36e832f
+answer: fixed in 0a36e832f: the case stands in `Test_compose` as `test_refuses_a_first_part_alone_past_the_limit`, as written here with a docstring line on how it was seen red, and `gaps.md`'s `## Not done` paragraph that declined it gives way to `nothing`. Seen red with `which` always "one of them", where the case failed on its `endswith` (executed: `seal mutate`).
 ```
 
 ## Confirmations
