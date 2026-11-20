@@ -5,8 +5,8 @@
 
 # AgenticSeal
 
-A workflow of agents that frames, builds, inspects and seals a change, and
-ends in a seal bound to a commit.
+The AgenticSeal process: agents frame, build, inspect and seal a change, and
+it ends in a seal bound to a commit.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · **English** · [한국어](./README.ko.md)
 
@@ -19,6 +19,13 @@ the session made the change itself, as under `direct`, or you asked for the
 branch back, the run ends at a pull request whose records carry a seal: the
 last agent's written guarantee that the work agrees with the issue and the
 tree at one commit. It never merges. Merging is yours.
+
+Everything above, from the routing question to the sealer's guarantee, is
+**the AgenticSeal process**, and the diagram below draws it. Point at it
+by that name from another repository. It is a product name and is not
+translated. *Seal* keeps one meaning, the last agent's guarantee, and the
+stamp further down is a drawing of it. *The review chain* names only the
+review rounds inside the process.
 
 ```mermaid
 flowchart LR
@@ -53,13 +60,12 @@ settings, and the plugin's two hooks come with it (*What runs on your
 machine*). To uninstall, run `/plugin uninstall agentic`; nothing needs
 undoing first.
 
-This workflow differs from asking one agent to review its own work. An agent
-reviewing what it just wrote reads its own reasoning back and tends to agree
-with it.
-Here the party that builds is never the party that reviews or seals, and
-each agent reads what the others wrote as claims to check, not as facts
-(`skills/core/SKILL.md` *Each agent judges its own target, independently of
-the others*).
+The AgenticSeal process differs from asking one agent to review its own
+work. An agent reviewing what it just wrote reads its own reasoning back and
+tends to agree with it. Here the party that builds is never the party that
+reviews or seals, and each agent reads what the others wrote as claims to
+check, not as facts (`skills/core/SKILL.md` *Each agent judges its own
+target, independently of the others*).
 
 Every report an agent hands back labels each claim `executed` (it ran the
 command), `read` (it read the code or the text) or `unverified` (nobody ran
@@ -111,7 +117,7 @@ review each start. A plain request to change code reaches `implement`, which
 sends the session to `skills/implement/orchestration.md`, and a request to
 review reaches `code-review`. A session that opened neither
 `skills/implement/orchestration.md` nor `code-review` declares nothing and
-is outside the workflow.
+is outside the AgenticSeal process.
 
 The first time a session works in a repository, it asks four questions in
 one go: where the records should live (*Shared or local*, below), the
@@ -370,9 +376,9 @@ because its audited commit is not on the work item's branch leaves an empty
 file under `<git-common-dir>/agentic-stamp-refused/`, in either mode, which
 nothing prunes either.
 
-Neither hook reaches a network. The places below do: each is a command
-or a step of the workflow, so it runs when you or the session starts it, or,
-in the last row, in your CI on a pull request.
+Neither hook reaches a network. The places below do: each is a command or a
+step of the AgenticSeal process, so it runs when you or the session starts
+it, or, in the last row, in your CI on a pull request.
 
 | What | Reaches | Sends | When |
 |---|---|---|---|
@@ -380,14 +386,14 @@ in the last row, in your CI on a pull request.
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. With `--work-item`, it also names the work item's directory and branch, and the directory of each other work item a segment's spawn prompt also names, read from the records directory and from every local branch, pushed or not. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
 | `seal gate`, the broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, asked by its `chain_check.py` step to learn whether the branch's pull request is a draft. `chain_check.py` run on its own asks the same | each run outside GitHub Actions, where `gh` is on the PATH |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
-| the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
+| the AgenticSeal process's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a GitHub Actions workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
 The two hooks are the only things on your machine that run without you or
-the session starting them. Each row above that goes through your own `gh` login
-reaches the repository you work in and no other. The workflow's steps push
-your branch, with its code, and the pull request's text there, because that
-is what they are for.
+the session starting them. Each row above that goes through your own `gh`
+login reaches the repository you work in and no other. The AgenticSeal
+process's steps push your branch, with its code, and the pull request's text
+there, because that is what they are for.
 
 ## Commands
 
@@ -454,19 +460,19 @@ it puts to a person, honesty about the platforms you could not test, and the
 existing mechanism it removes, or why none can go.
 [CONTRIBUTING.md](./CONTRIBUTING.md) *What a change to
 a gate must carry* is the whole of it, and *Opening a pull request* holds the
-rest, including what a contribution is not asked for: none of this
-repository's own workflow applies to one.
+rest, including what a contribution is not asked for: none of the
+AgenticSeal process this repository runs on itself applies to one.
 
 ## Language policy
 
-Functional files (skills, agents, scripts) are English only, because they load
-into the model's context and a translated copy would drift. Korean is for
-documents people read, such as `README.ko.md`. The writing-style skill is the
-one exception: it carries a section of prose rules for each language, and
-the two are independent norms, not translations. The language Claude answers
-you in follows your own `CLAUDE.md`. The language of the commits, pull
-requests and records the workflow writes in your repository is that
-repository's own: the two language keys of `seal/config.json`.
+Functional files (skills, agents, scripts) are English only, because they
+load into the model's context and a translated copy would drift. Korean is
+for documents people read, such as `README.ko.md`. The writing-style skill
+is the one exception: it carries a section of prose rules for each language,
+and the two are independent norms, not translations. The language Claude
+answers you in follows your own `CLAUDE.md`. The language of the commits,
+pull requests and records the AgenticSeal process writes in your repository
+is that repository's own: the two language keys of `seal/config.json`.
 
 ## License
 

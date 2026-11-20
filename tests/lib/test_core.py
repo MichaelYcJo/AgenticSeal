@@ -216,7 +216,8 @@ class Test_output:
     def test_refuses_a_repository_with_no_marked_root(self, tmp_path):
         """#1430. A repository with no `seal/` root, one whose `seal/` lacks
         the marker, a directory outside git and a cwd not given each receive
-        nothing: the root is what says the repository runs the workflow."""
+        nothing: the root is what says the repository runs the AgenticSeal
+        process."""
         core = core_module()
         root = plugin(tmp_path / "plugin")
         bare = git_repo(tmp_path / "bare")
