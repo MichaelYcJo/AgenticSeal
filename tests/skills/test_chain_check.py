@@ -3178,8 +3178,9 @@ def composed_body(root, item=ITEM):
     path = str(root / item)
     mark, _note = PR_BODY.seal_mark(path, str(root))
     name = os.path.basename(item)
-    own = "".join(text for _name, text in PR_BODY.first_part(path, str(root)))
-    return own + PR_BODY.compose(name, PR_BODY.read_item(path), mark)
+    parts = PR_BODY.first_part(path, str(root))
+    own = "".join(text for _name, text in parts)
+    return own + PR_BODY.compose(name, PR_BODY.read_item(path), mark, parts=parts)
 
 
 def payload(tmp_path, monkeypatch, body, draft=False):
@@ -3199,13 +3200,9 @@ def body_lines(out):
     return [ln for ln in out.splitlines() if "the pull request's body" in ln]
 
 
-@pytest.fixture
-def bodied(tmp_path):
-    """A branch that went straight to the pull request with a `pr.md` and a
-    changelog, in a shared root whose two language keys read `English` and
-    whose `Pull request seal mark` key reads `yes`, sealed at HEAD. Returns
-    `(root, early, late)`: the body `seal pr-body` wrote before the
-    guarantee was committed, and the one it wrote after."""
+def bodied_with(tmp_path, records=None):
+    """`bodied`'s branch, its work item also holding RECORDS, `{path: text}`
+    by path under the work item, in the commit the seal names."""
     d = tmp_path / "b"
     init(d)
     write(d, "f.txt", "one\n")
@@ -3216,6 +3213,8 @@ def bodied(tmp_path):
     write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
     write(d, f"{ITEM}/pr.md", "Closes #1.\n")
     write(d, f"{ITEM}/changelog.md", CHANGED_LINE + "\n")
+    for rel, text in (records or {}).items():
+        write(d, f"{ITEM}/{rel}", text)
     write(d, "f.txt", "two\n")
     audited = commit(d, "the work")
     write(d, f"{ITEM}/trail/gate.md", gate_file(audited))
@@ -3224,6 +3223,25 @@ def bodied(tmp_path):
     write(d, f"{ITEM}/guarantee.md", guarantee(audited, "sealed"))
     commit(d, "the seal")
     return d, early, composed_body(d)
+
+
+@pytest.fixture
+def bodied(tmp_path):
+    """A branch that went straight to the pull request with a `pr.md` and a
+    changelog, in a shared root whose two language keys read `English` and
+    whose `Pull request seal mark` key reads `yes`, sealed at HEAD. Returns
+    `(root, early, late)`: the body `seal pr-body` wrote before the
+    guarantee was committed, and the one it wrote after."""
+    return bodied_with(tmp_path)
+
+
+# #1559: a `gaps.md` whose `## Not verified` table passes GitHub's limit on
+# a pull request body, so `seal pr-body` folds that section.
+LONG_GAPS = (
+    "# Closing memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
+    + "".join(f"| item {n} {'x' * 90} | the orchestrator |\n" for n in range(700))
+    + "\n## Not done\n\nnothing\n"
+)
 
 
 @pytest.mark.rule("body-is-what-pr-body-composes")
@@ -3331,6 +3349,34 @@ class Test_body:
         code, out = check(root, capsys)
         assert code == 0, out
         assert body_lines(out) == notice, out
+
+    def test_accepts_a_folded_body_naming_the_fold(self, tmp_path, monkeypatch, capsys):
+        """S7 of #1559. A ready pull request whose body is the composition
+        `seal pr-body` folded, its `## Not verified` section past GitHub's
+        limit, is refused nothing, and the arm prints the fold's sentence as
+        a notice; the same records composed with no fold are refused. Seen
+        red with `compared` made to fold nothing, as at 0.38.2, where the
+        folded body was refused at its folded section."""
+        root, _early, late = bodied_with(tmp_path, {"gaps.md": LONG_GAPS})
+        notice = (
+            f"{ITEM}:0  the pull request's body: folded `## Not verified` so "
+            "the body stays within GitHub's 65,536 characters; each folded "
+            "section names the record that holds it"
+        )
+        payload(tmp_path, monkeypatch, late)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [notice], out
+        monkeypatch.setattr(PR_BODY, "LIMIT", 10**9)
+        whole = composed_body(root)
+        assert whole != late
+        payload(tmp_path, monkeypatch, whole)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert body_lines(out)[0] == notice, out
+        assert body_lines(out)[1].startswith(
+            f"{ITEM}:0  the pull request's body, line "
+        ), out
 
     def test_refuses_a_drifted_body_at_its_line(
         self, bodied, tmp_path, monkeypatch, capsys
