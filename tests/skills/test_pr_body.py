@@ -767,6 +767,22 @@ class Test_compose:
         assert FOLDED.format(path="gaps.md") in text.split("\n")
         assert units(text) <= LIMIT, units(text)
 
+    def test_refuses_a_first_part_alone_past_the_limit(self):
+        """D5 of #1559. Where the first part alone passes the limit and the
+        work item holds no `changelog.md`, the refusal names the one file
+        and asks for it to be shortened. Seen red with the refusal's words
+        for several files written for one."""
+        texts = {rel: text for rel, text in RECORDS.items() if rel != "changelog.md"}
+        own = "p" * 70000 + "\n"
+        with pytest.raises(PR.Refused) as refused:
+            PR.compose(NAME, texts, parts=[("pr.md", own)])
+        [(where, line, why)] = refused.value.causes
+        assert (where, line) == ("", 0)
+        assert why.endswith(
+            f"; `pr.md` holds {units(own):,}, so it is shortened before "
+            "`seal pr-body` runs again"
+        )
+
 
 class Test_split:
     def test_accepts_a_body_at_its_first_heading_line(self):

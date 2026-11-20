@@ -9,4 +9,4 @@
 
 ## Not done
 
-The one-file form of the length refusal holds no case. It ends `so it is shortened` where the refusal names one file, which happens where `changelog.md` is absent and the first part alone passes the limit. The three-file form, `so one of them is shortened`, is pinned by `tests/skills/test_pr_body.py#Test_main.test_refuses_a_first_part_and_changelog_past_the_limit`. The two forms differ in one phrase chosen by the number of files, and a case for the other shape would add a fixture for one word.
+nothing
