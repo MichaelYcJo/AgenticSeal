@@ -38,6 +38,11 @@ Then add a quote of that row's Grounds cell to `pr.md`, word for word, above the
 
 `CONTRIBUTING.md:402-409` also asks a pull request that adds a mechanism to name what it removes. The frame holds that the change adds none (`frame/design.md:110`). If the orchestrator keeps that reading, the row's last sentence answers the item. Where it would rather show the reader the frame's own words, it can quote that sentence of `frame/design.md:110` in `pr.md` as well.
 
+```seal
+verdict: fixed 87769186e
+answer: fixed in 87769186e, the orchestrator's repair, read by the fix pass against this finding: `frame/plan.md` *Judgments of the run* gains the row "The change to two gates carries what a gate change must", judged against `CONTRIBUTING.md` *What a change to a gate must carry*, and `pr.md` quotes its Grounds cell word for word above the `Closes` line. The cell gives the failure direction, block more, at both `seal pr-body` and the body arm, with why that is the cheaper mistake. It gives the prompt budget, zero, and the one fact more both gates read, which they compute and never read from a line, so no line is named as not read. `pr.md` also quotes the `frame/design.md` *Removes* sentence "The fold adds one constant, `LIMIT`, and one fixed line, `FOLDED`, and no gate, check or mark.", which stands word for word at HEAD, for the item on what a mechanism removes. The commit changes `pr.md` and `frame/plan.md` alone, both paths the finding names.
+```
+
 ## Confirmations
 
 ```seal
