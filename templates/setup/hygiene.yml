@@ -1,4 +1,4 @@
-# Pull-request checks for the AgenticSeal workflow, run against what the pull
+# Pull-request checks for the AgenticSeal process, run against what the pull
 # request committed: the review chain's round record, and the `Mode` key of
 # `seal/config.json`. The first check also reads the pull request's body
 # against what `seal pr-body` composes from those records.

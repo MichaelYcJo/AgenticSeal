@@ -81,7 +81,7 @@ twice what the folder already says.
 | | Shared mode | Local mode |
 |---|---|---|
 | Who decides | whoever committed `seal/`, for every clone that installed the plugin | the developer of that clone |
-| A collaborator who set nothing up | in the workflow, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
+| A collaborator who set nothing up | in the AgenticSeal process, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
 
 A collaborator who never installed the plugin runs nothing in either mode,
 because the hooks, the skills and the `seal` commands are the plugin's. The fail

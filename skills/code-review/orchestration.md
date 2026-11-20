@@ -432,9 +432,10 @@ two language keys differ, then `pr.md`, then the line
 fragment, then the rest of the records' copy in one fold, as
 `docs/forms/the-guarantee.md` *The guarantee* states, and replaces
 whatever the file held. On exit 1 its `refused:` lines name a record's file
-and line, `pr.md` and `pr.<lang>.md` among the records, or a language key
-`config.json` lacks: repair that record or write that key, commit it, and run
-the command again. Edit nothing in the file; the sealer's
+and line, `pr.md` and `pr.<lang>.md` among the records, a language key
+`config.json` lacks, or the work item's directory with the files to repair
+named in the line: repair that record or file or write that key, commit it,
+and run the command again. Edit nothing in the file; the sealer's
 `seal pr-body --check` withholds on a part above the line that is not
 `pr.<lang>.md` and `pr.md` as the keys ask for them, and on a part below it
 that is not the records' text at HEAD, and the pull request's check refuses
