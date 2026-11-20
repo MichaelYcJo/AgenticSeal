@@ -46,4 +46,4 @@ None for a deployer. The fold changes the body only where the body would pass Gi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-20 | The title takes `fix:` | Before the change the tree stated that the body `seal pr-body` writes is the body sent, and that the pull request's check refuses any other (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*, the paragraph opening **You write the pull request body after `trail/gate.md` is committed**). For records past GitHub's limit no such body could be sent, so the behaviour was wrong against that rule, and the fold makes it match. The refusal the change adds enforces GitHub's own limit before `gh pr create` meets it, not a rule the change states, so it is no `feat:` either, and the release stays the patch its milestone names | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the rows of `feat:` and `fix:` |
