@@ -28,7 +28,7 @@ Failure scenario of the chosen approach, six months on: a record grows a new sec
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6, through *Data & interfaces* D1 to D7 | The new cases of *User scenarios & acceptance* S1, S2, S4 to S8 and S10, each seen red as its cell states; S3's case green unchanged; S9's search printing nothing; `bin/test tests/skills/test_pr_body.py tests/skills/test_chain_check.py tests/evals/test_rule_cases.py -q` green | |
+| 1 | `frame/design.md` *Scope* items 1 to 6, through *Data & interfaces* D1 to D7 | The new cases of *User scenarios & acceptance* S1, S2, S4 to S8 and S10, each seen red as its cell states; S3's case green unchanged; S9's search printing nothing; `bin/test tests/skills/test_pr_body.py tests/skills/test_chain_check.py tests/evals/test_rule_cases.py -q` green | `81b319b96` |
 
 ## Overlap with the release
 
