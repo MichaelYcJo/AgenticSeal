@@ -305,9 +305,12 @@ FOLD_NOTE = (
     "characters; each folded section names the record that holds it"
 )
 # The refusal on the work item's directory where folding every section that
-# a fold shortens leaves the body past `LIMIT`.
+# a fold shortens leaves the body, measured with the seal mark's room
+# (`_room`), past `LIMIT`. The length it gives is that measure, so the line
+# says the room is in it.
 TOO_LONG = (
-    "the body would be {length:,} characters with every section after "
+    "the body, counted with room for the seal mark's line whether or not it "
+    "is written, would be {length:,} characters with every section after "
     f"`{CHANGED}` folded that a fold shortens, past GitHub's {LIMIT:,}; "
     "{files}, so {which} is shortened before `seal pr-body` runs again"
 )
@@ -952,8 +955,8 @@ def _folded(top, sections, parts=(), texts=None, room=0):
     longest first and, between two of one length, the earlier, until the
     body fits; a section whose folded form is not shorter than its copy is
     not folded. Refused on the work item's directory where the body still
-    passes `LIMIT`, naming its length, each file of PARTS and the
-    changelog of TEXTS with theirs."""
+    passes `LIMIT`, naming its length with ROOM counted, each file of PARTS
+    and the changelog of TEXTS with theirs."""
     whole = [_length(lines) for _heading, lines, _folded in sections]
     short = [_length(lines) for _heading, _whole, lines in sections]
     length = (

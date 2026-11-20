@@ -1627,8 +1627,9 @@ class Test_main:
         and `changelog.md`, none of which folds, pass GitHub's limit
         together, both forms exit 1 on one `refused:` line on the work
         item's directory naming the body's length with every section that a
-        fold shortens folded, the limit, and each of the three files with
-        its length; the body file is left as it stood. The length is
+        fold shortens folded, the seal mark's room counted and said to be,
+        the limit, and each of the three files with its length; the body
+        file is left as it stood. The length is
         `LENGTH` with `pr.ko.md`'s text and the line end `read_own` gives it.
         Seen red against `main` as 0.38.2 shipped it, which exited 0 and
         wrote the body."""
@@ -1646,7 +1647,8 @@ class Test_main:
         body.write_bytes(b"as it stood\n")
         translation = units(TRANSLATION) + 1
         said = (
-            f"refused: seal/threads/{NAME}: the body would be "
+            f"refused: seal/threads/{NAME}: the body, counted with room for the "
+            "seal mark's line whether or not it is written, would be "
             f"{LENGTH + translation:,} characters with every section after "
             "`## What changed` folded that a fold shortens, past GitHub's "
             f"65,536; `pr.ko.md` holds {translation:,}, `pr.md` holds "
