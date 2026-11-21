@@ -6,7 +6,7 @@ The issue's *Decision* fixed the change. It left these judgments open, and the t
 - Where a later item's answers wait until the item starts: `frame/design.md` *Grounding* G5, and `frame/plan.md` *Alternatives considered* row 7.
 - Where the orchestrator writes an answer the tree gives: `frame/design.md` *Grounding* G6, and `frame/plan.md` *Alternatives considered* row 6.
 - Which statements cite the section without copying it: `frame/design.md` *Data & interfaces* D2 and D3, and `frame/plan.md` *Alternatives considered* row 4.
-- Whether the language-key sentences elsewhere change: `frame/design.md` *Grounding* G11, and `frame/plan.md` *Alternatives considered* row 8.
+- Which language-key sentences elsewhere change: `frame/design.md` *Grounding* G11 and *Scope* items 6 to 8, and `frame/plan.md` *Alternatives considered* row 8.
 - Whether the policy root changes: `frame/design.md` *Grounding* G7.
 - Which cases pin a sentence this work rewrites: `frame/design.md` *Grounding* G8.
 
