@@ -54,8 +54,8 @@ present hides exactly those.
 **The two language keys are required**: absent in any of the four ways (no
 file, no such key, an empty value, a file that does not parse),
 `seal pr-body` names the key and refuses with nothing written, and the
-orchestrator asks for both before the next work item's first edit. A
-commit or a record is never refused for them and is written in English.
+orchestrator asks for both in the batch of the next request, before its first
+edit. A commit or a record is never refused for them and is written in English.
 Show each as absent and say what happens without it. **The `Broad gate` key
 has no default at all**: absent, `seal gate` names the key and exits 2 with
 nothing run, because what a command nobody chose reports proves nothing.

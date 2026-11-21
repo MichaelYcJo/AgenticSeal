@@ -160,10 +160,12 @@ it or dropping it.
   executed, read, or unverified. What a fact with neither is, and why an
   aggregate is not a coordinate, is contract rule 5.
 
-What needs a person is asked once, in one batch, before the first edit, by
-the orchestrator, which opens `skills/implement/orchestration.md`
+What needs a person is asked by the orchestrator once, in one batch, before
+the first edit of the person's request, whatever number of issues the request
+names. The orchestrator opens `skills/implement/orchestration.md`
 *Orchestrator: what needs a person is asked in one batch, before the first
-edit* when it starts a work item.
+edit* when the request starts, and not again when a later work item of the
+request starts.
 
 ### 2. Implement test-first, and let each rule name its test
 

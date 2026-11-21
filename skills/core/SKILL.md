@@ -93,7 +93,8 @@ none.
 **Asking a person is the most expensive step.** Between two designs that
 catch the same defect, the one that stops to ask a person costs more, and
 the design that asks argues why its question is worth that cost. Whatever
-needs a person is asked once, together, before the first edit, as
+needs a person is asked once, together, before the first edit of the
+person's request, for every issue it names, as
 `skills/implement/orchestration.md` *Orchestrator: what needs a person is
 asked in one batch, before the first edit* states with its reasoning.
 
