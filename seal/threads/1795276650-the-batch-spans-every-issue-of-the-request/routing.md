@@ -20,4 +20,4 @@ The owner answered question 1 with `agentic` on 2026-11-22, for #1563. This rout
 - **Review, through the review chain.** The change is text an agent acts on at the start of every run. A defect in it would show as an orchestrator that misreads when to ask, in a later run in another repository, and no suite would catch it.
 - **Automation, yes.** The issue's *Decision* states the change, and every question left has a default the tree or the framer can give.
 - **Destination, open the pull request**, as under `complete`.
-- **Version.** This work item is the first pull request into `release/v0.38.4`, so it carries the move of `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` to 0.38.4 (`skills/implement/merge-order.md`).
+- **Version.** This work item is the first pull request into `release/v0.38.4`, so it carries the move of `.claude-plugin/plugin.json` to 0.38.4 (`skills/implement/merge-order.md`). `.claude-plugin/marketplace.json` holds no version field (`frame/design.md` G13).
