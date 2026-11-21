@@ -149,9 +149,9 @@ routing commit writes both keys into the file's object, each as
 where its base lacks either key, its routing commit writes the answers the
 request's batch gave. Where the batch reaches no person, because the run is
 unattended, the orchestrator writes both keys as the language it reads the
-titles in, and as `English` where the list gives none. `routing.md` *Why this way* then
-says in one sentence that the two keys were written as a default taken
-until answered, naming the language and what it was read from, and `pr.md`
-quotes that sentence. A repository whose `config.json` predates the keys is
-caught here, at its next work item, because `seal pr-body` refuses to
-compose a body without them.
+titles in, and as `English` where the list gives none. `routing.md` *Why
+this way* then says in one sentence that the two keys were written as a
+default taken until answered, naming the language and what it was read
+from, and `pr.md` quotes that sentence. A repository whose `config.json`
+predates the keys is caught here, at its next work item, because
+`seal pr-body` refuses to compose a body without them.
