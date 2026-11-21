@@ -206,9 +206,9 @@ item of the same request asks nothing new when it starts. Its `routing.md` is
 written from the routing answer the batch got. An answer the batch gave for
 its issue is folded into that issue's body, as *Orchestrator: the order inside
 a ticket* states for a decision made before the frame is committed. What
-surfaces there goes where the paragraph opening *Once the batch is answered*
-sends it. A new request is asked a batch of its own, question 1 of
-`skills/implement/routing-question.md` among it.
+surfaces when a later work item starts goes where the paragraph opening *Once
+the batch is answered* sends it. A new request is asked a batch of its own,
+question 1 of `skills/implement/routing-question.md` among it.
 
 The cost of a question is not its difficulty, it is when it arrives. Asked
 before the work starts, it costs a reply. Asked at minute thirty, it stops
@@ -224,9 +224,12 @@ Two things sharpen the list:
   Before its question enters the batch, the orchestrator checks it against
   the policy root, `seal/config.json`, the code, and the records under
   `seal/threads/` of the work items that came before. Where they answer it,
-  the orchestrator does not ask, and writes the answer with its coordinate in
-  that item's `routing.md` *Why this way*, or for `direct` in the body of the
-  commit that carries the change. What survives that is the batch.
+  the orchestrator does not ask. It writes the answer with its coordinate in
+  *Why this way* of the `routing.md` of the work item the issue opens, when
+  it writes that `routing.md` at the item's start. For a later work item of
+  the request, it checks the line against the tree again at that start. For
+  `direct`, the answer goes in the body of the commit that carries the
+  change. What survives that is the batch.
 - **Assume, in writing, whatever would not change what you build.** State the
   assumption in `questions.md` and continue. Only where different answers mean
   different code does the work actually have to wait.
