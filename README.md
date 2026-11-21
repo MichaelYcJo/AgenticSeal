@@ -123,10 +123,11 @@ The first time a session works in a repository, it asks four questions in
 one go: where the records should live (*Shared or local*, below), the
 command the broad gate runs, the language of commits and pull requests, and
 the language of the records. The answers become keys of `seal/config.json`,
-and `/agentic:config` changes any of them later. A work item that starts
-where either language key is missing asks for both before its first edit.
-Then it asks the routing question, every time and even for a typo fix, with
-the answer it recommends marked.
+and `/agentic:config` changes any of them later. For each request you make,
+whatever number of issues it names, the session asks one batch of questions
+before the first edit. Where either language key is missing, the batch asks
+for both. The batch also holds the routing question, asked on every request
+and even for a typo fix, with the answer the session recommends marked.
 The question has four answers, and `agentic` is the one marked:
 
 - **agentic**: the session reads each item's issue and the repository, then
