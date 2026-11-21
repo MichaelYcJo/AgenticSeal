@@ -145,10 +145,11 @@ language lands on English* names, the batch asks for both, as
 recent titles from `gh pr list --state all --limit 10` stand beside the
 question, and the language read from them is the option listed first. The
 routing commit writes both keys into the file's object, each as
-`"<key>": "<answer>"`. Where the batch reaches no person, because
-the routing answer was given for the release and the run is unattended, the
-orchestrator writes both keys as the language it reads the titles in, and
-as `English` where the list gives none. `routing.md` *Why this way* then
+`"<key>": "<answer>"`. A later work item of the same request asks nothing:
+where its base lacks either key, its routing commit writes the answers the
+request's batch gave. Where the batch reaches no person, because the run is
+unattended, the orchestrator writes both keys as the language it reads the
+titles in, and as `English` where the list gives none. `routing.md` *Why this way* then
 says in one sentence that the two keys were written as a default taken
 until answered, naming the language and what it was read from, and `pr.md`
 quotes that sentence. A repository whose `config.json` predates the keys is

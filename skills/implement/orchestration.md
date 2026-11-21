@@ -194,10 +194,21 @@ who acts, on which file, and what counts as done.
 ## Orchestrator: what needs a person is asked in one batch, before the first edit
 
 **Collect what needs a person before the first edit, and ask it in one batch.**
-Read the policy, the SDD set and the ticket looking for the questions as well
-as the answers, and put every one of them in front of the user at the start:
-a decision only they can make, an approval, a credential, a permission the
-session does not have.
+The orchestrator reads the policy, the SDD set and each ticket the person's
+request names, looking for the questions as well as the answers, and puts
+every one of them in front of the person at the start: a decision only they
+can make, an approval, a credential, a permission the session does not have.
+
+**A request that names several issues, such as a milestone or a release, has
+one batch, and the batch covers every one of them.** The orchestrator asks it
+once, before the first edit of the request's first work item. A later work
+item of the same request asks nothing new when it starts. Its `routing.md` is
+written from the routing answer the batch got. An answer the batch gave for
+its issue is folded into that issue's body, as *Orchestrator: the order inside
+a ticket* states for a decision made before the frame is committed. What
+surfaces there goes where the paragraph opening *Once the batch is answered*
+sends it. A new request is asked a batch of its own, question 1 of
+`skills/implement/routing-question.md` among it.
 
 The cost of a question is not its difficulty, it is when it arrives. Asked
 before the work starts, it costs a reply. Asked at minute thirty, it stops
@@ -208,7 +219,14 @@ a time is the same failure spread out: three interruptions cost three waits.
 Two things sharpen the list:
 
 - **A question you can answer is not a question.** Read the documents and the
-  code first. What survives that is the batch.
+  code first. An issue's line that leaves a decision to a person is a claim
+  dated by the issue: it records what was open when the issue was filed.
+  Before its question enters the batch, the orchestrator checks it against
+  the policy root, `seal/config.json`, the code, and the records under
+  `seal/threads/` of the work items that came before. Where they answer it,
+  the orchestrator does not ask, and writes the answer with its coordinate in
+  that item's `routing.md` *Why this way*, or for `direct` in the body of the
+  commit that carries the change. What survives that is the batch.
 - **Assume, in writing, whatever would not change what you build.** State the
   assumption in `questions.md` and continue. Only where different answers mean
   different code does the work actually have to wait.
@@ -217,8 +235,9 @@ Something a session cannot do for itself belongs on the same list — widening
 its own permissions, for one, which the harness blocks by design. Better
 found in the first minute than at the commit.
 
-**Once the batch is answered, the session runs to the pull request.** What
-surfaces after it is written down rather than raised: a decision only a person
+**Once the batch is answered, the session runs to the pull request, through
+every work item the request names.** What surfaces after it is written down
+rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
 `seal/follow-up.md` with an answerer named — a deferral to nobody is how
 "someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
