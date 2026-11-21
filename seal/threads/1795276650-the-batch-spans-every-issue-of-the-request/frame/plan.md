@@ -39,7 +39,7 @@ The spawn names no other work item of `release/v0.38.4`, and the release branch 
 
 ## Operational impact
 
-No migration, environment variable, dependency or compatibility break. The version moves from 0.38.3 to 0.38.4 at `.claude-plugin/plugin.json:4`, because this is the first pull request into `release/v0.38.4` (`skills/implement/orchestration.md` *Orchestrator: how the work is routed*). Phase 1's crafter makes the move in the commit that adds `changelog.md`. `.claude-plugin/marketplace.json` holds no version field (`frame/design.md` G13), so it has no line to move. The fragment closes its entries with "The version moves to 0.38.4." as the 0.38.3 fragment did, and it carries a `### Process changes` row in the shape of `templates/records/process.md` for the change to the batch section.
+No migration, environment variable, dependency or compatibility break. The version moves from 0.38.3 to 0.38.4 at `.claude-plugin/plugin.json:4`, because this is the first pull request into `release/v0.38.4` (`skills/implement/orchestration.md` *Orchestrator: how the work is routed*). Phase 1's crafter makes the move in the commit that adds `changelog.md`. `.claude-plugin/marketplace.json` holds no version field (`frame/design.md` G13), so it has no line to move. The fragment closes its entries with "The version moves to 0.38.4." as the 0.38.3 fragment did, and it carries two `### Process changes` rows in the shape of `templates/records/process.md`: one for the change to the batch section, and one for the core's sentence, since `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* asks for a row per change and the core is a file of its own.
 
 ## Judgments of the run
 
