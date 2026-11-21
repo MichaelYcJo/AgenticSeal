@@ -45,3 +45,4 @@ No migration, environment variable, dependency or compatibility break. The versi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-22 | The title takes `fix:` | The section let an orchestrator stop a run over several issues with a question at a later issue's start, and let an issue's line that leaves a decision to a person enter the batch unchecked: behaviour the rule exists to prevent, which the diff corrects without adding a mechanism | `skills/commit-pr-convention/SKILL.md`, the prefix vocabulary; issue #1563 *Decision* |
