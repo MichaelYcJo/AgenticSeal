@@ -28,7 +28,7 @@ Failure scenario of the chosen approach, six months on: a milestone of ten issue
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 5, with this work item's `changelog.md`; the version move of *Scope* item 5 goes in the commit that adds `changelog.md` | S1 to S6 read or run at the phase's commit; S7's narrow run exits 0 | |
+| 1 | `frame/design.md` *Scope* items 1 to 5, with this work item's `changelog.md`; the version move of *Scope* item 5 goes in the commit that adds `changelog.md` | S1 to S6 read or run at the phase's commit; S7's narrow run exits 0 | `7712bac4f` |
 
 ## Overlap with the release
 
