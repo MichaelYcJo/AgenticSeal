@@ -66,6 +66,11 @@ the batch is answered* sends it. A new request is asked a batch of its own,
 question 1 of `skills/implement/routing-question.md` among it.
 ```
 
+```seal
+verdict: fixed 014c7e9e2
+answer: The finding holds: "there" had two antecedents. The sentence now reads "What surfaces when a later work item starts goes where the paragraph opening *Once the batch is answered* sends it" at `skills/implement/orchestration.md:208-210`, word for word as the framer's fold of D1 at `365337e1e` and this finding's paste-ready fix give it, read against `frame/design.md` D1 and S1 before it was applied.
+```
+
 ### 2. The tree's answer goes to "that item's" `routing.md`, which names the earlier work item and, for a later item, a file not yet written
 
 ```seal
@@ -120,6 +125,11 @@ needs no change.
   the request, it checks the line against the tree again at that start. For
   `direct`, the answer goes in the body of the commit that carries the
   change. What survives that is the batch.
+```
+
+```seal
+verdict: fixed 014c7e9e2
+answer: The finding holds on both counts. The bullet at `skills/implement/orchestration.md:221-232` now names the file as *Why this way* of the `routing.md` of the work item the issue opens, the moment as when that file is written at the item's start, and a second check against the tree at a later item's start, with `direct` in a sentence of its own, word for word as the framer's fold of D1 at `365337e1e` and this finding's paste-ready fix give it. It was read against `frame/design.md` D1, S2 and *Scope* Out before it was applied. The same commit brings `changelog.md`'s second entry into line: it names that `routing.md` and the check at a later item's start.
 ```
 
 ### 3. The READMEs and `/agentic:config` still tie the language-key question and the routing question to each work item's start
@@ -189,6 +199,11 @@ orchestrator asks for both in the batch of the next request, before its first
 edit. A
 ```
 
+```seal
+verdict: fixed 014c7e9e2
+answer: The finding holds: the three passages made a work item's start, or the next work item, the moment the keys and the routing question are asked. The framer folded them into *Scope* items 6 to 8 as D5 to D7 at `365337e1e`, and this pass built D5 at `README.md:126-130`, D6 at `README.ko.md:131-134` and D7 at `skills/config/SKILL.md:56-58` word for word, read against S8 before they were applied. `changelog.md` gains an entry for the three files in the same commit.
+```
+
 ### 4. The changelog says the old text took the default language at a later item wherever a key was missing; the old text took it only where the run was unattended
 
 ```seal
@@ -210,6 +225,11 @@ before that did not exist and hides the behaviour this change ends.
 
 ```markdown
 - **A later work item of a request writes the language keys the request's batch gave (#1563).** `skills/implement/routing-question.md` *Orchestrator: the two language keys* had a later item of a release ask for both keys again at its own start wherever its base lacked either, and take the titles' language or `English` without asking only where the run was unattended. Now that item asks nothing, and its routing commit writes the answers the request's batch gave. The default stays for a run with nobody there to answer.
+```
+
+```seal
+verdict: fixed 014c7e9e2
+answer: The finding holds: `f8056edde:skills/implement/routing-question.md:148-150` took the default only where the batch reached no person and the run was unattended, and otherwise the per-item batch asked for the keys again. The entry at `changelog.md:6` now says so, in the paste-ready fix's facts, split into two sentences: a later item asked for both keys again at its own start wherever its base lacked either, and took the titles' language or `English` without asking only where the run was unattended.
 ```
 
 ## Confirmations
