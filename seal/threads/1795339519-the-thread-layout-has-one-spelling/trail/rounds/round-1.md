@@ -56,6 +56,11 @@ CITATION_RE = re.compile(
 
 The `lib_module("routing")` call at `:3140` adds no load path: `branch_declarations` is reached only from `other_work_items`, which has loaded the module at `:3172`.
 
+```seal
+verdict: fixed 8fa01124
+answer: applied as given at the six lines, with the comment at `settle.py:1728` and the docstring at `settle.py:1767` naming `WORK_ITEMS`; `session_cost.py`'s batch binds the file name as `declaration`, because `branch_declarations` already binds `name` in its loop; the two `chain_check.py` messages are split over two lines to stay inside the line length.
+```
+
 ### 2. The closing memo states a search method and a limit that the target contradicts
 
 ```seal
@@ -70,6 +75,11 @@ The memo is also silent on a second population, which the same *Done when* sente
 
 ```markdown
 The class was listed by walking every string constant that is not a docstring, in every tracked Python file outside `lib/`, `tests/` and `evals/`. Each constant was split into tokens on whitespace, backticks, quotes, brackets and punctuation, and each token on `/`. A token part equal to a name `lib/optin.py` or `lib/routing.py` defines for a thread's files, or to the round-record pattern, was kept. That walk reaches a name inside a longer literal, such as `f"{tree}:routing.md\n"`. A name built at run time, such as by concatenation, is outside it. A sentence of a message or of help text that names a thread's file to a person, such as the `NO_FRAGMENT` sentence of `settle.py`, which names `changelog.md`, stays spelt there. It is a word a person reads, no script reads a file through it, and a rename of the file rewrites it with the documents. A message that joins the name to a path, such as `{item}/routing.md says`, reads the module. `evals/scripts/rule_cases.py` writes record files into fixture repositories by their names; it builds a corpus rather than reading one, so it stays.
+```
+
+```seal
+verdict: fixed f8c60526
+answer: the memo's *Not done* now states the walk over every non-docstring string constant, split into tokens and on `/`, and the build's first search that missed a name inside a longer literal. The fix pass ran that walk at its tree: every constant it keeps is a message or help sentence, a panel or table label, a key of `settle.py`'s own dictionary, or a part of a finding's coordinate, and the memo names those four kinds as staying, since no script reads or joins a path through any of them.
 ```
 
 ### 3. Every `seal` command now stops at exit 2 where `lib/core.py` is absent, and the changelog names only `lib/routing.py`
@@ -102,6 +112,11 @@ def plugin_version(plugin):
     return str(version) if version else "?"
 ```
 
+```seal
+verdict: fixed f8c60526
+answer: the loads stay as they are, since each script already ends at exit 2 for an absent `lib/` module. The changelog names the `lib/core.py` load beside the `lib/routing.py` one (`f8c60526`), and `broad_gate.py#plugin_version`'s docstring bounds its promise to the manifest and says what an absent `lib/core.py` does (`8fa01124`).
+```
+
 ### 4. `routing.md` gives the size of the diff as three scripts and one `lib/` module, and the diff is nine scripts and no `lib/` module
 
 ```seal
@@ -114,6 +129,11 @@ Why it matters: `routing.md:19` grounds the choice of the session as implementer
 
 ```markdown
 - **Implementation, the session.** The orchestrator has already read every coordinate the issue names. The issue named seven scripts and the cases that name the copies; the diff came to nine scripts, no `lib/` module and the cases, which is not large enough to threaten what the orchestrator still has to hold.
+```
+
+```seal
+verdict: fixed f8c60526
+answer: applied as given.
 ```
 
 ## Confirmations
