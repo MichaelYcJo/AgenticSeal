@@ -222,14 +222,16 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-# The sub-directory of the root that holds the work items:
-# `lib/optin.py#WORK_ITEMS`.
-WORK_ITEMS = "threads"
-# A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
-DESIGN = "frame/design.md"
-# A thread's plan, and the section and table the orchestrator writes its
-# judgments of the run to (`templates/records/sdd-plan.md`).
-PLAN = "frame/plan.md"
+# A thread's places, `lib/optin.py`'s: the sub-directory of the root that
+# holds the work items, a thread's design, its plan and its changelog
+# fragment.
+_optin = sibling.load(OPTIN)
+WORK_ITEMS = _optin.WORK_ITEMS
+DESIGN = _optin.DESIGN
+PLAN = _optin.PLAN
+CHANGELOG = _optin.CHANGELOG
+# The section and table of the plan the orchestrator writes its judgments of
+# the run to (`templates/records/sdd-plan.md`).
 JUDGMENTS = "Judgments of the run"
 JUDGMENTS_HEADER = ("Date", "Judgment", "Grounds", "Judged against")
 # What the dry run says of a heading near the judgments section, at its line.
@@ -735,7 +737,7 @@ def notes(root, ref, ids, specs):
     try:
         at = git_out(root, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
         for work_item_id in ids:
-            path = f"{specs}/{work_item_id}/changelog.md"
+            path = f"{specs}/{work_item_id}/{CHANGELOG}"
             held = git_out(root, "ls-tree", "--name-only", at, "--", path).strip()
             text = git_out(root, "show", f"{at}:{path}").strip() if held else ""
             commit, number = adding_commit(root, at, path) if held else (None, None)
@@ -1723,11 +1725,11 @@ def write_documents(listed, out):
             out.write(f"    {path}  added {added}  last changed {last}{said}\n")
 
 
-# A path into a work item directory, however it is spelled before `threads/`.
-# The name may be cut short with an ellipsis, which is how this repository's
-# prose abbreviates a long id; a marker and a bare id carry no `/` after the
-# name, so neither is read as a citation.
-CITATION_RE = re.compile(r"threads/(\d{6,}[^\s/`'\"()\[\]|<>*]*)/")
+# A path into a work item directory, however it is spelled before
+# `WORK_ITEMS` and its `/`. The name may be cut short with an ellipsis, which
+# is how this repository's prose abbreviates a long id; a marker and a bare id
+# carry no `/` after the name, so neither is read as a citation.
+CITATION_RE = re.compile(re.escape(WORK_ITEMS) + r"/(\d{6,}[^\s/`'\"()\[\]|<>*]*)/")
 ELLIPSES = ("…", "...")
 
 
@@ -1762,7 +1764,7 @@ def tracked_text(root, specs):
 def citations(root, work_item_ids, specs):
     """`({id: ["path:line", ...]}, [tests/ files naming seal/threads])`.
 
-    A path outside `seal/threads/`, SPECS (`threads`), that cites into a
+    A path outside `seal/threads/`, SPECS (`WORK_ITEMS`), that cites into a
     directory `--apply` removes stops resolving when it goes, and every
     `tests/` file that reads SPECS is a check the skill says has to be
     answered first. One scan of the tracked tree answers both."""
@@ -1773,7 +1775,7 @@ def citations(root, work_item_ids, specs):
     for rel, text in tracked_text(root, specs):
         if rel.startswith(TESTS) and specs in text:
             readers.append(rel)
-        if "threads/" not in text:
+        if f"{WORK_ITEMS}/" not in text:
             continue
         for number, line in enumerate(text.split("\n"), start=1):
             for m in CITATION_RE.finditer(line):

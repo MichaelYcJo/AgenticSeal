@@ -953,7 +953,6 @@ def label(values):
 # `sealed_before` reads HEAD's history, and `refused_here` names a `sealed`
 # this clone recorded refusing.
 
-ROUND_FILE = re.compile(r"^round-\d+\.md$")
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
 # first use of each module below, each named as `lib/sibling.py#load` names
 # it.
@@ -988,7 +987,19 @@ def quote(path, windows=None):
     """`path` quoted for the shell a person types `seal stamp --from` into:
     double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
     path holds a space prints a command that runs as printed.
-    `broad_gate.quote` says why double quotes are `cmd.exe`'s."""
+
+    `windows` is the platform, defaulting to this one, so both branches can
+    be driven from a case on either machine. Read inside the body, `os.name`
+    would leave the branch that exists for Windows undrivable from any other
+    machine, and the whole unit could be replaced by `return path` with
+    every case still green.
+
+    On Windows the person types the command into `cmd.exe`, where double
+    quotes carry a space and `& | ^ < > ( )` alike: inside them `cmd.exe`
+    treats none of those as syntax, and a `"` cannot appear in a Windows
+    path at all. What double quotes do not stop is `%VAR%` expansion, which
+    `cmd.exe` performs inside them, so a path holding percent signs would
+    still be mangled; the fix for that is not quoting."""
     if windows is None:
         windows = os.name == "nt"
     return f'"{path}"' if windows else shlex.quote(path)
@@ -1191,12 +1202,13 @@ def _queue_values(
     the line that names it, once `queue_for_written_guarantee` has read the
     records from disk and the guarantee passed its refusals. `base` is the
     base the newest verdict block names, `gate_text` the `trail/gate.md`
-    beside the guarantee or None, `rounds` the paths of what its
-    `trail/rounds/` holds and `branch` the branch the audited commit stands
-    on, or "" where none is named."""
+    beside the guarantee or None, `rounds` the round records its
+    `trail/rounds/` holds, as `lib/routing.py#rounds` lists them, and
+    `branch` the branch the audited commit stands on, or "" where none is
+    named."""
     key = f"{ident}-{target}"
     run = _newest_run(chain, gate_text)
-    count = sum(1 for path in rounds if ROUND_FILE.match(os.path.basename(path)))
+    count = len(rounds)
     values = {
         "tree": target,
         "base": base,
@@ -1283,7 +1295,11 @@ def queue_for_written_guarantee(path, now=None):
     # The root's own name is not compared here: `written_root` asks the
     # resolver whether SEAL is the root in force, under whichever name it
     # has.
-    if (os.path.basename(real), os.path.basename(specs)) != ("guarantee.md", "threads"):
+    optin = _optin()
+    if (os.path.basename(real), os.path.basename(specs)) != (
+        optin.GUARANTEE,
+        optin.WORK_ITEMS,
+    ):
         return []
     import sibling
 
@@ -1328,10 +1344,7 @@ def queue_for_written_guarantee(path, now=None):
             return []
         record_refusal(common, ident, target)
         return [NOT_ON_BRANCH.format(id=ident, target=target, branch=branch)]
-    try:
-        rounds = os.listdir(os.path.join(item, "trail", "rounds"))
-    except OSError:
-        rounds = []
+    rounds = routing.rounds(item)
     line = _queue_values(
         chain,
         common,
@@ -1339,7 +1352,7 @@ def queue_for_written_guarantee(path, now=None):
         ident=ident,
         target=target,
         base=newest.fields[chain.FIELDS.TARGET].match["base"],
-        gate_text=_read(os.path.join(item, *chain.BROAD_GATE_FILE.split("/"))),
+        gate_text=_read(os.path.join(item, *optin.GATE.split("/"))),
         rounds=rounds,
         branch=branch,
         item=item,

@@ -3583,7 +3583,7 @@ class Test_module:
                 repo,
                 "mv",
                 f"{rules.EARLIER[0]}/{name}/{rules.EARLIER[1]}",
-                f"seal/threads/{name}/{rules.DESIGN}",
+                f"seal/threads/{name}/{rules.optin().DESIGN}",
             )
         commit(repo, "the session-start move")
         ids = ["1700000001-a", "1700000002-b"]

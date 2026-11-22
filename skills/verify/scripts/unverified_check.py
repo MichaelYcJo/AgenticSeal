@@ -59,10 +59,9 @@ import sibling  # noqa: E402
 GAPS = sibling.load("lib/gaps.py")
 CONSOLE = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
-
-# The directory under a `seal/` root that holds the threads:
-# `lib/optin.py#WORK_ITEMS`, which a case holds this to.
-ITEMS = "threads"
+# `lib/optin.py`, whose `WORK_ITEMS` names the directory under a `seal/`
+# root that holds the threads.
+OPTIN = sibling.load("lib/optin.py")
 SKIP_DIRS = {
     ".git",
     ".venv",
@@ -245,7 +244,7 @@ def settled_root(path):
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
-    if os.path.basename(p) != ITEMS or not os.path.isdir(parent):
+    if os.path.basename(p) != OPTIN.WORK_ITEMS or not os.path.isdir(parent):
         return False
     if not named_root(parent):
         return False
@@ -275,7 +274,7 @@ def absent_root(path):
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
     top = os.path.dirname(parent)
-    if os.path.basename(p) != ITEMS:
+    if os.path.basename(p) != OPTIN.WORK_ITEMS:
         return False
     if os.path.isdir(parent) or not os.path.isdir(top):
         return False
@@ -304,7 +303,7 @@ def unwritten_root(path):
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
-    if os.path.basename(p) != ITEMS or not os.path.isdir(p):
+    if os.path.basename(p) != OPTIN.WORK_ITEMS or not os.path.isdir(p):
         return False
     if not named_root(parent) or settled_root(p):
         return False
