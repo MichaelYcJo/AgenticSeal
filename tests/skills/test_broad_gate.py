@@ -194,8 +194,7 @@ class Test_module:
         ]
         assert len(reads) == 1, [node.lineno for node in reads]
 
-    def test_the_gate_and_the_check_spell_the_file_and_flag_alike(self):
-        assert gate.GATE_FILE == chain.BROAD_GATE_FILE
+    def test_the_gate_and_the_check_spell_the_flag_alike(self):
         assert gate.CHAIN_SEALING == chain.SEALING
 
     def test_a_file_the_gate_wrote_is_read_by_the_check(self, tmp_path):
@@ -1396,15 +1395,6 @@ class Test_failing_files:
         assert gate.failing_files("PASSED tests/a.py::t\nERROR tests/b.py\n") == []
 
 
-class Test_quote:
-    def test_accepts_a_path_with_a_space_for_either_shell(self):
-        assert gate.quote("a b.py", windows=False) == "'a b.py'"
-        assert gate.quote("a b.py", windows=True) == '"a b.py"'
-
-    def test_refuses_to_leave_a_metacharacter_to_cmd_exe(self):
-        assert gate.quote("a&b.py", windows=True) == '"a&b.py"'
-
-
 class Test_base_word:
     def test_accepts_a_file_the_base_fails_or_passes(self):
         record = a_record(
@@ -1479,18 +1469,6 @@ def a_round(*verdicts):
         f"{fence}seal\ntarget: abc1234 against base\n{fence}\n\n## Findings\n\n{found}"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
     )
-
-
-class Test_round_records:
-    def test_accepts_the_records_lowest_round_first(self, tmp_path):
-        for n in (10, 2, 1):
-            write(tmp_path, f"trail/rounds/round-{n}.md", "x")
-        write(tmp_path, "trail/rounds/round-2-report.md", "x")
-        names = [os.path.basename(p) for p in gate.round_records(str(tmp_path))]
-        assert names == ["round-1.md", "round-2.md", "round-10.md"]
-
-    def test_refuses_an_item_with_no_rounds_directory(self, tmp_path):
-        assert gate.round_records(str(tmp_path)) == []
 
 
 # A run block naming the run `write_gate_file(..., "aaa1111", "bbb2222")`
@@ -1652,8 +1630,16 @@ class Test_rounds_rows:
         """An absent check leaves the count alone beneath it, and the gate
         says in its own line that the deferred findings were not counted,
         naming the file, where the loader's sentence would say that nothing
-        was read of a run that goes on (#1482 round 1, finding 1)."""
+        was read of a run that goes on (#1482 round 1, finding 1).
+        `lib/routing.py`, which lists the round records, is the tree's,
+        loaded before the root moves, so only the check is absent."""
         plugin = tmp_path / "no-plugin"
+        routing, load = gate.sibling_module(gate.ROUTING), gate.sibling_module
+        monkeypatch.setattr(
+            gate,
+            "sibling_module",
+            lambda rel: routing if rel == gate.ROUTING else load(rel),
+        )
         monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
         item = tmp_path / "1799000005-w"
         write(item, "trail/rounds/round-1.md", a_round("deferred #7"))

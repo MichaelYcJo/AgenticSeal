@@ -1183,6 +1183,9 @@ class Test_quote:
     def test_refuses_to_quote_a_path_a_posix_shell_reads_whole(self):
         assert stamp.quote("/a/c.json", windows=False) == "/a/c.json"
 
+    def test_refuses_to_leave_a_metacharacter_to_cmd_exe(self):
+        assert stamp.quote("a&b.py", windows=True) == '"a&b.py"'
+
 
 # --- once per work item ---------------------------------------------------------
 

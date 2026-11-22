@@ -3063,11 +3063,14 @@ def work_item_keys(directory):
     `routing.md` names no branch is refused, because a guessed key would
     count another work item's segments."""
     name = os.path.basename(os.path.abspath(directory))
+    routing = lib_module("routing")
     try:
         with open(
-            os.path.join(directory, "routing.md"), encoding="utf-8", errors="replace"
+            os.path.join(directory, routing.FILENAME),
+            encoding="utf-8",
+            errors="replace",
         ) as handle:
-            declared = lib_module("routing").parse(handle.read())
+            declared = routing.parse(handle.read())
     except OSError:
         declared = None
     if not declared:
@@ -3176,7 +3179,7 @@ def other_work_items(directory, name):
     for entry in entries:
         try:
             with open(
-                os.path.join(parent, entry, "routing.md"),
+                os.path.join(parent, entry, routing.FILENAME),
                 encoding="utf-8",
                 errors="replace",
             ) as handle:

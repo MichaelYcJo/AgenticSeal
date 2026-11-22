@@ -222,14 +222,16 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-# The sub-directory of the root that holds the work items:
-# `lib/optin.py#WORK_ITEMS`.
-WORK_ITEMS = "threads"
-# A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
-DESIGN = "frame/design.md"
-# A thread's plan, and the section and table the orchestrator writes its
-# judgments of the run to (`templates/records/sdd-plan.md`).
-PLAN = "frame/plan.md"
+# A thread's places, `lib/optin.py`'s: the sub-directory of the root that
+# holds the work items, a thread's design, its plan and its changelog
+# fragment.
+_optin = sibling.load(OPTIN)
+WORK_ITEMS = _optin.WORK_ITEMS
+DESIGN = _optin.DESIGN
+PLAN = _optin.PLAN
+CHANGELOG = _optin.CHANGELOG
+# The section and table of the plan the orchestrator writes its judgments of
+# the run to (`templates/records/sdd-plan.md`).
 JUDGMENTS = "Judgments of the run"
 JUDGMENTS_HEADER = ("Date", "Judgment", "Grounds", "Judged against")
 # What the dry run says of a heading near the judgments section, at its line.
@@ -735,7 +737,7 @@ def notes(root, ref, ids, specs):
     try:
         at = git_out(root, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
         for work_item_id in ids:
-            path = f"{specs}/{work_item_id}/changelog.md"
+            path = f"{specs}/{work_item_id}/{CHANGELOG}"
             held = git_out(root, "ls-tree", "--name-only", at, "--", path).strip()
             text = git_out(root, "show", f"{at}:{path}").strip() if held else ""
             commit, number = adding_commit(root, at, path) if held else (None, None)

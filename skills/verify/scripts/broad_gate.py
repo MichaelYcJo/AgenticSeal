@@ -148,6 +148,8 @@ CONFIG_READER = "lib/config.py"
 # reads the blocks already there.
 FIELDS_READER = "lib/fields.py"
 OPTIN = "lib/optin.py"
+# `lib/routing.py`, whose `rounds` lists a work item's round records.
+ROUTING = "lib/routing.py"
 
 # `lib/sibling.py` loads every other module this command reads, and an
 # absent one is its sentence and exit 2. Where it is absent itself, the
@@ -168,14 +170,6 @@ except ImportError:
 
 CONFIG = "config.json"
 KEY = "Broad gate"
-ROUND_RE = re.compile(r"^round-(\d+)\.md$")
-# The run's one record, in the work item's directory: `chain_check.py` reads
-# it by the same spelling, and a case holds the two equal.
-# `lib/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
-# check's `/` on every platform, and `write_gate_file` splits it on `/` so the
-# disk path it returns takes the platform's separator throughout.
-GATE_FILE = "trail/gate.md"
-ROUNDS_DIR = os.path.join("trail", "rounds")
 
 # The checks, by the name the report prints for each. The first is the
 # repository's own command; the panel reads its `suite` and `lint` from that
@@ -293,7 +287,8 @@ def branch_name(root):
 # in the report by `tree` and caught at the pull request by the same scripts.
 
 GATE_REL = os.path.join("skills", "verify", "scripts", "broad_gate.py")
-PLUGIN_JSON = os.path.join(".claude-plugin", "plugin.json")
+# `lib/core.py`, the one reader of a plugin's `.claude-plugin/plugin.json`.
+CORE = "lib/core.py"
 
 
 def shipped_gate(root):
@@ -316,12 +311,9 @@ def shipped_gate(root):
 
 def plugin_version(plugin):
     """`version` from `<plugin>/.claude-plugin/plugin.json`, or `?` where the
-    file cannot be read or does not say -- a run never stops on a label."""
-    try:
-        with open(os.path.join(plugin, PLUGIN_JSON), encoding="utf-8") as handle:
-            version = json.load(handle).get("version")
-    except (OSError, ValueError, AttributeError):
-        return "?"
+    file cannot be read or does not say -- a run never stops on a label. The
+    manifest is read by `lib/core.py#manifest`."""
+    version = sibling_module(CORE).manifest(plugin).get("version")
     return str(version) if version else "?"
 
 
@@ -817,7 +809,7 @@ def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=
     carries both lines above the exit code — the command as written first, because
     that is the line a reader retypes. `windows` and `comspec` are the
     platform, passed through, so a case can drive the `cmd.exe` branch from
-    any machine the way `quote` is driven. `root` is passed through too,
+    any machine the way `seal_stamp.py#quote` is driven. `root` is passed through too,
     because it is where the command runs, and so where a command name's first
     part is asked whether it is a directory.
     """
@@ -952,8 +944,8 @@ def handed_to_shell(command, windows=None, comspec=None, root=None):
     posix_row_shell_or_skip` exists for that machine), and a POSIX shell
     runs `bin/test` as written. `windows` and `comspec` default to this
     machine's, and are arguments so that both branches can be driven from
-    either platform — `quote`'s docstring says what reading `os.name` in the
-    body costs.
+    either platform — `seal_stamp.py#quote`'s docstring says what reading
+    `os.name` in the body costs.
     """
     if not cmd_exe_reads(windows, comspec):
         return command
@@ -1467,34 +1459,6 @@ def failing_files(text):
     return list(dict.fromkeys(FAILED_RE.findall(text)))
 
 
-def quote(path, windows=None):
-    """One path, quoted for the shell `run(..., shell=True)` hands it to.
-
-    `windows` is the platform, defaulting to this one, so BOTH branches can
-    be driven from a case on either machine. Read inside the body, `os.name`
-    would leave the branch that exists for Windows undrivable from any other
-    machine, and the whole unit could be replaced by `return path` with
-    every case still green. CI runs `windows-latest` on every push, so the
-    platform is there; what holds the branch is an assertion a case on any
-    machine can make.
-
-    On Windows `run(..., shell=True)` goes through `cmd.exe`, and
-    `subprocess.list2cmdline` builds the argv quoting `CreateProcess` reads,
-    which Python's own documentation says is NOT `cmd.exe` quoting: it wraps
-    a path holding a space and leaves `& | ^ < > ( )` for the shell to act
-    on. Double quotes carry both -- inside them `cmd.exe` treats none of
-    those as syntax -- and a `"` cannot appear in a Windows path at all.
-
-    What double quotes do NOT stop is `%VAR%` expansion, which `cmd.exe`
-    performs inside them. A test path holding percent signs would still be
-    mangled; it is named here rather than claimed closed, because the fix for
-    it is not quoting and this unit should not pretend otherwise.
-    """
-    if windows is None:
-        windows = os.name == "nt"
-    return f'"{path}"' if windows else shlex.quote(path)
-
-
 # What a file reads where no run measured it. Each starts `new?`, so it
 # is never read as `new`, and says the comparison was not measured.
 NOT_MEASURED = f"{NEW}? not measured"
@@ -1736,18 +1700,6 @@ def suite_counts(record):
     return ", ".join(said)
 
 
-def round_records(item):
-    """The `trail/rounds/round-N.md` paths of `item` on disk, lowest round first."""
-    try:
-        names = os.listdir(os.path.join(item, ROUNDS_DIR))
-    except OSError:
-        return []
-    found = sorted(
-        (int(m.group(1)), n) for n in names for m in [ROUND_RE.match(n)] if m
-    )
-    return [os.path.join(item, ROUNDS_DIR, n) for _, n in found]
-
-
 def write_gate_file(item, tree, base):
     """Append to `<item>/trail/gate.md` one run block, `run: <tree> against
     <base>`, below the text already there, a work item's heading opening a
@@ -1757,7 +1709,9 @@ def write_gate_file(item, tree, base):
     not load, the run is not one the reader reads, or the file as it
     will stand, the held file where nothing is appended, is one the reader
     refuses at a line or reads with another run last."""
-    path = os.path.join(item, *GATE_FILE.split("/"))
+    # `lib/optin.py#GATE` is `/`-joined; split on `/`, the disk path takes
+    # the platform's separator throughout.
+    path = os.path.join(item, *sibling_module(OPTIN).GATE.split("/"))
     try:
         with open(path, encoding="utf-8") as handle:
             held = handle.read()
@@ -1812,7 +1766,7 @@ def rounds_rows(item):
     the panel as ASCII, anything outside it reading `?`, because the letter
     twin maps only the owner's characters. A record the check's reader
     refuses anything of adds nothing beneath."""
-    records = round_records(item)
+    records = sibling_module(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
     # A label never stops a run that passed, so an absent check is said here
     # and the run goes on.

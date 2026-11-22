@@ -32,6 +32,7 @@ from conftest import (
     opted_in_repo,
     two_axis_text,
     with_row,
+    write,
 )
 from test_blocks import CORPUS, as_read
 from test_tables import leaves_both
@@ -456,6 +457,18 @@ class Test_declarations:
         (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
         monkeypatch.chdir(here)
         assert routing.declarations(str(repo)) == []
+
+
+class Test_rounds:
+    def test_accepts_the_records_lowest_round_first(self, tmp_path):
+        for n in (10, 2, 1):
+            write(tmp_path, f"trail/rounds/round-{n}.md", "x")
+        write(tmp_path, "trail/rounds/round-2-report.md", "x")
+        names = [os.path.basename(p) for p in routing.rounds(str(tmp_path))]
+        assert names == ["round-1.md", "round-2.md", "round-10.md"]
+
+    def test_refuses_an_item_with_no_rounds_directory(self, tmp_path):
+        assert routing.rounds(str(tmp_path)) == []
 
 
 class Test_module:
