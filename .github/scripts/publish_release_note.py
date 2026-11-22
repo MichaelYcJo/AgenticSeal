@@ -122,8 +122,8 @@ console = sibling.load("lib/console.py")
 gitcmd = sibling.load("lib/gitcmd.py")
 optin = sibling.load("lib/optin.py")
 gfm_lines = sibling.load("lib/blocks.py").gfm_lines
-_closer = sibling.load(".github/scripts/close_issues_on_release.py")
-SPAN, keywords_in = _closer.SPAN, _closer.keywords_in
+closing = sibling.load("lib/closing.py")
+SPAN, keywords_in = closing.SPAN, closing.keywords_in
 heading_level = sibling.load("lib/lines.py").heading_level
 
 # `seal settle`, for `adding_commit`: the one reader of the commit that adds
@@ -481,9 +481,6 @@ TYPES = (
 )
 OTHER = "📦 Other"
 TITLE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\([^)]*\))?!?:\s*(?P<text>.+)$", re.I)
-# A title that ends in the issue it closes, `... (#572)`, would read
-# `(#572) (#574)`; the closing list carries the issue instead.
-TRAILING_REF_RE = re.compile(r"\s*\(#\d+\)\s*$")
 
 
 def merged_pulls(repo, version):
@@ -553,7 +550,7 @@ def changes(pulls):
     return sorted(pulls or (), key=lambda p: p["number"])
 
 
-# A code span, read as `close_issues_on_release.py#SPAN` reads one, or a `<`
+# A code span, read as `lib/closing.py#SPAN` reads one, or a `<`
 # outside one.
 SPAN_OR_LT_RE = re.compile(f"({SPAN.pattern})|<")
 
@@ -567,7 +564,9 @@ def kind_and_text(title):
     code (one title in this repository holds three `details` tags bare).
     Both the fold's lines and the thanks section's read a title through
     here."""
-    title = TRAILING_REF_RE.sub("", title.strip())
+    # A title that ends in the issue it closes, `... (#572)`, would read
+    # `(#572) (#574)`; the closing list carries the issue instead.
+    title = closing.MERGED_PR.sub("", title.strip())
     found = TITLE_RE.match(title)
     heading, text = OTHER, title
     if found:
@@ -580,7 +579,8 @@ def kind_and_text(title):
 
 def closed_by(pull):
     """The issues `pull`'s body closes, in order, each once -- read the way
-    `close_issues_on_release.py` reads them, which is what closed them."""
+    `lib/closing.py#keywords_in` reads them for the closer, which is what
+    closed them."""
     seen = []
     for number in keywords_in(pull.get("body") or ""):
         if number not in seen:

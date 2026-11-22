@@ -211,8 +211,9 @@ ticked before any of the release's cost is paid.
 What the gate compares the milestone against is the pull request bodies. It
 reads the release branch's own commit subjects, takes the `(#N)` a squash
 writes, fetches those bodies, and collects what their closing keywords name:
-the same readers `.github/scripts/close_issues_on_release.py` uses to close
-them when the release reaches `main`, imported rather than copied.
+the same readers, `lib/closing.py`, that
+`.github/scripts/close_issues_on_release.py` uses to close them when the
+release reaches `main`, imported rather than copied.
 `skills/implement/orchestration.md` *Orchestrator: the order inside a
 ticket* says the same thing from the ticket's side.
 
@@ -315,9 +316,9 @@ because this repository's pull request bodies indent a bullet's
 continuation that way and masking it would drop a real `Closes #N`, and
 one after a `<!--` that never closes with other text before it on its line,
 because GitHub reads what follows it. `.github/scripts/issue_claims_check.py`
-imports the closer's patterns rather than spelling its own, so the check
-and the closer read one body the same way.
-check: tests/github/test_close_issues_on_release.py tests/github/test_issue_claims_check.py
+and the closer import their patterns from `lib/closing.py` rather than
+spelling their own, so the check and the closer read one body the same way.
+check: tests/lib/test_closing.py tests/github/test_issue_claims_check.py
 
 ## An issue is its body and its comments together
 

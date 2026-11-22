@@ -394,13 +394,13 @@ class Test_module:
     def test_the_environment_is_read_when_no_file_is_given(self):
         assert check.body_from(_args(None), {"PR_BODY": "Closes #11"}) == "Closes #11"
 
-    def test_the_check_imports_the_closers_definition_rather_than_restating_it(self):
+    def test_the_check_imports_the_one_definition_rather_than_restating_it(self):
         """Two lists of what a closing keyword is would drift apart the first time
         either was widened, and widening one of them is precisely the repair this
         issue rejected. Identity, not equality: a copied literal passes an
         equality check on the day it is copied.
 
-        The sibling is taken from `sys.modules`, where the check's own load
+        `lib/closing.py` is taken from `sys.modules`, where the check's own load
         through `lib/sibling.py` put it — NOT loaded again by path. A second load builds a second module
         object, and then `KEYWORDS is KEYWORDS` is false for a module that
         imported it correctly. `CLOSING` would still pass, because `re.compile`
@@ -408,14 +408,13 @@ class Test_module:
         regex identities are true whether the import happened or not, and only the
         tuple actually asks the question. Measured here, in this file's first
         run."""
-        closer = sys.modules["close_issues_on_release"]
+        closing = sys.modules["closing"]
         assert os.path.samefile(
-            closer.__file__,
-            os.path.join(ROOT, ".github", "scripts", "close_issues_on_release.py"),
+            closing.__file__, os.path.join(ROOT, "lib", "closing.py")
         ), "the check imported some other module of that name"
-        assert check.CLOSING is closer.CLOSING
-        assert check.KEYWORDS is closer.KEYWORDS
-        assert check.HIDDEN is closer.HIDDEN
+        assert check.CLOSING is closing.CLOSING
+        assert check.KEYWORDS is closing.KEYWORDS
+        assert check.HIDDEN is closing.HIDDEN
 
     def test_the_source_defines_no_keyword_list_of_its_own(self):
         """The identity case above passes for a module that ALSO carries its own
@@ -435,8 +434,8 @@ class Test_module:
             "HIDDEN = re.compile",
         ):
             assert spelling not in body, (
-                f"{spelling!r} is defined here as well as next door — one of the "
-                "two will be widened alone"
+                f"{spelling!r} is defined here as well as in `lib/closing.py` — "
+                "one of the two will be widened alone"
             )
 
 

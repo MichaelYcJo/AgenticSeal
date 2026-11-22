@@ -406,7 +406,7 @@ exits non-zero only at the end, naming each issue both routes refused with
 both errors. A partial close is repaired by re-running the script with the
 run's `BEFORE`, `AFTER` and `REPO`: it skips what is already closed and
 reaches the rest.
-check: tests/github/test_close_issues_on_release.py
+check: tests/github/test_close_issues_on_release.py tests/lib/test_closing.py
 
 ```
 Closes #88

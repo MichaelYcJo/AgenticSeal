@@ -6,7 +6,7 @@ by `close_issues_on_release.py`, and #150 stays open until somebody closes
 it by hand.
 
 **Nothing malfunctions.** A closing keyword claims the one number that follows
-it and nothing else -- GitHub reads it that way, and the sibling script says so
+it and nothing else -- GitHub reads it that way, and `lib/closing.py` says so
 in the comment above its `KEYWORDS`. The sentence claims #153 and says
 nothing about #150.
 
@@ -19,7 +19,7 @@ This is the same shape as the defect the release workflow itself exists for:
 an answer written down with nothing acting on it. The rule is already written
 down, in the one file whose author needs it least at the moment the prose is
 written -- the session writing a pull request body is not reading
-`close_issues_on_release.py`.
+`lib/closing.py`.
 
   issue_claims_check.py                    reads `PR_BODY` from the environment
   issue_claims_check.py --body-file BODY   reads a file (local runs and tests)
@@ -34,9 +34,9 @@ was handed no body at all -- neither `PR_BODY` in the environment nor
 `--body-file`. That one is a misconfigured workflow, and the alternative is a
 step that is green having examined nothing.
 
-**What GitHub does not read is defined once, next door.** `KEYWORDS`,
-`CLOSING` and `HIDDEN` are taken from `close_issues_on_release.py`
-rather than restated here, so widening one moves both. Two lists of what a
+**What GitHub does not read is defined once, in `lib/closing.py`.**
+`KEYWORDS`, `CLOSING` and `HIDDEN` are taken from it rather than restated
+here, so widening one moves this check and the release closer together. Two lists of what a
 closing keyword is would drift apart the first time either was edited.
 
 ## What a sentence is
@@ -68,12 +68,12 @@ is not the shape and says nothing, which is where the false-positive budget
 goes.
 
 A closing keyword inside a fenced block, an HTML comment or an inline code
-span is invisible, the way it is to GitHub and to the sibling script -- this
+span is invisible, the way it is to GitHub and to the release closer -- this
 repository's own documents carry `Closes #88` in a fence as the example to
 copy, and its bodies quote its documents routinely. A `#N` the masking hides
 is not mentioned either: GitHub renders neither the number nor its keyword.
 The masking here replaces each hidden character with a space, where
-the sibling collapses each match to one space: a fence or a comment
+`lib/closing.py#keywords_in` collapses each match to one space: a fence or a comment
 collapsing to a single space would join the line above it to the line below,
 and this module segments by line structure.
 """
@@ -92,8 +92,8 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
 console = sibling.load("lib/console.py")
-_closer = sibling.load(".github/scripts/close_issues_on_release.py")
-CLOSING, HIDDEN, KEYWORDS = _closer.CLOSING, _closer.HIDDEN, _closer.KEYWORDS
+closing = sibling.load("lib/closing.py")
+CLOSING, HIDDEN, KEYWORDS = closing.CLOSING, closing.HIDDEN, closing.KEYWORDS
 
 # Where a line ends is `lib/blocks.py`'s rule. A reader that is
 # moved or renamed stops this check at load in `lib/sibling.py`'s sentence
@@ -321,5 +321,5 @@ if __name__ == "__main__":
 
 # `KEYWORDS` is imported for the docstring's claim that this module and the
 # release closer share one definition, and re-exported so a reader who lands
-# here can see the vocabulary without opening the sibling.
+# here can see the vocabulary without opening `lib/closing.py`.
 __all__ = ["CLOSING", "HIDDEN", "ISSUE_REF", "KEYWORDS", "main", "read"]

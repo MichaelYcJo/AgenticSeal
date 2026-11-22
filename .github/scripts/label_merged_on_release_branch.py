@@ -12,12 +12,12 @@ out of the commit subjects that arrived, fetches those pull request bodies,
 and puts `merged: X.Y.Z` on every issue their closing keywords name. The
 version comes from the branch name.
 
-**Nothing here parses anything new.** `MERGED_PR`, `keywords_in`,
-`pull_request_body` and `arrived` all come from
-`close_issues_on_release.py`, which is the module that already reads exactly
-these three things and whose `HIDDEN` treatment of a quoted keyword is
-the behaviour a second reader would have to reproduce. Importing it runs
-nothing: its `main` is guarded.
+**Nothing here parses anything new.** `MERGED_PR` and `keywords_in` come
+from `lib/closing.py`, whose `HIDDEN` treatment of a quoted keyword is the
+behaviour a second reader would have to reproduce, and `pull_request_body`
+and `arrived` come from `close_issues_on_release.py`, the closer, which reads
+the same three things with them. Importing the closer runs nothing: its
+`main` is guarded.
 
 Four things it deliberately does not do.
 
@@ -68,6 +68,9 @@ RELEASE_BRANCH = re.compile(r"^release/v(\d+\.\d+\.\d+)$")
 # the same neighbour the workflow does. `sys.path[0]` is this directory only
 # when the script is the entry point.
 closer = sibling.load(".github/scripts/close_issues_on_release.py")
+# `lib/closing.py`, the readers of a squash subject and a closing keyword the
+# closer reads with.
+closing = sibling.load("lib/closing.py")
 
 
 # --- the name mapping -----------------------------------------------------
@@ -136,7 +139,7 @@ def issue_labels(repo, number):
     spent `size: now` off the issue it is closing, so the reader lives on
     that module, which owns the 404-tolerant read it is built on, and this
     is the delegation -- one source, the way both scripts take `MERGED_PR`,
-    `keywords_in`, `pull_request_body` and `arrived` from one source. The
+    `keywords_in`, `pull_request_body` and `arrived` from one each. The
     name stays here, so a caller of this module reads labels through it.
     """
     return closer.issue_labels(repo, number)
@@ -195,7 +198,7 @@ def issues_in(repo, subjects):
     """{issue number: the pull request that claimed it}, in arrival order."""
     wanted = {}
     for subject in subjects:
-        found = closer.MERGED_PR.search(subject.strip())
+        found = closing.MERGED_PR.search(subject.strip())
         if not found:
             continue
         number = int(found.group(1))
@@ -203,7 +206,7 @@ def issues_in(repo, subjects):
         if body is None:
             print(f"#{number} is not a pull request — a hand-written number")
             continue
-        for issue in closer.keywords_in(body):
+        for issue in closing.keywords_in(body):
             wanted.setdefault(int(issue), number)
     return wanted
 

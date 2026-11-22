@@ -232,9 +232,9 @@ GH_TIMEOUT = 30
 NO_PAYLOAD = "no pull-request event payload"
 REGULAR = ("100644", "100755")
 # A squash merge on GitHub: the server commits it, and the subject ends with
-# the number of the pull request it carried (`carried_by`).
+# the number of the pull request it carried, as `lib/closing.py#MERGED_PR`
+# reads it (`carried_by`).
 SQUASH_COMMITTER = "noreply@github.com"
-SQUASH_SUBJECT = re.compile(r"\(#\d+\)$")
 CARRIED_SAYS = (
     "judged at its own pull request: {sha} `{subject}` squashed it onto this branch"
 )
@@ -285,6 +285,9 @@ try:
     OPTIN = sibling.load("lib/optin.py")
     # `lib/console.py`, whose `annotate` prints a line about a file.
     CONSOLE = sibling.load("lib/console.py")
+    # `lib/closing.py`, whose `MERGED_PR` reads the pull request a squash
+    # subject names.
+    CLOSING = sibling.load("lib/closing.py")
 except (OSError, SyntaxError, ImportError) as _exc:
     if __name__ != "__main__":
         raise
@@ -465,7 +468,7 @@ def carried_by(root, base, rel):
         if (
             len(entry) != 3
             or entry[1].strip().lower() != SQUASH_COMMITTER
-            or not SQUASH_SUBJECT.search(entry[2].strip())
+            or not CLOSING.MERGED_PR.search(entry[2].strip())
         ):
             return None
     return commits[0][0].strip(), commits[0][2].strip()

@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # `live_lines` on purpose, since a row they read is safe at its base reading
 # where the walk is unsure, and `fields.py` refuses a fence line the walk cannot
 # place. Readers that keep a rule of their own, each on purpose: the pull request
-# body readers through `close_issues_on_release.py#FENCE`, which open a fence
+# body readers through `lib/closing.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/releasing/issues-and-milestones.md` *A keyword claims the
 # one number after it*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,

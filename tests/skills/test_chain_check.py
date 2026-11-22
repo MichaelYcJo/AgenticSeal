@@ -485,6 +485,7 @@ def copied_tree(tree):
     (tree / "lib").mkdir(parents=True)
     for name in (
         "blocks.py",
+        "closing.py",
         "console.py",
         "fields.py",
         "gitcmd.py",
