@@ -4,7 +4,8 @@ The judgments the issue left open that the tree answered, each where its grounds
 
 - Where `rules.py` belongs: `frame/plan.md` *Alternatives considered*, the `skills/settle/scripts/` row.
 - Where `run_tests.py` belongs: `frame/plan.md` *Alternatives considered*, the `tests/` row.
-- Whether `docs/` and `assets/` are watched by the version check: `frame/design.md` *Grounding*, the contract rule 11 row, and `frame/plan.md` *Alternatives considered*, the row keeping the seven watched roots.
+- Whether `docs/` is watched by the version check: `frame/design.md` *Grounding*, the contract rule 11 row, and `frame/plan.md` *Alternatives considered*, the row keeping the seven watched roots.
+- Whether `assets/` is watched or leaves `dist`: `frame/design.md` *Scope* item 8, and `frame/plan.md` *Alternatives considered*, the two `assets/` rows.
 - How the version check's list and the test's classification come to state one fact: `frame/plan.md` *Alternatives considered*, the row where the case derives the set from the archive.
 - The shape of the one squash-subject pattern: `frame/design.md` *Grounding*, the squash probe row.
 - Whether the closer's `run` and `gitcmd` move with its readers: `frame/design.md` *Scope*, the Out list.

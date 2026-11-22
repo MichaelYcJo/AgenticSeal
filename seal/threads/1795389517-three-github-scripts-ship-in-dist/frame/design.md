@@ -50,12 +50,12 @@ In:
    - Every test that loads one of these by path is re-pointed.
 6. **`ruff.toml`'s `per-file-target-version` table** names the moved files as `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` derives them, and the closer's row goes where that case no longer derives it.
 7. **`.gitattributes` marks `/.github/` `export-ignore` in one line.** That line replaces the lines the `## Removes` row on `export-ignore` lines names, and the file's comment says why `.github/` leaves whole. The GitHub templates leave `dist` with it.
-8. **The version check watches every top-level directory the archive holds.** The pattern at `hygiene.yml:88` gains `docs` and `assets`, and its comment says the archive is what decides.
+8. **The version check watches every top-level directory the archive holds that an installed copy reads.** The pattern at `hygiene.yml:88` gains `docs`, and its comment says the archive and the set of *Scope* item 9 decide. `assets/` stays unwatched. Nothing installed reads it (*Grounding*), so a change to a drawing alone moves no version. It stays in `dist` because `README.md:175` and `README.ko.md:178` show `assets/seals/owl.png` wherever `dist` is rendered (executed: `grep -n 'assets/' README.md README.ko.md`). Also, #1535 took out of `dist` only the files of a type the directory refuses (`docs/releasing/branch-and-release.md:154-159`, read), and a PNG is not one.
 9. **`tests/behaviour/test_the_release_check_watches_what_ships.py` derives what ships from the archive.** It no longer keeps `SHIPS` and `STAYS_HOME`:
-   - Every top-level directory `git archive` holds is matched by the pattern.
+   - Every top-level directory `git archive` holds is either matched by the pattern or named in one set of entries the archive holds and nothing installed reads. No entry is both.
    - Every tracked top-level entry the archive leaves out is not matched.
    - The pattern names no root the archive does not hold.
-   - Every top-level file the archive holds is named in one set of files nothing installed reads, so a new one, such as a loader's `.mcp.json`, is a decision made in that file.
+   - Every top-level file the archive holds is named in that same set. The set holds `assets` and the top-level files *Grounding* lists, so a new entry, such as a loader's `.mcp.json`, is a decision made in that file.
 
    `archived` moves to `tests/conftest.py`, so the two test modules that call it share one definition.
 10. **In `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, one case replaces A7 and A8:** the archive holds no path under `.github/`, and no non-docstring string constant of a `.py` file the archive holds names a path under `.github/scripts/`. A7's reason, GitHub refusing a token push of a workflow file, moves into that case's docstring.
@@ -67,7 +67,7 @@ Out:
 - The closer's `run`, its re-export of `gitcmd`, and the runner copies in `.github/scripts/`, which #1573 owns.
 - `bin/test` and `bin/test.cmd` in `dist`. #1420 owns them, on hold by the owner. This work takes `run_tests.py` out of `dist` by moving it under `tests/`, which is part of #1420's finding 2. #1420's Done-when line, that `dist` still holds `.github/scripts/close_issues_on_release.py` and `.github/scripts/rules.py`, is stale once this merges.
 - The other `FENCE` and `SPAN` definitions (`lib/blocks.py:97`, `lib/fields.py:70`, `:99`, `skills/settle/scripts/passages.py:37`). Each is a different reader, a block fence or a field span, and none is the closing-keyword mask.
-- A version check on a top-level file. The archive holds those files and nothing installed reads them (*Grounding*), so *Scope* item 9 classifies them and does not watch them.
+- A version check on a top-level file or on `assets/`. The archive holds them and nothing installed reads them (*Grounding*), so *Scope* item 9 classifies them and does not watch them.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -89,7 +89,7 @@ Out:
 - `seal rules`: same subcommand, same arguments and exit codes. `TOOLS["rules"]` names `skills/settle/scripts/rules.py`.
 - `chain_check.py#CHECK_LINES_READER = "skills/settle/scripts/rules.py"`. The three messages that name the reader name the new path. `tests/skills/test_chain_check.py:1815`, `:1971` and `:1980` pin them, and they change with them (contract rule 14).
 - `bin/test`, `bin/test.cmd`: the same arguments and the same refusal sentence. The runner path is `../tests/run_tests.py`.
-- `.github/workflows/hygiene.yml:88`: `grep -E '^(skills|agents|hooks|lib|templates|bin|docs|assets|\.claude-plugin)/'`, in any order the derived case accepts.
+- `.github/workflows/hygiene.yml:88`: `grep -E '^(skills|agents|hooks|lib|templates|bin|docs|\.claude-plugin)/'`, in any order the derived case accepts.
 
 ## Rule changes
 
@@ -97,7 +97,7 @@ Out:
   file: docs/releasing/branch-and-release.md
   section: Cutting a release
   from: the `hygiene` workflow, which fails a release pull request, one whose base is `main`, that changes `skills/`, `agents/`, `hooks/`, `lib/`, `templates/`, `bin/` or `.claude-plugin/` without moving the version.
-  to: the `hygiene` workflow, which fails a release pull request, one whose base is `main`, that changes a file under any top-level directory `dist` holds without moving the version. What `dist` holds is the paragraph on `dist` below, and a case holds the workflow's list of directories to it. A top-level file `dist` holds, such as `README.md`, is read by nothing installed and moves no version.
+  to: the `hygiene` workflow, which fails a release pull request, one whose base is `main`, that changes a file under a top-level directory `dist` holds and an installed copy reads, without moving the version. What `dist` holds is the paragraph on `dist` below, and a case holds the workflow's list of directories to it. What `dist` holds and nothing installed reads moves no version: a top-level file such as `README.md`, and the drawings under `assets/`, which stay in `dist` for the images the README shows.
 - change
   file: docs/releasing/branch-and-release.md
   section: Cutting a release
@@ -116,7 +116,7 @@ Out:
 | The suite runner at its old path | `.github/scripts/run_tests.py` | `tests/run_tests.py`, moved (*Scope* item 4) |
 | The moved tests at their old paths | `tests/github/test_rules.py`, `tests/github/test_run_tests.py`, and `tests/github/test_close_issues_on_release.py#Test_keywords_in` with the `MERGED_PR` cases | `tests/skills/test_rules.py`, `tests/test_run_tests.py`, `tests/lib/test_closing.py` |
 | The `export-ignore` lines under `.github/`, fourteen at `036e7d424` (`.gitattributes:31-44`) | `.gitattributes`, the `/.github/workflows/` line and each `/.github/scripts/<name>.py` line | The one `/.github/` line (*Scope* item 7). A script added under `.github/scripts/` then needs no line of its own |
-| The two classification lists and the case that keeps them apart | `tests/behaviour/test_the_release_check_watches_what_ships.py#SHIPS`, `#STAYS_HOME`, `#test_the_two_lists_do_not_overlap` | The archive, `.gitattributes`'s one product, read by the derived cases (*Scope* item 9). What leaves is decided in `.gitattributes` alone |
+| The two classification lists and the case that keeps them apart | `tests/behaviour/test_the_release_check_watches_what_ships.py#SHIPS`, `#STAYS_HOME`, `#test_the_two_lists_do_not_overlap` | The archive, `.gitattributes`'s one product, read by the derived cases (*Scope* item 9). What leaves is decided in `.gitattributes` alone, and what stays unread in the one set of *Scope* item 9 |
 | The case holding the release document's list of roots | `tests/behaviour/test_the_release_check_watches_what_ships.py#test_the_release_document_names_the_same_roots` | The document states the rule and no list (*Rule changes* item 1), so no copy is left for the case to hold |
 | Two archive cases and their map | `tests/behaviour/test_a_cited_section_stands_in_its_file.py#test_this_repository_s_archive_holds_no_workflow_file`, `#RUN_BY_A_SHIPPED_COMMAND`, `#test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs` | The one case of *Scope* item 10. A7 caught a workflow file in the archive, and the new case's "no path under `.github/`" is a superset of that. A8's map existed to list the three exceptions, and none is left |
 | The closer's row in the `py39` table | `ruff.toml`, `".github/scripts/close_issues_on_release.py" = "py39"` | Removed where `test_every_entry_point_runs_at_the_floor.py` no longer derives it once `pr_body.py` loads `lib/closing.py`, which `"lib/*.py"` already covers |
