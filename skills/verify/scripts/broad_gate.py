@@ -311,8 +311,10 @@ def shipped_gate(root):
 
 def plugin_version(plugin):
     """`version` from `<plugin>/.claude-plugin/plugin.json`, or `?` where the
-    file cannot be read or does not say -- a run never stops on a label. The
-    manifest is read by `lib/core.py#manifest`."""
+    file cannot be read or does not say -- a run never stops on the
+    manifest. The manifest is read by `lib/core.py#manifest`, which loads
+    as every other `lib/` module does: absent, it is the loader's sentence
+    and exit 2."""
     version = sibling_module(CORE).manifest(plugin).get("version")
     return str(version) if version else "?"
 

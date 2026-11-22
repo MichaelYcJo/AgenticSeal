@@ -3075,7 +3075,7 @@ def work_item_keys(directory):
         declared = None
     if not declared:
         sys.exit(
-            f"{os.path.join(name, 'routing.md')} names no branch, so the "
+            f"{os.path.join(name, routing.FILENAME)} names no branch, so the "
             f"segments of {name} cannot be told from another work item's. "
             f"Nothing was read"
         )
@@ -3137,7 +3137,8 @@ def branch_declarations(parent):
             if len(parts) == 3 and parts[1] == "tree":
                 names.setdefault(parts[2], set()).add(name)
     trees = sorted(names)
-    batch = "".join(f"{tree}:routing.md\n" for tree in trees).encode("ascii")
+    declaration = lib_module("routing").FILENAME
+    batch = "".join(f"{tree}:{declaration}\n" for tree in trees).encode("ascii")
     code, out = run_git(parent, ["cat-file", "--batch"], stdin=batch)
     if code != 0:
         return []

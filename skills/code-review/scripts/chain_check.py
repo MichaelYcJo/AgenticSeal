@@ -1101,13 +1101,15 @@ def frame(reader, routing, root, item, declared):
         )
     elif mark[1] != routing.BY_FRAMER:
         problems.append(
-            f"{item}/routing.md says {who} and {item}/{OPTIN.DESIGN}'s mark says `{mark[1]}`"
+            f"{item}/{routing.FILENAME} says {who} and {item}/{OPTIN.DESIGN}'s mark "
+            f"says `{mark[1]}`"
         )
     for when, by, n in reframes:
         line = f"`Reframed {when} by {by}, after round {n}.`"
         if by != routing.BY_FRAMER:
             problems.append(
-                f"{item}/routing.md says {who} and {item}/{OPTIN.DESIGN}'s foot says {line}"
+                f"{item}/{routing.FILENAME} says {who} and {item}/{OPTIN.DESIGN}'s "
+                f"foot says {line}"
             )
     return problems
 

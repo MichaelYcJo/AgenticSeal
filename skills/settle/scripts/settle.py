@@ -1725,11 +1725,11 @@ def write_documents(listed, out):
             out.write(f"    {path}  added {added}  last changed {last}{said}\n")
 
 
-# A path into a work item directory, however it is spelled before `threads/`.
-# The name may be cut short with an ellipsis, which is how this repository's
-# prose abbreviates a long id; a marker and a bare id carry no `/` after the
-# name, so neither is read as a citation.
-CITATION_RE = re.compile(r"threads/(\d{6,}[^\s/`'\"()\[\]|<>*]*)/")
+# A path into a work item directory, however it is spelled before
+# `WORK_ITEMS` and its `/`. The name may be cut short with an ellipsis, which
+# is how this repository's prose abbreviates a long id; a marker and a bare id
+# carry no `/` after the name, so neither is read as a citation.
+CITATION_RE = re.compile(re.escape(WORK_ITEMS) + r"/(\d{6,}[^\s/`'\"()\[\]|<>*]*)/")
 ELLIPSES = ("…", "...")
 
 
@@ -1764,7 +1764,7 @@ def tracked_text(root, specs):
 def citations(root, work_item_ids, specs):
     """`({id: ["path:line", ...]}, [tests/ files naming seal/threads])`.
 
-    A path outside `seal/threads/`, SPECS (`threads`), that cites into a
+    A path outside `seal/threads/`, SPECS (`WORK_ITEMS`), that cites into a
     directory `--apply` removes stops resolving when it goes, and every
     `tests/` file that reads SPECS is a check the skill says has to be
     answered first. One scan of the tracked tree answers both."""
@@ -1775,7 +1775,7 @@ def citations(root, work_item_ids, specs):
     for rel, text in tracked_text(root, specs):
         if rel.startswith(TESTS) and specs in text:
             readers.append(rel)
-        if "threads/" not in text:
+        if f"{WORK_ITEMS}/" not in text:
             continue
         for number, line in enumerate(text.split("\n"), start=1):
             for m in CITATION_RE.finditer(line):
