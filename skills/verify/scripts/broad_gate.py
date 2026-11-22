@@ -1770,8 +1770,10 @@ def rounds_rows(item):
     refuses anything of adds nothing beneath."""
     records = sibling_module(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
-    # A label never stops a run that passed, so an absent check is said here
-    # and the run goes on.
+    # The deferred row beneath never stops a run that passed, so an absent
+    # check is said here and the run goes on. `lib/routing.py`, which lists
+    # the records above, loads as every other `lib/` module does: absent, it
+    # is the loader's sentence and exit 2.
     try:
         with sibling.going_on():
             chain = sibling_module("skills/code-review/scripts/chain_check.py")

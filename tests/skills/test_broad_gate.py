@@ -1609,8 +1609,8 @@ class Test_rounds_rows:
     def test_refuses_to_stop_a_run_where_the_check_will_not_load(
         self, tmp_path, monkeypatch, raised
     ):
-        """A label never stops a run that passed: a check that raises or
-        exits while it loads leaves the count alone beneath it. An absent
+        """The deferred row never stops a run that passed: a check that raises
+        or exits while it loads leaves the count alone beneath it. An absent
         check is `lib/sibling.py#Absent`, which the case below holds."""
         real = gate.sibling.load
 
