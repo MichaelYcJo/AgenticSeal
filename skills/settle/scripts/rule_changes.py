@@ -59,6 +59,7 @@ FIELDS = "lib/fields.py"
 PASSAGES = "skills/settle/scripts/passages.py"
 TABLES = "lib/tables.py"
 GITCMD = "lib/gitcmd.py"
+OPTIN = "lib/optin.py"
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -139,6 +140,13 @@ def gitcmd():
     import sibling
 
     return sibling.load(GITCMD)
+
+
+def optin():
+    """`lib/optin.py`, which names a thread's places, loaded on first use."""
+    import sibling
+
+    return sibling.load(OPTIN)
 
 
 def heading_text(line):
@@ -588,7 +596,10 @@ def pending(home, policy_root):
     is named `<name>/threads/<id>/`, NAME being HOME's own. A design that
     cannot be read as UTF-8, or a section `parse` refuses, gives no item."""
     found = []
-    pattern = os.path.join(glob.escape(home), THREADS, "*", *DESIGN.split("/"))
+    places = optin()
+    pattern = os.path.join(
+        glob.escape(home), places.WORK_ITEMS, "*", *places.DESIGN.split("/")
+    )
     for path in sorted(glob.glob(pattern)):
         try:
             with open(path, encoding="utf-8") as handle:
@@ -596,7 +607,7 @@ def pending(home, policy_root):
         except (OSError, UnicodeDecodeError):
             continue
         work_item = os.path.basename(os.path.dirname(os.path.dirname(path)))
-        item = f"{os.path.basename(home)}/{THREADS}/{work_item}/"
+        item = f"{os.path.basename(home)}/{places.WORK_ITEMS}/{work_item}/"
         found += [(o, item) for o in parse(text, policy_root).ops or []]
     return found
 
@@ -656,10 +667,6 @@ def overlapping(read):
     return same
 
 
-# A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
-DESIGN = "frame/design.md"
-# The sub-directory of the root that holds the threads: `lib/optin.py#WORK_ITEMS`.
-THREADS = "threads"
 # Where a thread's design stood before the session-start move brought it into
 # `seal/threads/`, as (directory, name): read from history only, so a moved
 # thread is placed where its design was first added and not at the move's one
@@ -697,7 +704,7 @@ def order(root, ref, ids, specs):
         if line.startswith("\x01"):
             commit = line[1:]
             continue
-        for base, name in ((specs, DESIGN), EARLIER):
+        for base, name in ((specs, optin().DESIGN), EARLIER):
             parts = line[len(base) + 1 :].split("/", 1)
             if line.startswith(base + "/") and len(parts) == 2 and parts[1] == name:
                 first.setdefault(parts[0], commit)

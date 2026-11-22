@@ -171,17 +171,6 @@ RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
 CHECK_LINES_READER = ".github/scripts/rules.py"
 
-# A thread's files, relative to its directory: `lib/optin.py`'s `GATE`,
-# `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
-# `routing` only inside the functions that are handed it.
-BROAD_GATE_FILE = "trail/gate.md"
-GUARANTEE_FILE = "guarantee.md"
-SPEC_FILE = "frame/design.md"
-PLAN_FILE = "frame/plan.md"
-# The closing records: the orchestrator's run writes the one, the sealer the
-# other, and they are the only files that may follow the commit the
-# guarantee names, since the sealer audited everything else on the branch.
-CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
 # A round record's fields stand in `seal` blocks, and `lib/fields.py`
 # is the one spelling of their grammar. What this file holds is where
 # a block stands, which turns on headings that module does not read: the one
@@ -234,11 +223,6 @@ REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(.+?)\
 
 VERIFYING_ROUND = "a verifying round is owed"
 SEALING = "--sealing"
-SEALING_SAYS = (
-    f"{SEALING}: `{BROAD_GATE_FILE}` is the file this run writes and "
-    f"`{GUARANTEE_FILE}` the one the sealer writes after it, so their arms "
-    "print and do not fail"
-)
 UNSEEN_SAYS = (
     "the pull request's state is unknown, and it is not judged as a ready "
     "pull request; CI judges it from GitHub's payload"
@@ -306,6 +290,17 @@ except (OSError, SyntaxError, ImportError) as _exc:
         raise
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
     raise SystemExit(2) from None
+
+# The closing records, `lib/optin.py`'s `GATE` and `GUARANTEE`: the
+# orchestrator's run writes the one, the sealer the other, and they are the
+# only files that may follow the commit the guarantee names, since the sealer
+# audited everything else on the branch.
+CLOSING_RECORDS = (OPTIN.GATE, OPTIN.GUARANTEE)
+SEALING_SAYS = (
+    f"{SEALING}: `{OPTIN.GATE}` is the file this run writes and "
+    f"`{OPTIN.GUARANTEE}` the one the sealer writes after it, so their arms "
+    "print and do not fail"
+)
 
 # What the check prints of a file it did not read. `main` prints it as a
 # notice, `path:line  not read: <why>` and a notice annotation in CI, and it
@@ -427,11 +422,12 @@ def changed(root, base):
 
 def changed_routing(paths, moved, work_items):
     """The routing declarations among `paths` that were not only moved."""
+    name = sibling.load(ROUTING).FILENAME
     return sorted(
         p
         for p in paths
         if p.startswith(f"{work_items}/")
-        and os.path.basename(p) == "routing.md"
+        and os.path.basename(p) == name
         and p not in moved
     )
 
@@ -1089,29 +1085,31 @@ def frame(reader, routing, root, item, declared):
         return []
     who = f"`{routing.PLANNING} | {routing.BY_FRAMER}`"
     problems = []
-    spec = read_record(root, f"{item}/{SPEC_FILE}")
+    spec = read_record(root, f"{item}/{OPTIN.DESIGN}")
     if spec is None:
-        problems.append(f"declares {who} and git carries no {item}/{SPEC_FILE}")
-    if read_record(root, f"{item}/{PLAN_FILE}") is None:
-        problems.append(f"declares {who} and git carries no {item}/{PLAN_FILE}")
+        problems.append(f"declares {who} and git carries no {item}/{OPTIN.DESIGN}")
+    if read_record(root, f"{item}/{OPTIN.PLAN}") is None:
+        problems.append(f"declares {who} and git carries no {item}/{OPTIN.PLAN}")
     if spec is None:
         return problems
     mark, reframes = frame_foot(reader, spec)
     if mark is None:
         problems.append(
-            f"{item}/{SPEC_FILE} does not end with `Framed <date> by <who>, before "
+            f"{item}/{OPTIN.DESIGN} does not end with `Framed <date> by <who>, before "
             "the build.`, with any `Reframed <date> by <who>, after round <N>.` "
             "lines under it"
         )
     elif mark[1] != routing.BY_FRAMER:
         problems.append(
-            f"{item}/routing.md says {who} and {item}/{SPEC_FILE}'s mark says `{mark[1]}`"
+            f"{item}/{routing.FILENAME} says {who} and {item}/{OPTIN.DESIGN}'s mark "
+            f"says `{mark[1]}`"
         )
     for when, by, n in reframes:
         line = f"`Reframed {when} by {by}, after round {n}.`"
         if by != routing.BY_FRAMER:
             problems.append(
-                f"{item}/routing.md says {who} and {item}/{SPEC_FILE}'s foot says {line}"
+                f"{item}/{routing.FILENAME} says {who} and {item}/{OPTIN.DESIGN}'s "
+                f"foot says {line}"
             )
     return problems
 
@@ -1383,7 +1381,7 @@ def rule_changes_read(reader, root, item, notices=None, sources=None):
     operations (`pins_and_copies_in`), read into SOURCES. The reader is
     reached through `rule_changes_reader`, which raises where it will not
     load."""
-    rel = f"{item}/{SPEC_FILE}"
+    rel = f"{item}/{OPTIN.DESIGN}"
     text = read_record(root, rel)
     if text is None:
         return []
@@ -1433,13 +1431,13 @@ def edited_work_items(root, base, paths, moved, work_items):
     `<WORK_ITEMS>/<id>/frame/design.md` exactly, WORK_ITEMS the `/`-joined
     directory of the work items, is not in MOVED, and that `carried_by`
     leaves this pull request's, in the order of PATHS."""
-    depth = len(work_items.split("/")) + 1 + len(SPEC_FILE.split("/"))
+    depth = len(work_items.split("/")) + 1 + len(OPTIN.DESIGN.split("/"))
     return [
-        p[: -len(SPEC_FILE) - 1]
+        p[: -len(OPTIN.DESIGN) - 1]
         for p in paths
         if p.startswith(f"{work_items}/")
         and len(p.split("/")) == depth
-        and p.endswith(f"/{SPEC_FILE}")
+        and p.endswith(f"/{OPTIN.DESIGN}")
         and p not in moved
         and carried_by(root, base, p) is None
     ]
@@ -1654,7 +1652,7 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
         for rel in round_records(routing, root, item):
             found.extend(original_of(reader, read_record(root, rel), rel, sha, config))
     for item in direct:
-        rel = f"{item}/{GUARANTEE_FILE}"
+        rel = f"{item}/{OPTIN.GUARANTEE}"
         said = read_record(root, rel)
         if said is not None:
             found.extend(guarantee_original(said, rel, sha, config))
@@ -1684,7 +1682,7 @@ def broad_gate(reader, root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `trail/gate.md`: absent,
     a line `lib/fields.py` refuses, no run block, or a newest run, the
     last block, behind HEAD. A fence named as not read goes to NOTICES."""
-    rel = f"{item}/{BROAD_GATE_FILE}"
+    rel = f"{item}/{OPTIN.GATE}"
     text = read_record(root, rel)
     if text is None:
         return [
@@ -1726,7 +1724,7 @@ def guarantee(reader, root, item, base, notices=None):
     last, naming a commit with anything but the closing records after it or
     a verdict other than `sealed`. A fence named as not read goes to
     NOTICES."""
-    rel = f"{item}/{GUARANTEE_FILE}"
+    rel = f"{item}/{OPTIN.GUARANTEE}"
     text = read_record(root, rel)
     if text is None:
         return [
@@ -1775,7 +1773,6 @@ def guarantee(reader, root, item, base, notices=None):
 # `pr_body.py` loads this module at its own import, so the arm loads it
 # inside `pr_body_reader` and never at module level.
 PR_BODY = "skills/code-review/scripts/pr_body.py"
-PR_FILE = "pr.md"
 BODY_LINE = "the pull request's body, line {line}: {why}"
 BODY_WHOLE = "the pull request's body: {why}"
 BODY_UNREAD = "not read: the pull request's body, since {why}"
@@ -1784,11 +1781,11 @@ BODY_WORKTREE = (
 )
 BODY_SPLIT = (
     f"the pull request carries more than one judged work item holding "
-    f"`{PR_FILE}`, and one body is one work item's"
+    f"`{OPTIN.PR}`, and one body is one work item's"
 )
 BODY_NONE_HOLDS = (
     f"the pull request carries more than one judged work item and none holds "
-    f"`{PR_FILE}`, and one body is one work item's"
+    f"`{OPTIN.PR}`, and one body is one work item's"
 )
 BODY_SEALING_SAYS = (
     f"{SEALING}: the guarantee the seal mark stands on is not written yet, so "
@@ -1832,7 +1829,7 @@ def body(root, items, text, why, base=None):
     `pr_body.py` will not load."""
     if text is None:
         return [], [("", 0, BODY_UNREAD.format(why=why))]
-    holders = [i for i in items if read_record(root, f"{i}/{PR_FILE}") is not None]
+    holders = [i for i in items if read_record(root, f"{i}/{OPTIN.PR}") is not None]
     if len(holders) == 1 or (not holders and len(items) == 1):
         item = (holders or items)[0]
     else:
@@ -2332,7 +2329,7 @@ def main(argv=None):
     for rel, line, message in found:
         # The guarantee's line is the sealer's to write, so `--sealing` reads
         # it as it reads every other guarantee check.
-        if args.sealing and rel.endswith(f"/{GUARANTEE_FILE}"):
+        if args.sealing and rel.endswith(f"/{OPTIN.GUARANTEE}"):
             notices.append((rel, line, f"{SEALING_SAYS}: {message}"))
         else:
             problems.append((rel, line, message))

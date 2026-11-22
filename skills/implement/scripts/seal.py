@@ -193,6 +193,7 @@ except ImportError:
 repo_config = sibling.load("lib/config.py")
 gitcmd = sibling.load("lib/gitcmd.py")
 optin = sibling.load("lib/optin.py")
+core = sibling.load("lib/core.py")
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -1680,16 +1681,10 @@ def plugin_version():
 
     Read from beside this script rather than from `CLAUDE_PLUGIN_ROOT`: this
     file IS in the plugin, and an environment variable is one more thing that
-    can be unset in the shell a person happens to be in.
+    can be unset in the shell a person happens to be in. The manifest is
+    read by `lib/core.py#manifest`.
     """
-    try:
-        with open(
-            os.path.join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"),
-            encoding="utf-8",
-        ) as handle:
-            version = json.load(handle).get("version")
-    except (OSError, ValueError, AttributeError):
-        return ""
+    version = core.manifest(PLUGIN_ROOT).get("version")
     return version if isinstance(version, str) else ""
 
 
@@ -1813,7 +1808,7 @@ def install_workflow(repo):
     if not version:
         return "no-version", (
             f"{WORKFLOW} was NOT written: the plugin's version could not be "
-            f"read from {os.path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json')}, "
+            f"read from {os.path.join(PLUGIN_ROOT, *core.MANIFEST)}, "
             f"and a workflow still carrying `{PLACEHOLDER}` fails CI's clone "
             "on the first pull request. Copy templates/setup/hygiene.yml in by "
             "hand and replace that placeholder with the release you run."

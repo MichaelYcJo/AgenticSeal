@@ -490,7 +490,10 @@ def anchor_files(home):
     """Every file of a signer's root its pact anchors are read from: every
     thread's `frame/design.md`.
     """
-    return sorted(glob.glob(os.path.join(home, "threads", "*", "frame", "design.md")))
+    optin = sibling.load("lib/optin.py")
+    return sorted(
+        glob.glob(os.path.join(home, optin.WORK_ITEMS, "*", *optin.DESIGN.split("/")))
+    )
 
 
 class History:

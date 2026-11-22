@@ -3063,16 +3063,19 @@ def work_item_keys(directory):
     `routing.md` names no branch is refused, because a guessed key would
     count another work item's segments."""
     name = os.path.basename(os.path.abspath(directory))
+    routing = lib_module("routing")
     try:
         with open(
-            os.path.join(directory, "routing.md"), encoding="utf-8", errors="replace"
+            os.path.join(directory, routing.FILENAME),
+            encoding="utf-8",
+            errors="replace",
         ) as handle:
-            declared = lib_module("routing").parse(handle.read())
+            declared = routing.parse(handle.read())
     except OSError:
         declared = None
     if not declared:
         sys.exit(
-            f"{os.path.join(name, 'routing.md')} names no branch, so the "
+            f"{os.path.join(name, routing.FILENAME)} names no branch, so the "
             f"segments of {name} cannot be told from another work item's. "
             f"Nothing was read"
         )
@@ -3134,7 +3137,8 @@ def branch_declarations(parent):
             if len(parts) == 3 and parts[1] == "tree":
                 names.setdefault(parts[2], set()).add(name)
     trees = sorted(names)
-    batch = "".join(f"{tree}:routing.md\n" for tree in trees).encode("ascii")
+    declaration = lib_module("routing").FILENAME
+    batch = "".join(f"{tree}:{declaration}\n" for tree in trees).encode("ascii")
     code, out = run_git(parent, ["cat-file", "--batch"], stdin=batch)
     if code != 0:
         return []
@@ -3176,7 +3180,7 @@ def other_work_items(directory, name):
     for entry in entries:
         try:
             with open(
-                os.path.join(parent, entry, "routing.md"),
+                os.path.join(parent, entry, routing.FILENAME),
                 encoding="utf-8",
                 errors="replace",
             ) as handle:
