@@ -16,7 +16,7 @@ The owner answered question 1 with `agentic` on 2026-11-22, for #1567. This rout
 
 - **A work item, not `direct`.** The change touches three check scripts, `skills/verify/scripts/broad_gate.py`, `skills/code-review/scripts/chain_check.py` and `skills/verify/scripts/seal_stamp.py`. A defect in any of them stops every session that runs the gate.
 - **Planning, no row.** The work alters no verdict, output or instruction, so it stands on the second rung of *Orchestrator: when a work item is required*, where a scope confirmation in `gaps.md` replaces the plan. The issue states each coordinate and its *Done when*, so it leaves no design choice open.
-- **Implementation, the session.** The orchestrator has already read every coordinate the issue names. The diff is three scripts, one `lib/` module and the cases that name the copies, which is not large enough to threaten what the orchestrator still has to hold.
+- **Implementation, the session.** The orchestrator has already read every coordinate the issue names. The issue named seven scripts and the cases that name the copies; the diff came to nine scripts, no `lib/` module and those cases, which is not large enough to threaten what the orchestrator still has to hold.
 - **Review, through the review chain.** The scripts are gates. A reader independent of the build is worth its rounds there, because a refactor that changes a fallback or a path would show only as a gate that misreads a thread in a later run.
 - **Automation, yes.** The work reaches nothing outside the repository, and every question has a default the issue or the tree gives.
 - **Destination, open the pull request**, as under `complete`.
