@@ -1,0 +1,59 @@
+# Implementation Plan: the broad gate rewrites cmd.exe commands (#1577)
+
+## Technical context
+
+The tree as read at `ad40d6ef8`.
+
+The work builds on `skills/verify/scripts/broad_gate.py#not_as_written` (:715-783), the one refusal of the key's value, called once in `gate` (:2178) before any check runs and before `--preflight` branches. It removes the rewriter at :844-1160 and the rewrite path through `run` (:802-841), keeping `cmd_exe_reads` (:902-919), which reads the platform and `COMSPEC` and no command text. Its cases stand in `tests/skills/test_broad_gate.py:683-1253`, and the AST case at :210 holds every shell site to the rewrite. The documents are `templates/setup/config.md:256-331` and `skills/config/SKILL.md:110-116`, read by `tests/behaviour/test_the_broad_gate_row_is_asked_for_and_runs_as_written.py` and `tests/text/test_the_gate_hands_cmd_a_path_it_can_run.py`. This repository's key at `seal/config.json:5` is read on every CI leg by `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py#test_this_repositorys_own_config_is_answered_exactly_as_before`.
+
+Constraints: the refusal reads only what it reads exactly (`design.md` G2), keeps `not_as_written`'s shape (G3), and judges directories under the root the command runs in, never under pytest's working directory. The runner's new path, `tests/run_tests.py`, exists only once #1571 has merged.
+
+**The failure scenario of the chosen approach, six months on.** A Windows person writes a key whose suite command sits after a `"`, `^` or `%`, such as `set "X=1" && bin/test`. The gate does not read past the `"`. It names `bin/test` as not read, runs the key, and `cmd.exe` fails on `bin` as it did in #448, so the report reads as the suite failing. The not-read line is what tells the person why. A second case: a repository holds a directory at its root named like a program its key calls with a glued switch. The gate then refuses a name `cmd.exe` would run, and the person writes a blank before the switch. `templates/setup/config.md` *Broad gate* names both bounds.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| **Blank-separated words up to the first `"`, `^` or `%`; a word read as a command name at the start or after a separator word; refused where its part before `/` is a directory under the root** | The two cases above: a name past the cut is named and not refused, and a glued switch on a program named like a root directory is refused | Chosen. Within the cut, a blank-separated `&&`, `\|\|`, `&` or `\|` is a separator to `cmd.exe`, since no quote can hide it and no caret escape it, so the form is read exactly. What lies past the cut is named and decides nothing (G2). The probe of `design.md` G13 gives the expected answer for both keys of G9 and *Scope* item 9 |
+| The rewriter's scan kept as the refusal's reader: quotes, carets, blocks, redirections, built-ins and `%VAR%` modelled, with nothing rewritten | Each `cmd.exe` construct the model misses is a refusal of a correct value or a miss, and each fix is one more modelled construct. That is the eight commits the issue counts, and its `CMD_BUILTINS` is a list of spellings the core forbids | Rejected. The issue's done-when removes `CMD_BUILTINS` and the lexer model by name |
+| Refuse any `/` in the value on `cmd.exe` | `pytest tests/x.py` and `uvx ruff check src/` are refused, and both run on `cmd.exe` as written. A gate that refuses correct values makes them unwritable, which `not_as_written`'s docstring names as the cost it avoids | Rejected |
+| Read the first word of the value only | `… && bin/test -q`, the shape of this repository's key and of the template's example, is not read, so the issue's own case is missed | Rejected |
+| Read the run's output for "is not recognized" and refuse after the fact | The words are `cmd.exe`'s, in the machine's language (#448 quotes them in Korean). A reading guessed from words is reported and never used to block (`skills/core/SKILL.md` *The rule a mechanism is kept against*) | Rejected |
+| **Keep `not_as_written` as the one refusal and add the form to it** | A future form that needs a different input than the value, the root and the platform would grow the signature again | Chosen. The premise that keeps the structure: the one call at `gate:2178` runs before every check and before `--preflight` branches (G5, read), so one function at one site refuses for both shell sites |
+| A refusal function of its own, called beside `not_as_written` in `gate` | Two refusal sites in `gate`. A third caller, or a reordering, calls one and not the other, and the preflight's "every refusal of the key applied" stops being true without a case going red | Rejected, as the replacing alternative weighed against the structure kept |
+| **Keep `run` as the one shell site, handing the command as written** | None found: both callers, `gate`'s suite and `compare_at_base`'s run at the base, hand the key's value unchanged | Chosen. The premise that keeps the structure, checked: `gate` refuses before either caller runs (G5) |
+| **This repository's key: `uv run --no-project tests/run_tests.py -q`** | `uv` gains a role in the key: a machine with `uvx` and a broken `uv run` fails the suite arm. `uvx` already needs `uv`, so the same machine fails the lint arms first | Chosen (`design.md` G12, executed on macOS; Windows is `questions.md` M1) |
+| Keep `bin/test -q` in this repository's key | `test_this_repositorys_own_config_is_answered_exactly_as_before` goes red on the four Windows shards, and the owner's Windows run is refused (G9, G10) | Rejected: the issue's third done-when line |
+| `python3 tests/run_tests.py -q` | The official Windows installer creates no `python3` (G11), so the key fails there | Rejected |
+| `python3 tests/run_tests.py -q \|\| py -3 tests/run_tests.py -q`, the hooks' form | A failing suite exits 1, which runs the second half. The suite runs twice on POSIX, or the exit read is `py`'s "not found" | Rejected |
+| `"bin/test" -q`, the name quoted | Whether `cmd.exe` runs a quoted name with `/` is unmeasured here. The reading stops at the `"`, so a wrong guess fails as #448 did | Rejected: it rests on a measurement no probe here can make |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `design.md` *Scope* items 1 to 5, and item 8's `tests/conftest.py` sentence | Each new case of `Test_not_as_written` and the two real-platform cases seen red with only its guard removed (contract rule 15), each named in the phase record; `bin/test tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py tests/text/test_the_gate_hands_cmd_a_path_it_can_run.py -q`; the search of `design.md` G6 prints only the two lines of `tests/text/test_the_gate_hands_cmd_a_path_it_can_run.py`, which phase 2 removes; every case calling `gate.gate`, `gate.main` or `seal gate` listed with its key, as the method that makes the list of cases the Windows leg may now refuse whole (contract rule 12), and none of them refused | |
+| 2 | `design.md` *Scope* items 6 and 7, and item 8's behaviour cases | `bin/test tests/behaviour/test_the_broad_gate_row_is_asked_for_and_runs_as_written.py tests/text/test_broad_gate_rule.py -q`; the new `REFUSED` entry seen red against the refused table without its row; the G6 search and the `templates/setup/config.md` search of `design.md` *User scenarios* each print nothing | |
+| 3 | `design.md` *Scope* items 9 and 10. It starts once the orchestrator has merged `release/v0.38.6` into this branch with #1571 landed | `git ls-files tests/run_tests.py` prints the path at the phase's HEAD; `bin/test tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py -q`; the key's run is the orchestrator's broad run (contract rule 2), named `unverified` with the orchestrator as its answerer | |
+
+## Overlap with the release
+
+Five other work items are named by the spawn. #1571's frame is committed at `4eefcd225`, and the four others are not framed. #1571 and #1578 run beside this item; #1573, #1575 and #1582 run after them.
+
+| Work item | Where both change | Merges first | Grounds |
+|---|---|---|---|
+| #1571 | `tests/conftest.py`: #1571 re-points `rules.py` at :719-731 and moves `archived` in, and this item rewrites one sentence at :554-557. `templates/setup/config.md`: #1571 re-points :144, and this item rewrites :256-331. `seal/config.json`: this item's key names `tests/run_tests.py`, the path #1571's *Scope* item 4 creates. `docs/running/the-broad-gate.md`: #1571 re-points the check lines at :115, :124 and :139 in place, and this item adds a rule to *What the gate runs* only at the settle | #1571 | It carries the version move, and phase 3 reads the path it creates. The shared files meet at different lines, so the merge of the base before phase 3 is a text merge inside the work this item spends anyway |
+| #1578 | `templates/setup/config.md`, where #1578 states where the `seal/` root is found and this item rewrites *Broad gate*. `docs/running/the-broad-gate.md:68-76`, the first paragraph of *What the gate runs*, which #1578 changes and to whose end this item's `add` appends at the settle | #1578 | Its diff is documents alone, so it is likelier to seal first. Should it rename *What the gate runs*, this item re-points its `section:` when it merges the base, inside its own rounds. Neither order changes a line the other wrote |
+| #1573 | `skills/verify/scripts/broad_gate.py`: #1573 rewrites the git helpers at :239-257, and this item removes :844-1160 and edits :715-841 | #1577 | The spawn orders #1573 after. Its frame's coordinates below :841 move up by the lines this item removes, and its framer reads them on the release branch |
+| #1575 | `broad_gate.py`: #1575 changes :145, :171 and :626-638 (`seal_home`), next to `broad_command` at :641 that this item does not change | #1577 | The spawn orders #1575 after. No line is shared |
+| #1582 | `broad_gate.py:226` `stamp_module`, which this item does not change | #1577 | The spawn orders #1582 after. No line is shared |
+
+## Operational impact
+
+A Windows user whose key starts a command with a directory and `/`, run under `cmd.exe`, has been getting a rewritten run since #595. After this release that key is refused with exit 2 and nothing run, and the refusal names the `\` spelling and the key as meant. That is a compatibility break the changelog fragment names, with the remedy. This repository's key needs `uv` on `PATH`, which its `uvx` arms already need. No new dependency and no new environment variable. This work carries no version move: #1571 does.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
