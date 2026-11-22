@@ -126,7 +126,7 @@ class Test_read:
     @pytest.mark.parametrize(
         "body, warning",
         [
-            # The form the sibling script's own comment names.
+            # The form `lib/closing.py`'s comment over `KEYWORDS` names.
             ("Closes #11, #22", ("11", "22")),
             # The row that rules out "a line is a sentence": every body here is
             # wrapped at 88 columns, and #162's `Closes` sentence ran across
