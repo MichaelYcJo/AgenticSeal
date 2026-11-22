@@ -138,9 +138,10 @@ def issue_labels(repo, number):
     `close_issues_on_release.py` reads an issue's labels too, to take a
     spent `size: now` off the issue it is closing, so the reader lives on
     that module, which owns the 404-tolerant read it is built on, and this
-    is the delegation -- one source, the way both scripts take `MERGED_PR`,
-    `keywords_in`, `pull_request_body` and `arrived` from one each. The
-    name stays here, so a caller of this module reads labels through it.
+    is the delegation -- one source, the way both scripts take `MERGED_PR`
+    and `keywords_in` from `lib/closing.py`, and `pull_request_body` and
+    `arrived` from the closer. The name stays here, so a caller of this
+    module reads labels through it.
     """
     return closer.issue_labels(repo, number)
 

@@ -97,9 +97,9 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
 # The signal holds the name mapping — branch -> version -> milestone -> label
-# — and reaches the closer's `run` and `gitcmd` through its own `closer`. Loading it
-# runs nothing: it defines constants and functions at module level and
-# guards its `main`.
+# — and reaches the closer's `run` and `gitcmd` through its own `closer`.
+# Loading it runs nothing: it defines constants and functions at module
+# level and guards its `main`.
 signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
 

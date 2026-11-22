@@ -36,8 +36,9 @@ step that is green having examined nothing.
 
 **What GitHub does not read is defined once, in `lib/closing.py`.**
 `KEYWORDS`, `CLOSING` and `HIDDEN` are taken from it rather than restated
-here, so widening one moves this check and the release closer together. Two lists of what a
-closing keyword is would drift apart the first time either was edited.
+here, so widening one moves this check and the release closer together.
+Two lists of what a closing keyword is would drift apart the first time
+either was edited.
 
 ## What a sentence is
 
