@@ -39,6 +39,11 @@ Why it matters: `broad_gate.py:1771` now reads `sibling_module(ROUTING).rounds(i
         check is `lib/sibling.py#Absent`, which the case below holds."""
 ```
 
+```seal
+verdict: fixed 7318f0d4
+answer: applied as given at both sentences; a `git grep -n -i` for "label never stops" and "never stops on a label" finds the phrase only in the records of earlier work items and of this one.
+```
+
 ## Confirmations
 
 ```seal
