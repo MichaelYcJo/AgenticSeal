@@ -5,7 +5,8 @@ home for every universal rule, and each `agents/*.md` keeps only its own
 application. That no definition carries a contract rule's own sentences is
 `tests/text/test_no_passage_is_pasted_into_a_second_file.py`'s, which reads
 every pair of the contract and a definition by runs of
-`skills/settle/scripts/passages.py#WINDOW` words.
+`skills/settle/scripts/passages.py#WINDOW` words; the comment over `WINDOW`
+holds the measurement that chose it.
 
 What this module holds is what that check does not read. An act moved out of
 `agents/crafter.md` to another file does not come back into it. Each kept
