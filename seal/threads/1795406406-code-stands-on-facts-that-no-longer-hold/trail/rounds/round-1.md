@@ -32,6 +32,11 @@ The row and its quote in `pr.md` change together. The quote must stay word for w
 
 The `...` marks stand for the cell's other sentences, which stay as written. `pr.md:2` takes the new first sentence of the Judgment cell, word for word, in place of the old one.
 
+```seal
+verdict: fixed b81c42b3c
+answer: The finding holds. The row's first sentence now says the change allows more on a U+2705 row of `seal unverified`, and its grounds give the exit 1 to exit 0 the probe measured and what a wrong allow there costs; `pr.md` quotes the new first sentence word for word. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ### 2. The gate-change judgment does not say what the changed readers read
 
 ```seal
@@ -50,6 +55,11 @@ Add a sentence to the grounds cell of the same row, beside the direction sentenc
 
 ```markdown
 What each changed reader reads: `chain-check` reads a confirmation block's `confirms:` line in the one form `round-<N>#<n>` and refuses any other value at its line, `none` among them, and the proofer judges whether a line written otherwise meant a confirmation. `lib/items.py#unread_block` names as not read a first line that opens with `nothing` in any case, and no longer a `- none` line, which the section's refusal still meets; the settling session reads what such a line meant. `seal unverified` reads a row's first word, and only the word `closed` closes it, so a U+2705 row is an open row; the settling session judges whether its writer meant it closed. The edges are held by `tests/lib/test_fields.py#test_refuses_confirms_none_at_its_line`, `tests/lib/test_items.py#Test_unread_block` and `tests/lib/test_gaps.py#Test_parse_section`.
+```
+
+```seal
+verdict: fixed b81c42b3c
+answer: The finding holds. The grounds cell now carries the sentence the finding gave on what each changed reader reads, who judges its meaning, and the cases at its edges. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ### 3. Two statements still say a left workflow's checks examine nothing, which this change corrected in `seal.py`
