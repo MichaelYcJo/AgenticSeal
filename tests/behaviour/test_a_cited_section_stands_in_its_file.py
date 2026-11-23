@@ -1313,8 +1313,8 @@ def test_a_citation_wrapped_in_code_is_named_at_the_line_it_starts_on(tmp_path, 
 
 def near_citations(rel, text):
     """[line] where a near miss of `contract rule <N>` starts in file REL,
-    read through `flowing`: such a spelling is neither read as a citation
-    nor let pass."""
+    read through `flowing`: such a spelling is not read as a citation, and
+    `warn_near_misses` names it."""
     flow = flowing(rel, text)
     return [
         flow.count("\n", 0, m.start()) + 1
@@ -1323,30 +1323,56 @@ def near_citations(rel, text):
     ]
 
 
-def test_no_file_cites_the_contract_in_a_near_miss():
-    found = [
-        f"{rel}:{n}" for rel, text in corpus(ROOT)[1] for n in near_citations(rel, text)
+def warn_near_misses(files):
+    """Warn once for each near miss in FILES, a list of `(rel, text)`, at
+    its `path:line` with the one spelling to write. The pattern reads words,
+    so whether the spelling meant a contract citation is the reader's
+    judgment, and a near miss decides nothing (#1572)."""
+    for rel, text in files:
+        for n in near_citations(rel, text):
+            warnings.warn(
+                f"{rel}:{n} reads as a contract citation in a spelling the "
+                "citation check does not read; cite one contract rule as "
+                "`contract rule <N>`, one number each",
+                stacklevel=2,
+            )
+
+
+def test_each_near_miss_contract_citation_is_named_in_a_warning():
+    warn_near_misses(corpus(ROOT)[1])
+
+
+def test_a_near_miss_is_named_in_one_warning_and_decides_nothing():
+    """#1572 S8: a file citing the contract with a capital `Rule` is named
+    in one warning, at its line with the one spelling to write, and nothing
+    fails. The shape is built here so this file holds none."""
+    n = 7
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        warn_near_misses([("docs/x.md", f"intro\nContract Rule {n}")])
+    # The warning a person reads in the suite's summary: where the near miss
+    # starts and the one spelling the citation reader reads.
+    assert [str(w.message) for w in caught] == [
+        "docs/x.md:2 reads as a contract citation in a spelling the citation "
+        "check does not read; cite one contract rule as `contract rule <N>`, "
+        "one number each"
     ]
-    assert not found, (
-        "cite one contract rule as `contract rule <N>`, one number each: "
-        + ", ".join(found)
-    )
 
 
 @pytest.mark.parametrize(
     "shape",
     ["Contract Rule {n}", "contract rules {m} and {n}", "the contract's rule {n}"],
 )
-def test_a_near_miss_citation_is_refused_at_its_line(shape):
+def test_a_near_miss_citation_is_named_at_its_line(shape):
     """A capital `Rule`, a plural with a list, and a possessive each mean a
-    contract citation the reader does not read, so each is refused at the
+    contract citation the reader does not read, so each is named at the
     line it starts on; the shapes are built here so this file holds none."""
     assert near_citations("docs/x.md", "intro\n" + shape.format(m=7, n=21)) == [2]
 
 
-def test_a_near_miss_wrapped_across_comment_markers_is_refused_at_its_line():
+def test_a_near_miss_wrapped_across_comment_markers_is_named_at_its_line():
     """#1127 S7: a near miss wrapped across `#` comment lines is read as
-    one, and refused at the line it starts on."""
+    one, and named at the line it starts on."""
     assert near_citations("hooks/x.py", "# per the contract's\n# rule 7\n") == [1]
 
 
