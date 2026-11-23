@@ -1858,13 +1858,15 @@ def remove_workflow(repo):
     workflow passes the commits a local-mode session writes, which carry no
     `Seal-Routing` trailer: `chain_check.py` reads no routing declaration
     where the tree holds no root and judges the commit trailers alone
-    (`chain_check.py#ROOT_LEFT_SAYS`), and `mode --check` finds no root to
-    disagree with. A commit made before the switch whose trailer names a
-    work item still fails a ready pull request there
-    (`docs/checks/the-routing-check.md` *At the pull request*). So there the
-    removal is the person's choice and never a repair;
-    pinned to an older release, it is the way out of a workflow that fails
-    every pull request (`left_workflow_line`).
+    (`docs/checks/the-pull-request-check.md` *What the check reads at the
+    pull request*), and `mode --check` finds no root to disagree with. A
+    commit made before the switch whose trailer names a work item still
+    fails a ready pull request there (`docs/checks/the-routing-check.md`
+    *At the pull request*). So there the removal is the person's choice,
+    except on a pull request such a commit fails, where correcting the
+    trailer is the repair the check names and the removal is the other way
+    out. Pinned to an older release, it is the way out of a workflow that
+    fails every pull request (`left_workflow_line`).
 
     A file this plugin did not write is left alone: deleting somebody's
     workflow because it shares a name is the destructive direction.
@@ -2428,8 +2430,9 @@ def mode(args, cwd):
             # A check that fails where there is nothing to check teaches
             # people to delete the check. A workflow pinned to this release
             # that outlived its root reads no routing declaration in its
-            # review-chain step either (`chain_check.py#ROOT_LEFT_SAYS`), and
-            # this one has nothing to add to that.
+            # review-chain step either (`docs/checks/the-pull-request-check.md`
+            # *What the check reads at the pull request*), and this one has
+            # nothing to add to that.
             print("no seal/ here, so nothing is declared and nothing can disagree.")
             return 0
         return no_root(repo, shared, local)
