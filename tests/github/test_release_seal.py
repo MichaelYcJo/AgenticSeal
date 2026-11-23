@@ -96,6 +96,13 @@ def page_image(root, icon=FIXTURE_ICON, data=None):
 
 
 SUITE_KEY = "seal-1234567890"
+# The suite `wired` records for the seal to read: ten `test` lines, whose two
+# counts differ from each other and from every other count the header
+# holds, so a count put in another badge shows. The broad gate's reader
+# resolves the path each line names, which costs seconds on the Windows leg
+# for a record of a real suite's 7,069 lines; no case of `main` asks the
+# width of a count, which `Test_release_rows` holds over rows it is handed.
+SUITE = {"passed": 7, "skipped": 3}
 
 
 def recorded(tmp_path, *sessions, key=SUITE_KEY, extra=""):
@@ -285,9 +292,9 @@ BADGE_LINES = "<br>".join(
         badge("pull%20requests-2%20merged", "pull requests: 2 merged"),
         badge("issues-2%20closed", "issues: 2 closed"),
         badge("outside%20contributors-1", "outside contributors: 1"),
-        badge("suite-7003%20passed", "suite: 7003 passed", GREEN)
+        badge("suite-7%20passed", "suite: 7 passed", GREEN)
         + " "
-        + badge("skipped-66", "skipped: 66", GREY),
+        + badge("skipped-3", "skipped: 3", GREY),
         badge("review-1%20round", "review: 1 round")
         + " "
         + badge("work%20items-1", "work items: 1"),
@@ -365,7 +372,7 @@ def wired(
     defaults = {"TAG": TAG, "REPO": REPO, "SUITE_OUTCOME": "success"}
     defaults.update(env)
     if "SUITE_RECORDS" not in defaults:
-        defaults["SUITE_RECORDS"] = recorded(tmp_path, {"passed": 7003, "skipped": 66})
+        defaults["SUITE_RECORDS"] = recorded(tmp_path, SUITE)
     defaults.setdefault("SUITE_KEY", SUITE_KEY)
     for key in ("DRY_RUN", "SEAL_PNG"):
         monkeypatch.delenv(key, raising=False)
@@ -493,10 +500,10 @@ class Test_suite_counts:
         mod = seal()
         directory = recorded(
             tmp_path,
-            {"passed": 7000, "skipped": 60, "xfailed": 2},
-            {"passed": 69, "skipped": 6, "xpassed": 1},
+            {"passed": 7, "skipped": 4, "xfailed": 2},
+            {"passed": 5, "skipped": 2, "xpassed": 1},
         )
-        assert mod.suite_counts(directory, SUITE_KEY) == (7069, 66)
+        assert mod.suite_counts(directory, SUITE_KEY) == (12, 6)
         assert not hasattr(mod, "ElementTree")
 
     @pytest.mark.parametrize(
@@ -1054,9 +1061,7 @@ class Test_main:
         assert target.is_file()
         assert hub.writes("upload") == [] and hub.writes("edit") == []
         out = capsys.readouterr().out
-        assert (
-            "deferred 1 issue" in out and "suite    7003 passed, 66 skipped" in out
-        ), out
+        assert "deferred 1 issue" in out and "suite    7 passed, 3 skipped" in out, out
         assert 'alt="The 1.2.3 release seal"' in out, out
         assert 'alt="SEALED: v1.2.3">' in out and 'alt="on: main">' in out, out
         assert "::warning::" not in out, out
