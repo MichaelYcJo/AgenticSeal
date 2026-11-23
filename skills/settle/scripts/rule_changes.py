@@ -16,7 +16,7 @@ place into one group, `unordered` names the pairs inside a group that no
 ancestry orders, and `section_lines` finds a section's lines in a document.
 `pending` reads the designs not yet settled, and `removed_by` says which of
 their `remove` items with no `from` takes a line's section out, for the two
-readers that excuse such a line: `.github/scripts/rules.py` and
+readers that excuse such a line: `skills/settle/scripts/rules.py` and
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 `literals`, `pins` and `copies` say what an operation takes out of a test
 and what its `to` repeats of another rule document, over texts their caller

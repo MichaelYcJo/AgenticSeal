@@ -4,8 +4,8 @@ Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks* and the agent definitions that send
 a reader to the runner.
 
-The cases of `.github/scripts/run_tests.py`'s functions stand in
-`tests/github/test_run_tests.py`, and this file reads the runner through that
+The cases of `tests/run_tests.py`'s functions stand in
+`tests/test_run_tests.py`, and this file reads the runner through that
 file's `rt`.
 """
 
@@ -46,9 +46,9 @@ def test_both_wrappers_ship_and_point_at_the_runner():
     assert os.path.isfile(posix), "bin/test missing"
     assert os.path.isfile(windows), "bin/test.cmd missing"
     # The runner's path in each wrapper, which the shell and cmd.exe run.
-    assert ".github/scripts/run_tests.py" in read(posix)
+    assert "tests/run_tests.py" in read(posix)
     text = read(windows)
-    assert ".github\\scripts\\run_tests.py" in text
+    assert "tests\\run_tests.py" in text
     # The two interpreter commands the `.cmd` twin runs, in its order.
     assert "py -3" in text and "python " in text, (
         "the .cmd twin prefers `py -3` and falls back to `python`"
@@ -225,7 +225,7 @@ def test_the_section_and_the_runner_state_the_same_floor():
     # in the runner.
     assert rt.FLOOR_TEXT in section, (
         "the section no longer states the floor the runner enforces "
-        f"({rt.FLOOR_TEXT} in .github/scripts/run_tests.py's FLOOR)"
+        f"({rt.FLOOR_TEXT} in tests/run_tests.py's FLOOR)"
     )
     assert "FLOOR" in section, (
         "the sentence names a number the reader cannot trace to the code that holds it"

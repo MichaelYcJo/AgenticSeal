@@ -18,9 +18,9 @@ contract and nothing else.
 #1475 deleted the `check:` lines of every file a spawn preloads, each
 definition and each skill a `skills:` list names, because every spawn paid
 for them and no agent acts on one. The preload case reads each such file
-through `.github/scripts/rules.py#check_lines`, the grammar's one reader, so
-a line written back into one is red here, while `seal rules --check` would
-resolve it and pass.
+through `skills/settle/scripts/rules.py#check_lines`, the grammar's one
+reader, so a line written back into one is red here, while `seal rules
+--check` would resolve it and pass.
 """
 
 import glob
@@ -34,7 +34,7 @@ from conftest import repo_relative as name
 # No TARGET: its cases walk every definition under agents/ and each skill their skills: lists preload.
 
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
-rules = load(".github/scripts/rules.py", "agentic_rules_for_the_preloads")
+rules = load("skills/settle/scripts/rules.py", "agentic_rules_for_the_preloads")
 
 CORE = "skills/core/SKILL.md"
 CONTRACT = "skills/agent-contract/SKILL.md"

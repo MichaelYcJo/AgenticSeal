@@ -45,9 +45,8 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
     listing is possible. When the directory lists the plugin with its hooks,
     or lists it on condition they go, the removal undoes: `hooks/hooks.json`,
     `hooks/core-start.py`, `lib/core.py`, `tests/hooks/test_core_start.py`,
-    `tests/lib/test_core.py`, this case, `hooks` in
-    `tests/behaviour/test_the_release_check_watches_what_ships.py#SHIPS`, the
-    hygiene step's pattern and the roots sentence of
+    `tests/lib/test_core.py`, this case, `hooks` in the hygiene step's
+    pattern and the roots sentence of
     `docs/releasing/branch-and-release.md` *Cutting a release*, `ruff.toml`'s
     `hooks/*.py` line and the start of
     `tests/behaviour/test_every_entry_point_runs_at_the_floor.py`'s floor

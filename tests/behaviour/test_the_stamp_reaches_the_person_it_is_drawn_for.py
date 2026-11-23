@@ -113,8 +113,8 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     # person resolves to see what wrote the values file and what read it.
     assert "`seal stamp --guarantee <path>`" in rule
     assert "`seal stamp --stop`" in rule
-    # The marker `.github/scripts/rules.py#markers` reads on the rule's check
-    # line, whose carriers the loop below reads back from that reader.
+    # The marker `skills/settle/scripts/rules.py#markers` reads on the rule's
+    # check line, whose carriers the loop below reads back from that reader.
     assert "check: stamp-drawn-once" in rule
     from conftest import rule_carriers
 
@@ -174,8 +174,8 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         "`sealed_before`",
     ):
         assert fact in rule, fact
-    # The marker `.github/scripts/rules.py#markers` reads on the rule's check
-    # line, whose carriers the loop below reads back from that reader.
+    # The marker `skills/settle/scripts/rules.py#markers` reads on the rule's
+    # check line, whose carriers the loop below reads back from that reader.
     assert "check: refused-sealed-leaves-a-record" in rule
     from conftest import rule_carriers
 

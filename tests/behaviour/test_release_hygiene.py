@@ -165,14 +165,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     # unexamined.
     ("CONTRIBUTING.md", "4.2.0"): (
         "markdown-it-py's, the parser the suite's CommonMark oracle reads, "
-        "pinned in `.github/scripts/run_tests.py#MARKDOWN_IT` (#667). The "
+        "pinned in `tests/run_tests.py#MARKDOWN_IT` (#667). The "
         "fallback commands in *Running the checks* carry the pin so they "
         "install the parser the oracle is held to, and a case holds them to "
         "the runner's constant; no release of AgenticSeal makes the number wrong"
     ),
     ("CONTRIBUTING.md", "2025.10.22"): (
         "cmarkgfm's, GitHub's renderer the table walker's oracle reads, "
-        "pinned in `.github/scripts/run_tests.py#CMARKGFM` (#647). The class "
+        "pinned in `tests/run_tests.py#CMARKGFM` (#647). The class "
         "is the row above's: the fallback commands carry the pin so they "
         "install the renderer the walker's property case is held to, and a "
         "case holds them to the runner's constant; the package numbers its "
@@ -180,7 +180,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ),
     ("CONTRIBUTING.md", "6.0.3"): (
         "PyYAML's, the parser `tests/workflows.py` reads a workflow file with, "
-        "pinned in `.github/scripts/run_tests.py#PYYAML` (#1486). The class "
+        "pinned in `tests/run_tests.py#PYYAML` (#1486). The class "
         "is the two rows above's: the fallback commands carry the pin so they "
         "install the parser the workflow cases read with, and a case holds "
         "them to the runner's constant; no release of AgenticSeal makes the "
@@ -1258,7 +1258,7 @@ def test_the_pull_request_checks_the_chain_it_was_routed_to():
 
 
 RULES_STEP = "the check lines rules.py did not read"
-RULES_COMMAND = "python3 .github/scripts/rules.py --check"
+RULES_COMMAND = "python3 skills/settle/scripts/rules.py --check"
 
 
 @pytest.mark.skipif(os.name == "nt", reason="the step runs under bash on Linux")
@@ -1281,7 +1281,7 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     # The command the step runs, which the case replaces with this checkout's
     # interpreter and script; one occurrence is what the replacement reaches.
     assert script.count(RULES_COMMAND) == 1, script
-    rules = os.path.join(ROOT, ".github", "scripts", "rules.py")
+    rules = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
     script = script.replace(
         RULES_COMMAND, f'"{sys.executable}" "{rules}" --check --root "{tmp_path}"'
     )

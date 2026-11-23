@@ -15,6 +15,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 
 import pytest
@@ -167,6 +168,37 @@ def git_listing(root, *args, check=False):
         errors="replace",
         check=check,
     ).stdout.split()
+
+
+def archived(root):
+    """Every path the archive git builds from the index of the repository at
+    ROOT writes, with the working tree's attributes, a directory's among
+    them. The index's tree is written from a copy of the index, so a git
+    process holding the index's lock, a case running beside this one among
+    them, is left to finish."""
+    index = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--git-path", "index"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    with tempfile.TemporaryDirectory() as scratch:
+        copy = os.path.join(scratch, "index")
+        shutil.copyfile(os.path.join(root, index), copy)
+        tree = subprocess.run(
+            ["git", "-C", root, "write-tree"],
+            capture_output=True,
+            check=True,
+            encoding="utf-8",
+            env={**os.environ, "GIT_INDEX_FILE": copy},
+        ).stdout.strip()
+    tar = subprocess.run(
+        ["git", "-C", root, "archive", "--worktree-attributes", "--format=tar", tree],
+        capture_output=True,
+        check=True,
+    ).stdout
+    with tarfile.open(fileobj=io.BytesIO(tar)) as members:
+        return members.getnames()
 
 
 def on_disk(root, listed):
@@ -716,8 +748,8 @@ def census_case(target):
 
 def pytest_configure(config):
     """Register `rule`, the marker a gate test carries for the `check:` line
-    that names it (`.github/scripts/rules.py#markers`), so pytest reads it
-    without an unknown-mark warning."""
+    that names it (`skills/settle/scripts/rules.py#markers`), so pytest reads
+    it without an unknown-mark warning."""
     config.addinivalue_line(
         "markers", "rule(name): the rule a `check:` line names by this marker"
     )
@@ -725,10 +757,10 @@ def pytest_configure(config):
 
 def rule_carriers(marker):
     """The qualified names of the tests that carry MARKER, as
-    `.github/scripts/rules.py#markers` reads them over this repository, so a
-    case pinning a rule's check line reads its tests the one way."""
+    `skills/settle/scripts/rules.py#markers` reads them over this repository,
+    so a case pinning a rule's check line reads its tests the one way."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    path = os.path.join(root, ".github", "scripts", "rules.py")
+    path = os.path.join(root, "skills", "settle", "scripts", "rules.py")
     spec = importlib.util.spec_from_file_location("agentic_rules_carriers", path)
     rules = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rules)
@@ -1114,7 +1146,7 @@ def parity_file(sha):
 # Each command's cases that keep its records under `agentic-seal/` beside a
 # project's own `seal/` package share this world: the module files of
 # `tests/skills/` that hold them, and the `seal rules` case of
-# `tests/github/test_rules.py`.
+# `tests/skills/test_rules.py`.
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"

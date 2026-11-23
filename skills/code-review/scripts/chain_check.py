@@ -33,10 +33,11 @@ judged (`carried_by`). The arms are nine:
                 no such section, and a work item with no design, pass, and a
                 heading near `## Rule changes` outside the section is another
                 section; in a section that parses, each `check:` line inside
-                an `add` or `change` `to` is read by `.github/scripts/rules.py`,
-                the reader `seal rules --check` uses, and a line it refuses is
-                refused at its line in the design (`check_lines_in`); a `from`
-                is read for no check line; and against each operation, the
+                an `add` or `change` `to` is read by
+                `skills/settle/scripts/rules.py`, the reader `seal rules
+                --check` uses, and a line it refuses is refused at its line in
+                the design (`check_lines_in`); a `from` is read for no check
+                line; and against each operation, the
                 string constants of the tracked tests under `tests/` and the
                 rule documents are read from the working tree, to name its
                 test pins and copies (`pins_and_copies_in`)
@@ -166,10 +167,10 @@ READER = "lib/lines.py"
 ROUTING = "lib/routing.py"
 FIELDS_READER = "lib/fields.py"
 RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
-# `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
-# rules --check` runs over the rule files. A user's CI clones the plugin
+# `skills/settle/scripts/rules.py`, the one reader of a `check:` line, which
+# `seal rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
-CHECK_LINES_READER = ".github/scripts/rules.py"
+CHECK_LINES_READER = "skills/settle/scripts/rules.py"
 
 # A round record's fields stand in `seal` blocks, and `lib/fields.py`
 # is the one spelling of their grammar. What this file holds is where
@@ -232,9 +233,9 @@ GH_TIMEOUT = 30
 NO_PAYLOAD = "no pull-request event payload"
 REGULAR = ("100644", "100755")
 # A squash merge on GitHub: the server commits it, and the subject ends with
-# the number of the pull request it carried (`carried_by`).
+# the number of the pull request it carried, as `lib/closing.py#MERGED_PR`
+# reads it (`carried_by`).
 SQUASH_COMMITTER = "noreply@github.com"
-SQUASH_SUBJECT = re.compile(r"\(#\d+\)$")
 CARRIED_SAYS = (
     "judged at its own pull request: {sha} `{subject}` squashed it onto this branch"
 )
@@ -285,6 +286,9 @@ try:
     OPTIN = sibling.load("lib/optin.py")
     # `lib/console.py`, whose `annotate` prints a line about a file.
     CONSOLE = sibling.load("lib/console.py")
+    # `lib/closing.py`, whose `MERGED_PR` reads the pull request a squash
+    # subject names.
+    CLOSING = sibling.load("lib/closing.py")
 except (OSError, SyntaxError, ImportError) as _exc:
     if __name__ != "__main__":
         raise
@@ -465,7 +469,7 @@ def carried_by(root, base, rel):
         if (
             len(entry) != 3
             or entry[1].strip().lower() != SQUASH_COMMITTER
-            or not SQUASH_SUBJECT.search(entry[2].strip())
+            or not CLOSING.MERGED_PR.search(entry[2].strip())
         ):
             return None
     return commits[0][0].strip(), commits[0][2].strip()
@@ -1123,8 +1127,9 @@ RULE_CHANGES_SAYS = (
 RULE_CHANGES_UNREAD = "not read: {why}"
 # A check line inside an `add` or `change` `to` that `rules.py` refuses.
 CHECK_LINE_SAYS = (
-    "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
-    "this check line, which the settle writes into `{file}` as it stands: {why}"
+    "`skills/settle/scripts/rules.py`, the reader `seal rules --check` uses, "
+    "refuses this check line, which the settle writes into `{file}` as it "
+    "stands: {why}"
 )
 # A string constant of a test that an operation takes out of the policy root
 # and its `to` does not hold (`rule_changes.py#pins`), named at the `from`.
@@ -1172,8 +1177,8 @@ def check_lines_reader():
             _check_lines = sibling.load(CHECK_LINES_READER)
         except (OSError, SyntaxError, ImportError, SystemExit) as exc:
             raise Unreadable(
-                f"the check-line reader `.github/scripts/rules.py` would not load "
-                f"({exc})"
+                "the check-line reader `skills/settle/scripts/rules.py` would not "
+                f"load ({exc})"
             ) from None
     return _check_lines
 
@@ -1198,8 +1203,8 @@ def check_lines_in(root, rel, ops, notices=None):
             unread = checks.unread_lines(text)
         except checks.Unreadable as exc:
             raise Unreadable(
-                f"`.github/scripts/rules.py` could not read the check lines of "
-                f"{rel}: {exc}"
+                "`skills/settle/scripts/rules.py` could not read the check lines "
+                f"of {rel}: {exc}"
             ) from None
         found += [
             (rel, numbers[n - 1], CHECK_LINE_SAYS.format(file=op.file, why=why))

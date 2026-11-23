@@ -987,13 +987,13 @@ def _literal_strings():
     The settle reads a plan's *Judgments of the run* under its exact heading
     and header, the release note lifts a fragment's process section under
     the first line of `templates/records/process.md`, and a design's `to`
-    holds `check:` lines that `.github/scripts/rules.py` reads (#1319).
+    holds `check:` lines that `skills/settle/scripts/rules.py` reads (#1319).
     """
     unverified = _checker("gaps", "lib", "gaps.py")
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
     body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
     settle = _checker("settle", "skills", "settle", "scripts", "settle.py")
-    checks = _checker("rules", ".github", "scripts", "rules.py")
+    checks = _checker("rules", "skills", "settle", "scripts", "rules.py")
     process = read("templates", "records", "process.md").splitlines()[0]
     chain = _chain()
     fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}

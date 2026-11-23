@@ -19,8 +19,8 @@ the release's tag:
   D6  a tag the checkout cannot resolve, or no tag named, pushes nothing
       and exits non-zero
 
-What the archive of this repository holds, `.github/workflows/` left out
-among it, is held by the census's archive cases in
+What the archive of this repository holds, `.github/` left out among it,
+is held by the census's archive cases in
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 
 **Nothing here reaches GitHub.** Each case drives a real repository in

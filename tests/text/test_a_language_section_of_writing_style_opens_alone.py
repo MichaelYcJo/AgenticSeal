@@ -44,7 +44,7 @@ HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 # with. The other two rules carry none.
 WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
 WRITING_RULE_CHECKS = (
-    "check: tests/github/test_rules.py"
+    "check: tests/skills/test_rules.py"
     " tests/skills/test_chain_check.py"
     " tests/skills/test_rule_changes.py"
     " tests/test_censuses.py"
