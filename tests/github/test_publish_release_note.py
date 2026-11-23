@@ -25,12 +25,13 @@ history at the tag (S1, S5, S6), and the note carries the release's theme,
 one sentence of its milestone's description (S2, S3, S4), under its header
 (#1153).
 
-**Nothing here reaches GitHub.** `gh` is replaced at the module's own `run`
-and `release_exists` by `Releases`, which records the calls as argument
-tuples, in order, so a case can assert about a write that did NOT happen as
-well as one that did. The milestone list is answered by `Milestones`, which
-stands in for `subprocess.run`. The cases that read the history drive a real
-`git` repository in `tmp_path`.
+**Nothing here reaches GitHub.** `Releases` stands in for `subprocess.run`
+under `lib/gitcmd.py`, so every git and `gh` command the script starts
+reaches it with the argv the runner built, and `release_exists` is replaced
+by it too. It records the calls as argument tuples, in order, so a case can
+assert about a write that did NOT happen as well as one that did. It hands
+the milestone list to `Milestones`. The cases that read the history drive a
+real `git` repository in `tmp_path`.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
@@ -56,6 +57,7 @@ from conftest import (
     mark_root,
     write,
 )
+from test_settle import unanswered
 
 TARGET = ".github/scripts/publish_release_note.py"
 
@@ -123,8 +125,11 @@ def milestone(description, version=VERSION):
 class Releases:
     """The releases a repository has, and every command the script ran.
 
-    `calls` holds the argument tuples as the script passed them, in order, so
-    a case can ask about absence — which is what A2 is entirely about.
+    It stands in for `subprocess.run` under `lib/gitcmd.py`. `calls` holds
+    each command but the milestone list as the program and the arguments
+    the script passed, without `lib/gitcmd.py#argv`'s `-c` pairs and
+    `-C <root>` or the path `shutil.which` found for `gh`, in order, so a
+    case can ask about absence — which is what A2 is entirely about.
     """
 
     def __init__(self, existing=()):
@@ -134,13 +139,20 @@ class Releases:
     def exists(self, repo, tag):
         return tag in self.existing
 
-    def run(self, *args):
+    def __call__(self, argv, **_):
+        held = list(argv)
+        if "-C" in held:
+            args = ("git", *held[held.index("-C") + 2 :])
+        else:
+            args = ("gh", *held[1:])
+            if args[:2] == ("gh", "api"):
+                return self.milestones(args)
         self.calls.append(args)
         if args[:3] == ("gh", "release", "create"):
             self.existing.add(args[3])
-            return ""
+            return Done(0)
         if args[0] == "git" and "log" in args:
-            return self.message
+            return Done(0, self.message)
         raise AssertionError(f"unexpected command: {args}")
 
     message = ""
@@ -171,12 +183,11 @@ def wire(
     tracker = Releases(existing)
     tracker.message = message
     monkeypatch.setattr(mod, "ROOT", str(tmp_path))
-    monkeypatch.setattr(mod, "run", tracker.run)
     monkeypatch.setattr(mod, "release_exists", tracker.exists)
     monkeypatch.setattr(mod, "previous_tag", lambda tag: PREVIOUS)
     monkeypatch.setattr(mod, "fragments", lambda revisions: list(entries))
     tracker.milestones = Milestones(None if milestones is None else list(milestones))
-    monkeypatch.setattr(mod.subprocess, "run", tracker.milestones)
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", tracker)
     monkeypatch.setenv("TAG", env.pop("TAG", TAG))
     monkeypatch.setenv("REPO", REPO)
     monkeypatch.delenv("DRY_RUN", raising=False)
@@ -903,7 +914,7 @@ class Test_module:
             seen.append(args)
             return Done(0, '[{"number": 1, "title": "t", "author": {"login": "x"}}]')
 
-        monkeypatch.setattr(mod.subprocess, "run", fake)
+        monkeypatch.setattr(mod.gitcmd.subprocess, "run", fake)
         assert mod.merged_pulls(REPO, VERSION)[0]["number"] == 1
         args = seen[0]
         assert args[args.index("--base") + 1] == f"release/v{VERSION}"
@@ -918,11 +929,53 @@ class Test_module:
         assert args[args.index("--repo") + 1] == REPO
 
         monkeypatch.setattr(
-            mod.subprocess, "run", lambda args, **_: Done(1, err="HTTP 502")
+            mod.gitcmd.subprocess, "run", lambda args, **_: Done(1, err="HTTP 502")
         )
         assert mod.merged_pulls(REPO, VERSION) is None
         out = capsys.readouterr().out
         assert "the note is the theme line and the fragments alone" in out, out
+
+    def test_a_gh_that_gave_no_answer_is_read_as_each_read_reads_a_failure(
+        self, monkeypatch, capsys
+    ):
+        """#1573. A `gh` past `lib/gitcmd.py#TIMEOUT` leaves the theme out and
+        the summary out, each saying so in the runner's line, and stops the
+        run where it was asked whether the release exists, since a release
+        that cannot be looked up may be published twice."""
+        mod = publisher()
+        unanswered(monkeypatch, "--paginate")
+        assert mod.milestone_description(REPO, VERSION) == (
+            "",
+            "the milestones could not be listed: `gh api --paginate "
+            f"repos/{REPO}/milestones?state=all&per_page=100` did not finish "
+            "within 60 seconds",
+        )
+        unanswered(monkeypatch, "pr", "list")
+        assert mod.merged_pulls(REPO, VERSION) is None
+        out = capsys.readouterr().out
+        assert "gh pr list failed, so the note is the theme line and the " in out, out
+        assert "alone: `gh pr list --repo example/repo --base release/v1.2.3" in out
+        unanswered(monkeypatch, f"repos/{REPO}/releases/tags/{TAG}")
+        with pytest.raises(SystemExit) as stopped:
+            mod.release_exists(REPO, TAG)
+        assert stopped.value.code == (
+            f"`gh api repos/{REPO}/releases/tags/{TAG}` did not finish within 60 seconds"
+        )
+
+    def test_a_git_read_that_fails_stops_the_run_in_the_runners_line(
+        self, tmp_path, monkeypatch
+    ):
+        """#1573. The note's history reads stop the run where git refuses,
+        with `lib/gitcmd.py#Exited`'s line naming the command and git's
+        error."""
+        repo = git_repo(tmp_path / "repo")
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        with pytest.raises(SystemExit) as stopped:
+            mod.commit_message("v9.9.9")
+        assert str(stopped.value.code).startswith(
+            "`git log -1 --format=%B v9.9.9` exited 128: fatal: "
+        ), stopped.value.code
 
     def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
