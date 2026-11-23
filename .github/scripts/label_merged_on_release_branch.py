@@ -100,20 +100,18 @@ def label_name(version):
 # The most characters GitHub accepts in a label's description. The number is
 # GitHub's, not this repository's: `gh label create` with a longer one is
 # refused with `HTTP 422 ... description is too long (maximum is 100
-# characters)`, and a 119-character description sent there fails the
-# close-issues workflow after a release and skips the step behind it.
-# Every description this directory sends to `gh label create` is held
-# under it by a case, so an over-long one is refused by the suite before a
-# merge rather than by the tracker after one. Raising it does not make a longer
+# characters)`, and a 119-character description sent there failed the
+# close-issues workflow after a release and skipped the step behind it (#515).
+# The description this script sends to `gh label create` is held under it
+# by a case, so an over-long one is refused by the suite before a merge
+# rather than by the tracker after one. Raising it does not make a longer
 # description fit; it moves the refusal back to the tracker.
 #
-# No function here reads it. The cases that read it are in
-# `tests/github/test_label_merged_on_release_branch.py` and
-# `tests/github/test_tracker_labels.py`. It stays in this script rather than
-# in a test because the cap binds the description this script writes: a
-# person editing `label_description` meets it here, where a test would show
-# it only after the edit fails. `tracker_labels.py`'s note on its own
-# descriptions points here for the same reason.
+# No function here reads it. The case that reads it is in
+# `tests/github/test_label_merged_on_release_branch.py`. It stays in this
+# script rather than in a test because the cap binds the description this
+# script writes: a person editing `label_description` meets it here, where a
+# test would show it only after the edit fails.
 LABEL_DESCRIPTION_LIMIT = 100
 
 

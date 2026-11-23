@@ -122,13 +122,21 @@ class Test_read:
         assert close[fields.ANSWER].value == ""
         assert found.blocks[4].fields[fields.VERDICT].match["commit"] == SHA
 
-    def test_reads_confirms_none_in_a_record_written_before_1319(self):
-        """#1319's C1: the template writes no `confirms: none` since #1319,
-        and a committed record that carries one still reads, naming no
-        finding."""
-        found = read(block("confirms: none"), fields.ROUND_RECORD)
-        assert (found.refusals, len(found.blocks)) == ([], 1)
-        assert found.blocks[0].fields[fields.CONFIRMS].match["round"] is None
+    def test_refuses_confirms_none_at_its_line(self):
+        """#1576, design S11: a confirmation names the earlier finding it
+        confirms, and `none` is no spelling of it, so the line is refused at
+        its line with the one shape."""
+        text = block("confirms: none")
+        said = fields.SHAPE.format(
+            line="confirms: none",
+            key=fields.CONFIRMS,
+            says=fields.CONFIRMATION_BLOCK.keys[fields.CONFIRMS].says,
+        )
+        found = read(text, fields.ROUND_RECORD)
+        assert (found.blocks, found.refusals) == (
+            [],
+            [(line_of(text, "confirms: none"), said)],
+        )
 
     def test_accepts_run_blocks_of_a_gate_record(self):
         text = "# gate\n\n" + block(f"run: {SHA} against {BASE}") + "\n"

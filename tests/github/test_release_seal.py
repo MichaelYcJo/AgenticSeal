@@ -26,7 +26,7 @@ import subprocess
 import zlib
 
 import pytest
-from conftest import ROOT, census_case, config_json, mark_root
+from conftest import ROOT, census_case, config_json, mark_root, symlink_or_skip
 from conftest import load_module as load
 from test_settle import unanswered
 
@@ -646,12 +646,16 @@ class Test_chain_counts:
         assert "#21" in capsys.readouterr().out
 
     def test_an_unlistable_rounds_leaves_rounds_unread_not_zero(self, tmp_path, capsys):
-        """S10 (round 1's finding 2). A `rounds` that is a file holds records
+        """S10 (round 1's finding 2). A `rounds` that is a link holds records
         nobody can count: the rounds row is not read, and the log names it."""
         root = tree(tmp_path)
         item = tmp_path / "seal" / "threads" / "1700000000-an-item"
         (item / "trail" / "rounds").rmdir()
-        (item / "trail" / "rounds").write_text("# round 1\n", encoding="utf-8")
+        (item / "trail" / "held").mkdir()
+        (item / "trail" / "held" / "round-1.md").write_text(
+            "# round 1\n", encoding="utf-8"
+        )
+        symlink_or_skip("held", item / "trail" / "rounds", directory=True)
         assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
             1,
             None,

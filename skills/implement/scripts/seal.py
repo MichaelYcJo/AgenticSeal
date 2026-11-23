@@ -1589,6 +1589,15 @@ def other_worktrees(repo):
     two different roots until the commit reaches both. It heals itself and
     loses nothing, so it is named rather than refused.
 
+    The list holds every worktree git lists but this one and the git
+    directory. `git worktree list --porcelain` gives the git directory as
+    its first entry where the clone was made with `--separate-git-dir` or is
+    bare, the first with no `bare` line, and that entry's path is the common
+    git directory `lib/optin.py#git_common_dir` answers, so an entry at its
+    real path is left out. Seen from a linked worktree of a
+    `--separate-git-dir` repository, git lists no main worktree, so none is
+    in this list either.
+
     **A git that cannot answer here is silent by design, and this is the one
     call site that asks through `git()`.** `git()` reads every failure as
     `""`, so a timeout or a non-zero exit reads here as *this clone has no
@@ -1598,25 +1607,16 @@ def other_worktrees(repo):
     through `git_asked`; this one reads it as a fact nobody acts on, and is
     right to ask through `git()`.
     """
-    # RIDER: `git worktree list --porcelain` prints the GIT DIRECTORY as the
-    # worktree path for a repository built with `--separate-git-dir`, and for
-    # a bare clone, with no `bare` line on the first to tell it by. Against a
-    # scratch `--separate-git-dir` repository this returns
-    # `['<...>/sepgit']`, and `git -C <that> rev-parse --show-toplevel`
-    # answers `fatal: this operation must be run in a work tree`. So `seal
-    # mode` there prints a note calling the git directory another worktree of
-    # this clone. Nothing decides on it and nothing is lost: the caller,
-    # `switch`, only prints.
-    # The fix is to compare the clone by common git directory and refuse a
-    # path that is not a work tree. Filter this list that way when this
-    # function is next opened.
-    here = os.path.realpath(repo)
+    common = optin.git_common_dir(repo)
+    left_out = {os.path.realpath(repo)}
+    if common:
+        left_out.add(os.path.realpath(common))
     found = []
     # exempt from splitlines: git output
     for line in git(repo, "worktree", "list", "--porcelain").splitlines():
         if line.startswith("worktree "):
             path = line[len("worktree ") :].strip()
-            if path and os.path.realpath(path) != here:
+            if path and os.path.realpath(path) not in left_out:
                 found.append(path)
     return found
 
@@ -1690,15 +1690,22 @@ def left_workflow_line(text):
     the switch leaves in the tree.
 
     Pinned to the installed release, the steps read a tree with no root as
-    nothing declared and pass. Pinned to an older one they fail every pull
-    request there, so any other pin, and a version that cannot be read, is
-    named with the two ways out rather than promised to pass.
+    nothing declared and pass the commits a local-mode session writes, which
+    carry no `Seal-Routing` trailer; the review-chain step still fails a
+    ready pull request on a commit made before the switch whose trailer
+    names a work item (`docs/checks/the-routing-check.md` *At the pull
+    request*). Pinned to an older one they fail every pull request there, so
+    any other pin, and a version that cannot be read, is named with the two
+    ways out rather than promised to pass.
     """
     pin, version = pinned(text), plugin_version()
     if version and pin == "v" + version:
         return (
-            f"{WORKFLOW} stays: in local mode its checks examine nothing and "
-            "pass, and `seal pr-checks remove` takes them out"
+            f"{WORKFLOW} stays: in local mode its checks read nothing as "
+            "declared and pass the commits a local-mode session writes, which "
+            "carry no `Seal-Routing` trailer. A commit made before the switch "
+            "whose trailer names a work item still fails a ready pull request, "
+            "and `seal pr-checks remove` takes the checks out"
         )
     named = pin or "no release its clone line names"
     here = (
@@ -1811,11 +1818,19 @@ def remove_workflow(repo):
     """Remove the pull-request checks; (what happened, the line to print).
 
     It needs no root: a workflow that outlived its root is the case it is
-    for. Left in a local-mode repository and pinned to this release, every
-    step of the workflow examines nothing and passes
-    (`unverified_check.py#absent_root`), so there it is the person's choice
-    and never a repair; pinned to an older release, it is the way out of a
-    workflow that fails every pull request (`left_workflow_line`).
+    for. Left in a local-mode repository and pinned to this release, the
+    workflow passes the commits a local-mode session writes, which carry no
+    `Seal-Routing` trailer: `chain_check.py` reads no routing declaration
+    where the tree holds no root and judges the commit trailers alone
+    (`docs/checks/the-pull-request-check.md` *What the check reads at the
+    pull request*), and `mode --check` finds no root to disagree with. A
+    commit made before the switch whose trailer names a work item still
+    fails a ready pull request there (`docs/checks/the-routing-check.md`
+    *At the pull request*). So there the removal is the person's choice,
+    except on a pull request such a commit fails, where correcting the
+    trailer is the repair the check names and the removal is the other way
+    out. Pinned to an older release, it is the way out of a workflow that
+    fails every pull request (`left_workflow_line`).
 
     A file this plugin did not write is left alone: deleting somebody's
     workflow because it shares a name is the destructive direction.
@@ -2378,8 +2393,9 @@ def mode(args, cwd):
                 return 1
             # A check that fails where there is nothing to check teaches
             # people to delete the check. A workflow pinned to this release
-            # that outlived its root examines nothing on every step,
-            # `unverified_check.py` included (`absent_root`), and this one has
+            # that outlived its root reads no routing declaration in its
+            # review-chain step either (`docs/checks/the-pull-request-check.md`
+            # *What the check reads at the pull request*), and this one has
             # nothing to add to that.
             print("no seal/ here, so nothing is declared and nothing can disagree.")
             return 0

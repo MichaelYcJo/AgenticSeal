@@ -1591,7 +1591,6 @@ def rounds_rows(item):
     except (Exception, SystemExit):
         return rows
     stamp = stamp_module()
-    reader = chain.SHARED_READER
     count, homes = 0, []
     for path in records:
         try:
@@ -1599,7 +1598,7 @@ def rounds_rows(item):
                 text = handle.read()
         except (OSError, UnicodeDecodeError):
             continue
-        found, errors = chain.record_findings(reader, text, path)
+        found, errors = chain.record_findings(text, path)
         for kind, home in [] if errors else [f.verdict for f in found]:
             if kind != chain.DEFERRED:
                 continue

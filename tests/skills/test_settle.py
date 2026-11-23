@@ -938,7 +938,6 @@ class Test_apply:
         team = tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
-        # exempt from old_names: another tool's own file, under a name the plugin once used
         (team / "spec.md").write_text("# the team's spec\n", encoding="utf-8")
         git(tree, "add", "-A")
         git(tree, "commit", "-qm", "a team directory of the same name")
@@ -949,7 +948,6 @@ class Test_apply:
         assert (team / "design.md").read_text(
             encoding="utf-8"
         ) == "# the team's design\n"
-        # exempt from old_names: another tool's own file, under a name the plugin once used
         assert (team / "spec.md").is_file()
 
     def test_a_removed_record_prints_each_row_it_closed_and_writes_no_document(
@@ -1319,12 +1317,12 @@ class Test_main:
         assert "judged against:" not in block, block
         assert settle.REMOVES_HEADING in text, text
 
-    @pytest.mark.parametrize("shape", ["file", "link", "unlistable"])
+    @pytest.mark.parametrize("shape", ["link", "unlistable"])
     def test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none(
         self, repo, capfd, monkeypatch, shape
     ):
-        """Round 9, finding 1. A `trail/rounds` that is a file, a link, or a
-        directory nothing can list holds a review git carries
+        """Round 9, finding 1. A `trail/rounds` that is a link, or a
+        directory nothing can list, holds a review git carries
         (`lib/routing.py#rounds_unreadable`), so the dry run says it
         counted none rather than that none happened. The unlistable
         directory is made by refusing `os.listdir` on that one path, since
@@ -1338,9 +1336,7 @@ class Test_main:
         )
         trail = specs_dir(repo, "1700000001-a") / "trail"
         trail.mkdir()
-        if shape == "file":
-            (trail / "rounds").write_text("# Review round 1\n", encoding="utf-8")
-        elif shape == "link":
+        if shape == "link":
             held = repo / "elsewhere"
             held.mkdir()
             (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
@@ -2035,14 +2031,6 @@ class Test_main:
         assert code == 2, text
         assert text == sentence, text
         assert files(repo) == before
-
-    @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
-    def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
-        """A script that still calls either gets exit 2, which the changelog
-        fragment says."""
-        with pytest.raises(SystemExit) as raised:
-            settle.main(["--root", str(repo), "--released-at", "main", flag])
-        assert raised.value.code == 2
 
     def test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it(
         self, repo, capfd
@@ -3701,30 +3689,6 @@ class Test_module:
         assert found[0] == ("1700000001-정렬", added), found
         assert [i for i, _ in found] == ids, found
 
-    def test_merge_order_of_a_moved_thread_is_its_first_add_before_the_move(self, repo):
-        """The session-start move adds every 0.22.x thread's design in one
-        commit, so a moved thread is placed by the commit that first added
-        its design under the earlier path, and two threads moved together
-        keep the order they merged in, not the order of their ids."""
-        old = repo / "seal" / "specs"
-        for name in ("1700000002-b", "1700000001-a"):
-            (old / name).mkdir(parents=True)
-            (old / name / rules.EARLIER[1]).write_text(spec([]), encoding="utf-8")
-            commit(repo, f"{name} is framed under the earlier path")
-        (repo / "seal" / "threads").mkdir()
-        for name in ("1700000001-a", "1700000002-b"):
-            (repo / "seal" / "threads" / name / "frame").mkdir(parents=True)
-            git(
-                repo,
-                "mv",
-                f"{rules.EARLIER[0]}/{name}/{rules.EARLIER[1]}",
-                f"seal/threads/{name}/{rules.optin().DESIGN}",
-            )
-        commit(repo, "the session-start move")
-        ids = ["1700000001-a", "1700000002-b"]
-        found = [i for i, _ in rules.order(str(repo), "HEAD", ids, "seal/threads")]
-        assert found == ["1700000002-b", "1700000001-a"], found
-
     def test_merge_order_of_local_specs_is_their_merge_commits_place(self, repo):
         """#955: no commit adds a local spec, so `rule_changes.py#merge_order`
         sorts `(id, merge commit)` pairs by each commit's place on the ref,
@@ -3929,12 +3893,12 @@ class Test_policy_root:
 
 class Test_show:
     def test_accepts_a_path_at_a_ref(self, plain):
-        assert settle.show(str(plain), "HEAD", f"specs/{WORK}/gaps.md") == memo(
+        assert settle.show(str(plain), "HEAD", f"seal/threads/{WORK}/gaps.md") == memo(
             CANONICAL
         )
 
     def test_refuses_a_path_the_ref_does_not_hold(self, plain):
-        assert settle.show(str(plain), "HEAD", "specs/none/gaps.md") is None
+        assert settle.show(str(plain), "HEAD", "seal/threads/none/gaps.md") is None
 
     def test_refuses_to_raise_on_a_byte_that_is_not_utf8(self, tmp_path):
         """#19: a revision read at a ref decodes as `check_file` decodes the

@@ -182,14 +182,11 @@ CLOSE_BLOCK = Kind(
         ),
     },
 )
-# `none` reads for a record written from an earlier release's template,
-# which offered it. The template offers no `none`: a claim that matched with
-# no earlier finding to name is prose.
 CONFIRMATION_BLOCK = Kind(
     "confirmation",
     {
         CONFIRMS: Spec(
-            r"none|round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)",
+            r"round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)",
             ONE,
             "it is `round-<N>#<n>`, the earlier finding it confirms",
         ),

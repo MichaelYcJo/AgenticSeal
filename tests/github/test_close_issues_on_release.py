@@ -50,7 +50,6 @@ cases that read the workflow, the documents and the records.
 
 import ast
 import importlib.util
-import json
 import os
 import re
 import sys
@@ -180,13 +179,13 @@ def _closer():
 
 
 class Tracker:
-    """A repository's issues, pull requests and labels, and every call made."""
+    """A repository's issues with their labels, its pull requests, and every
+    call made."""
 
-    def __init__(self, issues=None, pulls=None, labels=(), refuse=()):
+    def __init__(self, issues=None, pulls=None, refuse=()):
         self.issues = {n: list(v) for n, v in (issues or {}).items()}
         self.states = dict.fromkeys(self.issues, "open")
         self.pulls = dict(pulls or {})
-        self.labels = set(labels)
         self.refuse = set(refuse)
         self.calls = []
 
@@ -202,11 +201,6 @@ class Tracker:
 
     def run(self, *args):
         self.calls.append(args)
-        if args[:3] == ("gh", "label", "list"):
-            return json.dumps([{"name": name} for name in sorted(self.labels)])
-        if args[:3] == ("gh", "label", "create"):
-            self.labels.add(args[3])
-            return ""
         raise AssertionError(f"unexpected command: {args}")
 
     def attempt(self, *args):
@@ -227,9 +221,6 @@ class Tracker:
                 self.issues[number].remove(LABEL)
             return True, ""
         raise AssertionError(f"unexpected command: {args}")
-
-    def writes(self):
-        return [a for a in self.calls if a[:3] != ("gh", "label", "list")]
 
 
 def wire_closer(monkeypatch, tracker, subjects):

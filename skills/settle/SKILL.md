@@ -82,14 +82,12 @@ nothing:
   section, in merge order. Two places are one group where one section holds
   the other, because a section's range holds its sub-sections. A design's
   place in the order is the first commit on `--released-at` that adds its
-  `frame/design.md`, or its design at the path it held before the session-start
-  move brought it into `seal/threads/` (`rule_changes.py#EARLIER`), or in local
-  mode its pull request's merge commit's place on `--released-at`. The group
-  opens with each place's lines in the working tree, or the words saying its
-  heading is not there, and lists each operation with its design's coordinate
-  and whether its `from` and its `to` are found in the section now. Two designs
-  whose commits no ancestry orders are marked `unordered`, for the settling
-  session to order by content.
+  `frame/design.md`, or in local mode its pull request's merge commit's place
+  on `--released-at`. The group opens with each place's lines in the working
+  tree, or the words saying its heading is not there, and lists each
+  operation with its design's coordinate and whether its `from` and its `to`
+  are found in the section now. Two designs whose commits no ancestry orders
+  are marked `unordered`, for the settling session to order by content.
 - **The designs to read whole**: one whose `## Rule changes` does not parse,
   with the reader's reason, one with no such section, and one in which the
   reader names a line it did not read, a heading near `## Rule changes`
@@ -114,8 +112,8 @@ nothing:
   section prints nothing. A heading whose letters, case folded, are the
   section's and that is not it is named as not read at its line, and so is
   a section whose table is not under the exact header. A `trail/rounds`
-  that is not a directory the dry run can list is named in place of a
-  count.
+  that is a link, or a directory the dry run cannot list, is named in place
+  of a count.
 - **The judgments earlier settles removed**: every row of the
   `seal/threads/<id>/frame/plan.md` files that the two newest removing
   commits on `--released-at` deleted, where no directory `<id>` stands in

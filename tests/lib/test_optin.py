@@ -739,12 +739,6 @@ class Test_module:
         ) as f:
             assert f.readline().rstrip("\r\n") == optin.MARKER
 
-    def test_the_move_notice_is_gone(self, optin):
-        """Deleted, not muted. A notice with nobody left to warn is a branch that
-        runs in no repository and still has to be kept true."""
-        for name in ("legacy_only", "MOVE_NOTICE", "notice_due", "NOTICE_DIR"):
-            assert not hasattr(optin, name), name
-
     def test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore(
         self, repo
     ):

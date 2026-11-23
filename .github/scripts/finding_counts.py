@@ -74,11 +74,9 @@ SEPARATOR = "|---|---|---|---|---|"
 NOT_READ = "not read"
 DEFAULT_REF = "origin/main"
 # Said of every state `lib/routing.py#rounds_unreadable` answers for,
-# and so of none of them alone: any link, a path that is not a directory,
-# and a directory nothing can list.
+# and so of neither alone: any link, and a directory nothing can list.
 NOT_LISTED = (
-    "the round records cannot be listed: it is a link, a file, or a "
-    "directory nothing can list"
+    "the round records cannot be listed: it is a link or a directory nothing can list"
 )
 # Said of a released work item whose `routing.md` cannot be read or is no
 # declaration: whether it is a row is not known, so it is none, and this
@@ -97,13 +95,13 @@ def threads_at(root):
 
 
 def readers():
-    """`(routing, chain_check, the markdown reader, settle)`: the readers the
-    review chain and the settle read with, so a change to the record's
-    grammar or to where records live moves them and this count with them."""
+    """`(routing, chain_check, settle)`: the readers the review chain and the
+    settle read with, so a change to the record's grammar or to where records
+    live moves them and this count with them."""
     chain = sibling.load(CHAIN_CHECK)
     routing = sibling.load(ROUTING)
     settle = sibling.load(SETTLE)
-    return routing, chain, chain.SHARED_READER, settle
+    return routing, chain, settle
 
 
 def why_not(problem):
@@ -131,7 +129,7 @@ def chained(routing, where):
     return parsed["review"] == routing.CHAIN, None
 
 
-def item_counts(root, where, routing, chain, reader, records_at):
+def item_counts(root, where, routing, chain, records_at):
     """`(cells, unread)` for the work item at `where`: its four cells, each a
     number or `NOT_READ`, and one line per record or directory not read. A
     finding is in records alone where every path its finding block's
@@ -154,7 +152,7 @@ def item_counts(root, where, routing, chain, reader, records_at):
         except (OSError, UnicodeDecodeError) as problem:
             unread.append(f"{shown}: {why_not(problem)}")
             continue
-        findings, errors = chain.record_findings(reader, text, shown)
+        findings, errors = chain.record_findings(text, shown)
         if errors:
             unread += [f"{at}:{line}: {why}" for at, line, why in errors]
             continue
@@ -186,7 +184,7 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     try:
-        routing, chain, reader, settle = readers()
+        routing, chain, settle = readers()
     except Exception as problem:
         print(f"finding-counts: a reader did not load ({problem})", file=sys.stderr)
         return 2
@@ -215,7 +213,7 @@ def main(argv=None):
             continue
         if not through:
             continue
-        cells, said = item_counts(root, where, routing, chain, reader, specs)
+        cells, said = item_counts(root, where, routing, chain, specs)
         rows.append(f"| {name} | " + " | ".join(str(c) for c in cells) + " |")
         unread += said
     # A blank line ends the table, so a line under it is not read as a row.

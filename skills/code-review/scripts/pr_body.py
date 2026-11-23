@@ -669,7 +669,7 @@ def _section(rel, text, heading):
     return (
         BLOCKS.gfm_lines(text),
         starts[0] + 1,
-        CHAIN.section_end(READER, seen, starts[0]),
+        CHAIN.section_end(seen, starts[0]),
     )
 
 
@@ -709,7 +709,7 @@ def _round(rel, number, text):
     `## Findings` before its first finding, and each finding's heading one
     level down followed by its finding block and its close block, each
     block copied whole."""
-    parsed = CHAIN.round_read(READER, text, rel)
+    parsed = CHAIN.round_read(text, rel)
     if parsed.errors:
         raise Refused(parsed.errors)
     raw = BLOCKS.gfm_lines(text)

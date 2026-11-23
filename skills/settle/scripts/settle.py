@@ -1127,9 +1127,9 @@ def judgments(records, ids, specs):
               group and each work item in the order IDS lists them first.
               `rounds` is how many `round-N.md` the work item's
               `trail/rounds/` holds (`lib/routing.py#rounds`), or None
-              where that is not a directory this can list
-              (`lib/routing.py#rounds_unreadable`): a file, a link or
-              a directory nothing can list, which holds a review git carries
+              where it holds records this cannot count
+              (`lib/routing.py#rounds_unreadable`): a link or a
+              directory nothing can list, which holds a review git carries
       unread  `[(id, why)]` for each line `plan_rows` names as not read
 
     Each plan is read by `plan_rows`, the reader the plans earlier settles

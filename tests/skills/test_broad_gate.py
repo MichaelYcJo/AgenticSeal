@@ -535,23 +535,17 @@ class Test_missing_row:
         said = gate.missing_row(home)
         assert f"seal gate: {os.path.join(home, 'config.json')} has no" in said
 
-    def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one(self):
-        """The only reader standing in front of this message is a session, so
-        *write the repository's own broad command into it* asked the one party
-        that may not. It printed the key to type, too."""
-        said = missing_row_text()
-        assert "Write the repository's own broad command" not in said
-        assert "<the full suite, the repository-wide lint, the typecheck>" not in said
-        assert "not this session's to do" in said
-
     def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered(
         self,
     ):
-        """Naming the door is what keeps *not this session's* from reading as a
-        dead end — which is how a refusal with no route becomes a session filling
-        the key in anyway. #1454: the door adds the key alone, since a JSON file
-        carries no section beside it."""
+        """The only reader standing in front of this message is a session, so
+        it says the command is not that session's to choose. Naming the door
+        is what keeps *not this session's* from reading as a dead end — which
+        is how a refusal with no route becomes a session filling the key in
+        anyway. #1454: the door adds the key alone, since a JSON file carries
+        no section beside it."""
         said = missing_row_text()
+        assert "not this session's to do" in said
         assert "the key is a thing a person wrote" in said
         assert "/agentic:config" in said
         assert "it shows every key and adds this one —" in said

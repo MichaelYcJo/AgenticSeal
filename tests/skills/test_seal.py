@@ -2102,6 +2102,31 @@ class Test_other_worktrees:
         assert SEAL.other_worktrees(str(_worlds / "shared")) == []
         assert SEAL.other_worktrees(str(tmp_path)) == []
 
+    def test_refuses_the_git_directory_of_a_separate_git_dir_repository(self, tmp_path):
+        """#1576, design S8: `git worktree list` gives a `--separate-git-dir`
+        repository's git directory as its first entry, with no `bare` line,
+        and that directory is no worktree of the clone."""
+        work, linked = tmp_path / "work", tmp_path / "linked"
+        git(
+            tmp_path, "init", "-q", "-b", "main", "--separate-git-dir", "sepgit", "work"
+        )
+        write(work, "a.md", "a\n")
+        commit_everything_as_e(work, "the base")
+        git(work, "worktree", "add", "-q", "-b", "feature/x", str(linked))
+        found = SEAL.other_worktrees(str(work))
+        assert [os.path.realpath(p) for p in found] == [os.path.realpath(linked)]
+
+    def test_refuses_the_bare_directory_a_worktree_was_added_to(self, tmp_path):
+        """#1576, design S8: a bare clone is listed as its first entry, and
+        from its one worktree there is no other."""
+        plain, bare = tmp_path / "plain", tmp_path / "bare.git"
+        git(tmp_path, "init", "-q", "-b", "main", "plain")
+        write(plain, "a.md", "a\n")
+        commit_everything_as_e(plain, "the base")
+        git(tmp_path, "clone", "-q", "--bare", str(plain), str(bare))
+        git(bare, "worktree", "add", "-q", str(tmp_path / "from-bare"), "main")
+        assert SEAL.other_worktrees(str(tmp_path / "from-bare")) == []
+
 
 class Test_plugin_version:
     def test_accepts_the_version_the_plugin_names(self, tmp_path, monkeypatch):
@@ -2692,7 +2717,10 @@ class Test_switch:
         assert open(workflow, encoding="utf-8").read() == SEAL.plugin_workflow()
         assert (
             "  .github/workflows/hygiene.yml stays: in local mode its checks "
-            "examine nothing and pass, and `seal pr-checks remove` takes them out\n"
+            "read nothing as declared and pass the commits a local-mode session "
+            "writes, which carry no `Seal-Routing` trailer. A commit made before "
+            "the switch whose trailer names a work item still fails a ready pull "
+            "request, and `seal pr-checks remove` takes the checks out\n"
         ) in out
         # The two commands `seal mode local` prints for moving the records
         # between clones, which the person who switched runs.
@@ -2740,7 +2768,7 @@ class Test_switch:
             "this one fails every pull request with no seal/ in the tree. Move "
             f"its `--branch` line to {to}, or run `seal pr-checks remove`\n"
         ) in out
-        assert "examine nothing" not in out, out
+        assert "read nothing as declared" not in out, out
 
     def test_accepts_local_to_shared_and_says_the_commit_is_the_door(
         self, take, capsys

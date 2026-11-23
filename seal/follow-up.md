@@ -39,6 +39,8 @@ ones reach, the trade was wrong and the list comes back.
 
 | Item | Who must answer |
 |---|---|
+| Whether `seal layout --moved` (`skills/verify/scripts/test_layout.py#_moved_main`), the move check `CONTRIBUTING.md` *The test layout* asks for, is kept or dropped, weighed by `skills/core/SKILL.md` *The rule a mechanism is kept against* on what it has caught against what it costs. #1576 kept it in 0.38.6 and sent the question here | the repository owner |
+| Whether the AST analyser of `tests/skills/test_session_cost.py`, the units from `SITE_KINDS` to `#classify`, is kept or dropped, weighed by the same rule. Its one recorded catch is #175. #1576 kept it in 0.38.6 and sent the question here | the repository owner |
 
 ## Riders waiting on a file another branch holds
 

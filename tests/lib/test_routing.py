@@ -32,6 +32,7 @@ from conftest import (
     load_lib_module,
     names_path,
     opted_in_repo,
+    symlink_or_skip,
     two_axis_text,
     with_row,
     write,
@@ -186,7 +187,6 @@ class Test_parse:
         parses, and the axis is unanswered."""
         text = two_axis_text().replace(
             "| Branch |",
-            # exempt from old_names: the answer a declaration written before the rename carries
             "| Implementation | smith |\n| Branch |",
         )
         parsed = routing.parse(text)
@@ -560,8 +560,36 @@ class Test_rounds:
         names = [os.path.basename(p) for p in routing.rounds(str(tmp_path))]
         assert names == ["round-1.md", "round-2.md", "round-10.md"]
 
-    def test_refuses_an_item_with_no_rounds_directory(self, tmp_path):
+    @pytest.mark.parametrize("shape", ["absent", "a file"])
+    def test_refuses_an_item_with_no_rounds_directory(self, tmp_path, shape):
+        """#1576, design S13: a `trail/rounds` that is a file holds no round
+        record, as one that is not there holds none."""
+        if shape == "a file":
+            write(tmp_path, "trail/rounds", "# round 1\n")
         assert routing.rounds(str(tmp_path)) == []
+
+
+class Test_rounds_unreadable:
+    def test_accepts_any_link(self, tmp_path):
+        """A link to a directory of records is what git carries as `120000`,
+        which the pull-request check calls no tree."""
+        write(tmp_path, "held/round-1.md", "# round 1\n")
+        (tmp_path / "trail").mkdir()
+        symlink_or_skip(
+            str(tmp_path / "held"), str(tmp_path / "trail" / "rounds"), directory=True
+        )
+        assert routing.rounds_unreadable(str(tmp_path)) is True
+
+    @pytest.mark.parametrize("shape", ["absent", "a directory", "a file"])
+    def test_refuses_no_rounds_a_listable_directory_and_a_file(self, tmp_path, shape):
+        """#1576, design S13: a `trail/rounds` that is a file reads as no
+        round record, so it is not told apart from one that is not there.
+        Seen red against the reader that answered True for it."""
+        if shape == "a directory":
+            write(tmp_path, "trail/rounds/round-1.md", "# round 1\n")
+        if shape == "a file":
+            write(tmp_path, "trail/rounds", "# round 1\n")
+        assert routing.rounds_unreadable(str(tmp_path)) is False
 
 
 class Test_module:
