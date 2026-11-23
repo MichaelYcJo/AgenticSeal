@@ -168,9 +168,12 @@ alone, and `lib/fields.py` is the one statement of each block's lines
 and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows
-`Record language` in the `seal/` root's `config.json`, English where the
-key is absent; the field names, headings and vocabulary words a checker
-reads stay English (`templates/setup/config.md` *What no key governs*).
+`Record language` in the `seal/` root's `config.json`
+(`templates/setup/config.md` *Record language*), and what an absent key
+does is `templates/setup/config.md` *An absent language key is a refusal
+at the pull request body, and never at a commit*. The field names, headings
+and vocabulary words a checker reads stay English
+(`templates/setup/config.md` *What no key governs*).
 
 - A finding is a defect. `must` is a compliance violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing

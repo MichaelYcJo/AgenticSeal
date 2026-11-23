@@ -38,8 +38,8 @@ present hides exactly those.
 
 | Key | Default | What it governs |
 |---|---|---|
-| `Commit and pull request language` | *none: `seal pr-body` refuses without it, and a commit is written in English* | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
-| `Record language` | *none: `seal pr-body` refuses without it, and a record is written in English* | the prose in `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`, `changelog.md`, and a round record's cells |
+| `Commit and pull request language` | *none, as the paragraph below the table says* | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
+| `Record language` | *none, as the paragraph below the table says* | the prose of the work-item records `templates/setup/config.md` *Record language* lists |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
 | `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a document of the policy root or of one of its groups as one to split |
@@ -50,12 +50,11 @@ present hides exactly those.
 | `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
 | `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a key in any other repository changes nothing |
 
-**The two language keys are required**: absent in any of the four ways (no
-file, no such key, an empty value, a file that does not parse),
-`seal pr-body` names the key and refuses with nothing written, and the
+**The two language keys are required.** The ways a key is absent, and what
+an absent one does, are `templates/setup/config.md` *An absent language key
+is a refusal at the pull request body, and never at a commit*, and the
 orchestrator asks for both in the batch of the next request, before its first
-edit. A commit or a record is never refused for them and is written in English.
-Show each as absent and say what happens without it. **The `Broad gate` key
+edit. Show each as absent and say what happens without it. **The `Broad gate` key
 has no default at all**: absent, `seal gate` names the key and exits 2 with
 nothing run, because what a command nobody chose reports proves nothing.
 Show it as absent and say what happens without it.

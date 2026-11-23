@@ -229,6 +229,38 @@ RULES = {
             CONFIG_SKILL: THE_CORES_PLACES,
         },
     ),
+    # #1578: five files each listed the records `Record language` governs,
+    # and none of the lists held the phase record the implement skill named.
+    # The template documents every key, so its section lists them and the
+    # others name it.
+    "25 what Record language governs": (
+        CONFIG_TEMPLATE,
+        (
+            # The record a crafter writes at each phase's close, which the
+            # other lists left out.
+            "`trail/phases/phase-N.md`",
+        ),
+        {},
+    ),
+    # #1578: six files each said how a language key is absent or what an
+    # absent one does, and the commit skill's four ways were the only
+    # complete list. The template's paragraph states both, and each fact
+    # here is spelt as that paragraph alone spells it, since the file names
+    # `no such key` and `seal pr-body` in other sentences too.
+    "26 what an absent language key is and does": (
+        CONFIG_TEMPLATE,
+        (
+            # The four ways a key is absent, which a reader of `config.json`
+            # checks the file against.
+            "no file, no such key, an empty value",
+            "does not parse as one JSON object",
+            # What absence does at the pull request body, and at a commit or
+            # a record.
+            "`seal pr-body` refuses with nothing written",
+            "commit or a record is written in English",
+        ),
+        {},
+    ),
 }
 
 

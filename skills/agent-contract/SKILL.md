@@ -121,11 +121,13 @@ hold other files at those paths.
 Every `seal/…` path here and in the skills means the records root, the
 first of the places the opening paragraph of `skills/core/SKILL.md` names
 that holds the marker. That paragraph also defines `seal/` as the root's
-name. The prose in the records follows
-`Record language` in `config.json` under that root — English when the key
-is absent. What stays English regardless: the field names and vocabulary a
-checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and
-all code. The `implement` skill's *The language the records are written in*
+name. The prose in the records follows `Record language` in `config.json`
+under that root: `templates/setup/config.md` *Record language* lists the
+records, and `templates/setup/config.md` *An absent language key is a
+refusal at the pull request body, and never at a commit* says what an
+absent key does. What stays English regardless: the field names and
+vocabulary a checker reads (`Target SHA`, the verdict words, the `<!-- -->`
+markers), and all code. `templates/setup/config.md` *What no key governs*
 holds the whole list.
 
 ## 12 A defect belongs to a class, so enumerate the class

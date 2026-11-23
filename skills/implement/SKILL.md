@@ -41,13 +41,10 @@ or a pull request. The root is resolved the way every path in this skill is.
 }
 ```
 
-It governs the **prose** in `frame/design.md`, `plan.md`, `gaps.md`,
-`questions.md`, `changelog.md`, the cell contents of `trail/rounds/round-N.md` and
-`trail/phases/phase-N.md` and the text beneath their tables.
-
-**Every way of not naming one lands on English** — no file, no such key, an
-empty value, a file that cannot be read. A config nobody can read must not
-stop the work.
+It governs the **prose** of the records `templates/setup/config.md` *Record
+language* lists. What an absent key is and does is
+`templates/setup/config.md` *An absent language key is a refusal at the pull
+request body, and never at a commit*.
 
 **It is independent of `Commit and pull request language`.** Setting one does
 not carry the other; `docs/layout/one-root-by-lifetime.md` *What the repository

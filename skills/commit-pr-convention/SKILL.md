@@ -68,18 +68,16 @@ chain it governs the lines of `pr.md` that quote no record and, where the
 two keys differ, the whole of `pr.<lang>.md`, as *Pull request bodies*
 below says.
 
-**It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
-`gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
-follow a second key, `Record language`, read by the
-`implement` and `code-review` skills. The two are independent: setting one
-does not carry the other.
+**It does not govern the work-item records.** They follow a second key,
+`Record language`, read by the `implement` and `code-review` skills, and
+`templates/setup/config.md` *Record language* lists them. The two are
+independent: setting one does not carry the other.
 
-**Every way of not naming a language lands on English.** There are four of
-them and they are one rule: no file, no such key, an empty value, and a file
-that cannot be read or does not parse as one JSON object, a key written
-twice or holding no string among them. A config nobody can read must not
-stop a commit, so the writer of a commit meeting any of these writes
-English and carries on rather than asking.
+**Every way of not naming a language lands on English.** The four ways a
+key is absent, and what each does, are `templates/setup/config.md` *An
+absent language key is a refusal at the pull request body, and never at a
+commit*. The writer of a commit meeting any of them writes English and
+carries on rather than asking.
 
 **Both keys are required all the same, and a commit is never refused for
 them.** The orchestrator asks for the two keys at first setup

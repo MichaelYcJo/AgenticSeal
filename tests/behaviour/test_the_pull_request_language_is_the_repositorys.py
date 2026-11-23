@@ -393,8 +393,10 @@ def configured_language(root=None, row=COMMIT_ROW):
 # FOUR ways, in five ids. "Cannot be read or is not one JSON object" is one
 # way with two spellings, and the last two below are both that way — a file
 # that does not parse as JSON, and one whose top level is an array. Round 2
-# ❓ 8 settled the count: the skill's sentence says four, so four is the
-# number, and keeping five shapes here costs nothing and exercises more.
+# ❓ 8 settled the count: the sentence says four, so four is the number, and
+# keeping five shapes here costs nothing and exercises more. Since #1578 the
+# sentence is the paragraph of `templates/setup/config.md` *An absent
+# language key is a refusal at the pull request body, and never at a commit*.
 UNNAMED = [
     ("no file at all", None),
     ("a file with no such key", config_json(("Other", "x"))),

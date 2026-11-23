@@ -139,8 +139,9 @@ the tell. Ask which of two named paths instead, and say what each one does.
 the routing commit, the orchestrator reads `Commit and pull request
 language` and `Record language` in `config.json` under the `seal/` root.
 Where both stand, nothing is asked. Where either is absent in any of the
-four ways `skills/commit-pr-convention/SKILL.md` *Every way of not naming a
-language lands on English* names, the batch asks for both, as
+four ways `templates/setup/config.md` *An absent language key is a refusal
+at the pull request body, and never at a commit* names, the batch asks for
+both, as
 `skills/implement/bootstrap.md` step 1 asks for them at first setup: the
 recent titles from `gh pr list --state all --limit 10` stand beside the
 question, and the language read from them is the option listed first. The
