@@ -70,8 +70,8 @@ folded. It searched for the heading's words, then for every citation of
 moved paragraphs' bold leads and commands, and each hit was read for which
 paragraph it meant (executed). It found these:
 
-- two comments in `skills/verify/scripts/broad_gate.py` (`Base.moved`'s
-  docstring and the comment over the command line in `main`), which said
+- two comments in `skills/verify/scripts/broad_gate.py` (the docstring of
+  `moved_line` and the comment over the command line in `gate`), which said
   `skills/code-review/orchestration.md` has the orchestrator quote the
   gate's lines;
 - the network table's row in `README.md` and `README.ko.md`, whose link
