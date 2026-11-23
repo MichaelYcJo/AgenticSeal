@@ -6293,6 +6293,21 @@ class Test_family:
         ):
             assert module.family(command) != "test", command
 
+    def test_reads_the_runner_words_seal_deferrals_holds(self):
+        """#1572: `test` and `lint/type` are built from
+        `deferral_check.py#RUNNERS`, the one list of runner words, so a
+        command only `seal deferrals` named before is charged here too:
+        `pylint` and `go vet` to `lint/type`, a `unittest` run and a Maven
+        run with a goal before `test` to `test`."""
+        module = load_script()
+        for command, expected in (
+            ("pylint src", "lint/type"),
+            ("go vet ./...", "lint/type"),
+            ("python -m unittest discover", "test"),
+            ("mvn clean test", "test"),
+        ):
+            assert module.family(command) == expected, command
+
     def test_a_runner_named_inside_a_heredoc_is_not_a_run_of_it(self, tmp_path):
         """The other half of #200's *wrong in both directions*, in the same
         reading: the one call the family did charge to `test` was a `cat > …`
@@ -6892,6 +6907,31 @@ class Test_largest_context:
 
 
 class Test_module:
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings
+        exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means nothing was read. The guard
+        stands at import, where `FAMILIES` loads `deferral_check.py#RUNNERS`
+        (#1572), so `--help` reaches it too."""
+        import sibling
+
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / "session_cost.py"
+        with open(SCRIPT, encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(copy), "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(tmp_path),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_a_transcript_that_cannot_be_opened_is_skipped_rather_than_raised(
         self, tmp_path
     ):

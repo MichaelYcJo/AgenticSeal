@@ -401,7 +401,7 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
 
 | 명령 | 하는 일 |
 |---|---|
-| `seal deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사를 이곳에서 돌리는 것이 있는지 말하고, 그 검사를 돌리는 CI 파일을 하나씩 짚는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
+| `seal deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사의 실행기 단어에 맞는 CI 파일과 훅의 줄을 하나씩 짚고, 무엇이 맞든 0 으로 끝난다. 그 검사를 실제로 돌리는지는 CI 파일을 직접 열어 읽는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
 | `seal unverified .` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | 세션의 시간이 어디에 쓰였는지 트랜스크립트에서 읽어 알려 준다 (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |
