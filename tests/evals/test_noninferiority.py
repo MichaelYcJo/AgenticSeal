@@ -30,6 +30,7 @@ import types
 import pytest
 from conftest import ROOT, census_case, git, load_module, write
 from test_no_case_tells_the_agent_it_is_evaluated import REFUSED
+from test_settle import unanswered
 
 TARGET = "evals/scripts/noninferiority.py"
 
@@ -355,8 +356,22 @@ class Test_git_bytes:
         )
 
     def test_refuses_a_git_that_exits_otherwise(self, suites):
-        with pytest.raises(SystemExit, match=r"^git rev-parse --verify nowhere: "):
+        with pytest.raises(
+            SystemExit, match=r"^`git rev-parse --verify nowhere` exited 128: "
+        ):
             NI.git_bytes("rev-parse", "--verify", "nowhere")
+
+    def test_refuses_a_git_that_gave_no_answer_in_the_runners_line(
+        self, suites, monkeypatch
+    ):
+        """#1573. A git past `lib/gitcmd.py#TIMEOUT` stops the run with the
+        runner's line, and not a traceback."""
+        unanswered(monkeypatch, "rev-parse")
+        with pytest.raises(SystemExit) as stopped:
+            NI.git_bytes("rev-parse", suites["own"])
+        assert stopped.value.code == (
+            f"`git rev-parse {suites['own']}` did not finish within 60 seconds"
+        )
 
 
 def marked_repo(repo):
@@ -425,11 +440,11 @@ class Test_extract:
         assert (tmp_path / "rel" / CASE / "case.yaml").is_file()
 
     def test_refuses_a_rev_git_does_not_resolve(self, suites, tmp_path):
-        with pytest.raises(SystemExit, match=r"^git read-tree"):
+        with pytest.raises(SystemExit, match=r"^`git read-tree "):
             NI.extract("nowhere", [], str(tmp_path))
 
     def test_refuses_a_path_the_rev_does_not_hold(self, suites, tmp_path):
-        with pytest.raises(SystemExit, match=r"^git ls-files"):
+        with pytest.raises(SystemExit, match=r"^`git ls-files "):
             NI.extract(suites["own"], ["evals/nowhere"], str(tmp_path))
 
 
@@ -1026,7 +1041,7 @@ class Test_suite_tree:
         assert NI.suite_tree(suites["prompt"], "proofer") != want
 
     def test_refuses_an_agent_with_no_suite_there(self, suites):
-        with pytest.raises(SystemExit, match=r"^git rev-parse"):
+        with pytest.raises(SystemExit, match=r"^`git rev-parse "):
             NI.suite_tree(suites["own"], "crafter")
 
 
