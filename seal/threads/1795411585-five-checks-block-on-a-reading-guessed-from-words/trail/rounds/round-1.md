@@ -78,6 +78,11 @@ The fix touches the work item's records alone.
 2. **`seal deferrals` reports and exits 0 on what it read.** `deferral_check.py#main` exits 0 whenever it read the path, and 2 only where the path or the arguments are unusable. The `nothing runs it` line goes. The headline for a kind with no matching line says that no CI or hook line matched a runner word for that kind, or that no CI line did where only the pre-commit hook matched. The closing sentence says that no CI line matched for the kinds it names and asks the reader to open the CI files and read what they run. The `limit:` line, printed under every run, says that a runner reached through a composite action, a reusable workflow or a script it cannot see reads as absent. None of them says nothing runs the check. The module docstring's outcomes and exit codes say the same. The cases of `tests/skills/test_deferral_check.py` that assert exit 1 assert exit 0 and the new lines (contract rule 14).
 ```
 
+```seal
+verdict: fixed 4b04fa3d6
+answer: The finding holds. *Scope* item 2 now says what the headline and the closing sentence print, and that the `limit:` line printed under every run names the composite action, the reusable workflow and the script, in the words the finding gave. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ## Confirmations
 
 What matched: each of *The five* in issue #1572 now reads an exact fact or reports. `release_exists` and `_issue_api` decide on the status `lib/gitcmd.py#http_answer` reads from `gh api -i` (`.github/scripts/publish_release_note.py:445-451`, `.github/scripts/close_issues_on_release.py:143-149`, `lib/gitcmd.py:214-230`), and no line of shipped code decides on stderr's words (executed: search 4 printed nothing). `seal deferrals` returns 0 after every reading and 2 only from its usage refusals (read: `deferral_check.py:217-253`). `seal pact` holds no token loop (read: `pact_check.py:778-792`). The near-miss sweep warns and passes (read: `tests/behaviour/test_a_cited_section_stands_in_its_file.py:1326-1342`). The batch sweep is gone (executed: search 3 printed nothing; at `22803718e` it printed 19 lines, as `frame/design.md:65` says).
