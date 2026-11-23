@@ -78,6 +78,9 @@ rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
     "agentic_rule_changes",
 )
+# The runner every git and `gh` command of `settle` starts through, the one
+# instance `lib/sibling.py#load` hands both scripts.
+gitcmd = settle.sibling.load("lib/gitcmd.py")
 
 
 def git(repo, *args):
@@ -152,6 +155,33 @@ def calls(monkeypatch, repo, capfd):
         code, text = dry_run(repo, capfd)
     assert code == 0, text
     return len(started)
+
+
+def unanswered(monkeypatch, *words):
+    """Each process run whose argv holds WORDS in a row raises
+    `subprocess.TimeoutExpired`, as a command past `lib/gitcmd.py#TIMEOUT`
+    does; every other run is real. Returns the argv of each run WORDS
+    matched."""
+    real, asked, n = subprocess.run, [], len(words)
+
+    def run(argv, *args, **kwargs):
+        held = list(argv)
+        if not any(held[i : i + n] == list(words) for i in range(len(held))):
+            return real(argv, *args, **kwargs)
+        asked.append(held)
+        raise subprocess.TimeoutExpired(held, gitcmd.TIMEOUT)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    return asked
+
+
+def past_the_bound(held):
+    """The runner's line for the git or `gh` argv HELD that did not finish:
+    the program and the arguments after `-C <root>`, or after the path
+    `shutil.which` found for `gh`."""
+    git = "-C" in held
+    shown = ["git", *held[held.index("-C") + 2 :]] if git else ["gh", *held[1:]]
+    return f"`{' '.join(shown)}` did not finish within {gitcmd.TIMEOUT} seconds"
 
 
 def specs_dir(repo, name):
@@ -2318,8 +2348,17 @@ class Test_main:
         local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
         if state == "absent":
-            monkeypatch.setattr(settle, "GH", "agentic-no-such-gh")
-            said = "`agentic-no-such-gh` is not on PATH"
+            # `lib/gitcmd.py#gh` finds no `gh`, and git is still found.
+            which = gitcmd.shutil.which
+            monkeypatch.setattr(
+                gitcmd.shutil,
+                "which",
+                lambda name, *a, **k: None if name == "gh" else which(name, *a, **k),
+            )
+            said = (
+                "`gh pr list --head feat/1-a --state merged --json "
+                "number,mergeCommit` could not be run: `gh` is not on PATH"
+            )
         elif state in ("garbled", "entry"):
             # A list whose entry is not an object is as garbled as an answer
             # that is no list (round 1 finding 3).
@@ -2341,6 +2380,86 @@ class Test_main:
         assert (
             "a repository on a host `gh` cannot ask cannot settle in local mode"
         ) in flat(text), text
+
+    @pytest.mark.parametrize(
+        "flags, words",
+        [
+            ([], ("ls-tree", "-r")),
+            ([], ("show",)),
+            ([], ("--diff-filter=A", "--name-only", "--format=%x01%H")),
+            ([], ("merge-base", "--is-ancestor")),
+            ([], ("ls-files", "-z")),
+            (["--from", "docs"], ("--cached", "--others")),
+            (["--apply"], ("ls-tree", "-r")),
+            (["--draft"], ("--diff-filter=A", "--name-only", "--format=%x01%H")),
+        ],
+        ids=[
+            "released",
+            "show",
+            "order",
+            "unordered",
+            "tracked_text",
+            "from",
+            "apply",
+            "draft",
+        ],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, repo, capfd, monkeypatch, flags, words
+    ):
+        """S7 of #1573: a git read past `lib/gitcmd.py#TIMEOUT`, in the dry
+        run, `--from`, `--apply` or `--draft`, ends `settle` with one line
+        on stderr, `settle: ` and the runner's line naming the command and
+        the bound, at exit 2, with nothing printed or removed and no
+        traceback. Seen red against `d0b15b72f`, where no read had a bound
+        and the timeout was raised out of `main`."""
+        item(repo, "1700000001-a", op("add", "S", new="A."))
+        commit(repo, "a")
+        item(repo, "1700000002-b", op("add", "S", new="B."))
+        commit(repo, "b")
+        before = files(repo)
+        asked = unanswered(monkeypatch, *words)
+        flags = [str(repo / f) if f == "docs" else f for f in flags]
+        code = settle.main(["--root", str(repo), "--released-at", "main", *flags])
+        out = capfd.readouterr()
+        assert len(asked) == 1, asked
+        assert out.err == f"settle: {past_the_bound(asked[0])}\n", out.err
+        assert code == 2, out.err
+        assert out.out == "", out.out
+        assert files(repo) == before, "a settle that did not finish changed the tree"
+
+    @pytest.mark.parametrize(
+        "words",
+        [
+            ("rev-parse", "--verify"),
+            ("pr", "list"),
+            ("merge-base", "--is-ancestor"),
+            ("rev-list", "--topo-order"),
+        ],
+        ids=["resolves", "gh", "reaches", "merge_order"],
+    )
+    def test_refuses_a_git_or_gh_that_did_not_answer_in_local_mode(
+        self, local, gh, capfd, monkeypatch, words
+    ):
+        """S7 of #1573 in local mode. A git read past the bound ends the run
+        as in a shared root. A `gh` past it is the `gh` that cannot be
+        asked, and its refusal names the runner's line. Seen red against
+        `d0b15b72f`, where git raised the timeout out of `main` and `gh`'s
+        line spelt the timeout's exception inside its own."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        asked = unanswered(monkeypatch, *words)
+        code = settle.main(["--root", str(local), "--released-at", "main"])
+        out = capfd.readouterr()
+        assert len(asked) == 1, asked
+        said = past_the_bound(asked[0])
+        if words[0] == "pr":
+            assert out.err == settle.UNASKED.format(why=said), out.err
+        else:
+            assert out.err == f"settle: {said}\n", out.err
+        assert code == 2, out.err
+        assert out.out == "", out.out
+        assert local_dir(local, "1700000001-a").exists(), out.err
 
     def test_a_released_at_ref_that_does_not_resolve_is_refused_in_local_mode(
         self, local, gh, capfd
@@ -2367,8 +2486,9 @@ class Test_main:
         assert len(gh.calls()) == 1, gh.calls()
 
     def test_a_released_at_given_as_the_merge_commit_reaches_it(self, local, gh, capfd):
-        """`reaches` asks git itself because `rule_changes.py#_ancestor`
-        answers False for two equal commits, so a `--released-at` naming the
+        """The reach is asked of `lib/gitcmd.py#is_ancestor`, which counts a
+        commit as reaching itself, and not of `rule_changes.py#_ancestor`,
+        which answers False for two equal commits, so a `--released-at` naming the
         merge commit still reads the item as released (round 1 finding 6)."""
         local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         oid = merge(local, "feat/1-a")
@@ -3604,6 +3724,25 @@ class Test_module:
             ("1700000002-b", b),
             ("1700000003-c", stray),
         ]
+
+    def test_merge_order_refuses_a_history_git_did_not_print(self, repo):
+        """#1573. `rule_changes.py#order` reads the merge order from the
+        history git prints, and a git that exits non-zero printed none, so
+        the read raises `lib/gitcmd.py#Exited` with git's line rather than
+        placing every design last as added by no commit. Seen red against
+        `d0b15b72f`, which read the empty output as the history."""
+        item(repo, "1700000001-a", op("add", "U", new="A."))
+        commit(repo, "a is framed")
+        with pytest.raises(gitcmd.Exited, match="no/such/ref"):
+            rules.order(str(repo), "no/such/ref", ["1700000001-a"], "seal/threads")
+
+    def test_merge_order_of_local_specs_refuses_a_history_git_did_not_print(self, repo):
+        """#1573. `rule_changes.py#merge_order` raises `lib/gitcmd.py#Exited`
+        where `git rev-list` exits non-zero, rather than sorting every pair
+        as a commit the ref does not reach. Seen red against `d0b15b72f`."""
+        a = merge(repo, "feat/1-a")
+        with pytest.raises(gitcmd.Exited, match="no/such/ref"):
+            rules.merge_order(str(repo), "no/such/ref", [("1700000001-a", a)])
 
     def test_a_ref_that_does_not_resolve_is_refused_rather_than_empty(self, tree):
         """The quiet zero this is written against: a ref nothing can read makes

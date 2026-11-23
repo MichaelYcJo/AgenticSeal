@@ -167,8 +167,12 @@ a complete settle reaches; 1 `--apply` kept a directory whose record holds
 an open row or cannot be read, or whose published note does not carry its
 entry; 2 the
 arguments or the tree were unusable: a `--released-at` ref that does not
-resolve, a root at neither place, a repository that opted out, in local mode
-a `gh` that is not on PATH or whose query fails, under `--apply` a release
+resolve, a root at neither place, a repository that opted out, a git
+command that could not start or did not finish within
+`lib/gitcmd.py#TIMEOUT`, or that exits non-zero on the history the merge
+order is read from, said in one line, `settle: ` and the runner's line, in
+local mode a `gh` that is not on PATH, does not finish within the same
+bound or whose query fails, under `--apply` a release
 list `gh` cannot give or a `git` that cannot read what a note is checked
 by, each before anything is removed, a sibling script that is
 not beside it, a `--from` that names no directory of the working tree, one
@@ -185,7 +189,6 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -226,6 +229,9 @@ except ImportError:
 # holds the work items, a thread's design, its plan and its changelog
 # fragment.
 _optin = sibling.load(OPTIN)
+# The runner every git and `gh` command this starts runs through.
+# `lib/optin.py` loads it already, so this costs no file.
+gitcmd = sibling.load(GITCMD)
 WORK_ITEMS = _optin.WORK_ITEMS
 DESIGN = _optin.DESIGN
 PLAN = _optin.PLAN
@@ -240,11 +246,6 @@ NEAR_JUDGMENTS = (
     "none of its rows were read"
 )
 TESTS = "tests/"
-
-# The command asked in local mode, once per branch, and by `--apply` for the
-# release list where the root is shared; and how long it may take.
-GH = "gh"
-GH_TIMEOUT = 60
 
 
 def under(root, rel):
@@ -262,12 +263,7 @@ def policy_root(root):
 
 
 def show(root, ref, rel):
-    r = subprocess.run(
-        ["git", "-C", root, "show", f"{ref}:{rel}"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    r = gitcmd.git(root, "show", f"{ref}:{rel}")
     return r.stdout if r.returncode == 0 else None
 
 
@@ -309,12 +305,7 @@ def released(root, ref, specs):
     say there is nothing to do, the quiet zero every checker here is written
     against. `-z` ends each path with a NUL and quotes none, whatever
     `core.quotePath` says, so an id that is not ASCII is read as it is."""
-    r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    r = gitcmd.git(root, "ls-tree", "-r", "-z", "--name-only", ref)
     if r.returncode != 0:
         return None
     prefix = specs + "/"
@@ -329,19 +320,7 @@ def released(root, ref, specs):
 
 def resolves(root, ref):
     """Whether REF names a commit in the repository at ROOT."""
-    r = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
-        capture_output=True,
-    )
-    return r.returncode == 0
-
-
-def reaches(root, ref, commit):
-    """Whether COMMIT is reachable from REF, REF itself included."""
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", "--is-ancestor", commit, ref],
-        capture_output=True,
-    )
+    r = gitcmd.git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
     return r.returncode == 0
 
 
@@ -418,21 +397,12 @@ class Unasked(Exception):
 def ask_gh(root, args, asked):
     """What `gh ARGS` printed, asked from the repository's top ROOT. ASKED
     is the command as a person reads it. Raises `Unasked` where `gh` is not
-    on PATH, does not run, or exits non-zero."""
-    found = shutil.which(GH)
-    if found is None:
-        raise Unasked(f"`{GH}` is not on PATH")
+    on PATH, does not run, or does not finish (`lib/gitcmd.py#Unrun`, whose
+    line it says), or exits non-zero."""
     try:
-        r = subprocess.run(
-            [found, *args],
-            cwd=root,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=GH_TIMEOUT,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise Unasked(f"{asked} did not run ({exc})") from exc
+        r = gitcmd.gh(*args, root=root)
+    except gitcmd.Unrun as unrun:
+        raise Unasked(unrun.line) from None
     if r.returncode != 0:
         said = (r.stderr or r.stdout or "").strip().partition("\n")[0].strip()
         raise Unasked(f"{asked} exited {r.returncode}" + (f": {said}" if said else ""))
@@ -444,7 +414,7 @@ def merged_pull_requests(root, branch):
     that have merged, as `gh` lists them, asked from the repository's top.
     Raises `Unasked` where `gh` cannot be asked (`ask_gh`) or answers
     anything but a list of objects."""
-    asked = f"`{GH} pr list --head {branch}`"
+    asked = f"`gh pr list --head {branch}`"
     query = ["--head", branch, "--state", "merged", "--json", "number,mergeCommit"]
     printed = ask_gh(root, ["pr", "list", *query], asked)
     try:
@@ -516,11 +486,7 @@ def git_run(root, *args, given=None):
     literal, with GIVEN, bytes, on its standard input where it is not None.
     `git_out` and the batched readers start their `git` here. Raises
     `RuntimeError`, saying what `git` said, where it fails."""
-    r = subprocess.run(
-        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
-        input=given,
-        capture_output=True,
-    )
+    r = gitcmd.git(root, "--literal-pathspecs", *args, given=given, binary=True)
     if r.returncode != 0:
         raise RuntimeError(
             f"`git {' '.join(args)}` exited {r.returncode}: {decoded(r.stderr).strip()}"
@@ -529,8 +495,8 @@ def git_run(root, *args, given=None):
 
 
 def decoded(data):
-    """DATA as the text mode of `subprocess.run` reads it: UTF-8 with each
-    undecodable byte replaced, and every line ending a newline."""
+    """DATA as `lib/gitcmd.py#git` reads text: UTF-8 with each undecodable
+    byte replaced, and every line ending a newline."""
     return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
 
 
@@ -639,7 +605,7 @@ def published_releases(root):
     `Unasked` where `gh` cannot be asked (`ask_gh`), or answers anything but
     pages that are each a list of objects: `--paginate` prints one JSON
     array per page, one after another."""
-    asked = f"`{GH} api --paginate {RELEASES}`"
+    asked = f"`gh api --paginate {RELEASES}`"
     printed = ask_gh(root, ["api", "--paginate", RELEASES], asked)
     decoder, at, pages = json.JSONDecoder(), 0, []
     while True:
@@ -834,7 +800,12 @@ def released_local(root, records, ref, ids, specs):
             why[work_item_id] = NO_PULL_REQUEST.format(branch=branch)
             continue
         reached = next(
-            ((n, c) for n, c in prs if c is not None and reaches(root, ref, c)), None
+            (
+                (n, c)
+                for n, c in prs
+                if c is not None and gitcmd.is_ancestor(root, c, ref)
+            ),
+            None,
         )
         if reached is None:
             listed = ", ".join(
@@ -1088,11 +1059,7 @@ def named_paths(item):
 def tracked_names(root):
     """The base names of every tracked file, so a row naming `design.md` or
     `broad_gate.py` alone is looked for by name."""
-    r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
-    listed = (
-        r.stdout.decode("utf-8", "replace").split("\0") if r.returncode == 0 else []
-    )
-    return {rel.rsplit("/", 1)[-1] for rel in listed if rel}
+    return {rel.rsplit("/", 1)[-1] for rel in git_fields(root, "ls-files", "-z") if rel}
 
 
 def in_tree(root, records, work_item_id, path, names, specs):
@@ -1609,10 +1576,7 @@ def named_directory(root, home, given):
 def git_fields(root, *args):
     """The NUL-separated fields of `git ARGS` run at ROOT with every
     pathspec literal, or [] where git exits non-zero."""
-    r = subprocess.run(
-        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
-        capture_output=True,
-    )
+    r = gitcmd.git(root, "--literal-pathspecs", *args, binary=True)
     if r.returncode != 0:
         return []
     return r.stdout.decode("utf-8", "replace").split("\0")
@@ -1745,10 +1709,7 @@ def names(name, work_item_id):
 def tracked_text(root, specs):
     """`(repo-relative path, text)` for every tracked text file outside
     SPECS (`threads`). A file holding a NUL byte is binary and skipped."""
-    r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
-    if r.returncode != 0:
-        return
-    for rel in r.stdout.decode("utf-8", "replace").split("\0"):
+    for rel in git_fields(root, "ls-files", "-z"):
         if not rel or rel.startswith(specs + "/"):
             continue
         try:
@@ -2137,7 +2098,19 @@ def main(argv=None):
     if args.all_earlier and args.draft:
         sys.stderr.write(EARLIER_WITH_DRAFT)
         return 2
+    # A git or `gh` command that did not answer is no answer to any of the
+    # reads below, so the run stops with the runner's one line at the code
+    # of an unusable tree, whichever read it was.
+    try:
+        return _settled(args)
+    except gitcmd.Failed as unanswered:
+        sys.stderr.write(f"settle: {unanswered.line}\n")
+        return 2
 
+
+def _settled(args):
+    """The run `main` parsed ARGS for, past the refusals of its flags: the
+    dry run, `--apply`, `--from` or `--draft`, and its exit code."""
     root = os.path.abspath(args.root or os.getcwd())
     # The root is resolved through the one resolver, `lib/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
