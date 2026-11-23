@@ -1913,14 +1913,15 @@ def declared_for_this_branch(root, routing, work_items):
                 f"this repository keeps its root at {home} — local mode, where "
                 "nothing under the root is committed. So no routing declaration "
                 f"for `{branch}` can be read from what git carries, and the "
-                "review-chain check examined nothing. `seal mode shared` moves "
-                "the root into the tree and gets the check running."
+                "review-chain check judged the commit trailers and nothing else. "
+                "`seal mode shared` moves the root into the tree and gets the "
+                "declarations judged."
             )
         return [], (
             "this pull request declared neither way, so the review-chain check "
-            f"examined nothing. Nothing git carries under `{work_items}/` "
-            f"declares `{branch}`. Add {work_items}/<work-item>/"
-            f"{routing.FILENAME} to declare."
+            "judged the commit trailers and nothing else. Nothing git carries "
+            f"under `{work_items}/` declares `{branch}`. Add {work_items}/"
+            f"<work-item>/{routing.FILENAME} to declare."
         )
     return matching, ""
 

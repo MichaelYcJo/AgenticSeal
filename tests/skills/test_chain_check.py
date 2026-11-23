@@ -3698,12 +3698,14 @@ class Test_declared_for_this_branch:
         assert os.path.normpath(os.path.join(common_dir(repo), "seal")) in out, out
         assert "seal mode shared" in out, out
 
-    def test_local_mode_still_examines_nothing(self, repo):
+    def test_local_mode_still_judges_no_declaration(self, repo):
         """Naming the root does not turn an untracked declaration into a checked
-        one: CI reads what git carries, and local mode commits nothing."""
+        one: CI reads what git carries, and local mode commits nothing, so the
+        trailers are all the check judged."""
         local_item(repo)
         _code, out = run_check(repo)
-        assert "examined nothing" in out, out
+        assert "judged the commit trailers and nothing else" in out, out
+        assert "examined nothing" not in out, out
         assert "through the review chain" not in out, out
 
     def test_accepts_a_shared_root_and_tells_it_to_add_the_file(self, repo):
@@ -3715,11 +3717,15 @@ class Test_declared_for_this_branch:
         assert "local mode" not in out, out
 
     def test_the_shared_sentence_says_what_it_searched_and_for_what(self, repo):
-        """The prefix and the branch are what make the sentence checkable."""
+        """The prefix and the branch are what make the sentence checkable, and
+        the trailers are what the check judged where nothing declares the
+        branch."""
         (repo / "seal" / "threads").mkdir(parents=True)
         _code, out = run_check(repo)
         assert "under `seal/threads/`" in out, out
         assert "declares `feature`" in out, out
+        assert "judged the commit trailers and nothing else" in out, out
+        assert "examined nothing" not in out, out
 
     def test_a_repository_with_no_root_is_told_to_add_the_file(self, repo):
         """With no root to name, the file to write is the answer."""
