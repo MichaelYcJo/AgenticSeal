@@ -112,21 +112,11 @@ So a run ends with a **verifying round**, and three things define it.
 | Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `agents/proofer.md` *Rules* states the bound, in the rule opening **A verifying round answers the closed findings**, and the read of the work item's records that stands beside the bound, in the rule opening **Every round reads the work item's records that state the present** |
 | Job | the answers, not new findings. The round answers each finding the previous round closed `fixed <commit>` or `rejected`, as `skills/code-review/SKILL.md` *Earlier rounds* states |
 
-**A round that opens nothing needing a fix does not count.** The count
-holds rounds that found something, because it exists to make you weigh a
-loop that is not converging, and a round that finds nothing is the loop
-having converged. A verifying round that opens something IS a finding round
-and counts like any other, and one that opens nothing is by definition the
-last one, because the run ends at it.
-
-**You end the rounds when they stop paying, and three finding rounds,
-counted from the last design change, are the point where you weigh that
-rather than spawn the next round by habit.** `docs/running/the-run.md`
-*The run* says what a design change is and where the count starts again.
-The three rounds are where the weighing is owed, and they are no cap: no
-number of rounds decides that a run is excessive. At that point, and at any
-round where a signal below shows, you weigh what the next round can catch
-against what it costs:
+**You end the rounds when they stop paying.** Which rounds count, the
+three finding rounds at which the weighing is owed and which are no cap,
+and where the count starts again are `docs/running/the-run.md` *The run*'s.
+At that point, and at any round where a signal below shows, you weigh what
+the next round can catch against what it costs:
 
 | | What |
 |---|---|
@@ -139,13 +129,9 @@ A fix that changes no assertion owes no round of its own where another fix
 already owes one: it rides in that fix pass, and that pass's verifying
 round reads it. This weighs what a round costs and changes no invariant.
 
-A regression's fix pass is owed one verifying round whatever the count,
-because a fix no round reads is an invariant `skills/core/SKILL.md`
-*Judgment is not licence to skip a party* holds, not a judgment. **You write
-each decision to go on past the third round, or to stop, as one row of
-`frame/plan.md` *Judgments of the run*,** with the counts and signals you
-weighed as its grounds and the document you judged against; the proofer
-writes no line for it, and you ask no person to make it. When you stop, every
+The verifying round a regression's fix pass is owed whatever the count, and
+the row of `frame/plan.md` *Judgments of the run* that each decision to go
+on or to stop takes, are *The run*'s too. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
@@ -241,7 +227,7 @@ The framer's route:
 | Step | What |
 |---|---|
 | The record | you append a close block to every open finding, its `verdict:` reading `deferred the frame` and its `answer:` naming the regression that sent the work item back, and commit every such block in one commit |
-| The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
+| The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds the `Reframed` line under the `Framed` line, spelt as `docs/running/the-run.md` *The run* spells it. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the count again |
 
 ## Orchestrator: the pull request opens once the sealer seals
@@ -446,15 +432,13 @@ every `gh api -X PATCH` of the body**, so the body holds `pr.md`, its
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
 language each part is in.
 
-**On the broad run's exit 1 spawn nothing.** The word beside each failing
-file says whether it predates the work: `new` is this work's to repair,
-`failing on base too`
-is a follow-up to name, and `new?` carries the reason nothing at the base
-measured it, so run that file at the base before treating it as either.
-A failing suite that names no file and counts sessions that stopped
-part-way, at exit 0 too, had a pytest session at `HEAD` stop before its
-end: `records/` in the kept output says what stopped it, and a stop the
-branch added is this work's to repair.
+**On the broad run's exit 1 spawn nothing.** What the word beside each
+failing file tells you, and what you do at each word, are
+`skills/verify/orchestration.md` *The broad gate*'s. A failing suite that
+names no file and counts sessions that stopped part-way, at exit 0 too, had
+a pytest session at `HEAD` stop before its end: `records/` in the kept
+output says what stopped it, and a stop the branch added is this work's to
+repair.
 Review a repair that the row *No fix that no round reads* of
 `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to a
 round, and run the gate again. On the broad run's exit 2 nothing ran; a
@@ -462,8 +446,8 @@ refusal about the key goes to a person, as *A refusal about the `Broad gate`
 key* below says.
 
 **Pass the base as a plain branch name, and quote the lines only the gate can
-tell.** The gate resolves the base to the ref CI reads: the base's upstream
-where the checkout declares one, else `origin/<base>`. Quote, as printed,
+tell.** The gate resolves the base to the ref CI reads, in the order
+`docs/running/the-broad-gate.md` *What the gate runs* gives. Quote, as printed,
 in your report to the person and not in the pull request body, where
 resolving the base moved it, where the run handed itself to the tree's copy
 of the gate, and its `outputs kept under seal-gate-<random>/` line. Each is

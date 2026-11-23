@@ -4,8 +4,10 @@ Issue #105. Three settings existed when this module was written (#113), and
 the only way to see them was to open a file nobody had a reason to open. The
 skill is instructions rather than a program, so what is pinned here is what
 a reader of it acts on: the keys it names, the commands it routes a change
-to, the spelling of a value, and the paths that resolve the root. Whether
-its sentences say the rest is the proofer's to read.
+to and the spelling of a value. The places that resolve the root are the
+core's opening paragraph's since #1578, and
+`tests/text/test_the_rules_have_one_owner.py` holds the skill's citation of
+it. Whether its sentences say the rest is the proofer's to read.
 
 **The skill routes rather than reimplements.** A key that moves files is
 `seal mode`'s work, and a second implementation inside a skill is one
@@ -70,15 +72,6 @@ def test_the_way_back_from_shared_is_spelled():
     text = flat(*SKILL)
     # The command a person types first to walk a switch to shared back.
     assert "git reset -- :/seal" in text, "the way back is not spelled"
-
-
-def test_the_root_is_resolved_rather_than_spelled():
-    """The two places, in that order — the rule every other reader follows."""
-    text = flat(*SKILL)
-    # The path a session opens first, and the command that gives the
-    # second place.
-    assert "<repo>/seal/config.json" in text
-    assert "git rev-parse --git-common-dir" in text
 
 
 def test_the_bootstrap_names_the_way_back_to_its_own_questions():

@@ -19,14 +19,17 @@ every pin's change came with its own rule's rewording, so a rule reworded
 to the same meaning stays green. A sentence deleted from inside a rule that
 keeps its heading is left to review.
 
-Three facts are pinned, because a reader depends on their characters: rule
-1's two command forms, which an agent copies into a shell, rule 11's two
-places the `seal/` root resolves to, which an agent opens or runs, and rule
-21's command forms, two that Claude Code's parser reads and one it cannot,
-which an agent copies into a shell. Each is scoped to its section's BODY,
-not the file and not the heading: a fact that moves to another section
-breaks the number a round record cited, and a heading that outlives its
-rule is a section that says nothing.
+Two facts are pinned, because a reader depends on their characters: rule
+1's two command forms, which an agent copies into a shell, and rule 21's
+command forms, two that Claude Code's parser reads and one it cannot, which
+an agent copies into a shell. Each is scoped to its section's BODY, not the
+file and not the heading: a fact that moves to another section breaks the
+number a round record cited, and a heading that outlives its rule is a
+section that says nothing. Rule 11 spelt the places the `seal/` root
+resolves to until #1578, and now cites the opening paragraph of
+`skills/core/SKILL.md`, which states them;
+`tests/text/test_the_rules_have_one_owner.py` holds the places there and
+the citation here.
 
 Two frontmatter facts are pinned as well. `user-invocable: false` keeps the
 contract out of the `/` menu and was measured (2026-09-03, docs/experiments/)
@@ -59,10 +62,6 @@ FACTS = {
     1: (
         "the two command forms an agent copies into a shell",
         ("`cmd >/dev/null 2>&1; echo $?`", "`cmd | tail; echo $?`"),
-    ),
-    11: (
-        "the two places the `seal/` root resolves to, which an agent opens or runs",
-        ("`<repo>/seal/`", "`$(git rev-parse --git-common-dir)/seal/`"),
     ),
     21: (
         "the command forms an agent copies into a shell, two that Claude "
@@ -245,23 +244,27 @@ def test_deleting_a_pinned_phrase_is_caught(number, spelling):
 
 def test_moving_a_sentence_to_another_section_is_caught():
     """The fact is scoped to its section, so a rule that keeps its words and
-    loses its number — the drift a cited rule number cannot survive — is red."""
+    loses its number — the drift a cited rule number cannot survive — is red.
+    Rule 21 is moved, since rule 11 holds no pinned fact after #1578."""
     text = read()
-    _, start, end = spans(text)[11]
+    numbers = sorted(spans(text))
+    before = numbers[numbers.index(21) - 1]
+    _, start, end = spans(text)[21]
     rest = text[start:end]
-    _, _, end10 = spans(text)[10]
-    # Rule 11 keeps its heading and nothing else; its body now sits under 10.
+    _, _, end_before = spans(text)[before]
+    # Rule 21 keeps its heading and nothing else; its body now sits under the
+    # rule before it.
     moved = (
-        text[:end10].rstrip("\n")
+        text[:end_before].rstrip("\n")
         + "\n"
         + rest
-        + text[end10:start]
+        + text[end_before:start]
         + "\n\n"
         + text[end:]
     )
     missing = missing_facts(moved)
-    assert [s for n, s in missing if n == 11] == list(FACTS[11][1])
-    assert all(s in " ".join(bodies(moved)[10].split()) for s in FACTS[11][1])
+    assert [s for n, s in missing if n == 21] == list(FACTS[21][1])
+    assert all(s in " ".join(bodies(moved)[before].split()) for s in FACTS[21][1])
 
 
 def misspelled_headings(text):

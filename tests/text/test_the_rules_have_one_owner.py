@@ -47,6 +47,11 @@ PR_CHECK = ("docs", "checks", "the-pull-request-check.md")
 RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
+# The orchestrator's half of the verify skill, which holds the broad gate's
+# reading.
+VERIFY_ORCH = ("skills", "verify", "orchestration.md")
+BROAD_GATE = ("docs", "running", "the-broad-gate.md")
+AGENT_SET = ("docs", "running", "the-agent-set.md")
 
 # Each link is the owner's path and section, the citation a reader of the
 # linking carrier resolves; the sentence around it is the proofer's to read.
@@ -72,6 +77,9 @@ THE_CORES_ROW = (
 )
 CONVENTION = ("skills", "commit-pr-convention", "SKILL.md")
 OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
+CONTRACT = ("skills", "agent-contract", "SKILL.md")
+THE_CORES_PLACES = "the opening paragraph of `skills/core/SKILL.md`"
+WHAT_THE_GATE_RUNS = "`docs/running/the-broad-gate.md` *What the gate runs*"
 
 
 # rule -> (owner, the facts the owner states, {link carrier: the citation it
@@ -127,9 +135,15 @@ RULES = {
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
     # of the fix with the frame (the owner, 2026-10-16, on round 8).
+    # #1578: the line a reframe adds was spelt in three files, so *The run*
+    # spells it and the others name the line and that section.
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
-        (),
+        (
+            # The line the framer writes under its mark, which
+            # `chain_check.py#REFRAME_RE` reads.
+            "`Reframed <date> by <who>, after round <N>.`",
+        ),
         {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
     # #945, S5: one crafter resumed across phases read 941,799 tokens in one
@@ -199,6 +213,116 @@ RULES = {
             CONFIG_TEMPLATE: AFTER_THE_SEAL,
             OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
         },
+    ),
+    # #1578: eleven files each spelt where the root is found with
+    # `<repo>/seal/` as the shared place, and none named the second name
+    # #1059 gave it. The core reaches every agent and every session where a
+    # root stands, and is the one file the second name may stand in, so its
+    # opening paragraph names the places and each of the eleven names that
+    # paragraph. The six links below each replace a case that pinned that
+    # file's copy of the places.
+    "24 where the records root is found": (
+        CORE,
+        (
+            # The three places, in the order the gates read them, which an
+            # agent opens or runs.
+            "`<repo>/seal/`",
+            "`agentic-seal/`",
+            "`$(git rev-parse --git-common-dir)/seal/`",
+            # The function that reads them, which a reader resolves for the
+            # order.
+            "`lib/optin.py#home_at`",
+        ),
+        {
+            CONTRACT: THE_CORES_PLACES,
+            IMPLEMENT: THE_CORES_PLACES,
+            ORCH_IMPL: THE_CORES_PLACES,
+            BOOTSTRAP: THE_CORES_PLACES,
+            CONVENTION: THE_CORES_PLACES,
+            CONFIG_SKILL: THE_CORES_PLACES,
+        },
+    ),
+    # #1578: five files each listed the records `Record language` governs,
+    # and none of the lists held the phase record the implement skill named.
+    # The template documents every key, so its section lists them and the
+    # others name it.
+    "25 what Record language governs": (
+        CONFIG_TEMPLATE,
+        (
+            # The record a crafter writes at each phase's close, which the
+            # other lists left out.
+            "`trail/phases/phase-N.md`",
+        ),
+        {},
+    ),
+    # #1578: eight files, the template among them, each said how a language
+    # key is absent or what an absent one does, and the commit skill's four
+    # ways were the only complete list. The template's paragraph states
+    # both, and each fact here is spelt as that paragraph alone spells it,
+    # since the file names `no such key` and `seal pr-body` in other
+    # sentences too.
+    "26 what an absent language key is and does": (
+        CONFIG_TEMPLATE,
+        (
+            # The four ways a key is absent, which a reader of `config.json`
+            # checks the file against.
+            "no file, no such key, an empty value",
+            "does not parse as one JSON object",
+            # The fourth way counted as absent for the two language keys,
+            # where the next paragraph's lead refuses it for every key.
+            "for these two keys it counts as absent",
+            # What absence does at the pull request body, and at a commit or
+            # a record.
+            "`seal pr-body` refuses with nothing written",
+            "commit or a record is written in English",
+        ),
+        {},
+    ),
+    # #1578: three files each said what the words beside a failing file
+    # mean, and the one the other two cited labelled its bullets with none
+    # of the words the gate prints. Its bullets now open with them.
+    "27 what the word beside a failing file tells the orchestrator": (
+        VERIFY_ORCH,
+        (
+            # The three words `broad_gate.py#ON_BASE`, `#NEW` and
+            # `#NOT_MEASURED` print, which the orchestrator reads in the
+            # gate's output.
+            "`failing on base too`",
+            "`new`",
+            "`new?`",
+        ),
+        {},
+    ),
+    # #1578: four files each gave the order the gate resolves its base in,
+    # and one left out the ref as given. The policy spells the refs, the
+    # sealer keeps the steps it types itself, and
+    # each link replaces `DESCRIBES_THE_BASE` of
+    # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py`, which
+    # held both orchestration files to their copies.
+    "28 the order the base is resolved in": (
+        BROAD_GATE,
+        (
+            # The two refs `broad_gate.py#resolve_base` tries before the ref
+            # as given, which a person doubting a seal checks the printed
+            # base against.
+            "`<base>@{upstream}`",
+            "`origin/<base>`",
+        ),
+        {VERIFY_ORCH: WHAT_THE_GATE_RUNS, ORCH: WHAT_THE_GATE_RUNS},
+    ),
+    # #1578: a document of `docs/forms/` and the agent set each stated what
+    # a frame removes, under the same `check:` line. The document went, and
+    # the agent set's paragraph took its one clause.
+    "29 what a frame removes": (
+        AGENT_SET,
+        (
+            # The section of `frame/design.md` the framer writes and the
+            # proofer reads against the diff.
+            "`## Removes`",
+            # The block a work item removing nothing writes in its place.
+            "`skills/settle/rule-changes.md` *Rule changes*",
+        ),
+        {},
     ),
 }
 

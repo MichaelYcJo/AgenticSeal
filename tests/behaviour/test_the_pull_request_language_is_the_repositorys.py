@@ -47,21 +47,6 @@ def test_the_skill_names_the_file_and_the_row():
     assert "Commit and pull request language" in text, "the skill does not name the key"
 
 
-def test_the_root_is_resolved_rather_than_spelled():
-    """S3. Local mode (#80) keeps the whole root under the common git
-    directory. A skill that spells `<repo>/seal/` and stops sends a
-    local-mode session to a path that is not there, and the config it then
-    reports missing is the file that exists."""
-    text = flat(*SKILL)
-    # The command a session runs to find the local-mode root.
-    assert "git rev-parse --git-common-dir" in text, (
-        "the skill spells one place for the root, so a local-mode repository "
-        "cannot carry a config at all"
-    )
-    # The path of the shared root, which a session opens first.
-    assert "<repo>/seal/" in text, "the shared place went with the fix"
-
-
 # --- what the row deliberately does not reach -------------------------------
 
 
@@ -408,8 +393,10 @@ def configured_language(root=None, row=COMMIT_ROW):
 # FOUR ways, in five ids. "Cannot be read or is not one JSON object" is one
 # way with two spellings, and the last two below are both that way — a file
 # that does not parse as JSON, and one whose top level is an array. Round 2
-# ❓ 8 settled the count: the skill's sentence says four, so four is the
-# number, and keeping five shapes here costs nothing and exercises more.
+# ❓ 8 settled the count: the sentence says four, so four is the number, and
+# keeping five shapes here costs nothing and exercises more. Since #1578 the
+# sentence is the paragraph of `templates/setup/config.md` *An absent
+# language key is a refusal at the pull request body, and never at a commit*.
 UNNAMED = [
     ("no file at all", None),
     ("a file with no such key", config_json(("Other", "x"))),
