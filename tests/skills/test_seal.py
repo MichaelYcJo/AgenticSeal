@@ -3479,7 +3479,8 @@ class Test_pr_checks:
         self, take, capsys, monkeypatch, action, held, tail, outcome, said_line
     ):
         """S4: a git that did not answer is read as each step reads a
-        non-zero exit, and the index is as it was."""
+        non-zero exit, and the index is as it was. The row with nothing on
+        stderr holds that reading of the non-zero exit itself."""
         repo = take("shared")
         if held == "another release's copy, deleted by hand":
             old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
