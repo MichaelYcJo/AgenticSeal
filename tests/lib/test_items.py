@@ -147,7 +147,7 @@ class Test_unread_block:
         self, body
     ):
         """#1576, design S11: `none` is no spelling of the block, so a line
-        holding it opens like nothing the block is."""
+        holding it does not open like the block."""
         assert ITEMS.unread_block(body) is None
 
 
