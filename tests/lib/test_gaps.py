@@ -248,11 +248,11 @@ class Test_parse_section:
         _, _, errors = parse(CANONICAL.replace(TUI, row))
         assert errors and says in errors[0][1], errors
 
-    @pytest.mark.parametrize("first", ["none - x", "none", "None.", "nothing - x"])
-    def test_refuses_a_section_holding_the_old_line_and_names_the_line(self, first):
-        """S2 of #1000 and #1167's *Scope* item 9: the old line and its near
-        misses are not the block, so the section holds neither the table nor
-        the block and is refused as unreadable at that line, and the refusal
+    @pytest.mark.parametrize("first", ["nothing - x", "Nothing.", "nothing"])
+    def test_refuses_a_section_holding_a_near_miss_and_names_the_line(self, first):
+        """S2 of #1000 and #1167's *Scope* item 9: a near miss of the block
+        is not the block, so the section holds neither the table nor the
+        block and is refused as unreadable at that line, and the refusal
         names the line as one it did not read, pinned whole (contract rule
         14). Seen red against the refusal naming the near miss as the
         block's."""

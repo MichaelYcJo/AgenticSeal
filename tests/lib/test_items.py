@@ -102,9 +102,9 @@ class Test_nothing_block:
             ([(3, "- nothing"), (4, "  why: all run.")], []),
             ([(3, "- nothing")], []),
             ([(3, "| Item | Who must answer |")], None),
-            ([(3, "none - x")], None),
+            ([(3, "nothing - x")], None),
         ],
-        ids=["the block", "the block with no why", "a table", "the old line"],
+        ids=["the block", "the block with no why", "a table", "a line like it"],
     )
     def test_accepts_the_block_and_passes_anything_else_on(self, body, answer):
         """#1167, *Scope* item 9: a line that opens like the block and is not
@@ -122,7 +122,7 @@ class Test_nothing_block:
 
 class Test_unread_block:
     @pytest.mark.parametrize(
-        "first", ["none - x", "None.", "- nothing - x", "-nothing", "* none"]
+        "first", ["nothing - x", "Nothing.", "- nothing - x", "-nothing", "* nothing"]
     )
     def test_refuses_a_first_line_that_opens_like_the_block_as_the_block(self, first):
         """The line is not taken as the block: it is named as read as prose.
@@ -138,13 +138,16 @@ class Test_unread_block:
             [(3, "- nothing"), (4, "  why: x")],
             [(3, "| Item | Who must answer |")],
             [(3, "nonesuch")],
-            [(3, "| a | b |"), (4, "none - x")],
+            [(3, "| a | b |"), (4, "nothing - x")],
+            [(3, "- none")],
         ],
-        ids=["the block", "a table", "another word", "not the first line"],
+        ids=["the block", "a table", "another word", "not the first line", "none"],
     )
     def test_accepts_the_block_and_any_first_line_that_does_not_open_like_it(
         self, body
     ):
+        """#1576, design S11: `none` is no spelling of the block, so a line
+        holding it opens like nothing the block is."""
         assert ITEMS.unread_block(body) is None
 
 

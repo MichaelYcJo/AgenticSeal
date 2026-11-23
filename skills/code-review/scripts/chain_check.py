@@ -773,7 +773,8 @@ def round_read(reader, text, rel):
             outside.append(block)
             if block.kind is FIELDS.ROUND_BLOCK:
                 rounds.append(block)
-            elif (said := block.fields[FIELDS.CONFIRMS]).match["round"]:
+            else:
+                said = block.fields[FIELDS.CONFIRMS]
                 confirms.append((said.line, reference(said.match)))
     if not rounds and not errors:
         return Parsed(
