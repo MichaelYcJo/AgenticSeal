@@ -21,8 +21,9 @@ import subprocess
 import sys
 
 import commonmark_oracle as oracle
+import gfm_table_oracle
 import pytest
-from block_shapes import RENDERER, SHAPES
+from block_shapes import BREAKS, RENDERER, SHAPES
 from conftest import (
     ROOT,
     census_case,
@@ -110,6 +111,37 @@ class Test_table_rows:
         value to read (#1017, the body's two `table_rows` rows)."""
         assert routing.table_rows(line + "\n") == []
 
+    @pytest.mark.parametrize(
+        "row, value",
+        [
+            ("| Branch | fix/a\\|b |", "fix/a|b"),
+            ("| Branch | fix/a \\|", "fix/a |"),
+            ("| Branch | fix/a", "fix/a"),
+            ("| Branch | fix/a | b |", "fix/a"),
+            (f"| Branch | fix/a{BREAKS['LS']}b |", f"fix/a{BREAKS['LS']}b"),
+        ],
+        ids=[
+            "an escaped pipe",
+            "an escaped last pipe",
+            "no closing pipe",
+            "a third cell",
+            "a U+2028 inside a cell",
+        ],
+    )
+    def test_reads_each_row_as_cmark_gfm_renders_it(self, row, value):
+        """S1, S2 and S3 of #1574. The rows are split by
+        `lib/tables.py#table_cells`, so an escaped pipe is one literal pipe in
+        its cell, a row whose closing pipe is left off is a row, and a row
+        wider than two cells is read as its first two, each as cmark-gfm
+        renders it under the two-cell header. The lines are
+        `lib/blocks.py#gfm_lines`, so a U+2028, which `str.splitlines` ends a
+        line at, stays inside its cell. The delimiter row is no row."""
+        text = "| Axis | Answer |\n|---|---|\n" + row + "\n"
+        assert gfm_table_oracle.rows_under(text, ("Axis", "Answer")) == [
+            ("Branch", value)
+        ]
+        assert routing.table_rows(text) == [("Axis", "Answer"), ("Branch", value)]
+
 
 class Test_parse:
     """Where two cases call `parse` alike on the two-axis declaration, the
@@ -176,6 +208,18 @@ class Test_parse:
             parsed = routing.parse(with_row(routing.AUTOMATION, answer))
             assert parsed["automation"] == answer, answer
 
+    def test_reads_an_escaped_pipe_and_an_open_row_as_cmark_gfm_does(self):
+        """S1 and S2 of #1574. A `Branch` value holding an escaped pipe is the
+        branch with one literal pipe, where the reader once split the cell at
+        it and read a backslash, and a `Planning` row written without its
+        closing pipe still answers."""
+        text = two_axis_text(branch="fix/a\\|b").replace(
+            "| Branch |", "| Planning | framer\n| Branch |"
+        )
+        parsed = routing.parse(text)
+        assert parsed is not None, text
+        assert (parsed["branch"], parsed["planning"]) == ("fix/a|b", "framer")
+
     def test_accepts_a_declaration_below_a_comment_opener_nobody_closed(self):
         """#872 round 3, finding 10. `lib/routing.py#shown` keeps the reading
         it gave before #667 wherever its walk is unsure, and that reading hid
@@ -192,7 +236,8 @@ class Test_parse:
         form feed and five more characters, and CommonMark does not, so a `<!--`
         after one began a line for the walk and no line for a renderer: the walk
         hid the table under it, and `parse` answered None where the base read the
-        declaration. The walk reads where CommonMark breaks."""
+        declaration. The reader splits its text with `lib/blocks.py#gfm_lines`,
+        so the `<!--` stays mid-line and hides nothing."""
         from block_shapes import BREAKS, OPEN, TABLE
 
         text = "\n".join([f"A note{BREAKS[name]}{OPEN}", "", *TABLE, "-->"]) + "\n"
@@ -551,14 +596,34 @@ class Test_module:
         ]
         assert found[0][1]["review"] == CHAIN
 
-    def test_a_reader_copied_without_the_walk_names_it(self, tmp_path):
+    @pytest.mark.parametrize(
+        "missing, siblings, purpose",
+        [
+            (
+                "blocks.py",
+                ["gitcmd.py", "optin.py"],
+                "tells a live row from one quoted in a fence or parked in a comment",
+            ),
+            (
+                "tables.py",
+                ["gitcmd.py", "optin.py", "blocks.py"],
+                "the row splitter this reader reads routing.md's cells through",
+            ),
+        ],
+        ids=["without the walk", "without the row splitter"],
+    )
+    def test_a_reader_copied_without_the_walk_names_it(
+        self, tmp_path, missing, siblings, purpose
+    ):
         """#667. This module imports `lib/blocks.py`, the walk the readers
-        under `lib/` share, after `lib/gitcmd.py` and `lib/optin.py`, so the
-        copy takes both with it. It is a module, not a script: scripts import it, and a script
-        catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
-        sentence names the path and what the file is for.
+        under `lib/` share, after `lib/gitcmd.py` and `lib/optin.py`, and
+        `lib/tables.py`, the row splitter, after all three (#1574), so each
+        copy takes the files imported before the one it leaves out. It is a
+        module, not a script: scripts import it, and a script catches the
+        error or names the file first. So a copy without either raises one
+        `ImportError` whose sentence names the path and what the file is for.
         `tests/lib/test_tables.py` holds `lib/tables.py` to the same."""
-        name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py", "gitcmd.py"]
+        name = TARGET.rsplit("/", 1)[1]
         alone = tmp_path / "lib"
         alone.mkdir()
         for file in (name, *siblings):
@@ -577,10 +642,8 @@ class Test_module:
         assert done.returncode != 0, done.stderr
         last = done.stderr.strip().splitlines()[-1]
         assert last.startswith("ImportError: cannot read "), last
-        assert names_path(os.path.join(str(alone), "blocks.py"), last), last
-        assert "tells a live row from one quoted in a fence or parked in a comment" in (
-            last
-        ), last
+        assert names_path(os.path.join(str(alone), missing), last), last
+        assert purpose in last, last
 
     def test_the_routing_reader_never_leaves_both_readings(self):
         """Half 1, S9. `lib/routing.py#table_rows` read every line at
@@ -590,9 +653,7 @@ class Test_module:
         wrong = []
         for doc in CORPUS:
             text, lines = as_read(doc)
-            new = set(range(len(lines))) - {
-                i for i, _line in routing.shown(lines, text)
-            }
+            new = set(range(len(lines))) - {i for i, _line in routing.shown(lines)}
             bad = leaves_both(new, set(), set(oracle.hidden_text(text)), len(lines))
             if bad:
                 wrong.append((lines, bad))

@@ -21,8 +21,8 @@ own cases stand in `tests/test_commonmark_oracle.py`.
 Each reader is held in its own module file, over those shapes and the
 seeded generated corpus `tests/lib/test_blocks.py` builds: half 1 in
 `tests/lib/test_tables.py`'s `Test_unfenced` and `tests/lib/test_routing.py`'s
-`Test_module`, half 2 in `tests/lib/test_blocks.py`'s `Test_walk` and
-`Test_walk_text`, and half 3 in each reader's own case table.
+`Test_module`, half 2 in `tests/lib/test_blocks.py`'s `Test_walk`, and
+half 3 in each reader's own case table.
 """
 
 import os

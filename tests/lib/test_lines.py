@@ -1,11 +1,13 @@
 """`lib/lines.py`, one class per function.
 
-The readers of a markdown text by line: a table row's cells, what a cell
-shows, the lines a fence holds, the record line that opens a comment,
-whether a line begins live, and which ATX heading a line is. They run in
-the process on lines and texts, with no git. Their cases came, unchanged
-but for the module they call, from `tests/skills/test_unverified_check.py`
-when the readers left that script (#1482).
+The readers of a markdown text by line: whether a table row's cells are a
+delimiter row, what a cell shows, the lines a fence holds, the record line
+that opens a comment, whether a line begins live, and which ATX heading a
+line is. They run in the process on lines and texts, with no git. Their
+cases came, unchanged but for the module they call, from
+`tests/skills/test_unverified_check.py` when the readers left that script
+(#1482). The row splitter's cases left for `tests/lib/test_tables.py`'s
+`Test_table_cells` with the splitter (#1574).
 
 `Test_heading_level` holds the heading rule to markdown-it's ATX headings
 through `tests/commonmark_oracle.py`, over the frame's shapes and a
@@ -33,27 +35,6 @@ GAPS = load_lib_module("gaps.py", "gaps_for_the_lines_cases")
 # Spelt by code point, so no invisible character stands in this file.
 ZERO_WIDTH_SPACE = chr(0x200B)
 EMOJI_SELECTOR = chr(0xFE0F)
-
-
-class Test_split_row:
-    @pytest.mark.parametrize(
-        "line, cells",
-        [
-            ("| a | b |", ["a", "b"]),
-            ("  | a | b", ["a", "b"]),
-            (
-                "| whether `a \\| b` parses | the next session |",
-                ["whether `a | b` parses", "the next session"],
-            ),
-            ("| a \\|", ["a |"]),
-        ],
-        ids=["closed", "open at the end", "an escaped pipe", "an escaped last pipe"],
-    )
-    def test_accepts_a_row_and_its_escaped_pipes(self, line, cells):
-        assert READER.split_row(line) == cells
-
-    def test_refuses_a_line_that_is_no_row(self):
-        assert READER.split_row("- the TUI rendering, nobody has seen it") is None
 
 
 class Test_is_separator:
