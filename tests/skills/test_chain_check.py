@@ -8,13 +8,18 @@ round records and the closing records, judged as a ready or a draft pull
 request through the event payload GitHub writes. Each copy is the reset.
 
 The arms `main` calls are called in the process with their input given
-(#1581's phase 2): a record through `read_record` replaced for the case
-(`reading`), a design and the files beside it read from a copy's working
-tree under `WORKTREE`, or an argument such as `originals_of`'s paths. A case
-doing so over a world it never writes takes the module's template itself,
-`_branch_template`, `_item_template` or `_bodied_template`, with no copy.
+(#1581's phases 2 and 3): a record through `read_record` replaced for the
+case (`reading`), the round records the records arm reads (`records_read`),
+a design and the files beside it read from a copy's working tree under
+`WORKTREE`, or an argument such as `originals_of`'s paths. A case doing so
+over a world it never writes takes the module's template itself,
+`_branch_template`, `_item_template` or `_bodied_template`, with no copy,
+and so does a `main` run whose records reach it through `reading`, since
+`main` without `--worktree` writes nothing into the repository it reads.
 Each arm keeps the `main` runs over a real repository that show `main`
-reaches it, and the cases whose fact is which records `main` hands the arm.
+reaches it, and the cases whose fact is which records `main` hands the arm
+or what `main` makes of the arm's answer: the exit code a draft and
+`--sealing` give, and where a not-read line is printed.
 
 The cases that run `main` beside a project's own `seal/` package
 (#1059) build `tests/conftest.py`'s `package` or `shared` repository for
@@ -1381,8 +1386,8 @@ class Test_channel:
 @pytest.mark.rule("run-ends-with-verifying-round")
 @pytest.mark.rule("last-record-at-head")
 class Test_follows:
-    def test_accepts_head_and_record_commits_after_it(self, branch):
-        root, code = branch
+    def test_accepts_head_and_record_commits_after_it(self, _branch_template):
+        root, code = _branch_template
         assert chain.follows(str(root), code, "main", ITEM) is None
 
     def test_refuses_a_code_commit_after_it_and_an_unseen_commit(self, branch):
@@ -1412,37 +1417,44 @@ class Test_frame:
     def routing(self):
         return load(ROOT / "lib" / "routing.py", "routing_for_chain_tests")
 
-    def test_accepts_a_framed_item_with_a_reframe_by_the_framer(self, branch):
-        root, _code = branch
-        write(
-            root,
-            f"{ITEM}/frame/design.md",
-            SPEC + "Reframed 2026-10-16 by framer, after round 2.\n",
+    def test_accepts_a_framed_item_with_a_reframe_by_the_framer(
+        self, _branch_template, monkeypatch
+    ):
+        root, _code = _branch_template
+        reading(
+            monkeypatch,
+            {
+                f"{ITEM}/frame/design.md": SPEC
+                + "Reframed 2026-10-16 by framer, after round 2.\n",
+                f"{ITEM}/frame/plan.md": "# plan\n",
+            },
         )
-        write(root, f"{ITEM}/frame/plan.md", "# plan\n")
-        commit(root, "frame")
         assert chain.frame(self.routing(), str(root), ITEM, FRAMED) == []
 
-    def test_refuses_a_missing_plan_and_a_reframe_by_another_party(self, branch):
-        root, _code = branch
-        write(
-            root,
-            f"{ITEM}/frame/design.md",
-            SPEC + "Reframed 2026-10-16 by the session, after round 2.\n",
+    def test_refuses_a_missing_plan_and_a_reframe_by_another_party(
+        self, _branch_template, monkeypatch
+    ):
+        root, _code = _branch_template
+        reading(
+            monkeypatch,
+            {
+                f"{ITEM}/frame/design.md": SPEC
+                + "Reframed 2026-10-16 by the session, after round 2.\n"
+            },
         )
-        commit(root, "frame")
         problems = chain.frame(self.routing(), str(root), ITEM, FRAMED)
         assert any("plan.md" in p for p in problems)
         assert any("Reframed 2026-10-16 by the session" in p for p in problems)
 
-    def test_reads_who_alone_of_the_mark_and_each_reframe(self, branch):
+    def test_reads_who_alone_of_the_mark_and_each_reframe(
+        self, _branch_template, monkeypatch
+    ):
         """#1319: the arm compares who drew the frame with `Planning`, and
         reads neither the date nor the round number, so a date or a round
         left as the template's placeholder passes, and the template's
         unfilled who is refused as a who other than `framer`. Seen red
         against the placeholder checks and the digits the round took."""
-        root, _code = branch
-        write(root, f"{ITEM}/frame/plan.md", "# plan\n")
+        root, _code = _branch_template
         for foot, said in (
             (
                 "Framed <date> by framer, before the build.\n"
@@ -1457,8 +1469,12 @@ class Test_frame:
                 ],
             ),
         ):
-            write(root, f"{ITEM}/frame/design.md", "# spec\n\nbody\n\n" + foot)
-            commit(root, "frame")
+            design = "# spec\n\nbody\n\n" + foot
+            plan = "# plan\n"
+            reading(
+                monkeypatch,
+                {f"{ITEM}/frame/design.md": design, f"{ITEM}/frame/plan.md": plan},
+            )
             problems = chain.frame(self.routing(), str(root), ITEM, FRAMED)
             assert problems == said, foot
 
@@ -3642,7 +3658,6 @@ class Test_body:
 
 # --- the declaration for this branch, in local mode (#225) --------------------------
 
-CHECK = str(CHAIN)
 ITEM_ID = "1799000000-a-local-work-item"
 
 
@@ -3686,25 +3701,14 @@ def local_item(repo, item=ITEM_ID, branch="feature"):
     return d
 
 
-def run_check(repo, *extra):
-    r = subprocess.run(
-        [
-            sys.executable,
-            CHECK,
-            "--worktree",
-            "--baseline",
-            "HEAD",
-            "--root",
-            str(repo),
-            *extra,
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=120,
-        cwd=str(repo),
-    )
-    return r.returncode, r.stdout + r.stderr
+def run_check(repo, capsys, monkeypatch):
+    """(exit code, what it printed to both streams) of `main` over REPO's
+    working tree against HEAD, run in the process. `main` sets `WORKTREE`,
+    which goes back to its value when the case ends."""
+    monkeypatch.setattr(chain, "WORKTREE", chain.WORKTREE)
+    code = chain.main(["--worktree", "--baseline", "HEAD", "--root", str(repo)])
+    out, err = capsys.readouterr()
+    return code, out + err
 
 
 ADD_THE_FILE = "Add seal/threads/<work-item>/routing.md to declare"
@@ -3718,24 +3722,26 @@ DECLARES_FEATURE = ROUTING.format(
 
 
 class Test_declared_for_this_branch:
-    def test_refuses_a_local_declaration_and_says_it_is_local_mode(self, repo):
+    def test_refuses_a_local_declaration_and_says_it_is_local_mode(
+        self, repo, capsys, monkeypatch
+    ):
         """A local-mode repository is told the root it searched, not to write a
         file it already has."""
         local_item(repo)
-        code, out = run_check(repo)
+        code, out = run_check(repo, capsys, monkeypatch)
         assert code == 0, out
         assert ADD_THE_FILE not in out, out
         assert "local mode" in out, out
         assert os.path.normpath(os.path.join(common_dir(repo), "seal")) in out, out
         assert "seal mode shared" in out, out
 
-    def test_local_mode_says_the_check_judged_nothing(self, repo):
+    def test_local_mode_says_the_check_judged_nothing(self, repo, capsys, monkeypatch):
         """Naming the root does not turn an untracked declaration into a checked
         one: CI reads what git carries, and local mode commits nothing. At a
         local root each trailer is printed, not judged, so the notice says the
         check judged nothing."""
         local_item(repo)
-        _code, out = run_check(repo)
+        _code, out = run_check(repo, capsys, monkeypatch)
         assert (
             "the review-chain check judged nothing: at a local root each "
             "commit's `Seal-Routing` trailer is printed, not judged"
@@ -3744,28 +3750,34 @@ class Test_declared_for_this_branch:
         assert "examined nothing" not in out, out
         assert "through the review chain" not in out, out
 
-    def test_accepts_a_shared_root_and_tells_it_to_add_the_file(self, repo):
+    def test_accepts_a_shared_root_and_tells_it_to_add_the_file(
+        self, repo, capsys, monkeypatch
+    ):
         """A shared-mode repository with no declaration is told to write one."""
         (repo / "seal" / "threads").mkdir(parents=True)
-        code, out = run_check(repo)
+        code, out = run_check(repo, capsys, monkeypatch)
         assert code == 0, out
         assert ADD_THE_FILE in out, out
         assert "local mode" not in out, out
 
-    def test_the_shared_sentence_says_what_it_searched_and_for_what(self, repo):
+    def test_the_shared_sentence_says_what_it_searched_and_for_what(
+        self, repo, capsys, monkeypatch
+    ):
         """The prefix and the branch are what make the sentence checkable, and
         the trailers are what the check judged where nothing declares the
         branch."""
         (repo / "seal" / "threads").mkdir(parents=True)
-        _code, out = run_check(repo)
+        _code, out = run_check(repo, capsys, monkeypatch)
         assert "under `seal/threads/`" in out, out
         assert "declares `feature`" in out, out
         assert "judged the commit trailers and nothing else" in out, out
         assert "examined nothing" not in out, out
 
-    def test_a_repository_with_no_root_is_told_to_add_the_file(self, repo):
+    def test_a_repository_with_no_root_is_told_to_add_the_file(
+        self, repo, capsys, monkeypatch
+    ):
         """With no root to name, the file to write is the answer."""
-        code, out = run_check(repo)
+        code, out = run_check(repo, capsys, monkeypatch)
         assert code == 0, out
         assert ADD_THE_FILE in out, out
         assert "local mode" not in out, out
@@ -3838,15 +3850,24 @@ def commit_saying(d, *paragraphs, env=None):
     return git(d, "rev-parse", "HEAD")
 
 
-@pytest.fixture
-def undeclared(tmp_path, monkeypatch):
-    """`feature/t`, which no declaration names, judged as a ready pull
-    request: `main` holds one file."""
-    d = tmp_path / "t"
+@pytest.fixture(scope="module")
+def _undeclared_template(tmp_path_factory):
+    """`feature/t`, which no declaration names, checked out from a `main`
+    holding one file, built once for the module."""
+    d = tmp_path_factory.mktemp("chain-undeclared") / "t"
     init(d)
     write(d, "f.txt", "one\n")
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/t")
+    return d
+
+
+@pytest.fixture
+def undeclared(tmp_path, monkeypatch, _undeclared_template):
+    """A copy of the module's `feature/t` for one case, judged as a ready
+    pull request."""
+    d = tmp_path / "t"
+    shutil.copytree(_undeclared_template, d)
     event(tmp_path, monkeypatch, False)
     return d
 
@@ -3890,21 +3911,19 @@ class Test_routing_trailers:
         assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in out
 
     def test_does_not_read_the_trailer_key_a_commit_before_0_23_0_carries(
-        self, undeclared, capsys
+        self, undeclared
     ):
         """S1 of #1142: the key a commit made before the rename carries,
         `SpecSeal-Routing:`, is read as any other trailer key is: not judged.
-        A work item no declaration names passes a ready pull request, and
-        `no work item` prints no notice."""
+        Neither the work item no declaration names nor `no work item` is
+        read as a routing trailer, so neither reaches the arm that judges
+        them."""
         root = undeclared
         write(root, "a.txt", "a\n")
-        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
         write(root, "b.txt", "b\n")
-        none = commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
-        code, out = check(root, capsys)
-        assert code == 0, out
-        assert named[:8] not in out, out
-        assert none[:8] not in out, out
+        commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
+        assert chain.routing_trailers(str(root), "main") == []
 
     def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
         self, branch, ready, capsys
@@ -3916,7 +3935,7 @@ class Test_routing_trailers:
         assert code == 0, out
         assert "Seal-Routing" not in out, out
 
-    def test_a_teammates_commit_is_never_judged(self, undeclared, capsys):
+    def test_a_teammates_commit_is_never_judged(self, undeclared):
         """S11: the harness's co-author trailer, which any Claude Code
         session carries, is not the session's routing trailer."""
         root = undeclared
@@ -3926,13 +3945,9 @@ class Test_routing_trailers:
             "feat: a teammate's change",
             "Co-Authored-By: Claude <noreply@example.com>",
         )
-        code, out = check(root, capsys)
-        assert code == 0, out
-        assert "Seal-Routing" not in out, out
+        assert chain.routing_trailers(str(root), "main") == []
 
-    def test_a_merge_and_a_squash_github_committed_are_not_its_own(
-        self, undeclared, capsys
-    ):
+    def test_a_merge_and_a_squash_github_committed_are_not_its_own(self, undeclared):
         """A merge's message is not a commit of the pull request, and a squash
         GitHub committed was judged at the pull request it closed: its
         committer is not its author, one case of the rule below."""
@@ -3956,9 +3971,7 @@ class Test_routing_trailers:
         commit_saying(
             root, "feat: elsewhere (#7)", f"Seal-Routing: {ROUTED}", env=GITHUB
         )
-        code, out = check(root, capsys)
-        assert code == 0, out
-        assert ROUTED not in out, out
+        assert chain.routing_trailers(str(root), "main") == []
 
     def test_a_work_item_trailer_at_a_local_root_is_printed_not_refused(
         self, undeclared, capsys
@@ -3984,7 +3997,7 @@ class Test_routing_trailers:
         )
         assert "commit its `routing.md`" not in out, out
 
-    def test_a_commit_its_author_did_not_commit_is_not_judged(self, undeclared, capsys):
+    def test_a_commit_its_author_did_not_commit_is_not_judged(self, undeclared):
         """Round 1 of #1027, finding 2: a person's `cherry-pick -x` of a
         session's commit is the person's commit, carrying a trailer the
         person did not write. Its committer is not its author, which is how
@@ -4001,9 +4014,7 @@ class Test_routing_trailers:
             capture_output=True,
             env={**os.environ, "GIT_COMMITTER_EMAIL": "person@example.com"},
         )
-        code, out = check(root, capsys)
-        assert code == 0, out
-        assert ROUTED not in out, out
+        assert chain.routing_trailers(str(root), "main") == []
 
     def test_refuses_to_run_where_the_commits_cannot_be_read(
         self, undeclared, capsys, monkeypatch
@@ -4064,15 +4075,33 @@ def checked(capsys, repo):
     return code, capsys.readouterr().out
 
 
+ROUNDS = f"{ITEM}/trail/rounds"
+ROUND_1 = f"{ROUNDS}/round-1.md"
+ROUND_2 = f"{ROUNDS}/round-2.md"
+
+
+def records_read(monkeypatch, root, texts=None, listed=None):
+    """What the records arm, the one `main` hands a work item declared
+    through the review chain, gives for ITEM over ROOT against `main`. TEXTS,
+    `{path: text or None}`, reach it through `read_record` (`reading`).
+    Where LISTED is given, it is the round records the arm reads, lowest
+    first, in place of what `trail/rounds/` holds at HEAD; every commit the
+    arm asks about is git's."""
+    reading(monkeypatch, texts or {})
+    if listed is not None:
+        monkeypatch.setattr(chain, "round_records", lambda routing, r, i: list(listed))
+    return chain.records(routing_module, str(root), ITEM, f"{ITEM}/routing.md", "main")
+
+
 @pytest.mark.rule("routing-read-first")
 class Test_main:
     @pytest.mark.rule("old-table-shape-refused")
     def test_accepts_a_reviewed_branch_on_a_ready_pull_request(
-        self, branch, ready, capsys
+        self, _branch_template, ready, capsys
     ):
         """S11: the merged item's old-shape record, a finding open in it, is
         never opened; the check judges only what this pull request carries."""
-        root, _code = branch
+        root, _code = _branch_template
         code, out = check(root, capsys)
         assert code == 0, out
         assert MERGED_ITEM not in out
@@ -4105,7 +4134,7 @@ class Test_main:
         ],
     )
     def test_refuses_a_git_that_did_not_answer_in_one_line(
-        self, branch, ready, capsys, monkeypatch, words
+        self, _branch_template, ready, capsys, monkeypatch, words
     ):
         """S8 of #1573: a git read past `lib/gitcmd.py#TIMEOUT` ends
         `chain-check` with one line on stderr, `chain-check: ` and the
@@ -4116,7 +4145,7 @@ class Test_main:
         so it is not named as a reader that would not load. Seen red against
         `chain_check.py` before #1573, where the timeout was raised out of
         `main`."""
-        root, _code = branch
+        root, _code = _branch_template
         asked = unanswered(monkeypatch, *words)
         code = chain.main(["--baseline", "main", "--root", str(root)])
         err = capsys.readouterr().err
@@ -4126,43 +4155,37 @@ class Test_main:
 
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_an_open_finding_on_a_ready_pull_request(
-        self, branch, ready, capsys
+        self, _branch_template, draft, capsys, monkeypatch
     ):
         """#1198's scenario *An open finding* (S3, T27): a finding with no
         close block is open, refused at its heading with the line the fix
         pass appends, and a draft prints the same line and passes. A
-        finding's `severity:` decides nothing."""
-        root, code_sha = branch
-        rel = f"{ITEM}/trail/rounds/round-1.md"
+        finding's `severity:` decides nothing. The draft is `main` reading
+        the record, which shows that `main` hands the records arm its round
+        records and prints what it refuses."""
+        root, code_sha = _branch_template
         text = record(code_sha, [finding(1, "open")])
-        write(root, rel, text)
-        commit(root, "the record, still open")
-        code, out = check(root, capsys)
-        assert code == 1
         heading = "### 1. the parser drops a row"
         said = (
-            f"{rel}:{line_at(text, heading)}  {heading} {chain.DASH} {chain.OPEN_SAYS}"
+            ROUND_1,
+            line_at(text, heading),
+            f"{heading} {chain.DASH} {chain.OPEN_SAYS}",
         )
-        assert said in out.splitlines(), out
+        assert said in records_read(monkeypatch, root, {ROUND_1: text})
         assert chain.OPEN_SAYS == (
             "no close block, so the finding is open: the fix pass appends one "
             "after its paste-ready fix, opening with `verdict:` and reading "
             "`fixed <commit>`, `rejected` or `deferred <home>`"
         )
-        ready.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
         code, out = check(root, capsys)
         assert code == 0
-        assert said in out.splitlines(), out
-        ready.write_text(json.dumps({"pull_request": {"draft": False}}), "utf-8")
-        write(root, rel, record(code_sha, [finding(1, "rejected")]))
-        commit(root, "the record, rejected at the most severe severity")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 0, out
+        assert f"{said[0]}:{said[1]}  {said[2]}" in out.splitlines(), out
+        rejected = {ROUND_1: record(code_sha, [finding(1, "rejected")])}
+        assert records_read(monkeypatch, root, rejected) == []
 
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_a_fixed_commit_head_does_not_descend_from(
-        self, branch, ready, capsys
+        self, branch, monkeypatch
     ):
         """S3 (T28): one this repository cannot resolve, and one on another
         branch, are refused by the finding's line and heading; the fixture's
@@ -4172,34 +4195,29 @@ class Test_main:
         write(root, "g.txt", "elsewhere\n")
         off = commit(root, "a commit the branch never had")
         git(root, "switch", "-q", "feature/x")
-        rel = f"{ITEM}/trail/rounds/round-1.md"
         sections = [
             finding(1, "fixed 0000000"),
             finding(2, f"fixed {off[:8]}"),
             finding(3, f"fixed {code_sha[:8]}"),
         ]
-        write(root, rel, record(code_sha, sections))
-        commit(root, "the record, three fixes")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1
+        found = records_read(monkeypatch, root, {ROUND_1: record(code_sha, sections)})
         named = [
-            ln
-            for ln in out.splitlines()
-            if ln.startswith(f"{rel}:") and "does not descend" in ln
+            why
+            for rel, _line, why in found
+            if rel == ROUND_1 and "does not descend" in why
         ]
-        assert len(named) == 2, out
+        assert len(named) == 2, found
         assert "### 1." in named[0] and "`0000000`" in named[0]
         assert "### 2." in named[1] and f"`{off[:8]}`" in named[1]
         # The refusal `chain_check.py` prints for each such fix, which the
         # orchestrator reads at the pull request's check.
-        assert all("HEAD does not descend from" in ln for ln in named), named
+        assert all("HEAD does not descend from" in why for why in named), named
 
     @pytest.mark.rule("round-record-read-by-label")
     @pytest.mark.rule("fix-pass-two-lines")
     @pytest.mark.rule("location-touched-by-fix")
     def test_refuses_a_fixed_commit_that_touches_nothing_of_the_finding(
-        self, branch, ready, capsys
+        self, branch, monkeypatch
     ):
         """S22 (T34): a commit touching another path is refused naming the
         finding, the commit and what it touched, and the `location:` line of
@@ -4218,7 +4236,6 @@ class Test_main:
         ):
             write(root, path, f"{name}\n")
             made[name] = commit(root, f"touch {path}")[:8]
-        rel = f"{ITEM}/trail/rounds/round-1.md"
         sections = [
             finding(1, f"fixed {made['g']}"),
             finding(2, f"fixed {made['g']}", location="`f.txt:1`, `g.txt:3`"),
@@ -4230,23 +4247,18 @@ class Test_main:
             finding(6, f"fixed {base[:8]}", location="`f.txt`"),
             finding(7, f"fixed {made['near']}", location="`docs/x`"),
         ]
-        write(root, rel, record(code_sha, sections))
-        commit(root, "the record, seven fixes")
-        write(
-            root,
-            f"{ITEM}/trail/rounds/round-2.md",
-            record(
-                made["near"],
-                confirmations="".join(confirm(f"round-1#{n}") for n in range(1, 8)),
-                n=2,
-            ),
+        verifying = record(
+            made["near"],
+            confirmations="".join(confirm(f"round-1#{n}") for n in range(1, 8)),
+            n=2,
         )
-        commit(root, "the verifying round")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1
-        named = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
-        assert len(named) == 2, out
+        found = records_read(
+            monkeypatch,
+            root,
+            {ROUND_1: record(code_sha, sections), ROUND_2: verifying},
+        )
+        named = [why for rel, _line, why in found if rel == ROUND_1]
+        assert len(named) == 2, found
         assert "### 1." in named[0] and f"`{made['g']}`" in named[0], named
         assert "`g.txt`" in named[0] and "`f.txt`" in named[0], named
         assert "### 7." in named[1] and "`docs/xy.md`" in named[1], named
@@ -4259,133 +4271,86 @@ class Test_main:
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_last_records_fixed_finding_owing_a_verifying_round(
-        self, branch, ready, capsys
+        self, _branch_template, monkeypatch
     ):
-        """S23 (T37): on a ready pull request a `fixed` or `rejected` finding
-        in the last record fails as *a verifying round is owed*; a draft
-        prints it and passes, and a last record of `deferred` findings
-        passes."""
-        root, code_sha = branch
-        git(root, "rm", "-q", f"{ITEM}/trail/rounds/round-2.md")
-        commit(root, "no verifying round")
-        seal(root)
-        rel = f"{ITEM}/trail/rounds/round-1.md"
-        code, out = check(root, capsys)
-        assert code == 1
-        line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
+        """S23 (T37): a `fixed` or `rejected` finding in the last record is
+        refused as *a verifying round is owed*, and a last record of
+        `deferred` findings passes. The last record is round 1, the only
+        one the arm reads."""
+        root, code_sha = _branch_template
+        found = records_read(monkeypatch, root, listed=[ROUND_1])
+        line = next(why for rel, _line, why in found if rel == ROUND_1)
         assert "### 1." in line and chain.VERIFYING_ROUND in line, line
-        ready.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
-        code, out = check(root, capsys)
-        assert code == 0 and chain.VERIFYING_ROUND in out
-        ready.write_text(json.dumps({"pull_request": {"draft": False}}), "utf-8")
-        write(root, rel, record(code_sha, [finding(1, "deferred #9")]))
-        commit(root, "the last record, again")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 0 and chain.VERIFYING_ROUND not in out, out
+        deferred = {ROUND_1: record(code_sha, [finding(1, "deferred #9")])}
+        assert records_read(monkeypatch, root, deferred, listed=[ROUND_1]) == []
 
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
     def test_passes_a_last_records_fixed_finding_that_touched_only_its_records(
-        self, branch, ready, capsys
+        self, branch, monkeypatch
     ):
         """S4 of #1148: a `fixed <commit>` of the last record located in the
         work item's own records alone, whose commit touched them alone, owes
         no verifying round; the sealer, which reads every record at HEAD, is
         its reader."""
         root, code_sha = branch
-        git(root, "rm", "-q", f"{ITEM}/trail/rounds/round-2.md")
-        commit(root, "no verifying round")
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
         fix = commit(root, "a fix to the records alone")
-        rel = f"{ITEM}/trail/rounds/round-1.md"
         located = f"`{ITEM}/gaps.md`"
-        write(
-            root,
-            rel,
-            record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)]),
-        )
-        commit(root, "the fix pass's verdict")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 0, out
-        assert chain.VERIFYING_ROUND not in out, out
+        last = record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)])
+        assert records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1]) == []
 
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_last_records_fixed_finding_that_also_touched_code(
-        self, branch, ready, capsys
+        self, branch, monkeypatch
     ):
         """S4 of #1148: a `fixed <commit>` of the last record whose commit
         touched the records and a path outside them still owes the round,
         refused at the finding's line."""
         root, _code = branch
-        git(root, "rm", "-q", f"{ITEM}/trail/rounds/round-2.md")
-        commit(root, "no verifying round")
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
         write(root, "f.txt", "three\n")
         fix = commit(root, "a fix to the records and the code")
-        rel = f"{ITEM}/trail/rounds/round-1.md"
         located = f"`f.txt:1`, `{ITEM}/gaps.md`"
-        write(
-            root, rel, record(fix, [finding(1, f"fixed {fix[:8]}", location=located)])
-        )
-        commit(root, "the fix pass's verdict")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1, out
-        line = next(
-            ln for ln in out.splitlines() if ln.startswith(f"{rel}:") and "### 1." in ln
-        )
+        last = record(fix, [finding(1, f"fixed {fix[:8]}", location=located)])
+        found = records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1])
+        line = next(why for rel, _n, why in found if rel == ROUND_1 and "### 1." in why)
         assert chain.VERIFYING_ROUND in line, line
 
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_last_records_code_finding_fixed_in_its_records_alone(
-        self, branch, ready, capsys
+        self, branch, monkeypatch
     ):
         """S4 of #1148: a finding that names a path outside the records owes
         the round, even where its `fixed` commit touched only the records,
         since no round would read its code half."""
         root, code_sha = branch
-        git(root, "rm", "-q", f"{ITEM}/trail/rounds/round-2.md")
-        commit(root, "no verifying round")
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
         fix = commit(root, "the record half alone")
-        rel = f"{ITEM}/trail/rounds/round-1.md"
         located = f"`f.txt:1`, `{ITEM}/gaps.md`"
-        write(
-            root,
-            rel,
-            record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)]),
-        )
-        commit(root, "the fix pass's verdict")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1, out
-        line = next(
-            ln for ln in out.splitlines() if ln.startswith(f"{rel}:") and "### 1." in ln
-        )
+        last = record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)])
+        found = records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1])
+        line = next(why for rel, _n, why in found if rel == ROUND_1 and "### 1." in why)
         assert chain.VERIFYING_ROUND in line, line
 
     @pytest.mark.rule("last-record-at-head")
-    def test_refuses_a_code_commit_after_the_last_record(self, branch, ready, capsys):
+    def test_refuses_a_code_commit_after_the_last_record(self, branch, monkeypatch):
         """S4 (T12): a record commit after the last record passes; a code
         commit after it fails naming the commit and the verifying round."""
         root, _code = branch
         write(root, f"{ITEM}/gaps.md", "# overview\n")
         commit(root, "a record commit")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 0, out
+        assert records_read(monkeypatch, root) == []
         write(root, "f.txt", "three\n")
         later = commit(root, "a fix after the last round")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1
+        said = [why for _rel, _line, why in records_read(monkeypatch, root)]
         # The refusal `chain_check.py` prints, which tells the orchestrator a
         # verifying round is owed.
-        assert later[:8] in out and "a verifying round is owed" in out
+        assert any(
+            later[:8] in why and "a verifying round is owed" in why for why in said
+        )
 
     def test_refuses_a_chain_with_no_record_and_prints_it_on_a_draft(
         self, branch, ready, capsys
@@ -4400,132 +4365,112 @@ class Test_main:
         assert code == 0 and "holds no `round-N.md`" in out
 
     def test_names_a_line_it_did_not_read_as_a_notice_and_keeps_the_exit(
-        self, branch, ready, capsys, monkeypatch
+        self, _branch_template, ready, capsys, monkeypatch
     ):
         """#1198's scenario *A near opener*: a fence opened by three
         backticks and `Seal` is printed `path:line  not read: <why>`, and in
         CI as a notice annotation, never an error, and the exit code is the
         one the record's blocks give: 0 where the near fence stands in a
         finding's prose, 1 where it was the finding's only block, refused at
-        the heading."""
-        root, code_sha = branch
-        rel = f"{ITEM}/trail/rounds/round-1.md"
+        the heading. The first two are `main` reading the record; the third
+        is the two arms that read it, the records arm and `unread`."""
+        root, code_sha = _branch_template
         near = FENCE + "Seal"
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
             "\nWhy it matters.", f"\n{near}\nverdict: fixed\n{FENCE}\n\nWhy it matters."
         )
-        write(root, rel, text)
-        commit(root, "a fence like a block in the prose")
-        seal(root)
+        reading(monkeypatch, {ROUND_1: text})
         number = line_at(text, near)
         said = chain.FIELDS.NEAR.format(line=near)
         assert said.startswith("not read: "), said
         code, out = check(root, capsys)
         assert code == 0, out
-        assert unread_lines(out) == [f"{rel}:{number}  {said}"], out
+        assert unread_lines(out) == [f"{ROUND_1}:{number}  {said}"], out
         monkeypatch.setenv("GITHUB_ACTIONS", "true")
         code, out = check(root, capsys)
         assert code == 0, out
-        assert unread_lines(out) == [f"::notice file={rel},line={number}::{said}"], out
+        assert unread_lines(out) == [
+            f"::notice file={ROUND_1},line={number}::{said}"
+        ], out
         monkeypatch.delenv("GITHUB_ACTIONS")
         only = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
             f"{FENCE}seal\nseverity:", f"{near}\nseverity:"
         )
-        write(root, rel, only)
-        commit(root, "the finding's only block, opened otherwise")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1, out
         heading = "### 1. the parser drops a row"
         assert (
-            f"{rel}:{line_at(only, heading)}  {heading} {chain.DASH} "
-            f"{chain.NO_FINDING_BLOCK}"
-        ) in out.splitlines(), out
-        assert f"{rel}:{line_at(only, near)}  {said}" in out.splitlines(), out
+            ROUND_1,
+            line_at(only, heading),
+            f"{heading} {chain.DASH} {chain.NO_FINDING_BLOCK}",
+        ) in records_read(monkeypatch, root, {ROUND_1: only})
+        assert chain.unread(routing_module, str(root), ITEM, True) == [
+            (ROUND_1, line_at(only, near), said)
+        ]
 
-    def test_names_no_line_inside_a_fence(self, branch, ready, capsys):
+    def test_names_no_line_inside_a_fence(self, _branch_template, monkeypatch):
         """A paste-ready fix block quoting a near opener and a `verdict:`
-        line prints no `not read:` line, and the exit code is the clean
-        record's: a fence inside another fence is that fence's."""
-        root, code_sha = branch
-        rel = f"{ITEM}/trail/rounds/round-1.md"
+        line is named by no `not read:` line, and the records arm refuses
+        nothing of the clean record: a fence inside another fence is that
+        fence's."""
+        root, code_sha = _branch_template
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")])
         quoted = f"{FENCE}`markdown\n{FENCE}Seal\nverdict: open\n{FENCE}\n{FENCE}`"
-        write(root, rel, text.replace(f"{FENCE}python\nx = 1\n{FENCE}", quoted))
-        commit(root, "a fix block that quotes a verdict line")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 0, out
-        assert unread_lines(out) == [], out
+        texts = {ROUND_1: text.replace(f"{FENCE}python\nx = 1\n{FENCE}", quoted)}
+        assert records_read(monkeypatch, root, texts) == []
+        assert chain.unread(routing_module, str(root), ITEM, True) == []
 
     def test_names_a_record_under_another_name_and_keeps_the_exit(
-        self, branch, ready, capsys
+        self, branch, monkeypatch
     ):
         """The second scenario of #1167, #1121's R11: `Round-2.md` beside a
         clean `round-1.md` is named on one line as a file the check did not
-        read, and the exit code is the one the clean record gives. Seen red
-        against the reader that kept the files `round_number` matches and
-        printed nothing of the rest."""
+        read, and the records arm reads the clean record alone and refuses
+        nothing. Seen red against the reader that kept the files
+        `round_number` matches and printed nothing of the rest."""
         root, code_sha = branch
-        rounds = f"{ITEM}/trail/rounds"
-        git(root, "rm", "-q", f"{rounds}/round-2.md")
+        git(root, "rm", "-q", ROUND_2)
         clean = record(code_sha, [finding(1, "deferred #9")])
-        write(root, f"{rounds}/round-1.md", clean)
-        commit(root, "one clean record")
-        seal(root)
-        code, before = check(root, capsys)
-        assert code == 0, before
-        write(root, f"{rounds}/Round-2.md", clean)
-        commit(root, "a copy under another name")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 0, out
+        write(root, ROUND_1, clean)
+        write(root, f"{ROUNDS}/Round-2.md", clean)
+        commit(root, "one clean record, and a copy under another name")
+        assert records_read(monkeypatch, root) == []
         said = chain.UNREAD_FILE.format(name="Round-2.md")
-        assert [ln for ln in out.splitlines() if "Round-2.md" in ln] == [
-            f"{rounds}/Round-2.md:0  {said}"
-        ], out
+        assert chain.unread(routing_module, str(root), ITEM, True) == [
+            (f"{ROUNDS}/Round-2.md", 0, said)
+        ]
 
     @pytest.mark.rule("old-table-shape-refused")
     def test_refuses_an_old_shape_record_and_an_unclosed_fence(
-        self, branch, ready, capsys
+        self, _branch_template, monkeypatch
     ):
         """S11 and #1198's scenario *A record from before the change*: a
         record of an older shape under the declared item, the table's and
         the labelled lines', holds no round block and is refused with one
         line naming the template; a fence the proofer never closed hides the
         open finding below it and is named at its opener."""
-        root, code_sha = branch
-        rel = f"{ITEM}/trail/rounds/round-1.md"
+        root, code_sha = _branch_template
         for old in (OLD_RECORD.replace("0000000", code_sha), LABELLED):
-            write(root, rel, old)
-            commit(root, "an old-shape record")
-            seal(root)
-            code, out = check(root, capsys)
-            assert code == 1
-            assert [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")] == [
-                f"{rel}:0  {chain.NO_ROUND_BLOCK}"
-            ], out
+            found = records_read(monkeypatch, root, {ROUND_1: old})
+            assert [p for p in found if p[0] == ROUND_1] == [
+                (ROUND_1, 0, chain.NO_ROUND_BLOCK)
+            ], found
         text = record(
             code_sha,
             [finding(1, "rejected") + "\n~~~python\n", finding(2, "open")],
         )
-        write(root, rel, text)
-        commit(root, "a record with a fence left open")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1, out
+        found = records_read(monkeypatch, root, {ROUND_1: text})
         opener = text.splitlines().index("~~~python")
-        assert f"{rel}:{opener + 1}" in out, out
+        assert (ROUND_1, opener + 1) in [(rel, n) for rel, n, _why in found], found
 
     def test_refuses_a_broad_gate_file_naming_another_commit(
-        self, branch, ready, capsys
+        self, _branch_template, ready, capsys, monkeypatch
     ):
         """S5 (T15): the newest run must be HEAD or have only records after
-        it; a stale run fails naming the file, and `--sealing` prints it."""
-        root, _code = branch
+        it; a stale run fails naming the file, and `--sealing` prints it.
+        `main` reads the record, which shows that it hands the broad gate
+        arm its work item and reads its refusal by `--sealing`."""
+        root, _code = _branch_template
         rel = f"{ITEM}/trail/gate.md"
-        write(root, rel, gate_file("1" * 40))
-        commit(root, "a run this repository cannot see")
+        reading(monkeypatch, {rel: gate_file("1" * 40)})
         code, out = check(root, capsys)
         assert code == 1
         assert any(ln.startswith(f"{rel}:") for ln in out.splitlines())
@@ -4534,41 +4479,36 @@ class Test_main:
 
     @pytest.mark.rule("two-review-answers")
     def test_refuses_a_straight_to_the_pr_item_without_the_sealers_two_files(
-        self, branch, ready, capsys
+        self, _branch_template, ready, capsys, monkeypatch
     ):
-        root, _code = branch
-        write(
-            root,
-            f"{ITEM}/routing.md",
-            ROUTING.format(review="straight to the PR", planning="the session"),
-        )
-        git(
-            root,
-            "rm",
-            "-rq",
-            f"{ITEM}/trail/rounds",
-            f"{ITEM}/trail/gate.md",
-            f"{ITEM}/guarantee.md",
-        )
-        commit(root, "direct, and no run")
-        code, out = check(root, capsys)
-        assert code == 1 and "trail/gate.md" in out and "guarantee.md" in out
-        seal(root)
+        """`main` reading a declaration straight to the pull request judges
+        the sealer's two files and no round record: with the two files at
+        HEAD it passes, and with neither it fails naming both."""
+        root, _code = _branch_template
+        direct = ROUTING.format(review="straight to the PR", planning="the session")
+        reading(monkeypatch, {f"{ITEM}/routing.md": direct})
         code, out = check(root, capsys)
         assert code == 0, out
+        reading(
+            monkeypatch, {f"{ITEM}/trail/gate.md": None, f"{ITEM}/guarantee.md": None}
+        )
+        code, out = check(root, capsys)
+        assert code == 1 and "trail/gate.md" in out and "guarantee.md" in out
 
     def test_refuses_an_unreadable_declaration_and_accepts_none(
-        self, branch, ready, capsys
+        self, _branch_template, branch, ready, capsys, monkeypatch
     ):
+        """A declaration that does not read is refused; a branch whose pull
+        request removed its work item declares nothing and passes."""
         root, _code = branch
-        write(root, f"{ITEM}/routing.md", "# nothing to read\n")
-        commit(root, "garbled")
-        code, out = check(root, capsys)
-        assert code == 1 and "not a readable declaration" in out
         git(root, "rm", "-rq", ITEM)
         commit(root, "no work item")
         code, out = check(root, capsys)
         assert code == 0 and "declared neither way" in out
+        root, _code = _branch_template
+        reading(monkeypatch, {f"{ITEM}/routing.md": "# nothing to read\n"})
+        code, out = check(root, capsys)
+        assert code == 1 and "not a readable declaration" in out
 
     @pytest.mark.rule("judged-where-carried")
     def test_accepts_a_release_pull_request_leaving_a_squashed_item_to_its_own(
@@ -4603,8 +4543,10 @@ class Test_main:
         assert "does not descend from" in out
         assert "judged at its own pull request" not in out
 
-    def test_refuses_a_baseline_that_does_not_resolve_with_exit_2(self, branch, capsys):
-        root, _code = branch
+    def test_refuses_a_baseline_that_does_not_resolve_with_exit_2(
+        self, _branch_template, capsys
+    ):
+        root, _code = _branch_template
         code = chain.main(["--baseline", "no-such-ref", "--root", str(root)])
         assert code == 2
         assert "does not resolve" in capsys.readouterr().err
