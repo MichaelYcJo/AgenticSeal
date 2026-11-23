@@ -30,7 +30,7 @@ Failure scenarios of the chosen approach, six months on:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `design.md` *Scope* items 1, 2, 3 and 4 | `bin/test -q tests/skills/test_broad_gate.py tests/skills/test_seal_stamp.py` passes. The cases of S1 and S2 are each seen red against `ee8a72583`. `git grep -n -w SPRITE -- skills tests` prints nothing; at `ee8a72583` it prints the lines `design.md` G16 lists, which *Scope* item 1 changes. The two searches of S4 print nothing. `git grep -n seal-mark -- skills/verify/scripts/broad_gate.py` prints nothing; at `ee8a72583` it prints `:113`, which *Scope* item 4 rewrites | |
+| 1 | `design.md` *Scope* items 1, 2, 3 and 4 | `bin/test -q tests/skills/test_broad_gate.py tests/skills/test_seal_stamp.py` passes. The cases of S1 and S2 are each seen red against `ee8a72583`. `git grep -n -w SPRITE -- skills tests` prints nothing; at `ee8a72583` it prints the lines `design.md` G16 lists, which *Scope* item 1 changes. The two searches of S4 print nothing. `git grep -n seal-mark -- skills/verify/scripts/broad_gate.py` prints nothing; at `ee8a72583` it prints `:113`, which *Scope* item 4 rewrites | `385ee7e2f` |
 | 2 | `design.md` *Scope* item 5 | `bin/test -q tests/skills/test_seal_stamp.py tests/skills/test_broad_gate.py` passes. The case of S3 is seen red against `ee8a72583` at the pair `bbb2` and `bbb2222`. S3's search prints one line, in `_same_commit`. `git grep -n -F '{4,40}' -- skills/verify/scripts/seal_stamp.py` prints nothing; at `ee8a72583` it prints `:712`, which *Scope* item 5 removes | |
 
 ## Overlap with the release
