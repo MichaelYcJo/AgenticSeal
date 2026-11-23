@@ -773,19 +773,21 @@ class Test_not_as_written:
     @pytest.mark.parametrize(
         ("value", "char", "unread"),
         [
-            ('echo "a && bin/x"', '"', 'bin/x"'),
-            ("echo a^& && bin/x", "^", "bin/x"),
-            ("echo %X% && bin/x", "%", "bin/x"),
+            ('echo "a && bin/x"', '"', ('bin/x"',)),
+            ("echo a^& && bin/x", "^", ("bin/x",)),
+            ("echo %X% && bin/x", "%", ("bin/x",)),
+            # Each word once, in the order it stands.
+            ('echo "a" && bin/x | tools/y && bin/x', '"', ("bin/x", "tools/y")),
         ],
     )
     def test_names_what_it_did_not_read_and_runs_it_as_written(
         self, tmp_path, capsys, value, char, unread
     ):
         """*Scope* item 2. The reading stops at the first `"`, `^` or `%`, and
-        a word past it that it would refuse is named on one stderr line,
+        each word past it that it would refuse is named on one stderr line,
         pinned here, and decides nothing."""
-        assert on_cmd_exe(value, a_root(tmp_path, "bin")) is None
-        assert capsys.readouterr().err == not_read_line(char, unread) + "\n"
+        assert on_cmd_exe(value, a_root(tmp_path, "bin", "tools")) is None
+        assert capsys.readouterr().err == not_read_line(char, *unread) + "\n"
 
     def test_a_refusal_carries_what_it_did_not_read(self, tmp_path, capsys):
         said = on_cmd_exe('bin/test "a b" && bin/x', a_root(tmp_path, "bin"))
