@@ -98,6 +98,9 @@ REFUSED = (
     "`$(…)`",
     # The form it refuses as a value that ends in `&`.
     "trailing `&`",
+    # The form it refuses where the shell is `cmd.exe`, a command name that
+    # starts in a directory with `/`.
+    "a command name that starts in a directory",
 )
 
 
@@ -153,7 +156,7 @@ def test_the_config_skill_sends_the_criterion_to_its_owner_by_name():
 
 def refusal_bullet():
     """The config skill's paragraph about the refusal, bounded at the blank
-    line — not the file. Round 1's 🟡 8: the clause naming the three forms
+    line — not the file. Round 1's 🟡 8: the clause naming the refused forms
     could be deleted with 15 cases green, because every assertion matched a
     sentence on one side of it or the other."""
     skill = read(*CONFIG_SKILL)
@@ -163,9 +166,10 @@ def refusal_bullet():
 
 
 def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
-    """The door a person reaches later. It names the three forms so somebody
-    reading it knows the refusal exists, and sends the reasoning to the one
-    owner. What the paragraph says of the refusal is the proofer's to read."""
+    """The door a person reaches later. It names the refused forms so
+    somebody reading it knows the refusal exists, and sends the reasoning to
+    the one owner. What the paragraph says of the refusal is the proofer's
+    to read."""
     skill = flat(read(*CONFIG_SKILL))
     # The heading of `templates/setup/config.md` the skill cites, which a
     # person opens to learn what the key may hold.
@@ -173,9 +177,9 @@ def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
         "the config skill does not point at the section that decides this"
     )
     bullet = refusal_bullet()
-    # The three forms `broad_gate.py` refuses in the key, which a person
-    # filling it in has to recognise in what they wrote.
-    for form in ("backticks", "`$(…)`", "trailing `&`"):
+    # The forms `broad_gate.py` refuses in the key, as REFUSED names them,
+    # which a person filling it in has to recognise in what they wrote.
+    for form in REFUSED:
         assert form in bullet, (
             f"the config skill does not name {form}, so somebody reading it "
             "does not learn that the refusal exists"
