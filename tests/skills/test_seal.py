@@ -490,8 +490,11 @@ class Test_git_asked:
         [
             ((128, "HEAD\n", ""), "git rev-parse exited 128"),
             ((1, "", "fatal: bad object\n"), "fatal: bad object"),
-            (OSError("no git here"), "git rev-parse could not be run (no git here)"),
-            (TIMED_OUT, "git rev-parse could not be run ("),
+            (
+                OSError("no git here"),
+                "`git rev-parse HEAD` could not be run: no git here",
+            ),
+            (TIMED_OUT, "`git rev-parse HEAD` did not finish within 60 seconds"),
         ],
         ids=["an exit and its output", "an exit and its stderr", "no git", "a timeout"],
     )
@@ -911,7 +914,10 @@ class Test_export:
         code, out = said(capsys, repo, "export")
         assert code == 0, out
         assert "remote" not in manifest_in(only_zip(tmp_path))
-        assert "  the remote was left out — git config could not be run (" in out
+        assert (
+            "  the remote was left out — `git config --get remote.origin.url` "
+            "did not finish within 60 seconds" in out
+        ), out
         assert "  Running this again once git answers writes a zip the other " in out
 
     def test_refuses_an_output_with_no_directory_or_no_free_name(
@@ -2038,7 +2044,7 @@ class Test_porcelain:
         assert line.startswith("fatal: ")
         unanswered(monkeypatch, ["--", "seal"], OSError("boom"))
         assert SEAL.porcelain(str(tmp_path), "seal") == [
-            "git status could not be run (boom)"
+            "`git status --porcelain -- seal` could not be run: boom"
         ]
 
 
@@ -2095,6 +2101,16 @@ class Test_tracked:
     ):
         assert not SEAL.tracked(str(_worlds / "shared"), "nothing-here")
         assert not SEAL.tracked(str(tmp_path), "seal")
+
+    def test_refuses_a_git_that_did_not_answer_as_nothing_tracked(
+        self, _worlds, monkeypatch
+    ):
+        unanswered(monkeypatch, [LS_FILES, "-z", "--", "seal"], TIMED_OUT)
+        with pytest.raises(SEAL.gitcmd.Unrun) as caught:
+            SEAL.tracked(str(_worlds / "shared"), "seal")
+        assert caught.value.line == (
+            "`git ls-files -z -- seal` did not finish within 60 seconds"
+        )
 
 
 class Test_other_worktrees:
@@ -2550,7 +2566,7 @@ class Test_gitlinks_under_root:
         unanswered(monkeypatch, ["--stage", "--", "seal"], OSError("git is not here"))
         assert SEAL.gitlinks_under_root(str(repo), "seal") == (
             None,
-            "git ls-files could not be run (git is not here)",
+            "`git ls-files --stage -- seal` could not be run: git is not here",
         )
 
 
@@ -2597,7 +2613,7 @@ class Test_refusals:
             ("two rows", NAMES_BOTH_KEYS),
             (
                 "a git that cannot answer",
-                "whether there is a submodule under seal/ could not be read: git ls-files could not be run (git is not here).",
+                "whether there is a submodule under seal/ could not be read: `git ls-files --stage -- seal` could not be run: git is not here.",
             ),
             (
                 "a submodule under the root",
@@ -2884,10 +2900,59 @@ class Test_switch:
         write(repo, "docs/x.md", "x\n")
         commit_everything_as_e(repo, "an ignore rule")
         code, out = said(capsys, repo / "docs", "mode", "shared")
-        assert code == 0, out
-        assert "could NOT be staged" in out
+        assert code == 1, out
+        assert "  seal/ could NOT be staged: " in out
         assert "A commit now would record nothing." in out
+        assert "`git add -f :/seal` yourself" in out
         assert "staged seal/\n" not in out
+        assert "Now commit." not in out
+
+    @pytest.mark.parametrize(
+        "start, wanted, tail, said_line, by_hand",
+        [
+            (
+                "shared",
+                "local",
+                ["rm", "-r", "--cached", "--quiet", "--", "seal"],
+                "  the records are still tracked: `git rm -r --cached --quiet "
+                "-- seal` did not finish within 60 seconds\n",
+                "  Run `git rm -r --cached :/seal` yourself, or this command again.\n",
+            ),
+            (
+                "shared",
+                "local",
+                [LS_FILES, "-z", "--", "seal"],
+                "  the records are still tracked: `git ls-files -z -- seal` did "
+                "not finish within 60 seconds\n",
+                "  Run `git rm -r --cached :/seal` yourself, or this command again.\n",
+            ),
+            (
+                "local",
+                "shared",
+                ["add", "--", "seal"],
+                "  seal/ could NOT be staged: `git add -- seal` did not finish "
+                "within 60 seconds\n",
+                "`git add -f :/seal` yourself, or this command again.\n",
+            ),
+        ],
+        ids=["git rm going local", "git ls-files going local", "git add going shared"],
+    )
+    def test_refuses_to_call_a_stage_git_that_did_not_answer_staged(
+        self, take, capsys, monkeypatch, start, wanted, tail, said_line, by_hand
+    ):
+        """S1 and S2: the root has moved and the key is written, so the
+        switch is half done, and the line says so and names the step to run
+        by hand, at exit 1 with no traceback."""
+        repo = take(start)
+        shared, local = roots(repo)
+        unanswered(monkeypatch, tail, TIMED_OUT)
+        code, out = said(capsys, repo, "mode", wanted)
+        assert code == 1, out
+        assert said_line in out, out
+        assert by_hand in out, out
+        assert "Now commit." not in out, out
+        assert os.path.isdir(local if wanted == "local" else shared)
+        assert declared_in(repo) == ("mode", wanted)
 
 
 class Test_mode:
@@ -3075,7 +3140,8 @@ class Test_mode:
         finally:
             if lock.exists():
                 lock.unlink()
-        assert code == 0, out
+        assert code == 1, out
+        assert "Now commit." not in out, out
         if wanted == "local":
             assert "Run `git rm -r --cached :/agentic-seal` yourself" in out, out
         else:
@@ -3348,6 +3414,53 @@ class Test_pr_checks:
         assert code == 1, out
         assert "not inside a git repository" in out
 
+    @pytest.mark.parametrize(
+        "action, held, tail, said_line",
+        [
+            (
+                "install",
+                "nothing",
+                ["add", "--", ".github/workflows/hygiene.yml"],
+                "could NOT be staged: `git add -- .github/workflows/hygiene.yml` "
+                "did not finish within 60 seconds\n",
+            ),
+            (
+                "remove",
+                "another release's copy, deleted by hand",
+                ["diff", "--cached", "--quiet", "--", ".github/workflows/hygiene.yml"],
+                "the index holds a copy that is neither byte for byte the copy "
+                "HEAD carries",
+            ),
+            (
+                "remove",
+                "this plugin's copy, committed",
+                ["rm", "--quiet", "--", ".github/workflows/hygiene.yml"],
+                ".github/workflows/hygiene.yml could not be removed: `git rm "
+                "--quiet -- .github/workflows/hygiene.yml` did not finish within "
+                "60 seconds\n",
+            ),
+        ],
+        ids=["install's git add", "remove's git diff --cached", "remove's git rm"],
+    )
+    def test_refuses_a_git_that_did_not_answer_and_keeps_the_index(
+        self, take, capsys, monkeypatch, action, held, tail, said_line
+    ):
+        """S4: a git that did not answer is read as each step reads a
+        non-zero exit, and the index is as it was."""
+        repo = take("shared")
+        if held == "another release's copy, deleted by hand":
+            old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
+            workflow_in(repo, old)
+            os.remove(os.path.join(str(repo), WORKFLOW_PATH))
+        elif held == "this plugin's copy, committed":
+            workflow_in(repo, SEAL.plugin_workflow())
+        before = staged(repo)
+        unanswered(monkeypatch, tail, TIMED_OUT)
+        code, out = said(capsys, repo, "pr-checks", action)
+        assert code == 1, out
+        assert said_line in out, out
+        assert staged(repo) == before
+
     def test_pr_checks_install_writes_the_workflow_beside_a_shared_agentic_seal(
         self, shared, capsys
     ):
@@ -3447,6 +3560,31 @@ class Test_main:
             )
         assert SEAL.main(argv, cwd=str(tmp_path)) == 0
         assert seen == [called]
+
+    @pytest.mark.parametrize(
+        "argv",
+        [
+            ["export"],
+            ["export", "--check"],
+            ["import", "x.zip"],
+            ["mode", "--check"],
+            ["pr-checks"],
+        ],
+    )
+    def test_refuses_a_git_that_did_not_answer_for_the_repository_as_no_repository(
+        self, take, capsys, monkeypatch, argv
+    ):
+        """S5: the subcommand ends with the runner's line, which is
+        `SystemExit`'s code and so exit 1, and does not say there is no
+        repository."""
+        repo = take("local")
+        unanswered(monkeypatch, ["rev-parse", "--show-toplevel"], TIMED_OUT)
+        with pytest.raises(SEAL.gitcmd.Unrun) as caught:
+            SEAL.main(argv, cwd=str(repo))
+        assert caught.value.code == (
+            "`git rev-parse --show-toplevel` did not finish within 60 seconds"
+        )
+        assert "not inside a git repository" not in capsys.readouterr().out
 
     @pytest.mark.parametrize(
         "name, script",

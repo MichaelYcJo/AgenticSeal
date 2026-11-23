@@ -87,11 +87,12 @@ outside `threads/` (`docs/layout/the-record-layout.md` *seal/* names each), is N
 counted, because the line says *work items* and this command does not get to
 widen it. So a release whose only change was to `follow-up.md` reports 0.
 
-Exit codes: 0 done · 1 nothing was written, and the message says why · 2 a
-file this command loads from `lib/` is not there, so nothing was read, or
-the arguments were unusable (argparse's usage error, and any two of a mode,
-`--check` and `--apply` given together). Every refusal here names the file,
-the path, or the flag that gets past it.
+Exit codes: 0 done · 1 nothing was written, a switch whose stage step git
+did not take, or a git command that did not answer, and the message says
+why · 2 a file this command loads from `lib/` is not there, so nothing was
+read, or the arguments were unusable (argparse's usage error, and any two of
+a mode, `--check` and `--apply` given together). Every refusal here names
+the file, the path, or the flag that gets past it.
 """
 
 import argparse
@@ -245,22 +246,15 @@ def git_asked(root, *args, answered=(0,)):
     command a non-zero code IS one: `git config --get` exits 1 when the key is
     not set. Every other caller leaves it at `(0,)`.
 
-    Encoding named for the reason `optin.repo_root` names it: `text=True`
-    alone decodes with the parent's locale, git answers UTF-8, and a
-    repository under a path this locale cannot decode kills subprocess's
-    reader thread without the exception propagating.
+    A git that did not start or did not finish within
+    `lib/gitcmd.py#TIMEOUT` gives `why` as the runner's line, which names
+    the command and what went wrong.
     """
     named = f"git {args[0]}" if args else "git"
     try:
-        done = subprocess.run(
-            ["git", "-C", root, *args],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        return None, f"{named} could not be run ({exc})"
+        done = gitcmd.git(root, *args)
+    except gitcmd.Failed as exc:
+        return None, exc.line
     # The return code, not the output alone. `git rev-parse HEAD` on a branch
     # with no commit yet exits 128 and still prints `HEAD`, which the manifest
     # would record as this export's SHA.
@@ -299,7 +293,7 @@ def remote_url(root):
     `error: key does not contain a section`, which a literal well-formed key
     cannot reach, and a `root` that is not a repository at all, which is
     indistinguishable from an unset key. `repo` here comes from `resolve`,
-    which is `optin.repo_root(cwd)` — a path git itself resolved one command
+    which is `optin.toplevel(cwd)` — a path git itself resolved one command
     earlier — and `import_` returns before this call when that is empty. A
     later caller reaching for `answered=(0, 1)` has to be able to say the
     same.
@@ -339,8 +333,12 @@ def resolve(cwd):
     Every path comes from `optin`: `home_at` says which root is in force and
     `home_paths` says where each mode's root would be, so nothing here spells
     `<repo>/seal` or `.git/seal` for itself.
+
+    The repository is `optin.toplevel`'s, so a git that did not answer ends
+    the command with the runner's line (`lib/gitcmd.py#Failed`) and is not
+    read as a directory outside any repository.
     """
-    repo = optin.repo_root(cwd)
+    repo = optin.toplevel(cwd)
     if not repo:
         return "", "", "", "", ""
     shared, local = optin.home_paths(repo)
@@ -1389,7 +1387,7 @@ MODES = repo_config.MODES
 # string used for both, because a literal separator inside an
 # `os.path.join` argument produces `C:/proj\.github/workflows` — a path in
 # two dialects that equals nothing any caller built (`lib/optin.py`
-# carries the same reasoning about `repo_root`).
+# carries the same reasoning about `toplevel`).
 WORKFLOW = ".github/workflows/hygiene.yml"
 
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
@@ -1521,18 +1519,13 @@ def porcelain(repo, *paths):
 
     An unanswerable question reads as dirty: moving on a guess is the one
     direction with no undo. `git rm -r --cached` drops a staged edit out of
-    the index and prints nothing about it.
+    the index and prints nothing about it. A git that did not answer is the
+    runner's line, `lib/gitcmd.py#Failed`'s.
     """
     try:
-        done = subprocess.run(
-            gitcmd.argv("-C", repo, "status", "--porcelain", "--", *paths),
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        return [f"git status could not be run ({exc})"]
+        done = gitcmd.git(repo, "status", "--porcelain", "--", *paths)
+    except gitcmd.Failed as exc:
+        return [exc.line]
     if done.returncode != 0:
         return [(done.stderr or "").strip() or f"git status exited {done.returncode}"]
     # exempt from splitlines: git output
@@ -1592,17 +1585,11 @@ def tracked(repo, rel):
     so the step is skipped rather than run and
     excused — which is also what makes a second run of a stopped switch
     finish it instead of failing.
+
+    A git that did not answer is not *nothing tracked*: `lib/gitcmd.py#Failed`
+    reaches the caller.
     """
-    try:
-        done = subprocess.run(
-            ["git", "-C", repo, "ls-files", "-z", "--", rel],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return False
+    done = gitcmd.git(repo, "ls-files", "-z", "--", rel)
     if done.returncode != 0:
         return False
     return bool([p for p in (done.stdout or "").split("\0") if p])
@@ -1624,14 +1611,8 @@ def staged_text(repo, rel):
     file with itself.
     """
     try:
-        done = subprocess.run(
-            ["git", "-C", repo, "cat-file", "blob", f":{rel}"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError):
+        done = gitcmd.git(repo, "cat-file", "blob", f":{rel}")
+    except gitcmd.Failed:
         return None
     return done.stdout if done.returncode == 0 else None
 
@@ -1843,18 +1824,17 @@ def install_workflow(repo):
     # `.github/` reaches this one. Read through `git()`, the file is written,
     # nothing enters the index, and the command says `staged it`. This
     # command exists to get the checks running, so a workflow that never
-    # reaches the commit is the whole point lost, silently.
-    done = subprocess.run(
-        ["git", "-C", repo, "add", "--", WORKFLOW],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    if done.returncode != 0:
+    # reaches the commit is the whole point lost, silently. A git that did
+    # not answer is read the same way, with the runner's line.
+    try:
+        done = gitcmd.git(repo, "add", "--", WORKFLOW)
+        why = (done.stderr or "").strip() if done.returncode != 0 else None
+    except gitcmd.Failed as exc:
+        why = exc.line
+    if why is not None:
         return "unstaged", (
             f"{WORKFLOW} was written (pinned to v{version}) but could NOT "
-            f"be staged: {(done.stderr or '').strip()}\n"
+            f"be staged: {why}\n"
             f"A commit now would not carry it, so the pull-request checks "
             f"would never run. An ignore rule matching {WORKFLOW} or "
             f"`.github/` is the usual cause. Run `git add -f :/{WORKFLOW}` "
@@ -1908,13 +1888,15 @@ def remove_workflow(repo):
         # Exit 0 where the index's blob and mode are HEAD's. Every other
         # exit is read as "not HEAD's", so the arm fails closed: 1 where they
         # differ, HEAD lacks the path, or the branch has no commit (git
-        # 2.50.1 compares with the empty tree there).
-        as_head = subprocess.run(
-            ["git", "-C", repo, "diff", "--cached", "--quiet", "--", WORKFLOW],
-            capture_output=True,
-            timeout=30,
-        )
-        if not (as_head.returncode == 0 or staged == plugin_workflow()):
+        # 2.50.1 compares with the empty tree there), and a git that did not
+        # answer.
+        try:
+            as_head = gitcmd.git(
+                repo, "diff", "--cached", "--quiet", "--", WORKFLOW, binary=True
+            ).returncode
+        except gitcmd.Failed:
+            as_head = None
+        if not (as_head == 0 or staged == plugin_workflow()):
             return "kept", (
                 f"there is no {WORKFLOW} in the working tree, and the index "
                 "holds a copy that is neither byte for byte the copy HEAD "
@@ -1923,17 +1905,13 @@ def remove_workflow(repo):
                 "edit with it. Look at it with `git diff --cached` and take it "
                 "out yourself."
             )
-        done = subprocess.run(
-            ["git", "-C", repo, "rm", "--quiet", "--", WORKFLOW],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
-        if done.returncode != 0:
-            return "failed", (
-                f"{WORKFLOW} could not be removed: {(done.stderr or '').strip()}"
-            )
+        try:
+            done = gitcmd.git(repo, "rm", "--quiet", "--", WORKFLOW)
+            why = (done.stderr or "").strip() if done.returncode != 0 else None
+        except gitcmd.Failed as exc:
+            why = exc.line
+        if why is not None:
+            return "failed", f"{WORKFLOW} could not be removed: {why}"
         return "removed", (
             f"there was no {WORKFLOW} in the working tree, but the index still "
             "held it; took it out of the index, so the next commit does not "
@@ -1993,17 +1971,13 @@ def remove_workflow(repo):
                 "it. Look at it and delete it yourself."
             )
         force = ["--force"]
-    done = subprocess.run(
-        ["git", "-C", repo, "rm", "--quiet", *force, "--", WORKFLOW],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    if done.returncode != 0:
-        return "failed", (
-            f"{WORKFLOW} could not be removed: {(done.stderr or '').strip()}"
-        )
+    try:
+        done = gitcmd.git(repo, "rm", "--quiet", *force, "--", WORKFLOW)
+        why = (done.stderr or "").strip() if done.returncode != 0 else None
+    except gitcmd.Failed as exc:
+        why = exc.line
+    if why is not None:
+        return "failed", f"{WORKFLOW} could not be removed: {why}"
     if force:
         return "removed", (
             f"removed {WORKFLOW} and took it out of the index — staged, never "
@@ -2020,8 +1994,9 @@ def pr_checks(args, cwd):
     and removes nothing, and for a file written that git would not stage.
 
     The report is one of three states: installed, with the release the file
-    pins; not installed; or a file at WORKFLOW this plugin did not write."""
-    repo = optin.repo_root(cwd)
+    pins; not installed; or a file at WORKFLOW this plugin did not write.
+    The repository is asked as `resolve` asks it."""
+    repo = optin.toplevel(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
         return 1
@@ -2155,11 +2130,12 @@ def gitlinks_under_root(repo, name):
     """(submodule entries under the shared root NAME, why they could not be
     read). NAME is the root's name in the tree, as `display` gives it.
 
-    Entries is None when the question could not be answered. `git()` reads
-    every failure as "", so asking through it would answer "no submodule" for
-    a timeout or a git that is not on PATH — and this guard exists to stop a
-    break that cannot be undone, which is the shape `indexed`'s docstring
-    calls the unanswerable question refusing.
+    Entries is None when the question could not be answered, which is why
+    this asks through `git_asked`. `git()` reads every failure as "", so
+    asking through it would answer "no submodule" for a timeout or a git
+    that is not on PATH — and this guard exists to stop a break that cannot
+    be undone, which is the shape `indexed`'s docstring calls the
+    unanswerable question refusing.
 
     Entries are as `git ls-files --stage` prints them.
 
@@ -2168,24 +2144,13 @@ def gitlinks_under_root(repo, name):
     relative gitdir. Unguarded, the switch exits 0 and `git status` in the
     moved root dies with `fatal: not a git repository`.
     """
-    try:
-        done = subprocess.run(
-            ["git", "-C", repo, "ls-files", "--stage", "--", name],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        return None, f"git ls-files could not be run ({exc})"
-    if done.returncode != 0:
-        return None, (done.stderr or "").strip() or (
-            f"git ls-files exited {done.returncode}"
-        )
+    text, why = git_asked(repo, "ls-files", "--stage", "--", name)
+    if text is None:
+        return None, why
     return [
         line
         # exempt from splitlines: git output
-        for line in (done.stdout or "").splitlines()
+        for line in text.splitlines()
         if line.startswith("160000")
     ], ""
 
@@ -2362,34 +2327,28 @@ def switch(args, repo, home, shared, local, current, wanted):
     else:
         print(f'  wrote `"{MODE_KEY}": "{wanted}"` in {CONFIG}')
 
+    # A stage step that did not happen, by a non-zero exit or by a git that
+    # did not answer, prints its line naming what to run by hand and makes
+    # the switch exit 1 with no `Now commit.`: a commit now would not record
+    # the switch, and exit 0 would tell a script that it does.
+    why = None
     if wanted == LOCAL:
-        if tracked(repo, name):
-            done = subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    repo,
-                    "rm",
-                    "-r",
-                    "--cached",
-                    "--quiet",
-                    "--",
-                    name,
-                ],
-                capture_output=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=30,
+        try:
+            held = tracked(repo, name)
+            if held:
+                done = gitcmd.git(repo, "rm", "-r", "--cached", "--quiet", "--", name)
+                if done.returncode != 0:
+                    why = (done.stderr or "").strip()
+        except gitcmd.Failed as exc:
+            held, why = True, exc.line
+        if why is not None:
+            print(
+                f"  the records are still tracked: {why}\n"
+                f"  Run `git rm -r --cached :/{name}` yourself, or "
+                "this command again."
             )
-            if done.returncode != 0:
-                print(
-                    f"  the records are still tracked: "
-                    f"{(done.stderr or '').strip()}\n"
-                    f"  Run `git rm -r --cached :/{name}` yourself, or "
-                    "this command again."
-                )
-            else:
-                print(f"  staged the removal of {name}/ from the tree")
+        elif held:
+            print(f"  staged the removal of {name}/ from the tree")
         else:
             print(f"  nothing under {name}/ was tracked")
         kind, text = workflow_at(repo)
@@ -2402,17 +2361,15 @@ def switch(args, repo, home, shared, local, current, wanted):
         # tree, nothing is staged, and the command prints `staged seal/` and
         # `Now commit`. The local direction reads its return code the same
         # way.
-        done = subprocess.run(
-            ["git", "-C", repo, "add", "--", name],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
-        if done.returncode != 0:
+        try:
+            done = gitcmd.git(repo, "add", "--", name)
+            if done.returncode != 0:
+                why = (done.stderr or "").strip()
+        except gitcmd.Failed as exc:
+            why = exc.line
+        if why is not None:
             print(
-                f"  {name}/ could NOT be staged: "
-                f"{(done.stderr or '').strip()}\n"
+                f"  {name}/ could NOT be staged: {why}\n"
                 f"  A commit now would record nothing. An ignore rule "
                 f"matching the root is the usual cause. Run "
                 f"`git add -f :/{name}` yourself, or this command again."
@@ -2424,6 +2381,8 @@ def switch(args, repo, home, shared, local, current, wanted):
                 "  no pull-request checks are installed: `seal pr-checks "
                 f"install` writes {WORKFLOW}"
             )
+    if why is not None:
+        return 1
 
     print("\nNow commit. The switch is what the commit records:\n  git commit")
     if moved and wanted == SHARED:
@@ -2441,13 +2400,12 @@ def mode(args, cwd):
     if not home:
         if args.check:
             if not repo:
-                # Not the same answer as "there is no root". A repository
-                # that could not be resolved is a check that did not RUN, and
-                # a gate that cannot tell reads exactly like an allow.
-                # `optin.repo_root` answers ""
-                # for a timeout or a git that is not on PATH, and a shared
+                # Not the same answer as "there is no root". A directory
+                # outside any repository is a check that did not RUN, and a
+                # gate that cannot tell reads exactly like an allow: a shared
                 # root committed beside a key saying `local` is what CI is
-                # here to catch.
+                # here to catch. A git that did not answer never reaches
+                # this branch, since `resolve` asks `optin.toplevel`.
                 print(
                     "no git repository could be resolved here, so the mode "
                     "was never read. This is not agreement and it is not a "
