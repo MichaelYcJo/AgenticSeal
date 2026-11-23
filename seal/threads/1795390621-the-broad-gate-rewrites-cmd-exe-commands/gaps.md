@@ -6,6 +6,7 @@
 |---|---|
 | The `cmd.exe` half of `Test_run`'s two real-platform cases: `bin/probe` refused naming `bin\probe`, `bin\probe` run under `cmd`, and `where/q cmd` not refused and exiting 0. The shell where phase 1 was built is `/bin/sh`, so neither half ran here | CI's `windows-latest` leg, read by the orchestrator at the pull request |
 | Whether `cmd.exe` runs a command name that opens with a drive and `/`, such as `C:/Python/python.exe`, as written. The gate refuses it on Windows, because `os.path.join(root, "C:")` names a directory (`trail/phases/phase-1.md`) | a measurement: one run of such a name under `cmd.exe` on a Windows machine |
+| What `templates/setup/config.md` *Broad gate* says `cmd.exe` does where the reading and `cmd.exe` differ: that `rem` ignores the `&& bin/test` after it, and that a separator glued to a word, as in `a&& bin/x` or `a &&bin/x`, still separates two commands. Phase 2 states both as `design.md` *Scope* item 6 and `plan.md` *Judgments of the run* state them, and no Windows shell was in reach to run either | a measurement: one run of each value under `cmd.exe` on a Windows machine |
 
 ## Not done
 
