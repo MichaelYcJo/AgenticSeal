@@ -20,6 +20,7 @@ import textwrap
 
 import pytest
 from conftest import ROOT, census_case, commit_everything_as_e, git_out, write
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/test_layout.py"
 
@@ -1087,6 +1088,27 @@ class Test_moved:
         assert out.splitlines()[-1].endswith(f"{len(lines)} failed"), out
         assert others == 0, "the base's worktree was left behind"
 
+    def test_refuses_to_let_a_removal_git_did_not_answer_replace_the_run(
+        self, _moved_world, tmp_path, monkeypatch, capsys
+    ):
+        """#1573: the base's worktree is removed in a `finally`, and a
+        removal past `lib/gitcmd.py#TIMEOUT` names the worktree on stderr
+        while the run's result stands. Seen red against `test_layout.py`
+        before #1573, where `subprocess.TimeoutExpired` replaced it."""
+        asked = unanswered(monkeypatch, "worktree", "remove")
+        code, others, _base = run_moved(
+            _moved_world, tmp_path, monkeypatch, {X: MOVED_NEW}
+        )
+        out, err = capsys.readouterr()
+        assert code == 0, out + err
+        assert out.splitlines()[-1].endswith(", 0 failed"), out
+        (held,) = asked
+        assert err == (
+            f"seal layout: the scratch worktree {held[-1]} was not removed: "
+            f"{past_the_bound(held)}\n"
+        )
+        assert others == 1, "the base's worktree is still in git's list"
+
     def test_refuses_a_base_or_a_file_it_cannot_read(
         self, _moved_world, tmp_path, monkeypatch, capsys
     ):
@@ -1124,13 +1146,14 @@ class Test_moved:
 
 class Test_main:
     """Where two cases call `main` alike, the world differs: a monkeypatched
-    `_toplevel` puts the repository at a fixture directory or nowhere."""
+    `lib/optin.py#toplevel` puts the repository at a fixture directory or
+    nowhere, or a git command does not answer."""
 
     def test_accepts_a_pair_and_exits_zero(self, tmp_path, monkeypatch, capsys):
         (tmp_path / "tests").mkdir()
         source = PLACED.replace('x.parse("") is None', 'x.parse("a") is not None')
         (tmp_path / "tests" / "test_x.py").write_text(source, encoding="utf-8")
-        monkeypatch.setattr(layout, "_toplevel", lambda start: str(tmp_path))
+        monkeypatch.setattr(layout.optin, "toplevel", lambda start: str(tmp_path))
         assert layout.main(["--pairs"]) == 0
         assert "test_accepts_text and test_refuses_nothing" in capsys.readouterr().out
 
@@ -1142,7 +1165,7 @@ class Test_main:
         source = PLACED.replace("Test_parse", "Test_render")
         (tmp_path / "tests" / "lib" / "test_x.py").write_text(source, encoding="utf-8")
         (tmp_path / "lib" / "x.py").write_text(MODULE, encoding="utf-8")
-        monkeypatch.setattr(layout, "_toplevel", lambda start: str(tmp_path))
+        monkeypatch.setattr(layout.optin, "toplevel", lambda start: str(tmp_path))
         monkeypatch.setattr(layout, "_tracked", lambda root: set(TRACKED))
         assert layout.main(["--check"]) == 1
         out = capsys.readouterr().out
@@ -1154,9 +1177,29 @@ class Test_main:
         assert f"{missing} names no file or directory" in capsys.readouterr().out
 
     def test_refuses_a_directory_outside_a_repository(self, monkeypatch, capsys):
-        monkeypatch.setattr(layout, "_toplevel", lambda start: None)
+        monkeypatch.setattr(layout.optin, "toplevel", lambda start: "")
         assert layout.main(["--check"]) == 2
         assert "not inside a git repository" in capsys.readouterr().out
+
+    @pytest.mark.parametrize(
+        "words",
+        [("rev-parse", "--show-toplevel"), ("ls-files", "-z")],
+        ids=["toplevel", "tracked"],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, tmp_path, monkeypatch, capsys, words
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT` is exit 2 in the
+        runner's one line, and a git that hung is not read as no
+        repository. Seen red against `test_layout.py` before #1573, which
+        raised `subprocess.TimeoutExpired` out of `main`."""
+        git_out(tmp_path, "init", "-q")
+        write(tmp_path, "tests/test_x.py", PLACED)
+        monkeypatch.chdir(tmp_path)
+        asked = unanswered(monkeypatch, *words)
+        assert layout.main(["--check"]) == 2
+        out = capsys.readouterr().out
+        assert out == f"seal layout: {past_the_bound(asked[0])}\n", out
 
 
 test_census = census_case(TARGET)

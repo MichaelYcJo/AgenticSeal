@@ -131,9 +131,11 @@ It then prints the old cases, both counts and the failures on one last line.
 Exit codes: `--check` 0 when nothing is refused and 1 when something is.
 `--pairs` 0 whatever it prints. `--moved` 0 where the group passes and 1
 where it does not. 2 for any of them: the directory is not inside a git
-repository, a path names no file or directory, or the arguments do not
-parse; for `--moved` that includes a path in neither list, so the new file
-written as the last word after `--from` is refused. And 2 for `--moved`
+repository, a path names no file or directory, the arguments do not
+parse, or a git command did not start, did not finish within
+`lib/gitcmd.py#TIMEOUT` or, listing the tracked files, exited non-zero,
+named in one line; for `--moved` that includes a path in neither list, so
+the new file written as the last word after `--from` is refused. And 2 for `--moved`
 where BASE names no commit, BASE does not hold an OLD file, a NEW file
 cannot be read, or pytest cannot make a collection.
 """
@@ -152,7 +154,9 @@ import tempfile
 import types
 
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
-# loads `lib/gitcmd.py`, whose `git_path` spells a path the way git does.
+# loads `lib/gitcmd.py`, which starts every git command this file runs and
+# whose `git_path` spells a path the way git does, and `lib/optin.py`, whose
+# `toplevel` names the repository.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib"),
@@ -160,6 +164,7 @@ sys.path.insert(
 import sibling
 
 gitcmd = sibling.load("lib/gitcmd.py")
+optin = sibling.load("lib/optin.py")
 
 TARGET_NAME = "TARGET"
 MODULE_CLASS = "Test_module"
@@ -1058,15 +1063,6 @@ def _collected(python, root, paths):
     return sum(1 for item in items if item.rsplit("::", 1)[-1] != "test_census")
 
 
-def _git(root, *args):
-    return subprocess.run(
-        ["git", "-C", root, *args],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-
-
 def _test_modules(paths, read):
     """`{import name: source}` for each of PATHS, each a file at any depth
     under `tests/`, that is a module, a test file among them, its source as
@@ -1087,7 +1083,7 @@ def _test_modules(paths, read):
 def _moved_main(root, base, olds, news):
     """`--moved`: the exit code, having printed each failure and a last
     line."""
-    sha = _git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
+    sha = gitcmd.git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
     if sha.returncode != 0:
         raise Unreadable(f"{base} names no commit")
     sha = sha.stdout.strip()
@@ -1098,7 +1094,7 @@ def _moved_main(root, base, olds, news):
     old_rels, new_rels = [rel(p) for p in olds], [rel(p) for p in news]
     old = {}
     for path in old_rels:
-        shown = _git(root, "show", f"{sha}:{path}")
+        shown = gitcmd.git(root, "show", f"{sha}:{path}")
         if shown.returncode != 0:
             raise Unreadable(f"{path} is not a file at {sha[:12]}")
         old[path] = shown.stdout
@@ -1109,12 +1105,12 @@ def _moved_main(root, base, olds, news):
             raise Unreadable(f"{path} cannot be read")
 
     def shown_at_base(path):
-        shown = _git(root, "show", f"{sha}:{path}")
+        shown = gitcmd.git(root, "show", f"{sha}:{path}")
         return shown.stdout if shown.returncode == 0 else None
 
     # `-z`: each path ends with a NUL and none is quoted, whatever
     # `core.quotePath` says, so a test file whose name is not ASCII is read.
-    listed = _git(root, "ls-tree", "-r", "-z", "--name-only", sha, TESTS).stdout
+    listed = gitcmd.git(root, "ls-tree", "-r", "-z", "--name-only", sha, TESTS).stdout
     listed = listed.split("\0")
     present = []
     for directory, subdirectories, names in os.walk(os.path.join(root, TESTS[:-1])):
@@ -1130,14 +1126,23 @@ def _moved_main(root, base, olds, news):
     holder = tempfile.mkdtemp(prefix="seal-layout-moved-")
     tree = os.path.join(holder, "base")
     try:
-        added = _git(root, "worktree", "add", "--detach", "--quiet", tree, sha)
+        added = gitcmd.git(root, "worktree", "add", "--detach", "--quiet", tree, sha)
         if added.returncode != 0:
             raise Unreadable(f"git cannot check out {sha[:12]}: {added.stderr.strip()}")
         before = _collected(python, tree, old_rels)
     finally:
         # This worktree alone, by its path: a prune would drop every other
-        # worktree's record whose directory is missing too.
-        _git(root, "worktree", "remove", "--force", tree)
+        # worktree's record whose directory is missing too. A removal git
+        # did not answer names the worktree and does not replace the run.
+        try:
+            gitcmd.git(root, "worktree", "remove", "--force", tree)
+        except gitcmd.Failed as unanswered:
+            print(
+                f"seal layout: the scratch worktree {tree} was not removed: "
+                f"{unanswered.line}",
+                file=sys.stderr,
+                flush=True,
+            )
         shutil.rmtree(holder, ignore_errors=True)
     after = _collected(python, root, new_rels)
     if after != before:
@@ -1157,27 +1162,8 @@ def _moved_main(root, base, olds, news):
     return 1 if lines else 0
 
 
-def _toplevel(start):
-    """The repository START is in, or None outside one."""
-    result = subprocess.run(
-        ["git", "-C", start, "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip()
-
-
 def _tracked(root):
-    result = subprocess.run(
-        ["git", "-C", root, "ls-files", "-z"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    )
+    result = gitcmd.git(root, "ls-files", "-z", check=True)
     return {path for path in result.stdout.split("\0") if path}
 
 
@@ -1248,17 +1234,29 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if (args.olds or args.news) and args.moved is None:
         parser.error("--from and --to go with --moved")
+    # Each path's list is told by the word before it, so a path in neither
+    # list is refused rather than counted into one.
+    if args.moved is not None and (not args.olds or not args.news or args.paths):
+        parser.error(
+            "--moved takes the old files after --from and the new files "
+            "after --to, and no other path"
+        )
+    try:
+        return _laid_out(args)
+    except gitcmd.Failed as unanswered:
+        print(f"seal layout: {unanswered.line}", flush=True)
+        return 2
+
+
+def _laid_out(args):
+    """`main` after its arguments parse: the exit code, having printed
+    what it found. A git command that did not answer raises
+    `lib/gitcmd.py#Failed`, and `toplevel` raises it rather than read it as
+    no repository."""
     if args.moved is not None:
-        # Each path's list is told by the word before it, so a path in
-        # neither list is refused rather than counted into one.
-        if not args.olds or not args.news or args.paths:
-            parser.error(
-                "--moved takes the old files after --from and the new files "
-                "after --to, and no other path"
-            )
         start = os.path.dirname(os.path.abspath(args.news[0]))
-        root = _toplevel(start)
-        if root is None:
+        root = optin.toplevel(start)
+        if not root:
             print(f"seal layout: {start} is not inside a git repository", flush=True)
             return 2
         try:
@@ -1268,8 +1266,8 @@ def main(argv=None):
             return 2
     first = args.paths[0] if args.paths else os.getcwd()
     start = first if os.path.isdir(first) else os.path.dirname(os.path.abspath(first))
-    root = _toplevel(start)
-    if root is None:
+    root = optin.toplevel(start)
+    if not root:
         print(f"seal layout: {start} is not inside a git repository", flush=True)
         return 2
     missing = [path for path in args.paths if not os.path.exists(path)]
