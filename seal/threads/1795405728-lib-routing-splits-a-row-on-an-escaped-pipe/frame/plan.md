@@ -49,7 +49,7 @@ The spawn names #1573, #1582 and #1575. #1573's frame was read at its checkout's
 
 ## Operational impact
 
-No migration, environment variable or dependency. `lib/routing.py` loads `lib/tables.py` at import, so every script that loads `routing` loads one more `lib/` module, the `Stop` hook's `seal_stamp.py` among them. A row written without its closing pipe reads in every reader, where `lib/tables.py#gfm_table` refused it before. A text holding a character only Python ends a line at is read by GFM lines, so `gfm_table`'s two sentences about such a character are no longer printed. No committed record reads differently (`frame/design.md` G9). This pull request does not move the version.
+No migration, environment variable or dependency. `lib/routing.py` loads `lib/tables.py` at import, so every script that loads `routing` loads one more `lib/` module, the `Stop` hook's `seal_stamp.py` among them. A row written without its closing pipe reads in every reader, where `lib/tables.py#gfm_table` refused it before. A row indented four spaces or a tab, which `lib/gaps.py` and `fold_check.py#index_rows` read before, is no longer a row there, as cmark-gfm reads it. A text holding a character only Python ends a line at is read by GFM lines, so `gfm_table`'s two sentences about such a character are no longer printed. No committed record reads differently (`frame/design.md` G9). This pull request does not move the version.
 
 ## Judgments of the run
 
