@@ -1847,11 +1847,13 @@ def remove_workflow(repo):
     """Remove the pull-request checks; (what happened, the line to print).
 
     It needs no root: a workflow that outlived its root is the case it is
-    for. Left in a local-mode repository and pinned to this release, every
-    step of the workflow examines nothing and passes
-    (`unverified_check.py#absent_root`), so there it is the person's choice
-    and never a repair; pinned to an older release, it is the way out of a
-    workflow that fails every pull request (`left_workflow_line`).
+    for. Left in a local-mode repository and pinned to this release, the
+    workflow passes: `chain_check.py` reads no routing declaration where the
+    tree holds no root and judges the commit trailers alone
+    (`chain_check.py#ROOT_LEFT_SAYS`), and `mode --check` finds no root to
+    disagree with. So there it is the person's choice and never a repair;
+    pinned to an older release, it is the way out of a workflow that fails
+    every pull request (`left_workflow_line`).
 
     A file this plugin did not write is left alone: deleting somebody's
     workflow because it shares a name is the destructive direction.
@@ -2414,9 +2416,9 @@ def mode(args, cwd):
                 return 1
             # A check that fails where there is nothing to check teaches
             # people to delete the check. A workflow pinned to this release
-            # that outlived its root examines nothing on every step,
-            # `unverified_check.py` included (`absent_root`), and this one has
-            # nothing to add to that.
+            # that outlived its root reads no routing declaration in its
+            # review-chain step either (`chain_check.py#ROOT_LEFT_SAYS`), and
+            # this one has nothing to add to that.
             print("no seal/ here, so nothing is declared and nothing can disagree.")
             return 0
         return no_root(repo, shared, local)
