@@ -253,52 +253,66 @@ a tab or a new line, and the gate runs a command nobody wrote. No reader
 refuses it, because a value is a string the person wrote and the command it
 then runs fails loudly.
 
-**Which shell runs the command, and what it is handed.** `/bin/sh` on macOS
-and Linux. On Windows it is whatever `%COMSPEC%` names, which is `cmd.exe`
-unless somebody changed it, and `cmd.exe` reads a `/` inside a command name
-as the start of a switch: handed `bin/test -q`, it runs a command called
-`bin` and fails before any test does. So where the shell is `cmd.exe`, the
-gate hands it the command with `/` written `\` inside a command name that
-starts in a directory, and nowhere else. A command name is the word at the
-start of the line, or the first word after `&&`, `||`, `&`, `|` or a `(`
-that opens a block. It starts in a directory where the part before its
-first `/`, with its quotes and carets removed and every leading `@` dropped,
-names a directory that exists where the command runs; a name that begins
-with `/` starts at the drive's root, which always exists. A plain `%VAR%` in
-that part is expanded first, because `cmd.exe` expands it before it reads
-the name: from the gate's own environment, and `%CD%` as the directory the
-command runs in unless the environment defines `CD`, so `%CD%/bin/test` is
-still rewritten. A substring or substitution (`%VAR:~0,2%`, `%VAR:a=b%`) is
-not expanded, so a name that starts with one keeps its `/`. `bin/test` then
-runs as `bin\test`, which `cmd.exe` resolves to `bin/test.cmd`. Arguments,
-quoted paths, `%VAR%`, operators and `^`-escaped characters reach the shell
-as written. Every other position is handed as written, and `cmd.exe` reads
-it exactly as before: the definition above is the rule, and these are
-examples of it rather than the whole list: a path after `call`, `start` or
-`if`, or after `else`, `for … do` and `cmd /c`; a command name after a
-redirection that opens its command (`>out.txt bin/test`); and a `/` written
-straight after one of `cmd.exe`'s own commands, which is that command's
-switch (`rd/s/q build`). A `/` written straight after any other program's
-name reaches `cmd.exe` as written too, because no directory carries the
-program's name: `xcopy/e/i` stays `xcopy/e/i`. A blank before the switch
-(`xcopy /e`) works as well, and is never rewritten. The directory is judged
-where the command starts, and that has two bounds. A directory an earlier
-command in the line makes, or one a `cd` earlier in the line enters, is not
-seen, so that name is handed over as written, which is what `cmd.exe` got
-before the gate rewrote anything. And a directory at the root named like a
-program the command calls with a glued switch (an `xcopy/` directory) makes
-`xcopy/e` read as a path; `cmd.exe` itself cannot tell the two apart in that
-tree, so write the blank there. Any other `COMSPEC`, and every POSIX shell,
-is handed the command as written. Where the two differ, the gate prints one
-line saying what `cmd.exe` was handed, and that check's kept output carries
-it under the command as written.
+**Which shell runs the command, and what the gate refuses there.**
+`/bin/sh` on macOS and Linux. On Windows it is whatever `%COMSPEC%` names,
+which is `cmd.exe` unless somebody changed it. `cmd.exe` reads a `/` inside
+a command name as the start of a switch: handed `bin/test -q`, it runs a
+command called `bin` and fails before any test does, and the report reads
+as the suite failing. So where the shell is `cmd.exe`, the gate refuses a
+command name that starts in a directory with `/`, and the refusal names
+the name's `\` spelling. The example key above is refused there in a
+repository that holds `bin/`. Every shell is handed the key's value as
+written. One value cannot carry both spellings, because `/bin/sh` reads
+`bin\test` as another name. So a key that runs under both shells names its
+commands with no directory in front, and hands a script's path to an
+interpreter as an argument.
+
+**Which words the gate reads as command names.** The gate reads the value
+up to its first `"`, `^` or `%`, because each of the three can move where
+`cmd.exe` ends a command: a `"` hides a separator, a `^` escapes one, and a
+`%VAR%` can expand to one. It splits that part at blanks and tabs. A word
+is read as a command name where it is the first word, or where the word
+before it is exactly `&&`, `||`, `&` or `|`. A command name is refused
+where it holds a `/` and the part before its first `/` names a directory
+under the repository root, where the command runs. An empty part (a name
+that opens with `/`), `.` and `..` each name one. So `pytest tests/x.py`
+and `uvx ruff check src/` are not refused, because `tests/x.py` and `src/`
+are arguments, and `bin -q` is not, because it holds no `/`.
+
+**What the gate does not read is named, and decides nothing.** Where the
+value holds a `"`, `^` or `%`, the gate names each word after the first of
+them that the same reading of the whole value would refuse, with the
+character the reading stopped at. Where nothing is refused, that is one
+line before the run, and the command then runs as written. Where a name is
+refused, the refusal carries the same line. Under `/bin/sh`, or a
+`COMSPEC` naming another shell, the gate reads nothing of the command for
+this form and names nothing.
+
+**Where the reading and `cmd.exe` differ.**
+
+- A word the reading takes for a command name that `cmd.exe` would not
+  run is refused too, such as the text after `rem` in `rem a && bin/test`.
+  The `\` spelling there answers it.
+- A switch glued to a program's name is refused where the root holds a
+  directory of that name: `xcopy/e/i` is refused in a repository with an
+  `xcopy/` directory, and runs as written elsewhere. A blank before the
+  switch (`xcopy /e/i`) answers it.
+- The root is read before anything runs. A directory an earlier command in
+  the line makes, or one a `cd` earlier in the line enters, is not seen, so
+  a name that starts in it is not refused, and `cmd.exe` fails on it.
+- A separator glued to a word, as in `a&& bin/x`, `a &&bin/x` or
+  `echo a^&& bin/x`, is no separator to the reading. So the word after it
+  is neither refused nor named, though `cmd.exe` reads that word as a
+  command name. A blank on both sides of the separator puts the name back
+  in the reading. The gate reads no glued separator, because reading one
+  needs a model of how `cmd.exe` splits a line, and the gate carries none.
 
 ### What is refused, and what stays allowed
 
 **A value that would not run as the command it reads as is refused, not
 repaired.** `seal gate` looks at the key's command before it hands it to a
-shell, and three forms come back exit 2 with nothing run, the same shape an
-absent key gets. The criterion is one sentence with two halves, and a form
+shell, and each form in the table below comes back exit 2 with nothing run,
+the same shape an absent key gets. The criterion is one sentence with two halves, and a form
 is refused only for breaking one of them:
 
 > **The value must run as the command it reads as, and the exit code the
@@ -309,6 +323,7 @@ is refused only for breaking one of them:
 | the whole command wrapped in backticks | `` `bin/test -q && ruff check .` `` | runs the content, **discards its exit status**, then executes its OUTPUT as a command. The same content exits 1 bare and 0 wrapped, with the failure still on the screen |
 | the whole command wrapped in `$(…)` | `$(bin/test -q && ruff check .)` | the same semantics in the spelling somebody who knows shell reaches for first |
 | a trailing `&` that is not part of `&&` | `bin/test -q &` | `/bin/sh` backgrounds the whole line and answers 0 before any check has finished. `cmd.exe` separates two commands instead, so what the gate reads is the second one's status. Two different wrong answers, refused for the same half of the criterion |
+| a command name that starts in a directory with `/`, where the shell is `cmd.exe` | `uvx ruff check . && bin/test -q`, in a repository that holds `bin/` | `cmd.exe` reads the `/` as the start of a switch, runs a command called `bin`, and fails before any check has run, so the report reads as the suite failing. `/bin/sh` runs the same value as written, so the form is refused only where the shell is `cmd.exe`. *Broad gate* above says which words the gate reads as command names |
 
 **Nothing is stripped.** A value quietly repaired here would leave the file
 still wrong and teach the next person that the way they wrote it was right,

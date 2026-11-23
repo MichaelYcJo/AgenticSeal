@@ -109,11 +109,13 @@ pins. No key records that; the file is the record.
 
   **The `Broad gate` key is looked at before it is run**, and a value that
   would not run as the command it reads as is refused with nothing run:
-  the whole command wrapped in backticks or in `$(…)`, or a trailing `&`.
-  Nothing is stripped or repaired: rewriting the key is the person's act,
-  which is what brings them here. `templates/setup/config.md` *What is refused,
-  and what stays allowed* lists the three forms and the ones that stay
-  legal, each with its reason, and it is where this is decided.
+  the whole command wrapped in backticks or in `$(…)`, a trailing `&`, or,
+  where the shell is `cmd.exe`, a command name that starts in a directory
+  with `/`. Nothing is stripped or repaired: rewriting the key is the
+  person's act, which is what brings them here. `templates/setup/config.md`
+  *What is refused, and what stays allowed* lists the refused forms and the
+  ones that stay legal, each with its reason, and it is where this is
+  decided.
 - **A fold key**, `Document token ceiling` or `Policy root`, is only a key
   too. Edit or add it in place, and point at
   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *The fold's values* for what

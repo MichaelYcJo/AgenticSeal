@@ -741,6 +741,17 @@ class Test_not_as_written:
     def test_accepts_a_name_after_any_other_word(self, tmp_path, value):
         assert on_cmd_exe(value, a_root(tmp_path, "bin")) is None
 
+    @pytest.mark.parametrize("value", ["a&& bin/x", "a &&bin/x", "echo a^&& bin/x"])
+    def test_neither_refuses_nor_names_a_name_after_a_glued_separator(
+        self, tmp_path, capsys, value
+    ):
+        """The bound `templates/setup/config.md` *Broad gate* states: a
+        separator glued to a word is no separator to the reading, so the
+        name after it is neither refused nor named as not read, though
+        `cmd.exe` reads it as a command name."""
+        assert on_cmd_exe(value, a_root(tmp_path, "bin")) is None
+        assert capsys.readouterr().err == ""
+
     def test_accepts_a_name_with_no_slash_where_a_directory_has_its_name(
         self, tmp_path
     ):

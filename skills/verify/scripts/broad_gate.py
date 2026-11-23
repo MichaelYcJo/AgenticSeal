@@ -854,9 +854,12 @@ def not_as_written(home, command, root, windows=None, comspec=None):
     value is read up to its first `"`, `^` or `%`, split at blanks and tabs,
     and a word is a command name where it is the first or follows a word
     that is exactly `&&`, `||`, `&` or `|`: within that part no quote hides
-    a separator and no caret escapes one. A name is refused where the part
-    before its first `/` is a directory under ROOT, the root the command
-    runs in. A word past the cut that the same reading would refuse is named
+    a separator and no caret escapes one. A separator glued to a word, as
+    in `a&& bin/x`, is no separator to this reading, so the word after it
+    is neither refused nor named, though `cmd.exe` reads it as a command
+    name: `templates/setup/config.md` *Broad gate* names that bound with
+    the others. A name is refused where the part before its first `/` is a
+    directory under ROOT, the root the command runs in. A word past the cut that the same reading would refuse is named
     on one stderr line before the run, or inside the refusal, and decides
     nothing.
 
