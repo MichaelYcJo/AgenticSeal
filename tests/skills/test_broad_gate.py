@@ -627,7 +627,8 @@ class Test_wholly_substituted:
 CMD = r"C:\Windows\System32\cmd.exe"
 # The key as #448 measured it, with its suite command after a separator.
 OLD_KEY = "uvx ruff check . && bin/test -q"
-HOME = "/h"
+# The `seal/` root a refusal names, which no case opens.
+HOME = "home"
 CONFIG_PATH = os.path.join(HOME, "config.json")
 
 
@@ -833,7 +834,9 @@ class Test_run:
         kept = pathlib.Path(check.path).read_text(encoding="utf-8").splitlines()
         assert kept[1:3] == ["exit 3", ""]
 
-    def test_the_row_runs_on_the_real_platform(self, tmp_path):
+    def test_refuses_the_row_only_under_cmd_exe_and_runs_it_on_the_real_platform(
+        self, tmp_path
+    ):
         """A fixture with the pair `bin/probe` (sh) and `bin/probe.cmd`, run
         through the real shell of whatever machine this is. Where the shell is
         `cmd.exe`, `bin/probe` is refused naming `bin\\probe`, and `bin\\probe`
