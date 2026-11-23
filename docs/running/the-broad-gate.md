@@ -113,7 +113,7 @@ second time.** A documented incantation that resolves and installs its
 environment on every call is not a missing command, it is an expensive one.
 The environment is built once and reused; the first call pays for it and
 every call after it pays for interpreter startup and nothing else.
-check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/github/test_run_tests.py
+check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_run_tests.py
 
 **Every failure the runner has is a sentence, never a traceback.** The
 awkward one is the environment it cannot write: the refusal that was supposed
@@ -122,7 +122,7 @@ tells the reader about the directory rather than about the thing they typed.
 A read-only environment directory is the operator's; the runner says what it
 could not do, names the path and what it means for `git status`, and carries
 on.
-check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/github/test_run_tests.py
+check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_run_tests.py
 
 **The runner runs the suite in parallel by default, in every environment it
 builds or adopts, and the caller's own choice wins.** A runner that withheld
@@ -137,7 +137,7 @@ suite is correct without it: an install that fails is one sentence naming the
 remedy, then a serial run with pytest's exit code. `-n auto` is withheld
 where the caller already decided: any spelling of `-n` or `--numprocesses`,
 `-p no:xdist`, or `--pdb`.
-check: tests/github/test_run_tests.py
+check: tests/test_run_tests.py
 
 **A sweep that walks a git listing judges what remains instead of stopping
 at the first tracked file the disk lacks, and a case whose verdict needs the

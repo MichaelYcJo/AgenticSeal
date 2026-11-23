@@ -43,14 +43,13 @@ extend-exclude = ["*.md"]
 [per-file-target-version]
 "lib/*.py" = "py39"  # the set reaches most of lib/, so the table holds it whole
 "hooks/*.py" = "py39"
-".github/scripts/run_tests.py" = "py39"
+"tests/run_tests.py" = "py39"
 "skills/verify/scripts/seal_stamp.py" = "py39"
 "skills/code-review/scripts/chain_check.py" = "py39"
 "skills/code-review/scripts/pr_body.py" = "py39"
-".github/scripts/close_issues_on_release.py" = "py39"
 "skills/settle/scripts/rule_changes.py" = "py39"
 "skills/settle/scripts/passages.py" = "py39"
-".github/scripts/rules.py" = "py39"
+"skills/settle/scripts/rules.py" = "py39"
 "skills/settle/scripts/fold_check.py" = "py39"
 
 [lint]

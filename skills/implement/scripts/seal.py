@@ -158,7 +158,7 @@ TOOLS = {
         "whether each test file stands where the test layout puts it",
     ),
     "rules": (
-        ".github/scripts/rules.py",
+        "skills/settle/scripts/rules.py",
         "a document's sections with what their tests guard, or every check line read",
     ),
     "pr-body": (

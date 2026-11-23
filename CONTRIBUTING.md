@@ -79,7 +79,7 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 ## Running the checks
 
 The suite needs `pytest` and three packages, each pinned to one version in
-`.github/scripts/run_tests.py`: one parser, `markdown-it-py`, pinned in
+`tests/run_tests.py`: one parser, `markdown-it-py`, pinned in
 `MARKDOWN_IT`, one renderer, `cmarkgfm`, pinned in `CMARKGFM`, and one YAML
 parser, `PyYAML`, pinned in `PYYAML`.
 The parser is the CommonMark oracle the readers under `lib/` are checked

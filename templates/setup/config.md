@@ -146,7 +146,7 @@ every repository, whatever either key says:
   items `add`, `change`, `remove` and `nothing` and the fields `file:`,
   `section:`, `from:`, `to:` and `why:`, which
   `skills/settle/scripts/rule_changes.py` reads, and the label `check:` of
-  a check line inside a `to`, which `.github/scripts/rules.py` reads; a
+  a check line inside a `to`, which `skills/settle/scripts/rules.py` reads; a
   `frame/plan.md`'s `## Judgments of the run` heading with its `Date`,
   `Judgment`, `Grounds` and `Judged against` columns, which `seal settle`
   groups the run's judgments by; and a `changelog.md`'s

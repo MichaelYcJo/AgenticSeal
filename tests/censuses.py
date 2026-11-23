@@ -37,6 +37,11 @@ import tokenize
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXEMPTION = re.compile(r"^\s*#\s*exempt from ([a-z_]+):\s*\S")
 COMMENT_LINE = re.compile(r"^\s*#")
+# The code `splitlines` and `heading_rule` read: `lib/` and `skills/`, and
+# the release automation under `.github/scripts/`, which the workflows run
+# from the tree and `dist` does not hold. A `.py` file under any other root
+# is not read: `hooks/`, which the plugin ships, and `tests/`, which holds
+# the suite and its runner.
 SHIPPED = ("lib/", "skills/", ".github/scripts/")
 
 
@@ -802,11 +807,12 @@ def entry_point(rel, root=None):
 
 
 def splitlines(rel, root=None):
-    """No shipped reader splits a document's lines with `.splitlines(`,
-    which also ends a line at the eight separators GFM does not. A reader
-    of markdown or record text reads `lib/blocks.py#gfm_lines`, and a call
-    over any other text, git's output or a tool's, carries its exemption
-    above the line that names `splitlines`."""
+    """No reader under `SHIPPED` splits a document's lines with
+    `.splitlines(`, which also ends a line at the eight separators GFM does
+    not. A reader of markdown or record text reads
+    `lib/blocks.py#gfm_lines`, and a call over any other text, git's output
+    or a tool's, carries its exemption above the line that names
+    `splitlines`."""
     text = _python(rel, root, SHIPPED)
     if text is None:
         return []
@@ -841,7 +847,7 @@ def splitlines(rel, root=None):
 # A format this repository owns is read by one reader. A markdown heading was
 # read by four rules, and the copies answered one file differently. Each copy
 # had been written beside a docstring pointing at the original, so what holds
-# the one reader is a census over every shipped script.
+# the one reader is a census over every script under `SHIPPED`.
 
 # A code line that reads a markdown heading by a rule of its own: a counted
 # `#` run in a pattern, `#{1,6}`, `#{2,3}` or any `#{<digit>`, or a
@@ -866,8 +872,8 @@ def code_lines(text):
 
 
 def heading_rule(rel, root=None):
-    """No shipped script spells the markdown heading rule again: a reader of
-    a document's sections asks `lib/lines.py#heading_level`. A docstring
+    """No script under `SHIPPED` spells the markdown heading rule again: a
+    reader of a document's sections asks `lib/lines.py#heading_level`. A docstring
     and a whole-line comment are prose about the rule and are not read."""
     text = _python(rel, root, SHIPPED)
     if text is None:

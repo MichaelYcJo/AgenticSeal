@@ -1,4 +1,4 @@
-"""`.github/scripts/rules.py`, one class per function.
+"""`skills/settle/scripts/rules.py`, one class per function.
 
 `seal rules <doc>` prints each section with what its tests say they guard, and
 `seal rules --check` fails where a check line is refused. A rule's text lives
@@ -28,9 +28,9 @@ import pytest
 from conftest import ITEM, ROOT, census_case, write
 from test_seal import configured
 
-TARGET = ".github/scripts/rules.py"
+TARGET = "skills/settle/scripts/rules.py"
 
-SCRIPT = os.path.join(ROOT, ".github", "scripts", "rules.py")
+SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
 
 
 def _load():
@@ -736,7 +736,7 @@ class Test_module:
             cwd=str(tmp_path),
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
-        lib = os.path.join(str(alone), "..", "..", "lib", "sibling.py")
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
         said = sibling.MISSING.format(path=os.path.normpath(lib))
         assert done.stderr == said + "\n", done.stderr
 

@@ -55,10 +55,10 @@ commit keeps the fold's tags as text. A copied line equal to `HEADING` is
 refused at the record's line, and so is a copied line holding a `details`
 tag, `<details` or `</details` in any case followed by whitespace, `/`, `>`
 or the line's end, outside a fence, an HTML comment and a code span, and a
-copied line where `close_issues_on_release.py#keywords_in` reads a closing
+copied line where `lib/closing.py#keywords_in` reads a closing
 keyword: the `Closes` line is the orchestrator's, written in `pr.md`.
 The comment is read on the copied line alone, as
-`close_issues_on_release.py#HIDDEN` reads it: one that closes on the line
+`lib/closing.py#HIDDEN` reads it: one that closes on the line
 hides what it holds, and a `<!--` with no `-->` after it on the line is
 text where other text stands before it. A copied line that begins with
 such a `<!--`, after nothing but spaces, tabs and block markers, is refused
@@ -169,18 +169,16 @@ except ImportError:
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
 # `lib/config.py`, the one reader of a `seal/config.json` key, and
-# `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
-# reader of a closing keyword. The plugin ships from the repository root, so
-# `.github/scripts/` stands in an installed copy as in a clone. An absent
-# file is `lib/sibling.py#load`'s sentence and exit 2. As a command, a
-# module that raises while it loads ends the run at exit 2; imported, the
-# error is raised to the importer.
+# `lib/closing.py`, whose `keywords_in` is the one reader of a closing
+# keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
+# a command, a module that raises while it loads ends the run at exit 2;
+# imported, the error is raised to the importer.
 try:
     CHAIN = sibling.load("skills/code-review/scripts/chain_check.py")
     GAPS = sibling.load("lib/gaps.py")
     ROUTING = sibling.load("lib/routing.py")
     CONFIG = sibling.load("lib/config.py")
-    CLOSER = sibling.load(".github/scripts/close_issues_on_release.py")
+    CLOSER = sibling.load("lib/closing.py")
 except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
@@ -318,8 +316,8 @@ TOO_LONG = (
 # The seal mark, one fixed line between `HEADING`'s blank line and
 # `FOLD`, written where `seal/config.json`'s `MARK_KEY` reads `MARK_ON`
 # exactly and the work item is sealed at HEAD (`seal_mark`). Its address is
-# built from the plugin's manifest, which stands three levels above HERE as
-# `.github/scripts/` does, and which this reads and never writes.
+# built from the plugin's manifest, which stands three levels above HERE, at
+# the plugin's root, and which this reads and never writes.
 MARK_KEY = "Pull request seal mark"
 MARK_ON = "yes"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")

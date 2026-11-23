@@ -144,7 +144,7 @@ declarations stay judged.
 check: nothing-declared-nothing-owed
 
 **Each check line inside an `add` or `change` `to` of a design whose
-`## Rule changes` the check parses is read by `.github/scripts/rules.py`,
+`## Rule changes` the check parses is read by `skills/settle/scripts/rules.py`,
 the reader `seal rules --check` uses, and a line that reader refuses is a
 refusal at its line in the design, carrying the reader's reason.** The
 settle writes each `to` into the policy root as it stands. Where that
