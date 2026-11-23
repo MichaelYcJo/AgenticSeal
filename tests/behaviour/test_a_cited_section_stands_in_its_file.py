@@ -1338,24 +1338,28 @@ def warn_near_misses(files):
             )
 
 
-def test_each_near_miss_contract_citation_is_named_in_a_warning():
+def test_every_near_miss_in_the_tree_is_reported():
     warn_near_misses(corpus(ROOT)[1])
 
 
-def test_a_near_miss_is_named_in_one_warning_and_decides_nothing():
+def test_each_near_miss_is_named_in_a_warning_and_decides_nothing():
     """#1572 S8: a file citing the contract with a capital `Rule` is named
-    in one warning, at its line with the one spelling to write, and nothing
-    fails. The shape is built here so this file holds none."""
+    in a warning, at its line with the one spelling to write, and nothing
+    fails. A second near miss in the file gets a warning of its own. The
+    shapes are built here so this file holds none."""
     n = 7
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        warn_near_misses([("docs/x.md", f"intro\nContract Rule {n}")])
+        warn_near_misses(
+            [("docs/x.md", f"intro\nContract Rule {n}\nthe contract's rule {n}")]
+        )
     # The warning a person reads in the suite's summary: where the near miss
     # starts and the one spelling the citation reader reads.
     assert [str(w.message) for w in caught] == [
-        "docs/x.md:2 reads as a contract citation in a spelling the citation "
-        "check does not read; cite one contract rule as `contract rule <N>`, "
-        "one number each"
+        f"docs/x.md:{line} reads as a contract citation in a spelling the "
+        "citation check does not read; cite one contract rule as "
+        "`contract rule <N>`, one number each"
+        for line in (2, 3)
     ]
 
 
