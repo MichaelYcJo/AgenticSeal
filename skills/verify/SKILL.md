@@ -236,8 +236,9 @@ merges and answers no deferral made before that.
 
 It reads command text rather than a YAML graph, so a runner reached through a
 composite action, a reusable workflow, or a script it cannot see reads as
-absent. Disagreement with what CI really does is a finding about this tool,
-not permission to keep the row.
+absent. Where the CI files run the check by a path the words miss, the row
+stands on what the agent read in them, and the miss is a finding about this
+tool.
 
 ### And something has to read the row afterwards
 
