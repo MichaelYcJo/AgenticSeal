@@ -20,8 +20,9 @@ except for an open item whose own text begins with the word `closed`, which
 reads as closed and which only a reader catches.
 
 Deliberately a text scan of markdown, not a parser library: its lines are
-`lib/lines.py`'s, its items `lib/items.py`'s, and the sentence a comment
-line is refused with `lib/fields.py`'s, each imported beside it. Standard
+`lib/lines.py`'s, a row's cells `lib/tables.py#table_cells`', its items
+`lib/items.py`'s, and the sentence a comment line is refused with
+`lib/fields.py`'s, each imported beside it. Standard
 library only, and Python 3.9 syntax, as every module under `lib/`.
 """
 
@@ -40,9 +41,9 @@ from lines import (
     is_separator,
     readable,
     sections,
-    split_row,
     visible,
 )
+from tables import table_cells
 
 # A thread's closing memo, at the thread's top: `lib/optin.py#GAPS`, which a
 # case holds this to.
@@ -102,7 +103,7 @@ def parse_section(body, offset):
         errors.extend(block)
         return open_rows, closed_rows, errors
 
-    cells = split_row(first)
+    cells = table_cells(first)
     if cells is None:
         unread = unread_block(content)
         errors.append(
@@ -112,7 +113,7 @@ def parse_section(body, offset):
             )
         )
         return open_rows, closed_rows, errors
-    if tuple(cells) != HEADER:
+    if cells != HEADER:
         errors.append(
             (
                 first_no,
@@ -121,7 +122,7 @@ def parse_section(body, offset):
             )
         )
         return open_rows, closed_rows, errors
-    if len(content) < 2 or not is_separator(split_row(content[1][1]) or []):
+    if len(content) < 2 or not is_separator(table_cells(content[1][1]) or ()):
         errors.append((first_no, "the header row is not followed by a separator row"))
         return open_rows, closed_rows, errors
 
@@ -131,7 +132,7 @@ def parse_section(body, offset):
             (first_no, f"a table with no rows says nothing: write {NOTHING_WRITTEN}")
         )
     for line_no, line in rows:
-        cells = split_row(line)
+        cells = table_cells(line)
         if cells is None:
             errors.append((line_no, "a line inside the table that is not a table row"))
             continue

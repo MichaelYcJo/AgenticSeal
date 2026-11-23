@@ -956,16 +956,25 @@ class Test_check:
         assert f"NOT READ {SIGNER_URL} {SPEC}:1 — `| pact | clause | hash |`" in out
         assert "REFUSED" not in out, out
 
-    def test_grades_the_exact_table_and_names_a_near_one_beside_it(self, world):
+    @pytest.mark.parametrize(
+        "heading",
+        ["## More", "## More" + chr(0x2028) + " notes"],
+        ids=["a heading", "a heading holding a U+2028"],
+    )
+    def test_grades_the_exact_table_and_names_a_near_one_beside_it(
+        self, world, heading
+    ):
         """A table under a near header below the anchor table is no second
         anchor table: the anchor row is graded, the near header is named at
         its line, and nothing is refused. Seen red against the refusal of
-        a second header."""
+        a second header. The line is counted where GFM ends one, so a U+2028
+        in the heading above, which `str.splitlines` also ends a line at,
+        moves nothing (#1574)."""
         write(
             world.web,
             SPEC,
             anchor_table((PACT_URL, CLAUSE_PATH, clause(V2)))
-            + "\n## More\n\n| pact | clause | hash |\n|---|---|---|\n"
+            + f"\n{heading}\n\n| pact | clause | hash |\n|---|---|---|\n"
             + f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
         )
         code, out = world.run()
@@ -1012,6 +1021,16 @@ class Test_check:
             (
                 anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
                 + "\n## More\n\n"
+                + anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d")),
+                "the frame holds a second `| Pact | Clause | Hash |` header at "
+                "line 7, and the walk reads the first table only — move its rows "
+                "into the first table and delete the second header",
+            ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n## More"
+                + chr(0x2028)
+                + " notes\n\n"
                 + anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d")),
                 "the frame holds a second `| Pact | Clause | Hash |` header at "
                 "line 7, and the walk reads the first table only — move its rows "
@@ -1071,6 +1090,7 @@ class Test_check:
         ],
         ids=[
             "a second table",
+            "a second table under a heading holding a U+2028",
             "a second table under a blank line",
             "a row the walk stops at",
             "a row under a delimiter of another width",

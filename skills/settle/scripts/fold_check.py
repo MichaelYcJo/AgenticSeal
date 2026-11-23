@@ -34,9 +34,9 @@ absent key means *not declared*, as every optional key of that file does:
 the check it governs is not run, and the output says so in one line rather
 than refusing. A flag overrides its key for one run.
 
-Live lines and table rows come from `lib/lines.py` (`live_lines`,
-`split_row`) and a text's lines from `lib/blocks.py#gfm_lines`, loaded rather
-than re-spelled.
+Live lines come from `lib/lines.py#live_lines`, a table row's cells from
+`lib/tables.py#table_cells` and a text's lines from
+`lib/blocks.py#gfm_lines`, loaded rather than re-spelled.
 
 Typed with no `--root`, it reads the repository the current directory is in,
 so a run from a subdirectory checks that repository and not nothing.
@@ -61,6 +61,7 @@ LIB = os.path.join(HERE, "..", "..", "..", "lib")
 # The modules this command reads, each as `lib/sibling.py#load` names it.
 READER = "lib/lines.py"
 BLOCKS = "lib/blocks.py"
+TABLES = "lib/tables.py"
 CONFIG_READER = "lib/config.py"
 OPTIN = "lib/optin.py"
 
@@ -152,11 +153,11 @@ def groups(root, policy):
 def index_rows(root, index):
     """`[(line number, backticked texts)]` for each row of the tables of the
     index at INDEX after the header and the separator."""
-    uc = reader()
+    uc, cells_of = reader(), sibling.load(TABLES).table_cells
     rows, in_table = [], False
     lines = uc.live_lines(sibling.load(BLOCKS).gfm_lines(read(root, index)))
     for number, (line, live) in enumerate(lines, 1):
-        cells = uc.split_row(line) if live else None
+        cells = cells_of(line) if live else None
         if cells is None or not in_table or uc.is_separator(cells):
             in_table = cells is not None
             continue

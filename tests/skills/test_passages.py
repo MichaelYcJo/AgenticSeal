@@ -13,6 +13,7 @@ import itertools
 import os
 
 import pytest
+from commonmark_oracle import hidden_text
 from conftest import ROOT, census_case, load_module
 
 TARGET = "skills/settle/scripts/passages.py"
@@ -135,6 +136,15 @@ class Test_words:
         assert shared(run, run)
         # A copy whose first word was capitalised by its new sentence is a copy.
         assert shared(run.upper(), f"`{run}`")
+
+    def test_reads_the_words_after_a_backtick_run_four_spaces_in(self):
+        """#1574: four spaces in, three backticks open no fence (CommonMark
+        4.5), so the prose below them is read, as `lib/lines.py#readable`
+        reads it."""
+        run = " ".join(f"w{i}" for i in range(WINDOW))
+        text = f"Intro.\n\n    ```\n\n{run}\n"
+        assert 4 not in hidden_text(text)
+        assert shared(text, run)
 
 
 class Test_windows:
