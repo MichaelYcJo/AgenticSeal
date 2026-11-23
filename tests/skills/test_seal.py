@@ -8,18 +8,35 @@ checks (`pr-checks`).
 
 The units that read a name, a zip, a file or a config text run in the
 process on a case's own directory, with no git. The commands run through
-`main` in the process over worlds built once for the module: a local-mode
-clone holding one work item and an `origin`, a shared-mode clone whose root
-is committed, a second local-mode clone to import into, a clone with no
-root, a clone with no commit, and two shared-mode clones each holding a
-submodule, one under the root and one beside it. One zip, exported once
-from the first world, is what every import reads. A case that writes into a
-world takes a copy of it, and the copy is the reset. No world holds a file a
-case runs, so a copy is a plain copy.
+`main` in the process over worlds built once for the module: a clone with no
+root, and copies of it made a local-mode clone holding one work item and an
+`origin`, a shared-mode clone whose root is committed, a second local-mode
+clone to import into, and two shared-mode clones each with a submodule's
+gitlink in the index, one under the root and one beside it; and a clone with
+no commit. One zip, exported once from the local-mode world, is what every
+import reads. A case that writes into a world takes a copy of it, and the
+copy is the reset. No world holds a file a case runs, so a copy is a plain
+copy.
+
+A case that runs a command at the top of its copy gives the command its
+repository with `at_top`, which answers `optin.toplevel` for the copy, so
+`resolve` and `pr_checks` do not ask git for the top; given the `origin`
+the world was built with, it answers `remote_url` too. What a refusal that
+runs no git writing the index leaves is read by `tree`, every file of the
+clone with `.git` among it. The git that stays real is the git whose answer
+is the case's fact: the staging of a switch and of `seal pr-checks`, the
+index a refusal leaves, the HEAD a manifest records, the remote in the
+cases about the remote, and the runs from a subdirectory or from outside
+any repository, which reach their arm through `resolve`'s own git, as the
+export that writes the module's zip does. `Test_resolve` holds that git
+answers the top `at_top` gives, and `Test_remote_url` the `origin` the
+import's world carries.
 
 The cases that run the commands beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
+(#1059) take `package` or `shared`, the repositories `tests/conftest.py`'s
+fixtures of those names build, here built once among the worlds: the
+package's repository with no root, and a copy of it whose root is committed
+at `agentic-seal/`.
 
 #942's phase 6 placed here the writer's cases of
 `tests/test_the_mode_question_is_asked_once.py`, and the two cases of
@@ -44,6 +61,7 @@ import zipfile
 
 import pytest
 from conftest import (
+    PACKAGE,
     REMOTE,
     ROOT,
     ROOT_MARKER,
@@ -104,6 +122,7 @@ REV_PARSE_HEAD = ["rev-parse", "HEAD"]
 LS_FILES = "ls-files"
 TIMED_OUT = subprocess.TimeoutExpired(["git"], 15)
 SHA = "0123456789abcdef" + "0" * 24
+IDENTITY = ["-c", "user.email=e@example.com", "-c", "user.name=e"]
 
 
 def clone_at(d, remote=None):
@@ -112,7 +131,7 @@ def clone_at(d, remote=None):
     d.mkdir(parents=True)
     git(d, "init", "-q", "-b", "main")
     write(d, "f.txt", "one\n")
-    commit_everything_as_e(d, "base")
+    commit_as_e(d, "base")
     git(d, "branch", "feature/x")
     if remote:
         git(d, "remote", "add", "origin", remote)
@@ -127,44 +146,79 @@ def holding(home, records=RECORDS):
     return home
 
 
+def copied(source, dest, remote=None):
+    """A copy of the clone SOURCE at DEST, with REMOTE as `origin` where one
+    is given."""
+    shutil.copytree(source, dest, symlinks=True)
+    if remote:
+        git(dest, "remote", "add", "origin", remote)
+    return dest
+
+
+def commit_as_e(repo, message):
+    """Everything in REPO committed by `e <e@example.com>`: what
+    `commit_everything_as_e` does, less the `git rev-parse HEAD` of its
+    answer, which no case here reads but the one world that pins a gitlink
+    to it."""
+    git(repo, "add", "-A")
+    git(repo, *IDENTITY, "commit", "-qm", message)
+
+
+def gitlink_at(repo, where, sha):
+    """A submodule's gitlink at WHERE in REPO's index, pointing at SHA, and
+    committed: what `git ls-files --stage` lists as `160000`. Its directory
+    stands empty, as an uninitialised submodule's does, so `git status`
+    names nothing there."""
+    (repo / where).mkdir()
+    git(repo, "update-index", "--add", "--cacheinfo", f"160000,{sha},{where}")
+    git(repo, *IDENTITY, "commit", "-qm", f"a submodule at {where}")
+    return repo
+
+
 @pytest.fixture(scope="module")
 def _worlds(tmp_path_factory):
     """Every world of the module, built once; see the module docstring."""
     base = tmp_path_factory.mktemp("seal-worlds")
-    holding(local_home(clone_at(base / "local", SSH)))
-    shared = clone_at(base / "shared")
+    plain = clone_at(base / "plain")
+    holding(local_home(copied(plain, base / "local", SSH)))
+    shared = copied(plain, base / "shared")
     holding(shared / "seal")
-    commit_everything_as_e(shared, "the root")
-    local_home(clone_at(base / "other", HTTPS))
-    clone_at(base / "plain")
+    sha = commit_everything_as_e(shared, "the root")
+    local_home(copied(plain, base / "other", HTTPS))
+    gitlink_at(copied(shared, base / "under"), "seal/vendor", sha)
+    gitlink_at(copied(shared, base / "beside"), "vendor", sha)
     unborn = base / "unborn"
     unborn.mkdir()
     git(unborn, "init", "-q")
     holding(local_home(unborn), {"follow-up.md": "# follow-up\n"})
-    inner = clone_at(base / "inner")
-    for name, where in (("under", "seal/vendor"), ("beside", "vendor")):
-        d = base / name
-        shutil.copytree(shared, d, symlinks=True)
-        added = git(
-            d,
-            "-c",
-            "protocol.file.allow=always",
-            "submodule",
-            "add",
-            "--quiet",
-            str(inner),
-            where,
-            check=False,
-        )
-        if added.returncode == 0:
-            commit_everything_as_e(d, f"a submodule at {where}")
-        else:
-            shutil.rmtree(d)
-    exporter = base / "exporter"
-    shutil.copytree(base / "local", exporter, symlinks=True)
+    exporter = copied(base / "local", base / "exporter")
     (base / "zips").mkdir()
     assert SEAL.main(["export", "--output", str(base / "zips")], str(exporter)) == 0
+    package = base / "package"
+    package.mkdir()
+    git(package, "init", "-q", "-b", "main")
+    git(package, "remote", "add", "origin", REMOTE)
+    for rel, text in PACKAGE.items():
+        write(package, rel, text)
+    commit_as_e(package, "the package")
+    beside = copied(package, base / "beside-the-package")
+    records_at(beside / "agentic-seal")
+    commit_as_e(beside, "the root")
     return base
+
+
+@pytest.fixture
+def package(take):
+    """`tests/conftest.py`'s `package`, a repository on `main` whose committed
+    `seal/` is the project's own package, taken from the world built once."""
+    return take("package")
+
+
+@pytest.fixture
+def shared(take):
+    """`tests/conftest.py`'s `shared`, the package's repository with its root
+    committed at `agentic-seal/`, taken from the world built once."""
+    return take("beside-the-package")
 
 
 @pytest.fixture
@@ -172,13 +226,39 @@ def take(_worlds, tmp_path):
     """A copy of the world NAME under the case's own directory."""
 
     def taking(name):
-        if not (_worlds / name).is_dir():
-            pytest.skip("this git refuses a file-protocol submodule")
         dest = tmp_path / name
         shutil.copytree(_worlds / name, dest, symlinks=True)
         return dest
 
     return taking
+
+
+@pytest.fixture
+def at_top(monkeypatch):
+    """A function giving REPO as the top `git rev-parse --show-toplevel`
+    answers for a command run there: `optin.toplevel` is replaced for the
+    case, so `resolve` and `pr_checks` ask git nothing. A command run
+    anywhere else fails the case. Where REMOTE is given, it is the `origin`
+    the world was built with, and `remote_url` answers it for REPO without
+    `git config`."""
+
+    def given(repo, remote=None):
+        top = os.path.normpath(str(repo))
+
+        def toplevel(cwd):
+            assert same(cwd, top), f"{cwd} is not the top this case gave, {top}"
+            return top
+
+        def remote_url(root):
+            assert same(root, top), f"{root} is not the top this case gave, {top}"
+            return remote, ""
+
+        monkeypatch.setattr(SEAL.optin, "toplevel", toplevel)
+        if remote is not None:
+            monkeypatch.setattr(SEAL, "remote_url", remote_url)
+        return repo
+
+    return given
 
 
 @pytest.fixture
@@ -195,9 +275,16 @@ def said(capsys, cwd, *argv):
 
 
 def roots(repo):
-    """(the shared root, the local root) of REPO, as `seal` asks for them."""
-    _repo, _home, shared, local, _mode = SEAL.resolve(str(repo))
-    return shared, local
+    """(the shared root, the local root) of REPO, as `resolve` gives them
+    from `optin.home_paths`. REPO's `.git` is a directory in every world
+    here, so this asks git nothing."""
+    return SEAL.optin.home_paths(str(repo))
+
+
+def home_of(repo):
+    """The root in force at REPO, as `resolve` gives it from `optin.home_at`,
+    asking git nothing."""
+    return SEAL.optin.home_at(str(repo))
 
 
 def listed(path):
@@ -229,16 +316,34 @@ def snapshot(repo):
     )
 
 
+def tree(path):
+    """Every path under PATH, `.git` among it, `/`-joined: a regular file's
+    bytes, a link's target, or the kind of anything else. What a refusal
+    that runs no git writing the index leaves as it was, the index among
+    it."""
+    found = {}
+    for directory, dirs, names in os.walk(path):
+        for name in dirs + names:
+            full = os.path.join(directory, name)
+            rel = os.path.relpath(full, path).replace(os.sep, "/")
+            if os.path.islink(full):
+                found[rel] = ("link", os.readlink(full))
+            elif os.path.isfile(full):
+                with open(full, "rb") as handle:
+                    found[rel] = handle.read()
+            else:
+                found[rel] = "directory" if os.path.isdir(full) else "other"
+    return found
+
+
 def declared_in(repo):
     """The `Mode` key of REPO's root in force, as `seal` reads it."""
-    _repo, home, _shared, _local, _mode = SEAL.resolve(str(repo))
-    return SEAL.declared(home)
+    return SEAL.declared(home_of(repo))
 
 
 def config_at(repo, text, name="config.json"):
     """TEXT written as the config NAME of REPO's root in force; its path."""
-    _repo, home, _shared, _local, _mode = SEAL.resolve(str(repo))
-    path = os.path.join(home, name)
+    path = os.path.join(home_of(repo), name)
     with open(path, "w", encoding="utf-8", newline="") as handle:
         handle.write(text)
     return path
@@ -319,7 +424,7 @@ def workflow_in(repo, text, commit=True):
     path = os.path.join(str(repo), WORKFLOW_PATH)
     write(repo, WORKFLOW_PATH.replace(os.sep, "/"), text)
     if commit:
-        commit_everything_as_e(repo, "the workflow")
+        commit_as_e(repo, "the workflow")
     return path
 
 
@@ -520,6 +625,7 @@ class Test_git:
 class Test_remote_url:
     def test_accepts_an_unset_origin_as_the_empty_answer(self, _worlds):
         assert SEAL.remote_url(str(_worlds / "local")) == (SSH, "")
+        assert SEAL.remote_url(str(_worlds / "other")) == (HTTPS, "")
         assert SEAL.remote_url(str(_worlds / "plain")) == ("", "")
 
     def test_refuses_a_config_git_cannot_parse(self, monkeypatch, _worlds):
@@ -798,9 +904,9 @@ class Test_export:
         assert SEAL.read_state(str(repo)) == manifest
 
     def test_accepts_session_state_beside_the_root_and_leaves_it_out(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
-        repo = take("local")
+        repo = at_top(take("local"), SSH)
         for name in BESIDE_THE_ROOT:
             write(repo / ".git", name, "session state\n")
         write(repo / ".git", "agentic-mode-choice/a-session", "x")
@@ -809,9 +915,9 @@ class Test_export:
             assert archive.namelist() == MEMBERS
 
     def test_accepts_a_link_in_the_root_as_skipped_and_named(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
-        repo = take("local")
+        repo = at_top(take("local"), SSH)
         write(repo / ".git", "agentic-last-export.json", "secret-branch\n")
         _shared, local = roots(repo)
         symlink_or_skip(
@@ -827,10 +933,10 @@ class Test_export:
             assert archive.namelist() == MEMBERS
             assert not any(b"secret-branch" in archive.read(m) for m in MEMBERS)
 
-    def test_accepts_a_taken_name_as_the_next_one(self, take, capsys, tmp_path):
+    def test_accepts_a_taken_name_as_the_next_one(self, take, at_top, capsys, tmp_path):
         """A second export the same day, and a broken link at the zip's own
         name, each take the next name and replace nothing."""
-        repo = take("local")
+        repo = at_top(take("local"), SSH)
         assert said(capsys, repo, "export")[0] == 0
         first = only_zip(tmp_path)
         os.rename(first, first + ".kept")
@@ -840,9 +946,9 @@ class Test_export:
         assert os.path.isfile(first[: -len(".zip")] + "-2.zip")
 
     def test_accepts_an_output_and_notes_one_inside_the_tree(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
-        repo = take("local")
+        repo = at_top(take("local"), SSH)
         (repo / "out").mkdir()
         code, out = said(capsys, repo, "export", "--output", str(repo / "out"))
         assert code == 0, out
@@ -854,11 +960,11 @@ class Test_export:
         assert "inside the working tree" not in out
 
     def test_accepts_a_clone_with_no_commit_and_leaves_its_head_out(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
         """Only a missing `remote` is refused on arrival, so the advice for
         it is not printed for a missing `head`."""
-        repo = take("unborn")
+        repo = at_top(take("unborn"))
         code, out = said(capsys, repo, "export")
         assert code == 0, out
         assert "head" not in manifest_in(only_zip(tmp_path))
@@ -866,29 +972,31 @@ class Test_export:
         assert "without a flag" not in out
 
     def test_refuses_a_shared_root_and_names_the_way_to_local(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
-        code, out = said(capsys, take("shared"), "export")
+        code, out = said(capsys, at_top(take("shared")), "export")
         assert code == 1
         assert out.startswith("shared mode: the records are committed at seal/")
         assert '"$(git rev-parse --git-common-dir)/seal"' in out
         assert not [p for p in os.listdir(tmp_path) if p.endswith(".zip")]
 
-    def test_refuses_without_a_root_or_in_a_throwaway_clone(self, take, capsys):
-        plain = take("plain")
+    def test_refuses_without_a_root_or_in_a_throwaway_clone(self, take, at_top, capsys):
+        plain = at_top(take("plain"))
         code, out = said(capsys, plain, "export")
         assert code == 1
         assert "(shared mode)" in out and "(local mode)" in out
         assert not (plain / "seal").exists() and not (plain / ".git" / "seal").exists()
-        local = take("local")
+        local = at_top(take("local"), SSH)
         write(local / ".git", "agentic-scratch", "")
         code, out = said(capsys, local, "export")
         assert code == 1
         assert "marked throwaway (agentic-scratch" in out
 
     @pytest.mark.parametrize("shape", ["a file", "a broken link"])
-    def test_refuses_a_partial_name_somebody_holds(self, take, capsys, tmp_path, shape):
-        repo = take("local")
+    def test_refuses_a_partial_name_somebody_holds(
+        self, take, at_top, capsys, tmp_path, shape
+    ):
+        repo = at_top(take("local"), SSH)
         today = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
         stem = SEAL.zip_stem(str(repo), today)
         partial = tmp_path / f"{stem}.zip.partial"
@@ -907,9 +1015,9 @@ class Test_export:
         assert not [p for p in os.listdir(tmp_path) if p.endswith(".zip")]
 
     def test_refuses_to_keep_quiet_about_a_remote_it_could_not_read(
-        self, take, capsys, monkeypatch, tmp_path
+        self, take, at_top, capsys, monkeypatch, tmp_path
     ):
-        repo = take("local")
+        repo = at_top(take("local"))
         unanswered(monkeypatch, CONFIG_GET_REMOTE, TIMED_OUT)
         code, out = said(capsys, repo, "export")
         assert code == 0, out
@@ -921,9 +1029,9 @@ class Test_export:
         assert "  Running this again once git answers writes a zip the other " in out
 
     def test_refuses_an_output_with_no_directory_or_no_free_name(
-        self, take, capsys, monkeypatch, tmp_path
+        self, take, at_top, capsys, monkeypatch, tmp_path
     ):
-        repo = take("local")
+        repo = at_top(take("local"), SSH)
         missing = tmp_path / "missing"
         code, out = said(capsys, repo, "export", "--output", str(missing / "x.zip"))
         assert code == 1
@@ -936,11 +1044,11 @@ class Test_export:
         assert out.startswith("no free name for seal-local-") and "pass --output" in out
 
     def test_s6_export_in_shared_mode_names_agentic_seal_in_the_way_out(
-        self, shared, capsys
+        self, shared, at_top, capsys
     ):
         """`seal export` writes no zip in shared mode, and the commands it gives
         for going local take `agentic-seal/` out of the tree, not the package."""
-        code, out = said(capsys, shared, "export")
+        code, out = said(capsys, at_top(shared), "export")
         assert code == 1, out
         assert (
             '  git rm -r --cached "$(git rev-parse --show-toplevel)/agentic-seal"\n'
@@ -965,8 +1073,8 @@ class Test_no_root:
     def test_accepts_a_repository_without_a_root_by_naming_both_places(
         self, _worlds, capsys
     ):
-        repo, _home, shared, local, _mode = SEAL.resolve(str(_worlds / "plain"))
-        assert SEAL.no_root(repo, shared, local) == 1
+        shared, local = roots(_worlds / "plain")
+        assert SEAL.no_root(str(_worlds / "plain"), shared, local) == 1
         out = capsys.readouterr().out
         assert f"  {shared}   (shared mode)\n  {local}   (local mode)\n" in out
         assert out.endswith(
@@ -1283,16 +1391,20 @@ class Test_import_:
         assert "another repository" not in out, "two spellings of one remote differ"
         assert "?" not in out and out.rstrip().endswith(CLOSING), out
 
-    def test_accepts_the_same_zip_twice_as_the_same_bytes(self, take, exported, capsys):
-        other = take("other")
+    def test_accepts_the_same_zip_twice_as_the_same_bytes(
+        self, take, at_top, exported, capsys
+    ):
+        other = at_top(take("other"), HTTPS)
         assert said(capsys, other, "import", str(exported))[0] == 0
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
         assert "  5 files already here, byte for byte\n" in out
         assert listed(roots(other)[1]) == sorted(RECORDS)
 
-    def test_accepts_a_taken_name_by_landing_beside_it(self, take, exported, capsys):
-        other = take("other")
+    def test_accepts_a_taken_name_by_landing_beside_it(
+        self, take, at_top, exported, capsys
+    ):
+        other = at_top(take("other"), HTTPS)
         local = roots(other)[1]
         write(local, f"threads/{ITEM}/plan.md", "# mine\n")
         write(local, f"threads/{ITEM}/plan.incoming.md", "# earlier\n")
@@ -1321,9 +1433,9 @@ class Test_import_:
         ids=["into shared", "into local", "neither, so local"],
     )
     def test_accepts_into_either_root_and_defaults_to_local(
-        self, take, exported, capsys, into, where
+        self, take, at_top, exported, capsys, into, where
     ):
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         shared, local = roots(other)
         shutil.rmtree(local)
         code, out = said(capsys, other, "import", str(exported), *into)
@@ -1334,13 +1446,13 @@ class Test_import_:
             assert status(other) == []
 
     def test_accepts_a_remote_absent_by_answer_on_either_side(
-        self, take, exported, capsys, tmp_path
+        self, take, at_top, exported, capsys, tmp_path
     ):
         """`""` is an answer: a clone with no `origin`, or a zip from one."""
-        other = take("other")
+        other = at_top(take("other"))
         git(other, "remote", "remove", "origin")
         assert said(capsys, other, "import", str(exported))[0] == 0
-        other = take("plain")
+        other = at_top(take("plain"))
         quiet = zipped(
             tmp_path / "empty-remote.zip",
             {"format": 1, "remote": ""},
@@ -1351,9 +1463,9 @@ class Test_import_:
         assert listed(roots(other)[1]) == ["a.md"]
 
     def test_accepts_each_flag_past_the_check_it_names(
-        self, take, exported, capsys, monkeypatch, tmp_path
+        self, take, at_top, exported, capsys, monkeypatch, tmp_path
     ):
-        other = take("other")
+        other = at_top(take("other"))
         foreign = zipped(
             tmp_path / "foreign.zip",
             {"format": 1, "remote": ELSEWHERE},
@@ -1403,9 +1515,9 @@ class Test_import_:
         ],
     )
     def test_accepts_a_manifest_another_machine_wrote_and_says_what_it_read(
-        self, take, capsys, tmp_path, fields, flags, line
+        self, take, at_top, capsys, tmp_path, fields, flags, line
     ):
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         z = zipped(
             tmp_path / "z.zip",
             {"format": 1, "remote": "", **fields},
@@ -1420,9 +1532,9 @@ class Test_import_:
             assert f"\n{line}\n" in out, out
 
     def test_accepts_a_name_taken_during_the_write_by_naming_it(
-        self, take, exported, capsys, monkeypatch
+        self, take, at_top, exported, capsys, monkeypatch
     ):
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         local = roots(other)[1]
         write(local, "follow-up.md", "# taken a moment ago\n")
         real = SEAL.place
@@ -1445,14 +1557,18 @@ class Test_import_:
         "shape", ["not a repository", "no file", "not a zip", "cut in half"]
     )
     def test_refuses_a_path_that_is_no_zip_or_a_place_that_is_no_clone(
-        self, take, exported, capsys, tmp_path, shape
+        self, take, at_top, exported, capsys, tmp_path, shape
     ):
+        """Git answers that the case's own directory is in no repository;
+        every other shape is read with the clone given as the top."""
         other = take("other")
-        before = snapshot(other)
+        before = tree(other)
         cwd, path = other, tmp_path / "x.zip"
         if shape == "not a repository":
             cwd, path = tmp_path, exported
-        elif shape == "not a zip":
+        else:
+            at_top(other)
+        if shape == "not a zip":
             path.write_text("hello", encoding="utf-8")
         elif shape == "cut in half":
             data = exported.read_bytes()
@@ -1463,17 +1579,17 @@ class Test_import_:
             "not a repository": "not inside a git repository — seal works on a clone\n",
             "no file": f"{path} is not a file\n",
         }.get(shape, out)
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     @pytest.mark.parametrize(
         "bound",
         ["members", "bytes", "the manifest's bytes", "the manifest's other spelling"],
     )
     def test_refuses_a_zip_past_a_bound_before_reading_it(
-        self, take, capsys, tmp_path, bound
+        self, take, at_top, capsys, tmp_path, bound
     ):
-        other = take("other")
-        before = snapshot(other)
+        other = at_top(take("other"), HTTPS)
+        before = tree(other)
         z = tmp_path / "big.zip"
         if bound == "members":
             many = [(f"seal/m{n}.md", "") for n in range(SEAL.MEMBER_COUNT_LIMIT + 1)]
@@ -1500,17 +1616,17 @@ class Test_import_:
         assert code == 1, out
         assert want in out, out
         assert out.endswith("A root this large is not a root of records.\n")
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     @pytest.mark.parametrize(
         "damage",
         ["a record's data", "the manifest's data", "a method with no decompressor"],
     )
     def test_refuses_a_member_that_does_not_read_before_the_manifest(
-        self, take, capsys, tmp_path, damage
+        self, take, at_top, capsys, tmp_path, damage
     ):
-        other = take("other")
-        before = snapshot(other)
+        other = at_top(take("other"), HTTPS)
+        before = tree(other)
         z = tmp_path / "broken.zip"
         with zipfile.ZipFile(z, "w") as archive:
             archive.writestr(
@@ -1533,7 +1649,7 @@ class Test_import_:
         code, out = said(capsys, other, "import", str(z))
         assert code == 1, out
         assert out.startswith(f"{z} holds a member this command cannot read: "), out
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     @pytest.mark.parametrize(
         "manifest, want",
@@ -1546,21 +1662,21 @@ class Test_import_:
         ids=["none", "a later format", "no format", "not an object"],
     )
     def test_refuses_a_manifest_this_build_cannot_read(
-        self, take, capsys, tmp_path, manifest, want
+        self, take, at_top, capsys, tmp_path, manifest, want
     ):
-        other = take("other")
-        before = snapshot(other)
+        other = at_top(take("other"), HTTPS)
+        before = tree(other)
         z = zipped(tmp_path / "odd.zip", manifest, [("seal/follow-up.md", "x")])
         code, out = said(capsys, other, "import", str(z))
         assert code == 1, out
         assert want in out, out
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     def test_refuses_a_later_format_by_its_format_before_its_names(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
         """A later format is what moves the names the name checks read."""
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         later = zipped(
             tmp_path / "later.zip", {"format": 2, "remote": ""}, [("records/a.md", "a")]
         )
@@ -1580,10 +1696,10 @@ class Test_import_:
         ],
     )
     def test_refuses_a_member_it_has_no_place_for_and_writes_none(
-        self, take, capsys, tmp_path, name
+        self, take, at_top, capsys, tmp_path, name
     ):
-        other = take("other")
-        before = snapshot(other)
+        other = at_top(take("other"), HTTPS)
+        before = tree(other)
         hostile = tmp_path / "hostile.zip"
         with zipfile.ZipFile(hostile, "w") as archive:
             archive.writestr("manifest.json", json.dumps({"format": 1, "remote": ""}))
@@ -1595,7 +1711,7 @@ class Test_import_:
         code, out = said(capsys, other, "import", str(hostile))
         assert code == 1, out
         assert out.startswith(f"{hostile} holds members this command will not write:\n")
-        assert snapshot(other) == before
+        assert tree(other) == before
         assert (
             not (tmp_path / "escape.md").exists() and not (tmp_path / "out.md").exists()
         )
@@ -1612,12 +1728,12 @@ class Test_import_:
         ],
     )
     def test_refuses_a_remote_either_side_could_not_read(
-        self, take, exported, capsys, monkeypatch, tmp_path, side
+        self, take, at_top, exported, capsys, monkeypatch, tmp_path, side
     ):
         """Which side is silent decides the advice: a re-run here can clear
         this clone's git and never the zip's bytes."""
-        other = take("other")
-        before = snapshot(other)
+        other = at_top(take("other"))
+        before = tree(other)
         path = exported
         if side.startswith("the zip") or side == "both":
             manifest = {"format": 1}
@@ -1646,16 +1762,16 @@ class Test_import_:
             assert "export again on the machine that wrote it" in out
             assert "Run this again" not in out
         assert "--allow-unreadable-remote" in out
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     def test_refuses_a_zip_from_another_repository_naming_what_it_compared(
-        self, take, exported, capsys, monkeypatch
+        self, take, at_top, exported, capsys, monkeypatch
     ):
         """This clone's remote is read once, and the value compared is the
         value printed."""
-        other = take("other")
+        other = at_top(take("other"))
         git(other, "remote", "set-url", "origin", "https://example.com/org/elsewhere")
-        before = snapshot(other)
+        before = tree(other)
         asks = unanswered(monkeypatch, CONFIG_GET_REMOTE, TIMED_OUT, after=1)
         code, out = said(capsys, other, "import", str(exported))
         assert code == 1, out
@@ -1666,23 +1782,25 @@ class Test_import_:
             "  this clone is  https://example.com/org/elsewhere\n"
         ), out
         assert "pass --allow-other-repo." in out
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     @pytest.mark.parametrize("into", [["--into", "local"], ["--into", "shared"], []])
-    def test_refuses_two_roots_whatever_into_says(self, take, exported, capsys, into):
-        other = take("other")
+    def test_refuses_two_roots_whatever_into_says(
+        self, take, at_top, exported, capsys, into
+    ):
+        other = at_top(take("other"), HTTPS)
         mark_root(other / "seal")
-        before = snapshot(other)
+        before = tree(other)
         code, out = said(capsys, other, "import", str(exported), *into)
         assert code == 1, out
         assert out.startswith("both roots exist") and "read first" in out
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     @pytest.mark.parametrize("name", ["threads", "follow-up.md"])
     def test_refuses_a_link_where_a_record_goes(
-        self, take, exported, capsys, tmp_path, name
+        self, take, at_top, exported, capsys, tmp_path, name
     ):
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         outside = tmp_path / "outside"
         outside.mkdir()
         target = outside if name == "threads" else outside / "follow-up.md"
@@ -1693,11 +1811,11 @@ class Test_import_:
         assert list(outside.iterdir()) == []
 
     def test_accepts_a_broken_link_at_the_fallback_name_by_taking_the_next(
-        self, take, exported, capsys, tmp_path
+        self, take, at_top, exported, capsys, tmp_path
     ):
         """`linked_path` sees the member's own name and not its fallbacks;
         `place` turns a link there down and the copy still lands."""
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         local = roots(other)[1]
         write(local, "follow-up.md", "bytes that differ from the zip's\n")
         stolen = tmp_path / "stolen.md"
@@ -1709,9 +1827,9 @@ class Test_import_:
 
     @pytest.mark.parametrize("held", ["in the zip", "a file here", "a pipe here"])
     def test_refuses_a_name_one_side_holds_as_a_file(
-        self, take, capsys, tmp_path, held
+        self, take, at_top, capsys, tmp_path, held
     ):
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         local = roots(other)[1]
         members = [("seal/a/b.md", "under it\n"), ("seal/zzz.md", "after it\n")]
         if held == "in the zip":
@@ -1720,7 +1838,7 @@ class Test_import_:
             write(local, "a", "already a file\n")
         else:
             fifo_or_skip(os.path.join(local, "a"))
-        before = snapshot(other)
+        before = tree(other)
         z = zipped(tmp_path / "clash.zip", {"format": 1, "remote": ""}, members)
         code, out = said(capsys, other, "import", str(z))
         assert code == 1, out
@@ -1729,12 +1847,12 @@ class Test_import_:
             assert "Ask the machine that exported it for another zip." in out
         else:
             assert out.startswith("seal/a in this clone is not a directory")
-        assert snapshot(other) == before
+        assert tree(other) == before
 
     def test_refuses_a_directory_it_cannot_write_into_with_a_line_of_its_own(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
-        other = take("other")
+        other = at_top(take("other"), HTTPS)
         shut = os.path.join(roots(other)[1], "threads")
         os.mkdir(shut)
         z = zipped(
@@ -1793,11 +1911,12 @@ class Test_import_:
         [("a link", "is a symbolic link"), ("a file", "is not a directory")],
     )
     def test_s6_an_import_names_what_blocks_it_in_the_root_by_the_roots_own_name(
-        self, package, capsys, tmp_path, held, said_of_it
+        self, package, at_top, capsys, tmp_path, held, said_of_it
     ):
         """A symbolic link, or a file, where the zip needs `threads/` as a
         directory is refused, and the line names the place in this clone,
         `agentic-seal/threads`, not the archive's `seal/` prefix."""
+        at_top(package)
         records_at(local_home(package))
         zips = tmp_path / "zips"
         zips.mkdir()
@@ -2111,7 +2230,7 @@ class Test_other_worktrees:
             tmp_path, "init", "-q", "-b", "main", "--separate-git-dir", "sepgit", "work"
         )
         write(work, "a.md", "a\n")
-        commit_everything_as_e(work, "the base")
+        commit_as_e(work, "the base")
         git(work, "worktree", "add", "-q", "-b", "feature/x", str(linked))
         found = SEAL.other_worktrees(str(work))
         assert [os.path.realpath(p) for p in found] == [os.path.realpath(linked)]
@@ -2122,7 +2241,7 @@ class Test_other_worktrees:
         plain, bare = tmp_path / "plain", tmp_path / "bare.git"
         git(tmp_path, "init", "-q", "-b", "main", "plain")
         write(plain, "a.md", "a\n")
-        commit_everything_as_e(plain, "the base")
+        commit_as_e(plain, "the base")
         git(tmp_path, "clone", "-q", "--bare", str(plain), str(bare))
         git(bare, "worktree", "add", "-q", str(tmp_path / "from-bare"), "main")
         assert SEAL.other_worktrees(str(tmp_path / "from-bare")) == []
@@ -2257,7 +2376,7 @@ class Test_install_workflow:
             workflow_in(repo, "name: someone else's\n", commit=False)
         elif shape == "an ignored directory":
             write(repo, ".gitignore", ".github/\n")
-            commit_everything_as_e(repo, "ignore the workflow's directory")
+            commit_as_e(repo, "ignore the workflow's directory")
         elif shape == "a project's own seal":
             write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
         elif shape not in no_root:
@@ -2413,15 +2532,17 @@ class Test_mode_refusal:
 
 class Test_mode_report:
     @pytest.mark.parametrize("mode", ["shared", "local"])
-    def test_accepts_a_row_naming_the_folder_as_agreeing(self, take, capsys, mode):
-        repo = take(mode)
+    def test_accepts_a_row_naming_the_folder_as_agreeing(
+        self, take, at_top, capsys, mode
+    ):
+        repo = at_top(take(mode))
         config_at(repo, mode_row(mode))
-        before = snapshot(repo)
+        before = tree(repo)
         code, out = said(capsys, repo, "mode")
         assert code == 0, out
         assert f"  folder: {mode:<7}" in out and f"  key:    {mode:<7}" in out
         assert out.endswith("\nThey agree.\n"), out
-        assert snapshot(repo) == before
+        assert tree(repo) == before
 
     @pytest.mark.parametrize(
         "mode, body",
@@ -2439,11 +2560,11 @@ class Test_mode_report:
         ],
     )
     def test_accepts_an_absent_row_by_writing_the_folders_mode_once(
-        self, take, capsys, mode, body
+        self, take, at_top, capsys, mode, body
     ):
         """The value written is the folder's: a fixed default would write a
         lie into every undeclared repository of the other mode."""
-        repo = take(mode)
+        repo = at_top(take(mode))
         if body is not None:
             config_at(repo, body)
         code, out = said(capsys, repo, "mode")
@@ -2451,7 +2572,7 @@ class Test_mode_report:
         assert "was written from where the folder is" in out
         assert declared_in(repo) == ("mode", mode)
         assert out.endswith("\nThey agree.\n")
-        _repo, home, _s, _l, _m = SEAL.resolve(str(repo))
+        home = home_of(repo)
         written = open(os.path.join(home, "config.json"), "rb").read()
         code, out = said(capsys, repo, "mode")
         assert code == 0 and "was written" not in out
@@ -2459,7 +2580,7 @@ class Test_mode_report:
 
     def test_accepts_check_writing_nothing_where_the_row_is_absent(self, take, capsys):
         repo = take("local")
-        _repo, home, _s, _l, _m = SEAL.resolve(str(repo))
+        home = home_of(repo)
         code, out = said(capsys, repo, "mode", "--check")
         assert code == 0, out
         assert "not declared" in out
@@ -2467,9 +2588,9 @@ class Test_mode_report:
 
     @pytest.mark.parametrize("mode, other", [("shared", "local"), ("local", "shared")])
     def test_refuses_a_row_naming_the_other_mode_and_names_both_ways_out(
-        self, take, capsys, mode, other
+        self, take, at_top, capsys, mode, other
     ):
-        repo = take(mode)
+        repo = at_top(take(mode))
         config_at(repo, mode_row(other))
         code, out = said(capsys, repo, "mode", "--check")
         assert code == 1, out
@@ -2484,8 +2605,8 @@ class Test_mode_report:
         )
         assert said(capsys, repo, "mode")[0] == 0
 
-    def test_refuses_a_value_that_is_not_a_mode(self, take, capsys):
-        repo = take("shared")
+    def test_refuses_a_value_that_is_not_a_mode(self, take, at_top, capsys):
+        repo = at_top(take("shared"))
         config_at(repo, mode_row("remote"))
         assert said(capsys, repo, "mode", "--check")[0] == 1
         code, out = said(capsys, repo, "mode")
@@ -2512,9 +2633,9 @@ class Test_mode_report:
         ],
     )
     def test_refuses_a_config_that_will_not_read_at_exit_2(
-        self, take, capsys, shape, check
+        self, take, at_top, capsys, shape, check
     ):
-        repo = take("shared")
+        repo = at_top(take("shared"))
         path = os.path.join(str(repo), "seal", "config.json")
         if shape == "a directory":
             os.mkdir(path)
@@ -2522,7 +2643,7 @@ class Test_mode_report:
             symlink_or_skip(os.path.join(str(repo), "seal", "nowhere.json"), path)
         else:
             config_at(repo, shape)
-        before = snapshot(repo)
+        before = tree(repo)
         code, out = said(capsys, repo, "mode", *check)
         assert code == 2, out
         assert (
@@ -2530,13 +2651,15 @@ class Test_mode_report:
             and "  key:    refused  (seal/config.json)\n" in out
         )
         assert out.endswith(". Nothing was written.\n"), out
-        assert snapshot(repo) == before
+        assert tree(repo) == before
 
-    def test_refuses_a_row_it_could_not_write_and_still_reports(self, take, capsys):
+    def test_refuses_a_row_it_could_not_write_and_still_reports(
+        self, take, at_top, capsys
+    ):
         """A file the reader reads and the writer will not write through, a
         symbolic link to one, still gets the folder's report."""
-        repo = take("local")
-        _repo, home, _s, _l, _m = SEAL.resolve(str(repo))
+        repo = at_top(take("local"))
+        home = home_of(repo)
         outside = os.path.join(str(repo), "elsewhere.json")
         with open(outside, "w", encoding="utf-8") as handle:
             handle.write("{}\n")
@@ -2570,9 +2693,13 @@ class Test_gitlinks_under_root:
 
 
 def refusals_of(repo, wanted, local=None):
-    _repo, home, shared, found_local, _mode = SEAL.resolve(str(repo))
+    shared, found_local = roots(repo)
     return SEAL.refusals(
-        str(repo), home, shared, found_local if local is None else local, wanted
+        str(repo),
+        home_of(repo),
+        shared,
+        found_local if local is None else local,
+        wanted,
     )
 
 
@@ -2596,7 +2723,7 @@ class Test_refusals:
             workflow_in(repo, "name: hygiene\n# edited\n", commit=False)
         if shape == "an untracked file and the row it wrote":
             config_at(repo, "{}\n")
-            commit_everything_as_e(repo, "a config with no Mode key")
+            commit_as_e(repo, "a config with no Mode key")
             config_at(repo, mode_row("shared"))
             write(repo, "seal/untracked.md", "# a draft\n")
         elif shape == "moved by hand":
@@ -2700,12 +2827,12 @@ class Test_refusals:
 
 class Test_switch:
     def test_accepts_shared_to_local_by_moving_staging_and_writing_the_row(
-        self, take, capsys
+        self, take, at_top, capsys
     ):
         """S4: the plugin's workflow, committed, stays in the tree and out of
         the index, the output names the command that takes it out, and going
         back leaves `.github/` as it was."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         workflow = workflow_in(repo, SEAL.plugin_workflow())
         shared, local = roots(repo)
         code, out = said(capsys, repo, "mode", "local")
@@ -2725,7 +2852,7 @@ class Test_switch:
         # The two commands `seal mode local` prints for moving the records
         # between clones, which the person who switched runs.
         assert "`seal export` here and `seal import` there" in out
-        commit_everything_as_e(repo, "the switch to local")
+        commit_as_e(repo, "the switch to local")
         code, out = said(capsys, repo, "mode", "shared")
         assert code == 0, out
         assert open(workflow, encoding="utf-8").read() == SEAL.plugin_workflow()
@@ -2738,12 +2865,12 @@ class Test_switch:
         ids=["an-older-release", "no-release-named", "a-version-it-cannot-read"],
     )
     def test_accepts_shared_to_local_and_names_a_pin_that_is_not_the_installed_release(
-        self, take, capsys, monkeypatch, pin, installed
+        self, take, at_top, capsys, monkeypatch, pin, installed
     ):
         """Round 1 of #952, finding 2: a workflow pinned to another release,
         or one beside a version that cannot be read, is not promised to pass.
         The line names the pin and the two ways out."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         version = SEAL.plugin_version()
         text = SEAL.plugin_workflow()
         if pin is not None:
@@ -2771,9 +2898,9 @@ class Test_switch:
         assert "read nothing as declared" not in out, out
 
     def test_accepts_local_to_shared_and_says_the_commit_is_the_door(
-        self, take, capsys
+        self, take, at_top, capsys
     ):
-        repo = take("local")
+        repo = at_top(take("local"))
         shared, local = roots(repo)
         code, out = said(capsys, repo, "mode", "shared")
         assert code == 0, out
@@ -2796,7 +2923,7 @@ class Test_switch:
         stands."""
         repo = take("local")
         write(repo, "docs/x.md", "x\n")
-        commit_everything_as_e(repo, "a subdirectory")
+        commit_as_e(repo, "a subdirectory")
         code, out = said(capsys, repo / "docs", "mode", "shared")
         assert code == 0, out
         named = [
@@ -2813,9 +2940,9 @@ class Test_switch:
 
     @pytest.mark.parametrize("wanted", ["local", "shared"])
     def test_accepts_a_run_stopped_after_the_move_as_one_to_finish(
-        self, take, capsys, wanted
+        self, take, at_top, capsys, wanted
     ):
-        repo = take("shared" if wanted == "local" else "local")
+        repo = at_top(take("shared" if wanted == "local" else "local"))
         shared, local = roots(repo)
         os.rename(*((shared, local) if wanted == "local" else (local, shared)))
         code, out = said(capsys, repo, "mode", wanted)
@@ -2829,10 +2956,10 @@ class Test_switch:
 
     @pytest.mark.parametrize("mode", ["shared", "local"])
     def test_accepts_an_untracked_file_as_travelling_with_the_folder(
-        self, take, capsys, mode
+        self, take, at_top, capsys, mode
     ):
-        repo = take(mode)
-        _repo, home, shared, local, _m = SEAL.resolve(str(repo))
+        repo = at_top(take(mode))
+        home, (shared, local) = home_of(repo), roots(repo)
         write(home, "untracked.md", "# a draft\n")
         wanted = "local" if mode == "shared" else "shared"
         code, out = said(capsys, repo, "mode", wanted)
@@ -2847,9 +2974,9 @@ class Test_switch:
             )
 
     def test_accepts_a_root_git_never_tracked_and_another_worktree(
-        self, take, capsys, tmp_path
+        self, take, at_top, capsys, tmp_path
     ):
-        repo = take("plain")
+        repo = at_top(take("plain"))
         holding(repo / "seal")
         git(repo, "worktree", "add", "-q", str(tmp_path / "linked"), "feature/x")
         code, out = said(capsys, repo, "mode", "local")
@@ -2857,18 +2984,22 @@ class Test_switch:
         assert "  nothing under seal/ was tracked\n" in out
         assert "is another worktree of this clone" in out and "linked" in out
 
-    def test_accepts_a_tracked_config_without_calling_it_untracked(self, take, capsys):
-        repo = take("shared")
+    def test_accepts_a_tracked_config_without_calling_it_untracked(
+        self, take, at_top, capsys
+    ):
+        repo = at_top(take("shared"))
         config_at(repo, "{}\n")
-        commit_everything_as_e(repo, "a config with no Mode key")
+        commit_as_e(repo, "a config with no Mode key")
         assert said(capsys, repo, "mode")[0] == 0
         assert " M seal/config.json" in status(repo)
         code, out = said(capsys, repo, "mode", "local")
         assert code == 0, out
         assert "config.json is untracked" not in out
 
-    def test_refuses_what_its_refusals_name_and_moves_nothing(self, take, capsys):
-        repo = take("shared")
+    def test_refuses_what_its_refusals_name_and_moves_nothing(
+        self, take, at_top, capsys
+    ):
+        repo = at_top(take("shared"))
         write(repo, "seal/follow-up.md", "# changed\n")
         git(repo, "add", "--", "seal/follow-up.md")
         before = snapshot(repo)
@@ -2878,9 +3009,9 @@ class Test_switch:
         assert snapshot(repo) == before
 
     def test_refuses_a_rename_the_filesystem_turns_down_and_names_the_mv(
-        self, take, capsys
+        self, take, at_top, capsys
     ):
-        repo = take("local")
+        repo = at_top(take("local"))
         bits = os.stat(repo).st_mode
         os.chmod(repo, 0o500)
         try:
@@ -2900,7 +3031,7 @@ class Test_switch:
         repo = take("local")
         write(repo, ".gitignore", "seal/\n")
         write(repo, "docs/x.md", "x\n")
-        commit_everything_as_e(repo, "an ignore rule")
+        commit_as_e(repo, "an ignore rule")
         code, out = said(capsys, repo / "docs", "mode", "shared")
         assert code == 1, out
         assert "  seal/ could NOT be staged: " in out
@@ -2940,12 +3071,12 @@ class Test_switch:
         ids=["git rm going local", "git ls-files going local", "git add going shared"],
     )
     def test_refuses_to_call_a_stage_git_that_did_not_answer_staged(
-        self, take, capsys, monkeypatch, start, wanted, tail, said_line, by_hand
+        self, take, at_top, capsys, monkeypatch, start, wanted, tail, said_line, by_hand
     ):
         """S1 and S2: the root has moved and the key is written, so the
         switch is half done, and the line says so and names the step to run
         by hand, at exit 1 with no traceback."""
-        repo = take(start)
+        repo = at_top(take(start))
         shared, local = roots(repo)
         unanswered(monkeypatch, tail, TIMED_OUT)
         code, out = said(capsys, repo, "mode", wanted)
@@ -2960,9 +3091,9 @@ class Test_switch:
 class Test_mode:
     @pytest.mark.parametrize("mode, other", [("shared", "local"), ("local", "shared")])
     def test_accepts_apply_moving_the_folder_to_the_row(
-        self, take, capsys, mode, other
+        self, take, at_top, capsys, mode, other
     ):
-        repo = take(mode)
+        repo = at_top(take(mode))
         config_at(repo, mode_row(other))
         shared, local = roots(repo)
         code, out = said(capsys, repo, "mode", "--apply")
@@ -2970,16 +3101,18 @@ class Test_mode:
         assert listed(local if other == "local" else shared) is not None
         assert listed(shared if other == "local" else local) is None
 
-    def test_accepts_check_where_there_is_no_root(self, take, capsys):
-        code, out = said(capsys, take("plain"), "mode", "--check")
+    def test_accepts_check_where_there_is_no_root(self, take, at_top, capsys):
+        code, out = said(capsys, at_top(take("plain")), "mode", "--check")
         assert code == 0, out
         assert (
             out == "no seal/ here, so nothing is declared and nothing can disagree.\n"
         )
 
     @pytest.mark.parametrize("argv", [["mode"], ["mode", "local"]])
-    def test_refuses_without_a_root_naming_both_places(self, take, capsys, argv):
-        code, out = said(capsys, take("plain"), *argv)
+    def test_refuses_without_a_root_naming_both_places(
+        self, take, at_top, capsys, argv
+    ):
+        code, out = said(capsys, at_top(take("plain")), *argv)
         assert code == 1, out
         assert "(shared mode)" in out and "(local mode)" in out
 
@@ -3001,26 +3134,29 @@ class Test_mode:
         ],
         ids=["no row", "no mode", "two rows"],
     )
-    def test_refuses_apply_with_no_row_to_act_on(self, take, capsys, row, code, want):
-        repo = take("local")
+    def test_refuses_apply_with_no_row_to_act_on(
+        self, take, at_top, capsys, row, code, want
+    ):
+        repo = at_top(take("local"))
         if row is not None:
             config_at(repo, row)
-        before = snapshot(repo)
+        before = tree(repo)
         found, out = said(capsys, repo, "mode", "--apply")
         assert found == code, out
         assert want in out, out
         if row is None:
             assert '  "Mode": "local"\n' in out
-        assert snapshot(repo) == before
+        assert tree(repo) == before
 
     def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
-        self, package, capsys
+        self, package, at_top, capsys
     ):
         """`seal mode` with no root prints `agentic-seal` as the shared place,
         and a root made there from the template reads as shared mode, writes its
         key there, and passes `--check`, with the package as it was. Switched to
         local before anything is committed, it says nothing under it was
         tracked."""
+        at_top(package)
         before = files_under(package / "seal")
         code, out = said(capsys, package, "mode")
         assert code == 1, out
@@ -3048,15 +3184,16 @@ class Test_mode:
         assert "  nothing under agentic-seal/ was tracked\n" in out, out
 
     def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(
-        self, shared, capsys
+        self, shared, at_top, capsys
     ):
         """`seal mode local` moves `agentic-seal/` to the common directory's
         `seal/` and stages its removal, and `seal mode shared` moves it back to
         `agentic-seal/` and stages it, the package untouched both ways. The key
         `seal mode` wrote into the committed `agentic-seal/config.json` and an
         untracked file there do not stop the move, as they do not under `seal/`."""
+        at_top(shared)
         write(shared / "agentic-seal", "config.json", MODELESS)
-        commit_everything_as_e(shared, "the config")
+        commit_as_e(shared, "the config")
         assert said(capsys, shared, "mode")[0] == 0
         write(shared / "agentic-seal", "notes.md", "# notes\n")
         before = files_under(shared / "seal")
@@ -3075,7 +3212,7 @@ class Test_mode:
         ), status(shared)
         assert "staged the removal of agentic-seal/ from the tree" in out
 
-        commit_everything_as_e(shared, "the switch to local")
+        commit_as_e(shared, "the switch to local")
         code, out = said(capsys, shared, "mode", "shared")
         assert code == 0, out
         assert out.count("`git reset -- :/agentic-seal`") == 2, out
@@ -3096,11 +3233,12 @@ class Test_mode:
         "held", ["a staged edit", "a submodule", "an index git cannot list"]
     )
     def test_s6_mode_refuses_to_move_agentic_seal_over_what_its_index_holds(
-        self, shared, capsys, monkeypatch, held
+        self, shared, at_top, capsys, monkeypatch, held
     ):
         """The guards read the index under `agentic-seal/`, not under the
         package: a staged edit there, a submodule there, and an index git cannot
         list there each refuse the move and name the root by its own name."""
+        at_top(shared)
         if held == "a staged edit":
             write(shared / "agentic-seal", "follow-up.md", "# edited\n")
             git(shared, "add", "agentic-seal/follow-up.md")
@@ -3125,16 +3263,17 @@ class Test_mode:
 
     @pytest.mark.parametrize("wanted", ["local", "shared"])
     def test_s6_a_switch_that_could_not_stage_names_agentic_seal_in_the_command(
-        self, shared, capsys, wanted
+        self, shared, at_top, capsys, wanted
     ):
         """Where git refuses the staging step, the command the line hands the
         person stages `agentic-seal`: a held `index.lock` going local, and an
         ignore rule over the root going shared."""
+        at_top(shared)
         lock = shared / ".git" / "index.lock"
         if wanted == "shared":
             assert said(capsys, shared, "mode", "local")[0] == 0
             write(shared, ".gitignore", "agentic-seal/\n")
-            commit_everything_as_e(shared, "the switch to local")
+            commit_as_e(shared, "the switch to local")
         else:
             lock.write_text("", encoding="utf-8")
         try:
@@ -3155,8 +3294,8 @@ class Test_pr_checks:
     """S3 and S5: the checks are a command of their own, and the workflow
     file is the one record of whether they are installed."""
 
-    def test_accepts_install_report_and_remove_in_turn(self, take, capsys):
-        repo = take("shared")
+    def test_accepts_install_report_and_remove_in_turn(self, take, at_top, capsys):
+        repo = at_top(take("shared"))
         version = SEAL.plugin_version()
         assert said(capsys, repo, "pr-checks") == (
             0,
@@ -3168,7 +3307,7 @@ class Test_pr_checks:
         assert out == (
             f"wrote .github/workflows/hygiene.yml (pinned to v{version}) and staged it\n"
         )
-        commit_everything_as_e(repo, "the checks")
+        commit_as_e(repo, "the checks")
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 0 and "already this plugin's, pinned to v" in out, out
         assert said(capsys, repo, "pr-checks") == (
@@ -3184,10 +3323,12 @@ class Test_pr_checks:
         assert code == 0, out
         assert "there is no .github/workflows/hygiene.yml" in out
 
-    def test_accepts_remove_straight_after_install_before_a_commit(self, take, capsys):
+    def test_accepts_remove_straight_after_install_before_a_commit(
+        self, take, at_top, capsys
+    ):
         """`install` stages the file, and git refuses a plain `git rm` of a
         file staged and never committed."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         before = status(repo)
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 0, out
@@ -3203,9 +3344,9 @@ class Test_pr_checks:
 
     @pytest.mark.parametrize("edited", ["index", "working copy"])
     def test_refuses_a_staged_file_that_differs_and_leaves_it(
-        self, take, capsys, edited
+        self, take, at_top, capsys, edited
     ):
-        repo = take("shared")
+        repo = at_top(take("shared"))
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 0, out
         path = os.path.join(str(repo), WORKFLOW_PATH)
@@ -3230,13 +3371,13 @@ class Test_pr_checks:
 
     @pytest.mark.parametrize("state", ["AD", " D", " D, another release"])
     def test_accepts_remove_of_a_file_deleted_by_hand_the_index_still_holds(
-        self, take, capsys, state
+        self, take, at_top, capsys, state
     ):
         """Round 5, finding 1: a commit is made from the index, so a file
         gone from the working tree is not gone from the next commit. Round 6,
         finding 1: the index copy is taken where a copy survives it, in what
         `install` writes back or, for another release's pin, in HEAD."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         before = status(repo)
         if state == " D, another release":
             old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
@@ -3246,7 +3387,7 @@ class Test_pr_checks:
             code, out = said(capsys, repo, "pr-checks", "install")
             assert code == 0, out
             if state == " D":
-                commit_everything_as_e(repo, "the checks")
+                commit_as_e(repo, "the checks")
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         code, out = said(capsys, repo, "pr-checks", "remove")
         assert code == 0, out
@@ -3260,17 +3401,17 @@ class Test_pr_checks:
 
     @pytest.mark.parametrize("committed", [False, True], ids=["AD", " D"])
     def test_refuses_a_staged_file_without_the_clone_line_deleted_by_hand(
-        self, take, capsys, committed
+        self, take, at_top, capsys, committed
     ):
         """The index may hold the only copy of somebody's file, and a file
         HEAD carries is still somebody's, so a copy without the clone line is
         left alone whether or not HEAD holds it too."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         rel = WORKFLOW_PATH.replace(os.sep, "/")
         write(repo, rel, "name: mine\n")
         git(repo, "add", "--", rel)
         if committed:
-            commit_everything_as_e(repo, "somebody's workflow")
+            commit_as_e(repo, "somebody's workflow")
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         before = snapshot(repo)
         code, out = said(capsys, repo, "pr-checks", "remove")
@@ -3289,13 +3430,13 @@ class Test_pr_checks:
         "state", ["AD, a staged edit", "AD, another release", "MD, a staged edit"]
     )
     def test_refuses_an_index_copy_no_other_copy_keeps_deleted_by_hand(
-        self, take, capsys, state
+        self, take, at_top, capsys, state
     ):
         """Round 6, finding 1: with the working file gone, git's own `rm`
         does not refuse a staged change, so an index copy that is neither
         HEAD's nor what `install` writes now would go with nothing left of
         it."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         rel = WORKFLOW_PATH.replace(os.sep, "/")
         mine = SEAL.plugin_workflow() + "# mine\n"
         if state == "AD, a staged edit":
@@ -3323,11 +3464,13 @@ class Test_pr_checks:
         assert snapshot(repo) == before
         assert git(repo, "cat-file", "blob", f":{rel}").stdout == mine
 
-    def test_refuses_an_index_entry_it_cannot_read_deleted_by_hand(self, take, capsys):
+    def test_refuses_an_index_entry_it_cannot_read_deleted_by_hand(
+        self, take, at_top, capsys
+    ):
         """Round 6, finding 1: an unmerged path has no copy at stage 0 for
         git to give, and the refusal says so rather than naming a clone line
         it never read."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         rel = WORKFLOW_PATH.replace(os.sep, "/")
         write(repo, rel, SEAL.plugin_workflow())
         blob = git_out(repo, "hash-object", "-w", "--", rel)
@@ -3354,27 +3497,31 @@ class Test_pr_checks:
         assert snapshot(repo) == before
         assert len(git_out(repo, "ls-files", "--unmerged", "--", rel).splitlines()) == 3
 
-    def test_accepts_remove_where_the_root_left_the_tree(self, take, capsys):
+    def test_accepts_remove_where_the_root_left_the_tree(self, take, at_top, capsys):
         """A workflow that outlived its root is the case `remove` is for."""
-        repo = take("local")
+        repo = at_top(take("local"))
         workflow_in(repo, SEAL.plugin_workflow())
         code, out = said(capsys, repo, "pr-checks", "remove")
         assert code == 0, out
         assert "D  .github/workflows/hygiene.yml" in status(repo)
 
-    def test_refuses_install_in_local_mode_and_writes_nothing(self, take, capsys):
-        repo = take("local")
-        before = snapshot(repo)
+    def test_refuses_install_in_local_mode_and_writes_nothing(
+        self, take, at_top, capsys
+    ):
+        repo = at_top(take("local"))
+        before = tree(repo)
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 1, out
         # The refusal `seal pr-checks install` prints in local mode, which the
         # person who ran it reads.
         assert "the checks read committed records" in out
-        assert snapshot(repo) == before
+        assert tree(repo) == before
 
     @pytest.mark.parametrize("action", ["", "install", "remove"])
-    def test_refuses_somebody_elses_file_and_leaves_it(self, take, capsys, action):
-        repo = take("shared")
+    def test_refuses_somebody_elses_file_and_leaves_it(
+        self, take, at_top, capsys, action
+    ):
+        repo = at_top(take("shared"))
         path = workflow_in(repo, "name: hygiene\njobs: {}\n")
         code, out = said(capsys, repo, "pr-checks", *([action] if action else []))
         assert code == (0 if not action else 1), out
@@ -3391,7 +3538,7 @@ class Test_pr_checks:
         repo = take("shared")
         write(repo, ".gitignore", ".github/\n")
         write(repo, "docs/x.md", "x\n")
-        commit_everything_as_e(repo, "an ignore rule")
+        commit_as_e(repo, "an ignore rule")
         code, out = said(capsys, repo / "docs", "pr-checks", "install")
         assert code == 1, out
         assert "the pull-request checks would never run." in out
@@ -3478,12 +3625,12 @@ class Test_pr_checks:
         ],
     )
     def test_refuses_a_git_that_did_not_answer_and_keeps_the_index(
-        self, take, capsys, monkeypatch, action, held, tail, outcome, said_line
+        self, take, at_top, capsys, monkeypatch, action, held, tail, outcome, said_line
     ):
         """S4: a git that did not answer is read as each step reads a
         non-zero exit, and the index is as it was. The row with nothing on
         stderr holds that reading of the non-zero exit itself."""
-        repo = take("shared")
+        repo = at_top(take("shared"))
         if held == "another release's copy, deleted by hand":
             old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
             workflow_in(repo, old)
@@ -3501,36 +3648,39 @@ class Test_pr_checks:
         assert staged(repo) == before
 
     def test_pr_checks_install_writes_the_workflow_beside_a_shared_agentic_seal(
-        self, shared, capsys
+        self, shared, at_top, capsys
     ):
         """`seal pr-checks install` reads a marked `agentic-seal/` as the root in
         the tree, so it writes the workflow and stages it, where a project's own
         `seal/` alone would refuse it."""
+        at_top(shared)
         code, out = said(capsys, shared, "pr-checks", "install")
         assert code == 0, out
         assert (shared / ".github" / "workflows" / "hygiene.yml").is_file()
         assert "A  .github/workflows/hygiene.yml" in status(shared)
 
     def test_pr_checks_install_names_agentic_seal_where_no_root_stands_beside_the_package(
-        self, package, capsys
+        self, package, at_top, capsys
     ):
         """With no root beside the package, `seal pr-checks install` writes
         nothing and names the place it looked by its own name, `agentic-seal/`,
         not the package's `seal/`, which stands in the tree."""
-        code, out = said(capsys, package, "pr-checks", "install")
+        code, out = said(capsys, at_top(package), "pr-checks", "install")
         assert code == 1, out
         assert "no root stands at agentic-seal/ in this tree" in out, out
         assert not (package / ".github").exists()
 
 
 class Test_check:
-    def exported_once(self, take, capsys):
-        repo = take("local")
+    def exported_once(self, take, at_top, capsys):
+        repo = at_top(take("local"))
         assert said(capsys, repo, "export")[0] == 0
         return repo, roots(repo)[1]
 
-    def test_accepts_a_change_as_one_line_and_writes_nothing(self, take, capsys):
-        repo, local = self.exported_once(take, capsys)
+    def test_accepts_a_change_as_one_line_and_writes_nothing(
+        self, take, at_top, capsys
+    ):
+        repo, local = self.exported_once(take, at_top, capsys)
         write(local, f"threads/{ITEM}/design.md", "# edited\n")
         before = listed(local)
         code, out = said(capsys, repo, "export", "--check")
@@ -3538,9 +3688,9 @@ class Test_check:
         assert listed(local) == before
 
     def test_accepts_an_added_and_a_removed_item_and_no_root_level_file(
-        self, take, capsys
+        self, take, at_top, capsys
     ):
-        repo, local = self.exported_once(take, capsys)
+        repo, local = self.exported_once(take, at_top, capsys)
         write(local, "follow-up.md", "# a new follow-up row\n")
         assert said(capsys, repo, "export", "--check")[1] == (
             "0 work items changed since the last export\n"
@@ -3554,8 +3704,8 @@ class Test_check:
     @pytest.mark.parametrize(
         "state", [None, '{"items": []}'], ids=["none", "items that are no object"]
     )
-    def test_refuses_to_count_against_no_export(self, take, capsys, state):
-        repo = take("local")
+    def test_refuses_to_count_against_no_export(self, take, at_top, capsys, state):
+        repo = at_top(take("local"))
         if state is not None:
             write(repo / ".git", "agentic-last-export.json", state)
         code, out = said(capsys, repo, "export", "--check")
@@ -3566,8 +3716,10 @@ class Test_check:
         )
 
     @pytest.mark.parametrize("world, code", [("shared", 0), ("plain", 1)])
-    def test_refuses_to_remind_a_shared_root_or_none(self, take, capsys, world, code):
-        found, out = said(capsys, take(world), "export", "--check")
+    def test_refuses_to_remind_a_shared_root_or_none(
+        self, take, at_top, capsys, world, code
+    ):
+        found, out = said(capsys, at_top(take(world)), "export", "--check")
         assert found == code, out
         if world == "shared":
             assert (
