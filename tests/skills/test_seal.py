@@ -30,11 +30,18 @@ cases about the remote, and the runs from a subdirectory or from outside
 any repository, which reach their arm through `resolve`'s own git, as the
 export that writes the module's zip does. `Test_resolve` holds that git
 answers the top `at_top` gives, and `Test_remote_url` the `origin` the
-import's world carries.
+import's world carries. A switch whose fact is a line it prints or a move it
+makes, and not what its guards read from the index, takes
+`guards_answered`, and starts git only to stage.
 
 The cases that run the commands beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
+(#1059) and need its history build `tests/conftest.py`'s `package` or
+`shared` repository for each case, whose root stands at `agentic-seal/`:
+`seal export` and `seal import` across a clone, first setup, a switch each
+way, the guards over the index under that root, and `seal pr-checks
+install`. A case whose fact is the root's name there writes the package's
+files into a copy of a world (`beside_the_package`), since `optin.home_at`
+reads that name from the disk.
 
 #942's phase 6 placed here the writer's cases of
 `tests/test_the_mode_question_is_asked_once.py`, and the two cases of
@@ -59,12 +66,12 @@ import zipfile
 
 import pytest
 from conftest import (
+    PACKAGE,
     REMOTE,
     ROOT,
     ROOT_MARKER,
     ROOT_RECORDS,
     census_case,
-    commit_everything_as_e,
     config_json,
     fifo_or_skip,
     git,
@@ -155,8 +162,7 @@ def copied(source, dest, remote=None):
 def commit_as_e(repo, message):
     """Everything in REPO committed by `e <e@example.com>`: what
     `commit_everything_as_e` does, less the `git rev-parse HEAD` of its
-    answer, which no case here reads but the one world that pins a gitlink
-    to it."""
+    answer, which no case here reads."""
     git(repo, "add", "-A")
     git(repo, *IDENTITY, "commit", "-qm", message)
 
@@ -165,7 +171,8 @@ def gitlink_at(repo, where, sha):
     """A submodule's gitlink at WHERE in REPO's index, pointing at SHA, and
     committed: what `git ls-files --stage` lists as `160000`. Its directory
     stands empty, as an uninitialised submodule's does, so `git status`
-    names nothing there."""
+    names nothing there. SHA names a commit of the submodule's own
+    repository, which REPO's object store never holds."""
     (repo / where).mkdir()
     git(repo, "update-index", "--add", "--cacheinfo", f"160000,{sha},{where}")
     git(repo, *IDENTITY, "commit", "-qm", f"a submodule at {where}")
@@ -177,17 +184,17 @@ def _worlds(tmp_path_factory):
     """Every world of the module, built once; see the module docstring."""
     base = tmp_path_factory.mktemp("seal-worlds")
     plain = clone_at(base / "plain")
-    holding(local_home(copied(plain, base / "local", SSH)))
+    holding(roots(copied(plain, base / "local", SSH))[1])
     shared = copied(plain, base / "shared")
     holding(shared / "seal")
-    sha = commit_everything_as_e(shared, "the root")
-    local_home(copied(plain, base / "other", HTTPS))
-    gitlink_at(copied(shared, base / "under"), "seal/vendor", sha)
-    gitlink_at(copied(shared, base / "beside"), "vendor", sha)
+    commit_as_e(shared, "the root")
+    mark_root(roots(copied(plain, base / "other", HTTPS))[1])
+    gitlink_at(copied(shared, base / "under"), "seal/vendor", SHA)
+    gitlink_at(copied(shared, base / "beside"), "vendor", SHA)
     unborn = base / "unborn"
     unborn.mkdir()
     git(unborn, "init", "-q")
-    holding(local_home(unborn), {"follow-up.md": "# follow-up\n"})
+    holding(roots(unborn)[1], {"follow-up.md": "# follow-up\n"})
     exporter = copied(base / "local", base / "exporter")
     (base / "zips").mkdir()
     assert SEAL.main(["export", "--output", str(base / "zips")], str(exporter)) == 0
@@ -232,6 +239,33 @@ def at_top(monkeypatch):
         return repo
 
     return given
+
+
+@pytest.fixture
+def guards_answered(monkeypatch):
+    """The switch's reads of the index before it moves anything, answered
+    for the case: `porcelain` as a clean tree, `gitlinks_under_root` as no
+    submodule and `other_worktrees` as none, so the switch starts git only
+    to stage. For a case whose fact is a line the switch prints or a move it
+    makes, not what those readers read: `Test_porcelain`,
+    `Test_gitlinks_under_root`, `Test_other_worktrees` and `Test_refusals`
+    hold each of them against git, and the other switches of `Test_switch`
+    and `Test_mode` run them real."""
+    monkeypatch.setattr(SEAL, "porcelain", lambda repo, *paths: [])
+    monkeypatch.setattr(SEAL, "gitlinks_under_root", lambda repo, name: ([], ""))
+    monkeypatch.setattr(SEAL, "other_worktrees", lambda repo: [])
+
+
+def beside_the_package(repo):
+    """REPO with the files of `tests/conftest.py#PACKAGE` written and not
+    committed: a project's own `seal/` package, which `optin`'s readers of
+    the root in force pass over. Where `.git` is a directory those readers
+    read the disk alone, so a case whose fact is the root's name beside the
+    package reads it here with no history of its own; a case that needs the
+    package committed takes `tests/conftest.py#package` or `#shared`."""
+    for rel, text in PACKAGE.items():
+        write(repo, rel, text)
+    return repo
 
 
 @pytest.fixture
@@ -1017,11 +1051,16 @@ class Test_export:
         assert out.startswith("no free name for seal-local-") and "pass --output" in out
 
     def test_s6_export_in_shared_mode_names_agentic_seal_in_the_way_out(
-        self, shared, at_top, capsys
+        self, take, at_top, capsys
     ):
         """`seal export` writes no zip in shared mode, and the commands it gives
-        for going local take `agentic-seal/` out of the tree, not the package."""
-        code, out = said(capsys, at_top(shared), "export")
+        for going local take `agentic-seal/` out of the tree, not the package.
+        The root in force is the one `optin.home_at` reads beside the
+        package."""
+        repo = at_top(beside_the_package(take("plain")))
+        records_at(repo / "agentic-seal")
+        assert home_of(repo) == os.path.join(str(repo), "agentic-seal")
+        code, out = said(capsys, repo, "export")
         assert code == 1, out
         assert (
             '  git rm -r --cached "$(git rev-parse --show-toplevel)/agentic-seal"\n'
@@ -1884,27 +1923,22 @@ class Test_import_:
         [("a link", "is a symbolic link"), ("a file", "is not a directory")],
     )
     def test_s6_an_import_names_what_blocks_it_in_the_root_by_the_roots_own_name(
-        self, package, at_top, capsys, tmp_path, held, said_of_it
+        self, take, at_top, exported, capsys, tmp_path, held, said_of_it
     ):
         """A symbolic link, or a file, where the zip needs `threads/` as a
         directory is refused, and the line names the place in this clone,
-        `agentic-seal/threads`, not the archive's `seal/` prefix."""
-        at_top(package)
-        records_at(local_home(package))
-        zips = tmp_path / "zips"
-        zips.mkdir()
-        assert said(capsys, package, "export", "--output", str(zips))[0] == 0
-        (archive,) = zips.iterdir()
-        root = package / "agentic-seal"
-        mark_root(root)
-        shutil.rmtree(package / ".git" / "seal")
+        `agentic-seal/threads`, not the archive's `seal/` prefix. The root in
+        force is the one `optin.home_at` reads beside the package."""
+        repo = at_top(beside_the_package(take("plain")), SSH)
+        root = mark_root(repo / "agentic-seal")
+        assert home_of(repo) == str(root)
         outside = tmp_path / "outside"
         outside.mkdir()
         if held == "a link":
             symlink_or_skip(str(outside), str(root / "threads"))
         else:
             write(root, "threads", "a file\n")
-        code, out = said(capsys, package, "import", str(archive))
+        code, out = said(capsys, repo, "import", str(exported))
         assert code == 1, out
         assert out.startswith(f"agentic-seal/threads in this clone {said_of_it}"), out
         assert list(outside.iterdir()) == []
@@ -2838,11 +2872,12 @@ class Test_switch:
         ids=["an-older-release", "no-release-named", "a-version-it-cannot-read"],
     )
     def test_accepts_shared_to_local_and_names_a_pin_that_is_not_the_installed_release(
-        self, take, at_top, capsys, monkeypatch, pin, installed
+        self, take, at_top, guards_answered, capsys, monkeypatch, pin, installed
     ):
         """Round 1 of #952, finding 2: a workflow pinned to another release,
         or one beside a version that cannot be read, is not promised to pass.
-        The line names the pin and the two ways out."""
+        The line names the pin and the two ways out. The line reads the file
+        on disk, so the workflow is not committed."""
         repo = at_top(take("shared"))
         version = SEAL.plugin_version()
         text = SEAL.plugin_workflow()
@@ -2850,7 +2885,7 @@ class Test_switch:
             old = f"--branch v{version} "
             assert old in text, text
             text = text.replace(old, f"--branch {pin} " if pin else "")
-        workflow_in(repo, text)
+        workflow_in(repo, text, commit=False)
         if not installed:
             monkeypatch.setattr(SEAL, "plugin_version", lambda: "")
         code, out = said(capsys, repo, "mode", "local")
@@ -2871,7 +2906,7 @@ class Test_switch:
         assert "read nothing as declared" not in out, out
 
     def test_accepts_local_to_shared_and_says_the_commit_is_the_door(
-        self, take, at_top, capsys
+        self, take, at_top, guards_answered, capsys
     ):
         repo = at_top(take("local"))
         shared, local = roots(repo)
@@ -2982,7 +3017,7 @@ class Test_switch:
         assert snapshot(repo) == before
 
     def test_refuses_a_rename_the_filesystem_turns_down_and_names_the_mv(
-        self, take, at_top, capsys
+        self, take, at_top, guards_answered, capsys
     ):
         repo = at_top(take("local"))
         bits = os.stat(repo).st_mode
@@ -3044,7 +3079,17 @@ class Test_switch:
         ids=["git rm going local", "git ls-files going local", "git add going shared"],
     )
     def test_refuses_to_call_a_stage_git_that_did_not_answer_staged(
-        self, take, at_top, capsys, monkeypatch, start, wanted, tail, said_line, by_hand
+        self,
+        take,
+        at_top,
+        guards_answered,
+        capsys,
+        monkeypatch,
+        start,
+        wanted,
+        tail,
+        said_line,
+        by_hand,
     ):
         """S1 and S2: the root has moved and the key is written, so the
         switch is half done, and the line says so and names the step to run
@@ -3064,7 +3109,7 @@ class Test_switch:
 class Test_mode:
     @pytest.mark.parametrize("mode, other", [("shared", "local"), ("local", "shared")])
     def test_accepts_apply_moving_the_folder_to_the_row(
-        self, take, at_top, capsys, mode, other
+        self, take, at_top, guards_answered, capsys, mode, other
     ):
         repo = at_top(take(mode))
         config_at(repo, mode_row(other))
@@ -3202,65 +3247,77 @@ class Test_mode:
         assert "staged agentic-seal/" in out
         assert files_under(shared / "seal") == before
 
-    @pytest.mark.parametrize(
-        "held", ["a staged edit", "a submodule", "an index git cannot list"]
-    )
+    @pytest.mark.parametrize("held", ["a staged edit", "a submodule"])
     def test_s6_mode_refuses_to_move_agentic_seal_over_what_its_index_holds(
-        self, shared, at_top, capsys, monkeypatch, held
+        self, shared, at_top, capsys, held
     ):
         """The guards read the index under `agentic-seal/`, not under the
-        package: a staged edit there, a submodule there, and an index git cannot
-        list there each refuse the move and name the root by its own name."""
+        package: a staged edit there and a submodule there each refuse the
+        move and name the root by its own name."""
         at_top(shared)
         if held == "a staged edit":
             write(shared / "agentic-seal", "follow-up.md", "# edited\n")
             git(shared, "add", "agentic-seal/follow-up.md")
-        elif held == "a submodule":
-            sha = git(shared, "rev-parse", "HEAD").stdout.strip()
-            gitlink = f"160000,{sha},agentic-seal/vendor"
-            git(shared, "update-index", "--add", "--cacheinfo", gitlink)
         else:
-            tail = ["--stage", "--", "agentic-seal"]
-            unanswered(monkeypatch, tail, OSError("git is not here"))
+            gitlink = f"160000,{SHA},agentic-seal/vendor"
+            git(shared, "update-index", "--add", "--cacheinfo", gitlink)
         code, out = said(capsys, shared, "mode", "local")
         assert code == 1, out
         assert out.rstrip().endswith("Nothing was moved."), out
         if held == "a staged edit":
             assert "\n  M  agentic-seal/follow-up.md\n" in out, out
-        elif held == "a submodule":
+        else:
             assert "there is a submodule under agentic-seal/:\n" in out, out
             assert "`git rm -r --cached agentic-seal`" in out, out
-        else:
-            assert "whether there is a submodule under agentic-seal/ could not" in out
         assert (shared / "agentic-seal").is_dir()
 
-    @pytest.mark.parametrize("wanted", ["local", "shared"])
-    def test_s6_a_switch_that_could_not_stage_names_agentic_seal_in_the_command(
-        self, shared, at_top, capsys, wanted
+    def test_s6_mode_refuses_to_move_agentic_seal_over_an_index_git_cannot_list(
+        self, take, at_top, capsys, monkeypatch
+    ):
+        """An index git cannot list under `agentic-seal/` refuses the move and
+        names the root by its own name, the one `optin.home_at` reads beside
+        the package."""
+        repo = at_top(beside_the_package(take("plain")))
+        holding(repo / "agentic-seal")
+        assert home_of(repo) == os.path.join(str(repo), "agentic-seal")
+        tail = ["--stage", "--", "agentic-seal"]
+        unanswered(monkeypatch, tail, OSError("git is not here"))
+        code, out = said(capsys, repo, "mode", "local")
+        assert code == 1, out
+        assert out.rstrip().endswith("Nothing was moved."), out
+        assert "whether there is a submodule under agentic-seal/ could not" in out
+        assert (repo / "agentic-seal").is_dir()
+
+    def test_s6_a_switch_that_could_not_stage_names_agentic_seal_going_local(
+        self, shared, at_top, capsys
     ):
         """Where git refuses the staging step, the command the line hands the
-        person stages `agentic-seal`: a held `index.lock` going local, and an
-        ignore rule over the root going shared."""
+        person stages `agentic-seal`: a held `index.lock` going local."""
         at_top(shared)
         lock = shared / ".git" / "index.lock"
-        if wanted == "shared":
-            assert said(capsys, shared, "mode", "local")[0] == 0
-            write(shared, ".gitignore", "agentic-seal/\n")
-            commit_as_e(shared, "the switch to local")
-        else:
-            lock.write_text("", encoding="utf-8")
+        lock.write_text("", encoding="utf-8")
         try:
-            code, out = said(capsys, shared, "mode", wanted)
+            code, out = said(capsys, shared, "mode", "local")
         finally:
-            if lock.exists():
-                lock.unlink()
+            lock.unlink()
         assert code == 1, out
         assert "Now commit." not in out, out
-        if wanted == "local":
-            assert "Run `git rm -r --cached :/agentic-seal` yourself" in out, out
-        else:
-            assert "  agentic-seal/ could NOT be staged: " in out, out
-            assert "`git add -f :/agentic-seal` yourself" in out, out
+        assert "Run `git rm -r --cached :/agentic-seal` yourself" in out, out
+
+    def test_s6_a_switch_that_could_not_stage_names_agentic_seal_going_shared(
+        self, take, at_top, capsys
+    ):
+        """An ignore rule over the root going shared: `git add` refuses
+        `agentic-seal`, the place `optin.home_paths` gives beside the package,
+        and the command the line hands the person stages it."""
+        repo = at_top(beside_the_package(take("local")))
+        write(repo, ".gitignore", "agentic-seal/\n")
+        assert roots(repo)[0] == os.path.join(str(repo), "agentic-seal")
+        code, out = said(capsys, repo, "mode", "shared")
+        assert code == 1, out
+        assert "Now commit." not in out, out
+        assert "  agentic-seal/ could NOT be staged: " in out, out
+        assert "`git add -f :/agentic-seal` yourself" in out, out
 
 
 class Test_pr_checks:
@@ -3494,8 +3551,10 @@ class Test_pr_checks:
     def test_refuses_somebody_elses_file_and_leaves_it(
         self, take, at_top, capsys, action
     ):
+        """Whose file it is reads from the file on disk, before any git, so
+        the file is not committed."""
         repo = at_top(take("shared"))
-        path = workflow_in(repo, "name: hygiene\njobs: {}\n")
+        path = workflow_in(repo, "name: hygiene\njobs: {}\n", commit=False)
         code, out = said(capsys, repo, "pr-checks", *([action] if action else []))
         assert code == (0 if not action else 1), out
         assert open(path, encoding="utf-8").read() == "name: hygiene\njobs: {}\n"
@@ -3633,15 +3692,18 @@ class Test_pr_checks:
         assert "A  .github/workflows/hygiene.yml" in status(shared)
 
     def test_pr_checks_install_names_agentic_seal_where_no_root_stands_beside_the_package(
-        self, package, at_top, capsys
+        self, take, at_top, capsys
     ):
         """With no root beside the package, `seal pr-checks install` writes
         nothing and names the place it looked by its own name, `agentic-seal/`,
-        not the package's `seal/`, which stands in the tree."""
-        code, out = said(capsys, at_top(package), "pr-checks", "install")
+        not the package's `seal/`, which stands in the tree. `optin.home_at`
+        reads no root there."""
+        repo = at_top(beside_the_package(take("plain")))
+        assert home_of(repo) == ""
+        code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 1, out
         assert "no root stands at agentic-seal/ in this tree" in out, out
-        assert not (package / ".github").exists()
+        assert not (repo / ".github").exists()
 
 
 class Test_check:
