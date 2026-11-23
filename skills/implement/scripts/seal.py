@@ -1625,6 +1625,15 @@ def other_worktrees(repo):
     two different roots until the commit reaches both. It heals itself and
     loses nothing, so it is named rather than refused.
 
+    The list holds every worktree git lists but this one and the git
+    directory. `git worktree list --porcelain` gives the git directory as
+    its first entry where the clone was made with `--separate-git-dir` or is
+    bare, the first with no `bare` line, and that entry's path is the common
+    git directory `lib/optin.py#git_common_dir` answers, so an entry at its
+    real path is left out. Seen from a linked worktree of a
+    `--separate-git-dir` repository, git lists no main worktree, so none is
+    in this list either.
+
     **A git that cannot answer here is silent by design, and this is the one
     call site that asks through `git()`.** `git()` reads every failure as
     `""`, so a timeout or a non-zero exit reads here as *this clone has no
@@ -1634,25 +1643,16 @@ def other_worktrees(repo):
     through `git_asked`; this one reads it as a fact nobody acts on, and is
     right to ask through `git()`.
     """
-    # RIDER: `git worktree list --porcelain` prints the GIT DIRECTORY as the
-    # worktree path for a repository built with `--separate-git-dir`, and for
-    # a bare clone, with no `bare` line on the first to tell it by. Against a
-    # scratch `--separate-git-dir` repository this returns
-    # `['<...>/sepgit']`, and `git -C <that> rev-parse --show-toplevel`
-    # answers `fatal: this operation must be run in a work tree`. So `seal
-    # mode` there prints a note calling the git directory another worktree of
-    # this clone. Nothing decides on it and nothing is lost: the caller,
-    # `switch`, only prints.
-    # The fix is to compare the clone by common git directory and refuse a
-    # path that is not a work tree. Filter this list that way when this
-    # function is next opened.
-    here = os.path.realpath(repo)
+    common = optin.git_common_dir(repo)
+    left_out = {os.path.realpath(repo)}
+    if common:
+        left_out.add(os.path.realpath(common))
     found = []
     # exempt from splitlines: git output
     for line in git(repo, "worktree", "list", "--porcelain").splitlines():
         if line.startswith("worktree "):
             path = line[len("worktree ") :].strip()
-            if path and os.path.realpath(path) != here:
+            if path and os.path.realpath(path) not in left_out:
                 found.append(path)
     return found
 

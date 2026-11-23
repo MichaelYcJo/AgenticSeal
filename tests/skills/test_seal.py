@@ -2128,6 +2128,31 @@ class Test_other_worktrees:
         assert SEAL.other_worktrees(str(_worlds / "shared")) == []
         assert SEAL.other_worktrees(str(tmp_path)) == []
 
+    def test_refuses_the_git_directory_of_a_separate_git_dir_repository(self, tmp_path):
+        """#1576, design S8: `git worktree list` gives a `--separate-git-dir`
+        repository's git directory as its first entry, with no `bare` line,
+        and that directory is no worktree of the clone."""
+        work, linked = tmp_path / "work", tmp_path / "linked"
+        git(
+            tmp_path, "init", "-q", "-b", "main", "--separate-git-dir", "sepgit", "work"
+        )
+        write(work, "a.md", "a\n")
+        commit_everything_as_e(work, "the base")
+        git(work, "worktree", "add", "-q", "-b", "feature/x", str(linked))
+        found = SEAL.other_worktrees(str(work))
+        assert [os.path.realpath(p) for p in found] == [os.path.realpath(linked)]
+
+    def test_refuses_the_bare_directory_a_worktree_was_added_to(self, tmp_path):
+        """#1576, design S8: a bare clone is listed as its first entry, and
+        from its one worktree there is no other."""
+        plain, bare = tmp_path / "plain", tmp_path / "bare.git"
+        git(tmp_path, "init", "-q", "-b", "main", "plain")
+        write(plain, "a.md", "a\n")
+        commit_everything_as_e(plain, "the base")
+        git(tmp_path, "clone", "-q", "--bare", str(plain), str(bare))
+        git(bare, "worktree", "add", "-q", str(tmp_path / "from-bare"), "main")
+        assert SEAL.other_worktrees(str(tmp_path / "from-bare")) == []
+
 
 class Test_plugin_version:
     def test_accepts_the_version_the_plugin_names(self, tmp_path, monkeypatch):
