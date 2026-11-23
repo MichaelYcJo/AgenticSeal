@@ -5,8 +5,8 @@ The paste check's reader, moved out of
 `skills/code-review/scripts/chain_check.py` reads a design's `to` the way the
 test reads the rule documents. The method and why it is verbatim stay in that
 test's docstring, and the measurement that chose `WINDOW` in the comment over
-it. The two cases of
-`Test_words` came from the paste test, where they tested `words` alone.
+it. The two cases of `Test_words` came from the paste test, where they tested
+`words` alone.
 """
 
 import itertools
