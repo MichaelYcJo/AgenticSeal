@@ -70,6 +70,7 @@ TARGET = "skills/code-review/scripts/chain_check.py"
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / TARGET
 READER = ROOT / "lib" / "lines.py"
+TABLES = ROOT / "lib" / "tables.py"
 ITEM = "seal/threads/1791999999-a-work-item"
 # The pictographs and symbols a mark is drawn from: the colour circles and
 # squares, the check and cross marks, the question mark ornament and the
@@ -78,6 +79,7 @@ EMOJI = re.compile("[⌀-⏿☀-➿⬀-⯿️\U0001f000-\U0001faff]")
 
 chain = load(CHAIN, "chain_check_under_test")
 reader = load(READER, "lines_reader_for_chain_tests")
+tables = load(TABLES, "tables_for_chain_tests")
 check = functools.partial(chain_check_run, chain)
 # The worlds the predicates moved from `unverified_check.py` read, fixtures
 # built once in the file this one imports them from.
@@ -4979,7 +4981,7 @@ def test_the_template_is_the_record_the_check_reads():
     assert [ref for _line, ref in read.confirms] == [(1, 2)]
     assert text.count("\nconfirms: ") == 1 and "\nconfirms: none\n" not in text
     head = text.split(chain.FINDINGS_HEADING)[0]
-    assert chain.table_rows(reader, reader.readable(head)) == []
+    assert all(tables.table_cells(line) is None for line in reader.readable(head))
     assert read.target == "1a2b3c4"
     start = text.index(FENCE + "seal\nverdict: ")
     end = text.index(FENCE + "\n", start + len(FENCE)) + len(FENCE) + 1

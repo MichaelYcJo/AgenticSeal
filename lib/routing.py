@@ -54,6 +54,20 @@ except ImportError as missing:
         "own is not a plugin"
     ) from missing
 
+try:
+    import tables
+except ImportError as missing:
+    # The same sentence as the walk's above, for the file that splits a row
+    # into its cells as cmark-gfm does.
+    raise ImportError(
+        "cannot read "
+        + os.path.join(os.path.dirname(os.path.abspath(__file__)), "tables.py")
+        + ", and it is the row splitter this reader reads routing.md's cells "
+        "through, which reads an escaped pipe as one literal pipe. "
+        "This file ships beside it under `lib/`; a copy of one taken on its "
+        "own is not a plugin"
+    ) from missing
+
 REVIEW = "Review"
 DESTINATION = "Destination"
 BRANCH = "Branch"
@@ -96,7 +110,7 @@ AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 FILENAME = "routing.md"
 
 
-def shown(lines, text=None):
+def shown(lines):
     """[(index, line)] for each of LINES `table_rows` reads, ending removed.
 
     The walk's hidden lines are left out, and only those: where it is not
@@ -105,13 +119,12 @@ def shown(lines, text=None):
     renderer's, which `tests/lib/test_routing.py`'s `Test_module`
     holds over a generated corpus.
 
-    TEXT is the file LINES were split from, and `table_rows` passes it: the
-    walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
-    form feed, which `str.splitlines` breaks at, hides nothing a renderer
+    LINES are the file's lines as GFM ends them, which `table_rows` takes
+    from `blocks.gfm_lines`: a `<!--` after a U+2028 or a form feed, which
+    `str.splitlines` breaks at, stays mid-line and hides nothing a renderer
     shows (`lib/tables.py#hidden_lines` says more).
     """
-    walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
-    hidden = walked.hidden()
+    hidden = blocks.walk(lines).hidden()
     return [
         (index, raw.rstrip("\r\n"))
         for index, raw in enumerate(lines)
@@ -120,7 +133,13 @@ def shown(lines, text=None):
 
 
 def table_rows(text):
-    """Every two-cell markdown table row, as (label, value).
+    """Every markdown table row of two cells or more, as (label, value), its
+    first two cells.
+
+    **A row is split as cmark-gfm splits it** (`lib/tables.py#table_cells`):
+    an escaped pipe is one literal pipe in its cell, a row whose closing pipe
+    is left off is a row, and a line four spaces in is code. The delimiter
+    row (`tables.DELIMITER_ROW`) is no row.
 
     Unknown labels are left in rather than filtered: a reader that drops what
     it does not recognise cannot gain a third axis later without the older
@@ -139,15 +158,11 @@ def table_rows(text):
     this module fails in.
     """
     rows = []
-    # exempt from splitlines: lines the GFM walk numbers
-    for _index, line in shown(text.splitlines(), text):
-        line = line.strip()
-        if not line.startswith("|"):
+    for _index, line in shown(blocks.gfm_lines(text)):
+        if tables.DELIMITER_ROW.match(line):
             continue
-        cells = [c.strip() for c in line.strip("|").split("|")]
-        if len(cells) < 2:
-            continue
-        if set(cells[0]) <= set(":- "):  # the separator row
+        cells = tables.table_cells(line)
+        if cells is None or len(cells) < 2:
             continue
         rows.append((cells[0], cells[1]))
     return rows

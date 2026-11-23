@@ -148,15 +148,6 @@ def _inline_html_lines(inline):
     return out
 
 
-def _starts(pieces):
-    """Where each of PIECES, which concatenate to one text, starts in it."""
-    out, at = [], 0
-    for piece in pieces:
-        out.append(at)
-        at += len(piece)
-    return out
-
-
 def commonmark_lines(text):
     """TEXT's lines as CommonMark ends them, each with its own ending: at LF,
     CR or CRLF, and nowhere else (the specification's section 2.1). Written from the
@@ -193,77 +184,24 @@ def _hidden_commonmark(lines):
     return out
 
 
-# Two marks, because no one run of characters stands everywhere inline HTML
-# can hold a piece's start. Letters stand inside any of the six kinds but one
-# place: between a closing tag's name and its `>`, where only whitespace may,
-# so there a run of Unicode spaces is put instead. A piece starts just after
-# a break, which the parser reads as whitespace, so the spaces land where one
-# space already stands.
-SENTINEL = "QzxSENTINELxzQ"
-SPACES = chr(0x2002) + chr(0x2003) + chr(0x2002) + chr(0x2003) + chr(0x2002)
-
-
-def _tokens(tokens):
-    """TOKENS and every child under them, at any depth."""
-    for token in tokens:
-        yield token
-        yield from _tokens(token.children or [])
-
-
-def _starts_in_inline_html(text, offset):
-    """Whether the text from OFFSET, in the middle of a CommonMark line, is
-    inside inline raw HTML: the parser reads TEXT with a mark put at OFFSET,
-    and an `html_inline` token it finds holds that mark.
-
-    Tokens are read at any depth, an image description's children included,
-    because the mark needs no offset. `_inline_html_lines` reads the top
-    level alone for the reason its docstring gives.
-    """
-    for mark in (SENTINEL, SPACES):
-        marked = text[:offset] + mark + text[offset:]
-        for token in _tokens(_PARSER.parse(marked)):
-            if token.type == "html_inline" and mark in token.content:
-                return True
-    return False
-
-
 def hidden_text(text):
-    """{index: kind} for every line of `text.splitlines()` a renderer hides.
+    """{index: kind} for every line of `commonmark_lines(text)` a renderer
+    hides.
 
     **The renderer reads TEXT, not a reader's split of it** (#667 round 1,
     🟡 1). `str.splitlines` also ends a line at U+2028, NEL, a form feed and
-    five more characters, and CommonMark does not, so a reader's line can be a
-    piece of a renderer's line. The parser is given CommonMark's lines. A
-    reader line that starts a CommonMark line takes that line's answer, and so
-    does a piece of a line in a block the renderer hides. **A piece of any
-    other line is asked where it starts** (#667 round 2): inline raw HTML of
-    any of the six kinds can open before it or close before it on the same
-    line, so the line's answer is not the piece's. Mapping a piece by its
-    line was the walk's own rule, and an oracle built on it agreed with the
-    walk by construction; asking about comments alone did the same on the
-    other five kinds (#673).
+    five more characters, and CommonMark does not, so the parser is given
+    CommonMark's lines and the answer is keyed by them. The readers this
+    oracle holds split their text at the same three endings (#1574), so an
+    index here is an index into the lines a reader reads.
     """
-    commonmark = commonmark_lines(text)
-    found = _hidden_commonmark([line.rstrip("\r\n") for line in commonmark])
-    renderer_starts = _starts(commonmark)
-    out = {}
-    line = 0
-    for index, start in enumerate(_starts(text.splitlines(keepends=True))):
-        while line + 1 < len(renderer_starts) and renderer_starts[line + 1] <= start:
-            line += 1
-        kind = found.get(line)
-        if start == renderer_starts[line] or kind in (FENCE, CODE, HTML):
-            if kind:
-                out[index] = kind
-        elif _starts_in_inline_html(text, start):
-            out[index] = INLINE_HTML
-    return out
+    return _hidden_commonmark([line.rstrip("\r\n") for line in commonmark_lines(text)])
 
 
 def hidden(lines):
     """`hidden_text` of LINES joined with `\\n`, endings removed or not, so
-    index N here is index N of that text's `splitlines()` -- LINES' own
-    index wherever no line holds a break CommonMark does not honour."""
+    index N here is index N of that text's CommonMark lines -- LINES' own
+    index wherever no line holds a CR inside it."""
     return hidden_text("\n".join(line.rstrip("\r\n") for line in lines))
 
 

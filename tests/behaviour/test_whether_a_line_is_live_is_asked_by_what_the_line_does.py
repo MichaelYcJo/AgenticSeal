@@ -149,7 +149,7 @@ def lines_live_lines(lines, tmp_path):
 
 def tables_hidden_lines(lines, tmp_path):
     """Read where the index is absent from the map of hidden lines."""
-    hidden, _opened = tables.hidden_lines(lines, as_text(lines))
+    hidden, _opened = tables.hidden_lines(lines)
     return row_index(lines) not in hidden
 
 
