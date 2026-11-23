@@ -32,9 +32,10 @@ extension. Each file is read through `flowing`, so a citation wrapped across
 The readers of a section and of a name also read a second corpus,
 `corpus(root, archive=True)`, whose paths are those of the archive git
 builds from the tree, because `dist`, the branch the plugin directory
-reads, is the archive of each release's tag (#1374). `archived` lists them
-with two commands: `git write-tree` under a copy of the index, then `git
-archive --worktree-attributes` of that tree. So a file staged and not
+reads, is the archive of each release's tag (#1374).
+`tests/conftest.py#archived` lists them with two commands: `git
+write-tree` under a copy of the index, then `git archive
+--worktree-attributes` of that tree. So a file staged and not
 committed, or a `.gitattributes` line not committed, is read as CI reads it
 once committed. Its texts come from disk, as the tree reading's do. A
 citation in a file the archive holds dangles where the archive lacks its
@@ -47,8 +48,7 @@ cites, say `/templates/`, leaves the citation unread and this module green,
 and review of the `.gitattributes` line is what reads it. An index with
 unmerged entries stops `git write-tree`, and the archive reading with it.
 The same reading of this repository holds that the archive carries no file
-under `.github/workflows/`, which the publish workflow's token may not push
-to `dist`.
+under `.github/` and that no file it carries loads a script from there.
 
 A name token preceded by a word character, `.`, `/`, `:` or `-` is not
 read, so a `<commit>:<path>#<name>` is left unread and no commit is opened.
@@ -68,20 +68,17 @@ file holds no dangling contract citation of its own.
 import ast
 import collections
 import functools
-import io
 import os
 import pathlib
 import re
-import shutil
 import subprocess
-import tarfile
-import tempfile
 import warnings
 
 import pytest
 from censuses import RECORDS
 from conftest import (
     ROOT,
+    archived,
     build_tracked_tree,
     config_json,
     load_lib_module,
@@ -234,37 +231,6 @@ def excuser(rel, line, cited, text, pending):
             if holds(o.old, cited) and not holds(o.new, cited):
                 return item
     return rules.removed_by(pending, rel, text, line)
-
-
-def archived(root):
-    """Every path the archive git builds from the index of the repository at
-    ROOT writes, with the working tree's attributes, a directory's among
-    them. The index's tree is written from a copy of the index, so a git
-    process holding the index's lock, a case running beside this one among
-    them, is left to finish."""
-    index = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--git-path", "index"],
-        capture_output=True,
-        check=True,
-        encoding="utf-8",
-    ).stdout.strip()
-    with tempfile.TemporaryDirectory() as scratch:
-        copy = os.path.join(scratch, "index")
-        shutil.copyfile(os.path.join(root, index), copy)
-        tree = subprocess.run(
-            ["git", "-C", root, "write-tree"],
-            capture_output=True,
-            check=True,
-            encoding="utf-8",
-            env={**os.environ, "GIT_INDEX_FILE": copy},
-        ).stdout.strip()
-    tar = subprocess.run(
-        ["git", "-C", root, "archive", "--worktree-attributes", "--format=tar", tree],
-        capture_output=True,
-        check=True,
-    ).stdout
-    with tarfile.open(fileobj=io.BytesIO(tar)) as members:
-        return members.getnames()
 
 
 def corpus(root, archive=False):
@@ -904,56 +870,66 @@ def test_the_archive_is_read_while_another_process_holds_the_index(tmp_path):
     assert lock.exists()
 
 
-def test_this_repository_s_archive_holds_no_workflow_file():
-    """A7: GitHub refuses a push made with a workflow's own token that
-    creates or changes a file under `.github/workflows/`, and that token
-    cannot be granted the `workflows` permission. So `dist`, whose commits
-    the publish workflow pushes with it, holds none, and this repository's
-    archive is read for one (#1374, round 1's finding 1)."""
+# A path under `.github/scripts/`, in either separator.
+GITHUB_SCRIPT = re.compile(r"\.github[/\\]+scripts[/\\]")
+
+
+def code_strings(text):
+    """Every `str` constant of the Python source TEXT that is no docstring,
+    a piece of an f-string among them."""
+    tree = ast.parse(text)
+    docstrings = {
+        id(node.body[0].value)
+        for node in ast.walk(tree)
+        if isinstance(
+            node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        )
+        and node.body
+        and isinstance(node.body[0], ast.Expr)
+        and isinstance(node.body[0].value, ast.Constant)
+        and isinstance(node.body[0].value.value, str)
+    }
+    return [
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and id(node) not in docstrings
+    ]
+
+
+def test_this_repository_s_archive_holds_nothing_under_github_and_loads_nothing_there():
+    """A7: the archive holds no path under `.github/`, and no code string of
+    a `.py` file the archive holds names a path under `.github/scripts/`
+    (#1571). `.github/` holds this repository's workflows and the release
+    automation they run. GitHub refuses a push made with a workflow's own
+    token that creates or changes a file under `.github/workflows/`, and
+    that token cannot be granted the `workflows` permission, so `dist`,
+    whose commits the publish workflow pushes with it, can hold no workflow
+    (#1374, round 1's finding 1). An installed copy is `main`'s whole tree,
+    `.github/` among it, so a shipped file that loads a release script still
+    runs for a user while the version check watches nothing under
+    `.github/`. A load, a tool's path and a message naming one all stand in
+    a code string, and a docstring or a comment runs nothing."""
     held = archived(ROOT)
     assert ".claude-plugin/plugin.json" in held, sorted(held)[:20]
-    workflows = sorted(p for p in held if p.startswith(".github/workflows/"))
-    assert not workflows, (
-        f"the archive holds {workflows}, which the `dist` job's push may not "
-        "carry; `.gitattributes` marks `/.github/workflows/` `export-ignore` "
-        "so that it does not"
+    github = sorted(p for p in held if p == ".github" or p.startswith(".github/"))
+    assert not github, (
+        f"the archive holds {github}; `.gitattributes` marks `/.github/` "
+        "`export-ignore` so that `dist` holds nothing under it"
     )
-
-
-# Each script under `.github/scripts/` that `dist` keeps, with the shipped
-# file that runs it. Every other script there is release automation the
-# workflows run from the tree (#1376).
-RUN_BY_A_SHIPPED_COMMAND = {
-    ".github/scripts/close_issues_on_release.py": "skills/code-review/scripts/pr_body.py",
-}
-
-
-def test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs():
-    """A8: of `.github/scripts/`, the archive holds each script a shipped
-    command runs, beside the file that runs it, and no other, because
-    `.gitattributes` marks each release-only script `export-ignore`. The
-    paragraph of `docs/releasing/branch-and-release.md` on `dist` names each
-    and what runs it (#1376)."""
-    held = archived(ROOT)
-    scripts = sorted(
-        p for p in held if p.startswith(".github/scripts/") and p.endswith(".py")
+    present, _missing = on_disk(ROOT, [p for p in held if p.endswith(".py")])
+    named = sorted(
+        (rel, said)
+        for rel in present
+        for said in code_strings(text_of(os.path.join(ROOT, rel)) or "")
+        if GITHUB_SCRIPT.search(said)
     )
-    assert scripts == sorted(RUN_BY_A_SHIPPED_COMMAND), (
-        f"the archive holds {scripts} of `.github/scripts/`; a script no shipped "
-        "command runs gets its own `export-ignore` line in `.gitattributes`"
+    assert not named, (
+        f"these files the archive holds name a script under `.github/scripts/` "
+        f"in code: {named}. A module a shipped file loads stands under a "
+        "directory `dist` holds, such as `lib/` or a skill's `scripts/`"
     )
-    for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
-        assert runner in held, f"{runner}, which runs {script}, is not shipped"
-    doc = read_at_root(os.path.join("docs", "releasing", "branch-and-release.md"))
-    lead = "**The plugin directory reads `dist`"
-    assert lead in doc, "the paragraph's lead is gone"
-    paragraph = re.sub(r"\s+", " ", doc.split(lead, 1)[1].split("\n\n", 1)[0])
-    for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
-        # The path of each script `dist` keeps and of the shipped file that
-        # runs it, which a reader of the `dist` paragraph resolves.
-        assert f"`{script}`" in paragraph and f"`{runner}`" in paragraph, (
-            f"the paragraph does not name `{script}` and `{runner}`, which runs it"
-        )
 
 
 # The file types the plugin directory accepts from an organization that is

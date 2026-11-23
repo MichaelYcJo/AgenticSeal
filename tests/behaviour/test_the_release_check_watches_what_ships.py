@@ -10,12 +10,16 @@ Bash tool's PATH and invokable as bare commands while the plugin is
 enabled"). A pull request fixing only a wrapper would have shipped without
 moving the version, and nothing would have said so.
 
-Nothing pinned the pattern, which is how a root fell out of it unnoticed.
-This file is the pin. It reads the pattern out of the workflow rather than
-restating it, classifies every tracked top-level entry of the repository as
-shipping or staying home, and fails on an entry nobody has classified — so
-the next `commands/` or `output-styles/` is a decision somebody makes in this
-file rather than a gap somebody notices while writing a change up.
+Issue #1571. The pattern and a hand-kept classification here agreed with
+each other and disagreed with `dist`: `docs/`, which every installed agent
+opens at the plugin's root, was watched by neither. So what ships is read
+from `git archive`, the one product of `.gitattributes` and the tree of
+each `dist` commit. Every top-level directory the archive holds is matched
+by the step's pattern or named in `UNREAD`, the entries the archive holds
+that nothing installed reads, and every top-level file the archive holds is
+named in `UNREAD`. The next `commands/` or `.mcp.json` is a decision made in
+`.gitattributes`, the pattern or `UNREAD`, rather than a gap somebody
+notices while writing a change up.
 
 The pattern is matched with Python's `re`, not by spawning `grep -E`: the
 suite runs on windows-latest too, and the pattern uses only anchors,
@@ -26,52 +30,29 @@ import os
 import re
 import subprocess
 
-import pytest
-from conftest import ROOT, code_lines, read
+from conftest import ROOT, archived, code_lines
 from workflows import load
 
-# No TARGET: its cases classify every top-level entry git lists, and hold the release check across .github/workflows/hygiene.yml and docs/releasing/branch-and-release.md.
+# No TARGET: its cases classify every top-level entry the archive holds and git lists, and hold the release check of .github/workflows/hygiene.yml to them.
 
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
-RELEASE_DOC = os.path.join(ROOT, "docs", "releasing", "branch-and-release.md")
 STEP = "a change to what ships must move the version"
 
-# What the plugin loader reads or puts in front of a user while the plugin is
-# enabled. A root here must be matched by the workflow's pattern.
-SHIPS = {
-    "skills",  # skills/<name>/SKILL.md
-    "agents",  # agents/<name>.md
-    "hooks",  # hooks/hooks.json and the scripts it names
-    "lib",  # the modules the shipped scripts import
-    "templates",  # what the implement skill bootstraps a repository from
-    ".claude-plugin",  # the manifest; the version itself
-    "bin",  # executables the loader puts on the Bash tool's PATH
-}
-
-# This repository's own work: read by people on GitHub, by tooling in a clone,
-# or by the suite. None of it reaches a user through the plugin, so a change
-# confined to it needs no version bump. An entry here must NOT be matched.
-STAYS_HOME = {
-    "docs",
-    "tests",
-    "seal",
-    "evals",
+# The top-level entries the archive holds that nothing installed reads, so a
+# change confined to one moves no version. `assets/` stays in `dist` for the
+# images the READMEs show wherever `dist` is rendered. The files are read by
+# people on GitHub. `TRADEMARKS.md` is the brand notice (#1174), held as
+# `LICENSE` is. An entry here must not be matched by the pattern.
+UNREAD = {
     "assets",
-    ".github",
-    ".gitattributes",
     ".gitignore",
-    "CLAUDE.md",
     "CONTRIBUTING.md",
     "LICENSE",
     "README.ko.md",
     "README.md",
     "SECURITY.md",
-    # The brand notice (#1174). A user's installed plugin holds it, as it
-    # holds `LICENSE`, because the install copies the repository's root;
-    # the loader reads neither, so a change to it alone moves no version.
     "TRADEMARKS.md",
-    "ruff.toml",
 }
 
 
@@ -82,6 +63,20 @@ def ships_pattern():
     return re.compile(found.group(1))
 
 
+def watched(entry):
+    """Whether a change under the top-level ENTRY moves the version."""
+    return bool(ships_pattern().match(f"{entry}/anything"))
+
+
+def archive_top_level():
+    """`(directories, files)`: the top-level entries the archive of the
+    tree holds, a directory being an entry some path stands under."""
+    held = archived(ROOT)
+    top = {path.split("/", 1)[0] for path in held}
+    directories = {path.split("/", 1)[0] for path in held if "/" in path}
+    return directories, top - directories
+
+
 def tracked_top_level_entries():
     out = subprocess.run(
         ["git", "ls-files"], cwd=ROOT, capture_output=True, encoding="utf-8", check=True
@@ -89,79 +84,62 @@ def tracked_top_level_entries():
     return {line.split("/", 1)[0] for line in out.splitlines() if line}
 
 
-def test_the_two_lists_do_not_overlap():
-    assert not SHIPS & STAYS_HOME
-
-
-@pytest.mark.parametrize("root", sorted(SHIPS))
-def test_every_shipping_root_is_watched(root):
-    """A change under a root the loader reads has to move the version."""
-    pattern = ships_pattern()
+def test_every_directory_the_archive_holds_is_watched_or_unread():
+    """A directory the archive holds reaches every installed copy. A change
+    under it moves the version, or it is named in `UNREAD`, and never both,
+    so whoever adds a directory decides which."""
+    directories, _files = archive_top_level()
+    assert ".claude-plugin" in directories, sorted(directories)
     # The pattern the step's `grep -E` filters the diff's file list through,
     # which the runner runs at a release pull request.
-    assert pattern.match(f"{root}/anything"), (
-        f"`{root}/` ships but the hygiene step's pattern {pattern.pattern!r} "
-        f"does not match it — a release fixing only `{root}/` would reach "
-        "nobody, because updates are keyed to the version it leaves alone"
+    undecided = sorted(d for d in directories if watched(d) == (d in UNREAD))
+    assert not undecided, (
+        f"{undecided} is a top-level directory the archive holds, and the "
+        f"hygiene step's pattern {ships_pattern().pattern!r} and UNREAD in "
+        f"{os.path.basename(__file__)} do not decide it: watch it in the "
+        "pattern where an installed copy reads it, name it in UNREAD where "
+        "nothing installed does, or mark it `export-ignore` in `.gitattributes`"
     )
 
 
-@pytest.mark.parametrize("entry", sorted(STAYS_HOME))
-def test_nothing_that_stays_home_is_watched(entry):
+def test_every_file_the_archive_holds_at_the_top_is_unread():
+    """A top-level file the archive holds is one nothing installed reads, or
+    the loader reads it and the step has to watch it. Neither is safe to
+    leave to whoever notices, so each is named in `UNREAD`."""
+    _directories, files = archive_top_level()
+    undecided = sorted(files - UNREAD)
+    assert not undecided, (
+        f"{undecided} is a top-level file the archive holds and UNREAD in "
+        f"{os.path.basename(__file__)} does not name it. Name it there where "
+        "nothing installed reads it, or mark it `export-ignore` in "
+        "`.gitattributes`; a file the loader reads needs the step to watch it"
+    )
+
+
+def test_nothing_the_archive_leaves_out_is_watched():
     """A wrong deny at the release is a stopped release: a change confined to
-    this repository's own work must not be asked for a version bump."""
-    pattern = ships_pattern()
-    # The same pattern, which a change confined to this root must not match.
-    assert not pattern.match(f"{entry}/anything"), (
-        f"`{entry}` does not reach a user through the plugin, yet the pattern "
-        f"{pattern.pattern!r} would demand a version bump for it"
+    what `dist` does not hold must not be asked for a version bump."""
+    directories, files = archive_top_level()
+    left_out = tracked_top_level_entries() - directories - files
+    assert "tests" in left_out, sorted(left_out)
+    # The same pattern, which a change confined to such an entry must not
+    # match.
+    asked = sorted(entry for entry in left_out if watched(entry))
+    assert not asked, (
+        f"{asked} leaves the archive, so no installed copy holds it, yet the "
+        f"pattern {ships_pattern().pattern!r} would demand a version bump for it"
     )
 
 
-def test_the_pattern_names_nothing_this_file_has_not_classified():
-    """The pattern can only name roots this file says ship. A root added to the
-    workflow alone is a decision with no record of why."""
-    named = set(ships_pattern().pattern[2:-2].replace("\\", "").split("|"))
+def test_the_pattern_names_only_roots_the_archive_holds():
+    """A root the pattern names and the archive does not hold is a watch on
+    nothing, or on a directory `.gitattributes` took out."""
+    directories, _files = archive_top_level()
     # The roots the step's pattern alternates, which the runner matches.
-    assert named == SHIPS, (
-        f"the pattern names {sorted(named)} and this file says {sorted(SHIPS)} "
-        "ship — classify the difference here, with the reason"
-    )
-
-
-def test_every_top_level_entry_is_classified():
-    """A directory nobody has classified is the state `bin/` was in: it ships
-    or it does not, and neither answer is safe to leave to whoever notices.
-    Whoever classifies it also decides whether `dist` holds it, since the
-    list of what leaves `dist` is a different list, in `.gitattributes`."""
-    unclassified = tracked_top_level_entries() - SHIPS - STAYS_HOME
-    assert not unclassified, (
-        f"{sorted(unclassified)} is tracked at the top level and classified "
-        "neither as shipping nor as staying home. Decide — does the plugin "
-        "loader read it, or does a user run it while the plugin is enabled? — "
-        f"and add it to SHIPS or STAYS_HOME in {os.path.basename(__file__)}. "
-        "Then decide whether `dist`, the branch the plugin directory reads, "
-        "holds it: an entry only this repository's development reads gets an "
-        "`export-ignore` line in `.gitattributes`."
-    )
-
-
-def test_the_release_document_names_the_same_roots():
-    """`docs/releasing/branch-and-release.md` tells the release sequence which roots
-    trigger the bump. It said five when the pattern said five; both must name
-    the SAME roots, so a root written into the paragraph alone, or taken out
-    of it alone, reads as a disagreement with the workflow rather than as
-    prose."""
-    doc = read(RELEASE_DOC)
-    # The paragraph, not the sentence: `.claude-plugin/` carries a full stop.
-    paragraph = doc.split("the `hygiene` workflow", 1)[1].split("\n\n", 1)[0]
-    named = set(re.findall(r"`([^`]+)/`", paragraph))
-    # The roots the paragraph names as code spans, which a person cutting a
-    # release reads to know which change moves the version.
-    assert named == SHIPS, (
-        f"docs/releasing/branch-and-release.md's paragraph about the hygiene workflow "
-        f"names {sorted(named)} and the pattern's roots are {sorted(SHIPS)} — "
-        "the two have to agree, and this file is where the list is decided"
+    named = set(ships_pattern().pattern[2:-2].replace("\\", "").split("|"))
+    assert named <= directories, (
+        f"the pattern names {sorted(named - directories)}, which the archive "
+        "does not hold"
     )
 
 

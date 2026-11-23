@@ -15,6 +15,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 
 import pytest
@@ -167,6 +168,37 @@ def git_listing(root, *args, check=False):
         errors="replace",
         check=check,
     ).stdout.split()
+
+
+def archived(root):
+    """Every path the archive git builds from the index of the repository at
+    ROOT writes, with the working tree's attributes, a directory's among
+    them. The index's tree is written from a copy of the index, so a git
+    process holding the index's lock, a case running beside this one among
+    them, is left to finish."""
+    index = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--git-path", "index"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    with tempfile.TemporaryDirectory() as scratch:
+        copy = os.path.join(scratch, "index")
+        shutil.copyfile(os.path.join(root, index), copy)
+        tree = subprocess.run(
+            ["git", "-C", root, "write-tree"],
+            capture_output=True,
+            check=True,
+            encoding="utf-8",
+            env={**os.environ, "GIT_INDEX_FILE": copy},
+        ).stdout.strip()
+    tar = subprocess.run(
+        ["git", "-C", root, "archive", "--worktree-attributes", "--format=tar", tree],
+        capture_output=True,
+        check=True,
+    ).stdout
+    with tarfile.open(fileobj=io.BytesIO(tar)) as members:
+        return members.getnames()
 
 
 def on_disk(root, listed):

@@ -41,10 +41,8 @@ An invocation with the path carries the locator the second rule asks for,
 as `agents/proofer.md` step 7 runs `chain_check.py` (#1198).
 
 Scope is what an agent's startup payload can contain: `agents/`, `skills/` and
-`templates/`. `docs/` stays out under
-`tests/behaviour/test_the_release_check_watches_what_ships.py`'s own classification --
-it does not ship, no agent's payload holds it, and its readers have the whole
-clone to `git grep`.
+`templates/`. `docs/` stays out: no agent's startup payload holds it, and
+its readers have the whole clone to `git grep`.
 
 Shown red before it was committed (contract rule 15): against the tree as it stood, this
 file failed on all nine of `round_record.py`'s documents and on

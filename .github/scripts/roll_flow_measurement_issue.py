@@ -125,9 +125,9 @@ below.
 **The index label and the milestone are this repository's own names, and they
 belong here rather than in the skill.** `skills/verify/orchestration.md` ships to
 repositories that have neither, so it names `flow-measurement` and
-`flow-baseline` and stops there. `.github/` stays home
-(`tests/behaviour/test_the_release_check_watches_what_ships.py`), which is what lets
-this file name `measurement` and `log: measurement`.
+`flow-baseline` and stops there. `.github/` leaves `dist` whole by a line
+of `.gitattributes`, and no shipped file loads it, which is what lets this
+file name `measurement` and `log: measurement`.
 
 **The close and the open are not one transaction.** `main` closes the old
 issue first and only then opens the next one, so a `gh issue create` failure
