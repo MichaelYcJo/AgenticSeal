@@ -237,24 +237,31 @@ class Test_policy_group:
             ("docs/a.md", "docs", ""),
             ("docs/running/a.md", "docs", "running"),
             ("my.docs/a.md", "my.docs", ""),
-            ("myxdocs/a.md", "my.docs", None),
-            ("docs/a/b/c.md", "docs", None),
-            ("docs/./a.md", "docs", None),
-            ("docs/../a.md", "docs", None),
-            ("docs/a\\b.md", "docs", None),
-            ("docs/c:/a.md", "docs", None),
-            ("docs/a.txt", "docs", None),
-            ("other/a.md", "docs", None),
         ],
     )
-    def test_accepts_a_document_at_the_top_or_in_one_group_and_no_other_path(
-        self, path, policy, group
-    ):
-        """ "" at the top level, the group's name in one group directory,
-        and None for a deeper path, `.` or `..` as the group, a part holding
-        `\\` or `:`, another suffix and another directory. POLICY is read as
-        text, not as a pattern."""
+    def test_accepts_a_document_at_the_top_or_in_one_group(self, path, policy, group):
+        """ "" at the top level and the group's name in one group
+        directory."""
         assert config.policy_group(path, policy) == group
+
+    @pytest.mark.parametrize(
+        "path, policy",
+        [
+            ("myxdocs/a.md", "my.docs"),
+            ("docs/a/b/c.md", "docs"),
+            ("docs/./a.md", "docs"),
+            ("docs/../a.md", "docs"),
+            ("docs/a\\b.md", "docs"),
+            ("docs/c:/a.md", "docs"),
+            ("docs/a.txt", "docs"),
+            ("other/a.md", "docs"),
+        ],
+    )
+    def test_refuses_every_other_path_as_none(self, path, policy):
+        """A deeper path, `.` or `..` as the group, a part holding `\\` or
+        `:`, another suffix and another directory are None. POLICY is read
+        as text, not as a pattern."""
+        assert config.policy_group(path, policy) is None
 
 
 class Test_normalise_remote:
