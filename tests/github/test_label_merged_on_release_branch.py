@@ -378,7 +378,7 @@ class Test_module:
         )
 
     def test_the_label_description_fits_the_trackers_cap_for_a_long_version(self):
-        """#515's class. This description goes to `gh label create` too, and the
+        """#515's class. This description goes to `gh label create`, and the
         tracker refuses one past its cap with a 422 — in the workflow that runs
         when a release branch moves, after the merge. The version is the only part
         that grows, so the case takes one far longer than any this repository will
