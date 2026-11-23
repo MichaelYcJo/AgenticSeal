@@ -150,6 +150,28 @@ The rules of `docs/` that these items change are operations of `## Rule changes`
   section: The declaration, and where the check went
   from: is gone is asked `unverified_check.py#settled` at the merge base, the
   to: is gone is asked `chain_check.py#settled` at the merge base, the
+- change
+  file: docs/layout/one-root-by-lifetime.md
+  section: Shared or local
+  from: A workflow left behind in local mode and pinned to
+    a release that has the no-root state passes having examined nothing:
+    `chain_check.py`, the one record check it runs, finds no root in the tree,
+    so nothing is declared, and exits 0.
+  to: A workflow left behind in local mode and pinned to a release that has
+    the no-root state passes: `chain_check.py`, the one record check it runs,
+    finds no root in the tree, so nothing is declared, judges the commit
+    trailers alone, and exits 0.
+- change
+  file: docs/layout/one-root-by-lifetime.ko.md
+  section: shared 인가 local 인가
+  from: 루트가 없는
+    상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남아도 아무것도 보지
+    않은 채 통과합니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py`
+    하나뿐이고, 트리에서 루트를 찾지 못하니 선언된 것이 없어 0 으로 끝납니다.
+  to: 루트가 없는 상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남아도
+    통과합니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py` 하나뿐이고,
+    트리에서 루트를 찾지 못하니 선언된 것이 없는 것으로 읽고, 커밋 트레일러만
+    판단한 뒤 0 으로 끝납니다.
 
 ## Removes
 
