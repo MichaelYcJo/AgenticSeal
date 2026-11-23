@@ -48,7 +48,7 @@ In:
    - `rule_changes.py#order` and `#merge_order` read the exit code: a non-zero exit raises `gitcmd.Exited`, and the history is not read as empty. `_ancestor` becomes `a != b and gitcmd.is_ancestor(root, a, b)`.
 6. **`skills/code-review/scripts/chain_check.py` and `skills/code-review/scripts/pr_wait.py`.**
    - `chain_check.py#git` runs through `gitcmd.git` and keeps its `None` for a non-zero exit. `commit_of`, `merge_base` and `tree_at` ask through it. `is_ancestor` goes, for `gitcmd.is_ancestor`. `follows` asks `touched` for a commit's paths.
-   - `pull_request_from_gh` defaults its seam to `gitcmd.gh`, reads `Unrun` as `unknown`, and `GH_TIMEOUT` goes. `main` catches `gitcmd.Failed` and returns 2.
+   - `pull_request_from_gh` asks `gitcmd.gh` with no seam, as no caller passed one, reads `Unrun` as `unknown`, and `GH_TIMEOUT` goes. `main` asks `optin.toplevel`, so a git that did not answer is not read as no repository, catches `gitcmd.Failed` and returns 2.
    - `pr_wait.py#gh` and `#head` run through the runner and read `Failed` as `Unanswered`. Its `GH_TIMEOUT` goes, and its docstring (`:55`) names `lib/gitcmd.py#TIMEOUT`.
 7. **The scripts under `skills/verify/scripts/`.**
    - `broad_gate.py#git` runs through `gitcmd.git`. `repo_root` goes, for `optin.toplevel`. `branch_name` goes, for `routing.current_branch` (G15). The worktree removal at `:1662`, which runs in a `finally`, catches `Failed` and names the scratch worktree on stderr, so a cleanup that timed out does not replace the run's result. `main` catches `Failed` and returns 2, the gate's refusal.
