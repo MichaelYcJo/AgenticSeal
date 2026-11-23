@@ -195,7 +195,7 @@ Under `-n auto`, `bin/test tests/skills/test_chain_check.py -q` passed 253 cases
 | `Test_main::test_refuses_a_git_that_did_not_answer_in_one_line[trailers]` | 13 | 10 | Kept, as `[is_ancestor]`. |
 | `Test_declared_for_this_branch::test_refuses_a_detached_head_with_no_head_ref_as_no_branch` | 5 | 5 | Kept: `current_branch` against a detached HEAD. Unchanged. |
 
-**`tests/conftest.py`.** Two changes there would cut this module, and the spawn barred each. `#shared`, function-scoped, runs `git init` and its commits for each of the three cases that still take it, through `declared`: 28 to 32 processes a case. A module-scoped template copied per case would build it once per worker. `#commit_everything`'s `git rev-parse HEAD` after each commit is the trim phase 1 names in `gaps.md` *Not done*; the module's cases still commit through it.
+**`tests/conftest.py`.** Two changes there would cut this module, and the spawn barred each. `#shared`, function-scoped, runs `git init` and its commits for each of the three cases that still take it, through `declared`: 26 to 32 processes a case. A module-scoped template copied per case would build it once per worker. `#commit_everything`'s `git rev-parse HEAD` after each commit is the trim phase 1 names in `gaps.md` *Not done*; the module's cases still commit through it.
 
 ### Checks at the phase's close
 
