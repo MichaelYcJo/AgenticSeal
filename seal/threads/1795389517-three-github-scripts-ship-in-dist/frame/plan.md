@@ -71,4 +71,4 @@ No file this work changes is named by #1577 (`broad_gate.py`'s cmd.exe model, wh
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-23 | The pull request's title takes `fix:` | The version check is a shipped behaviour that was wrong: a change to a `.github/scripts/` file or to `docs/` alone reached every installed copy without moving the version. The diff adds no behaviour the plugin lacked, so the release stays a patch | `docs/releasing/branch-and-release.md` *The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number* |
