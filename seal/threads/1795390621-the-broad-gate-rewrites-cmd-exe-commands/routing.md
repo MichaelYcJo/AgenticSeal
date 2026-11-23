@@ -17,7 +17,7 @@ The owner answered question 1 with `agentic` on 2026-11-23, for the twelve issue
 
 - **A work item, not `direct`.** The change alters the broad gate's verdict on Windows, and a defect there stops every session that runs `seal gate`.
 - **Planning, framer.** The owner fixed the direction, and the issue leaves open which forms the refusal reads and where the documents say it.
-- **Implementation, crafter.** The diff removes about 300 lines of `skills/verify/scripts/broad_gate.py` and their cases while the orchestrator holds two other work items of the release at the same time.
+- **Implementation, crafter.** The diff removes about 340 lines of `skills/verify/scripts/broad_gate.py` and adds about 170, with their cases, while the orchestrator holds two other work items of the release at the same time.
 - **Review, through the review chain.** The script is a gate, and a refusal that reads a form wrongly would stop a Windows user's run.
 - **Automation, yes.** The work reaches nothing outside the repository, and the owner's answer gives the one decision it needs.
 - **Destination, open the pull request**, as under `complete`.
