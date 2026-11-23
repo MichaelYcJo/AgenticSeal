@@ -432,6 +432,37 @@ class Test_marked:
         assert not optin.marked("")
 
 
+class Test_opted_out:
+    def test_accepts_the_file_under_the_common_directory(self, optin, tmp_path):
+        """The opt-out is a FILE named `SCRATCH` under the common git
+        directory; a directory of that name is none."""
+        (tmp_path / optin.SCRATCH).mkdir()
+        assert not optin.opted_out(str(tmp_path))
+        (tmp_path / optin.SCRATCH).rmdir()
+        (tmp_path / optin.SCRATCH).write_text("", encoding="utf-8")
+        assert optin.opted_out(str(tmp_path))
+
+    def test_refuses_an_empty_common_directory_wherever_the_process_stands(
+        self, optin, tmp_path, monkeypatch
+    ):
+        """ "" is the answer `git_common_dir` gives where git did not answer,
+        and it names no opt-out, even in a directory holding the file."""
+        (tmp_path / optin.SCRATCH).write_text("", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        assert not optin.opted_out("")
+
+
+class Test_marked_home:
+    def test_accepts_the_marked_root_where_the_opt_out_stands(self, optin, repo):
+        """`home_at` reads the opt-out, and `marked_home` answers only where
+        the root is, so the broad gate of a throwaway repository still finds
+        its command."""
+        home(repo)
+        scratch(repo)
+        assert optin.home_at(str(repo)) == ""
+        assert optin.marked_home(str(repo)) == os.path.join(str(repo), "seal")
+
+
 class Test_home_at:
     def test_refuses_a_shared_root_without_the_marker(self, optin, repo):
         """`<repo>/seal/` holding a README of the project's own is not the

@@ -2123,10 +2123,7 @@ def _settled(args):
     common = optin.git_common_dir(root)
     home = optin.home_at(root, common)
     if not home:
-        # `home_at` answers "" for no root and for an opt-out; they are two
-        # sentences. `isfile`, as `home_at` reads it: a directory of the
-        # marker's name is not an opt-out.
-        if common and os.path.isfile(os.path.join(common, optin.SCRATCH)):
+        if optin.opted_out(common):
             sys.stderr.write(
                 f"settle: {root} has opted out — `{optin.SCRATCH}` is under "
                 "its git directory, so every gate in this plugin reads it as "

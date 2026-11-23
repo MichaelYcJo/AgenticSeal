@@ -153,7 +153,6 @@ except ImportError:
     raise SystemExit(2) from None
 
 PACT_FILE = "pact.md"
-CONFIG_FILE = "config.json"
 MAP_PARTS = (".claude", "agentic", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
@@ -695,7 +694,7 @@ def check(root, out=sys.stdout, home_dir=None):
     # The pact's config as a person finds it, under the root's own name:
     # `seal/`, or the second name `lib/optin.py#home_paths` gives beside a
     # project's own.
-    config_here = f"{os.path.basename(home)}/{CONFIG_FILE}"
+    config_here = f"{os.path.basename(home)}/{config.CONFIG}"
     signers, refusals = config.signer_declaration(pairs)
     for refusal in refusals:
         found(REFUSED, config_here, "", refusal)
@@ -747,7 +746,7 @@ def check(root, out=sys.stdout, home_dir=None):
             continue
         pacts, key_refusals = declared
         # The signer's config under its root's own name, as `config_here`.
-        config_shown = f"{os.path.basename(their_home)}/{CONFIG_FILE}"
+        config_shown = f"{os.path.basename(their_home)}/{config.CONFIG}"
         for refusal in key_refusals:
             found(REFUSED, written, config_shown, refusal)
         if not any(n == ours for _w, n in pacts):

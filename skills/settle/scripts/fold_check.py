@@ -10,10 +10,11 @@ reader of both.
   seal fold --root DIR           a repository other than this one
 
 The policy root is `seal/config.json`'s `Policy root` key, `docs` when absent,
-read through `lib/config.py#policy_root`. Every check reads its top
-level and each of its groups: a directory directly in it that a row of the
-index names a document of (`groups`). A directory the index names nothing
-of, and anything below a group, is not read.
+read through `lib/config.py#declared_policy_root`. Every check reads its
+top level and each of its groups: a directory directly in it that a row of
+the index names a document of, as `lib/config.py#policy_group` reads the
+row's path (`groups`). A directory the index names nothing of, and anything
+below a group, is not read.
 
 **One read.** Each document whose estimate (`tokens`) is past the `Document
 token ceiling` key is named as one to split by who opens each section and at
@@ -83,12 +84,11 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-CONFIG = "config.json"
 INDEX = "README.md"
 
-# The `seal/config.json` keys this reads, each optional.
+# The `seal/config.json` key this reads beside `Policy root`, which
+# `lib/config.py#POLICY_KEY` names; each is optional.
 CEILING_KEY = "Document token ceiling"
-POLICY_KEY = "Policy root"
 WHOLE = re.compile(r"[0-9]+")
 # The estimate's one constant, a token taken as two bytes of UTF-8;
 # `templates/setup/config.md` *The fold's values* states it.
@@ -136,13 +136,13 @@ def groups(root, policy):
     index = f"{policy}/{INDEX}"
     if not os.path.isfile(os.path.join(root, *index.split("/"))):
         return []
-    one_deep = re.compile(re.escape(policy) + r"/([^/\\:]+)/[^/\\:]+\.md")
+    placed = config_reader().policy_group
     named = set()
     for _number, paths in index_rows(root, index):
         for path in paths:
-            found = one_deep.fullmatch(path)
-            if found and found.group(1) not in (".", ".."):
-                named.add(found.group(1))
+            group = placed(path, policy)
+            if group:
+                named.add(group)
     return sorted(
         group
         for group in named
@@ -246,8 +246,8 @@ def located(root):
     common = resolver.git_common_dir(root)
     home = resolver.home_at(root, common)
     if home:
-        return home, os.path.join(home, CONFIG)
-    if common and os.path.isfile(os.path.join(common, resolver.SCRATCH)):
+        return home, config_reader().config_path(home)
+    if resolver.opted_out(common):
         return "", (
             f"{root}, which has opted out — `{resolver.SCRATCH}` is under its "
             "git directory, so its seal/config.json is not read"
@@ -275,7 +275,8 @@ def declared(home):
     command runs off at exit 0. Each value is the reader's own answer,
     `lib/config.py#config_value`, so a key written twice is `Unusable`
     rather than one of the two; the policy root is
-    `lib/config.py#policy_root`'s."""
+    `lib/config.py#declared_policy_root`'s, read once, and its refusal is
+    `Unusable` too."""
     reader = config_reader()
     pairs, refused = reader.config_pairs(home)
     if refused is not None:
@@ -295,8 +296,10 @@ def declared(home):
                 "positive whole number of tokens"
             )
         ceiling = int(ceiling)
-    stated(POLICY_KEY)
-    return ceiling, reader.policy_root(home)
+    policy, refused = reader.declared_policy_root(home)
+    if refused is not None:
+        raise Unusable(refused)
+    return ceiling, policy
 
 
 # --- the command -----------------------------------------------------------

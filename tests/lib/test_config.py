@@ -208,6 +208,55 @@ class Test_reference_roots:
         assert config.reference_roots(home, "") == ("docs/adr", "seal/vendor/specs")
 
 
+class Test_declared_policy_root:
+    def test_accepts_the_value_normalised_with_no_refusal(self, tmp_path):
+        """Whitespace, `\\`, a leading `./` and a trailing `/` are taken off
+        the way `Reference specs` takes them off; no root is `docs`."""
+        home = str(tmp_path / "seal")
+        write_config(home, table(("Policy root", " .\\policy\\ ")))
+        assert config.declared_policy_root(home) == ("policy", None)
+        assert config.declared_policy_root("") == ("docs", None)
+
+    def test_refuses_a_key_written_twice_beside_docs(self, tmp_path):
+        """The refusal comes back beside `docs`, so `seal fold`, which stops
+        on it, and `policy_root`, which reads it as the default, read one
+        answer."""
+        home = str(tmp_path / "seal")
+        write_config(home, table(("Policy root", "a"), ("Policy root", "b")))
+        assert config.declared_policy_root(home) == (
+            "docs",
+            "`Policy root` appears 2 times — one value",
+        )
+        assert config.policy_root(home) == "docs"
+
+
+class Test_policy_group:
+    @pytest.mark.parametrize(
+        "path, policy, group",
+        [
+            ("docs/a.md", "docs", ""),
+            ("docs/running/a.md", "docs", "running"),
+            ("my.docs/a.md", "my.docs", ""),
+            ("myxdocs/a.md", "my.docs", None),
+            ("docs/a/b/c.md", "docs", None),
+            ("docs/./a.md", "docs", None),
+            ("docs/../a.md", "docs", None),
+            ("docs/a\\b.md", "docs", None),
+            ("docs/c:/a.md", "docs", None),
+            ("docs/a.txt", "docs", None),
+            ("other/a.md", "docs", None),
+        ],
+    )
+    def test_accepts_a_document_at_the_top_or_in_one_group_and_no_other_path(
+        self, path, policy, group
+    ):
+        """ "" at the top level, the group's name in one group directory,
+        and None for a deeper path, `.` or `..` as the group, a part holding
+        `\\` or `:`, another suffix and another directory. POLICY is read as
+        text, not as a pattern."""
+        assert config.policy_group(path, policy) == group
+
+
 class Test_normalise_remote:
     @pytest.mark.parametrize(
         "left,right",

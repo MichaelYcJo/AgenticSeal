@@ -59,6 +59,7 @@ PASSAGES = "skills/settle/scripts/passages.py"
 TABLES = "lib/tables.py"
 GITCMD = "lib/gitcmd.py"
 OPTIN = "lib/optin.py"
+CONFIG = "lib/config.py"
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -147,6 +148,14 @@ def optin():
     import sibling
 
     return sibling.load(OPTIN)
+
+
+def config():
+    """`lib/config.py`, whose `policy_group` reads where a path stands in
+    the policy root, loaded on first use."""
+    import sibling
+
+    return sibling.load(CONFIG)
 
 
 def heading_text(line):
@@ -277,13 +286,10 @@ def parse(text, policy_root):
     for item in ops:
         values, error = g.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
-        # No separator of either system and no drive colon in a name, so a
-        # value joins to one file on every platform: at the top level, or in
-        # one group directory that is neither `.` nor `..`.
-        placed = re.fullmatch(
-            re.escape(policy_root) + r"/(?:([^/\\:]+)/)?[^/\\:]+\.md", file
-        )
-        if not error and (not placed or placed.group(1) in (".", "..")):
+        # At the top level, or in one group directory, as
+        # `lib/config.py#policy_group` reads a policy document's path.
+        placed = config().policy_group(file, policy_root) is not None
+        if not error and not placed:
             error = (
                 item["line"],
                 f"`{file}` is not a `.md` of {policy_root}/ or of one group "

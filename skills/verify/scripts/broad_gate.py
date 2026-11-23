@@ -173,7 +173,6 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-CONFIG = "config.json"
 KEY = "Broad gate"
 
 # The checks, by the name the report prints for each. The first is the
@@ -592,14 +591,11 @@ def seal_home(root):
     `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
     this plugin resolves to (contract rule 11), read in that order. Each is
     the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
-    the project keeps for itself is never read for a command. The places and the marker are
-    `optin`'s; the scratch opt-out is not read here, because a throwaway
-    repository still runs its broad command when somebody asks for it."""
-    optin = sibling.load(OPTIN)
-    for found in optin.home_paths(root):
-        if found and os.path.isdir(found) and optin.marked(found):
-            return found
-    return None
+    the project keeps for itself is never read for a command. The answer is
+    `lib/optin.py#marked_home`'s; the scratch opt-out is not read here,
+    because a throwaway repository still runs its broad command when
+    somebody asks for it."""
+    return sibling.load(OPTIN).marked_home(root) or None
 
 
 def broad_command(home):
@@ -634,7 +630,8 @@ def missing_row(home):
     afterwards. The message says whose the key is and where they answer
     it."""
     return (
-        f"seal gate: {os.path.join(home, CONFIG)} has no `{KEY}` key, so "
+        f"seal gate: {sibling.load(CONFIG_READER).config_path(home)} has no "
+        f"`{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
@@ -847,7 +844,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
     Nothing is stripped or rewritten. A value silently repaired here leaves
     the file still wrong and teaches the next person that it was right.
     """
-    config = os.path.join(home, CONFIG)
+    config = sibling.load(CONFIG_READER).config_path(home)
     value = command.strip()
     opener = wholly_substituted(value)
     unread = ""

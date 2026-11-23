@@ -705,9 +705,7 @@ def no_root(repo, shared, local):
     if not repo:
         print("not inside a git repository — seal works on a clone")
         return 1
-    if optin.git_common_dir(repo) and os.path.isfile(
-        os.path.join(optin.git_common_dir(repo), optin.SCRATCH)
-    ):
+    if optin.opted_out(optin.git_common_dir(repo)):
         print(
             f"this repository is marked throwaway "
             f"({optin.SCRATCH} under the common git directory), so every gate "

@@ -1289,7 +1289,7 @@ class Test_main:
 def test_no_line_formats_a_path_without_the_helper():
     """S6, the class: every `{…}` in an f-string of `pact_check.py` that names
     a path variable goes through `shown`. Restoring the old
-    `{their_home}/{CONFIG_FILE}` puts one back, and this names it."""
+    `{their_home}/{config.CONFIG}` puts one back, and this names it."""
     import ast
 
     with open(SCRIPT, encoding="utf-8") as handle:

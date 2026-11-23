@@ -261,6 +261,17 @@ def inside_the_root(rel, name):
     return bool(name) and (rel == name or rel.startswith(name + "/"))
 
 
+def _prefix(value):
+    """VALUE, a directory as a person wrote it into a key, with its
+    whitespace taken off, each `\\` turned into `/`, each leading `./` taken
+    off and its trailing `/` taken off: the one normaliser of the
+    `Reference specs` and `Policy root` values."""
+    prefix = value.strip().replace("\\", "/")
+    while prefix.startswith("./"):
+        prefix = prefix[2:]
+    return prefix.rstrip("/")
+
+
 def reference_roots(home, name):
     """The repository-relative directories `<home>/config.json`'s
     `Reference specs` key names, as a tuple; `()` for `none`; or None, the
@@ -297,10 +308,9 @@ def reference_roots(home, name):
         return ()
     out = []
     for entry in value.split(","):
-        prefix = entry.strip().replace("\\", "/")
-        while prefix.startswith("./"):
-            prefix = prefix[2:]
-        prefix = prefix.strip("/")
+        # A leading `/` is taken off too: a reference root is read as a
+        # prefix of a repository path, where `policy_root` refuses one.
+        prefix = _prefix(entry).lstrip("/")
         if prefix and not inside_the_root(prefix, name) and prefix not in out:
             out.append(prefix)
     return tuple(out)
@@ -330,6 +340,29 @@ POLICY_KEY = "Policy root"
 POLICY_DEFAULT = "docs"
 
 
+# A document of the policy root, after the root's own escaped name: at the
+# top level, or in one group directory. No separator of either system and
+# no drive colon in a part, so a path joins to one file on every platform.
+POLICY_DOCUMENT = r"/(?:([^/\\:]+)/)?[^/\\:]+\.md"
+
+
+def declared_policy_root(home):
+    """`(rel, refusal)` for `<home>/config.json`'s `Policy root` key.
+
+    REFUSAL is the sentence `declared_value` refuses the file or the key in,
+    or None. REL is the value as `_prefix` normalises it, or `docs` for
+    every case `policy_root` lists, a refusal among them. A caller that
+    stops on a refusal, `fold_check.py#declared`, and one that reads it as
+    the default, `policy_root`, read the key once and read one answer."""
+    if not home:
+        return POLICY_DEFAULT, None
+    value, refusal = declared_value(home, POLICY_KEY)
+    rel = _prefix(value or "")
+    if not rel or rel.startswith("/") or ".." in rel.split("/"):
+        return POLICY_DEFAULT, refusal
+    return rel, refusal
+
+
 def policy_root(home):
     """The repository-relative directory `<home>/config.json`'s `Policy
     root` key names, without a leading `./` or a trailing `/`, or `docs`.
@@ -338,14 +371,19 @@ def policy_root(home):
     that leaves the repository (an absolute path or a `..` part) all read as
     `docs`, the directory every repository read before the key existed.
     `templates/setup/config.md` *The fold's values* states the key."""
-    value = declared_value(home, POLICY_KEY)[0] if home else None
-    rel = (value or "").strip().replace("\\", "/")
-    while rel.startswith("./"):
-        rel = rel[2:]
-    rel = rel.rstrip("/")
-    if not rel or rel.startswith("/") or ".." in rel.split("/"):
-        return POLICY_DEFAULT
-    return rel
+    return declared_policy_root(home)[0]
+
+
+def policy_group(path, policy):
+    """Where the `/`-joined PATH stands in the policy root POLICY: "" for
+    `<policy>/<name>.md`, the group's name for `<policy>/<group>/<name>.md`,
+    and None for every other path, a group that is `.` or `..` and a part
+    holding `\\` or `:` among them. The one reading of a policy document's
+    path, for `fold_check.py#groups` and `rule_changes.py#parse`."""
+    placed = re.fullmatch(re.escape(policy) + POLICY_DOCUMENT, path)
+    if not placed or placed.group(1) in (".", ".."):
+        return None
+    return placed.group(1) or ""
 
 
 # --- the pact a signer declares ----------------------------------------------
