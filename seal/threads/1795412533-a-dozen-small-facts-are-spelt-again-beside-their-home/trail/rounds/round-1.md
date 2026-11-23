@@ -82,6 +82,11 @@ the guard and its two cases, as phase 2 did for `misplaced`'s `reader`.
 Nothing a person reads changes. The sentence the guard printed is printed
 by no command, so contract rule 14 asks for no new pin.
 
+```seal
+verdict: fixed a43ab8261
+answer: The guard and its comment are replaced by the plain load and a two-line comment, as the paste-ready fix writes them, at `skills/verify/scripts/broad_gate.py:1577-1579`. Both cases are deleted from `Test_rounds_rows`, and so is the second paragraph of `gaps.md` *Not done*. The tree confirms the finding: `main` loads `CHAIN_CHECK` at `broad_gate.py:2250` before `gate`, and `git grep -n rounds_rows` names `panel` as the one caller outside the suite (executed). `bin/seal mutate` replaced the load with `sibling.load(ROUTING)`, and `Test_rounds_rows::test_accepts_the_count_and_every_records_deferred_homes` went red (executed). `lib/sibling.py#going_on` stays, called by `.github/scripts/release_seal.py:323` and `:607` (executed). The `frame/design.md` *Removes* row for the guard and its two cases is the orchestrator's.
+```
+
 ### 2. `session_cost.py` reaches `lib/` at import since #1572 and still spells the stream loop, which `lib/console.py` says only two other kinds of script do
 
 ```seal
@@ -173,6 +178,12 @@ by adding a third kind to the list in `lib/console.py:47-61` that names
 `session_cost.py` and why, and by narrowing `changelog.md:11` to the
 thirteen. A copy the work's own rule says goes would then stay, so the
 round's reading is the conversion above.
+
+```seal
+verdict: fixed a43ab8261
+location: `seal/threads/1795412533-a-dozen-small-facts-are-spelt-again-beside-their-home/gaps.md:8`
+answer: `session_cost.py` binds `console = sibling.load("lib/console.py")` after `RUNNERS` and opens its `__main__` block with `console.to_utf8()`, as the paste-ready fix writes it. The comment over the import and `lib_module`'s docstring name `console.py` beside `sibling.py`. `lib/console.py:47-61` and `changelog.md:11` are left as written, because both hold once the conversion is in: every other file the S10 search lists loads nothing at import, loads inside a function, or runs its loop first (executed: the search and a `grep` of each file's module-level loads). The fix also reaches `gaps.md:8`, whose Windows row counted thirteen `console.to_utf8()` entry points and now counts fourteen. `bin/seal mutate` went red twice. With the call replaced by `pass`, `tests/skills/test_session_cost.py::test_census` went red. With `console` bound to `None`, `Test_main::test_accepts_a_transcript_and_separates_command_time_from_model_time` read empty stdout (executed). S10 of `frame/design.md:77` and *Scope* item 9 are the orchestrator's to fold.
+```
 
 ## Confirmations
 
