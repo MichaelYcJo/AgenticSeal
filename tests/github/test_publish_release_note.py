@@ -151,7 +151,7 @@ class Releases:
         if args[:3] == ("gh", "release", "create"):
             self.existing.add(args[3])
             return Done(0)
-        if args[0] == "git" and "log" in args:
+        if args[0] == "git" and "log" in args and "--format=%B" in args:
             return Done(0, self.message)
         raise AssertionError(f"unexpected command: {args}")
 
@@ -934,6 +934,23 @@ class Test_module:
         assert mod.merged_pulls(REPO, VERSION) is None
         out = capsys.readouterr().out
         assert "the note is the theme line and the fragments alone" in out, out
+        assert "gh pr list failed, so" in out and "alone: HTTP 502" in out, out
+
+    def test_a_create_gh_refuses_stops_the_run_in_the_runners_line(self, monkeypatch):
+        """A release GitHub did not create is a red job, said in
+        `lib/gitcmd.py#Exited`'s line, which names the command and what `gh`
+        said (#1573)."""
+        mod = publisher()
+        monkeypatch.setattr(
+            mod.gitcmd.subprocess,
+            "run",
+            lambda args, **_: Done(1, err="HTTP 422: Validation Failed\n"),
+        )
+        with pytest.raises(SystemExit) as stopped:
+            mod.create(REPO, TAG, "a title", "a body")
+        said = str(stopped.value.code)
+        assert said.startswith(f"`gh release create {TAG} --repo {REPO} "), said
+        assert said.endswith("exited 1: HTTP 422: Validation Failed"), said
 
     def test_a_gh_that_gave_no_answer_is_read_as_each_read_reads_a_failure(
         self, monkeypatch, capsys
