@@ -312,8 +312,8 @@ this form and names nothing.
 **A value that would not run as the command it reads as is refused, not
 repaired.** `seal gate` looks at the key's command before it hands it to a
 shell, and each form in the table below comes back exit 2 with nothing run,
-the same shape an absent key gets. The criterion is one sentence with two halves, and a form
-is refused only for breaking one of them:
+the same shape an absent key gets. The criterion is one sentence with two
+halves, and a form is refused only for breaking one of them:
 
 > **The value must run as the command it reads as, and the exit code the
 > gate reads must be that command's.**
