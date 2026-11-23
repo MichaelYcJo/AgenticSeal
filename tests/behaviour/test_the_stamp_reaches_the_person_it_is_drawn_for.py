@@ -58,12 +58,12 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
     lines the broad run opens with, which the orchestrator relays, and the
     command that stays the person's to type. When the stamp is drawn, that
     the orchestrator draws none, and what it does with the sealer's line are
-    the proofer's to read."""
-    text = flat("skills", "code-review", "orchestration.md")
+    the proofer's to read. Since #1579 that section stands in the file the
+    orchestrator opens once the last round has no finding open."""
+    text = flat("skills", "code-review", "gate-to-pull-request.md")
     section = text.split(
-        "## Orchestrator: the pull request opens once the sealer seals", 1
+        "## Orchestrator: from the preflight to the open pull request", 1
     )[1]
-    section = section.split("## Orchestrator: verify before posting", 1)[0]
     for fact in (
         # The command the sealer queues the stamp with, whose line the
         # orchestrator meets in the sealer's hand-back.

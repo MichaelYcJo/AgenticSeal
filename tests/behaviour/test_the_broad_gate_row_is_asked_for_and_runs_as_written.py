@@ -29,7 +29,9 @@ from test_broad_gate import flat
 TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
-REVIEW_ORCH = ("skills", "code-review", "orchestration.md")
+# The orchestrator's steps from the preflight to the open pull request, where
+# the broad run and its refusals stand since #1579.
+GATE_TO_PR = ("skills", "code-review", "gate-to-pull-request.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
 
@@ -202,6 +204,6 @@ def test_the_review_orchestrator_names_the_command_that_answers_the_row():
     broad gate is the one holding finished work with no pull request open
     and a reason to get past it. That it stops the run and asks a person,
     and why, is the proofer's to read."""
-    orchestrator = flat(read(*REVIEW_ORCH))
+    orchestrator = flat(read(*GATE_TO_PR))
     # The command `/agentic:config`, which the person runs to answer the key.
     assert "/agentic:config" in orchestrator

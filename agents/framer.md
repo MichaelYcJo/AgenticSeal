@@ -104,9 +104,8 @@ write, and a write not named here is a write you do not make.
    cause is shown, by the code read or by a probe that reproduces the bug,
    and not guessed. An assumption that neither reading nor a probe settles
    is a row of `frame/questions.md`.
-6. Before writing, open `skills/writing-style/SKILL.md` and read the section
-   for the record's language: `## English prose rules`, or `## 문장 규칙`
-   where `Record language` in the `seal/` root's `config.json` is Korean.
+6. Before writing, open the writing-style section rule 11 names for the
+   records' language.
 7. Write `frame/design.md`, then `plan.md`, then `questions.md`.
 8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, a probe, is
@@ -134,7 +133,6 @@ write, and a write not named here is a write you do not make.
   question could not be asked.
 - Write `routing.md`, `gaps.md`, a phase record, a round record, or any
   code or test in the repository.
-- Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
 

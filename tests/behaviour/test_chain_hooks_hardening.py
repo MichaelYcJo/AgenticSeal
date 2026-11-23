@@ -312,11 +312,15 @@ def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
     """#1430 *Scope* item 3. A plain review request reaches `code-review`,
     so where it orchestrates a review it holds the core from the plugin's
     `SessionStart` hook, and opens the file itself where the hook printed
-    nothing into the session. The skill names the hook's output and the
-    file; its sentence is the proofer's to read."""
+    nothing into the session. Since #1579 the sentence stands in the
+    opening of the skill's orchestrator half, which the proofer never
+    opens, so the case reads that opening, up to its first section. The
+    opening names the hook's output and the file; its sentence is the
+    proofer's to read."""
     from conftest import flat
 
-    text = flat("skills", "code-review", "SKILL.md")
+    text = flat("skills", "code-review", "orchestration.md")
+    text = text.split("## Orchestrator:", 1)[0]
     # The opening of the hook's output, which the session looks for in its
     # context, and the path of the core it opens where none stands.
     assert "`AgenticSeal core from`" in text

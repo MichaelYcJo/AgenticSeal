@@ -29,16 +29,16 @@ from conftest import flat, read
 def test_the_broad_gate_section_cites_the_owner_of_its_timing():
     """The section that runs the gate cites the section that owns when the
     run comes. #943 renamed that section, and a citation left at the old
-    name points at a heading no file has. When the gate fires is the
-    proofer's to read."""
+    name points at a heading no file has; #1579 moved it to its own file.
+    When the gate fires is the proofer's to read."""
     scope = read("skills", "verify", "orchestration.md")
     section = scope.split("## The broad gate")[1].split("\n## ")[0]
     flat = " ".join(section.split())  # re-wrapping a paragraph is not a regression
     # The citation the orchestrator resolves to learn when the run comes:
     # the backticked path and the heading in italics, as since #940.
-    assert f"`skills/code-review/orchestration.md` *{SPAWN_SECTION}* owns when" in (
-        flat
-    ), "the broad gate section no longer names the owner of when the run comes"
+    assert f"`{'/'.join(SPAWN_FILE)}` *{SPAWN_SECTION}* owns when" in flat, (
+        "the broad gate section no longer names the owner of when the run comes"
+    )
 
 
 def test_the_crafter_puts_both_answers_in_the_hand_back():
@@ -63,9 +63,7 @@ def test_the_orchestration_names_the_broad_run_command():
     and in what order the steps come are the proofer's to read. Contract
     rule 2 named the run's command too until #1312, which took that copy out
     of every agent's preload, since only the orchestrator types it."""
-    order = joined(
-        section(read("skills", "code-review", "orchestration.md"), SPAWN_SECTION)
-    )
+    order = joined(section(read(*SPAWN_FILE), SPAWN_SECTION))
     steps = [
         # The command the orchestrator types before the broad run.
         PREFLIGHT,
@@ -106,7 +104,10 @@ def test_the_broad_gate_state_survives_a_handoff():
 # --- 1790815611: the record arms run before the sealer is spawned (#638) -------
 
 PREFLIGHT = "seal gate --preflight"
-SPAWN_SECTION = "Orchestrator: the pull request opens once the sealer seals"
+# The orchestrator's steps from the preflight to the sealer's spawn, cut from
+# `skills/code-review/orchestration.md` in #1579.
+SPAWN_FILE = ("skills", "code-review", "gate-to-pull-request.md")
+SPAWN_SECTION = "Orchestrator: from the preflight to the open pull request"
 
 
 def section(text, heading):

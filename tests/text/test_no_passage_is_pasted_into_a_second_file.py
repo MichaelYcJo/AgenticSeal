@@ -18,7 +18,10 @@ words; and everything under `seal/`, which is records.
 one is sanctioned. Fenced code blocks and heading lines are dropped. A quoted
 section name -- a `.md` path followed by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
-of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
+of this method missed. Where the link names a row or paragraph of that
+section first, as `*<name>* of <path> *<section>*`, the name joins the
+token, since #1579 found two correct links to one row of the core counted
+as a copy. Then the text is lowercased, stripped of `` ` ``, `*`,
 `|`, `>` and `#`, and split into words. The selection and the normalisation
 are `skills/settle/scripts/passages.py`'s code (`in_corpus`, `words`,
 `windows`), which `skills/code-review/scripts/chain_check.py` reads a

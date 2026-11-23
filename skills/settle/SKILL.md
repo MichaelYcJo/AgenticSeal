@@ -471,5 +471,3 @@ settling would never end.
   grounds of each named document are the settling session's, the mark on
   each document is the person's, and the owner reviews them at the pull
   request.
-- It does not fail a build. No gate refuses a branch for an unsettled work
-  item.

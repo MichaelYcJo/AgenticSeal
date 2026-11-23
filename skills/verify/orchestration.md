@@ -30,9 +30,10 @@ has to guess, and one who reaches for the record does not.
 **It belongs to the orchestrator, and the four conditions of
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
 `seal gate --base <base> --record <item>` is the command the orchestrator
-types, with nothing else running, and `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals* owns when,
-before the sealer is spawned. The run judges no failure and fixes none; the
+types, with nothing else running, and
+`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
+preflight to the open pull request* owns when, before the sealer is
+spawned. The run judges no failure and fixes none; the
 sealer reads its record, and what it guarantees after it
 is `docs/forms/the-guarantee.md` *The guarantee*. `seal gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
