@@ -131,7 +131,6 @@ def sealer_grade_gaps(root=EVALS):
             gaps.append(f"{rel(d, root)}: no grader reads the verdict in guarantee.md")
         if not any(
             g.get("tool") == "Bash"
-            and "input_match" in g
             and re.search(g["input_match"], BROAD_RUN)
             and g.get("max") == "0"
             for g in graders

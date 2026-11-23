@@ -19,6 +19,7 @@ import os
 
 import pytest
 import workflows
+import yaml
 from conftest import census_case
 
 TARGET = "tests/workflows.py"
@@ -92,6 +93,14 @@ class Test_parse:
             "target": {"source": "file", "path": "it's, {a}.md"},
             "max": "0",
         }
+
+    def test_refuses_a_text_of_two_documents_such_as_a_whole_grader_file(self):
+        """A grader file is front matter, a `---` line and a body, which YAML
+        reads as two documents. `parse` reads one, so a case that hands it
+        the whole file fails rather than reading the front matter alone and
+        dropping what follows; `front_matter` is the reading of a grader."""
+        with pytest.raises(yaml.YAMLError, match="expected a single document"):
+            workflows.parse(f"{GRADER}---\nA defect.\n")
 
 
 class Test_front_matter:
