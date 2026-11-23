@@ -60,6 +60,11 @@ The search found no other statement of the conclusion: `never a repair` and `per
     way out of a workflow that fails every pull request (`left_workflow_line`).
 ```
 
+```seal
+verdict: fixed 8ecc3048e
+answer: The finding holds, read against this round's runs 1c and 2a and against the round-3 fix pass's left-workflow run, which exited 1 on a ready pull request with a commit made before the switch whose trailer names a work item. The check's own message for that commit, `UNDECLARED_TRAILER` (`chain_check.py:1945-1949`, read), names two repairs: commit a `routing.md` naming the branch, which local mode never commits, or correct the trailer. So on that pull request "never a repair" was false. The paste-ready text was applied as given at `seal.py:1865-1869`: the removal stays the person's choice except on such a pull request, where correcting the trailer is the repair the check names and the removal is the other way out. `git grep -n -i -e 'never a repair' -e "person's choice"` outside `seal/threads/` and `evals/` now finds only the new sentence (executed). It is a docstring, so no assertion changed and no case was added. `uvx ruff check`, `uvx ruff format --check` and `bin/test -q tests/skills/test_seal.py` (394 passed) exited 0 (executed).
+```
+
 ### 2. Two texts of `seal.py` cite `ROOT_LEFT_SAYS` for what the left workflow's review-chain step reads, a message no pull request after the switch prints
 
 ```seal
@@ -91,6 +96,11 @@ The coordinate that holds for every pull request with no root in the tree is the
             # review-chain step either (`docs/checks/the-pull-request-check.md`
             # *What the check reads at the pull request*), and this one has
             # nothing to add to that.
+```
+
+```seal
+verdict: fixed 8ecc3048e
+answer: The finding holds. In this round's runs 1a to 1e, the pull requests after the switch, the check printed the shared return of `declared_for_this_branch` and never `ROOT_LEFT_SAYS`, which `_checked` prints only where the pull request's diff deletes declarations that stood at its merge base (`chain_check.py:2159-2186`, read). `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* (`:136-144`, read) states the rule those runs follow: with no top-level `seal` entry the check reads nothing as declared and judges the trailers as for any pull request that declares nothing. Both paste-ready texts were applied as given: `remove_workflow`'s docstring at `seal.py:1859-1862` and `#mode`'s `--check` comment, now at `seal.py:2430-2435`, now cite that section. `git grep -n ROOT_LEFT_SAYS` outside `seal/threads/` now lists only the constant and its one use in `chain_check.py` (executed), so no citation of it is left in the tree outside the records; `trail/phases/phase-3.md:85` and `trail/phases/phase-4.md:121` stay as the records of their phases. These are a docstring and a comment, so no assertion changed and no case was added. `uvx ruff check`, `uvx ruff format --check` and `bin/test -q tests/skills/test_seal.py` (394 passed) exited 0 (executed).
 ```
 
 ## Confirmations
