@@ -93,20 +93,21 @@ went red naming six dangling citations (executed):
   the run below), and the case pins the key's name, which this work does
   not move, not a copy of the record list.
 
-**Statements this phase left standing, and why.** Each states part of what
-an absent key does, beside the reason it is there.
+**The statement this phase left standing, and why.** It states part of
+what an absent key does, beside the reason it is there.
 
-- `skills/commit-pr-convention/SKILL.md:87-89`: "`seal pr-body` refuses to
-  compose a pull request body where either key is absent in any of the four
-  ways, because the body's language is the one the team reads." *Scope*
-  names `:85-89` of `73a43735c` out of scope as the sentences on who asks.
-  The sentence gives the reason for the refusal, which the template does
-  not, and "the four ways" resolves to the paragraph the section above it
-  now cites.
 - `docs/forms/the-guarantee.md:22`: "`seal pr-body` refuses where either
   language key is absent, so a body is composed only for a repository that
   declared its languages." It is a policy document's reason for the
   sealer's reading, outside the list *Scope* item 5 names.
+
+Phase 2 also left `skills/commit-pr-convention/SKILL.md:87-89`, the
+sentence "`seal pr-body` refuses to compose a pull request body where
+either key is absent in any of the four ways, because the body's language
+is the one the team reads." It read *Scope*'s out-of-scope coordinate
+`:85-89` of `73a43735c` against the file's new numbering, and at
+`73a43735c` the sentence stood at `:90-92`, outside it. Round 1 finding 3
+named that, and its fix pass kept the reason and dropped the restatement.
 
 **The phase boundary passed.** One command, the plan row's modules, each
 test file this phase changed, each test file that names a changed path

@@ -84,9 +84,8 @@ them.** The orchestrator asks for the two keys at first setup
 (`skills/implement/bootstrap.md` step 1) and before a work item's first
 edit wherever either is missing (`skills/implement/routing-question.md`
 *The two language keys join the batch wherever either is missing*).
-`seal pr-body` refuses to compose a pull request body where either
-key is absent in any of the four ways, because the body's language is the
-one the team reads. Nothing reads the keys at a commit.
+The refusal stands at the pull request body because the body's language is
+the one the team reads. Nothing reads the keys at a commit.
 
 **`seal mode` creates the file**, writing the `Mode` key from where the
 folder is, and the orchestrator adds the two language keys to it; `Mode`
