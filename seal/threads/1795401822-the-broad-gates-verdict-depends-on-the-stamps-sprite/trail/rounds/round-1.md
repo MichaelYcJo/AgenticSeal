@@ -49,6 +49,11 @@ malformed sprite, draws nothing.
     still there to be drawn once it is repaired."""
 ```
 
+```seal
+verdict: fixed c0ee3fc7c
+answer: The finding holds, and both docstrings now name the malformed sprite. `drawn_from`'s docstring takes the paste-ready text as given. The module docstring's `Exit codes` paragraph takes it with one change: the sprite's exit 2 is said "for every command but `--guarantee` and `--stop`" where the fix said "for the sample and `--from`", because `--shape` draws the sample's letter twin and the round's probe saw it exit 2 as well. The rest of the paragraph, the malformed sprite among what draws nothing under the `Stop` hook included, is the fix's text. The class was listed by an `ast` walk of every function of `seal_stamp.py` that reaches `read_sprite`: `admitted`, `build`, `compose`, `drawings`, `drawn_at_stop`, `drawn_from`, `fitted`, `main`, `read_sprite` and `stamp`. Of these, only `build`, `read_sprite` and `drawn_from` have docstrings that list what they raise, and `build` and `read_sprite` already named the sprite.
+```
+
 ## Confirmations
 
 What matched: *Scope* items 1 and 2. `SPRITE = read_sprite(SPRITE_PATH)` is gone, and `build` reads `read_sprite(SPRITE_PATH)` on each call (`seal_stamp.py:319`). Its docstring names the read (`:293-296`). `git grep -n -w SPRITE -- skills tests` prints nothing and exits 1 (executed). `Test_main.test_a_malformed_sprite_leaves_the_verdict_and_the_report_as_they_were` (`tests/skills/test_broad_gate.py:2118`) passes in the narrow run (executed). It runs the copy's gate as a process, once with the shipped sprite and once with a cut one, and compares the exit and stdout. Phase 1 says it saw the case red against `ee8a72583` and red under the mutant that puts the read back at import. This round did not run those, and read the case's assertions against that claim: the cut run's `returncode == 0` is the line the mutant breaks.
