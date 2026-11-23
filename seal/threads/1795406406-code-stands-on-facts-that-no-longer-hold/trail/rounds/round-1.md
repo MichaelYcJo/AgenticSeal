@@ -109,6 +109,12 @@ Two other statements of the same claim stand unchanged:
 
 The snippet stops at these three files. The search covered `docs`, `CONTRIBUTING.md`, the READMEs, `skills` and `templates` and found no other statement, but a statement in other words is outside what a search on these words reaches. `CONTRIBUTING.md` says the template has to tell the same story as `.github/workflows/hygiene.yml`. That file holds no such header, so it needs no change.
 
+```seal
+verdict: fixed f6551bb0d
+answer: The finding holds, and the paste-ready fix was applied as read against `seal.py#remove_workflow`, `#mode`'s `--check` branch and `chain_check.py#ROOT_LEFT_SAYS`. `left_workflow_line` now prints that the checks read nothing as declared and pass, the header of `templates/setup/hygiene.yml` says the review-chain step judges the commit trailers alone and the mode step finds no root to disagree with, and the two cases of `tests/skills/test_seal.py` read the new words. The printed-line case was seen red against the old message before the code changed; the older-pin case's negative assert was seen red under `seal mutate` printing the phrase on a line of its own, and the file was restored. The changelog's `### Fixed` gains an entry in `76cf4ebbe`. A search on `examines nothing`, `examine nothing`, `examined nothing`, `checks nothing`, `owes nothing`, `every step passes`, `pr-checks remove`, `outlived its root` and `left in a local` over the tree, a sample, found one more statement of the claim, in a file this work item does not edit: `docs/layout/one-root-by-lifetime.md` *Shared or local* says a workflow left in local mode "passes having examined nothing", and its Korean edition says the same; the hand-back names both for a `## Rule changes` operation. A statement in other words is the part the sample did not reach.
+location: `seal/threads/1795406406-code-stands-on-facts-that-no-longer-hold/changelog.md`
+```
+
 ## Confirmations
 
 What matched: the design's acceptance searches print nothing at `909602a0b`, each exiting 1 (executed): S4 (`absent_root`, `unwritten_root`, `UNWRITTEN`), S5 (`tracker_labels`, `test_tracker_labels` outside `seal/threads` and `docs`), both line searches of S7, S9 (`RIDER:`), both searches of S14, and S15 (`old_names`, `OLD_NAME`). The multi-line calls of S7 were read at `tests/skills/test_chain_check.py:817`, `:2466` and `:4924`, and none passes a reader.
