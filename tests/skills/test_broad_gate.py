@@ -1772,6 +1772,9 @@ class Test_gate:
         assert "unverified" not in out.stdout
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
+        # The chain arm passes the check's own flag, which `main` loads the
+        # check for (#1575).
+        assert chain_kept.splitlines()[0].endswith(f" {chain.SEALING}")
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "agentic-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
