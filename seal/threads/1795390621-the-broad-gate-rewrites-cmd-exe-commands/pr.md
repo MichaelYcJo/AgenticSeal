@@ -6,6 +6,7 @@
 - "Does `uvx ruff check . && uvx ruff format --check . && uv run --no-project tests/run_tests.py -q` run the suite under `cmd.exe` on Windows, with `PYTHONPATH` and `PYTEST_ADDOPTS` kept as the gate sets them?" (`frame/questions.md`, row M1, the question)
 - "The spelling of `design.md` *Scope* item 9 stands" (`frame/questions.md`, row M1, the default until answered)
 - "No run under `cmd.exe` stands behind what the template says `cmd.exe` does with them" (`gaps.md` *Not verified*, the `@bin/test` row; who must answer: a measurement, one run of each value under `cmd.exe` on a Windows machine)
+- "The template's condition for a key that stays inside the reading still admits a name in a directory an earlier command makes, which the same bullet gives as an example of a name neither refused nor named" (`trail/rounds/round-3.md`, finding 1, deferred to this body at the run's stop)
 
 Closes #1577.
 
