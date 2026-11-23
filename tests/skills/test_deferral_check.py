@@ -271,6 +271,7 @@ class Test_main:
             ("tests", "nox -s tests"),
             ("tests", "bun test"),
             ("tests", "./scripts/test"),
+            ("tests", "npm  test"),
             ("lint", "black --check ."),
             ("lint", "lint-imports"),
         ],
@@ -279,8 +280,9 @@ class Test_main:
         self, repo, kind, step
     ):
         """#1572: `session_cost.py` read its own runner words until it read
-        `RUNNERS`, and these were its alone. One list holds both readers'
-        words, so this command names each of them."""
+        `RUNNERS`, and these were its alone, a run of spaces before `test`
+        among them. One list holds both readers' words, so this command
+        names each of them."""
         workflow(
             repo,
             "test.yml",
