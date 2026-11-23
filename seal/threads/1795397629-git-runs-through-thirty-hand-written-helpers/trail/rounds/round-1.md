@@ -149,6 +149,11 @@ Why it matters: the sealer reads `frame/design.md` *Data & interfaces* as the st
 answered 2026-11-23 by the work: each phase's ruling, in `trail/phases/phase-1.md` to `phase-6.md`
 ```
 
+```seal
+verdict: fixed e2379886f
+answer: The finding holds. The orchestrator took the round's four texts as given: `frame/design.md` *Data & interfaces*' first row no longer names `seal_stamp.py#_git`, the exit-2 row names `seal_stamp.py#main` under `--guarantee`, *Scope* item 7's `test_layout.py` bullet says `_git` goes, and `frame/questions.md` Q2 is answered by the six phase records. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ### 4. The pull request body does not say what a change to six gates must carry
 
 ```seal
@@ -165,6 +170,11 @@ Why it matters: this repository's `CLAUDE.md` names `CONTRIBUTING.md` *What a ch
 
 <!-- pr.md, a line after the first -->
 - "What this change to the gates carries: its failure direction is block more, and its prompt budget is zero" (`frame/plan.md` *Judgments of the run*, the row on what a gate change carries)
+```
+
+```seal
+verdict: fixed e2379886f
+answer: The finding holds. The orchestrator wrote the round's row to `frame/plan.md` *Judgments of the run* as given, block more with a prompt budget of zero, after reading it against the changelog and `CONTRIBUTING.md` *What a change to a gate must carry*, and `pr.md` quotes it after the row on the title's prefix. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ## Confirmations
