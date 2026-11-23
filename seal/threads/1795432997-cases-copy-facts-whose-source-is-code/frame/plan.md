@@ -77,4 +77,4 @@ None for a deployer. No dependency is added: PyYAML 6.0.3 is already pinned in `
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-23 | The pull request's title takes `test:`, though the diff also takes three functions out of `evals/scripts/behaviour.py` and rewords a comment of `skills/settle/scripts/passages.py` | Every changed behaviour is a case's: the three functions had no caller outside tests, the comment changes no code, and no shipped gate reads or prints differently | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지*, the `test:` row; `frame/plan.md` *Technical context*; the titles of `gh pr list --state all --limit 10` |
