@@ -399,6 +399,11 @@ class Test_module:
             with monkeypatch.context() as patched:
                 unanswered(patched, *words)
                 assert mod.is_ancestor(str(repo), head, "main") is None, words
+        (repo / "f.txt").write_text("two\n", encoding="utf-8")
+        git("commit", "-qam", "later")
+        later = git("rev-parse", "HEAD").stdout.strip()
+        assert mod.is_ancestor(str(repo), head, later) is True
+        assert mod.is_ancestor(str(repo), later, head) is False
 
         reachable = "\n".join(
             mod.line(
