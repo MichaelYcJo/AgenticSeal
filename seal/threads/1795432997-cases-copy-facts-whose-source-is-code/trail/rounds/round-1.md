@@ -157,6 +157,12 @@ old fact stand elsewhere, and the fix pass owes them too:
 over the script", and `frame/plan.md:50` (A15a) says it keeps its census
 line "with no class". Each then names the new class.
 
+```seal
+verdict: fixed a9a431f84
+location: `seal/threads/1795432997-cases-copy-facts-whose-source-is-code/changelog.md:15`, `seal/threads/1795432997-cases-copy-facts-whose-source-is-code/trail/phases/phase-3.md:16`
+answer: `tests/evals/test_behaviour.py` gains `Test_report_regex` as the paste-ready fix gives it, with a docstring added to the refusal case, and its module docstring no longer says the scripts that call the writer hold its quoting. The round trip went red with `squote` writing a quote undoubled (`yaml.parser.ParserError` in the flow map), and the refusal went red with the `kind not in KINDS` guard removed (`DID NOT RAISE ValueError`), each through `seal mutate` after the commit (executed). The same commit rewrites `changelog.md:15` to name the new class and `trail/phases/phase-3.md:16` to say the writer was held by no case after phase 3; `frame/plan.md` A15a was folded by the framer at `3a8e2d209`.
+```
+
 ### 2. Two sentences of the records say what the target does not hold
 
 ```seal
@@ -200,6 +206,12 @@ quotes the first cell, so it changes with it, word for word:
 
 ```markdown
 - "The pull request's title takes `test:`, though the diff also takes two functions and a constant out of `evals/scripts/behaviour.py` and rewords a comment of `skills/settle/scripts/passages.py`" (`frame/plan.md` *Judgments of the run*, the row on the title's prefix)
+```
+
+```seal
+verdict: fixed a9a431f84
+location: `seal/threads/1795432997-cases-copy-facts-whose-source-is-code/changelog.md:6`
+answer: The moved-rule module's docstring gains the clause the finding gives, so the three docstrings *Scope* item 8 names cite the comment over `WINDOW`, and the sentences at `frame/design.md:39` and `frame/plan.md:39` now hold as written. The title judgment at `frame/plan.md:80` and its quote at `pr.md:4` were corrected by the orchestrator at `3a8e2d209`. `7f4158348` makes `changelog.md:6` name all three docstrings, where it named two.
 ```
 
 ## Confirmations
