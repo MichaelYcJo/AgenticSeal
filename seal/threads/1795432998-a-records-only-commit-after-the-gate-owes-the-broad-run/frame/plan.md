@@ -1,0 +1,47 @@
+# Implementation Plan: 1795432998-a-records-only-commit-after-the-gate-owes-the-broad-run
+
+## Technical context
+
+The tree as read at `e5bdbff55`.
+
+`skills/code-review/scripts/chain_check.py#follows` lists the branch's own commits after a named commit and refuses the first path outside `seal/threads/<id>/`, or outside the files `only` names where it is given. `#broad_gate` calls it with no `only`, and `#guarantee` calls it with `only=CLOSING_RECORDS`, which is `trail/gate.md` and `guarantee.md` (`frame/design.md` G3, G4). `agents/sealer.md` step 1 applies the broad gate arm's rule before the pull request (G5). So the exemption the issue asks for has been the mechanism since 0.36.0 at least. What does not say so is the core's invariant table (G7), which a session reads first, and the one orchestrator sentence that carries the rule, which can be read two ways (G6). The build is text, plus one case on the arm (G13).
+
+The case goes in `tests/skills/test_chain_check.py` *Test_broad_gate* and uses the `item` fixture, which commits the work, then `trail/gate.md` and `guarantee.md` naming it. It calls `chain.broad_gate` and `chain.guarantee` directly and builds no `check(root)` run, because #1581 is turning that module's cases into unit calls.
+
+Failure scenario of the chosen approach, six months on. A repository whose `Broad gate` command reads its records, as this one does (G11), commits a records-only repair after the run that breaks one of those reads, such as a heading rule over every `.md` file. No local run reads it again. Where the repository runs the same command in CI on the pull request, as this one does (G12), CI goes red there, and the repair is another records-only commit, which the sealer reads again. Where it runs the command nowhere else, the defect reaches the base inside a work item's records, which the settle after the release removes. `templates/setup/config.md` *Broad gate* names that trade for the person who writes the key (*Scope* item 7).
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| Exempt the work item's whole directory, as `follows` already does, and state it in every statement of the rule | The scenario in *Technical context*: a command that reads the records does not read a repair committed after the run | Chosen. The premise that keeps the structure is checked: the sealer reads every record at HEAD after the repair (`agents/sealer.md` step 2, read), and this repository's CI runs the whole suite at the pull request's head (G12). It is also the line the core's row *No fix that no round reads* already draws for the rounds |
+| Replace the structure: narrow the broad gate arm to the closing records, the arm the issue describes, so any other commit after the run owes the run again | Every records-only repair after the gate costs a whole suite, the cost the issue reports, and the round row's exemption stops at the gate | Rejected. It turns the issue's misreading of the arm (G3) into the rule, and buys nothing the sealer's reading of the records does not already give |
+| A fixed list of prose records exempt from the run: `pr.md`, `pr.<lang>.md`, `changelog.md`, `gaps.md` | A repair to a phase record or a round record after the gate owes the whole suite again. The list is spelt in the check, the sealer and the documents, and drifts when a record is added. It is not safer: this repository's suite reads `pr.*.md` (G11) | Rejected. It narrows what the arm passes today and keeps the risk it was meant to remove |
+| A `seal/config.json` key naming the paths the `Broad gate` command reads, exempted from the exemption | A key only a person can write, with no default that is right: absent, the check must guess. In this repository the key would name `seal/threads/`, since the suite reads it, so the exemption would disappear where the issue arose. The check would also hold a list of paths that stands beside the command and goes stale when the command changes | Rejected. It costs a person's answer in every repository for a risk CI already reads where the repository runs its command there |
+| Let the work item's records follow the guarantee too, so a records-only repair after the sealer owes no sealer again | A record changed after the last independent party reached the base unread, `pr.md` among them, whose sentences the sealer withheld on in the issue's own run | Rejected. The guarantee covers a record changed after the gate because the sealer runs after it and reads it at HEAD (G5, G10); it cannot cover one changed after itself. The issue's second open choice is answered this way, and the case pins it (*Scope* item 8) |
+| Change the check's code as well as the rule's text | No code change can make the arm pass what it already passes (G4) | Rejected. The issue's third open choice is answered: the row's text and the orchestrator's text change, and the mechanism stays as it is |
+| The rule's one statement in `skills/code-review/gate-to-pull-request.md`, where the repair steps stand, with `skills/code-review/orchestration.md` citing it | The issue's *Done when* names `skills/code-review/orchestration.md`, and the core's paragraph under the table names that file's section as where the orchestrator holds the four rows | Rejected. `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* already states when the broad run is owed again after a merge, so the rule for a records-only commit stands beside it, and `gate-to-pull-request.md` keeps the steps and cites it |
+| Two cases: the unit case, and a whole `check(root)` run on a ready pull request | The second run builds a repository for a fact the unit calls already show, in the module #1581 is making cheaper | Rejected. One unit case pins both arms |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1 to 8, test first: the case of item 8 before the texts | The case of *Scope* item 8 seen red twice before it is committed: once with `#broad_gate` calling `follows(root, sha, base, item, only=CLOSING_RECORDS)`, failing on the first `broad_gate` assertion, and once with `follows` reading every path as inside `item/`, failing on the refusal assertion. Narrow runs of `tests/skills/test_chain_check.py -k "Test_broad_gate or Test_guarantee or Test_follows"`, `tests/text/test_broad_gate_rule.py`, `tests/behaviour/test_the_broad_gate_row_is_asked_for_and_runs_as_written.py`, `tests/behaviour/test_the_sealer_guarantees.py`, `tests/text/test_the_rules_have_one_owner.py` and `tests/text/test_no_passage_is_pasted_into_a_second_file.py`. `seal rules --check`. `frame/design.md` G15's command at the phase's commit printing nothing | |
+
+## Overlap with the release
+
+| Work item | Where both change | Merges first | Grounds |
+|---|---|---|---|
+| #1581 | `tests/skills/test_chain_check.py`: this work adds a case to *Test_broad_gate*, and #1581 rewrites the module | this item, #1596 | The spawn orders it, and this diff is the smaller. #1581 then merges the base before its rounds and rewrites the new case with the others, so the integration falls inside rounds it spends anyway. The case is already a unit call, the form #1581 moves to |
+| #1580 | #1580's rewritten cases in `tests/text/test_broad_gate_rule.py` and `tests/behaviour/test_the_broad_gate_row_is_asked_for_and_runs_as_written.py` read `skills/code-review/gate-to-pull-request.md` and `skills/implement/orchestration.md`, which *Scope* items 4 and 5 edit. Its *Done when* reads every test module for a `section`, `read` or `flat` of its own, and this work adds a case to one | this item, #1596 | This diff is the smaller and likelier sealed first. #1580's check over every test module reads content this item adds, so it merges after it. The case of *Scope* item 8 defines no helper, and the narrow runs of Phase 1 show the edited sentences leave the cases that read them green |
+
+## Operational impact
+
+None. No migration, environment variable, dependency or compatibility break, and the version stays where #1571 moved it.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
