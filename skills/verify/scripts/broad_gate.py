@@ -1532,9 +1532,9 @@ def write_gate_file(item, tree, base):
     file that was not, and return its path. Nothing is appended where the
     last block the file holds names the same run. Raises `Refused`, and
     writes nothing, where the file cannot be read or written, the run is not
-    one the reader reads, or the file as it
-    will stand, the held file where nothing is appended, is one the reader
-    refuses at a line or reads with another run last."""
+    one the reader reads, or the file as it will stand, the held file where
+    nothing is appended, is one the reader refuses at a line or reads with
+    another run last."""
     # `lib/optin.py#GATE` is `/`-joined; split on `/`, the disk path takes
     # the platform's separator throughout.
     path = os.path.join(item, *sibling.load(OPTIN).GATE.split("/"))
