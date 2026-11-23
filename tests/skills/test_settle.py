@@ -458,7 +458,7 @@ def removed_plan(repo, name, plan, added, removed, tag=None):
     One `git fast-import` writes both commits on the branch REPO is on, and
     one `git log` reads their ids: the second commit's tree is the first's
     parent's, so the working tree and the index stand as they did, where
-    committing through them takes seven processes."""
+    committing through them takes six processes, seven with a tag."""
     branch = (repo / ".git" / "HEAD").read_text(encoding="utf-8").split()[-1]
     who = f"x <x@example.com> {int(time.time())} +0000\n"
 
