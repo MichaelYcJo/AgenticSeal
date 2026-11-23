@@ -4048,6 +4048,7 @@ class Test_main:
             ("log",),
             ("merge-base", "--is-ancestor"),
             ("diff-tree",),
+            (f"HEAD:{ITEM}/frame/design.md",),
         ],
         ids=[
             "toplevel",
@@ -4059,6 +4060,7 @@ class Test_main:
             "trailers",
             "is_ancestor",
             "touched",
+            "rule_changes_read",
         ],
     )
     def test_refuses_a_git_that_did_not_answer_in_one_line(
@@ -4069,8 +4071,10 @@ class Test_main:
         runner's line naming the command and the bound, at exit 2, the
         check's could-not-run code, with no traceback. The repository's own
         top is one of the reads, so a git that did not answer is not read as
-        no repository. Seen red against `chain_check.py` before #1573, where
-        the timeout was raised out of `main`."""
+        no repository, and so is the rule-changes reader's read of a design,
+        so it is not named as a reader that would not load. Seen red against
+        `chain_check.py` before #1573, where the timeout was raised out of
+        `main`."""
         root, _code = branch
         asked = unanswered(monkeypatch, *words)
         code = chain.main(["--baseline", "main", "--root", str(root)])

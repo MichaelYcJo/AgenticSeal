@@ -1386,11 +1386,15 @@ def rule_changes_of(reader, root, items, notices=None, sources=None):
     """[(path, line, problem)] from `rule_changes_read` over every work item
     directory of ITEMS, its notices going to NOTICES and what it reads of the
     tree to SOURCES, or None where a reader would not load or could not
-    read, which is said on stderr."""
+    read, which is said on stderr. A git that did not answer
+    (`lib/gitcmd.py#Failed`, a `SystemExit`) is no reader that would not
+    load: it reaches `main`, which names the command."""
     found = []
     try:
         for item in items:
             found.extend(rule_changes_read(reader, root, item, notices, sources))
+    except GITCMD.Failed:
+        raise
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
         print(
             f"chain-check: the rule-changes reader would not load ({exc})",
