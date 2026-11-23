@@ -34,6 +34,11 @@ The fix rewrites the comment so it lists the roots the census reads and claims n
 SHIPPED = ("lib/", "skills/", ".github/scripts/")
 ```
 
+```seal
+verdict: fixed 7affd41b0
+answer: The finding holds. Executed: `git archive HEAD | tar -t`, filtered to `.py` paths, counts 16 under `lib/`, 20 under `skills/` and 1 under `hooks/`; read `tests/censuses.py#_python`, which returns nothing outside `SHIPPED`. The round's comment was weighed and applied as given: each of its claims holds at HEAD, and it states the roots the census reads without claiming what ships beyond naming `hooks/`. The tuple, the constant's name and the docstrings stay. Every statement of the scope in `tests/censuses.py` was listed by `grep -n -i ship`, and only the comment made a claim about what ships. Correction to round 1's close of finding 3: its sentence "`skills/settle/scripts/rules.py` entered it" is wrong. At the base the reader stood at `.github/scripts/rules.py`, inside `SHIPPED`, and carried its `:502` exemption there (executed `git show 641b6bfb5:.github/scripts/rules.py`), so the move kept it in scope. That close block was read by round 2, so this pass leaves it as written and corrects it here. Executed: `bin/test tests/text tests/behaviour tests/test_censuses.py tests/test_conftest.py -q`, 1339 passed, exit 0.
+```
+
 ## Confirmations
 
 ```seal
