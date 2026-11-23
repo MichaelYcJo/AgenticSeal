@@ -463,8 +463,9 @@ class Test_marked_home:
         assert optin.marked_home(str(repo)) == os.path.join(str(repo), "seal")
 
     def test_refuses_a_place_whose_readme_is_not_the_marker(self, optin, repo):
-        """A `seal/` the project keeps for itself is no root here either."""
-        readme_at(repo / "seal", FOREIGN)
+        """A directory at a place `home_paths` names, here the local one,
+        whose README is not the marker is no root here either."""
+        readme_at(repo / ".git" / "seal", FOREIGN)
         assert optin.marked_home(str(repo)) == ""
 
 
