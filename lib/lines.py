@@ -100,8 +100,8 @@ def is_separator(cells):
 def visible(s):
     """`s` without characters that take no space on screen.
 
-    A zero-width space pastes in from anywhere, and many keyboards emit the
-    old mark followed by U+FE0F. Either one makes `| closed\\u200b | done |`
+    A zero-width space pastes in from anywhere, and many keyboards emit an
+    emoji followed by U+FE0F. Either one makes `| closed\\u200b | done |`
     survive a plain `.strip()` while looking exactly like a bare `closed`,
     which is the one row shape this refuses."""
     return s.translate({ord(c): None for c in INVISIBLE}).strip()

@@ -38,8 +38,8 @@ gfm_lines = load_lib_module("blocks.py", "blocks_for_the_gaps_cases").gfm_lines
 # person reads it.
 BLOCK = "the block `- nothing` with `  why: <reason>`"
 # Spelt by code point, so no emoji and no invisible character stands in
-# this file.
-OLD_MARK = chr(0x2705)
+# this file. U+2705 closes no row: it is a character like any other.
+CHECK_MARK = chr(0x2705)
 ZERO_WIDTH_SPACE = chr(0x200B)
 EMOJI_SELECTOR = chr(0xFE0F)
 WORD_JOINER = chr(0x2060)
@@ -117,6 +117,10 @@ class Test_parse_section:
             ("| closed: how the gate renders in a TUI | seen on screen |", None),
             ("| Closed how the gate renders in a TUI | seen on screen |", None),
             ("| CLOSED how the gate renders in a TUI | seen on screen |", None),
+            # #1576, design S10: the emoji a closed row once opened with is
+            # an open row's first character, reported and not refused.
+            (f"| {CHECK_MARK} how the gate renders in a TUI | seen on screen |", None),
+            (f"| {CHECK_MARK}{EMOJI_SELECTOR} | done |", None),
         ],
         ids=[
             "the word",
@@ -129,6 +133,8 @@ class Test_parse_section:
             "the word and a colon",
             "capitalised",
             "upper case",
+            "U+2705",
+            "U+2705 alone as a keyboard emits it",
         ],
     )
     def test_accepts_open_rows_and_the_word_that_closes_one(self, row, closed):
@@ -227,39 +233,20 @@ class Test_parse_section:
             (f"| closed{ZERO_WIDTH_SPACE} | done |", "bare"),
             (f"| closed{EMOJI_SELECTOR} | done |", "bare"),
             (f"| closed{WORD_JOINER} | done |", "bare"),
-            (
-                f"| {OLD_MARK}{EMOJI_SELECTOR} how the gate renders in a TUI | seen |",
-                "U+2705",
-            ),
-            (f"| {OLD_MARK} | done |", "U+2705"),
         ],
         ids=[
             "bare",
             "a zero-width space",
             "a selector",
             "a word joiner",
-            "the old mark as a keyboard emits it",
-            "the bare old mark",
         ],
     )
-    def test_refuses_a_bare_word_and_the_old_mark(self, row, says):
+    def test_refuses_a_bare_word(self, row, says):
         """T4 of `1792129100-the-mechanics-leave-before-the-agents-are-rewritten`:
-        a bare word, and the emoji mark. Another spelling of the word is an
-        open row (#1167), `test_accepts_open_rows_and_the_word_that_closes_one`."""
+        a bare word. Another spelling of the word is an open row (#1167),
+        `test_accepts_open_rows_and_the_word_that_closes_one`."""
         _, _, errors = parse(CANONICAL.replace(TUI, row))
         assert errors and says in errors[0][1], errors
-
-    def test_refuses_the_old_mark_naming_the_edit(self):
-        """Contract rule 14: the sentence a person reads when their overview
-        still carries the old mark, pinned whole."""
-        row = f"| {OLD_MARK} how the gate renders in a TUI | seen on screen |"
-        _, _, errors = parse(CANONICAL.replace(TUI, row))
-        assert errors[0] == (
-            5,
-            "the row opens with U+2705, which no longer closes a row: a closed "
-            "row opens with the word `closed`, so write "
-            "`| closed how the gate renders in a TUI | <what closed it> |`",
-        )
 
     @pytest.mark.parametrize("first", ["none - x", "none", "None.", "nothing - x"])
     def test_refuses_a_section_holding_the_old_line_and_names_the_line(self, first):
@@ -338,17 +325,11 @@ class Test_closing_word:
         "cell, answer",
         [
             ("closed how it renders", ("closed", "how it renders")),
-            (f"{OLD_MARK}how it renders", (OLD_MARK, "how it renders")),
-            (
-                f"{OLD_MARK}{EMOJI_SELECTOR} how it renders",
-                (OLD_MARK, "how it renders"),
-            ),
+            # #1576: U+2705 is no word of its own, so a word holding it ends
+            # at whitespace as every word does.
+            (f"{CHECK_MARK}how it renders", (f"{CHECK_MARK}how", "it renders")),
         ],
-        ids=[
-            "the word",
-            "the old mark with no space",
-            "the old mark as a keyboard emits it",
-        ],
+        ids=["the word", "U+2705 with no space"],
     )
     def test_accepts_the_first_word_and_the_rest(self, cell, answer):
         assert GAPS.closing_word(cell) == answer

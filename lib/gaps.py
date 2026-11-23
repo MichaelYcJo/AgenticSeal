@@ -50,10 +50,6 @@ OVERVIEW = "gaps.md"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
 CLOSED = "closed"
-# The emoji a closed row opened with before the word, U+2705, spelt by its code
-# point so no emoji stands in this file. `parse_section` refuses a row opening
-# with it, naming the edit.
-OLD_MARK = chr(0x2705)
 # What `parse_section` says of a section whose first line is neither the
 # table's header nor the block.
 FOUND_PROSE = (
@@ -88,10 +84,9 @@ def parse_section(body, offset):
     """(open, closed, errors) for the body lines of one section.
 
     `offset` is the file line number of body[0], so every error carries a
-    coordinate the author can open. The header is exactly `HEADER`, a row
-    opening with `OLD_MARK` is refused naming the edit, and a first line
-    that opens like the no-change block and is not it is prose, which
-    `unread_block` names."""
+    coordinate the author can open. The header is exactly `HEADER`, and a
+    first line that opens like the no-change block and is not it is prose,
+    which `unread_block` names."""
     errors, open_rows, closed_rows = [], [], []
     content = [(offset + i, ln) for i, ln in enumerate(body) if ln.strip()]
 
@@ -168,16 +163,6 @@ def parse_section(body, offset):
             errors.append((line_no, "the template's placeholder is still in the row"))
             continue
         word, rest = closing_word(seen[0])
-        if word == OLD_MARK:
-            errors.append(
-                (
-                    line_no,
-                    f"the row opens with U+2705, which no longer closes a row: a "
-                    f"closed row opens with the word `{CLOSED}`, so write "
-                    f"`| {CLOSED} {rest or '<the item>'} | <what closed it> |`",
-                )
-            )
-            continue
         if word == CLOSED:
             if not rest:
                 errors.append(
@@ -195,12 +180,8 @@ def parse_section(body, offset):
 
 
 def closing_word(cell):
-    """`(first word, the rest)` of an Item cell already through `visible`.
-
-    The old mark is its own word whether or not a space follows it, which is
-    how it was written; every other word ends at whitespace."""
-    if cell.startswith(OLD_MARK):
-        return OLD_MARK, visible(cell[len(OLD_MARK) :])
+    """`(first word, the rest)` of an Item cell already through `visible`;
+    a word ends at whitespace."""
     parts = cell.split(None, 1)
     word = parts[0] if parts else ""
     rest = parts[1].strip() if len(parts) > 1 else ""
