@@ -43,7 +43,7 @@ reads the pull request's state alone, waits on nothing, and exits 0, 4 or
 | 3 | within the limit on the start, the pull request's head never became HEAD, GitHub never said whether the pull request is mergeable, or no check of a `pull_request` run was listed on HEAD; or, after the start, the head left HEAD. The output names the one cause that held and the commits it concerns | says in its report the cause the output names about those commits, waits no longer, and does not treat the pull request as checked |
 | 4 | `state` is `MERGED` | pushes nothing more to the branch, and puts the repair on a new branch cut from the base, which holds the work |
 | 5 | `state` is `CLOSED` | pushes nothing, and says in its report that the pull request was closed with a repair pending |
-| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* states in the paragraph opening **A conflict with the base is integrated by merging the base into the branch, never by a rebase.** |
+| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* states for a conflict with the base |
 
 **The stated limit: a defect that only one platform shows, in work nobody
 expected to be platform-specific, is found when the pull request opens,
