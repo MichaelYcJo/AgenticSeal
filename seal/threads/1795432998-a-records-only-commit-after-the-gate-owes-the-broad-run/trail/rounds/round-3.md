@@ -93,6 +93,11 @@ commit message is history and needs no fix.
 The core's rendered output stays under `lib/core.py#CAP` when the core is rendered from this worktree, whose root is 124 characters long. G23 gives the room that *Scope* items 1 and 2 may add over the base, and item 1 says how the third row stays within it.
 ```
 
+```seal
+verdict: fixed 90be06ca8
+answer: The framer folded the finding's rewrite into `frame/design.md` *Scope*'s opening paragraph, word for word: its second sentence now reads "G23 gives the room that *Scope* items 1 and 2 may add over the base, and item 1 says how the third row stays within it." The framer's search of the three frame files found no other statement of the claim. The fix touches the work item's records alone, as the finding's `location:` does, so no verifying round reads it and the sealer reads it at HEAD.
+```
+
 ### 2. The orchestrator's row on round 2's finding says the core fails the cap "at HEAD", which at the target it passes
 
 ```seal
@@ -118,6 +123,11 @@ branch had added (executed, with round 2's 9,734 carried).
 
 ```markdown
 | 2026-11-23 | Round 2's finding 1 is fixed by option (a) of its *Not judged* row, in the core's own text: the third row's *Held by* cell names its two mechanisms, "`agents/sealer.md` step 1 and the same check's broad gate arm", and no longer restates the rule *What it protects* states, which takes about 156 characters out of the 272 the branch added | The core's rendered output carries the checkout root three times and must stay under `lib/core.py#CAP`; at `b34bb9e6b` it failed in a root past 88 characters, this worktree's 124 among them, where the base passed to 179. Option (b), measuring the case under a fixed-length root, would hide the length a session's real root adds; the cell's rule already stands in *What it protects* and in `skills/code-review/orchestration.md`, so the cut removes a copy and no fact | `skills/core/SKILL.md` *The rule a mechanism is kept against* (a fact has one source); `tests/lib/test_core.py#Test_module`; `trail/rounds/round-2.md` finding 1 |
+```
+
+```seal
+verdict: fixed 90be06ca8
+answer: The orchestrator's row now says "at `b34bb9e6b` it failed in a root past 88 characters", naming the commit it measured, as the finding's rewrite does. The fix touches the work item's records alone, as the finding's `location:` does, so no verifying round reads it and the sealer reads it at HEAD.
 ```
 
 ## Confirmations
