@@ -416,8 +416,9 @@ def closed_after_base(repo):
 # answers `gh pr list --head <branch>` from the case's own directory, which
 # `GH_HOME` names, and logs every call there. The stub is written once per
 # module: a script run for the first time costs a security scan on macOS,
-# 0.4 s against 0.03 s for each later run of the same file (#1581). The suite runs with `gh` logged out
-# (`tests/conftest.py`), so no local case reaches the real one.
+# 0.4 s against 0.03 s for each later run of the same file (#1581). The
+# suite runs with `gh` logged out (`tests/conftest.py`), so no local case
+# reaches the real one.
 
 GH_HOME = "AGENTIC_SETTLE_GH_STUB_HOME"
 
@@ -3129,16 +3130,20 @@ class Test_main:
         a complete settle reaches, and `settle` used to refuse the first at exit
         2 — so the command could not run on its own finished work. `--draft`
         there has no operation to write, and writes nothing (#1217)."""
-        repo = shared_repo
         if keep_empty_dir:
-            (repo / "seal" / "threads").mkdir()
-        before = git_out(repo, "status", "--porcelain", "--untracked-files=all")
-        argv = [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"]
-        r = subprocess.run(argv + flags, capture_output=True, encoding="utf-8")
+            (shared_repo / "seal" / "threads").mkdir()
+        status = ("status", "--porcelain", "--untracked-files=all")
+        before = git_out(shared_repo, *status)
+        root = ["--root", str(shared_repo), "--released-at", "HEAD"]
+        r = subprocess.run(
+            [sys.executable, SCRIPT, *root, *flags],
+            capture_output=True,
+            encoding="utf-8",
+        )
         assert r.returncode == 0, r.stdout + r.stderr
         assert "holds no work item" in r.stdout, r.stdout + r.stderr
         assert "A complete settle ends here" in r.stdout, r.stdout
-        assert git_out(repo, "status", "--porcelain", "--untracked-files=all") == before
+        assert git_out(shared_repo, *status) == before
 
     @pytest.mark.rule("an-empty-root-is-settled")
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
