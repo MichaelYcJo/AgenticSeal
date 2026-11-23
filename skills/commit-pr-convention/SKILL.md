@@ -49,11 +49,10 @@ becomes the history the next one is compared against.
 ## The language is the repository's, and it says so in a file
 
 **The writer reads `config.json` in the root before writing any of the five
-things below.** The root is `<repo>/seal/` where that directory exists with
-the marker (contract rule 11) and `$(git rev-parse --git-common-dir)/seal/`
-otherwise, which is where local
-mode keeps it; resolve it that way rather than spelling the first place and
-stopping.
+things below.** The root is looked for at the places the opening paragraph
+of `skills/core/SKILL.md` gives, in its order, and the last of them is local
+mode's, under the common git directory; resolve it that way rather than
+spelling the first place and stopping.
 
 ```json
 {
@@ -69,27 +68,24 @@ chain it governs the lines of `pr.md` that quote no record and, where the
 two keys differ, the whole of `pr.<lang>.md`, as *Pull request bodies*
 below says.
 
-**It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
-`gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
-follow a second key, `Record language`, read by the
-`implement` and `code-review` skills. The two are independent: setting one
-does not carry the other.
+**It does not govern the work-item records.** They follow a second key,
+`Record language`, read by the `implement` and `code-review` skills, and
+`templates/setup/config.md` *Record language* lists them. The two are
+independent: setting one does not carry the other.
 
-**Every way of not naming a language lands on English.** There are four of
-them and they are one rule: no file, no such key, an empty value, and a file
-that cannot be read or does not parse as one JSON object, a key written
-twice or holding no string among them. A config nobody can read must not
-stop a commit, so the writer of a commit meeting any of these writes
-English and carries on rather than asking.
+**Every way of not naming a language lands on English.** The four ways a
+key is absent, and what each does, are `templates/setup/config.md` *An
+absent language key is a refusal at the pull request body, and never at a
+commit*. The writer of a commit meeting any of them writes English and
+carries on rather than asking.
 
 **Both keys are required all the same, and a commit is never refused for
 them.** The orchestrator asks for the two keys at first setup
 (`skills/implement/bootstrap.md` step 1) and before a work item's first
 edit wherever either is missing (`skills/implement/routing-question.md`
 *The two language keys join the batch wherever either is missing*).
-`seal pr-body` refuses to compose a pull request body where either
-key is absent in any of the four ways, because the body's language is the
-one the team reads. Nothing reads the keys at a commit.
+The refusal stands at the pull request body because the body's language is
+the one the team reads. Nothing reads the keys at a commit.
 
 **`seal mode` creates the file**, writing the `Mode` key from where the
 folder is, and the orchestrator adds the two language keys to it; `Mode`
@@ -119,8 +115,8 @@ to change:
   there and the same one here.
 
 A repository whose team writes another language says so in one key; one that
-says nothing writes its commits in English and gets no pull request body
-from `seal pr-body` until it says.
+says nothing gets what *Every way of not naming a language lands on
+English* above cites.
 
 ## Commit messages
 
@@ -318,9 +314,8 @@ The writer answers these rather than assuming them.
    change?
 3. Was **`config.json` in the root opened**, does it carry both language
    keys, and are the title and the body's lines that quote no record in the
-   language its `Commit and pull request language` key names? Without
-   either key, `seal pr-body` refuses, and the keys are written before the
-   body is.
+   language its `Commit and pull request language` key names? Where either
+   key is absent, the keys are written before the body is.
 4. Where the two keys name different languages, does the work item hold
    one `pr.<lang>.md`, named for its own language, that `seal pr-body`
    places above `pr.md`, and no hosted document?

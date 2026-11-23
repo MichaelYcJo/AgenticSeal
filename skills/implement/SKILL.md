@@ -41,13 +41,10 @@ or a pull request. The root is resolved the way every path in this skill is.
 }
 ```
 
-It governs the **prose** in `frame/design.md`, `plan.md`, `gaps.md`,
-`questions.md`, `changelog.md`, the cell contents of `trail/rounds/round-N.md` and
-`trail/phases/phase-N.md` and the text beneath their tables.
-
-**Every way of not naming one lands on English** — no file, no such key, an
-empty value, a file that cannot be read. A config nobody can read must not
-stop the work.
+It governs the **prose** of the records `templates/setup/config.md` *Record
+language* lists. What an absent key is and does is
+`templates/setup/config.md` *An absent language key is a refusal at the pull
+request body, and never at a commit*.
 
 **It is independent of `Commit and pull request language`.** Setting one does
 not carry the other; `docs/layout/one-root-by-lifetime.md` *What the repository
@@ -85,19 +82,18 @@ them, and policy outranks everything else when a repository has it.)
 Inside the policy root, documents are grouped by who opens them and at which
 step, and any party may open any group.
 
-`seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `lib/optin.py#MARKER` holds, is what
-tells the gates this repository runs the workflow. **Every `seal/…` path in
-this plugin's skills and agents means `<repo>/seal/` where that directory
-exists with the marker, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise.** `seal/` there is
-the records root's name, as the opening paragraph of `skills/core/SKILL.md`
-defines it. The first is
-shared mode: committed, because gitignored files do not follow worktrees or
-other machines. The second is local mode: under the common git directory, so
-every linked worktree of the clone shares it, and never a commit candidate.
-A repository with both is shared, and nothing else — no config key — is
-read. What sits directly under it is permanent; what sits under
+`seal/` stands at the places the opening paragraph of `skills/core/SKILL.md`
+names, and its presence at one of them, with a `README.md` that opens with
+the marker `lib/optin.py#MARKER` holds, is what tells the gates this
+repository runs the workflow. **Every `seal/…` path in this plugin's skills
+and agents means the first of those places that holds the marker**, and
+`seal/` there is the records root's name, as the same paragraph defines it.
+The two places in the tree are shared mode: committed, because gitignored
+files do not follow worktrees or other machines. The place under the common
+git directory is local mode: every linked worktree of the clone shares it,
+and it is never a commit candidate. The order decides a repository with a
+root at more than one place, and nothing else, no config key, is read. What
+sits directly under it is permanent; what sits under
 `seal/threads/` lives as long as its work item. Each file the root holds,
 and the question it answers, is in `docs/layout/the-record-layout.md`
 *seal/*, and each file of a work item's directory is in
@@ -284,11 +280,11 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/records/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule) | before implementing |
+| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule and spells the line) | before implementing |
 | `frame/plan.md` | `templates/records/sdd-plan.md` | the framer; the orchestrator adds the rows of `## Judgments of the run` | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it. Its last section holds the orchestrator's judgments of the run, each with its grounds and the document it stands on, which `seal settle`'s dry run reads | before implementing (gated work); a judgment's row when it is made |
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
-| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame's `## Removes` names once, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
+| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame names as `docs/running/the-agent-set.md` *What each party writes, and when* says, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
 | `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `seal pr-body` writes above the records' copy. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ |
 
 The `Starts from` column is not decoration. A template that no shipped
@@ -314,14 +310,15 @@ records it: the phase's Status cell is the trace that the build happened.
 what building the phase taught that `plan.md`'s cells do not.** That is a
 decision settled while writing the code, a constraint found only by trying,
 each `seen red` and mutation claim, every departure from the frame, a
-removal the frame's `## Removes` did not name among them, and anything the
-next phase needs. What the phase was asked is the plan's Delivers cell, and
-a scope a spawn gives beyond it is a decision the framer folds into the
-plan before the spawn (`skills/implement/orchestration.md` *Orchestrator:
-the order inside a ticket*), so the record copies neither. A discovery reaches
-the next phase only through that section or through the orchestrator
-retyping it into the next spawn prompt, and the second goes missing without
-a trace when the orchestrator does not.
+removal the frame did not name among them (`docs/running/the-agent-set.md`
+*What each party writes, and when*), and anything the next phase needs.
+What the phase was asked is the plan's Delivers cell, and a scope a spawn
+gives beyond it is a decision the framer folds into the plan before the
+spawn (`skills/implement/orchestration.md` *Orchestrator: the order inside
+a ticket*), so the record copies neither. A discovery reaches the next phase
+only through that section or through the orchestrator retyping it into the
+next spawn prompt, and the second goes missing without a trace when the
+orchestrator does not.
 
 **`plan.md`'s Phases table is the task list, and there is no other.** Each
 phase carries a **Verified by** column, so it cannot be called done the way a

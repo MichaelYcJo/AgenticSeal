@@ -25,7 +25,7 @@
 최상위 `specs/` 나 `.specseal/` 을 스스로 열지 않습니다.
 `seal settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만 읽고, 그
 안에는 아무것도 쓰지 않습니다. 세션이 칠 수 있는 경로로 루트가 어디
-있는지는 contract rule 11 한 곳에 적혀 있습니다.
+있는지는 `skills/core/SKILL.md` 의 첫 문단 한 곳에 적혀 있습니다.
 check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
 
 ## 종속 규칙
@@ -58,12 +58,12 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 ## 옵트인 신호는 루트 자체다
 
-**저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가
-플러그인의 표식으로 시작할 때입니다.** shared 모드면 `<repo>/seal/`, local
-모드면 `$(git rev-parse --git-common-dir)/seal/` 입니다. 표식은
-`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정이 이것을 씁니다.
-`seal` 명령과 pull request 검사, 도장의 `--stop` 은 두 자리를 그 순서로 보고, 표식과 함께
-있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 표식으로
+**저장소가 옵트인한 것은 `skills/core/SKILL.md` 의 첫 문단이 정한 자리 가운데
+하나에 `seal/` 이 있고 그 `README.md` 가 플러그인의 표식으로 시작할
+때입니다.** 표식은 `templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정이
+이것을 씁니다. `seal` 명령과 pull request 검사, 도장의 `--stop` 은 그 자리들을
+코어가 정한 순서로 보고, 표식과 함께 있는 첫 자리가 "켜졌다" 와 "어느
+모드인가" 를 함께 말해 줍니다. README 가 표식으로
 시작하지 않는 `seal/` 은 `seal` 이라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
 옵트인하지 않은 것으로 읽습니다. 그런 디렉터리를 만난 처음 설정은 그 안에 아무것도 쓰지 않고, shared
 루트는 `skills/core/SKILL.md` 가 정한 두 번째 이름을 같은 표식으로

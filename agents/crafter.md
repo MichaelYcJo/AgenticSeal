@@ -145,11 +145,10 @@ Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 
 **The broad gate is not yours, and its label is.** The run and the suite's
-label are rule 2's. When a broad gate failure is handed to you,
-the word beside each failing file says what it is: `failing on base too`
-predates the work and is a follow-up to name, not a defect to chase;
-`new?` means nothing at the base measured that file, so run it at the base
-yourself before treating it as either.
+label are rule 2's. When a broad gate failure is handed to you, act on
+the word beside each failing file: repair a `new` file, name a
+`failing on base too` file as a follow-up and do not chase it, and run a
+`new?` file at the base yourself before treating it as either.
 
 **Before you hand back, your range and the work item's records are read
 whole against HEAD.** In a phase and in a fix pass, after your last

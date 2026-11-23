@@ -25,7 +25,7 @@ else is the project's own, read as history and never taken
 opens a top-level `specs/` or `.specseal/` on its own. `seal settle --from`
 reads a directory only where a person names it at the settle, and writes
 nothing there. Where the root is, as a path a session can type, is stated
-once, in contract rule 11.
+once, in the opening paragraph of `skills/core/SKILL.md`.
 check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
 
 ## The dependency rule
@@ -61,12 +61,12 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 ## The opt-in signal is the root itself
 
-**A repository is opted in when `seal/` exists at its mode's location and
-its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
-mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
-the first line of `templates/setup/seal-README.md`, written at first setup.
-The `seal` commands, the pull request's check and the stamp's `--stop` look
-at the two places in that order; whichever exists with the marker says both
+**A repository is opted in when `seal/` exists at one of the places the
+opening paragraph of `skills/core/SKILL.md` names and its `README.md` opens
+with the plugin's marker.** The marker is the first line of
+`templates/setup/seal-README.md`, written at first setup. The `seal`
+commands, the pull request's check and the stamp's `--stop` look at those
+places in the core's order; the first that exists with the marker says both
 "on" and which mode. A `seal/` whose README does not open with the marker is a
 project's own directory,
 as a package named `seal` has one, and reads as not opted in. First
