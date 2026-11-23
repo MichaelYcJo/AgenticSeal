@@ -67,7 +67,11 @@ now reads "pull request 가 담을 커밋에서, 또는 뒤에 작업 항목의 
 이어지는 커밋에서" (judged against contract rule 19 and
 `skills/core/SKILL.md` *The rule a mechanism is kept against*: a change
 rewrites the text it amends in place, and every other statement of the
-old fact with it).
+old fact with it). The first phase boundary run, at `b566ca252`, failed
+`tests/behaviour/test_docs_line_wrap.py::test_prose_stays_within_the_wrap_limit[README.ko.md]`
+on `README.ko.md:289`, 118 columns against a limit of 88, because the edit
+had joined two lines (executed). The paragraph is rewrapped, and its words
+are unchanged.
 
 **The new paragraph says that both mechanisms read the rule over the
 branch's own commits, so neither reads a merge.** `follows` lists commits
