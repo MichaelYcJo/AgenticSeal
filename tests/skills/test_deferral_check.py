@@ -328,7 +328,7 @@ class Test_main:
 
     # --- usage ---------------------------------------------------------------
 
-    def test_missing_path_exits_two(self, tmp_path):
+    def test_refuses_a_missing_path_at_exit_2(self, tmp_path):
         # Asserts on the message too: a missing *script* also exits 2, which would
         # make this the one test in the file that passes before anything is built.
         r = run(["--kind", "tests", str(tmp_path / "nope")])
