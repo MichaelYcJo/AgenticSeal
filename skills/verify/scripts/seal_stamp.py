@@ -709,10 +709,6 @@ def fitted(blocks, budget=MESSAGE_LIMIT):
     return "\n\n".join(admitted(blocks, budget))
 
 
-# A ref spelled as a commit: what `--base <sha>` resolves to (`sealed_names`).
-HEX_REF = re.compile(r"[0-9a-fA-F]{4,40}")
-
-
 def sealed_names(tree, base, branch=None, ref=None):
     """`<branch> @ <tree> against <ref> @ <base>` — what the broad gate's
     `BROAD GATE PASSED` and `BROAD GATE FAILED` lines say they measured, and
@@ -729,9 +725,9 @@ def sealed_names(tree, base, branch=None, ref=None):
         alone, with no stray `@`
       - `ref` None, or a ref that is the commit itself — a bare SHA given as
         `--base` resolves to itself, and `1e2bed9 @ 1e2bed9` says one thing
-        twice. Read as a ref spelled in hex with either hash a prefix of the
-        other, because the caller may have typed forty characters where the
-        gate prints eight, and a branch named `b` is not the commit `b1e2…`
+        twice. Read by `ref_is_commit` under `_same_commit`'s rule, because
+        the caller may have typed forty characters where the gate prints
+        eight, and a branch named `b` is not the commit `b1e2…`
 
     `ref` is the RESOLVED ref (`broad_gate.Base.ref`), the one CI reads, not
     the spelling the caller typed, so a reader can tell `origin/<base>` from
@@ -743,16 +739,13 @@ def sealed_names(tree, base, branch=None, ref=None):
 
 def ref_is_commit(ref, base):
     """True where `ref` names nothing the commit `base` does not: no ref at
-    all, or a ref spelled in hex that `base` begins, or that begins with
-    `base`. The one reading of *the ref is the commit*, asked by
-    `sealed_names` for the lines and by `broad_gate.panel` for the row under
-    `base`, so the two cannot disagree about when a ref is worth printing."""
-    base, ref = str(base), ("" if ref is None else str(ref))
-    if not ref:
+    all, or a ref `_same_commit` reads as `base`'s commit. The one reading
+    of *the ref is the commit*, asked by `sealed_names` for the lines and by
+    `broad_gate.panel` for the row under `base`, so the two cannot disagree
+    about when a ref is worth printing."""
+    if ref is None or ref == "":
         return True
-    return bool(HEX_REF.fullmatch(ref)) and (
-        base.startswith(ref) or ref.startswith(base)
-    )
+    return _same_commit(str(ref), str(base))
 
 
 def pick_shape(stream):
@@ -1138,16 +1131,23 @@ def sealed_before(chain, top, path, common=None, ident=None):
 # time has regressed in each of four review rounds.
 
 REFUSED_DIR = "agentic-stamp-refused"
-# The shortest SHA a record is matched on; shorter spellings find none.
+# The shortest SHA two spellings are matched on (`_same_commit`); shorter
+# spellings match none.
 SHORTEST_SHA = 7
+SHA_SPELLING = re.compile(f"[0-9a-f]{{{SHORTEST_SHA},40}}")
 
 
 def _same_commit(one, other):
-    """Whether two spellings of a SHA name one commit as far as the text
-    can tell: each at least `SHORTEST_SHA` long and one a prefix of the
-    other, case aside."""
+    """Whether two spellings name one commit as far as the text can tell,
+    the one rule this file holds for it: each is a SHA spelled in hex,
+    `SHORTEST_SHA` to forty characters in either case, and one is a prefix
+    of the other once both are lower-cased. Asked by `refused_here` of a
+    recorded target and by `ref_is_commit` of the base's ref. A shorter
+    spelling matches nothing, because a false match costs more in both:
+    a refusal record that matches skips a `sealed` that drew, and a ref
+    that matches is not printed though it may be a branch named in hex."""
     one, other = (one or "").lower(), (other or "").lower()
-    if min(len(one), len(other)) < SHORTEST_SHA:
+    if not (SHA_SPELLING.fullmatch(one) and SHA_SPELLING.fullmatch(other)):
         return False
     return one.startswith(other) or other.startswith(one)
 

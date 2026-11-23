@@ -984,13 +984,33 @@ class Test_sealed_names:
 
 
 class Test_ref_is_commit:
-    @pytest.mark.parametrize("ref", [None, "", "bbb2", "bbb2222" + "0" * 33])
+    @pytest.mark.parametrize("ref", [None, "", "BBB2222", "bbb2222" + "0" * 33])
     def test_accepts_no_ref_or_a_hex_spelling_of_the_commit(self, ref):
         assert stamp.ref_is_commit(ref, "bbb2222")
 
-    @pytest.mark.parametrize("ref", ["b", "bbb-x", "origin/base", "ccc2222"])
+    @pytest.mark.parametrize("ref", ["b", "bbb2", "bbb-x", "origin/base", "ccc2222"])
     def test_refuses_a_branch_whose_name_begins_the_commit(self, ref):
         assert not stamp.ref_is_commit(ref, "bbb2222")
+
+    @pytest.mark.parametrize(
+        ("ref", "commit", "same"),
+        [
+            ("bbb2", "bbb2222", False),
+            ("bbb222", "bbb2222", False),
+            ("bbb2222", "bbb2222", True),
+            ("BBB2222", "bbb2222", True),
+            ("bbb2222abc", "bbb2222", True),
+            ("cafe", "cafe123", False),
+            ("deadbee", "deadbee", True),
+            ("zzzzzzz", "zzzzzzz", False),
+        ],
+    )
+    def test_answers_as_a_refusal_record_is_matched(self, tmp_path, ref, commit, same):
+        """1795401822 S3: the base's ref and a refusal record's target are
+        held to one rule of whether two spellings name one commit."""
+        stamp.record_refusal(str(tmp_path), ITEM_ID, commit)
+        assert stamp.ref_is_commit(ref, commit) is same
+        assert stamp.refused_here(str(tmp_path), ITEM_ID, ref) is same
 
 
 # --- which form -------------------------------------------------------------------
