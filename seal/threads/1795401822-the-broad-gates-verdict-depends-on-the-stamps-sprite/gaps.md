@@ -10,9 +10,6 @@
 
 ## Not done
 
-Phase 1 took nothing of phase 2 of `frame/plan.md` *Phases*, *Scope*
-item 5, which a later crafter builds.
-
 `skills/code-review/orchestration.md:533` still names a `python3` that
 cannot load `seal_stamp.py` as the case where the `Stop` hook draws
 nothing, and not a malformed sprite. `frame/design.md` *Scope*, *Out*
