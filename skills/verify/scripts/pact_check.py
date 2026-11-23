@@ -115,8 +115,9 @@ A pact under local mode has no history, so every mismatch there reads
      of the machine-local map it cannot use, a `BROKEN` anchor, an anchor
      row it cannot grade or does not read, a row naming a pact the signer
      does not declare, a `pact:` token, a `Pact` key that will not parse,
-     a relationship recorded on one side only, or a pact's repository with
-     no origin remote
+     a relationship recorded on one side only, a pact's repository with
+     no origin remote, or a git command that did not start or did not
+     finish within `lib/gitcmd.py#TIMEOUT`, named in one line
 
 `BROKEN` is exit 2 and a mismatch is exit 1. A `NOT READ` line is in no
 exit class. Nothing is ever written.
@@ -127,7 +128,6 @@ import glob
 import json
 import os
 import re
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -282,17 +282,10 @@ EXIT_TWO = frozenset({BROKEN, ONE_SIDED, REFUSED, UNREADABLE})
 
 
 def git(root, *args):
-    """Git's stdout in ROOT, or None where git refused."""
-    try:
-        done = subprocess.run(
-            ["git", "-C", root, *args],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=60,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
+    """Git's stdout in ROOT through `lib/gitcmd.py#git`, or None where git
+    refused. A git that did not answer raises `lib/gitcmd.py#Failed`, which
+    `main` reads as exit 2."""
+    done = sibling.load("lib/gitcmd.py").git(root, *args)
     return done.stdout if done.returncode == 0 else None
 
 
@@ -641,7 +634,9 @@ def check(root, out=sys.stdout, home_dir=None):
     def say(line):
         out.write(line + "\n")
 
-    repo = optin.repo_root(os.path.abspath(root))
+    # `toplevel` raises where git did not answer, so a git that hung is not
+    # read as no repository.
+    repo = optin.toplevel(os.path.abspath(root))
     if not repo:
         say(
             f"seal pact: {shown(root, home_dir=home_dir)} is not in a git "
@@ -865,7 +860,11 @@ def main(argv=None):
         help="the pact's repository (default: the current directory)",
     )
     args = ap.parse_args(argv)
-    return check(args.root)
+    try:
+        return check(args.root)
+    except sibling.load("lib/gitcmd.py").Failed as unanswered:
+        print(f"seal pact: {unanswered.line}")
+        return 2
 
 
 if __name__ == "__main__":
