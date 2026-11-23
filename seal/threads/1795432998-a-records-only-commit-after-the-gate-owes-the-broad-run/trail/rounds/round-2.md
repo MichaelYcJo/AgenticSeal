@@ -108,6 +108,11 @@ a shorter path is no fix: the next worktree of this repository meets
 the same limit.
 ```
 
+```seal
+verdict: fixed 9105342bb
+answer: Option (a), as `frame/design.md` *Scope* item 1 and the last row of `frame/plan.md` *Judgments of the run* chose it. The third row's *Held by* cell in `skills/core/SKILL.md` now reads "`agents/sealer.md` step 1 and the same check's broad gate arm" and restates no rule. In this worktree, whose root is 124 characters, the rendered core is 9,950 characters, and 9,578 of them do not depend on the path, so the case passes for a root of up to 140 characters. `bin/test tests/lib/test_core.py -q` passes here (16 passed). With the old cell put back through `seal mutate`, `test_the_trees_core_stays_under_the_harness_cap` fails with `AssertionError: 10106`, which is the figure the finding predicted for this root. No sentence of `changelog.md` describes the cell, so the fragment stays as it is. `tests/lib/test_core.py` is unchanged.
+```
+
 ## Confirmations
 
 ```seal
