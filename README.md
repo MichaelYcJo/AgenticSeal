@@ -283,7 +283,8 @@ pays, and `docs/running/the-run.md` *The run* gives the point where it
 weighs that.
 
 After the rounds, the session runs the broad gate once: the full suite, lint
-and typecheck, at the commit the pull request will carry. No agent runs it,
+and typecheck, at the pull request's head commit or at one that only the work
+item's records follow. No agent runs it,
 because a full run taken mid-review is spent by the next fix
 (`docs/running/the-broad-gate.md`). The sealer reads the gate's record and
 every other party's, checks that the pull request body `seal pr-body` wrote
