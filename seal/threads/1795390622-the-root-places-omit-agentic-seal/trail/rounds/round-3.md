@@ -112,6 +112,11 @@ Five policy files say that `seal pr-body` refuses where a language key is absent
 `skills/commit-pr-convention/SKILL.md:121-123` and `:321-323`
 ```
 
+```seal
+verdict: fixed 6b2fa3a54
+answer: The finding holds. The orchestrator applied the paste-ready text as given: `changelog.md` item 3 and process row 2 name the five policy files that keep their sentence, and `frame/design.md` G11 and the *Removes* row name them and the commit skill's `:121-123`. In the same commit `pr.md`'s two coordinates name the row on the title's prefix, since the run's stop row now shares its date. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ## Confirmations
 
 ```seal
