@@ -214,8 +214,9 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # each of these documents names to its reader: the orchestrator, the
     # crafter, and the person choosing the `Broad gate` key.
     # `skills/verify/orchestration.md` names it as its bullet's bold lead.
-    # Since #1578 `skills/code-review/orchestration.md` cites that bullet's
-    # section for the words and names none of them.
+    # Since #1578 the orchestrator's broad-run step cites that bullet's
+    # section for the words and names none of them; since #1579 that step
+    # stands in `skills/code-review/gate-to-pull-request.md`.
     readers = {
         ("agents", "crafter.md"): "`new?`",
         ("skills", "verify", "orchestration.md"): "**`new?`**",

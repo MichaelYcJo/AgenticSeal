@@ -473,9 +473,9 @@ def moved_line(root, base):
     an upstream — answers with something that is not `origin/<base>`, and the
     workflow spells `origin/<base>` literally. Where the two part, the line
     says what THIS checkout declares and names the ref a runner would read
-    beside it. `skills/code-review/orchestration.md` has the orchestrator
-    quote this line, so a sentence that can be wrong here is wrong in what
-    a person reads.
+    beside it. `skills/code-review/gate-to-pull-request.md` has the
+    orchestrator quote this line, so a sentence that can be wrong here is
+    wrong in what a person reads.
 
     **And it names a runner's ref only where a runner could hold one.** One
     spelling would over-claim the clause above: `--base @{-1}` passes
@@ -2211,10 +2211,10 @@ def gate(args, ascii_marks=False):
     checks = {}
     # The first of `verify`'s four conditions is to name the command before
     # running it, and the command is the only part of this run the gate did
-    # not choose. `skills/code-review/orchestration.md` asks the orchestrator
-    # to quote the gate's lines and let the reader judge them, so the command
-    # is written here, on stderr: `run` writes it only to the kept output
-    # file, which the report does not quote.
+    # not choose. `skills/code-review/gate-to-pull-request.md` asks the
+    # orchestrator to quote the gate's lines and let the reader judge them,
+    # so the command is written here, on stderr: `run` writes it only to the
+    # kept output file, which the report does not quote.
     said = moved_line(root, base)
     if said:
         sys.stderr.write(said + "\n")
