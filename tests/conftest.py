@@ -551,10 +551,10 @@ def posix_row_shell_or_skip():
     a POSIX shell, and it keeps asserting on a POSIX machine whose `/bin/sh`
     is something nobody expected.
 
-    A case that only reads a REFUSAL needs none of this. `not_as_written` is
-    a string test that reaches no shell, and the refusal is right on both
-    platforms — `templates/setup/config.md` names what each shell does with the
-    forms it lists.
+    A case that only reads a REFUSAL needs none of this. `not_as_written`
+    reaches no shell: it reads the value, the platform and the root, and a
+    case passes the platform it means — `templates/setup/config.md` names
+    what each shell does with the forms it lists.
     """
     try:
         r = subprocess.run(

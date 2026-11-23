@@ -60,7 +60,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     assert command and (KEY, command) in pairs, (
         f"the command the gate reads is not the key as written:\n{command}"
     )
-    assert module.not_as_written(home, command) is None, command
+    assert module.not_as_written(home, command, ROOT) is None, command
 
 
 def test_the_policy_names_the_value_the_gate_row_reads():
