@@ -72,8 +72,9 @@ def _lines(text):
 
 def words(text):
     """TEXT as a list of words: fenced blocks and heading lines dropped, a
-    quoted section name made one token, then lowercased and stripped of
-    `` ` ``, `*`, `|`, `>` and `#`."""
+    quoted section name made one token with the italic row name a link puts
+    before it (`SECTION`), then lowercased and stripped of `` ` ``, `*`,
+    `|`, `>` and `#`."""
     kept, fence = [], None
     for line in _lines(text):
         opened = FENCE.match(line)
