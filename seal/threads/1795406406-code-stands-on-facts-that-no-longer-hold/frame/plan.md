@@ -41,7 +41,7 @@ The failure scenario of the chosen approach, six months on: a person who kept a 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* item 1 | `bin/test -q tests/behaviour/test_a_declared_label_reaches_the_tracker.py tests/github/test_close_issues_on_release.py tests/github/test_label_merged_on_release_branch.py` passes; design S5 and S6 hold | |
+| 1 | *Scope* item 1 | `bin/test -q tests/behaviour/test_a_declared_label_reaches_the_tracker.py tests/github/test_close_issues_on_release.py tests/github/test_label_merged_on_release_branch.py` passes; design S5 and S6 hold | `7403ea0bc` |
 | 2 | *Scope* items 5, 6, 7 and 8 | `bin/test -q tests/lib/test_gaps.py tests/lib/test_items.py tests/lib/test_fields.py tests/lib/test_config.py tests/lib/test_routing.py tests/skills/test_rule_changes.py tests/skills/test_settle.py tests/github/test_finding_counts.py tests/skills/test_unverified_check.py tests/skills/test_chain_check.py` passes; design S10 to S13 are each seen red against `89fefd100`, and S14 holds | |
 | 3 | *Scope* items 2 and 4 | `bin/test -q tests/skills/test_unverified_check.py tests/skills/test_seal.py` passes; design S2, S3 and S8 are each seen red against `89fefd100`, S1 passes, and S4 and S9 hold | |
 | 4 | *Scope* item 3 | `bin/test -q tests/skills/test_chain_check.py tests/skills/test_pr_body.py tests/skills/test_broad_gate.py tests/github/test_finding_counts.py tests/github/test_release_seal.py` passes; design S7 holds | |
