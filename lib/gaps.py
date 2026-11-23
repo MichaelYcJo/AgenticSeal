@@ -21,9 +21,10 @@ reads as closed and which only a reader catches.
 
 Deliberately a text scan of markdown, not a parser library: its lines are
 `lib/lines.py`'s, a row's cells `lib/tables.py#table_cells`', its items
-`lib/items.py`'s, and the sentence a comment line is refused with
-`lib/fields.py`'s, each imported beside it. Standard
-library only, and Python 3.9 syntax, as every module under `lib/`.
+`lib/items.py`'s, the sentence a comment line is refused with
+`lib/fields.py`'s, and the memo's file name `lib/optin.py#GAPS`, each
+imported beside it. Standard library only, and Python 3.9 syntax, as every
+module under `lib/`.
 """
 
 import os
@@ -43,11 +44,9 @@ from lines import (
     sections,
     visible,
 )
+from optin import GAPS
 from tables import table_cells
 
-# A thread's closing memo, at the thread's top: `lib/optin.py#GAPS`, which a
-# case holds this to.
-OVERVIEW = "gaps.md"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
 CLOSED = "closed"
@@ -284,7 +283,7 @@ def open_record_rows(root, directory):
     holds no row."""
     try:
         with open(
-            under_root(root, f"{directory}/{OVERVIEW}"),
+            under_root(root, f"{directory}/{GAPS}"),
             encoding="utf-8",
             errors="replace",
         ) as f:
@@ -294,7 +293,7 @@ def open_record_rows(root, directory):
     rows, _, errors = check_text(overview)
     found = []
     if errors:
-        found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
+        found.append((GAPS, f"cannot be read ({errors[0][1]})"))
     for _, item, _who in rows:
-        found.append((OVERVIEW, item))
+        found.append((GAPS, item))
     return found

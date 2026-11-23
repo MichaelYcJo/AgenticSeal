@@ -226,8 +226,8 @@ except ImportError:
     raise SystemExit(2) from None
 
 # A thread's places, `lib/optin.py`'s: the sub-directory of the root that
-# holds the work items, a thread's design, its plan and its changelog
-# fragment.
+# holds the work items, a thread's design, its plan, its changelog fragment
+# and its closing memo.
 _optin = sibling.load(OPTIN)
 # The runner every git and `gh` command this starts runs through.
 # `lib/optin.py` loads it already, so this costs no file.
@@ -236,6 +236,7 @@ WORK_ITEMS = _optin.WORK_ITEMS
 DESIGN = _optin.DESIGN
 PLAN = _optin.PLAN
 CHANGELOG = _optin.CHANGELOG
+GAPS = _optin.GAPS
 # The section and table of the plan the orchestrator writes its judgments of
 # the run to (`templates/records/sdd-plan.md`).
 JUDGMENTS = "Judgments of the run"
@@ -1104,19 +1105,19 @@ def open_rows(root, records, ids, reader, specs):
     return out
 
 
-def misplaced(records, work_item_id, reader, specs):
+def misplaced(records, work_item_id, specs):
     """`[(path, place)]` for each misplaced record file in the work item's
     directory under SPECS (`threads`) in RECORDS, sorted: a regular file, or
     a link to one, whose
     name is the last part of a record this reads in the directory, the
-    closing memo (`lib/gaps.py#OVERVIEW`), `DESIGN` or `PLAN`, and
+    closing memo (`GAPS`), `DESIGN` or `PLAN`, and
     whose path from the directory is not that record's. PATH is that path,
     and PLACE is the record's.
 
     Only the exact name is read, and no file's content: whether such a file
     holds what its record would is the settling session's to judge. A linked
     directory is not followed."""
-    places = {p.rsplit("/", 1)[-1]: p for p in (reader.OVERVIEW, DESIGN, PLAN)}
+    places = {p.rsplit("/", 1)[-1]: p for p in (GAPS, DESIGN, PLAN)}
     top = under(records, f"{specs}/{work_item_id}")
     out = []
     for here, _dirs, names in os.walk(top):
@@ -1532,9 +1533,7 @@ def survey(root, ref, home=None, every=False):
         "why": why,
         "timeline": timeline(root, ref, ids, reader, records, specs, merged),
         "rows": open_rows(root, records, ids, reader, specs),
-        "misplaced": [
-            (i, held) for i in ids if (held := misplaced(records, i, reader, specs))
-        ],
+        "misplaced": [(i, held) for i in ids if (held := misplaced(records, i, specs))],
         "judgments": judgments(records, ids, specs),
         "earlier": earlier_judgments(root, ref, present, specs, every),
         "nothing": sibling.load(ITEMS).NOTHING,
@@ -1952,7 +1951,7 @@ def closed_rows(records, directory, reader):
     """`[(item, what closed it)]` for each closed row of DIRECTORY's record
     under RECORDS in the working tree, read by
     `lib/gaps.py#check_text`."""
-    text = read_text(records, f"{directory}/{reader.OVERVIEW}")
+    text = read_text(records, f"{directory}/{GAPS}")
     if text is None:
         return []
     _, closed, _ = reader.check_text(text)
@@ -1990,7 +1989,7 @@ def apply(found, root, out):
         rows = held[work_item_id]
         unread = [
             f"    not read: {MISPLACED.format(path=f'{directory}/{rel}', place=place)}\n"
-            for rel, place in misplaced(records, work_item_id, reader, specs)
+            for rel, place in misplaced(records, work_item_id, specs)
         ]
         if rows:
             kept += 1
@@ -2017,7 +2016,7 @@ def apply(found, root, out):
             out.write(f"    {line}\n")
         out.write("".join(unread))
         for item, who in closed:
-            out.write(f"    closed in {reader.OVERVIEW}: {item}\n")
+            out.write(f"    closed in {GAPS}: {item}\n")
             out.write(f"        what closed it: {who}\n")
     policy = policy_root(root)
     if os.path.isdir(under(root, policy)):

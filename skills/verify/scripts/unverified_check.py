@@ -59,7 +59,8 @@ GAPS = sibling.load("lib/gaps.py")
 CONSOLE = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
 # `lib/optin.py`, whose `WORK_ITEMS` names the directory under a `seal/`
-# root that holds the threads.
+# root that holds the threads, and whose `GAPS` names a thread's closing
+# memo.
 OPTIN = sibling.load("lib/optin.py")
 SKIP_DIRS = {
     ".git",
@@ -97,8 +98,8 @@ def overviews(paths):
                 for d in dirs
                 if d not in SKIP_DIRS and not (skip and skip(os.path.join(root, d)))
             )
-            if GAPS.OVERVIEW in files:
-                found.append(os.path.join(root, GAPS.OVERVIEW))
+            if OPTIN.GAPS in files:
+                found.append(os.path.join(root, OPTIN.GAPS))
     return sorted(dict.fromkeys(found))
 
 
@@ -354,7 +355,7 @@ def main(argv=None):
                 print((SETTLED if settled_root(p) else UNWRITTEN).format(path=p))
             return 0
         print(
-            f"seal unverified: no {GAPS.OVERVIEW} found under "
+            f"seal unverified: no {OPTIN.GAPS} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )
