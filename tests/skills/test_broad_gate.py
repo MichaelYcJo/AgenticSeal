@@ -1932,6 +1932,18 @@ class Test_gate:
         with pytest.raises(gate.Refused, match="--base nowhere does not resolve"):
             gate.gate(namespace(repo, tmp_path / "out", base="nowhere"))
 
+    def test_refuses_to_read_a_git_that_did_not_answer_as_no_repository(
+        self, repo, tmp_path, monkeypatch
+    ):
+        """#1573: a git past `lib/gitcmd.py#TIMEOUT` for the repository's top
+        raises the runner's `Unrun`, which `main` writes as the refusal, and
+        is not `Refused` as a root outside any repository. Seen red with
+        `lib/optin.py#repo_root` asked in place of `toplevel`."""
+        asked = unanswered(monkeypatch, "rev-parse", "--show-toplevel")
+        with pytest.raises(gate.gitcmd_module().Unrun) as raised:
+            gate.gate(namespace(repo, tmp_path / "out"))
+        assert raised.value.line == past_the_bound(asked[0])
+
     def test_refuses_a_root_that_is_no_repository_or_not_opted_in(self, tmp_path):
         with pytest.raises(gate.Refused, match="is not in a git repository"):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
