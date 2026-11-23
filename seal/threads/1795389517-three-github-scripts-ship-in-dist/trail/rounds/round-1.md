@@ -28,6 +28,11 @@ The fix rewrites the two sentences of `changelog.md:3`. No other statement carri
 `seal rules`, `seal pr-body` and `chain-check` keep their arguments, output and exit codes, and `bin/test` keeps its arguments and exit codes. `bin/test` in a copy with no `tests/` beside it, such as `dist`'s, now answers with its own sentence that no runner stands beside it, where the runner `dist` used to hold answered that no `tests` directory stood there, and it still exits 2.
 ```
 
+```seal
+verdict: fixed 43062a75e
+answer: The finding holds. Read `bin/test:30-33` and `641b6bfb5:.github/scripts/run_tests.py:551`: at the base `dist` held the runner, which refused with "there is no tests directory", and at HEAD `bin/test` refuses with "this copy of bin/ has no runner beside it"; both exit 2. The two sentences of `changelog.md:3` are rewritten in the fix pass's own words, split into three shorter sentences, with the paste-ready fix's facts: `bin/test` keeps its arguments and exit codes, prints its own refusal in `dist` now, and the runner `dist` held answered before. No other record states the claim (executed `git grep -n "keep their arguments, output"` over the work item, which prints `changelog.md:3`, `frame/plan.md:66` and this record).
+```
+
 ### 2. The plan says the release's other items run after this one and none is branched, and two run beside it
 
 ```seal
@@ -42,6 +47,11 @@ The table's closing paragraph, `frame/plan.md:60`, says no file this work change
 
 ```markdown
 The spawn named eleven other items of the release. The owner asked on 2026-11-23 for them to run side by side where they can, so #1577 and #1578 run in worktrees beside this one (`routing.md` *Why this way*, the Version item). This item merges into `release/v0.38.6` first in every row, each of the others merges the base before its broad run, and each row names the new path the later framer reads.
+```
+
+```seal
+verdict: fixed 867e1c39c
+answer: The orchestrator's fold at 867e1c39c replaced `frame/plan.md:48` with the round's paste-ready text, word for word (executed `git show 867e1c39c`). Read against HEAD it holds: it matches `routing.md:24`, the Version item, which names #1577 and #1578 running in worktrees beside this item and this item merging first, and the table's rows still each put #1571 first. A fix pass does not edit the frame, so this pass made no commit for it.
 ```
 
 ### 3. The runner's `splitlines` exemption stands in a file that census no longer reads
@@ -73,6 +83,11 @@ SHIPPED = ("lib/", "skills/", ".github/scripts/")
 ```
 
 The snippet stops at the constant. The docstrings at `tests/censuses.py:805` ("No shipped reader") and `:869` ("No shipped script") and the comment above `HEADING_SPELLING` use "shipped" for the same set. With the comment in place they read against it. The fix pass weighs whether they or the constant's name owe a change too.
+
+```seal
+verdict: fixed 9a9bf18ae
+answer: The finding holds. `tests/run_tests.py`'s `# exempt from splitlines: pyvenv.cfg` is removed. `tests/censuses.py` keeps `SHIPPED` and its value, and a comment above it now says the scope is `lib/` and `skills/`, which the plugin ships, plus the release automation under `.github/scripts/`, which `dist` does not hold, and that nothing under `tests/` is read. The `splitlines` and `heading_rule` docstrings and the comment above `HEADING_SPELLING` now say "under `SHIPPED`" where they said "shipped". The constant keeps its name, because the comment states what it holds and a rename would change two call sites for no reader. The class was enumerated by its cause: a file the range moved across the scope's edge. The range moved three `.py` files, and only `tests/run_tests.py` left the scope; `skills/settle/scripts/rules.py` entered it, and its exemption at `:502` is read and held by the census. Executed: `bin/test tests/text tests/behaviour tests/test_run_tests.py tests/test_censuses.py tests/test_conftest.py tests/github/test_publish_release_note.py -q`, 1462 passed, exit 0.
+```
 
 ## Confirmations
 
