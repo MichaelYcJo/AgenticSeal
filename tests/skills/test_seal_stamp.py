@@ -1000,6 +1000,7 @@ class Test_ref_is_commit:
             ("bbb2222", "bbb2222", True),
             ("BBB2222", "bbb2222", True),
             ("bbb2222abc", "bbb2222", True),
+            ("bbb2222" + "0" * 34, "bbb2222", False),
             ("cafe", "cafe123", False),
             ("deadbee", "deadbee", True),
             ("zzzzzzz", "zzzzzzz", False),
