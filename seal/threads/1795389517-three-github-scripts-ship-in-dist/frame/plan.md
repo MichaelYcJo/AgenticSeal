@@ -45,7 +45,7 @@ The tree as read at `036e7d424`.
 
 ## Overlap with the release
 
-The spawn names eleven other items of the release, none branched yet, and says they run one after another after this one merges. So this item merges first in every row, and each row names the new path the later framer reads.
+The spawn named eleven other items of the release. The owner asked on 2026-11-23 for them to run side by side where they can, so #1577 and #1578 run in worktrees beside this one (`routing.md` *Why this way*, the Version item). This item merges into `release/v0.38.6` first in every row, each of the others merges the base before its broad run, and each row names the new path the later framer reads.
 
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
