@@ -1733,8 +1733,8 @@ def left_workflow_line(text):
     pin, version = pinned(text), plugin_version()
     if version and pin == "v" + version:
         return (
-            f"{WORKFLOW} stays: in local mode its checks examine nothing and "
-            "pass, and `seal pr-checks remove` takes them out"
+            f"{WORKFLOW} stays: in local mode its checks read nothing as "
+            "declared and pass, and `seal pr-checks remove` takes them out"
         )
     named = pin or "no release its clone line names"
     here = (

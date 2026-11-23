@@ -2743,7 +2743,8 @@ class Test_switch:
         assert open(workflow, encoding="utf-8").read() == SEAL.plugin_workflow()
         assert (
             "  .github/workflows/hygiene.yml stays: in local mode its checks "
-            "examine nothing and pass, and `seal pr-checks remove` takes them out\n"
+            "read nothing as declared and pass, and `seal pr-checks remove` "
+            "takes them out\n"
         ) in out
         # The two commands `seal mode local` prints for moving the records
         # between clones, which the person who switched runs.
@@ -2791,7 +2792,7 @@ class Test_switch:
             "this one fails every pull request with no seal/ in the tree. Move "
             f"its `--branch` line to {to}, or run `seal pr-checks remove`\n"
         ) in out
-        assert "examine nothing" not in out, out
+        assert "read nothing as declared" not in out, out
 
     def test_accepts_local_to_shared_and_says_the_commit_is_the_door(
         self, take, capsys
