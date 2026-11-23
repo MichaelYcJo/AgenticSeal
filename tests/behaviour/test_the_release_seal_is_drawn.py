@@ -15,16 +15,14 @@ from conftest import ROOT, code_lines, flat
 from conftest import load_module as load
 from workflows import load as load_workflow
 
-# No TARGET: its cases hold the release seal across .github/workflows/publish-release.yml, .github/scripts/run_tests.py and docs/releasing/release-checklist.md.
+# No TARGET: its cases hold the release seal across .github/workflows/publish-release.yml, tests/run_tests.py and docs/releasing/release-checklist.md.
 
 
 def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
     """S16 (#718). The `seal` job's install line carries the parser exactly
     as `run_tests.py` pins it, so the suite at the tag runs on the version
     every other run of the suite uses."""
-    runner = load(
-        os.path.join(ROOT, ".github", "scripts", "run_tests.py"), "rt_for_seal"
-    )
+    runner = load(os.path.join(ROOT, "tests", "run_tests.py"), "rt_for_seal")
     workflow = load_workflow(
         os.path.join(".github", "workflows", "publish-release.yml")
     )

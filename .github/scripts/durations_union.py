@@ -35,7 +35,7 @@ A count split, where no shard restored a union, widens the spread.
 
 Exit codes: 0 wrote the union and its report; 2 refused and wrote nothing.
 
-The standard library only, at the floor `.github/scripts/run_tests.py#FLOOR`
+The standard library only, at the floor `tests/run_tests.py#FLOOR`
 states, which is the Python the job installs.
 """
 

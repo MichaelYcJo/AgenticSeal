@@ -128,8 +128,8 @@ line in any of them.
 check: tests/text/test_every_agent_reads_the_contract.py
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
-(`.github/scripts/rules.py`), which reads every check line in a rule file,
-refuses one the grammar refuses and names one it did not read. At the pull
+(`skills/settle/scripts/rules.py`), which reads every check line in a rule
+file, refuses one the grammar refuses and names one it did not read. At the pull
 request, `chain-check` asks the same reader for each check line inside an
 `add` or `change` `to` of a design, and refuses a line that reader refuses
 at that line of the design. A refused

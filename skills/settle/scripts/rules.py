@@ -67,7 +67,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
 # first module `sibling` is asked for.
 sys.path.insert(0, os.path.join(ROOT, "lib"))

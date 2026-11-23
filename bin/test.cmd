@@ -4,7 +4,7 @@ rem a pair, or it is one platform. Note that POSIX shells resolve a bare
 rem `test` to their own builtin, so both files are typed as bin/test.
 setlocal
 set "here=%~dp0"
-set "script=%here%..\.github\scripts\run_tests.py"
+set "script=%here%..\tests\run_tests.py"
 
 if not exist "%script%" (
   echo bin/test runs AgenticSeal's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of the AgenticSeal repository. 1>&2

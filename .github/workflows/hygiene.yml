@@ -44,9 +44,9 @@ jobs:
       # body wrote `Closes #153 and #150`; the 0.8.0 release closed #153 and
       # left #150 open, and somebody closed it by hand afterwards. Nothing
       # malfunctioned — GitHub reads it that way and so does
-      # `close_issues_on_release.py`, whose own comment over `KEYWORDS` says
-      # so. The rule was written down in the one file whose
-      # author needs it least while the prose is being written.
+      # `close_issues_on_release.py`, through `lib/closing.py`, whose comment
+      # over `KEYWORDS` says so. The rule was written down in the one file
+      # whose author needs it least while the prose is being written.
       #
       # So this reports the split — every number the body claims, every one it
       # merely mentions — and never fails. A check that goes red on prose
@@ -80,12 +80,16 @@ jobs:
           fi
           base="origin/${{ github.base_ref }}"
           changed=$(git diff --name-only "$base"...HEAD)
-          # What the plugin loader reads or puts in front of a user: `bin/` is
-          # on the Bash tool's PATH while the plugin is enabled, so a wrapper
-          # fix ships like a skill does. It was missing here and nothing said
-          # so; `tests/behaviour/test_the_release_check_watches_what_ships.py` now
-          # classifies every top-level entry against this list (#10).
-          ships=$(echo "$changed" | grep -E '^(skills|agents|hooks|lib|templates|bin|\.claude-plugin)/' || true)
+          # Every top-level directory `git archive` holds that an installed
+          # copy reads. The loader reads `skills/`, `agents/`, `hooks/` and
+          # the manifest and puts `bin/` on the Bash tool's PATH (#10), the
+          # shipped scripts import `lib/`, a skill bootstraps a repository
+          # from `templates/`, and an installed agent opens `docs/` at the
+          # plugin's root (#1571).
+          # `tests/behaviour/test_the_release_check_watches_what_ships.py`
+          # holds this list to the archive and to the entries it holds that
+          # nothing installed reads, `assets/` among them.
+          ships=$(echo "$changed" | grep -E '^(skills|agents|hooks|lib|templates|bin|docs|\.claude-plugin)/' || true)
           if [ -z "$ships" ]; then
             echo "nothing that ships changed"; exit 0
           fi
@@ -173,7 +177,7 @@ jobs:
       - name: the check lines rules.py did not read
         shell: bash
         run: |
-          out=$(python3 .github/scripts/rules.py --check) || true
+          out=$(python3 skills/settle/scripts/rules.py --check) || true
           printf '%s\n' "$out" | sed -n 's/^seal rules: not read: \([^:]*\):\([0-9]*\): /::notice file=\1,line=\2::not read: /p'
 
       # A reminder, not a gate: the language policy keeps the Korean README a

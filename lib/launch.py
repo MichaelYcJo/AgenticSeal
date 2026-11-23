@@ -10,7 +10,7 @@ The one such wrapper is `bin/seal`, and each tool `seal` runs as a
 subcommand is handed to the interpreter this file already held to the floor
 (`skills/implement/scripts/seal.py#tool_command`).
 
-`bin/test` hands `.github/scripts/run_tests.py` to the interpreter itself,
+`bin/test` hands `tests/run_tests.py` to the interpreter itself,
 because that script's job begins below the floor: on an older `python3` it
 builds a virtualenv at or above `FLOOR`, with `uv` or a newer interpreter it
 finds, and runs the suite there. A refusal at entry would stop the one script
@@ -22,7 +22,7 @@ Otherwise it runs the script as `__main__`, with `sys.argv`, `sys.path[0]`
 and `__file__` set the way running the script directly sets them, so the
 script's sibling imports and its own path behave as they would.
 
-**This file is the floor's one source.** `.github/scripts/run_tests.py`
+**This file is the floor's one source.** `tests/run_tests.py`
 reads `FLOOR` from it. `ruff.toml`'s `target-version` cannot import, so
 `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` holds it equal.
 

@@ -10,16 +10,16 @@ So the environment is built once, at `.venv` in the repository root, and
 reused afterwards. The first call pays for it; every call after it pays for
 Python's startup and nothing else.
 
-**This lives under `.github/` rather than under `skills/` because it runs
-THIS repository's suite**, and `.github/scripts/` is where this repository's
-own automation already lives. That location hides nothing: the plugin ships
-from the repository root, so a user's cache holds `.github/scripts/` and
-`tests/` beside `bin/` -- read at 0.5.0, 0.7.0, 0.8.0 and 0.8.1.
+**This lives under `tests/`, beside the suite it runs, because it runs THIS
+repository's suite** and no installed command reads it. `tests/` leaves
+every `git archive` of this repository (`.gitattributes`), so `dist` holds
+`bin/test` with no runner beside it, and `bin/test` answers there with its
+own sentence. A copy installed from the repository's tree holds `tests/`
+beside `bin/`.
 
 What keeps a plugin user out of this suite is that `test` is a shell builtin,
 so PATH never offers `bin/test` however many copies are on it; reaching this
-file means typing a path into a versioned cache directory on purpose. The
-check below is for the other case, a copy of `bin/` taken on its own.
+file means typing a path into a versioned cache directory on purpose.
 
 Every failure here is a sentence rather than a traceback. This command writes
 to the working tree the first time it runs, and half-building a virtualenv on
@@ -75,7 +75,7 @@ from pathlib import Path
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
 # loads every other module this file reads.
 sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib")
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib")
 )
 import sibling
 
@@ -135,7 +135,7 @@ PYTEST_SPLIT = f"pytest-split=={PYTEST_SPLIT_VERSION}"
 # `.dist-info` directory that version leaves under site-packages, the module
 # under `tests/` that imports it, and what that module is, for the sentence
 # `add_pin` prints. A pin added here is built, adopted and reported with the
-# others, and its cases in `tests/github/test_run_tests.py` run over this
+# others, and its cases in `tests/test_run_tests.py` run over this
 # table.
 Pin = collections.namedtuple("Pin", "spec dist_info module role")
 PINS = (
@@ -166,8 +166,8 @@ PACKAGES = ("pytest", "pytest-xdist", *(pin.spec for pin in PINS))
 
 
 def repo_root():
-    """The repository this file belongs to: `.github/scripts/` up two."""
-    return Path(__file__).resolve().parent.parent.parent
+    """The repository this file belongs to: `tests/` up one."""
+    return Path(__file__).resolve().parent.parent
 
 
 def venv_python(venv):
@@ -369,7 +369,6 @@ def venv_version(venv):
         text = (venv / "pyvenv.cfg").read_text(encoding="utf-8", errors="replace")
     except OSError:
         return None
-    # exempt from splitlines: pyvenv.cfg
     for line in text.splitlines():
         name, sep, value = line.partition("=")
         if not sep or name.strip() not in ("version", "version_info"):

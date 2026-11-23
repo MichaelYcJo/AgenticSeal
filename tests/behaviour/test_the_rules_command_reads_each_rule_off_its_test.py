@@ -1,7 +1,7 @@
 """The settle skill states the grammar the rules command reads.
 
-The cases of `.github/scripts/rules.py`'s functions stand in
-`tests/github/test_rules.py`, and its `Test_module` holds the case that
+The cases of `skills/settle/scripts/rules.py`'s functions stand in
+`tests/skills/test_rules.py`, and its `Test_module` holds the case that
 renders the record layout document. The case that reads the `rule` marker's
 registration stands in `tests/test_conftest.py`'s `Test_module`.
 """
@@ -23,8 +23,8 @@ def test_settle_owns_the_grammar():
     section = text.split("\n## A rule has one shape\n")[1].split("\n## ")[0]
     section = " ".join(section.split())
     for phrase in (
-        # The label `.github/scripts/rules.py#LABEL` matches at a check line,
-        # which a framer writes into a rule.
+        # The label `skills/settle/scripts/rules.py#LABEL` matches at a check
+        # line, which a framer writes into a rule.
         "`check: `",
         # The marker a test carries for a rule its check line names by
         # marker, which `rules.py` reads off the collected tests.

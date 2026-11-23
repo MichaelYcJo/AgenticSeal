@@ -8,7 +8,7 @@ pact anchor table of a work item's `frame/design.md`
 (`skills/verify/scripts/pact_check.py`), a plan's *Judgments of the run*
 (`skills/settle/scripts/settle.py`), the row `settle --draft` places
 (`skills/settle/scripts/rule_changes.py`) and the lines `seal rules` reads
-(`.github/scripts/rules.py`). No setting is read through it:
+(`skills/settle/scripts/rules.py`). No setting is read through it:
 `lib/config.py` reads `config.json` with the standard library's JSON
 parser.
 

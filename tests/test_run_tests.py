@@ -1,4 +1,4 @@
-"""`.github/scripts/run_tests.py`, the runner `bin/test` execs, one class per function.
+"""`tests/run_tests.py`, the runner `bin/test` execs, one class per function.
 
 Issue #156: the repository ships a command for its own suite, and the
 second call is cheap. The form `CONTRIBUTING.md` named before resolved its
@@ -32,9 +32,9 @@ import sys
 import pytest
 from conftest import ROOT, census_case
 
-TARGET = ".github/scripts/run_tests.py"
+TARGET = "tests/run_tests.py"
 
-SCRIPT = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
+SCRIPT = os.path.join(ROOT, "tests", "run_tests.py")
 
 # Held before any test can replace `subprocess.run` on the module the runner
 # imports: `rt.subprocess` IS this module, so a case that fakes the builder's
@@ -805,8 +805,8 @@ class Test_main:
 
 class Test_module:
     def test_the_root_is_the_repository_not_the_scripts_directory(self):
-        """`.github/scripts/` up two. One level off and the virtualenv lands in
-        `.github/`, where nothing looks for it."""
+        """`tests/` up one. One level off and the virtualenv lands in
+        `tests/`, where nothing looks for it."""
         assert rt.repo_root() == pathlib.Path(ROOT).resolve()
 
 
