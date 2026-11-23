@@ -26,6 +26,11 @@ Why it matters: the chain check printed this notice at the `to` line: "this `to`
     check: tests/skills/test_broad_gate.py
 ```
 
+```seal
+verdict: fixed 3f7fa4113
+answer: The orchestrator applied the paste-ready `to` at 3f7fa4113, and the fix pass read that commit against the template and holds it. The `to` keeps the refusal and the reason the gate repairs nothing, and hands the rest to `templates/setup/config.md` *Broad gate*. Each fact it hands on stands there at HEAD: why `cmd.exe` fails on the name and how a key run under both shells is spelt (the paragraph *Which shell runs the command, and what the gate refuses there*), which words are command names (*Which words the gate reads as command names*), and what is named as not read (*What the gate does not read is named, and decides nothing*). The commit changes only the `to` line of `frame/design.md`.
+```
+
 ### 2. A wrapped or backgrounded key's `as meant` line on cmd.exe is a value the gate then refuses
 
 ```seal
@@ -59,6 +64,11 @@ def as_cmd_exe_runs(value, root, windows=None, comspec=None):
 
 The snippet assumes no precondition at an OS boundary beyond the one `not_as_written` already makes: `root` is the directory the command runs in. The fix pass also owes a case in `Test_not_as_written`: `` `bin/test -q` `` on `cmd.exe` in a root that holds `bin/`, whose `as meant` line reads `bin\\test -q`, seen red against the tree as it stands. The other reading, that an `as meant` line strips the wrapper and nothing else, is a choice the fix pass may make instead. Then the template's refused table owes the sentence that on `cmd.exe` the `as meant` value of a wrapped key can be refused again.
 
+```seal
+verdict: fixed 3372bc792
+answer: Taken as the finding's first reading, so no template sentence is owed. `as_cmd_exe_runs` turns, on `cmd.exe` only, each command name the reading refuses in the key as meant of the three older forms, and returns the value as it was under any other shell. It reads the root through `in_root`, the one directory question the new form also asks. `Test_not_as_written#test_refuses_a_wrapped_value_on_cmd_exe_with_a_key_as_meant_it_runs`, one row per form, asserts the `as meant` line `bin\\test -q` and that this value is then not refused. It was red against the tree before the fix, all three rows failing on the `as meant` line (executed). `seal mutate` over each of the four new call sites and over `as_cmd_exe_runs`'s body turned the case red each time (executed, five mutants). `changelog.md` names the change in the same commit. The existing case for the three forms still asks this machine's shell with a root holding no `bin/`, and passes unchanged.
+```
+
 ### 3. The template's list of places where the reading and cmd.exe differ omits a `(` that opens a block, a leading `@` and a redirection that opens the command
 
 ```seal
@@ -86,6 +96,12 @@ the cut and the four separator words.
 
 The existing four bullets stay below this one. The snippet replaces the heading line at `templates/setup/config.md:291`. No other sentence states the list: `broad_gate.py:861-864` names the glued separator and points at the template for the rest.
 
+```seal
+verdict: fixed b85f55619
+location: `templates/setup/config.md`, `skills/verify/scripts/broad_gate.py`, `seal/threads/1795390621-the-broad-gate-rewrites-cmd-exe-commands/changelog.md`, `seal/threads/1795390621-the-broad-gate-rewrites-cmd-exe-commands/gaps.md`
+answer: Fixed in the fix pass's own words, under the orchestrator's guidance that the shapes `cmd.exe` reads beyond the reading are an open set, so the paste-ready bullet, which adds three more shapes to four, was not applied. The section *Where the reading and `cmd.exe` differ* now opens with the rule: the reading above is the whole of what the gate decides by, it models nothing else of `cmd.exe`, the root is read before anything runs, and so the two can disagree in either direction. Each direction is one bullet that states its rule and what a key that leaves the rule gets. A name `cmd.exe` runs where the reading takes none is neither refused nor named, and a word the reading takes that `cmd.exe` would not run is refused. Each shape is given as an example under one of the two: the leading `@`, the redirection, the glued separator and the directory a `cd` or an earlier command brings, under the first; `rem` and the glued switch under the second. No sentence counts the shapes. The one other statement of the list, in `not_as_written`'s docstring (*names that bound with the others*), now states the same rule and points at the template (3372bc792). `changelog.md` gains the sentence that a name the reading does not take is neither refused nor named. `gaps.md` gains a *Not verified* row for what the template says `cmd.exe` does with the new examples, which no run under `cmd.exe` stands behind (2fbde64a9). The bullet of `gaps.md` that `pr.md` quotes is unchanged, and so are `frame/design.md` *Scope* item 6 and `frame/plan.md`, which state the bounds as a list; the hand-back names them for the orchestrator to fold.
+```
+
 ### 4. On Windows a name that opens with a drive is refused, and the template, the docstring and the changelog say a name is refused only where its part names a directory under the root
 
 ```seal
@@ -103,6 +119,11 @@ drive, so `C:/Python/python.exe` is refused naming `C:\Python\python.exe`.
 ```
 
 The same clause goes into the docstring at `broad_gate.py:858-859`, as "a directory under ROOT, the root the command runs in, or on Windows a drive". It goes into `changelog.md:3` as "is a directory under the repository root, or on Windows a drive such as `C:`".
+
+```seal
+verdict: fixed b85f55619
+answer: Applied as given in the three places. The template's rule sentence names the drive and `C:/Python/python.exe` refused naming `C:\Python\python.exe` (b85f55619). The changelog's sentence reads "or on Windows a drive such as `C:`" (b85f55619). The docstring's sentence reads "or on Windows a drive (`in_root`)", and the directory question now stands in `in_root`, whose docstring says that on Windows a drive answers it because `os.path.join` there answers a drive with a directory on it (3372bc792). The code's answer is unchanged, so no case is owed. Whether `cmd.exe` runs the `/` spelling of a drive path stays the measurement `gaps.md` *Not verified* names.
+```
 
 ### 5. A name that straddles the cut is refused by its truncated part, and the refusal says cmd.exe runs that part
 
@@ -135,6 +156,12 @@ def backslashed(value, refused):
 
 A word that starts before the cut starts at the same offset in both readings, because the two splits agree up to the cut. The fix pass also owes a row in `Test_not_as_written` for `bin/%TOOL% -q` naming `bin/%TOOL%`, seen red as it stands. The docstring of `names_in_a_directory` owes one sentence saying a name the cut splits is named whole.
 
+```seal
+verdict: fixed 3372bc792
+location: `skills/verify/scripts/broad_gate.py`, `tests/skills/test_broad_gate.py`, `templates/setup/config.md`
+answer: `names_in_a_directory` and `backslashed` take the paste-ready fix: a name is asked about on its part before the cut, named as the key holds it, and turned only before the cut. The snippet left one place wrong, the `cmd.exe runs` list, which turned every `/` of the whole name. That list now takes each name's spelling from the key as meant, at the offsets before the cut, so `bin/%TOOL%/x` is named whole and given as `bin\%TOOL%/x`. `names_in_a_directory`'s docstring says a name the cut splits is named whole. `Test_not_as_written#test_refuses_a_name_the_cut_splits_by_naming_it_whole` drives `bin/%TOOL%/x -q`, a `/` on each side of the cut, and was red against the tree before the fix on the line naming the word (executed). `#test_refuses_a_name_that_stands_again_past_the_cut_with_one_spelling` (3248aaaf2) holds the offset filter of the spelling list. `seal mutate` over `whole[at]` in each of the two functions, the offset filter and the de-duplication of that list turned the case each one guards red (executed, four mutants). The template's rule sentence says a name holding a cut character after its `/` is refused on the part before it and named whole (b85f55619).
+```
+
 ### 6. `pr.md` does not quote `frame/questions.md` M1, the default taken under automation on whether this repository's own key runs on Windows
 
 ```seal
@@ -151,6 +178,11 @@ Why it matters: `routing.md` reads `Automation` `yes`, and `frame/questions.md` 
 ```
 
 The two lines go after `pr.md:5` and before `Closes #1577.`.
+
+```seal
+verdict: fixed 3f7fa4113
+answer: The orchestrator added the two lines at 3f7fa4113, after the template row's quote and before `Closes #1577.`, and the fix pass read them against `frame/questions.md` at HEAD: the question and the default each stand there word for word, once (executed: `grep -c -F` on each, 1 and 1). The fix pass's own commits leave every sentence `pr.md` quotes unchanged. They add one `gaps.md` *Not verified* row, on the template's new `cmd.exe` examples (2fbde64a9), which `pr.md` does not quote; whether it should is the orchestrator's.
+```
 
 ## Confirmations
 
