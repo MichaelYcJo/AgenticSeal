@@ -4,7 +4,7 @@
 
 The tree as read at `f885ba546`.
 
-The work changes test modules, `tests/conftest.py`, `tests/workflows.py`, one comment of `skills/settle/scripts/passages.py`, `evals/scripts/behaviour.py`, one sentence of `CONTRIBUTING.md` and one comment of `tests/requirements.txt`. No shipped gate changes what it reads or prints.
+The work changes test modules, `tests/conftest.py`, `tests/workflows.py`, one comment of `skills/settle/scripts/passages.py`, `evals/scripts/behaviour.py`, one sentence of `CONTRIBUTING.md` *Running the checks* and the rewrap of its paragraph and one comment of `tests/requirements.txt`. No shipped gate changes what it reads or prints.
 
 The shared `section` builds on `lib/lines.py#readable`, `#headings`, `#sections` and `#heading_level` (`frame/design.md` G8), loaded once in `tests/conftest.py` through `load_lib_module` (`:448`), which already loads `lib/optin.py` at module level (`:459`). `tests/workflows.py` imports PyYAML at its top, so `tests/conftest.py` stays importable without it (`tests/workflows.py:20-22`), and `parse` goes there for that reason.
 
