@@ -3415,35 +3415,68 @@ class Test_pr_checks:
         assert "not inside a git repository" in out
 
     @pytest.mark.parametrize(
-        "action, held, tail, said_line",
+        "action, held, tail, outcome, said_line",
         [
             (
                 "install",
                 "nothing",
                 ["add", "--", ".github/workflows/hygiene.yml"],
+                TIMED_OUT,
                 "could NOT be staged: `git add -- .github/workflows/hygiene.yml` "
                 "did not finish within 60 seconds\n",
+            ),
+            (
+                "install",
+                "nothing",
+                ["add", "--", ".github/workflows/hygiene.yml"],
+                (128, "", ""),
+                "could NOT be staged: \nA commit now would not carry it",
             ),
             (
                 "remove",
                 "another release's copy, deleted by hand",
                 ["diff", "--cached", "--quiet", "--", ".github/workflows/hygiene.yml"],
+                TIMED_OUT,
                 "the index holds a copy that is neither byte for byte the copy "
                 "HEAD carries",
             ),
             (
                 "remove",
+                "this plugin's copy, staged and deleted by hand",
+                ["cat-file", "blob", ":.github/workflows/hygiene.yml"],
+                TIMED_OUT,
+                "the index's copy of it could not be read",
+            ),
+            (
+                "remove",
+                "this plugin's copy, staged and deleted by hand",
+                ["rm", "--quiet", "--", ".github/workflows/hygiene.yml"],
+                TIMED_OUT,
+                ".github/workflows/hygiene.yml could not be removed: `git rm "
+                "--quiet -- .github/workflows/hygiene.yml` did not finish within "
+                "60 seconds\n",
+            ),
+            (
+                "remove",
                 "this plugin's copy, committed",
                 ["rm", "--quiet", "--", ".github/workflows/hygiene.yml"],
+                TIMED_OUT,
                 ".github/workflows/hygiene.yml could not be removed: `git rm "
                 "--quiet -- .github/workflows/hygiene.yml` did not finish within "
                 "60 seconds\n",
             ),
         ],
-        ids=["install's git add", "remove's git diff --cached", "remove's git rm"],
+        ids=[
+            "install's git add",
+            "install's git add refused with nothing on stderr",
+            "remove's git diff --cached",
+            "remove's git cat-file of a copy deleted by hand",
+            "remove's git rm of a copy deleted by hand",
+            "remove's git rm",
+        ],
     )
     def test_refuses_a_git_that_did_not_answer_and_keeps_the_index(
-        self, take, capsys, monkeypatch, action, held, tail, said_line
+        self, take, capsys, monkeypatch, action, held, tail, outcome, said_line
     ):
         """S4: a git that did not answer is read as each step reads a
         non-zero exit, and the index is as it was."""
@@ -3452,10 +3485,13 @@ class Test_pr_checks:
             old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
             workflow_in(repo, old)
             os.remove(os.path.join(str(repo), WORKFLOW_PATH))
+        elif held == "this plugin's copy, staged and deleted by hand":
+            assert SEAL.install_workflow(str(repo))[0] == "written"
+            os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         elif held == "this plugin's copy, committed":
             workflow_in(repo, SEAL.plugin_workflow())
         before = staged(repo)
-        unanswered(monkeypatch, tail, TIMED_OUT)
+        unanswered(monkeypatch, tail, outcome)
         code, out = said(capsys, repo, "pr-checks", action)
         assert code == 1, out
         assert said_line in out, out
