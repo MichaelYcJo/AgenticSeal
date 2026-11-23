@@ -298,8 +298,9 @@ this form and names nothing.
   `xcopy/` directory, and runs as written elsewhere. A blank before the
   switch (`xcopy /e/i`) answers it.
 - The root is read before anything runs. A directory an earlier command in
-  the line makes, or one a `cd` earlier in the line enters, is not seen, so
-  a name that starts in it is not refused, and `cmd.exe` fails on it.
+  the line makes, or one a `cd` earlier in the line enters, is not seen. So
+  a name that starts in a directory only such a command brings into reach
+  is not refused, and `cmd.exe` fails on it.
 - A separator glued to a word, as in `a&& bin/x`, `a &&bin/x` or
   `echo a^&& bin/x`, is no separator to the reading. So the word after it
   is neither refused nor named, though `cmd.exe` reads that word as a
