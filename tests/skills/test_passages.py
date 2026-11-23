@@ -140,8 +140,7 @@ class Test_words:
     def test_reads_the_words_after_a_backtick_run_four_spaces_in(self):
         """#1574: four spaces in, three backticks open no fence (CommonMark
         4.5), so the prose below them is read, as `lib/lines.py#readable`
-        reads it. A fence rule of this module's own took the run at any
-        indentation and dropped everything after it."""
+        reads it."""
         run = " ".join(f"w{i}" for i in range(WINDOW))
         text = f"Intro.\n\n    ```\n\n{run}\n"
         assert 4 not in hidden_text(text)
