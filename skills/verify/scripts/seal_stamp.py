@@ -1006,16 +1006,17 @@ def _git(cwd, *args):
     """stdout of a git call in `cwd`, or None on a non-zero exit.
 
     A git that did not answer raises `lib/gitcmd.py#Failed`, which `main`
-    reads as `--guarantee`'s refusal: read as None, a history git did not
-    print would queue a work item stamped before, and a reach git did not
-    answer would record a refusal of a commit the branch may hold. `--stop`
-    asks nothing of this function."""
+    reads as `--guarantee`'s refusal, as it reads the one that
+    `queue_for_written_guarantee`'s reach read raises: read as None, a
+    history git did not print would queue a work item stamped before, and a
+    reach git did not answer would record a refusal of a commit the branch
+    may hold. `--stop` asks nothing of this function."""
     r = _gitcmd().git(cwd, *args)
     return r.stdout if r.returncode == 0 else None
 
 
 def _gitcmd():
-    """`lib/gitcmd.py`, which starts every git command `_git` runs."""
+    """`lib/gitcmd.py`, which starts every git command this file runs."""
     import sibling
 
     return sibling.load(GITCMD)
@@ -1344,7 +1345,7 @@ def queue_for_written_guarantee(path, now=None):
     # applies: a local root never leaves its clone, so `already_queued`
     # above already says whether the work item was stamped.
     ref = f"refs/heads/{branch}"
-    if _git(common, "merge-base", "--is-ancestor", target, ref) is None:
+    if not _gitcmd().is_ancestor(common, target, ref):
         if _git(common, "rev-parse", "--verify", "-q", ref) is None:
             return []
         record_refusal(common, ident, target)
