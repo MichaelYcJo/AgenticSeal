@@ -1726,15 +1726,22 @@ def left_workflow_line(text):
     the switch leaves in the tree.
 
     Pinned to the installed release, the steps read a tree with no root as
-    nothing declared and pass. Pinned to an older one they fail every pull
-    request there, so any other pin, and a version that cannot be read, is
-    named with the two ways out rather than promised to pass.
+    nothing declared and pass the commits a local-mode session writes, which
+    carry no `Seal-Routing` trailer; the review-chain step still fails a
+    ready pull request on a commit made before the switch whose trailer
+    names a work item (`docs/checks/the-routing-check.md` *At the pull
+    request*). Pinned to an older one they fail every pull request there, so
+    any other pin, and a version that cannot be read, is named with the two
+    ways out rather than promised to pass.
     """
     pin, version = pinned(text), plugin_version()
     if version and pin == "v" + version:
         return (
             f"{WORKFLOW} stays: in local mode its checks read nothing as "
-            "declared and pass, and `seal pr-checks remove` takes them out"
+            "declared and pass the commits a local-mode session writes, which "
+            "carry no `Seal-Routing` trailer. A commit made before the switch "
+            "whose trailer names a work item still fails a ready pull request, "
+            "and `seal pr-checks remove` takes the checks out"
         )
     named = pin or "no release its clone line names"
     here = (
@@ -1848,10 +1855,14 @@ def remove_workflow(repo):
 
     It needs no root: a workflow that outlived its root is the case it is
     for. Left in a local-mode repository and pinned to this release, the
-    workflow passes: `chain_check.py` reads no routing declaration where the
-    tree holds no root and judges the commit trailers alone
+    workflow passes the commits a local-mode session writes, which carry no
+    `Seal-Routing` trailer: `chain_check.py` reads no routing declaration
+    where the tree holds no root and judges the commit trailers alone
     (`chain_check.py#ROOT_LEFT_SAYS`), and `mode --check` finds no root to
-    disagree with. So there it is the person's choice and never a repair;
+    disagree with. A commit made before the switch whose trailer names a
+    work item still fails a ready pull request there
+    (`docs/checks/the-routing-check.md` *At the pull request*). So there the
+    removal is the person's choice and never a repair;
     pinned to an older release, it is the way out of a workflow that fails
     every pull request (`left_workflow_line`).
 

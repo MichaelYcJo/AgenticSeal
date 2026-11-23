@@ -2743,8 +2743,10 @@ class Test_switch:
         assert open(workflow, encoding="utf-8").read() == SEAL.plugin_workflow()
         assert (
             "  .github/workflows/hygiene.yml stays: in local mode its checks "
-            "read nothing as declared and pass, and `seal pr-checks remove` "
-            "takes them out\n"
+            "read nothing as declared and pass the commits a local-mode session "
+            "writes, which carry no `Seal-Routing` trailer. A commit made before "
+            "the switch whose trailer names a work item still fails a ready pull "
+            "request, and `seal pr-checks remove` takes the checks out\n"
         ) in out
         # The two commands `seal mode local` prints for moving the records
         # between clones, which the person who switched runs.
