@@ -83,6 +83,11 @@ and `changelog.md:3`, the clause on what the commit owes takes the same
 condition: a record other than `trail/gate.md` and `guarantee.md`,
 changed after the sealer's verdict.
 
+```seal
+verdict: fixed 8baf1cb43
+answer: The paragraph in `skills/code-review/orchestration.md` takes the paste-ready fix, with one more clause: the commits of `trail/gate.md` and `guarantee.md` owe neither another broad run nor another sealer, which `frame/design.md` *Scope* item 3 now states. The rest of the paragraph stands, rewrapped. `changelog.md:3` now says that a records-only commit owes no broad run, and owes `seal pr-body` and the sealer again where it changes a record other than those two after the sealer's verdict. `frame/design.md:40` was folded by the framer at `07a38f1ce`. The other statements in this branch's files were read at `8baf1cb43`, and none says that a commit of the two files owes the sealer: `gate-to-pull-request.md:147` is about a repair of another record, and `templates/setup/config.md`, `README.md`, `README.ko.md`, `gaps.md` and `pr.md` do not state it.
+```
+
 ### 2. The core's fourth row names "the closing records", a term the core never defines and that reads as the closing memo
 
 ```seal
@@ -114,6 +119,11 @@ pass owes them too.
 
 ```markdown
 | No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD or at a commit that only `trail/gate.md` and `guarantee.md` follow; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the seal mark among it |
+```
+
+```seal
+verdict: fixed 8baf1cb43
+answer: `skills/core/SKILL.md:115` takes the paste-ready row as written, and the first *Process changes* row of `changelog.md` says that the row lets `trail/gate.md` and `guarantee.md` follow the guarantee. `frame/design.md:39` was folded by the framer at `07a38f1ce`. At `8baf1cb43`, a `git grep` for "closing records" over the files this branch changed finds the term only in `tests/skills/test_chain_check.py`. That module uses it as `chain_check.py#CLOSING_RECORDS`'s name, and one of the uses is the refusal sentence the case builds, so it stays. `templates/setup/config.md:485` already spells out the two files.
 ```
 
 ## Confirmations
