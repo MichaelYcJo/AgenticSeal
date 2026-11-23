@@ -44,13 +44,13 @@ Environment: `TAG`, the tag the `publish` job passed on, and `DRY_RUN`.
 
 Exit codes: 0 where a commit was pushed, none was needed, or the run was
 dry -- 1 where a git command failed, the push refused among them, with git's
-error printed, a tag the checkout cannot resolve among them -- 2 where `TAG`
-is unset or empty.
+error printed, a tag the checkout cannot resolve among them, or gave no
+answer, in `lib/gitcmd.py#Unrun`'s one line -- 2 where `TAG` is unset or
+empty.
 """
 
 import io
 import os
-import subprocess
 import sys
 import tarfile
 import tempfile
@@ -62,6 +62,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
 console = sibling.load("lib/console.py")
+gitcmd = sibling.load("lib/gitcmd.py")
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 REMOTE = "origin"
@@ -73,13 +74,15 @@ class GitFailed(Exception):
 
 
 def git(*args, index=None, stdin=None):
-    """`git` run in the repository at `ROOT`, under the index file `index`
-    where one is named; its standard output as bytes."""
-    env = dict(os.environ)
-    if index is not None:
-        env["GIT_INDEX_FILE"] = index
-    done = subprocess.run(
-        ["git", "-C", ROOT, *args], input=stdin, capture_output=True, env=env
+    """`git` run in the repository at `ROOT` through `lib/gitcmd.py#git`,
+    under the index file `index` where one is named; its standard output as
+    bytes. A git that gave no answer ends the run in the runner's line."""
+    done = gitcmd.git(
+        ROOT,
+        *args,
+        given=stdin,
+        binary=True,
+        env=None if index is None else {"GIT_INDEX_FILE": index},
     )
     if done.returncode:
         said = done.stderr.decode("utf-8", "replace").strip()
