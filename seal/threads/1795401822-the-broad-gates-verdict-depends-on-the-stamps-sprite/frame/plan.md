@@ -12,7 +12,7 @@ Failure scenarios of the chosen approach, six months on:
 
 - A later edit to `seal_stamp.py` adds another read at import, a palette file say, and the gate's verdict depends on a decorative file again. S1's case reads the sprite alone and does not catch it. The reviewer of that edit is who catches it, from the module docstring's statement that the broad gate imports the text rules from here.
 - A person edits the sprite and leaves it malformed. `seal stamp --guarantee` queues the stamp, `--stop` draws nothing and says nothing, and only `seal stamp --from` names the fault. `## Rule changes` states that limit in `docs/checks/the-stamp.md`.
-- A module the gate loads raises while it executes. With the wrapper gone, the gate ends in a traceback at exit 1, which the gate's exit codes read as failed. Any other exception in the gate's code does the same today, and the traceback names the module.
+- A module the gate loads raises while it executes. With the wrapper gone, the gate ends in a traceback at exit 1, which the gate's exit codes read as failed. Any other exception in the gate's code does the same today, and the traceback names the module. The exception is `chain_check.py`, which `#rounds_rows` loads inside its own `except (Exception, SystemExit)`: its raise leaves the rounds count alone and the run goes on, the rule `Test_rounds_rows.test_refuses_to_stop_a_run_where_the_check_will_not_load[raises]` pins.
 
 ## Alternatives considered
 
@@ -44,7 +44,7 @@ The spawn names #1573 and #1579. Both frames were read at their checkouts' HEADs
 
 ## Operational impact
 
-No migration, environment variable or dependency. What a person sees changes in three places, each listed in `design.md` *Data & interfaces*: two spellings of `--base` print differently on the gate's head line and `base` row, `seal stamp` and `seal stamp --from` beside a malformed sprite exit 2 in one line where they exited 1 in a traceback, and a module that raises while the gate loads it ends the gate at exit 1 where it ended at exit 2. The version does not move in this pull request: `.claude-plugin/plugin.json` reads `0.38.6` at `ee8a72583` already (executed: `git show ee8a72583:.claude-plugin/plugin.json`).
+No migration, environment variable or dependency. What a person sees changes in three places, each listed in `design.md` *Data & interfaces*: two spellings of `--base` print differently on the gate's head line and `base` row, `seal stamp` and `seal stamp --from` beside a malformed sprite exit 2 in one line where they exited 1 in a traceback, and a module that raises while the gate loads it, other than `chain_check.py`, ends the gate at exit 1 where it ended at exit 2. The version does not move in this pull request: `.claude-plugin/plugin.json` reads `0.38.6` on the base already (executed: `git show f2a664eb8:.claude-plugin/plugin.json`, the base this branch was cut from).
 
 ## Judgments of the run
 
