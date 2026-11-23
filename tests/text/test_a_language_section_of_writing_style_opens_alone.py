@@ -50,17 +50,9 @@ ALSO_APPLIES = (
 HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 
 # The section that holds the three rules for text an agent or a check reads,
-# under `## 구성 규칙`, and its one `check:` line, which the first rule ends
-# with. The other two rules carry none.
+# under `## 구성 규칙`. The first rule ends with the section's one `check:`
+# line, and the other two carry none.
 WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
-WRITING_RULE_CHECKS = (
-    "check: tests/skills/test_rules.py"
-    " tests/skills/test_chain_check.py"
-    " tests/skills/test_rule_changes.py"
-    " tests/test_censuses.py"
-    " tests/text/test_the_agent_contract_holds_the_universal_rules.py"
-    " tests/behaviour/test_a_cited_section_stands_in_its_file.py",
-)
 
 
 def headings(text):
@@ -168,12 +160,14 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     """
     text = read(SKILL)
     body = [line.strip() for line in section(text, WRITING_RULES).split("\n")]
-    checks = tuple(line for line in body if line.startswith("check: "))
-    # The check lines `seal rules --check` reads, and the paths of the
-    # modules each names, which a reader of the rules opens.
-    assert checks == WRITING_RULE_CHECKS, (
-        f"{SKILL} {WRITING_RULES}: its check lines read {checks}, and the "
-        f"section holds {WRITING_RULE_CHECKS}"
+    checks = [line for line in body if line.startswith("check: ")]
+    # The one check line `seal rules --check` reads for the first rule. That
+    # each target it names is a file is that command's, which
+    # `tests/behaviour/test_this_repository_passes_its_own_checks.py` runs
+    # over the tree; whether a target holds the rule is review's.
+    assert len(checks) == 1, (
+        f"{SKILL} {WRITING_RULES}: the section holds {len(checks)} check "
+        "lines, where its first rule ends with one"
     )
     title = WRITING_RULES[len("### ") :]
     for heading in LANGUAGE_SECTIONS:
