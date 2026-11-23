@@ -50,4 +50,4 @@ No migration, environment variable or dependency. What a person sees changes in 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-23 | The pull request's title takes `fix:` | `seal gate`'s verdict could be exit 2 because a decorative sprite was malformed, and `seal_stamp.py` answered whether two refs name the same commit by two rules that disagreed on a four-character prefix such as `bbb2`. After the change the verdict reads only what the gate runs, and one rule answers. Both correct a behaviour the plugin already had and add none, so the release stays a patch | `docs/releasing/branch-and-release.md` *The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number* |
