@@ -11,18 +11,17 @@ The cases of `.github/scripts/release_seal.py`'s functions stand in
 
 import os
 
-from conftest import ROOT, code_lines, flat
-from conftest import load_module as load
+from conftest import code_lines, flat
 from workflows import load as load_workflow
 
-# No TARGET: its cases hold the release seal across .github/workflows/publish-release.yml, tests/run_tests.py and docs/releasing/release-checklist.md.
+# No TARGET: its cases hold the release seal across .github/workflows/publish-release.yml, tests/requirements.txt and docs/releasing/release-checklist.md.
 
 
-def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
-    """S16 (#718). The `seal` job's install line carries the parser exactly
-    as `run_tests.py` pins it, so the suite at the tag runs on the version
-    every other run of the suite uses."""
-    runner = load(os.path.join(ROOT, "tests", "run_tests.py"), "rt_for_seal")
+def test_the_publishing_workflow_installs_the_requirements_file():
+    """S16 (#718), and #1575. The `seal` job's install line reads
+    `tests/requirements.txt` and names nothing beside it, so the suite at
+    the tag runs on the packages, at the versions, every other run of the
+    suite installs."""
     workflow = load_workflow(
         os.path.join(".github", "workflows", "publish-release.yml")
     )
@@ -33,16 +32,7 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
         for line in code_lines(step.get("run", ""))
         if line.split()[:2] == ["pip", "install"]
     ]
-    assert len(installs) == 1, installs
-    # The pinned parser `run_tests.py#MARKDOWN_IT` names, which the runner
-    # installs before the suite at the tag runs.
-    assert runner.MARKDOWN_IT in installs[0], installs
-    # #647: the suite at the tag collects the table walker's case, which
-    # imports the pinned renderer.
-    assert runner.CMARKGFM in installs[0], installs
-    # #1486: the suite at the tag collects the modules that read a workflow,
-    # which import the pinned YAML parser.
-    assert runner.PYYAML in installs[0], installs
+    assert installs == [["pip", "install", "-r", "tests/requirements.txt"]], installs
 
 
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():

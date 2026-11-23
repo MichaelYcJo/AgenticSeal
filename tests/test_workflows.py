@@ -118,9 +118,9 @@ class Test_pytest_jobs:
     ):
         """`pytest` is read as a word: a plugin installed by its package
         name, the config file and the cache directory run no suite. The
-        install line of `test.yml` names `pytest-xdist` and `pytest-split`
-        beside `pytest`, so a substring reading would select a job that
-        only installs them."""
+        install line of `test.yml` names `pytest-split`, and an install line
+        may name `pytest-xdist` too, so a substring reading would select a
+        job that only installs them."""
         path = tmp_path / "fixture.yml"
         path.write_text(
             "on: push\n"

@@ -38,7 +38,7 @@ walk's own answer there, so the two agreed by construction (#667 round 3,
 The parser is markdown-it-py's `commonmark` preset with GFM tables switched
 on, because the files the readers read are rendered as GFM, and a table changes
 which lines a paragraph holds. The version is pinned in
-`tests/run_tests.py#MARKDOWN_IT`.
+`tests/requirements.txt`.
 
 **Where the inline HTML is, the parser says.** A token carries no source
 position, so the parser's own `html_inline` rule is wrapped: the wrapper

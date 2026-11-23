@@ -78,17 +78,17 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 
 ## Running the checks
 
-The suite needs `pytest` and three packages, each pinned to one version in
-`tests/run_tests.py`: one parser, `markdown-it-py`, pinned in
-`MARKDOWN_IT`, one renderer, `cmarkgfm`, pinned in `CMARKGFM`, and one YAML
-parser, `PyYAML`, pinned in `PYYAML`.
+The suite's packages are the requirements `tests/requirements.txt` lists,
+the one place each is named and each pin's version is chosen: `pytest`,
+`pytest-xdist`, and three packages pinned to one version each, one parser,
+`markdown-it-py`, one renderer, `cmarkgfm`, and one YAML parser, `PyYAML`.
 The parser is the CommonMark oracle the readers under `lib/` are checked
 against. The renderer is
 GitHub's own, cmark-gfm, and the table walker in `lib/tables.py` is checked
 against what it renders. The YAML parser is how `tests/workflows.py` reads a
-workflow file for the cases that read a job, a step or a key. The three are
-test-only: the gates themselves are stdlib-only Python and
-import nothing the suite installs. `bin/test` acquires all four once: it
+workflow file for the cases that read a job, a step or a key. Every package
+there is test-only: the gates themselves are stdlib-only Python and import
+nothing the suite installs. `bin/test` acquires them once: it
 builds a virtualenv at `.venv` on the first call and reuses it afterwards, so
 only the first call pays for an environment. It works from any directory in
 the repository or a worktree of it, and it prints the interpreter it used.
@@ -140,8 +140,8 @@ nothing here holds the floor for it: macOS ships 3.9 under that name, and a
 version manager points it wherever it was last told.
 
 ```bash
-uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 --with PyYAML==6.0.3 python3 -m pytest tests/ -q
-# or: pip install pytest markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 && python3 -m pytest tests/
+uvx --with-requirements tests/requirements.txt python3 -m pytest tests/ -q
+# or: pip install -r tests/requirements.txt && python3 -m pytest tests/
 ```
 
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); `pytest`,

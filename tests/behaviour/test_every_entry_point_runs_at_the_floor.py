@@ -133,9 +133,10 @@ def test_a_script_reaches_what_it_hands_the_loader():
 def test_a_script_reaches_no_module_under_tests():
     """S9 of #1482. A path under `tests/` is no load: `tests/` holds no
     module of the plugin, and pytest imports a test module in the
-    virtualenv's process, at the floor. The runner names its pins' test
-    modules by tracked path, so a walk that read them would lint test
-    helpers at a floor nothing runs them under. The runner itself stands
+    virtualenv's process, at the floor. A script that names a test module
+    by its tracked path, as the fixture's does, would otherwise have the
+    walk lint test helpers at a floor nothing runs them under. The runner
+    itself stands
     under `tests/` and is reached as what `bin/test` hands its interpreter,
     not as a load."""
     tracked = {".github/scripts/r.py", "tests/t.py", "lib/a.py"}
