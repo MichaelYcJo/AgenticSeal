@@ -40,7 +40,7 @@
 
 `Test_run_gh::test_accepts_…`, `Test_run_git::test_accepts_…` and the `refused` row of `test_a_comment_page_that_cannot_be_read_posts_nothing` passed against the old script, since each holds a reading `e1060dee8` already had. `test_broad_gate.py#Test_gate::test_refuses_to_read_a_git_that_did_not_answer_as_no_repository` and the `moved` row of the layout case were added for a mutant that survived, and each is red on that mutant.
 
-`bin/seal mutate`, after the commit of each unit, each mutant in a call of its own with `-p no:xdist -x` and a `-k` over the cases named, so that each red names its case. Every run read `red` except the three marked:
+`bin/seal mutate`, after the commit of each unit, each mutant in a call of its own with `-p no:xdist -x` and a `-k` over the cases named, so that each red names its case. Every run read `red` except the five marked SURVIVED, four of which a new case then turned red:
 
 | Unit | Mutant | Red on |
 |---|---|---|
