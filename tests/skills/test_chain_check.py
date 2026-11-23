@@ -179,7 +179,7 @@ def rounds_of(*texts):
     """The records `texts`, numbered from 1, read as `channel` takes them."""
     out, errors = [], []
     for n, text in enumerate(texts, 1):
-        read, said = chain.round_of(reader, text, f"round-{n}.md", n)
+        read, said = chain.round_of(text, f"round-{n}.md", n)
         out.append(read)
         errors.extend(said)
     return out, errors
@@ -519,7 +519,7 @@ class Test_issue_of:
 def target_of(text):
     """`(the commit round_of reads off the record's round block, its
     errors)`."""
-    read, errors = chain.round_of(reader, text, "r.md", 1)
+    read, errors = chain.round_of(text, "r.md", 1)
     return read.target, errors
 
 
@@ -597,7 +597,7 @@ class Test_round_of:
             "| Field | Value |\n|---|---|\n| Target SHA | abc1234 against main |",
         )
         for text in (LABELLED, table):
-            read, errors = chain.round_of(reader, text, "r.md", 1)
+            read, errors = chain.round_of(text, "r.md", 1)
             assert errors == [("r.md", 0, chain.NO_ROUND_BLOCK)], errors
             assert (read.findings, read.confirms, read.target) == ([], [], None)
         for words in (
@@ -617,14 +617,14 @@ class Test_round_of:
             confirmations=confirm("round-1#2") + confirm("round-3#1"),
             n=4,
         )
-        read, errors = chain.round_of(reader, text, "r.md", 4)
+        read, errors = chain.round_of(text, "r.md", 4)
         assert errors == []
         assert read.confirms == [
             (line_at(text, "confirms: round-1#2"), (1, 2)),
             (line_at(text, "confirms: round-3#1"), (3, 1)),
         ]
         left_out = record("abc1234").replace("## Confirmations\n", "")
-        read, errors = chain.round_of(reader, left_out, "r.md", 1)
+        read, errors = chain.round_of(left_out, "r.md", 1)
         assert (read.confirms, errors) == ([], [])
 
     @pytest.mark.rule("round-record-read-by-label")
@@ -648,7 +648,7 @@ class Test_round_of:
             confirmations="".join(confirm(cell) for cell in bad),
             n=2,
         )
-        read, errors = chain.round_of(reader, text, "r.md", 2)
+        read, errors = chain.round_of(text, "r.md", 2)
         assert read.confirms == []
         assert [line for _rel, line, _why in errors] == [
             line_at(text, f"confirms: {cell}") for cell in bad
@@ -662,8 +662,8 @@ class Test_round_of:
             "confirms: round-1#2\nheld.\n",
             n=2,
         )
-        assert chain.round_of(reader, prose, "r.md", 2)[0].confirms == []
-        assert chain.round_of(reader, prose, "r.md", 2)[1] == []
+        assert chain.round_of(prose, "r.md", 2)[0].confirms == []
+        assert chain.round_of(prose, "r.md", 2)[1] == []
 
 
 def led(text, n, why, title="the parser drops a row"):
@@ -698,7 +698,7 @@ class Test_record_findings:
             ],
             confirmations=confirm("round-1#2"),
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == []
         assert [
             (f.line, f.heading, f.number, f.verdict, f.paths, f.regression)
@@ -738,7 +738,7 @@ class Test_record_findings:
             ),
         ]
         assert found[1].regression_line == line_at(text, "regression: round-1#4")
-        assert chain.record_findings(reader, record("abc1234"), "r.md") == ([], [])
+        assert chain.record_findings(record("abc1234"), "r.md") == ([], [])
 
     def test_located_holds_the_finding_blocks_paths_alone(self):
         """S7 of work item 1793521559. `located` is the paths of the finding
@@ -754,7 +754,7 @@ class Test_record_findings:
                 + close("fixed abc1234", location="`seal/threads/1-x/frame/plan.md`")
             ],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == []
         assert [(f.located, f.paths) for f in found] == [
             (
@@ -780,7 +780,7 @@ class Test_record_findings:
             finding(4, "rejected"),
         ]
         text = record("abc1234", sections)
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert [f.number for f in found] == [4]
         assert errors == [
             (
@@ -815,12 +815,12 @@ class Test_record_findings:
         section, where a finding block then stands outside every finding,
         and a second at its line."""
         assert chain.record_findings(
-            reader, block("target: abc1234 against main") + "\n## Probes\n", "r.md"
+            block("target: abc1234 against main") + "\n## Probes\n", "r.md"
         ) == ([], [("r.md", 0, chain.NO_FINDINGS)])
         longer = record("abc1234", [finding(1, "open")]).replace(
             "## Findings", "## Findings so far"
         )
-        assert chain.record_findings(reader, longer, "r.md")[1] == [
+        assert chain.record_findings(longer, "r.md")[1] == [
             ("r.md", 0, chain.NO_FINDINGS),
             (
                 "r.md",
@@ -829,7 +829,7 @@ class Test_record_findings:
             ),
         ]
         two = record("abc1234") + "\n## Findings\n"
-        assert chain.record_findings(reader, two, "r.md") == (
+        assert chain.record_findings(two, "r.md") == (
             [],
             [("r.md", line_at(two, "## Findings", 1), chain.TWO_FINDINGS)],
         )
@@ -853,7 +853,7 @@ class Test_record_findings:
                 + block("verdict: fixed abc1234", "Answer: done"),
             ],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert found == []
         assert errors == [
             (
@@ -894,7 +894,7 @@ class Test_record_findings:
             "abc1234",
             [finding(1, "open") + "\nverdict: fixed abc1234\nanswer: done\n"],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == []
         assert [(f.number, f.verdict, f.line) for f in found] == [
             (1, (chain.OPEN, None), line_at(text, "### 1. the parser drops a row"))
@@ -916,7 +916,7 @@ class Test_record_findings:
                 + block("severity: must", "location: `f.txt:1`", opener=near)
             ],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert (found, errors) == (
             [],
             [
@@ -945,7 +945,7 @@ class Test_record_findings:
             "abc1234",
             [f"{heading}\n\n{FENCE}`markdown\n{quoted}{FENCE}`\n"],
         )
-        assert chain.record_findings(reader, text, "r.md") == (
+        assert chain.record_findings(text, "r.md") == (
             [],
             [("r.md", line_at(text, heading), led(text, 1, chain.NO_FINDING_BLOCK))],
         )
@@ -963,7 +963,7 @@ class Test_record_findings:
             ],
         )
         opener = line_at(text, FENCE + "seal", 3)
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == [("r.md", opener, chain.FIELDS.UNCLOSED)], errors
         assert [f.number for f in found] == [1]
 
@@ -988,7 +988,7 @@ class Test_record_findings:
         ).replace(
             "## Not judged\n", "## Not judged\n\n" + stray + "\n" + close("rejected")
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert [f.number for f in found] == [2]
         assert errors == [
             (
@@ -1034,7 +1034,7 @@ class Test_record_findings:
             ],
             n=2,
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert [(f.number, f.reopens, f.regression) for f in found] == [
             (1, (1, 2), None),
             (4, None, None),
@@ -1084,7 +1084,7 @@ class Test_record_findings:
                 finding(3, "rejected", evidence="ran the case twice, both red"),
             ],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == []
         assert [(f.number, f.verdict) for f in found] == [
             (n, (chain.REJECTED, None)) for n in range(1, 4)
@@ -1104,7 +1104,7 @@ class Test_record_findings:
                 finding(3, "open"),
             ],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert [f.number for f in found] == [1, 3]
         assert [(line, why.split(" — ")[0]) for _r, line, why in errors] == [
             (line_at(text, "### 1. a second one"), "### 1. a second one"),
@@ -1118,7 +1118,7 @@ class Test_record_findings:
 
     def test_accepts_a_record_whose_regions_close(self):
         text = record("abc1234", [finding(1, "open"), finding(2, "rejected")])
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == [] and [f.number for f in found] == [1, 2], errors
         quoted = record(
             "abc1234",
@@ -1129,7 +1129,7 @@ class Test_record_findings:
                 finding(2, "open"),
             ],
         )
-        found, errors = chain.record_findings(reader, quoted, "r.md")
+        found, errors = chain.record_findings(quoted, "r.md")
         assert errors == [] and [f.number for f in found] == [1, 2], errors
 
     def test_accepts_a_bare_opener_later_in_a_line_as_text(self):
@@ -1146,7 +1146,7 @@ class Test_record_findings:
                 finding(2, "open"),
             ],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         assert errors == [] and [f.number for f in found] == [1, 2], errors
 
     @pytest.mark.rule("round-record-read-by-label")
@@ -1159,7 +1159,7 @@ class Test_record_findings:
             "abc1234",
             [finding(1, "rejected") + f"\n{opener}\n", finding(2, "open")],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         line = text.splitlines().index(opener) + 1
         assert [(rel, n) for rel, n, _why in errors] == [("r.md", line)], errors
         assert "fence" in errors[0][2] and "never closes" in errors[0][2]
@@ -1175,7 +1175,7 @@ class Test_record_findings:
             "abc1234",
             [finding(1, "rejected"), f"{note}\n\n" + finding(2, "open")],
         )
-        found, errors = chain.record_findings(reader, text, "r.md")
+        found, errors = chain.record_findings(text, "r.md")
         line = text.splitlines().index(note) + 1
         assert errors == [("r.md", line, chain.FIELDS.COMMENT_LINE)], errors
         assert [f.number for f in found] == [1, 2]
@@ -1398,7 +1398,7 @@ class Test_frame:
         )
         write(root, f"{ITEM}/frame/plan.md", "# plan\n")
         commit(root, "frame")
-        assert chain.frame(reader, self.routing(), str(root), ITEM, FRAMED) == []
+        assert chain.frame(self.routing(), str(root), ITEM, FRAMED) == []
 
     def test_refuses_a_missing_plan_and_a_reframe_by_another_party(self, branch):
         root, _code = branch
@@ -1408,7 +1408,7 @@ class Test_frame:
             SPEC + "Reframed 2026-10-16 by the session, after round 2.\n",
         )
         commit(root, "frame")
-        problems = chain.frame(reader, self.routing(), str(root), ITEM, FRAMED)
+        problems = chain.frame(self.routing(), str(root), ITEM, FRAMED)
         assert any("plan.md" in p for p in problems)
         assert any("Reframed 2026-10-16 by the session" in p for p in problems)
 
@@ -1436,7 +1436,7 @@ class Test_frame:
         ):
             write(root, f"{ITEM}/frame/design.md", "# spec\n\nbody\n\n" + foot)
             commit(root, "frame")
-            problems = chain.frame(reader, self.routing(), str(root), ITEM, FRAMED)
+            problems = chain.frame(self.routing(), str(root), ITEM, FRAMED)
             assert problems == said, foot
 
 
@@ -2463,9 +2463,7 @@ class Test_originals_of:
         inside = ["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]
 
         def owed(paths):
-            return chain.originals_of(
-                reader, routing_module, str(root), "seal", paths, [ITEM]
-            )
+            return chain.originals_of(routing_module, str(root), "seal", paths, [ITEM])
 
         assert owed(inside) == []
         assert [p for p, _n, _w in owed([*inside, "f.txt"])] == [
@@ -2635,7 +2633,7 @@ class Test_originals_of:
 class Test_original_of:
     def test_accepts_a_line_naming_the_baseline_by_a_prefix(self):
         text = with_original(record("abc1234", [finding(1, "rejected")]), BASELINE[:9])
-        assert chain.original_of(reader, text, "r.md", BASELINE, PARITY) == []
+        assert chain.original_of(text, "r.md", BASELINE, PARITY) == []
 
     @pytest.mark.parametrize(
         "where, said",
@@ -2665,18 +2663,18 @@ class Test_original_of:
         else:
             text = with_original(text, BASELINE).replace("original:", "Original:")
             line = f"Original: {BASELINE}"
-        _round, errors = chain.round_of(reader, text, "r.md", 1)
+        _round, errors = chain.round_of(text, "r.md", 1)
         assert [(n, said in why) for _r, n, why in errors] == [
             (line_at(text, line, where == "twice"), True)
         ], errors
-        assert chain.original_of(reader, text, "r.md", BASELINE, PARITY) == []
+        assert chain.original_of(text, "r.md", BASELINE, PARITY) == []
 
     def test_refuses_a_round_block_with_no_original_line_at_its_opener(self):
         text = record("abc1234", [finding(1, "rejected")])
-        assert chain.original_of(reader, text, "r.md", BASELINE, PARITY) == [
+        assert chain.original_of(text, "r.md", BASELINE, PARITY) == [
             ("r.md", 3, chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE))
         ]
-        assert chain.original_of(reader, LABELLED, "r.md", BASELINE, PARITY) == []
+        assert chain.original_of(LABELLED, "r.md", BASELINE, PARITY) == []
 
 
 class Test_parity_readers:
@@ -2840,7 +2838,7 @@ class Test_blocks_of:
 class Test_guarantee:
     def test_accepts_a_sealed_verdict_at_head(self, item):
         root, _sha = item
-        assert chain.guarantee(reader, str(root), ITEM, "main") == []
+        assert chain.guarantee(str(root), ITEM, "main") == []
 
     def test_accepts_the_newest_of_two_runs(self, item, capsys):
         """#1198's scenario *Two sealer runs*: the sealer appends a verdict
@@ -2854,12 +2852,12 @@ class Test_guarantee:
         text = guarantee(sha, "sealed", earlier=[(older, "withheld reason: x")])
         write(root, rel, text)
         commit(root, "a second run")
-        assert chain.guarantee(reader, str(root), ITEM, "main") == []
+        assert chain.guarantee(str(root), ITEM, "main") == []
         assert check(root, capsys)[0] == 0
         swapped = verdict_block(sha) + "\n" + verdict_block(older, "withheld reason: x")
         write(root, rel, swapped)
         commit(root, "the runs the other way round")
-        problems = chain.guarantee(reader, str(root), ITEM, "main")
+        problems = chain.guarantee(str(root), ITEM, "main")
         assert any("`Verdict: withheld reason: x`" in why for _p, _n, why in problems)
 
     def test_refuses_absent_unfilled_and_behind_head_by_name(self, item):
@@ -2867,12 +2865,12 @@ class Test_guarantee:
         rel = f"{ITEM}/guarantee.md"
         write(root, f"{ITEM}/gaps.md", "# an edit the sealer never read\n")
         later = commit(root, "a record after the guarantee")
-        [(path, _line, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        [(path, _line, why)] = chain.guarantee(str(root), ITEM, "main")
         assert path == rel and later[:8] in why
         template = GUARANTEE_TEMPLATE.read_text(encoding="utf-8")
         write(root, rel, template)
         commit(root, "the template, unfilled")
-        [(path, line, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        [(path, line, why)] = chain.guarantee(str(root), ITEM, "main")
         placeholder = template.split("\n")[line - 1]
         assert path == rel and placeholder.startswith("target: <"), placeholder
         assert why.startswith(f"`{placeholder}` does not read whole"), why
@@ -2882,13 +2880,13 @@ class Test_guarantee:
         )
         write(root, rel, two)
         commit(root, "a verdict above the target")
-        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        [(_p, _n, why)] = chain.guarantee(str(root), ITEM, "main")
         assert why == chain.FIELDS.NO_KIND.format(
             line="Verdict: sealed", openers="`target:`"
         )
         git(root, "rm", "-q", rel)
         commit(root, "no guarantee")
-        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        [(_p, _n, why)] = chain.guarantee(str(root), ITEM, "main")
         assert "git carries no guarantee file" in why
 
     def test_refuses_a_guarantee_of_the_old_shape_naming_the_template(self, item):
@@ -2905,7 +2903,7 @@ class Test_guarantee:
         )
         write(root, rel, old)
         commit(root, "a guarantee of the shape before the blocks")
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+        assert chain.guarantee(str(root), ITEM, "main") == [
             (rel, 0, chain.NO_VERDICT_BLOCK)
         ]
         assert "`templates/records/sdd-guarantee.md`" in chain.NO_VERDICT_BLOCK
@@ -2922,7 +2920,7 @@ class Test_guarantee:
         write(root, rel, text)
         commit(root, "a fence nobody closed")
         opener = text.split("\n").index("````") + 1
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+        assert chain.guarantee(str(root), ITEM, "main") == [
             (rel, opener, chain.FIELDS.UNCLOSED)
         ]
 
@@ -2939,7 +2937,7 @@ class Test_guarantee:
         )
         write(root, rel, text)
         commit(root, "a claim quoting the opener")
-        assert chain.guarantee(reader, str(root), ITEM, "main") == []
+        assert chain.guarantee(str(root), ITEM, "main") == []
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
@@ -2953,7 +2951,7 @@ class Test_guarantee:
         write(root, rel, text)
         commit(root, "a verdict in a comment")
         line = text.splitlines().index("<!-- Verdict: sealed -->") + 1
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+        assert chain.guarantee(str(root), ITEM, "main") == [
             (rel, line, chain.FIELDS.COMMENT_LINE)
         ]
 
@@ -2968,7 +2966,7 @@ class Test_guarantee:
         text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
         write(root, rel, text)
         commit(root, f"the sealer wrote {line}")
-        [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        [(path, number, why)] = chain.guarantee(str(root), ITEM, "main")
         assert (path, number) == (rel, text.splitlines().index(line) + 1), why
         for shape in (
             "`Verdict: sealed`",
@@ -2992,7 +2990,7 @@ class Test_guarantee:
         said = chain.FIELDS.NOT_A_FIELD.format(
             line=line, kind="verdict", keys="`target:`, `original:` and `Verdict:`"
         )
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [(rel, number, said)]
+        assert chain.guarantee(str(root), ITEM, "main") == [(rel, number, said)]
 
     def test_names_a_near_opener_and_reads_no_verdict(self, item, capsys):
         """A fence like the block's and not it is no block: the guarantee
@@ -3004,7 +3002,7 @@ class Test_guarantee:
         write(root, rel, text)
         commit(root, "a near opener")
         notices = []
-        assert chain.guarantee(reader, str(root), ITEM, "main", notices) == [
+        assert chain.guarantee(str(root), ITEM, "main", notices) == [
             (rel, 0, chain.NO_VERDICT_BLOCK)
         ]
         number = text.splitlines().index("```Seal") + 1
@@ -3077,7 +3075,7 @@ class Test_guarantee_original:
 class Test_broad_gate:
     def test_accepts_a_run_at_head(self, item):
         root, _sha = item
-        assert chain.broad_gate(reader, str(root), ITEM, "main") == []
+        assert chain.broad_gate(str(root), ITEM, "main") == []
 
     def test_accepts_the_last_run_block_as_the_newest(self, item):
         """#1198, *Scope* item 2: `seal gate --record` appends a block per
@@ -3089,10 +3087,10 @@ class Test_broad_gate:
         rel = f"{ITEM}/trail/gate.md"
         write(root, rel, gate_file("1" * 40, sha))
         commit(root, "an earlier run, then the run at the audited commit")
-        assert chain.broad_gate(reader, str(root), ITEM, "main") == []
+        assert chain.broad_gate(str(root), ITEM, "main") == []
         write(root, rel, gate_file(sha, "1" * 40))
         commit(root, "the runs the other way round")
-        [(path, line, why)] = chain.broad_gate(reader, str(root), ITEM, "main")
+        [(path, line, why)] = chain.broad_gate(str(root), ITEM, "main")
         assert (path, line) == (rel, 0) and "the newest gate run" in why, why
 
     @pytest.mark.rule("record-comment-line-refused")
@@ -3103,7 +3101,7 @@ class Test_broad_gate:
         rel = f"{ITEM}/trail/gate.md"
         write(root, rel, "<!-- the gate's guidance -->\n\n" + gate_file(sha))
         commit(root, "a comment in the gate record")
-        assert chain.broad_gate(reader, str(root), ITEM, "main") == [
+        assert chain.broad_gate(str(root), ITEM, "main") == [
             (rel, 1, chain.FIELDS.COMMENT_LINE)
         ]
 
@@ -3119,7 +3117,7 @@ class Test_broad_gate:
             f"| Field | Value |\n|---|---|\n| Broad gate | {sha} against main |\n",
         )
         commit(root, "a gate record from before the blocks")
-        assert chain.broad_gate(reader, str(root), ITEM, "main") == [
+        assert chain.broad_gate(str(root), ITEM, "main") == [
             (rel, 0, chain.NO_RUN_BLOCK)
         ]
         # The command the refusal names, which the orchestrator runs to append
@@ -3133,7 +3131,7 @@ class Test_broad_gate:
         text = gate_file(sha).replace(f"run: {sha}", f"run:  {sha}")
         write(root, rel, text)
         commit(root, "a run line with two spaces")
-        [(path, line, why)] = chain.broad_gate(reader, str(root), ITEM, "main")
+        [(path, line, why)] = chain.broad_gate(str(root), ITEM, "main")
         assert (path, line) == (
             rel,
             text.splitlines().index(f"run:  {sha} against {GATE_BASE}") + 1,
@@ -3151,7 +3149,7 @@ class Test_broad_gate:
         write(root, rel, text)
         commit(root, "a near opener")
         notices = []
-        assert chain.broad_gate(reader, str(root), ITEM, "main", notices) == [
+        assert chain.broad_gate(str(root), ITEM, "main", notices) == [
             (rel, 0, chain.NO_RUN_BLOCK)
         ]
         line = text.splitlines().index("```Seal") + 1
@@ -4908,9 +4906,9 @@ class Test_module:
         which GFM does not end a line at, so the last line does not begin with
         one."""
         spec = f"# spec\n\nprose{LS}Framed 2026-01-01 by framer, before the build.\n"
-        assert chain.frame_foot(reader, spec)[0] is None
+        assert chain.frame_foot(spec)[0] is None
         whole = "# spec\n\nprose\nFramed 2026-01-01 by framer, before the build.\n"
-        assert chain.frame_foot(reader, whole)[0] == ("2026-01-01", "framer")
+        assert chain.frame_foot(whole)[0] == ("2026-01-01", "framer")
 
     def test_loads_beside_no_policy_document(self, tmp_path):
         """*Scope* item 5 of #1198: the round record's grammar is
@@ -4922,7 +4920,7 @@ class Test_module:
         assert not (tmp_path / "tree" / "docs").exists()
         loaded = load(script, "chain_check_beside_no_document")
         found, errors = loaded.record_findings(
-            reader, record("abc1234", [finding(1, "rejected")]), "r.md"
+            record("abc1234", [finding(1, "rejected")]), "r.md"
         )
         assert (errors, [f.verdict for f in found]) == ([], [(chain.REJECTED, None)])
 
@@ -4966,7 +4964,7 @@ def test_the_template_is_the_record_the_check_reads():
     `original:` line, with the review skill saying where a `reopens:`
     finding's grounds open; and no emoji anywhere."""
     text = TEMPLATE.read_text(encoding="utf-8")
-    read, errors = chain.round_of(reader, text, "t", 1)
+    read, errors = chain.round_of(text, "t", 1)
     assert errors == []
     assert [(f.verdict, f.paths, f.regression, f.reopens) for f in read.findings] == [
         ((chain.FIXED, "1a2b3c4"), ["path"], (1, 1), None)
@@ -4987,7 +4985,7 @@ def test_the_template_is_the_record_the_check_reads():
     without = text[:start] + text[end:]
     fix = without.index(FENCE + "<lang>\n") + len(FENCE + "<lang>\n")
     quoted = without[:fix] + "verdict: rejected\nanswer: x\n" + without[fix:]
-    found, errors = chain.record_findings(reader, quoted, "t")
+    found, errors = chain.record_findings(quoted, "t")
     assert errors == [] and [f.verdict for f in found] == [(chain.OPEN, None)]
     assert [c for c in text if EMOJI.match(c)] == []
 

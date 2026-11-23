@@ -270,13 +270,13 @@ def suite_counts(directory, key):
 
 
 def readers():
-    """`(routing, chain_check, the markdown reader)`: the modules the review
-    chain's own gates read round records with, so the counts here are the
-    ones a gate would read and a change to where records live has to move
-    these readers first. The markdown reader is the one the check loaded."""
+    """`(routing, chain_check)`: the modules the review chain's own gates
+    read round records with, so the counts here are the ones a gate would
+    read and a change to where records live has to move these readers
+    first."""
     chain = module("skills/code-review/scripts/chain_check.py")
     routing = module("lib/routing.py")
-    return routing, chain, chain.SHARED_READER
+    return routing, chain
 
 
 def labels_of(pull):
@@ -320,7 +320,7 @@ def chain_counts(root, pulls):
         # `lib/sibling.py#Absent` with no sentence of the loader's, and the
         # line below names it.
         with sibling.going_on():
-            routing, chain, reader = readers()
+            routing, chain = readers()
     except (Exception, SystemExit) as problem:
         # `Absent`'s path; an `ImportError` carries a `path` of its own.
         if isinstance(problem, SystemExit) and getattr(problem, "path", None):
@@ -360,7 +360,7 @@ def chain_counts(root, pulls):
             except (OSError, UnicodeDecodeError):
                 unread.append(path)
                 continue
-            found, errors = chain.record_findings(reader, text, path)
+            found, errors = chain.record_findings(text, path)
             # A finding the reader refused is a verdict nobody counted.
             if errors:
                 unread.append(path)
