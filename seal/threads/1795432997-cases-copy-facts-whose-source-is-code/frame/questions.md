@@ -13,6 +13,7 @@ grounds stand where each line points, and none is reopened here.
 - Whether the moved-rule window cases go, and where the measurement behind `WINDOW` stands: `frame/plan.md` *Alternatives considered*, A9a to A10b, on `frame/design.md` G15.
 - Where the eval YAML is parsed, and how a sealer grader is judged: `frame/plan.md` *Alternatives considered*, A11a to A11c and A13a to A14b, on `frame/design.md` G16.
 - Which functions of `evals/scripts/` only tests call: `frame/design.md` G17.
+- Whether the grader writer of `evals/scripts/behaviour.py` keeps a case once the reader goes: `frame/plan.md` *Alternatives considered*, A15a to A15c.
 - Whether the cases that cut a section inline are converted: `frame/plan.md` *Alternatives considered*, A12a and A12b.
 
 Nothing here needs a person: each default comes from the issue or the
