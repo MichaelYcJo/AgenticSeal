@@ -479,8 +479,8 @@ def pact_declaration(pairs):
     `config_value`'s rule and in its sentence, so it lists no pact.
 
     **Only the `Pact` key is read.** A key of any other name is no answer
-    about a pact, a `Pact notify` key an earlier release read included
-    (`templates/setup/config.md` *Pact*).
+    about a pact. A `Pact notify` key an earlier release read is one: no
+    command refuses it, prints it or names it.
     """
     value, refused = config_value(pairs, PACT_KEY)
     if refused:

@@ -91,8 +91,10 @@ through the `skills:` list in its definition, and each agent's own half is in
 `agents/<name>.md`. So the prompt holds what is specific to this round and
 nothing else.
 
-**That contract binds you too, and reaches you only if you open it**, as
-the opening of `skills/implement/SKILL.md` states.
+**That contract binds you too, and reaches you only if you open it**: you
+open it once beside the core, at step 1 of
+`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*.
 
 ## Orchestrator: the run ends with a verifying round
 
