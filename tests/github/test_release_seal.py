@@ -100,7 +100,7 @@ SUITE_KEY = "seal-1234567890"
 # counts differ from each other and from every other count the header
 # holds, so a count put in another badge shows. The broad gate's reader
 # resolves the path each line names, which costs seconds on the Windows leg
-# for a record of a real suite's 7,069 lines; no case of `main` asks the
+# for a record of a real suite's 7,069 `test` lines; no case of `main` asks the
 # width of a count, which `Test_release_rows` holds over rows it is handed.
 SUITE = {"passed": 7, "skipped": 3}
 
