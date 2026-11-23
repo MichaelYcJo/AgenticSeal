@@ -48,3 +48,25 @@ Verdict: undecided question: Does #1571's second Done-when line, that the versio
 ```
 
 Answered 2026-11-23 by the repository owner: accept. `assets/` stays unwatched, as `frame/design.md` *Scope* item 8 builds it: nothing installed reads it, so a release that changes it alone needs no version move, and the second Done-when line is read as every top-level root an installed copy reads.
+
+## The audit at d7ad273f4, after the owner's answer
+
+The re-audit ran at `d7ad273f4`, against the same base commit, `641b6bfb5`. Two commits follow the gate's run `48d8aa347`: `247c66526` and `d7ad273f4`. `git log --no-merges --name-only 48d8aa347..HEAD ^641b6bfb5` lists only `trail/gate.md` and `guarantee.md` under them. `git diff 247c66526 d7ad273f4 --stat` lists `guarantee.md` alone. The commit adds the earlier verdict block, which is unchanged, and the owner's answer line below it. No claim row above has a coordinate that a commit since `247c66526` touched, so none is re-run.
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run still stands at HEAD | `trail/gate.md` | `git merge-base --is-ancestor 48d8aa347 HEAD`, and the `git log` above | holds: the commit is an ancestor (exit 0), and only paths under `seal/threads/1795389517-three-github-scripts-ship-in-dist/` follow it |
+| The body still matches the records at HEAD | the body file the prompt names | `bin/seal pr-body seal/threads/1795389517-three-github-scripts-ship-in-dist --body <scratchpad>/1795389517-three-github-scripts-ship-in-dist/body.md --check` | holds: exit 0, `matches` |
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | the same as at `247c66526`. `assets/` stays unwatched (*Scope* item 8) | the owner's answer, read as the owner's: the second Done-when line covers every top-level root an installed copy reads, and `assets/` is not one of them | none |
+| the build | unchanged since `247c66526` | the design, as read above | none |
+| the last round | unchanged since `247c66526` | as read above | none |
+| the changelog | unchanged. `assets/` and the top-level files stay unwatched | the owner's answer | none |
+| the orchestrator's part of the pull request body | unchanged, with `Closes #1571.` | Every Done-when line holds under the owner's reading of the second line | none |
+
+```seal
+target: d7ad273f408e142fbac45d62497ac7c8cf56cb72 against 641b6bfb5029a313482931f35d75befbf9d3220c
+Verdict: sealed
+```
