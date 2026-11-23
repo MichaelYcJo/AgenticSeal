@@ -115,6 +115,11 @@ orchestrator owns:
 Phase 9 gave each listed case one of the three verdicts *Scope* item 11 names, as folded after round 1, so the cases that stay are each named with the reason they stay;
 ```
 
+```seal
+verdict: fixed 56bd7d72d
+answer: The finding holds, and every unit it locates is a record of this work item. `56bd7d72d` puts the reader a refusal rests on into *Scope* item 11 (`frame/design.md:131`) by the round's sentence, makes the legend at `trail/phases/phase-9.md:94` name the case item 11 keeps rather than an ordinal, and makes the grounds cell at `frame/plan.md:69` cite item 11's three verdicts rather than restate them, so item 11 is the one source. No verifying round reads a close whose finding is located in the work item's records alone; the sealer reads it at HEAD.
+```
+
 ### 2. Three rows the fix pass wrote name more than their case asserts
 
 ```seal
@@ -167,6 +172,11 @@ each was read.
 
 ```markdown
 | `Test_routing_trailers::test_refuses_a_commit_naming_a_work_item_no_declaration_names` | 40 | 36 | Answered, its two runs: `main` exits 1 on a ready pull request naming the commit whose trailer names an undeclared work item, prints the one reading `no work item` as a notice, and exits 0 on a draft still naming the first commit. The trailers stay git's. |
+```
+
+```seal
+verdict: fixed 56bd7d72d
+answer: The finding holds, and every unit it locates is a record of this work item. `56bd7d72d` replaces the three rows at `trail/phases/phase-9.md:98`, `:121` and `:122` with the round's rows, each saying what its case asserts: `trail/gate.md` alone, the body arm's one printed line, and the draft's exit 0 with the first commit named. No verifying round reads a close whose finding is located in the work item's records alone; the sealer reads it at HEAD.
 ```
 
 ## Confirmations
