@@ -115,6 +115,7 @@ SIBLINGS = {
     "tables": "lib/tables.py",
     "config": "lib/config.py",
     "optin": "lib/optin.py",
+    "gitcmd": "lib/gitcmd.py",
     "rule_changes": "skills/settle/scripts/rule_changes.py",
     "fold_check": "skills/settle/scripts/fold_check.py",
 }
@@ -212,7 +213,7 @@ def rule_files(root):
     out = {}
     for path in paths:
         if os.path.isfile(path):
-            rel = os.path.relpath(path, root).replace(os.sep, "/")
+            rel = sibling("gitcmd").git_path(os.path.relpath(path, root))
             with open(path, encoding="utf-8", errors="replace") as handle:
                 out[rel] = handle.read()
     return out
@@ -280,7 +281,7 @@ def markers(root):
             if not (name.startswith("test_") and name.endswith(".py")):
                 continue
             path = os.path.join(top, name)
-            rel = os.path.relpath(path, root).replace(os.sep, "/")
+            rel = sibling("gitcmd").git_path(os.path.relpath(path, root))
             try:
                 with open(path, encoding="utf-8") as handle:
                     text = handle.read()

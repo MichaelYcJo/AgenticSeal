@@ -39,6 +39,7 @@ from conftest import (
     write,
 )
 from conftest import commit_everything_as_e as commit
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/seal_stamp.py"
 
@@ -474,7 +475,8 @@ class Test_read_sprite:
         centred on the disc."""
         path = ROOT / "skills" / "verify" / "scripts" / "seal-mark.txt"
         lines = tuple(path.read_text(encoding="utf-8").split("\n")[:16])
-        assert stamp.SPRITE == lines == stamp.read_sprite(str(path))
+        assert stamp.read_sprite(stamp.SPRITE_PATH) == lines
+        assert stamp.read_sprite(str(path)) == lines
         assert os.path.samefile(stamp.SPRITE_PATH, path)
         assert (stamp.SPRITE_CELLS, stamp.SPRITE_OFFSET) == (16, 6)
         assert set("".join(lines)) == {".", *OWL_LETTERS}
@@ -518,7 +520,8 @@ class Test_read_sprite:
         inside the field whose shadow would fall on the step ring."""
         broken = tmp_path / "broken.txt"
         broken.write_text(
-            "\n".join(change(list(stamp.SPRITE))) + "\n", encoding="utf-8"
+            "\n".join(change(list(stamp.read_sprite(stamp.SPRITE_PATH)))) + "\n",
+            encoding="utf-8",
         )
         with pytest.raises(ValueError) as refused:
             stamp.read_sprite(str(broken))
@@ -561,9 +564,10 @@ class Test_build:
         assert frame == [208, 46, 67, 50, 57, 8, 24, 24], frame
         assert sum(frame) == len(ring), frame
         assert set(cells) == {None, *FIFTEEN}
+        sprite = stamp.read_sprite(stamp.SPRITE_PATH)
         for y in range(h):
             for x in range(w):
-                assert px(x, y) == owners_disc(stamp.SPRITE, x, y), (x, y)
+                assert px(x, y) == owners_disc(sprite, x, y), (x, y)
 
     def test_refuses_a_colour_off_the_grid(self):
         _w, _h, px = stamp.build()
@@ -584,10 +588,9 @@ class Test_disc_cell:
 class Test_disc_cells:
     def test_accepts_row_y_on_top_and_the_next_below(self):
         _w, _h, px = stamp.build()
+        sprite = stamp.read_sprite(stamp.SPRITE_PATH)
         assert stamp.disc_cells(px, 28, 0) == [
-            owners_cell(
-                owners_disc(stamp.SPRITE, x, 0), owners_disc(stamp.SPRITE, x, 1)
-            )
+            owners_cell(owners_disc(sprite, x, 0), owners_disc(sprite, x, 1))
             for x in range(28)
         ]
 
@@ -792,14 +795,15 @@ class Test_compose:
         cell."""
         text = stamp.text_lines(rows)
         letter = stamp.compose(rows)
+        sprite = stamp.read_sprite(stamp.SPRITE_PATH)
         assert (letter.height, letter.disc) == (height, (0, 2 * top_disc, 28, 28))
         for ln, line in enumerate(letter.cells):
             k, t = ln - top_disc, ln - top_text
             want = (
                 [
                     owners_cell(
-                        owners_disc(stamp.SPRITE, x, 2 * k),
-                        owners_disc(stamp.SPRITE, x, 2 * k + 1),
+                        owners_disc(sprite, x, 2 * k),
+                        owners_disc(sprite, x, 2 * k + 1),
                     )
                     for x in range(28)
                 ]
@@ -981,13 +985,34 @@ class Test_sealed_names:
 
 
 class Test_ref_is_commit:
-    @pytest.mark.parametrize("ref", [None, "", "bbb2", "bbb2222" + "0" * 33])
+    @pytest.mark.parametrize("ref", [None, "", "BBB2222", "bbb2222" + "0" * 33])
     def test_accepts_no_ref_or_a_hex_spelling_of_the_commit(self, ref):
         assert stamp.ref_is_commit(ref, "bbb2222")
 
-    @pytest.mark.parametrize("ref", ["b", "bbb-x", "origin/base", "ccc2222"])
+    @pytest.mark.parametrize("ref", ["b", "bbb2", "bbb-x", "origin/base", "ccc2222"])
     def test_refuses_a_branch_whose_name_begins_the_commit(self, ref):
         assert not stamp.ref_is_commit(ref, "bbb2222")
+
+    @pytest.mark.parametrize(
+        ("ref", "commit", "same"),
+        [
+            ("bbb2", "bbb2222", False),
+            ("bbb222", "bbb2222", False),
+            ("bbb2222", "bbb2222", True),
+            ("BBB2222", "bbb2222", True),
+            ("bbb2222abc", "bbb2222", True),
+            ("bbb2222" + "0" * 34, "bbb2222", False),
+            ("cafe", "cafe123", False),
+            ("deadbee", "deadbee", True),
+            ("zzzzzzz", "zzzzzzz", False),
+        ],
+    )
+    def test_answers_as_a_refusal_record_is_matched(self, tmp_path, ref, commit, same):
+        """1795401822 S3: the base's ref and a refusal record's target are
+        held to one rule of whether two spellings name one commit."""
+        stamp.record_refusal(str(tmp_path), ITEM_ID, commit)
+        assert stamp.ref_is_commit(ref, commit) is same
+        assert stamp.refused_here(str(tmp_path), ITEM_ID, ref) is same
 
 
 # --- which form -------------------------------------------------------------------
@@ -1930,6 +1955,20 @@ def message(stdout):
     return json.loads(stdout)["systemMessage"]
 
 
+def a_malformed_sprite(directory, monkeypatch):
+    """`SPRITE_PATH` pointed at the shipped sprite cut to its first line,
+    under DIRECTORY; the sentence `read_sprite` refuses it with."""
+    broken = directory / "seal-mark.txt"
+    first = (ROOT / "skills" / "verify" / "scripts" / "seal-mark.txt").read_text(
+        encoding="utf-8"
+    )
+    broken.write_text(first.split("\n")[0] + "\n", encoding="utf-8")
+    monkeypatch.setattr(stamp, "SPRITE_PATH", str(broken))
+    with pytest.raises(ValueError) as refused:
+        stamp.read_sprite(str(broken))
+    return str(refused.value)
+
+
 class Test_toplevel:
     def test_accepts_a_subdirectory_as_its_repository(self, opted):
         (opted / "docs" / "deep").mkdir(parents=True)
@@ -2219,9 +2258,9 @@ class Test_drawn_from:
 
 
 class Test_main:
-    """Where two cases call `main` alike, the world differs: a stamp waits to
-    be drawn in one, and a monkeypatched `drawn_at_stop` raises in the
-    other."""
+    """Where cases call `main` alike, the world differs: a stamp waits to be
+    drawn in one, a monkeypatched `drawn_at_stop` raises in another, and a
+    stamp waits beside a malformed sprite in a third."""
 
     def test_accepts_the_sample_in_the_form_the_console_takes(self, capsys):
         assert stamp.main([], console_wants_letters=False) == 0
@@ -2306,6 +2345,37 @@ class Test_main:
         assert out == "" and err.startswith(f"seal stamp: {guarantee}: "), err
         assert queued(local.common) == []
 
+    @pytest.mark.parametrize(
+        "root, words",
+        [
+            ("shared", ("log", "--format=%H")),
+            ("shared", ("merge-base", "--is-ancestor")),
+            ("local", ("worktree", "list")),
+        ],
+        ids=["history", "reach", "local root"],
+    )
+    def test_guarantee_refuses_a_git_that_did_not_answer_naming_it(
+        self, request, root, words, monkeypatch, capsys
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT` while the stamp
+        is queued is exit 2 in the runner's one line, and nothing is queued
+        or recorded: a history git did not print is not a work item never
+        stamped, and a reach git did not answer is not a commit the branch
+        lacks. Seen red against `seal_stamp.py` before #1573, whose line
+        was the exception's own."""
+        item = request.getfixturevalue(root)
+        guarantee = item_dir(item) / "guarantee.md"
+        if root == "shared":
+            guarantee = item.repo / GUARANTEE
+            uncommitted(item)
+        asked = unanswered(monkeypatch, *words)
+        assert stamp.main(["--guarantee", str(guarantee)]) == 2
+        out, err = capsys.readouterr()
+        assert out == "", out
+        assert err == f"seal stamp: {guarantee}: {past_the_bound(asked[0])}\n", err
+        assert queued(item.common) == []
+        assert not (pathlib.Path(item.common) / "agentic-stamp-refused").exists()
+
     @pytest.mark.rule("stamp-drawn-once")
     def test_stop_draws_the_payloads_clone_once_and_exits_0(
         self, opted, monkeypatch, capsys
@@ -2333,6 +2403,33 @@ class Test_main:
         monkeypatch.setattr(sys, "stdin", io.StringIO(stop_payload(opted)))
         assert stamp.main(["--stop"]) == 0
         assert capsys.readouterr() == ("", "")
+
+    def test_from_refuses_a_malformed_sprite_in_one_line_and_claims_nothing(
+        self, opted, tmp_path, monkeypatch, capsys
+    ):
+        """#1582 S2. The sprite is read where the disc is drawn, so
+        `--from` beside a malformed one exits 2 with `read_sprite`'s
+        sentence, and the values file stays pending under its own name until
+        the sprite is repaired. The module read the sprite once at import
+        before, so the shipped one drew and the file was claimed."""
+        path = waiting(opted)
+        said = a_malformed_sprite(tmp_path, monkeypatch)
+        assert stamp.main(["--from", path], console_wants_letters=True) == 2
+        assert capsys.readouterr() == ("", said + "\n")
+        assert stamp.pending(stamp.values_dir(str(opted / ".git"))) == [path]
+
+    def test_stop_draws_nothing_beside_a_malformed_sprite_and_claims_nothing(
+        self, opted, tmp_path, monkeypatch, capsys
+    ):
+        """#1582 S2. `--stop` skips a stamp whose disc does not draw, so it
+        exits 0, prints no `systemMessage`, and leaves the file pending for
+        `seal stamp --from`, which names the sprite's fault."""
+        path = waiting(opted)
+        a_malformed_sprite(tmp_path, monkeypatch)
+        monkeypatch.setattr(sys, "stdin", io.StringIO(stop_payload(opted)))
+        assert stamp.main(["--stop"]) == 0
+        assert capsys.readouterr() == ("", "")
+        assert stamp.pending(stamp.values_dir(str(opted / ".git"))) == [path]
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_the_plugins_stop_command_draws_once_and_exits_0(self, opted):

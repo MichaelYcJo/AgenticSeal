@@ -27,6 +27,7 @@ from block_shapes import BREAKS, RENDERER, SHAPES
 from conftest import (
     ROOT,
     census_case,
+    git,
     git_repo,
     load_lib_module,
     names_path,
@@ -480,6 +481,31 @@ class Test_parse:
         assert all(omitted.values()), omitted
 
 
+class Test_current_branch:
+    def test_accepts_the_branch_checked_out(self, tmp_path):
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        assert routing.current_branch(str(repo)) == "feature/x"
+
+    def test_refuses_a_detached_head_and_a_git_that_did_not_answer(
+        self, tmp_path, monkeypatch
+    ):
+        """A detached HEAD matches no declaration, and neither does a git
+        past `lib/gitcmd.py#TIMEOUT`: both read as `""`, never as an
+        exception (#1573)."""
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        git(repo, "checkout", "-q", "--detach")
+        assert routing.current_branch(str(repo)) == ""
+        git(repo, "checkout", "-q", "feature/x")
+
+        def timed_out(command, **kwargs):
+            raise subprocess.TimeoutExpired(command, kwargs.get("timeout"))
+
+        monkeypatch.setattr(routing.gitcmd.subprocess, "run", timed_out)
+        assert routing.current_branch(str(repo)) == ""
+
+
 class Test_declarations:
     def test_accepts_a_declaration_under_the_repositorys_root(self, tmp_path):
         repo = opted_in_repo(tmp_path / "declared" / "repo")
@@ -575,12 +601,12 @@ class Test_module:
         [
             (
                 "blocks.py",
-                ["optin.py"],
+                ["gitcmd.py", "optin.py"],
                 "tells a live row from one quoted in a fence or parked in a comment",
             ),
             (
                 "tables.py",
-                ["optin.py", "blocks.py"],
+                ["gitcmd.py", "optin.py", "blocks.py"],
                 "the row splitter this reader reads routing.md's cells through",
             ),
         ],
@@ -590,13 +616,13 @@ class Test_module:
         self, tmp_path, missing, siblings, purpose
     ):
         """#667. This module imports `lib/blocks.py`, the walk the readers
-        under `lib/` share, after `lib/optin.py`, and `lib/tables.py`, the row
-        splitter, after both (#1574), so each copy takes the files imported
-        before the one it leaves out. It is a module, not a script: scripts
-        import it, and a script catches the error or names the file first. So
-        a copy without either raises one `ImportError` whose sentence names
-        the path and what the file is for. `tests/lib/test_tables.py` holds
-        `lib/tables.py` to the same."""
+        under `lib/` share, after `lib/gitcmd.py` and `lib/optin.py`, and
+        `lib/tables.py`, the row splitter, after all three (#1574), so each
+        copy takes the files imported before the one it leaves out. It is a
+        module, not a script: scripts import it, and a script catches the
+        error or names the file first. So a copy without either raises one
+        `ImportError` whose sentence names the path and what the file is for.
+        `tests/lib/test_tables.py` holds `lib/tables.py` to the same."""
         name = TARGET.rsplit("/", 1)[1]
         alone = tmp_path / "lib"
         alone.mkdir()

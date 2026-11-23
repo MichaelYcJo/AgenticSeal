@@ -44,7 +44,6 @@ top level (`absent_root`); and work items none of which carries a `gaps.md`
 
 import argparse
 import os
-import subprocess
 import sys
 
 # `lib/` beside this script. The memo's reader, `lib/gaps.py`, the line
@@ -134,12 +133,13 @@ def references_at(top):
 def reference_rule(start):
     """A predicate on a disk directory — True for one the walk from `start`
     leaves out — or None where nothing is left out: `start` outside a git
-    repository, a `lib/` that will not load, or `start` itself inside a
+    repository or a git that did not answer, which `lib/optin.py#repo_root`
+    reads alike, a `lib/` that will not load, or `start` itself inside a
     reference root, which the person named and so asked for. Every
     directory the walk meets is under `start`, so under `top` as well, and
     has a repository-relative form."""
-    top = repo_root(start)
-    if top is None:
+    top = OPTIN.repo_root(start)
+    if not top:
         return None
     loaded = references_at(top)
     if loaded is None:
@@ -167,7 +167,8 @@ def repo_relative(path, root):
     a repository. A path on another volume is not inside this one -- a
     working tree cannot span drives -- so there is no answer to degrade to,
     and inventing one is the quiet zero this tool refuses. `reference_rule`
-    asks it only of paths under the top `repo_root` found for them.
+    asks it only of paths under the top `lib/optin.py#repo_root` found for
+    them.
     """
     try:
         return GITCMD.git_path(os.path.relpath(path, root))
@@ -201,21 +202,10 @@ def unique_by_target(paths):
     return sorted({os.path.realpath(p) for p in paths})
 
 
-def repo_root(path):
-    here = path if os.path.isdir(path) else (os.path.dirname(path) or ".")
-    r = subprocess.run(
-        ["git", "-C", here, "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return r.stdout.strip() if r.returncode == 0 else None
-
-
 def root_name(top):
     """The name of the `seal/` root of the repository at TOP as the tree
     spells it, `lib/optin.py#home_name`'s answer; `optin.HOME` where TOP is
-    None or holds no shared root. That is the name a local root keeps, and
+    empty or holds no shared root. That is the name a local root keeps, and
     the one each fixture that commits a `seal/` with no marker is read
     under."""
     optin = sibling.load("lib/optin.py")
@@ -226,7 +216,9 @@ def named_root(parent):
     """Whether the directory PARENT carries the name `root_name` gives for
     the repository holding it. Only the name is read: whether PARENT is
     that root is not asked. PARENT is a directory on disk."""
-    return os.path.basename(parent) == root_name(repo_root(os.path.dirname(parent)))
+    return os.path.basename(parent) == root_name(
+        OPTIN.repo_root(os.path.dirname(parent))
+    )
 
 
 def settled_root(path):
@@ -278,8 +270,8 @@ def absent_root(path):
         return False
     if os.path.isdir(parent) or not os.path.isdir(top):
         return False
-    found = repo_root(top)
-    if found is None or not os.path.samefile(found, top):
+    found = OPTIN.repo_root(top)
+    if not found or not os.path.samefile(found, top):
         return False
     optin = sibling.load("lib/optin.py")
     shared = optin.home_paths(found, optin.git_common_dir(found))[0]

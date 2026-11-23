@@ -55,6 +55,7 @@ from conftest import (
 )
 from conftest import commit_everything_as_e as commit
 from conftest import git_out as git
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/pact_check.py"
 
@@ -1262,6 +1263,24 @@ class Test_main:
     def test_refuses_a_root_named_outside_any_repository(self, world, printed):
         assert pc.main([str(world.tmp)]) == 2
         assert "is not in a git repository" in printed.getvalue()
+
+    @pytest.mark.parametrize(
+        "words",
+        [("rev-parse", "--show-toplevel"), ("remote", "get-url", "origin")],
+        ids=["toplevel", "origin"],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, world, monkeypatch, capsys, printed, words
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT` is exit 2 in the
+        runner's one line, and is read neither as no repository nor as no
+        origin remote. Seen red against `pact_check.py` before #1573, which
+        said each of those."""
+        world.cite(clause(V2))
+        asked = unanswered(monkeypatch, *words)
+        assert pc.main([str(world.api)]) == 2
+        assert capsys.readouterr().out == f"seal pact: {past_the_bound(asked[0])}\n"
+        assert printed.getvalue() == ""
 
 
 # For #923: it reads this module's source.

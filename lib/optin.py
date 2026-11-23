@@ -27,11 +27,17 @@ that read as the AgenticSeal process being switched off. Nothing under
 so it shares the opt-out. `seal/README.md` says so too.
 
 Everything here fails toward "not opted in": a gate that cannot tell should do
-nothing rather than act on a guess.
+nothing rather than act on a guess. `toplevel` alone raises where git did not
+answer, for a caller that must tell that apart from no repository, and
+`repo_root` is `toplevel` read toward "not opted in". Each git command here is
+started by `lib/gitcmd.py#git`.
 """
 
 import os
-import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gitcmd
 
 HOME = "seal"
 # The shared root's second name, taken where the repository's own `seal/`
@@ -76,34 +82,20 @@ MARKER = "# What AgenticSeal maintains in seal/"
 README = "README.md"
 
 
-def repo_root(cwd):
-    """The repository root containing cwd, or "" when there is none."""
+def toplevel(cwd):
+    """The repository root containing cwd, or "" when there is none.
+
+    `lib/gitcmd.py#Failed` where git did not answer, for a caller that must
+    tell a git that did not answer from a directory outside any
+    repository."""
     if not cwd or not os.path.isdir(cwd):
         return ""
-    try:
-        out = subprocess.run(
-            ["git", "-C", cwd, "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            # Named, and the `.stdout or ""` below is the second half of the
-            # same defect. `text=True` alone decodes with whatever locale the
-            # parent had; git answers UTF-8, so a repository under a path this
-            # locale cannot decode kills subprocess's reader thread -- and that
-            # exception DOES NOT PROPAGATE. The call returns with `stdout` set
-            # to None, and `.strip()` then raises `AttributeError`, which is
-            # neither of the classes caught here.
-            #
-            # Measured on a cp949 console against a repository under a Korean
-            # path: the caller exited 1 with no answer, where it should have
-            # read the repository as not opted in. Everything in this module is
-            # documented to fail toward "not opted in", and that is silence,
-            # not a crash.
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        ).stdout
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    out = (out or "").strip()
+    # `or ""`: a process whose reader thread died while decoding returns
+    # with `stdout` None, and `.strip()` would then raise `AttributeError`,
+    # where this module fails toward "not opted in". `lib/gitcmd.py#_start`
+    # names the encoding so that the decode does not fail; the None is still
+    # read here.
+    out = (gitcmd.git(cwd, "rev-parse", "--show-toplevel").stdout or "").strip()
     # Spelled the way this platform spells a path, because that is what every
     # caller does with it: `os.path.join` below, and the gates print it to
     # someone who has to recognise their own repository in it. git answers
@@ -117,6 +109,15 @@ def repo_root(cwd):
     # path changes and `normpath` is not asked to guess anything: git has
     # already resolved this to an absolute, existing directory.
     return os.path.normpath(out) if out else ""
+
+
+def repo_root(cwd):
+    """The repository root containing cwd, or "" when there is none or git
+    did not answer: `toplevel` read toward "not opted in"."""
+    try:
+        return toplevel(cwd)
+    except gitcmd.Failed:
+        return ""
 
 
 def git_common_dir(root):
@@ -137,14 +138,8 @@ def git_common_dir(root):
     if os.path.isdir(dotgit):
         return dotgit
     try:
-        out = subprocess.run(
-            ["git", "-C", root, "rev-parse", "--git-common-dir"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        ).stdout
-    except (OSError, subprocess.SubprocessError):
+        out = gitcmd.git(root, "rev-parse", "--git-common-dir").stdout
+    except gitcmd.Failed:
         return ""
     out = (out or "").strip()
     return os.path.normpath(os.path.join(root, out)) if out else ""

@@ -28,6 +28,7 @@ import zlib
 import pytest
 from conftest import ROOT, census_case, config_json, mark_root
 from conftest import load_module as load
+from test_settle import unanswered
 
 TARGET = ".github/scripts/release_seal.py"
 
@@ -1145,14 +1146,37 @@ class Test_module:
                 args, code, stdout=f"{SHA}\n", stderr="HTTP 502\n"
             )
 
-        monkeypatch.setattr(mod.subprocess, "run", run)
+        monkeypatch.setattr(subprocess, "run", run)
         assert mod.gh("release", "view", TAG) == f"{SHA}\n"
         with pytest.raises(mod.Refused, match=r"^gh release edit failed: HTTP 502$"):
             mod.gh("release", "edit", TAG, "--notes", "x")
         assert mod.tagged(TAG) == SHA
-        assert seen[-1] == ["git", "rev-parse", f"{TAG}^{{commit}}"]
+        gitcmd = mod.module("lib/gitcmd.py")
+        assert seen[-1] == gitcmd.argv(
+            "-C", os.curdir, "rev-parse", f"{TAG}^{{commit}}"
+        )
         with pytest.raises(mod.Refused, match=r"^git rev-parse nope failed: HTTP 502$"):
             mod.tagged("nope")
+
+    def test_a_gh_or_git_call_that_gave_no_answer_is_a_reason_naming_it(
+        self, monkeypatch
+    ):
+        """#1573. A `gh` or git past `lib/gitcmd.py#TIMEOUT` is `Refused`
+        with the runner's line, so `main` says it and exits 0, as for a
+        refusal."""
+        mod = seal()
+        unanswered(monkeypatch, "release", "view")
+        with pytest.raises(mod.Refused) as refused:
+            mod.gh("release", "view", TAG)
+        assert str(refused.value) == (
+            f"`gh release view {TAG}` did not finish within 60 seconds"
+        )
+        unanswered(monkeypatch, "rev-parse")
+        with pytest.raises(mod.Refused) as refused:
+            mod.tagged(TAG)
+        assert str(refused.value) == (
+            f"`git rev-parse {TAG}^{{commit}}` did not finish within 60 seconds"
+        )
 
 
 test_census = census_case(TARGET)

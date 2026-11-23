@@ -34,6 +34,7 @@ import sys
 
 import pytest
 from conftest import ROOT, census_case, commit_everything, git_out, git_repo, write
+from test_settle import unanswered
 
 TARGET = ".github/scripts/tag_release.py"
 
@@ -313,12 +314,42 @@ class Test_create:
         assert git_out(repo, "rev-parse", f"{TAG}^{{commit}}") == after
 
     def test_refuses_without_gh_and_says_so(self, monkeypatch, tmp_path):
+        """The line is `lib/gitcmd.py#Unrun`'s, which names the command
+        (#1573)."""
         repo, _, after = released(tmp_path)
         mod = tagger()
         monkeypatch.setattr(mod, "ROOT", str(repo))
-        monkeypatch.setattr(mod.shutil, "which", lambda name: None)
-        assert mod.create(REPO, TAG, after) == "gh is not on PATH"
+        monkeypatch.setattr(mod.gitcmd.shutil, "which", lambda name: None)
+        assert mod.create(REPO, TAG, after) == (
+            f"`gh api -X POST repos/{REPO}/git/refs -f ref=refs/tags/{TAG} "
+            f"-f sha={after}` could not be run: `gh` is not on PATH"
+        )
         assert local_tag(repo) == ""
+
+    @pytest.mark.parametrize(
+        "words, shown",
+        [
+            pytest.param(
+                [f"repos/{REPO}/git/refs"],
+                f"gh api -X POST repos/{REPO}/git/refs -f ref=refs/tags/{TAG} -f sha=",
+                id="gh api",
+            ),
+            pytest.param(["tag", TAG], f"git tag {TAG} ", id="git tag"),
+        ],
+    )
+    def test_refuses_a_command_that_gave_no_answer_and_names_it(
+        self, monkeypatch, tmp_path, words, shown
+    ):
+        """A `gh` or git past `lib/gitcmd.py#TIMEOUT` is the error the step
+        prints, in the runner's line, and not a traceback (#1573)."""
+        repo, _, after = released(tmp_path)
+        fake_gh(monkeypatch, tmp_path / "bin")
+        mod = tagger()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        unanswered(monkeypatch, *words)
+        assert mod.create(REPO, TAG, after) == (
+            f"`{shown}{after}` did not finish within 60 seconds"
+        )
 
     def test_refuses_a_tag_the_checkout_refuses_and_names_it(
         self, monkeypatch, tmp_path

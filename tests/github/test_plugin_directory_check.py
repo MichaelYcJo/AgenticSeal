@@ -48,6 +48,7 @@ import subprocess
 
 import pytest
 from conftest import ROOT, census_case
+from test_settle import unanswered
 
 TARGET = ".github/scripts/plugin_directory_check.py"
 
@@ -364,7 +365,7 @@ class Test_main:
 
 class Test_module:
     def test_a_commit_this_clone_does_not_have_is_not_called_unreachable(
-        self, tmp_path
+        self, tmp_path, monkeypatch
     ):
         """The third ancestry value. Folding *unknown here* into *not reachable*
         would tell a reader a file is behind because their checkout was not
@@ -392,6 +393,17 @@ class Test_module:
             "reads as a stale pin"
         )
         assert mod.is_ancestor(str(repo), head, "no-such-ref") is None
+        # #1573: a git that gave no answer at any of the three steps cannot
+        # say either.
+        for words in (["cat-file"], ["rev-parse", "--verify"], ["merge-base"]):
+            with monkeypatch.context() as patched:
+                unanswered(patched, *words)
+                assert mod.is_ancestor(str(repo), head, "main") is None, words
+        (repo / "f.txt").write_text("two\n", encoding="utf-8")
+        git("commit", "-qam", "later")
+        later = git("rev-parse", "HEAD").stdout.strip()
+        assert mod.is_ancestor(str(repo), head, later) is True
+        assert mod.is_ancestor(str(repo), later, head) is False
 
         reachable = "\n".join(
             mod.line(

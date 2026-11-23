@@ -101,14 +101,14 @@ Environment: `TAG` (the tag `tag_release.py` passed on), `REPO`,
 
 Exit codes: 0 published, or already published, or a dry run -- 1 the tag is
 not `vX.Y.Z`, or its range added no fragment the previous tag does not
-already hold.
+already hold, or a git or `gh` command the note cannot go without exited
+non-zero or gave no answer, said in `lib/gitcmd.py#Failed`'s one line.
 """
 
 import html
 import json
 import os
 import re
-import subprocess
 import sys
 import urllib.parse
 
@@ -181,13 +181,6 @@ def title_line_re(version):
     )
 
 
-def run(*args):
-    out = subprocess.run(args, capture_output=True, encoding="utf-8")
-    if out.returncode:
-        sys.exit(f"{' '.join(args)} failed: {out.stderr.strip()}")
-    return out.stdout
-
-
 def version_of(tag):
     """`X.Y.Z` for a `vX.Y.Z` tag, or None for any other name."""
     found = TAG_RE.match((tag or "").strip())
@@ -195,9 +188,10 @@ def version_of(tag):
 
 
 def git(*args):
-    """`git` run in the repository at `ROOT`, its argv
-    `lib/gitcmd.py#argv`'s; its standard output."""
-    return run(*gitcmd.argv("-C", ROOT, *args))
+    """`git` run in the repository at `ROOT` through `lib/gitcmd.py#git`;
+    its standard output. A non-zero exit, or a git that gave no answer,
+    ends the run with the runner's one line."""
+    return gitcmd.git(ROOT, *args, check=True).stdout
 
 
 def previous_tag(tag):
@@ -278,7 +272,7 @@ def fragments(revisions):
 
 def pull_request(revisions, path):
     """The pull request number the commit of `revisions` that adds `path`
-    names, or None. A `git` that fails stops the run, as `run` does."""
+    names, or None. A `git` that fails stops the run, as `git` does."""
     try:
         return settle.adding_commit(ROOT, revisions, path)[1]
     except RuntimeError as problem:
@@ -358,18 +352,15 @@ def milestone_description(repo, version):
     could not be read, no milestone carries the title, or its description is
     empty. The second element says which, for the job log. `--paginate`
     merges the pages into one list, as `release_completeness_check.py`'s
-    `milestone_titles` states.
+    `milestone_titles` states. A `gh` that gave no answer is a list that
+    could not be read, said in the runner's line.
     """
-    out = subprocess.run(
-        [
-            "gh",
-            "api",
-            "--paginate",
-            f"repos/{repo}/milestones?state=all&per_page=100",
-        ],
-        capture_output=True,
-        encoding="utf-8",
-    )
+    try:
+        out = gitcmd.gh(
+            "api", "--paginate", f"repos/{repo}/milestones?state=all&per_page=100"
+        )
+    except gitcmd.Unrun as unrun:
+        return "", f"the milestones could not be listed: {unrun.line}"
     title = MILESTONE_TITLE.format(version=version)
     try:
         listed = json.loads(out.stdout) if not out.returncode else None
@@ -435,7 +426,7 @@ def commit_message(tag):
     commit is the release merge, whose subject GitHub writes as
     `Merge pull request #N from <owner>/release/vX.Y.Z`.
     """
-    return run(*gitcmd.argv("log", "-1", "--format=%B", tag))
+    return git("log", "-1", "--format=%B", tag)
 
 
 def release_exists(repo, tag):
@@ -444,13 +435,10 @@ def release_exists(repo, tag):
     A 404 here is the answer rather than a failure -- the usual case is that
     no release exists yet, which is the whole reason this job runs. Anything
     else still stops the run, because a token without the scope to read
-    releases would otherwise be read as "none exists" and publish a second.
+    releases would otherwise be read as "none exists" and publish a second,
+    and so does a `gh` that gave no answer, in the runner's line.
     """
-    out = subprocess.run(
-        ["gh", "api", f"repos/{repo}/releases/tags/{tag}"],
-        capture_output=True,
-        encoding="utf-8",
-    )
+    out = gitcmd.gh("api", f"repos/{repo}/releases/tags/{tag}")
     if out.returncode:
         if "Not Found" in out.stderr or "404" in out.stderr:
             return False
@@ -489,11 +477,11 @@ def merged_pulls(repo, version):
     Each is `{"number", "title", "body", "author": {"login", "is_bot"}}` as
     `gh pr list --json` prints it. None means the list could not be read, and
     the caller publishes the theme line and the fragments alone rather than
-    failing the tag's job.
+    failing the tag's job. A `gh` that gave no answer is read the same way,
+    and the line names it in the runner's words.
     """
-    out = subprocess.run(
-        [
-            "gh",
+    try:
+        out = gitcmd.gh(
             "pr",
             "list",
             "--repo",
@@ -509,14 +497,15 @@ def merged_pulls(repo, version):
             # (`.github/scripts/release_seal.py#chain_counts`): one call
             # serves both, so the two cannot disagree about the set.
             "number,title,author,body,labels,headRefName",
-        ],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    if out.returncode:
+        )
+    except gitcmd.Unrun as unrun:
+        said = unrun.line
+    else:
+        said = None if not out.returncode else out.stderr.strip()
+    if said is not None:
         print(
             "gh pr list failed, so the note is the theme line and the fragments "
-            f"alone: {out.stderr.strip()}"
+            f"alone: {said}"
         )
         return None
     try:
@@ -762,21 +751,6 @@ def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
     return paragraph(lines, before=image, after='<br clear="left">')
 
 
-def write_output(name, value):
-    """`name=value` appended to `$GITHUB_OUTPUT` where it is set. A write
-    that fails is printed and ignored: the release is already published, and
-    a job that went red over its own output would be a failed job at the tag
-    for nothing."""
-    path = os.environ.get("GITHUB_OUTPUT")
-    if not path:
-        return
-    try:
-        with open(path, "a", encoding="utf-8") as handle:
-            handle.write(f"{name}={value}\n")
-    except OSError as problem:
-        print(f"could not write {name}={value} to $GITHUB_OUTPUT: {problem}")
-
-
 def release_body(theme, rendered, pulls, owner):
     """The note: a header of the counts, the theme line, a summary a reader
     scans, and the fragments they can open.
@@ -860,8 +834,7 @@ def release_body(theme, rendered, pulls, owner):
 
 
 def create(repo, tag, title, body):
-    run(
-        "gh",
+    gitcmd.gh(
         "release",
         "create",
         tag,
@@ -871,6 +844,7 @@ def create(repo, tag, title, body):
         title,
         "--notes",
         body,
+        check=True,
     )
 
 
@@ -907,7 +881,7 @@ def main(argv=None):
             "overwrites a note, because one may have been edited by hand "
             "after it was published"
         )
-        write_output("created", "false")
+        console.write_output("created", "false")
         return 0
 
     title, source = title_from(commit_message(tag), version, tag)
@@ -925,11 +899,11 @@ def main(argv=None):
     if dry:
         print(f"would create the release at {tag} with {len(body)} characters of notes")
         print(body)
-        write_output("created", "false")
+        console.write_output("created", "false")
         return 0
     create(repo, tag, title, body)
     print(f"published the release at {tag}")
-    write_output("created", "true")
+    console.write_output("created", "true")
     return 0
 
 
