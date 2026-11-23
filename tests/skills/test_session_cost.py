@@ -826,6 +826,10 @@ def _gh(monkeypatch, module, listing=None, list_code=0, comment_code=0, stderr="
     return seen
 
 
+# The line `run_gh` hands over as stderr for a `gh` that gave no answer.
+GAVE_NO_ANSWER = "`gh api` did not finish within 60 seconds"
+
+
 def _opened(seen):
     """Whether any call would have created an issue."""
     return [a for a in seen if a[:2] == ["issue", "create"]]
@@ -5261,6 +5265,25 @@ class Test_post:
         assert module.post("r", "s", "flow-measurement") == 1
         assert "was not posted" in capsys.readouterr().out
 
+    def test_a_comment_gh_gave_no_answer_for_is_named_in_the_runners_line(
+        self, monkeypatch, capsys
+    ):
+        """#1573: a comment `run_gh` answers `None` for, a `gh` past
+        `lib/gitcmd.py#TIMEOUT` or not on PATH, is named in the runner's
+        line, which `run_gh` hands over as stderr, and not as a `gh` missing
+        from PATH."""
+        module = _cost()
+        line = "`gh issue comment 42` did not finish within 60 seconds"
+        _gh(
+            monkeypatch,
+            module,
+            listing=_listing((42, "OPEN")),
+            comment_code=None,
+            stderr=line,
+        )
+        assert module.post("r", "s", "flow-measurement") == 1
+        assert capsys.readouterr().out == f"the comment on #42 was not posted: {line}\n"
+
     def test_the_durable_log_is_reachable_under_its_own_label(
         self, monkeypatch, capsys
     ):
@@ -5373,7 +5396,8 @@ class Test_work_item:
             if args[:2] == ["issue", "list"]:
                 return list_code, listing, "" if list_code == 0 else "HTTP 401"
             if args[:1] == ["api"]:
-                return api_code, "\n".join(pages), "" if api_code == 0 else "HTTP 502"
+                said = {0: "", None: GAVE_NO_ANSWER}.get(api_code, "HTTP 502")
+                return api_code, "\n".join(pages), said
             if args[:2] == ["issue", "comment"]:
                 with open(
                     args[args.index("--body-file") + 1], encoding="utf-8"
@@ -5860,18 +5884,27 @@ class Test_work_item:
         assert "so nothing was left out" in out, out
         assert "agent-a.jsonl" in out and "agent-b.jsonl" in out, out
 
+    @pytest.mark.parametrize(
+        "api_code, why",
+        [(1, "exit 1: HTTP 502"), (None, GAVE_NO_ANSWER)],
+        ids=["refused", "no answer"],
+    )
     def test_a_comment_page_that_cannot_be_read_posts_nothing(
-        self, monkeypatch, capsys, tmp_path, item
+        self, monkeypatch, capsys, tmp_path, item, api_code, why
     ):
         """With `--post`, comments that cannot be read would make every
         segment look unposted, and a second post of a reading is a comment a
-        person deletes. So the mode names it and exits 1."""
+        person deletes. So the mode names it and exits 1, a `gh` that gave no
+        answer in the runner's line (#1573)."""
         self.by_dir_and_by_branch(tmp_path)
         module = _cost()
-        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")), api_code=1)
+        seen, bodies = self.gh(
+            monkeypatch, module, _listing((42, "OPEN")), api_code=api_code
+        )
         assert self.main(monkeypatch, tmp_path, module, item, post=True) == 1
         assert bodies == [] and _posted(seen) == [], seen
-        assert "comments on #42 could not be read" in capsys.readouterr().out
+        out = capsys.readouterr().out
+        assert f"comments on #42 could not be read ({why})" in out, out
 
     def test_refuses_a_directory_whose_routing_names_no_branch(
         self, monkeypatch, capsys, tmp_path, item
