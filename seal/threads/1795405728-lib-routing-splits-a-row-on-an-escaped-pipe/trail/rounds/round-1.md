@@ -185,6 +185,11 @@ correct it.
         reads it."""
 ```
 
+```seal
+verdict: fixed b6425753e
+answer: The finding holds. The base's `words` closes a backtick fence at the next line that holds nothing but a run of at least as many backticks (read, `passages.py:81-88` at `da7bd3968`), and a probe of the base over five shapes gave the same, with a closer that carries an info string such as `sh` leaving the fence open (executed, `test_tmp_close.py` in the pass's scratch directory). The case's docstring takes the round's text as given. The changelog bullet is in the pass's own words: the round's "up to the next line of backticks" would take in a line of backticks followed by `sh`, which closes nothing, so the bullet reads "up to the next line that holds nothing but a run of at least as many backticks". `cb69dac5b`'s commit subject states the old claim as well, and it stands in the history, since the branch is never rebased.
+```
+
 ### 4. The plan says `CELL` stays as it is, and the design counts its new alternative as the fourth
 
 ```seal
