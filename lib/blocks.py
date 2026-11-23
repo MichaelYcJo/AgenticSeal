@@ -93,8 +93,14 @@ import re
 # markdown file to document the format. A rule that knew three backticks
 # only would read the inner fence as the outer one's close and leave the live
 # table inside a fence.
-FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
+#
+# FENCE_RUN is the run alone, which `FENCE`, `BLOCK_LOOKING` and
+# `lib/fields.py` read.
+FENCE_RUN = re.compile(r"`{3,}|~{3,}")
+FENCE = re.compile(r"^ {0,3}(?P<run>" + FENCE_RUN.pattern + r")(?P<info>.*)$")
 
+# The two delimiters of an HTML comment, which `lib/lines.py`,
+# `lib/fields.py` and `lib/tables.py` read from here.
 OPENER = "<" + "!--"
 CLOSER = "-->"
 
@@ -116,7 +122,7 @@ CONTAINER = re.compile(r"^(?:[ \t]*(?:>|(?:[-+*]|\d{1,9}[.)])(?=[ \t]|$)))*[ \t]
 GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
 # What a line that starts a block this walk does not follow looks like, once
 # the container run is taken off: a fence run, or any HTML start.
-BLOCK_LOOKING = re.compile(r"`{3,}|~{3,}|<")
+BLOCK_LOOKING = re.compile(FENCE_RUN.pattern + r"|<")
 # Another kind of HTML block (CommonMark 4.6, types 1 and 3 to 7), at the top
 # level. A comment block's own `<!--` is told apart before this is asked.
 OTHER_HTML = re.compile(r"<[A-Za-z/?!]")

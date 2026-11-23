@@ -233,7 +233,7 @@ def check_text(text):
     spelling to fix.
 
     **A comment line is refused before any section is looked for.** The
-    first line that begins with `lib/lines.py#OPENER` is refused at its line
+    first line that begins with `lib/blocks.py#OPENER` is refused at its line
     (`comment_lines`). `open_record_rows` hands any refusal on as one
     entry saying the record cannot be read, never as zero open rows."""
     lines = readable(text)

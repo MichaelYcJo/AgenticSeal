@@ -69,9 +69,6 @@ except ImportError as missing:
 INFO = "seal"
 FENCE = "`" * 3
 OPENER = FENCE + INFO
-# A fence run, once a line's container markers are taken off.
-FENCE_RUN = re.compile(r"`{3,}|~{3,}")
-COMMENT_OPENER = "<" + "!--"
 
 ONE, AT_MOST_ONE = "one", "at most one"
 
@@ -359,11 +356,11 @@ def read(text, kinds):
     for index, line in enumerate(lines):
         if index in inside or index in walked.unclosed:
             continue
-        if line.lstrip().startswith(COMMENT_OPENER):
+        if line.lstrip().startswith(blocks.OPENER):
             refusals.append((index + 1, COMMENT_LINE))
         elif walked.uncertain[index]:
             rest = line[len(blocks.CONTAINER.match(line).group(0)) :]
-            if FENCE_RUN.match(rest):
+            if blocks.FENCE_RUN.match(rest):
                 refusals.append((index + 1, UNSURE))
     return Read(found, sorted(refusals), notices)
 
