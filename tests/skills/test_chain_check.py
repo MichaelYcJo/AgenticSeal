@@ -282,10 +282,9 @@ def imported(d, *commits, at=1700000000):
     this call's N-th commit, or REF's previous commit of this call where
     START is None, a root where REF has none; a tuple START is a merge of
     its parents, the first one's tree under FILES. FILES maps a path to its
-    text, or to None to delete it, a directory whole. A MESSAGE of None makes no commit and points REF at START,
-    and its id is None. Every commit is t's, one second after AT and each a
-    second after the one before, so a world built on two workers is one
-    history. The working tree is not touched."""
+    text, or to None to delete it, a directory whole. Every commit is t's,
+    one second after AT and each a second after the one before, so a world
+    built on two workers is one history. The working tree is not touched."""
 
     def blob(text):
         data = text.encode("utf-8")
@@ -293,9 +292,6 @@ def imported(d, *commits, at=1700000000):
 
     stream = []
     for n, (ref, start, message, files) in enumerate(commits, 1):
-        if message is None:
-            stream.append(f"reset refs/heads/{ref}\nfrom {start}\n\n".encode())
-            continue
         who = f"t <t@t> {at + n} +0000\n"
         head = f"commit refs/heads/{ref}\nmark :{n}\nauthor {who}committer {who}"
         stream.append(head.encode() + blob(message))
@@ -318,10 +314,7 @@ def imported(d, *commits, at=1700000000):
     )
     ids = dict(line.split() for line in marks.read_text(encoding="utf-8").splitlines())
     marks.unlink()
-    return [
-        None if message is None else ids[f":{n}"]
-        for n, (_ref, _start, message, _files) in enumerate(commits, 1)
-    ]
+    return [ids[f":{n}"] for n in range(1, len(commits) + 1)]
 
 
 @pytest.fixture(scope="module")
@@ -331,10 +324,10 @@ def _branch_template(tmp_path_factory):
 
     `main` holds one file, the root's marked `README.md`, and a work item
     another pull request merged, its declaration naming another branch and
-    its one record in the old table's shape with a finding open (S11). `feature/x` adds the declaration, a code
-    commit, round 1 at that commit with its one finding `fixed` by it, round
-    2, the verifying round, confirming `round-1#1` with nothing of its own,
-    and the closing records. Three `git fast-import` runs write it, since
+    its one record in the old table's shape with a finding open (S11).
+    `feature/x` adds the declaration, a code commit, round 1 at that commit
+    with its one finding `fixed` by it, round 2, the verifying round,
+    confirming `round-1#1` with nothing of its own, and the closing records. Three `git fast-import` runs write it, since
     each record names a commit the one before wrote. Returns `(root, code
     commit)`."""
     d = tmp_path_factory.mktemp("chain-world") / "r"
