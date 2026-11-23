@@ -37,10 +37,11 @@ import tokenize
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXEMPTION = re.compile(r"^\s*#\s*exempt from ([a-z_]+):\s*\S")
 COMMENT_LINE = re.compile(r"^\s*#")
-# The code `splitlines` and `heading_rule` read: what the plugin ships,
-# `lib/` and `skills/`, and the release automation under `.github/scripts/`,
-# which the workflows run from the tree and `dist` does not hold. The suite
-# and its runner under `tests/` are not read.
+# The code `splitlines` and `heading_rule` read: `lib/` and `skills/`, and
+# the release automation under `.github/scripts/`, which the workflows run
+# from the tree and `dist` does not hold. A `.py` file under any other root
+# is not read: `hooks/`, which the plugin ships, and `tests/`, which holds
+# the suite and its runner.
 SHIPPED = ("lib/", "skills/", ".github/scripts/")
 
 
