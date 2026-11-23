@@ -328,6 +328,16 @@ disagree, in either direction.
 The gate grows no reading for any such shape, because each one read is
 one more piece of a model of `cmd.exe`, and the gate carries none.
 
+**A commit after the run that changes only the work item's records does not
+run the command again** (`skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals*). So a part of
+the command that reads those records, such as a Markdown lint over every
+`.md` file or a suite case over `seal/threads/`, reads them as they stood at
+the run. Where the repository runs the same command in its pull request's
+CI, that run reads the later records. Where it runs the command nowhere
+else, the repository answers for what the command would have found in
+them.
+
 ### What is refused, and what stays allowed
 
 **A value that would not run as the command it reads as is refused, not
