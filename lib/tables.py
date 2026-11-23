@@ -136,11 +136,11 @@ def hidden_lines(lines):
     inside a list item, another kind of HTML block, the lines after inline
     raw HTML a line leaves open (a mid-line `<!--`, CDATA, a processing
     instruction, a declaration or a tag), everything below a construct that
-    never closes -- the line keeps this reader's base reading, the fence rule alone,
-    `blocks.fence_only`. So on every line the answer is either the base
-    reading or the renderer's, and never a third;
-    `tests/lib/test_tables.py`'s `Test_unfenced` holds that
-    over a generated corpus.
+    never closes -- the line keeps this reader's base reading, the fence
+    rule alone, `blocks.fence_only`. So on every line the answer is either
+    the base reading or the renderer's, and never a third;
+    `tests/lib/test_tables.py`'s `Test_unfenced` holds that over a
+    generated corpus.
 
     What it means in a file:
 
