@@ -36,8 +36,12 @@ TOP_DIRS = ("docs/", "skills/", "agents/", "templates/")
 
 FENCE = re.compile(r"^ *(`{3,}|~{3,})")
 # A section quoted by name after a `.md` path (with or without its
-# possessive). `[^*]` crosses a line break, so a wrapped name is one name.
-SECTION = re.compile(r"`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
+# possessive), with the italic name of a row or paragraph of it where one
+# comes first, as "*<name>* of <path> *<section>*", so a link to one row is
+# one token. `[^*]` crosses a line break, so a wrapped name is one name.
+SECTION = re.compile(
+    r"(?:\*[^*]{1,200}\*\s+of\s+)?`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*"
+)
 SECTION_TOKEN = " section-citation "
 STRIP = str.maketrans("", "", "`*|>#")
 

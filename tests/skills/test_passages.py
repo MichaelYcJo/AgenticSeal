@@ -104,6 +104,24 @@ class Test_words:
         other = f"As docs/layout/the-record-layout.md *{name}* says.\n"
         assert not shared(one, two, path, other)
 
+    def test_accepts_a_row_a_section_citation_names_as_part_of_its_token(self):
+        """#1579: a link to one row or paragraph of a section names it in
+        italics before the path, as "the row *<name>* of `<path>`
+        *<section>*", and the name is part of the link. Two documents that
+        each carry the link with a few words of their own around it share no
+        run, the name wrapped across a line in one of them. An italic phrase
+        that no `of <path>` follows is still words."""
+        link = (
+            "the row *No fix that no round reads* of `skills/core/SKILL.md` "
+            "*Judgment is not licence to skip a party*"
+        )
+        one = f"A fixed one that {link} gives to a round, so a round reads it.\n"
+        wrapped = link.replace(" no round", chr(10) + "no round")
+        two = f"Review a repair that {wrapped} gives to a round, and run it again.\n"
+        assert not shared(one, two)
+        phrase = " ".join(f"w{i}" for i in range(WINDOW))
+        assert shared(f"The *{phrase}* of the run.\n", f"A *{phrase}* of a run.\n")
+
     def test_refuses_fences_and_headings_and_reads_case_and_backticks_as_no_words(
         self,
     ):
