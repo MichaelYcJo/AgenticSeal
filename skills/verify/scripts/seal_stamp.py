@@ -78,7 +78,9 @@ nothing drew can still be drawn by hand.
 
 Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
 file that is unreadable or drawn already, a guarantee that could not be
-read, or, for every command but `--guarantee` and `--stop`, a disc's mark
+read or a git command `--guarantee` asked that did not start or did not
+finish within `lib/gitcmd.py#TIMEOUT`, which queues nothing and records
+nothing, or, for every command but `--guarantee` and `--stop`, a disc's mark
 sprite that is malformed (`SPRITE_MALFORMED`); nothing was written on 2. An
 interpreter below the floor never reaches this file through `seal stamp`:
 `lib/launch.py` refuses `seal` with 2 first. The `Stop` hook runs it with
@@ -93,7 +95,6 @@ import math
 import os
 import re
 import shlex
-import subprocess
 import sys
 import time
 
@@ -1002,18 +1003,19 @@ def quote(path, windows=None):
 
 
 def _git(cwd, *args):
-    """stdout of a git call in `cwd`, or None on a non-zero exit."""
-    r = subprocess.run(
-        _gitcmd().argv("-C", cwd, *args),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    """stdout of a git call in `cwd`, or None on a non-zero exit.
+
+    A git that did not answer raises `lib/gitcmd.py#Failed`, which `main`
+    reads as `--guarantee`'s refusal: read as None, a history git did not
+    print would queue a work item stamped before, and a reach git did not
+    answer would record a refusal of a commit the branch may hold. `--stop`
+    asks nothing of this function."""
+    r = _gitcmd().git(cwd, *args)
     return r.stdout if r.returncode == 0 else None
 
 
 def _gitcmd():
-    """`lib/gitcmd.py`, which builds every git command `_git` runs."""
+    """`lib/gitcmd.py`, which starts every git command `_git` runs."""
     import sibling
 
     return sibling.load(GITCMD)
@@ -1542,6 +1544,9 @@ def main(argv=None, console_wants_letters=None):
         return 2
     except Exception as failed:
         sys.stderr.write(f"seal stamp: {args.guarantee}: {failed}\n")
+        return 2
+    except _gitcmd().Failed as unanswered:
+        sys.stderr.write(f"seal stamp: {args.guarantee}: {unanswered.line}\n")
         return 2
     if said is not None:
         sys.stdout.write("".join(line + "\n" for line in said))
