@@ -109,6 +109,11 @@ row (executed).
 | 2026-11-23 | Round 1's *Not judged* row on a `tool_used` grader with no `input_match` is answered by leaving `tests/behaviour/test_evals_layout.py#sealer_grade_gaps` as phase 3 wrote it | No committed sealer grader lacks `input_match`: round 1 read the generator's one Bash bound (`evals/scripts/rule_cases.py:1012`), and round 2 parsed the 172 committed graders through `tests/workflows.py#front_matter`, of which each of the 16 whose `tool` is `Bash` carries one (executed). Where one is added to a case whose other graders bound nothing, the case stops on a `KeyError` that names the key, a loud failure rather than a silent pass; a default such as `g.get("input_match", "")` would encode a reading of the runner this repository's documents do not state, and phase 3 removed the guard that read the key's presence because no fixture could make it red | `trail/rounds/round-1.md` *Not judged*; `trail/rounds/round-2.md`; `trail/phases/phase-3.md`; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
 ```
 
+```seal
+verdict: fixed 46e0e6ab1
+answer: The orchestrator's row in `frame/plan.md` *Judgments of the run* now reads as the finding's replacement row, word for word: it names what round 1 read (the generator's one Bash bound) and what this round parsed (each of the 16 Bash graders among 172 carries `input_match`), and it says the case stops on a `KeyError` only where the case's other graders bound nothing. The fix touches the work item's records alone, as the finding's `location:` does, so no verifying round reads it and the sealer reads it at HEAD.
+```
+
 ## Confirmations
 
 ```seal
