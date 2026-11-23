@@ -697,6 +697,25 @@ class Test_not_as_written:
         assert f'    as meant:   "{ROW}": {json.dumps(meant)}' in said, said
         assert on_cmd_exe(meant, root) is None
 
+    @pytest.mark.parametrize(
+        "value", ["`bin/test -q`", "$(bin/test -q)", "bin/test -q &"]
+    )
+    @pytest.mark.parametrize(
+        ("windows", "comspec"),
+        [(False, None), (True, r"C:\Program Files\Git\bin\bash.exe")],
+        ids=["sh", "another-comspec"],
+    )
+    def test_refuses_a_wrapped_value_with_only_its_form_off_as_meant(
+        self, tmp_path, value, windows, comspec
+    ):
+        """The key as meant of a wrapped or backgrounded value is its content
+        with the refused form taken off and nothing else, in a root that
+        holds `bin/` too: `/bin/sh` reads `bin\\test` as another name."""
+        root = a_root(tmp_path, "bin")
+        said = gate.not_as_written(HOME, value, root, windows, comspec)
+        meant = json.dumps("bin/test -q")
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
     def test_refuses_a_command_name_cmd_exe_reads_as_a_switch(self, tmp_path):
         """#1577, *Scope* item 1. On `cmd.exe`, in a root holding `bin/`,
         `bin/test` is refused with exit 2's message, pinned whole here
