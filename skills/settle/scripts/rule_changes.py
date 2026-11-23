@@ -35,7 +35,8 @@ module spells no fence or heading rule of its own. A design is a
 record and carries no HTML comment, so `parse` reads it with no comment
 state and refuses a section line that begins with `<!--`; `headings`
 keeps the comment state for `section_lines` and `overlapping`, which read the
-policy documents.
+policy documents. Where an operation's `file` stands in the policy root is
+`lib/config.py#policy_group`'s answer, loaded on first use.
 """
 
 import ast
@@ -59,7 +60,7 @@ PASSAGES = "skills/settle/scripts/passages.py"
 TABLES = "lib/tables.py"
 GITCMD = "lib/gitcmd.py"
 OPTIN = "lib/optin.py"
-CONFIG = "lib/config.py"
+CONFIG_READER = "lib/config.py"
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -155,7 +156,7 @@ def config():
     the policy root, loaded on first use."""
     import sibling
 
-    return sibling.load(CONFIG)
+    return sibling.load(CONFIG_READER)
 
 
 def heading_text(line):

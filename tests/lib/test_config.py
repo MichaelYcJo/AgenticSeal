@@ -814,8 +814,9 @@ class Test_module:
     def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
         self, tmp_path, value, root
     ):
-        """`lib/config.py#policy_root`, the one reader every reader asks: an
-        empty value and one that leaves the repository read as `docs`."""
+        """`lib/config.py#policy_root`, which reads through
+        `declared_policy_root` as `seal fold` does: an empty value and one
+        that leaves the repository read as `docs`."""
         config = load_lib_module("config.py", "agentic_config_for_policy_root")
         (tmp_path / "config.json").write_text(
             table(("Policy root", value)), encoding="utf-8"
