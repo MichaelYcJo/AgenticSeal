@@ -55,7 +55,7 @@ In:
    - `pact_check.py#git` runs through `gitcmd.git`, and `Failed` reaches `main`, which returns 2.
    - `seal_stamp.py#_git` lets `Failed` propagate. Only `main`'s `--guarantee` branch reaches it, through `sealed_before`, `written_root` and `queue_for_written_guarantee`; `--stop` asks `lib/optin.py` and never calls it. `main` reads `Failed` as `--guarantee`'s refusal at exit 2, since read as `None` it would queue a stamp for a work item stamped before or record a refusal of a commit the branch may hold.
    - `session_cost.py#run_gh` reads `Unrun` as `(None, "", line)` and `#run_git` as `(None, b"")`, each its documented reading of a command that could not start.
-   - `test_layout.py#_git` and `#_tracked` run through `gitcmd.git`, `_tracked` with `check=True`. `_toplevel` goes, for `optin.toplevel`. `main` catches `Failed` and returns 2.
+   - `test_layout.py`'s git reads run through `gitcmd.git`, and `_git` goes; `_tracked` asks with `check=True`. `_toplevel` goes, for `optin.toplevel`. `main` catches `Failed` and returns 2.
    - `unverified_check.py#repo_root` goes, for `optin.repo_root` of the path's directory.
 8. **The scripts under `.github/scripts/` and `evals/scripts/`.**
    - `close_issues_on_release.py`: `run` stays the closer's (G19). Its first argument names the program, `git` or `gh`, and the rest are that program's arguments, which it hands to `gitcmd.git` in `os.curdir`, the checkout's top where both workflows run it, as the old command had no `-C`, or to `gitcmd.gh`, with `check=True`. A caller that hands it `gitcmd.argv`'s output now hands it `git` and the git arguments alone, since `gitcmd.git` builds the argv: `close_issues_on_release.py:343` and `:345`, and `release_completeness_check.py:134`. `attempt` reads `Failed` as `(False, line)`. `_issue_api` and the label removal at `:182` run through `gitcmd.gh` and keep their readings.
@@ -112,9 +112,9 @@ Out:
 
 | Where | Reading of `Failed` |
 |---|---|
-| `lib/optin.py#repo_root`, `#git_common_dir`; `lib/routing.py#current_branch`; `seal.py#git_asked`, `#staged_text`; `seal_stamp.py#_git`; `session_cost.py#run_gh`, `#run_git`; `chain_check.py#pull_request_from_gh`; `close_issues_on_release.py#attempt`; `roll_flow_measurement_issue.py#try_run`; `plugin_directory_check.py#is_ancestor`; `release_seal.py#gh`, `#tagged`; `tag_release.py#create`; `pr_wait.py#gh`, `#head`; `settle.py#ask_gh` | Each documented reading of a command that could not run, kept: `""`, `(None, why)`, `None`, `unknown`, `(False, line)`, `Refused`, an error string, `Unanswered`, `Unasked` |
+| `lib/optin.py#repo_root`, `#git_common_dir`; `lib/routing.py#current_branch`; `seal.py#git_asked`, `#staged_text`; `session_cost.py#run_gh`, `#run_git`; `chain_check.py#pull_request_from_gh`; `close_issues_on_release.py#attempt`; `roll_flow_measurement_issue.py#try_run`; `plugin_directory_check.py#is_ancestor`; `release_seal.py#gh`, `#tagged`; `tag_release.py#create`; `pr_wait.py#gh`, `#head`; `settle.py#ask_gh` | Each documented reading of a command that could not run, kept: `""`, `(None, why)`, `None`, `unknown`, `(False, line)`, `Refused`, an error string, `Unanswered`, `Unasked` |
 | `seal.py#switch`, `#install_workflow`, `#remove_workflow` | The step's existing failure line, then exit 1 (*Scope* item 4) |
-| `settle.py#main`, `chain_check.py#main`, `broad_gate.py#main`, `pact_check.py#main`, `test_layout.py#main` | One line, then exit 2 |
+| `settle.py#main`, `chain_check.py#main`, `broad_gate.py#main`, `pact_check.py#main`, `test_layout.py#main`, `seal_stamp.py#main` under `--guarantee` | One line, then exit 2 |
 | Every other script that reaches the runner, `seal.py`'s other subcommands, `.github/scripts/` and `noninferiority.py` among them | The line at exit 1, which is what `sys.exit(f"... failed: ...")` gives these scripts now |
 
 ## Rule changes
