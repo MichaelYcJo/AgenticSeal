@@ -77,11 +77,13 @@ see the drawing without a guarantee committed, and `--from` so a values file
 nothing drew can still be drawn by hand.
 
 Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
-file that is unreadable or drawn already, or a guarantee that could not be
-read; nothing was written on 2. An interpreter below the floor never
-reaches this file through `seal stamp`: `lib/launch.py` refuses `seal` with
-2 first. The `Stop` hook runs it with whatever `python3` the harness finds,
-and a load that fails there draws nothing.
+file that is unreadable or drawn already, a guarantee that could not be
+read, or, for every command but `--guarantee` and `--stop`, a disc's mark
+sprite that is malformed (`SPRITE_MALFORMED`); nothing was written on 2. An
+interpreter below the floor never reaches this file through `seal stamp`:
+`lib/launch.py` refuses `seal` with 2 first. The `Stop` hook runs it with
+whatever `python3` the harness finds, and a load that fails there, or a
+malformed sprite, draws nothing.
 """
 
 import argparse
@@ -1562,9 +1564,10 @@ def main(argv=None, console_wants_letters=None):
 def drawn_from(path, shape):
     """The lines for the values file at `path`, which is claimed before they
     are returned. Raises `ValueError`
-    with a refusal for a file drawn already, unreadable, or out of shape —
-    and every refusal comes before the claim, so a file refused for its
-    content is still there to be drawn once it is repaired."""
+    with a refusal for a file drawn already, unreadable, or out of shape, or
+    for a disc's mark sprite that is malformed — and every refusal comes
+    before the claim, so a file refused for its content or for the sprite is
+    still there to be drawn once it is repaired."""
     if path.endswith(DRAWN) or (
         not os.path.exists(path) and os.path.exists(drawn_path(path))
     ):
