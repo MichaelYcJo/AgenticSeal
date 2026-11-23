@@ -14,7 +14,8 @@ helper.
 command that did not start or did not finish within `TIMEOUT` raises
 `Unrun`, a non-zero exit is the caller's to read unless it passes
 `check=True`, and `Test_Failed` holds what an uncaught one does to a
-process.
+process. `Test_http_answer` holds the reader of what `gh api -i` printed,
+the HTTP status the release scripts decide on.
 """
 
 import os
@@ -369,6 +370,64 @@ class Test_gh:
             "`gh pr view --json isDraft` exited 1: no pull requests found for "
             'branch "x"'
         )
+
+
+# What `gh api -i` printed to stdout, in the shape measured with gh 2.92.0
+# for a release and an issue that are missing and present (#1572): the
+# status line, the headers, an empty line and the body. `gitcmd.gh` reads it
+# in text mode, so each line ends in LF.
+MISSING = (
+    "HTTP/2.0 404 Not Found\nContent-Type: application/json; charset=utf-8\n\n"
+    '{"message":"Not Found","status":"404"}'
+)
+PRESENT = 'HTTP/2.0 200 OK\nContent-Type: application/json\n\n{"state":"open"}'
+
+
+class Test_http_answer:
+    @pytest.mark.parametrize(
+        "stdout, answer",
+        [
+            (MISSING, (404, '{"message":"Not Found","status":"404"}')),
+            (PRESENT, (200, '{"state":"open"}')),
+            ("HTTP/1.1 204\nServer: x\n\n", (204, "")),
+            ("HTTP/2 200 OK\n\nfirst\n\nsecond", (200, "first\n\nsecond")),
+        ],
+        ids=["a-404", "a-200", "no-reason-phrase", "a-body-holding-an-empty-line"],
+    )
+    def test_accepts_the_status_line_and_the_body_after_the_headers(
+        self, stdout, answer
+    ):
+        """The status is the status line's second field, and the body is
+        everything after the first empty line, an empty line of its own
+        among it."""
+        assert gitcmd.http_answer(stdout) == answer
+
+    @pytest.mark.parametrize(
+        "stdout",
+        [
+            "",
+            "error connecting to no-such-host.invalid\n",
+            "HTTP/2.0 2000 OK\n\n{}",
+            "HTTP/2.0 20 OK\n\n{}",
+            "HTTP/2.0 200OK\n\n{}",
+            'Content-Type: x\nHTTP/2.0 200 OK\n\n{"state":"open"}',
+        ],
+        ids=[
+            "nothing-printed",
+            "no-http-answer",
+            "four-digits",
+            "two-digits",
+            "no-space-after-the-code",
+            "a-status-line-that-is-not-first",
+        ],
+    )
+    def test_refuses_an_answer_with_no_status_line_as_no_status(self, stdout):
+        """Text whose first line is not `HTTP/<version> <three digits>`
+        carries no status, and the body after its empty line is read as it
+        is printed: the callers decide on the status alone."""
+        status, body = gitcmd.http_answer(stdout)
+        assert status is None
+        assert body == stdout.partition("\n\n")[2]
 
 
 class Test_is_ancestor:

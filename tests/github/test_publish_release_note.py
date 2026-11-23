@@ -976,7 +976,8 @@ class Test_module:
         with pytest.raises(SystemExit) as stopped:
             mod.release_exists(REPO, TAG)
         assert stopped.value.code == (
-            f"`gh api repos/{REPO}/releases/tags/{TAG}` did not finish within 60 seconds"
+            f"`gh api -i repos/{REPO}/releases/tags/{TAG}` did not finish within "
+            "60 seconds"
         )
 
     def test_a_git_read_that_fails_stops_the_run_in_the_runners_line(
@@ -1360,6 +1361,67 @@ class Test_module:
         # Trailing whitespace after the symptoms is no part of the title.
         spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
         assert spaced == title, spaced
+
+
+def gh_api_answers(monkeypatch, mod, returncode, stdout, stderr):
+    """`gh api -i` replaced by one answer, so `release_exists` itself is what
+    runs. Returns the argv of each run."""
+    asked = []
+
+    def run(argv, **_):
+        asked.append(list(argv))
+        return Done(returncode, stdout, stderr)
+
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", run)
+    return asked
+
+
+# What `gh api -i` prints to stdout for a release, in the shape
+# `tests/lib/test_gitcmd.py#Test_http_answer` reads.
+RELEASE_MISSING = 'HTTP/2.0 404 Not Found\nContent-Type: x\n\n{"message":"Not Found"}'
+RELEASE_FORBIDDEN = 'HTTP/2.0 403 Forbidden\nContent-Type: x\n\n{"message":"x"}'
+RELEASE_PRESENT = 'HTTP/2.0 200 OK\nContent-Type: x\n\n{"tag_name":"v1.2.3"}'
+
+
+class Test_release_exists:
+    """`release_exists` decides on the HTTP status `gh api -i` printed, read
+    by `lib/gitcmd.py#http_answer`, and never on the words of gh's stderr.
+    Where two cases call `release_exists` alike, the world differs: the
+    answer `gh api -i` gives."""
+
+    @pytest.mark.parametrize(
+        "returncode, stdout, stderr, exists",
+        [
+            (1, RELEASE_MISSING, "gh: Not Found (HTTP 404)", False),
+            (0, RELEASE_PRESENT, "", True),
+        ],
+        ids=["a-404-is-no-release", "a-200-is-a-release"],
+    )
+    def test_accepts_a_404_as_no_release_and_a_2xx_as_one(
+        self, monkeypatch, returncode, stdout, stderr, exists
+    ):
+        mod = publisher()
+        asked = gh_api_answers(monkeypatch, mod, returncode, stdout, stderr)
+        assert mod.release_exists(REPO, TAG) is exists
+        assert asked[0][1:] == ["api", "-i", f"repos/{REPO}/releases/tags/{TAG}"]
+
+    @pytest.mark.parametrize(
+        "stdout, stderr",
+        [(RELEASE_FORBIDDEN, "gh: Not Found (HTTP 403)"), ("", "HTTP 502")],
+        ids=["a-403-whose-stderr-says-not-found", "no-http-answer"],
+    )
+    def test_refuses_any_other_status_and_no_status_by_exiting(
+        self, monkeypatch, stdout, stderr
+    ):
+        """A token without the scope to read releases, read as no release,
+        would publish a second one at the tag."""
+        mod = publisher()
+        gh_api_answers(monkeypatch, mod, 1, stdout, stderr)
+        with pytest.raises(SystemExit) as stopped:
+            mod.release_exists(REPO, TAG)
+        assert str(stopped.value.code) == (
+            f"gh api releases/tags/{TAG} failed: {stderr}"
+        )
 
 
 class Test_section:
