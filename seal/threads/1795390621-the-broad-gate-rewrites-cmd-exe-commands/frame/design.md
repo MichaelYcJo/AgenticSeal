@@ -80,7 +80,7 @@ Out:
 - add
   file: docs/running/the-broad-gate.md
   section: What the gate runs
-  to: **Where the shell is `cmd.exe`, a command name that starts in a directory with `/` is refused, and the refusal names its `\` spelling.** `cmd.exe` reads a `/` inside a command name as the start of a switch. Handed `bin/test -q`, it runs a command called `bin` and fails before any check has run, and the report reads as the suite failing. The gate rewrites no part of the command. A value repaired on its way to the shell leaves the file still wrong, and a model of `cmd.exe`'s reading good enough to repair it is a second shell inside the gate. One value cannot carry both spellings, because `/bin/sh` reads `bin\test` as another name. So a key that runs under both shells names its commands with no directory in front, and hands a script's path to an interpreter as an argument. Which words the gate reads as command names, and what it names as not read, has one owner, `templates/setup/config.md` *Broad gate*.
+  to: **Where the shell is `cmd.exe`, a command name that starts in a directory with `/` is refused, and the refusal names its `\` spelling.** The gate rewrites no part of the command. A value repaired on its way to the shell leaves the file still wrong, and a model of `cmd.exe`'s reading good enough to repair it is a second shell inside the gate. Why `cmd.exe` fails on such a name, which words the gate reads as command names, what it names as not read, and how a key that runs under both shells is spelt have one owner, `templates/setup/config.md` *Broad gate*.
     check: tests/skills/test_broad_gate.py
 
 ## Removes
