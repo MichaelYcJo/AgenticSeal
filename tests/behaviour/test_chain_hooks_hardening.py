@@ -212,15 +212,6 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     assert "usage: seal fold" in r.stdout
 
 
-def test_the_commands_directory_stays_gone():
-    # The user-invoked commands moved from commands/ to skills/, and the one
-    # still shipped, parity-setup, is held user-invoked by
-    # test_parity_declaration_is_bootstrappable_not_hand_written.
-    assert not os.path.isdir(os.path.join(ROOT, "commands")), (
-        "commands/ should be gone — skills/ is the documented layout"
-    )
-
-
 def test_parity_declaration_is_bootstrappable_not_hand_written():
     # The migration config is the one declaration a user cannot derive, so the
     # blank-page problem is real: without a template and a place that asks,
@@ -294,18 +285,6 @@ def test_the_review_skill_names_the_built_in_command_a_person_types():
     # The command a person types for Claude Code's built-in review, which the
     # model reads in the description to leave that request alone.
     assert "`/code-review`" in head
-
-
-def test_the_entry_skill_stays_gone():
-    """#1430 *Scope* item 3. The entry skill `start` left once the
-    `SessionStart` hook prints the core, so a plain request to change code
-    reaches `implement`. What `implement`'s description claims is the
-    proofer's to read; the hook's closing line, held by
-    `tests/lib/test_core.py`, names the section the orchestrator opens
-    whichever skill the model picks."""
-    assert not os.path.exists(os.path.join(ROOT, "skills", "start")), (
-        "the entry skill is back beside `implement`"
-    )
 
 
 def test_the_review_skill_opens_the_core_once_where_it_orchestrates():

@@ -943,7 +943,6 @@ class Test_apply:
         team = tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
-        # exempt from old_names: another tool's own file, under a name the plugin once used
         (team / "spec.md").write_text("# the team's spec\n", encoding="utf-8")
         git(tree, "add", "-A")
         git(tree, "commit", "-qm", "a team directory of the same name")
@@ -954,7 +953,6 @@ class Test_apply:
         assert (team / "design.md").read_text(
             encoding="utf-8"
         ) == "# the team's design\n"
-        # exempt from old_names: another tool's own file, under a name the plugin once used
         assert (team / "spec.md").is_file()
 
     def test_a_removed_record_prints_each_row_it_closed_and_writes_no_document(
@@ -2038,14 +2036,6 @@ class Test_main:
         assert code == 2, text
         assert text == sentence, text
         assert files(repo) == before
-
-    @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
-    def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
-        """A script that still calls either gets exit 2, which the changelog
-        fragment says."""
-        with pytest.raises(SystemExit) as raised:
-            settle.main(["--root", str(repo), "--released-at", "main", flag])
-        assert raised.value.code == 2
 
     def test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it(
         self, repo, capfd

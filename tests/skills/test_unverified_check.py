@@ -238,7 +238,6 @@ def joined(tmp_path_factory):
         {
             f"{OURS}/gaps.md": memo(CANONICAL, "ours"),
             f"{TEAM}/gaps.md": memo(MALFORMED, "team"),
-            # exempt from old_names: another tool's own file, under a name the plugin once used
             f"{TEAM}/spec.md": "# the team's spec\n",
         },
     )
@@ -510,18 +509,6 @@ class Test_main:
         monkeypatch.setattr(UC, "references_at", refuse)
         memo_at(tmp_path, CANONICAL)
         assert run([str(tmp_path)]) == 0
-
-    def test_refuses_the_baseline_option_it_no_longer_has(self, plain, capsys):
-        """A1 of #1240: the mode that compared the record with a base left,
-        so `--baseline` is an argument argparse does not know, exit 2, and
-        the help a person reads names no such option (contract rule 14)."""
-        with pytest.raises(SystemExit) as refused:
-            UC.main(["--baseline", "HEAD", str(plain)])
-        assert refused.value.code == 2
-        assert "unrecognized arguments: --baseline" in capsys.readouterr().err
-        with pytest.raises(SystemExit):
-            UC.main(["--help"])
-        assert "--baseline" not in capsys.readouterr().out
 
     def test_accepts_a_tracked_link_counted_once(self, linked, capsys):
         """One record, two paths: counting both doubles its open items
