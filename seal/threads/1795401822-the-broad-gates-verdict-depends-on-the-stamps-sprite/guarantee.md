@@ -73,3 +73,74 @@ answers it, since this audit opened neither checkout.
 target: cd55daf7bfe7cefc150f74aa10f411d42132b2a4 against f2a664eb85677c4a4656c76d2e01b7091b1609fe
 Verdict: sealed
 ```
+
+## Re-audit after the base moved
+
+Audited at `b007ebcb013f512c18f1963acdea49d383cb5fdd` against the base
+`release/v0.38.6`, which `release/v0.38.6@{upstream}` now resolves to
+`da7bd39687fbc0e6b68a441d0fa3f49ecdaf1c74`, #1579's landing (executed,
+`git rev-parse --verify --quiet`). Three commits follow the earlier block's
+target (executed, `git log --oneline cd55daf7b..HEAD`): `1d6663009`
+commits this file as written, `8e3cc7204` merges `da7bd3968` with first
+parent `1d6663009`, and `b007ebcb0` appends `trail/gate.md`'s new run. This
+audit re-runs the claims whose coordinates those commits touched and reads
+the parties again. The re-runs ran in a new `git clone --no-local` of the
+worktree, `<scratchpad>/1795401822-the-broad-gates-verdict-depends-on-the-stamps-sprite/at-base-2/repo`,
+at HEAD.
+
+**The broad run is at HEAD** (executed). `trail/gate.md`'s last `seal` block
+reads `run: 8e3cc7204 against da7bd3968`. `8e3cc7204` is an ancestor of
+HEAD, and `git log --no-merges --name-only 8e3cc7204..HEAD ^da7bd3968`
+names one commit, `b007ebcb0`, touching only
+`seal/threads/1795401822-the-broad-gates-verdict-depends-on-the-stamps-sprite/trail/gate.md`.
+The log reads `BROAD GATE PASSED ... @ 8e3cc7204 against origin/release/v0.38.6 @ da7bd3968`,
+suite 5652 passed and 9 skipped, chain exit 0, rounds 2 (read).
+
+**The body's copy of the records holds** (executed). `seal pr-body
+seal/threads/1795401822-the-broad-gates-verdict-depends-on-the-stamps-sprite
+--body <scratchpad>/1795401822-the-broad-gates-verdict-depends-on-the-stamps-sprite/body.md
+--check` exited 0 at HEAD.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The merge brought only the base's change: the branch's own diff of code and cases is the one the earlier block audited | `8e3cc7204`, "merged with no conflict" (the orchestrator's account) | `git diff f2a664eb8 cd55daf7b -- skills tests lib` and `git diff da7bd3968...HEAD -- skills tests lib`, each with its `index` and `@@` lines dropped, then `cmp` | holds (executed): the two are byte for byte the same. `git diff da7bd3968 HEAD --stat -- skills tests lib` names the same four files, 176 insertions and 191 deletions |
+| The base's change meets the audited units in comments alone | the orchestrator's account | `git diff f2a664eb8 da7bd3968 -- skills/verify/scripts/broad_gate.py lib/config.py`, and `--stat` over `seal_stamp.py`, `seal-mark.txt`, both test files, `lib/sibling.py`, `lib/fields.py`, `lib/routing.py` and `chain_check.py` | holds (executed): `broad_gate.py` changes two citations, in `moved_line`'s docstring and `gate`'s comment, from `skills/code-review/orchestration.md` to `skills/code-review/gate-to-pull-request.md`; `lib/config.py` changes one docstring of `pact_declaration`; the rest print nothing |
+| The two modules' cases pass at HEAD | `trail/phases/phase-2.md` *The phase boundary set passed* | in the clone at HEAD, `bin/test -q tests/skills/test_broad_gate.py tests/skills/test_seal_stamp.py` | holds (executed): exit 0, 406 passed, 1 skipped |
+| S1's, S2's and S3's cases are red against the base's code, the base now `da7bd3968` | `trail/phases/phase-1.md` and `phase-2.md`, the seen-red bullets | in the clone, `broad_gate.py` and `seal_stamp.py` restored from `da7bd3968`, then `bin/test -q -p no:xdist` over the S1 case, both S2 cases and `Test_ref_is_commit::test_answers_as_a_refusal_record_is_matched` | holds (executed): 9 failed, 3 passed. S1 fails on `cut.returncode` with stderr `... seal_stamp.py will not load, so nothing ran ...`; `--from` on `assert 0 == 2`; `--stop` on its `capsys` line; S3 on the rows `bbb2`, `bbb222`, `BBB2222`, the 41-character row, `cafe` and `zzzzzzz`. The clone's code was restored after |
+| *Removes* and `changelog.md` *Removed*: nothing removed stands, in `broad_gate.py`, which the merge touched, or elsewhere | `frame/design.md` *Removes*, rows 1 to 3 and 5; `changelog.md` *Removed* | the earlier block's searches, at HEAD: `git grep -n -w SPRITE -- skills tests`; S4's two; `git grep -n seal-mark -- skills/verify/scripts/broad_gate.py`; `git grep -n -w HEX_REF -- skills tests lib`; S3's | holds (executed): each prints nothing and exits 1, except S3's, which prints one line, `seal_stamp.py:1154` in `_same_commit` |
+
+The guard-removed re-runs of the earlier block, the 41-character row and
+`rounds_rows`' `[raises]`, are not re-run: the merge changed no statement
+of `seal_stamp.py` and none of `rounds_rows` (executed, the diffs above).
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the earlier block reads it; *Scope*, *Out* gives `skills/code-review/orchestration.md:533` to #1579, "which moves that paragraph to another file in this release" | the diff, unchanged by the merge; #1579 moved the paragraph to `skills/code-review/gate-to-pull-request.md:215-220` (executed, `git grep -n` for `cannot load` and `seal_stamp.py`) | none |
+| the build | as the earlier block reads it | the re-runs above; `frame/plan.md`'s Status cells, `385ee7e2f` and `3bc7d5968`, still ancestors of HEAD | none |
+| the last round | round 2, as the earlier block reads it | only round 2's record, `trail/gate.md`, this file and the merge of the base follow its target, and the merge changes no line of the branch's own diff (executed) | none |
+| the changelog | as the earlier block reads it | the re-runs above; no sentence of it or of `pr.md` names a file the merge moved (executed, `git grep -n orchestration.md` over both prints nothing) | none |
+| the orchestrator's part of the pull request body | `pr.md`, unchanged since the earlier block | `seal pr-body --check` at HEAD, exit 0; the quote in `frame/plan.md` *Judgments of the run*; the account of the merge in this audit's spawn, which the first two rows above re-ran | none |
+
+**A coordinate the merge moved, in the closing memo** (read). `gaps.md`
+*Not done* (`:13`) names `skills/code-review/orchestration.md:533`, which
+no longer holds that paragraph: #1579 moved it to
+`skills/code-review/gate-to-pull-request.md:215-220`, as the design said it
+would. What the memo says of the paragraph still holds at its new place: it
+names a `python3` that cannot load `seal_stamp.py` and a working directory
+outside the clone, and not a malformed sprite. #1579 has landed, so the
+work item the memo hands that sentence to is closed, and no open work item
+holds it. The issue asks nothing of that paragraph, and
+`docs/checks/the-stamp.md` takes the sprite's sentence at the settle, so
+this is no reason to withhold.
+
+**Not verified here**, as in the earlier block: S1's case on Windows, which
+CI's `windows-latest` legs answer on the pull request.
+
+```seal
+target: b007ebcb013f512c18f1963acdea49d383cb5fdd against da7bd39687fbc0e6b68a441d0fa3f49ecdaf1c74
+Verdict: sealed
+```
