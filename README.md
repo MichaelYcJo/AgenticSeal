@@ -404,7 +404,7 @@ after `!` in a session, or ask the session to run it.
 
 | Command | Does |
 |---|---|
-| `seal deferrals . [--kind all]` | says whether anything here runs the check an `unverified` row defers, and names each CI file that does (`skills/verify/SKILL.md` *The answerer has to exist*) |
+| `seal deferrals . [--kind all]` | names each CI file and hook line a runner word matches for the check an `unverified` row defers, and exits 0 whatever it matched; whether anything runs the check is read in the CI files themselves (`skills/verify/SKILL.md` *The answerer has to exist*) |
 | `seal unverified .` | lists the rows the `unverified` labels left open, in which work item, and who was named to answer each (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | says where a session's minutes went, from its transcript (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |

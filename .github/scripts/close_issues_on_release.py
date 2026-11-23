@@ -134,13 +134,19 @@ def _issue_api(repo, number):
     body. Neither is a reason to fail a release -- and a run that died halfway
     would leave the issues after it in the sorted order open, with a re-run
     dying in the same place.
+
+    The HTTP status `gh api -i` printed decides, read by
+    `lib/gitcmd.py#http_answer`, and the words of gh's stderr decide
+    nothing. A 2xx status returns the body's JSON. Any other status, and an
+    answer with no status line, exits with gh's stderr.
     """
-    out = gitcmd.gh("api", f"repos/{repo}/issues/{number}")
-    if out.returncode:
-        if "Not Found" in out.stderr or "404" in out.stderr:
-            return None, False
+    out = gitcmd.gh("api", "-i", f"repos/{repo}/issues/{number}")
+    status, body = gitcmd.http_answer(out.stdout)
+    if status == 404:
+        return None, False
+    if status is None or not 200 <= status < 300:
         sys.exit(f"gh api issues/{number} failed: {out.stderr.strip()}")
-    return json.loads(out.stdout), True
+    return json.loads(body), True
 
 
 def issue_state(repo, number):

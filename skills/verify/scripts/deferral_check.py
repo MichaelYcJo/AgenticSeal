@@ -10,14 +10,21 @@ protection, and the pre-commit hooks are lint and typecheck only. The
 deferral names something that is not there, which reads exactly like a
 deferral that was honoured.
 
-So this resolves the common answerer. Given a repo and a kind of check, it
-reads the command lines of the CI files and the pre-commit hook, and
-separates three outcomes that a reader otherwise collapses into one:
+So this reads for the common answerer. Given a repo and a kind of check, it
+reads the command lines of the CI files and the pre-commit hook against the
+runner words `RUNNERS` holds, and separates three outcomes that a reader
+otherwise collapses into one:
 
-  ci       a CI file holds a runner; whether it runs before the change
-           merges is its trigger, which the reader opens
-  local    a pre-commit hook runs it on the committer's machine only
-  nothing  no one runs it
+  ci       a CI file holds a line a runner word matches; whether it runs
+           before the change merges is its trigger, which the reader opens
+  local    only the pre-commit hook holds one, and the hook runs on the
+           committer's machine only
+  none     no CI or hook line matched a runner word
+
+A match is a reading of words, so it decides nothing. A runner reached
+through a composite action, a reusable workflow or a script reads as
+absent, so a kind no line matched is no finding that nothing runs the
+check: the agent writing the row opens the CI files for what they run.
 
 It reads no trigger. A workflow's `on:` key is YAML, no YAML parser ships
 with the plugin's stdlib-only scripts, and a scan of it by hand misreads
@@ -25,8 +32,8 @@ shapes YAML reads otherwise. The agent that opens the named file
 reads the trigger better than a scan would. `KNOWN_LIMITS` states the
 rest of what the command text leaves out.
 
-Exit codes: 0 a CI file holds a runner for every requested kind · 1 for at
-least one kind none does · 2 the path or arguments were unusable.
+Exit codes: 0 the path was read, whatever matched · 2 the path or arguments
+were unusable.
 """
 
 import argparse
@@ -34,15 +41,19 @@ import os
 import re
 import sys
 
-# A runner token is matched against the text of a command line. Word-boundary
-# anchored so `pytest-cov` in a dependency list is not read as a test run.
+# The runner words of each kind of check, each a regular expression fragment
+# searched for in the text of a command line and anchored on its own, at a
+# word boundary, so `pytest` is not found inside `mypytests`. A script named
+# `test` and run by path is a runner word too, since a repository that ships
+# one has said what its suite is. `session_cost.py` reads this list as well,
+# for its `test` and `lint/type` families, so a word added here is charged
+# there.
 RUNNERS = {
     "tests": [
         r"\bpytest\b",
         r"\bgo test\b",
         r"\bcargo test\b",
-        r"\bnpm (?:run )?test\b",
-        r"\b(?:pnpm|yarn) (?:run )?test\b",
+        r"\b(?:make|just|task|npm|yarn|pnpm|gradlew?)\s+(?:run\s+)?test\b",
         r"\bjest\b",
         r"\bvitest\b",
         r"\brspec\b",
@@ -51,10 +62,13 @@ RUNNERS = {
         r"\bdotnet test\b",
         r"\bphpunit\b",
         r"\btox\b",
-        r"\bmake test\b",
+        r"\bnox\b",
+        r"\bbun test\b",
+        r"\bdeno test\b",
         r"\bpython3? -m unittest\b",
         r"\brails test\b",
-        r"\bbin/test\b",
+        r"\b(?:bin|scripts)[/\\]test\b",
+        r"\btest\.(?:sh|bash|bat|cmd|ps1)\b",
     ],
     "lint": [
         r"\bruff\b",
@@ -66,6 +80,8 @@ RUNNERS = {
         r"\brubocop\b",
         r"\bmake lint\b",
         r"\bbiome\b",
+        r"\bblack\b",
+        r"\blint-imports\b",
     ],
     "typecheck": [
         r"\bmypy\b",
@@ -160,10 +176,10 @@ def read(path):
 
 
 def inspect(root, kind):
-    """(verdict, lines) for one kind. The verdict, the exit-code decision,
-    is whether a CI file holds a runner. No trigger is read: each such file
-    is named with its command lines, and `TRIGGER` leaves its trigger to
-    the reader to open."""
+    """(in_ci, lines) for one kind: whether a CI file holds a line a runner
+    word matches, and the lines to print under the kind's headline. No
+    trigger is read: each such file is named with its command lines, and
+    `TRIGGER` leaves its trigger to the reader to open."""
     in_ci, local_only = [], []
     for path in workflow_files(root) + other_ci_files(root):
         cmds = runners_in(read(path), kind)
@@ -185,9 +201,17 @@ def inspect(root, kind):
     if in_ci:
         lines.append(TRIGGER)
         return True, lines
-    if not lines:
-        lines.append("  nothing runs it")
     return False, lines
+
+
+def headline(kind, in_ci, lines):
+    """The kind's first line: what its words matched, and never whether
+    anything runs the check."""
+    if in_ci:
+        return f"{kind}: a runner in CI"
+    if lines:
+        return f"{kind}: no CI line matched a runner word"
+    return f"{kind}: no CI or hook line matched a runner word"
 
 
 def main(argv=None):
@@ -210,22 +234,22 @@ def main(argv=None):
         return 2
 
     kinds = KINDS if args.kind == "all" else (args.kind,)
-    unresolved = []
+    unmatched = []
     for kind in kinds:
-        ok, lines = inspect(root, kind)
-        print(f"{kind}: {'a runner in CI' if ok else 'NO RUNNER IN CI'}")
+        in_ci, lines = inspect(root, kind)
+        print(headline(kind, in_ci, lines))
         for line in lines:
             print(line)
-        if not ok:
-            unresolved.append(kind)
+        if not in_ci:
+            unmatched.append(kind)
 
     print(f"\nlimit: {KNOWN_LIMITS}")
-    if unresolved:
+    if unmatched:
+        named = ", ".join(unmatched)
         print(
-            f"\nDeferring {', '.join(unresolved)} to CI names an answerer "
-            f"that is not there. Run it, or say it is unanswered."
+            f"\nNo CI line matched a runner word for {named}. Open the CI "
+            f"files and read what they run before deferring {named} to CI."
         )
-        return 1
     return 0
 
 

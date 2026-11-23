@@ -92,6 +92,32 @@ import sys
 import tempfile
 from collections import defaultdict
 
+LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
+
+# `lib/sibling.py` loads every other module this command reads:
+# `deferral_check.py` at import, for the runner words `FAMILIES` reads, and
+# each module of `lib/` at its first use (`lib_module`). An absent one is its
+# sentence and exit 2, since a copy of this script taken without its
+# siblings is a broken plugin copy, where nothing ran. Where it is absent
+# itself, the refusal is the same sentence about it, spelt here because the
+# file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
+# The runner words of each kind of check, the one list `seal deferrals`
+# reads too.
+RUNNERS = sibling.load("skills/verify/scripts/deferral_check.py").RUNNERS
+
 
 def projects_dir():
     """Where Claude Code keeps transcripts: `projects` under the directory
@@ -107,14 +133,16 @@ def projects_dir():
 # Command families, in priority order — the first match wins, so a compound
 # `ruff … && pytest …` is charged to the test run that dominates it.
 #
-# **A repository's own runner is named by PATH.** A project that ships
+# **`test` and `lint/type` are built from `RUNNERS`, the runner words `seal
+# deferrals` reads**, so a runner either reader names, both read. A
+# repository's own runner is named by PATH there. A project that ships
 # `bin/test` has said what its test command is, in the filesystem, and a
 # family list of tool names alone charges every call of it to `other` — the
 # row nobody reads because it is the row everything falls into. Over 180
 # transcripts, tool names alone put 266 `./bin/test` calls in `other` and the
 # rest in four different families, by what else shared the command line.
 #
-# What is added here is only the shapes that mean the same thing in any
+# The list holds only the shapes that mean the same thing in any
 # repository: a script named `test` invoked by path, and the runners a
 # language's own convention names. What CANNOT be added is a runner with a
 # name nobody outside that repository can guess — `bin/check`, `./run-suite` —
@@ -142,17 +170,8 @@ def projects_dir():
 # stays `test` and `ls && git status` stays `git`. `READ_WORDS` states the
 # criterion a word is admitted by.
 FAMILIES = [
-    (
-        "test",
-        re.compile(
-            r"\b(pytest|jest|vitest|go test|cargo test|mvn test|tox|nox|rspec"
-            r"|phpunit|dotnet test|bun test|deno test)\b"
-            r"|(^|[\s./\\])(bin|scripts)[/\\]test\b"
-            r"|\btest\.(sh|bash|bat|cmd|ps1)\b"
-            r"|(^|[\s./\\])(make|just|task|npm|yarn|pnpm|gradlew?)\s+(run\s+)?test\b"
-        ),
-    ),
-    ("lint/type", re.compile(r"\b(ruff|mypy|eslint|tsc|flake8|black|lint-imports)\b")),
+    ("test", re.compile("|".join(RUNNERS["tests"]))),
+    ("lint/type", re.compile("|".join(RUNNERS["lint"] + RUNNERS["typecheck"]))),
     ("build", re.compile(r"\b(make|cargo build|npm run build|tsc -b|docker build)\b")),
     ("git", re.compile(r"^\s*(git|gh)\b")),
     ("read", None),
@@ -3045,19 +3064,10 @@ POSTED_NAME = re.compile(r"# (\S+\.jsonl)")
 KEY_EDGE = "A-Za-z0-9_-"
 
 
-# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
-# first use of a module of `lib/` (`lib_module`).
-sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
-)
-
-
 def lib_module(name):
     """`lib/<name>.py` beside this plugin's `skills/`, loaded on first use,
     so a reading that is not `--work-item` and asks no git or `gh` command
-    loads nothing from `lib/`."""
-    import sibling
-
+    loads no module of `lib/` but `sibling.py`."""
     return sibling.load(f"lib/{name}.py")
 
 

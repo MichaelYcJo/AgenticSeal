@@ -440,30 +440,66 @@ class Test_run:
 
 
 def _gh_answers(monkeypatch, mod, returncode, stdout="", stderr=""):
-    """`gh api` replaced by one answer, so `_issue_api` itself is what runs."""
+    """`gh api` replaced by one answer, so `_issue_api` itself is what runs.
+    Returns the argv of each run."""
 
     class Result:
         pass
 
     result = Result()
     result.returncode, result.stdout, result.stderr = returncode, stdout, stderr
-    monkeypatch.setattr(mod.gitcmd.subprocess, "run", lambda *a, **k: result)
+    asked = []
+
+    def run(argv, *_, **__):
+        asked.append(list(argv))
+        return result
+
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", run)
+    return asked
+
+
+# What `gh api -i` prints to stdout for an issue, in the shape
+# `tests/lib/test_gitcmd.py#Test_http_answer` reads.
+ISSUE_MISSING = 'HTTP/2.0 404 Not Found\nContent-Type: x\n\n{"message":"Not Found"}'
+ISSUE_FORBIDDEN = 'HTTP/2.0 403 Forbidden\nContent-Type: x\n\n{"message":"x"}'
+ISSUE_PRESENT = 'HTTP/2.0 200 OK\nContent-Type: x\n\n{"state": "open", "comments": 2}'
 
 
 class Test__issue_api:
-    def test_accepts_a_404_as_an_issue_that_does_not_exist(self, monkeypatch):
+    """`_issue_api` decides on the HTTP status `gh api -i` printed, read by
+    `lib/gitcmd.py#http_answer`, and never on the words of gh's stderr."""
+
+    @pytest.mark.parametrize(
+        "returncode, stdout, stderr, answer",
+        [
+            (1, ISSUE_MISSING, "gh: Not Found (HTTP 404)", (None, False)),
+            (0, ISSUE_PRESENT, "", ({"state": "open", "comments": 2}, True)),
+        ],
+        ids=["a-404", "a-200"],
+    )
+    def test_accepts_a_404_as_no_issue_and_a_2xx_as_its_body(
+        self, monkeypatch, returncode, stdout, stderr, answer
+    ):
         """A number that names nothing is input, from a `(#N)` typed in a
         subject or a typo in a body, and a release does not stop on it."""
         mod = closer_module()
-        _gh_answers(monkeypatch, mod, 1, stderr="gh: Not Found (HTTP 404)")
-        assert mod._issue_api(REPO, 9999) == (None, False)
+        asked = _gh_answers(monkeypatch, mod, returncode, stdout, stderr)
+        assert mod._issue_api(REPO, 9999) == answer
+        assert asked[0][1:] == ["api", "-i", f"repos/{REPO}/issues/9999"]
 
-    def test_refuses_any_other_failure_by_exiting(self, monkeypatch):
+    @pytest.mark.parametrize(
+        "stdout, stderr",
+        [(ISSUE_FORBIDDEN, "gh: Not Found (HTTP 403)"), ("", REST_REFUSAL)],
+        ids=["a-403-whose-stderr-says-not-found", "no-http-answer"],
+    )
+    def test_refuses_any_other_status_and_no_status_by_exiting(
+        self, monkeypatch, stdout, stderr
+    ):
         mod = closer_module()
-        _gh_answers(monkeypatch, mod, 1, stderr=REST_REFUSAL)
+        _gh_answers(monkeypatch, mod, 1, stdout, stderr)
         with pytest.raises(SystemExit) as stopped:
             mod._issue_api(REPO, 7)
-        assert REST_REFUSAL in str(stopped.value.code)
+        assert str(stopped.value.code) == f"gh api issues/7 failed: {stderr}"
 
 
 class Test_issue_state:
