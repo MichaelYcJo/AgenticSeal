@@ -34,7 +34,7 @@ The tree as read at `e5bdbff55`.
 
 The mechanisms already hold the rule the issue asks for (G3, G4, G5). This work makes every statement of the rule say it, and pins the arm.
 
-The core's rendered output stays under `lib/core.py#CAP` when the core is rendered from this worktree, whose root is 124 characters long. G23 gives the room that leaves *Scope* items 1 and 2 over the base, so the two rows carry no sentence another document already states.
+The core's rendered output stays under `lib/core.py#CAP` when the core is rendered from this worktree, whose root is 124 characters long. G23 gives the room that *Scope* items 1 and 2 may add over the base, and item 1 says how the third row stays within it.
 
 In:
 
