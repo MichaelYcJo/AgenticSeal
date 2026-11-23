@@ -59,7 +59,7 @@ The spawn names #1577 and #1578, and the two issue bodies were read (`gh issue v
 
 - No new dependency, environment variable or configuration key.
 - What a person sees changes in three places. `seal mode` exits 1 where its stage step did not happen (design S1 to S3). A git or `gh` command past 60 s ends a script with one line, where it ended in a traceback or waited without end. `seal export` says that git did not answer where it said there was no repository (design S5).
-- Bounds that move: `lib/optin.py` and `lib/routing.py` from 5 s to 60 s, `seal.py`'s from 15 s and 30 s, `chain_check.py`'s `gh` call from 30 s. The `Stop` hook's git reads through `seal_stamp.py#_git`, unbounded at `d0b15b72f`, are bounded.
+- Bounds that move: `lib/optin.py` and `lib/routing.py` from 5 s to 60 s, `seal.py`'s from 15 s and 30 s, `chain_check.py`'s `gh` call from 30 s. `seal stamp --guarantee`'s git reads through `seal_stamp.py#_git`, unbounded at `d0b15b72f`, are bounded; the `Stop` hook runs `seal_stamp.py --stop`, which reads none of them.
 - The version does not move in this pull request: the release's first pull request carries the patch version.
 
 ## Judgments of the run
