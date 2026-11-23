@@ -634,6 +634,7 @@ def check(root, out=sys.stdout, home_dir=None):
     config = sibling.load("lib/config.py")
     tables = sibling.load("lib/tables.py")
     optin = sibling.load("lib/optin.py")
+    gitcmd = sibling.load("lib/gitcmd.py")
     checker = sibling.load(CHECKER)
     home_dir = home_dir or os.path.expanduser("~")
 
@@ -674,7 +675,7 @@ def check(root, out=sys.stdout, home_dir=None):
     ours = config.normalise_remote(mine)
     shared = optin.home_paths(repo)[0]
     local = os.path.realpath(home) != os.path.realpath(shared)
-    rel = os.path.relpath(pact_path, repo).replace(os.sep, "/")
+    rel = gitcmd.git_path(os.path.relpath(pact_path, repo))
     history = History(repo, rel)
     # A `Hash` cell is the clause's content hash, as long as the checker
     # writes one.

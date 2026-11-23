@@ -373,7 +373,7 @@ def root_files(home):
     files, links = [], []
 
     def relative(path):
-        return os.path.relpath(path, home).replace(os.sep, "/")
+        return gitcmd.git_path(os.path.relpath(path, home))
 
     for dirpath, dirnames, filenames in os.walk(home):
         linked = [d for d in dirnames if os.path.islink(os.path.join(dirpath, d))]
@@ -682,7 +682,7 @@ def display(repo, path):
     if not path:
         return ""
     if inside(repo, path):
-        return os.path.relpath(path, repo).replace(os.sep, "/")
+        return gitcmd.git_path(os.path.relpath(path, repo))
     return path
 
 
@@ -1347,7 +1347,7 @@ def write_members(archive, into):
             collisions.append(
                 (
                     "/".join(parts),
-                    os.path.relpath(target, into).replace(os.sep, "/"),
+                    gitcmd.git_path(os.path.relpath(target, into)),
                 )
             )
     return counts, collisions, refused

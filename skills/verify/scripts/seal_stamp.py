@@ -1325,7 +1325,7 @@ def queue_for_written_guarantee(path, now=None):
     if already_queued(common, ident):
         return []
     rel = (
-        os.path.relpath(real, os.path.realpath(top)).replace(os.sep, "/") if top else ""
+        _gitcmd().git_path(os.path.relpath(real, os.path.realpath(top))) if top else ""
     )
     if rel and sealed_before(chain, top, rel, common, ident):
         return []

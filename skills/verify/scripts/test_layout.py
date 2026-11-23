@@ -151,6 +151,16 @@ import sys
 import tempfile
 import types
 
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads `lib/gitcmd.py`, whose `git_path` spells a path the way git does.
+sys.path.insert(
+    0,
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib"),
+)
+import sibling
+
+gitcmd = sibling.load("lib/gitcmd.py")
+
 TARGET_NAME = "TARGET"
 MODULE_CLASS = "Test_module"
 CLASS_PREFIX = "Test_"
@@ -1083,7 +1093,7 @@ def _moved_main(root, base, olds, news):
     sha = sha.stdout.strip()
 
     def rel(path):
-        return os.path.relpath(os.path.abspath(path), root).replace(os.sep, "/")
+        return gitcmd.git_path(os.path.relpath(os.path.abspath(path), root))
 
     old_rels, new_rels = [rel(p) for p in olds], [rel(p) for p in news]
     old = {}
@@ -1196,7 +1206,7 @@ def _read_tests(root, paths):
             ]
     found = {}
     for path in files:
-        rel = os.path.relpath(path, root).replace(os.sep, "/")
+        rel = gitcmd.git_path(os.path.relpath(path, root))
         text = _read(root, rel)
         if text is not None:
             found[rel] = text

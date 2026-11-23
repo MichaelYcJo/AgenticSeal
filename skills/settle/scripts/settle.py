@@ -1125,7 +1125,7 @@ def misplaced(records, work_item_id, reader, specs):
             path = os.path.join(here, name)
             if place is None or not os.path.isfile(path):
                 continue
-            rel = os.path.relpath(path, top).replace(os.sep, "/")
+            rel = gitcmd.git_path(os.path.relpath(path, top))
             if rel != place:
                 out.append((rel, place))
     return sorted(out)
@@ -1570,7 +1570,7 @@ def named_directory(root, home, given):
         return None, FROM_OUTSIDE.format(given=given, root=root, path=read)
     if inside(path, os.path.realpath(home)):
         return None, FROM_UNDER_ROOT.format(given=given, home=home, path=read)
-    return os.path.relpath(path, top).replace(os.sep, "/"), None
+    return gitcmd.git_path(os.path.relpath(path, top)), None
 
 
 def git_fields(root, *args):
