@@ -49,7 +49,12 @@ fold at `718b58e49` changed `frame/design.md` and left the plan as it was
 `plan.md:61`. The rest of the close holds. The code fix, the new case, the
 design's *Scope* item 4, the `gaps.md` row and the docstrings are all
 right at the target; see `## Probes` and the prose under
-`## Confirmations`.
+````seal
+verdict: fixed c5215301b
+answer: The orchestrator replaced `changelog.md`'s sentence with the round's paste-ready one, which counts the 36 designs at `2669e43d4`. The fix touches the work item's records alone, so the sealer reads it.
+```
+
+## Confirmations`.
 
 Why it matters: `plan.md:61` still says the refusal "is answered by
 ordering the moved sentence's citation differently (e96d743c3), not by
@@ -74,6 +79,11 @@ at `:60` is finding 2's.
 
 ```markdown
 | 2026-11-23 | The paste check's refusal at phase 3, a 15-word run shared by the moved repair sentence and *Orchestrator: the run ends with a verifying round*, is answered in `skills/settle/scripts/passages.py#words`, which folds the italic row name a section citation carries into the citation's one token, and the moved sentence keeps the words it had at `236d3c5e6`. The first answer, ordering the sentence's citation differently at `e96d743c3` and leaving the normaliser unchanged, was reversed after round 1's finding 1 | The two clauses cite the same core row in the form `tests/text/test_the_rules_have_one_owner.py#THE_CORES_ROW` requires and say different things, so the run is the link's words, not a pasted fact. Round 1's finding 1 showed the refusal is the normaliser's: the link stands in five rule documents, so the next pair meets the same refusal, and reordering the words kept the defect and hid it. The fix pass wrote the normaliser's case, seen red, and re-read `chain_check.py`'s use of the same reader | `skills/core/SKILL.md` *The rule a mechanism is kept against*, the sentence opening **Do not avoid the change a problem calls for**; `skills/agent-contract/SKILL.md` rule 18 |
+```
+
+```seal
+verdict: fixed c5215301b
+answer: The orchestrator merged the two rows into the round's paste-ready row: one row of `frame/plan.md` *Judgments of the run* states the answer in `passages.py#words` and that the first answer, reordering the sentence at `e96d743c3`, was reversed after round 1's finding 1. The wrong byte count went with the old row. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ### 2. The title row says no behaviour is fixed, and the fix pass fixed the paste check's normaliser
@@ -124,6 +134,11 @@ pull request (`skills/commit-pr-convention/SKILL.md:169-172`).
 
 ```markdown
 - "The pull request's title takes `fix:`" (`frame/plan.md` *Judgments of the run*, the row on the title's prefix)
+```
+
+```seal
+verdict: fixed c5215301b
+answer: The orchestrator replaced the row on the title's prefix with the round's paste-ready row, which takes `fix:` for the normaliser fix, and `pr.md`'s quote with the round's line. The pull request's title takes `fix:`; the issue's title stays, as a title the pull request closes. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ### 3. The changelog counts 38 designs where the tree holds 35 at the fix and 36 at the target
