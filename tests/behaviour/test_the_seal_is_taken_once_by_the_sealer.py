@@ -370,7 +370,7 @@ def test_the_crafters_gate_rule_names_the_failure_words_and_rule_2():
 # The contract paragraph this file opens with is held to byte identity by
 # `tests/text/test_every_agent_reads_the_contract.py`, over a glob this file joins
 # on the day it lands. Re-pinning it here would be the duplication that module
-# and `tests/text/test_a_moved_rule_leaves_its_definition.py` exist to refuse, so
+# and `tests/text/test_no_passage_is_pasted_into_a_second_file.py` exist to refuse, so
 # what part 3 pins is what no existing module reads.
 
 

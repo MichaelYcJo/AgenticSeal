@@ -4,8 +4,8 @@ The paste check's reader, moved out of
 `tests/text/test_no_passage_is_pasted_into_a_second_file.py` by #1216 so that
 `skills/code-review/scripts/chain_check.py` reads a design's `to` the way the
 test reads the rule documents. The method and why it is verbatim stay in that
-test's docstring, and the measurement that chose `WINDOW` in
-`tests/text/test_a_moved_rule_leaves_its_definition.py`'s. The two cases of
+test's docstring, and the measurement that chose `WINDOW` in the comment over
+it. The two cases of
 `Test_words` came from the paste test, where they tested `words` alone.
 """
 

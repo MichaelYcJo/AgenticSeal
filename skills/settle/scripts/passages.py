@@ -28,8 +28,19 @@ READER = "lib/lines.py"
 
 # A run of this many consecutive words is longer than any phrase two rule
 # documents share by writing about the same mechanism, and shorter than the
-# smallest real copy measured. The measurement and the case that keeps both
-# ends of its margin are `tests/text/test_a_moved_rule_leaves_its_definition.py`'s.
+# smallest real copy measured. It was measured on the agent contract and the
+# three agent definitions after phase 4 of #107. The longest run a kept
+# application shared with a contract rule was 10 words, `agents/crafter.md`'s
+# `a bare word is a pathspec and git rejects it`, which the retired probe rule
+# and the design gate's waiver paragraph both spelt; the proofer's 9-word echo
+# of contract rule 6 was the next. Both left with their rewrites (#957, #967),
+# and the widest kept run after them was 8 words, `agents/sealer.md` with
+# contract rule 2. The smallest run a real copy produced, measured on the same
+# files before phase 4 removed the copies, was 25 words (contract rule 10),
+# then 31 (contract rule 9), 37 (a rule #957 folded into contract rule 11), 59
+# (contract rule 11) and 66 (contract rule 3). Fifteen sits between 10 and 25
+# with margin on both sides. No case keeps those ends, so a change to the
+# number measures them again.
 WINDOW = 15
 
 TOP_FILES = ("CLAUDE.md", "CONTRIBUTING.md", "README.md")

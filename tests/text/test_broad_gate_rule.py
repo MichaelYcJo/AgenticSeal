@@ -14,9 +14,9 @@ with them rather than being deleted: what each definition still holds is its
 own APPLICATION -- the proofer has a named field for the question, the
 crafter cites the two rules its hand-back answers -- and a case asserting
 the same sentence in two files is the duplication the
-contract was written to end. That duplication has its own module now,
-`tests/text/test_a_moved_rule_leaves_its_definition.py`, because until phase 4
-nothing in the tree noticed a moved rule being pasted back.
+contract was written to end. Until phase 4 nothing in the tree noticed a
+moved rule being pasted back, and
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py` refuses it now.
 """
 
 from conftest import flat, read, section

@@ -1052,7 +1052,7 @@ ROW_READERS = [
     # record-language section was in two of them in near-identical words and
     # in the third not at all, and it is contract rule 11 now. That
     # neither definition kept a copy is held by
-    # `tests/text/test_a_moved_rule_leaves_its_definition.py`, so removing a row
+    # `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, so removing a row
     # from this list is a move rather than a deletion.
     ("skills", "agent-contract", "SKILL.md"),
 ]
