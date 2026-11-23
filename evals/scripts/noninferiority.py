@@ -54,6 +54,12 @@ import sys
 import tempfile
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads `lib/gitcmd.py`, which starts every git command this script runs.
+sys.path.insert(0, os.path.join(ROOT, "lib"))
+import sibling  # noqa: E402
+
+gitcmd = sibling.load("lib/gitcmd.py")
 SUITE = "evals/behaviour"
 AGENTS = ("proofer", "crafter", "framer", "sealer", "tracer")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
@@ -119,19 +125,19 @@ def preload_bytes(tree, agent):
 
 
 def git_bytes(*args, index=None, stdin=None):
-    """`git -C ROOT <args>`'s stdout as bytes, reading INDEX as its index
-    where given and STDIN on its standard input.
+    """`git -C ROOT <args>`'s stdout as bytes, through `lib/gitcmd.py#git`,
+    reading INDEX as its index where given and STDIN on its standard input.
 
-    A non-zero exit stops the run."""
-    env = None if index is None else {**os.environ, "GIT_INDEX_FILE": index}
-    run = subprocess.run(
-        ["git", "-C", ROOT, *args], capture_output=True, env=env, input=stdin
-    )
-    if run.returncode != 0:
-        raise SystemExit(
-            f"git {' '.join(args)}: {run.stderr.decode('utf-8', 'replace')}"
-        )
-    return run.stdout
+    A non-zero exit, or a git that gave no answer, stops the run with the
+    runner's one line (`lib/gitcmd.py#Failed`)."""
+    return gitcmd.git(
+        ROOT,
+        *args,
+        given=stdin,
+        binary=True,
+        env=None if index is None else {"GIT_INDEX_FILE": index},
+        check=True,
+    ).stdout
 
 
 def extract(rev, paths, into):

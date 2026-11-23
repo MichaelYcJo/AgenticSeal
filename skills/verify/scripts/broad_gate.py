@@ -110,8 +110,11 @@ Usage:
 
 Exit codes: 0 passed · 1 failed · 2 refused — no key, no repository, a
 base that does not resolve, a copy of the plugin that lacks a module it
-loads, a `trail/gate.md` that could not be written; nothing ran on 2 except
-where the refusal names what ran.
+loads, a `trail/gate.md` that could not be written, or a git command that
+did not start or did not finish within `lib/gitcmd.py#TIMEOUT`, whose one
+line, `seal gate: ` and the command, is the refusal; nothing ran on 2
+except where the refusal names what ran, or where git stopped answering
+after the checks ran.
 Under `--preflight`: 0 every record arm passed · 1 an arm failed · 2
 refused, with nothing run, `--record` given among the refusals.
 """
@@ -149,7 +152,8 @@ CONFIG_READER = "lib/config.py"
 # reads the blocks already there.
 FIELDS_READER = "lib/fields.py"
 OPTIN = "lib/optin.py"
-# `lib/routing.py`, whose `rounds` lists a work item's round records.
+# `lib/routing.py`, whose `rounds` lists a work item's round records and
+# whose `current_branch` names the branch checked out.
 ROUTING = "lib/routing.py"
 
 # `lib/sibling.py` loads every other module this command reads, and an
@@ -219,32 +223,11 @@ def gitcmd_module():
 
 
 def git(root, *args):
-    """stdout of a git call in `root`, or None on a non-zero exit. The argv
-    is `lib/gitcmd.py#argv`'s."""
-    r = subprocess.run(
-        gitcmd_module().argv("-C", root, *args),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    """stdout of a git call in `root` through `lib/gitcmd.py#git`, or None
+    on a non-zero exit. A git that did not answer raises
+    `lib/gitcmd.py#Failed`, which `main` reads as the gate's refusal."""
+    r = gitcmd_module().git(root, *args)
     return r.stdout if r.returncode == 0 else None
-
-
-def repo_root(start):
-    out = git(start, "rev-parse", "--show-toplevel")
-    return os.path.normpath(out.strip()) if out and out.strip() else None
-
-
-def branch_name(root):
-    """The branch checked out at `root`, or None on a detached HEAD.
-
-    What the `BROAD GATE PASSED` and `BROAD GATE FAILED` lines name beside
-    the tree: a hash tells a reader which commit a line is about and never
-    which branch, and the branch is what matches a line to its work.
-    `symbolic-ref -q` exits non-zero on a detached HEAD and prints nothing,
-    which is the None the lines read as *leave the branch out*."""
-    out = git(root, "symbolic-ref", "--short", "-q", "HEAD")
-    return out.strip() if out and out.strip() else None
 
 
 # --- which copy of the gate runs, and the stamp says which ------------------
@@ -1483,10 +1466,15 @@ def compare_at_base(root, base, command, files, keep):
         record = read_record(records_dir(keep), key, scratch)
         return {f: base_word(record, ran.code, f) for f in files}
     finally:
-        subprocess.run(
-            ["git", "-C", root, "worktree", "remove", "--force", scratch],
-            capture_output=True,
-        )
+        # A removal git did not answer names the worktree left behind and
+        # does not replace the words the run above gave.
+        try:
+            git(root, "worktree", "remove", "--force", scratch)
+        except gitcmd_module().Failed as unanswered:
+            sys.stderr.write(
+                f"seal gate: the scratch worktree {scratch} was not removed: "
+                f"{unanswered.line}\n"
+            )
 
 
 # --- what the panel reads --------------------------------------------------
@@ -1651,7 +1639,8 @@ def panel(
     stamp's, and carry no title row.
 
     `base` is a `Base`. `copy` is `gate_copy`'s value and None leaves the
-    `gate` row out; `branch` is `branch_name`'s, None on a detached HEAD;
+    `gate` row out; `branch` is `lib/routing.py#current_branch`'s, None on
+    a detached HEAD;
     `run` is the `RunRecord` of the command's run here, whose `suite_counts`
     the `suite` row prints — never the command's printed output, which
     a test can print into.
@@ -1973,8 +1962,10 @@ def gate(args, ascii_marks=False):
     in ASCII: `is_utf8` asked of stdout as the process found it, negated,
     which is what `__main__` passes. The report is the same text on a
     terminal and a pipe, and nothing is drawn on either."""
-    root = repo_root(os.path.abspath(args.root or os.getcwd()))
-    if root is None:
+    # `toplevel` raises where git did not answer, so a git that hung is not
+    # read as no repository.
+    root = sibling.load(OPTIN).toplevel(os.path.abspath(args.root or os.getcwd()))
+    if not root:
         raise Refused(
             f"seal gate: {args.root or os.getcwd()} is not in a git repository — "
             "nothing ran"
@@ -2022,7 +2013,12 @@ def gate(args, ascii_marks=False):
             "compared against"
         )
     tree = head.strip()
-    branch = branch_name(root)
+    # What the `BROAD GATE PASSED` and `BROAD GATE FAILED` lines name beside
+    # the tree: a hash tells a reader which commit a line is about and never
+    # which branch, and the branch is what matches a line to its work. None
+    # on a detached HEAD, and where git did not answer for the branch, reads
+    # as *leave the branch out*.
+    branch = sibling.load(ROUTING).current_branch(root) or None
     item = None
     if args.record:
         if args.preflight:
@@ -2232,28 +2228,35 @@ def main(argv=None, console_wants_ascii=False):
     # child resolves it for itself. A root that is not a repository takes
     # `gate`'s own refusal below, unchanged.
     known, _unknown = parser.parse_known_args(argv)
-    root = repo_root(os.path.abspath(known.root or os.getcwd()))
-    if root is not None:
-        shipped = shipped_gate(root)
-        if shipped is not None:
-            sys.stderr.write(redirect_line(root, shipped) + "\n")
-            handed = sys.argv[1:] if argv is None else list(argv)
-            env = {**os.environ, INVOKED_AS_VAR: os.path.realpath(__file__)}
-            return subprocess.run(
-                [sys.executable, shipped, *handed], env=env
-            ).returncode
-    args = parser.parse_args(argv)
-    # Taken OUT of the environment rather than read from it: every check
-    # below inherits this process's environment, and a suite that loads this
-    # module in process would otherwise answer `gate_copy` for a redirect it
-    # never made.
-    args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
-    if root is not None:
-        sys.stderr.write(running_line(root) + "\n")
+    # Loaded before `lib/optin.py`, which imports it, so a copy of the
+    # plugin without it is the loader's sentence about this file. A git
+    # command that did not answer, at any step, is the gate's refusal.
+    failed = gitcmd_module().Failed
     try:
+        root = sibling.load(OPTIN).toplevel(os.path.abspath(known.root or os.getcwd()))
+        if root:
+            shipped = shipped_gate(root)
+            if shipped is not None:
+                sys.stderr.write(redirect_line(root, shipped) + "\n")
+                handed = sys.argv[1:] if argv is None else list(argv)
+                env = {**os.environ, INVOKED_AS_VAR: os.path.realpath(__file__)}
+                return subprocess.run(
+                    [sys.executable, shipped, *handed], env=env
+                ).returncode
+        args = parser.parse_args(argv)
+        # Taken OUT of the environment rather than read from it: every check
+        # below inherits this process's environment, and a suite that loads
+        # this module in process would otherwise answer `gate_copy` for a
+        # redirect it never made.
+        args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
+        if root:
+            sys.stderr.write(running_line(root) + "\n")
         return gate(args, console_wants_ascii)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
+        return 2
+    except failed as unanswered:
+        sys.stderr.write(f"seal gate: {unanswered.line}\n")
         return 2
 
 

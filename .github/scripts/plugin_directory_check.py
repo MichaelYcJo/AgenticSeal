@@ -77,7 +77,6 @@ public file. `.claude-plugin/marketplace.json` is the path -- a root
 import argparse
 import json
 import os
-import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -91,6 +90,7 @@ sys.path.insert(
 import sibling
 
 console = sibling.load("lib/console.py")
+gitcmd = sibling.load("lib/gitcmd.py")
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -194,27 +194,17 @@ def is_ancestor(root, sha, ref):
     A commit the clone does not have is not a commit that is unreachable, and
     reporting the two as one would turn a shallow or unfetched checkout into
     a stale-pin warning. So the third answer exists and is printed as itself.
+    A git that gave no answer (`lib/gitcmd.py#Unrun`) cannot say either.
     """
-    known = subprocess.run(
-        ["git", "-C", root, "cat-file", "-e", f"{sha}^{{commit}}"],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    if known.returncode:
+    try:
+        if gitcmd.git(root, "cat-file", "-e", f"{sha}^{{commit}}").returncode:
+            return None
+        verify = ("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+        if gitcmd.git(root, *verify).returncode:
+            return None
+        return gitcmd.is_ancestor(root, sha, ref)
+    except gitcmd.Failed:
         return None
-    resolved = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    if resolved.returncode:
-        return None
-    out = subprocess.run(
-        ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    return out.returncode == 0
 
 
 def line(label, repo, text, error, name, root, *refs):

@@ -43,7 +43,6 @@ import collections
 import glob
 import os
 import re
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -135,8 +134,9 @@ def tables():
 
 
 def gitcmd():
-    """`lib/gitcmd.py`, which builds a `git log` read the same under
-    any git configuration, loaded on first use."""
+    """`lib/gitcmd.py`, which starts every git command this reads, under
+    one bound and read the same under any git configuration, loaded on
+    first use."""
     import sibling
 
     return sibling.load(GITCMD)
@@ -682,17 +682,14 @@ def order(root, ref, ids, specs):
     `<name>/threads` of the root in the tree, or its design at the earlier
     path (`EARLIER`), in `git log --topo-order --reverse` order, a directory
     moved under a new id counting as added where it lands. An id no such
-    commit adds comes last, with commit None."""
-    r = subprocess.run(
-        gitcmd().argv(
-            "-C", root, "log", "-z", "--full-history", "--topo-order",
-            "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
-            "--format=%x01%H",
-            ref, "--", specs, EARLIER[0],
-        ),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
+    commit adds comes last, with commit None. Raises `lib/gitcmd.py#Exited`
+    where git exits non-zero, since it then printed no history to read."""
+    r = gitcmd().git(
+        root, "log", "-z", "--full-history", "--topo-order",
+        "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
+        "--format=%x01%H",
+        ref, "--", specs, EARLIER[0],
+        check=True,
     )  # fmt: skip
     first, commit = {}, None
     # `-z` ends each path with a NUL and quotes none, whatever
@@ -716,26 +713,15 @@ def merge_order(root, ref, pairs):
     """PAIRS, `[(id, commit)]`, sorted by each commit's place in `git rev-list
     --topo-order --reverse REF`: the merge order of local-mode designs, which
     no commit adds, read from their pull requests' merge commits. A pair
-    whose commit REF does not reach comes last, in the order handed."""
-    r = subprocess.run(
-        ["git", "-C", root, "rev-list", "--topo-order", "--reverse", ref],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    whose commit REF does not reach comes last, in the order handed. Raises
+    `lib/gitcmd.py#Exited` where git exits non-zero, as `order` does."""
+    r = gitcmd().git(root, "rev-list", "--topo-order", "--reverse", ref, check=True)
     place = {commit: n for n, commit in enumerate(r.stdout.split())}
     return sorted(pairs, key=lambda pair: place.get(pair[1], len(place)))
 
 
 def _ancestor(root, a, b):
-    return (
-        a != b
-        and subprocess.run(
-            ["git", "-C", root, "merge-base", "--is-ancestor", a, b],
-            capture_output=True,
-        ).returncode
-        == 0
-    )
+    return a != b and gitcmd().is_ancestor(root, a, b)
 
 
 def group(specs, same):

@@ -39,6 +39,7 @@ from conftest import (
     write,
 )
 from conftest import commit_everything_as_e as commit
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/seal_stamp.py"
 
@@ -2343,6 +2344,37 @@ class Test_main:
         out, err = capsys.readouterr()
         assert out == "" and err.startswith(f"seal stamp: {guarantee}: "), err
         assert queued(local.common) == []
+
+    @pytest.mark.parametrize(
+        "root, words",
+        [
+            ("shared", ("log", "--format=%H")),
+            ("shared", ("merge-base", "--is-ancestor")),
+            ("local", ("worktree", "list")),
+        ],
+        ids=["history", "reach", "local root"],
+    )
+    def test_guarantee_refuses_a_git_that_did_not_answer_naming_it(
+        self, request, root, words, monkeypatch, capsys
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT` while the stamp
+        is queued is exit 2 in the runner's one line, and nothing is queued
+        or recorded: a history git did not print is not a work item never
+        stamped, and a reach git did not answer is not a commit the branch
+        lacks. Seen red against `seal_stamp.py` before #1573, whose line
+        was the exception's own."""
+        item = request.getfixturevalue(root)
+        guarantee = item_dir(item) / "guarantee.md"
+        if root == "shared":
+            guarantee = item.repo / GUARANTEE
+            uncommitted(item)
+        asked = unanswered(monkeypatch, *words)
+        assert stamp.main(["--guarantee", str(guarantee)]) == 2
+        out, err = capsys.readouterr()
+        assert out == "", out
+        assert err == f"seal stamp: {guarantee}: {past_the_bound(asked[0])}\n", err
+        assert queued(item.common) == []
+        assert not (pathlib.Path(item.common) / "agentic-stamp-refused").exists()
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_stop_draws_the_payloads_clone_once_and_exits_0(

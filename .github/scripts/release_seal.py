@@ -66,7 +66,6 @@ Exit code: 0, always.
 
 import json
 import os
-import subprocess
 import sys
 import tempfile
 
@@ -437,18 +436,29 @@ class Refused(Exception):
 
 
 def gh(*args):
-    """`gh <args>`'s stdout, or `Refused` naming the call and what it said."""
-    out = subprocess.run(["gh", *args], capture_output=True, encoding="utf-8")
+    """`gh <args>`'s stdout, or `Refused` naming the call and what it said.
+
+    `gh` starts through `lib/gitcmd.py#gh`, loaded here at first use, and a
+    `gh` that gave no answer is `Refused` with the runner's line."""
+    gitcmd = module("lib/gitcmd.py")
+    try:
+        out = gitcmd.gh(*args)
+    except gitcmd.Failed as failed:
+        raise Refused(failed.line) from None
     if out.returncode:
         raise Refused(f"gh {' '.join(args[:2])} failed: {out.stderr.strip()}")
     return out.stdout
 
 
 def tagged(tag):
-    """The commit `tag` names, which the panel's `tag` row shows."""
-    out = subprocess.run(
-        ["git", "rev-parse", f"{tag}^{{commit}}"], capture_output=True, encoding="utf-8"
-    )
+    """The commit `tag` names, which the panel's `tag` row shows, asked in
+    the directory this runs in through `lib/gitcmd.py#git`; `Refused` as
+    `gh` refuses."""
+    gitcmd = module("lib/gitcmd.py")
+    try:
+        out = gitcmd.git(os.curdir, "rev-parse", f"{tag}^{{commit}}")
+    except gitcmd.Failed as failed:
+        raise Refused(failed.line) from None
     if out.returncode:
         raise Refused(f"git rev-parse {tag} failed: {out.stderr.strip()}")
     return out.stdout.strip()

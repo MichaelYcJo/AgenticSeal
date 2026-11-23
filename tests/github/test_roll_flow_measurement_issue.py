@@ -11,7 +11,8 @@ the version it rolled FROM rather than a guess at the version it is for --
 `log_title` and `rolled_from` are pure and read the same constant.
 
 The exactly-one-open invariant and the retry-once hardening are tested by
-monkeypatching the module's own `run`, `list_open_issues`, `read_version`,
+monkeypatching `lib/gitcmd.py#gh` as the module reaches it (`_run`), the
+module's own `try_run` (`_try_run`), `list_open_issues`, `read_version`,
 and `time.sleep` -- never the real network.
 
 Most fixtures below carry `chore: flow measurement — 0.7.0` as the open log's
@@ -27,10 +28,11 @@ constants.
 
 import json
 import os
-import sys
+import subprocess
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, gh_answers
+from test_settle import unanswered
 
 TARGET = ".github/scripts/roll_flow_measurement_issue.py"
 
@@ -47,6 +49,25 @@ def _roller():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def _run(monkeypatch, m, answer):
+    """`lib/gitcmd.py#gh` as M reaches it, replaced. ANSWER is called with
+    `gh` and the arguments the script passed, and its string is the
+    command's standard output; an exception it raises reaches the script.
+    The script's own `run` stood here before #1573, called with the same
+    words, so each case reads them as it read `run`'s."""
+
+    def gh(*args, root=None, check=False):
+        return subprocess.CompletedProcess(["gh", *args], 0, answer("gh", *args), "")
+
+    monkeypatch.setattr(m.gitcmd, "gh", gh)
+
+
+def _try_run(monkeypatch, m, answer):
+    """M's `try_run` replaced. ANSWER is called with `gh` and the arguments
+    the script passed, as `_run`'s is, and answers for the call."""
+    monkeypatch.setattr(m, "try_run", lambda *args: answer("gh", *args))
 
 
 def _ladder_harness(m, monkeypatch, create_results, readings, baseline="[]"):
@@ -74,7 +95,7 @@ def _ladder_harness(m, monkeypatch, create_results, readings, baseline="[]"):
             return create_results.pop(0)
         return baseline
 
-    monkeypatch.setattr(m, "try_run", fake_try_run)
+    _try_run(monkeypatch, m, fake_try_run)
     monkeypatch.setattr(
         m, "list_open_issues", lambda repo: readings.pop(0) if readings else []
     )
@@ -103,8 +124,8 @@ def _roll_harness(m, monkeypatch, title, shipped, number=89):
 
     The condition is the only thing under test here, so every `gh` call below
     it succeeds on the first rung -- the create ladder has its own cases
-    above, and `run` is wired to fail the case if anything falls through to
-    it. Returns `(closed, creates)`.
+    above, and `lib/gitcmd.py#gh` is wired (`_run`) to fail the case if
+    anything falls through to it. Returns `(closed, creates)`.
     """
     closed = []
     creates = []
@@ -115,7 +136,7 @@ def _roll_harness(m, monkeypatch, title, shipped, number=89):
             return ""
         return "[]"
 
-    monkeypatch.setattr(m, "try_run", fake_try_run)
+    _try_run(monkeypatch, m, fake_try_run)
     monkeypatch.setattr(
         m, "list_open_issues", lambda repo: [{"number": number, "title": title}]
     )
@@ -125,7 +146,7 @@ def _roll_harness(m, monkeypatch, title, shipped, number=89):
         lambda repo, n, shipped, comments=None: closed.append((repo, n)),
     )
     monkeypatch.setattr(m, "read_version", lambda: shipped)
-    monkeypatch.setattr(m, "run", lambda *a: pytest.fail(f"fell through to run: {a}"))
+    _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
     monkeypatch.setenv("REPO", "example/repo")
     return closed, creates
 
@@ -155,8 +176,8 @@ def _empty_log_harness(m, monkeypatch, issue):
             return "[]"
         return ""
 
-    monkeypatch.setattr(m, "run", lambda *a: calls.append(a) or "")
-    monkeypatch.setattr(m, "try_run", fake_try_run)
+    _run(monkeypatch, m, lambda *a: calls.append(a) or "")
+    _try_run(monkeypatch, m, fake_try_run)
     monkeypatch.setattr(m, "list_open_issues", lambda repo: [issue])
     monkeypatch.setattr(m, "read_version", lambda: "0.7.0")
     monkeypatch.setenv("REPO", "example/repo")
@@ -298,8 +319,8 @@ class Test_main:
                 return json.dumps([{"number": 51}])
             return ""
 
-        monkeypatch.setattr(m, "run", lambda *a: calls.append(a) or "")
-        monkeypatch.setattr(m, "try_run", fake_try_run)
+        _run(monkeypatch, m, lambda *a: calls.append(a) or "")
+        _try_run(monkeypatch, m, fake_try_run)
         monkeypatch.setattr(
             m,
             "list_open_issues",
@@ -367,9 +388,7 @@ class Test_main:
         milestone touches, so the release does not stop for it."""
         m = _roller()
         creates, _ = _ladder_harness(m, monkeypatch, [None, ""], [list(OPEN_ONE), []])
-        monkeypatch.setattr(
-            m, "run", lambda *a: pytest.fail(f"fell through to run: {a}")
-        )
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -396,7 +415,7 @@ class Test_main:
         creates, _ = _ladder_harness(
             m, monkeypatch, [None, None], [list(OPEN_ONE), [], []]
         )
-        monkeypatch.setattr(m, "run", lambda *a: creates.append(a) or "")
+        _run(monkeypatch, m, lambda *a: creates.append(a) or "")
 
         m.main()
 
@@ -424,9 +443,7 @@ class Test_main:
         m = _roller()
         landed = [{"number": 90, "title": "chore: flow measurement — 0.8.0"}]
         creates, _ = _ladder_harness(m, monkeypatch, [None], [list(OPEN_ONE), landed])
-        monkeypatch.setattr(
-            m, "run", lambda *a: pytest.fail(f"fell through to run: {a}")
-        )
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -446,9 +463,7 @@ class Test_main:
         creates, _ = _ladder_harness(
             m, monkeypatch, [None, ""], [list(OPEN_ONE), list(OPEN_ONE), list(OPEN_ONE)]
         )
-        monkeypatch.setattr(
-            m, "run", lambda *a: pytest.fail(f"fell through to run: {a}")
-        )
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -468,9 +483,7 @@ class Test_main:
         creates, slept = _ladder_harness(
             m, monkeypatch, [None, ""], [list(OPEN_ONE), [], landed]
         )
-        monkeypatch.setattr(
-            m, "run", lambda *a: pytest.fail(f"fell through to run: {a}")
-        )
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -531,7 +544,7 @@ class Test_main:
         def fatal(*args):
             raise SystemExit("gh issue create failed: some network error")
 
-        monkeypatch.setattr(m, "run", fatal)
+        _run(monkeypatch, m, fatal)
 
         with pytest.raises(SystemExit) as exc:
             m.main()
@@ -558,9 +571,7 @@ class Test_main:
         creates, _ = _ladder_harness(
             m, monkeypatch, [""], [list(OPEN_ONE)], baseline=two_open
         )
-        monkeypatch.setattr(
-            m, "run", lambda *a: pytest.fail(f"fell through to run: {a}")
-        )
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -875,35 +886,27 @@ class Test_main:
         assert "rolled" in out
 
 
-FAILING_CALL = "import sys; print('partial'); sys.stderr.write('broke'); sys.exit(3)"
-
-
-class Test_run:
-    def test_accepts_a_calls_output(self):
-        """The real call, through this interpreter, which every CI leg has;
-        every other case replaces `run`."""
-        m = _roller()
-        assert m.run(sys.executable, "-c", "print('out')") == "out\n"
-
-    def test_refuses_a_failed_call_by_exiting_with_its_stderr(self):
-        """A failed call in the one-open path stops the release, and the exit
-        says which call failed and what it wrote."""
-        m = _roller()
-        with pytest.raises(SystemExit) as stopped:
-            m.run(sys.executable, "-c", FAILING_CALL)
-        assert "failed: broke" in str(stopped.value.code)
-
-
 class Test_try_run:
-    def test_accepts_a_calls_output(self):
-        m = _roller()
-        assert m.try_run(sys.executable, "-c", "print('out')") == "out\n"
+    """The real `gh` calls, the suite's stub, which answers `pr view --json
+    isDraft`; every other case replaces `try_run`. The script's `run` went
+    for `lib/gitcmd.py#gh` with `check=True` (#1573), whose cases are
+    `tests/lib/test_gitcmd.py#Test_gh`."""
 
-    def test_refuses_a_failed_calls_output_as_none(self):
-        """`None`, never what the failed call printed before it failed: the
-        callers read `None` as no answer, and the partial output as one."""
+    def test_accepts_a_calls_output(self, monkeypatch):
         m = _roller()
-        assert m.try_run(sys.executable, "-c", FAILING_CALL) is None
+        monkeypatch.setenv("PATH", gh_answers(dict(os.environ), "ready")["PATH"])
+        assert m.try_run("pr", "view", "--json", "isDraft") == '{"isDraft":false}\n'
+
+    @pytest.mark.parametrize("past_the_bound", [False, True], ids=["exit 1", "timeout"])
+    def test_refuses_a_failed_calls_output_as_none(self, monkeypatch, past_the_bound):
+        """`None`, never what the failed call printed before it failed: the
+        callers read `None` as no answer, and the partial output as one. A
+        `gh` past `lib/gitcmd.py#TIMEOUT` is no answer either (#1573)."""
+        m = _roller()
+        monkeypatch.setenv("PATH", gh_answers(dict(os.environ), "unknown")["PATH"])
+        if past_the_bound:
+            unanswered(monkeypatch, "pr", "view")
+        assert m.try_run("pr", "view", "--json", "isDraft") is None
 
 
 class Test_rolled_from:
@@ -1013,7 +1016,7 @@ class Test_find_baseline_issue:
         repositories have no durable log, and that is not a fault to report."""
         m = _roller()
         for answer in (None, "[]", "not json"):
-            monkeypatch.setattr(m, "try_run", lambda *a, _r=answer: _r)
+            _try_run(monkeypatch, m, lambda *a, _r=answer: _r)
             number, note = m.find_baseline_issue("example/repo")
             assert number is None, (
                 f"a lookup answering {answer!r} must be `None`, not an exception "
@@ -1023,7 +1026,7 @@ class Test_find_baseline_issue:
                 f"a repository with no durable log is the ordinary case, and "
                 f"a note about it would appear on every rolling log: {note!r}"
             )
-        monkeypatch.setattr(m, "try_run", lambda *a: json.dumps([{"number": 51}]))
+        _try_run(monkeypatch, m, lambda *a: json.dumps([{"number": 51}]))
         assert m.find_baseline_issue("example/repo") == (51, None)
 
     def test_refuses_to_guess_between_two_open_durable_logs(self, monkeypatch):
@@ -1033,8 +1036,8 @@ class Test_find_baseline_issue:
         guess -- and it is silent, because a body carrying one of two numbers
         looks exactly like a body carrying the only one."""
         m = _roller()
-        monkeypatch.setattr(
-            m, "try_run", lambda *a: json.dumps([{"number": 51}, {"number": 77}])
+        _try_run(
+            monkeypatch, m, lambda *a: json.dumps([{"number": 51}, {"number": 77}])
         )
         number, note = m.find_baseline_issue("example/repo")
         assert number is None, (
@@ -1093,7 +1096,7 @@ class Test_module:
         reason and pinned; this one was its class-mate and no case read it."""
         m = _roller()
         calls = []
-        monkeypatch.setattr(m, "run", lambda *a: calls.append(a) or "")
+        _run(monkeypatch, m, lambda *a: calls.append(a) or "")
 
         m.close_issue("example/repo", 89, "0.8.2")
 
@@ -1122,15 +1125,63 @@ class Test_module:
             "section has the reasoning." in comment
         ), f"the comment sends its reader to a section the reasoning left: {comment!r}"
 
-    def test_the_one_list_call_asks_for_the_comments(self):
+    def test_the_one_list_call_asks_for_the_comments(self, monkeypatch):
         """The count is read off the list call the roll already makes — no
         second call, no write — so this is where the field has to be asked for."""
         m = _roller()
         asked = []
-        m.run = lambda *a: asked.append(a) or "[]"
+        _run(monkeypatch, m, lambda *a: asked.append(a) or "[]")
         m.list_open_issues("example/repo")
         args = asked[0]
         assert args[args.index("--json") + 1] == "number,title,comments", args
+
+    def test_a_list_gh_refuses_stops_the_release_in_the_runners_line(self, monkeypatch):
+        """The one-open reading is the invariant, so a list `gh` refuses ends
+        the run, in `lib/gitcmd.py#Exited`'s line naming the command and what
+        `gh` said (#1573)."""
+        m = _roller()
+        monkeypatch.setattr(
+            m.gitcmd.subprocess,
+            "run",
+            lambda argv, **_: subprocess.CompletedProcess(argv, 1, "", "HTTP 502\n"),
+        )
+        with pytest.raises(SystemExit) as stopped:
+            m.list_open_issues("example/repo")
+        assert stopped.value.code == (
+            "`gh issue list --repo example/repo --label flow-measurement --state "
+            "open --json number,title,comments` exited 1: HTTP 502"
+        )
+
+    @pytest.mark.parametrize(
+        "write, command",
+        [
+            ("close", "`gh issue close 89 "),
+            ("the last create rung", "`gh issue create "),
+        ],
+    )
+    def test_a_close_or_the_last_create_gh_refuses_stops_the_release(
+        self, monkeypatch, write, command
+    ):
+        """A refused close read as done opens a second log beside the one
+        still open, and a refused last create read as done ends the roll with
+        none open. Each passes `check=True`, so the refusal ends the run in
+        `lib/gitcmd.py#Exited`'s line naming the command (#1573)."""
+        m = _roller()
+        if write == "the last create rung":
+            _ladder_harness(m, monkeypatch, [None, None], [])
+        monkeypatch.setattr(
+            m.gitcmd.subprocess,
+            "run",
+            lambda argv, **_: subprocess.CompletedProcess(argv, 1, "", "HTTP 502\n"),
+        )
+        with pytest.raises(SystemExit) as stopped:
+            if write == "close":
+                m.close_issue("example/repo", 89, "0.8.2")
+            else:
+                m.open_issue("example/repo", "0.8.2", 89)
+        said = str(stopped.value.code)
+        assert said.startswith(command), said
+        assert said.endswith("` exited 1: HTTP 502"), said
 
 
 test_census = census_case(TARGET)

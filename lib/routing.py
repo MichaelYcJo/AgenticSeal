@@ -33,10 +33,10 @@ of taking the whole declaration down with it.
 
 import os
 import re
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gitcmd
 import optin
 
 try:
@@ -247,20 +247,15 @@ def parse(text):
 
 
 def current_branch(cwd):
-    """The checked-out branch, or "" when detached or unreadable.
+    """The checked-out branch, or "" when detached, unreadable or where git
+    did not answer.
 
     A detached HEAD matches no declaration. That is the correct direction: nothing on a detached HEAD is the work item a branch
     was declared for.
     """
     try:
-        out = subprocess.run(
-            ["git", "-C", cwd or ".", "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        )
-    except (OSError, subprocess.SubprocessError):
+        out = gitcmd.git(cwd or ".", "rev-parse", "--abbrev-ref", "HEAD")
+    except gitcmd.Failed:
         return ""
     name = out.stdout.strip() if out.returncode == 0 else ""
     return "" if name == "HEAD" else name

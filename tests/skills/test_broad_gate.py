@@ -48,6 +48,7 @@ from conftest import (
 )
 from conftest import commit_everything_as_e as commit
 from test_seal import configured, tool
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/broad_gate.py"
 
@@ -1667,6 +1668,29 @@ class Test_compare_at_base:
         )
         assert words == {"a.py": gate.NOT_CHECKED_OUT, "b.py": gate.NOT_CHECKED_OUT}
 
+    def test_refuses_to_let_a_removal_git_did_not_answer_replace_the_words(
+        self, repo, tmp_path, monkeypatch, capsys
+    ):
+        """#1573: the scratch worktree is removed in a `finally`, and a
+        removal past `lib/gitcmd.py#TIMEOUT` names the worktree it left on
+        stderr while the words the run gave stand. Seen red against
+        `broad_gate.py` before #1573, where `subprocess.TimeoutExpired`
+        replaced them."""
+        failing_on_feature(repo)
+        asked = unanswered(monkeypatch, "worktree", "remove")
+        words = gate.compare_at_base(
+            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+        )
+        assert words == {"tests/test_two.py": gate.NEW}
+        (held,) = asked
+        scratch = held[-1]
+        assert capsys.readouterr().err == (
+            f"seal gate: the scratch worktree {scratch} was not removed: "
+            f"{past_the_bound(held)}\n"
+        )
+        shutil.rmtree(scratch, ignore_errors=True)
+        git(repo, "worktree", "prune")
+
 
 class Test_uncommitted_line:
     def test_accepts_a_written_file_git_sees_uncommitted(self, repo):
@@ -1908,6 +1932,18 @@ class Test_gate:
         with pytest.raises(gate.Refused, match="--base nowhere does not resolve"):
             gate.gate(namespace(repo, tmp_path / "out", base="nowhere"))
 
+    def test_refuses_to_read_a_git_that_did_not_answer_as_no_repository(
+        self, repo, tmp_path, monkeypatch
+    ):
+        """#1573: a git past `lib/gitcmd.py#TIMEOUT` for the repository's top
+        raises the runner's `Unrun`, which `main` writes as the refusal, and
+        is not `Refused` as a root outside any repository. Seen red with
+        `lib/optin.py#repo_root` asked in place of `toplevel`."""
+        asked = unanswered(monkeypatch, "rev-parse", "--show-toplevel")
+        with pytest.raises(gate.gitcmd_module().Unrun) as raised:
+            gate.gate(namespace(repo, tmp_path / "out"))
+        assert raised.value.line == past_the_bound(asked[0])
+
     def test_refuses_a_root_that_is_no_repository_or_not_opted_in(self, tmp_path):
         with pytest.raises(gate.Refused, match="is not in a git repository"):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
@@ -2050,6 +2086,29 @@ class Test_main:
         assert gate.INVOKED_AS_VAR not in os.environ
         err = capsys.readouterr().err
         assert f"seal gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
+
+    @pytest.mark.parametrize(
+        "words",
+        [
+            ("rev-parse", "--show-toplevel"),
+            ("rev-parse", "--short", "HEAD"),
+            ("check-ref-format", "--branch"),
+        ],
+        ids=["toplevel", "head", "base"],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, repo, tmp_path, monkeypatch, capsys, words
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT`, asked for the
+        repository's top, for HEAD or while the base resolves, is the gate's
+        refusal at 2 in the runner's one line, and a git that hung is not
+        read as no repository. Seen red against `broad_gate.py` before
+        #1573, which raised `subprocess.TimeoutExpired` out of `main`."""
+        asked = unanswered(monkeypatch, *words)
+        assert gate.main(args_for(repo, tmp_path / "out")) == 2
+        err = capsys.readouterr().err
+        assert err.endswith(f"seal gate: {past_the_bound(asked[0])}\n"), err
+        assert len(asked) == 1 and "not in a git repository" not in err
 
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
         """#1283, round 1's finding 1. The gate builds every git command with

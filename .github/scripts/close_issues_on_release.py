@@ -68,7 +68,6 @@ sooner or later, and the first person to do it is whoever wrote it.
 
 import json
 import os
-import subprocess
 import sys
 
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
@@ -86,22 +85,44 @@ gitcmd = sibling.load("lib/gitcmd.py")
 closing = sibling.load("lib/closing.py")
 
 
-def run(*args):
-    out = subprocess.run(args, capture_output=True, encoding="utf-8")
-    if out.returncode:
-        sys.exit(f"{' '.join(args)} failed: {out.stderr.strip()}")
-    return out.stdout
+def _asked(program, args, check):
+    """The `subprocess.CompletedProcess` of PROGRAM run with ARGS: `git`
+    through `lib/gitcmd.py#git` in the directory this runs in, and `gh`
+    through `lib/gitcmd.py#gh`. `lib/gitcmd.py#Failed` as the runner raises
+    it."""
+    if program == "git":
+        return gitcmd.git(os.curdir, *args, check=check)
+    if program == "gh":
+        return gitcmd.gh(*args, check=check)
+    raise ValueError(f"{program!r} is neither `git` nor `gh`")
 
 
-def attempt(*args):
+def run(program, *args):
+    """The standard output of PROGRAM, `git` or `gh`, run with ARGS.
+
+    A command that exits non-zero, or gives no answer, ends the run with
+    the runner's one line (`lib/gitcmd.py#Failed`), which names the command
+    and what it said. `label_merged_on_release_branch.py` and
+    `release_completeness_check.py` run their reads and writes through it
+    too.
+    """
+    return _asked(program, args, check=True).stdout
+
+
+def attempt(program, *args):
     """`(ok, stderr)` for a write whose failure is not the run's.
 
     `run` exits on a non-zero `gh`, which is right for a read the rest of the
     run depends on and wrong for one issue's close: the issues sorted after
     it depend on nothing about it. The close loop reads this instead and
-    decides at the end what the failures add up to.
+    decides at the end what the failures add up to. A command that gave no
+    answer is a write that did not happen, and its error is the runner's
+    line.
     """
-    out = subprocess.run(args, capture_output=True, encoding="utf-8")
+    try:
+        out = _asked(program, args, check=False)
+    except gitcmd.Failed as failed:
+        return False, failed.line
     return out.returncode == 0, out.stderr.strip()
 
 
@@ -114,11 +135,7 @@ def _issue_api(repo, number):
     would leave the issues after it in the sorted order open, with a re-run
     dying in the same place.
     """
-    out = subprocess.run(
-        ["gh", "api", f"repos/{repo}/issues/{number}"],
-        capture_output=True,
-        encoding="utf-8",
-    )
+    out = gitcmd.gh("api", f"repos/{repo}/issues/{number}")
     if out.returncode:
         if "Not Found" in out.stderr or "404" in out.stderr:
             return None, False
@@ -177,20 +194,17 @@ def drop_label(repo, number, label):
     because a label write failed is a release that did not finish, and
     `close_issues_on_release.py` failing loudly is right about the close and
     would be wrong about this. So the failure is reported and the run goes
-    on.
+    on. A removal that gave no answer is reported the same way.
     """
-    out = subprocess.run(
-        ["gh", "issue", "edit", str(number), "--repo", repo, "--remove-label", label],
-        capture_output=True,
-        encoding="utf-8",
+    ok, said = attempt(
+        "gh", "issue", "edit", str(number), "--repo", repo, "--remove-label", label
     )
-    if out.returncode:
+    if not ok:
         print(
             f"could not remove {label!r} from #{number}: "
-            f"{out.stderr.strip()} — the issue is closed either way"
+            f"{said} — the issue is closed either way"
         )
-        return False
-    return True
+    return ok
 
 
 def spend_label(repo, number, dry):
@@ -340,9 +354,9 @@ def arrived(before, after):
             "request behind it in this push is not seen."
         )
         # exempt from splitlines: git output
-        return run(*gitcmd.argv("log", "-1", "--format=%s", after)).splitlines()
+        return run("git", "log", "-1", "--format=%s", after).splitlines()
     # exempt from splitlines: git output
-    return run(*gitcmd.argv("log", "--format=%s", f"{before}..{after}")).splitlines()
+    return run("git", "log", "--format=%s", f"{before}..{after}").splitlines()
 
 
 def main():
