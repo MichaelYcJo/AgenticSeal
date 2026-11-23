@@ -7,9 +7,9 @@ one batch of questions asked before the first edit, the rows of the routing
 declaration, the route chosen under `agentic`, the ladder that says whether
 a work item has a frame, the drain before the broad run, and where a
 decision or a lesson is written. Where no `seal/` whose `README.md` opens
-with the marker exists at `<repo>/seal/` or at
-`$(git rev-parse --git-common-dir)/seal/`, the orchestrator reads
-`skills/implement/bootstrap.md` first.
+with the marker stands at any of the places the opening paragraph of
+`skills/core/SKILL.md` names, which `seal mode` answers by exiting 1, the
+orchestrator reads `skills/implement/bootstrap.md` first.
 
 `skills/implement/SKILL.md` is the other half, and the orchestrator reads
 both. The crafter opens that one at its first step and never this one,

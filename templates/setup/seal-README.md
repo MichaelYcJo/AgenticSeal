@@ -14,15 +14,15 @@ the command behind it. A work item's directory is safe to delete wholesale
 **once its open rows have been moved out**, which *Export rules* below says
 where to read: nothing that must survive is allowed to live only there.
 
-It lives at one of two places, and its presence at either, with this file's
-first line as it stands, is what opts the repository into the AgenticSeal
-process. There is no config key. **Shared mode** keeps
-it at `<repo>/seal/` and commits it (gitignored files don't follow worktrees
-or other machines), so every clone reads it and CI can check pull requests
-against it. **Local mode** keeps the
-same root at `$(git rev-parse --git-common-dir)/seal/`, under the common git
-directory: every linked worktree of the clone shares it, nothing under it is
-ever a commit candidate, and no `.gitignore` line is needed. What local mode
+It lives at one of the places the opening paragraph of the plugin's
+`skills/core/SKILL.md` names, and its presence there, with this file's first
+line as it stands, is what opts the repository into the AgenticSeal
+process. There is no config key. **Shared mode** keeps it in the tree and
+commits it (gitignored files don't follow worktrees or other machines), so
+every clone reads it and CI can check pull requests against it. **Local
+mode** keeps the same root under the common git directory: every linked
+worktree of the clone shares it, nothing under it is ever a commit
+candidate, and no `.gitignore` line is needed. What local mode
 gives up is CI, because the pull-request checks read committed files, and
 any other machine, which starts empty.
 

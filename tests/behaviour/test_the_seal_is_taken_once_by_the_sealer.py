@@ -99,11 +99,10 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     the gate prints are text a person reads and acts on, so they are pinned
     whole, and each starts with the word that marks it unmeasured; the names
     the record replaced are asserted gone from the module. Every document
-    that tells a reader what the gate's words mean names `new?`, so an
-    orchestrator handing it on and a crafter reading it are both told it is
-    not `new`, and the **New?** bullet names the files a reader sent to the
-    base opens. What each document says of the word is the proofer's to
-    read."""
+    that tells a reader what the gate's words mean or what to do at them
+    names `new?`, so an orchestrator and a crafter are both told it is not
+    `new`, and the `new?` bullet names the files a reader sent to the base
+    opens. What each document says of the word is the proofer's to read."""
     gate = gate_module()
     assert gate.NOT_MEASURED == "new? not measured"
     earns = (
@@ -212,13 +211,14 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     ):
         assert not hasattr(gate, retired), f"broad_gate.py still carries {retired}"
     # The word `new?`, which `broad_gate.py` prints beside a failing file and
-    # each of these documents tells its reader the meaning of: the
-    # orchestrator, the crafter, and the person choosing the `Broad gate` key.
+    # each of these documents names to its reader: the orchestrator, the
+    # crafter, and the person choosing the `Broad gate` key.
     # `skills/verify/orchestration.md` names it as its bullet's bold lead.
+    # Since #1578 `skills/code-review/orchestration.md` cites that bullet's
+    # section for the words and names none of them.
     readers = {
-        ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "crafter.md"): "`new?`",
-        ("skills", "verify", "orchestration.md"): "**New?**",
+        ("skills", "verify", "orchestration.md"): "**`new?`**",
         ("templates", "setup", "config.md"): "`new?`",
     }
     for parts, word in readers.items():
@@ -339,19 +339,20 @@ def test_the_definition_separates_a_coverage_probe_from_a_seal(definition):
 def test_the_crafters_gate_rule_names_the_failure_words_and_rule_2():
     """T4 of #967 (S5): the crafter's broad gate paragraph cites contract
     rule 2, which holds who runs the broad gate, and keeps what is the
-    crafter's own: what `failing on base too` and `new?` mean beside a broad
-    gate failure handed to it. That it names nobody as the runner (#969 moved
-    the run to the orchestrator) is the proofer's to read."""
+    crafter's own: what it does at `failing on base too` and at `new?` beside
+    a broad gate failure handed to it. Since #1578 what each word means is
+    `skills/verify/orchestration.md` *The broad gate*'s. That it names nobody
+    as the runner (#969 moved the run to the orchestrator) is the proofer's
+    to read."""
     with open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8") as handle:
         crafter = handle.read()
     start = crafter.index("**The broad gate is not yours, and its label is.**")
     rule = " ".join(crafter[start:].split("\n\n", 1)[0].split())
     # The words `failing on base too` and `new?`, which `broad_gate.py`
-    # prints beside a failing file and the crafter reads to tell the two
-    # apart.
+    # prints beside a failing file and the crafter acts on.
     assert "`failing on base too`" in rule and "`new?`" in rule, (
-        "the crafter's gate rule stopped saying what the word beside a "
-        "failing file means, which is the half that is the crafter's own"
+        "the crafter's gate rule stopped saying what the crafter does at the "
+        "word beside a failing file, which is the half that is the crafter's own"
     )
     # The contract rule number 2, which the crafter resolves for who runs
     # the broad gate.
