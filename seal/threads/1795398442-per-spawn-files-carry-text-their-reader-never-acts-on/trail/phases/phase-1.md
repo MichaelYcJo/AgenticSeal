@@ -106,9 +106,10 @@ that list because it is the runner and not a test module. The set
 includes `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 At `f96c68b2d` it gave 1746 passed, 9 skipped and 1 failed. The failure was
 `tests/behaviour/test_chain_hooks_hardening.py#test_every_spec_directory_that_reached_the_ladder_has_an_overview`,
-which names this work item for having no `gaps.md`. This record's commit
-writes that file, and the set run again at that commit is the result the
-hand-back reports.
+which names this work item for having no `gaps.md`. `109849431` writes
+that file with this record, and the same command run at `109849431` gave
+1747 passed and 9 skipped. The docstring rewrap after it changes no case,
+and the two contract modules were run again after it (executed).
 
 **Bytes at `f96c68b2d` (executed, `git show <rev>:<path> | wc -c`).**
 `skills/agent-contract/SKILL.md` holds 11,625, against 12,029 at v0.38.5 and

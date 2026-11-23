@@ -18,11 +18,11 @@ with its number unlisted is red, and so is a listed number that still has
 a section. A paragraph reworded so the list is not read lists nothing, and
 every retired number then reads as a gap. Only the highest number used can
 go unseen, from the list or as a rule, since nothing else says it was used;
-that is left to review. A rule's sentences
-are not pinned here. #1111 found no pin's history showing a catch, and
-every pin's change came with its own rule's rewording, so a rule reworded
-to the same meaning stays green. A sentence deleted from inside a rule that
-keeps its heading is left to review.
+that is left to review. A rule's sentences are not pinned here. #1111
+found no pin's history showing a catch, and every pin's change came with
+its own rule's rewording, so a rule reworded to the same meaning stays
+green. A sentence deleted from inside a rule that keeps its heading is left
+to review.
 
 Two facts are pinned, because a reader depends on their characters: rule
 1's two command forms, which an agent copies into a shell, and rule 21's
