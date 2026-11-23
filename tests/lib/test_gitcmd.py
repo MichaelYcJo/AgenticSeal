@@ -197,6 +197,37 @@ class Test_under_root:
         assert gitcmd.under_root("r", "a/b") != os.path.join("r", "a" + chr(0) + "b")
 
 
+class Test_inside:
+    """`inside` came here from `seal.py`, `settle.py` and `broad_gate.py`
+    (#1575), each of which answered it by `commonpath`."""
+
+    def test_accepts_the_top_itself_and_a_path_under_it(self, tmp_path, monkeypatch):
+        """A relative path is read from the directory this runs in, as
+        `seal.py`'s `display` hands one over."""
+        top = tmp_path / "repo"
+        top.mkdir()
+        assert gitcmd.inside(str(top), str(top))
+        assert gitcmd.inside(os.path.join(str(top), "a", "b.md"), str(top))
+        monkeypatch.chdir(top)
+        assert gitcmd.inside(os.path.join("a", "b.md"), str(top))
+
+    def test_refuses_a_sibling_sharing_its_prefix_a_parent_and_two_drives(
+        self, tmp_path, monkeypatch
+    ):
+        """`/repo-2/x` begins with `/repo` and is not under it, which a
+        `startswith` would miss. `commonpath` raises for paths on two drives,
+        which only a Windows run meets, so the raise stands in for it."""
+        top = str(tmp_path / "repo")
+        assert not gitcmd.inside(str(tmp_path / "repo-2" / "x"), top)
+        assert not gitcmd.inside(str(tmp_path), top)
+
+        def two_drives(paths):
+            raise ValueError("Paths don't have the same drive")
+
+        monkeypatch.setattr(gitcmd.os.path, "commonpath", two_drives)
+        assert not gitcmd.inside(top, top)
+
+
 def starts(monkeypatch, outcome):
     """`subprocess.run` replaced by one that records each call's argv and
     keywords and answers OUTCOME: an exception raised, or a (code, stdout,

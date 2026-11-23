@@ -314,10 +314,6 @@ def positive(text):
     return value
 
 
-def plural(count, word):
-    return f"{count} {word}" if count == 1 else f"{count} {word}s"
-
-
 def run(root, values, where, out):
     """Every check over `root`, the lines they print, and the problems.
 
@@ -333,7 +329,7 @@ def run(root, values, where, out):
     else:
         past = past_ceiling(root, policy, ceiling)
         out.write(
-            f"seal fold: held {plural(len(names), 'document')} under {policy}/ "
+            f"seal fold: held {console.plural(len(names), 'document')} under {policy}/ "
             f"to {ceiling} estimated tokens, {len(past)} past it\n"
         )
         for line in past_ceiling_lines(past, ceiling):

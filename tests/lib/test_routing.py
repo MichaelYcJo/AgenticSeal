@@ -530,6 +530,28 @@ class Test_declarations:
         assert routing.declarations(str(repo)) == []
 
 
+class Test_read_declaration:
+    """The one read of one `routing.md`, which `declarations` makes per
+    work item and `settle.py` makes of a records directory `--from` names
+    (#1575)."""
+
+    def test_accepts_a_file_as_parse_reads_its_text(self, tmp_path):
+        path = tmp_path / "routing.md"
+        path.write_text(two_axis_text(branch="fix/y"), encoding="utf-8")
+        declared = routing.read_declaration(str(path))
+        assert declared == routing.parse(two_axis_text(branch="fix/y"))
+        assert declared["branch"] == "fix/y"
+
+    def test_refuses_an_absent_file_and_one_that_cannot_be_decoded(self, tmp_path):
+        """Both are no declaration, as the module docstring says every
+        failure here is: a file nobody can read or decode is not an answer
+        somebody gave."""
+        assert routing.read_declaration(str(tmp_path / "routing.md")) is None
+        path = tmp_path / "utf16.md"
+        path.write_bytes("| Review | through the review chain |\n".encode("utf-16"))
+        assert routing.read_declaration(str(path)) is None
+
+
 class Test_rounds:
     def test_accepts_the_records_lowest_round_first(self, tmp_path):
         for n in (10, 2, 1):

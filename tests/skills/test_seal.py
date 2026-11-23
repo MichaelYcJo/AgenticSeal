@@ -949,15 +949,6 @@ class Test_export:
         ) in out
 
 
-class Test_plural:
-    def test_accepts_one_as_the_noun_alone(self):
-        assert SEAL.plural(1, "file") == "1 file"
-
-    @pytest.mark.parametrize("count", [0, 2])
-    def test_refuses_the_singular_for_any_other_count(self, count):
-        assert SEAL.plural(count, "file") == f"{count} files"
-
-
 class Test_display:
     def test_accepts_a_path_inside_as_slash_joined_and_relative(self, tmp_path):
         assert (
@@ -968,23 +959,6 @@ class Test_display:
         outside = str(tmp_path.parent / "elsewhere")
         assert SEAL.display(str(tmp_path), outside) == outside
         assert SEAL.display(str(tmp_path), "") == ""
-
-
-class Test_inside:
-    def test_accepts_the_tree_and_a_path_below_it(self, tmp_path):
-        assert SEAL.inside(str(tmp_path), str(tmp_path))
-        assert SEAL.inside(str(tmp_path), str(tmp_path / "a" / "b"))
-
-    def test_refuses_a_sibling_sharing_the_prefix_and_another_drive(
-        self, tmp_path, monkeypatch
-    ):
-        assert not SEAL.inside(str(tmp_path / "repo"), str(tmp_path / "repo-2" / "x"))
-
-        def other_drive(paths):
-            raise ValueError("Paths don't have the same drive")
-
-        monkeypatch.setattr(SEAL.os.path, "commonpath", other_drive)
-        assert not SEAL.inside(str(tmp_path), str(tmp_path / "x"))
 
 
 class Test_no_root:

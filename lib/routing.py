@@ -276,6 +276,29 @@ def current_branch(cwd):
     return "" if name == "HEAD" else name
 
 
+def read_declaration(path):
+    """`parse` of the `routing.md` at PATH, or None where the file cannot be
+    read or decoded. `declarations` reads each work item's file through it,
+    and `settle.py` reads one in a records directory `--from` names."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            return parse(f.read())
+    except (OSError, UnicodeDecodeError):
+        # `UnicodeDecodeError` is a `ValueError`, not an `OSError`, and it
+        # is named rather than its parent: `parse()` is pure string work
+        # today, so a `ValueError` reaching here later would be a defect in
+        # it, and swallowing that as "no declaration" is how a gate goes
+        # quiet for a reason nobody wrote down. A
+        # declaration that is not valid UTF-8 would raise out of
+        # `declarations()` into the check that read it, which then decides
+        # nothing on the branch. The module docstring says everything
+        # here fails toward "no declaration"; a file nobody can decode is
+        # not an answer somebody gave, so it reads as none and its branch
+        # reads as undeclared. `chain_check.py` catches both when it reads
+        # the event payload, for the same reason.
+        return None
+
+
 def declarations(root):
     """Every readable declaration under `root`, as (path, parsed) pairs.
 
@@ -298,23 +321,7 @@ def declarations(root):
     out = []
     for name in names:
         path = os.path.join(where, name, FILENAME)
-        try:
-            with open(path, encoding="utf-8") as f:
-                parsed = parse(f.read())
-        except (OSError, UnicodeDecodeError):
-            # `UnicodeDecodeError` is a `ValueError`, not an `OSError`, and it
-            # is named rather than its parent: `parse()` is pure string work
-            # today, so a `ValueError` reaching here later would be a defect in
-            # it, and swallowing that as "no declaration" is how a gate goes
-            # quiet for a reason nobody wrote down. A
-            # declaration that is not valid UTF-8 would raise out of
-            # `declarations()` into the check that read it, which then decides
-            # nothing on the branch. The module docstring says everything
-            # here fails toward "no declaration"; a file nobody can decode is
-            # not an answer somebody gave, so it is skipped and its branch
-            # reads as undeclared. `chain_check.py` catches both when it reads
-            # the event payload, for the same reason.
-            continue
+        parsed = read_declaration(path)
         if parsed:
             out.append((path, parsed))
     return out

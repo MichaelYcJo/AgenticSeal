@@ -129,10 +129,6 @@ NOT_READ = "not read"
 CAPPED_LABEL = "chain: capped"
 
 
-def plural(count, word):
-    return f"{count} {word}{'' if count == 1 else 's'}"
-
-
 def release_rows(version, sha, pulls_n, issues_n, suite, chain):
     """The panel's rows for a release, `(label, value)` with `""` for a
     continuation, in `LABELS`' order.
@@ -163,13 +159,18 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
             "items",
             NOT_READ
             if items is None or rounds is None
-            else f"{items} . {plural(rounds, 'round')}",
+            else f"{items} . {module('lib/console.py').plural(rounds, 'round')}",
         ),
         (
             "capped",
             NOT_READ if capped is None or items is None else f"{capped} of {items}",
         ),
-        ("deferred", NOT_READ if deferred is None else plural(deferred, "issue")),
+        (
+            "deferred",
+            NOT_READ
+            if deferred is None
+            else module("lib/console.py").plural(deferred, "issue"),
+        ),
     ]
     return rows
 

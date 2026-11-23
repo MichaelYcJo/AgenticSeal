@@ -236,15 +236,6 @@ class Test_plugin_version:
         assert gate.plugin_version(str(tmp_path)) == "?"
 
 
-class Test_under:
-    def test_accepts_a_path_under_the_root(self, tmp_path):
-        assert gate.under(str(tmp_path / "a" / "b"), str(tmp_path))
-
-    def test_refuses_a_sibling_and_no_root(self, tmp_path):
-        assert not gate.under(str(tmp_path / "b"), str(tmp_path / "a"))
-        assert not gate.under(str(tmp_path), None)
-
-
 class Test_copy_origin:
     def test_accepts_a_copy_under_the_root_as_the_trees(self, tmp_path):
         plugin = a_plugin(tmp_path / "plugin", "1.2.3")
@@ -2115,12 +2106,15 @@ class Test_main:
         `lib/gitcmd.py#argv`, and `main` asks git for the root before
         anything runs. A copy whose `seal_stamp.py` loads and whose plugin
         holds no helper exits 2 with the loader's sentence, not 1 in a
-        traceback, which reads as a gate that ran and failed."""
+        traceback, which reads as a gate that ran and failed. The copy holds
+        `lib/console.py`, which the gate loads at import since #1575, and
+        whose load needs no helper."""
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
         scripts.mkdir(parents=True)
         shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
         (tmp_path / "plugin" / "lib").mkdir()
-        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
+        for name in ("sibling.py", "console.py"):
+            shutil.copy(ROOT / "lib" / name, tmp_path / "plugin" / "lib")
         write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
         keep = tmp_path / "out"
         out = subprocess.run(

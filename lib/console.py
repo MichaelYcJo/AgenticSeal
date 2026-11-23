@@ -72,7 +72,14 @@ What must not diverge is the ANSWER, which is written down here.
 `annotate` is the one spelling of a line a check prints about a file: a
 GitHub annotation in CI, a plain line anywhere else. `seal unverified` and
 `chain-check` print through it. It names the file as git spells it,
-`lib/gitcmd.py#git_path`, imported beside it.
+`lib/gitcmd.py#git_path`, which it imports when it is called in CI rather
+than at the top of this file. A load of this module then reads nothing
+beside the standard library, so an entry point that loads it for
+`to_utf8()` before it loads `lib/gitcmd.py` meets an absent `gitcmd.py` in
+`lib/sibling.py`'s sentence, not in a traceback out of this module.
+
+`plural` is the one spelling of a count a person reads, `1 file` or
+`2 files`: `1 files` is the tell that nobody read the output.
 
 `write_output` is the one writer of a step's output to `$GITHUB_OUTPUT`,
 which `.github/scripts/tag_release.py` and
@@ -83,8 +90,8 @@ It stands here so that neither script loads the other for it.
 import os
 import sys
 
+# `lib/` first on `sys.path`, for `annotate`'s import of `lib/gitcmd.py`.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gitcmd import git_path
 
 # stderr keeps `backslashreplace`, which is what Python ships it with and what
 # makes an undecodable path degrade rather than raise while it is being
@@ -114,9 +121,19 @@ def annotate(kind, path, line, message):
         # `unverified_check.py#display_path` output, which is `os.sep`-spelled
         # on purpose -- right for a line a person reads, wrong for this. Live
         # wherever that command runs on a Windows runner.
+        from gitcmd import git_path
+
         where = f" file={git_path(path)},line={line}" if path else ""
         return f"::{kind}{where}::{message}"
     return f"{path}:{line}  {message}" if path else message
+
+
+def plural(count, word, many=None):
+    """`1 <word>`, or `<count> <many>` where MANY is given, else
+    `<count> <word>s`."""
+    if count == 1:
+        return f"{count} {word}"
+    return f"{count} {many}" if many is not None else f"{count} {word}s"
 
 
 def write_output(name, value):

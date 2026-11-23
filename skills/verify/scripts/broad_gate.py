@@ -284,17 +284,6 @@ def plugin_version(plugin):
     return str(version) if version else "?"
 
 
-def under(path, root):
-    """Whether `path` lies under `root`, both taken by realpath."""
-    if root is None:
-        return False
-    path, root = os.path.realpath(path), os.path.realpath(root)
-    try:
-        return os.path.commonpath([path, root]) == root
-    except ValueError:  # different drives on Windows
-        return False
-
-
 def copy_origin(root, plugin=PLUGIN, running=None):
     """`tree <version>` where the running copy lies under the gated root,
     `plugin <version>` otherwise, the version read from the running copy's
@@ -307,11 +296,13 @@ def copy_origin(root, plugin=PLUGIN, running=None):
     stderr carries the path in full, the way `moved_line` carries what the
     panel cannot. Elided at the frame (`fit`), so a long
     version is a shorter label and never a wider row. `running` is this
-    file unless a case names another.
+    file unless a case names another. The two paths are compared resolved.
     """
-    origin = (
-        "tree" if under(__file__ if running is None else running, root) else "plugin"
+    running = __file__ if running is None else running
+    tree = root is not None and gitcmd_module().inside(
+        os.path.realpath(running), os.path.realpath(root)
     )
+    origin = "tree" if tree else "plugin"
     return stamp_module().fit(f"{origin} {plugin_version(plugin)}")
 
 
@@ -343,7 +334,9 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     branch that changed the gate would print nothing exactly when it matters.
     """
     running = __file__ if running is None else running
-    if not under(running, root):
+    if root is None or not gitcmd_module().inside(
+        os.path.realpath(running), os.path.realpath(root)
+    ):
         return None
     if installed:
         try:
