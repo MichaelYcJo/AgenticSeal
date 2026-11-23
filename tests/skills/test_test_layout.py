@@ -1215,5 +1215,21 @@ class Test_main:
         out = capsys.readouterr().out
         assert out == f"seal layout: {past_the_bound(asked[0])}\n", out
 
+    def test_refuses_a_listing_git_refused_in_one_line(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1573: `_tracked` passes `check=True`, so a `git ls-files` that
+        exits non-zero, here over an index git cannot read, is exit 2 in
+        `lib/gitcmd.py#Exited`'s line, and not a repository read as holding
+        no tracked file."""
+        git_out(tmp_path, "init", "-q")
+        write(tmp_path, "tests/test_x.py", PLACED)
+        (tmp_path / ".git" / "index").write_bytes(b"junk")
+        monkeypatch.chdir(tmp_path)
+        assert layout.main(["--check"]) == 2
+        out = capsys.readouterr().out
+        assert out.startswith("seal layout: `git ls-files -z` exited 128: "), out
+        assert out.count("\n") == 1, out
+
 
 test_census = census_case(TARGET)

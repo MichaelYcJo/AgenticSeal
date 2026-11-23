@@ -1152,5 +1152,36 @@ class Test_module:
             "open --json number,title,comments` exited 1: HTTP 502"
         )
 
+    @pytest.mark.parametrize(
+        "write, command",
+        [
+            ("close", "`gh issue close 89 "),
+            ("the last create rung", "`gh issue create "),
+        ],
+    )
+    def test_a_close_or_the_last_create_gh_refuses_stops_the_release(
+        self, monkeypatch, write, command
+    ):
+        """A refused close read as done opens a second log beside the one
+        still open, and a refused last create read as done ends the roll with
+        none open. Each passes `check=True`, so the refusal ends the run in
+        `lib/gitcmd.py#Exited`'s line naming the command (#1573)."""
+        m = _roller()
+        if write == "the last create rung":
+            _ladder_harness(m, monkeypatch, [None, None], [])
+        monkeypatch.setattr(
+            m.gitcmd.subprocess,
+            "run",
+            lambda argv, **_: subprocess.CompletedProcess(argv, 1, "", "HTTP 502\n"),
+        )
+        with pytest.raises(SystemExit) as stopped:
+            if write == "close":
+                m.close_issue("example/repo", 89, "0.8.2")
+            else:
+                m.open_issue("example/repo", "0.8.2", 89)
+        said = str(stopped.value.code)
+        assert said.startswith(command), said
+        assert said.endswith("` exited 1: HTTP 502"), said
+
 
 test_census = census_case(TARGET)
