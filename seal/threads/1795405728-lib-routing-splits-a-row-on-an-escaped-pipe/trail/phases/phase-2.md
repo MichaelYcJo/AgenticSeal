@@ -82,7 +82,7 @@ and S2's (judged against the crafter's rule *A new test starts from its
 group*). Seen red against `351a28c71`'s `lib/` under this phase's tests,
 unpacked in this phase's scratch directory, and run with
 `-p no:xdist -p no:cacheprovider`: the failing line read
-`('Branch', 'fix/a') != ('Branch', 'fix/a b')`. It is red against
+`('Branch', 'fix/a') != ('Branch', 'fix/a\u2028b')`. It is red against
 `179c682bc`'s code too (executed).
 
 **Docstrings past *Scope* item 5's list described pieces too.** They are
