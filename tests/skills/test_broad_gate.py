@@ -1256,53 +1256,6 @@ class Test_rounds_rows:
         write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
-    @pytest.mark.parametrize(
-        "raised", [ValueError("planted"), SystemExit(3)], ids=["raises", "exits"]
-    )
-    def test_refuses_to_stop_a_run_where_the_check_will_not_load(
-        self, tmp_path, monkeypatch, raised
-    ):
-        """The deferred row never stops a run that passed: a check that raises
-        or exits while it loads leaves the count alone beneath it. An absent
-        check is `lib/sibling.py#Absent`, which the case below holds."""
-        real = gate.sibling.load
-
-        def load(rel):
-            if rel == "skills/code-review/scripts/chain_check.py":
-                raise raised
-            return real(rel)
-
-        monkeypatch.setattr(gate.sibling, "load", load)
-        item = tmp_path / "1799000004-z"
-        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
-        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
-
-    def test_names_the_absent_check_in_its_own_line_and_goes_on(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """An absent check leaves the count alone beneath it, and the gate
-        says in its own line that the deferred findings were not counted,
-        naming the file, where the loader's sentence would say that nothing
-        was read of a run that goes on (#1482 round 1, finding 1).
-        `lib/routing.py`, which lists the round records, is the tree's,
-        loaded before the root moves, so only the check is absent."""
-        plugin = tmp_path / "no-plugin"
-        routing, load = gate.sibling.load(gate.ROUTING), gate.sibling.load
-        monkeypatch.setattr(
-            gate.sibling,
-            "load",
-            lambda rel: routing if rel == gate.ROUTING else load(rel),
-        )
-        monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
-        item = tmp_path / "1799000005-w"
-        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
-        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
-        absent = os.path.join(str(plugin), "skills", "code-review", "scripts")
-        assert capsys.readouterr().err == (
-            "seal gate: the round records' deferred findings are not counted: "
-            f"{os.path.join(absent, 'chain_check.py')} is absent\n"
-        )
-
 
 def checks(suite=0, chain_code=0):
     return {

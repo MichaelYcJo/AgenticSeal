@@ -95,12 +95,13 @@ from collections import defaultdict
 LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
 
 # `lib/sibling.py` loads every other module this command reads:
-# `deferral_check.py` at import, for the runner words `FAMILIES` reads, and
-# each module of `lib/` at its first use (`lib_module`). An absent one is its
-# sentence and exit 2, since a copy of this script taken without its
-# siblings is a broken plugin copy, where nothing ran. Where it is absent
-# itself, the refusal is the same sentence about it, spelt here because the
-# file that holds the sentence is the one missing.
+# `deferral_check.py` at import, for the runner words `FAMILIES` reads,
+# `lib/console.py` at import, for the stream answer `__main__` opens with,
+# and each other module of `lib/` at its first use (`lib_module`). An
+# absent one is its sentence and exit 2, since a copy of this script taken
+# without its siblings is a broken plugin copy, where nothing ran. Where it
+# is absent itself, the refusal is the same sentence about it, spelt here
+# because the file that holds the sentence is the one missing.
 sys.path.insert(0, LIB)
 try:
     import sibling
@@ -117,6 +118,10 @@ except ImportError:
 # The runner words of each kind of check, the one list `seal deferrals`
 # reads too.
 RUNNERS = sibling.load("skills/verify/scripts/deferral_check.py").RUNNERS
+# `lib/console.py`, whose `to_utf8` the `__main__` block opens with. It
+# reads nothing beside the standard library as it loads, so it adds no way
+# to fail before the answer that the load above does not already have.
+console = sibling.load("lib/console.py")
 
 
 def projects_dir():
@@ -3067,7 +3072,7 @@ KEY_EDGE = "A-Za-z0-9_-"
 def lib_module(name):
     """`lib/<name>.py` beside this plugin's `skills/`, loaded on first use,
     so a reading that is not `--work-item` and asks no git or `gh` command
-    loads no module of `lib/` but `sibling.py`."""
+    loads no module of `lib/` but `sibling.py` and `console.py`."""
     return sibling.load(f"lib/{name}.py")
 
 
@@ -3667,16 +3672,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py` owns the reasoning and the three decisions
-    # behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

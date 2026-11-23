@@ -1574,22 +1574,9 @@ def rounds_rows(item):
     refuses anything of adds nothing beneath."""
     records = sibling.load(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
-    # The deferred row beneath never stops a run that passed, so an absent
-    # check is said here and the run goes on, and a check that raises or
-    # exits while it loads leaves the count alone. `lib/routing.py`, which
-    # lists the records above, loads as every other `lib/` module does:
-    # absent, it is the loader's sentence and exit 2.
-    try:
-        with sibling.going_on():
-            chain = sibling.load(CHAIN_CHECK)
-    except sibling.Absent as absent:
-        sys.stderr.write(
-            f"seal gate: the round records' deferred findings are not counted: "
-            f"{absent.path} is absent\n"
-        )
-        return rows
-    except (Exception, SystemExit):
-        return rows
+    # `main` loaded the check before any arm ran and the chain arm read its
+    # `SEALING`, so this is the module the process already holds.
+    chain = sibling.load(CHAIN_CHECK)
     stamp = stamp_module()
     count, homes = 0, []
     for path in records:
