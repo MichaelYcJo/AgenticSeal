@@ -8,6 +8,7 @@
 | `frame/questions.md` Q1: whether a git or `gh` command the suite's cases start comes near `lib/gitcmd.py#TIMEOUT` on a CI leg | the pull request's CI run and the orchestrator's broad run |
 | Phase 2's cases on the Windows leg: the S1 to S5 cases of `tests/skills/test_seal.py` move a root, write the `Mode` key and run `git rm` and `git add` for real around the one call they make time out. Each ran on macOS alone | the pull request's CI run on its Windows leg |
 | Phase 3's cases on the Windows leg: the S7 cases of `tests/skills/test_settle.py` run `seal settle` over a fixture repository with git and the `gh` stub `gh.cmd` for real around the one call they make time out. Each ran on macOS alone, and `test_a_named_directory_is_read_as_its_name_and_never_as_a_pattern` is skipped there, since `*` is no character of a Windows name | the pull request's CI run on its Windows leg |
+| Phase 4's cases on the Windows leg: the S8 cases of `tests/skills/test_chain_check.py` run `chain-check` over a fixture branch with git for real around the one call they make time out; `Test_pull_request_from_gh` finds the suite's stub `gh.cmd` through `shutil.which` and sets PATH to one empty directory; `tests/skills/test_pr_wait.py`'s new `Test_gh` and `Test_head` cases make `gh` and `git -C . rev-parse HEAD` time out. Each ran on macOS alone | the pull request's CI run on its Windows leg |
 
 ## Not done
 
