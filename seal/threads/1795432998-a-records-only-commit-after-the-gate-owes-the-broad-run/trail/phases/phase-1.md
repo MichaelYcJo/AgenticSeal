@@ -37,7 +37,7 @@ removing the one guard each assertion names.
 reds above.** The phase changes no code. `chain_check.py` keeps its bytes,
 as `frame/design.md` *Data & interfaces* says (judged against
 `skills/verify/SKILL.md` *The narrow command still has to be able to
-fail*, the *Prose only* row, for the six text files).
+fail*, the *Prose only* row, for the seven text files).
 
 **The case asserts the guarantee arm's refusal whole, naming
 `changelog.md`.** One commit adds `pr.md` and `changelog.md`, and
