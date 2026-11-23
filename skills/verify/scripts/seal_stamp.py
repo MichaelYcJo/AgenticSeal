@@ -43,7 +43,8 @@ its disc alone is drawn as the text block with no disc.
 
 The broad gate draws nothing: its report is text on every stream,
 and it imports the panel's text rules from here (`fit`, `wrapped`, the
-owner's marks) and `sealed_names` for its head.
+owner's marks) and `sealed_names` for its head. So nothing here reads a
+file at import, and the sprite is read where the disc is drawn (`build`).
 
 **The stamp is drawn where a person sees it, once per work item.** The
 sealer runs `seal stamp --guarantee <path>` once after it
@@ -288,12 +289,11 @@ def read_sprite(path):
     return tuple(lines)
 
 
-SPRITE = read_sprite(SPRITE_PATH)
-
-
 def build():
     """`(w, h, px)` — the disc's width and height in cells, `DISC_CELLS`
-    each, and `px(x, y)`, a cell's colour or None.
+    each, and `px(x, y)`, a cell's colour or None. Each call reads the
+    sprite, `read_sprite(SPRITE_PATH)`, and raises its `ValueError` where
+    the sprite is malformed; nothing reads it at import.
 
     The centre is `c = (DISC_CELLS - 1) / 2` on both axes and `R` is
     `RADIUS`, 13.5. A cell `dx, dy` from the centre at distance `d` and
@@ -308,7 +308,7 @@ def build():
     `WAX_LIT` under `LIP_LIT_UNDER`, `WAX_DARK` from `LIP_DARK_FROM` and
     `WAX` between; the step ring past `R - STEP_INSET`, lit the other way —
     `STEP_DARK` where `lit` is under 0, else `STEP_LIT`; then the field. In
-    the field, with `SPRITE` standing `SPRITE_OFFSET` cells in from the left
+    the field, with the sprite standing `SPRITE_OFFSET` cells in from the left
     and top, a cell under a letter is that letter's colour in
     `SPRITE_COLOURS`; a cell under `.`, or past the sprite's edge, whose
     up-left neighbour is under a letter is `DROP`, a pupil counting as a
@@ -316,13 +316,14 @@ def build():
     fifteen colours. The edge's wobble leaves column 0 and the last half-row
     off the disc, as the approved picture is. `lit` is read only past the
     step ring's inner edge, where `d` is never 0, so it needs no guard."""
+    sprite = read_sprite(SPRITE_PATH)
     n, at = DISC_CELLS, SPRITE_OFFSET
     c = (n - 1) / 2
 
     def letter(x, y):
         sx, sy = x - at, y - at
         if 0 <= sx < SPRITE_CELLS and 0 <= sy < SPRITE_CELLS:
-            return SPRITE[sy][sx]
+            return sprite[sy][sx]
         return "."
 
     def px(x, y):
