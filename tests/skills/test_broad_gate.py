@@ -682,6 +682,21 @@ class Test_not_as_written:
         assert f'    as written: "{ROW}": {json.dumps(value)}' in said
         assert f'    as meant:   "{ROW}": {json.dumps(meant)}' in said
 
+    @pytest.mark.parametrize(
+        "value", ["`bin/test -q`", "$(bin/test -q)", "bin/test -q &"]
+    )
+    def test_refuses_a_wrapped_value_on_cmd_exe_with_a_key_as_meant_it_runs(
+        self, tmp_path, value
+    ):
+        """On `cmd.exe`, the key as meant of a wrapped or backgrounded value
+        also turns each command name the `cmd.exe` reading refuses, so the
+        value the refusal offers is one the gate runs."""
+        root = a_root(tmp_path, "bin")
+        said = on_cmd_exe(value, root)
+        meant = "bin\\test -q"
+        assert f'    as meant:   "{ROW}": {json.dumps(meant)}' in said, said
+        assert on_cmd_exe(meant, root) is None
+
     def test_refuses_a_command_name_cmd_exe_reads_as_a_switch(self, tmp_path):
         """#1577, *Scope* item 1. On `cmd.exe`, in a root holding `bin/`,
         `bin/test` is refused with exit 2's message, pinned whole here
@@ -820,6 +835,16 @@ class Test_not_as_written:
         assert "`/`: `bin/a` and `tools/b`, and the shell" in said, said
         assert "cmd.exe runs `bin\\a` and `tools\\b`, and" in said, said
         meant = json.dumps("bin\\a tools/b && tools\\b -q | bin\\a")
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
+    def test_refuses_a_name_the_cut_splits_by_naming_it_whole(self, tmp_path):
+        """A name holding the cut after its `/` is refused on the `/` before
+        the cut, and named as the key holds it: the refusal never names a
+        word cut short. Only the part before the cut is turned."""
+        said = on_cmd_exe("bin/%TOOL%/x -q", a_root(tmp_path, "bin"))
+        assert "`/`: `bin/%TOOL%/x`, and the shell" in said, said
+        assert "cmd.exe runs `bin\\%TOOL%/x`, and" in said, said
+        meant = json.dumps("bin\\%TOOL%/x -q")
         assert f'    as meant:   "{ROW}": {meant}\n' in said, said
 
 

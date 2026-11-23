@@ -780,19 +780,23 @@ def names_in_a_directory(command, is_directory):
     """`(refused, not_read)`: the command names of COMMAND that start in a
     directory with `/`, read up to `cmd_cut`, and the ones past the cut that
     the same reading of the whole value would refuse. Two lists of words in
-    the order they stand.
+    the order they stand, each as COMMAND holds it: a name the cut splits is
+    refused on its part before the cut and named whole.
 
     A name starts in a directory where it holds a `/` and `is_directory`
     answers true for the part before its first `/`. The scan does no I/O of
-    its own: `not_as_written` asks the root the command runs in, where an
-    empty part, `.` and `..` each name one.
+    its own: `not_as_written` asks the root the command runs in (`in_root`).
     """
 
     def starts_in_a_directory(word):
         return "/" in word and bool(is_directory(word.split("/", 1)[0]))
 
     cut = cmd_cut(command)
-    refused = [w for _, w in command_names(command[:cut]) if starts_in_a_directory(w)]
+    # Up to the cut both splits agree, so a name starts at one offset in each.
+    whole = dict(command_names(command))
+    refused = [
+        whole[at] for at, w in command_names(command[:cut]) if starts_in_a_directory(w)
+    ]
     not_read = [
         w for at, w in command_names(command) if at >= cut and starts_in_a_directory(w)
     ]
@@ -807,13 +811,33 @@ def listed(words):
 
 def backslashed(value, refused):
     """VALUE with `/` written `\\` in each word read as a command name that
-    REFUSED holds, and every other character where it was. A word spelt the
-    same as an argument keeps its `/`."""
+    REFUSED holds, up to `cmd_cut`, and every other character where it was.
+    A word spelt the same as an argument keeps its `/`, and so does the part
+    of a name past the cut."""
     out = list(value)
+    whole = dict(command_names(value))
     for at, word in command_names(value[: cmd_cut(value)]):
-        if word in refused:
+        if whole[at] in refused:
             out[at : at + len(word)] = word.replace("/", "\\")
     return "".join(out)
+
+
+def in_root(root):
+    """The directory question `names_in_a_directory` asks, put to ROOT: an
+    empty part, `.` and `..` each name a directory there, and on Windows so
+    does a drive such as `C:`, which `os.path.join` there answers with a
+    directory on that drive."""
+    return lambda part: os.path.isdir(os.path.join(root, part))
+
+
+def as_cmd_exe_runs(value, root, windows=None, comspec=None):
+    """VALUE with each command name the `cmd.exe` reading refuses turned by
+    `backslashed`, so that a refusal's key as meant is one this gate runs;
+    VALUE itself under any other shell."""
+    if not cmd_exe_reads(windows, comspec):
+        return value
+    refused, _ = names_in_a_directory(value, in_root(root))
+    return backslashed(value, refused)
 
 
 def not_read_line(config, value, not_read):
@@ -856,12 +880,15 @@ def not_as_written(home, command, root, windows=None, comspec=None):
     that is exactly `&&`, `||`, `&` or `|`: within that part no quote hides
     a separator and no caret escapes one. A name is refused where the part
     before its first `/` is a directory under ROOT, the root the command
-    runs in. A word past the cut that the same reading would refuse is named
-    on one stderr line before the run, or inside the refusal, and decides
-    nothing. A separator glued to a word, as in `a&& bin/x`, is no separator
-    to this reading, so the word after it is neither refused nor named,
-    though `cmd.exe` reads it as a command name: `templates/setup/config.md`
-    *Broad gate* names that bound with the others.
+    runs in, or on Windows a drive (`in_root`). A word past the cut that the
+    same reading would refuse is named on one stderr line before the run,
+    or inside the refusal, and decides nothing. A name `cmd.exe` reads where
+    this reading takes no command name, such as after a separator glued to
+    a word in `a&& bin/x`, is neither refused nor named:
+    `templates/setup/config.md` *Broad gate* states the rule the reading
+    decides by and what a key that leaves it does. On `cmd.exe` the key as
+    meant of every form turns the names this reading refuses
+    (`as_cmd_exe_runs`), so the value a refusal offers is one it runs.
 
     Everything else stays legal, a pipe included, because the value is an
     arbitrary shell command line by design and telling a status-discarding
@@ -883,7 +910,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "executed as a command. What this gate would read is that "
             "command's exit code and not the checks'"
         )
-        meant = value[1:-1].strip()
+        meant = as_cmd_exe_runs(value[1:-1].strip(), root, windows, comspec)
     elif opener == "$(":
         form = "is the whole command wrapped in `$(…)`"
         does = (
@@ -891,7 +918,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "the same thing: the checks' exit status is DISCARDED and their "
             "output is executed as a command in its place"
         )
-        meant = value[2:-1].strip()
+        meant = as_cmd_exe_runs(value[2:-1].strip(), root, windows, comspec)
     elif value.endswith("&") and not value.endswith("&&"):
         form = "ends in a single `&`"
         does = (
@@ -901,20 +928,27 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "instead, which is a different wrong answer refused for the same "
             "reason: the exit code read is not the checks'"
         )
-        meant = value[:-1].strip()
+        meant = as_cmd_exe_runs(value[:-1].strip(), root, windows, comspec)
     else:
         if not cmd_exe_reads(windows, comspec):
             return None
-        refused, not_read = names_in_a_directory(
-            value, lambda part: os.path.isdir(os.path.join(root, part))
-        )
+        refused, not_read = names_in_a_directory(value, in_root(root))
         unread = not_read_line(config, value, not_read)
         if not refused:
             if unread:
                 sys.stderr.write(unread + "\n")
             return None
         names = list(dict.fromkeys(refused))
-        turned = [name.replace("/", "\\") for name in names]
+        meant = backslashed(value, names)
+        # Each name as `meant` spells it, which turns no `/` past the cut.
+        cut = cmd_cut(value)
+        turned = list(
+            dict.fromkeys(
+                meant[at : at + len(word)]
+                for at, word in command_names(value)
+                if at < cut and word in names
+            )
+        )
         form = f"starts a command name in a directory with `/`: {listed(names)}"
         does = (
             "and the shell here is cmd.exe, which reads a `/` in a command "
@@ -925,7 +959,6 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "under both shells names its commands with no directory in front, "
             "and hands a script's path to an interpreter as an argument"
         )
-        meant = backslashed(value, names)
     return (
         f"seal gate: the `{KEY}` key in {config} {form}, {does}.\n"
         f"    as written: {json.dumps({KEY: value}, ensure_ascii=False)[1:-1]}\n"
