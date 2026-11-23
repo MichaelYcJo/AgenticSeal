@@ -13,10 +13,15 @@ Phase 1 took none of the items of phases 2 and 3 of `frame/plan.md`
 
 Phase 2 took none of the items of phase 3, which a later crafter builds.
 
-One sentence states part of what an absent language key does, beside a
-reason the template does not give: `docs/forms/the-guarantee.md:22`, a
-policy document outside the list *Scope* item 5 names.
-`trail/phases/phase-2.md` gives the grounds.
+Six statements of what an absent language key does stand outside the
+paragraph of `templates/setup/config.md` that owns it, each on a ground of
+its own, which `trail/phases/phase-2.md` gives:
+`docs/forms/the-guarantee.md:22`;
+`docs/layout/one-root-by-lifetime.md:232-237` and its Korean pair at
+`:221-226`; `docs/checks/the-pull-request-check.md:186-187`;
+`docs/running/what-a-script-gates.md:66`; and
+`skills/commit-pr-convention/SKILL.md:82-83`, the lead of the paragraph on
+who asks.
 
 Phase 3 left two sentences that name the base's refs or the gate's words
 outside their owners, each for a reason of its own:

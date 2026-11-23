@@ -93,21 +93,47 @@ went red naming six dangling citations (executed):
   the run below), and the case pins the key's name, which this work does
   not move, not a copy of the record list.
 
-**The statement this phase left standing, and why.** It states part of
-what an absent key does, beside the reason it is there.
+**The statements left standing, and why.** Each states part of what an
+absent key does, beside the reason it is there. The list was made in round
+2's fix pass, after phase 2 had listed one sentence by a search on a few
+wordings and two rounds found more. Its method: every line of `skills`,
+`agents`, `templates`, `docs`, `README.md`, `README.ko.md` and
+`CONTRIBUTING.md` that names a language key (`language key`, either key's
+name, `either key`, `both keys`, `the two keys`, and `언어 키` in the Korean
+files), that says `seal pr-body` refuses, or that names English as what a
+missing key leaves, with the paragraph around each read whole for whether
+it says what an absent key does.
 
 - `docs/forms/the-guarantee.md:22`: "`seal pr-body` refuses where either
   language key is absent, so a body is composed only for a repository that
   declared its languages." It is a policy document's reason for the
   sealer's reading, outside the list *Scope* item 5 names.
+- `docs/layout/one-root-by-lifetime.md:232-237` and the Korean pair at
+  `:221-226`: the policy paragraph on why the keys are required, which
+  `frame/design.md` *Scope* names out of scope.
+- `docs/checks/the-pull-request-check.md:186-187` and the `seal pr-body`
+  row of `docs/running/what-a-script-gates.md:66`: each says what one check
+  or script refuses, which is that document's subject.
+- `skills/commit-pr-convention/SKILL.md:82-83`, the lead **Both keys are
+  required all the same, and a commit is never refused for them.**, which
+  *Scope* keeps with the sentences on who asks.
 
-Phase 2 also left `skills/commit-pr-convention/SKILL.md:87-89`, the
-sentence "`seal pr-body` refuses to compose a pull request body where
-either key is absent in any of the four ways, because the body's language
-is the one the team reads." It read *Scope*'s out-of-scope coordinate
-`:85-89` of `73a43735c` against the file's new numbering, and at
-`73a43735c` the sentence stood at `:90-92`, outside it. Round 1 finding 3
-named that, and its fix pass kept the reason and dropped the restatement.
+Two lines the search printed state something else and stay:
+`skills/implement/bootstrap.md:123` says every command that reads the
+config refuses a file that does not parse, which is the template's next
+paragraph, not this one; `skills/code-review/orchestration.md:420-421`
+gives the orchestrator's act on a `refused:` line naming a missing key.
+
+Phase 2 also left five restatements that the review rounds removed, each
+now a citation of the template's paragraph or a sentence that keeps only
+its own reason or act. `skills/commit-pr-convention/SKILL.md:87-89` stood
+at `:90-92` of `73a43735c`, outside the out-of-scope coordinate `:85-89`
+that phase 2 read against the file's new numbering; round 1 finding 3
+named it. Round 2 finding 1 named `skills/implement/bootstrap.md:139-141`,
+and the list above found three more:
+`skills/implement/routing-question.md:157-158`, and
+`skills/commit-pr-convention/SKILL.md:117-119` and `:317-319`, the last a
+sentence of the file's checklist.
 
 **The phase boundary passed.** One command, the plan row's modules, each
 test file this phase changed, each test file that names a changed path

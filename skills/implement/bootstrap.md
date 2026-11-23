@@ -137,9 +137,10 @@ carries the `Broad gate` question and the two language questions.
    fills the key in at any point before then.
 
    **The third and fourth questions are the two language keys, with the
-   recent titles beside them.** `seal pr-body` refuses to compose a pull
-   request body where either key is absent, so first setup asks for both
-   while the session is already stopped. Beside the two questions the
+   recent titles beside them.** First setup asks for both while the session
+   is already stopped, since what an absent one does is
+   `templates/setup/config.md` *An absent language key is a refusal at the
+   pull request body, and never at a commit*. Beside the two questions the
    orchestrator shows the titles `gh pr list --state all --limit 10`
    returned and names the language it reads them in; where the list is
    empty or `gh` cannot read it, it says so. The option listed first in

@@ -115,8 +115,8 @@ to change:
   there and the same one here.
 
 A repository whose team writes another language says so in one key; one that
-says nothing writes its commits in English and gets no pull request body
-from `seal pr-body` until it says.
+says nothing gets what *Every way of not naming a language lands on
+English* above cites.
 
 ## Commit messages
 
@@ -314,9 +314,8 @@ The writer answers these rather than assuming them.
    change?
 3. Was **`config.json` in the root opened**, does it carry both language
    keys, and are the title and the body's lines that quote no record in the
-   language its `Commit and pull request language` key names? Without
-   either key, `seal pr-body` refuses, and the keys are written before the
-   body is.
+   language its `Commit and pull request language` key names? Where either
+   key is absent, the keys are written before the body is.
 4. Where the two keys name different languages, does the work item hold
    one `pr.<lang>.md`, named for its own language, that `seal pr-body`
    places above `pr.md`, and no hosted document?
