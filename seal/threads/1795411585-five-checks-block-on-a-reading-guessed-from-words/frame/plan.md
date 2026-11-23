@@ -59,7 +59,7 @@ The spawn names #1574 and #1576. #1574's frame was read at its branch's head, `9
 
 ## Operational impact
 
-No migration, environment variable or dependency. `.claude-plugin/plugin.json` reads `0.38.6` on the release branch already, so this pull request moves no version. `seal deferrals` exits 0 where it exited 1; nothing in the tree reads its exit code (design search 5 and G6). The release publisher stops on one answer it read as no release before, a status other than 404 whose stderr held `Not Found` or `404`. `session_cost.py` charges the commands the union adds to `test` and `lint/type`, so a reading of a transcript that ran them moves between families against an earlier release's reading. A signer's frame holding a `pact:` token is no longer refused. The build's last phase writes `changelog.md` (design *Scope* item 8).
+No migration, environment variable or dependency. `.claude-plugin/plugin.json` reads `0.38.6` on the release branch already, so this pull request moves no version. `seal deferrals` exits 0 where it exited 1; nothing in the tree reads its exit code (design search 5 and G6). `session_cost.py` loads `lib/sibling.py` and `deferral_check.py` at import, so a copy of it taken without them exits 2 with the loader's sentence. The release publisher stops on one answer it read as no release before, a status other than 404 whose stderr held `Not Found` or `404`. `session_cost.py` charges the commands the union adds to `test` and `lint/type`, so a reading of a transcript that ran them moves between families against an earlier release's reading. A signer's frame holding a `pact:` token is no longer refused. The build's last phase writes `changelog.md` (design *Scope* item 8).
 
 ## Judgments of the run
 
