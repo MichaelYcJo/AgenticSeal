@@ -72,6 +72,8 @@ THE_CORES_ROW = (
 )
 CONVENTION = ("skills", "commit-pr-convention", "SKILL.md")
 OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
+CONTRACT = ("skills", "agent-contract", "SKILL.md")
+THE_CORES_PLACES = "the opening paragraph of `skills/core/SKILL.md`"
 
 
 # rule -> (owner, the facts the owner states, {link carrier: the citation it
@@ -198,6 +200,33 @@ RULES = {
             IMPLEMENT: AFTER_THE_SEAL,
             CONFIG_TEMPLATE: AFTER_THE_SEAL,
             OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
+        },
+    ),
+    # #1578: six files each spelt where the root is found with `<repo>/seal/`
+    # as the shared place, and none named the second name #1059 gave it. The
+    # core reaches every agent and every session where a root stands, and
+    # is the one file the second name may stand in, so its opening paragraph
+    # names the places and each of the six names that paragraph. Each link
+    # replaces a case that pinned the six's copy of the places.
+    "24 where the records root is found": (
+        CORE,
+        (
+            # The three places, in the order the gates read them, which an
+            # agent opens or runs.
+            "`<repo>/seal/`",
+            "`agentic-seal/`",
+            "`$(git rev-parse --git-common-dir)/seal/`",
+            # The function that reads them, which a reader resolves for the
+            # order.
+            "`lib/optin.py#home_at`",
+        ),
+        {
+            CONTRACT: THE_CORES_PLACES,
+            IMPLEMENT: THE_CORES_PLACES,
+            ORCH_IMPL: THE_CORES_PLACES,
+            BOOTSTRAP: THE_CORES_PLACES,
+            CONVENTION: THE_CORES_PLACES,
+            CONFIG_SKILL: THE_CORES_PLACES,
         },
     ),
 }

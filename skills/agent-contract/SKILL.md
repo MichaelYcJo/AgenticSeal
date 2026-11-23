@@ -118,14 +118,10 @@ definition is the plugin's, at the root two directories above the base
 directory the harness printed with this file; the repository you work in may
 hold other files at those paths.
 
-Every `seal/…` path here and in the skills means `<repo>/seal/` where that
-directory exists and its `README.md` opens with the marker
-`lib/optin.py#MARKER` holds, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise —
-local mode, where the root sits under the common git directory and nothing
-under it is committed. A repository with both is shared, and no config key
-decides it. Each `seal/` here is the root's name, defined in the opening
-paragraph of `skills/core/SKILL.md`. The prose in the records follows
+Every `seal/…` path here and in the skills means the records root, the
+first of the places the opening paragraph of `skills/core/SKILL.md` names
+that holds the marker. That paragraph also defines `seal/` as the root's
+name. The prose in the records follows
 `Record language` in `config.json` under that root — English when the key
 is absent. What stays English regardless: the field names and vocabulary a
 checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and

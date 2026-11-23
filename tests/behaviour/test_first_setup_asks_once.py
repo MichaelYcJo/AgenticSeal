@@ -7,9 +7,12 @@ does. The commands resolve
 the root in code (`lib/optin.py#home_at`) and are pinned by
 `tests/lib/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
-skill asks, the sentence a session needs, the workflow template
+skill asks, the workflow template
 `seal pr-checks install` writes and the commands its header names, and the
-switch the READMEs give.
+switch the READMEs give. The places a session finds the root at are stated
+once, in the opening paragraph of `skills/core/SKILL.md` (#1578), and
+`tests/text/test_the_rules_have_one_owner.py` holds them there with each
+skill's citation of that paragraph.
 """
 
 import re
@@ -18,12 +21,9 @@ import subprocess
 import pytest
 from conftest import local_home, read, shell_probe
 
-# No TARGET: its cases hold where the root lives across the bootstrap, the implement and config skills, the agent contract, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
+# No TARGET: its cases hold where the root lives across the bootstrap, the orchestrator's half of the implement skill, the config skill, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
-# The local root's path as a session reads it, which the Q1 cases below hold
-# in each place: the path `lib/optin.py` resolves, where a session looks.
-SESSION_RULE = f"`{COMMON_DIR}`"
 
 
 def section(text, heading, level):
@@ -46,7 +46,6 @@ def flat(text):
     return re.sub(r"\s+", " ", text)
 
 
-SKILL = ("skills", "implement", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
 # The bootstrap is the orchestrator's since #292: it asks a person, which a
 # crafter spawn may not, so it lives in a file no `skills:` list injects. It
@@ -109,17 +108,6 @@ def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
     # than through `.git`, which is a file in a linked worktree. The path is
     # one the orchestrator would create.
     assert "`.git/seal/`" not in bootstrap()
-
-
-def test_a_repository_with_the_root_at_either_place_is_never_asked():
-    """S4 (d) and S12: the prompt budget is one question, once per repository.
-    The paragraph names the two places the orchestrator looks before it
-    asks."""
-    never_again = paragraph(bootstrap(), "Ask only here")
-    # The path of the shared root and the command that finds the local one,
-    # which the orchestrator checks before it asks.
-    assert "<repo>/seal/" in never_again
-    assert "git rev-parse --git-common-dir" in never_again
 
 
 def test_the_parity_question_follows_the_mode_question():
@@ -273,42 +261,6 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert "`seal mode`" in own, own
     # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
-
-
-# --- Q1: the sentence a session reads, in each place ----------------------
-
-
-@pytest.mark.parametrize(
-    "parts",
-    [
-        ("skills", "implement", "SKILL.md"),
-        # Phases 3 and 4 of #107 re-pointed both definitions' rows here. The
-        # sentence was in two of them verbatim and in the third not at all,
-        # and the agent without it is the one that reads `seal/parity.json`. It
-        # is contract rule 11 now, which every agent receives at startup.
-        ("skills", "agent-contract", "SKILL.md"),
-    ],
-)
-def test_the_session_rule_names_both_places(parts):
-    text = read(*parts)
-    # The two places a session resolves the root at: the path of the shared
-    # root, and the local one through the command that finds it.
-    assert "`<repo>/seal/`" in text, "/".join(parts)
-    assert SESSION_RULE in text, "/".join(parts)
-
-
-def test_the_session_rule_sits_in_the_layout_section_of_the_skill():
-    """The layout section runs from its heading to `## Procedure`; the
-    bootstrap that used to close it left with #292 and is in
-    `skills/implement/bootstrap.md` now (#1046)."""
-    skill = read(*SKILL)
-    # The section a session opens for where the root lives, which holds the
-    # local root's path.
-    assert (
-        skill.index("## Document layout")
-        < skill.index(SESSION_RULE)
-        < skill.index("## Procedure")
-    )
 
 
 # --- S5 and S7: what `seal pr-checks install` writes, and local mode --------
@@ -624,17 +576,16 @@ def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
     """S3 of #1046. A session that opens `orchestration.md` first, under an
     older release's preset block written before the bootstrap left that
     file, meets the bootstrap's file in the opening paragraph, before any
-    section, with both places the root can be."""
+    section. The places the root can be are the core's opening paragraph's
+    since #1578, and the paragraph names them by citing it, which
+    `tests/text/test_the_rules_have_one_owner.py` holds, so this case holds
+    the bootstrap's citation alone."""
     opening = paragraph(read(*ORCH), "This file is the orchestrator's")
     # The path of the bootstrap, which the orchestrator opens where no root
     # stands yet.
     assert "`skills/implement/bootstrap.md`" in opening, (
         "the orchestrator's half does not send a fresh repository to the bootstrap"
     )
-    # The two paths the orchestrator looks at for a root before it opens
-    # the bootstrap.
-    assert "`<repo>/seal/`" in opening, opening
-    assert COMMON_DIR in opening, opening
 
 
 def test_the_bootstrap_records_the_answer_it_was_given():

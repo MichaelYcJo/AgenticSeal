@@ -47,21 +47,6 @@ def test_the_skill_names_the_file_and_the_row():
     assert "Commit and pull request language" in text, "the skill does not name the key"
 
 
-def test_the_root_is_resolved_rather_than_spelled():
-    """S3. Local mode (#80) keeps the whole root under the common git
-    directory. A skill that spells `<repo>/seal/` and stops sends a
-    local-mode session to a path that is not there, and the config it then
-    reports missing is the file that exists."""
-    text = flat(*SKILL)
-    # The command a session runs to find the local-mode root.
-    assert "git rev-parse --git-common-dir" in text, (
-        "the skill spells one place for the root, so a local-mode repository "
-        "cannot carry a config at all"
-    )
-    # The path of the shared root, which a session opens first.
-    assert "<repo>/seal/" in text, "the shared place went with the fix"
-
-
 # --- what the row deliberately does not reach -------------------------------
 
 

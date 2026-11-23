@@ -4,10 +4,10 @@ What this repository says about itself: `config.json`, one JSON object with
 one key per item, read by the skills and commands that need it. Each value
 is a JSON string in the grammar this file gives its key.
 
-The root is at one of two places and whichever exists is the answer:
-`<repo>/seal/`, which is committed, or `$(git rev-parse --git-common-dir)/seal/`,
-which is not. The file goes wherever that root already is, and `seal mode`
-creates it.
+The root is the first of the places the opening paragraph of the plugin's
+`skills/core/SKILL.md` names that holds the marker: committed in shared
+mode, and under the common git directory, never committed, in local mode.
+The file goes wherever that root already is, and `seal mode` creates it.
 
 **An absent key is not an error, with four exceptions: the two language
 keys, `Mode` and `Broad gate`.** Every other item has a default, and the
@@ -180,9 +180,10 @@ below).
 
 **This key is what the repository wants. The folder's location is what it
 has.** They are separate on purpose, and the second is the only one anything
-at runtime reads: every gate resolves the root by looking for `<repo>/seal/`
-and then `$(git rev-parse --git-common-dir)/seal/`, and a gate that trusted
-this key instead would go looking in a place with no folder. The key can be
+at runtime reads: every gate resolves the root by looking at the places the
+opening paragraph of the plugin's `skills/core/SKILL.md` names, in its
+order, and a gate that trusted this key instead would go looking in a place
+with no folder. The key can be
 edited by anyone with a text editor; the folder is where the files are.
 
 `seal mode` is the only thing that reads it:

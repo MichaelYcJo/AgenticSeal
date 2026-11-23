@@ -82,8 +82,8 @@ The standing policy. Its index is `docs/README.md`.
 ## seal/
 
 What the plugin maintains, read and written by machines. Every `seal/…` path
-means `<repo>/seal/` where that directory exists, and the root under the git
-common directory otherwise.
+means the records root, found where the opening paragraph of
+`skills/core/SKILL.md` says.
 
 | File | The question it answers |
 |---|---|

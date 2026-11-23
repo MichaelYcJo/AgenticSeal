@@ -49,11 +49,10 @@ becomes the history the next one is compared against.
 ## The language is the repository's, and it says so in a file
 
 **The writer reads `config.json` in the root before writing any of the five
-things below.** The root is `<repo>/seal/` where that directory exists with
-the marker (contract rule 11) and `$(git rev-parse --git-common-dir)/seal/`
-otherwise, which is where local
-mode keeps it; resolve it that way rather than spelling the first place and
-stopping.
+things below.** The root is looked for at the places the opening paragraph
+of `skills/core/SKILL.md` gives, in its order, and the last of them is local
+mode's, under the common git directory; resolve it that way rather than
+spelling the first place and stopping.
 
 ```json
 {

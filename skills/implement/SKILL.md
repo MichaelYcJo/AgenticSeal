@@ -85,19 +85,18 @@ them, and policy outranks everything else when a repository has it.)
 Inside the policy root, documents are grouped by who opens them and at which
 step, and any party may open any group.
 
-`seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `lib/optin.py#MARKER` holds, is what
-tells the gates this repository runs the workflow. **Every `seal/…` path in
-this plugin's skills and agents means `<repo>/seal/` where that directory
-exists with the marker, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise.** `seal/` there is
-the records root's name, as the opening paragraph of `skills/core/SKILL.md`
-defines it. The first is
-shared mode: committed, because gitignored files do not follow worktrees or
-other machines. The second is local mode: under the common git directory, so
-every linked worktree of the clone shares it, and never a commit candidate.
-A repository with both is shared, and nothing else — no config key — is
-read. What sits directly under it is permanent; what sits under
+`seal/` stands at the places the opening paragraph of `skills/core/SKILL.md`
+names, and its presence at one of them, with a `README.md` that opens with
+the marker `lib/optin.py#MARKER` holds, is what tells the gates this
+repository runs the workflow. **Every `seal/…` path in this plugin's skills
+and agents means the first of those places that holds the marker**, and
+`seal/` there is the records root's name, as the same paragraph defines it.
+The two places in the tree are shared mode: committed, because gitignored
+files do not follow worktrees or other machines. The place under the common
+git directory is local mode: every linked worktree of the clone shares it,
+and it is never a commit candidate. The order decides a repository with a
+root at more than one place, and nothing else, no config key, is read. What
+sits directly under it is permanent; what sits under
 `seal/threads/` lives as long as its work item. Each file the root holds,
 and the question it answers, is in `docs/layout/the-record-layout.md`
 *seal/*, and each file of a work item's directory is in
