@@ -120,4 +120,6 @@ The commands below were run at `60fab641d`, all executed.
 - `git grep -n -E '^def (git|commit|repo)\(' -- tests/skills/test_settle.py` printed nothing and exited 1.
 - `uvx ruff check` and `uvx ruff format` passed on the file.
 
+`f6b98c557` then reshaped one case's body, `Test_main::test_accepts_a_settled_root_and_says_so`, to drop an alias of its fixture, and rewrapped a comment. The module passed again under `-n auto`, and mutant 36, run alone over that case with `-k settled_root`, was red (executed).
+
 The phase boundary's run is in the hand-back.
