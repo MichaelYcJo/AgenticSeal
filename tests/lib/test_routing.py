@@ -187,7 +187,6 @@ class Test_parse:
         parses, and the axis is unanswered."""
         text = two_axis_text().replace(
             "| Branch |",
-            # exempt from old_names: the answer a declaration written before the rename carries
             "| Implementation | smith |\n| Branch |",
         )
         parsed = routing.parse(text)
