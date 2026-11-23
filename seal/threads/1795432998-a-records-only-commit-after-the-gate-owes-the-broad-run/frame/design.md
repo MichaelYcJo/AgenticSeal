@@ -40,7 +40,7 @@ In:
 3. `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gains one paragraph, after the paragraph on a conflict with the base, which is the one statement of the rule for the orchestrator. It holds four facts. A commit after the newest run that changes only files under `seal/threads/<id>/` owes no broad run, and owes `seal pr-body` on the body file and the sealer again, which reads every record at HEAD. A commit that changes any other path owes the broad run again, after the round the core's row *No fix that no round reads* gives it. `agents/sealer.md` step 1 and the pull request check's broad gate arm read the same rule (`skills/code-review/scripts/chain_check.py#follows`). What a `Broad gate` command that reads the records misses is `templates/setup/config.md` *Broad gate*'s (*Scope* item 7), cited and not restated.
 4. `skills/code-review/gate-to-pull-request.md`, the paragraph **Commit `guarantee.md`; a verdict other than `sealed` opens no pull request**. The clause "the record commits after the run leave it standing" gives way to a citation of the paragraph of *Scope* item 3. The steps of the repair stay.
 5. `skills/implement/orchestration.md`, the table under **Three combinations do not stand**: the first row reads "without the broad run or without the seal". The core section it cites holds where the run must stand.
-6. `README.md:286`: the broad gate runs at the commit the pull request will carry, or at one only the work item's records follow.
+6. `README.md:286` and its Korean edition `README.ko.md:288`: the broad gate runs at the pull request's head commit, or at one that only the work item's records follow.
 7. `templates/setup/config.md` *Broad gate* gains one paragraph, before `### What is refused, and what stays allowed`, for the person who writes the key. A commit after the run that changes only the work item's records does not run the command again (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*). A part of the command that reads those records, such as a Markdown lint over every `.md` file or a suite case over `seal/threads/`, therefore reads them as they stood at the run. The pull request's CI reads the later ones where the repository runs the command there, and the repository answers for a command that reads records and runs nowhere else.
 8. `tests/skills/test_chain_check.py` *Test_broad_gate* gains one case on the `item` fixture. After a commit of `pr.md` and `changelog.md` under the work item, `chain.broad_gate` returns `[]` and `chain.guarantee` refuses at the same HEAD. After a further commit of `f.txt`, `chain.broad_gate` refuses with `chain.follows_reason(("after", <that commit>, "f.txt"), "the newest gate run")`. The case builds its expected text from the module's own function and copies no refusal string.
 9. The one change in `docs/`, in `## Rule changes` below, for the settle.
@@ -65,7 +65,7 @@ Out:
 
 ## Data & interfaces
 
-No interface changes. `chain_check.py#broad_gate`, `#guarantee`, `#follows` and `CLOSING_RECORDS` keep their code. One case is added to `tests/skills/test_chain_check.py`, and six text files change (*Scope* items 1 to 7).
+No interface changes. `chain_check.py#broad_gate`, `#guarantee`, `#follows` and `CLOSING_RECORDS` keep their code. One case is added to `tests/skills/test_chain_check.py`, and seven text files change (*Scope* items 1 to 7, `README.ko.md` among them).
 
 ## Rule changes
 
@@ -88,7 +88,7 @@ This work adds one paragraph of rule (*Scope* item 3), one paragraph for the key
 | "fails without `Verdict: sealed` at HEAD" | `skills/core/SKILL.md` *Judgment is not licence to skip a party*, the fourth row | Rewritten in place (*Scope* item 2) |
 | "the record commits after the run leave it standing" | `skills/code-review/gate-to-pull-request.md` *Orchestrator: from the preflight to the open pull request* | The paragraph of *Scope* item 3, which the clause's place now cites (*Scope* item 4) |
 | "without the broad run at HEAD" | `skills/implement/orchestration.md`, the table under **Three combinations do not stand** | The core section the row cites (*Scope* item 5) |
-| "at the commit the pull request will carry" | `README.md:286` | Rewritten in place (*Scope* item 6) |
+| "at the commit the pull request will carry" | `README.md:286`, and its Korean edition at `README.ko.md:288` | Rewritten in place (*Scope* item 6) |
 | "whose broad run is not at HEAD" | `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* | The settle writes the `## Rule changes` operation above |
 
 Framed 2026-11-23 by framer, before the build.
