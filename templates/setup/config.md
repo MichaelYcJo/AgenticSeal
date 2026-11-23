@@ -31,8 +31,10 @@ proves nothing (*Broad gate* below).
 **An absent language key is a refusal at the pull request body, and never
 at a commit.** A language key is absent in four ways: no file, no such key,
 an empty value, and a file that cannot be read or does not parse as one
-JSON object, a key written twice or holding no string among them. In each,
-`seal pr-body` refuses with nothing written, naming the key, or printing
+JSON object, a key written twice or holding no string among them. The
+fourth way is the refusal the next paragraph gives, and for these two keys
+it counts as absent wherever this file or a skill speaks of an absent key.
+In each, `seal pr-body` refuses with nothing written, naming the key, or printing
 the refusal the next paragraph gives where the file or the key will not
 read. A commit or a record is written in English, because a config nobody
 can read must not stop the work. Who asks for the two keys is *Commit and
