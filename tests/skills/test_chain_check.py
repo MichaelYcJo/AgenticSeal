@@ -5035,8 +5035,9 @@ class Test_pull_request_from_gh:
         `lib/gitcmd.py#TIMEOUT`, or not on PATH, is an unknown state with
         the runner's line, which `main` does not judge as a ready pull
         request; a non-zero exit keeps the check's own line. Seen red
-        against `chain_check.py` before #1573, which said `did not run`
-        with `subprocess`'s words and `no `gh` on PATH to ask`."""
+        against `chain_check.py` before #1573, whose `run` seam was bound
+        before any case could patch it, and which said that no `gh` was on
+        PATH to ask."""
         said = {
             "exited": '`gh pr view` exited 1: no pull requests found for branch "x"',
             "past the bound": (
