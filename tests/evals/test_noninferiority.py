@@ -315,9 +315,33 @@ class Test_preload_files:
         plugin_tree(tmp_path, skills)
         assert NI.preload_files(str(tmp_path), "proofer") == want
 
-    def test_refuses_a_definition_with_no_frontmatter(self, tmp_path):
-        write(tmp_path, "agents/proofer.md", "# proofer\n")
-        with pytest.raises(SystemExit, match=r"agents/proofer\.md has no frontmatter"):
+    @pytest.mark.parametrize("end", ["\n", "\r\n"], ids=["LF", "CRLF"])
+    def test_accepts_the_flow_form_as_the_meter_reads_it(self, tmp_path, end):
+        """#1575 S13. The list is read by `payload_meter.py#frontmatter`, the
+        reader the release table's figure comes from, so a definition that
+        lists its skills on one line preloads them here too."""
+        text = end.join(
+            ["---", "name: proofer", "skills: [a, b]", "---", "", "# w", ""]
+        )
+        (tmp_path / "agents").mkdir()
+        (tmp_path / "agents" / "proofer.md").write_bytes(text.encode("utf-8"))
+        assert NI.preload_files(str(tmp_path), "proofer") == [
+            "agents/proofer.md",
+            "skills/a/SKILL.md",
+            "skills/b/SKILL.md",
+        ]
+
+    @pytest.mark.parametrize(
+        "text",
+        ["# proofer\n", "---\nskills:\n  - a\n---\n\n# proofer\n"],
+        ids=["no frontmatter", "no name"],
+    )
+    def test_refuses_a_definition_that_declares_no_name(self, tmp_path, text):
+        write(tmp_path, "agents/proofer.md", text)
+        with pytest.raises(
+            SystemExit,
+            match=r"^agents/proofer\.md declares no `name:` in its frontmatter$",
+        ):
             NI.preload_files(str(tmp_path), "proofer")
 
 

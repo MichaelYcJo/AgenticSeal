@@ -35,6 +35,9 @@ from conftest import repo_relative as name
 
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 rules = load("skills/settle/scripts/rules.py", "agentic_rules_for_the_preloads")
+# `payload_meter.py#frontmatter`, the one reader of a definition's `skills:`
+# list, which the release table's figure and `noninferiority.py` read too.
+meter = load("skills/verify/scripts/payload_meter.py", "agentic_meter_for_the_preloads")
 
 CORE = "skills/core/SKILL.md"
 CONTRACT = "skills/agent-contract/SKILL.md"
@@ -62,17 +65,6 @@ def split(text):
     return (m.group(1), text[m.end() :]) if m else (None, text)
 
 
-def listed_skills(head):
-    """The `skills:` entries the harness preloads, in order."""
-    block = re.search(r"^skills:[ \t]*\n((?:[ \t]+- .*\n?)+)", head + "\n", re.M)
-    inline = re.search(r"^skills:[ \t]*\[(.*)\][ \t]*$", head, re.M)
-    if block:
-        return re.findall(r"- (\S+)", block.group(1))
-    if inline:
-        return [s.strip() for s in inline.group(1).split(",") if s.strip()]
-    return []
-
-
 def opening_paragraph(body):
     """The first paragraph under the `# <name>` heading, and only that."""
     heading = re.search(r"^# \S.*$", body, re.M)
@@ -87,7 +79,7 @@ def shape_problems(text):
     if head is None:
         return ["no frontmatter"]
     problems = []
-    skills = listed_skills(head)
+    _name, skills = meter.frontmatter(text)
     if skills != PRELOADS:
         problems.append(f"`skills:` lists {skills}, not {PRELOADS}")
     opening = opening_paragraph(body) or ""
@@ -178,8 +170,8 @@ def preloaded():
     definition's `skills:` list names, as `skills/<name>/SKILL.md`, once."""
     skills = []
     for path in AGENTS:
-        head, _ = split(read(path))
-        for skill in listed_skills(head or ""):
+        _name, listed = meter.frontmatter(read(path))
+        for skill in listed:
             skill_path = os.path.join(ROOT, "skills", skill, "SKILL.md")
             if skill_path not in skills:
                 skills.append(skill_path)
