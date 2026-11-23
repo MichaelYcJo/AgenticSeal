@@ -432,16 +432,21 @@ def commit_message(tag):
 def release_exists(repo, tag):
     """Whether a GitHub Release already sits at `tag`.
 
-    A 404 here is the answer rather than a failure -- the usual case is that
-    no release exists yet, which is the whole reason this job runs. Anything
-    else still stops the run, because a token without the scope to read
-    releases would otherwise be read as "none exists" and publish a second,
-    and so does a `gh` that gave no answer, in the runner's line.
+    The HTTP status `gh api -i` printed decides, read by
+    `lib/gitcmd.py#http_answer`, and the words of gh's stderr decide
+    nothing. A 404 is the answer rather than a failure -- the usual case is
+    that no release exists yet, which is the whole reason this job runs. A
+    2xx status is a release. Any other status, and an answer with no status
+    line, still stops the run with gh's stderr, because a token without the
+    scope to read releases would otherwise be read as "none exists" and
+    publish a second; a `gh` that gave no answer stops it in the runner's
+    line.
     """
-    out = gitcmd.gh("api", f"repos/{repo}/releases/tags/{tag}")
-    if out.returncode:
-        if "Not Found" in out.stderr or "404" in out.stderr:
-            return False
+    out = gitcmd.gh("api", "-i", f"repos/{repo}/releases/tags/{tag}")
+    status, _ = gitcmd.http_answer(out.stdout)
+    if status == 404:
+        return False
+    if status is None or not 200 <= status < 300:
         sys.exit(f"gh api releases/tags/{tag} failed: {out.stderr.strip()}")
     return True
 

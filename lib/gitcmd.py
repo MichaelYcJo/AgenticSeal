@@ -43,7 +43,9 @@ git quotes under it asks for the path with `-z`, which quotes none.
 Three helpers read a path: `git_path` turns a path built by `os.path`
 into git's `/`-joined form, `under_root` turns a `/`-joined
 repository-relative path into the disk's, and `inside` answers whether a
-path on the disk is a directory or under it.
+path on the disk is a directory or under it. `http_answer` reads the HTTP
+status and the body out of what `gh api -i` printed, so a caller decides
+on the status and not on the words of gh's stderr.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
 `seal_stamp.py`, and every hook that reads `lib/optin.py`, reach it on
@@ -51,6 +53,7 @@ whatever `python3` starts them.
 """
 
 import os
+import re
 import shutil
 import subprocess
 
@@ -221,6 +224,25 @@ def gh(*args, root=None, check=False):
     if found is None:
         raise Unrun(command, f"{_shown(command)} could not be run: `gh` is not on PATH")
     return _start(command, [found, *args], check, "utf-8", cwd=root)
+
+
+# The status line `gh api -i` prints first: `HTTP/<version>`, a space, the
+# three digits of the status, then a space and the reason phrase, or nothing.
+STATUS_LINE = re.compile(r"HTTP/\S+ (\d{3})(?: .*)?")
+
+
+def http_answer(stdout):
+    """`(status, body)` of STDOUT, what `gh api -i` printed: the status
+    line, the headers, an empty line and the body, read as `gh` returns it,
+    with each line ending in LF.
+
+    `status` is the integer the first line carries where that line is a
+    status line, and None otherwise: a `gh` that reached no server prints
+    nothing to stdout. `body` is the text after the first empty line, and
+    `""` where there is none. It starts nothing."""
+    head, _, body = stdout.partition("\n\n")
+    found = STATUS_LINE.fullmatch(head.split("\n", 1)[0])
+    return (int(found.group(1)) if found else None), body
 
 
 def is_ancestor(root, commit, ref):

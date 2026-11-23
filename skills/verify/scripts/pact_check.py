@@ -48,17 +48,11 @@ refusal, whatever stands above its header; the walk steps over it and
 still refuses a row written after it, before the next heading
 (`gfm_table`'s BESIDE).
 
-Nothing else in a frame is read as an anchor. A table under a near header,
-a table under a header `header_key` leaves out, such as
-`| Pact | Clause | Hashes |`, and a row no anchor table holds are neither
-graded nor refused, and the `READ` line does not count them; only the
-near header is named.
-
-Every `pact:` token outside a closed fence, in any case, is refused at its
-line, with the row to write in its place: it is the inline anchor this
-command read through 0.23.x. A token with a space beside its colon is not
-read: prose writes the word before a colon and a space, and no release read
-that spelling as an anchor.
+Nothing in a frame outside the anchor table is read as an anchor. A table
+under a near header, a table under a header `header_key` leaves out, such
+as `| Pact | Clause | Hashes |`, and a row no anchor table holds are
+neither graded nor refused, and the `READ` line does not count them; only
+the near header is named.
 
 ## Where the signers are
 
@@ -114,10 +108,10 @@ A pact under local mode has no history, so every mismatch there reads
      `Pact signers` key that is absent, empty or will not parse, an entry
      of the machine-local map it cannot use, a `BROKEN` anchor, an anchor
      row it cannot grade or does not read, a row naming a pact the signer
-     does not declare, a `pact:` token, a `Pact` key that will not parse,
-     a relationship recorded on one side only, a pact's repository with
-     no origin remote, or a git command that did not start or did not
-     finish within `lib/gitcmd.py#TIMEOUT`, named in one line
+     does not declare, a `Pact` key that will not parse, a relationship
+     recorded on one side only, a pact's repository with no origin remote,
+     or a git command that did not start or did not finish within
+     `lib/gitcmd.py#TIMEOUT`, named in one line
 
 `BROKEN` is exit 2 and a mismatch is exit 1. A `NOT READ` line is in no
 exit class. Nothing is ever written.
@@ -239,15 +233,7 @@ NEAR_HEADER = (
 # run inside it or an escaping `\` stays in the key, and such a cell keys to
 # no cell of the anchor header.
 EMPHASIS_RUN = re.compile(r"(\*{1,3}|_{1,3})(.+)\1")
-# The inline anchor read through 0.23.x, refused wherever it stands outside
-# a closed fence: `pact:` in any case, so `PACT:` and `Pact:` too, with no
-# letter, digit, `_`, `.`, `@`, `/` or `-` before it, so `compact:` is no
-# token, and a character that is not a space after it. A space beside the
-# colon, `pact: x` or `pact :x`, is not read: prose writes the word before a
-# colon and a space, and no release read that spelling as an anchor. One
-# pattern, and it names no typo.
-INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)", re.IGNORECASE)
-# The sentences a row or a token is refused in, each reading after its line.
+# The sentences a row is refused in, each reading after its line.
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
     "host and path — write the origin URL of the pact's repository, bare, as "
@@ -268,14 +254,6 @@ UNDECLARED = (
     "does not declare in its `Pact` key, so no `seal pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
-)
-INLINE = (
-    "a `pact:` token is the inline pact anchor `seal pact` read through "
-    "0.23.x, and nothing reads it now — write it as a row of a "
-    "`| Pact | Clause | Hash |` table, `| <the origin URL of the pact's "
-    "repository> | ## Clause / ### Narrower | <hash> |`; or, where the text "
-    "shows the retired shape rather than citing a clause, put it in a fenced "
-    "code block, which nothing reads"
 )
 # Which exit each finding is.
 EXIT_ONE = frozenset({SUPERSEDED, NOT_TAKEN, UNMATCHED, NOT_FOUND})
@@ -809,10 +787,6 @@ def check(root, out=sys.stdout, home_dir=None):
                 counts[status] += 1
                 if status != OK:
                     found(status, written, f"{at} `{clause}`", detail)
-            view = checker.unquoted(body)
-            for token in INLINE_TOKEN.finditer(view):
-                line = view.count("\n", 0, token.start()) + 1
-                found(REFUSED, written, f"{where}:{line}", INLINE)
         say(
             f"READ {written} {shown(path, home_dir=home_dir)} — {anchors} pact "
             f"anchor{'' if anchors == 1 else 's'} naming this pact"

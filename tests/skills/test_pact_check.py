@@ -84,8 +84,8 @@ NO_SIGNER = (
     "pact — write the origin remote URL of every other signer into that key, "
     "separated by `;`"
 )
-# The sentences `seal pact` refuses an anchor row and an inline anchor in,
-# pinned whole (contract rule 14).
+# The sentences `seal pact` refuses an anchor row in, pinned whole
+# (contract rule 14).
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
     "host and path — write the origin URL of the pact's repository, bare, as "
@@ -104,14 +104,6 @@ UNDECLARED = (
     "does not declare in its `Pact` key, so no `seal pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
-)
-INLINE = (
-    "a `pact:` token is the inline pact anchor `seal pact` read through "
-    "0.23.x, and nothing reads it now — write it as a row of a "
-    "`| Pact | Clause | Hash |` table, `| <the origin URL of the pact's "
-    "repository> | ## Clause / ### Narrower | <hash> |`; or, where the text "
-    "shows the retired shape rather than citing a clause, put it in a fenced "
-    "code block, which nothing reads"
 )
 
 
@@ -623,12 +615,11 @@ class Test_check:
         current hash, one naming the pact by another spelling of its URL. A
         row naming another pact the signer's `Pact` key declares is passed
         over whatever its other cells hold. Nothing else is read as an
-        anchor: not a table or a `pact:` token inside a closed fence, not
-        `compact:`, not the word and its colon with a space on either side
-        of the colon, not a table under a header `header_key` does not read
-        as the anchor table's, and not a row no table holds (S6). Exit 0, the
-        `READ` line counts the two anchors alone, and it and the summary line
-        name the pact by its URL (contract rule 14)."""
+        anchor: not a table inside a closed fence, not a table under a
+        header `header_key` does not read as the anchor table's, and not a
+        row no table holds (S6). Exit 0, the `READ` line counts the two
+        anchors alone, and it and the summary line name the pact by its URL
+        (contract rule 14)."""
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
@@ -645,10 +636,8 @@ class Test_check:
                 (BILLING, CLAUSE_PATH, "deadbeef"),
                 (legacy, "no heading", "x"),
             )
-            + "\nThe compact:x note. Read the pact: it is short. A token with a"
-            + " space beside its colon, pact: abc or pact :abc, is prose.\n\n```\n"
+            + "\n```\n"
             + anchor_table((PACT_URL, CLAUSE_PATH, "x"))
-            + 'pact:orders-api/"## A"@1a2b3c4d\n'
             + "| pact | clause | hash |\n|---|---|---|\n```\n",
         )
         # A frame holding no anchor table says nothing. Each table here is
@@ -993,38 +982,23 @@ class Test_check:
         assert f"NOT READ {SIGNER_URL} {SPEC}:7 — `| pact | clause | hash |`" in out
         assert "REFUSED" not in out and " 1 ok " in out, out
 
-    @pytest.mark.parametrize(
-        "text, line",
-        [
-            ('| `pact:orders-api/"## A"@1a2b3c4d` | the field list |\n', 1),
-            ('# Grounding\n\nBuilt against pact:orders-api/"## A"@1a2b3c4d.\n', 3),
-            ("| `PACT:abc` | the field list |\n", 1),
-            ("# Grounding\n\nBuilt against PACT:abc.\n", 3),
-            ("| Pact:abc | the field list |\n", 1),
-            ("# Grounding\n\nBuilt against Pact:abc.\n", 3),
-            ('| PACT:orders-api/"## A"@1a2b3c4d | the field list |\n', 1),
-            ('# Grounding\n\nBuilt against PACT:orders-api/"## A"@1a2b3c4d.\n', 3),
-        ],
-        ids=[
-            "in a table cell",
-            "in prose",
-            "upper case in a table cell",
-            "upper case in prose",
-            "capitalised in a table cell",
-            "capitalised in prose",
-            "an upper-case anchor in a table cell",
-            "an upper-case anchor in prose",
-        ],
-    )
-    def test_refuses_the_inline_anchor_naming_the_row_to_write(self, world, text, line):
-        """S9 and `questions.md` Q1's default: the inline anchor is refused
-        at its line, at exit 2, and the line names the row to write. The
-        token is read in any case (#1132, S6), so each of the six ids that
-        spell it otherwise is refused too."""
-        write(world.web, SPEC, text)
+    def test_accepts_a_pact_token_in_prose_as_no_anchor(self, world):
+        """#1572's S7: a `pact:` token in prose, the inline anchor no release
+        since 0.24.0 reads, is neither an anchor nor a refusal. The row
+        beside it is graded, the `READ` line counts that row alone, and the
+        run exits 0. Seen red against the token's refusal at exit 2."""
+        write(
+            world.web,
+            SPEC,
+            anchor_table((PACT_URL, CLAUSE_PATH, clause(V2)))
+            + "\nBuilt against pact:abc.\n",
+        )
         code, out = world.run()
-        assert code == 2, out
-        assert f"REFUSED {SIGNER_URL} {SPEC}:{line} — {INLINE}" in out, out
+        assert code == 0, out
+        assert "REFUSED" not in out, out
+        assert (
+            f"READ {SIGNER_URL} {posix(world.web)} — 1 pact anchor naming this pact"
+        ) in out, out
 
     @pytest.mark.parametrize(
         "text, said",
