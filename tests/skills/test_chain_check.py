@@ -51,6 +51,7 @@ from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
 from conftest import seal_block as block
+from test_settle import past_the_bound, unanswered
 from test_unverified_check import (
     CANONICAL,
     CLOSED_ITEM,
@@ -4035,6 +4036,49 @@ class Test_main:
         assert code == 0, out
         assert MERGED_ITEM not in out
 
+    @pytest.mark.parametrize(
+        "words",
+        [
+            ("rev-parse", "--show-toplevel"),
+            ("rev-parse", "--verify"),
+            ("diff", "--raw"),
+            ("merge-base", "main", "HEAD"),
+            ("ls-tree", "-r", "-z", "HEAD"),
+            ("show",),
+            ("log",),
+            ("merge-base", "--is-ancestor"),
+            ("diff-tree",),
+        ],
+        ids=[
+            "toplevel",
+            "resolves",
+            "changed",
+            "merge_base",
+            "declared",
+            "read_record",
+            "trailers",
+            "is_ancestor",
+            "touched",
+        ],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, branch, ready, capsys, monkeypatch, words
+    ):
+        """S8 of #1573: a git read past `lib/gitcmd.py#TIMEOUT` ends
+        `chain-check` with one line on stderr, `chain-check: ` and the
+        runner's line naming the command and the bound, at exit 2, the
+        check's could-not-run code, with no traceback. The repository's own
+        top is one of the reads, so a git that did not answer is not read as
+        no repository. Seen red against `chain_check.py` before #1573, where
+        the timeout was raised out of `main`."""
+        root, _code = branch
+        asked = unanswered(monkeypatch, *words)
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert len(asked) == 1, asked
+        assert code == 2, err
+        assert err == f"chain-check: {past_the_bound(asked[0])}\n", err
+
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_an_open_finding_on_a_ready_pull_request(
         self, branch, ready, capsys
@@ -4961,8 +5005,9 @@ class Test_policy_root:
 
 
 def answering(monkeypatch, word, stdout):
-    """`subprocess.run` in the module answering exit 0 with STDOUT to every
-    git call that carries WORD, and running every other call."""
+    """`subprocess.run` answering exit 0 with STDOUT to every git call that
+    carries WORD, and running every other call. The module itself is
+    patched, the one `lib/gitcmd.py#git` calls."""
     real_run = subprocess.run
 
     def stub(argv, *a, **kw):
@@ -4970,7 +5015,46 @@ def answering(monkeypatch, word, stdout):
             return subprocess.CompletedProcess(argv, 0, stdout, "")
         return real_run(argv, *a, **kw)
 
-    monkeypatch.setattr(chain.subprocess, "run", stub)
+    monkeypatch.setattr(subprocess, "run", stub)
+
+
+class Test_pull_request_from_gh:
+    @pytest.mark.parametrize("state", ["draft", "ready"])
+    def test_accepts_the_state_gh_answers(self, tmp_path, monkeypatch, state):
+        monkeypatch.setenv("PATH", conftest.gh_answers(os.environ, state)["PATH"])
+        assert chain.pull_request_from_gh(str(tmp_path)) == (
+            state,
+            "`gh pr view --json isDraft`",
+        )
+
+    @pytest.mark.parametrize("cause", ["exited", "past the bound", "not on PATH"])
+    def test_refuses_a_gh_that_did_not_answer_as_unknown(
+        self, tmp_path, monkeypatch, cause
+    ):
+        """S8 of #1573 for the one `gh` call: a `gh` past
+        `lib/gitcmd.py#TIMEOUT`, or not on PATH, is an unknown state with
+        the runner's line, which `main` does not judge as a ready pull
+        request; a non-zero exit keeps the check's own line. Seen red
+        against `chain_check.py` before #1573, which said `did not run`
+        with `subprocess`'s words and `no `gh` on PATH to ask`."""
+        said = {
+            "exited": '`gh pr view` exited 1: no pull requests found for branch "x"',
+            "past the bound": (
+                f"`gh pr view --json isDraft` did not finish within "
+                f"{chain.GITCMD.TIMEOUT} seconds"
+            ),
+            "not on PATH": (
+                "`gh pr view --json isDraft` could not be run: `gh` is not on PATH"
+            ),
+        }[cause]
+        if cause == "past the bound":
+            unanswered(monkeypatch, "pr", "view")
+        elif cause == "not on PATH":
+            monkeypatch.setenv("PATH", str(tmp_path))
+        assert chain.pull_request_from_gh(str(tmp_path)) == (
+            "unknown",
+            f"{chain.NO_PAYLOAD}, and {said}",
+        )
 
 
 class Test_commit_of:

@@ -130,7 +130,10 @@ stands on that guarantee, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a reader that will not
-load among the causes. A line or a file the check did not read is printed
+load among the causes, and a git command that could not start or did not
+finish within `lib/gitcmd.py#TIMEOUT`, named in one line on stderr. A `gh`
+that did not answer where no event payload exists reads as a pull request
+whose state is unknown. A line or a file the check did not read is printed
 `path:line  not read: <why>`, a notice annotation in CI and never an error,
 and changes no exit code.
 """
@@ -141,8 +144,6 @@ import json
 import os
 import posixpath
 import re
-import shutil
-import subprocess
 import sys
 
 if __name__ == "__main__":
@@ -228,8 +229,7 @@ UNSEEN_SAYS = (
     "the pull request's state is unknown, and it is not judged as a ready "
     "pull request; CI judges it from GitHub's payload"
 )
-GH_DRAFT = ["gh", "pr", "view", "--json", "isDraft"]
-GH_TIMEOUT = 30
+GH_DRAFT = ("pr", "view", "--json", "isDraft")
 NO_PAYLOAD = "no pull-request event payload"
 REGULAR = ("100644", "100755")
 # A squash merge on GitHub: the server commits it, and the subject ends with
@@ -279,8 +279,8 @@ try:
     BLOCKS = sibling.load("lib/blocks.py")
     # `lib/fields.py`, the one reader of a record's `seal` blocks.
     FIELDS = sibling.load(FIELDS_READER)
-    # `lib/gitcmd.py`, which builds every git command `git` runs and spells
-    # a path as git does.
+    # `lib/gitcmd.py`, which starts every git and `gh` command this check
+    # runs and spells a path as git does.
     GITCMD = sibling.load("lib/gitcmd.py")
     # `lib/optin.py`, which finds the repository and its `seal/` root.
     OPTIN = sibling.load("lib/optin.py")
@@ -354,14 +354,9 @@ OPEN_SAYS = (
 
 
 def git(root, *args):
-    """`git -C root <args>`'s stdout, or None where git exited non-zero."""
-    r = subprocess.run(
-        GITCMD.argv("-C", root, *args),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=60,
-    )
+    """`git -C root <args>`'s stdout, or None where git exited non-zero.
+    `lib/gitcmd.py#Unrun` where git did not answer, which `main` reads."""
+    r = GITCMD.git(root, *args)
     return r.stdout if r.returncode == 0 else None
 
 
@@ -446,8 +441,8 @@ def carried_by(root, base, rel):
     committer `noreply@github.com`, subject ending `(#N)` — the declaration
     reached this branch inside that pull request, which judged it; the newest
     such commit is returned. Any other commit, an uncommitted change under
-    `WORKTREE`, no commit at all, or git failing leaves it this pull
-    request's."""
+    `WORKTREE`, no commit at all, or a git that exits non-zero leaves it
+    this pull request's."""
     if WORKTREE:
         dirty = git(root, "status", "--porcelain", "--", rel)
         if dirty is None or dirty.strip():
@@ -566,7 +561,7 @@ def event_payload_present():
     return bool(path) and os.path.exists(path)
 
 
-def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
+def pull_request_state(root=None):
     """(`draft` | `ready` | `unknown`, where that was read from).
 
     The event payload GitHub writes is the answer wherever it exists; with
@@ -577,7 +572,7 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     if not path or not os.path.exists(path):
         if root is None:
             return "unknown", NO_PAYLOAD
-        return pull_request_from_gh(root, which, run)
+        return pull_request_from_gh(root)
     try:
         with open(path, encoding="utf-8") as f:
             event = json.load(f)
@@ -619,22 +614,14 @@ def pull_request_body():
     return text, path
 
 
-def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
-    """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`."""
-    found = which(GH_DRAFT[0])
-    if found is None:
-        return "unknown", f"{NO_PAYLOAD}, and no `gh` on PATH to ask"
+def pull_request_from_gh(root):
+    """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`.
+    A `gh` that did not answer, `lib/gitcmd.py#Unrun`, is `unknown` with
+    the runner's line."""
     try:
-        r = run(
-            [found, *GH_DRAFT[1:]],
-            cwd=root,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=GH_TIMEOUT,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        return "unknown", f"{NO_PAYLOAD}, and `gh pr view` did not run ({exc})"
+        r = GITCMD.gh(*GH_DRAFT, root=root)
+    except GITCMD.Unrun as unrun:
+        return "unknown", f"{NO_PAYLOAD}, and {unrun.line}"
     if r.returncode != 0:
         said = (r.stderr or r.stdout or "").strip().partition("\n")[0].strip()
         return "unknown", (
@@ -1009,15 +996,6 @@ def records_only(root, item, commit):
     return bool(changed) and all(under(p, item) for p in changed)
 
 
-def is_ancestor(root, sha, ref):
-    """True where `sha` is `ref` or an ancestor of it."""
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
-        capture_output=True,
-    )
-    return r.returncode == 0
-
-
 def follows(root, sha, base, item, only=None):
     """None where `sha` is HEAD or every commit after it on the branch
     touches only `item/` — only the files of `item/` named in `only`, where
@@ -1033,18 +1011,13 @@ def follows(root, sha, base, item, only=None):
     if full is None:
         return ("unseen", sha, "")
     full = full.strip()
-    if not is_ancestor(root, full, "HEAD"):
+    if not GITCMD.is_ancestor(root, full, "HEAD"):
         return ("off", sha, "")
     out = git(
         root, "rev-list", "--reverse", "--no-merges", "HEAD", f"^{full}", f"^{base}"
     )
     for later in (out or "").split():
-        touched = git(
-            root, "diff-tree", "--no-commit-id", "--name-only", "-r", "-z", later
-        )
-        for path in (touched or "").split("\0"):
-            if not path:
-                continue
+        for path in touched(root, later) or []:
             if not path.startswith(f"{item}/") or (
                 allowed is not None and path not in allowed
             ):
@@ -1459,7 +1432,7 @@ def verdict_problems(root, path, f):
     if kind != FIXED:
         return []
     said = f"{f.heading} {DASH} reads `{FIELDS.VERDICT} {FIXED} {commit}`, and "
-    if not is_ancestor(root, commit, "HEAD"):
+    if not GITCMD.is_ancestor(root, commit, "HEAD"):
         return [
             (
                 path,
@@ -2048,15 +2021,8 @@ def trailer_findings(trailers, judged, local=False):
 
 def commit_of(root, ref):
     """The commit `ref` names in `root`, or None. `resolves` asks it."""
-    r = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if r.returncode != 0:
-        return None
-    return r.stdout.strip() or None
+    out = git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+    return (out or "").strip() or None
 
 
 def resolves(root, ref):
@@ -2087,15 +2053,8 @@ def merge_base(root, ref):
     `HEAD` that names no commit (exit 128). A shallow clone whose base ref
     resolves while their common ancestor sits beyond the graft lands in the
     first."""
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", ref, "HEAD"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if r.returncode != 0:
-        return None
-    return r.stdout.strip() or None
+    out = git(root, "merge-base", ref, "HEAD")
+    return (out or "").strip() or None
 
 
 def settled(root, ref, directories):
@@ -2127,13 +2086,8 @@ def tree_at(root, ref, directory):
                 rel = os.path.relpath(os.path.join(here, name), root)
                 out.append(GITCMD.git_path(rel))
         return out
-    r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
+    out = git(root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory)
+    return [rel for rel in (out or "").split("\0") if rel]
 
 
 def retired(reader, root, fork, records):
@@ -2161,14 +2115,23 @@ def main(argv=None):
     args = ap.parse_args(argv)
     global WORKTREE
     WORKTREE = args.worktree
+    try:
+        return _checked(args)
+    except GITCMD.Failed as unanswered:
+        print(f"chain-check: {unanswered.line}", file=sys.stderr)
+        return 2
 
+
+def _checked(args):
+    """The check over parsed ARGS, for `main`, which reads a git that did
+    not answer. Returns the exit code."""
     reader = SHARED_READER
     try:
         routing = sibling.load(ROUTING)
     except (OSError, SyntaxError, ImportError) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2
-    root = OPTIN.repo_root(os.path.abspath(args.root))
+    root = OPTIN.toplevel(os.path.abspath(args.root))
     if not root:
         print(f"chain-check: {args.root} is not in a git repository", file=sys.stderr)
         return 2
@@ -2207,7 +2170,7 @@ def main(argv=None):
     # directory, so a root that is not a directory, or one whose marker alone
     # left, keeps the declarations judged. A root that left is named by the
     # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
-    # root that stayed. Where git cannot answer, `git()` is None and
+    # root that stayed. Where git exits non-zero, `git()` is None and
     # the declarations stay judged.
     if WORKTREE:
         gone = not os.path.lexists(os.path.join(root, home))
