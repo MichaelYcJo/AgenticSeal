@@ -255,11 +255,12 @@ RULES = {
         ),
         {},
     ),
-    # #1578: six files each said how a language key is absent or what an
-    # absent one does, and the commit skill's four ways were the only
-    # complete list. The template's paragraph states both, and each fact
-    # here is spelt as that paragraph alone spells it, since the file names
-    # `no such key` and `seal pr-body` in other sentences too.
+    # #1578: eight files, the template among them, each said how a language
+    # key is absent or what an absent one does, and the commit skill's four
+    # ways were the only complete list. The template's paragraph states
+    # both, and each fact here is spelt as that paragraph alone spells it,
+    # since the file names `no such key` and `seal pr-body` in other
+    # sentences too.
     "26 what an absent language key is and does": (
         CONFIG_TEMPLATE,
         (
@@ -267,6 +268,9 @@ RULES = {
             # checks the file against.
             "no file, no such key, an empty value",
             "does not parse as one JSON object",
+            # The fourth way counted as absent for the two language keys,
+            # where the next paragraph's lead refuses it for every key.
+            "for these two keys it counts as absent",
             # What absence does at the pull request body, and at a commit or
             # a record.
             "`seal pr-body` refuses with nothing written",
@@ -289,8 +293,9 @@ RULES = {
         ),
         {},
     ),
-    # #1578: three files each gave the order the gate resolves its base in,
-    # and one left out the ref as given. The policy spells the refs, and
+    # #1578: four files each gave the order the gate resolves its base in,
+    # and one left out the ref as given. The policy spells the refs, the
+    # sealer keeps the steps it types itself, and
     # each link replaces `DESCRIBES_THE_BASE` of
     # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py`, which
     # held both orchestration files to their copies.
