@@ -87,7 +87,7 @@ Out:
 
 - `lib/closing.py`: `KEYWORDS` (tuple), `CLOSING`, `FENCE`, `COMMENT`, `SPAN`, `HIDDEN`, `MERGED_PR` (compiled patterns), and `keywords_in(body) -> list[str]`. These have the behaviour of `.github/scripts/close_issues_on_release.py:89-191` at `036e7d424`. The one exception is `MERGED_PR`, which gains a leading `\s*` so that one pattern serves `search` and `sub` alike (*Grounding*, the squash probe). Python 3.9 syntax, as `lib/*.py` is in `ruff.toml`.
 - `seal rules`: same subcommand, same arguments and exit codes. `TOOLS["rules"]` names `skills/settle/scripts/rules.py`.
-- `chain_check.py#CHECK_LINES_READER = "skills/settle/scripts/rules.py"`. The three messages that name the reader name the new path. `tests/skills/test_chain_check.py:1815`, `:1971` and `:1980` pin them, and they change with them (contract rule 14).
+- `chain_check.py#CHECK_LINES_READER = "skills/settle/scripts/rules.py"`. The three messages that name the reader name the new path. `tests/skills/test_chain_check.py:1816`, `:1974` and `:1985` pin them, and they change with them (contract rule 14).
 - `bin/test`, `bin/test.cmd`: the same arguments and the same refusal sentence. The runner path is `../tests/run_tests.py`.
 - `.github/workflows/hygiene.yml`, the version check's `ships=` line: `grep -E '^(skills|agents|hooks|lib|templates|bin|docs|\.claude-plugin)/'`, in any order the derived case accepts.
 
