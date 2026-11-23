@@ -1176,11 +1176,15 @@ class Test_main:
             # git quotes the name of is read at the base as it is. Seen red
             # against the listing without `-z`.
             ({P: SORTED_NEW}, None, (OLD_P,), 1, 1),
+            # An old file in both lists, changed in the working tree: the
+            # old files are collected at the base, not where the new ones are.
+            (KEPT, None, (OLD_A, OLD_B), 4, 5),
         ],
         ids=[
             "every-kind-of-move",
             "a-name-imported-from-a-test-file-in-an-area",
             "a-name-imported-from-a-test-file-whose-name-is-not-ascii",
+            "an-old-file-in-both-sets",
         ],
     )
     def test_accepts_a_pure_move_and_removes_the_base_worktree(
