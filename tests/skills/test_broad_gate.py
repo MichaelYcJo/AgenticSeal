@@ -739,6 +739,13 @@ class Test_not_as_written:
     def test_accepts_a_name_after_any_other_word(self, tmp_path, value):
         assert on_cmd_exe(value, a_root(tmp_path, "bin")) is None
 
+    def test_accepts_a_name_with_no_slash_where_a_directory_has_its_name(
+        self, tmp_path
+    ):
+        """Only a name holding a `/` is asked about: `bin -q` names a program,
+        however the root's `bin/` is named."""
+        assert on_cmd_exe("bin -q && bin", a_root(tmp_path, "bin")) is None
+
     @pytest.mark.parametrize(
         ("name", "turned"),
         [("/abs/x", "\\abs\\x"), ("./x", ".\\x"), ("../x/y", "..\\x\\y")],
@@ -1865,10 +1872,12 @@ class Test_gate:
     ):
         """The `cmd-exe-row` row is #1577's: the gate asks `cmd_exe_reads`
         with this machine's platform, patched here to answer `cmd.exe`, and
-        asks about `bin/` in the repository it gates."""
+        asks about `bin/` in the repository it gates, from a working
+        directory that holds no `bin/`."""
         if cmd_exe:
             monkeypatch.setattr(gate, "cmd_exe_reads", lambda *_: True)
             (repo / "bin").mkdir(exist_ok=True)
+            monkeypatch.chdir(tmp_path)
         write(repo, "seal/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
