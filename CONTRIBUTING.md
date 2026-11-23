@@ -86,12 +86,14 @@ The parser is the CommonMark oracle the readers under `lib/` are checked
 against. The renderer is
 GitHub's own, cmark-gfm, and the table walker in `lib/tables.py` is checked
 against what it renders. The YAML parser is how `tests/workflows.py` reads a
-workflow file for the cases that read a job, a step or a key. Every package
-there is test-only: the gates themselves are stdlib-only Python and import
-nothing the suite installs. `bin/test` acquires them once: it
-builds a virtualenv at `.venv` on the first call and reuses it afterwards, so
-only the first call pays for an environment. It works from any directory in
-the repository or a worktree of it, and it prints the interpreter it used.
+workflow file for the cases that read a job, a step or a key, and an eval
+case's `case.yaml` and a grader's front matter for the cases that read their
+fields. Every package there is test-only: the gates themselves are
+stdlib-only Python and import nothing the suite installs. `bin/test`
+acquires them once: it builds a virtualenv at `.venv` on the first call
+and reuses it afterwards, so only the first call pays for an environment.
+It works from any directory in the repository or a worktree of it, and it
+prints the interpreter it used.
 
 ```bash
 bin/test tests/skills/test_session_cost.py -q   # one module: the form to type

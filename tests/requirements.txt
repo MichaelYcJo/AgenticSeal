@@ -32,9 +32,9 @@ markdown-it-py==4.2.0
 # Linux, so no runner compiles it.
 cmarkgfm==2025.10.22
 
-# The YAML parser `tests/workflows.py` reads a workflow file with, so no case
-# reads a job, a step or a key by indentation. Pinned for the parser's reason:
-# a parser that moved under the suite would move what every workflow case
-# reads. 6.0.3 has a wheel for CPython 3.12 and 3.14 on Windows, macOS and
+# The YAML parser `tests/workflows.py` reads a workflow file, an eval case's
+# `case.yaml` and a grader's front matter with, so no case reads a job, a step
+# or a key by indentation. Pinned for the parser's reason: a parser that moved
+# under the suite would move what every workflow and eval case reads. 6.0.3 has a wheel for CPython 3.12 and 3.14 on Windows, macOS and
 # Linux, so no runner compiles it.
 PyYAML==6.0.3
