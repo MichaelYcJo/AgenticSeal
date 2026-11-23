@@ -155,9 +155,20 @@ class Test_module:
         self, monkeypatch, tmp_path
     ):
         """Loaded with Windows' `os.path.join`, as on a Windows runner, the
-        module still names the map with `/`; reading the file stays native."""
+        module still names the map with `/`; reading the file stays native.
+        A path that starts at this disk's root keeps this platform's join:
+        the script loads `lib/console.py` through `lib/sibling.py` at import
+        since #1575, and the loader joins the plugin's root, which a
+        Windows-joined path names nowhere on a POSIX disk."""
+        posix_join = os.path.join
+
+        def windows_join(first, *rest):
+            if os.path.isabs(first):
+                return posix_join(first, *rest)
+            return ntpath.join(first, *rest)
+
         with monkeypatch.context() as patched:
-            patched.setattr(os.path, "join", ntpath.join)
+            patched.setattr(os.path, "join", windows_join)
             windows = load_module(SCRIPT, "pact_check_with_windows_joins")
         _, why = windows.checkout(config, SIGNER, str(tmp_path / "nowhere"), {})
         assert "~/.claude/agentic/pact-paths.json" in why, why
