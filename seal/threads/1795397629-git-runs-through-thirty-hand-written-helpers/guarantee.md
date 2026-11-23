@@ -52,3 +52,33 @@ These are open, each with its answerer named. None is a claim of a party that th
 target: 1df71771e81c5b7369b5dfa07593dd14c3fac7b6 against c3f568c6a742b75f8733e912a618d28ee16191eb
 Verdict: sealed
 ```
+
+## Re-audit at 32c3b6cdc
+
+The block above audited `1df71771e`. Two commits follow it. `122ea4685` commits this file, and `32c3b6cdc` commits `trail/rounds/round-3.md`. Neither touches a coordinate a claim above rests on, so no claim was re-run, and the parties were read again.
+
+That audit missed one thing. Round 2's finding names two test files in its `location:` beside `gaps.md`. So its close, `fixed 5fa72e29b`, did not meet the condition for the sealer to read it alone, and it was owed a verifying round. The block above read it as records-only. Round 3 is that round.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run is at HEAD, or only the work item's records follow it | `trail/gate.md`, its `run:` line | `git log --no-merges --name-only 972c21ad6..HEAD ^c3f568c6a`; `git merge-base --is-ancestor 972c21ad6 HEAD` | holds, executed: `1df71771e`, `122ea4685` and `32c3b6cdc` follow it. They touch `trail/gate.md`, `guarantee.md` and `trail/rounds/round-3.md` alone, and the gate's commit is an ancestor of HEAD |
+| The base still resolves to the same commit | prompt | `git rev-parse 'release/v0.38.6@{upstream}'` | holds, executed: `c3f568c6a742b75f8733e912a618d28ee16191eb` |
+| The body composed at HEAD is `pr.md` and the records' text | the body file the prompt names | `seal pr-body <item> --body <file> --check` | holds, executed: exit 0, `matches: …` |
+| The guarantee committed at `122ea4685` is the file this audit wrote | `122ea4685` | `git show 122ea4685:<item>/guarantee.md \| diff - <item>/guarantee.md`, before this section was added | holds, executed: no difference |
+| `chain-check` at HEAD names only that the guarantee is behind HEAD | the prompt | `python3 skills/code-review/scripts/chain_check.py --baseline origin/release/v0.38.6` | holds, executed: exit 1. Its one problem is `the guarantee is behind HEAD: commit 32c3b6cd after it touches …/trail/rounds/round-3.md`. Its other line says the body is not read without an event payload |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the last round | `trail/rounds/round-3.md` reads `122ea4685` as a verifying round over `64a28d00f..122ea4685`, finds nothing, and confirms `round-2#1` | the tree: `5fa72e29b` touches `gaps.md` alone, and `gaps.md:14` is round 2's row word for word, read again here | none |
+| the design, the build, the changelog, the orchestrator's part of the pull request body, the routing grounds | as in *The parties* above | as above | none. No commit since `1df71771e` touches them |
+
+What stands outside this guarantee is the list in *Outside this guarantee* above, unchanged. Round 3's *Not judged* adds no item for a person.
+
+```seal
+target: 32c3b6cdcbfec66b8b7cc66e23ddc914ad1007f8 against c3f568c6a742b75f8733e912a618d28ee16191eb
+Verdict: sealed
+```
