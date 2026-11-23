@@ -316,9 +316,9 @@ TOO_LONG = (
 # The seal mark, one fixed line between `HEADING`'s blank line and
 # `FOLD`, written where `seal/config.json`'s `MARK_KEY` turns it on
 # (`lib/config.py#switch`) and the work item is sealed at HEAD
-# (`seal_mark`). Its address is
-# built from the plugin's manifest, which stands three levels above HERE, at
-# the plugin's root, and which this reads and never writes.
+# (`seal_mark`). Its address is built from the plugin's manifest, which
+# stands three levels above HERE, at the plugin's root, and which this reads
+# and never writes.
 MARK_KEY = "Pull request seal mark"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
 MANIFEST_NAME = ".claude-plugin/plugin.json"
@@ -619,8 +619,8 @@ def seal_mark(item, root, manifest=None, base=None):
 
     The mark is written where `MARK_KEY` in the root's `config.json` turns
     it on, as `lib/config.py#switch` reads it, and the work item is sealed
-    at HEAD against BASE where it is given, and
-    otherwise against the guarantee's own base (`_seal_at_head`). An absent
+    at HEAD against BASE where it is given, and otherwise against the
+    guarantee's own base (`_seal_at_head`). An absent
     or empty key, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused key, a base that does not resolve,
     a sealed commit HEAD does not hold, and a manifest the address cannot be
