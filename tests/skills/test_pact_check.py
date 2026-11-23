@@ -151,13 +151,16 @@ class Test_module:
         A path that starts at this disk's root keeps this platform's join:
         the script loads `lib/console.py` through `lib/sibling.py` at import
         since #1575, and the loader joins the plugin's root, which a
-        Windows-joined path names nowhere on a POSIX disk."""
-        posix_join = os.path.join
+        Windows-joined path names nowhere on a POSIX disk. Both joins are
+        bound before the patch: on Windows `os.path` is `ntpath`, so the
+        patch replaces `ntpath.join`, and a call through that name would
+        reach `windows_join` again."""
+        native_join, nt_join = os.path.join, ntpath.join
 
         def windows_join(first, *rest):
             if os.path.isabs(first):
-                return posix_join(first, *rest)
-            return ntpath.join(first, *rest)
+                return native_join(first, *rest)
+            return nt_join(first, *rest)
 
         with monkeypatch.context() as patched:
             patched.setattr(os.path, "join", windows_join)
