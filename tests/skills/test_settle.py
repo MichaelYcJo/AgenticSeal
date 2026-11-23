@@ -18,9 +18,10 @@ released operation into the policy root in merge order and names each one
 not placed (#1217).
 
 `Test_report` and `Test_apply` drive the two arms, `survey` with `report`
-or `apply`, mostly over a world drawn on disk whose readers that ask git
-are answered from it (`answered`), and over a real history where the fact
-is what such a reader makes of git. `Test_main` runs the command: each of
+or `apply`, mostly over a world drawn on disk, or `tests/conftest.py`'s
+`tree`, whose readers that ask git are answered from the disk
+(`answered`), and over a real history where the fact is what such a reader
+makes of git. `Test_main` runs the command: each of
 its arms over a real history, and over a local root whose `gh` is answered
 in process. `Test_module` holds the loader, the launcher, the answer the
 command takes from `rule_changes.py#order`, asked over the repositories
@@ -129,13 +130,17 @@ def started(repo):
     return repo
 
 
+def shared_files(repo):
+    """REPO holding `docs/a.md` and the marked `seal/` root, the files of
+    `shared_repo` and of `drawn`; REPO."""
+    write(repo, "docs/a.md", DOC)
+    mark_root(repo / "seal")
+    return repo
+
+
 @pytest.fixture(scope="module")
 def _shared_world(tmp_path_factory):
-    repo = tmp_path_factory.mktemp("settle-shared") / "repo"
-    (repo / "docs").mkdir(parents=True)
-    (repo / "docs" / "a.md").write_text(DOC, encoding="utf-8")
-    mark_root(repo / "seal")
-    return started(repo)
+    return started(shared_files(tmp_path_factory.mktemp("settle-shared") / "repo"))
 
 
 @pytest.fixture
@@ -227,13 +232,14 @@ def configure(repo, *rows):
 # --- the drawn worlds: a case of what `settle` makes of its input (#1581) ---
 #
 # A case whose fact is how `survey`, `report`, `apply` or `draft` read what
-# they are given writes that on disk and commits nothing. `answered` answers
-# each reader that asks git from the disk, and every other reader reads the
-# disk as a run does. Each reader it answers keeps cases of its own over a
+# they are given writes that on disk, in `drawn`, which has no history, or
+# in a world that has one. `answered` answers each reader that asks git from
+# the disk, and every other reader reads the disk as a run does. Each reader it answers keeps cases of its own over a
 # real history, which say that the reading and git agree:
 #
 #   released            `Test_report::test_a_released_work_item_whose_id_is_not_ascii_is_a_candidate`,
-#                       and every run of `Test_main` over a shared root
+#                       and each run of `Test_main` over a shared root that
+#                       does not call `answered`
 #   show                `Test_show`
 #   rule_changes.order  `Test_module`'s `merge_order` cases, and
 #                       `Test_main::test_two_specs_on_one_sentence_are_one_group_in_merge_order`
@@ -342,34 +348,19 @@ def drawn(tmp_path, monkeypatch):
     `docs/a.md`, the marked `seal/` root, and an empty `.git/`, which
     `lib/optin.py#git_common_dir` reads as the git directory without a
     process."""
-    repo = tmp_path / "repo"
-    write(repo, "docs/a.md", DOC)
-    mark_root(repo / "seal")
+    repo = shared_files(tmp_path / "repo")
     (repo / ".git").mkdir()
     answered(monkeypatch, repo)
     return repo
 
 
 @pytest.fixture
-def drawn_tree(tmp_path, monkeypatch):
-    """`tests/conftest.py`'s `tree` drawn on disk with no history, its
-    readers `answered`: `docs/one-root.md`, and four work items, of which
-    `alpha`, `beta` and `gamma` are released and `delta` is not."""
-    repo = tmp_path / "repo"
-    write(repo, "docs/one-root.md", "# a policy\n\nA rule.\n")
-    mark_root(repo / "seal")
-    for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-        write(
-            specs_dir(repo, name), "frame/design.md", f"# {name}\n\nWhat it decided.\n"
-        )
-    write(
-        specs_dir(repo, "1700000004-delta"),
-        "frame/design.md",
-        "# delta\n\nIn flight.\n",
-    )
-    (repo / ".git").mkdir()
-    answered(monkeypatch, repo, unreleased={"1700000004-delta"})
-    return repo
+def answered_tree(tree, monkeypatch):
+    """`tests/conftest.py`'s `tree`, its readers `answered`: `alpha`, `beta`
+    and `gamma` are released and `delta` is not, as the fixture's history
+    holds them."""
+    answered(monkeypatch, tree, unreleased={"1700000004-delta"})
+    return tree
 
 
 def no_rule(repo, work_item_id):
@@ -931,11 +922,11 @@ class Test_citations:
 
 class Test_report:
     def test_accepts_a_spec_with_no_rule_changes_and_lists_it_to_read_whole(
-        self, drawn_tree
+        self, answered_tree
     ):
         """S4's dry run half: a spec with no section joins no group, so the
         settling session reads it whole; it is not left in place."""
-        code, text = run(drawn_tree)
+        code, text = run(answered_tree)
         assert code == 0, text
         listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
@@ -945,21 +936,30 @@ class Test_report:
             text
         ), text
 
-    def test_refuses_nothing_and_writes_and_removes_nothing(self, drawn_tree):
+    def test_refuses_nothing_and_writes_and_removes_nothing(self, answered_tree):
         """The dry run holds nothing back: a section that does not parse and
         an open row are shown at exit 0, and the tree is left as it was."""
         (
-            drawn_tree / "seal" / "threads" / "1700000001-alpha" / "frame" / "design.md"
+            answered_tree
+            / "seal"
+            / "threads"
+            / "1700000001-alpha"
+            / "frame"
+            / "design.md"
         ).write_text(
             spec("- rename\n  file: docs/one-root.md\n  to: x"), encoding="utf-8"
         )
-        moment(drawn_tree, overview=OVERVIEW_OPEN)
+        moment(answered_tree, overview=OVERVIEW_OPEN)
         before = sorted(
-            str(p.relative_to(drawn_tree)) for p in drawn_tree.rglob("*") if p.is_file()
+            str(p.relative_to(answered_tree))
+            for p in answered_tree.rglob("*")
+            if p.is_file()
         )
-        code, text = run(drawn_tree)
+        code, text = run(answered_tree)
         after = sorted(
-            str(p.relative_to(drawn_tree)) for p in drawn_tree.rglob("*") if p.is_file()
+            str(p.relative_to(answered_tree))
+            for p in answered_tree.rglob("*")
+            if p.is_file()
         )
         assert before == after, "the report touched the tree"
         assert code == 0, text
@@ -967,7 +967,7 @@ class Test_report:
         assert "Nothing was written and nothing was removed" in text, text
 
     def test_lists_a_design_with_a_line_its_reader_did_not_read_to_read_whole(
-        self, drawn_tree
+        self, answered_tree
     ):
         """Round 6 of #1167, finding 1: a design holding `## Rule changes` and
         a heading near it parses, with the near heading in `unread`, and an
@@ -987,10 +987,10 @@ class Test_report:
             + f"\n## Rule Changes\n\n{change}",
         }
         for name, text in designs.items():
-            (drawn_tree / "seal" / "threads" / name / "frame" / "design.md").write_text(
-                text, encoding="utf-8"
-            )
-        code, text = run(drawn_tree)
+            (
+                answered_tree / "seal" / "threads" / name / "frame" / "design.md"
+            ).write_text(text, encoding="utf-8")
+        code, text = run(answered_tree)
         assert code == 0, text
         listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
         for name, design in designs.items():
@@ -1002,10 +1002,10 @@ class Test_report:
         nothing = text.split("no-change block (")[-1].split("\n\n")[0]
         assert "1700000002-beta" not in nothing, text
 
-    def test_an_unreleased_work_item_is_not_a_candidate(self, drawn_tree):
+    def test_an_unreleased_work_item_is_not_a_candidate(self, answered_tree):
         """Released means present on the branch the release merges to, so this
         branch's own work item is outside the corpus entirely."""
-        _, text = run(drawn_tree)
+        _, text = run(answered_tree)
         assert "1700000004-delta" not in text, text
         assert "1 unreleased and untouched" in text, text
 
@@ -1024,11 +1024,11 @@ class Test_report:
         stated = text.split("no `frame/design.md`, so no rule stated:\n")[1]
         assert stated.split("\n\n")[0] == f"    {name}", text
 
-    def test_a_spec_less_directory_is_listed_as_stating_no_rule(self, drawn_tree):
+    def test_a_spec_less_directory_is_listed_as_stating_no_rule(self, answered_tree):
         """D3: a directory with no `frame/design.md` states no rule, so it is listed
         apart from the specs, and its record's rows with every other's."""
-        moment(drawn_tree, overview=OVERVIEW_CLOSED)
-        code, text = run(drawn_tree)
+        moment(answered_tree, overview=OVERVIEW_CLOSED)
+        code, text = run(answered_tree)
         assert code == 0, text
         stated = text.split("no `frame/design.md`, so no rule stated:\n")[1].split(
             "\n\n"
@@ -1063,24 +1063,24 @@ class Test_report:
         ), text
         assert "1 open row in 1 record\n" in text, text
 
-    def test_the_report_lists_what_an_apply_would_remove(self, drawn_tree):
+    def test_the_report_lists_what_an_apply_would_remove(self, answered_tree):
         """D1's table: the command reports by itself the paths outside
         `seal/threads/` that cite into what `--apply` would remove, and the
         `tests/` files that read `seal/threads` — what #514's frame found by
         hand. A directory still holding a row is listed with when it goes."""
-        no_rule(drawn_tree, "1700000001-alpha")
-        moment(drawn_tree, overview=OVERVIEW_OPEN)
-        (drawn_tree / "docs" / "cites.md").write_text(
+        no_rule(answered_tree, "1700000001-alpha")
+        moment(answered_tree, overview=OVERVIEW_OPEN)
+        (answered_tree / "docs" / "cites.md").write_text(
             "See `seal/threads/1700000001-alpha/frame/design.md` for the decision.\n"
             f"And `seal/threads/{MOMENT[:11]}…/routing.md` for the moment.\n"
             "A marker <!-- specs/1700000002-beta --> and a bare 1700000002-beta.\n",
             encoding="utf-8",
         )
-        (drawn_tree / "tests").mkdir()
-        (drawn_tree / "tests" / "test_reads.py").write_text(
+        (answered_tree / "tests").mkdir()
+        (answered_tree / "tests" / "test_reads.py").write_text(
             'SPECS = "seal/threads"\n', encoding="utf-8"
         )
-        _, text = run(drawn_tree)
+        _, text = run(answered_tree)
         takes = text.split(settle.REMOVES_HEADING)[1]
         assert "    seal/threads/1700000001-alpha/  now\n" in takes, text
         assert f"    seal/threads/{MOMENT}/  once its 1 open row close\n" in takes, text
@@ -1096,7 +1096,7 @@ class Test_report:
             "(`skills/settle/SKILL.md` *Answer every check that reads the corpus*)"
         ) in " ".join(text.split()), text
 
-    def test_names_a_gaps_md_away_from_its_place_as_not_read(self, drawn_tree):
+    def test_names_a_gaps_md_away_from_its_place_as_not_read(self, answered_tree):
         """S1 of #1126, #956's R31: a released work item whose only `gaps.md`
         is `trail/gaps.md`, holding an open row. The settle reads the record
         at its place alone, so the row is not counted; the dry run names the
@@ -1104,8 +1104,8 @@ class Test_report:
         `--apply` does with it, and refuses nothing. Seen red with the fix
         reverted in `settle.py`: the dry run named no file."""
         name = "1700000007-trail"
-        released_item(drawn_tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
-        code, text = run(drawn_tree)
+        released_item(answered_tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
+        code, text = run(answered_tree)
         assert f"seal/threads/{name}/trail/gaps.md" in text, text
         assert code == 0, text
         section = text.split(f"\n{settle.MISPLACED_HEADING}\n")[1].split("\n\n")[0]
@@ -1126,7 +1126,7 @@ class Test_report:
             in heading
         )
 
-    def test_names_a_misplaced_design_and_plan_as_not_read(self, drawn_tree):
+    def test_names_a_misplaced_design_and_plan_as_not_read(self, answered_tree):
         """S3 of #1126: the class is every file named like a record the settle
         reads, `gaps.md`, `frame/design.md` and `frame/plan.md`, at any other
         path of its directory, each named with the record it is named like.
@@ -1134,13 +1134,13 @@ class Test_report:
         reverted in `settle.py`."""
         top = "1700000007-top-design"
         trail = "1700000008-trail-plan"
-        released_item(drawn_tree, top, {"design.md": "# a design\n"})
+        released_item(answered_tree, top, {"design.md": "# a design\n"})
         released_item(
-            drawn_tree,
+            answered_tree,
             trail,
             {"frame/plan.md": "# a plan\n", "trail/plan.md": "# a plan\n"},
         )
-        code, text = run(drawn_tree)
+        code, text = run(answered_tree)
         assert f"seal/threads/{top}/design.md" in text, text
         assert code == 0, text
         section = text.split(f"\n{settle.MISPLACED_HEADING}\n")[1].split("\n\n")[0]
@@ -1149,11 +1149,11 @@ class Test_report:
             f"    {not_read(trail, 'trail/plan.md', 'frame/plan.md')}"
         ), text
 
-    def test_prints_no_section_where_nothing_is_misplaced(self, drawn_tree):
+    def test_prints_no_section_where_nothing_is_misplaced(self, answered_tree):
         """S4 of #1126: every record at its place, so the section is not
         printed."""
-        moment(drawn_tree, overview=OVERVIEW_OPEN)
-        code, text = run(drawn_tree)
+        moment(answered_tree, overview=OVERVIEW_OPEN)
+        code, text = run(answered_tree)
         assert code == 0, text
         assert settle.MISPLACED_HEADING not in text, text
         assert "named like" not in text, text
@@ -1960,49 +1960,49 @@ class Test_misplaced:
 
 
 class Test_apply:
-    def test_accepts_every_released_directory_with_no_open_row(self, drawn_tree):
+    def test_accepts_every_released_directory_with_no_open_row(self, answered_tree):
         """S4's apply half: a spec holding the no-change block and specs with
         no `## Rule changes` leave alike, and the unreleased one stays."""
-        no_rule(drawn_tree, "1700000001-alpha")
-        code, text = run(drawn_tree, "--apply")
+        no_rule(answered_tree, "1700000001-alpha")
+        code, text = run(answered_tree, "--apply")
         assert code == 0, text
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-            assert not (drawn_tree / "seal" / "threads" / name).exists(), text
+            assert not (answered_tree / "seal" / "threads" / name).exists(), text
             assert f"removed seal/threads/{name}/\n" in text, text
-        assert (drawn_tree / "seal" / "threads" / "1700000004-delta").exists(), text
+        assert (answered_tree / "seal" / "threads" / "1700000004-delta").exists(), text
         assert text.endswith(
             "\nremoved 3 directories; kept 0 with a row to close and 0 whose note "
             "lacks its entry\n"
         )
 
-    def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, drawn_tree):
+    def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, answered_tree):
         """#688 D3. A project's own `specs/` is read as history and never taken,
         even where a team directory carries the removed work item's very id: the
         removal is `seal/threads/` whatever else the tree holds (`threads`)."""
-        team = drawn_tree / "specs" / "1700000001-alpha"
+        team = answered_tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
         (team / "spec.md").write_text("# the team's spec\n", encoding="utf-8")
-        no_rule(drawn_tree, "1700000001-alpha")
-        code, text = run(drawn_tree, "--apply")
+        no_rule(answered_tree, "1700000001-alpha")
+        code, text = run(answered_tree, "--apply")
         assert code == 0, text
-        assert not (drawn_tree / "seal" / "threads" / "1700000001-alpha").exists()
+        assert not (answered_tree / "seal" / "threads" / "1700000001-alpha").exists()
         assert (team / "design.md").read_text(
             encoding="utf-8"
         ) == "# the team's design\n"
         assert (team / "spec.md").is_file()
 
     def test_a_removed_record_prints_each_row_it_closed_and_writes_no_document(
-        self, drawn_tree
+        self, answered_tree
     ):
         """What closed each row is copied into the settle's pull request body,
         so `--apply` prints it; the policy root is the settling session's."""
-        moment(drawn_tree, overview=OVERVIEW_CLOSED)
-        before = docs_text(drawn_tree)
-        code, text = run(drawn_tree, "--apply")
+        moment(answered_tree, overview=OVERVIEW_CLOSED)
+        before = docs_text(answered_tree)
+        code, text = run(answered_tree, "--apply")
         assert code == 0, text
-        assert not (drawn_tree / "seal" / "threads" / MOMENT).exists(), text
-        assert docs_text(drawn_tree) == before, "the apply wrote into docs/"
+        assert not (answered_tree / "seal" / "threads" / MOMENT).exists(), text
+        assert docs_text(answered_tree) == before, "the apply wrote into docs/"
         assert (
             f"removed seal/threads/{MOMENT}/\n"
             "    no note read: HEAD holds no `changelog.md` in its directory\n"
@@ -2045,33 +2045,35 @@ class Test_apply:
         assert not (tree / "seal" / "threads" / MOMENT).exists(), text
         assert f"removed seal/threads/{MOMENT}/\n" in text, text
 
-    def test_refuses_an_unreadable_memo_and_keeps_its_directory(self, drawn_tree):
+    def test_refuses_an_unreadable_memo_and_keeps_its_directory(self, answered_tree):
         """A section this cannot read is a count it does not know, never zero."""
-        moment(drawn_tree, overview="# x — overview\n\n## Not checked\n")
-        code, text = run(drawn_tree, "--apply")
+        moment(answered_tree, overview="# x — overview\n\n## Not checked\n")
+        code, text = run(answered_tree, "--apply")
         assert code == 1, text
-        assert (drawn_tree / "seal" / "threads" / MOMENT).exists(), text
+        assert (answered_tree / "seal" / "threads" / MOMENT).exists(), text
         assert "cannot be read" in text, text
 
     def test_an_unreleased_spec_less_directory_is_not_a_candidate(
-        self, drawn_tree, monkeypatch
+        self, answered_tree, monkeypatch
     ):
-        item = drawn_tree / "seal" / "threads" / MOMENT
+        item = answered_tree / "seal" / "threads" / MOMENT
         item.mkdir()
         (item / "routing.md").write_text("# routing\n", encoding="utf-8")
-        answered(monkeypatch, drawn_tree, unreleased={"1700000004-delta", MOMENT})
-        _, text = run(drawn_tree, "--apply")
+        answered(monkeypatch, answered_tree, unreleased={"1700000004-delta", MOMENT})
+        _, text = run(answered_tree, "--apply")
         assert item.exists(), text
 
-    def test_removes_a_directory_whose_gaps_md_is_away_and_names_it(self, drawn_tree):
+    def test_removes_a_directory_whose_gaps_md_is_away_and_names_it(
+        self, answered_tree
+    ):
         """S1 of #1126, `--apply`: the directory goes on its record at its
         place, which it does not have, and the `removed` line is followed by
         a `not read:` line naming `trail/gaps.md`; the exit code and the last
         line's counts are as before. Seen red with the fix reverted in
         `settle.py`: the directory went without a word."""
         name = "1700000007-trail"
-        path = released_item(drawn_tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
-        code, text = run(drawn_tree, "--apply")
+        path = released_item(answered_tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
+        code, text = run(answered_tree, "--apply")
         assert f"not read: seal/threads/{name}/trail/gaps.md" in text, text
         assert code == 0, text
         assert not path.exists(), text
@@ -2085,7 +2087,7 @@ class Test_apply:
             "lacks its entry\n"
         ), text
 
-    def test_keeps_on_the_record_at_its_place_and_names_the_copy(self, drawn_tree):
+    def test_keeps_on_the_record_at_its_place_and_names_the_copy(self, answered_tree):
         """S2 of #1126: a top-level `gaps.md` holding an open row and a
         `frame/gaps.md` holding none. The directory is kept on the top-level
         row, at exit 1, and the `kept` line's rows are followed by a `not
@@ -2093,15 +2095,15 @@ class Test_apply:
         rows. Seen red with the fix reverted in `settle.py`."""
         name = "1700000007-copy"
         path = released_item(
-            drawn_tree,
+            answered_tree,
             name,
             {"gaps.md": OVERVIEW_OPEN, "frame/gaps.md": OVERVIEW_CLOSED},
         )
-        _, report = run(drawn_tree)
+        _, report = run(answered_tree)
         assert f"seal/threads/{name}/frame/gaps.md" in report, report
         rows = report.index(f"\n{settle.ROWS_HEADING}\n")
         assert rows < report.index(f"\n{settle.MISPLACED_HEADING}\n"), report
-        code, text = run(drawn_tree, "--apply")
+        code, text = run(answered_tree, "--apply")
         assert code == 1, text
         assert path.exists(), text
         assert (
