@@ -42,7 +42,7 @@ The failure scenario of the chosen approach, six months on. A repository whose C
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `frame/design.md` *Scope* item 1 | `bin/test -q tests/lib/test_gitcmd.py tests/github/test_publish_release_note.py tests/github/test_close_issues_on_release.py tests/github/test_label_merged_on_release_branch.py tests/github/test_release_completeness_check.py` passes; S2's cases are each seen red against `22803718e`, and S1, S3 and S4 hold; search 4 prints nothing | `8ee196412` |
-| 2 | `frame/design.md` *Scope* items 2, 3 and 4 | `bin/test -q tests/skills/test_deferral_check.py tests/skills/test_session_cost.py tests/skills/test_payload_meter.py` passes; S5's case and S6's two cases are each seen red against `22803718e`; search 5 prints nothing | |
+| 2 | `frame/design.md` *Scope* items 2, 3 and 4 | `bin/test -q tests/skills/test_deferral_check.py tests/skills/test_session_cost.py tests/skills/test_payload_meter.py` passes; S5's case and S6's two cases are each seen red against `22803718e`; search 5 prints nothing | `f167beb29` |
 | 3 | `frame/design.md` *Scope* item 5 | `bin/test -q tests/skills/test_pact_check.py tests/skills/test_coordinates.py` passes; S7's case is seen red against `22803718e`; searches 1 and 2 print what S10 states | |
 | 4 | `frame/design.md` *Scope* items 6, 7 and 8 | `bin/test -q tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_waiver_decided_at_start.py tests/test_censuses.py` passes; S8's case is seen red against `22803718e`; search 3 prints nothing | |
 
