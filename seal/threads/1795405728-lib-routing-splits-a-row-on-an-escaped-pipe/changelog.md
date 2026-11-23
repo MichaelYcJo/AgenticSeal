@@ -8,6 +8,7 @@
 ### Changed
 
 - **A row indented four spaces or a tab is no table row in any reader**, as cmark-gfm renders it as code. The routing reader, `lib/gaps.py` and `seal fold`'s index reader read such a row before. No committed record holds one, and every committed `routing.md` reads the same before and after.
+- **A row holding a pipe after an even run of backslashes is refused by `lib/gaps.py` and skipped by the routing reader and `seal fold`'s index reader**, which read it before. `lib/tables.py#table_cells` refuses the shape, because cmark-gfm splits it otherwise. No committed record holds one.
 
 ### Removed
 
