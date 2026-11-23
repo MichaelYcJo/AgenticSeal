@@ -49,12 +49,7 @@ fold at `718b58e49` changed `frame/design.md` and left the plan as it was
 `plan.md:61`. The rest of the close holds. The code fix, the new case, the
 design's *Scope* item 4, the `gaps.md` row and the docstrings are all
 right at the target; see `## Probes` and the prose under
-````seal
-verdict: fixed c5215301b
-answer: The orchestrator replaced `changelog.md`'s sentence with the round's paste-ready one, which counts the 36 designs at `2669e43d4`. The fix touches the work item's records alone, so the sealer reads it.
-```
-
-## Confirmations`.
+`## Confirmations`.
 
 Why it matters: `plan.md:61` still says the refusal "is answered by
 ordering the moved sentence's citation differently (e96d743c3), not by
@@ -171,6 +166,11 @@ were read.
 
 ```markdown
 Over the 36 work items' designs the tree held at `2669e43d4`, that notice says the same before and after the change.
+```
+
+```seal
+verdict: fixed c5215301b
+answer: The orchestrator replaced `changelog.md`'s sentence with the round's paste-ready one, which counts the 36 designs at `2669e43d4`. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ## Confirmations
