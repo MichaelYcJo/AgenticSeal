@@ -44,4 +44,4 @@ None. No migration, environment variable, dependency or compatibility break, and
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-23 | The pull request's title takes `fix:`, though the build changes text and one case and no code | The texts every orchestrating session reads first stated a stricter rule than the two mechanisms hold, and an orchestrator that followed them spent a whole broad run where none was owed; correcting a rule that sent the work wrong fixes behaviour that was wrong, as #1594 did for code and comments standing on facts that no longer held | `~/.claude/skills/commit-pr-convention/SKILL.md` *커밋 메시지*, the `fix:` row; the titles of `gh pr list --state all --limit 10` |
