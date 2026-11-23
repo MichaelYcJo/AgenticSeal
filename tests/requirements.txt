@@ -1,0 +1,40 @@
+# The packages this repository's suite runs with, one requirement per line in
+# pip's syntax. This file is their one home: `tests/run_tests.py` builds
+# `.venv` with every line and adds each pinned one to an adopted `.venv` that
+# lacks its version, `.github/workflows/test.yml` and
+# `.github/workflows/publish-release.yml` install it with `pip install -r`,
+# and `CONTRIBUTING.md` *Running the checks* reads it in its fallback
+# commands. A pinned line is `<name>==<version>`, and `run_tests.py#has_pin`
+# finds it by the `.dist-info` directory its docstring derives from those two.
+#
+# Every package here is test-only: nothing under `lib/` or `skills/` imports
+# one, so the gates stay stdlib-only and a plugin user installs nothing new.
+# `pytest-split` is not here: it divides the Windows leg of `test.yml` into
+# shards, CI's alone, and the install line of that workflow is its one home.
+
+pytest
+
+# The suite runs `-n auto` by default, so a build without it refuses the flag
+# on its first call.
+pytest-xdist
+
+# The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`).
+# Pinned to one version, because the oracle is what the readers' property
+# cases are held to, and an oracle that moved under the suite would move every
+# verdict with it.
+markdown-it-py==4.2.0
+
+# GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
+# `lib/tables.py#gfm_table` is held to (`tests/gfm_table_oracle.py`). Pinned
+# for the parser's reason: a renderer that moved under the suite would move
+# every verdict of the walker's property case with it. The version was chosen
+# as the newest with a wheel for Python 3.12 on Windows, macOS (arm64) and
+# Linux, so no runner compiles it.
+cmarkgfm==2025.10.22
+
+# The YAML parser `tests/workflows.py` reads a workflow file with, so no case
+# reads a job, a step or a key by indentation. Pinned for the parser's reason:
+# a parser that moved under the suite would move what every workflow case
+# reads. 6.0.3 has a wheel for CPython 3.12 and 3.14 on Windows, macOS and
+# Linux, so no runner compiles it.
+PyYAML==6.0.3

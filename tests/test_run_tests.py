@@ -429,41 +429,84 @@ class Test_build:
         )
 
     @pytest.mark.parametrize("uv", ["/usr/bin/uv", None])
-    def test_a_fresh_build_installs_the_pinned_parser(self, tmp_path, monkeypatch, uv):
-        """#667, phase 1. Both build strategies name the pinned markdown-it-py
-        in the install step, exactly as `MARKDOWN_IT` spells it -- a bare
-        `markdown-it-py` would hand the oracle whatever the index serves today.
-        cmarkgfm (#647) and PyYAML (#1486) are pinned the same way, and the
-        three are the rows of `PINS`, the table every other install reads."""
+    def test_accepts_a_fresh_build_and_installs_what_the_file_lists(
+        self, tmp_path, monkeypatch, uv
+    ):
+        """#667, #647, #1486, #1575. Both build strategies install every
+        requirement `tests/requirements.txt` lists, each as the file spells
+        it, so a pin keeps its version -- a bare `markdown-it-py` would hand
+        the oracle whatever the index serves today."""
         recorder = Recorder()
         monkeypatch.setattr(rt.shutil, "which", lambda _: uv)
         monkeypatch.setattr(rt.subprocess, "run", recorder)
         assert rt.build(tmp_path / ".venv") is None
         install = recorder.calls[1]
-        assert rt.MARKDOWN_IT in install, (
+        # What the runner read from the file, which the build installs.
+        assert list(rt.PACKAGES) == rt.requirements(rt.REQUIREMENTS), rt.PACKAGES
+        assert install[-len(rt.PACKAGES) :] == list(rt.PACKAGES), (
             f"the {'uv' if uv else 'pip'} strategy builds an environment without "
-            f"the pinned parser: {install}"
+            f"what the file lists: {install}"
         )
-        assert f"markdown-it-py=={rt.MARKDOWN_IT_VERSION}" == rt.MARKDOWN_IT
+        # The oracles' packages are pinned in the file, so the runner holds pins.
+        assert rt.PINS, rt.PACKAGES
         # #857: Pillow left with its last reader, so no build installs it.
         assert not any(word.lower().startswith("pillow") for word in install), install
-        # #647: the table walker's renderer, pinned the same way.
-        assert rt.CMARKGFM in install, (
-            f"the {'uv' if uv else 'pip'} strategy builds an environment without "
-            f"the pinned cmarkgfm: {install}"
+
+
+class Test_requirements:
+    def test_accepts_each_requirement_in_the_files_order(self, tmp_path):
+        """#1575. Each line that names a requirement, with its whitespace
+        and a comment after it taken off, as pip reads the line."""
+        path = tmp_path / "requirements.txt"
+        path.write_bytes(
+            b"# what the suite runs with\n"
+            b"pytest\n"
+            b"\n"
+            b"  pytest-xdist  # the parallel default\r\n"
+            b"some-parser==1.2.3\n"
+            b"Some_Renderer==2025.1.2"
         )
-        assert f"cmarkgfm=={rt.CMARKGFM_VERSION}" == rt.CMARKGFM
-        # #1486: the parser `tests/workflows.py` reads a workflow with.
-        assert rt.PYYAML in install, (
-            f"the {'uv' if uv else 'pip'} strategy builds an environment without "
-            f"the pinned PyYAML: {install}"
-        )
-        assert f"PyYAML=={rt.PYYAML_VERSION}" == rt.PYYAML
-        assert [pin.spec for pin in rt.PINS] == [
-            rt.MARKDOWN_IT,
-            rt.CMARKGFM,
-            rt.PYYAML,
-        ], rt.PINS
+        assert rt.requirements(str(path)) == [
+            "pytest",
+            "pytest-xdist",
+            "some-parser==1.2.3",
+            "Some_Renderer==2025.1.2",
+        ]
+
+    def test_refuses_a_comment_and_an_empty_line_as_a_requirement(self, tmp_path):
+        """#1575. A comment line, an indented one, a blank line and one of
+        spaces each name no requirement."""
+        path = tmp_path / "requirements.txt"
+        path.write_text("# a\n\n   \n    # b\n#c==1.0\n", encoding="utf-8")
+        assert rt.requirements(str(path)) == []
+
+
+class Test_pin_of:
+    @pytest.mark.parametrize(
+        "requirement, dist_info",
+        [
+            ("some-parser==1.2.3", "some_parser-1.2.3.dist-info"),
+            ("somerenderer==2025.1.2", "somerenderer-2025.1.2.dist-info"),
+            ("SomeYAML==1.0", "someyaml-1.0.dist-info"),
+            ("some_plugin==3.8.0", "some_plugin-3.8.0.dist-info"),
+            ("some.namespace==7.0", "some_namespace-7.0.dist-info"),
+            ("Some--_Name==1.0", "some_name-1.0.dist-info"),
+        ],
+    )
+    def test_accepts_a_pinned_line_and_derives_its_dist_info(
+        self, requirement, dist_info
+    ):
+        """#1575. A pinned line is `<name>==<version>`, and its `.dist-info`
+        directory is the name lowercased with each run of `-`, `_` and `.`
+        made one `_`, then `-<version>.dist-info`: a dash, a plain name, a
+        capital, an underscore, a dot and a run of separators."""
+        assert rt.pin_of(requirement) == rt.Pin(requirement, dist_info)
+
+    @pytest.mark.parametrize("requirement", ["pytest", "pytest-xdist", "pytest>=8.3"])
+    def test_refuses_a_requirement_that_pins_no_version(self, requirement):
+        """#1575. A requirement with no `==` pins nothing: `add_pin` has no
+        version to look for, so it is built with the rest and never added."""
+        assert rt.pin_of(requirement) is None
 
 
 class Test_main:
@@ -699,10 +742,12 @@ class Test_main:
     def test_a_failed_pin_install_is_a_sentence_and_pytest_is_still_called(
         self, tmp_path, monkeypatch, capsys, pin
     ):
-        """#667, phase 1, and round 1's finding 3; #647; #1486. The install
-        exits non-zero: one sentence names the pinned package and the module
-        that imports it, says what its absence costs, as pytest does it, and
-        names the remedy. Measured 2026-09-29 in a virtualenv with pytest 9.1.1
+        """#667, phase 1, and round 1's finding 3; #647; #1486; #1575. The
+        install exits non-zero: one sentence names the requirement, says that
+        a test module importing it fails to collect and what that costs, as
+        pytest does it, and names the remedy. Nothing names the module that
+        imports a pin, so neither the sentence nor the line announcing the
+        install names one. Measured 2026-09-29 in a virtualenv with pytest 9.1.1
         and pytest-xdist 3.8.0 and no parser, over the oracle's module and one
         other: under `-n 2` the other module's 31 cases ran and the run exited
         1 with one collection error; under `-p no:xdist` pytest stopped at
@@ -725,9 +770,16 @@ class Test_main:
         monkeypatch.setattr(rt.subprocess, "run", run)
         assert rt.main([]) == 0
         err = capsys.readouterr().err
-        assert pin.spec in err, err
-        assert f"`{pin.module}` imports it" in err, err
-        assert "fails to collect with a ModuleNotFoundError" in err, err
+        venv = tmp_path / ".venv"
+        assert (
+            f"bin/test: adding {pin.spec} to {venv}. This run pays for it; every "
+            "run after it finds it there."
+        ) in err, err
+        assert f"could not install {pin.spec} into {venv}" in err, err
+        assert (
+            "so a test module that imports it fails to collect with a "
+            "ModuleNotFoundError"
+        ) in err, err
         assert "runs every other case and exits non-zero" in err, err
         assert "stops at collection and runs no case" in err, err
         assert "a sentence of their own" not in err, err
@@ -808,6 +860,35 @@ class Test_module:
         """`tests/` up one. One level off and the virtualenv lands in
         `tests/`, where nothing looks for it."""
         assert rt.repo_root() == pathlib.Path(ROOT).resolve()
+
+    def test_refuses_a_runner_without_its_requirements_file_in_a_sentence(
+        self, tmp_path
+    ):
+        """#1575. The runner reads `tests/requirements.txt` as it loads. A
+        copy with no such file beside it says which file it could not read
+        and stops at exit 2 before anything is built, as an absent module of
+        `lib/` does, rather than ending in a traceback."""
+        for rel in (
+            "tests/run_tests.py",
+            "lib/sibling.py",
+            "lib/launch.py",
+            "lib/console.py",
+        ):
+            copy = tmp_path.joinpath(*rel.split("/"))
+            copy.parent.mkdir(exist_ok=True)
+            copy.write_bytes(pathlib.Path(ROOT, *rel.split("/")).read_bytes())
+        result = REAL_RUN(
+            [sys.executable, str(tmp_path / "tests" / "run_tests.py")],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert result.returncode == 2, result
+        assert "Traceback" not in result.stderr, result.stderr
+        assert (
+            f"bin/test: cannot read {tmp_path / 'tests' / 'requirements.txt'}"
+        ) in result.stderr, result.stderr
+        assert not (tmp_path / ".venv").exists(), "a build started"
 
 
 test_census = census_case(TARGET)
