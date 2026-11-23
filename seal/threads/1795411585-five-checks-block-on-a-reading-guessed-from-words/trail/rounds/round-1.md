@@ -32,6 +32,11 @@ stands on what the agent read in them, and the miss is a finding about this
 tool.
 ```
 
+```seal
+verdict: fixed 031807642
+answer: The finding holds: the sentence stood on the old exit 1 and refused the row the paragraph above it now lets stand. The paste-ready sentence replaces it as given, after a read against `frame/design.md` *Scope* item 4 and `deferral_check.py`'s docstring, which say the same; the trigger paragraph above still binds a file the agent reads. `git grep -n "permission to keep the row" -- ':!seal/threads'` now prints nothing, and no case pinned either wording.
+```
+
 ### 2. Both READMEs still say `seal deferrals` tells whether anything runs the check, and the frame keeps them out of scope on the claim that they state no verdict
 
 ```seal
@@ -60,6 +65,12 @@ In `frame/design.md`, the bullet at `:41` goes, and *Scope* item 4 gains a closi
 
 ```markdown
 `README.md` and `README.ko.md` say in their commands tables what the command names and that it exits 0, and neither says whether anything runs the check.
+```
+
+```seal
+verdict: fixed d68add798
+location: `README.md:407`, `README.ko.md:404`, `seal/threads/1795411585-five-checks-block-on-a-reading-guessed-from-words/changelog.md`
+answer: The finding holds, and its frame half went at 4b04fa3d6. Both README rows now say what the command names and that it exits 0. The paste-ready rows ended on whether anything runs the check being read in the files the command names, which misses the finding's own case: a suite run through a script leaves no file named. So each row sends the reader to the CI files themselves, in my words. The changelog's `### Fixed` entry for `seal deferrals` names the two rows and the `skills/verify/SKILL.md` sentence of finding 1, because the fragment is what the release note shows. `skills/implement/scripts/seal.py:138` and `deferral_check.py:2` and `:220` are left as they stand: "resolve the answerer named in an `unverified` row" names the act the command serves, the verb `skills/verify/SKILL.md:213` gives the agent, and claims no verdict. No case pinned either row.
 ```
 
 ### 3. `frame/design.md` *Scope* item 2 says the headline and the closing sentence name the composite action, the reusable workflow and the script, and neither does
