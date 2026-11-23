@@ -248,7 +248,7 @@ class Test_main:
         assert code == 2 and not out, (out, err)
         assert err == f"seal fold: in {config}, {says} — nothing was checked\n", err
 
-    @pytest.mark.parametrize("row", ["Document token ceiling"])
+    @pytest.mark.parametrize("row", ["Document token ceiling", "Policy root"])
     def test_a_row_written_twice_is_refused_and_nothing_is_checked(self, tmp_path, row):
         """S1 of #867, `seal fold`'s half. A key written twice has no value, by
         `lib/config.py#config_value`'s rule: the run exits 2 naming the key and

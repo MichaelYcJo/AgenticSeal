@@ -195,6 +195,7 @@ repo_config = sibling.load("lib/config.py")
 gitcmd = sibling.load("lib/gitcmd.py")
 optin = sibling.load("lib/optin.py")
 core = sibling.load("lib/core.py")
+console = sibling.load("lib/console.py")
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -601,7 +602,7 @@ def export(args, cwd):
         if os.path.isdir(target):
             target = unused(target, stem, ".zip")
         directory = os.path.dirname(target) or "."
-        if inside(repo, target):
+        if gitcmd.inside(target, repo):
             print(
                 f"note: {target} is inside the working tree, so `git add -A` "
                 "can commit it — which is what local mode keeps the records "
@@ -631,8 +632,8 @@ def export(args, cwd):
     write_state(repo, manifest)
     print(f"wrote {target}")
     print(
-        f"  {plural(len(files), 'file')} from {display(repo, home)}, "
-        f"{plural(len(manifest['items']), 'work item')}"
+        f"  {console.plural(len(files), 'file')} from {display(repo, home)}, "
+        f"{console.plural(len(manifest['items']), 'work item')}"
     )
     for rel in links:
         print(
@@ -664,50 +665,21 @@ def export(args, cwd):
 # --- shared plumbing --------------------------------------------------------
 
 
-def plural(count, noun):
-    """`1 file` · `2 files`.
-
-    `check()` does NOT use this. Its line is quoted acceptance text, `N work
-    items changed since the last export`, so it stays that, and at N=1 it
-    reads `1 work items`. Reading the quoted line as a template with a
-    grammar rule attached is a change to an acceptance criterion, which is
-    not this command's to make.
-    """
-    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
-
-
 def display(repo, path):
     """A path as the reader recognises it: relative to the repository and
     `/`-joined where it is inside, absolute where it is not."""
     if not path:
         return ""
-    if inside(repo, path):
+    if gitcmd.inside(path, repo):
         return gitcmd.git_path(os.path.relpath(path, repo))
     return path
-
-
-def inside(repo, path):
-    """Whether `path` is inside the repository's working tree.
-
-    `commonpath` rather than `startswith`, which reads `/repo-2/x` as being
-    inside `/repo`. The git directory of a main worktree is inside the tree by
-    this test, and that is correct: nothing here asks the question about it.
-    """
-    try:
-        return os.path.commonpath(
-            [os.path.abspath(repo), os.path.abspath(path)]
-        ) == os.path.abspath(repo)
-    except ValueError:  # different drives on Windows
-        return False
 
 
 def no_root(repo, shared, local):
     if not repo:
         print("not inside a git repository — seal works on a clone")
         return 1
-    if optin.git_common_dir(repo) and os.path.isfile(
-        os.path.join(optin.git_common_dir(repo), optin.SCRATCH)
-    ):
+    if optin.opted_out(optin.git_common_dir(repo)):
         print(
             f"this repository is marked throwaway "
             f"({optin.SCRATCH} under the common git directory), so every gate "
@@ -1271,10 +1243,10 @@ def import_(args, cwd):
             return 1
 
     print(f"imported into {display(repo, into)}")
-    print(f"  {plural(counts[ADDED], 'file')} added")
-    print(f"  {plural(counts[IDENTICAL], 'file')} already here, byte for byte")
+    print(f"  {console.plural(counts[ADDED], 'file')} added")
+    print(f"  {console.plural(counts[IDENTICAL], 'file')} already here, byte for byte")
     print(
-        f"  {plural(counts[COLLIDED], 'file')} landed beside an existing one"
+        f"  {console.plural(counts[COLLIDED], 'file')} landed beside an existing one"
         + (":" if collisions else "")
     )
     for existing, landed in collisions:
@@ -1382,9 +1354,10 @@ LOCAL, SHARED = repo_config.LOCAL, repo_config.SHARED
 MODES = repo_config.MODES
 
 # The workflow `seal pr-checks install` writes, as GIT spells a pathspec: forward
-# slashes on every platform. `under()` turns it into a path for this
-# filesystem. The two dialects live as separate strings rather than one
-# string used for both, because a literal separator inside an
+# slashes on every platform. `lib/gitcmd.py#under_root` turns it into a
+# path for this filesystem, splitting it at `/` rather than handing it to
+# `os.path.join` whole. The two dialects live as separate strings rather
+# than one string used for both, because a literal separator inside an
 # `os.path.join` argument produces `C:/proj\.github/workflows` — a path in
 # two dialects that equals nothing any caller built (`lib/optin.py`
 # carries the same reasoning about `toplevel`).
@@ -1407,15 +1380,6 @@ PLACEHOLDER = "v<version>"
 PLUGIN_ROOT = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 )
-
-
-def under(root, rel):
-    """The disk path of a `/`-joined repository-relative path.
-
-    The split happens HERE rather than inside `os.path.join`, for the reason
-    WORKFLOW gives above.
-    """
-    return os.path.join(root, *rel.split("/"))
 
 
 config_path = repo_config.config_path
@@ -1700,7 +1664,7 @@ def workflow_at(repo):
     three forms of `seal pr-checks` share, so the report, the install and the
     removal tell this plugin's file from somebody else's by one rule.
     """
-    path = under(repo, WORKFLOW)
+    path = gitcmd.under_root(repo, WORKFLOW)
     if not os.path.lexists(path):
         return "absent", ""
     if os.path.islink(path):
@@ -1791,7 +1755,7 @@ def install_workflow(repo):
             "this plugin's file, so nothing was written. Move it aside and run "
             "this again, or add the checks to it by hand."
         )
-    path = under(repo, WORKFLOW)
+    path = gitcmd.under_root(repo, WORKFLOW)
     version = plugin_version()
     if not version:
         return "no-version", (
@@ -1871,7 +1835,7 @@ def remove_workflow(repo):
     A file this plugin did not write is left alone: deleting somebody's
     workflow because it shares a name is the destructive direction.
     """
-    path = under(repo, WORKFLOW)
+    path = gitcmd.under_root(repo, WORKFLOW)
     kind, text = workflow_at(repo)
     if kind == "absent":
         if not tracked(repo, WORKFLOW):
@@ -2496,6 +2460,10 @@ def check(cwd):
     changed = len({*now, *then}) - sum(
         1 for item in now if item in then and now[item] == then[item]
     )
+    # Not `console.plural`: the line is quoted acceptance text, so at N=1
+    # it reads `1 work items`. Reading the quoted line as a template with
+    # a grammar rule attached is a change to an acceptance criterion,
+    # which is not this command's to make.
     print(f"{changed} work items changed since the last export")
     return 0
 
@@ -2640,16 +2608,5 @@ def main(argv=None, cwd=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py` owns the reasoning and the three decisions
-    # behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

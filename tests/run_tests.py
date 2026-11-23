@@ -53,20 +53,18 @@ benchmark rather than a computation -- `.github/workflows/test.yml` runs it
 here, because a figure stated with no date or machine cannot be checked
 later.
 
-Three packages beyond those two are installed the same way, each pinned to
-one version and listed in `PINS`, and one pair of functions,
-`has_pin` and `add_pin`, serves the three. `markdown-it-py`, pinned in
-`MARKDOWN_IT`, is the CommonMark parser the suite's oracle reads, so
-the readers under `lib/` are checked against a parser that shares nothing
-with them. `cmarkgfm`, pinned in `CMARKGFM`, is GitHub's own
-renderer, which `tests/gfm_table_oracle.py` reads to hold the table walker in
-`lib/tables.py` to what GitHub renders. `PyYAML`, pinned in `PYYAML`,
-is the parser `tests/workflows.py` reads a workflow file with. All
-three are test-only: nothing under `lib/` or `skills/` imports them.
+What a build installs is every requirement `tests/requirements.txt` lists,
+read as this module loads into `PACKAGES`; the file says what each package
+is and why each pin is pinned. The pinned ones, `PINS`, are installed the
+same way as pytest-xdist into an adopted `.venv` that lacks their version,
+and one pair of functions, `has_pin` and `add_pin`, serves every pin. A
+file that cannot be read stops the runner at exit 2 with a sentence before
+anything is built, as an absent module of `lib/` does.
 """
 
 import collections
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -85,84 +83,77 @@ import sibling
 # why.
 FLOOR = tuple(sibling.load("lib/launch.py").FLOOR)
 FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
+console = sibling.load("lib/console.py")
 
-# The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`).
-# Pinned to one version, because the oracle is what the readers'
-# property cases are held to, and an oracle that moved under the suite would
-# move every verdict with it. Test-only: the gates themselves stay
-# stdlib-only, and a plugin user installs nothing new.
-# `.github/workflows/test.yml`, `.github/workflows/publish-release.yml` and
-# `CONTRIBUTING.md`'s fallback carry the same string, and a case holds each
-# to this one.
-MARKDOWN_IT_VERSION = "4.2.0"
-MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
-
-# GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
-# `lib/tables.py#gfm_table` is held to (`tests/gfm_table_oracle.py`).
-# Pinned for the parser's reason -- a renderer that moved under the suite would
-# move every verdict of the walker's property case with it -- and test-only on
-# the same terms: nothing under `lib/` or `skills/` imports it. The version
-# was chosen as the newest with a wheel for Python 3.12 on Windows, macOS
-# (arm64) and Linux, so no runner compiles it. `.github/workflows/test.yml`,
-# `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
-# carry the same string, and a case holds each to this one.
-CMARKGFM_VERSION = "2025.10.22"
-CMARKGFM = f"cmarkgfm=={CMARKGFM_VERSION}"
-
-# The YAML parser `tests/workflows.py` reads a workflow file with, so
-# no case reads a job, a step or a key by indentation. Pinned for the
-# parser's reason -- a parser that moved under the suite would move what
-# every workflow case reads -- and test-only on the same terms. 6.0.3 has a
-# wheel for CPython 3.12 and 3.14 on Windows, macOS and Linux, so no runner
-# compiles it. `.github/workflows/test.yml`,
-# `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
-# carry the same string, and a case holds each to this one.
-PYYAML_VERSION = "6.0.3"
-PYYAML = f"PyYAML=={PYYAML_VERSION}"
-
-# `pytest-split`, the plugin the Windows leg of `.github/workflows/test.yml`
-# stores its per-case durations with, and that divides the suite by
-# them into that leg's shards.
-# Pinned for the parser's reason, since the file it writes is what the
-# division is computed from. CI-only, so it is NOT in `PACKAGES` below:
-# `bin/test` never stores durations or divides the suite, and a local build
-# installs nothing new for it. `.github/workflows/test.yml` carries the same
-# string, and a case holds it to this one.
-PYTEST_SPLIT_VERSION = "0.11.0"
-PYTEST_SPLIT = f"pytest-split=={PYTEST_SPLIT_VERSION}"
-
-# One row per pinned package the suite imports: what `pip` installs, the
-# `.dist-info` directory that version leaves under site-packages, the module
-# under `tests/` that imports it, and what that module is, for the sentence
-# `add_pin` prints. A pin added here is built, adopted and reported with the
-# others, and its cases in `tests/test_run_tests.py` run over this
-# table.
-Pin = collections.namedtuple("Pin", "spec dist_info module role")
-PINS = (
-    Pin(
-        MARKDOWN_IT,
-        f"markdown_it_py-{MARKDOWN_IT_VERSION}.dist-info",
-        "tests/commonmark_oracle.py",
-        "the parser the suite's CommonMark oracle reads",
-    ),
-    Pin(
-        CMARKGFM,
-        f"cmarkgfm-{CMARKGFM_VERSION}.dist-info",
-        "tests/gfm_table_oracle.py",
-        "the renderer the table walker's oracle reads",
-    ),
-    Pin(
-        PYYAML,
-        f"pyyaml-{PYYAML_VERSION}.dist-info",
-        "tests/workflows.py",
-        "the parser the suite reads a workflow file with",
-    ),
+# The suite's packages, their one home, beside this file in `tests/`.
+REQUIREMENTS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "requirements.txt"
 )
 
-# What a built environment holds. `pytest-xdist` is here because the suite
-# runs `-n auto` by default: a build without it refuses the flag on its
-# first call. The pins are here for the modules `PINS` names.
-PACKAGES = ("pytest", "pytest-xdist", *(pin.spec for pin in PINS))
+# What a file that cannot be read is called.
+UNREAD = (
+    "bin/test: cannot read {path} ({problem}), which lists the packages the "
+    "suite's virtualenv is built with. It stands in tests/ beside this "
+    "runner; restore it from git. Nothing was built."
+)
+
+# pip's comment: a `#` at the start of a line or after whitespace, to the
+# line's end (pip's `req_file.COMMENT_RE`).
+COMMENT = re.compile(r"(^|\s+)#.*$")
+
+# A pinned requirement: what `pip` installs, and the `.dist-info` directory
+# that version leaves under site-packages, which `has_pin` looks for.
+Pin = collections.namedtuple("Pin", "spec dist_info")
+
+
+def requirements(path):
+    """Each requirement the file at PATH lists, in its order: every line
+    with its comment and the whitespace around it taken off, the lines
+    left empty dropped. Raises `OSError` or `UnicodeDecodeError` where the
+    file cannot be read."""
+    with open(path, encoding="utf-8") as handle:
+        lines = handle.read().splitlines()
+    found = []
+    for line in lines:
+        requirement = COMMENT.sub("", line).strip()
+        if requirement:
+            found.append(requirement)
+    return found
+
+
+def pin_of(requirement):
+    """The `Pin` of REQUIREMENT where it is `<name>==<version>`, else None.
+
+    The `.dist-info` name is the wheel format's: the name lowercased with
+    each run of `-`, `_` and `.` made one `_`, then `-<version>.dist-info`,
+    the version as the line writes it: a build of this suite's `.venv` left
+    `markdown_it_py-<version>.dist-info` for `markdown-it-py` and
+    `pyyaml-<version>.dist-info` for `PyYAML`. A pin written with extras, an
+    environment marker or a version in another form than its normalised
+    one, such as `1.0-rc1` for `1.0rc1`, derives a directory no install
+    leaves, so `has_pin` never finds it and `bin/test` reinstalls it on
+    every run.
+    """
+    name, sep, version = requirement.partition("==")
+    if not sep:
+        return None
+    stem = re.sub(r"[-_.]+", "_", name.strip()).lower()
+    return Pin(requirement, f"{stem}-{version.strip()}.dist-info")
+
+
+# What a built environment holds: every requirement the file lists, and
+# among them the pinned ones, which an adopted environment is given too.
+try:
+    PACKAGES = tuple(requirements(REQUIREMENTS))
+except (OSError, UnicodeDecodeError) as problem:
+    sys.stderr.write(
+        UNREAD.format(
+            path=REQUIREMENTS, problem=getattr(problem, "strerror", None) or problem
+        )
+        + "\n"
+    )
+    raise SystemExit(2) from None
+PINS = tuple(pin for pin in map(pin_of, PACKAGES) if pin)
 
 
 def repo_root():
@@ -262,7 +253,8 @@ def add_xdist(venv):
 
 def has_pin(venv, pin):
     """True when `venv` holds PIN at its pinned version: the pin's own
-    `.dist-info` directory, version in the name, under site-packages.
+    `.dist-info` directory, version in the name, under site-packages,
+    named as `pin_of` derives it from the line of `tests/requirements.txt`.
 
     The VERSIONED directory rather than the package directory, because the
     pin is the point: an adopted `.venv` holding another version would hand
@@ -277,10 +269,10 @@ def add_pin(venv, pin):
     None when the environment has it.
 
     `add_xdist`'s shape and its reason: an adopted `.venv` built before a pin
-    joined `PINS` lacks it, and it is repaired rather than refused. What a
-    failed install costs is different, and the sentence says what pytest then
-    does: the module that imports the pin's module fails
-    to collect with a `ModuleNotFoundError`, and pytest's answer to a
+    joined `tests/requirements.txt` lacks it, and it is repaired rather than
+    refused. What a failed install costs is different, and the sentence says
+    what pytest then does: a test module that imports the package fails to
+    collect with a `ModuleNotFoundError`, and pytest's answer to a
     collection error depends on the run. With pytest 9.1.1 and pytest-xdist
     3.8.0, under `-n 2` every other module's cases run and the run exits 1;
     under `-p no:xdist` pytest stops at collection, runs no case and exits 2.
@@ -293,20 +285,19 @@ def add_pin(venv, pin):
     else:
         step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", pin.spec]
     print(
-        f"bin/test: adding {pin.spec} to {venv}, {pin.role}. This run pays for "
-        "it; every run after it finds it there.",
+        f"bin/test: adding {pin.spec} to {venv}. This run pays for it; every "
+        "run after it finds it there.",
         file=sys.stderr,
     )
     if subprocess.run(step).returncode != 0:
         return (
             f"bin/test: could not install {pin.spec} into {venv} (the command "
-            f"above exited non-zero). `{pin.module}` imports it, so a module "
-            f"that imports `{pin.module}` fails to collect with a "
-            "ModuleNotFoundError: a parallel run runs every other case and "
-            "exits non-zero, and a serial one -- `-p no:xdist`, `--pdb`, or no "
-            "pytest-xdist -- stops at collection and runs no case. Remove that "
-            f"directory and run bin/test again to build it afresh with "
-            f"{pin.spec} in it."
+            "above exited non-zero), so a test module that imports it fails to "
+            "collect with a ModuleNotFoundError: a parallel run runs every "
+            "other case and exits non-zero, and a serial one -- `-p no:xdist`, "
+            "`--pdb`, or no pytest-xdist -- stops at collection and runs no "
+            "case. Remove that directory and run bin/test again to build it "
+            f"afresh with {pin.spec} in it."
         )
     return None
 
@@ -581,14 +572,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     raise SystemExit(main())

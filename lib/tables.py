@@ -260,7 +260,7 @@ HTML_KINDS = (
         re.compile(r"</(?:script|pre|style|textarea)>", re.I),
     ),
     # 2-5: a comment, a processing instruction, a declaration, CDATA.
-    (re.compile(r"<!--"), re.compile(r"-->")),
+    (re.compile(re.escape(blocks.OPENER)), re.compile(re.escape(blocks.CLOSER))),
     (re.compile(r"<\?"), re.compile(r"\?>")),
     (re.compile(r"<![A-Za-z]"), re.compile(r">")),
     (re.compile(r"<!\[CDATA\["), re.compile(r"\]\]>")),

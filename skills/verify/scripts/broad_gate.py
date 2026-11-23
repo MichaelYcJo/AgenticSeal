@@ -143,10 +143,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = "skills/verify/scripts/seal_stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
-CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
-# `chain_check.SEALING`, the flag the chain arm passes. Spelled here
-# because the arm runs the check as a process; a case holds the two equal.
-CHAIN_SEALING = "--sealing"
+# The chain arm runs the check as a process, and passes the check's own
+# `SEALING`, read from the module `main` loads before any arm runs.
+CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
+CHAIN = os.path.join(PLUGIN, *CHAIN_CHECK.split("/"))
 CONFIG_READER = "lib/config.py"
 # `lib/fields.py`, which assembles the run block `--record` appends and
 # reads the blocks already there.
@@ -173,7 +173,8 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-CONFIG = "config.json"
+console = sibling.load("lib/console.py")
+
 KEY = "Broad gate"
 
 # The checks, by the name the report prints for each. The first is the
@@ -283,17 +284,6 @@ def plugin_version(plugin):
     return str(version) if version else "?"
 
 
-def under(path, root):
-    """Whether `path` lies under `root`, both taken by realpath."""
-    if root is None:
-        return False
-    path, root = os.path.realpath(path), os.path.realpath(root)
-    try:
-        return os.path.commonpath([path, root]) == root
-    except ValueError:  # different drives on Windows
-        return False
-
-
 def copy_origin(root, plugin=PLUGIN, running=None):
     """`tree <version>` where the running copy lies under the gated root,
     `plugin <version>` otherwise, the version read from the running copy's
@@ -306,11 +296,13 @@ def copy_origin(root, plugin=PLUGIN, running=None):
     stderr carries the path in full, the way `moved_line` carries what the
     panel cannot. Elided at the frame (`fit`), so a long
     version is a shorter label and never a wider row. `running` is this
-    file unless a case names another.
+    file unless a case names another. The two paths are compared resolved.
     """
-    origin = (
-        "tree" if under(__file__ if running is None else running, root) else "plugin"
+    running = __file__ if running is None else running
+    tree = root is not None and gitcmd_module().inside(
+        os.path.realpath(running), os.path.realpath(root)
     )
+    origin = "tree" if tree else "plugin"
     return stamp_module().fit(f"{origin} {plugin_version(plugin)}")
 
 
@@ -342,7 +334,9 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     branch that changed the gate would print nothing exactly when it matters.
     """
     running = __file__ if running is None else running
-    if not under(running, root):
+    if root is None or not gitcmd_module().inside(
+        os.path.realpath(running), os.path.realpath(root)
+    ):
         return None
     if installed:
         try:
@@ -592,14 +586,11 @@ def seal_home(root):
     `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
     this plugin resolves to (contract rule 11), read in that order. Each is
     the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
-    the project keeps for itself is never read for a command. The places and the marker are
-    `optin`'s; the scratch opt-out is not read here, because a throwaway
-    repository still runs its broad command when somebody asks for it."""
-    optin = sibling.load(OPTIN)
-    for found in optin.home_paths(root):
-        if found and os.path.isdir(found) and optin.marked(found):
-            return found
-    return None
+    the project keeps for itself is never read for a command. The answer is
+    `lib/optin.py#marked_home`'s; the scratch opt-out is not read here,
+    because a throwaway repository still runs its broad command when
+    somebody asks for it."""
+    return sibling.load(OPTIN).marked_home(root) or None
 
 
 def broad_command(home):
@@ -634,7 +625,8 @@ def missing_row(home):
     afterwards. The message says whose the key is and where they answer
     it."""
     return (
-        f"seal gate: {os.path.join(home, CONFIG)} has no `{KEY}` key, so "
+        f"seal gate: {sibling.load(CONFIG_READER).config_path(home)} has no "
+        f"`{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
@@ -847,7 +839,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
     Nothing is stripped or rewritten. A value silently repaired here leaves
     the file still wrong and teaches the next person that it was right.
     """
-    config = os.path.join(home, CONFIG)
+    config = sibling.load(CONFIG_READER).config_path(home)
     value = command.strip()
     opener = wholly_substituted(value)
     unread = ""
@@ -1582,22 +1574,9 @@ def rounds_rows(item):
     refuses anything of adds nothing beneath."""
     records = sibling.load(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
-    # The deferred row beneath never stops a run that passed, so an absent
-    # check is said here and the run goes on, and a check that raises or
-    # exits while it loads leaves the count alone. `lib/routing.py`, which
-    # lists the records above, loads as every other `lib/` module does:
-    # absent, it is the loader's sentence and exit 2.
-    try:
-        with sibling.going_on():
-            chain = sibling.load("skills/code-review/scripts/chain_check.py")
-    except sibling.Absent as absent:
-        sys.stderr.write(
-            f"seal gate: the round records' deferred findings are not counted: "
-            f"{absent.path} is absent\n"
-        )
-        return rows
-    except (Exception, SystemExit):
-        return rows
+    # `main` loaded the check before any arm ran and the chain arm read its
+    # `SEALING`, so this is the module the process already holds.
+    chain = sibling.load(CHAIN_CHECK)
     stamp = stamp_module()
     count, homes = 0, []
     for path in records:
@@ -2063,9 +2042,10 @@ def gate(args, ascii_marks=False):
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
     # written into the environment for it.
+    sealing = sibling.load(CHAIN_CHECK).SEALING
     checks[CHAIN_NAME] = run(
         CHAIN_NAME,
-        [py, CHAIN, "--baseline", base.commit, "--root", root, CHAIN_SEALING],
+        [py, CHAIN, "--baseline", base.commit, "--root", root, sealing],
         root,
         keep,
     )
@@ -2250,6 +2230,11 @@ def main(argv=None, console_wants_ascii=False):
         args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
         if root:
             sys.stderr.write(running_line(root) + "\n")
+        # The check whose `SEALING` the chain arm passes, loaded before any
+        # arm runs: a copy of the plugin without it is the loader's sentence
+        # and exit 2, with no arm run, where the suite would otherwise run
+        # first and the chain arm then fail.
+        sibling.load(CHAIN_CHECK)
         return gate(args, console_wants_ascii)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
@@ -2261,16 +2246,9 @@ def main(argv=None, console_wants_ascii=False):
 
 if __name__ == "__main__":
     # Whether the report's marks go out in ASCII, asked of stdout as the
-    # process found it — before the loop below moves every stream to UTF-8
-    # (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
-    # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
+    # process found it — before `console.to_utf8()` moves every stream to
+    # UTF-8 (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
+    # exempt from entry_point: stdout is asked how the process found it before console.to_utf8() moves it to UTF-8
     _ascii = not sibling.load(STAMP).is_utf8(sys.stdout)
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main(console_wants_ascii=_ascii))

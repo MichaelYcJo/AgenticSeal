@@ -871,11 +871,14 @@ class Test_module:
         sentence naming the first it loads, `lib/blocks.py`.
         Every run loads `lib/core.py` first, so this copy carries it,
         `lib/optin.py`, the one module it loads, and `lib/gitcmd.py`, which
-        `lib/optin.py` starts git through."""
+        `lib/optin.py` starts git through. The meter loads `lib/console.py`
+        at import since #1575, for its `__main__` block's `to_utf8`, so the
+        copy carries it too."""
         alone = tmp_path / "alone"
         for rel in (
             TARGET,
             "lib/sibling.py",
+            "lib/console.py",
             "lib/core.py",
             "lib/optin.py",
             "lib/gitcmd.py",

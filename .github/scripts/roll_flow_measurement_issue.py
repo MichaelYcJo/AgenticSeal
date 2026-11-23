@@ -152,7 +152,8 @@ succeeded and the open then failed (message names the closed issue and the
 recovery title).
 
 Every `gh` call starts through `lib/gitcmd.py#gh`, loaded at import through
-`lib/sibling.py` as the scripts beside this one load `lib/`.
+`lib/sibling.py` as the scripts beside this one load `lib/`. The label is
+`skills/verify/scripts/session_cost.py#ROLLING_LABEL`, loaded the same way.
 """
 
 import json
@@ -167,7 +168,10 @@ sys.path.insert(0, os.path.join(ROOT, "lib"))
 import sibling  # noqa: E402
 
 gitcmd = sibling.load("lib/gitcmd.py")
-LABEL = "flow-measurement"
+console = sibling.load("lib/console.py")
+# The rolling log's label, `seal cost --post`'s default: one label for the
+# script that posts a reading and the one that rolls the log it goes to.
+LABEL = sibling.load("skills/verify/scripts/session_cost.py").ROLLING_LABEL
 BASELINE_LABEL = "flow-baseline"
 INDEX_LABEL = "measurement"
 INDEX_MILESTONE = "log: measurement"
@@ -363,7 +367,7 @@ def close_issue(repo, number, shipped, comments=None):
         repo,
         "--comment",
         f"Closed by the release that just shipped {shipped}. The next "
-        f"flow-measurement issue opens as `{log_title(shipped)}` -- named "
+        f"{LABEL} issue opens as `{log_title(shipped)}` -- named "
         f"after the version this release shipped, and closed by whatever "
         f"ships after it. `docs/running/measuring-a-run.md`'s \"Where a reading "
         f'goes" section has the reasoning.{empty}',
@@ -570,14 +574,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     main()

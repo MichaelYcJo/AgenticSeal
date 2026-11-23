@@ -71,6 +71,7 @@ closer = sibling.load(".github/scripts/close_issues_on_release.py")
 # `lib/closing.py`, the readers of a squash subject and a closing keyword the
 # closer reads with.
 closing = sibling.load("lib/closing.py")
+console = sibling.load("lib/console.py")
 
 
 # --- the name mapping -----------------------------------------------------
@@ -252,14 +253,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

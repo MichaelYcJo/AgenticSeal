@@ -163,29 +163,6 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     # them names its builds by two components, so no token is left for a row
     # to name; a row naming none would let the number back into the gate
     # unexamined.
-    ("CONTRIBUTING.md", "4.2.0"): (
-        "markdown-it-py's, the parser the suite's CommonMark oracle reads, "
-        "pinned in `tests/run_tests.py#MARKDOWN_IT` (#667). The "
-        "fallback commands in *Running the checks* carry the pin so they "
-        "install the parser the oracle is held to, and a case holds them to "
-        "the runner's constant; no release of AgenticSeal makes the number wrong"
-    ),
-    ("CONTRIBUTING.md", "2025.10.22"): (
-        "cmarkgfm's, GitHub's renderer the table walker's oracle reads, "
-        "pinned in `tests/run_tests.py#CMARKGFM` (#647). The class "
-        "is the row above's: the fallback commands carry the pin so they "
-        "install the renderer the walker's property case is held to, and a "
-        "case holds them to the runner's constant; the package numbers its "
-        "releases by date, and no release of AgenticSeal makes the number wrong"
-    ),
-    ("CONTRIBUTING.md", "6.0.3"): (
-        "PyYAML's, the parser `tests/workflows.py` reads a workflow file with, "
-        "pinned in `tests/run_tests.py#PYYAML` (#1486). The class "
-        "is the two rows above's: the fallback commands carry the pin so they "
-        "install the parser the workflow cases read with, and a case holds "
-        "them to the runner's constant; no release of AgenticSeal makes the "
-        "number wrong"
-    ),
     ("skills/verify/scripts/payload_meter.py", "2.1.318"): (
         "Claude Code's, named in `imports_of`'s docstring as the build whose "
         "import reader was read for #1185, the source of each shape the meter "

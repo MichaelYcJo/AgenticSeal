@@ -386,7 +386,7 @@ class Folds(html.parser.HTMLParser):
 def folds_read(body):
     """The `details` elements of `body` as GitHub renders a release note:
     cmark-gfm, the renderer the suite pins
-    (`tests/run_tests.py#CMARKGFM`), with raw HTML kept."""
+    (`tests/requirements.txt`), with raw HTML kept."""
     reader = Folds()
     reader.feed(
         cmarkgfm.github_flavored_markdown_to_html(

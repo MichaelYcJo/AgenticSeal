@@ -44,7 +44,8 @@ import os
 import sys
 
 # `lib/` beside this script. The memo's reader, `lib/gaps.py`, the line
-# that names a file to GitHub, `lib/console.py#annotate`, the path as git
+# that names a file to GitHub, `lib/console.py#annotate`, beside the
+# streams' answer, `lib/console.py#to_utf8`, the path as git
 # spells it, `lib/gitcmd.py#git_path`, the `Reference specs` key's reader and
 # the root's resolver are loaded through `lib/sibling.py`.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -53,10 +54,11 @@ sys.path.insert(0, LIB)
 import sibling  # noqa: E402
 
 GAPS = sibling.load("lib/gaps.py")
-CONSOLE = sibling.load("lib/console.py")
+console = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
 # `lib/optin.py`, whose `WORK_ITEMS` names the directory under a `seal/`
-# root that holds the threads.
+# root that holds the threads, and whose `GAPS` names a thread's closing
+# memo.
 OPTIN = sibling.load("lib/optin.py")
 SKIP_DIRS = {
     ".git",
@@ -94,8 +96,8 @@ def overviews(paths):
                 for d in dirs
                 if d not in SKIP_DIRS and not (skip and skip(os.path.join(root, d)))
             )
-            if GAPS.OVERVIEW in files:
-                found.append(os.path.join(root, GAPS.OVERVIEW))
+            if OPTIN.GAPS in files:
+                found.append(os.path.join(root, OPTIN.GAPS))
     return sorted(dict.fromkeys(found))
 
 
@@ -272,7 +274,7 @@ def main(argv=None):
         total_open += len(open_rows)
         total_closed += len(closed_rows)
         for line_no, message in errors:
-            bad.append(CONSOLE.annotate("error", rel, line_no, message))
+            bad.append(console.annotate("error", rel, line_no, message))
         if not errors and (open_rows or closed_rows):
             print(f"  {rel}  {len(open_rows)} open · {len(closed_rows)} closed")
             for _, item, who in open_rows:
@@ -283,7 +285,7 @@ def main(argv=None):
             print(SETTLED.format(path=", ".join(args.path)))
             return 0
         print(
-            f"seal unverified: no {GAPS.OVERVIEW} found under "
+            f"seal unverified: no {OPTIN.GAPS} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )
@@ -314,16 +316,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py`
-    # owns the reasoning and the three decisions behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

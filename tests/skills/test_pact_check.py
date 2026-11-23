@@ -147,9 +147,23 @@ class Test_module:
         self, monkeypatch, tmp_path
     ):
         """Loaded with Windows' `os.path.join`, as on a Windows runner, the
-        module still names the map with `/`; reading the file stays native."""
+        module still names the map with `/`; reading the file stays native.
+        A path that starts at this disk's root keeps this platform's join:
+        the script loads `lib/console.py` through `lib/sibling.py` at import
+        since #1575, and the loader joins the plugin's root, which a
+        Windows-joined path names nowhere on a POSIX disk. Both joins are
+        bound before the patch: on Windows `os.path` is `ntpath`, so the
+        patch replaces `ntpath.join`, and a call through that name would
+        reach `windows_join` again."""
+        native_join, nt_join = os.path.join, ntpath.join
+
+        def windows_join(first, *rest):
+            if os.path.isabs(first):
+                return native_join(first, *rest)
+            return nt_join(first, *rest)
+
         with monkeypatch.context() as patched:
-            patched.setattr(os.path, "join", ntpath.join)
+            patched.setattr(os.path, "join", windows_join)
             windows = load_module(SCRIPT, "pact_check_with_windows_joins")
         _, why = windows.checkout(config, SIGNER, str(tmp_path / "nowhere"), {})
         assert "~/.claude/agentic/pact-paths.json" in why, why
@@ -1263,7 +1277,7 @@ class Test_main:
 def test_no_line_formats_a_path_without_the_helper():
     """S6, the class: every `{…}` in an f-string of `pact_check.py` that names
     a path variable goes through `shown`. Restoring the old
-    `{their_home}/{CONFIG_FILE}` puts one back, and this names it."""
+    `{their_home}/{config.CONFIG}` puts one back, and this names it."""
     import ast
 
     with open(SCRIPT, encoding="utf-8") as handle:

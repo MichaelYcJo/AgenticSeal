@@ -55,7 +55,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # other split under `SHIPPED` to a marker naming the text it splits, which is
 # not markdown.
 try:
-    from blocks import fence_closes, fence_opener, gfm_lines
+    from blocks import CLOSER, OPENER, fence_closes, fence_opener, gfm_lines
 except ImportError as missing:
     # A sentence rather than a bare `ModuleNotFoundError`, as `lib/tables.py`
     # and `lib/fields.py` raise it: this is a module other code imports.
@@ -71,13 +71,12 @@ except ImportError as missing:
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# The two delimiters of an HTML comment. `live_lines` scans for them directly
-# for the callers that read files other than records: it holds the comment
-# state itself, so neither is looked for while it is inside a fence or a code
-# span. A record carries no comment, and `comment_lines` finds a record line
-# that begins with OPENER for the reader that refuses it.
-OPENER = "<!--"
-CLOSER = "-->"
+# OPENER and CLOSER, the two delimiters of an HTML comment, are `blocks`'s,
+# imported above. `live_lines` scans for them directly for the callers that
+# read files other than records: it holds the comment state itself, so
+# neither is looked for while it is inside a fence or a code span. A record
+# carries no comment, and `comment_lines` finds a record line that begins
+# with OPENER for the reader that refuses it.
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
 

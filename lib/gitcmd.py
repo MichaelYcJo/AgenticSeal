@@ -40,12 +40,12 @@ a subcommand found later to change a reading is added here and nowhere
 else. `core.quotePath` is not set: a script that takes a path out of output
 git quotes under it asks for the path with `-z`, which quotes none.
 
-Two helpers spell a path the way git does and back: `git_path` turns a
-path built by `os.path` into git's `/`-joined form, and `under_root` turns
-a `/`-joined repository-relative path into the disk's. A third,
-`http_answer`, reads the HTTP status and the body out of what `gh api -i`
-printed, so a caller decides on the status and not on the words of gh's
-stderr.
+Three helpers read a path: `git_path` turns a path built by `os.path`
+into git's `/`-joined form, `under_root` turns a `/`-joined
+repository-relative path into the disk's, and `inside` answers whether a
+path on the disk is a directory or under it. `http_answer` reads the HTTP
+status and the body out of what `gh api -i` printed, so a caller decides
+on the status and not on the words of gh's stderr.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
 `seal_stamp.py`, and every hook that reads `lib/optin.py`, reach it on
@@ -105,6 +105,21 @@ def git_path(path):
 def under_root(root, rel):
     """The disk path of a `/`-joined repository-relative path."""
     return os.path.join(root, *rel.split("/"))
+
+
+def inside(path, top):
+    """Whether PATH is TOP or under it, each taken absolute from the
+    directory this runs in. A caller that compares real paths resolves both
+    first.
+
+    `commonpath` rather than `startswith`, which reads `/repo-2/x` as under
+    `/repo`. Paths on two drives share no prefix, and `commonpath` raises for
+    them."""
+    path, top = os.path.abspath(path), os.path.abspath(top)
+    try:
+        return os.path.commonpath([path, top]) == top
+    except ValueError:
+        return False
 
 
 class Failed(SystemExit):

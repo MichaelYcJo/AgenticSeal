@@ -75,6 +75,8 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
+console = sibling.load("lib/console.py")
+
 # The bytes-per-token ratio every token figure is estimated at. Between the
 # three measured agents (2.71, 3.16, 3.44 over tree bytes; 2.87, 3.41, 3.44
 # over the bytes the spawns read), and labelled `assumed` on every figure it
@@ -569,12 +571,5 @@ def main():
 
 
 if __name__ == "__main__":
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

@@ -873,11 +873,11 @@ class Test_report:
 
 def records_in_place(tmp_path, name):
     """A work item directory under TMP_PATH holding the three records the
-    settle reads, each at its place, and the `misplaced` reader."""
+    settle reads, each at its place."""
     top = tmp_path / "seal" / "threads" / name
     for rel in ("gaps.md", "frame/design.md", "frame/plan.md"):
         write(top, rel, "# x\n")
-    return top, settle.sibling.load(settle.READER)
+    return top
 
 
 class Test_misplaced:
@@ -886,14 +886,12 @@ class Test_misplaced:
         but the record's own, is named with the record, as a regular file or
         as a link to one, and the records at their places are not. Seen red
         with the place test removed."""
-        top, reader = records_in_place(tmp_path, "1700000001-a")
+        top = records_in_place(tmp_path, "1700000001-a")
         (top / "x").mkdir()
         (top / "x" / "design.md").write_text("# x\n", encoding="utf-8")
         (top / "trail").mkdir()
         symlink_or_skip(top / "gaps.md", top / "trail" / "gaps.md")
-        assert settle.misplaced(
-            str(tmp_path), "1700000001-a", reader, "seal/threads"
-        ) == [
+        assert settle.misplaced(str(tmp_path), "1700000001-a", "seal/threads") == [
             ("trail/gaps.md", "gaps.md"),
             ("x/design.md", "frame/design.md"),
         ]
@@ -904,7 +902,7 @@ class Test_misplaced:
         longer name are not named, and a linked directory is not followed.
         Seen red with the walk following links, and with the file test
         removed."""
-        top, reader = records_in_place(tmp_path, "1700000001-a")
+        top = records_in_place(tmp_path, "1700000001-a")
         (top / "notes").mkdir()
         (top / "notes" / "Gaps.md").write_text("# x\n", encoding="utf-8")
         (top / "notes" / "gaps.md.bak").write_text("# x\n", encoding="utf-8")
@@ -914,10 +912,7 @@ class Test_misplaced:
         (elsewhere / "gaps.md").write_text("# x\n", encoding="utf-8")
         symlink_or_skip(elsewhere, top / "linked", directory=True)
         symlink_or_skip(tmp_path / "nowhere", top / "notes" / "plan.md")
-        assert (
-            settle.misplaced(str(tmp_path), "1700000001-a", reader, "seal/threads")
-            == []
-        )
+        assert settle.misplaced(str(tmp_path), "1700000001-a", "seal/threads") == []
 
 
 class Test_apply:

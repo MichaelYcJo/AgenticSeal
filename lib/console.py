@@ -43,25 +43,27 @@ Every entry point owes the answer: each tracked `.py` with a module-level
 `__main__` block opens its first such block with it, and one that cannot
 carries its reason in an exemption above the line
 `tests/censuses.py#entry_point` names, as `lib/launch.py` does. An entry
-point gives it by importing this module and calling `to_utf8()`, or by
-spelling the loop inline. A script that loads nothing from `lib/` at
-import spells the loop, because a load of this module would be one more load
-that can fail before the answer. Many of the scripts under `skills/*/scripts/`
-and `.github/scripts/` already reach `lib/` at import: each imports
-`lib/sibling.py` and loads the modules it reads through `sibling.load`,
-directly or through a sibling script, `skills/implement/scripts/seal.py`
-among them.
-`skills/code-review/scripts/chain_check.py` runs its loop before it loads any
-of them, so that the refusal it prints when one will not load does not meet a
-console's code page. None of the others says why it copies the loop rather
-than loading this module the same way.
-`.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
-`skills/settle/scripts/rules.py` load the tree's modules only when first
-asked, after the arguments are read, so an absent module ends the first and
-the last in `lib/sibling.py`'s sentence at exit 2 and `release_seal.py` in its
-note at exit 0, rather than in a traceback. This command lists every place
-outside the suite that spells the loop, with this file among them, and
-`tests/run_tests.py`, the suite's runner, spells it too:
+point that reaches `lib/` at import, by importing `lib/sibling.py` and
+loading the modules it reads through `sibling.load`, loads this module the
+same way, binds it as `console`, and opens the block with
+`console.to_utf8()`. `skills/implement/scripts/seal.py` and
+`tests/run_tests.py`, the suite's runner, are two of them. Two kinds of
+script spell the loop inline instead, and only these.
+
+- A script that loads nothing from `lib/` at import, because a load of this
+  module would be one more load that can fail before the answer.
+  `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
+  `skills/settle/scripts/rules.py` are of this kind: they load the tree's
+  modules only when first asked, after the arguments are read, so an absent
+  module ends the first and the last in `lib/sibling.py`'s sentence at exit
+  2 and `release_seal.py` in its note at exit 0, rather than in a traceback.
+- `skills/code-review/scripts/chain_check.py` and
+  `skills/code-review/scripts/pr_body.py`, which run their loops before they
+  load any module, so that the refusal each prints when one will not load
+  does not meet a console's code page.
+
+This command lists every place outside the suite that spells the loop, with
+this file among them:
 
     git grep -l "[.]reconfigure(" -- '*.py' ':!tests' ':!evals/behaviour'
 
@@ -70,7 +72,14 @@ What must not diverge is the ANSWER, which is written down here.
 `annotate` is the one spelling of a line a check prints about a file: a
 GitHub annotation in CI, a plain line anywhere else. `seal unverified` and
 `chain-check` print through it. It names the file as git spells it,
-`lib/gitcmd.py#git_path`, imported beside it.
+`lib/gitcmd.py#git_path`, which it imports when it is called in CI rather
+than at the top of this file. A load of this module then reads nothing
+beside the standard library, so an entry point that loads it for
+`to_utf8()` before it loads `lib/gitcmd.py` meets an absent `gitcmd.py` in
+`lib/sibling.py`'s sentence, not in a traceback out of this module.
+
+`plural` is the one spelling of a count a person reads, `1 file` or
+`2 files`: `1 files` is the tell that nobody read the output.
 
 `write_output` is the one writer of a step's output to `$GITHUB_OUTPUT`,
 which `.github/scripts/tag_release.py` and
@@ -81,8 +90,8 @@ It stands here so that neither script loads the other for it.
 import os
 import sys
 
+# `lib/` first on `sys.path`, for `annotate`'s import of `lib/gitcmd.py`.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gitcmd import git_path
 
 # stderr keeps `backslashreplace`, which is what Python ships it with and what
 # makes an undecodable path degrade rather than raise while it is being
@@ -112,9 +121,19 @@ def annotate(kind, path, line, message):
         # `unverified_check.py#display_path` output, which is `os.sep`-spelled
         # on purpose -- right for a line a person reads, wrong for this. Live
         # wherever that command runs on a Windows runner.
+        from gitcmd import git_path
+
         where = f" file={git_path(path)},line={line}" if path else ""
         return f"::{kind}{where}::{message}"
     return f"{path}:{line}  {message}" if path else message
+
+
+def plural(count, word, many=None):
+    """`1 <word>`, or `<count> <many>` where MANY is given, else
+    `<count> <word>s`."""
+    if count == 1:
+        return f"{count} {word}"
+    return f"{count} {many}" if many is not None else f"{count} {word}s"
 
 
 def write_output(name, value):

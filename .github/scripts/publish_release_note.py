@@ -616,21 +616,17 @@ def tally(pulls, owner):
     return work, closed, people
 
 
-def plural(count, word):
-    return f"{count} {word}{'' if count == 1 else 's'}"
-
-
 def counts(work, closed, people):
     """The release's counts in words, one line each: the pull requests
     merged, the issues they closed, and the outside contributors only where
     there are some. `header` states them in these words, and
     `sealed_header` states the same counts as badges (`count_badges`)."""
     lines = [
-        plural(len(work), "pull request") + " merged",
-        plural(len(closed), "issue") + " closed",
+        console.plural(len(work), "pull request") + " merged",
+        console.plural(len(closed), "issue") + " closed",
     ]
     if people:
-        lines.append(plural(len(people), "outside contributor"))
+        lines.append(console.plural(len(people), "outside contributor"))
     return lines
 
 

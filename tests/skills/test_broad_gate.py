@@ -195,9 +195,6 @@ class Test_module:
         ]
         assert len(reads) == 1, [node.lineno for node in reads]
 
-    def test_the_gate_and_the_check_spell_the_flag_alike(self):
-        assert gate.CHAIN_SEALING == chain.SEALING
-
     def test_a_file_the_gate_wrote_is_read_by_the_check(self, tmp_path):
         """#1198, *Scope* item 2: the run block the gate appends is the one
         `chain_check.py#broad_gate` reads, through the same reader."""
@@ -237,15 +234,6 @@ class Test_plugin_version:
         assert gate.plugin_version(str(tmp_path)) == "?"
         write(tmp_path, ".claude-plugin/plugin.json", "{}")
         assert gate.plugin_version(str(tmp_path)) == "?"
-
-
-class Test_under:
-    def test_accepts_a_path_under_the_root(self, tmp_path):
-        assert gate.under(str(tmp_path / "a" / "b"), str(tmp_path))
-
-    def test_refuses_a_sibling_and_no_root(self, tmp_path):
-        assert not gate.under(str(tmp_path / "b"), str(tmp_path / "a"))
-        assert not gate.under(str(tmp_path), None)
 
 
 class Test_copy_origin:
@@ -1268,53 +1256,6 @@ class Test_rounds_rows:
         write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
-    @pytest.mark.parametrize(
-        "raised", [ValueError("planted"), SystemExit(3)], ids=["raises", "exits"]
-    )
-    def test_refuses_to_stop_a_run_where_the_check_will_not_load(
-        self, tmp_path, monkeypatch, raised
-    ):
-        """The deferred row never stops a run that passed: a check that raises
-        or exits while it loads leaves the count alone beneath it. An absent
-        check is `lib/sibling.py#Absent`, which the case below holds."""
-        real = gate.sibling.load
-
-        def load(rel):
-            if rel == "skills/code-review/scripts/chain_check.py":
-                raise raised
-            return real(rel)
-
-        monkeypatch.setattr(gate.sibling, "load", load)
-        item = tmp_path / "1799000004-z"
-        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
-        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
-
-    def test_names_the_absent_check_in_its_own_line_and_goes_on(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """An absent check leaves the count alone beneath it, and the gate
-        says in its own line that the deferred findings were not counted,
-        naming the file, where the loader's sentence would say that nothing
-        was read of a run that goes on (#1482 round 1, finding 1).
-        `lib/routing.py`, which lists the round records, is the tree's,
-        loaded before the root moves, so only the check is absent."""
-        plugin = tmp_path / "no-plugin"
-        routing, load = gate.sibling.load(gate.ROUTING), gate.sibling.load
-        monkeypatch.setattr(
-            gate.sibling,
-            "load",
-            lambda rel: routing if rel == gate.ROUTING else load(rel),
-        )
-        monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
-        item = tmp_path / "1799000005-w"
-        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
-        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
-        absent = os.path.join(str(plugin), "skills", "code-review", "scripts")
-        assert capsys.readouterr().err == (
-            "seal gate: the round records' deferred findings are not counted: "
-            f"{os.path.join(absent, 'chain_check.py')} is absent\n"
-        )
-
 
 def checks(suite=0, chain_code=0):
     return {
@@ -1769,6 +1710,9 @@ class Test_gate:
         assert "unverified" not in out.stdout
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
+        # The chain arm passes the check's own flag, which `main` loads the
+        # check for (#1575).
+        assert chain_kept.splitlines()[0].endswith(f" {chain.SEALING}")
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "agentic-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
@@ -2109,12 +2053,15 @@ class Test_main:
         `lib/gitcmd.py#argv`, and `main` asks git for the root before
         anything runs. A copy whose `seal_stamp.py` loads and whose plugin
         holds no helper exits 2 with the loader's sentence, not 1 in a
-        traceback, which reads as a gate that ran and failed."""
+        traceback, which reads as a gate that ran and failed. The copy holds
+        `lib/console.py`, which the gate loads at import since #1575, and
+        whose load needs no helper."""
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
         scripts.mkdir(parents=True)
         shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
         (tmp_path / "plugin" / "lib").mkdir()
-        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
+        for name in ("sibling.py", "console.py"):
+            shutil.copy(ROOT / "lib" / name, tmp_path / "plugin" / "lib")
         write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
         keep = tmp_path / "out"
         out = subprocess.run(
@@ -2135,6 +2082,29 @@ class Test_main:
         assert out.returncode == 2, out.stderr
         helper = tmp_path / "plugin" / "lib" / "gitcmd.py"
         assert gate.sibling.MISSING.format(path=str(helper)) in out.stderr
+        assert "Traceback" not in out.stderr and not keep.exists()
+
+    def test_refuses_a_copy_without_its_chain_check_before_any_arm(self, tmp_path):
+        """#1575 S6. The chain arm passes `chain_check.py#SEALING`, and the
+        gate loads the check for it before the first arm runs. A copy of the
+        plugin without the check exits 2 with the loader's sentence naming
+        it, and runs no arm, so no arm's output is kept. Seen red against
+        the gate before #1575, which ran the suite and failed the chain arm
+        at exit 1."""
+        plugin = tmp_path / "plugin"
+        for part in ("lib", "skills", ".claude-plugin"):
+            shutil.copytree(
+                ROOT / part,
+                plugin / part,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        check = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
+        check.unlink()
+        repo = sealable_repo(tmp_path)
+        keep = tmp_path / "out"
+        out = run_gate(repo, keep, script=plugin / TARGET)
+        assert out.returncode == 2, out.stdout + out.stderr
+        assert gate.sibling.MISSING.format(path=str(check)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_accepts_the_command_a_person_types(self):
