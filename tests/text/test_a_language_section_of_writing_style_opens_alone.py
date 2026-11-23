@@ -1,14 +1,17 @@
 """Each language's rules in `writing-style` open alone, and say what else applies.
 
 An agent no longer preloads `skills/writing-style/SKILL.md`: its record step
-opens the section for the record's language, `## English prose rules` or
-`## 문장 규칙`, and reads it by range. A writer who reads one section by range
-misses the rules that apply in every language, so each of the two sections
-opens with one line naming them: `## 먼저`, `## 구성 규칙`, and the
-per-document section for the text being written. And a step that names a
+opens the section for the record's language and reads it by range. Contract
+rule 11 names the two sections, `## English prose rules` and `## 문장 규칙`,
+and the framer's, the crafter's and the proofer's record steps cite rule 11
+for them, each at its own number (#1579). A writer who reads one section by
+range misses the rules that apply in every language, so each of the two
+sections opens with one line naming them: `## 먼저`, `## 구성 규칙`, and the
+per-document section for the text being written. And a text that names a
 heading by its spelling breaks silently when the heading is renamed, so every
-heading an agent's `writing-style` step names must stand in the file (T7 and
-S8 of work item 1792251842, which wrote the crafter's definition anew).
+heading the contract or an agent's `writing-style` step names must stand in
+the file (T7 and S8 of work item 1792251842, which wrote the crafter's
+definition anew).
 
 The home is a module of its own rather than the payload meter's: nothing here
 reads what the meter measures, only what an agent opening a section finds.
@@ -19,14 +22,21 @@ import os
 import re
 
 from conftest import ROOT, read
+from test_the_agent_contract_holds_the_universal_rules import TARGET as CONTRACT
+from test_the_agent_contract_holds_the_universal_rules import bodies
 
-# No TARGET: its cases hold the language sections of skills/writing-style/SKILL.md against every definition under agents/ that names them.
+# No TARGET: its cases hold the language sections of skills/writing-style/SKILL.md against contract rule 11 and every definition under agents/ that names them.
 
 SKILL = "skills/writing-style/SKILL.md"
 
-# The two sections an agent opens alone, spelled as `agents/proofer.md` and
-# `agents/crafter.md` name them.
+# The two sections an agent opens alone, spelled as contract rule 11 names
+# them.
 LANGUAGE_SECTIONS = ("## 문장 규칙", "## English prose rules")
+
+# The contract rule that names them, and the definitions whose record step
+# cites it.
+NAMING_RULE = 11
+CITING_STEPS = ("agents/crafter.md", "agents/framer.md", "agents/proofer.md")
 
 # What each section's first paragraph names: the two language-agnostic
 # sections, and both homes of a per-document section.
@@ -70,17 +80,24 @@ def first_paragraph(lines, heading):
     return " ".join(para)
 
 
-def named_by_agents():
-    """Every `## …` span in an agent's list item or paragraph that names
-    `writing-style`, keyed by the definition that names it."""
+def writing_style_blocks(rel):
+    """Each list item or paragraph of REL that names `writing-style`, its
+    whitespace folded."""
+    blocks = re.split(r"\n\s*\n|\n(?=\d+\. )", read(rel))
+    return [" ".join(block.split()) for block in blocks if "writing-style" in block]
+
+
+def named_by_readers():
+    """Every `## …` span in a list item or paragraph that names
+    `writing-style`, keyed by the file that names it: each definition under
+    `agents/`, and the contract."""
     named = {}
-    for path in sorted(glob.glob(os.path.join(ROOT, "agents", "*.md"))):
-        rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
-        blocks = re.split(r"\n\s*\n|\n(?=\d+\. )", read(rel))
-        for block in blocks:
-            if "writing-style" in block:
-                for span in HEADING_SPAN.findall(" ".join(block.split())):
-                    named.setdefault(rel, set()).add(span)
+    paths = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
+    rels = [os.path.relpath(p, ROOT).replace(os.sep, "/") for p in paths]
+    for rel in [*rels, CONTRACT]:
+        for block in writing_style_blocks(rel):
+            for span in HEADING_SPAN.findall(block):
+                named.setdefault(rel, set()).add(span)
     return named
 
 
@@ -107,10 +124,25 @@ def test_each_language_section_of_writing_style_opens_alone():
                 "a heading the file does not have"
             )
 
-    named = named_by_agents()
-    assert set(LANGUAGE_SECTIONS) <= named.get("agents/proofer.md", set()), (
-        "agents/proofer.md's record step no longer names both language sections "
-        f"by heading; it names {sorted(named.get('agents/proofer.md', set()))}"
+    rule = " ".join(bodies(read(CONTRACT))[NAMING_RULE].split())
+    in_rule = set(HEADING_SPAN.findall(rule))
+    assert set(LANGUAGE_SECTIONS) <= in_rule, (
+        f"contract rule {NAMING_RULE} no longer names both language sections by "
+        f"heading; it names {sorted(in_rule)}"
+    )
+    uncited = [
+        rel
+        for rel in CITING_STEPS
+        if not any(f"rule {NAMING_RULE}" in b for b in writing_style_blocks(rel))
+    ]
+    assert not uncited, (
+        f"a record step that opens a writing-style section no longer cites rule "
+        f"{NAMING_RULE}, which names the sections: {uncited}"
+    )
+    named = named_by_readers()
+    # The contract is among the files whose headings are resolved below.
+    assert set(LANGUAGE_SECTIONS) <= named.get(CONTRACT, set()), (
+        f"the heading check no longer reads {CONTRACT}, which names the sections"
     )
     dangling = [
         f"{rel}: {span}"
@@ -119,8 +151,8 @@ def test_each_language_section_of_writing_style_opens_alone():
         if not any(h == span or h.startswith(span + " ") for h in present)
     ]
     assert not dangling, (
-        f"an agent's writing-style step names a heading {SKILL} does not have:\n"
-        + "\n".join(dangling)
+        f"the contract or an agent's writing-style step names a heading {SKILL} "
+        "does not have:\n" + "\n".join(dangling)
     )
 
 

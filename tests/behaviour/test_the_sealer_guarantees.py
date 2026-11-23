@@ -256,9 +256,10 @@ class TestDefinition:
         """Moved by #969 from the sealer with the run. The outputs directory
         is a line a reader learns from nowhere else, and the orchestrator who
         runs the gate is the one who quotes it. The other lines it quotes, and
-        that the sealer carries none, are the proofer's to read."""
+        that the sealer carries none, are the proofer's to read. Since #1579
+        the run's steps stand in `skills/code-review/gate-to-pull-request.md`."""
         text = " ".join(
-            (ROOT / "skills" / "code-review" / "orchestration.md")
+            (ROOT / "skills" / "code-review" / "gate-to-pull-request.md")
             .read_text(encoding="utf-8")
             .split()
         )

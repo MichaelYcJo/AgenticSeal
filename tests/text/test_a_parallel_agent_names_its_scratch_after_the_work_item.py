@@ -50,7 +50,9 @@ SEALER = os.path.join(ROOT, "agents", "sealer.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")
 CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
-REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
+# The orchestrator's steps from the preflight to the open pull request, cut
+# from `skills/code-review/orchestration.md` in #1579.
+GATE_TO_PR = os.path.join(ROOT, "skills", "code-review", "gate-to-pull-request.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 IMPLEMENT_ORCH = os.path.join(ROOT, "skills", "implement", "orchestration.md")
 
@@ -180,7 +182,7 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     session would otherwise write one log over each other. The sealer keeps
     its own scratch: the clone a `seen red` is re-run in."""
     command = section(
-        REVIEW_ORCH, "Orchestrator: the pull request opens once the sealer seals"
+        GATE_TO_PR, "Orchestrator: from the preflight to the open pull request"
     )
     # The path the orchestrator redirects the gate's output to.
     assert "<scratchpad>/<work-item-id>/gate.log" in command, (

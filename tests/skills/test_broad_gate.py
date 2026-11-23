@@ -208,43 +208,6 @@ class Test_module:
         assert run.fields[chain.FIELDS.RUN].match["commit"] == "abc1234"
 
 
-# --- loading a sibling ------------------------------------------------------------
-
-
-class Test_sibling_module:
-    def test_accepts_a_sibling_that_imports(self):
-        assert gate.sibling_module(gate.STAMP) is stamp
-
-    def test_refuses_a_sibling_that_raises_with_its_own_sentence(
-        self, tmp_path, monkeypatch
-    ):
-        """#869. The loader hands a module's exception back unchanged, and
-        the gate turns it into `Refused` with the module's own sentence, or
-        its type where it has none. The plugin root is the case's own, so
-        the raising module stands under it."""
-        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
-        write(
-            tmp_path,
-            "bad_beside_the_gate.py",
-            "raise ValueError('the chart is malformed')\n",
-        )
-        write(tmp_path, "bare_beside_the_gate.py", "raise ValueError()\n")
-        with pytest.raises(gate.Refused) as said:
-            gate.sibling_module("bad_beside_the_gate.py")
-        assert str(said.value).endswith("nothing ran: the chart is malformed")
-        with pytest.raises(gate.Refused) as bare:
-            gate.sibling_module("bare_beside_the_gate.py")
-        assert str(bare.value).endswith("nothing ran: ValueError")
-
-    def test_refuses_to_turn_a_siblings_exit_into_a_refusal(
-        self, tmp_path, monkeypatch
-    ):
-        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
-        write(tmp_path, "floor_beside_the_gate.py", "raise SystemExit(3)\n")
-        with pytest.raises(SystemExit):
-            gate.sibling_module("floor_beside_the_gate.py")
-
-
 # --- which copy runs ----------------------------------------------------------------
 
 
@@ -1341,10 +1304,10 @@ class Test_rounds_rows:
         `lib/routing.py`, which lists the round records, is the tree's,
         loaded before the root moves, so only the check is absent."""
         plugin = tmp_path / "no-plugin"
-        routing, load = gate.sibling_module(gate.ROUTING), gate.sibling_module
+        routing, load = gate.sibling.load(gate.ROUTING), gate.sibling.load
         monkeypatch.setattr(
-            gate,
-            "sibling_module",
+            gate.sibling,
+            "load",
             lambda rel: routing if rel == gate.ROUTING else load(rel),
         )
         monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
@@ -1990,11 +1953,11 @@ def sealable_repo(tmp_path):
     return repo
 
 
-def run_gate(repo, keep, base="base"):
+def run_gate(repo, keep, base="base", script=GATE):
     return subprocess.run(
         [
             sys.executable,
-            GATE,
+            str(script),
             "--base",
             base,
             "--root",
@@ -2088,33 +2051,6 @@ class Test_main:
         err = capsys.readouterr().err
         assert f"seal gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
 
-    def test_refuses_a_copy_whose_sibling_will_not_load(self, tmp_path):
-        scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
-        scripts.mkdir(parents=True)
-        shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
-        (tmp_path / "plugin" / "lib").mkdir()
-        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
-        write(scripts, "seal_stamp.py", "raise ValueError('the mark chart is bad')\n")
-        keep = tmp_path / "out"
-        out = subprocess.run(
-            [
-                sys.executable,
-                str(scripts / "broad_gate.py"),
-                "--base",
-                "x",
-                "--keep-output",
-                str(keep),
-            ],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=120,
-            cwd=tmp_path,
-        )
-        assert out.returncode == 2
-        assert "will not load, so nothing ran: the mark chart is bad" in out.stderr
-        assert "Traceback" not in out.stderr and not keep.exists()
-
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
         """#1283, round 1's finding 1. The gate builds every git command with
         `lib/gitcmd.py#argv`, and `main` asks git for the root before
@@ -2148,18 +2084,6 @@ class Test_main:
         assert gate.sibling.MISSING.format(path=str(helper)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
-    def test_refuses_to_run_when_called_in_process_beside_a_broken_sibling(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        write(tmp_path, "seal_stamp.py", "raise ValueError('the chart is short')\n")
-        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
-        monkeypatch.setattr(gate, "STAMP", "seal_stamp.py")
-        monkeypatch.delitem(sys.modules, "seal_stamp", raising=False)
-        assert gate.main(["--base", "x", "--root", str(ROOT)]) == 2
-        captured = capsys.readouterr()
-        assert "will not load, so nothing ran: the chart is short" in captured.err
-        assert "ships its own gate" not in captured.err
-
     def test_accepts_the_command_a_person_types(self):
         wrapper = ROOT / "bin" / "seal"
         command = (
@@ -2190,6 +2114,32 @@ class Test_main:
         result = run_gate(repo, tmp_path / "out")
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
+
+    def test_a_malformed_sprite_leaves_the_verdict_and_the_report_as_they_were(
+        self, tmp_path
+    ):
+        """#1582 S1. The gate draws nothing, so the disc's mark sprite is no
+        input of its verdict: a copy of the plugin whose `seal-mark.txt` is
+        cut to one line passes the fixture branch and prints the report the
+        copy with the shipped sprite prints. It exited 2 before, because
+        loading `seal_stamp.py` read the sprite and refused it."""
+        plugin = tmp_path / "plugin"
+        for part in ("lib", "skills", ".claude-plugin"):
+            shutil.copytree(
+                ROOT / part,
+                plugin / part,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        copy = plugin / TARGET
+        sprite = copy.parent / "seal-mark.txt"
+        repo = sealable_repo(tmp_path)
+        shipped = run_gate(repo, tmp_path / "shipped", script=copy)
+        first = sprite.read_text(encoding="utf-8").split("\n")[0]
+        sprite.write_text(first + "\n", encoding="utf-8")
+        cut = run_gate(repo, tmp_path / "cut", script=copy)
+        assert shipped.returncode == 0, shipped.stdout + shipped.stderr
+        assert cut.returncode == 0, cut.stdout + cut.stderr
+        assert cut.stdout == shipped.stdout
 
     def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(self, tmp_path):
         """A3's behavioural half for the other arm #468 added. `seal/config.json`

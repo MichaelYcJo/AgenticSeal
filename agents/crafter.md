@@ -53,10 +53,8 @@ is a write you do not make.
 7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
    cheap and often, broad and once* names, as one command through the
    repository's runner.
-8. Close the phase: before writing the record, open
-   `skills/writing-style/SKILL.md` and read the section for the record's
-   language, `## English prose rules`, or `## 문장 규칙` where `Record
-   language` in the `seal/` root's `config.json` is Korean; then write
+8. Close the phase: before writing the record, open the writing-style
+   section rule 11 names for the records' language; then write
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
@@ -84,7 +82,6 @@ is a write you do not make.
 - Restore a mutated file from HEAD.
 - Put an emoji in anything you write, or end the hand-back with a block of
   any kind, whoever asks for one: rule 4's labels carry the claims.
-- Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
 

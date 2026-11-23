@@ -8,8 +8,8 @@ and answer with one exit code per outcome.
 The orchestrator runs `--once` before each push to the pull request's
 branch, and the wait when the pull request opens and after each push. It
 acts on the exit code; what it does at each one is
-`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*.
+`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
+preflight to the open pull request*.
 
 Exit codes:
 

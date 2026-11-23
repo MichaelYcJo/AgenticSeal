@@ -500,7 +500,7 @@ class Test_pact_declaration:
         ids=["a value outside the old vocabulary", "written twice"],
     )
     def test_a_pact_notify_row_an_earlier_release_read_is_ignored(self, rows):
-        """`templates/setup/config.md` *Pact*: a `Pact notify` key left in the
+        """`lib/config.py#pact_declaration`: a `Pact notify` key left in the
         config is read by nobody, with a `Pact` key or without one, so neither
         a value outside the vocabulary it once had nor the key written twice is
         refused. Seen red by `seal mutate` against a reader that refused the
@@ -571,7 +571,7 @@ class Test_declared_pacts:
     def test_accepts_a_pact_notify_row_an_earlier_release_read_as_nothing(
         self, world, rows
     ):
-        """`templates/setup/config.md` *Pact*: a `Pact notify` key left in a
+        """`lib/config.py#pact_declaration`: a `Pact notify` key left in a
         signer's config is read by nobody."""
         write(world.web, "seal/config.json", signer_config(("Pact", PACT_URL), *rows))
         world.cite(clause(V2))

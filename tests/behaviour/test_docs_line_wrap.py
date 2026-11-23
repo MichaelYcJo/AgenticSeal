@@ -144,6 +144,9 @@ COVERED = [
     # was cut from — dropping it here would lose coverage 418 lines
     # of prose already had.
     "skills/code-review/orchestration.md",
+    # Its steps from the preflight to the open pull request, cut from it in
+    # #1579, wrapped as they were.
+    "skills/code-review/gate-to-pull-request.md",
     # The orchestrator's half of `implement` (#292), the same way: its prose
     # fits at birth (83 columns, measured when it was cut), where the file it
     # was cut from does not, so covering it here loses nothing and keeps it.

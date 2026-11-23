@@ -5,8 +5,8 @@ with shell variables, two of them reached a user who was not driving the
 session as permission prompts inside five minutes, and the agent was stopped
 to end them. The shapes that avoided the prompt became a contract rule, and
 #1027 retired it: no gate reads a commit any more, so a probe's commit
-reaches nobody. Its number, 8, is one the contract's preamble lists as
-retired. What stays is rule 7's: a probe leaves nothing outside the
+reaches nobody. Its number, 8, is one `docs/running/the-agent-set.md`
+lists as retired. What stays is rule 7's: a probe leaves nothing outside the
 agent's scratch directory, and its files are edits under rule 9. A commit
 a probe makes in its clone writes the clone's path after `git -C`, as rule
 6 states and `tests/behaviour/test_a_commit_names_its_repository.py`
