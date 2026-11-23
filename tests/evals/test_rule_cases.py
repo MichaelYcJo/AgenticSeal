@@ -1,8 +1,8 @@
 """`evals/scripts/rule_cases.py`, one class per function.
 
 The rule generator writes the behaviour suite's rule cases. A generated
-grader is read back through `behaviour.py#grader_from`, the one reader of a
-grader file.
+grader is read back through `tests/workflows.py#front_matter`, the suite's
+one reader of a grader's fields.
 """
 
 import os
@@ -12,13 +12,11 @@ import sys
 
 import pytest
 from conftest import ROOT, census_case, load_module
+from workflows import front_matter
 
 TARGET = "evals/scripts/rule_cases.py"
 
 RC = load_module(os.path.join(ROOT, *TARGET.split("/")), "rule_cases_under_test")
-behaviour = load_module(
-    os.path.join(ROOT, "evals", "scripts", "behaviour.py"), "behaviour_for_rule_cases"
-)
 PR = load_module(
     os.path.join(ROOT, "skills", "code-review", "scripts", "pr_body.py"),
     "pr_body_for_rule_cases",
@@ -77,8 +75,7 @@ class Test_main:
         name = "truth-shout-twice-uncovered.md"
         text = (graders / name).read_text(encoding="utf-8")
         assert text.endswith("the defect it names S2 for.\n")
-        config = behaviour.grader_from(f"graders/{name}", text)["config"]
-        found = re.compile(config["pattern"], re.M)
+        found = re.compile(front_matter(text)["pattern"], re.M)
         assert found.search("location: `tests/test_textutil.py`")
         assert not found.search("location: `src/textutil.py:8`")
 
@@ -184,15 +181,16 @@ RAN_UNLABELLED = RAN.replace("executed: ", "")
 
 def case_graders(name):
     """`{grader name: (compiled pattern, match)}` of the regex graders of the
-    case NAME, read back as a side records them."""
+    case NAME, read back from their front matter. A grader that names no
+    `match` is read as `contains`, the runner's default."""
     case = dict(RC.cases())[name]
     out = {}
     for grader, text in case["graders"]:
-        config = behaviour.grader_from(f"graders/{grader}", text)["config"]
-        if "pattern" in config:
+        fields = front_matter(text)
+        if "pattern" in fields:
             out[grader[: -len(".md")]] = (
-                re.compile(config["pattern"], re.M),
-                config["match"],
+                re.compile(fields["pattern"], re.M),
+                fields.get("match", "contains"),
             )
     return out
 
@@ -291,7 +289,7 @@ class Test_sealer_case:
 class Test_framer_case:
     def graders(self, name="rule-framer-sharp-s"):
         """`{grader name: (compiled pattern, match)}` of the regex graders of
-        the framer case NAME, read back as a side records them."""
+        the framer case NAME, read back from their front matter."""
         return case_graders(name)
 
     def test_accepts_a_probes_answer_on_a_grounding_line(self):

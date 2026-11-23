@@ -19,31 +19,18 @@ import re
 import subprocess
 
 import pytest
-from conftest import local_home, read, shell_probe
+from conftest import flattened, local_home, read, section, shell_probe
 
 # No TARGET: its cases hold where the root lives across the bootstrap, the orchestrator's half of the implement skill, the config skill, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 
 
-def section(text, heading, level):
-    """The text under HEADING up to the next heading of the same LEVEL."""
-    assert heading in text, f"{heading!r} is not a heading any more"
-    body = text.split(heading, 1)[1]
-    return body.split("\n" + "#" * level + " ", 1)[0]
-
-
 def paragraph(text, opening):
     """The paragraph whose first words are OPENING, its line breaks folded."""
     i = text.find(opening)
     assert i >= 0, f"no paragraph opens with {opening!r}"
-    return flat(text[i:].split("\n\n", 1)[0])
-
-
-def flat(text):
-    """Runs of whitespace folded to one space, so a phrase that a hand-wrap
-    splits across two lines still reads as the phrase."""
-    return re.sub(r"\s+", " ", text)
+    return flattened(text[i:].split("\n\n", 1)[0])
 
 
 ORCH = ("skills", "implement", "orchestration.md")
@@ -55,7 +42,7 @@ BOOT = ("skills", "implement", "bootstrap.md")
 
 
 def bootstrap():
-    return section(read(*BOOT), "## Orchestrator: Bootstrap", 2)
+    return section(read(*BOOT), "## Orchestrator: Bootstrap")
 
 
 # --- S4: one question, three options, records only first ------------------
@@ -130,7 +117,7 @@ def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them
     session, with the recent pull request titles shown beside the question,
     and writes the answers into the file `seal mode` wrote. What each option
     says its key governs is the proofer's to read."""
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     # The two keys of `config.json` first setup asks for, which
     # `lib/config.py#declared_value` reads.
     for key in LANGUAGE_ROWS:
@@ -195,7 +182,7 @@ def test_a_candidate_carrying_a_quote_or_a_backslash_is_escaped_where_derived():
     warning gives the escape. What a bare one costs, and what the warning
     says of a pipe, are the proofer's to read.
     """
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     warning = boot[boot.index('**A candidate carrying a `"` or a `\\` is written') :]
     warning = warning[: warning.index("**Name the criterion")]
     # The JSON escapes the orchestrator writes into the `Broad gate` value,
@@ -289,7 +276,7 @@ def test_the_template_header_names_the_commands_that_write_and_remove_it():
     """#952: the header of the workflow template names the command that
     writes the file and the one that takes it out. What local mode does to
     a copy is the proofer's to read."""
-    header = flat(
+    header = flattened(
         "\n".join(
             line
             for line in template().split("\nname:", 1)[0].splitlines()
@@ -308,7 +295,7 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
     the file has one writer (#952). The bootstrap names the template, the
     path it is written to, and the command. When the file is written is the
     proofer's to read."""
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     # The template path and the workflow path, which the orchestrator
     # resolves to tell whether the command wrote the file or left one alone.
     assert "templates/setup/hygiene.yml" in boot
@@ -344,17 +331,17 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     text = read(readme)
     first_run, subsection = READMES[readme]
     assert text.index(subsection) > text.index(first_run)
-    body = section(text, subsection, 3)
+    body = section(text, subsection)
     # The two commands a person runs to install and remove the checks.
     assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
     # #1055 S6: the citation of the skill section that holds the way back
     # before the commit to shared, which a reader resolves.
-    assert SHARED_WAY_BACK in flat(body), readme
+    assert SHARED_WAY_BACK in flattened(body), readme
     # The citation of the section that says which pin a workflow left behind
     # by a move to local passes, which a reader resolves.
-    assert LEFT_BEHIND[readme] in flat(body), LEFT_BEHIND[readme]
+    assert LEFT_BEHIND[readme] in flattened(body), LEFT_BEHIND[readme]
     # The pair of commands a person runs to carry the records between two
     # machines.
     assert "seal export" in body and "seal import" in body, (
@@ -378,10 +365,10 @@ def test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table(read
     """The paragraph right under the table of the three answers names what
     holds the pull request's rows of the core's table in local mode. What it
     says of them is the proofer's to read."""
-    body = section(read(readme), READMES[readme][1], 3)
+    body = section(read(readme), READMES[readme][1])
     chunks = body.split("\n\n")
     table = next(i for i, chunk in enumerate(chunks) if chunk.startswith("|"))
-    under = flat(chunks[table + 1])
+    under = flattened(chunks[table + 1])
     for cited in LOCAL_LIMIT:
         assert cited in under, (readme, cited, under)
 
@@ -398,7 +385,7 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
     rather than restating it. Why a bare `git reset` is not the way back is
     the proofer's to read."""
     skill = read("skills", "config", "SKILL.md")
-    body = flat(section(skill, "## " + SHARED_HEADING, 2))
+    body = flattened(section(skill, "## " + SHARED_HEADING))
     for said in (
         # The two commands a person runs to walk the switch back.
         "`git reset -- :/seal`",
@@ -426,7 +413,7 @@ def switch_block():
     """
     text = read("templates", "setup", "seal-README.md")
     assert TO_SHARED in text, f"no paragraph gives the move {TO_SHARED!r}"
-    paragraph = flat(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
+    paragraph = flattened(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
     assert TO_LOCAL in paragraph, f"the paragraph gives no move {TO_LOCAL!r}"
     moves = [re.findall(r"`([^`]+)`", half) for half in paragraph.split(TO_LOCAL)]
     for spans in moves:
@@ -514,7 +501,7 @@ def test_the_seal_readme_points_at_the_drain():
     and where each goes is `skills/implement/orchestration.md`'s drain
     section's alone, and the README names the section."""
     text = read("templates", "setup", "seal-README.md")
-    rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
+    rules = flattened(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = (
         "## Orchestrator: drain the rows before the broad run, and keep the records"
     )
@@ -550,8 +537,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
     editions."""
     text = read(*parts)
     # The name of the opt-out file, which `lib/optin.py` looks for.
-    assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
-    body = " ".join(section(text, setup, 2).split())
+    assert "agentic-scratch" in section(text, opt_in), "/".join(parts)
+    body = flattened(section(text, setup))
     # The template path, the local root's path and the harness tool, which
     # the orchestrator resolves at first setup.
     for needle in ("templates/setup/hygiene.yml", COMMON_DIR, "AskUserQuestion"):
@@ -594,6 +581,6 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     followed the routing rule are byte-identical until something writes the
     key, so a bootstrap that records nothing leaves no trace that anybody was
     asked."""
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     # The command the orchestrator runs to record the answer.
     assert "seal mode" in boot

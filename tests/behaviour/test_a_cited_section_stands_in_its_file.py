@@ -85,10 +85,10 @@ from conftest import (
     load_module,
     on_disk,
     op,
+    read,
     spec,
 )
 from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
-from test_the_agent_contract_holds_the_universal_rules import read as read_at_root
 
 # No TARGET: its cases read every tracked file's citations and the archive git builds of the tree.
 
@@ -974,7 +974,7 @@ def test_a_record_is_not_read(tmp_path, record):
     """S8: a file under a prefix of `tests/censuses.py#RECORDS` keeps what it
     said when it was written, so its citations are not read, a contract
     rule's and a name's among them (#1127 S4)."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     cited = f"contract rule {max(numbers) + 1}\n"
     rel = record if record.endswith(".md") else record + "x.md"
     root = repo(
@@ -1220,7 +1220,7 @@ def test_every_cited_section_exists():
     has. A rule that moves or retires leaves its number behind, and a
     citation left at an old number points a reader at a different rule or at
     none."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     _, files = corpus(ROOT)
     assert len(files) > 100, "the corpus held almost nothing to read"
     assert sum(len(cited_sections(r, t)) for r, t in files) > 50, (
@@ -1244,7 +1244,7 @@ def test_every_cited_section_exists():
 def test_a_citation_above_the_last_section_is_caught(rel, line):
     """T3 can fail: in every tree and every spelling, a number one above the
     last heading is named, at the line the citation starts on."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     text = line.format(n=max(numbers) + 1)
     assert contract_dangling([(rel, text)], numbers) == [
         (f"{rel}:1", f"rule {max(numbers) + 1}")
@@ -1252,7 +1252,7 @@ def test_a_citation_above_the_last_section_is_caught(rel, line):
 
 
 def test_a_wrapped_citation_is_named_at_the_line_it_starts_on():
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     text = f"intro\nas the contract\nrule {max(numbers) + 1} says"
     assert contract_dangling([("skills/x/SKILL.md", text)], numbers) == [
         ("skills/x/SKILL.md:2", f"rule {max(numbers) + 1}")
@@ -1263,7 +1263,7 @@ def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
     """Outside the contract and `agents/`, `rule <N>` can be any list's rule,
     such as the behaviour suite's pass rules, so only `contract rule <N>`
     is read there."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     text = f"pass rule {max(numbers) + 1} holds"
     assert contract_dangling([("hooks/x.py", text)], numbers) == []
 
@@ -1281,7 +1281,7 @@ OUTSIDE_THE_SIX_TREES = (
 def test_a_file_outside_the_six_trees_is_read(tmp_path):
     """#1127 S3: every tracked text file outside the records is read,
     whatever its tree or extension."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     n = max(numbers) + 1
     root = repo(
         tmp_path, {rel: f"as contract rule {n} says\n" for rel in OUTSIDE_THE_SIX_TREES}
@@ -1305,7 +1305,7 @@ def test_a_citation_wrapped_in_code_is_named_at_the_line_it_starts_on(tmp_path, 
     """#1127 S5 and S6: comment markers are dropped and adjacent literals
     joined before the citation is read, and the line it starts on is
     named."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     n = max(numbers) + 1
     root = repo(tmp_path, {rel: WRAPPED_IN_CODE[rel].format(n=n)})
     assert contract_dangling(corpus(root)[1], numbers) == [(f"{rel}:1", f"rule {n}")]

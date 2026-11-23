@@ -34,10 +34,10 @@ definitions, both under `agents/`, is not counted: a passage two definitions
 share states a fact about each file that holds it, and each agent reads only
 its own definition, so a link would cost every spawn a read and remove
 nothing said twice. A definition paired with any other file is counted,
-since a skill or a document restating a definition is a copy. `WINDOW` is
-`skills/settle/scripts/passages.py`'s, never typed here:
-`tests/text/test_a_moved_rule_leaves_its_definition.py` measured it between the longest kept application (10 words) and the
-smallest real copy (25), and this is the same question asked of more files.
+since a skill or a document restating a definition is a copy, and so is a
+definition restating a rule of the agent contract. `WINDOW` is
+`skills/settle/scripts/passages.py`'s, never typed here, and the comment over
+it holds the measurement that chose it.
 
 **Why verbatim.** The measured failure is a paste. A check that tried to
 catch a paraphrase would have to decide when two sentences say the same
@@ -48,7 +48,9 @@ The paraphrase half was measured once, by hand, and is not checked.
 **What it does not catch.** A rule restated in fresh words. Measured against
 the three restatements #730 names, it finds one of three, the merge table,
 through its identical rows; *no real identifiers* and the commit cadence were
-both restated in other words. Saying otherwise would be the counterfeit
+both restated in other words. Nor a passage shorter than `WINDOW` words, a
+short contract rule pasted whole into a definition among them: no verbatim
+check tells it from a citation. Saying otherwise would be the counterfeit
 `CONTRIBUTING.md` refuses.
 """
 

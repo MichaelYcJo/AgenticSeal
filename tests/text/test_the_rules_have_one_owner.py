@@ -13,12 +13,30 @@ by reader; the rules that left with their mechanism left this table, and the
 ones that stayed name their owner in `docs/running/the-run.md`.
 """
 
+import os
 import re
 
 import pytest
-from conftest import flat
+from conftest import ROOT, flat, load_lib_module, load_module
 
 # No TARGET: its cases hold each review-chain rule's owner across the skills, the definitions and the documents that carry it.
+
+
+def script(*parts):
+    """The script at PARTS under the repository, loaded as a module."""
+    return load_module(os.path.join(ROOT, *parts), f"agentic_{parts[-1][:-3]}_owner")
+
+
+# The code that defines the words and codes the owners spell: the close
+# verdicts, the line keywords of a verifying round, the broad gate's words
+# beside a failing file, and the wait's exit codes and states.
+chain = script("skills", "code-review", "scripts", "chain_check.py")
+fields = load_lib_module("fields.py", "agentic_fields_owner")
+gate = script("skills", "verify", "scripts", "broad_gate.py")
+wait = script("skills", "code-review", "scripts", "pr_wait.py")
+LINE_KEYWORDS = tuple(
+    f"`{keyword}`" for keyword in (fields.CONFIRMS, fields.REGRESSION, fields.REOPENS)
+)
 
 RECORD = ("docs", "running", "the-run.md")
 SKILL = ("skills", "code-review", "SKILL.md")
@@ -150,18 +168,6 @@ RULES = {
         ),
         {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
-    # #945, S5: one crafter resumed across phases read 941,799 tokens in one
-    # turn, so a fix pass resumes only below the largest context a fresh
-    # crafter reached in the 0.22.0 run.
-    "18 a fix pass resumes the implementer only below the threshold": (
-        ORCH,
-        (
-            # The per-turn context, in tokens, the orchestrator compares the
-            # implementer's `context` column with.
-            "806,241",
-        ),
-        {},
-    ),
     # #1476: four files each said what the three lines mean, and #161's
     # rounds corrected such copies a few at a time. The review skill, which
     # the proofer opens at step 1, defines them, and the other three name
@@ -170,14 +176,12 @@ RULES = {
         SKILL,
         (
             # The two close verdicts a fix pass writes, which the chain check
-            # reads.
-            "`fixed <commit>`",
-            "`rejected`",
+            # spells as `FIXED` and `REJECTED` and reads.
+            f"`{chain.FIXED} <commit>`",
+            f"`{chain.REJECTED}`",
             # The three line keywords `lib/fields.py` spells, which the
             # proofer writes and the chain check reads.
-            "`confirms:`",
-            "`regression:`",
-            "`reopens:`",
+            *LINE_KEYWORDS,
         ),
         {PROOFER: EARLIER_ROUNDS, RECORD: EARLIER_ROUNDS, ORCH: EARLIER_ROUNDS},
     ),
@@ -290,10 +294,11 @@ RULES = {
         (
             # The three words `broad_gate.py#ON_BASE`, `#NEW` and
             # `#NOT_MEASURED` print, which the orchestrator reads in the
-            # gate's output.
-            "`failing on base too`",
-            "`new`",
-            "`new?`",
+            # gate's output. `NOT_MEASURED` opens with its word and goes on
+            # to say why.
+            f"`{gate.ON_BASE}`",
+            f"`{gate.NEW}`",
+            f"`{gate.NOT_MEASURED.split()[0]}`",
         ),
         {},
     ),
@@ -360,7 +365,8 @@ FIX_PASS = "## Orchestrator: a phase is a fresh crafter, and a fix pass resumes 
 
 
 def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
-    """S5 of #945. Rule 18 holds the threshold; this holds what lets an
+    """S5 of #945. The threshold is a measurement of the 0.22.0 run that
+    no code reads, and the section is its one home; this holds what lets an
     orchestrator act on the section: the command that reads the
     implementer's context and the column it reads, the section a fold of the
     records follows, and the record the commit of the closes holds."""
@@ -476,6 +482,18 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "## Orchestrator: from the preflight to the open pull request", 1
     )[1]
     section = owner + steps
+    # The `state` each of `pr_wait.py#STATES` names, by the exit code it
+    # stops on, and the one that stops on none, which the conflict code
+    # pairs with `mergeable`.
+    stops = {value[0]: state for state, value in wait.STATES.items() if value}
+    (open_state,) = (state for state, value in wait.STATES.items() if not value)
+    # The `mergeable` value the conflict code is named after, one of
+    # `pr_wait.py#MERGEABLE`.
+    (conflicting,) = (
+        value
+        for value in wait.MERGEABLE
+        if getattr(wait, value, None) == wait.CONFLICTING
+    )
     for said in (
         # The read the orchestrator types before each push, and the wait it
         # types when the pull request opens and after each push.
@@ -483,14 +501,14 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "`seal pr-wait <N>`",
         # Each exit code the command answers with, as a row of the table that
         # gives the orchestrator's act at it.
-        "| 0 |",
-        "| 1 |",
-        "| 2 |",
-        "| 3 |",
+        *(
+            f"| {code} |"
+            for code in (wait.PASSED, wait.FAILED, wait.UNANSWERED, wait.NO_CHECK)
+        ),
         # The three states that stop the push or the wait, each with its code.
-        "| 4 | `state` is `MERGED` |",
-        "| 5 | `state` is `CLOSED` |",
-        "| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` |",
+        *(f"| {code} | `state` is `{stops[code]}` |" for code in sorted(stops)),
+        f"| {wait.CONFLICTING} | `state` is `{open_state}` and `mergeable` is "
+        f"`{conflicting}` |",
         # The flag the orchestrator reads the branch's commits with, so a
         # merge commit is left out.
         "`--no-merges`",
@@ -647,21 +665,20 @@ def test_a_close_that_does_not_hold_reopens_it():
 
     def both(carrier):
         return [
-            s
-            for s in sentences(flat(*carrier))
-            if "`confirms:`" in s and "`regression:`" in s
+            s for s in sentences(flat(*carrier)) if confirms in s and regression in s
         ]
 
-    # The two line keywords `lib/fields.py` spells, which the proofer
+    # The three line keywords `lib/fields.py` spells, which the proofer
     # writes and the chain check reads.
+    confirms, regression, reopens = LINE_KEYWORDS
     assert both(SKILL), f"{'/'.join(SKILL)} names the channel nowhere"
     for carrier in (RECORD, PROOFER, SKILL, ORCH):
         for s in both(carrier):
-            # The third line keyword of the same channel, `reopens:`, which
-            # the proofer writes and the chain check reads.
-            assert "`reopens:`" in s, (
-                f"{'/'.join(carrier)} names the channel by `confirms:` and "
-                f"`regression:` alone: {s}"
+            # The third line keyword of the same channel, which the proofer
+            # writes and the chain check reads.
+            assert reopens in s, (
+                f"{'/'.join(carrier)} names the channel by {confirms} and "
+                f"{regression} alone: {s}"
             )
 
 

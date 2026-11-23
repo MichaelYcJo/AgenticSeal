@@ -1,9 +1,11 @@
-"""The suite's one reading of a workflow file (#1486).
+"""The suite's one reading of a YAML text (#1486).
 
 A case that reads a job, a step or a key of `.github/workflows/*.yml` or
-`templates/setup/hygiene.yml` reads what `load` returns. The file is parsed
-by PyYAML, pinned in `tests/requirements.txt`, so no case reads
-a workflow's structure by indentation or by a regular expression over lines.
+`templates/setup/hygiene.yml` reads what `load` returns, a case that reads
+an eval case's `case.yaml` does too, and a case that reads a grader's front
+matter reads what `front_matter` returns. Each text is parsed by PyYAML,
+pinned in `tests/requirements.txt`, through `parse`, so no case reads a
+YAML structure by indentation or by a regular expression over lines.
 `pytest_jobs` is the suite's one reading of which jobs of a loaded workflow
 run the suite.
 
@@ -29,11 +31,27 @@ import yaml
 from conftest import ROOT, code_lines
 
 
+def parse(text):
+    """The mapping the YAML TEXT parses to, every scalar a string."""
+    return yaml.load(text, Loader=yaml.BaseLoader)
+
+
 def load(path):
-    """The mapping the workflow file at PATH parses to, every scalar a
-    string. PATH is absolute, or relative to the repository root."""
+    """The mapping the YAML file at PATH parses to, every scalar a string.
+    PATH is absolute, or relative to the repository root."""
     with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
-        return yaml.load(handle.read(), Loader=yaml.BaseLoader)
+        return parse(handle.read())
+
+
+def front_matter(text):
+    """The mapping the front matter of TEXT parses to: the lines between its
+    first line, `---`, and the next line that is `---`, as
+    `evals/scripts/behaviour.py#grader` writes a grader file. A text that
+    does not open and close its front matter raises ValueError."""
+    lines = text.split("\n")
+    if lines[0] != "---" or "---" not in lines[1:]:
+        raise ValueError(f"no front matter: {lines[0][:40]!r}")
+    return parse("\n".join(lines[1 : lines.index("---", 1)]))
 
 
 def job_scripts(job):

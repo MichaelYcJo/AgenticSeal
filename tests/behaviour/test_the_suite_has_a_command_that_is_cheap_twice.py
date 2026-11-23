@@ -13,7 +13,7 @@ import os
 import subprocess
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, flat, flattened, read, section
 from test_run_tests import rt
 from workflows import load, pytest_jobs
 
@@ -21,6 +21,9 @@ from workflows import load, pytest_jobs
 
 
 BIN = os.path.join(ROOT, "bin")
+# `CONTRIBUTING.md` *Running the checks*, the section a person in a clone
+# copies the commands from.
+RUNNING = "## Running the checks"
 
 
 def suite_jobs():
@@ -154,20 +157,20 @@ def test_the_section_names_the_requirements_file_and_its_commands_read_it():
     needs and the file that lists them, and the fallback commands read that
     file, so the fallback cannot run the oracle against another version, and
     no version is spelt in the section to fall behind the file."""
-    section = running_the_checks()
+    body = section(read("CONTRIBUTING.md"), RUNNING)
     # The file, and the packages a reader reads about.
-    assert "`tests/requirements.txt`" in section, section
+    assert "`tests/requirements.txt`" in body, body
     for package in ("`markdown-it-py`", "`cmarkgfm`", "`PyYAML`"):
-        assert package in section, (package, section)
+        assert package in body, (package, body)
     # The two fallback commands, which a reader copies.
     assert (
         "uvx --with-requirements tests/requirements.txt python3 -m pytest tests/ -q"
-        in section
-    ), section
+        in body
+    ), body
     assert (
-        "pip install -r tests/requirements.txt && python3 -m pytest tests/" in section
-    ), section
-    assert not any(pin.spec in section for pin in rt.PINS), section
+        "pip install -r tests/requirements.txt && python3 -m pytest tests/" in body
+    ), body
+    assert not any(pin.spec in body for pin in rt.PINS), body
 
 
 # A command nobody is pointed at costs what the old one cost. Three documents
@@ -175,28 +178,18 @@ def test_the_section_names_the_requirements_file_and_its_commands_read_it():
 # `CONTRIBUTING.md` for a person in a clone, the handoff protocol for the
 # orchestrator writing a spawn prompt, and `agents/crafter.md` for the segment
 # that was not told.
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(os.path.join(ROOT, *parts)).split())
-
-
-def running_the_checks():
-    """`CONTRIBUTING.md` *Running the checks*, to the next heading."""
-    text = read(os.path.join(ROOT, "CONTRIBUTING.md"))
-    start = text.index("## Running the checks")
-    return text[start : text.index("\n## ", start + 1)]
 
 
 def test_the_section_names_the_cheap_command_before_the_slow_one():
     """A reader copies the first command in the block. That is the whole of
     #156: the first one paid 55-58 seconds for its environment on every
     call, and a section that names the cheap one second still costs that."""
-    section = running_the_checks()
+    body = section(read("CONTRIBUTING.md"), RUNNING)
     # The runner's command, which a reader copies from the section.
-    assert "bin/test" in section, (
+    assert "bin/test" in body, (
         "`CONTRIBUTING.md` *Running the checks* does not name the runner at all"
     )
-    assert section.index("bin/test") < section.index("uvx --with-requirements"), (
+    assert body.index("bin/test") < body.index("uvx --with-requirements"), (
         "the slow form is still the first command in the section, so it is "
         "still what a reader copies"
     )
@@ -207,15 +200,15 @@ def test_the_section_and_the_runner_state_the_same_floor():
     saying a number is two places to disagree, and the disagreement is
     invisible until somebody's 3.11 builds an environment the suite needs
     3.12 for."""
-    section = running_the_checks()
+    body = section(read("CONTRIBUTING.md"), RUNNING)
     # The floor's version, read from the runner's `FLOOR`, which a reader
     # installs at least; and the constant's name, which the reader resolves
     # in the runner.
-    assert rt.FLOOR_TEXT in section, (
+    assert rt.FLOOR_TEXT in body, (
         "the section no longer states the floor the runner enforces "
         f"({rt.FLOOR_TEXT} in tests/run_tests.py's FLOOR)"
     )
-    assert "FLOOR" in section, (
+    assert "FLOOR" in body, (
         "the sentence names a number the reader cannot trace to the code that holds it"
     )
 
@@ -250,15 +243,15 @@ def test_the_section_names_the_contract_and_the_narrow_form():
     contract rule 2 forbids to every agent. The section that makes it cheap
     names where that rule is and the form a segment types; whose the full
     run is, in its words, is the proofer's to read."""
-    section = " ".join(running_the_checks().split())
+    body = flattened(section(read("CONTRIBUTING.md"), RUNNING))
     # The path of the contract, which a reader opens for the rule that keeps
     # the full run out of an agent's hands.
-    assert "`skills/agent-contract/SKILL.md`" in section, (
+    assert "`skills/agent-contract/SKILL.md`" in body, (
         "the section makes the full suite cheap and says nothing about the "
         "rule that forbids it to a segment"
     )
     # The narrow form, which a segment copies to run one module.
-    assert "bin/test tests/" in section, (
+    assert "bin/test tests/" in body, (
         "no narrow form is shown, so the only command a segment can copy is "
         "the one it must not run"
     )

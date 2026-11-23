@@ -18,7 +18,14 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
+from conftest import (
+    ROOT,
+    build_tracked_tree,
+    decline_if_shrunken,
+    git_listing,
+    on_disk,
+    read,
+)
 
 # No TARGET: its cases walk every tracked document with a .ko.md edition.
 
@@ -73,16 +80,6 @@ def pairs(root=ROOT):
     names = [k[: -len(".ko.md")] for k in korean if {k, english[k]} <= present]
     halves = set(korean) | set(english.values())
     return names, sorted(n for n in gone if n in halves)
-
-
-def under_root(name):
-    """The path of NAME, a repository-relative name written with `/`."""
-    return os.path.join(ROOT, *name.split("/"))
-
-
-def read(name):
-    with open(under_root(name), encoding="utf-8") as f:
-        return f.read()
 
 
 # The pairs the walk must reach (#1055 S11).

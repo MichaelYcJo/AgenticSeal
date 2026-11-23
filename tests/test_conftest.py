@@ -253,6 +253,44 @@ class Test_read:
             assert conftest.read("CLAUDE.md") == handle.read()
 
 
+class Test_section:
+    """The three pairs call `section` alike and differ by their texts. The
+    fence pair: a fenced copy of the heading above the live one, and a fenced
+    heading line inside the body. The level pair: a deeper heading inside
+    the section, and a higher one below it. The refusal pair: a longer
+    heading that begins with the asked one, and the asked one twice."""
+
+    def test_accepts_the_live_heading_below_a_fenced_copy(self):
+        """The heading quoted in a fence above is no heading, so the body is
+        the one under the line a renderer shows as the heading."""
+        text = "# T\n\n```\n## A\nquoted\n```\n\n## A\n\nlive\n"
+        assert conftest.section(text, "## A") == "\nlive"
+
+    def test_refuses_to_end_a_section_at_a_heading_quoted_in_a_fence(self):
+        """A fenced line that reads as a heading ends nothing, and the fence
+        is returned as written."""
+        text = "## A\n\none\n```\n## B\n```\ntwo\n## B\n\nthree\n"
+        assert conftest.section(text, "## A") == "\none\n```\n## B\n```\ntwo"
+
+    def test_accepts_a_deeper_heading_as_part_of_the_body(self):
+        text = "## A\n\none\n\n### A1\n\ntwo\n\n## B\n\nthree\n"
+        assert conftest.section(text, "## A") == "\none\n\n### A1\n\ntwo\n"
+
+    def test_refuses_to_run_past_a_heading_above_its_level(self):
+        text = "## A\n\n### A1\n\none\n\n# Top\n\ntwo\n\n### A2\n\nthree\n"
+        assert conftest.section(text, "### A1") == "\none\n"
+
+    def test_refuses_a_longer_heading_that_begins_with_the_same_words(self):
+        text = "## A and more\n\nother\n\n## B\n\nthree\n"
+        with pytest.raises(AssertionError, match="## A"):
+            conftest.section(text, "## A")
+
+    def test_refuses_a_heading_the_text_holds_twice(self):
+        text = "## A\n\none\n\n## A\n\ntwo\n"
+        with pytest.raises(AssertionError, match="## A"):
+            conftest.section(text, "## A")
+
+
 class Test_repo_relative:
     def test_accepts_a_file_at_the_root_as_its_name(self):
         assert conftest.repo_relative(os.path.join(ROOT, "CLAUDE.md")) == "CLAUDE.md"

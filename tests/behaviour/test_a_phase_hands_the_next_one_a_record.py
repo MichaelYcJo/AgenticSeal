@@ -36,7 +36,7 @@ import importlib.util
 import os
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, read, section
 
 # No TARGET: its cases hold the phase record and the design's sections across their two templates, agents/crafter.md, agents/framer.md and skills/implement/SKILL.md.
 
@@ -65,24 +65,6 @@ def template_lines():
     return reader_module().readable(read(PHASE_TEMPLATE))
 
 
-def section_body(lines, heading):
-    """The non-blank lines between `heading` and the next `## ` heading (or
-    end of file), from lines already run through `readable`."""
-    start = None
-    for i, line in enumerate(lines):
-        if line.strip() == heading:
-            start = i + 1
-            break
-    assert start is not None, f"heading not found: {heading}"
-    body = []
-    for line in lines[start:]:
-        if line.strip().startswith("## "):
-            break
-        if line.strip():
-            body.append(line)
-    return body
-
-
 # --- the template is its title and one section -------------------------------
 
 
@@ -100,9 +82,9 @@ def test_the_template_is_its_title_and_the_found_section():
 
 
 def test_the_found_section_ships_a_placeholder():
-    body = section_body(template_lines(), "## What this phase found")
-    assert body, "`## What this phase found` has no content"
-    text = " ".join(line.strip() for line in body)
+    body = section(read(PHASE_TEMPLATE), "## What this phase found")
+    assert body.strip(), "`## What this phase found` has no content"
+    text = " ".join(body.split())
     # A placeholder in angle brackets, which the crafter replaces with what
     # its phase found.
     assert text.startswith("<") and text.endswith(">"), (
@@ -117,8 +99,7 @@ def test_the_spec_template_carries_the_removes_section_above_the_mark():
     work item removing nothing writes in its place is the proofer's to read
     in `docs/running/the-agent-set.md` *What each party writes, and when*."""
     raw = read(SPEC_TEMPLATE)
-    lines = reader_module().readable(raw)
-    body = section_body(lines, "## Removes")
+    body = section(raw, "## Removes").split("\n")
     rows = [line.strip() for line in body if line.strip().startswith("|")]
     # The header row the framer copies into `frame/design.md`'s `## Removes`,
     # whose three columns the proofer reads each row by.
@@ -138,8 +119,7 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
     """#953. The section ships empty, above `## Removes`, and the framer, who
     fills it, is pointed at the one statement of its grammar."""
     raw = read(SPEC_TEMPLATE)
-    lines = reader_module().readable(raw)
-    assert section_body(lines, "## Rule changes") == []
+    assert not section(raw, "## Rule changes").strip()
     assert raw.index("## Rule changes") < raw.index("## Removes")
     framer = " ".join(read(FRAMER_AGENT).split())
     # The citation the framer resolves for the grammar of the section it

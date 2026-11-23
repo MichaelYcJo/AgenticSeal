@@ -46,7 +46,7 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import census_case, read
 
 TARGET = "skills/agent-contract/SKILL.md"
 
@@ -81,11 +81,6 @@ FACTS = {
 }
 
 SPELLINGS = [(number, spelling) for number in FACTS for spelling in FACTS[number][1]]
-
-
-def read(rel=CONTRACT):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        return f.read()
 
 
 def frontmatter(text):
@@ -123,7 +118,7 @@ def missing_facts(text):
 
 
 def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
-    head = frontmatter(read())
+    head = frontmatter(read(CONTRACT))
     # The front-matter name the harness resolves each definition's
     # `skills:` entry to.
     assert "name: agent-contract" in head
@@ -177,12 +172,12 @@ def numbering_faults(text, doc=None):
 
 
 def test_the_sections_are_numbered_from_one_without_a_gap_or_a_repeat():
-    assert numbering_faults(read()) == []
+    assert numbering_faults(read(CONTRACT)) == []
 
 
 def test_a_gap_the_document_does_not_list_is_named():
     """A rule that goes whole, with its number left off the list, is red."""
-    text = read()
+    text = read(CONTRACT)
     assert numbering_faults(text) == []
     heads = list(HEADING.finditer(text))
     first, after = heads[0], heads[1]
@@ -195,7 +190,7 @@ def test_a_gap_the_document_does_not_list_is_named():
 def test_a_repeated_number_is_named():
     """A second section under a number already used is red, though no
     number goes missing."""
-    text = read()
+    text = read(CONTRACT)
     assert numbering_faults(text) == []
     first, after = list(HEADING.finditer(text))[:2]
     copy = text[first.start() : after.start()]
@@ -208,7 +203,7 @@ def test_a_repeated_number_is_named():
 
 def test_a_listed_number_that_has_a_heading_is_named():
     """A number added to the list while its rule still stands is red."""
-    text, doc = read(), read(AGENT_SET)
+    text, doc = read(CONTRACT), read(AGENT_SET)
     assert numbering_faults(text, doc) == []
     standing = HEADING.search(text).group(1)
     at = RETIRED.search(doc, doc.find(NUMBERING)).start(1)
@@ -220,7 +215,9 @@ def test_a_listed_number_that_has_a_heading_is_named():
 
 def test_no_pin_is_its_own_heading():
     """A fact the heading satisfies survives the body being emptied."""
-    headings = {number: heading for number, (heading, _, _) in spans(read()).items()}
+    headings = {
+        number: heading for number, (heading, _, _) in spans(read(CONTRACT)).items()
+    }
     for number, spelling in SPELLINGS:
         assert spelling not in headings[number], f"rule {number} pins its heading"
 
@@ -230,7 +227,7 @@ def test_no_pin_is_its_own_heading():
 
 @pytest.mark.parametrize("number", sorted(FACTS))
 def test_each_section_holds_its_rule(number):
-    missing = [s for n, s in missing_facts(read()) if n == number]
+    missing = [s for n, s in missing_facts(read(CONTRACT)) if n == number]
     assert missing == [], f"rule {number} no longer holds {FACTS[number][0]}: {missing}"
 
 
@@ -252,7 +249,7 @@ def without_fact(text, number, spelling):
 )
 def test_deleting_a_pinned_phrase_is_caught(number, spelling):
     """A pin that survives its own deletion pins nothing."""
-    text = read()
+    text = read(CONTRACT)
     mutated = without_fact(text, number, spelling)
     assert (number, spelling) in missing_facts(mutated)
     assert len(spans(mutated)) == len(spans(text)), "the heading was deleted too"
@@ -262,7 +259,7 @@ def test_moving_a_sentence_to_another_section_is_caught():
     """The fact is scoped to its section, so a rule that keeps its words and
     loses its number — the drift a cited rule number cannot survive — is red.
     Rule 21 is moved, since rule 11 holds no pinned fact after #1578."""
-    text = read()
+    text = read(CONTRACT)
     numbers = sorted(spans(text))
     before = numbers[numbers.index(21) - 1]
     _, start, end = spans(text)[21]
@@ -296,11 +293,11 @@ def misspelled_headings(text):
 def test_every_heading_of_the_contract_is_a_numbered_rule():
     """S1 of #1005: a heading in another spelling is not a rule HEADING
     reads, so it is refused at its line rather than skipped."""
-    assert misspelled_headings(read()) == []
+    assert misspelled_headings(read(CONTRACT)) == []
 
 
 def test_a_heading_in_the_old_spelling_is_refused_at_its_line():
-    text = read()
+    text = read(CONTRACT)
     first = HEADING.search(text)
     old = f"## \N{SECTION SIGN}{first.group(1)} {first.group(2)}"
     mutated = text[: first.start()] + old + text[first.end() :]

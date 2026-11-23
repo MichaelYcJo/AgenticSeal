@@ -9,8 +9,9 @@ The rule is contract rule 9, which every agent receives at startup, and each
 definition keeps only its own application: for `agents/proofer.md`, that a
 probe script and a scratch fixture are edits too. So the cases assert one carrier, the contract: a
 case asserting the same sentence in two files is the duplication the
-contract was written to end, and `tests/text/test_a_moved_rule_leaves_its_definition.py`
-is what refuses it.
+contract was written to end, and
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py` is what refuses
+it.
 
 #1027 changed the second reason, and #1376 took it out. No check reads an
 edit now, and the reason that stands is the first: an edit must be able to

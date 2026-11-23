@@ -14,14 +14,12 @@ with them rather than being deleted: what each definition still holds is its
 own APPLICATION -- the proofer has a named field for the question, the
 crafter cites the two rules its hand-back answers -- and a case asserting
 the same sentence in two files is the duplication the
-contract was written to end. That duplication has its own module now,
-`tests/text/test_a_moved_rule_leaves_its_definition.py`, because until phase 4
-nothing in the tree noticed a moved rule being pasted back.
+contract was written to end. Until phase 4 nothing in the tree noticed a
+moved rule being pasted back, and
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py` refuses it now.
 """
 
-import re
-
-from conftest import flat, read
+from conftest import flat, read, section
 
 # No TARGET: its cases hold the one broad run across the agent definitions, the skills and the documents that state it.
 
@@ -63,7 +61,7 @@ def test_the_orchestration_names_the_broad_run_command():
     and in what order the steps come are the proofer's to read. Contract
     rule 2 named the run's command too until #1312, which took that copy out
     of every agent's preload, since only the orchestrator types it."""
-    order = joined(section(read(*SPAWN_FILE), SPAWN_SECTION))
+    order = joined(section(read(*SPAWN_FILE), "## " + SPAWN_SECTION).split("\n"))
     steps = [
         # The command the orchestrator types before the broad run.
         PREFLIGHT,
@@ -110,18 +108,6 @@ SPAWN_FILE = ("skills", "code-review", "gate-to-pull-request.md")
 SPAWN_SECTION = "Orchestrator: from the preflight to the open pull request"
 
 
-def section(text, heading):
-    """The `## heading` section of `text`, its heading line included, up to
-    the next heading of the same or a higher level."""
-    lines = text.splitlines()
-    start = lines.index(f"## {heading}")
-    end = next(
-        (i for i in range(start + 1, len(lines)) if re.match(r"^#{1,2} ", lines[i])),
-        len(lines),
-    )
-    return lines[start:end]
-
-
 def joined(lines):
     return " ".join(" ".join(lines).split())
 
@@ -133,8 +119,8 @@ def test_the_order_inside_a_ticket_names_the_preflight():
     text = joined(
         section(
             read("skills", "implement", "orchestration.md"),
-            "Orchestrator: the order inside a ticket",
-        )
+            "## Orchestrator: the order inside a ticket",
+        ).split("\n")
     )
     # The command the orchestrator runs before it spawns the sealer.
     assert PREFLIGHT in text, "the order does not name the preflight"
@@ -150,7 +136,7 @@ def test_the_example_row_goes_lint_first_and_the_prose_cites_the_arms_list():
     the seconds-long linters ahead of the suite, as this repository's own key
     does. The prose above it points at the one list of the gate's arms, and
     names the preflight that runs those arms alone."""
-    body = section(read("templates", "setup", "config.md"), "Broad gate")
+    body = section(read("templates", "setup", "config.md"), "## Broad gate").split("\n")
     # The config key and value a repository copies into its `config.json`.
     assert EXAMPLE_ROW in body, "the example key is not the lint-first one"
     lead = joined(body).split("```")[0]
@@ -163,7 +149,9 @@ def test_the_broad_gate_section_names_the_preflight():
     """S10. `verify` names the preflight in the section that assigns the
     run."""
     text = joined(
-        section(read("skills", "verify", "orchestration.md"), "The broad gate")
+        section(
+            read("skills", "verify", "orchestration.md"), "## The broad gate"
+        ).split("\n")
     )
     # The command the orchestrator runs before the sealer is spawned.
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"

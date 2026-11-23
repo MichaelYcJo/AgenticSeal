@@ -1,11 +1,14 @@
 """`tests/workflows.py`'s own cases (#1486).
 
-`load` is the suite's one reading of a workflow file, and the cases that
-read a job, a step or a key compare what it returns with strings. So the
-loader's two properties are pinned here over a fixture: the trigger key
-comes back as the key `on`, and every scalar comes back as a string. A
-path is read from the repository root, wherever pytest runs, and a path
-that names no file fails rather than reading as an empty workflow.
+`load` is the suite's one reading of a workflow file and of an eval case's
+`case.yaml`, and `front_matter` of a grader's fields; both parse through
+`parse`, and the cases that read a job, a step or a key compare what they
+return with strings. So the loader's two properties are pinned here over a
+fixture: the trigger key comes back as the key `on`, and every scalar comes
+back as a string. A path is read from the repository root, wherever pytest
+runs, and a path that names no file fails rather than reading as an empty
+workflow. A front matter ends at its second `---` line, and a text that
+does not open and close one fails.
 
 Seen red before it was committed (contract rule 15): with `yaml.SafeLoader`
 in place of `yaml.BaseLoader`, the fixture's `on` came back as the key
@@ -16,6 +19,7 @@ import os
 
 import pytest
 import workflows
+import yaml
 from conftest import census_case
 
 TARGET = "tests/workflows.py"
@@ -72,6 +76,54 @@ class Test_load:
         empty workflow and passes over nothing."""
         with pytest.raises(FileNotFoundError):
             workflows.load(str(tmp_path / "missing.yml"))
+
+
+# A grader's front matter as `evals/scripts/behaviour.py#grader` writes it: a
+# flow map, a single-quoted scalar with a quote doubled inside, and a bound.
+GRADER = "type: 'tool_used'\ntarget: {source: 'file', path: 'it''s, {a}.md'}\nmax: 0\n"
+
+
+class Test_parse:
+    def test_accepts_a_graders_fields_and_keeps_every_scalar_a_string(self):
+        """An eval case and a grader are read by the parser `load` uses, so a
+        bound such as `max: 0` comes back as the string a case compares, and
+        a quoted path keeps the comma and the braces it holds."""
+        assert workflows.parse(GRADER) == {
+            "type": "tool_used",
+            "target": {"source": "file", "path": "it's, {a}.md"},
+            "max": "0",
+        }
+
+    def test_refuses_a_text_of_two_documents_such_as_a_whole_grader_file(self):
+        """A grader file is front matter, a `---` line and a body, which YAML
+        reads as two documents. `parse` reads one, so a case that hands it
+        the whole file fails rather than reading the front matter alone and
+        dropping what follows; `front_matter` is the reading of a grader."""
+        with pytest.raises(yaml.YAMLError, match="expected a single document"):
+            workflows.parse(f"{GRADER}---\nA defect.\n")
+
+
+class Test_front_matter:
+    def test_accepts_the_lines_between_the_first_two_rules_and_leaves_the_body_out(
+        self,
+    ):
+        """The front matter ends at the first line that is `---` alone, so a
+        pattern holding `---` stays whole, and a body that reads like a field
+        is not one."""
+        text = f"---\n{GRADER}pattern: 'a---b'\n---\nbody: not a field\n---\n"
+        fields = workflows.front_matter(text)
+        assert fields == {**workflows.parse(GRADER), "pattern": "a---b"}, fields
+
+    @pytest.mark.parametrize(
+        "text",
+        ["A defect.\n", "type: 'regex'\n---\nA defect.\n", "---\ntype: 'regex'\n"],
+        ids=["no rule", "no opening rule", "no closing rule"],
+    )
+    def test_refuses_a_text_whose_front_matter_does_not_open_and_close(self, text):
+        """A grader file with no front matter fails the case that reads it,
+        rather than reading as a grader with no fields."""
+        with pytest.raises(ValueError, match=r"^no front matter"):
+            workflows.front_matter(text)
 
 
 # Two jobs that run the suite, each in a way a job here calls pytest, and

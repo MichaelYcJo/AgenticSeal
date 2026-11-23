@@ -10,10 +10,14 @@ nothing about whether a round walked an axis.
 
 import re
 
-from conftest import read
-from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS, section
+from conftest import load_lib_module, read, section
+from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS
 
-# No TARGET: its cases hold what a review round reads and how the work is routed across the parity skill, the review skill, the implement skill's orchestrator files, the round record's form and the framer's definition.
+# No TARGET: its cases hold what a review round reads across the parity skill, the review skill, the round record's form and the framer's definition.
+
+# The reader of `routing.md`, whose `REVIEW_ANSWERS` a comparison's record is
+# keyed by.
+routing = load_lib_module("routing.py", "agentic_routing_for_review_axes")
 
 PARITY = "skills/legacy-parity/SKILL.md"
 
@@ -21,9 +25,8 @@ PARITY = "skills/legacy-parity/SKILL.md"
 def prose(rel, heading):
     """The `## ` section HEADING of REL folded onto one line, without its
     heading, its fenced blocks and its `check:` lines."""
-    lines, _ = section(read(rel), heading)
     kept, fenced = [], False
-    for line in lines[1:]:
+    for line in section(read(rel), heading).split("\n"):
         if line.startswith("```"):
             fenced = not fenced
         elif not fenced and not line.startswith("check: "):
@@ -33,7 +36,7 @@ def prose(rel, heading):
 
 def step(rel, n):
     """Step N of REL's `## Order of work`, folded onto one line."""
-    lines, _ = section(read(rel), "## Order of work")
+    lines = section(read(rel), "## Order of work").split("\n")
     start = next(i for i, line in enumerate(lines) if line.startswith(f"{n}. "))
     end = next(
         (i for i in range(start + 1, len(lines)) if re.match(r"\d+\. ", lines[i])),
@@ -135,10 +138,9 @@ def test_the_record_of_a_comparison_names_its_writer():
     assert heading in text, "`legacy-parity` lost its section on the record"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for fact in (
-        # The two routing answers, each a row's first cell, which a reader
-        # matches against `routing.md`.
-        "| through the review chain |",
-        "| straight to the PR |",
+        # The `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts, each a
+        # row's first cell, which a reader matches against `routing.md`.
+        *(f"| {answer} |" for answer in routing.REVIEW_ANSWERS),
         # The file the sealer appends the line to.
         "`guarantee.md`",
     ):
@@ -183,41 +185,3 @@ def test_a_later_round_re_runs_an_executed_line():
     assert "`evidence: executed`" in rounds, (
         "`skills/code-review/SKILL.md` *Earlier rounds* lost `evidence: executed`"
     )
-
-
-def test_the_routing_section_holds_the_answers_and_the_shape():
-    """The routing decision has one home, `implement`'s orchestrator half.
-
-    It is `orchestration.md` since #292, the file the session that asks the
-    question reads and no crafter spawn preloads. Until #1177 the preset
-    block stated the rules beside it and this case held the two together;
-    the block is retired, so what it carried is held here, in the home
-    alone. Since #1477 the question the person is asked stands in
-    `routing-question.md`, which the orchestrator opens when it puts the
-    batch, and the rows an answer writes stay in `orchestration.md`; each
-    phrase is read in the file it stands in."""
-    implement = " ".join(read("skills", "implement", "orchestration.md").split())
-    question = " ".join(read("skills", "implement", "routing-question.md").split())
-    # The routing answers the orchestrator writes into `routing.md`'s rows,
-    # which `lib/routing.py` reads.
-    for only in (
-        "through the review chain",
-        "straight to the PR",
-        "open the pull request",
-        "stop before the pull request",
-        "`the session`",
-    ):
-        assert only in implement, f"the skill lost `{only}`"
-    # The path the orchestrator writes the answer to.
-    assert "seal/threads/<work-item-id>/routing.md" in implement, (
-        "the skill lost the path of `routing.md`"
-    )
-    for asked in (
-        # The answer to question 1 under which the boxes follow in a second
-        # call.
-        "`manual`",
-        # Under `direct`, the trailer that records the answer, which
-        # `skills/code-review/scripts/chain_check.py` reads.
-        "`Seal-Routing: no work item`",
-    ):
-        assert asked in question, f"the routing question's file lost `{asked}`"
