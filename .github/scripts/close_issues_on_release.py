@@ -186,9 +186,8 @@ def issue_labels(repo, number):
 # closes it. `docs/releasing/issues-and-milestones.md` says that is the moment, and
 # this line is what acts on it: an answer written down with nothing reading
 # it is the same shape as the closing keyword this whole script exists for.
-# The name is the document's, and the description of what it
-# means lives in `.github/scripts/tracker_labels.py`, which is what creates
-# it.
+# The name is the document's. The label stands on the tracker, and no script
+# here creates it.
 SPENT_ON_CLOSE = "size: now"
 
 

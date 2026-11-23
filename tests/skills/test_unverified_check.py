@@ -8,11 +8,12 @@ their cases stand in `tests/lib/`; the predicates `chain_check.py` and
 `settle.py` read stand in their files' cases. Those cases build the worlds
 below by importing them from here.
 
-The walk, the root states and `main` read repositories built once for the
+The walk and `main` read repositories built once for the
 module: a clone of two work items and a
 tracked overview under `build/`, a clone whose second overview is a tracked
 link to the first, built once with the link sorting after its target and
-once before it, a clone with a moved base branch beside its work
+once before it, a clone with no `seal/` root and an overview under
+`specs/`, a clone with a moved base branch beside its work
 branch, a clone of work items a settle can remove, a clone with a `seal/`
 root beside a team's own `specs/`, a `seal/` root with no `specs/`, and a
 `seal/` root whose one work item holds no overview. A case that writes into
@@ -109,13 +110,13 @@ def _committed(base, files):
 
 @pytest.fixture(scope="module")
 def plain(tmp_path_factory):
-    """Two work items in the 0.3.x spelling, `specs/<id>/`, and an overview
-    tracked under `build/`, which every walk skips."""
+    """Two work items under a marked root, and an overview tracked under
+    `build/`, which every walk skips."""
     return _committed(
         tmp_path_factory.mktemp("plain"),
         {
-            f"specs/{WORK}/gaps.md": memo(CANONICAL),
-            f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
+            f"seal/threads/{WORK}/gaps.md": memo(CANONICAL),
+            f"seal/threads/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
             "build/x/gaps.md": memo(CANONICAL, "x"),
         },
     )
@@ -132,15 +133,25 @@ def linked(tmp_path_factory, request):
     #19 stood only where the link sorted first."""
     d = _committed(
         tmp_path_factory.mktemp("linked"),
-        {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
+        {f"seal/threads/{WORK}/gaps.md": memo(CANONICAL)},
     )
-    (d / "specs" / request.param).mkdir()
+    (d / "seal" / "threads" / request.param).mkdir()
     symlink_or_skip(
         os.path.join("..", WORK, "gaps.md"),
-        str(d / "specs" / request.param / "gaps.md"),
+        str(d / "seal" / "threads" / request.param / "gaps.md"),
     )
     commit_everything_as_e(d, "a link")
     return d
+
+
+@pytest.fixture(scope="module")
+def rootless(tmp_path_factory):
+    """A repository with no `seal/` root at either place, whose one overview
+    stands under a `specs/`."""
+    return _committed(
+        tmp_path_factory.mktemp("rootless"),
+        {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
+    )
 
 
 SIBLING = "1780000001-squashed-sibling"
@@ -227,7 +238,6 @@ def joined(tmp_path_factory):
         {
             f"{OURS}/gaps.md": memo(CANONICAL, "ours"),
             f"{TEAM}/gaps.md": memo(MALFORMED, "team"),
-            # exempt from old_names: another tool's own file, under a name the plugin once used
             f"{TEAM}/spec.md": "# the team's spec\n",
         },
     )
@@ -307,6 +317,14 @@ class Test_overviews:
             "1790000000-ours"
         ]
 
+    def test_refuses_a_specs_directory_on_a_walk_of_a_repository_with_no_root(
+        self, rootless
+    ):
+        """#1576, design S12: a repository with no root reads the default,
+        so its `specs/` is a reference root the walk leaves out, as it is
+        where a root stands and no `Reference specs` key is written."""
+        assert UC.overviews([str(rootless)]) == []
+
 
 class Test_config_at:
     def test_accepts_the_config_reader_and_the_root(self, joined):
@@ -315,15 +333,15 @@ class Test_config_at:
         assert same_path(home, joined / "seal")
         assert name == "seal"
 
-    def test_refuses_to_invent_a_root(self, plain):
-        _config, home, name = UC.config_at(str(plain))
+    def test_refuses_to_invent_a_root(self, rootless):
+        _config, home, name = UC.config_at(str(rootless))
         assert not home and not name
 
 
 class Test_references_at:
-    def test_accepts_the_default_under_a_root_and_none_without_one(self, joined, plain):
+    def test_accepts_the_default_with_a_root_and_without_one(self, joined, rootless):
         assert UC.references_at(str(joined))[1] is None
-        assert UC.references_at(str(plain))[1] == ()
+        assert UC.references_at(str(rootless))[1] is None
 
     def test_refuses_to_fail_where_lib_will_not_load(self, joined, monkeypatch):
         real = UC.sibling.load
@@ -429,47 +447,6 @@ class Test_settled_root:
         assert UC.settled_root(str(path)) is False
 
 
-class Test_absent_root:
-    def test_accepts_the_specs_path_of_a_top_level_holding_no_root(self, tmp_path):
-        git(tmp_path, "init", "-q")
-        assert UC.absent_root(str(tmp_path / "seal" / "threads")) is True
-
-    @pytest.mark.parametrize(
-        "state",
-        ["a root", "a subdirectory", "no repository", "another parent", "a typo"],
-    )
-    def test_refuses_a_root_a_subdirectory_no_repository_and_another_name(
-        self, sealed, tmp_path, state
-    ):
-        """Absence is read only at a working tree's top level and under the
-        one spelling: anything else is a mistyped path, as it always was."""
-        if state == "a typo":
-            git(tmp_path, "init", "-q")
-        path = {
-            "a root": sealed / "seal" / "threads",
-            "a subdirectory": sealed / "seal" / "seal" / "threads",
-            "no repository": tmp_path / "seal" / "threads",
-            "another parent": sealed / "other" / "threads",
-            "a typo": tmp_path / "seal" / "spces",
-        }[state]
-        assert UC.absent_root(str(path)) is False
-
-
-class Test_unwritten_root:
-    def test_accepts_a_roots_specs_holding_work_items_and_no_overview(self, unwritten):
-        assert UC.unwritten_root(str(unwritten / "seal" / "threads")) is True
-
-    @pytest.mark.parametrize("state", ["an overview", "no work item", "another parent"])
-    def test_refuses_an_overview_no_work_item_and_another_parent(self, tmp_path, state):
-        (tmp_path / "seal" / "threads").mkdir(parents=True)
-        path = tmp_path / ("other" if state == "another parent" else "seal") / "threads"
-        if state == "another parent":
-            write(tmp_path, f"other/threads/{WORK}/frame/design.md", "# a spec\n")
-        if state == "an overview":
-            write(tmp_path, f"seal/threads/{WORK}/gaps.md", memo(CANONICAL))
-        assert UC.unwritten_root(str(path)) is False
-
-
 # --- the command ---------------------------------------------------------------
 
 
@@ -523,8 +500,8 @@ class Test_main:
     def test_accepts_a_walk_outside_a_repository_reading_no_reference_root(
         self, tmp_path, monkeypatch
     ):
-        """Outside a git repository there is no root to be outside of, and
-        every fixture of the 0.3.x spelling lives there."""
+        """Outside a git repository there is no root to be outside of, so
+        the `specs/<name>/` that `memo_at` writes is read."""
 
         def refuse(top):
             raise AssertionError(f"reference roots were read for {top!r}")
@@ -532,18 +509,6 @@ class Test_main:
         monkeypatch.setattr(UC, "references_at", refuse)
         memo_at(tmp_path, CANONICAL)
         assert run([str(tmp_path)]) == 0
-
-    def test_refuses_the_baseline_option_it_no_longer_has(self, plain, capsys):
-        """A1 of #1240: the mode that compared the record with a base left,
-        so `--baseline` is an argument argparse does not know, exit 2, and
-        the help a person reads names no such option (contract rule 14)."""
-        with pytest.raises(SystemExit) as refused:
-            UC.main(["--baseline", "HEAD", str(plain)])
-        assert refused.value.code == 2
-        assert "unrecognized arguments: --baseline" in capsys.readouterr().err
-        with pytest.raises(SystemExit):
-            UC.main(["--help"])
-        assert "--baseline" not in capsys.readouterr().out
 
     def test_accepts_a_tracked_link_counted_once(self, linked, capsys):
         """One record, two paths: counting both doubles its open items
@@ -579,43 +544,24 @@ class Test_main:
         assert run([str(sealed / "seal" / "spces")]) == 2
         assert "no such path" in capsys.readouterr().err
 
-    # A pull request that declares nothing owes nothing (#952).
+    def test_refuses_a_tree_with_no_root_as_a_missing_path(
+        self, rootless, capsys, monkeypatch
+    ):
+        """#1576, design S2: `seal/threads` typed at the top level of a
+        working tree with no `seal/` directory names nothing, as any other
+        missing path does."""
+        monkeypatch.chdir(rootless)
+        assert run(["seal/threads"]) == 2
+        assert "no such path: seal/threads" in capsys.readouterr().err
 
-    @pytest.mark.rule("nothing-declared-nothing-owed")
-    def test_accepts_no_root_in_the_tree(self, joined, tmp_path, capsys):
-        """S6: the pull request that moves a root to local mode with the
-        workflow kept takes every overview out of the tree. With no root
-        there nothing is declared, and the line says there is no record to
-        read."""
-        d = copy_of(joined, tmp_path)
-        shutil.rmtree(d / "seal")
-        assert run([str(d / "seal" / "threads")]) == 0
-        out = capsys.readouterr()
-        said = " ".join((out.out + out.err).split())
-        assert (
-            "has no `seal/` root in this tree, so nothing here is declared: "
-            "there is no record to read. A root in local mode"
-        ) in said, said
-        assert "open: 0" not in said, said
-
-    @pytest.mark.rule("nothing-declared-nothing-owed")
-    def test_accepts_work_items_none_of_which_opened_a_closing_memo(
+    def test_refuses_work_items_with_no_closing_memo_as_nothing_checked(
         self, unwritten, capsys
     ):
-        """S6: every work item that never opened an `gaps.md` holds no
-        row to read, and that was exit 2, `nothing was checked`."""
-        assert run([str(unwritten / "seal" / "threads")]) == 0
-        out = capsys.readouterr()
-        said = " ".join((out.out + out.err).split())
-        assert "none of them carries an `gaps.md`" in said, said
-        assert "open: 0" not in said, said
-
-    @pytest.mark.rule("nothing-declared-nothing-owed")
-    def test_refuses_a_missing_root_below_the_top_level_as_a_typo(self, sealed, capsys):
-        """Absence is read at the working tree's top level only, so a
-        `seal/threads` typed from the wrong directory still names nothing."""
-        assert run([str(sealed / "seal" / "seal" / "threads")]) == 2
-        assert "no such path" in capsys.readouterr().err
+        """#1576, design S3: a root's `threads/` whose work items carry no
+        `gaps.md` is a scan that found no closing memo, as any other path
+        holding none is."""
+        assert run([str(unwritten / "seal" / "threads")]) == 2
+        assert "nothing was checked" in capsys.readouterr().err
 
     # A team's own `specs/` is read as history and never checked (#688).
 
@@ -646,30 +592,21 @@ class Test_main:
         monkeypatch.setattr(UC.sibling, "load", load)
         assert run([str(joined)]) == 1
 
-    @pytest.mark.parametrize("state", ["unwritten", "settled", "absent"])
     def test_s5_unverified_reads_agentic_seal_threads_as_the_roots_own(
-        self, shared, capsys, monkeypatch, state
+        self, shared, capsys, monkeypatch
     ):
-        """`seal unverified agentic-seal/threads` reads the root's own `threads/`:
-        work items with no `gaps.md` are unwritten, none is a finished settle,
-        and with the root out of the tree there is nothing declared. Each exits
-        0, where a path read as a typo exits 2."""
-        said_of_it = {
-            "unwritten": "holds work items and none of them carries an `gaps.md`",
-            "settled": "holds no work item and its `seal/` root is there",
-            "absent": "has no `seal/` root in this tree, so nothing here is declared",
-        }[state]
-        if state == "settled":
-            shutil.rmtree(shared / "agentic-seal" / "threads" / ITEM)
-        elif state == "absent":
-            shutil.rmtree(shared / "agentic-seal")
+        """`seal unverified agentic-seal/threads` reads the root's own
+        `threads/`, and with no work item under it that is a finished settle,
+        exit 0, where a path read as a typo exits 2."""
+        shutil.rmtree(shared / "agentic-seal" / "threads" / ITEM)
         monkeypatch.chdir(shared)
         code = UC.main(["agentic-seal/threads"])
         out = capsys.readouterr().out
         assert code == 0, out
-        assert out.startswith(f"seal unverified: agentic-seal/threads {said_of_it}"), (
-            out
-        )
+        assert out.startswith(
+            "seal unverified: agentic-seal/threads holds no work item and its "
+            "`seal/` root is there"
+        ), out
 
     def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
         self, shared, capsys, monkeypatch

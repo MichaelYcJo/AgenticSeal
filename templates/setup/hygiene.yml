@@ -15,9 +15,12 @@
 # (`chain_check.py` lists `seal/threads/` with `git ls-tree HEAD`), and local
 # mode keeps the root under the git directory, where nothing is ever committed.
 # `seal mode` moves the root and leaves this file alone, so a copy can stay
-# after a switch to local. There every step examines nothing and passes: no
-# `seal/` is in the tree, so nothing is declared, and a pull request that
-# declares nothing owes nothing. `seal pr-checks remove` takes the copy out.
+# after a switch to local. There no `seal/` is in the tree, so the
+# review-chain step reads nothing as declared and judges the commit trailers
+# alone, and the mode step finds no root to disagree with. Every step passes
+# the commits a local-mode session writes, which carry no `Seal-Routing`
+# trailer; a commit made before the switch whose trailer names a work item
+# still fails a ready pull request. `seal pr-checks remove` takes the copy out.
 #
 # Done by hand instead: a person copies this file to
 # .github/workflows/hygiene.yml and replaces v<version> with the tag of the

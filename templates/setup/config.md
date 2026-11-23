@@ -395,8 +395,7 @@ reference root.
 |---|---|
 | one or more repository-relative directories, separated by commas, each with or without a trailing `/` | those directories and everything under them |
 | `none` | no reference root |
-| absent or empty | every directory named `specs` outside the plugin's root, at any depth |
-| no `seal/` root at either place | no reference root: the repository has not opted in |
+| absent or empty, or no `seal/` root at either place | every directory named `specs` outside the plugin's root, at any depth |
 
 **What it governs.** The checks that would read a record leave a reference
 root out: `seal unverified` prunes it from a directory walk while still

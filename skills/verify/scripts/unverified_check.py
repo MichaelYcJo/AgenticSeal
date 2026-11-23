@@ -33,13 +33,10 @@ line long. That format is strict on purpose — see `lib/gaps.py#check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read · 2 the path or arguments were unusable, which
-includes a scan that found no closing memo at all. Three states of a `seal/`
-root's own `threads` path are exit 0 instead, each saying which it is,
-because a pull request in any of them declares nothing and owes nothing: the
-path holding no work item, empty or absent, which is the state a complete
-settle ends in (`settled_root`); no `seal/` directory at the working tree's
-top level (`absent_root`); and work items none of which carries a `gaps.md`
-(`unwritten_root`).
+includes a scan that found no closing memo at all. One state of a `seal/`
+root's own `threads` path is exit 0 instead, and says so: the path holding no
+work item, empty or absent, which is the state a complete settle ends in
+(`settled_root`).
 """
 
 import argparse
@@ -251,63 +248,6 @@ SETTLED = (
 )
 
 
-def absent_root(path):
-    """Whether `path` is the `seal/threads` path of a working tree's top level
-    that holds no `seal/` directory: the `threads` path under the shared
-    place `lib/optin.py#home_paths` gives there, under the second name where
-    the project's own `seal/` stands.
-
-    That is a repository whose records are in local mode, under the git
-    directory, or that never had any, and a teammate's pull request against
-    it declares nothing. Read at the top level only, the directory
-    `git rev-parse --show-toplevel` names, so a `seal/threads` typed from
-    anywhere else is still a mistyped path.
-    """
-    p = os.path.abspath(path)
-    parent = os.path.dirname(p)
-    top = os.path.dirname(parent)
-    if os.path.basename(p) != OPTIN.WORK_ITEMS:
-        return False
-    if os.path.isdir(parent) or not os.path.isdir(top):
-        return False
-    found = OPTIN.repo_root(top)
-    if not found or not os.path.samefile(found, top):
-        return False
-    optin = sibling.load("lib/optin.py")
-    shared = optin.home_paths(found, optin.git_common_dir(found))[0]
-    return os.path.basename(parent) == os.path.basename(shared)
-
-
-ABSENT = (
-    "seal unverified: {path} has no `seal/` root in this tree, so nothing "
-    "here is declared: there is no record to read. A root in local mode sits "
-    "under the git directory and is never committed"
-)
-
-
-def unwritten_root(path):
-    """Whether `path` is a `seal/` root's own `threads` directory holding work
-    items, none of which carries an `gaps.md`.
-
-    Every work item that never opened a closing memo is in this state, and a
-    pull request against it has no row to read. `main` asks it only
-    once the scan found no closing memo.
-    """
-    p = os.path.abspath(path)
-    parent = os.path.dirname(p)
-    if os.path.basename(p) != OPTIN.WORK_ITEMS or not os.path.isdir(p):
-        return False
-    if not named_root(parent) or settled_root(p):
-        return False
-    return not overviews([p])
-
-
-UNWRITTEN = (
-    "seal unverified: {path} holds work items and none of them carries an "
-    "`gaps.md`, so no `## Not verified` row exists to read"
-)
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="seal unverified",
@@ -316,13 +256,6 @@ def main(argv=None):
     )
     ap.add_argument("path", nargs="*", default=["."])
     args = ap.parse_args(argv)
-
-    # The pull request that moves a root to local mode takes every closing
-    # memo out of the tree, and with no root in it nothing is declared.
-    if all(absent_root(p) for p in args.path):
-        for p in args.path:
-            print(ABSENT.format(path=p))
-        return 0
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing:
@@ -348,10 +281,6 @@ def main(argv=None):
     if not files:
         if all(settled_root(p) for p in args.path):
             print(SETTLED.format(path=", ".join(args.path)))
-            return 0
-        if all(settled_root(p) or unwritten_root(p) for p in args.path):
-            for p in args.path:
-                print((SETTLED if settled_root(p) else UNWRITTEN).format(path=p))
             return 0
         print(
             f"seal unverified: no {GAPS.OVERVIEW} found under "

@@ -667,31 +667,22 @@ def overlapping(read):
     return same
 
 
-# Where a thread's design stood before the session-start move brought it into
-# `seal/threads/`, as (directory, name): read from history only, so a moved
-# thread is placed where its design was first added and not at the move's one
-# commit, which adds every moved design at once.
-# exempt from old_names: the 0.22.x path of a design, read from history
-# exempt from root_name: a path of 0.22.x's history, before a second name existed
-EARLIER = ("seal/specs", "spec.md")
-
-
 def order(root, ref, ids, specs):
     """`[(id, commit)]` for IDS in merge order: the first commit reachable from
     REF that adds the id's `frame/design.md` under SPECS, the `/`-joined
-    `<name>/threads` of the root in the tree, or its design at the earlier
-    path (`EARLIER`), in `git log --topo-order --reverse` order, a directory
-    moved under a new id counting as added where it lands. An id no such
-    commit adds comes last, with commit None. Raises `lib/gitcmd.py#Exited`
-    where git exits non-zero, since it then printed no history to read."""
+    `<name>/threads` of the root in the tree, in `git log --topo-order
+    --reverse` order, a directory moved under a new id counting as added
+    where it lands. An id no such commit adds comes last, with commit None.
+    Raises `lib/gitcmd.py#Exited` where git exits non-zero, since it then
+    printed no history to read."""
     r = gitcmd().git(
         root, "log", "-z", "--full-history", "--topo-order",
         "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
         "--format=%x01%H",
-        ref, "--", specs, EARLIER[0],
+        ref, "--", specs,
         check=True,
     )  # fmt: skip
-    first, commit = {}, None
+    first, commit, design = {}, None, optin().DESIGN
     # `-z` ends each path with a NUL and quotes none, whatever
     # `core.quotePath` says; a commit's field opens with U+0001, which no
     # path under SPECS starts with, and the path that follows it opens with
@@ -701,10 +692,9 @@ def order(root, ref, ids, specs):
         if line.startswith("\x01"):
             commit = line[1:]
             continue
-        for base, name in ((specs, optin().DESIGN), EARLIER):
-            parts = line[len(base) + 1 :].split("/", 1)
-            if line.startswith(base + "/") and len(parts) == 2 and parts[1] == name:
-                first.setdefault(parts[0], commit)
+        parts = line[len(specs) + 1 :].split("/", 1)
+        if line.startswith(specs + "/") and len(parts) == 2 and parts[1] == design:
+            first.setdefault(parts[0], commit)
     known = [i for i in first if i in ids]
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]
 

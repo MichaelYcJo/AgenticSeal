@@ -134,15 +134,14 @@ class Test_reference_roots:
                 "specsheet/a",
             ):
                 assert not config.under_reference_root(rel, roots, "seal"), rel
-        # No root at either place is no reference root at all: the repository has
-        # not opted in, and the 0.3.x `specs/` the checks still read was the
-        # plugin's own. Never a `config.json` found relative to wherever the
-        # process happens to stand, either.
+        # No root at either place is the default too (#1576, design S12), and
+        # never a `config.json` found relative to wherever the process happens
+        # to stand.
         stray = tmp_path / "elsewhere"
         write_config(str(stray), table(("Reference specs", "docs/adr")))
         monkeypatch.chdir(stray)
-        assert config.reference_roots("", "") == ()
-        assert not config.under_reference_root("specs/x/design.md", (), "")
+        assert config.reference_roots("", "") is None
+        assert config.under_reference_root("specs/x/design.md", None, "")
 
     def test_refuses_a_row_written_twice_or_a_file_that_will_not_read(self, tmp_path):
         """#867. A `Reference specs` key written twice has no value, by
