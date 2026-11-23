@@ -87,6 +87,12 @@ setup asks for both while the session is already stopped." No list of
 the reason and made the refusal a citation of the template's paragraph.
 ```
 
+```seal
+verdict: fixed e7f86c9f0
+location: `skills/implement/routing-question.md`, `skills/commit-pr-convention/SKILL.md`, `seal/threads/1795390622-the-root-places-omit-agentic-seal/changelog.md`
+answer: The finding holds, and the pass took the class: every statement in the shipped roots of what an absent language key does. The list was built from every line of `skills`, `agents`, `templates`, `docs`, `README.md`, `README.ko.md` and `CONTRIBUTING.md` that names a language key (`language key`, either key's name, `either key`, `both keys`, `the two keys`, and `언어 키` in the Korean files), that says `seal pr-body` refuses, or that names English as what a missing key leaves, each with its paragraph read whole for its meaning (executed, `git grep` with those patterns; read, each paragraph). It is a sample, since a statement that names neither a key nor the command nor English stays outside it. Four members besides the one round 1 finding 3 removed restated the template's paragraph, and this pass rewrites them. `skills/implement/bootstrap.md:139-142` now reads as the paste-ready fix. `skills/implement/routing-question.md:157-158` says the repository is caught before the refusal the paragraph cited above it reaches the body. `skills/commit-pr-convention/SKILL.md:117-119` cites *Every way of not naming a language lands on English* above it in place of the commit and body outcomes. `:317-318`, a checklist item, keeps the act, that the keys are written before the body, and drops the refusal. Six members stand with grounds, which `gaps.md` *Not done* lists and `trail/phases/phase-2.md` *The statements left standing, and why.* gives one by one: `docs/forms/the-guarantee.md:22`; `docs/layout/one-root-by-lifetime.md:232-237` and its Korean pair, which *Scope* puts out of scope; `docs/checks/the-pull-request-check.md:186-187` and `docs/running/what-a-script-gates.md:66`, each about what its own check refuses; and the lead at `skills/commit-pr-convention/SKILL.md:82-83`, which *Scope* keeps. Two printed lines are out of the class, with the reasons in the phase record: `skills/implement/bootstrap.md:123`, on a config that does not parse, and the orchestrator's act at `skills/code-review/orchestration.md:420-421`. The phase record's account is rewritten in place, with the round 1 paragraph folded into it, and the changelog's item and process row count the files that restated the paragraph again. No case pinned a rewritten sentence (executed, `git grep` on each one's words over `tests` and `evals`), and the narrow run passed after the edit.
+```
+
 ### 2. The sentence that settles the fourth way of absence is pinned by no case, so the two readings round 1 found can come back unseen
 
 ```seal
@@ -133,6 +139,11 @@ rule 15).
             # The fourth way counted as absent for the two language keys,
             # where the next paragraph's lead refuses it for every key.
             "for these two keys it counts as absent",
+```
+
+```seal
+verdict: fixed 7f183aa14
+answer: The finding holds: `skills/code-review/SKILL.md` *The record* asks for a pin on a claim a fix writes into a document, and contract rule 14 was the wrong ground. `RULES` row 26 gains the spelling as the paste-ready fix gives it, with its comment. The spelling stands once in the flattened template (executed, a count over the flattened text). It was seen red before the commit: `seal mutate` took the sentence out of `templates/setup/config.md` with `-k "owner_states_the_rule and 26"`, and the one failure named `for these two keys it counts as absent` alone (executed; `git status --short` showed only the uncommitted test module after the restore). The same commit corrects the comment above row 28, which said three files gave the base order where the fragment says four, and the comment above row 26, which now counts eight files with the template, as the class finding 1 listed.
 ```
 
 ## Confirmations
