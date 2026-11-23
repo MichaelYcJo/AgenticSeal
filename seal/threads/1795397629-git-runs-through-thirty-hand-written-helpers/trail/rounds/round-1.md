@@ -61,6 +61,11 @@ The S8 case takes one more row, in `tests/skills/test_chain_check.py`, red again
         ],
 ```
 
+```seal
+verdict: fixed ad35f21e4
+answer: The finding holds. `rule_changes_of` now re-raises `GITCMD.Failed` ahead of its `SystemExit` clause, so `main` writes `chain-check: ` and the runner's line at exit 2, and its docstring says why. The S8 case gains the `rule_changes_read` row, which matches `HEAD:<ITEM>/frame/design.md` alone and asserts one call matched. It was seen red against `chain_check.py` at dd9233aad, failing on the line `chain-check: the rule-changes reader would not load (...)`, and `seal mutate` dropping the re-raise is red on that row. The round's 14-handler list was taken again at HEAD by its `git grep` and is the same, so no other handler takes a git that did not answer.
+```
+
 ### 2. Three check=True flags the build writes are held by no case
 
 ```seal
@@ -119,6 +124,11 @@ The list of `check=True` sites came from `git grep -n "check=True"` over the fou
         assert layout.main(["--check"]) == 2
         out = capsys.readouterr().out
         assert out.startswith("seal layout: `git ls-files -z` exited "), out
+```
+
+```seal
+verdict: fixed 26f8de01a
+answer: The finding holds. The round's two cases were taken after reading them against the tree. The roll case is parametrized over the close and the last create rung, and asserts that the line names `gh issue close 89` or `gh issue create` and ends in `exited 1: HTTP 502`. The layout case asserts exit 2, a line opening `seal layout: `git ls-files -z` exited 128: `, and nothing printed after it. With its flag taken out, through `seal mutate` for the close, the last create rung and `_tracked`, each row is red: the roll rows fail on `DID NOT RAISE` and the layout case on exit 1 where 2 is asserted. `gaps.md` *Not done* drops the `_tracked` paragraph that this case closes. `git grep -n "check=True"` over the four roots at HEAD lists the same ten sites the round names.
 ```
 
 ### 3. The frame still states readings the build replaced
