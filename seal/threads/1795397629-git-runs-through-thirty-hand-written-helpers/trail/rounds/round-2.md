@@ -27,6 +27,11 @@ Why it matters: `gaps.md` *Not verified* gives one row for each phase, naming th
 | Round 1's fix pass, on the Windows leg: `tests/skills/test_test_layout.py#Test_main::test_refuses_a_listing_git_refused_in_one_line` writes four bytes over a real `.git/index` and asserts that git exits 128, and `tests/github/test_roll_flow_measurement_issue.py#Test_module::test_a_close_or_the_last_create_gh_refuses_stops_the_release` finds `gh` through `shutil.which`. Each ran on macOS alone | the pull request's CI run on its Windows leg |
 ```
 
+```seal
+verdict: fixed 5fa72e29b
+answer: The finding holds. The orchestrator inserted the round's row, as given, after the phase 5 row of `gaps.md` *Not verified*; the phase 5 row stays, as its cases do make one call time out. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ## Confirmations
 
 ```seal
