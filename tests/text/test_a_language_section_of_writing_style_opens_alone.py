@@ -140,6 +140,10 @@ def test_each_language_section_of_writing_style_opens_alone():
         f"{NAMING_RULE}, which names the sections: {uncited}"
     )
     named = named_by_readers()
+    # The contract is among the files whose headings are resolved below.
+    assert set(LANGUAGE_SECTIONS) <= named.get(CONTRACT, set()), (
+        f"the heading check no longer reads {CONTRACT}, which names the sections"
+    )
     dangling = [
         f"{rel}: {span}"
         for rel, spans in sorted(named.items())
@@ -147,8 +151,8 @@ def test_each_language_section_of_writing_style_opens_alone():
         if not any(h == span or h.startswith(span + " ") for h in present)
     ]
     assert not dangling, (
-        f"an agent's writing-style step names a heading {SKILL} does not have:\n"
-        + "\n".join(dangling)
+        f"the contract or an agent's writing-style step names a heading {SKILL} "
+        "does not have:\n" + "\n".join(dangling)
     )
 
 
