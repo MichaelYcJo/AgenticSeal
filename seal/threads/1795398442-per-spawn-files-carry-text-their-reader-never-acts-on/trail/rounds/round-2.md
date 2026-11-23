@@ -133,7 +133,7 @@ pull request (`skills/commit-pr-convention/SKILL.md:169-172`).
 
 ```seal
 verdict: fixed c5215301b
-answer: The orchestrator replaced the row on the title's prefix with the round's paste-ready row, which takes `fix:` for the normaliser fix, and `pr.md`'s quote with the round's line. The pull request's title takes `fix:`; the issue's title stays, as a title the pull request closes. The fix touches the work item's records alone, so the sealer reads it.
+answer: The orchestrator replaced the row on the title's prefix with the round's paste-ready row, which takes `fix:` for the normaliser fix, and `pr.md`'s quote with the round's line. The pull request's title takes `fix:`, and the orchestrator retitled #1579 from `refactor:` to `fix:` on 2026-11-23, as `skills/commit-pr-convention/SKILL.md` *Commit messages*, the paragraph opening **An issue's title takes the prefix the pull request that closes it will take**, states (executed: `gh issue edit 1579 --title`). The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ### 3. The changelog counts 38 designs where the tree holds 35 at the fix and 36 at the target
