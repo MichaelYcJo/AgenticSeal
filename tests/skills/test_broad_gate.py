@@ -816,14 +816,19 @@ class Test_not_as_written:
             ("echo %X% && bin/x", "%", ("bin/x",)),
             # Each word once, in the order it stands.
             ('echo "a" && bin/x | tools/y && bin/x', '"', ("bin/x", "tools/y")),
+            # A name that reaches the cut is named, never refused.
+            ("bin/%TOOL% -q", "%", ("bin/%TOOL%",)),
+            ('bin/"a b"/x -q', '"', ('bin/"a',)),
+            ("bin/x^& && echo", "^", ("bin/x^&",)),
         ],
     )
     def test_names_what_it_did_not_read_and_runs_it_as_written(
         self, tmp_path, capsys, value, char, unread
     ):
         """*Scope* item 2. The reading stops at the first `"`, `^` or `%`, and
-        each word past it that it would refuse is named on one stderr line,
-        pinned here, and decides nothing."""
+        each word that holds it or stands past it that the reading would
+        refuse is named on one stderr line, pinned here, and decides
+        nothing."""
         assert on_cmd_exe(value, a_root(tmp_path, "bin", "tools")) is None
         assert capsys.readouterr().err == not_read_line(char, *unread) + "\n"
 
@@ -845,16 +850,6 @@ class Test_not_as_written:
         assert "`/`: `bin/a` and `tools/b`, and the shell" in said, said
         assert "cmd.exe runs `bin\\a` and `tools\\b`, and" in said, said
         meant = json.dumps("bin\\a tools/b && tools\\b -q | bin\\a")
-        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
-
-    def test_refuses_a_name_the_cut_splits_by_naming_it_whole(self, tmp_path):
-        """A name holding the cut after its `/` is refused on the `/` before
-        the cut, and named as the key holds it: the refusal never names a
-        word cut short. Only the part before the cut is turned."""
-        said = on_cmd_exe("bin/%TOOL%/x -q", a_root(tmp_path, "bin"))
-        assert "`/`: `bin/%TOOL%/x`, and the shell" in said, said
-        assert "cmd.exe runs `bin\\%TOOL%/x`, and" in said, said
-        meant = json.dumps("bin\\%TOOL%/x -q")
         assert f'    as meant:   "{ROW}": {meant}\n' in said, said
 
     def test_refuses_a_name_that_stands_again_past_the_cut_with_one_spelling(

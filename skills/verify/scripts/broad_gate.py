@@ -778,28 +778,21 @@ def command_names(text):
 
 def names_in_a_directory(command, is_directory):
     """`(refused, not_read)`: the command names of COMMAND that start in a
-    directory with `/`, read up to `cmd_cut`, and the ones past the cut that
-    the same reading of the whole value would refuse. Two lists of words in
-    the order they stand, each as COMMAND holds it: a name the cut splits is
-    refused on its part before the cut and named whole.
+    directory with `/`, split in two at `cmd_cut`. A name that ends before
+    the cut is refused. A name that reaches the cut, holding its character,
+    or stands past it is named as not read and never refused, so no refusal
+    speaks of a spelling past the cut. Two lists of words in the order they
+    stand, as the blank split of COMMAND gives them.
 
     A name starts in a directory where it holds a `/` and `is_directory`
     answers true for the part before its first `/`. The scan does no I/O of
     its own: `not_as_written` asks the root the command runs in (`in_root`).
     """
-
-    def starts_in_a_directory(word):
-        return "/" in word and bool(is_directory(word.split("/", 1)[0]))
-
     cut = cmd_cut(command)
-    # Up to the cut both splits agree, so a name starts at one offset in each.
-    whole = dict(command_names(command))
-    refused = [
-        whole[at] for at, w in command_names(command[:cut]) if starts_in_a_directory(w)
-    ]
-    not_read = [
-        w for at, w in command_names(command) if at >= cut and starts_in_a_directory(w)
-    ]
+    refused, not_read = [], []
+    for at, word in command_names(command):
+        if "/" in word and is_directory(word.split("/", 1)[0]):
+            (refused if at + len(word) <= cut else not_read).append(word)
     return refused, not_read
 
 
@@ -811,13 +804,13 @@ def listed(words):
 
 def backslashed(value, refused):
     """VALUE with `/` written `\\` in each word read as a command name that
-    REFUSED holds, up to `cmd_cut`, and every other character where it was.
-    A word spelt the same as an argument keeps its `/`, and so does the part
-    of a name past the cut."""
+    REFUSED holds and that ends before `cmd_cut`, and every other character
+    where it was. A word spelt the same as an argument keeps its `/`, and so
+    does the same name where it stands again past the cut."""
     out = list(value)
-    whole = dict(command_names(value))
-    for at, word in command_names(value[: cmd_cut(value)]):
-        if whole[at] in refused:
+    cut = cmd_cut(value)
+    for at, word in command_names(value):
+        if at + len(word) <= cut and word in refused:
             out[at : at + len(word)] = word.replace("/", "\\")
     return "".join(out)
 
@@ -870,9 +863,10 @@ def not_as_written(home, command, root, windows=None, comspec=None):
     that is exactly `&&`, `||`, `&` or `|`: within that part no quote hides
     a separator and no caret escapes one. A name is refused where the part
     before its first `/` is a directory under ROOT, the root the command
-    runs in, or on Windows a drive (`in_root`). A word past the cut that the
-    same reading would refuse is named on one stderr line before the run,
-    or inside the refusal, and decides nothing. A name `cmd.exe` reads where
+    runs in, or on Windows a drive (`in_root`). A word that reaches the cut,
+    holding its character, or stands past it is never refused: where the
+    same reading would refuse it, it is named on one stderr line before the
+    run, or inside the refusal, and decides nothing. A name `cmd.exe` reads where
     this reading takes no command name, such as after a separator glued to
     a word in `a&& bin/x`, is neither refused nor named:
     `templates/setup/config.md` *Broad gate* states the rule the reading
@@ -932,15 +926,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             return None
         names = list(dict.fromkeys(refused))
         meant = backslashed(value, names)
-        # Each name as `meant` spells it, which turns no `/` past the cut.
-        cut = cmd_cut(value)
-        turned = list(
-            dict.fromkeys(
-                meant[at : at + len(word)]
-                for at, word in command_names(value)
-                if at < cut and word in names
-            )
-        )
+        turned = [name.replace("/", "\\") for name in names]
         form = f"starts a command name in a directory with `/`: {listed(names)}"
         does = (
             "and the shell here is cmd.exe, which reads a `/` in a command "

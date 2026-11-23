@@ -277,15 +277,17 @@ where it holds a `/` and the part before its first `/` names a directory
 under the repository root, where the command runs. An empty part (a name
 that opens with `/`), `.` and `..` each name one, and on Windows so does a
 drive, so `C:/Python/python.exe` is refused naming `C:\Python\python.exe`.
-A name that holds a `"`, `^` or `%` after its `/` is refused on the part
-before it and named whole. So `pytest tests/x.py`
-and `uvx ruff check src/` are not refused, because `tests/x.py` and `src/`
-are arguments, and `bin -q` is not, because it holds no `/`.
+So `pytest tests/x.py` and `uvx ruff check src/` are not refused, because
+`tests/x.py` and `src/` are arguments, and `bin -q` is not, because it
+holds no `/`. A name that holds the `"`, `^` or `%` the reading stops at,
+such as `bin/%TOOL%`, is never refused, and nor is any name after it.
 
 **What the gate does not read is named, and decides nothing.** Where the
-value holds a `"`, `^` or `%`, the gate names each word after the first of
-them that the same reading of the whole value would refuse, with the
-character the reading stopped at. Where nothing is refused, that is one
+value holds a `"`, `^` or `%`, the gate names each word that holds the
+first of them or stands after it, and that the same reading of the whole
+value would refuse, with the character the reading stopped at. It names
+the word as far as the blanks on either side of it, which is not always
+the name `cmd.exe` reads. Where nothing is refused, that is one
 line before the run, and the command then runs as written. Where a name is
 refused, the refusal carries the same line. Under `/bin/sh`, or a
 `COMSPEC` naming another shell, the gate reads nothing of the command for
@@ -307,8 +309,8 @@ disagree, in either direction.
   separator glued to a word, as in `a&& bin/x`, and a name in a directory
   an earlier command makes or a `cd` enters. A key stays inside the
   reading where each command name, with nothing glued in front of it, is
-  the first word of its command, and every separator has a blank on each
-  side.
+  the first word of its command and stands before the first `"`, `^` or
+  `%`, and every separator has a blank on each side.
 - **A word the reading takes for a command name that `cmd.exe` would not
   run is refused**, where its part before the `/` names a directory of the
   root. Examples are the text after `rem`, as in `rem a && bin/test`, and a
