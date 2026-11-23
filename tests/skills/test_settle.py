@@ -255,10 +255,8 @@ def configure(repo, *rows):
 #   show                `Test_show`
 #   rule_changes.order  `Test_module`'s `merge_order` cases
 #   rule_changes._ancestor
-#                       `Test_main::test_local_specs_are_listed_in_the_order_their_pull_requests_merged`,
-#                       and `tests/lib/test_gitcmd.py#Test_is_ancestor` for
-#                       the False the cases of two branches merged apart
-#                       answer it with
+#                       `Test_report::test_two_specs_on_parallel_branches_at_one_place_are_one_group_unordered`,
+#                       for two commits no ancestry orders
 #   resolves, released_local, rule_changes.merge_order
 #                       the local runs of `Test_main` that merge a pull
 #                       request, and `Test_module`'s `merge_order` cases
@@ -2090,19 +2088,29 @@ class Test_report:
 
     @pytest.mark.parametrize("section", ["S", "S child"])
     def test_two_specs_on_parallel_branches_at_one_place_are_one_group_unordered(
-        self, drawn, monkeypatch, section
+        self, shared_repo, monkeypatch, section
     ):
         """S5: ancestry cannot order them, so they are one group with the
         pair marked for the settling session to order by content, and nothing
         is refused. A sub-section is inside its section's range, so it is the
-        same place. `rule_changes.py#_ancestor` answers neither way, as git
-        answers for two commits on branches merged apart
-        (`tests/lib/test_gitcmd.py#Test_is_ancestor`)."""
-        item(drawn, "1700000001-a", op("change", "S", "old sentence.", "y."))
-        item(drawn, "1700000002-b", op("add", section, new="Rule."))
-        rule_changes = settle.sibling.load(settle.RULES)
-        monkeypatch.setattr(rule_changes, "_ancestor", lambda root, a, b: False)
-        code, text = at(drawn, "main")
+        same place. The two designs are added on branches `main` merged
+        apart, which `merged_history` writes, and `rule_changes.py#order`
+        and `#_ancestor` read them from git: the case that holds
+        `_ancestor`'s answer of neither way. The other readers are
+        `answered`."""
+        a, b = (
+            f"seal/threads/{name}/frame/design.md"
+            for name in ("1700000001-a", "1700000002-b")
+        )
+        merged_history(
+            shared_repo,
+            ("base", {}),
+            ("b", {b: spec(op("add", section, new="Rule."))}),
+            ("a", {a: spec(op("change", "S", "old sentence.", "y."))}),
+            ("merge b", {b: spec(op("add", section, new="Rule."))}),
+        )
+        answered(monkeypatch, shared_repo, real={"order", "_ancestor"})
+        code, text = at(shared_repo, "main")
         assert code == 0, text
         assert "refused" not in text, text
         group = group_text(text)
@@ -2118,7 +2126,8 @@ class Test_report:
         branch of its own, and `main` merged both, so no ancestry orders the
         two merge commits and the pair is marked. The readers are
         `answered`, and `rule_changes.py#_ancestor` answers neither way, as
-        git answers for two merge commits on branches merged apart."""
+        git answers for two commits on branches merged apart
+        (`test_two_specs_on_parallel_branches_at_one_place_are_one_group_unordered`)."""
         local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         local_item(local_repo, "1700000002-b", "feat/2-b", op("add", "S", new="B."))
         answered(monkeypatch, local_repo)
