@@ -27,9 +27,12 @@ that hold the table. The shape's sentences, and whether the skill copies
 the rows, are the proofer's to read.
 """
 
-from conftest import census_case, flattened, read, section
+from conftest import census_case, flattened, load_lib_module, read, section
 
 TARGET = "skills/commit-pr-convention/SKILL.md"
+
+# The reader of `routing.md`, whose `CHAIN` is the answer the shape holds for.
+routing = load_lib_module("routing.py", "agentic_routing_for_the_chain_section")
 
 SKILL = tuple(TARGET.split("/"))
 # The section a session opens while writing a body, read as one line so a
@@ -44,9 +47,9 @@ def test_the_section_names_the_routing_answer_it_holds_for():
     that never run this chain, and a rule with no condition on it reads as a
     rule for them too."""
     said = flattened(section(read(*SKILL), BODIES))
-    # The `Review` routing answer `through the review chain`, which
+    # The `Review` routing answer `lib/routing.py#CHAIN`, which
     # `lib/routing.py#parse` reads from `routing.md`.
-    assert "through the review chain" in said, (
+    assert routing.CHAIN in said, (
         "the section states a shape without saying which work items it holds for"
     )
 

@@ -24,21 +24,36 @@ mark landed and false for every commit before it.
 import os
 import re
 
-from conftest import ROOT, flattened, read
+from conftest import ROOT, flattened, load_lib_module, load_module, read
 
 # No TARGET: its cases hold the routing rule across the orchestration, the routing question, the policy, the routing template and lib/routing.py, and walk every agent definition and every committed routing.md.
 
+# The reader of `routing.md`, whose constants are each row's label and the
+# answers it accepts.
+routing = load_lib_module("routing.py", "agentic_routing_for_waiver")
+# The chain check, whose `TRAILER` and `NO_WORK_ITEM` spell the trailer it
+# reads on a pull request's commits, with its value under `direct`.
+chain = load_module(
+    os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
+    "agentic_chain_check_for_waiver",
+)
+NO_WORK_ITEM_TRAILER = f"`{chain.TRAILER}: {chain.NO_WORK_ITEM}`"
+
+
+def or_joined(answers):
+    """ANSWERS as a row of the orchestrator's table offers them, each a code
+    span, joined by `or`."""
+    return " or ".join(f"`{answer}`" for answer in answers)
+
 
 AXES = (
-    "through the review chain",
-    "straight to the PR",
-    "open the pull request",
-    "stop before the pull request",
+    *routing.REVIEW_ANSWERS,
+    *routing.DESTINATION_ANSWERS,
     # The third axis. Its answers are `crafter` and `the session`; only the
     # second is pinned, because `crafter` appears in these documents for a dozen
     # unrelated reasons -- it is the name of the agent one of them IS -- and
     # would pass on any of them.
-    "the session",
+    routing.BY_SESSION,
 )
 
 
@@ -133,15 +148,17 @@ def test_the_implementation_row_offers_the_answers_the_parser_reads():
     in `skills/implement/SKILL.md` and only two of them are about the axis,
     so the row is read by its label and its answers are read in it."""
     rows = [
-        ln for ln in read(*ORCH).splitlines() if ln.startswith("| Implementation |")
+        ln
+        for ln in read(*ORCH).splitlines()
+        if ln.startswith(f"| {routing.IMPLEMENTATION} |")
     ]
     assert len(rows) == 1, (
-        f"the axes table has {len(rows)} `Implementation` rows; the count "
-        "beside it promises exactly one"
+        f"the axes table has {len(rows)} `{routing.IMPLEMENTATION}` rows; the "
+        "count beside it promises exactly one"
     )
-    # The two answers `lib/routing.py#IMPLEMENTATION_ANSWERS` accepts,
-    # which the orchestrator copies into `routing.md`'s `Implementation` row.
-    assert "`crafter` or `the session`" in rows[0], (
+    # The answers `lib/routing.py#IMPLEMENTATION_ANSWERS` accepts, which the
+    # orchestrator copies into `routing.md`'s row.
+    assert or_joined(routing.IMPLEMENTATION_ANSWERS) in rows[0], (
         "the row lost the vocabulary, so a session reads a third axis with no answers"
     )
 
@@ -489,13 +506,20 @@ def test_the_section_gives_the_automation_row_its_two_answers():
     `test_the_policy_tables_the_review_answers_and_the_skill_cites_it` reads
     the skill citing, and the proofer's to read.
     """
-    rows = [ln for ln in read(*ORCH).splitlines() if ln.startswith("| Automation |")]
+    rows = [
+        ln
+        for ln in read(*ORCH).splitlines()
+        if ln.startswith(f"| {routing.AUTOMATION} |")
+    ]
     assert len(rows) == 1, (
-        f"the section has {len(rows)} `Automation` rows; the declaration has one"
+        f"the section has {len(rows)} `{routing.AUTOMATION}` rows; the "
+        "declaration has one"
     )
-    # The two answers `lib/routing.py#AUTOMATION_ANSWERS` accepts,
-    # which the orchestrator copies into `routing.md`'s `Automation` row.
-    assert "`yes` or `no`" in rows[0], "the row lost its vocabulary"
+    # The answers `lib/routing.py#AUTOMATION_ANSWERS` accepts, which the
+    # orchestrator copies into `routing.md`'s row.
+    assert or_joined(routing.AUTOMATION_ANSWERS) in rows[0], (
+        "the row lost its vocabulary"
+    )
 
 
 FRAMER = ("agents", "framer.md")
@@ -662,14 +686,14 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
     the rule being broken.
     """
     skill = read(*ORCH)
-    rows = [ln for ln in skill.splitlines() if ln.startswith("| Planning |")]
+    rows = [ln for ln in skill.splitlines() if ln.startswith(f"| {routing.PLANNING} |")]
     assert len(rows) == 1, (
-        f"the routing section has {len(rows)} `Planning` rows; the declaration "
-        "has exactly one"
+        f"the routing section has {len(rows)} `{routing.PLANNING}` rows; the "
+        "declaration has exactly one"
     )
-    # The two answers `lib/routing.py#PLANNING_ANSWERS` accepts, which
-    # the orchestrator copies into `routing.md`'s `Planning` row.
-    assert "`framer` or `the session`" in rows[0], (
+    # The answers `lib/routing.py#PLANNING_ANSWERS` accepts, which the
+    # orchestrator copies into `routing.md`'s row.
+    assert or_joined(routing.PLANNING_ANSWERS) in rows[0], (
         "the row lost the vocabulary, so a session reads an axis with no answers"
     )
 
@@ -682,7 +706,9 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
     tables = checkbox_tables(read(*QUESTION))
     assert tables, "the routing question's file holds no table of boxes to read"
     for boxes in tables:
-        assert not any("framer" in b or "Planning" in b for b in boxes), (
+        assert not any(
+            routing.BY_FRAMER in b or routing.PLANNING in b for b in boxes
+        ), (
             "the `Planning` axis reached a checkbox table, which is the one "
             "place #88 says it must not be"
         )
@@ -722,10 +748,10 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
     read."""
     skill = flattened(read(*ORCH))
     policy = in_force(*DECLARATION)
-    # The two `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts,
-    # as the policy table's row keys a reader looks an answer up by.
-    for answer in ("| through the review chain |", "| straight to the PR |"):
-        assert answer in policy, f"the policy's table lost the row `{answer}`"
+    # The `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts, as the
+    # policy table's row keys a reader looks an answer up by.
+    for answer in routing.REVIEW_ANSWERS:
+        assert f"| {answer} |" in policy, f"the policy's table lost the row `{answer}`"
     # The citation `docs/running/the-review-and-parity-arms.md` *The declaration, and
     # where the check went*, which the orchestrator resolves to the table.
     assert cites(*DECLARATION) in skill, "the skill does not cite the combinations"
@@ -733,9 +759,10 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
 
 def test_the_skill_names_where_the_answer_is_written():
     skill = flattened(read(*ORCH))
-    # The path the orchestrator writes the answer to, and the template it
-    # copies, which it opens.
-    assert "seal/threads/<work-item-id>/routing.md" in skill
+    # The path the orchestrator writes the answer to, under the file name
+    # `lib/routing.py#FILENAME` reads, and the template it copies, which it
+    # opens.
+    assert f"seal/threads/<work-item-id>/{routing.FILENAME}" in skill
     assert "templates/records/sdd-routing.md" in skill
 
 
@@ -746,7 +773,7 @@ def test_the_routing_question_names_the_trailer_that_records_no_work_item():
     #1477."""
     # The trailer `chain_check.py#TRAILER` reads on a pull request's commits,
     # as the orchestrator writes it under `direct`.
-    assert "`Seal-Routing: no work item`" in flattened(read(*QUESTION))
+    assert NO_WORK_ITEM_TRAILER in flattened(read(*QUESTION))
 
 
 def test_the_skill_cites_the_policy_on_a_standing_waiver():
@@ -809,12 +836,10 @@ def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():
     """Words the orchestrator writes into `routing.md` that the reader
     rejects produce a declaration that reads as none, which is what a branch
     that never declared looks like. The table of what the answer writes is
-    where the orchestrator reads the words; the template ships two of them
-    answered and the rest as placeholders."""
+    where the orchestrator reads the words, and `AXES` takes them from the
+    reader's own constants; the template ships two of them answered and the
+    rest as placeholders, and the template cases above parse it."""
     orch = read(*ORCH)
-    routing = read("lib", "routing.py")
     for answer in AXES:
-        # Each answer the orchestrator copies into `routing.md`, and the
-        # string literal `lib/routing.py` matches it by.
+        # Each answer the orchestrator copies into `routing.md`.
         assert f"`{answer}`" in orch, f"the orchestration lost `{answer}`"
-        assert f'"{answer}"' in routing, f"the parser does not accept `{answer}`"
