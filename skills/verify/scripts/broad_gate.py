@@ -143,10 +143,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = "skills/verify/scripts/seal_stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
-CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
-# `chain_check.SEALING`, the flag the chain arm passes. Spelled here
-# because the arm runs the check as a process; a case holds the two equal.
-CHAIN_SEALING = "--sealing"
+# The chain arm runs the check as a process, and passes the check's own
+# `SEALING`, read from the module `main` loads before any arm runs.
+CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
+CHAIN = os.path.join(PLUGIN, *CHAIN_CHECK.split("/"))
 CONFIG_READER = "lib/config.py"
 # `lib/fields.py`, which assembles the run block `--record` appends and
 # reads the blocks already there.
@@ -1586,7 +1586,7 @@ def rounds_rows(item):
     # absent, it is the loader's sentence and exit 2.
     try:
         with sibling.going_on():
-            chain = sibling.load("skills/code-review/scripts/chain_check.py")
+            chain = sibling.load(CHAIN_CHECK)
     except sibling.Absent as absent:
         sys.stderr.write(
             f"seal gate: the round records' deferred findings are not counted: "
@@ -2061,9 +2061,10 @@ def gate(args, ascii_marks=False):
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
     # written into the environment for it.
+    sealing = sibling.load(CHAIN_CHECK).SEALING
     checks[CHAIN_NAME] = run(
         CHAIN_NAME,
-        [py, CHAIN, "--baseline", base.commit, "--root", root, CHAIN_SEALING],
+        [py, CHAIN, "--baseline", base.commit, "--root", root, sealing],
         root,
         keep,
     )
@@ -2248,6 +2249,11 @@ def main(argv=None, console_wants_ascii=False):
         args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
         if root:
             sys.stderr.write(running_line(root) + "\n")
+        # The check whose `SEALING` the chain arm passes, loaded before any
+        # arm runs: a copy of the plugin without it is the loader's sentence
+        # and exit 2, with no arm run, where the suite would otherwise run
+        # first and the chain arm then fail.
+        sibling.load(CHAIN_CHECK)
         return gate(args, console_wants_ascii)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")

@@ -195,9 +195,6 @@ class Test_module:
         ]
         assert len(reads) == 1, [node.lineno for node in reads]
 
-    def test_the_gate_and_the_check_spell_the_flag_alike(self):
-        assert gate.CHAIN_SEALING == chain.SEALING
-
     def test_a_file_the_gate_wrote_is_read_by_the_check(self, tmp_path):
         """#1198, *Scope* item 2: the run block the gate appends is the one
         `chain_check.py#broad_gate` reads, through the same reader."""
@@ -2141,6 +2138,29 @@ class Test_main:
         assert out.returncode == 2, out.stderr
         helper = tmp_path / "plugin" / "lib" / "gitcmd.py"
         assert gate.sibling.MISSING.format(path=str(helper)) in out.stderr
+        assert "Traceback" not in out.stderr and not keep.exists()
+
+    def test_refuses_a_copy_without_its_chain_check_before_any_arm(self, tmp_path):
+        """#1575 S6. The chain arm passes `chain_check.py#SEALING`, and the
+        gate loads the check for it before the first arm runs. A copy of the
+        plugin without the check exits 2 with the loader's sentence naming
+        it, and runs no arm, so no arm's output is kept. Seen red against
+        the gate before #1575, which ran the suite and failed the chain arm
+        at exit 1."""
+        plugin = tmp_path / "plugin"
+        for part in ("lib", "skills", ".claude-plugin"):
+            shutil.copytree(
+                ROOT / part,
+                plugin / part,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        check = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
+        check.unlink()
+        repo = sealable_repo(tmp_path)
+        keep = tmp_path / "out"
+        out = run_gate(repo, keep, script=plugin / TARGET)
+        assert out.returncode == 2, out.stdout + out.stderr
+        assert gate.sibling.MISSING.format(path=str(check)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_accepts_the_command_a_person_types(self):
