@@ -66,4 +66,4 @@ The spawn names #1577 and #1578, and the two issue bodies were read (`gh issue v
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-23 | `seal mode`'s `write_mode` step, which still exits 0 where the `Mode` key was not written, stays out of this work item and stands in `gaps.md` *Not done* | The issue and *Scope* item 4 cover git and `gh` that did not answer; `write_mode` writes a file and starts no git, so its exit is a different fact. Phase 2 found it by taking `switch` apart and recorded it; the pull request body carries `gaps.md` *Not done* to the release's reader, and no round is spent on it | `docs/running/the-run.md` *The run*, the homes table, rung 4; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
