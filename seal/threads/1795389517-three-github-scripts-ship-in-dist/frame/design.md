@@ -50,7 +50,7 @@ In:
    - Every test that loads one of these by path is re-pointed.
 6. **`ruff.toml`'s `per-file-target-version` table** names the moved files as `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` derives them, and the closer's row goes where that case no longer derives it. That case's `test_a_script_reaches_no_module_under_tests` leaves out what a `bin/` wrapper hands its interpreter, since `bin/test` now hands it `tests/run_tests.py`, and still refuses a load that reaches `tests/`.
 7. **`.gitattributes` marks `/.github/` `export-ignore` in one line.** That line replaces the lines the `## Removes` row on `export-ignore` lines names, and the file's comment says why `.github/` leaves whole. The GitHub templates leave `dist` with it.
-8. **The version check watches every top-level directory the archive holds that an installed copy reads.** The pattern at `hygiene.yml:88` gains `docs`, and its comment says the archive and the set of *Scope* item 9 decide. `assets/` stays unwatched. Nothing installed reads it (*Grounding*), so a change to a drawing alone moves no version. It stays in `dist` because `README.md:175` and `README.ko.md:178` show `assets/seals/owl.png` wherever `dist` is rendered (executed: `grep -n 'assets/' README.md README.ko.md`). Also, #1535 took out of `dist` only the files of a type the directory refuses (`docs/releasing/branch-and-release.md:154-159`, read), and a PNG is not one.
+8. **The version check watches every top-level directory the archive holds that an installed copy reads.** The pattern of `hygiene.yml`'s version check gains `docs`, and its comment says the archive and the set of *Scope* item 9 decide. `assets/` stays unwatched. Nothing installed reads it (*Grounding*), so a change to a drawing alone moves no version. It stays in `dist` because `README.md:175` and `README.ko.md:178` show `assets/seals/owl.png` wherever `dist` is rendered (executed: `grep -n 'assets/' README.md README.ko.md`). Also, #1535 took out of `dist` only the files of a type the directory refuses (`docs/releasing/branch-and-release.md:154-159`, read), and a PNG is not one.
 9. **`tests/behaviour/test_the_release_check_watches_what_ships.py` derives what ships from the archive.** It no longer keeps `SHIPS` and `STAYS_HOME`:
    - Every top-level directory `git archive` holds is either matched by the pattern or named in one set of entries the archive holds and nothing installed reads. No entry is both.
    - Every tracked top-level entry the archive leaves out is not matched.
@@ -89,7 +89,7 @@ Out:
 - `seal rules`: same subcommand, same arguments and exit codes. `TOOLS["rules"]` names `skills/settle/scripts/rules.py`.
 - `chain_check.py#CHECK_LINES_READER = "skills/settle/scripts/rules.py"`. The three messages that name the reader name the new path. `tests/skills/test_chain_check.py:1815`, `:1971` and `:1980` pin them, and they change with them (contract rule 14).
 - `bin/test`, `bin/test.cmd`: the same arguments and the same refusal sentence. The runner path is `../tests/run_tests.py`.
-- `.github/workflows/hygiene.yml:88`: `grep -E '^(skills|agents|hooks|lib|templates|bin|docs|\.claude-plugin)/'`, in any order the derived case accepts.
+- `.github/workflows/hygiene.yml`, the version check's `ships=` line: `grep -E '^(skills|agents|hooks|lib|templates|bin|docs|\.claude-plugin)/'`, in any order the derived case accepts.
 
 ## Rule changes
 
