@@ -1715,7 +1715,7 @@ def arms_answered(monkeypatch, *names):
     """The arms NAMES answered as passed for the case, and every other run
     the gate starts real, the row again at the base among them. For a case
     whose fact is another arm: `a_recorded_run`, `a_sealed_run`, the
-    preflight and `Test_main`'s copies keep every arm real."""
+    preflight and the runs of a copied plugin keep every arm real."""
     real = gate.run
 
     def run(name, command, root, keep, shell=False, env=None):
