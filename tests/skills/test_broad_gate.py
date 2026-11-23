@@ -1,19 +1,20 @@
 """`skills/verify/scripts/broad_gate.py`, one class per function.
 
 Rebuilt from the code by #942's phase 5. The pure units are driven with text
-and hand-built records, so no git and no shell runs under them. Git runs where the unit asks git a question: the base's
-resolution over one repository built once for the module, and the base
-comparison and the gate's own run over a fixture repository built once and
-copied for each case. Those cases run the fixture's one-test suite through
-the gate's recorder, one row per kind of answer, and each copy is the reset.
+and hand-built records, so no git and no shell runs under them. Git runs
+where the unit asks git a question: the base's resolution over one
+repository built once for the module, and the base comparison and the gate's
+own run over a fixture repository built once and copied for each case. Those
+cases run the fixture's one-test suite through the gate's recorder, one row
+per kind of answer, and each copy is the reset.
 
 Phase 6 placed the light files' cases here as they stood. The cases of
 `not_as_written` that read a command name the way `cmd.exe` does (#1577)
 drive the Windows half with the platform passed in as an argument and a root
 built for the case; two cases of `run` run the machine's real shell, and only
-CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that run
-the command build a repository with a `feature` branch and run it over that
-branch.
+CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that
+run the command build a repository with a `feature` branch and run it over
+that branch.
 
 The cases that run the command beside a project's own `seal/` package
 (#1059) build `tests/conftest.py`'s `package` or `shared` repository for
