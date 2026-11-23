@@ -8,12 +8,17 @@ contract is what ends that — but only while the rules are actually in it.
 
 So this module reads the contract's shape. Every rule is a numbered section,
 and the numbers increase without a repeat. A rule that retires leaves the
-file, and the preamble lists its number as retired. So every number from one
-up to the highest that no heading holds is a listed one, and no listed
-number holds a heading: a rule that goes whole with its number unlisted is
-red, and so is a listed number that still has a section. Only the highest
-number used can go unseen, from the list or as a rule, since nothing else
-in the file says it was used; that is left to review. A rule's sentences
+file, and `docs/running/the-agent-set.md` *One contract every agent
+receives, and one definition each*, the paragraph opening **The contract's
+rule numbers are stable.**, lists its number as retired: the numbering
+policy is for whoever edits the contract, so no spawn pays for it (#1579).
+So every number from one up to the highest that no heading holds is a
+listed one, and no listed number holds a heading: a rule that goes whole
+with its number unlisted is red, and so is a listed number that still has
+a section. A paragraph reworded so the list is not read lists nothing, and
+every retired number then reads as a gap. Only the highest number used can
+go unseen, from the list or as a rule, since nothing else says it was used;
+that is left to review. A rule's sentences
 are not pinned here. #1111 found no pin's history showing a catch, and
 every pin's change came with its own rule's rewording, so a rule reworded
 to the same meaning stays green. A sentence deleted from inside a rule that
@@ -47,12 +52,17 @@ TARGET = "skills/agent-contract/SKILL.md"
 
 CONTRACT = os.path.join(*TARGET.split("/"))
 
+# The document whose paragraph lists the retired numbers, and the words that
+# open that paragraph.
+AGENT_SET = os.path.join("docs", "running", "the-agent-set.md")
+NUMBERING = "**The contract's rule numbers are stable.**"
+
 # The one reader of a contract heading, `## <N> <title>`. Every other module
 # that walks the contract's rules imports it from here.
 HEADING = re.compile(r"^## (\d+) (.+)$", re.M)
 
-# The preamble's list of retired numbers, `the retired numbers are 8, 16 and
-# 20`, read across a line break.
+# The numbering paragraph's list of retired numbers, `the retired numbers are
+# 8, 16 and 20`, read across a line break.
 RETIRED = re.compile(r"retired\s+numbers\s+are\s+((?:\d+,\s+)*\d+(?:\s+and\s+\d+)?)")
 
 # A fact a reader needs fixed character for character, by the rule whose
@@ -135,26 +145,32 @@ def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
 # --- shape -----------------------------------------------------------------
 
 
-def retired(text):
-    """The numbers the preamble, the text before the first rule, lists as
-    retired; none where it lists none."""
-    match = RETIRED.search(text[: HEADING.search(text).start()])
+def retired(doc):
+    """The numbers DOC's numbering paragraph, from NUMBERING to the next
+    blank line, lists as retired; none where the paragraph or its list is
+    missing."""
+    at = doc.find(NUMBERING)
+    if at < 0:
+        return []
+    paragraph = doc[at:].split("\n\n", 1)[0]
+    match = RETIRED.search(paragraph)
     return [int(n) for n in re.findall(r"\d+", match.group(1))] if match else []
 
 
-def numbering_faults(text):
-    """[fault] for the contract's numbering: headings that do not increase or
-    repeat a number, each number from one up to the highest heading or
-    listed number that neither a heading nor the list holds, and each
-    listed number a heading holds."""
+def numbering_faults(text, doc=None):
+    """[fault] for the contract TEXT's numbering against the list DOC holds,
+    `docs/running/the-agent-set.md` where none is given: headings that do
+    not increase or repeat a number, each number from one up to the highest
+    heading or listed number that neither a heading nor the list holds, and
+    each listed number a heading holds."""
     numbers = [int(n) for n, _ in HEADING.findall(text)]
-    listed = retired(text)
+    listed = retired(read(AGENT_SET) if doc is None else doc)
     faults = []
     if numbers != sorted(set(numbers)):
         faults.append(f"the headings do not increase without a repeat: {numbers}")
     for n in range(1, max(numbers + listed) + 1):
         if n not in numbers and n not in listed:
-            faults.append(f"{n} has no heading and the preamble does not list it")
+            faults.append(f"{n} has no heading and the document does not list it")
         if n in numbers and n in listed:
             faults.append(f"{n} is listed as retired and has a heading")
     return faults
@@ -164,7 +180,7 @@ def test_the_sections_are_numbered_from_one_without_a_gap_or_a_repeat():
     assert numbering_faults(read()) == []
 
 
-def test_a_gap_the_preamble_does_not_list_is_named():
+def test_a_gap_the_document_does_not_list_is_named():
     """A rule that goes whole, with its number left off the list, is red."""
     text = read()
     assert numbering_faults(text) == []
@@ -172,7 +188,7 @@ def test_a_gap_the_preamble_does_not_list_is_named():
     first, after = heads[0], heads[1]
     mutated = text[: first.start()] + text[after.start() :]
     assert numbering_faults(mutated) == [
-        f"{first.group(1)} has no heading and the preamble does not list it"
+        f"{first.group(1)} has no heading and the document does not list it"
     ]
 
 
@@ -192,12 +208,12 @@ def test_a_repeated_number_is_named():
 
 def test_a_listed_number_that_has_a_heading_is_named():
     """A number added to the list while its rule still stands is red."""
-    text = read()
-    assert numbering_faults(text) == []
+    text, doc = read(), read(AGENT_SET)
+    assert numbering_faults(text, doc) == []
     standing = HEADING.search(text).group(1)
-    at = RETIRED.search(text).start(1)
-    mutated = text[:at] + f"{standing}, " + text[at:]
-    assert numbering_faults(mutated) == [
+    at = RETIRED.search(doc, doc.find(NUMBERING)).start(1)
+    mutated = doc[:at] + f"{standing}, " + doc[at:]
+    assert numbering_faults(text, mutated) == [
         f"{standing} is listed as retired and has a heading"
     ]
 
