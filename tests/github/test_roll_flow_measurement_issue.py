@@ -1135,5 +1135,22 @@ class Test_module:
         args = asked[0]
         assert args[args.index("--json") + 1] == "number,title,comments", args
 
+    def test_a_list_gh_refuses_stops_the_release_in_the_runners_line(self, monkeypatch):
+        """The one-open reading is the invariant, so a list `gh` refuses ends
+        the run, in `lib/gitcmd.py#Exited`'s line naming the command and what
+        `gh` said (#1573)."""
+        m = _roller()
+        monkeypatch.setattr(
+            m.gitcmd.subprocess,
+            "run",
+            lambda argv, **_: subprocess.CompletedProcess(argv, 1, "", "HTTP 502\n"),
+        )
+        with pytest.raises(SystemExit) as stopped:
+            m.list_open_issues("example/repo")
+        assert stopped.value.code == (
+            "`gh issue list --repo example/repo --label flow-measurement --state "
+            "open --json number,title,comments` exited 1: HTTP 502"
+        )
+
 
 test_census = census_case(TARGET)
