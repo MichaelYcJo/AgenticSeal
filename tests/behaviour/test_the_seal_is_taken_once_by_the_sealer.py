@@ -48,6 +48,9 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     `seal/config.json` here carries a `Mode` key and a `Broad gate` key and
     nothing the reader will not take, so all three answers are the ones it
     had before: the mode, the command as the key wrote it, and no refusal.
+    The refusal is asked of this machine's shell and of `cmd.exe`, so the
+    case fails on a leg whose shell is `/bin/sh` too where the key names a
+    command in a directory of the root, as `bin/test` is.
     """
     module = gate_module()
     config = module.sibling.load(module.CONFIG_READER)
@@ -61,6 +64,8 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
         f"the command the gate reads is not the key as written:\n{command}"
     )
     assert module.not_as_written(home, command, ROOT) is None, command
+    on_cmd = module.not_as_written(home, command, ROOT, windows=True, comspec="cmd.exe")
+    assert on_cmd is None, on_cmd
 
 
 def test_the_policy_names_the_value_the_gate_row_reads():
