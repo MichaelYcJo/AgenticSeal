@@ -82,6 +82,11 @@ answerer: round 1's `## Not judged` row is a closed round's record, and
 | Phase 4's install lines: `pip install -r tests/requirements.txt pytest-split==0.11.0` in every leg of `.github/workflows/test.yml`, and the `pip install -r` fallback of `CONTRIBUTING.md` *Running the checks*. Run 45138012071 at `94c866bcb` installed the file in the five legs of the `pytest` job, ubuntu at 3.12 and the four Windows shards. It skipped the `pytest-wide` job, which `test.yml` runs on no pull request into `release/*`, so its macOS and ubuntu 3.14 legs have not installed the file. No job runs the `pip install -r` fallback of `CONTRIBUTING.md`, and it was not run; the `uvx --with-requirements` fallback was run on macOS and installed the file's packages | the `pytest-wide` jobs of `.github/workflows/test.yml` on the release pull request into `main`; for the `pip install -r` fallback, the orchestrator, by running it once in a new virtual environment |
 ```
 
+```seal
+verdict: fixed dd20385d0
+answer: The finding holds. The row now takes the record's replacement for the `pytest` and `pytest-wide` jobs and names the release pull request into `main` as the answerer. For the `pip install -r` fallback, the orchestrator ran it once in a new virtual environment and it exited 0 with the file's packages installed, so the row states that run and the fallback leaves the answerer column. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ## Confirmations
 
 ```seal
