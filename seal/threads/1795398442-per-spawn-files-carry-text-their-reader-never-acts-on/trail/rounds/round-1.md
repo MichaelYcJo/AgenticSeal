@@ -90,6 +90,12 @@ judges the check change to be outside this pull request, the close is
 `deferred <an issue>` naming the normaliser's defect, so that the defect
 outlives the settle.
 
+```seal
+verdict: fixed fe39a9f8d
+location: `tests/skills/test_passages.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`
+answer: Built to the row of `frame/plan.md` *Judgments of the run* opening "The row on the paste check is reversed" (eabe234b6). `skills/settle/scripts/passages.py#SECTION` now takes an optional `*<name>* of ` before the path, the round's regex as given, so a link to one row of a section is one token; the comment over it says so, and `8d1343efa` says the same in the docstring of `words`. The new case `tests/skills/test_passages.py#Test_words::test_accepts_a_row_a_section_citation_names_as_part_of_its_token` was seen red against the old pattern ("assert not True" on the two links), and `seal mutate` was red on each guard: the prefix removed (the link clause fails), and the prefix allowed to fold alone (the clause that an italic phrase with no `of <path>` after it is still words fails); the tree-wide paste case was red with the prefix removed. The moved sentence of `skills/code-review/gate-to-pull-request.md` has its words of `236d3c5e6` again (executed: `git diff 236d3c5e6 -- skills/code-review/gate-to-pull-request.md` prints nothing), and the paste case passes with it. `chain_check.py` reads `words` through `skills/settle/scripts/rule_changes.py#copies` for its notice that a design's `to` repeats a rule document. A probe over the 38 designs under `seal/threads/` gave no such notice with either pattern, and 151 with the window lowered to 4 as a control, so its answers do not change for the tree as it stands. Under the new pattern, a `to` that shared a run only through a row's name no longer reads as a copy, and two links that differ only in the row they name are one token. `gaps.md` drops the *Not done* paragraph that stated the earlier answer, and its phase 3 broad-gate row now says the case passes after this fix. The plan row of the earlier answer and `frame/design.md` *Scope* item 4's exception for this sentence are the orchestrator's to fold.
+```
+
 ### 2. The steps moved to the new file leave the list of files whose change owes a process row
 
 ```seal
@@ -127,6 +133,12 @@ record them as a home.
 fragment.** A work item whose diff changes `skills/core/SKILL.md`, `CLAUDE.md`, an `agents/*.md` file, a `skills/*/orchestration.md` file, `skills/code-review/gate-to-pull-request.md` or `skills/implement/bootstrap.md` ends its `changelog.md` with the line `### Process changes` and a table in
 ```
 
+```seal
+verdict: fixed 9527f4bea
+location: `seal/threads/1795398442-per-spawn-files-carry-text-their-reader-never-acts-on/changelog.md`
+answer: Edited in place, as `frame/design.md` G2 has this work edit `docs/` where its subject is which file holds which passage; no unsettled design's `## Rule changes` names *A change writes fragments, never a shared file* (executed: the two designs whose operations name `docs/layout/the-record-layout.md` name its section `seal/threads/<work-item-id>/`). The class was listed by what produces it: each file of `skills/` other than a `SKILL.md` or an `orchestration.md`, read at its opening for whose it is and checked against the file it was cut from. Seven are steps cut from an orchestration file or an agent definition: `skills/code-review/gate-to-pull-request.md`, `skills/implement/bootstrap.md` (already named), `fix-pass.md`, `fold-and-reframe.md`, `merge-order.md`, `multi-repository.md` and `routing-question.md`. The sentence names all seven. The settle's four files, `skills/settle/rule-changes.md`, `skills/verify/seal-mutate.md` and `skills/writing-style/outside-the-review.md` were cut from a `SKILL.md`, and the list names none, so they stay out. `changelog.md` gains the entry and a `### Process changes` row.
+```
+
 ### 3. The changelog says the moved paragraphs kept their words, and two of their sentences changed
 
 ```seal
@@ -147,6 +159,11 @@ words, the second exception leaves the sentence below too.
 
 ```markdown
 The paragraphs it acts on only once the last round record has no finding open moved under *Orchestrator: from the preflight to the open pull request* in the new file, in their order and with their words, but for two sentences: row 6 of the `seal pr-wait` exit table now cites the kept section for a conflict with the base, and the sentence on reviewing a repair orders its citation of the core's row differently.
+```
+
+```seal
+verdict: fixed b04c3ce1c
+answer: Finding 1's fix gave the sentence on reviewing a repair back its words of `236d3c5e6`, so the paste-ready fix's second exception no longer holds, as the finding foresaw. The fragment now names the one exception: row 6 of the `seal pr-wait` exit table, which cites the kept section for a conflict with the base where it pointed at the next paragraph. A folded comparison of each paragraph of the old section at `3c89a70d5` against both files at HEAD found two that do not stand whole. One is the section's first paragraph. The cut splits it at "committed and unpushed." between the two files, neither half lost a word, and the kept half gained the sentence that points to the new file. The other is the exit table, whose row 6 is the exception.
 ```
 
 ## Confirmations
