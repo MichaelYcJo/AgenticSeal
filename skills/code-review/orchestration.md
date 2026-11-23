@@ -266,11 +266,16 @@ runs the broad gate again, commits its record, runs `seal pr-body` on the
 body file again and spawns the sealer again.
 
 **A commit after the newest broad run that changes only files under
-`seal/threads/<work-item-id>/` owes no broad run.** It owes `seal pr-body`
-on the body file again and the sealer again, and the sealer reads every
-record at HEAD. A commit that changes any other path owes the broad run
-again, after the round that the row *No fix that no round reads* of
-`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives it.
+`seal/threads/<work-item-id>/` owes no broad run.** Where such a commit
+changes a record other than `trail/gate.md` and `guarantee.md` after the
+sealer has written its verdict, it owes `seal pr-body` on the body file
+again and the sealer again, and the sealer reads every record at HEAD.
+Those two files may follow the verdict's commit, as the guarantee arm
+reads it (`skills/code-review/scripts/chain_check.py#CLOSING_RECORDS`), so
+their commits owe neither another broad run nor another sealer. A commit
+that changes any other path owes the broad run again, after the round that
+the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment
+is not licence to skip a party* gives it.
 `agents/sealer.md` step 1 and the pull request check's broad gate arm read
 the same rule over the branch's own commits
 (`skills/code-review/scripts/chain_check.py#follows`), so neither reads a
