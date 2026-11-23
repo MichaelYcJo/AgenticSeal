@@ -847,6 +847,16 @@ class Test_not_as_written:
         meant = json.dumps("bin\\%TOOL%/x -q")
         assert f'    as meant:   "{ROW}": {meant}\n' in said, said
 
+    def test_refuses_a_name_that_stands_again_past_the_cut_with_one_spelling(
+        self, tmp_path
+    ):
+        """A refused name that stands again past the cut keeps its `/` there,
+        and the refusal still gives the one spelling `cmd.exe` runs."""
+        said = on_cmd_exe('bin/a "x" && bin/a', a_root(tmp_path, "bin"))
+        assert "cmd.exe runs `bin\\a`, and" in said, said
+        meant = json.dumps('bin\\a "x" && bin/a')
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
 
 # --- running one check ----------------------------------------------------------------
 
