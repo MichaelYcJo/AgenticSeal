@@ -1,24 +1,30 @@
 """`skills/verify/scripts/broad_gate.py`, one class per function.
 
-Rebuilt from the code by #942's phase 5. The pure units are driven with text
-and hand-built records, so no git and no shell runs under them. Git runs
-where the unit asks git a question: the base's resolution over one
-repository built once for the module, and the base comparison and the gate's
-own run over a fixture repository built once and copied for each case. Those
-cases run the fixture's one-test suite through the gate's recorder, one row
-per kind of answer, and each copy is the reset.
+Rebuilt from the code by #942's phase 5, and again by #1581's phase 7. The
+pure units are driven with text and hand-built records, so no git and no
+shell runs under them. Git runs where the unit asks git a question: the
+base's resolution over one repository built once for the module, and the
+base comparison and the gate's own run over a fixture repository built once
+and copied for each case. Each world is one `git fast-import` (`history`).
+The cases about what the recorder writes for a session an act ended run a
+real pytest with the recorder in a directory with no git, and read the
+record back through `read_record`. The gate's own runs are one per kind of
+answer it gives a run; where a case's fact is one arm, the other arms are
+answered for it (`arms_answered`), and `a_recorded_run`, `a_sealed_run`, the
+preflight and the runs of a copied plugin keep every arm real. Each copy is
+the reset.
 
 Phase 6 placed the light files' cases here as they stood. The cases of
 `not_as_written` that read a command name the way `cmd.exe` does (#1577)
 drive the Windows half with the platform passed in as an argument and a root
 built for the case; two cases of `run` run the machine's real shell, and only
 CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that
-run the command build a repository with a `feature` branch and run it over
-that branch.
+run the command run it over a repository with a `feature` branch, built once
+(`_sealable_template`) and copied by the cases that write into it.
 
-The cases that run the command beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
+The case that runs the command beside a project's own `seal/` package
+(#1059) builds `tests/conftest.py`'s `package` repository, whose root stands
+at `agentic-seal/`.
 """
 
 import argparse
@@ -36,7 +42,6 @@ import conftest
 import pytest
 from conftest import (
     census_case,
-    commit_everything_as_e,
     config_json,
     git,
     git_out,
@@ -149,6 +154,59 @@ def end(exitstatus=0, stopped=(), unplaced=0):
 
 def clean_env():
     return {k: v for k, v in os.environ.items() if k not in AMBIENT}
+
+
+def history(repo, *commits, head, refs=(), checkout=True):
+    """REPO made a repository whose history one `git fast-import` writes;
+    the commits' ids, in order.
+
+    Each of COMMITS is `(ref, start, files)`: a commit on REF, a branch name
+    or a full ref, whose tree is REF's last commit with FILES, path to text,
+    written over it; where REF has no commit yet, its first starts from
+    START's last, or is a root where START is None. REFS maps each further
+    ref to the number of the commit it names, from 1. HEAD is the branch
+    the repository is on, checked out where CHECKOUT. Every commit is e's at
+    one fixed time, so a world built on two workers is one history, and the
+    whole build is three git processes where a commit made through the
+    working tree takes three of its own."""
+    repo = pathlib.Path(repo)
+    repo.mkdir(parents=True)
+    git(repo, "init", "-q", "-b", head)
+
+    def full(ref):
+        return ref if ref.startswith("refs/") else f"refs/heads/{ref}"
+
+    def blob(text):
+        data = text.encode("utf-8")
+        return b"data %d\n%s\n" % (len(data), data)
+
+    stream, started = [], set()
+    for n, (ref, start, files) in enumerate(commits, 1):
+        stream.append(
+            b"commit %s\nmark :%d\n" % (full(ref).encode(), n)
+            + b"author e <e@example.com> 1700000000 +0000\n"
+            + b"committer e <e@example.com> 1700000000 +0000\n"
+            + blob(f"commit {n}")
+        )
+        if ref not in started and start is not None:
+            stream.append(b"from %s\n" % full(start).encode())
+        started.add(ref)
+        for path, text in files.items():
+            stream.append(b"M 100644 inline %s\n" % path.encode() + blob(text))
+    for ref, n in dict(refs).items():
+        stream.append(b"reset %s\nfrom :%d\n\n" % (ref.encode(), n))
+    marks = repo / ".git" / "marks"
+    subprocess.run(
+        ["git", "-C", str(repo), "fast-import", "--quiet", f"--export-marks={marks}"],
+        input=b"".join(stream),
+        check=True,
+        capture_output=True,
+    )
+    ids = dict(line.split() for line in marks.read_text(encoding="utf-8").splitlines())
+    marks.unlink()
+    if checkout:
+        git(repo, "reset", "-q", "--hard")
+    return [ids[f":{n}"] for n in range(1, len(commits) + 1)]
 
 
 # --- the module as a whole ------------------------------------------------------
@@ -286,23 +344,28 @@ def refs(tmp_path_factory):
     no upstream and `origin/solo` stands one commit ahead of it; `gone`
     exists only as `origin/gone`; and `origin/HEAD` points at `solo`."""
     d = tmp_path_factory.mktemp("refs") / "repo"
-    d.mkdir()
-    git(d, "init", "-q", "-b", "base")
-    write(d, "a.txt", "1\n")
-    first = commit(d, "first")
-    write(d, "a.txt", "2\n")
-    second = commit(d, "second")
-    git(d, "reset", "-q", "--hard", first)
-    git(d, "branch", "-q", "solo")
-    git(d, "update-ref", "refs/remotes/other/base", second)
-    git(d, "update-ref", "refs/remotes/origin/base", second)
-    git(d, "update-ref", "refs/remotes/origin/solo", second)
-    git(d, "update-ref", "refs/remotes/origin/gone", second)
+    first, second = history(
+        d,
+        ("base", None, {"a.txt": "1\n"}),
+        ("refs/remotes/origin/base", "base", {"a.txt": "2\n"}),
+        head="base",
+        refs={
+            "refs/heads/solo": 1,
+            "refs/remotes/other/base": 2,
+            "refs/remotes/origin/solo": 2,
+            "refs/remotes/origin/gone": 2,
+        },
+        checkout=False,
+    )
     git(d, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/solo")
-    git(d, "config", "branch.base.remote", "other")
-    git(d, "config", "branch.base.merge", "refs/heads/base")
-    git(d, "config", "remote.other.url", ".")
-    git(d, "config", "remote.other.fetch", "+refs/heads/*:refs/remotes/other/*")
+    # The upstream and the remote written into the config file git reads, as
+    # `git config` writes them.
+    with open(d / ".git" / "config", "a", encoding="utf-8") as config:
+        config.write(
+            '[branch "base"]\n\tremote = other\n\tmerge = refs/heads/base\n'
+            '[remote "other"]\n\turl = .\n'
+            "\tfetch = +refs/heads/*:refs/remotes/other/*\n"
+        )
     return str(d), first[:7], second[:7]
 
 
@@ -955,7 +1018,111 @@ class Test_record_path:
         )
 
 
+# The acts after pytest's run loop that turn a red session's row exit into 0
+# (#1301, G1 of its frame), each a `tests/conftest.py`. The fourth, a part of
+# the row after pytest, is the row's own composition, and `Test_gate` runs it
+# through the gate as `ROW_OR_INTERPRETER`.
+LATE_ACTS = {
+    "late-pytest-exit-0": (
+        "import pytest\n\n\n@pytest.hookimpl(trylast=True)\n"
+        "def pytest_sessionfinish(session):\n"
+        "    pytest.exit('late', returncode=0)\n"
+    ),
+    "early-exitstatus-0": (
+        "import pytest\n\n\n@pytest.hookimpl(tryfirst=True)\n"
+        "def pytest_sessionfinish(session):\n"
+        "    session.exitstatus = 0\n"
+    ),
+    "unconfigure-os-exit-0": (
+        "import os\n\n\ndef pytest_unconfigure(config):\n    os._exit(0)\n"
+    ),
+}
+
+
+def a_stop(stop):
+    """A test file whose first test runs STOP and whose second would fail."""
+    return (
+        "import os\n\nimport pytest\n\n\n"
+        f"def test_a():\n    {stop}\n\n\n"
+        "def test_b():\n    assert False, 'never reached'\n"
+    )
+
+
+def recorded(tmp_path, files, row=SUITE_ROW):
+    """ROW run in a directory holding FILES and no repository, through `run`
+    with the recorder loaded, as `gate` runs its row; the check and the
+    record `read_record` reads back."""
+    root = tmp_path / "root"
+    for rel, text in files.items():
+        write(root, rel, text)
+    keep = tmp_path / "keep"
+    keep.mkdir()
+    key = gate.record_key("head")
+    check = gate.run(
+        gate.SUITE,
+        row,
+        str(root),
+        str(keep),
+        shell=True,
+        env=gate.recording_env(str(keep), key),
+    )
+    return check, gate.read_record(gate.records_dir(str(keep)), key, str(root))
+
+
 class Test_read_record:
+    @pytest.mark.parametrize("act", list(LATE_ACTS), ids=list(LATE_ACTS))
+    def test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0(
+        self, tmp_path, act
+    ):
+        """S1 and S2 of #1301, over a real pytest. A test fails, and a hook
+        after the recorder's raises `pytest.exit(returncode=0)`, a hook before
+        it sets the session's exit status, or a `pytest_unconfigure` ends the
+        process. The row exits 0, and the record still reads a session that
+        ran to its end at exit 1: it did not pass, it stopped nothing, and it
+        names the file that failed. `failure_lines` reads such a record as
+        `NOT_PASSED_AT_EXIT_0` with no `UNENDED_HERE`, and `Test_gate` runs
+        the gate over a red session the row's own composition ends at 0."""
+        check, record = recorded(
+            tmp_path,
+            {
+                "tests/test_one.py": PASSING_TEST,
+                "tests/test_two.py": FAILING_TEST,
+                "tests/conftest.py": LATE_ACTS[act],
+            },
+        )
+        assert check.code == 0, check.text
+        assert (record.sessions, record.unpassed, record.unended) == (1, 1, 0)
+        assert list(record.failing) == ["tests/test_two.py"]
+        assert record.counts == {"failed": 1, "passed": 1}
+
+    def test_refuses_a_session_a_test_ended_with_os_exit_0(self, tmp_path):
+        """S2 of #883, over a real pytest. `os._exit(0)` in a test leaves the
+        row at 0 with a later test never run, and writes no `end` line: the
+        session stopped part-way and did not pass, and no file failed, so
+        the gate has nothing to compare at the base."""
+        check, record = recorded(
+            tmp_path, {"tests/test_stop.py": a_stop("os._exit(0)")}
+        )
+        assert check.code == 0, check.text
+        assert (record.sessions, record.unpassed, record.unended) == (1, 1, 1)
+        assert record.failing == {}
+
+    def test_accepts_a_green_session_a_late_hook_exits_with_0(self, tmp_path):
+        """S3 of #1301, over a real pytest. A late `pytest_sessionfinish`
+        hook runs after the run loop and cannot skip a test, so over a green
+        session the record reads a session that passed and stopped
+        nothing, and the gate passes it as it passes `a_recorded_run`."""
+        check, record = recorded(
+            tmp_path,
+            {
+                "tests/test_one.py": PASSING_TEST,
+                "tests/conftest.py": LATE_ACTS["late-pytest-exit-0"],
+            },
+        )
+        assert check.code == 0, check.text
+        assert (record.sessions, record.unpassed, record.unended) == (1, 0, 0)
+        assert record.counts == {"passed": 1}
+
     def test_accepts_its_keys_files_in_the_order_they_were_written(self, tmp_path):
         # Written b, c, a, last modified c, a, b, and named a, b, c: the order
         # read is the third, whatever the directory lists first.
@@ -1508,46 +1675,61 @@ class Test_report_lines:
 
 @pytest.fixture(scope="module")
 def _repo_template(tmp_path_factory):
-    """A repository on `base` with a one-test suite, the config key and an
-    overview, then `feature` one commit ahead; built once, and copied for each
-    case by `tests/conftest.py#repo`."""
+    """A repository on `feature`, one commit ahead of `base`, which holds a
+    one-test suite, the config key and an overview. Two branches start from
+    `base` beside it and are never checked out: `red-base` adds a failing
+    `tests/test_two.py`, and `red-elsewhere` a failing `tests/test_red.py`,
+    the bases a comparison asks about. Built once, and copied for each case
+    by `tests/conftest.py#repo`."""
     d = tmp_path_factory.mktemp("gate-template") / "repo"
-    d.mkdir()
-    git(d, "init", "-q", "-b", "base")
-    write(d, "tests/test_one.py", PASSING_TEST)
-    write(d, "seal/config.json", config_of())
-    mark_root(d / "seal")
-    write(d, f"{ITEM}/gaps.md", OVERVIEW)
-    commit(d, "base")
-    git(d, "switch", "-qc", "feature")
-    write(d, "README.md", "# a fixture\n")
-    commit(d, "feature")
+    history(
+        d,
+        (
+            "base",
+            None,
+            {
+                "tests/test_one.py": PASSING_TEST,
+                "seal/config.json": config_of(),
+                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                f"{ITEM}/gaps.md": OVERVIEW,
+            },
+        ),
+        ("red-base", "base", {"tests/test_two.py": FAILING_TEST}),
+        ("red-elsewhere", "base", {"tests/test_red.py": FAILING_TEST}),
+        ("feature", "base", {"README.md": "# a fixture\n"}),
+        head="feature",
+    )
     return d
 
 
-def failing_on_feature(repo, on_base=False):
-    """A failing `tests/test_two.py` on `feature`, and on `base` too where
-    ON_BASE, committed in both."""
-    if on_base:
-        git(repo, "switch", "-q", "base")
-        write(repo, "tests/test_two.py", FAILING_TEST)
-        commit(repo, "a failure on the base")
-        git(repo, "switch", "-q", "feature")
-        git(
-            repo,
-            "-c",
-            "user.email=e@example.com",
-            "-c",
-            "user.name=e",
-            "merge",
-            "-q",
-            "--no-edit",
-            "base",
-        )
-    else:
-        write(repo, "tests/test_two.py", FAILING_TEST)
-        commit(repo, "a failure")
+def failing_here(repo):
+    """A failing `tests/test_two.py` in the working tree on `feature`, not
+    committed: the row runs over the working tree, and the base's worktree
+    is checked out at the base's commit, so no case about the run needs the
+    file in a commit."""
+    write(repo, "tests/test_two.py", FAILING_TEST)
     return repo
+
+
+def arms_answered(monkeypatch, *names):
+    """The arms NAMES answered as passed for the case, and every other run
+    the gate starts real, the row again at the base among them. For a case
+    whose fact is another arm: `a_recorded_run`, `a_sealed_run`, the
+    preflight and the runs of a copied plugin keep every arm real."""
+    real = gate.run
+
+    def run(name, command, root, keep, shell=False, env=None):
+        if name in names:
+            return gate.Check(name, 0, "", os.path.join(keep, f"{name}.txt"))
+        return real(name, command, root, keep, shell=shell, env=env)
+
+    monkeypatch.setattr(gate, "run", run)
+
+
+def suite_alone(monkeypatch):
+    """`arms_answered` for the chain and mode arms, for a case whose fact is
+    the suite arm."""
+    arms_answered(monkeypatch, gate.CHAIN_NAME, gate.MODE_NAME)
 
 
 def args_for(repo, keep, *extra):
@@ -1566,8 +1748,12 @@ def namespace(repo, keep, base="base", record=None, preflight=False):
 
 
 class Test_compare_at_base:
+    """`compare_at_base` reads the base's commit and never `HEAD`'s, so a
+    case gives it the base it asks about: `base`, which lacks
+    `tests/test_two.py`, or `red-base` or `red-elsewhere` of
+    `_repo_template`."""
+
     def test_accepts_a_file_the_base_never_had_as_new(self, repo, tmp_path):
-        failing_on_feature(repo)
         words = gate.compare_at_base(
             str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
@@ -1576,22 +1762,16 @@ class Test_compare_at_base:
         assert len(git_out(repo, "worktree", "list").splitlines()) == 1
 
     def test_accepts_a_file_the_base_fails_too(self, repo, tmp_path):
-        failing_on_feature(repo, on_base=True)
         words = gate.compare_at_base(
-            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+            str(repo), "red-base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
         assert words == {"tests/test_two.py": gate.ON_BASE}
 
     def test_refuses_new_for_a_file_a_red_base_never_collected(self, repo, tmp_path):
         """The base's run exited non-zero and never collected the file, so it
         may have stopped before reaching it, and the word carries the exit."""
-        git(repo, "switch", "-q", "base")
-        write(repo, "tests/test_red.py", FAILING_TEST)
-        commit(repo, "a failure only the base has")
-        git(repo, "switch", "-q", "feature")
-        failing_on_feature(repo)
         words = gate.compare_at_base(
-            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+            str(repo), "red-elsewhere", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
         assert words == {"tests/test_two.py": gate.NOT_REACHED.format(code=1)}
 
@@ -1611,7 +1791,6 @@ class Test_compare_at_base:
         stderr while the words the run gave stand. Seen red against
         `broad_gate.py` before #1573, where `subprocess.TimeoutExpired`
         replaced them."""
-        failing_on_feature(repo)
         asked = unanswered(monkeypatch, "worktree", "remove")
         words = gate.compare_at_base(
             str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
@@ -1641,28 +1820,10 @@ class Test_uncommitted_line:
         assert gate.uncommitted_line(str(repo), None) is None
 
 
-# The acts after pytest's run loop that turn a red session's row exit into 0
-# (#1301, G1 of its frame), each a `tests/conftest.py` and the row it runs
-# under, or None and the row alone where the row's own composition does it.
-LATE_ACTS = {
-    "late-pytest-exit-0": (
-        "import pytest\n\n\n@pytest.hookimpl(trylast=True)\n"
-        "def pytest_sessionfinish(session):\n"
-        "    pytest.exit('late', returncode=0)\n",
-        SUITE_ROW,
-    ),
-    "early-exitstatus-0": (
-        "import pytest\n\n\n@pytest.hookimpl(tryfirst=True)\n"
-        "def pytest_sessionfinish(session):\n"
-        "    session.exitstatus = 0\n",
-        SUITE_ROW,
-    ),
-    "unconfigure-os-exit-0": (
-        "import os\n\n\ndef pytest_unconfigure(config):\n    os._exit(0)\n",
-        SUITE_ROW,
-    ),
-    "row-or-interpreter": (None, f"{SUITE_ROW} || {sys.executable} -c pass"),
-}
+# The row whose own composition turns a red session's exit into 0: the part
+# after pytest, `||` and the interpreter, which `/bin/sh` and `cmd.exe` both
+# read as "run this where the first part failed", so every leg runs it.
+ROW_OR_INTERPRETER = f"{SUITE_ROW} || {sys.executable} -c pass"
 
 
 @pytest.fixture(scope="module")
@@ -1719,44 +1880,32 @@ class Test_gate:
         assert f"```seal\nrun: {tree} against {base}\n```\n" in record
         assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
-    def test_accepts_a_failure_the_base_shares_as_failing_on_base_too(
-        self, repo, tmp_path, capsys
+    def test_refuses_a_failing_test_the_base_lacks_as_new(
+        self, repo, tmp_path, monkeypatch, capsys
     ):
-        failing_on_feature(repo, on_base=True)
-        assert gate.gate(namespace(repo, tmp_path / "out")) == 1
-        out = capsys.readouterr().out
-        assert out.startswith("BROAD GATE FAILED   feature @ ")
-        assert "  tests/test_two.py  failing on base too" in out
-
-    def test_refuses_a_failing_test_the_base_lacks_as_new(self, repo, tmp_path, capsys):
-        failing_on_feature(repo)
+        suite_alone(monkeypatch)
+        failing_here(repo)
         assert gate.gate(namespace(repo, tmp_path / "out")) == 1
         out = capsys.readouterr().out
         assert "  tests/test_two.py  new\n" in out
         assert "1 failed, 1 passed" in out
         assert not (repo / ITEM / "trail" / "gate.md").exists()
 
-    @pytest.mark.parametrize(
-        "stop",
-        ["pytest.exit('stopping here', returncode=0)", "os._exit(0)"],
-        ids=["pytest-exit-0", "os-exit-0"],
-    )
     def test_refuses_a_suite_a_test_stopped_at_exit_0(
-        self, repo, tmp_path, capsys, stop
+        self, repo, tmp_path, monkeypatch, capsys
     ):
-        """S1 and S2 of #883. The row exits 0 with a later test never run:
-        `pytest.exit()` writes an `end` line whose `stopped` names it, and
-        `os._exit(0)` writes no `end` line at all. Either fails the suite,
-        writes no `trail/gate.md`, and runs nothing at the base, because the
-        record holds no failing file to compare."""
+        """S1 of #883. The row exits 0 with a later test never run, and
+        `pytest.exit()` writes an `end` line whose `stopped` names it. The
+        suite fails, no `trail/gate.md` is written, and nothing runs at the
+        base, because the record holds no failing file to compare. A test's
+        `os._exit(0)`, which writes no `end` line, is
+        `Test_read_record::test_refuses_a_session_a_test_ended_with_os_exit_0`."""
+        suite_alone(monkeypatch)
         write(
             repo,
             "tests/test_stop.py",
-            "import os\n\nimport pytest\n\n\n"
-            f"def test_a():\n    {stop}\n\n\n"
-            "def test_b():\n    assert False, 'never reached'\n",
+            a_stop("pytest.exit('stopping here', returncode=0)"),
         )
-        commit(repo, "a test that stops the session")
         keep = tmp_path / "out"
         assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
         out = capsys.readouterr().out
@@ -1767,51 +1916,32 @@ class Test_gate:
         assert not (repo / ITEM / "trail" / "gate.md").exists()
         assert not (keep / "suite-at-base.txt").exists()
 
-    @pytest.mark.parametrize("act", list(LATE_ACTS), ids=list(LATE_ACTS))
     def test_refuses_a_red_suite_an_act_after_the_run_loop_turned_to_exit_0(
-        self, repo, tmp_path, capsys, act
+        self, repo, tmp_path, monkeypatch, capsys
     ):
-        """S1 and S2 of #1301. A test fails, and something after pytest's run
-        loop turns the row's exit into 0: a hook after the recorder's that
-        raises `pytest.exit(returncode=0)`, a hook before it that sets the
-        session's exit status, a `pytest_unconfigure` that ends the process,
-        or a part of the row after pytest. The `end` line still reads exit 1,
+        """S1 and S2 of #1301. A test fails, and a part of the row after
+        pytest turns the row's exit into 0. The `end` line still reads exit 1,
         so the suite fails, its failing file is compared at the base, and no
-        `trail/gate.md` is written. The row's part is `||` and the
-        interpreter, which `/bin/sh` and `cmd.exe` both read as "run this
-        where the first part failed", so every leg runs every shape."""
-        conftest_text, row = LATE_ACTS[act]
-        failing_on_feature(repo)
-        if conftest_text is not None:
-            write(repo, "tests/conftest.py", conftest_text)
-        write(repo, "seal/config.json", config_of(row))
-        commit(repo, f"a failure, and {act} after the run loop")
+        `trail/gate.md` is written. The base is `red-base`, which fails the
+        file too, so the line carries the word the base's own run gave. The
+        acts inside pytest that end a red session at 0, a late hook, an early
+        one and `pytest_unconfigure`, are
+        `Test_read_record::test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0`."""
+        suite_alone(monkeypatch)
+        failing_here(repo)
+        write(repo, "seal/config.json", config_of(ROW_OR_INTERPRETER))
         keep = tmp_path / "out"
-        assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
+        ran = namespace(repo, keep, base="red-base", record=str(repo / ITEM))
+        assert gate.gate(ran) == 1
         out = capsys.readouterr().out
         assert out.startswith("BROAD GATE FAILED   feature @ "), out
         assert re.search(r"^  suite +exit 0$", out, re.M), out
         assert f"  {NOT_PASSED_AT_EXIT_0}\n" in out
-        assert "  tests/test_two.py  new\n" in out
+        assert "  tests/test_two.py  failing on base too\n" in out
         assert "1 failed, 1 passed" in out
         assert gate.UNENDED_HERE.format(count=1) not in out
         assert not (repo / ITEM / "trail" / "gate.md").exists()
         assert (keep / "suite-at-base.txt").is_file()
-
-    def test_accepts_a_green_suite_a_late_hook_exits_with_0(
-        self, repo, tmp_path, capsys
-    ):
-        """S3 of #1301. A late `pytest_sessionfinish` hook runs after the run
-        loop and cannot skip a test, so over a green session it is no stop
-        and the gate passes and writes `trail/gate.md`."""
-        write(repo, "tests/conftest.py", LATE_ACTS["late-pytest-exit-0"][0])
-        commit(repo, "a late hook over a green suite")
-        assert (
-            gate.gate(namespace(repo, tmp_path / "out", record=str(repo / ITEM))) == 0
-        )
-        out = capsys.readouterr().out
-        assert out.startswith("BROAD GATE PASSED   feature @ "), out
-        assert (repo / ITEM / "trail" / "gate.md").is_file()
 
     def test_accepts_a_preflight_that_runs_no_row_and_writes_nothing(
         self, repo, tmp_path, capsys
@@ -1910,20 +2040,36 @@ class Test_gate:
 CONFIG = config_json(("Mode", "shared"), ("Broad gate", f"{sys.executable} -c pass"))
 
 
-def sealable_repo(tmp_path):
-    """A repository on `base` with a `feature` branch one commit ahead,
-    driven from Python."""
+@pytest.fixture(scope="module")
+def _sealable_template(tmp_path_factory):
+    """A repository on `feature`, one commit ahead of `base`, on which every
+    arm passes; built once. A run of the gate with no `--record` writes
+    nothing into it, so a case that only runs the gate reads it as it
+    stands, and `sealable` copies it for a case that writes."""
+    repo = tmp_path_factory.mktemp("sealable") / "repo"
+    history(
+        repo,
+        (
+            "base",
+            None,
+            {
+                "src/service.py": "def handler(x):\n    return x + 1\n",
+                "seal/config.json": CONFIG,
+                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                f"{ITEM}/gaps.md": OVERVIEW,
+            },
+        ),
+        ("feature", "base", {"src/service.py": "def handler(x):\n    return x + 2\n"}),
+        head="feature",
+    )
+    return repo
+
+
+@pytest.fixture
+def sealable(tmp_path, _sealable_template):
+    """A copy of `_sealable_template` for the case to write into."""
     repo = tmp_path / "repo"
-    repo.mkdir()
-    git(repo, "init", "-q", "-b", "base")
-    write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
-    write(repo, "seal/config.json", CONFIG)
-    mark_root(repo / "seal")
-    write(repo, f"{ITEM}/gaps.md", OVERVIEW)
-    commit(repo, "base")
-    git(repo, "switch", "-qc", "feature")
-    write(repo, "src/service.py", "def handler(x):\n    return x + 2\n")
-    commit(repo, "feature changes the handler")
+    shutil.copytree(_sealable_template, repo)
     return repo
 
 
@@ -1944,7 +2090,23 @@ def run_gate(repo, keep, base="base", script=GATE):
         encoding="utf-8",
         errors="replace",
         timeout=300,
+        env=clean_env(),
     )
+
+
+@pytest.fixture(scope="module")
+def a_sealed_run(tmp_path_factory, _sealable_template):
+    """One run of the shipped gate over `_sealable_template`, started as a
+    person starts it, read by the cases that only read what it printed."""
+    return run_gate(_sealable_template, tmp_path_factory.mktemp("sealed") / "out")
+
+
+def gated(repo, keep, capsys):
+    """`main` run in this process over REPO against `base`, as `run_gate`
+    runs the script; its exit code, stdout and stderr."""
+    code = gate.main(args_for(repo, keep, "--shape"))
+    said = capsys.readouterr()
+    return code, said.out, said.err
 
 
 FIXTURE_WORKFLOW = """\
@@ -1972,9 +2134,9 @@ jobs:
 
 def with_workflow(repo):
     """The fixture, given a hygiene workflow whose `release` job runs three
-    named steps, one of them only on a pull request into `main`."""
+    named steps, one of them only on a pull request into `main`, in its
+    working tree, where the gate would read it if it read one."""
     write(repo, ".github/workflows/hygiene.yml", FIXTURE_WORKFLOW)
-    commit(repo, "the repository gains a hygiene workflow")
     return repo
 
 
@@ -2084,13 +2246,15 @@ class Test_main:
         assert gate.sibling.MISSING.format(path=str(helper)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
-    def test_refuses_a_copy_without_its_chain_check_before_any_arm(self, tmp_path):
+    def test_refuses_a_copy_without_its_chain_check_before_any_arm(
+        self, tmp_path, _sealable_template
+    ):
         """#1575 S6. The chain arm passes `chain_check.py#SEALING`, and the
         gate loads the check for it before the first arm runs. A copy of the
-        plugin without the check exits 2 with the loader's sentence naming
-        it, and runs no arm, so no arm's output is kept. Seen red against
-        the gate before #1575, which ran the suite and failed the chain arm
-        at exit 1."""
+        plugin without the check, run over the fixture branch every arm
+        passes, exits 2 with the loader's sentence naming it, and runs no
+        arm, so no arm's output is kept. Seen red against the gate before
+        #1575, which ran the suite and failed the chain arm at exit 1."""
         plugin = tmp_path / "plugin"
         for part in ("lib", "skills", ".claude-plugin"):
             shutil.copytree(
@@ -2100,9 +2264,8 @@ class Test_main:
             )
         check = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
         check.unlink()
-        repo = sealable_repo(tmp_path)
         keep = tmp_path / "out"
-        out = run_gate(repo, keep, script=plugin / TARGET)
+        out = run_gate(_sealable_template, keep, script=plugin / TARGET)
         assert out.returncode == 2, out.stdout + out.stderr
         assert gate.sibling.MISSING.format(path=str(check)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
@@ -2130,22 +2293,21 @@ class Test_main:
         assert out.returncode == 0, out.stderr
         assert out.stdout.startswith("usage: seal gate")
 
-    def test_the_fixture_branch_passes(self, tmp_path):
+    def test_the_fixture_branch_passes(self, a_sealed_run):
         """The other cases' starting point: every arm passes on the fixture, so a
         refusal below is the one thing each case changed."""
-        repo = sealable_repo(tmp_path)
-        result = run_gate(repo, tmp_path / "out")
+        result = a_sealed_run
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
 
     def test_a_malformed_sprite_leaves_the_verdict_and_the_report_as_they_were(
-        self, tmp_path
+        self, tmp_path, _sealable_template, a_sealed_run
     ):
         """#1582 S1. The gate draws nothing, so the disc's mark sprite is no
         input of its verdict: a copy of the plugin whose `seal-mark.txt` is
         cut to one line passes the fixture branch and prints the report the
-        copy with the shipped sprite prints. It exited 2 before, because
-        loading `seal_stamp.py` read the sprite and refused it."""
+        shipped gate prints over it in `a_sealed_run`. It exited 2 before,
+        because loading `seal_stamp.py` read the sprite and refused it."""
         plugin = tmp_path / "plugin"
         for part in ("lib", "skills", ".claude-plugin"):
             shutil.copytree(
@@ -2155,37 +2317,41 @@ class Test_main:
             )
         copy = plugin / TARGET
         sprite = copy.parent / "seal-mark.txt"
-        repo = sealable_repo(tmp_path)
-        shipped = run_gate(repo, tmp_path / "shipped", script=copy)
         first = sprite.read_text(encoding="utf-8").split("\n")[0]
         sprite.write_text(first + "\n", encoding="utf-8")
-        cut = run_gate(repo, tmp_path / "cut", script=copy)
+        cut = run_gate(_sealable_template, tmp_path / "cut", script=copy)
+        shipped = a_sealed_run
         assert shipped.returncode == 0, shipped.stdout + shipped.stderr
         assert cut.returncode == 0, cut.stdout + cut.stderr
         assert cut.stdout == shipped.stdout
 
-    def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(self, tmp_path):
+    def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(
+        self, sealable, tmp_path, monkeypatch, capsys
+    ):
         """A3's behavioural half for the other arm #468 added. `seal/config.json`
         says the root lives under the git directory and the root is committed in
         the tree, which is the one direction of that disagreement CI can ever
-        reach — and the gate said nothing about it until this arm existed.
+        reach — and the gate said nothing about it until this arm existed. The
+        key is written in the working tree, which the mode arm reads, and the
+        chain arm is answered for the case.
 
         Red against the gate as it stood: this fixture sealed green."""
-        repo = sealable_repo(tmp_path)
+        arms_answered(monkeypatch, gate.CHAIN_NAME)
         write(
-            repo,
+            sealable,
             "seal/config.json",
             CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
-        commit(repo, "the key now says local while the folder is committed")
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 1, result.stdout + result.stderr
-        assert result.stdout.startswith("BROAD GATE FAILED   "), result.stdout
-        assert gate.MODE_NAME in result.stdout, (
-            f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{result.stdout}"
+        code, out, err = gated(sealable, tmp_path / "out", capsys)
+        assert code == 1, out + err
+        assert out.startswith("BROAD GATE FAILED   "), out
+        assert gate.MODE_NAME in out, (
+            f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{out}"
         )
 
-    def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(self, tmp_path):
+    def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(
+        self, sealable, tmp_path, monkeypatch, capsys
+    ):
         """#1483's S3, the issue's third *Done when*. The gate reads no
         workflow, so a repository whose `hygiene.yml` holds a `release` job is
         gated as one with none: its report carries `HISTORICAL_ROWS` and its
@@ -2196,10 +2362,12 @@ class Test_main:
         this fixture. The searched names are the job as that line spelled it,
         the workflow's path and the fixture's step names, never a bare
         `release`, which a checkout under a `release/` directory carries
-        (#499)."""
-        repo = with_workflow(sealable_repo(tmp_path))
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 0, result.stdout + result.stderr
+        (#499). The chain and mode arms are answered for the case: what an
+        arm prints goes to its kept file, so stderr and the report are the
+        gate's own, and the copy #1483 removed was the gate's."""
+        arms_answered(monkeypatch, gate.CHAIN_NAME, gate.MODE_NAME)
+        code, out, err = gated(with_workflow(sealable), tmp_path / "out", capsys)
+        assert code == 0, out + err
         steps = re.findall(r"^\s*- name: (.+)$", FIXTURE_WORKFLOW, re.M)
         assert steps, "the fixture names no step"
         for names_the_workflow in (
@@ -2207,14 +2375,14 @@ class Test_main:
             "`release`",
             *steps,
         ):
-            assert names_the_workflow not in result.stderr, (
+            assert names_the_workflow not in err, (
                 f"the gate names {names_the_workflow!r} for a repository whose "
-                f"workflow it does not read:\n{result.stderr}"
+                f"workflow it does not read:\n{err}"
             )
         # The report's rows as the run printed them under its head line: each
         # label padded to the stamp's width, a branch's row and a blank one
         # carrying none.
-        _head, *rows = result.stdout.splitlines()
+        _head, *rows = out.splitlines()
         labels = tuple(
             label
             for label in (row[: stamp.LABEL_WIDTH].strip() for row in rows)
@@ -2225,23 +2393,24 @@ class Test_main:
         )
 
     def test_s5_gate_reads_its_key_from_agentic_seal_and_names_it_where_none_is(
-        self, package, tmp_path
+        self, package
     ):
         """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
         the shared place a root would stand, not the package's `seal/`; with
-        the root there, it reads the `Broad gate` key of `agentic-seal/config.json`."""
+        the root there, the gate's root is `agentic-seal/` and its command the
+        `Broad gate` key of `agentic-seal/config.json`, read by `seal_home`
+        and `broad_command`, which `gate` asks before anything runs."""
         top = os.path.realpath(package)
         code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
         assert code == 2, err
         shared = os.path.join(top, "agentic-seal")
         assert f"at either place a root lives (`{shared}`, `" in err, err
         command = f"{sys.executable} -c pass"
-        configured(records_at(package / "agentic-seal"), ("Broad gate", command))
-        commit_everything_as_e(package, "the root")
-        _code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
-        assert f"seal gate: `Broad gate` says: {command} — read, and not run" in err, (
-            err
-        )
+        root = records_at(package / "agentic-seal")
+        configured(root, ("Broad gate", command))
+        home = gate.seal_home(str(package))
+        assert home == str(root), home
+        assert gate.broad_command(home) == command
 
 
 test_census = census_case(TARGET)
