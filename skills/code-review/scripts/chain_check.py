@@ -1913,15 +1913,14 @@ def declared_for_this_branch(root, routing, work_items):
                 f"this repository keeps its root at {home} — local mode, where "
                 "nothing under the root is committed. So no routing declaration "
                 f"for `{branch}` can be read from what git carries, and the "
-                "review-chain check judged the commit trailers and nothing else. "
-                "`seal mode shared` moves the root into the tree and gets the "
-                "declarations judged."
+                f"review-chain check {PRINTED_TRAILERS}. `seal mode shared` "
+                "moves the root into the tree and gets the declarations judged."
             )
         return [], (
             "this pull request declared neither way, so the review-chain check "
-            "judged the commit trailers and nothing else. Nothing git carries "
-            f"under `{work_items}/` declares `{branch}`. Add {work_items}/"
-            f"<work-item>/{routing.FILENAME} to declare."
+            f"{JUDGED_TRAILERS}. Nothing git carries under `{work_items}/` "
+            f"declares `{branch}`. Add {work_items}/<work-item>/"
+            f"{routing.FILENAME} to declare."
         )
     return matching, ""
 
@@ -1936,8 +1935,7 @@ SETTLE_SAYS = (
 ROOT_LEFT_SAYS = (
     "the tree the check reads has no top-level `{home}` entry, so nothing is "
     "declared: the routing declarations this pull request deletes left the "
-    "tree with the root, and the review-chain check judged the commit "
-    "trailers and nothing else"
+    "tree with the root, and the review-chain check {trailers}"
 )
 
 # The trailer a session's commit ends with (`docs/checks/the-routing-check.md` *At
@@ -1958,6 +1956,14 @@ NO_WORK_ITEM_TRAILER = (
     f"commit {{sha}} carries `{TRAILER}: {NO_WORK_ITEM}`: its session recorded "
     "that the change belongs to no work item, and nothing here checks it "
     "further"
+)
+# What the review-chain check did with the commit trailers where nothing is
+# declared: judged them, or, at a local root, printed them
+# (`trailer_findings`).
+JUDGED_TRAILERS = "judged the commit trailers and nothing else"
+PRINTED_TRAILERS = (
+    f"judged nothing: at a local root each commit's `{TRAILER}` trailer is "
+    "printed, not judged"
 )
 
 
@@ -2172,8 +2178,12 @@ def _checked(args):
         gone = not os.path.lexists(os.path.join(root, home))
     else:
         gone = git(root, "ls-tree", "HEAD", "--", home) == ""
+    # At a local root every work item's trailer is printed, not judged
+    # (`trailer_findings`), and the notice says which the run did.
+    local = bool(local_root(root, routing))
     if declarations and gone:
-        declarations, why = [], ROOT_LEFT_SAYS.format(home=home)
+        said = PRINTED_TRAILERS if local else JUDGED_TRAILERS
+        declarations, why = [], ROOT_LEFT_SAYS.format(home=home, trailers=said)
 
     state, where = pull_request_state(root)
     unseen = state == "unknown" and not event_payload_present()
@@ -2196,9 +2206,7 @@ def _checked(args):
         )
         return 2
     judged_ids = {os.path.basename(os.path.dirname(rel)) for rel in declarations}
-    problems, notices = trailer_findings(
-        trailers, judged_ids, local=bool(local_root(root, routing))
-    )
+    problems, notices = trailer_findings(trailers, judged_ids, local=local)
     kind = "error" if strict else "notice"
     if not declarations:
         print(CONSOLE.annotate("notice", "", 0, why))

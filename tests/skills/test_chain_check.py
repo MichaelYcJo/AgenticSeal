@@ -3698,13 +3698,18 @@ class Test_declared_for_this_branch:
         assert os.path.normpath(os.path.join(common_dir(repo), "seal")) in out, out
         assert "seal mode shared" in out, out
 
-    def test_local_mode_still_judges_no_declaration(self, repo):
+    def test_local_mode_says_the_check_judged_nothing(self, repo):
         """Naming the root does not turn an untracked declaration into a checked
-        one: CI reads what git carries, and local mode commits nothing, so the
-        trailers are all the check judged."""
+        one: CI reads what git carries, and local mode commits nothing. At a
+        local root each trailer is printed, not judged, so the notice says the
+        check judged nothing."""
         local_item(repo)
         _code, out = run_check(repo)
-        assert "judged the commit trailers and nothing else" in out, out
+        assert (
+            "the review-chain check judged nothing: at a local root each "
+            "commit's `Seal-Routing` trailer is printed, not judged"
+        ) in out, out
+        assert "judged the commit trailers" not in out, out
         assert "examined nothing" not in out, out
         assert "through the review chain" not in out, out
 
@@ -4801,6 +4806,29 @@ class Test_retired:
         code, out = check(root, capsys)
         assert "so nothing is declared" not in out, out
         assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
+
+    def test_a_root_that_left_for_a_local_root_says_the_check_judged_nothing(
+        self, branch, ready, capsys
+    ):
+        """The same pull request, read by the session that ran `seal mode
+        local`: the root now stands under the common git directory, where
+        each trailer is printed, not judged, so the notice says the check
+        judged nothing."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        git(root, "rm", "-rq", "seal")
+        commit(root, "the root leaves the tree")
+        mark_root(os.path.join(common_dir(root), "seal"))
+        code, out = check(root, capsys, "--worktree")
+        assert code == 0, out
+        assert (
+            "the tree the check reads has no top-level `seal` entry, so nothing "
+            "is declared: the routing declarations this pull request deletes "
+            "left the tree with the root, and the review-chain check judged "
+            "nothing: at a local root each commit's `Seal-Routing` trailer is "
+            "printed, not judged"
+        ) in out, out
+        assert "judged the commit trailers" not in out, out
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
     def test_accepts_under_worktree_a_root_the_working_tree_no_longer_has(
