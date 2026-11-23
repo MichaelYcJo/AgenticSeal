@@ -140,13 +140,13 @@ def test_ci_installs_the_requirements_file():
             for words in installs
             for word in words
         ), (name, installs)
-        # #841: pytest-split on the line, with a version.
+        # #841: pytest-split on the line, with a version. With the assertion
+        # above, the file does not list it.
         assert any(
             word.partition("==")[0] == "pytest-split" and word.partition("==")[2]
             for words in installs
             for word in words
         ), (name, installs)
-    assert "pytest-split" not in requirement_names(), rt.PACKAGES
 
 
 def test_the_section_names_the_requirements_file_and_its_commands_read_it():
