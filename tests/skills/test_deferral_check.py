@@ -1,4 +1,4 @@
-"""seal deferrals: does anything other than this session actually run the
+"""seal deferrals: which CI and hook lines match a runner word for the
 check being deferred?
 
 The failure this exists for: a session narrowed its run to one domain and
@@ -8,8 +8,10 @@ assignment, deploy on push to the default branch, and a migration-graph check
 so the `unverified` row was a loophole wearing condition 4's clothes.
 
 The tool reads command lines and no trigger: it names each CI file holding a
-runner, and whether that file runs before the change merges is its reader's
-to open (#1167). No case here asserts an event the tool read.
+line a runner word matches, and whether that file runs before the change
+merges is its reader's to open (#1167). No case here asserts an event the
+tool read. A match is a reading of words, so the tool exits 0 on whatever it
+matched, and a kind no line matched is reported, not refused (#1572).
 
 Every case runs the command, so each sits in `Test_main`, and the launcher's
 case in `Test_module`. #942's phase 6 placed them in classes.
@@ -65,9 +67,9 @@ TRIGGER = (
     "  trigger   not read: open each ci file above for whether it runs "
     "before the change merges"
 )
-UNANSWERED = (
-    "Deferring tests to CI names an answerer that is not there. "
-    "Run it, or say it is unanswered."
+UNMATCHED = (
+    "No CI line matched a runner word for tests. Open the CI files and read "
+    "what they run before deferring tests to CI."
 )
 
 
@@ -161,27 +163,48 @@ class Test_main:
         assert r.returncode == 0, r.stdout + r.stderr
         assert r.stdout == answered((TEST_YML, "pytest")), r.stdout
 
-    # --- the answerer is missing ---------------------------------------------
+    # --- no line matched a runner word -----------------------------------------
 
-    def test_refuses_a_tree_with_no_ci_as_an_answerer(self, tmp_path):
+    def test_reports_a_tree_with_no_ci_and_exits_0(self, tmp_path):
         d = tmp_path / "bare"
         d.mkdir()
         r = run(["--kind", "tests", str(d)])
-        assert r.returncode == 1
-        assert "nothing" in r.stdout.lower()
+        assert r.returncode == 0, r.stdout + r.stderr
         assert r.stdout == "\n".join(
             [
-                "tests: NO RUNNER IN CI",
-                "  nothing runs it",
+                "tests: no CI or hook line matched a runner word",
                 "",
                 LIMIT,
                 "",
-                UNANSWERED,
+                UNMATCHED,
                 "",
             ]
         ), r.stdout
 
-    def test_workflows_that_run_no_tests_do_not_resolve(self, repo):
+    def test_reports_a_suite_run_through_a_script_as_no_match_and_exits_0(self, repo):
+        """#1572: a CI whose suite runs through a script no runner word
+        names. The words find no line, which is no finding that nothing runs
+        the suite, so the tool says what it matched, prints the limit that
+        names a script, and exits 0."""
+        workflow(
+            repo,
+            "test.yml",
+            "on: pull_request\njobs:\n  t:\n    steps:\n      - run: ./run-suite\n",
+        )
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout == "\n".join(
+            [
+                "tests: no CI or hook line matched a runner word",
+                "",
+                LIMIT,
+                "",
+                UNMATCHED,
+                "",
+            ]
+        ), r.stdout
+
+    def test_workflows_that_run_no_tests_are_not_named(self, repo):
         """The measured shape: three workflows, none of them a test run."""
         workflow(
             repo,
@@ -196,7 +219,7 @@ class Test_main:
             "  d:\n    steps:\n      - run: ./deploy.sh\n",
         )
         r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 1
+        assert r.returncode == 0, r.stdout + r.stderr
         assert "assign.yml" not in r.stdout, r.stdout
         assert "deploy.yml" not in r.stdout, r.stdout
 
@@ -207,24 +230,22 @@ class Test_main:
 
     # --- a local hook is not CI ----------------------------------------------
 
-    def test_pre_commit_is_reported_but_does_not_resolve(self, repo):
+    def test_pre_commit_is_reported_as_local_and_no_ci_line(self, repo):
         (repo / ".pre-commit-config.yaml").write_text(
             "repos:\n  - repo: local\n    hooks:\n      - id: t\n        entry: pytest\n",
             encoding="utf-8",
         )
         r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 1
-        assert "pre-commit" in r.stdout
-        assert "local" in r.stdout.lower()
+        assert r.returncode == 0, r.stdout + r.stderr
         assert r.stdout == "\n".join(
             [
-                "tests: NO RUNNER IN CI",
+                "tests: no CI line matched a runner word",
                 "  local     .pre-commit-config.yaml (the committer's machine "
                 "only) — pytest",
                 "",
                 LIMIT,
                 "",
-                UNANSWERED,
+                UNMATCHED,
                 "",
             ]
         ), r.stdout
@@ -242,26 +263,66 @@ class Test_main:
         assert ".gitlab-ci.yml" in r.stdout
         assert r.stdout == answered((".gitlab-ci.yml", "pytest -q")), r.stdout
 
+    # --- one list of runner words ------------------------------------------------
+
+    @pytest.mark.parametrize(
+        "kind, step",
+        [
+            ("tests", "nox -s tests"),
+            ("tests", "bun test"),
+            ("tests", "./scripts/test"),
+            ("lint", "black --check ."),
+            ("lint", "lint-imports"),
+        ],
+    )
+    def test_names_a_runner_word_session_cost_charged_before_this_list_held_it(
+        self, repo, kind, step
+    ):
+        """#1572: `session_cost.py` read its own runner words until it read
+        `RUNNERS`, and these were its alone. One list holds both readers'
+        words, so this command names each of them."""
+        workflow(
+            repo,
+            "test.yml",
+            "on: pull_request\njobs:\n  t:\n    steps:\n      - run: " + step + "\n",
+        )
+        r = run(["--kind", kind, str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout.split("\n")[:2] == [
+            f"{kind}: a runner in CI",
+            f"  ci        {TEST_YML} — {step}",
+        ], r.stdout
+
     # --- kinds are independent -----------------------------------------------
 
-    def test_lint_resolves_while_tests_do_not(self, repo):
+    def test_lint_matches_while_tests_do_not(self, repo):
         workflow(
             repo,
             "lint.yml",
             "on: pull_request\njobs:\n  l:\n    steps:\n      - run: ruff check .\n",
         )
-        assert run(["--kind", "lint", str(repo)]).returncode == 0
-        assert run(["--kind", "tests", str(repo)]).returncode == 1
+        lint = run(["--kind", "lint", str(repo)])
+        tests = run(["--kind", "tests", str(repo)])
+        assert (lint.returncode, tests.returncode) == (0, 0)
+        assert lint.stdout.startswith("lint: a runner in CI\n"), lint.stdout
+        assert tests.stdout.startswith(
+            "tests: no CI or hook line matched a runner word\n"
+        ), tests.stdout
 
-    def test_all_kinds_needs_every_kind(self, repo):
+    def test_all_kinds_reports_each_kind_and_exits_0(self, repo):
         workflow(
             repo,
             "lint.yml",
             "on: pull_request\njobs:\n  l:\n    steps:\n      - run: ruff check .\n",
         )
         r = run(["--kind", "all", str(repo)])
-        assert r.returncode == 1
-        assert "tests" in r.stdout
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert "tests: no CI or hook line matched a runner word" in r.stdout
+        assert r.stdout.endswith(
+            "\nNo CI line matched a runner word for tests, typecheck. Open the "
+            "CI files and read what they run before deferring tests, typecheck "
+            "to CI.\n"
+        ), r.stdout
 
     # --- usage ---------------------------------------------------------------
 
