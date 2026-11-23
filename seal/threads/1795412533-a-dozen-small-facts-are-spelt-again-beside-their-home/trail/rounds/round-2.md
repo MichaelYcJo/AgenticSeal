@@ -74,6 +74,11 @@ No other statement of this fact needs the change. `frame/design.md`
 *Scope* item 9 and `lib/console.py:47-61` already name the two files, and
 `pr.md` does not quote the changelog.
 
+```seal
+verdict: fixed 647d0d661
+answer: The finding holds. The changelog's sentence now names `chain_check.py` and `pr_body.py` as keeping their loops, which run before they load any module, and cites `lib/console.py`'s docstring for why. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ## Confirmations
 
 ```seal
