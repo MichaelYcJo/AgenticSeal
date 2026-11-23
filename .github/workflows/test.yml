@@ -113,7 +113,7 @@ jobs:
       # several at a time, and the workers scale with whatever cores the
       # runner has rather than with a number written here.
       # markdown-it-py is the parser the suite's CommonMark oracle reads
-      # (#667), pinned: `.github/scripts/run_tests.py#MARKDOWN_IT` is the one
+      # (#667), pinned: `tests/run_tests.py#MARKDOWN_IT` is the one
       # place the version is chosen, and a case holds this line to it.
       # cmarkgfm is GitHub's renderer, which the table walker's oracle reads
       # (#647), pinned in `run_tests.py#CMARKGFM` and held to this line too.

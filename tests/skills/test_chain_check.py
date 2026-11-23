@@ -1813,8 +1813,9 @@ class Test_rule_changes_read:
 # The refusal's text around `rules.py`'s reason, pinned here so an edit to
 # `chain.CHECK_LINE_SAYS` meets a case.
 CHECK_LINE_SAYS = (
-    "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
-    "this check line, which the settle writes into `{file}` as it stands: {why}"
+    "`skills/settle/scripts/rules.py`, the reader `seal rules --check` uses, "
+    "refuses this check line, which the settle writes into `{file}` as it "
+    "stands: {why}"
 )
 COMMA = "check: f.txt, f.txt"
 # A line whose one target the branch's tree holds.
@@ -1969,7 +1970,10 @@ class Test_check_lines_in:
         code = chain.main(["--baseline", "main", "--root", str(root)])
         err = capsys.readouterr().err
         assert code == 2, err
-        assert "chain-check: the check-line reader `.github/scripts/rules.py` " in err
+        assert (
+            "chain-check: the check-line reader `skills/settle/scripts/rules.py` "
+            in err
+        )
         assert "would not load" in err
         monkeypatch.setattr(chain, "CHECK_LINES_READER", there)
         write(root, "tests/test_broken.py", '@pytest.mark.rule("x")\ndef test_x(:\n')
@@ -1978,7 +1982,7 @@ class Test_check_lines_in:
         err = capsys.readouterr().err
         assert code == 2, err
         assert (
-            "chain-check: `.github/scripts/rules.py` could not read the check "
+            "chain-check: `skills/settle/scripts/rules.py` could not read the check "
             f"lines of {ITEM}/frame/design.md: tests/test_broken.py could not be "
             "read as Python (SyntaxError)"
         ) in err

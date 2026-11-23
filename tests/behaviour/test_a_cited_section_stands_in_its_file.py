@@ -925,17 +925,15 @@ def test_this_repository_s_archive_holds_no_workflow_file():
 # workflows run from the tree (#1376).
 RUN_BY_A_SHIPPED_COMMAND = {
     ".github/scripts/close_issues_on_release.py": "skills/code-review/scripts/pr_body.py",
-    ".github/scripts/rules.py": "skills/implement/scripts/seal.py",
-    ".github/scripts/run_tests.py": "bin/test",
 }
 
 
 def test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs():
-    """A8: of `.github/scripts/`, the archive holds the three scripts a
-    shipped command runs, each beside the file that runs it, and no other,
-    because `.gitattributes` marks each release-only script `export-ignore`.
-    The paragraph of `docs/releasing/branch-and-release.md` on `dist` names
-    the three and what runs each (#1376)."""
+    """A8: of `.github/scripts/`, the archive holds each script a shipped
+    command runs, beside the file that runs it, and no other, because
+    `.gitattributes` marks each release-only script `export-ignore`. The
+    paragraph of `docs/releasing/branch-and-release.md` on `dist` names each
+    and what runs it (#1376)."""
     held = archived(ROOT)
     scripts = sorted(
         p for p in held if p.startswith(".github/scripts/") and p.endswith(".py")

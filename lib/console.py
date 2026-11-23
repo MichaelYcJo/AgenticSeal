@@ -56,11 +56,12 @@ of them, so that the refusal it prints when one will not load does not meet a
 console's code page. None of the others says why it copies the loop rather
 than loading this module the same way.
 `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
-`.github/scripts/rules.py` load the tree's modules only when first asked,
-after the arguments are read, so an absent module ends the first and the last
-in `lib/sibling.py`'s sentence at exit 2 and `release_seal.py` in its note at
-exit 0, rather than in a traceback. This command lists every place
-that spells the loop, with this file among them:
+`skills/settle/scripts/rules.py` load the tree's modules only when first
+asked, after the arguments are read, so an absent module ends the first and
+the last in `lib/sibling.py`'s sentence at exit 2 and `release_seal.py` in its
+note at exit 0, rather than in a traceback. This command lists every place
+outside the suite that spells the loop, with this file among them, and
+`tests/run_tests.py`, the suite's runner, spells it too:
 
     git grep -l "[.]reconfigure(" -- '*.py' ':!tests' ':!evals/behaviour'
 

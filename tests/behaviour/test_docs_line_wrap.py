@@ -44,7 +44,7 @@ LIMIT = 88
 
 
 def _rules():
-    path = os.path.join(ROOT, ".github", "scripts", "rules.py")
+    path = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
     spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

@@ -264,7 +264,7 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 필드는 `seal` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
 그 줄을 짚어 거절한다. 블록 밖의 줄은 필드처럼 보여도 산문이고, 검사는 그
 줄을 필드로 읽지 않는다.
-check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
+check: tests/skills/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 **저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한

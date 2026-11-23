@@ -130,7 +130,7 @@ jobs:
         with:
           python-version: '3.12'
       # The suite's packages, at the versions
-      # `.github/scripts/run_tests.py` pins; a case holds this line to them.
+      # `tests/run_tests.py` pins; a case holds this line to them.
       # cmarkgfm is among them since #647: the table walker's case imports it.
       # PyYAML is among them since #1486: the modules that read a workflow
       # import it through `tests/workflows.py`.

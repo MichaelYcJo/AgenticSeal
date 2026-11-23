@@ -3462,7 +3462,7 @@ class Test_main:
             ("payload", "skills/verify/scripts/payload_meter.py"),
             ("stamp", "skills/verify/scripts/seal_stamp.py"),
             ("layout", "skills/verify/scripts/test_layout.py"),
-            ("rules", ".github/scripts/rules.py"),
+            ("rules", "skills/settle/scripts/rules.py"),
             ("pr-body", "skills/code-review/scripts/pr_body.py"),
             ("pr-wait", "skills/code-review/scripts/pr_wait.py"),
         ],
