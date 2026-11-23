@@ -83,12 +83,11 @@ nothing:
   the other, because a section's range holds its sub-sections. A design's
   place in the order is the first commit on `--released-at` that adds its
   `frame/design.md`, or in local mode its pull request's merge commit's place
-  on `--released-at`. The group
-  opens with each place's lines in the working tree, or the words saying its
-  heading is not there, and lists each operation with its design's coordinate
-  and whether its `from` and its `to` are found in the section now. Two designs
-  whose commits no ancestry orders are marked `unordered`, for the settling
-  session to order by content.
+  on `--released-at`. The group opens with each place's lines in the working
+  tree, or the words saying its heading is not there, and lists each
+  operation with its design's coordinate and whether its `from` and its `to`
+  are found in the section now. Two designs whose commits no ancestry orders
+  are marked `unordered`, for the settling session to order by content.
 - **The designs to read whole**: one whose `## Rule changes` does not parse,
   with the reader's reason, one with no such section, and one in which the
   reader names a line it did not read, a heading near `## Rule changes`

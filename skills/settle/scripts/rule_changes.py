@@ -672,9 +672,9 @@ def order(root, ref, ids, specs):
     REF that adds the id's `frame/design.md` under SPECS, the `/`-joined
     `<name>/threads` of the root in the tree, in `git log --topo-order
     --reverse` order, a directory moved under a new id counting as added
-    where it lands. An id no such
-    commit adds comes last, with commit None. Raises `lib/gitcmd.py#Exited`
-    where git exits non-zero, since it then printed no history to read."""
+    where it lands. An id no such commit adds comes last, with commit None.
+    Raises `lib/gitcmd.py#Exited` where git exits non-zero, since it then
+    printed no history to read."""
     r = gitcmd().git(
         root, "log", "-z", "--full-history", "--topo-order",
         "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
