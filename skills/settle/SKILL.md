@@ -82,9 +82,8 @@ nothing:
   section, in merge order. Two places are one group where one section holds
   the other, because a section's range holds its sub-sections. A design's
   place in the order is the first commit on `--released-at` that adds its
-  `frame/design.md`, or its design at the path it held before the session-start
-  move brought it into `seal/threads/` (`rule_changes.py#EARLIER`), or in local
-  mode its pull request's merge commit's place on `--released-at`. The group
+  `frame/design.md`, or in local mode its pull request's merge commit's place
+  on `--released-at`. The group
   opens with each place's lines in the working tree, or the words saying its
   heading is not there, and lists each operation with its design's coordinate
   and whether its `from` and its `to` are found in the section now. Two designs
