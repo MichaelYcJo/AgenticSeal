@@ -123,9 +123,9 @@ names no file and counts sessions that stopped part-way, at exit 0 too, had
 a pytest session at `HEAD` stop before its end: `records/` in the kept
 output says what stopped it, and a stop the branch added is this work's to
 repair.
-Review a repair that the row *No fix that no round reads* of
-`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to a
-round, and run the gate again. On the broad run's exit 2 nothing ran; a
+Where the row *No fix that no round reads* of `skills/core/SKILL.md`
+*Judgment is not licence to skip a party* gives a repair to a round, a
+round reviews it, and you run the gate again. On the broad run's exit 2 nothing ran; a
 refusal about the key goes to a person, as *A refusal about the `Broad gate`
 key* below says.
 
