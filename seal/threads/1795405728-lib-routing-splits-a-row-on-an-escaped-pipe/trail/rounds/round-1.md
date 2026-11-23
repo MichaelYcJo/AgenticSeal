@@ -87,6 +87,11 @@ it.":
 A row holding a pipe after an even run of backslashes, which those two readers and `lib/routing.py` read before, is no longer a row in any of them: `table_cells` refuses it (`frame/design.md` G8), so `lib/gaps.py` names it as a line that is not a table row, and the other two skip it.
 ```
 
+```seal
+verdict: fixed 9a06f602f
+answer: The finding holds. The orchestrator took the round's three texts as given: the changelog's *Changed* section gains the even-run bullet, `frame/design.md` *Data & interfaces* names three shapes no committed declaration holds, and `frame/plan.md` *Operational impact* says how each reader now treats that row. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ### 2. The row on what the gate change carries states no block-more or allow-more direction, and its one claim of direction is false for one shape
 
 ```seal
@@ -136,6 +141,11 @@ the Judgment cell word for word, so it changes in the same commit:
 
 ```markdown
 - "What this change to the gates carries: it allows more in `seal pact` and the settle's judgments reading, blocks more in `seal unverified`, `settle --apply` and `seal fold`, moves both ways in `chain-check`, and its prompt budget is zero" (`frame/plan.md` *Judgments of the run*, the row on what a gate change carries)
+```
+
+```seal
+verdict: fixed 9a06f602f
+answer: The finding holds. The orchestrator replaced the row on what the gate change carries with the round's row, which names each gate's direction and answers *What it reads*, and `pr.md`'s quote with the round's line. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ### 3. The release note and S5's case say the old fence rule hid every word after the run, and it hid them only up to the next backtick line
@@ -203,6 +213,11 @@ Scope item 1 reads the open end: `TABLE_ROW` matches a row's start alone, at mos
 
 In `frame/design.md:28`, "(`CELL`'s fourth alternative)" becomes
 "(`CELL`'s third alternative)".
+
+```seal
+verdict: fixed 9a06f602f
+answer: The finding holds. The orchestrator took the round's sentence for `frame/plan.md` *Technical context* as given, and `frame/design.md` *Scope* item 1 names `CELL`'s third alternative. The fix touches the work item's records alone, so the sealer reads it.
+```
 
 ## Confirmations
 
