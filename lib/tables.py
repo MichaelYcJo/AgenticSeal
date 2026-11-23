@@ -8,9 +8,14 @@ pact anchor table of a work item's `frame/design.md`
 (`skills/verify/scripts/pact_check.py`), a plan's *Judgments of the run*
 (`skills/settle/scripts/settle.py`), the row `settle --draft` places
 (`skills/settle/scripts/rule_changes.py`) and the lines `seal rules` reads
-(`skills/settle/scripts/rules.py`). No setting is read through it:
-`lib/config.py` reads `config.json` with the standard library's JSON
-parser.
+(`skills/settle/scripts/rules.py`). No setting is read through this
+module: `lib/config.py` reads `config.json` with the standard library's
+JSON parser.
+
+`table_cells` is also the one row splitter of the readers that read a
+table row by row: `lib/routing.py`, `lib/gaps.py` and
+`skills/settle/scripts/fold_check.py#index_rows` read a row's cells
+through it.
 
 What the walker does not read whole it refuses, naming the line, and a line
 it hides is a line nothing is read from.
@@ -41,21 +46,21 @@ except ImportError as missing:
         "own is not a plugin"
     ) from missing
 
-# A CELL is any run of characters that are neither a pipe nor a backslash, or
-# a backslash followed by anything. The second half is markdown's own escape,
-# and the tables this walker reads are markdown: `\|` is how a cell of a
-# markdown table carries a literal pipe. A bare pipe is a cell
-# boundary, as it is to cmark-gfm.
+# A CELL is any character that is neither a pipe nor a backslash, a backslash
+# followed by anything, or a backslash that ends the line. The second is
+# markdown's own escape, and the tables this walker reads are markdown: `\|`
+# is how a cell of a markdown table carries a literal pipe. A bare pipe is a
+# cell boundary, as it is to cmark-gfm.
 #
-# **This narrows in exactly one shape, and it is not a defect to repair.** A
-# backslash standing immediately against a cell-ending pipe is one escaped
-# pipe, so `| Broad gate | C:\Users\x\tools\|` is not a row. It cannot be
-# both: the escape is what the rest of this comment is for. Nothing becomes
-# unwritable, because `table_cells` strips each cell -- a space before the
-# closing pipe returns the same value byte for byte.
+# A backslash standing immediately against a pipe is one escaped pipe, as it
+# is to cmark-gfm, so those bytes cannot also mean a backslash and then the
+# boundary. `| Broad gate | C:\Users\x\tools\|` is a row whose closing pipe is
+# left off, and its last cell is `C:\Users\x\tools|`; the same shape against
+# a pipe between two cells joins them. A space before the pipe gives the
+# backslash back, because `table_cells` strips each cell.
 #
-# `TABLE_ROW` and `CELL_PIPE` below are built on it.
-CELL = r"(?:[^|\\]|\\.)"
+# `CELL_PIPE` below is built on it.
+CELL = r"(?:[^|\\]|\\.|\\\Z)"
 
 # The one escape this reader undoes, spelled as the two characters it is.
 ESCAPED_PIPE = "\\|"
@@ -237,7 +242,8 @@ def unfenced(lines, text=None):
 # over a corpus enumerated from the CommonMark and GFM block kinds: on every
 # shape the walker's cells equal cmark-gfm's, or the walker refuses. So every
 # arm below is one of two kinds. An END is a line the renderer was measured to
-# end the table at; a ROW is a line written `| … |` with the header's width.
+# end the table at; a ROW is a line `table_cells` reads with the header's
+# width.
 # Anything else is refused, with what it is, because a line the renderer reads
 # as a row and the walker reads as an end is a row nobody reads.
 
@@ -292,9 +298,9 @@ HTML_KINDS = (
 DELIMITER_ROW = re.compile(
     r"^ {0,3}\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$"
 )
-# A row written `| … |`, at most three spaces in; its cells are split by
+# A row begins with a pipe, at most three spaces in. Its cells are split by
 # every pipe `CELL` does not hold, so an escaped pipe stays inside its cell.
-TABLE_ROW = re.compile(rf"^ {{0,3}}\|(?P<cells>(?:{CELL}|\|)*)\|[ \t]*$")
+TABLE_ROW = re.compile(r" {0,3}\|")
 CELL_PIPE = re.compile(rf"((?:{CELL})*)(\|?)")
 # A pipe after an even run of backslashes: `CELL` reads the backslashes in
 # pairs and splits there, and cmark-gfm does not, because its cell scanner
@@ -305,18 +311,30 @@ EVEN_ESCAPED_PIPE = re.compile(r"(?<!\\)(?:\\\\)+\|")
 
 def table_cells(line):
     """The cells of LINE as a tuple, each stripped and with `\\|` reduced to a
-    pipe, where LINE is written `| … |`; otherwise None, which is also the
-    answer for a line holding a pipe after an even run of backslashes, which
-    cmark-gfm splits differently (`EVEN_ESCAPED_PIPE`)."""
-    match = TABLE_ROW.match(line)
-    if not match or EVEN_ESCAPED_PIPE.search(line):
+    pipe, where LINE is a row (`TABLE_ROW`); otherwise None.
+
+    The cells are the texts between the pipes `CELL` does not hold, and the
+    text after the last of them is one more cell unless it is blank, so a row
+    whose closing pipe is left off reads as cmark-gfm renders it. **A tuple
+    is no proof that LINE ends with a pipe**: a reader that must not take
+    prose after a last pipe as a value asks the width, as `gfm_table` does,
+    or reads a fixed number of cells.
+
+    None is also the answer for a line that holds nothing after its leading
+    pipe, and for a line holding a pipe after an even run of backslashes,
+    which cmark-gfm splits differently (`EVEN_ESCAPED_PIPE`)."""
+    start = TABLE_ROW.match(line)
+    if not start or EVEN_ESCAPED_PIPE.search(line):
         return None
     cells = []
-    for piece in CELL_PIPE.finditer(match.group("cells")):
-        cells.append(unescaped(piece.group(1).strip()))
+    for piece in CELL_PIPE.finditer(line, start.end()):
+        cell = unescaped(piece.group(1).strip())
         if not piece.group(2):
+            if cell:
+                cells.append(cell)
             break
-    return tuple(cells)
+        cells.append(cell)
+    return tuple(cells) or None
 
 
 def html_start(content):
@@ -406,8 +424,8 @@ def gfm_line_starts(text):
 
 
 def opens_table(index, line, under):
-    """True where LINE, at INDEX, is the header of a table of its own:
-    written `| … |`, with UNDER, `[(index, line)]` for the next shown line or
+    """True where LINE, at INDEX, is the header of a table of its own: a
+    row `table_cells` reads, with UNDER, `[(index, line)]` for the next shown line or
     `[]`, a delimiter row of the header's width directly below it.
 
     What stands above it is not asked. The caller does not read that table,
@@ -444,7 +462,7 @@ def gfm_table(text, header, beside=False):
     no heading, so the walk goes on past it, and one written `| … |` is
     refused like any other row nobody reads.
 
-    A header is a line written `| a | b |`, at most three spaces in; the line
+    A header is a row `table_cells` reads, such as `| a | b |`; the line
     under it must be a delimiter row of the same width. Each line after that
     is one of three things, and the walk takes none of them on guesswork:
 
@@ -461,9 +479,9 @@ def gfm_table(text, header, beside=False):
                    plan's *Judgments of the run*, leaves BESIDE false; the
                    anchor table's reader sets it, because a frame's section
                    holds other tables
-      a row        written `| … |` with the header's width
+      a row        a line `table_cells` reads with the header's width
       anything     refused, saying what it is: a delimiter row out of place,
-        else       a row of another width or without its outer pipes, or a
+        else       a row of another width or without its leading pipe, or a
                    line with no pipe, which GFM reads as one of the rows
 
     **A header with a line directly above it is refused**, with the

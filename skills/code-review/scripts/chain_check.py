@@ -654,16 +654,6 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
     return ("draft" if draft else "ready"), "`gh pr view --json isDraft`"
 
 
-def table_rows(reader, lines):
-    """Every table row in already-`readable` lines, as lists of cells."""
-    out = []
-    for line in lines:
-        cells = reader.split_row(line)
-        if cells is not None:
-            out.append(cells)
-    return out
-
-
 def reference(found):
     """`(round, finding or None)` from a reference's match."""
     number = found["finding"]

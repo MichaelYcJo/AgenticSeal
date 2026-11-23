@@ -54,6 +54,20 @@ except ImportError as missing:
         "own is not a plugin"
     ) from missing
 
+try:
+    import tables
+except ImportError as missing:
+    # The same sentence as the walk's above, for the file that splits a row
+    # into its cells as cmark-gfm does.
+    raise ImportError(
+        "cannot read "
+        + os.path.join(os.path.dirname(os.path.abspath(__file__)), "tables.py")
+        + ", and it is the row splitter this reader reads routing.md's cells "
+        "through, which reads an escaped pipe as one literal pipe. "
+        "This file ships beside it under `lib/`; a copy of one taken on its "
+        "own is not a plugin"
+    ) from missing
+
 REVIEW = "Review"
 DESTINATION = "Destination"
 BRANCH = "Branch"
@@ -120,7 +134,13 @@ def shown(lines, text=None):
 
 
 def table_rows(text):
-    """Every two-cell markdown table row, as (label, value).
+    """Every markdown table row of two cells or more, as (label, value), its
+    first two cells.
+
+    **A row is split as cmark-gfm splits it** (`lib/tables.py#table_cells`):
+    an escaped pipe is one literal pipe in its cell, a row whose closing pipe
+    is left off is a row, and a line four spaces in is code. The delimiter
+    row (`tables.DELIMITER_ROW`) is no row.
 
     Unknown labels are left in rather than filtered: a reader that drops what
     it does not recognise cannot gain a third axis later without the older
@@ -141,13 +161,10 @@ def table_rows(text):
     rows = []
     # exempt from splitlines: lines the GFM walk numbers
     for _index, line in shown(text.splitlines(), text):
-        line = line.strip()
-        if not line.startswith("|"):
+        if tables.DELIMITER_ROW.match(line):
             continue
-        cells = [c.strip() for c in line.strip("|").split("|")]
-        if len(cells) < 2:
-            continue
-        if set(cells[0]) <= set(":- "):  # the separator row
+        cells = tables.table_cells(line)
+        if cells is None or len(cells) < 2:
             continue
         rows.append((cells[0], cells[1]))
     return rows

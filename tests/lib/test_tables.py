@@ -623,36 +623,29 @@ class _Old_config_table:
             ("Broad gate", "C:\\Users\\x\\Python\\python.exe -m pytest")
         ], "a backslash that is not part of `\\|` is the value's own character"
 
-    def test_a_backslash_against_a_pipe_is_the_one_shape_the_escape_narrows(self):
-        """Round 1's 🟡 2 of #415. The escape is not free in one direction only:
-        a backslash immediately before a cell-ending pipe used to be a plain
-        character followed by a delimiter, and it is now one escaped pipe — so
-        the line has one pipe fewer than it needs and stops being a row.
-
-        **It is kept rather than repaired, and the narrowing is named rather
-        than discovered.** Once `\\|` means an escaped pipe those bytes cannot
-        also mean *backslash, then the delimiter*; the old reading was only
-        available while a backslash meant nothing. Nothing becomes unwritable —
-        a space before the closing pipe gives the value back byte for byte,
-        because the walker strips the cell — and one line in the whole tree
-        reads differently, in a review report quoting this shape.
-
-        Both members of the class are here. The report named the first; the
-        second is the same cause at an INTERNAL pipe, where the line stops being
-        a row for the same reason.
+    def test_a_backslash_against_a_pipe_is_an_escaped_pipe(self):
+        """Round 1's yellow 2 of #415, read again in #1574. A backslash immediately
+        before a cell-ending pipe is one escaped pipe, as it is to cmark-gfm,
+        so those bytes cannot also mean *backslash, then the delimiter*.
+        Against the last pipe, the line is a row whose closing pipe is left
+        off, and its last cell ends in a literal pipe, which is how cmark-gfm
+        renders it. Against a pipe between two cells, the two cells are one,
+        and the row is one cell narrower than its header. A space before the
+        pipe gives the value back byte for byte, because the walker strips the
+        cell.
         """
         header = "| Item | Value |\n|---|---|\n"
         tight_last = "| Broad gate | C:\\Users\\x\\tools\\|\n"
         tight_first = "| C:\\tools\\| x |\n"
-        assert items(header + tight_last) == [], (
+        read = [("Broad gate", "C:\\Users\\x\\tools|")]
+        assert oracle.rows_under(header + tight_last, HEADERS["config"]) == read
+        assert items(header + tight_last) == read, (
             "a backslash against the closing pipe is markdown's escaped pipe, so "
-            "the line has no closing pipe left and is not a row. If this returns "
-            "a row the pattern changed and `frame/design.md` *What this repair cannot "
-            "see* is now wrong"
+            "the row has no closing pipe and its last cell ends in a literal pipe"
         )
         assert items(header + tight_first) == [], (
-            "the same cause at the pipe BETWEEN the cells — the report named only "
-            "the closing one"
+            "the same cause at the pipe BETWEEN the cells joins them, and a row "
+            "one cell narrower than its header is refused"
         )
         assert items(header + "| Broad gate | C:\\Users\\x\\tools\\ |\n") == [
             ("Broad gate", "C:\\Users\\x\\tools\\")
@@ -676,6 +669,15 @@ class _Old_config_table:
         rows, said = walk(text)
         assert rows == [("a", "b")]
         assert "stops at `| x | y | z |`, which is not a 2-cell row" in said, said
+
+    def test_a_row_without_its_closing_pipe_is_read_and_the_rows_below_arrive(self):
+        """S2 of #1574. cmark-gfm renders a row whose closing pipe is left off
+        as one of the table's rows, so the walker reads it, and the rows below
+        it, where it refused the row before."""
+        text = "| Item | Value |\n|---|---|\n| Mode | shared\n| Broad gate | x |\n"
+        read = [("Mode", "shared"), ("Broad gate", "x")]
+        assert oracle.rows_under(text, HEADERS["config"]) == read
+        assert walk(text) == (read, "")
 
     def test_a_fenced_table_above_the_live_one_is_not_the_table(self):
         """A1. The live table is the first one outside every fence.
@@ -1046,6 +1048,59 @@ class Test_unfenced:
             if bad:
                 wrong.append((lines, bad))
         assert not wrong, f"{len(wrong)} documents, the first: {wrong[0]}"
+
+
+def under_a_header(line, width):
+    """LINE as the one body row of a table WIDTH cells wide, each header cell
+    `h`."""
+    return "|" + " h |" * width + "\n|" + "---|" * width + "\n" + line + "\n"
+
+
+class Test_table_cells:
+    """The cases of the row splitter `lib/lines.py` held until #1574 came here
+    with its readers, and each is held to cmark-gfm as well as to the cells
+    it gives."""
+
+    @pytest.mark.parametrize(
+        "line, cells",
+        [
+            ("| a | b |", ("a", "b")),
+            ("  | a | b", ("a", "b")),
+            (
+                "| whether a \\| b parses | the next session |",
+                ("whether a | b parses", "the next session"),
+            ),
+            ("| a \\|", ("a |",)),
+            ("| a | b \\", ("a", "b \\")),
+            ("| a | b |   ", ("a", "b")),
+        ],
+        ids=[
+            "closed",
+            "open at the end",
+            "an escaped pipe",
+            "an escaped last pipe",
+            "a backslash last",
+            "blanks after the closing pipe",
+        ],
+    )
+    def test_accepts_a_row_as_cmark_gfm_reads_its_cells(self, line, cells):
+        """A row is a line that begins with a pipe after at most three spaces,
+        and the text after its last unescaped pipe is one more cell unless it
+        is blank. cmark-gfm reads a row whose closing pipe is left off, or
+        escaped, or followed by a lone backslash, the same way."""
+        width = len(cells)
+        assert tables.table_cells(line) == cells
+        assert oracle.rows_under(under_a_header(line, width), ("h",) * width) == [cells]
+
+    @pytest.mark.parametrize(
+        "line",
+        ["- the TUI rendering, nobody has seen it", "|", "|   ", "    | a | b |"],
+        ids=["no pipe first", "a pipe alone", "a pipe and blanks", "four spaces in"],
+    )
+    def test_refuses_a_line_that_is_no_row(self, line):
+        """A line that holds nothing after its leading pipe is no row, and one
+        four spaces in is an indented code block to cmark-gfm."""
+        assert tables.table_cells(line) is None
 
 
 class Test_gfm_table(_Old_config_table, _Old_config_shapes):

@@ -1,14 +1,15 @@
 """Shared reader: the lines of a markdown text as a renderer shows them.
 
 Every script that reads markdown or a record by line asks this module:
-which cells a table row holds (`split_row`, `is_separator`), what a cell
-shows (`visible`), which lines a fenced block holds (`fence_spans`,
+whether a table row's cells are a delimiter row (`is_separator`), what a
+cell shows (`visible`), which lines a fenced block holds (`fence_spans`,
 `blank_fences`), which line of a record opens an HTML comment
 (`comment_lines`), whether a line begins live (`liveness`,
 `live_pieces`, `live_lines`), which ATX heading a line is
 (`heading_level`, `headings`, `sections`), and which lines of a record a
-reader judges (`readable`). `lib/gaps.py` reads a closing memo through it,
-and the scripts load it through `lib/sibling.py`.
+reader judges (`readable`). The cells themselves are
+`lib/tables.py#table_cells`'. `lib/gaps.py` reads a closing memo through
+it, and the scripts load it through `lib/sibling.py`.
 
 The fence delimiter rule and the GFM line split are `lib/blocks.py`'s,
 imported beside it. `lib/blocks.py#walk` is the other walk of a markdown
@@ -78,19 +79,6 @@ OPENER = "<!--"
 CLOSER = "-->"
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
-
-
-def split_row(line):
-    """Cells of one markdown table row, or None if the line is not a row.
-
-    `\\|` inside a cell is an escaped pipe, not a column break."""
-    s = line.strip()
-    if not s.startswith("|"):
-        return None
-    s = s[1:]
-    if s.endswith("|") and not s.endswith("\\|"):
-        s = s[:-1]
-    return [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", s)]
 
 
 def is_separator(cells):
