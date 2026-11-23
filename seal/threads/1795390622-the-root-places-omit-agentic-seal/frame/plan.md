@@ -56,4 +56,4 @@ None for a deployer: no migration, no environment variable, no dependency and no
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-23 | The pull request's title takes `fix:` | Contract rule 11 and the files that restated it named two places for the `seal/` root where `lib/optin.py#home_at` reads three, so an agent that followed the text looked in the wrong place in a repository whose root is `agentic-seal/`. The text agents act on was wrong, and the diff adds no behaviour, so the release stays a patch | `docs/releasing/branch-and-release.md` *The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number* |
