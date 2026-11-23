@@ -99,8 +99,8 @@ def label_name(version):
 # The most characters GitHub accepts in a label's description. The number is
 # GitHub's, not this repository's: `gh label create` with a longer one is
 # refused with `HTTP 422 ... description is too long (maximum is 100
-# characters)`, and a 119-character description sent there fails the
-# close-issues workflow after a release and skips the step behind it.
+# characters)`, and a 119-character description sent there failed the
+# close-issues workflow after a release and skipped the step behind it (#515).
 # The description this script sends to `gh label create` is held under it
 # by a case, so an over-long one is refused by the suite before a merge
 # rather than by the tracker after one. Raising it does not make a longer
