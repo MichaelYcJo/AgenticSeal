@@ -353,18 +353,6 @@ def _ordered(where):
     """
     try:
         names = os.listdir(where)
-    except NotADirectoryError:
-        # A `rounds` that is a FILE, not a directory. Following an earlier
-        # release's own migration command reaches it: a `git mv` of each round
-        # record into a `rounds` directory fails because `git mv` does not
-        # create its destination, and dropping the trailing slash is what a
-        # person tries next -- which succeeds for a single record and renames
-        # it to a file called `rounds`. Both readers would then say the work
-        # item holds no round record while git carries the review's whole
-        # text, and a review reported as never having happened is the one
-        # direction this module refuses. Raised so a caller says which of the
-        # two it is.
-        raise
     except OSError:
         return []
     found = [(round_number(n), n) for n in names]
@@ -380,11 +368,9 @@ def rounds(item):
 
     `trail/rounds/` rather than the work-item directory itself, because `round-N`
     is the one member of the SDD set that is plural and unbounded, and the
-    structure should say which member grows.
-
-    The old flat location is NOT read. A permanent dual read would put two
-    places to look in the reader the release scripts and the settle depend
-    on, and an expiry nothing enforces is a comment.
+    structure should say which member grows. A `trail/rounds` that is not
+    there, or is a file, holds no record; `rounds_unreadable` names the
+    states that hold records nothing can list.
 
     What stays different between the two readers is deliberate, and it is not
     the order: this one reads the working tree, because its callers, `seal
@@ -394,30 +380,17 @@ def rounds(item):
     """
     if not item:
         return []
-    try:
-        return _ordered(os.path.join(item, *ROUNDS_DIR.split("/")))
-    except NotADirectoryError:
-        # Caught here rather than raised at the gates. A check that raises
-        # names a traceback, not the state it met. Propagating this would
-        # turn a nameable state into that -- the opposite of what `_ordered`
-        # refuses it for.
-        # `rounds_unreadable` is how a caller asks which of the two happened.
-        return []
+    return _ordered(os.path.join(item, *ROUNDS_DIR.split("/")))
 
 
 def rounds_unreadable(item):
-    """True when `rounds` beside the work item is a link of any kind, a path
-    that is not a directory, or a directory nothing can list.
+    """True when `rounds` beside the work item is a link of any kind, or a
+    directory nothing can list.
 
     Told apart from "no records" because the two need opposite answers: one
     is every work item that ran no review and must stay quiet, the other
     is a review whose whole text git is still carrying while every reader
     reports that none happened.
-
-    Reached by following an earlier release's own migration command. A
-    `git mv` of each round record into a `rounds` directory fails -- `git mv`
-    does not create its destination -- and dropping the trailing slash succeeds for a single
-    record, renaming it to a file named `rounds`.
     """
     if not item:
         return False
@@ -430,8 +403,6 @@ def rounds_unreadable(item):
         # and calls it not-a-tree — fails and tells the reader to `mkdir` a
         # path that already exists. The two readers answer for what GIT
         # carries, and git carries a link.
-        return True
-    if os.path.exists(where) and not os.path.isdir(where):
         return True
     if os.path.isdir(where):
         try:

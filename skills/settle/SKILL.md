@@ -113,8 +113,8 @@ nothing:
   section prints nothing. A heading whose letters, case folded, are the
   section's and that is not it is named as not read at its line, and so is
   a section whose table is not under the exact header. A `trail/rounds`
-  that is not a directory the dry run can list is named in place of a
-  count.
+  that is a link, or a directory the dry run cannot list, is named in place
+  of a count.
 - **The judgments earlier settles removed**: every row of the
   `seal/threads/<id>/frame/plan.md` files that the two newest removing
   commits on `--released-at` deleted, where no directory `<id>` stands in

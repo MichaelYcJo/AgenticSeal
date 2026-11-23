@@ -74,11 +74,9 @@ SEPARATOR = "|---|---|---|---|---|"
 NOT_READ = "not read"
 DEFAULT_REF = "origin/main"
 # Said of every state `lib/routing.py#rounds_unreadable` answers for,
-# and so of none of them alone: any link, a path that is not a directory,
-# and a directory nothing can list.
+# and so of neither alone: any link, and a directory nothing can list.
 NOT_LISTED = (
-    "the round records cannot be listed: it is a link, a file, or a "
-    "directory nothing can list"
+    "the round records cannot be listed: it is a link or a directory nothing can list"
 )
 # Said of a released work item whose `routing.md` cannot be read or is no
 # declaration: whether it is a row is not known, so it is none, and this

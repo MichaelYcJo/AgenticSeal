@@ -253,35 +253,32 @@ class Test_main:
         assert under == [f"{path}: {why}"], under
         assert str(root) not in "\n".join(under), under
 
-    @pytest.mark.parametrize("shape", ["a file", "a link to a directory of records"])
     def test_rounds_that_cannot_be_listed_read_not_read_in_every_cell(
-        self, tmp_path, capsys, shape
+        self, tmp_path, capsys
     ):
         """A `trail/rounds` that `lib/routing.py#rounds_unreadable`
-        reads as unlistable, a file or any link, holds records nobody can
-        count, so all four cells read `not read`. The line under the table
-        names it with every state that reader answers for, and asserts none
-        of them alone. Seen red against the line that said "it is not a
-        directory" whatever the state was (round 1, finding 1)."""
+        reads as unlistable, here a link to a directory of records, holds
+        records nobody can count, so all four cells read `not read`. The line
+        under the table names it with every state that reader answers for,
+        and asserts none of them alone. Seen red against the line that said
+        "it is not a directory" whatever the state was (round 1, finding 1),
+        and against the line that named a file among them (#1576)."""
         root = git_repo(tmp_path / "repo")
         where = item(root)
         rounds = where / "trail" / "rounds"
         rounds.rmdir()
-        if shape == "a file":
-            rounds.write_text("# round 1\n", encoding="utf-8")
-        else:
-            held = where / "trail" / "held"
-            held.mkdir()
-            (held / "round-1.md").write_text(
-                record(finding(1, "`f.py:1`")), encoding="utf-8"
-            )
-            symlink_or_skip("held", rounds, directory=True)
+        held = where / "trail" / "held"
+        held.mkdir()
+        (held / "round-1.md").write_text(
+            record(finding(1, "`f.py:1`")), encoding="utf-8"
+        )
+        symlink_or_skip("held", rounds, directory=True)
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | not read |"]
         path = f"seal/threads/{ITEM}/trail/rounds"
         assert under == [
-            f"{path}: the round records cannot be listed: it is a link, a file, "
-            "or a directory nothing can list"
+            f"{path}: the round records cannot be listed: it is a link or a "
+            "directory nothing can list"
         ], under
 
     def test_the_rows_are_the_released_items_routed_through_the_chain(

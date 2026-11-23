@@ -1324,12 +1324,12 @@ class Test_main:
         assert "judged against:" not in block, block
         assert settle.REMOVES_HEADING in text, text
 
-    @pytest.mark.parametrize("shape", ["file", "link", "unlistable"])
+    @pytest.mark.parametrize("shape", ["link", "unlistable"])
     def test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none(
         self, repo, capfd, monkeypatch, shape
     ):
-        """Round 9, finding 1. A `trail/rounds` that is a file, a link, or a
-        directory nothing can list holds a review git carries
+        """Round 9, finding 1. A `trail/rounds` that is a link, or a
+        directory nothing can list, holds a review git carries
         (`lib/routing.py#rounds_unreadable`), so the dry run says it
         counted none rather than that none happened. The unlistable
         directory is made by refusing `os.listdir` on that one path, since
@@ -1343,9 +1343,7 @@ class Test_main:
         )
         trail = specs_dir(repo, "1700000001-a") / "trail"
         trail.mkdir()
-        if shape == "file":
-            (trail / "rounds").write_text("# Review round 1\n", encoding="utf-8")
-        elif shape == "link":
+        if shape == "link":
             held = repo / "elsewhere"
             held.mkdir()
             (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
@@ -3910,12 +3908,12 @@ class Test_policy_root:
 
 class Test_show:
     def test_accepts_a_path_at_a_ref(self, plain):
-        assert settle.show(str(plain), "HEAD", f"specs/{WORK}/gaps.md") == memo(
+        assert settle.show(str(plain), "HEAD", f"seal/threads/{WORK}/gaps.md") == memo(
             CANONICAL
         )
 
     def test_refuses_a_path_the_ref_does_not_hold(self, plain):
-        assert settle.show(str(plain), "HEAD", "specs/none/gaps.md") is None
+        assert settle.show(str(plain), "HEAD", "seal/threads/none/gaps.md") is None
 
     def test_refuses_to_raise_on_a_byte_that_is_not_utf8(self, tmp_path):
         """#19: a revision read at a ref decodes as `check_file` decodes the
