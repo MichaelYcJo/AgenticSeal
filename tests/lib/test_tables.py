@@ -785,33 +785,36 @@ class _Old_config_table:
         not is mid-line to a renderer, so it hides no line, and the base read
         `Mode shared`.
 
-        **Re-pinned by #871 to the walker's answer, which is a refusal.** The
-        `-->` under the row is a row GFM shows, so the table is one the walk
-        cannot read whole, and the walk reads the pieces `str.splitlines` cuts,
-        where `<!--` begins one: it refuses at the header, naming an HTML block
-        GFM does not see. The direction is the refusing one and no row is read
-        that GFM does not show; the sentence's cause is the walker's limit on
-        these eight characters, named in the work item's `gaps.md`."""
+        **Re-pinned by #1574.** The walk reads the lines
+        `lib/blocks.py#gfm_lines` gives, so it hides no line either and reads
+        `Mode shared`, as cmark-gfm renders it. cmark-gfm also shows the `-->`
+        under the row as a one-cell row, and the walk refuses that line, which
+        holds no pipe. #871 had pinned a refusal at the header, which the walk
+        gave while it read the pieces `str.splitlines` cuts."""
         from block_shapes import BREAKS, OPEN
 
         text = (
             f"A note{BREAKS[name]}{OPEN}\n\n| Item | Value |\n|---|---|\n"
             "| Mode | shared |\n-->\n"
         )
-        lines = text.splitlines()
-        assert [i for i, _line in tables.unfenced(lines, text)] == list(
-            range(len(lines))
-        )
+        lines = tables.blocks.gfm_lines(text)
+        assert [i for i, _line in tables.unfenced(lines)] == list(range(len(lines)))
+        assert oracle.rows_under(text, HEADERS["config"]) == [
+            ("Mode", "shared"),
+            ("-->", ""),
+        ]
         rows, said = walk(text)
-        assert rows == [] and said, said
+        assert rows == [("Mode", "shared")], rows
+        assert "continues with `-->`" in said, said
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     def test_a_piece_inside_an_inline_comment_is_no_config_row(self, name):
-        """#667 round 2, 🟡 1. A table written after a break inside an inline
-        comment its line opened is inside that comment to a renderer, and the
-        fence run before it is fenced to the base. Read by the line it starts in,
-        the piece took the line's answer, shown, and a `Mode` row neither
-        reading shows was read."""
+        """#667 round 2, 🟡 1, re-pinned by #1574. A table written after a
+        break inside an inline comment its line opened stands on that one GFM
+        line, which begins with `x`, so the walk finds no header there and
+        cmark-gfm renders no table. While the walk read `str.splitlines`
+        pieces, a piece took the answer of the line it started in, shown, and
+        a `Mode` row neither reading shows was read."""
         from block_shapes import BREAKS, OPEN
 
         brk = BREAKS[name]
@@ -819,6 +822,7 @@ class _Old_config_table:
             f"x {OPEN} a{brk}```{brk}| Item | Value |{brk}|---|---|{brk}"
             "| Mode | shared |\n-->\n"
         )
+        assert oracle.rows_under(text, HEADERS["config"]) is None
         assert items(text) == []
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
@@ -836,13 +840,16 @@ class _Old_config_table:
     def test_a_piece_inside_other_inline_html_is_no_config_row(
         self, name, opener, closer
     ):
-        """#673, #667 round 3's 🟡 1. A comment is one kind of inline raw HTML of
-        six (CommonMark 6.6); CDATA, a processing instruction, a declaration and a
-        tag's quoted attribute value hide what they hold too, and the fence run
-        before the table is fenced to the base. The walk looked only for a
-        comment opener, so the piece was claimed shown and a `Mode` row neither
-        reading shows was read. A declaration's closer is written `a>`: a `>` at
-        a line's start would open a block quote instead."""
+        """#673, #667 round 3's 🟡 1, re-pinned by #1574. A comment is one kind
+        of inline raw HTML of six (CommonMark 6.6); CDATA, a processing
+        instruction, a declaration and a tag's quoted attribute value hide what
+        they hold too. The table after the break stands on the one GFM line
+        that opens the construct, so the walk finds no header there and
+        cmark-gfm renders no table. While the walk read `str.splitlines`
+        pieces, it looked only for a comment opener, so the piece was claimed
+        shown and a `Mode` row neither reading shows was read. A declaration's
+        closer is written `a>`: a `>` at a line's start would open a block
+        quote instead."""
         from block_shapes import BREAKS
 
         brk = BREAKS[name]
@@ -850,30 +857,38 @@ class _Old_config_table:
             f"x {opener}{brk}```{brk}| Item | Value |{brk}|---|---|{brk}"
             f"| Mode | shared |\n{closer}\n"
         )
+        assert oracle.rows_under(text, HEADERS["config"]) is None
         assert items(text) == []
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     def test_a_row_after_a_break_gfm_does_not_honour_is_no_row_of_its_own(self, name):
-        """#871 round 1, 🟡 4. A row followed on its own line by a character only
-        `str.splitlines` ends a line at, then a second row, is ONE row to
-        cmark-gfm, cut off at its cells: GitHub shows `Mode shared` and no
-        `Broad gate`. The walk reads the first row and refuses the piece after
-        the break, so no gate is handed a command GitHub does not show. Seen red
-        against the walk before the guard: `Broad gate` was read as `x`."""
+        """#871 round 1, 🟡 4, re-pinned by #1574. A row followed on its own
+        line by a character only `str.splitlines` ends a line at, then a second
+        row, is ONE row to cmark-gfm, cut off at its cells: GitHub shows
+        `Mode shared` and no `Broad gate`. The walk reads that GFM line as a
+        row of five cells, the break between two pipes a blank one, and
+        refuses it by its width, so no gate is handed a command GitHub does
+        not show. Until #1574 the walk read `Mode shared` from the first
+        `str.splitlines` piece and refused the piece after the break."""
         from block_shapes import BREAKS
 
         text = TABLE.format(rows=f"| Mode | shared |{BREAKS[name]}| Broad gate | x |\n")
+        assert oracle.rows_under(text, HEADERS["config"]) == [("Mode", "shared")]
         rows, said = walk(text)
-        assert rows == [("Mode", "shared")], rows
-        assert "put it on a line of its own" in said, said
+        assert rows == [], rows
+        assert "which is not a 2-cell row" in said, said
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     @pytest.mark.parametrize("where", ["above the header", "under the header"])
     def test_a_header_after_a_break_gfm_does_not_honour_is_no_table(self, name, where):
-        """#871 round 2, yellow 7. A header after a character only
-        `str.splitlines` ends a line at, or a delimiter row after one on the
-        header's line, is no table to cmark-gfm (measured for FF, U+2028, NEL
-        and VT by the round's reviewer). The walk reads no row and refuses."""
+        """#871 round 2, yellow 7, re-pinned by #1574. A header after a
+        character only `str.splitlines` ends a line at, or a delimiter row
+        after one on the header's line, is no table to cmark-gfm. The walk
+        reads GFM lines, so the header's line begins with the break, or holds
+        the delimiter row's cells beside the header's, and is no
+        `| Item | Value |` header: the walk finds no such table. Until #1574 it
+        read the `str.splitlines` pieces and refused the table with a sentence
+        naming the break."""
         from block_shapes import BREAKS
 
         brk = BREAKS[name]
@@ -882,8 +897,9 @@ class _Old_config_table:
             if where == "above the header"
             else f"# c\n\n| Item | Value |{brk}|---|---|\n| Mode | shared |\n"
         )
-        rows, said = walk(text)
-        assert rows == [] and "each on a line of its own" in said, (rows, said)
+        assert oracle.rows_under(text, HEADERS["config"]) is None
+        rows, refusals = tables.gfm_table(text, HEADERS["config"])
+        assert (rows, refusals) == ([], ["holds no `| Item | Value |` table"])
 
 
 class _Old_config_shapes:
@@ -1038,7 +1054,7 @@ class Test_unfenced:
         for doc in CORPUS:
             text, lines = as_read(doc)
             new = {index for index in range(len(lines))} - {
-                index for index, _line in tables.unfenced(lines, text)
+                index for index, _line in tables.unfenced(lines)
             }
             bad = leaves_both(
                 new,
@@ -1139,16 +1155,18 @@ class Test_gfm_table(_Old_config_table, _Old_config_shapes):
     def test_accepts_the_rows_above_a_heading_piece_and_refuses_the_row_below(
         self, name
     ):
-        """#871 round 2, yellow 7's class after the table's end. A heading piece
-        after a character only `str.splitlines` ends a line at is more of the
-        line above to GFM, not a heading, so a line written `| … |` under it is
-        still a row nobody reads, and is refused."""
+        """#871 round 2, yellow 7's class after the table's end. A heading
+        written after a character only `str.splitlines` ends a line at is more
+        of its GFM line, which begins with `x`, and not a heading, so a line
+        written `| … |` under it is still a row nobody reads, and is refused.
+        cmark-gfm renders `Mode shared` alone."""
         from block_shapes import BREAKS
 
         text = (
             "| Item | Value |\n|---|---|\n| Mode | shared |\n\n"
             f"x{BREAKS[name]}## Notes\n| Broad gate | y |\n"
         )
+        assert oracle.rows_under(text, ("Item", "Value")) == [("Mode", "shared")]
         rows, refusals = tables.gfm_table(text, ("Item", "Value"))
         assert [c for _l, c in rows] == [("Mode", "shared")], rows
         assert refusals and "ends above `| Broad gate | y |`" in refusals[0], refusals
@@ -1167,9 +1185,9 @@ class Test_gfm_table(_Old_config_table, _Old_config_shapes):
         for kind, lines in KINDS.items():
             for indent in INDENTS:
                 text = document(header, lines, "before the header", indent)
-                split = text.splitlines()
+                split = tables.blocks.gfm_lines(text)
                 head = split.index("| " + " | ".join(header) + " |")
-                shown = dict(tables.unfenced(split, text))
+                shown = dict(tables.unfenced(split))
                 above = shown.get(head - 1)
                 if above is None or not above.strip():
                     continue

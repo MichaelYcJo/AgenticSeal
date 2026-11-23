@@ -83,7 +83,7 @@ def unescaped(cell):
     return cell.replace(ESCAPED_PIPE, "|")
 
 
-def fence_map(lines, text=None):
+def fence_map(lines):
     """([(index, line)] outside every fenced block, the index of an opener
     that was never closed or None) -- the one fence rule, computed once.
 
@@ -103,10 +103,9 @@ def fence_map(lines, text=None):
     comment block that closes hide their lines, and a line the walk cannot
     be sure of keeps its base reading, the fence rule alone. The name says
     "fenced" because every caller spells it so, and "outside every fenced
-    block" means "outside every block this reader hides". TEXT is
-    `hidden_lines`' argument of the same name.
+    block" means "outside every block this reader hides".
     """
-    hidden, opened_at = hidden_lines(lines, text)
+    hidden, opened_at = hidden_lines(lines)
     shown = [
         (index, raw.rstrip("\r\n"))
         for index, raw in enumerate(lines)
@@ -115,7 +114,7 @@ def fence_map(lines, text=None):
     return shown, opened_at
 
 
-def hidden_lines(lines, text=None):
+def hidden_lines(lines):
     """({index: "fence" or "comment"} for every line of LINES no walk of the
     table is shown, the index of a fence opener never closed or None).
 
@@ -124,13 +123,11 @@ def hidden_lines(lines, text=None):
     `docs/checks/the-fold.md` *The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration.
 
-    **TEXT is the file LINES were split from, and every caller that has it
-    passes it.** The readers split with
-    `str.splitlines`, which ends a line at U+2028, NEL, a form feed and five
-    more characters where a renderer does not; the walk reads TEXT where
-    GFM breaks it (`blocks.walk_text`), so a `<!--` after such a character
-    hides nothing. LINES alone is read as given, which is right for a list
-    of lines nobody split from a file.
+    **LINES are the file's lines as GFM ends them**, the ones
+    `lib/blocks.py#gfm_lines` gives, and every caller that reads a file
+    splits it so. A U+2028, a NEL or a form feed, which `str.splitlines`
+    also ends a line at, then stays inside its line, so a `<!--` after one
+    is mid-line and hides nothing, as it is to a renderer.
 
     **Two readings, and every line takes one of them.** Where
     `lib/blocks.py#walk` is sure, the line is hidden exactly where a
@@ -138,9 +135,8 @@ def hidden_lines(lines, text=None):
     comment block that closes. Where the walk is not sure -- a construct
     inside a list item, another kind of HTML block, the lines after inline
     raw HTML a line leaves open (a mid-line `<!--`, CDATA, a processing
-    instruction, a declaration or a tag) and a piece of a line that starts
-    inside it, everything below a construct that never closes -- the
-    line keeps this reader's base reading, the fence rule alone,
+    instruction, a declaration or a tag), everything below a construct that
+    never closes -- the line keeps this reader's base reading, the fence rule alone,
     `blocks.fence_only`. So on every line the answer is either the base
     reading or the renderer's, and never a third;
     `tests/lib/test_tables.py`'s `Test_unfenced` holds that
@@ -165,7 +161,7 @@ def hidden_lines(lines, text=None):
     the one in force. A fence line inside a closed comment opens nothing, so
     it is never named.
     """
-    walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
+    walked = blocks.walk(lines)
     base, base_opened = blocks.fence_only(lines)
     hidden = walked.hidden(base)
     candidates = list(walked.unclosed)
@@ -174,7 +170,7 @@ def hidden_lines(lines, text=None):
     return hidden, min(candidates) if candidates else None
 
 
-def unfenced(lines, text=None):
+def unfenced(lines):
     """(index, line) for each of LINES that is outside every fenced code
     block and every HTML comment block that closes, with the line's own
     ending removed and its index kept. `hidden_lines` below is the rule and
@@ -224,10 +220,10 @@ def unfenced(lines, text=None):
     **The walk itself is `fence_map` above**, and this is its surviving lines.
     One walk rather than two: the caller that needs to know whether a fence
     was left open asks that function, and every walk of the table asks this
-    one, and neither reads the file by a rule of its own. TEXT is
+    one, and neither reads the file by a rule of its own. LINES are
     `hidden_lines`' argument of the same name.
     """
-    yield from fence_map(lines, text)[0]
+    yield from fence_map(lines)[0]
 
 
 # --- one GFM table walker ----------------------------------------------------
@@ -407,22 +403,6 @@ def a_list_above(lines):
     return seen
 
 
-# Where GFM ends a line: LF, CR and CRLF, and nowhere else.
-GFM_LINE_ENDS = ("\r\n", "\n", "\r")
-
-
-def gfm_line_starts(text):
-    """One bool per `text.splitlines()` piece: whether that piece begins a
-    line GFM begins. `str.splitlines` also ends a line at eight characters
-    GFM reads as part of the line -- a form feed, U+2028 and six more -- so
-    a piece after one of them is more of the GFM line above it."""
-    # exempt from splitlines: the walk's own pieces, each asked if it starts a line
-    pieces = text.splitlines(keepends=True)
-    return [
-        at == 0 or pieces[at - 1].endswith(GFM_LINE_ENDS) for at in range(len(pieces))
-    ]
-
-
 def opens_table(index, line, under):
     """True where LINE, at INDEX, is the header of a table of its own: a
     row `table_cells` reads, with UNDER, `[(index, line)]` for the next
@@ -455,13 +435,11 @@ def gfm_table(text, header, beside=False):
                 tuple as wide as HEADER, in order
       refusals  one sentence per thing that stopped the walk, naming it
 
-    **The walk reads `str.splitlines` pieces, and a piece is a line only
-    where it begins a GFM line** (`gfm_line_starts`). A header or delimiter
-    piece that does not is no table GitHub renders, and the walk refuses the
-    table; a body piece that does not is more of the row above it, and the
-    walk stops there and refuses it; after the table's end such a piece is
-    no heading, so the walk goes on past it, and one written `| … |` is
-    refused like any other row nobody reads.
+    **The walk reads TEXT's lines as GFM ends them**
+    (`lib/blocks.py#gfm_lines`). A form feed, a U+2028 or another character
+    only `str.splitlines` ends a line at is part of its line here, as it is
+    to cmark-gfm, so a header, a row or a heading after one is no line of
+    its own.
 
     A header is a row `table_cells` reads, such as `| a | b |`; the line
     under it must be a delimiter row of the same width. Each line after that
@@ -508,9 +486,8 @@ def gfm_table(text, header, beside=False):
     width = len(header)
     shape = "a one-cell row" if width == 1 else f"a {width}-cell row"
     written = "`|" + " … |" * width + "`"
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
-    shown = list(unfenced(lines, text))
+    lines = blocks.gfm_lines(text)
+    shown = list(unfenced(lines))
     at = next(
         (k for k, (_i, line) in enumerate(shown) if table_cells(line) == header),
         None,
@@ -557,15 +534,6 @@ def gfm_table(text, header, beside=False):
             f"has a `| {name} |` header over a delimiter row of {cells} "
             "cells, so GFM renders no table there"
         ]
-    begins = gfm_line_starts(text)
-    if not (begins[head_index] and begins[delimiter[0]]):
-        return [], [
-            f"has a `| {name} |` header that shares a line with the line beside "
-            "it to GFM: a form feed, U+2028 or another character only Python "
-            "ends a line at stands between them, so GitHub renders no table "
-            "there — put the header and its delimiter row each on a line of "
-            "its own"
-        ]
     rows, stray, ended, previous = [], None, False, delimiter[0]
     body = shown[at + 2 :]
     # BESIDE: the index of the last line read as part of a table of its own.
@@ -574,11 +542,7 @@ def gfm_table(text, header, beside=False):
         if not ended and (index != previous + 1 or table_end(line)):
             ended = True
         if ended:
-            if (
-                begins[index]
-                and ATX_HEADING.match(line.lstrip(" "))
-                and blocks.columns(line) < 4
-            ):
+            if ATX_HEADING.match(line.lstrip(" ")) and blocks.columns(line) < 4:
                 break
             if other is not None and index == other + 1 and not table_end(line):
                 # The other table's delimiter row, or a line GFM reads as
@@ -599,15 +563,6 @@ def gfm_table(text, header, beside=False):
                 break
             continue
         previous = index
-        if not begins[index]:
-            stray = (
-                f"has a `{name}` table that stops at `{line.strip()}`, which is "
-                "not a row of its own to GFM: a form feed, U+2028 or another "
-                "character only Python ends a line at stands before it, so "
-                "GitHub reads it as more of the line above — put it on a line "
-                "of its own"
-            )
-            break
         if DELIMITER_ROW.match(line):
             stray = _stops_at(name, line, "a delimiter row out of place")
             break

@@ -23,7 +23,7 @@ import sys
 import commonmark_oracle as oracle
 import gfm_table_oracle
 import pytest
-from block_shapes import RENDERER, SHAPES
+from block_shapes import BREAKS, RENDERER, SHAPES
 from conftest import (
     ROOT,
     census_case,
@@ -117,20 +117,24 @@ class Test_table_rows:
             ("| Branch | fix/a \\|", "fix/a |"),
             ("| Branch | fix/a", "fix/a"),
             ("| Branch | fix/a | b |", "fix/a"),
+            (f"| Branch | fix/a{BREAKS['LS']}b |", f"fix/a{BREAKS['LS']}b"),
         ],
         ids=[
             "an escaped pipe",
             "an escaped last pipe",
             "no closing pipe",
             "a third cell",
+            "a U+2028 inside a cell",
         ],
     )
     def test_reads_each_row_as_cmark_gfm_renders_it(self, row, value):
-        """S1 and S2 of #1574. The rows are split by `lib/tables.py#table_cells`,
-        so an escaped pipe is one literal pipe in its cell, a row whose closing
-        pipe is left off is a row, and a row wider than two cells is read as
-        its first two, each as cmark-gfm renders it under the two-cell header.
-        The delimiter row is no row."""
+        """S1, S2 and S3 of #1574. The rows are split by
+        `lib/tables.py#table_cells`, so an escaped pipe is one literal pipe in
+        its cell, a row whose closing pipe is left off is a row, and a row
+        wider than two cells is read as its first two, each as cmark-gfm
+        renders it under the two-cell header. The lines are
+        `lib/blocks.py#gfm_lines`, so a U+2028, which `str.splitlines` ends a
+        line at, stays inside its cell. The delimiter row is no row."""
         text = "| Axis | Answer |\n|---|---|\n" + row + "\n"
         assert gfm_table_oracle.rows_under(text, ("Axis", "Answer")) == [
             ("Branch", value)
@@ -231,7 +235,8 @@ class Test_parse:
         form feed and five more characters, and CommonMark does not, so a `<!--`
         after one began a line for the walk and no line for a renderer: the walk
         hid the table under it, and `parse` answered None where the base read the
-        declaration. The walk reads where CommonMark breaks."""
+        declaration. The reader splits its text with `lib/blocks.py#gfm_lines`,
+        so the `<!--` stays mid-line and hides nothing."""
         from block_shapes import BREAKS, OPEN, TABLE
 
         text = "\n".join([f"A note{BREAKS[name]}{OPEN}", "", *TABLE, "-->"]) + "\n"
@@ -622,9 +627,7 @@ class Test_module:
         wrong = []
         for doc in CORPUS:
             text, lines = as_read(doc)
-            new = set(range(len(lines))) - {
-                i for i, _line in routing.shown(lines, text)
-            }
+            new = set(range(len(lines))) - {i for i, _line in routing.shown(lines)}
             bad = leaves_both(new, set(), set(oracle.hidden_text(text)), len(lines))
             if bad:
                 wrong.append((lines, bad))

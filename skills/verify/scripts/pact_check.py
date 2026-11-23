@@ -335,12 +335,11 @@ def near_headers(tables, text):
     anchor header: a table no row of which is read. Whether it meant the
     anchor table is the judgment of the person reading the report and of
     the proofer reading the frame."""
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
+    lines = tables.blocks.gfm_lines(text)
     want = tuple(map(header_key, ANCHOR_TABLE))
     return [
         (index + 1, lines[index].strip())
-        for index, line in tables.unfenced(lines, text)
+        for index, line in tables.unfenced(lines)
         if (cells := tables.table_cells(line)) is not None
         and cells != ANCHOR_TABLE
         and tuple(map(header_key, cells)) == want
@@ -355,11 +354,10 @@ def first_table(tables, text, header, beside=False):
     table only. A refusal of the walk already says every row below it goes
     unread, a second header among them. BESIDE is `gfm_table`'s: true where
     TEXT may hold other tables after this one, as a frame's section does."""
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
+    lines = tables.blocks.gfm_lines(text)
     headers = [
         index + 1
-        for index, line in tables.unfenced(lines, text)
+        for index, line in tables.unfenced(lines)
         if tables.table_cells(line) == header
     ]
     rows, walked = tables.gfm_table(text, header, beside=beside)

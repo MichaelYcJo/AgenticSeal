@@ -110,7 +110,7 @@ AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 FILENAME = "routing.md"
 
 
-def shown(lines, text=None):
+def shown(lines):
     """[(index, line)] for each of LINES `table_rows` reads, ending removed.
 
     The walk's hidden lines are left out, and only those: where it is not
@@ -119,13 +119,12 @@ def shown(lines, text=None):
     renderer's, which `tests/lib/test_routing.py`'s `Test_module`
     holds over a generated corpus.
 
-    TEXT is the file LINES were split from, and `table_rows` passes it: the
-    walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
-    form feed, which `str.splitlines` breaks at, hides nothing a renderer
+    LINES are the file's lines as GFM ends them, which `table_rows` takes
+    from `blocks.gfm_lines`: a `<!--` after a U+2028 or a form feed, which
+    `str.splitlines` breaks at, stays mid-line and hides nothing a renderer
     shows (`lib/tables.py#hidden_lines` says more).
     """
-    walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
-    hidden = walked.hidden()
+    hidden = blocks.walk(lines).hidden()
     return [
         (index, raw.rstrip("\r\n"))
         for index, raw in enumerate(lines)
@@ -159,8 +158,7 @@ def table_rows(text):
     this module fails in.
     """
     rows = []
-    # exempt from splitlines: lines the GFM walk numbers
-    for _index, line in shown(text.splitlines(), text):
+    for _index, line in shown(blocks.gfm_lines(text)):
         if tables.DELIMITER_ROW.match(line):
             continue
         cells = tables.table_cells(line)

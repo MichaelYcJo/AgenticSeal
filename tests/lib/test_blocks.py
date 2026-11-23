@@ -8,10 +8,10 @@ splitter to this one, a check of several files against each other, and
 fence walks to `lib/lines.py`'s and `lib/tables.py`'s, for the same
 reason.
 
-`Test_walk` and `Test_walk_text` hold the walk to a CommonMark oracle,
+`Test_walk` holds the walk to a CommonMark oracle,
 `tests/commonmark_oracle.py`, over the corpus this file builds: on every line
 the walk does not call uncertain, the walk and the oracle agree. #1489's
-phase 3 moved those two cases and the corpus here from the first file. The
+phase 3 moved those cases and the corpus here from the first file. The
 oracle's own cases stand in `tests/test_commonmark_oracle.py`, and the first
 file keeps the case that holds the oracle imports nothing of this
 repository's. `tests/lib/test_tables.py` and `tests/lib/test_routing.py`
@@ -159,13 +159,13 @@ ALPHABET = [
     "[ref]: <x>",
     # A character `str.splitlines` ends a line at and CommonMark does not, in
     # front of a comment opener, a fence run and a row, so a document can
-    # hold a reader line that is a piece of a renderer's line (#667 round 1,
+    # hold a line that split cuts and a renderer does not (#667 round 1,
     # 🟡 1). Five of the eight, one of each family.
     *(f"a{brk}{rest}" for brk in BREAK_SAMPLE for rest in (OPEN, "```", "| a |")),
     *(f"{brk}{CLOSE}" for brk in BREAK_SAMPLE),
     # A break inside an inline comment its line opened, and one just past a
-    # comment its line closed, so a piece can start inside a comment or just
-    # outside one (#667 round 2). Four lines: twenty pushed
+    # comment its line closed, so the text after a break can stand inside a
+    # comment or just outside one (#667 round 2). Four lines: twenty pushed
     # `test_the_walk_is_exact_somewhere` under its third, because every line
     # a mid-line opener leaves open is one the walk does not claim.
     f"x {OPEN} a{BREAKS['LS']}```",
@@ -230,9 +230,9 @@ FOUND = [
     # `str.splitlines` makes and CommonMark does not
     ["A note" + BREAKS["LS"] + OPEN, "", "| a | b |", CLOSE],
     ["A note" + BREAKS["FF"] + "```", "", OPEN + " RIDER: r " + CLOSE, "```"],
-    # round 2: a piece that starts inside an inline comment its line opened
+    # round 2: the text after a break inside an inline comment its line opened
     ["x " + OPEN + " a" + BREAKS["LS"] + "```" + BREAKS["LS"] + "| a |", CLOSE],
-    # #673: the same piece inside every other kind of inline raw HTML, and a
+    # #673: the same text inside every other kind of inline raw HTML, and a
     # line after it inside the same paragraph. Here and not in ALPHABET: six
     # alphabet lines pushed `test_the_walk_is_exact_somewhere` under its
     # third, and an opener without its closer never forms inline HTML.
@@ -269,17 +269,18 @@ CORPUS = (
 
 def as_read(doc):
     """(text, lines) for a corpus document: the text a reader opens, and the
-    lines it splits that text into, which are the indices every answer below
-    is given in. A document is written as lines so it can be read; the
-    readers and the oracle are both handed the text (#667 round 1, 🟡 1)."""
+    lines `lib/blocks.py#gfm_lines` splits that text into, which are the
+    indices every answer below is given in. A document is written as lines
+    so it can be read; the oracle is handed the text and ends its lines
+    where CommonMark does (#667 round 1, 🟡 1)."""
     text = "\n".join(doc) + "\n"
-    return text, text.splitlines()
+    return text, blocks.gfm_lines(text)
 
 
 def disagreements(doc):
     """Lines the walk calls exact and classes otherwise than the oracle."""
     text, lines = as_read(doc)
-    found = blocks.walk_text(text)
+    found = blocks.walk(lines)
     renderer = set(oracle.hidden_text(text))
     return [
         (index, found.kinds[index], index in renderer)
@@ -342,79 +343,11 @@ class Test_walk:
         claimed = sum(
             1
             for doc in CORPUS
-            for flag in blocks.walk_text(as_read(doc)[0]).uncertain
+            for flag in blocks.walk(as_read(doc)[1]).uncertain
             if not flag
         )
         total = sum(len(as_read(doc)[1]) for doc in CORPUS)
         assert claimed > total // 3, (claimed, total)
-
-
-class Test_walk_text:
-    def test_accepts_each_opener_at_the_reader_line_it_starts(self):
-        """`walk_text` answers per `str.splitlines` line, so an opener's
-        entry is keyed by the reader line that starts where the opener
-        does."""
-        fence = "`" * 3
-        text = f"a{BREAKS['LS']}b\n{fence}seal\nrun: x\n{fence}\n"
-        assert blocks.walk_text(text).opens == {2: "seal"}
-        split = f"{fence}seal{BREAKS['LS']}x\nrun: y\n{fence}\n"
-        assert blocks.walk_text(split).opens == {0: f"seal{BREAKS['LS']}x"}
-
-    def test_refuses_to_claim_a_piece_inside_its_lines_open_comment(self):
-        """#667 round 2, yellow 1. A piece after a break inside an inline
-        comment its line left open is uncertain; a piece of a fenced line
-        stays fenced and claimed; a piece that starts before the line's opener
-        is claimed live. Each of the three conditions is one line of this
-        case."""
-        ls = BREAKS["LS"]
-        inside = blocks.walk_text(f"a {OPEN} x{ls}| r |\n{CLOSE}\n")
-        assert inside.uncertain[:2] == [False, True], inside.uncertain
-        fenced = blocks.walk_text(f"```\nx {OPEN} a{ls}y\n```\n")
-        assert (fenced.kinds[2], fenced.uncertain[2]) == (blocks.FENCED, False)
-        before = blocks.walk_text(f"a{ls}b {OPEN} c\n\nd\n")
-        assert before.uncertain[:2] == [False, False], before.uncertain
-
-    def test_refuses_to_claim_a_piece_inside_other_inline_html_its_line_left_open(
-        self,
-    ):
-        """#673's S4. A piece after a break inside CDATA, a processing
-        instruction, a declaration or a tag its line left open is uncertain; a
-        piece after one its line closed is claimed; a piece of a fenced line
-        stays fenced and claimed. And an opener a renderer does not honour
-        does not step over one it does."""
-        ls = BREAKS["LS"]
-        for opener, closer in INLINE_OPEN_CLOSE:
-            inside = blocks.walk_text(f"a {opener}{ls}{closer} x\n\nd\n")
-            assert inside.uncertain[:2] == [False, True], (opener, inside.uncertain)
-            closed = blocks.walk_text(f"a {opener} {closer}{ls}| r |\n\nd\n")
-            assert closed.uncertain[:2] == [False, False], (opener, closed.uncertain)
-            fenced = blocks.walk_text(f"```\nx {opener}{ls}y\n```\n")
-            assert (fenced.kinds[2], fenced.uncertain[2]) == (blocks.FENCED, False)
-        nested = blocks.walk_text(f"a `<?` <![CDATA[ b ?> c{ls}| r |\n]]>\n")
-        assert nested.uncertain[:2] == [False, True], nested.uncertain
-        # a `>` inside a quoted value does not end the tag
-        quoted = blocks.walk_text(f'a <span title="b>c{ls}d">\n\ne\n')
-        assert quoted.uncertain[:2] == [False, True], quoted.uncertain
-        # `<?>` does not close a processing instruction: the `?` is the opener's
-        instruction = blocks.walk_text(f"a <?>{ls}| r |\n?>\n\nd\n")
-        assert instruction.uncertain[:2] == [False, True], instruction.uncertain
-        # a closer before its opener closes nothing
-        early = blocks.walk_text(f"a ?> <? b{ls}| r |\n?>\n\nd\n")
-        assert early.uncertain[:2] == [False, True], early.uncertain
-        # a `>` inside a single-quoted value does not end the tag either
-        single = blocks.walk_text(f"a <span title='b>c{ls}d'>\n\ne\n")
-        assert single.uncertain[:2] == [False, True], single.uncertain
-
-    def test_accepts_an_unclosed_fence_at_the_reader_line_it_starts(self):
-        """#667 round 1, yellow 1. `walk_text` answers per reader line, and a
-        fence opener whose info string holds a U+2028 is one GFM line and two
-        reader lines. The opener that never closes is the first of them, the
-        one a person can be sent to; the piece after the break opens
-        nothing."""
-        text = "```" + BREAKS["LS"] + "x\n| a |\n"
-        walked = blocks.walk_text(text)
-        assert walked.unclosed == [0], walked.unclosed
-        assert len(walked.kinds) == len(text.splitlines()) == 3
 
     def test_where_the_walk_claims_to_be_exact_it_is(self):
         """Half 2, S2. On every line `lib/blocks.py` does not call uncertain,

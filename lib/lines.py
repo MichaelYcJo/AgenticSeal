@@ -51,8 +51,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Where GFM ends a line: LF, CR or CRLF, and nowhere else. Every reader
 # of markdown or record text reads its lines through `gfm_lines`, because two
 # readers of one text that split it two ways disagree about which line an
-# index names; the `splitlines` census in `tests/censuses.py` holds the
-# remaining splitters to it.
+# index names. The `splitlines` census in `tests/censuses.py` holds every
+# other split under `SHIPPED` to a marker naming the text it splits, which is
+# not markdown.
 try:
     from blocks import fence_closes, fence_opener, gfm_lines
 except ImportError as missing:
