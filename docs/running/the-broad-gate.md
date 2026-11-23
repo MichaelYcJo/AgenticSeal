@@ -71,8 +71,9 @@ commits whenever the local one is behind, so a gate that resolves its base
 differently from the workflow reports on a range nobody will be judged
 against. The base becomes a resolved commit plus the ref it came from before
 any check runs, and after that point the raw argument is read nowhere. The
-order is the upstream the checkout declares, then the remote-tracking
-spelling the workflow uses literally, then the ref as given.
+order is `<base>@{upstream}`, the upstream the checkout declares, then
+`origin/<base>`, the remote-tracking spelling the workflow uses literally,
+then the ref as given (`skills/verify/scripts/broad_gate.py#resolve_base`).
 check: tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py
 
 **A configured command that breaks the criterion is refused before anything

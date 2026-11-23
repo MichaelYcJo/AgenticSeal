@@ -219,9 +219,9 @@ work item that does not, each rule this work adds, changes or removes goes into
 states it, each `file:` picked from the index, `<policy root>/README.md`.
 
 **A removal is named once, at the frame.** `frame/design.md`'s `## Removes` lists
-what the work takes out of the tree, or holds the no-change block. The review
-reads each row against the diff, and a removal left unnamed reaches the
-reader only as a divergence after the fact.
+what the work takes out of the tree, or holds the no-change block. How the
+review reads it, and where a removal the frame left unnamed is written, are
+`docs/running/the-agent-set.md` *What each party writes, and when*'s.
 
 **A count of a list is stated once, beside the list.** Where a frame file
 says how many items a list holds, such as the files a phase edits or the

@@ -119,8 +119,9 @@ scope a spawn gives beyond the plan's row reaches the plan through the framer's 
 before that spawn (`skills/implement/orchestration.md` *Orchestrator: the order inside a
 ticket*), and is never a section of the record. What a work item removes is named
 once, in the frame's `## Removes` (`templates/records/sdd-design.md`), which the review
-reads against the diff, and a removal the frame did not name, like every departure from
-the frame, is written in the phase record that made it.
+reads against the diff. A work item removing nothing writes there the no-change block of
+`skills/settle/rule-changes.md` *Rule changes*. A removal the frame did not name, like
+every departure from the frame, is written in the phase record that made it.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **A document that describes a transition is deleted when the transition is

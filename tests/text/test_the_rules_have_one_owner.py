@@ -47,6 +47,11 @@ PR_CHECK = ("docs", "checks", "the-pull-request-check.md")
 RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
+# The orchestrator's half of the verify skill, which holds the broad gate's
+# reading.
+VERIFY_ORCH = ("skills", "verify", "orchestration.md")
+BROAD_GATE = ("docs", "running", "the-broad-gate.md")
+AGENT_SET = ("docs", "running", "the-agent-set.md")
 
 # Each link is the owner's path and section, the citation a reader of the
 # linking carrier resolves; the sentence around it is the proofer's to read.
@@ -74,6 +79,7 @@ CONVENTION = ("skills", "commit-pr-convention", "SKILL.md")
 OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 THE_CORES_PLACES = "the opening paragraph of `skills/core/SKILL.md`"
+WHAT_THE_GATE_RUNS = "`docs/running/the-broad-gate.md` *What the gate runs*"
 
 
 # rule -> (owner, the facts the owner states, {link carrier: the citation it
@@ -129,9 +135,15 @@ RULES = {
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
     # of the fix with the frame (the owner, 2026-10-16, on round 8).
+    # #1578: the line a reframe adds was spelt in three files, so *The run*
+    # spells it and the others name the line and that section.
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
-        (),
+        (
+            # The line the framer writes under its mark, which
+            # `chain_check.py#REFRAME_RE` reads.
+            "`Reframed <date> by <who>, after round <N>.`",
+        ),
         {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
     # #945, S5: one crafter resumed across phases read 941,799 tokens in one
@@ -258,6 +270,51 @@ RULES = {
             # a record.
             "`seal pr-body` refuses with nothing written",
             "commit or a record is written in English",
+        ),
+        {},
+    ),
+    # #1578: three files each said what the words beside a failing file
+    # mean, and the one the other two cited labelled its bullets with none
+    # of the words the gate prints. Its bullets now open with them.
+    "27 what the word beside a failing file tells the orchestrator": (
+        VERIFY_ORCH,
+        (
+            # The three words `broad_gate.py#ON_BASE`, `#NEW` and
+            # `#NOT_MEASURED` print, which the orchestrator reads in the
+            # gate's output.
+            "`failing on base too`",
+            "`new`",
+            "`new?`",
+        ),
+        {},
+    ),
+    # #1578: three files each gave the order the gate resolves its base in,
+    # and one left out the ref as given. The policy spells the refs, and
+    # each link replaces `DESCRIBES_THE_BASE` of
+    # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py`, which
+    # held both orchestration files to their copies.
+    "28 the order the base is resolved in": (
+        BROAD_GATE,
+        (
+            # The two refs `broad_gate.py#resolve_base` tries before the ref
+            # as given, which a person doubting a seal checks the printed
+            # base against.
+            "`<base>@{upstream}`",
+            "`origin/<base>`",
+        ),
+        {VERIFY_ORCH: WHAT_THE_GATE_RUNS, ORCH: WHAT_THE_GATE_RUNS},
+    ),
+    # #1578: a document of `docs/forms/` and the agent set each stated what
+    # a frame removes, under the same `check:` line. The document went, and
+    # the agent set's paragraph took its one clause.
+    "29 what a frame removes": (
+        AGENT_SET,
+        (
+            # The section of `frame/design.md` the framer writes and the
+            # proofer reads against the diff.
+            "`## Removes`",
+            # The block a work item removing nothing writes in its place.
+            "`skills/settle/rule-changes.md` *Rule changes*",
         ),
         {},
     ),
