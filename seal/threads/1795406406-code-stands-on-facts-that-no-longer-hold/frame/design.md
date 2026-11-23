@@ -158,9 +158,12 @@ The rules of `docs/` that these items change are operations of `## Rule changes`
     `chain_check.py`, the one record check it runs, finds no root in the tree,
     so nothing is declared, and exits 0.
   to: A workflow left behind in local mode and pinned to a release that has
-    the no-root state passes: `chain_check.py`, the one record check it runs,
-    finds no root in the tree, so nothing is declared, judges the commit
-    trailers alone, and exits 0.
+    the no-root state reads nothing as declared: `chain_check.py`, the one
+    record check it runs, finds no root in the tree, so nothing is declared,
+    and judges the commit trailers alone. It passes the commits a local-mode
+    session writes, which carry no `Seal-Routing` trailer, and fails a ready
+    pull request where a commit made before the switch carries a trailer
+    naming a work item.
 - change
   file: docs/layout/one-root-by-lifetime.ko.md
   section: shared 인가 local 인가
@@ -168,10 +171,12 @@ The rules of `docs/` that these items change are operations of `## Rule changes`
     상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남아도 아무것도 보지
     않은 채 통과합니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py`
     하나뿐이고, 트리에서 루트를 찾지 못하니 선언된 것이 없어 0 으로 끝납니다.
-  to: 루트가 없는 상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남아도
-    통과합니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py` 하나뿐이고,
-    트리에서 루트를 찾지 못하니 선언된 것이 없는 것으로 읽고, 커밋 트레일러만
-    판단한 뒤 0 으로 끝납니다.
+  to: 루트가 없는 상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남으면
+    선언된 것이 없는 것으로 읽습니다. 그 워크플로가 돌리는 기록 검사는
+    `chain_check.py` 하나뿐이고, 트리에서 루트를 찾지 못하니 커밋 트레일러만
+    판단합니다. local 모드 세션이 쓴 커밋에는 `Seal-Routing` 트레일러가 없으니
+    통과하고, 전환 전에 만든 커밋의 트레일러가 작업 항목을 가리키면 준비된 PR 을
+    실패시킵니다.
 
 ## Removes
 
