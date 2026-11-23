@@ -109,9 +109,9 @@ Usage:
   seal gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
 
 Exit codes: 0 passed · 1 failed · 2 refused — no key, no repository, a
-base that does not resolve, a copy of the plugin whose sibling will not
-load (a malformed `seal-mark.txt` among them), a `trail/gate.md` that could
-not be written; nothing ran on 2 except where the refusal names what ran.
+base that does not resolve, a copy of the plugin that lacks a module it
+loads, a `trail/gate.md` that could not be written; nothing ran on 2 except
+where the refusal names what ran.
 Under `--preflight`: 0 every record arm passed · 1 an arm failed · 2
 refused, with nothing run, `--record` given among the refusals.
 """
@@ -205,42 +205,22 @@ class Refused(Exception):
     """A reason nothing ran (exit 2)."""
 
 
-def sibling_module(rel):
-    """The module at REL through `lib/sibling.py#load`, or `Refused` where
-    executing it raises: `seal_stamp.py` reads its disc's mark sprite
-    at import and raises `SPRITE_MALFORMED`'s sentence for one that is not
-    in shape, which then ends the gate at exit 2 with that sentence and
-    nothing run, rather than in a traceback. The exception's own sentence is
-    what the person reads; one with none is named by its type. A
-    `SystemExit` is no `Exception` and keeps its own exit, and so does the
-    loader's for an absent file."""
-    try:
-        return sibling.load(rel)
-    except Exception as exc:
-        said = str(exc) or type(exc).__name__
-        path = os.path.join(PLUGIN, *rel.split("/"))
-        raise Refused(
-            f"seal gate: {path} will not load, so nothing ran: {said}"
-        ) from exc
-
-
 def stamp_module():
     """`seal_stamp.py`, loaded once per process: `panel` asks it the one
     question both of them answer (`ref_is_commit`), and a case drives
     `panel` without a gate around it to have loaded it."""
-    return sibling_module(STAMP)
+    return sibling.load(STAMP)
 
 
 def gitcmd_module():
-    """`lib/gitcmd.py`, loaded once per process, or `Refused`. A
-    refusal leaves nothing loaded, so each later call raises it again."""
-    return sibling_module("lib/gitcmd.py")
+    """`lib/gitcmd.py`, loaded once per process: absent, it is the loader's
+    sentence and exit 2."""
+    return sibling.load("lib/gitcmd.py")
 
 
 def git(root, *args):
     """stdout of a git call in `root`, or None on a non-zero exit. The argv
-    is `lib/gitcmd.py#argv`'s, and a helper that will not load raises
-    `Refused`."""
+    is `lib/gitcmd.py#argv`'s."""
     r = subprocess.run(
         gitcmd_module().argv("-C", root, *args),
         capture_output=True,
@@ -316,7 +296,7 @@ def plugin_version(plugin):
     manifest. The manifest is read by `lib/core.py#manifest`, which loads
     as every other `lib/` module does: absent, it is the loader's sentence
     and exit 2."""
-    version = sibling_module(CORE).manifest(plugin).get("version")
+    version = sibling.load(CORE).manifest(plugin).get("version")
     return str(version) if version else "?"
 
 
@@ -632,7 +612,7 @@ def seal_home(root):
     the project keeps for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
-    optin = sibling_module(OPTIN)
+    optin = sibling.load(OPTIN)
     for found in optin.home_paths(root):
         if found and os.path.isdir(found) and optin.marked(found):
             return found
@@ -650,7 +630,7 @@ def broad_command(home):
     nothing run. Read as no key, an unreadable file would be reported
     as a missing one, which sends a person to add a key the file already
     holds, and a doubled key would run one of its commands."""
-    config = sibling_module(CONFIG_READER)
+    config = sibling.load(CONFIG_READER)
     pairs, refused = config.config_pairs(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
@@ -1551,13 +1531,13 @@ def write_gate_file(item, tree, base):
     <base>`, below the text already there, a work item's heading opening a
     file that was not, and return its path. Nothing is appended where the
     last block the file holds names the same run. Raises `Refused`, and
-    writes nothing, where the file cannot be read or written, the reader will
-    not load, the run is not one the reader reads, or the file as it
+    writes nothing, where the file cannot be read or written, the run is not
+    one the reader reads, or the file as it
     will stand, the held file where nothing is appended, is one the reader
     refuses at a line or reads with another run last."""
     # `lib/optin.py#GATE` is `/`-joined; split on `/`, the disk path takes
     # the platform's separator throughout.
-    path = os.path.join(item, *sibling_module(OPTIN).GATE.split("/"))
+    path = os.path.join(item, *sibling.load(OPTIN).GATE.split("/"))
     try:
         with open(path, encoding="utf-8") as handle:
             held = handle.read()
@@ -1566,7 +1546,7 @@ def write_gate_file(item, tree, base):
         held = f"# {name} {chr(0x2014)} broad gate\n"
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused(f"seal gate: {path} could not be read ({exc})") from exc
-    fields = sibling_module(FIELDS_READER)
+    fields = sibling.load(FIELDS_READER)
     value = f"{tree} against {base}"
     try:
         block = fields.assemble([(fields.RUN, value)], fields.GATE)
@@ -1612,22 +1592,23 @@ def rounds_rows(item):
     the panel as ASCII, anything outside it reading `?`, because the letter
     twin maps only the owner's characters. A record the check's reader
     refuses anything of adds nothing beneath."""
-    records = sibling_module(ROUTING).rounds(item)
+    records = sibling.load(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
     # The deferred row beneath never stops a run that passed, so an absent
-    # check is said here and the run goes on. `lib/routing.py`, which lists
-    # the records above, loads as every other `lib/` module does: absent, it
-    # is the loader's sentence and exit 2.
+    # check is said here and the run goes on, and a check that raises or
+    # exits while it loads leaves the count alone. `lib/routing.py`, which
+    # lists the records above, loads as every other `lib/` module does:
+    # absent, it is the loader's sentence and exit 2.
     try:
         with sibling.going_on():
-            chain = sibling_module("skills/code-review/scripts/chain_check.py")
+            chain = sibling.load("skills/code-review/scripts/chain_check.py")
     except sibling.Absent as absent:
         sys.stderr.write(
             f"seal gate: the round records' deferred findings are not counted: "
             f"{absent.path} is absent\n"
         )
         return rows
-    except (Refused, SystemExit):
+    except (Exception, SystemExit):
         return rows
     stamp = stamp_module()
     reader = chain.SHARED_READER
@@ -2003,7 +1984,7 @@ def gate(args, ascii_marks=False):
         # The two places as `optin.home_paths` gives them, as `seal mode`
         # prints them: beside a project's own `seal/` the shared one takes
         # the second name, which a literal `<repo>/seal/` would misname.
-        shared, local = sibling_module(OPTIN).home_paths(root)
+        shared, local = sibling.load(OPTIN).home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
@@ -2207,11 +2188,6 @@ def main(argv=None, console_wants_ascii=False):
     """`console_wants_ascii` is `is_utf8` asked of stdout as the process
     found it, negated — `__main__` asks before it reconfigures the
     streams. A caller in process names it, or gets the owner's marks."""
-    try:
-        sibling_module(STAMP)
-    except Refused as exc:
-        sys.stderr.write(str(exc) + "\n")
-        return 2
     parser = argparse.ArgumentParser(
         prog="seal gate",
         description="The one broad run, after the rounds settle: the "
@@ -2256,12 +2232,7 @@ def main(argv=None, console_wants_ascii=False):
     # child resolves it for itself. A root that is not a repository takes
     # `gate`'s own refusal below, unchanged.
     known, _unknown = parser.parse_known_args(argv)
-    # The first git call: a helper that will not load ends the gate here.
-    try:
-        root = repo_root(os.path.abspath(known.root or os.getcwd()))
-    except Refused as exc:
-        sys.stderr.write(str(exc) + "\n")
-        return 2
+    root = repo_root(os.path.abspath(known.root or os.getcwd()))
     if root is not None:
         shipped = shipped_gate(root)
         if shipped is not None:
@@ -2291,12 +2262,7 @@ if __name__ == "__main__":
     # process found it — before the loop below moves every stream to UTF-8
     # (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
     # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
-    try:
-        _stamp = sibling_module(STAMP)
-    except Refused as _exc:
-        sys.stderr.write(str(_exc) + "\n")
-        sys.exit(2)
-    _ascii = not _stamp.is_utf8(sys.stdout)
+    _ascii = not sibling.load(STAMP).is_utf8(sys.stdout)
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),
