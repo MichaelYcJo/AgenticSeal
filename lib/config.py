@@ -237,6 +237,41 @@ def declared_mode(home):
     return ("mode", lowered) if lowered in MODES else ("unknown", value)
 
 
+# --- a key that turns a picture on -------------------------------------------
+#
+# `Pull request seal mark`, read by `seal pr-body`, and `Release note seal
+# mark`, read by the release seal, each turn a picture on where they read
+# SWITCH_ON exactly. What each says of a key that is written and does not
+# turn it on is one of the two sentences below, closed by the caller's own
+# words for what stays off.
+
+SWITCH_ON = "yes"
+SWITCH_NOT_YES = (
+    "`{key}` reads `{value}`, not `" + SWITCH_ON + "`, so the key is not read and {off}"
+)
+SWITCH_NOT_READ = "`{key}` is not read: {why}; {off}"
+
+
+def switch(home, key, off):
+    """`(on, note)` for the switch KEY in `<home>/config.json`.
+
+    ON is True where KEY reads `SWITCH_ON` exactly, and NOTE is then None.
+    No root, no file, no such key and an empty value are off and silent:
+    each is what a repository that never wrote the key has. Any other value
+    is off and named in `SWITCH_NOT_YES`, and a refusal `declared_value`
+    gives in `SWITCH_NOT_READ`, each closed by OFF. Nothing here refuses: a
+    switch turns on a picture, and no value of it stops the command that
+    reads it."""
+    value, refused = declared_value(home, key)
+    if refused is not None:
+        return False, SWITCH_NOT_READ.format(key=key, why=refused, off=off)
+    if not value:
+        return False, None
+    if value != SWITCH_ON:
+        return False, SWITCH_NOT_YES.format(key=key, value=value, off=off)
+    return True, None
+
+
 # --- the reference roots -----------------------------------------------------
 #
 # A project may have kept its own `specs/` before the plugin arrived. The

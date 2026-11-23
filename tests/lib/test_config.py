@@ -264,6 +264,55 @@ class Test_policy_group:
         assert config.policy_group(path, policy) is None
 
 
+class Test_switch:
+    def test_accepts_yes_exactly_as_on_and_says_nothing(self, tmp_path):
+        home = str(tmp_path / "seal")
+        write_config(home, table(("A switch", "yes")))
+        assert config.switch(home, "A switch", "nothing is drawn") == (True, None)
+
+    @pytest.mark.parametrize(
+        "text",
+        [None, table(("Mode", "shared")), table(("A switch", ""))],
+        ids=["no file", "no key", "empty"],
+    )
+    def test_refuses_no_root_no_key_and_an_empty_key_in_silence(self, tmp_path, text):
+        home = str(tmp_path / "seal")
+        if text is not None:
+            write_config(home, text)
+        assert config.switch(home, "A switch", "nothing is drawn") == (False, None)
+        assert config.switch("", "A switch", "nothing is drawn") == (False, None)
+
+    @pytest.mark.parametrize(
+        "text, said",
+        [
+            (
+                table(("A switch", "Yes")),
+                "`A switch` reads `Yes`, not `yes`, so the key is not read and "
+                "nothing is drawn",
+            ),
+            (
+                table(("A switch", "{on}")),
+                "`A switch` reads `{on}`, not `yes`, so the key is not read and "
+                "nothing is drawn",
+            ),
+            (
+                table(("A switch", "yes"), ("A switch", "yes")),
+                "`A switch` is not read: `A switch` appears 2 times — one value; "
+                "nothing is drawn",
+            ),
+        ],
+        ids=["Yes", "braces", "written twice"],
+    )
+    def test_refuses_any_other_value_and_a_refusal_naming_the_key(
+        self, tmp_path, text, said
+    ):
+        """OFF, the caller's words for what stays off, closes each
+        sentence."""
+        home = str(tmp_path / "seal")
+        write_config(home, text)
+        assert config.switch(home, "A switch", "nothing is drawn") == (False, said)
+
+
 class Test_normalise_remote:
     @pytest.mark.parametrize(
         "left,right",

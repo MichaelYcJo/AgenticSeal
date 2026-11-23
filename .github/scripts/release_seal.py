@@ -3,8 +3,8 @@
 PNG beside them where the repository turns the image on.
 
 **The image is one key's to turn on.** `MARK_KEY` in the
-`config.json` of the tree's `seal/` root, read through `lib/config.py`,
-turns it on where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is
+`config.json` of the tree's `seal/` root turns it on where
+`lib/config.py#switch` reads the key as on (`mark_on`). Then the PNG is
 attached as `ASSET` and the note's header becomes a paragraph holding the
 image floated beside the results. Under any other answer nothing is drawn
 or attached, and the header becomes a paragraph of the results alone. An
@@ -394,41 +394,28 @@ def chain_counts(root, pulls):
 # The asset's name on the release, and so the last part of its URL.
 ASSET = "seal.png"
 
-# The key of the tree's `seal/config.json` that turns the image on,
-# and the one value that does. What `mark_on` says where a key is written
-# and does not turn it on, printed after `IMAGE_WARNING`.
+# The key of the tree's `seal/config.json` that turns the image on, read
+# by `lib/config.py#switch`. What `mark_on` says where a key is written and
+# does not turn it on is the switch's sentence, closed by `NO_IMAGE` and
+# printed after `IMAGE_WARNING`.
 MARK_KEY = "Release note seal mark"
-MARK_ON = "yes"
 IMAGE_WARNING = "::warning::release seal image: "
 NO_IMAGE = "the note's header holds the results without the seal's image"
-KEY_NOT_YES = (
-    f"`{MARK_KEY}` reads `{{value}}`, not `{MARK_ON}`, so the key is not read "
-    f"and {NO_IMAGE}"
-)
-KEY_REFUSED = f"`{MARK_KEY}` is not read: {{why}}; {NO_IMAGE}"
 
 
 def mark_on(root):
     """`(on, note)`: whether `MARK_KEY` in the `config.json` of the `seal/`
-    root of the tree at ROOT reads `MARK_ON` exactly, and the sentence
-    naming a key that is written and does not, or None.
+    root of the tree at ROOT turns the image on, and the sentence naming a
+    key that is written and does not, or None.
 
     The root is `lib/optin.py#home_at`'s, and the key is read through
-    `lib/config.py#declared_value`, the one reader of a key, which
-    reads a tree with no root as no file. A tree with no root, an absent key
-    and an empty one are off and say nothing; any other value, and a
-    refusal the reader returns, are off and named. Nothing here refuses:
-    the image is a picture, and the results go in whatever the key says."""
+    `lib/config.py#switch`, which reads a tree with no root as no file. A
+    tree with no root, an absent key and an empty one are off and say
+    nothing; any other value, and a refusal the reader returns, are off and
+    named, closed by `NO_IMAGE`. Nothing here refuses: the image is a
+    picture, and the results go in whatever the key says."""
     home = module("lib/optin.py").home_at(root)
-    config = module("lib/config.py")
-    value, refused = config.declared_value(home, MARK_KEY)
-    if refused is not None:
-        return False, KEY_REFUSED.format(why=refused)
-    if not value:
-        return False, None
-    if value != MARK_ON:
-        return False, KEY_NOT_YES.format(value=value)
-    return True, None
+    return module("lib/config.py").switch(home, MARK_KEY, NO_IMAGE)
 
 
 class Refused(Exception):
