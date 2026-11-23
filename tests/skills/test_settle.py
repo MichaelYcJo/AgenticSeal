@@ -2411,8 +2411,8 @@ class Test_main:
         run, `--from`, `--apply` or `--draft`, ends `settle` with one line
         on stderr, `settle: ` and the runner's line naming the command and
         the bound, at exit 2, with nothing printed or removed and no
-        traceback. Seen red against `d0b15b72f`, where no read had a bound
-        and the timeout was raised out of `main`."""
+        traceback. Seen red against `settle.py` before #1573, where no read
+        had a bound and the timeout was raised out of `main`."""
         item(repo, "1700000001-a", op("add", "S", new="A."))
         commit(repo, "a")
         item(repo, "1700000002-b", op("add", "S", new="B."))
@@ -2444,8 +2444,8 @@ class Test_main:
         """S7 of #1573 in local mode. A git read past the bound ends the run
         as in a shared root. A `gh` past it is the `gh` that cannot be
         asked, and its refusal names the runner's line. Seen red against
-        `d0b15b72f`, where git raised the timeout out of `main` and `gh`'s
-        line spelt the timeout's exception inside its own."""
+        `settle.py` before #1573, where git raised the timeout out of `main`
+        and `gh`'s line spelt the timeout's exception inside its own."""
         local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
         asked = unanswered(monkeypatch, *words)
@@ -3750,7 +3750,8 @@ class Test_module:
         history git prints, and a git that exits non-zero printed none, so
         the read raises `lib/gitcmd.py#Exited` with git's line rather than
         placing every design last as added by no commit. Seen red against
-        `d0b15b72f`, which read the empty output as the history."""
+        `rule_changes.py` before #1573, which read the empty output as the
+        history."""
         item(repo, "1700000001-a", op("add", "U", new="A."))
         commit(repo, "a is framed")
         with pytest.raises(gitcmd.Exited, match="no/such/ref"):
@@ -3759,7 +3760,8 @@ class Test_module:
     def test_merge_order_of_local_specs_refuses_a_history_git_did_not_print(self, repo):
         """#1573. `rule_changes.py#merge_order` raises `lib/gitcmd.py#Exited`
         where `git rev-list` exits non-zero, rather than sorting every pair
-        as a commit the ref does not reach. Seen red against `d0b15b72f`."""
+        as a commit the ref does not reach. Seen red against
+        `rule_changes.py` before #1573."""
         a = merge(repo, "feat/1-a")
         with pytest.raises(gitcmd.Exited, match="no/such/ref"):
             rules.merge_order(str(repo), "no/such/ref", [("1700000001-a", a)])
