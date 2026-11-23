@@ -64,7 +64,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     # Whether this run created the release, which is the only release the
-    # `seal` job may edit (`publish_release_note.py#write_output`), and the
+    # `seal` job may edit (`lib/console.py#write_output`), and the
     # tag it was published for: the ref's name is `main` on the push to
     # `main`, so the tag is read from the tag step alone.
     outputs:

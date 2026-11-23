@@ -58,7 +58,6 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
 console = sibling.load("lib/console.py")
-write_output = sibling.load(".github/scripts/publish_release_note.py").write_output
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 MANIFEST = ".claude-plugin/plugin.json"
@@ -202,15 +201,15 @@ def main():
     if decided.create:
         if dry:
             print(f"would create {decided.tag} on {after}")
-            write_output("tag", "")
+            console.write_output("tag", "")
             return 0
         problem = create(repo, decided.tag, after)
         if problem:
             print(f"{decided.tag} was not created on {after}: {problem}")
-            write_output("tag", "")
+            console.write_output("tag", "")
             return 1
         print(f"created {decided.tag} on {after}")
-    write_output("tag", decided.tag)
+    console.write_output("tag", decided.tag)
     return 0
 
 

@@ -762,21 +762,6 @@ def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
     return paragraph(lines, before=image, after='<br clear="left">')
 
 
-def write_output(name, value):
-    """`name=value` appended to `$GITHUB_OUTPUT` where it is set. A write
-    that fails is printed and ignored: the release is already published, and
-    a job that went red over its own output would be a failed job at the tag
-    for nothing."""
-    path = os.environ.get("GITHUB_OUTPUT")
-    if not path:
-        return
-    try:
-        with open(path, "a", encoding="utf-8") as handle:
-            handle.write(f"{name}={value}\n")
-    except OSError as problem:
-        print(f"could not write {name}={value} to $GITHUB_OUTPUT: {problem}")
-
-
 def release_body(theme, rendered, pulls, owner):
     """The note: a header of the counts, the theme line, a summary a reader
     scans, and the fragments they can open.
@@ -907,7 +892,7 @@ def main(argv=None):
             "overwrites a note, because one may have been edited by hand "
             "after it was published"
         )
-        write_output("created", "false")
+        console.write_output("created", "false")
         return 0
 
     title, source = title_from(commit_message(tag), version, tag)
@@ -925,11 +910,11 @@ def main(argv=None):
     if dry:
         print(f"would create the release at {tag} with {len(body)} characters of notes")
         print(body)
-        write_output("created", "false")
+        console.write_output("created", "false")
         return 0
     create(repo, tag, title, body)
     print(f"published the release at {tag}")
-    write_output("created", "true")
+    console.write_output("created", "true")
     return 0
 
 

@@ -71,6 +71,11 @@ What must not diverge is the ANSWER, which is written down here.
 GitHub annotation in CI, a plain line anywhere else. `seal unverified` and
 `chain-check` print through it. It names the file as git spells it,
 `lib/gitcmd.py#git_path`, imported beside it.
+
+`write_output` is the one writer of a step's output to `$GITHUB_OUTPUT`,
+which `.github/scripts/tag_release.py` and
+`.github/scripts/publish_release_note.py` pass on to the steps after them.
+It stands here so that neither script loads the other for it.
 """
 
 import os
@@ -110,3 +115,18 @@ def annotate(kind, path, line, message):
         where = f" file={git_path(path)},line={line}" if path else ""
         return f"::{kind}{where}::{message}"
     return f"{path}:{line}  {message}" if path else message
+
+
+def write_output(name, value):
+    """`name=value` appended to `$GITHUB_OUTPUT` where it is set. A write
+    that fails is printed and ignored: the act the output reports on has
+    already happened, and a job that went red over its own output would be
+    a failed job for nothing."""
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    try:
+        with open(path, "a", encoding="utf-8") as handle:
+            handle.write(f"{name}={value}\n")
+    except OSError as problem:
+        print(f"could not write {name}={value} to $GITHUB_OUTPUT: {problem}")
