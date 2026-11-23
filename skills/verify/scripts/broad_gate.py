@@ -830,16 +830,6 @@ def in_root(root):
     return lambda part: os.path.isdir(os.path.join(root, part))
 
 
-def as_cmd_exe_runs(value, root, windows=None, comspec=None):
-    """VALUE with each command name the `cmd.exe` reading refuses turned by
-    `backslashed`, so that a refusal's key as meant is one this gate runs;
-    VALUE itself under any other shell."""
-    if not cmd_exe_reads(windows, comspec):
-        return value
-    refused, _ = names_in_a_directory(value, in_root(root))
-    return backslashed(value, refused)
-
-
 def not_read_line(config, value, not_read):
     """The one line naming the words the reading stopped before, or ""."""
     if not not_read:
@@ -886,9 +876,11 @@ def not_as_written(home, command, root, windows=None, comspec=None):
     this reading takes no command name, such as after a separator glued to
     a word in `a&& bin/x`, is neither refused nor named:
     `templates/setup/config.md` *Broad gate* states the rule the reading
-    decides by and what a key that leaves it does. On `cmd.exe` the key as
-    meant of every form turns the names this reading refuses
-    (`as_cmd_exe_runs`), so the value a refusal offers is one it runs.
+    decides by and what a key that leaves it does.
+
+    The key as meant removes the form its refusal names and nothing else, so
+    a key that holds a second refused form is refused for it on the next
+    run, by name.
 
     Everything else stays legal, a pipe included, because the value is an
     arbitrary shell command line by design and telling a status-discarding
@@ -910,7 +902,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "executed as a command. What this gate would read is that "
             "command's exit code and not the checks'"
         )
-        meant = as_cmd_exe_runs(value[1:-1].strip(), root, windows, comspec)
+        meant = value[1:-1].strip()
     elif opener == "$(":
         form = "is the whole command wrapped in `$(…)`"
         does = (
@@ -918,7 +910,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "the same thing: the checks' exit status is DISCARDED and their "
             "output is executed as a command in its place"
         )
-        meant = as_cmd_exe_runs(value[2:-1].strip(), root, windows, comspec)
+        meant = value[2:-1].strip()
     elif value.endswith("&") and not value.endswith("&&"):
         form = "ends in a single `&`"
         does = (
@@ -928,7 +920,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "instead, which is a different wrong answer refused for the same "
             "reason: the exit code read is not the checks'"
         )
-        meant = as_cmd_exe_runs(value[:-1].strip(), root, windows, comspec)
+        meant = value[:-1].strip()
     else:
         if not cmd_exe_reads(windows, comspec):
             return None

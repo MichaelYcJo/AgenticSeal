@@ -685,32 +685,23 @@ class Test_not_as_written:
     @pytest.mark.parametrize(
         "value", ["`bin/test -q`", "$(bin/test -q)", "bin/test -q &"]
     )
-    def test_refuses_a_wrapped_value_on_cmd_exe_with_a_key_as_meant_it_runs(
-        self, tmp_path, value
-    ):
-        """On `cmd.exe`, the key as meant of a wrapped or backgrounded value
-        also turns each command name the `cmd.exe` reading refuses, so the
-        value the refusal offers is one the gate runs."""
-        root = a_root(tmp_path, "bin")
-        said = on_cmd_exe(value, root)
-        meant = "bin\\test -q"
-        assert f'    as meant:   "{ROW}": {json.dumps(meant)}' in said, said
-        assert on_cmd_exe(meant, root) is None
-
-    @pytest.mark.parametrize(
-        "value", ["`bin/test -q`", "$(bin/test -q)", "bin/test -q &"]
-    )
     @pytest.mark.parametrize(
         ("windows", "comspec"),
-        [(False, None), (True, r"C:\Program Files\Git\bin\bash.exe")],
-        ids=["sh", "another-comspec"],
+        [
+            (False, None),
+            (True, r"C:\Program Files\Git\bin\bash.exe"),
+            (True, CMD),
+        ],
+        ids=["sh", "another-comspec", "cmd-exe"],
     )
     def test_refuses_a_wrapped_value_with_only_its_form_off_as_meant(
         self, tmp_path, value, windows, comspec
     ):
         """The key as meant of a wrapped or backgrounded value is its content
         with the refused form taken off and nothing else, in a root that
-        holds `bin/` too: `/bin/sh` reads `bin\\test` as another name."""
+        holds `bin/` too. Under `/bin/sh` the `\\` spelling would be another
+        name, and on `cmd.exe` the next run refuses `bin/test` by name: the
+        key as meant removes the form the refusal names, and no other."""
         root = a_root(tmp_path, "bin")
         said = gate.not_as_written(HOME, value, root, windows, comspec)
         meant = json.dumps("bin/test -q")

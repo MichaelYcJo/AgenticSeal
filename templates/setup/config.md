@@ -341,8 +341,11 @@ halves, and a form is refused only for breaking one of them:
 **Nothing is stripped.** A value quietly repaired here would leave the file
 still wrong and teach the next person that the way they wrote it was right,
 so the refusal names the form, quotes the key's value as written, and shows
-it as meant. Rewriting it is the person's act, and `/agentic:config` is the
-door to the key.
+it as meant. The value as meant removes the form the refusal names and
+nothing else, so a key that holds a second refused form, such as
+`` `bin/test -q` `` on `cmd.exe` in a repository that holds `bin/`, is
+refused for that one by name on the next run. Rewriting it is the person's
+act, and `/agentic:config` is the door to the key.
 
 **Everything else stays legal**, because the value is an arbitrary shell
 command line by design. A gate that could tell a status-discarding `;` from
