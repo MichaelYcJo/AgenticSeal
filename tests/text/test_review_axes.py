@@ -10,8 +10,8 @@ nothing about whether a round walked an axis.
 
 import re
 
-from conftest import read
-from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS, section
+from conftest import read, section
+from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS
 
 # No TARGET: its cases hold what a review round reads and how the work is routed across the parity skill, the review skill, the implement skill's orchestrator files, the round record's form and the framer's definition.
 
@@ -21,9 +21,8 @@ PARITY = "skills/legacy-parity/SKILL.md"
 def prose(rel, heading):
     """The `## ` section HEADING of REL folded onto one line, without its
     heading, its fenced blocks and its `check:` lines."""
-    lines, _ = section(read(rel), heading)
     kept, fenced = [], False
-    for line in lines[1:]:
+    for line in section(read(rel), heading).split("\n"):
         if line.startswith("```"):
             fenced = not fenced
         elif not fenced and not line.startswith("check: "):
@@ -33,7 +32,7 @@ def prose(rel, heading):
 
 def step(rel, n):
     """Step N of REL's `## Order of work`, folded onto one line."""
-    lines, _ = section(read(rel), "## Order of work")
+    lines = section(read(rel), "## Order of work").split("\n")
     start = next(i for i, line in enumerate(lines) if line.startswith(f"{n}. "))
     end = next(
         (i for i in range(start + 1, len(lines)) if re.match(r"\d+\. ", lines[i])),

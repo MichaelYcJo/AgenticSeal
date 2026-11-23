@@ -22,17 +22,13 @@ and its red run is recorded in that work item's ledger row C2.
 import os
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, flat
 from workflows import load
 
 # No TARGET: its cases hold the label rule across .github/workflows/close-issues-on-release.yml and docs/releasing/issues-and-milestones.md.
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "close-issues-on-release.yml")
 OWNER = "docs/releasing/issues-and-milestones.md"
-
-
-def flat(rel):
-    return " ".join(read(os.path.join(ROOT, rel)).split())
 
 
 @pytest.mark.parametrize(

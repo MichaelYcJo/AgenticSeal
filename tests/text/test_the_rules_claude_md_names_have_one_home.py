@@ -44,7 +44,7 @@ and it names the tree's copy of the core.
 import os
 import re
 
-from conftest import ROOT, read
+from conftest import ROOT, flat, flattened, read, section
 
 # No TARGET: its cases hold each rule's home across the documents that state it and the files that link it.
 
@@ -53,11 +53,11 @@ CONTRIBUTING = "CONTRIBUTING.md"
 IMPLEMENT = "skills/implement/SKILL.md"
 ORCH = "skills/implement/orchestration.md"
 
-# rule: (home, section heading, the facts the home states under it)
+# rule: (home, section heading line, the facts the home states under it)
 RULES = {
     "merge": (
         BRANCHES,
-        "Work accumulates on a release branch",
+        "### Work accumulates on a release branch",
         (
             # The table row a person matches against the direction of a
             # merge, and the merge method it gives.
@@ -66,17 +66,17 @@ RULES = {
     ),
     # The home and the section `LINKED` resolves; the rule's words are the
     # proofer's to read.
-    "identifiers": (CONTRIBUTING, "House rules", ()),
+    "identifiers": (CONTRIBUTING, "## House rules", ()),
     "batch": (
         ORCH,
-        "Orchestrator: what needs a person is asked in one batch, before the first edit",
+        "## Orchestrator: what needs a person is asked in one batch, before the first edit",
         (),
     ),
     # The preset block's tooling and worktree bullets, each moved to the step
     # that applies it when the block retired (#1177).
     "tooling": (
         IMPLEMENT,
-        "2. Implement test-first, and let each rule name its test",
+        "### 2. Implement test-first, and let each rule name its test",
         (
             # The two runners a session uses where the project names none.
             "`uv`",
@@ -85,7 +85,7 @@ RULES = {
     ),
     "worktree": (
         ORCH,
-        "Orchestrator: the order inside a ticket",
+        "## Orchestrator: the order inside a ticket",
         (
             # The command the orchestrator makes the branch with.
             "`git switch`",
@@ -111,30 +111,6 @@ LINKED = {
 }
 
 
-def flat(rel):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        return " ".join(f.read().split())
-
-
-def section(rel, heading):
-    """The text under the heading in REL, at any level, flattened.
-
-    It runs to the next heading of the same level or above, so a `###`
-    section keeps its own `####` children and stops at its sibling."""
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        text = f.read()
-    heads = list(re.finditer(r"(?m)^(#{2,6}) (.+?)\s*$", text))
-    found = [h for h in heads if h.group(2) == heading]
-    assert len(found) == 1, f"{rel} has no single heading `{heading}`"
-    start, level = found[0], len(found[0].group(1))
-    end = len(text)
-    for h in heads:
-        if h.start() > start.start() and len(h.group(1)) <= level:
-            end = h.start()
-            break
-    return " ".join(text[start.end() : end].split())
-
-
 def unlinked(texts):
     """(file, rule) for every rule a linked file does not name the home of."""
     missing = []
@@ -142,7 +118,9 @@ def unlinked(texts):
         text = texts[rel]
         for rule in rules:
             home, heading, _ = RULES[rule]
-            if home not in text or heading not in text:
+            # The section's name, as a link spells it: the heading line
+            # without its `#` run.
+            if home not in text or heading.lstrip("#").strip() not in text:
                 missing.append((rel, rule))
     return missing
 
@@ -153,7 +131,7 @@ def tree():
 
 def test_each_home_states_its_rule_under_its_section():
     for rule, (home, heading, facts) in RULES.items():
-        body = section(home, heading)
+        body = flattened(section(read(home), heading))
         missing = [n for n in facts if " ".join(n.split()) not in body]
         assert not missing, f"{home} *{heading}* does not state {rule}: {missing}"
 

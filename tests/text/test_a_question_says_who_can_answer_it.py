@@ -18,17 +18,11 @@ framer opens. This module pins the header and the three values. How
 each framer report.
 """
 
-from conftest import read
+from conftest import flat, read
 
 # No TARGET: its cases hold the answerer column across the questions template and skills/implement/SKILL.md.
 
 ANSWERERS = ("a person", "a measurement", "the work")
-
-
-def flat(*parts):
-    """Whitespace-normalised, so a re-wrap of the same sentence is not a
-    failure. These files are hand-wrapped and the sentences move columns."""
-    return " ".join(read(*parts).split())
 
 
 # --- the template -----------------------------------------------------------

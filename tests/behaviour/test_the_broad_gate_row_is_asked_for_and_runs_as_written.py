@@ -20,8 +20,8 @@ criterion's rules and the sentence that sends a session which meets the
 refusal to a person instead of letting it choose are the proofer's to read.
 """
 
-from conftest import read
-from test_broad_gate import flat
+from conftest import read, section
+from test_broad_gate import unquoted_flat
 
 # No TARGET: its cases hold the broad gate row across templates/setup/config.md, skills/config/SKILL.md and the two orchestration documents.
 
@@ -34,13 +34,6 @@ ORCH = ("skills", "implement", "orchestration.md")
 GATE_TO_PR = ("skills", "code-review", "gate-to-pull-request.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
-
-
-def section(text, heading, level):
-    """The text under HEADING up to the next heading of the same level."""
-    assert heading in text, f"{heading!r} is not a heading any more"
-    body = text.split(heading, 1)[1]
-    return body.split("\n" + "#" * level + " ", 1)[0]
 
 
 def table(text, header):
@@ -74,7 +67,7 @@ def named(table_rows, form):
     """
     for line in table_rows:
         cells = line.split(" | ")
-        if form in flat(cells[0]):
+        if form in unquoted_flat(cells[0]):
             return line
     return None
 
@@ -111,7 +104,7 @@ def test_each_refused_form_is_named_in_the_refused_table():
     REFUSED table, not anywhere under the heading: round 1 found a form of
     one list read in the other. The reason each row gives is the proofer's
     to read."""
-    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
+    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED)
     refused = table(body, "| Refused |")
     for form in REFUSED:
         assert named(refused, form), f"the refused list does not name {form}"
@@ -122,7 +115,7 @@ def test_the_template_names_the_command_that_rewrites_a_refused_key():
     person rewrites the key, and the lists' section names the command that
     does. That the section says nothing is stripped is the proofer's to
     read."""
-    body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
+    body = unquoted_flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED))
     # The command `/agentic:config`, which a person types to rewrite the key.
     assert "/agentic:config" in body, (
         "the section does not say where a person rewrites the key"
@@ -148,7 +141,7 @@ def test_the_config_skill_sends_the_criterion_to_its_owner_by_name():
     rule (the shape `tests/text/test_the_rules_have_one_owner.py` holds every
     linking carrier to). Whether the skill restates a rule is the proofer's
     to read."""
-    skill = flat(read(*CONFIG_SKILL))
+    skill = unquoted_flat(read(*CONFIG_SKILL))
     # The heading *The criterion for choosing a value*, which a person
     # reading the skill resolves in `templates/setup/config.md`.
     assert CRITERION.lstrip("# ") in skill, (
@@ -164,7 +157,7 @@ def refusal_bullet():
     skill = read(*CONFIG_SKILL)
     opening = "**The `Broad gate` key is looked at before it is run**"
     assert opening in skill, "the refusal paragraph is gone from the config skill"
-    return flat(skill[skill.index(opening) :].split("\n\n", 1)[0])
+    return unquoted_flat(skill[skill.index(opening) :].split("\n\n", 1)[0])
 
 
 def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
@@ -172,7 +165,7 @@ def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
     somebody reading it knows the refusal exists, and sends the reasoning to
     the one owner. What the paragraph says of the refusal is the proofer's
     to read."""
-    skill = flat(read(*CONFIG_SKILL))
+    skill = unquoted_flat(read(*CONFIG_SKILL))
     # The heading of `templates/setup/config.md` the skill cites, which a
     # person opens to learn what the key may hold.
     assert "What is refused, and what stays allowed" in skill, (
@@ -204,6 +197,6 @@ def test_the_review_orchestrator_names_the_command_that_answers_the_row():
     broad gate is the one holding finished work with no pull request open
     and a reason to get past it. That it stops the run and asks a person,
     and why, is the proofer's to read."""
-    orchestrator = flat(read(*GATE_TO_PR))
+    orchestrator = unquoted_flat(read(*GATE_TO_PR))
     # The command `/agentic:config`, which the person runs to answer the key.
     assert "/agentic:config" in orchestrator

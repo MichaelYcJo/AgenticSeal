@@ -20,22 +20,16 @@ the roll no longer reads.
 import os
 import re
 
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, flattened, read, section
 from test_roll_flow_measurement_issue import _roller
 
 TARGET = "docs/releasing/issues-and-milestones.md"
 
 DOC = os.path.join(ROOT, *TARGET.split("/"))
-DOC_SECTION = "**`flow-measurement` is a label that is not an index.**"
-
-
-def _tracker_section():
-    """That document's `flow-measurement` section, whitespace-collapsed so a
-    phrase check does not break every time the prose re-wraps."""
-    with open(DOC, encoding="utf-8") as handle:
-        text = handle.read()
-    rest = text[text.index(DOC_SECTION) :]
-    return " ".join(rest[: rest.index("\n## ")].split())
+# The section that states the convention, and the bold lead of the
+# paragraph it starts at; the convention runs from there to the section's end.
+DOC_HEADING = "## A label answers *what it is about*, and survives the move"
+DOC_LEAD = "**`flow-measurement` is a label that is not an index.**"
 
 
 def test_the_tracker_doc_states_the_title_the_roll_writes():
@@ -44,10 +38,13 @@ def test_the_tracker_doc_states_the_title_the_roll_writes():
     `TITLE_MARKER` and `rolled_from` is what keeps the example in it from
     becoming a title the roll would read as an old one."""
     m = _roller()
-    section = _tracker_section()
+    # Whitespace-collapsed, so a phrase check does not break every time the
+    # prose re-wraps.
+    body = section(read(DOC), DOC_HEADING)
+    said = flattened(body[body.index(DOC_LEAD) :])
     # The marker `TITLE_MARKER`, which the roll writes and reads in a title,
     # and which a person retitling a log by hand copies.
-    assert m.TITLE_MARKER in section, (
+    assert m.TITLE_MARKER in said, (
         f"the document never states the marker the roll writes and reads "
         f"({m.TITLE_MARKER!r}). A person retitling a log by hand has nothing "
         f"to copy, and the shipped skill does not carry this repository's "
@@ -57,7 +54,7 @@ def test_the_tracker_doc_states_the_title_the_roll_writes():
     # person retitling a log by hand copies.
     readable = [
         example
-        for example in re.findall(r"`(chore: [^`]+)`", section)
+        for example in re.findall(r"`(chore: [^`]+)`", said)
         if m.rolled_from(example)
     ]
     assert readable, (
@@ -75,10 +72,13 @@ def test_the_tracker_doc_states_the_whole_prefix_the_roll_requires():
     somewhere inside it stalls its log with the workflow green; how the
     document says so is the proofer's to read."""
     m = _roller()
-    section = _tracker_section()
+    # Whitespace-collapsed, so a phrase check does not break every time the
+    # prose re-wraps.
+    body = section(read(DOC), DOC_HEADING)
+    said = flattened(body[body.index(DOC_LEAD) :])
     # The prefix `TITLE_PREFIX`, which the roll writes and matches at the
     # start of a title, and which a person retitling a log by hand copies.
-    assert m.TITLE_PREFIX in section, (
+    assert m.TITLE_PREFIX in said, (
         f"the document must spell the whole prefix the roll writes and "
         f"requires ({m.TITLE_PREFIX!r}), read out of the script's own "
         f"constant rather than against a literal here"

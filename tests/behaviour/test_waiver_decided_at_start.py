@@ -24,7 +24,7 @@ mark landed and false for every commit before it.
 import os
 import re
 
-from conftest import ROOT, read
+from conftest import ROOT, flattened, read
 
 # No TARGET: its cases hold the routing rule across the orchestration, the routing question, the policy, the routing template and lib/routing.py, and walk every agent definition and every committed routing.md.
 
@@ -55,14 +55,6 @@ ORCH = ("skills", "implement", "orchestration.md")
 QUESTION = ("skills", "implement", "routing-question.md")
 
 
-def flat(text):
-    """Rewrapped prose and table cells compare the same way collapsed.
-
-    A literal with a newline in it was asserting the column width once.
-    """
-    return " ".join(text.split())
-
-
 def in_force(rel, section):
     """The policy in force at SECTION of REL, flattened: the section as the
     policy root holds it, with each pending `## Rule changes` item for that
@@ -82,16 +74,16 @@ def in_force(rel, section):
     span, why = rules.section_lines(text, section)
     assert span, f"{rel}: {why}"
     lines = rules.reader().gfm_lines(text)
-    body = flat("\n".join(lines[span[0] - 1 : span[1]]))
+    body = flattened("\n".join(lines[span[0] - 1 : span[1]]))
     home = os.path.join(ROOT, "seal")
     policy = config.policy_root(home)
     for op, _item in rules.pending(home, policy):
         if op.file != rel or op.section != section:
             continue
-        if op.kind == "change" and flat(op.old) in body:
-            body = body.replace(flat(op.old), flat(op.new))
+        if op.kind == "change" and flattened(op.old) in body:
+            body = body.replace(flattened(op.old), flattened(op.new))
         elif op.kind == "add":
-            body += " " + flat(op.new)
+            body += " " + flattened(op.new)
     return body
 
 
@@ -419,7 +411,7 @@ def test_question_1_spells_the_mark_of_its_marked_answer():
     reads the ladder per item itself. The case reads the mark's spelling;
     when question 1 is put, which answer is marked and the order the options
     keep are the proofer's to read."""
-    skill = flat(read(*QUESTION))
+    skill = flattened(read(*QUESTION))
     # The suffix the orchestrator writes after the marked option's label in
     # question 1's `AskUserQuestion` call.
     assert "` (Recommended)`" in skill, "the mark's spelling is gone"
@@ -479,13 +471,13 @@ def test_the_ceiling_is_stated_beside_the_shape():
     paragraph names it beside question 2.
     """
     raw = read(*QUESTION)
-    skill = flat(raw)
+    skill = flattened(raw)
     # The value four, the most options the harness's `AskUserQuestion`
     # takes per question, which bounds the boxes the orchestrator puts.
     assert "at most four options per question" in skill, "the cap is unstated"
     lead = "**The ceiling.**"
     assert lead in raw, "the ceiling paragraph was renamed; this case is blind"
-    ceiling = flat(raw[raw.index(lead) :].split("\n\n", 1)[0])
+    ceiling = flattened(raw[raw.index(lead) :].split("\n\n", 1)[0])
     # The name `Question 1`, which a person adding a fifth answer to the
     # routing question reads to meet the cap there too.
     assert "question 1" in ceiling.lower(), "the ceiling does not name question 1"
@@ -558,7 +550,7 @@ def test_the_framer_writes_rule_changes_from_the_index():
     reads the policy in force as the implement skill states it. The
     definition cites the grammar, the index and the model; whether it
     restates either is the proofer's to read."""
-    framer = flat(read(*FRAMER))
+    framer = flattened(read(*FRAMER))
     # The citation `skills/settle/rule-changes.md` *Rule changes*, which the
     # framer resolves to the grammar `rule_changes.py#parse` reads; the
     # citation is the fact.
@@ -584,7 +576,7 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
     raw = read(*FRAMER)
     lead = "**A mark is not the answer to a blocked step.**"
     assert lead in raw, "the rule was renamed; this case is blind"
-    paragraph = flat(raw[raw.index(lead) :].split("\n\n", 1)[0])
+    paragraph = flattened(raw[raw.index(lead) :].split("\n\n", 1)[0])
     # The citation of the core's section, which the framer resolves to the
     # rule a mechanism it adds is kept against.
     assert (
@@ -600,13 +592,13 @@ def test_both_halves_of_the_frame_reading_cite_the_alternatives_table():
     line are the proofer's to read."""
     raw = read(*FRAMER)
     lead = "**An orchestrator's reading of the frame is answered in one exchange.**"
-    assert lead in flat(raw), "the framer's definition lost the rule"
+    assert lead in flattened(raw), "the framer's definition lost the rule"
     paragraph = raw[raw.index(lead) :].split("\n\n", 1)[0]
-    orchestration = flat(read(*ORCH))
+    orchestration = flattened(read(*ORCH))
     heading = "### The frame is read against the issue at the spawn"
     assert heading in orchestration, "the orchestrator's section is gone"
     section = orchestration[orchestration.index(heading) :].split(" ## ", 1)[0]
-    for half, text in (("framer", flat(paragraph)), ("orchestration", section)):
+    for half, text in (("framer", flattened(paragraph)), ("orchestration", section)):
         # The heading *Alternatives considered*, which the framer resolves in
         # `frame/plan.md` to write a rejected proposal as a row.
         assert "*Alternatives considered*" in text, (
@@ -639,7 +631,7 @@ def test_the_framer_leaves_a_mark_in_the_tree():
         "the mark is not at the foot of the file; the check reads the same "
         "shape `routing.md` and `plan.md` already end with"
     )
-    framer = flat(read(*FRAMER))
+    framer = flattened(read(*FRAMER))
     assert line in framer, (
         "the framer is not told to write the mark, so the template's line "
         "survives into the committed spec as a placeholder"
@@ -728,7 +720,7 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
     table gives what each `Review` answer owes at the pull request, keyed by
     the answer. The paragraph on the two that open none is the proofer's to
     read."""
-    skill = flat(read(*ORCH))
+    skill = flattened(read(*ORCH))
     policy = in_force(*DECLARATION)
     # The two `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts,
     # as the policy table's row keys a reader looks an answer up by.
@@ -740,7 +732,7 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
 
 
 def test_the_skill_names_where_the_answer_is_written():
-    skill = flat(read(*ORCH))
+    skill = flattened(read(*ORCH))
     # The path the orchestrator writes the answer to, and the template it
     # copies, which it opens.
     assert "seal/threads/<work-item-id>/routing.md" in skill
@@ -754,7 +746,7 @@ def test_the_routing_question_names_the_trailer_that_records_no_work_item():
     #1477."""
     # The trailer `chain_check.py#TRAILER` reads on a pull request's commits,
     # as the orchestrator writes it under `direct`.
-    assert "`Seal-Routing: no work item`" in flat(read(*QUESTION))
+    assert "`Seal-Routing: no work item`" in flattened(read(*QUESTION))
 
 
 def test_the_skill_cites_the_policy_on_a_standing_waiver():
@@ -762,7 +754,7 @@ def test_the_skill_cites_the_policy_on_a_standing_waiver():
     session, and it is the one way that costs the gate its reason to exist.
     The reasoning is the policy's since #1148, and the skill cites it; the
     rule's sentences are the proofer's to read."""
-    skill = flat(read(*ORCH))
+    skill = flattened(read(*ORCH))
     # The citation `docs/running/the-review-and-parity-arms.md` *There is no standing
     # waiver*, which the orchestrator resolves to the reasoning.
     assert cites(
@@ -798,7 +790,7 @@ def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recor
     sentences are the proofer's to read."""
     text = read(*QUESTION)
     assert KEYS in text, "the language keys' section was renamed; this case is blind"
-    section = flat(text.split(KEYS, 1)[1].split("\n## ", 1)[0])
+    section = flattened(text.split(KEYS, 1)[1].split("\n## ", 1)[0])
     # The two keys of `config.json` the batch asks for, which
     # `lib/config.py#declared_value` reads.
     for row in ("Commit and pull request language", "Record language"):

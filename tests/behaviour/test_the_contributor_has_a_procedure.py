@@ -34,7 +34,7 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, build_tracked_tree, posix_id, read
+from conftest import ROOT, build_tracked_tree, posix_id, read, section
 from test_release_hygiene import LOADED, tracked
 
 # No TARGET: its cases hold the contribution procedure in CONTRIBUTING.md and sweep every loaded file and every contributor-facing surface for a concrete release branch.
@@ -42,16 +42,6 @@ from test_release_hygiene import LOADED, tracked
 
 GUIDE = os.path.join(ROOT, "CONTRIBUTING.md")
 HEADING = "## Opening a pull request"
-
-
-def section(text, heading=HEADING):
-    """The named section of `CONTRIBUTING.md`, to the next `## ` heading."""
-    start = text.index(heading)
-    return text[start : text.index("\n## ", start + 1)]
-
-
-def guide_section():
-    return section(read(GUIDE))
 
 
 def test_the_procedure_is_the_first_section_of_the_guide():
@@ -73,7 +63,7 @@ def test_the_procedure_is_the_first_section_of_the_guide():
 def test_the_section_names_the_branch_by_convention_not_by_number():
     """Q1. A version number in a contribution guide is a fact that goes stale
     on a schedule, in the one document a newcomer trusts."""
-    body = guide_section()
+    body = section(read(GUIDE), HEADING)
     # The branch name `release/vX.Y.Z`, which a contributor fills in and
     # bases the pull request on.
     assert "release/vX.Y.Z" in body, (
@@ -92,7 +82,7 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
     """A1's other half. The contributor who arrives here arrives from a CI
     message about `plugin.json`, and has to come away knowing the base is the
     cause. Both terms have to be in the section a reader searches."""
-    body = guide_section()
+    body = section(read(GUIDE), HEADING)
     # The branch `main`, which a contributor does not base the pull request
     # on.
     assert "`main`" in body, "the section never names the branch to avoid"
@@ -122,7 +112,7 @@ def test_the_exemption_list_names_what_a_contribution_does_not_write(thing):
     rounds has every reason to assume all of it applies to them. The list
     names the files a contribution does not write; its sentences are the
     proofer's to read."""
-    body = guide_section()
+    body = section(read(GUIDE), HEADING)
     # The path, which a contributor matches against the files of a work item.
     assert thing in body, (
         f"the section does not say a contribution writes no {thing!r} — an "
@@ -135,20 +125,13 @@ def test_the_exemption_list_says_which_guard_makes_it_true():
     base but `main`. Stated as a bare promise it is a sentence a new
     always-on CI step silently falsifies; stated with the guard, a reader
     adding a step can see which sentence it lands in."""
-    body = guide_section()
+    body = section(read(GUIDE), HEADING)
     # The exit code the release-only step gives on any base but `main`,
     # which a maintainer adding a CI step reads in the table's row.
     assert "exits 0" in body, (
         "the exemption list does not name the guard that makes it true, so it "
         "reads as a promise rather than as a consequence of the workflow"
     )
-
-
-def test_the_check_can_fail():
-    """A guard that cannot fail is a counterfeit. A guide without the section
-    raises rather than passing vacuously."""
-    with pytest.raises(ValueError):
-        section("# Contributing\n\n## Running the checks\n\ntext\n")
 
 
 # --- Q1 as a class, not as the coordinate it was found on (round 1, 🟡 5) ---

@@ -43,13 +43,9 @@ def _load(name):
 check = _load("issue_claims_check")
 
 
-def read(body):
-    return check.read(body)
-
-
 def warned(body):
     """The `(claimed, unclaimed)` pairs the body earns a warning for."""
-    return [(kept, lost) for kept, lost, _ in read(body)[2]]
+    return [(kept, lost) for kept, lost, _ in check.read(body)[2]]
 
 
 class _args:
@@ -118,7 +114,7 @@ class Test_read:
     def test_refuses_the_sentence_that_lost_an_issue_with_a_warning(self):
         """PR #162's shape, with neutral numbers. One claim, one loss, one line
         telling the author which is which."""
-        claimed, mentioned, warnings = read("Closes #11 and #22 — both are done.")
+        claimed, mentioned, warnings = check.read("Closes #11 and #22 — both are done.")
         assert claimed == ["11"]
         assert mentioned == ["22"]
         assert [(k, lost) for k, lost, _ in warnings] == [("11", "22")]
@@ -164,7 +160,7 @@ class Test_read:
         """Not the masked copy. A code span blanked out of the quote reads as a
         different sentence, and the author has to recognise their own."""
         body = "Closes #11 and #22 — see `close_issues_on_release.py` for why."
-        ((_, _, sentence),) = read(body)[2]
+        ((_, _, sentence),) = check.read(body)[2]
         assert "`close_issues_on_release.py`" in sentence
 
     def test_the_same_number_in_two_sentences_earns_a_warning_each(self):
@@ -180,7 +176,7 @@ class Test_read:
         reported as one. This repository's own documents do exactly that, and its
         bodies quote its documents routinely."""
         body = "The defect looks like this:\n\n```\nCloses #11, #22\n```\n\nDo not write that."
-        assert read(body) == ([], [], [])
+        assert check.read(body) == ([], [], [])
 
     @pytest.mark.parametrize(
         "body",
@@ -190,7 +186,7 @@ class Test_read:
     def test_accepts_a_body_that_claims_and_mentions_nothing(self, body):
         """An inline span claims nothing and mentions nothing, and a body with no
         numbers says so."""
-        assert read(body) == ([], [], [])
+        assert check.read(body) == ([], [], [])
 
     def test_the_shapes_the_closer_masks_since_266_are_masked_here_too(self):
         """The patterns are imported, so a widening of the closer's masks is a
@@ -204,7 +200,7 @@ class Test_read:
             "see ``Closes #11, #22`` in the ticket",
             "<!-- Closes #11, #22 -->\n\nDo not write that.",
         ):
-            assert read(body) == ([], [], []), body
+            assert check.read(body) == ([], [], []), body
 
     def test_a_fence_does_not_splice_the_line_above_it_onto_the_line_below(self):
         """The masking is length-preserving for this reason. Collapsing a fenced
@@ -214,7 +210,7 @@ class Test_read:
         assert warned(body) == []
 
     def test_accepts_a_second_keyword_and_loses_nothing(self):
-        claimed, mentioned, warnings = read("Closes #11 and closes #22")
+        claimed, mentioned, warnings = check.read("Closes #11 and closes #22")
         assert claimed == ["11", "22"]
         assert mentioned == []
         assert warnings == []
@@ -261,14 +257,14 @@ class Test_read:
         """`Part of #11, and this closes #22` is not somebody losing a claim. Only
         a number AFTER the claim is a candidate, and that is where the whole
         false-positive budget goes."""
-        claimed, mentioned, warnings = read("Part of #11, and this closes #22.")
+        claimed, mentioned, warnings = check.read("Part of #11, and this closes #22.")
         assert claimed == ["22"]
         assert mentioned == ["11"]
         assert warnings == []
 
     def test_an_anchor_is_not_an_issue_number(self):
         """`#L45` and `#heading` need a digit immediately after the hash."""
-        assert read("Closes #11, see file.py#L45 and the #overview section") == (
+        assert check.read("Closes #11, see file.py#L45 and the #overview section") == (
             ["11"],
             [],
             [],
@@ -277,14 +273,16 @@ class Test_read:
     def test_refuses_a_number_glued_to_letters_as_an_issue(self):
         """`#22abc` is no issue number: its digits end at no word boundary, so
         it is neither mentioned nor warned about."""
-        _, mentioned, warnings = read("Closes #11 and #22abc")
+        _, mentioned, warnings = check.read("Closes #11 and #22abc")
         assert (mentioned, warnings) == ([], [])
 
     def test_accepts_a_number_written_twice_once_in_its_list(self):
         """The lists are deduplicated in the order the body writes them: a
         number claimed twice is one claim, and one named twice is one
         mention."""
-        claimed, mentioned, _ = read("Closes #11. Fixes #11. See #22, and #22 again.")
+        claimed, mentioned, _ = check.read(
+            "Closes #11. Fixes #11. See #22, and #22 again."
+        )
         assert claimed == ["11"]
         assert mentioned == ["22"]
 
@@ -298,7 +296,7 @@ class Test_read:
             os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md"),
             encoding="utf-8",
         ) as f:
-            _, _, warnings = read(f.read())
+            _, _, warnings = check.read(f.read())
         assert warnings == [], warnings[0][2] if warnings else ""
 
 
@@ -308,7 +306,7 @@ class Test_report:
         on the job rather than bury it in the log. Dropping the prefix while
         tidying the f-string leaves every other case green."""
         lines = []
-        check.report(*read("Closes #11 and #22"), out=lines.append)
+        check.report(*check.read("Closes #11 and #22"), out=lines.append)
         annotations = [line for line in lines if line.startswith("::warning::")]
         assert len(annotations) == 1, lines
         assert "#11" in annotations[0] and "#22" in annotations[0]
@@ -317,14 +315,14 @@ class Test_report:
         """The author acts on these two lines. A rename that leaves `read()` alone
         changes what they are told and no case notices."""
         lines = []
-        check.report(*read("Closes #11 and #22"), out=lines.append)
+        check.report(*check.read("Closes #11 and #22"), out=lines.append)
         assert lines[0] == "claimed (closed when the release reaches `main`): #11"
         assert lines[1] == "mentioned only (nothing closes these): #22"
 
     def test_accepts_a_clean_body_and_says_so(self):
         """Silence reads as a check that did not run."""
         lines = []
-        check.report(*read("Closes #11"), out=lines.append)
+        check.report(*check.read("Closes #11"), out=lines.append)
         assert lines[-1] == "no sentence claims one number and names another beside it"
 
 

@@ -27,43 +27,26 @@ that hold the table. The shape's sentences, and whether the skill copies
 the rows, are the proofer's to read.
 """
 
-import re
-
-from conftest import census_case, read
+from conftest import census_case, flattened, read, section
 
 TARGET = "skills/commit-pr-convention/SKILL.md"
 
 SKILL = tuple(TARGET.split("/"))
-
-
-def body_section():
-    """The body of `## Pull request bodies`, heading to the next `## `, as one
-    line so a pinned phrase survives re-wrapping.
-
-    Scoped rather than whole-file: this skill names the review chain in other
-    sections, so a document-wide search would stay green with the section
-    itself saying nothing about the shape."""
-    match = re.search(
-        r"^## Pull request bodies$(.*?)(?=^## )",
-        read(*SKILL),
-        re.M | re.S,
-    )
-    assert match, (
-        "the pull request bodies section is gone or renamed. It is the "
-        "section a session opens while writing a body, and a rename has to "
-        "bring this case with it"
-    )
-    return " ".join(match.group(1).split())
+# The section a session opens while writing a body, read as one line so a
+# pinned phrase survives re-wrapping. Scoped rather than whole-file: this
+# skill names the review chain in other sections, so a document-wide search
+# would stay green with the section itself saying nothing about the shape.
+BODIES = "## Pull request bodies"
 
 
 def test_the_section_names_the_routing_answer_it_holds_for():
     """The condition the shape holds under. This skill ships to repositories
     that never run this chain, and a rule with no condition on it reads as a
     rule for them too."""
-    section = body_section()
+    said = flattened(section(read(*SKILL), BODIES))
     # The `Review` routing answer `through the review chain`, which
     # `lib/routing.py#parse` reads from `routing.md`.
-    assert "through the review chain" in section, (
+    assert "through the review chain" in said, (
         "the section states a shape without saying which work items it holds for"
     )
 
@@ -71,14 +54,14 @@ def test_the_section_names_the_routing_answer_it_holds_for():
 def test_the_section_points_at_the_tables_definition():
     """The rows have one owner, and this skill cites it as the place the
     table goes instead of the body."""
-    section = body_section()
+    said = flattened(section(read(*SKILL), BODIES))
     # The file a session writing a body resolves for the table's rows.
-    assert "skills/verify/orchestration.md" in section, (
+    assert "skills/verify/orchestration.md" in said, (
         "the section names no home for the table, so a session writing a "
         "body has no place to send the run's numbers but the body"
     )
     # The heading of that file's section that holds the rows.
-    assert "Measure the run, and feed the flow log" in section, (
+    assert "Measure the run, and feed the flow log" in said, (
         "the pointer names the file and not the section, which is a whole "
         "skill to search for one table"
     )

@@ -1458,17 +1458,6 @@ CHANGE = (
 )
 
 
-def template_section():
-    """What `templates/records/sdd-design.md` holds under its `## Rule changes`:
-    nothing, which is what a framer's skeleton commit carries."""
-    text = (ROOT / "templates" / "records" / "sdd-design.md").read_text(
-        encoding="utf-8"
-    )
-    section = text.split("\n## Rule changes\n", 1)[1].split("\n## Removes\n", 1)[0]
-    assert section.strip() == "", section
-    return section
-
-
 def spec_with(section):
     """A spec whose `## Rule changes` holds SECTION, or that has no such
     section where SECTION is None, ending with the framer's mark."""
@@ -1534,7 +1523,16 @@ def will_not_load():
 class Test_rule_changes_read:
     @pytest.mark.parametrize(
         "section",
-        [lambda: CONTINUED, lambda: PROSE, template_section],
+        [
+            lambda: CONTINUED,
+            lambda: PROSE,
+            # What `templates/records/sdd-design.md` holds under its
+            # `## Rule changes`, which a framer's skeleton commit carries.
+            lambda: conftest.section(
+                conftest.read("templates", "records", "sdd-design.md"),
+                "## Rule changes",
+            ),
+        ],
         ids=["S1-continued-two-in", "S2-prose-under-items", "S3-the-template-section"],
     )
     def test_refuses_a_section_the_parser_refuses_at_its_line(

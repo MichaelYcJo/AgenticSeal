@@ -71,7 +71,7 @@ import glob
 import os
 
 import pytest
-from conftest import ROOT, load_module, read
+from conftest import ROOT, load_module, read, section
 from conftest import flattened as flat
 from conftest import repo_relative as name
 from test_the_agent_contract_holds_the_universal_rules import HEADING
@@ -365,9 +365,7 @@ def test_the_proofer_keeps_its_rule_on_the_records_a_round_reads_whole():
 def crafter_rule(lead):
     """The `## Rules` paragraph of `agents/crafter.md` that opens with **LEAD**,
     as written, or "" where none does."""
-    text = read(CRAFTER)
-    rules = text[text.index("\n## Rules\n") :]
-    for paragraph in rules.split("\n\n"):
+    for paragraph in section(read(CRAFTER), "## Rules").split("\n\n"):
         # A lead may wrap across lines, as #1318's does.
         if " ".join(paragraph.split()).startswith(f"**{lead}**"):
             return paragraph

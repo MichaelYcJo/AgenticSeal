@@ -495,7 +495,7 @@ class Test_broad_command:
         assert said in str(refused.value), refused.value
 
 
-def flat(text):
+def unquoted_flat(text):
     """Runs of whitespace folded to one space, so a phrase a hand-wrap splits
     across two lines still reads as the phrase.
 
@@ -515,7 +515,7 @@ def missing_row_text():
     spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return flat(module.missing_row("/seal"))
+    return unquoted_flat(module.missing_row("/seal"))
 
 
 class Test_missing_row:

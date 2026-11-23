@@ -22,13 +22,15 @@ import os
 import subprocess
 
 import pytest
-from conftest import ROOT, config_json, flat, local_home, read
+from conftest import ROOT, config_json, flat, flattened, local_home, read, section
 
 # No TARGET: its cases hold the language rows across skills/commit-pr-convention/SKILL.md, templates/setup/config.md and lib/config.py, and walk every template and pull request mirror git lists.
 
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 TEMPLATE = ("templates", "setup", "config.md")
+# The template's section that lists what stays English whatever a key says.
+GOVERNS_NOTHING = "## What no key governs"
 
 
 # --- the key, and where it is read from -------------------------------------
@@ -949,14 +951,6 @@ def test_the_layout_lists_the_config(parts):
 # --- the exclusion list, derived rather than compared ----------------------
 
 
-def _governs_nothing():
-    """The `What no key governs` section of the template, flattened."""
-    text = read(*TEMPLATE)
-    start = text.index("## What no key governs")
-    end = text.index("\n## ", start + 1)
-    return " ".join(text[start:end].split())
-
-
 def _literal_strings():
     """Every string the checkers match literally, read from the checkers.
 
@@ -1013,7 +1007,7 @@ def test_the_exclusion_list_points_at_the_block_grammar():
     which `chain_check.py` and the stamp read them through, so the list names
     the module. Whether a key of it is copied beside the citation is the
     proofer's to read."""
-    said = _governs_nothing()
+    said = flattened(section(read(*TEMPLATE), GOVERNS_NOTHING))
     # The citation of the module that spells the keys, which a person
     # translating the records resolves to the keys that stay English.
     assert BLOCK_GRAMMAR in said, (
@@ -1038,7 +1032,7 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     # BARE substring is satisfied by a longer entry that contains it —
     # `fixed` was held by `agreed, fixed` alone, and deleting the standalone
     # entry left this case green (round 2).
-    assert f"`{literal}`" in _governs_nothing(), (
+    assert f"`{literal}`" in flattened(section(read(*TEMPLATE), GOVERNS_NOTHING)), (
         f"a checker matches `{literal}` literally and the exclusion list does "
         "not hold it as an item of its own, so a repository translating its "
         "records breaks that checker with nothing to warn it"

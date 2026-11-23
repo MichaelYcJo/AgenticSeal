@@ -21,7 +21,7 @@ import glob
 import os
 import re
 
-from conftest import ROOT, read
+from conftest import ROOT, read, section
 from test_the_agent_contract_holds_the_universal_rules import TARGET as CONTRACT
 from test_the_agent_contract_holds_the_universal_rules import bodies
 
@@ -156,19 +156,6 @@ def test_each_language_section_of_writing_style_opens_alone():
     )
 
 
-def section(lines, heading, level):
-    """The lines under HEADING up to the next heading of LEVEL or higher."""
-    i = lines.index(heading) + 1
-    out = []
-    while i < len(lines):
-        mark = lines[i].split(" ", 1)[0]
-        if mark and set(mark) == {"#"} and len(mark) <= level:
-            break
-        out.append(lines[i])
-        i += 1
-    return out
-
-
 def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     """The section of the three writing rules for text an agent or a check
     reads holds its one `check:` line, and a writer who opens either
@@ -180,8 +167,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     of `1792540458-on-demand-files-state-the-current-rule`).
     """
     text = read(SKILL)
-    lines = text.split("\n")
-    body = [line.strip() for line in section(lines, WRITING_RULES, 3)]
+    body = [line.strip() for line in section(text, WRITING_RULES).split("\n")]
     checks = tuple(line for line in body if line.startswith("check: "))
     # The check lines `seal rules --check` reads, and the paths of the
     # modules each names, which a reader of the rules opens.
@@ -191,7 +177,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     )
     title = WRITING_RULES[len("### ") :]
     for heading in LANGUAGE_SECTIONS:
-        named = " ".join(section(lines, heading, 2))
+        named = " ".join(section(text, heading).split("\n"))
         # The heading cited in italics, which a writer who opened this
         # section alone resolves to the three rules.
         assert f"*{title}*" in named, (

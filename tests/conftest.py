@@ -837,8 +837,7 @@ def names_path(path, text):
 
 # --- helpers more than one test module uses (#942) ----------------------------
 #
-# Each was defined byte-identically in two or more test modules. A module
-# imports the one it needs. A helper that reads a module the case loaded
+# A module imports the one it needs. A helper that reads a module the case loaded
 # itself, such as the chain check, takes that module as
 # its first argument, and the case's module binds it with `functools.partial`.
 
@@ -867,6 +866,41 @@ def flat(*parts):
 def flattened(text):
     """TEXT as one line, each run of whitespace one space."""
     return " ".join(text.split())
+
+
+# `lib/lines.py`, the one spelling of a markdown heading, which `section`
+# places headings by.
+_LINES = load_lib_module("lines.py", "agentic_lines_for_section")
+
+
+def section(text, heading):
+    """The body of the one section of the markdown TEXT whose heading line is
+    HEADING, written whole as the file spells it, such as `## Running the
+    checks`: the lines after it, up to the next heading of its level or above,
+    or to the end, joined with a newline.
+
+    The headings are placed as a renderer shows them, by `lib/lines.py`'s
+    `readable`, `headings` and `sections`, so a heading line inside a fenced
+    block neither opens nor ends a section, and a longer heading that begins
+    with the same words is another heading. The lines returned are the
+    text's, a fence among them as written. The heading line is left out, so
+    a phrase pinned in the body is never found in the heading. A text that
+    holds HEADING nowhere, or more than once, fails the case naming it."""
+    level = _LINES.heading_level(heading)
+    assert level is not None, f"{heading!r} is not a heading line"
+    shown = _LINES.readable(text)
+    found = _LINES.sections(shown, heading.strip())
+    assert len(found) == 1, f"the text holds {len(found)} headings {heading!r}"
+    start = found[0]
+    end = next(
+        (
+            i
+            for i, line in _LINES.headings(shown)
+            if i > start and _LINES.heading_level(line) <= level
+        ),
+        len(shown),
+    )
+    return "\n".join(_LINES.gfm_lines(text)[start + 1 : end])
 
 
 def repo_relative(path):
