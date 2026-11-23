@@ -82,6 +82,11 @@ separator has a blank on each side.
 
 The snippets leave statements that the fix pass also owes. `names_in_a_directory`'s docstring (`broad_gate.py:783-784`) says "named whole", and it becomes "named as far as the next blank". The pinned message in `test_refuses_a_command_name_cmd_exe_reads_as_a_switch` changes from "reads that spelling" to "reads the `\` spelling" (contract rule 14). In `test_refuses_a_name_the_cut_splits_by_naming_it_whole`, the assertion on "cmd.exe runs `bin\\%TOOL%/x`" becomes an assertion that the sentence holds "the gate read `bin/%TOOL%/x` only as far as its first `%`" and does not hold "cmd.exe runs". The case gains a row for `bin/"a b"/x -q`, named as `bin/"a`, and its docstring stops saying the refusal "never names a word cut short". `frame/design.md:32` is the orchestrator's to fold. The snippet assumes no precondition at an OS boundary.
 
+```seal
+verdict: fixed 747b86dc9
+answer: Answered by the orchestrator's row in `frame/plan.md` *Judgments of the run* on round 2's three findings, not by the snippet. The snippet kept refusing a name the cut splits and added a sentence about it; the row decides that a word reaching the cut is never refused. `names_in_a_directory` now refuses a name only where it ends before the cut. A name that holds the cut character, or stands past it, goes to the not-read list, and the key runs as written. So `bin/%TOOL% -q`, `bin/"a b"/x -q` and `bin/x^& && echo` each return no refusal and name their word on the stderr line. Those three rows of `Test_not_as_written#test_names_what_it_did_not_read_and_runs_it_as_written` were red against the tree before the fix (executed). `backslashed` turns a refused name only where it ends before the cut. The bookkeeping that named a split name whole goes, and with it `test_refuses_a_name_the_cut_splits_by_naming_it_whole`, and the spelling list that read offsets. `seal mutate` turning the bound into `at < cut` made the three rows red, and removing the bound from `backslashed` made `test_refuses_a_name_that_stands_again_past_the_cut_with_one_spelling` red (executed). `<=` against `<` is no mutant, because a word cannot end at the cut: the cut character is no blank, so it belongs to the word before it. The template says a name holding the cut character is never refused, and neither is any name after it. It says the not-read line names a word as far as the blanks around it, which is not always the name `cmd.exe` reads, and the "stays inside the reading" sentence adds that the name stands before the first `"`, `^` or `%`. `changelog.md` and `not_as_written`'s docstring say the same. The pinned message keeps "reads that spelling", because no refusal now names a spelling it did not turn whole. `frame/design.md` *Scope* items 1 and 2 still state the old rule; the hand-back names them.
+```
+
 ### 2. No case holds that the key as meant of a wrapped value turns nothing under `/bin/sh`
 
 ```seal
@@ -115,6 +120,11 @@ Why it matters: the unit is `as_cmd_exe_runs` (`broad_gate.py:833-840`), which `
 
 The case is seen red by removing the two lines at `broad_gate.py:837-838`. With them removed, each row's `as meant` line reads `bin\\test -q`.
 
+```seal
+verdict: fixed 286aa3e22
+answer: Written as the orchestrator's row asks, before the unit changed. `Test_not_as_written#test_refuses_a_wrapped_value_with_only_its_form_off_as_meant` asks the three older forms under `/bin/sh` and under a `COMSPEC` naming another shell, in a root holding `bin/`, and asserts the key as meant `bin/test -q`. At 286aa3e22 `seal mutate` removed `as_cmd_exe_runs`'s `cmd_exe_reads` guard, and all six rows were red on their `as meant` line (executed). Fixing finding 3 by the same row then removed `as_cmd_exe_runs` (0ab41dd04), so the guard this case was written for no longer exists. The case gained a `cmd.exe` row for each form, red against 286aa3e22 (executed), and now holds that on any shell the key as meant takes off the named form and nothing else. `seal mutate` putting a turn of `bin/test` back into the backtick branch made the `sh`, `another-comspec` and `cmd-exe` rows red (executed).
+```
+
 ### 3. The claim that every refusal offers a key the gate runs is false for a key that nests two refused forms
 
 ```seal
@@ -140,6 +150,12 @@ test_broad_gate.py:691-693
 ```
 
 The case's name, `..._with_a_key_as_meant_it_runs`, is true for its three rows and may stay. `frame/design.md:32` is the orchestrator's to fold: "so the value a refusal offers names no command the gate refuses for its `/`".
+
+```seal
+verdict: fixed 0ab41dd04
+location: `templates/setup/config.md`, `skills/verify/scripts/broad_gate.py`, `tests/skills/test_broad_gate.py`, `seal/threads/1795390621-the-broad-gate-rewrites-cmd-exe-commands/changelog.md`
+answer: Answered by the orchestrator's row, not by the snippet's narrower claim. The rule is that the key as meant removes the forms its refusal names. `as_cmd_exe_runs` removed one the refusal did not name, the `/` in a command name on `cmd.exe`, so I judged it against the rule and removed it. Each older form's key as meant is again its content with the form taken off. A key that holds a second refused form is refused for it, by name, on the next run, and no sentence claims more. The sentences the finding names go. `changelog.md` now says that the key as meant removes the named form and nothing else, and that a wrapped `bin/test -q` is refused for its second form on the next run. `not_as_written`'s docstring says the same. `as_cmd_exe_runs`'s docstring goes with the function. The case that claimed "the value the refusal offers is one the gate runs" is replaced by the three-shell case of finding 2. The template's paragraph *Nothing is stripped* gains the same sentence, with `` `bin/test -q` `` on `cmd.exe` as its example. This undoes round 1's fix of its finding 2 (3372bc792), whose defect, a second refusal on the next run, is now the stated behaviour. `git grep -n as_cmd_exe_runs` outside `seal/threads` prints nothing (executed). `frame/design.md` *Scope* item 1 still says the turning makes the value one the gate runs; the hand-back names it.
+```
 
 ## Confirmations
 
