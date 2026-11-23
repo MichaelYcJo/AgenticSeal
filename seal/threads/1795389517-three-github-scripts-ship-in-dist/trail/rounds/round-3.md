@@ -27,6 +27,11 @@ The paste-ready fix below names the row by its Judgment cell, which no other row
 - "The version check is a shipped behaviour that was wrong: a change to a `.github/scripts/` file or to `docs/` alone reached every installed copy without moving the version." (`frame/plan.md` *Judgments of the run*, the row on the title's prefix, its Grounds cell)
 ```
 
+```seal
+verdict: fixed 7d012b8bf
+answer: The finding holds. The orchestrator applied the paste-ready lines as given: both coordinates of `pr.md` name the row on the title's prefix, which no other row of *Judgments of the run* shares, and the quotes are unchanged. The fix touches the work item's records alone, so the sealer reads it.
+```
+
 ### 2. The routing row of round 2's regression is judged against the routing table alone, and the guidance asks it to name *The run*
 
 ```seal
@@ -41,6 +46,11 @@ The fix adds *The run* to the cell and keeps the table's row as written. No othe
 
 ```markdown
 | 2026-11-23 | Round 2's finding 1 (`regression: round-1#3`) takes an ordinary fix pass, and the verifying round after it is owed whatever the count | The finding's grounds say the defect came from round 1's paste-ready snippet, applied as given: the frame does not state the census's scope, so the fix did something the frame does not say. Two finding rounds so far, three findings then one, and the fix changes a comment alone | `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame*, its second row, and `docs/running/the-run.md` *The run* |
+```
+
+```seal
+verdict: fixed 7d012b8bf
+answer: The finding holds. The orchestrator applied the paste-ready cell as given: the row's *Judged against* cell now names `docs/running/the-run.md` *The run* beside the routing table. The fix touches the work item's records alone, so the sealer reads it.
 ```
 
 ## Confirmations
