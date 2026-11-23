@@ -71,6 +71,12 @@ and none spells the shared place as where the root is looked for.
 Eleven files spelt two places and omitted the one the gates read second, and the core is the one file every agent and every session with a root already has
 ```
 
+```seal
+verdict: fixed 0d0963e88
+location: `tests/text/test_the_rules_have_one_owner.py`
+answer: The paste-ready fix was applied at `changelog.md:3` and `:20`, and the item's list now names `seal/README.md` as the template's copy (executed, the search at `641b6bfb5` lists it). The class is every count and absence the fragment states, listed by taking the fragment apart sentence by sentence. Three more were wrong against the base tree and are corrected in the same commit: item 4 said "four other lists left out" the phase record, where the template, `skills/config/SKILL.md` and `skills/commit-pr-convention/SKILL.md` left it out, and it named `skills/implement/SKILL.md`, which held it, among them; process row 2 said "Five lists" and "six files", where six files stated what the key governs and five files with two template sections restated an absent key; process row 4 said "three files gave the base order", where `agents/sealer.md:42-46` is a fourth. The comment above `RULES` row 24 said six files spelt the places, the count this round's *Confirmations* named, and now says eleven, with the six links as the cases they replace.
+```
+
 ### 2. The owner paragraph calls a file that will not read an absent language key, and the paragraph after it says such a file is refused rather than read as absent
 
 ```seal
@@ -115,6 +121,12 @@ printing the refusal the next paragraph gives where the file or the key
 will not read. A commit or a record is written in English, because a
 config nobody can read must not stop the work. Who asks for the two keys is
 *Commit and pull request language* below.
+```
+
+```seal
+verdict: fixed 0d0963e88
+location: `seal/threads/1795390622-the-root-places-omit-agentic-seal/changelog.md`
+answer: The finding holds: `lib/config.py#declared_value` hands every caller a refusal for a file that will not read and for a key written twice, and `skills/implement/routing-question.md:141-144` asks on "absent in any of the four ways". The paragraph at `templates/setup/config.md:31-41` gains one sentence after the four ways, worded as the paste-ready fix with "The fourth way" for "The fourth", so it counts that refusal as absent for the two language keys wherever this file or a skill speaks of an absent key. The bold lead and the four spellings `RULES` row 26 pins are unchanged, and the six citations still resolve (executed, the fix pass's narrow run). The changelog's item on the paragraph says it now names the fourth way as the next paragraph's refusal, in the same commit.
 ```
 
 ### 3. A restatement of what an absent key does stays in the commit skill on a frame coordinate that does not hold it
@@ -173,6 +185,11 @@ does, beside a reason the template does not give:
   refusal on a misread coordinate; round 1 finding 3 corrected it.
 ```
 
+```seal
+verdict: fixed d6e1efa39
+answer: The finding holds: at `73a43735c` the `seal pr-body` sentence stood at `skills/commit-pr-convention/SKILL.md:90-92`, outside the out-of-scope coordinate `:85-89` (executed, `git show` of that file). The paste-ready fix was applied to the skill as given, keeping the reason and dropping the restatement. `gaps.md` *Not done* is rewritten in place to name `docs/forms/the-guarantee.md:22` alone. In `trail/phases/phase-2.md` the bullet left the list of statements the phase left standing, and a paragraph after the list says the phase kept the sentence on a coordinate read against the new numbering and that this fix pass removed the restatement, in the fix pass's own words. No case pinned the removed sentence (executed, `git grep` on its words outside `seal/threads` prints only the skill and a docstring of `lib/config.py` on its own refusal). `frame/design.md:127` already lists the sentence's kind under *Removes* and needs no change.
+```
+
 ### 4. The frame's G18 still says `tests/github/test_release_seal.py:382` holds a sentence of *The broad gate*, which the fold of G14 says it does not
 
 ```seal
@@ -200,6 +217,11 @@ The fold reached one of the two statements of the fact (contract rule 19).
 ```markdown
 <!-- frame/design.md:26, G18, the last sentence of the cell goes; the cell ends -->
 `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py:339-357` holds the crafter's paragraph naming `` `failing on base too` ``, `` `new?` `` and rule 2.
+```
+
+```seal
+verdict: fixed 93687f7f1
+answer: The orchestrator folded the paste-ready fix at `93687f7f1`, whose one hunk rewrites the G18 row of `frame/design.md`. Read at HEAD, the row's cell now ends with the sentence the fix gives, and G18 no longer names `tests/github/test_release_seal.py`. G14 names its line as a `REASONS` entry, and S6 and the plan's phase 3 row name the module as a case that passes, none as holding a sentence of *The broad gate*; G14 matches `tests/github/test_release_seal.py:382` (read). The fix pass made no commit for this finding.
 ```
 
 ## Confirmations
