@@ -624,9 +624,10 @@ class _Old_config_table:
         ], "a backslash that is not part of `\\|` is the value's own character"
 
     def test_a_backslash_against_a_pipe_is_an_escaped_pipe(self):
-        """Round 1's yellow 2 of #415, read again in #1574. A backslash immediately
-        before a cell-ending pipe is one escaped pipe, as it is to cmark-gfm,
-        so those bytes cannot also mean *backslash, then the delimiter*.
+        """Round 1's yellow 2 of #415, read again in #1574. A backslash
+        immediately before a cell-ending pipe is one escaped pipe, as it is to
+        cmark-gfm, so those bytes cannot also mean *backslash, then the
+        delimiter*.
         Against the last pipe, the line is a row whose closing pipe is left
         off, and its last cell ends in a literal pipe, which is how cmark-gfm
         renders it. Against a pipe between two cells, the two cells are one,

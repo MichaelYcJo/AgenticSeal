@@ -69,7 +69,8 @@ lists. Each run dumped `routing.parse(text)` and `routing.table_rows(text)`
 per file, and `test_tmp_s7_compare.py` printed `40 files; 0 differ`
 (executed).
 
-**Seen red against `7892a5812`, with the code as the frame found it**
+**Seen red against `7892a5812`, whose code is `351a28c71`'s, because
+`7892a5812` adds the three frame files alone**
 (executed, one command,
 `bin/test -q -p no:xdist tests/lib/test_tables.py tests/lib/test_routing.py -k "table_cells or escaped_pipe or closing_pipe or cmark_gfm or copied_without"`).
 Nine cases failed:
@@ -126,6 +127,10 @@ modules; and the 66 test files that declare no `TARGET`, which
 skipped and 1 failed. The failure was
 `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview`,
 naming this work item. The run started before this phase wrote `gaps.md`.
+After the run, the docstrings of `lib/tables.py#opens_table` and of
+`test_a_backslash_against_a_pipe_is_an_escaped_pipe` were rewrapped, with
+no word changed. `bin/test -q tests/lib/test_tables.py tests/lib/test_routing.py tests/behaviour/test_docs_line_wrap.py`
+gave 693 passed over that tree (executed).
 With the memo in place, `bin/test -q tests/behaviour/test_chain_hooks_hardening.py`
 gave 27 passed (executed).
 

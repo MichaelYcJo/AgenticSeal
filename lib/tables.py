@@ -425,8 +425,9 @@ def gfm_line_starts(text):
 
 def opens_table(index, line, under):
     """True where LINE, at INDEX, is the header of a table of its own: a
-    row `table_cells` reads, with UNDER, `[(index, line)]` for the next shown line or
-    `[]`, a delimiter row of the header's width directly below it.
+    row `table_cells` reads, with UNDER, `[(index, line)]` for the next
+    shown line or `[]`, a delimiter row of the header's width directly
+    below it.
 
     What stands above it is not asked. The caller does not read that table,
     so taking one GFM would not render costs it nothing, and a second header
