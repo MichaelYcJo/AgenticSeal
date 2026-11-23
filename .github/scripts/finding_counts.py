@@ -58,6 +58,7 @@ sys.path.insert(
 import sibling
 
 console = sibling.load("lib/console.py")
+gitcmd = sibling.load("lib/gitcmd.py")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # The repository this file is in, which `--root` defaults to.
@@ -138,7 +139,7 @@ def item_counts(root, where, routing, chain, reader, records_at):
     root's own name (`threads_at`)."""
 
     def rel(path):
-        return os.path.relpath(path, root).replace(os.sep, "/")
+        return gitcmd.git_path(os.path.relpath(path, root))
 
     if routing.rounds_unreadable(where):
         listed = os.path.join(where, *routing.ROUNDS_DIR.split("/"))
@@ -209,7 +210,7 @@ def main(argv=None):
         through, why = chained(routing, where)
         if through is None:
             declared = os.path.join(where, routing.FILENAME)
-            shown = os.path.relpath(declared, root).replace(os.sep, "/")
+            shown = gitcmd.git_path(os.path.relpath(declared, root))
             unread.append(f"{shown}: {NOT_ROUTED}: {why}")
             continue
         if not through:

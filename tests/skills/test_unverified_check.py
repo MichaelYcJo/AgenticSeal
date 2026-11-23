@@ -406,18 +406,6 @@ class Test_unique_by_target:
         assert UC.unique_by_target(given) == [os.path.realpath(tmp_path / "b")]
 
 
-# --- what git answers ---------------------------------------------------------
-
-
-class Test_repo_root:
-    def test_accepts_a_directory_and_a_file_inside_the_repository(self, plain):
-        assert same_path(UC.repo_root(str(plain / "specs")), plain)
-        assert same_path(UC.repo_root(str(plain / "specs" / WORK / "gaps.md")), plain)
-
-    def test_refuses_a_directory_outside_every_repository(self, tmp_path):
-        assert UC.repo_root(str(tmp_path)) is None
-
-
 # --- what a settle removed ----------------------------------------------------
 
 

@@ -88,7 +88,6 @@ import math
 import os
 import re
 import shlex
-import subprocess
 import sys
 import tempfile
 from collections import defaultdict
@@ -2762,22 +2761,23 @@ LOOKUP_LIMIT = 200
 
 
 def run_gh(args):
-    """`gh` with `args`, as `(exit code, stdout, stderr)`.
+    """`gh` with `args` through `lib/gitcmd.py#gh`, as `(exit code, stdout,
+    stderr)`.
 
     The one place this module touches a network, and the seam every case
     below replaces. The exit code is read straight off the subprocess
     (contract rule 1) rather than through a pipe.
 
-    A `gh` that is not on PATH comes back with `None` for the code — a
+    A `gh` that gave no answer, not on PATH or past `lib/gitcmd.py#TIMEOUT`,
+    comes back with `None` for the code and the runner's line for stderr — a
     different fact from a lookup that ran and failed, and the caller treats
     both the same way on purpose.
     """
+    gitcmd = lib_module("gitcmd")
     try:
-        done = subprocess.run(
-            ["gh", *args], capture_output=True, encoding="utf-8", errors="replace"
-        )
-    except OSError as exc:
-        return None, "", str(exc)
+        done = gitcmd.gh(*args)
+    except gitcmd.Unrun as unrun:
+        return None, "", unrun.line
     return done.returncode, done.stdout, done.stderr
 
 
@@ -2811,12 +2811,12 @@ def open_log(label):
             "number,state",
         ]
     )
+    if code is None:
+        return UNREADABLE, err
     if code != 0:
         # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
-        return UNREADABLE, (
-            "`gh` is not on PATH" if code is None else f"exit {code}"
-        ) + (f": {first[0]}" if first else "")
+        return UNREADABLE, f"exit {code}" + (f": {first[0]}" if first else "")
     try:
         issues = json.loads(out or "[]")
     except ValueError as exc:
@@ -2919,10 +2919,13 @@ def post(reading, says, label, found=None):
         )
     finally:
         os.unlink(body_file)
+    if code is None:
+        print(f"the comment on #{payload} was not posted: {err}")
+        return 1
     if code != 0:
-        where = "`gh` is not on PATH" if code is None else f"exit {code}"
         print(
-            f"the comment on #{payload} was not posted ({where}): {(err or out).strip()}"
+            f"the comment on #{payload} was not posted (exit {code}): "
+            f"{(err or out).strip()}"
         )
         return 1
     print(f"posted the run's reading to #{payload}")
@@ -3051,7 +3054,8 @@ sys.path.insert(
 
 def lib_module(name):
     """`lib/<name>.py` beside this plugin's `skills/`, loaded on first use,
-    so a reading that is not `--work-item` loads nothing from `lib/`."""
+    so a reading that is not `--work-item` and asks no git or `gh` command
+    loads nothing from `lib/`."""
     import sibling
 
     return sibling.load(f"lib/{name}.py")
@@ -3083,21 +3087,21 @@ def work_item_keys(directory):
 
 
 def run_git(cwd, args, stdin=None):
-    """`git -C CWD` with ARGS, as `(exit code, stdout bytes)`, or `(None, b"")`
-    where git could not start. Bytes, because `cat-file --batch` gives each
-    object's size in bytes. Every call here only reads, and none fetches: in
-    a partial clone `cat-file` would fetch a blob the clone lacks from its
-    remote, and `GIT_NO_LAZY_FETCH` makes it answer `missing` instead, which
-    `branch_declarations` reads as a directory with no `routing.md`. A git
-    too old to know the variable ignores it and fetches."""
+    """`git -C CWD` with ARGS through `lib/gitcmd.py#git`, as `(exit code,
+    stdout bytes)`, or `(None, b"")` where git gave no answer: it could not
+    start or did not finish within `lib/gitcmd.py#TIMEOUT`. Bytes, because
+    `cat-file --batch` gives each object's size in bytes. Every call here
+    only reads, and none fetches: in a partial clone `cat-file` would fetch
+    a blob the clone lacks from its remote, and `GIT_NO_LAZY_FETCH` makes it
+    answer `missing` instead, which `branch_declarations` reads as a
+    directory with no `routing.md`. A git too old to know the variable
+    ignores it and fetches."""
+    gitcmd = lib_module("gitcmd")
     try:
-        done = subprocess.run(
-            ["git", "-C", cwd, *args],
-            input=stdin,
-            capture_output=True,
-            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        done = gitcmd.git(
+            cwd, *args, given=stdin, binary=True, env={"GIT_NO_LAZY_FETCH": "1"}
         )
-    except OSError:
+    except gitcmd.Failed:
         return None, b""
     return done.returncode, done.stdout
 
@@ -3253,11 +3257,12 @@ def log_comments(number):
     code, out, err = run_gh(
         ["api", "--paginate", f"repos/{{owner}}/{{repo}}/issues/{number}/comments"]
     )
+    if code is None:
+        return None, err
     if code != 0:
-        where = "`gh` is not on PATH" if code is None else f"exit {code}"
         # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
-        return None, where + (f": {first[0]}" if first else "")
+        return None, f"exit {code}" + (f": {first[0]}" if first else "")
     decoder, text, at, bodies = json.JSONDecoder(), out or "", 0, []
     while True:
         while at < len(text) and text[at].isspace():

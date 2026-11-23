@@ -17,6 +17,7 @@ import sys
 
 import pytest
 from conftest import ROOT, census_case, git, load_module, write
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/code-review/scripts/pr_wait.py"
 
@@ -174,11 +175,23 @@ class Test_gh:
         ]
 
     def test_refuses_where_no_gh_is_on_path(self, tmp_path, monkeypatch):
-        """S9: no `gh` to ask."""
+        """S9: no `gh` to ask, in `lib/gitcmd.py#gh`'s line (#1573)."""
         monkeypatch.setenv("PATH", str(tmp_path))
         with pytest.raises(PR.Unanswered) as raised:
             PR.gh("pr", "view", "12", "--json", "state")
-        assert raised.value.lines() == ["could not ask: no `gh` on PATH"]
+        assert raised.value.lines() == [
+            "could not ask: `gh pr view 12 --json state` could not be run: "
+            "`gh` is not on PATH"
+        ]
+
+    def test_refuses_a_gh_past_the_bound_in_the_runners_line(self, monkeypatch):
+        """#1573: a `gh` past `lib/gitcmd.py#TIMEOUT` is a call that could
+        not ask, named in the runner's line. Seen red against `pr_wait.py`
+        before #1573, whose own line said `did not answer within`."""
+        asked = unanswered(monkeypatch, "pr", "view")
+        with pytest.raises(PR.Unanswered) as raised:
+            PR.gh("pr", "view", "12", "--json", "state")
+        assert raised.value.lines() == [f"could not ask: {past_the_bound(asked[0])}"]
 
 
 class Test_head:
@@ -199,6 +212,19 @@ class Test_head:
         assert (
             raised.value.lines()[0] == "could not ask: `git rev-parse HEAD` exited 128"
         )
+
+    def test_refuses_a_git_past_the_bound_in_the_runners_line(
+        self, tmp_path, monkeypatch
+    ):
+        """#1573: a `git rev-parse HEAD` past `lib/gitcmd.py#TIMEOUT` is a
+        call that could not ask, so the wait ends at exit 2 and does not
+        hang. Seen red against `pr_wait.py` before #1573, where the call had
+        no bound and the timeout was raised out of `head`."""
+        monkeypatch.chdir(tmp_path)
+        asked = unanswered(monkeypatch, "rev-parse", "HEAD")
+        with pytest.raises(PR.Unanswered) as raised:
+            PR.head()
+        assert raised.value.lines() == [f"could not ask: {past_the_bound(asked[0])}"]
 
 
 class Test_decide:

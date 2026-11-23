@@ -41,14 +41,13 @@ workflow runner sets it. Output: `tag=<tag>`, or `tag=` for no tag.
 
 Exit codes: 0 for every decision, a dry run included -- 1 where GitHub
 refused the tag's creation, naming its error, so a release on `main` that is
-left untagged is a red run rather than a silent one.
+left untagged is a red run rather than a silent one, and where a git or `gh`
+command gave no answer, in `lib/gitcmd.py#Unrun`'s one line.
 """
 
 import collections
 import json
 import os
-import shutil
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -58,7 +57,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
 console = sibling.load("lib/console.py")
-write_output = sibling.load(".github/scripts/publish_release_note.py").write_output
+gitcmd = sibling.load("lib/gitcmd.py")
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 MANIFEST = ".claude-plugin/plugin.json"
@@ -115,10 +114,9 @@ def decide(ref, after, before_version, after_version, tag_commit, missing=""):
 
 
 def git(*args):
-    """`git` run in the repository at `ROOT`."""
-    return subprocess.run(
-        ["git", "-C", ROOT, *args], capture_output=True, encoding="utf-8"
-    )
+    """`git` run in the repository at `ROOT` through `lib/gitcmd.py#git`;
+    the exit code is the caller's to read."""
+    return gitcmd.git(ROOT, *args)
 
 
 def version_at(commit):
@@ -155,13 +153,10 @@ def tag_commit_of(tag):
 
 def create(repo, tag, commit):
     """`tag` on `commit`, through the API and then in the checkout; the
-    error that stopped it, or ""."""
-    gh = shutil.which("gh")
-    if gh is None:
-        return "gh is not on PATH"
-    made = subprocess.run(
-        [
-            gh,
+    error that stopped it, or "". A `gh` or git that did not start or did
+    not finish is that error, in the runner's line."""
+    try:
+        made = gitcmd.gh(
             "api",
             "-X",
             "POST",
@@ -170,13 +165,12 @@ def create(repo, tag, commit):
             f"ref=refs/tags/{tag}",
             "-f",
             f"sha={commit}",
-        ],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    if made.returncode:
-        return f"gh api refused it: {made.stderr.strip()}"
-    local = git("tag", tag, commit)
+        )
+        if made.returncode:
+            return f"gh api refused it: {made.stderr.strip()}"
+        local = git("tag", tag, commit)
+    except gitcmd.Unrun as unrun:
+        return unrun.line
     if local.returncode:
         return f"git tag failed in the checkout: {local.stderr.strip()}"
     return ""
@@ -202,15 +196,15 @@ def main():
     if decided.create:
         if dry:
             print(f"would create {decided.tag} on {after}")
-            write_output("tag", "")
+            console.write_output("tag", "")
             return 0
         problem = create(repo, decided.tag, after)
         if problem:
             print(f"{decided.tag} was not created on {after}: {problem}")
-            write_output("tag", "")
+            console.write_output("tag", "")
             return 1
         print(f"created {decided.tag} on {after}")
-    write_output("tag", decided.tag)
+    console.write_output("tag", decided.tag)
     return 0
 
 

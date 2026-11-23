@@ -97,7 +97,7 @@ class Test_repo_root:
         def decoded_nothing(*args, **kwargs):
             return subprocess.CompletedProcess(args, 0, stdout=None, stderr=None)
 
-        monkeypatch.setattr(optin.subprocess, "run", decoded_nothing)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", decoded_nothing)
         assert optin.repo_root(str(ROOT)) == ""
         assert optin.opted_in(str(ROOT)) is False
 
@@ -114,7 +114,7 @@ class Test_repo_root:
         def answering(cmd, **kwargs):
             return subprocess.CompletedProcess(cmd, 0, stdout=answer + "\n", stderr="")
 
-        monkeypatch.setattr(optin.subprocess, "run", answering)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", answering)
         assert optin.repo_root(str(tmp_path)) == os.path.normpath(answer)
 
     def test_refuses_a_path_that_is_no_directory_whatever_git_answers(
@@ -131,8 +131,53 @@ class Test_repo_root:
                 cmd, 0, stdout=str(tmp_path) + "\n", stderr=""
             )
 
-        monkeypatch.setattr(optin.subprocess, "run", answering)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", answering)
         assert optin.repo_root(str(afile)) == ""
+
+    def test_refuses_a_git_that_did_not_answer_and_answers_empty(
+        self, repo, monkeypatch, optin
+    ):
+        """#1573. A git past `lib/gitcmd.py#TIMEOUT` is no answer, and
+        `repo_root` reads it as no repository: not opted in, never an
+        exception."""
+        home(repo)
+        assert optin.opted_in(str(repo)) is True
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", timed_out)
+        assert optin.repo_root(str(repo)) == ""
+        assert optin.opted_in(str(repo)) is False
+
+
+def timed_out(command, **kwargs):
+    """A `subprocess.run` whose every command passes the runner's bound."""
+    raise subprocess.TimeoutExpired(command, kwargs.get("timeout"))
+
+
+class Test_toplevel:
+    def test_accepts_the_repositorys_top_from_a_directory_inside_it(self, optin, repo):
+        inside = repo / "a" / "b"
+        inside.mkdir(parents=True)
+        assert os.path.samefile(optin.toplevel(str(inside)), repo)
+        assert optin.toplevel(str(inside)) == os.path.normpath(
+            optin.toplevel(str(inside))
+        )
+
+    def test_refuses_a_git_that_did_not_answer_as_no_repository(
+        self, optin, repo, tmp_path, monkeypatch
+    ):
+        """A directory outside any repository is `""`, as `repo_root`
+        answers, and a git past the bound raises `Unrun` naming the command
+        and the bound, so a caller can tell the two apart (#1573)."""
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path))
+        assert optin.toplevel(str(outside)) == ""
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", timed_out)
+        with pytest.raises(optin.gitcmd.Unrun) as raised:
+            optin.toplevel(str(repo))
+        assert str(raised.value) == (
+            "`git rev-parse --show-toplevel` did not finish within "
+            f"{optin.gitcmd.TIMEOUT} seconds"
+        )
 
 
 class Test_git_common_dir:
@@ -140,7 +185,7 @@ class Test_git_common_dir:
         """A `.git` directory at the toplevel is the git directory, so the common
         case costs no process, which every gated command would pay."""
         monkeypatch.setattr(
-            optin.subprocess,
+            optin.gitcmd.subprocess,
             "run",
             lambda *a, **k: (_ for _ in ()).throw(AssertionError("git was asked")),
         )
@@ -180,7 +225,7 @@ class Test_git_common_dir:
                 )
             return real(args, **kwargs)
 
-        monkeypatch.setattr(optin.subprocess, "run", answering)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", answering)
         got = optin.git_common_dir(str(other))
         assert got == os.path.normpath(got), "the answer was not normalised"
         assert os.path.samefile(got, repo / ".git")
@@ -202,11 +247,23 @@ class Test_git_common_dir:
         def decoded_nothing(*args, **kwargs):
             return subprocess.CompletedProcess(args, 0, stdout=None, stderr=None)
 
-        monkeypatch.setattr(optin.subprocess, "run", decoded_nothing)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", decoded_nothing)
         assert optin.git_common_dir(str(linked)) == ""
         assert optin.home_at(str(linked)) == ""
         assert optin.home(str(linked)) == ""
         assert optin.opted_in(str(linked)) is False
+
+    def test_refuses_a_git_that_did_not_answer_and_answers_empty(
+        self, optin, repo, tmp_path, monkeypatch
+    ):
+        """#1573. A linked worktree asks git, and a git past the bound reads
+        as no common directory, so no local root, and never raises."""
+        local_home(repo)
+        other = linked_worktree(repo, tmp_path)
+        assert optin.home_at(str(other)) != ""
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", timed_out)
+        assert optin.git_common_dir(str(other)) == ""
+        assert optin.home_at(str(other)) == ""
 
 
 class Test_home_paths:
@@ -241,13 +298,13 @@ class Test_home_paths:
         def refuse(*a, **k):
             raise AssertionError("home_paths asked git a second time")
 
-        optin.subprocess.run, saved = refuse, optin.subprocess.run
+        optin.gitcmd.subprocess.run, saved = refuse, optin.gitcmd.subprocess.run
         try:
             assert optin.home_paths(str(repo), common)[1] == os.path.join(
                 common, "seal"
             )
         finally:
-            optin.subprocess.run = saved
+            optin.gitcmd.subprocess.run = saved
 
     def test_accepts_a_passed_common_directory_in_this_platforms_spelling(
         self, optin, tmp_path
