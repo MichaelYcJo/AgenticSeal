@@ -124,8 +124,8 @@ def _roll_harness(m, monkeypatch, title, shipped, number=89):
 
     The condition is the only thing under test here, so every `gh` call below
     it succeeds on the first rung -- the create ladder has its own cases
-    above, and `run` is wired to fail the case if anything falls through to
-    it. Returns `(closed, creates)`.
+    above, and `lib/gitcmd.py#gh` is wired (`_run`) to fail the case if
+    anything falls through to it. Returns `(closed, creates)`.
     """
     closed = []
     creates = []
@@ -146,7 +146,7 @@ def _roll_harness(m, monkeypatch, title, shipped, number=89):
         lambda repo, n, shipped, comments=None: closed.append((repo, n)),
     )
     monkeypatch.setattr(m, "read_version", lambda: shipped)
-    _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to run: {a}"))
+    _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
     monkeypatch.setenv("REPO", "example/repo")
     return closed, creates
 
@@ -388,7 +388,7 @@ class Test_main:
         milestone touches, so the release does not stop for it."""
         m = _roller()
         creates, _ = _ladder_harness(m, monkeypatch, [None, ""], [list(OPEN_ONE), []])
-        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to run: {a}"))
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -443,7 +443,7 @@ class Test_main:
         m = _roller()
         landed = [{"number": 90, "title": "chore: flow measurement — 0.8.0"}]
         creates, _ = _ladder_harness(m, monkeypatch, [None], [list(OPEN_ONE), landed])
-        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to run: {a}"))
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -463,7 +463,7 @@ class Test_main:
         creates, _ = _ladder_harness(
             m, monkeypatch, [None, ""], [list(OPEN_ONE), list(OPEN_ONE), list(OPEN_ONE)]
         )
-        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to run: {a}"))
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -483,7 +483,7 @@ class Test_main:
         creates, slept = _ladder_harness(
             m, monkeypatch, [None, ""], [list(OPEN_ONE), [], landed]
         )
-        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to run: {a}"))
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 
@@ -571,7 +571,7 @@ class Test_main:
         creates, _ = _ladder_harness(
             m, monkeypatch, [""], [list(OPEN_ONE)], baseline=two_open
         )
-        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to run: {a}"))
+        _run(monkeypatch, m, lambda *a: pytest.fail(f"fell through to gitcmd.gh: {a}"))
 
         m.main()
 

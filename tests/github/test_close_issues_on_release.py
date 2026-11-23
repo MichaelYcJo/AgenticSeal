@@ -94,11 +94,11 @@ def argv_words(text):
     """The literal words of every argv in TEXT, a script's source: each list
     or tuple literal's elements and each call's positional arguments.
 
-    BOTH argv shapes the release scripts use are read: `run("gh", …)` spreads
-    the words as call arguments, and `subprocess.run(["gh", …], …)` passes a
-    list. A reader that knew only the first parsed zero calls of the second
-    and asserted nothing, measured on the first spelling of round 1's fix of
-    #450. A tuple, `subprocess.run(("gh", …))`, is read as a list is, and so
+    BOTH argv shapes are read: `run("gh", …)` spreads the words as call
+    arguments, the shape the release scripts use since #1573, and
+    `subprocess.run(["gh", …], …)` passes a list. A reader that knew only the
+    first parsed zero calls of the second and asserted nothing, measured on
+    the first spelling of round 1's fix of #450. A tuple, `subprocess.run(("gh", …))`, is read as a list is, and so
     is a tuple spread whole, `run(*("gh", …))`: a fold of the source caught
     both, and a reader of lists alone did not, measured in round 1 of #1493.
     A first word written `f"gh"` or `b"gh"` is read as `"gh"` is: a fold of
