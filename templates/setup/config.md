@@ -275,7 +275,10 @@ is read as a command name where it is the first word, or where the word
 before it is exactly `&&`, `||`, `&` or `|`. A command name is refused
 where it holds a `/` and the part before its first `/` names a directory
 under the repository root, where the command runs. An empty part (a name
-that opens with `/`), `.` and `..` each name one. So `pytest tests/x.py`
+that opens with `/`), `.` and `..` each name one, and on Windows so does a
+drive, so `C:/Python/python.exe` is refused naming `C:\Python\python.exe`.
+A name that holds a `"`, `^` or `%` after its `/` is refused on the part
+before it and named whole. So `pytest tests/x.py`
 and `uvx ruff check src/` are not refused, because `tests/x.py` and `src/`
 are arguments, and `bin -q` is not, because it holds no `/`.
 
@@ -288,25 +291,34 @@ refused, the refusal carries the same line. Under `/bin/sh`, or a
 `COMSPEC` naming another shell, the gate reads nothing of the command for
 this form and names nothing.
 
-**Where the reading and `cmd.exe` differ.**
+**Where the reading and `cmd.exe` differ.** The reading above is the
+whole of what the gate decides by. It models nothing else of how `cmd.exe`
+splits a line, and the root is read before anything runs. So wherever a
+key uses more of `cmd.exe`'s syntax than the reading reads, the two can
+disagree, in either direction.
 
-- A word the reading takes for a command name that `cmd.exe` would not
-  run is refused too, such as the text after `rem` in `rem a && bin/test`.
-  The `\` spelling there answers it.
-- A switch glued to a program's name is refused where the root holds a
-  directory of that name: `xcopy/e/i` is refused in a repository with an
-  `xcopy/` directory, and runs as written elsewhere. A blank before the
-  switch (`xcopy /e/i`) answers it.
-- The root is read before anything runs. A directory an earlier command in
-  the line makes, or one a `cd` earlier in the line enters, is not seen. So
-  a name that starts in a directory only such a command brings into reach
-  is not refused, and `cmd.exe` fails on it.
-- A separator glued to a word, as in `a&& bin/x`, `a &&bin/x` or
-  `echo a^&& bin/x`, is no separator to the reading. So the word after it
-  is neither refused nor named, though `cmd.exe` reads that word as a
-  command name. A blank on both sides of the separator puts the name back
-  in the reading. The gate reads no glued separator, because reading one
-  needs a model of how `cmd.exe` splits a line, and the gate carries none.
+- **A name `cmd.exe` runs where the reading takes none is neither refused
+  nor named**, and `cmd.exe` fails on it as it does on `bin/test -q`. That
+  is any command name that does not stand as the first word, or as the
+  word after a separator word with a blank on each side, or whose part
+  before the `/` is a directory only once the line has run. Examples are a
+  name behind a leading `@`, as in `@bin/test`, a name after a redirection
+  that opens its command, as in `>out.txt bin/test`, a name after a
+  separator glued to a word, as in `a&& bin/x`, and a name in a directory
+  an earlier command makes or a `cd` enters. A key stays inside the
+  reading where each command name, with nothing glued in front of it, is
+  the first word of its command, and every separator has a blank on each
+  side.
+- **A word the reading takes for a command name that `cmd.exe` would not
+  run is refused**, where its part before the `/` names a directory of the
+  root. Examples are the text after `rem`, as in `rem a && bin/test`, and a
+  switch glued to a program named like a directory of the root, as in
+  `xcopy/e/i` in a repository with an `xcopy/` directory. The `\` spelling
+  answers the first, and a blank before the switch (`xcopy /e/i`) answers
+  the second.
+
+The gate grows no reading for any such shape, because each one read is
+one more piece of a model of `cmd.exe`, and the gate carries none.
 
 ### What is refused, and what stays allowed
 
