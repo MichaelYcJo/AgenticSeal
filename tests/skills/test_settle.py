@@ -42,6 +42,7 @@ each case, whose root stands at `agentic-seal/`.
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -52,8 +53,11 @@ from conftest import (
     ITEM,
     ROOT,
     census_case,
+    commit_everything,
     commit_everything_as_e,
     config_json,
+    git,
+    git_out,
     line_of,
     load_module,
     mark_root,
@@ -83,43 +87,58 @@ rules = load_module(
 gitcmd = settle.sibling.load("lib/gitcmd.py")
 
 
-def git(repo, *args):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        check=True,
-        capture_output=True,
-        encoding="utf-8",
-    ).stdout
-
-
 def item(repo, name, changes):
     path = repo / "seal" / "threads" / name
     (path / "frame").mkdir(parents=True, exist_ok=True)
     (path / "frame" / "design.md").write_text(spec(changes), encoding="utf-8")
 
 
-def commit(repo, message):
-    git(repo, "add", "-A")
-    git(repo, "commit", "-qm", message)
-
-
 def stamp(repo):
     """HEAD's short hash and date, as the named-directory listing prints a
     commit."""
-    return git(repo, "log", "-1", "--format=%h %cs").strip()
+    return git_out(repo, "log", "-1", "--format=%h %cs")
 
 
-@pytest.fixture
-def repo(tmp_path):
+# --- the worlds, each built once per module and copied per case -------------
+#
+# A case commits, merges and tags in the repository it is given, so each
+# world is built once and every case takes a copy under its own `tmp_path`
+# (`CONTRIBUTING.md` *The test layout*, a rewritten module builds its world
+# once). The copy stands at `tmp_path / "repo"`, where the cases' paths expect
+# it.
+
+
+def a_copy(world, tmp_path):
+    """WORLD copied to TMP_PATH/repo, links kept as links; the copy."""
     repo = tmp_path / "repo"
+    shutil.copytree(world, repo, symlinks=True)
+    return repo
+
+
+def started(repo):
+    """REPO given a git history on `main` whose one commit, `base`, holds
+    what REPO holds now."""
+    git_out(repo, "init", "-q", "-b", "main")
+    git_out(repo, "config", "user.email", "x@example.com")
+    git_out(repo, "config", "user.name", "x")
+    commit_everything(repo, "base")
+    return repo
+
+
+@pytest.fixture(scope="module")
+def _shared_world(tmp_path_factory):
+    repo = tmp_path_factory.mktemp("settle-shared") / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "a.md").write_text(DOC, encoding="utf-8")
     mark_root(repo / "seal")
-    git(repo, "init", "-q", "-b", "main")
-    git(repo, "config", "user.email", "x@example.com")
-    git(repo, "config", "user.name", "x")
-    commit(repo, "base")
-    return repo
+    return started(repo)
+
+
+@pytest.fixture
+def shared_repo(tmp_path, _shared_world):
+    """A repository on `main` whose one commit holds `docs/a.md` and the
+    `seal/` root, marked, with no work item."""
+    return a_copy(_shared_world, tmp_path)
 
 
 def files(repo):
@@ -212,8 +231,8 @@ def no_rule(repo, work_item_id):
         + "\n## Rule changes\n\n- nothing\n  why: a moment.\n",
         encoding="utf-8",
     )
-    git(repo, "add", "--", f"seal/threads/{work_item_id}")
-    git(repo, "commit", "-qm", f"{work_item_id} states no rule")
+    git_out(repo, "add", "--", f"seal/threads/{work_item_id}")
+    git_out(repo, "commit", "-qm", f"{work_item_id} states no rule")
 
 
 def run(repo, *args):
@@ -260,8 +279,8 @@ def moment(repo, name=MOMENT, overview=None):
     (item / "routing.md").write_text(f"# {name} — routing\n", encoding="utf-8")
     if overview is not None:
         (item / "gaps.md").write_text(overview, encoding="utf-8")
-    git(repo, "add", "--", f"seal/threads/{name}")
-    git(repo, "commit", "-qm", f"released {name}")
+    git_out(repo, "add", "--", f"seal/threads/{name}")
+    git_out(repo, "commit", "-qm", f"released {name}")
     return item
 
 
@@ -271,8 +290,8 @@ def released_item(repo, name, held):
     path = repo / "seal" / "threads" / name
     for rel, text in held.items():
         write(path, rel, text)
-    git(repo, "add", "--", f"seal/threads/{name}")
-    git(repo, "commit", "-qm", f"released {name}")
+    git_out(repo, "add", "--", f"seal/threads/{name}")
+    git_out(repo, "commit", "-qm", f"released {name}")
     return path
 
 
@@ -292,13 +311,12 @@ def removed_plan(repo, name, plan, added, removed, tag=None):
     directory, as an earlier settle's `--apply` leaves it. `(adding commit,
     removing commit's short hash)`."""
     write(repo / "seal" / "threads" / name, "frame/plan.md", plan)
-    commit(repo, added)
-    adding = git(repo, "rev-parse", "HEAD").strip()
+    adding = commit_everything(repo, added)
     if tag:
-        git(repo, "tag", tag)
-    git(repo, "rm", "-rq", f"seal/threads/{name}")
-    commit(repo, removed)
-    return adding, git(repo, "rev-parse", "--short", "HEAD").strip()
+        git_out(repo, "tag", tag)
+    git_out(repo, "rm", "-rq", f"seal/threads/{name}")
+    commit_everything(repo, removed)
+    return adding, git_out(repo, "rev-parse", "--short", "HEAD")
 
 
 def three_removals(repo):
@@ -326,6 +344,20 @@ def three_removals(repo):
         )
     released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
     return printed
+
+
+@pytest.fixture(scope="module")
+def _removals_world(tmp_path_factory, _shared_world):
+    repo = a_copy(_shared_world, tmp_path_factory.mktemp("settle-removals"))
+    return repo, three_removals(repo)
+
+
+@pytest.fixture
+def removals(tmp_path, _removals_world):
+    """`(repo, printed)`: a copy of `shared_repo` after `three_removals`, and
+    the lines that returned."""
+    world, printed = _removals_world
+    return a_copy(world, tmp_path), printed
 
 
 def earlier_block(text):
@@ -370,41 +402,28 @@ def closed_after_base(repo):
     the working branch closing it — the 0.15.3 shape, where the closure
     reached the release branch and not `main`."""
     moment(repo, overview=OVERVIEW_OPEN)
-    git(repo, "branch", BASE)
+    git_out(repo, "branch", BASE)
     (repo / "seal" / "threads" / MOMENT / "gaps.md").write_text(
         OVERVIEW_CLOSED, encoding="utf-8"
     )
-    git(repo, "add", "--", f"seal/threads/{MOMENT}")
-    git(repo, "commit", "-qm", "close the row")
-
-
-def settled_repo(tmp_path, keep_empty_dir):
-    """A repository whose settle is complete: a `seal/` root with its README,
-    and `seal/threads/` either empty on disk — the tree `--apply` leaves — or
-    absent, which is what a fresh checkout of that commit has."""
-    repo = tmp_path / "repo"
-    (repo / "docs").mkdir(parents=True)
-    (repo / "docs" / "one-root.md").write_text("# a policy\n", encoding="utf-8")
-    mark_root(repo / "seal")
-    git(repo, "init", "-q")
-    git(repo, "config", "user.email", "x@example.com")
-    git(repo, "config", "user.name", "x")
-    git(repo, "add", "-A")
-    git(repo, "commit", "-qm", "settled")
-    if keep_empty_dir:
-        (repo / "seal" / "threads").mkdir()
-    return repo
+    git_out(repo, "add", "--", f"seal/threads/{MOMENT}")
+    git_out(repo, "commit", "-qm", "close the row")
 
 
 # --- a root in local mode, and the `gh` it asks (#955) ----------------------
 #
 # The local cases run `main` in process, with a `gh` stub first on PATH that
-# answers `gh pr list --head <branch>` from a file beside it and logs every
-# call. The suite runs with `gh` logged out (`tests/conftest.py`), so no local
-# case reaches the real one.
+# answers `gh pr list --head <branch>` from the case's own directory, which
+# `GH_HOME` names, and logs every call there. The stub is written once per
+# module: a script run for the first time costs a security scan on macOS,
+# 0.4 s against 0.03 s for each later run of the same file (#1581). The suite runs with `gh` logged out
+# (`tests/conftest.py`), so no local case reaches the real one.
 
-GH_STUB = """import json, os, sys
-HERE = os.path.dirname(os.path.abspath(__file__))
+GH_HOME = "AGENTIC_SETTLE_GH_STUB_HOME"
+
+GH_STUB = (
+    f"import json, os, sys\nHERE = os.environ[{GH_HOME!r}]\n"
+    + """
 args = sys.argv[1:]
 with open(os.path.join(HERE, "calls.jsonl"), "a", encoding="utf-8") as f:
     f.write(json.dumps(args) + "\\n")
@@ -425,6 +444,7 @@ if args[:1] == ["api"]:
 branch = args[args.index("--head") + 1] if "--head" in args else ""
 sys.stdout.write(json.dumps(answers.get("branches", {}).get(branch, [])) + "\\n")
 """
+)
 
 
 class Gh:
@@ -472,23 +492,33 @@ class Gh:
         return [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines()]
 
 
-@pytest.fixture
-def gh(tmp_path, monkeypatch):
-    home = tmp_path / "gh-stub"
-    home.mkdir()
-    script = home / "gh_stub.py"
+@pytest.fixture(scope="module")
+def _gh_stub(tmp_path_factory):
+    """The directory holding the `gh` stub, written once per module."""
+    where = tmp_path_factory.mktemp("settle-gh")
+    script = where / "gh_stub.py"
     script.write_text(GH_STUB, encoding="utf-8")
     if os.name == "nt":
-        (home / "gh.cmd").write_text(
+        (where / "gh.cmd").write_text(
             f'@"{sys.executable}" "{script}" %*\r\n', encoding="utf-8"
         )
     else:
-        stub = home / "gh"
+        stub = where / "gh"
         stub.write_text(
             f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding="utf-8"
         )
         stub.chmod(0o755)
-    monkeypatch.setenv("PATH", str(home) + os.pathsep + os.environ["PATH"])
+    return where
+
+
+@pytest.fixture
+def gh(tmp_path, monkeypatch, _gh_stub):
+    """The stub first on PATH, answering from and logging to this case's own
+    directory."""
+    home = tmp_path / "gh-stub"
+    home.mkdir()
+    monkeypatch.setenv(GH_HOME, str(home))
+    monkeypatch.setenv("PATH", str(_gh_stub) + os.pathsep + os.environ["PATH"])
     return Gh(home)
 
 
@@ -510,19 +540,21 @@ ROUTED = """# {name} — routing
 """
 
 
-@pytest.fixture
-def local(tmp_path):
-    """A repository whose `seal/` root is under its git directory, with
-    `docs/a.md` committed on `main` and no work item yet."""
-    repo = tmp_path / "repo"
+@pytest.fixture(scope="module")
+def _local_world(tmp_path_factory):
+    repo = tmp_path_factory.mktemp("settle-local") / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "a.md").write_text(DOC, encoding="utf-8")
-    git(repo, "init", "-q", "-b", "main")
-    git(repo, "config", "user.email", "x@example.com")
-    git(repo, "config", "user.name", "x")
-    commit(repo, "base")
+    started(repo)
     (mark_root(repo / ".git" / "seal") / "threads").mkdir()
     return repo
+
+
+@pytest.fixture
+def local_repo(tmp_path, _local_world):
+    """A repository whose `seal/` root is under its git directory, with
+    `docs/a.md` committed on `main` and no work item yet."""
+    return a_copy(_local_world, tmp_path)
 
 
 def local_dir(repo, name):
@@ -548,15 +580,15 @@ def local_item(repo, name, branch=None, changes=None, overview=None):
 def merge(repo, branch, into="main"):
     """Merge a commit of BRANCH into INTO with a merge commit, the way a pull
     request from BRANCH merges, and return the merge commit."""
-    git(repo, "switch", "-q", into)
-    git(repo, "switch", "-qc", branch)
+    git_out(repo, "switch", "-q", into)
+    git_out(repo, "switch", "-qc", branch)
     work = repo / "work"
     work.mkdir(exist_ok=True)
     (work / f"{branch.replace('/', '-')}.txt").write_text(branch, encoding="utf-8")
-    commit(repo, f"work of {branch}")
-    git(repo, "switch", "-q", into)
-    git(repo, "merge", "-q", "--no-ff", "-m", f"merge {branch}", branch)
-    return git(repo, "rev-parse", "HEAD").strip()
+    commit_everything(repo, f"work of {branch}")
+    git_out(repo, "switch", "-q", into)
+    git_out(repo, "merge", "-q", "--no-ff", "-m", f"merge {branch}", branch)
+    return git_out(repo, "rev-parse", "HEAD")
 
 
 # --- the published note `--apply` reads where the root is shared (#1139) ----
@@ -569,9 +601,9 @@ def fragment(repo, name, subject, tag=None, text=None):
     if text is None:
         text = f"- what {name} changed\n"
     write(specs_dir(repo, name), "changelog.md", text)
-    commit(repo, subject)
+    commit_everything(repo, subject)
     if tag is not None:
-        git(repo, "tag", tag)
+        git_out(repo, "tag", tag)
     return specs_dir(repo, name)
 
 
@@ -586,54 +618,60 @@ RELEASES_ASKED = "`gh api --paginate repos/{owner}/{repo}/releases?per_page=100`
 
 
 class Test_tracked_text:
-    def test_accepts_each_tracked_text_file_and_no_untracked_one(self, repo):
+    def test_accepts_each_tracked_text_file_and_no_untracked_one(self, shared_repo):
         """The citations are read from what git tracks, so a file nobody
         committed is no reader and cites nothing."""
-        (repo / "notes.txt").write_text("untracked\n", encoding="utf-8")
+        (shared_repo / "notes.txt").write_text("untracked\n", encoding="utf-8")
         tracked = ("docs/a.md", "seal/README.md")
-        assert dict(settle.tracked_text(str(repo), "seal/threads")) == {
-            rel: (repo / rel).read_bytes().decode("utf-8") for rel in tracked
+        assert dict(settle.tracked_text(str(shared_repo), "seal/threads")) == {
+            rel: (shared_repo / rel).read_bytes().decode("utf-8") for rel in tracked
         }
 
-    def test_refuses_a_file_under_the_work_items_and_a_binary_file(self, repo):
+    def test_refuses_a_file_under_the_work_items_and_a_binary_file(self, shared_repo):
         """Guards s4 of #1017: a work item's own files are what `--apply`
         removes, so none of them is read as a path citing into it, and a file
         holding a NUL byte is binary and skipped."""
-        item(repo, "1700000001-alpha", "- nothing\n  why: a reason.")
-        (repo / "b.bin").write_bytes(b"a\0b")
-        commit(repo, "a work item and a binary file")
-        assert [rel for rel, _ in settle.tracked_text(str(repo), "seal/threads")] == [
+        item(shared_repo, "1700000001-alpha", "- nothing\n  why: a reason.")
+        (shared_repo / "b.bin").write_bytes(b"a\0b")
+        commit_everything(shared_repo, "a work item and a binary file")
+        assert [
+            rel for rel, _ in settle.tracked_text(str(shared_repo), "seal/threads")
+        ] == [
             "docs/a.md",
             "seal/README.md",
         ]
 
 
 class Test_citations:
-    def test_accepts_a_line_citing_a_work_item_twice_as_one_citation(self, repo):
+    def test_accepts_a_line_citing_a_work_item_twice_as_one_citation(self, shared_repo):
         """A `tests/` file that reads `seal/threads` is a reader, and its line
         citing a work item twice is one citation."""
-        (repo / "tests").mkdir()
-        (repo / "tests" / "test_reads.py").write_text(
+        (shared_repo / "tests").mkdir()
+        (shared_repo / "tests" / "test_reads.py").write_text(
             'SPECS = "seal/threads"\n'
             'A = "seal/threads/1700000001-alpha/frame/design.md seal/threads/1700000001-alpha/plan.md"\n',
             encoding="utf-8",
         )
-        commit(repo, "a reader")
-        assert settle.citations(str(repo), ["1700000001-alpha"], "seal/threads") == (
+        commit_everything(shared_repo, "a reader")
+        assert settle.citations(
+            str(shared_repo), ["1700000001-alpha"], "seal/threads"
+        ) == (
             {"1700000001-alpha": ["tests/test_reads.py:2"]},
             ["tests/test_reads.py"],
         )
 
-    def test_refuses_a_tests_file_naming_specs_alone_as_a_reader(self, repo):
+    def test_refuses_a_tests_file_naming_specs_alone_as_a_reader(self, shared_repo):
         """Guards s5 of #1017: a `tests/` file naming a team's own `specs`
         reads nothing `--apply` removes, so it owes no answer before the
         directories go."""
-        (repo / "tests").mkdir()
-        (repo / "tests" / "test_team.py").write_text(
+        (shared_repo / "tests").mkdir()
+        (shared_repo / "tests" / "test_team.py").write_text(
             'TEAM = "specs"\n', encoding="utf-8"
         )
-        commit(repo, "a team's reader")
-        assert settle.citations(str(repo), ["1700000001-alpha"], "seal/threads") == (
+        commit_everything(shared_repo, "a team's reader")
+        assert settle.citations(
+            str(shared_repo), ["1700000001-alpha"], "seal/threads"
+        ) == (
             {"1700000001-alpha": []},
             [],
         )
@@ -661,8 +699,8 @@ class Test_report:
         ).write_text(
             spec("- rename\n  file: docs/one-root.md\n  to: x"), encoding="utf-8"
         )
-        git(tree, "add", "--", "seal/threads/1700000001-alpha")
-        git(tree, "commit", "-qm", "alpha does not parse")
+        git_out(tree, "add", "--", "seal/threads/1700000001-alpha")
+        git_out(tree, "commit", "-qm", "alpha does not parse")
         moment(tree, overview=OVERVIEW_OPEN)
         before = sorted(
             str(p.relative_to(tree)) for p in tree.rglob("*") if p.is_file()
@@ -698,8 +736,8 @@ class Test_report:
             (tree / "seal" / "threads" / name / "frame" / "design.md").write_text(
                 text, encoding="utf-8"
             )
-            git(tree, "add", "--", f"seal/threads/{name}")
-        git(tree, "commit", "-qm", "two designs with a heading near the section's")
+            git_out(tree, "add", "--", f"seal/threads/{name}")
+        git_out(tree, "commit", "-qm", "two designs with a heading near the section's")
         code, text = run(tree)
         assert code == 0, text
         listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
@@ -790,8 +828,8 @@ class Test_report:
         (tree / "tests" / "test_reads.py").write_text(
             'SPECS = "seal/threads"\n', encoding="utf-8"
         )
-        git(tree, "add", "--", "docs", "tests")
-        git(tree, "commit", "-qm", "citations")
+        git_out(tree, "add", "--", "docs", "tests")
+        git_out(tree, "commit", "-qm", "citations")
         _, text = run(tree)
         takes = text.split(settle.REMOVES_HEADING)[1]
         assert "    seal/threads/1700000001-alpha/  now\n" in takes, text
@@ -939,8 +977,8 @@ class Test_apply:
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
         (team / "spec.md").write_text("# the team's spec\n", encoding="utf-8")
-        git(tree, "add", "-A")
-        git(tree, "commit", "-qm", "a team directory of the same name")
+        git_out(tree, "add", "-A")
+        git_out(tree, "commit", "-qm", "a team directory of the same name")
         no_rule(tree, "1700000001-alpha")
         code, text = run(tree, "--apply")
         assert code == 0, text
@@ -969,30 +1007,30 @@ class Test_apply:
         ) in text, text
 
     def test_an_open_row_keeps_its_directory_and_a_closure_on_disk_lets_it_go(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """S3: the open row keeps the directory, named, at exit 1; closed in
         the working tree and not committed, the next `--apply` removes it,
         prints the row with what closed it, and exits 0. Nothing waits for
         the closure to reach a base."""
-        item(repo, "1700000001-a", op("add", "S", new="Rule."))
-        overview = specs_dir(repo, "1700000001-a") / "gaps.md"
+        item(shared_repo, "1700000001-a", op("add", "S", new="Rule."))
+        overview = specs_dir(shared_repo, "1700000001-a") / "gaps.md"
         overview.write_text(OPEN, encoding="utf-8")
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
+        commit_everything(shared_repo, "a")
+        code, text = apply(shared_repo, capfd)
         assert code == 1, text
-        assert specs_dir(repo, "1700000001-a").exists(), text
+        assert specs_dir(shared_repo, "1700000001-a").exists(), text
         assert (
             "kept seal/threads/1700000001-a/: its record holds 1 open row; close "
             "each (`closed` with what closed it) and run `seal settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         overview.write_text(OVERVIEW_CLOSED, encoding="utf-8")
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
-        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert not specs_dir(shared_repo, "1700000001-a").exists(), text
         assert "    closed in gaps.md: a claim\n" in text, text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+        assert (shared_repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
 
     def test_a_closure_the_released_ref_has_not_seen_lets_the_directory_go(self, tree):
         """S3 at a base: the row is closed on the working branch and open at
@@ -1071,24 +1109,26 @@ class Test_apply:
 
 
 class Test_main:
-    def test_two_specs_on_one_sentence_are_one_group_in_merge_order(self, repo, capfd):
+    def test_two_specs_on_one_sentence_are_one_group_in_merge_order(
+        self, shared_repo, capfd
+    ):
         """S1: B was added after A on one line of history, so B is listed
         after A whatever their ids say. A's `from` no longer matches, since
         the section holds the sentence as A left it, and nothing is refused;
         with both records holding no row, `--apply` removes both and writes
         no document."""
-        (repo / "docs" / "a.md").write_text(
+        (shared_repo / "docs" / "a.md").write_text(
             DOC.replace("old sentence.", "y."), encoding="utf-8"
         )
-        commit(repo, "the section as A left it")
-        item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
-        commit(repo, "a")
-        item(repo, "1700000001-b", op("change", "S", "y.", "z."))
-        commit(repo, "b")
-        before = files(repo)
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "the section as A left it")
+        item(shared_repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
+        commit_everything(shared_repo, "a")
+        item(shared_repo, "1700000001-b", op("change", "S", "y.", "z."))
+        commit_everything(shared_repo, "b")
+        before = files(shared_repo)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
-        assert files(repo) == before, "the dry run wrote to the tree"
+        assert files(shared_repo) == before, "the dry run wrote to the tree"
         assert "refused" not in text, text
         line = line_of(spec(op("change", "S", "y.", "z.")), "- change")
         assert group_text(text) == (
@@ -1099,25 +1139,27 @@ class Test_main:
             "  from found, to not found"
         ), text
         assert "\ngroup 2\n" not in text, text
-        docs = {k: v for k, v in files(repo).items() if k.startswith("docs")}
-        code, text = apply(repo, capfd)
+        docs = {k: v for k, v in files(shared_repo).items() if k.startswith("docs")}
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
-        assert not specs_dir(repo, "1700000009-a").exists(), text
-        assert not specs_dir(repo, "1700000001-b").exists(), text
-        assert {k: v for k, v in files(repo).items() if k.startswith("docs")} == docs
+        assert not specs_dir(shared_repo, "1700000009-a").exists(), text
+        assert not specs_dir(shared_repo, "1700000001-b").exists(), text
+        assert {
+            k: v for k, v in files(shared_repo).items() if k.startswith("docs")
+        } == docs
 
     def test_a_stale_from_is_listed_and_neither_refused_nor_waited_on(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """S2: an operation whose `from` matches nothing, and one whose
         heading is not there, are history in their groups; a later spec at
         the same place is listed after them, and the directories go."""
-        item(repo, "1700000001-a", op("change", "S", "not there.", "y."))
-        item(repo, "1700000002-c", op("remove", "Nowhere"))
-        commit(repo, "a and c")
-        item(repo, "1700000003-b", op("add", "S", new="Rule."))
-        commit(repo, "b")
-        code, text = dry_run(repo, capfd)
+        item(shared_repo, "1700000001-a", op("change", "S", "not there.", "y."))
+        item(shared_repo, "1700000002-c", op("remove", "Nowhere"))
+        commit_everything(shared_repo, "a and c")
+        item(shared_repo, "1700000003-b", op("add", "S", new="Rule."))
+        commit_everything(shared_repo, "b")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert "refused" not in text and "waits" not in text, text
         first = group_text(text, 1)
@@ -1129,30 +1171,30 @@ class Test_main:
             "working tree\n    1. remove  1700000002-c  "
         ), text
         assert group_text(text, 2).endswith("  the whole section"), text
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         for name in ("1700000001-a", "1700000002-c", "1700000003-b"):
-            assert not specs_dir(repo, name).exists(), text
+            assert not specs_dir(shared_repo, name).exists(), text
 
     @pytest.mark.parametrize("section", ["S", "S child"])
     def test_two_specs_on_parallel_branches_at_one_place_are_one_group_unordered(
-        self, repo, capfd, section
+        self, shared_repo, capfd, section
     ):
         """S5: ancestry cannot order them, so they are one group with the
         pair marked for the settling session to order by content, and nothing
         is refused. A sub-section is inside its section's range, so it is the
         same place."""
-        git(repo, "switch", "-qc", "one")
-        item(repo, "1700000001-a", op("change", "S", "old sentence.", "y."))
-        commit(repo, "a")
-        git(repo, "switch", "-q", "main")
-        git(repo, "switch", "-qc", "two")
-        item(repo, "1700000002-b", op("add", section, new="Rule."))
-        commit(repo, "b")
-        git(repo, "switch", "-q", "main")
-        git(repo, "merge", "-q", "--no-ff", "-m", "one", "one")
-        git(repo, "merge", "-q", "--no-ff", "-m", "two", "two")
-        code, text = dry_run(repo, capfd)
+        git_out(shared_repo, "switch", "-qc", "one")
+        item(shared_repo, "1700000001-a", op("change", "S", "old sentence.", "y."))
+        commit_everything(shared_repo, "a")
+        git_out(shared_repo, "switch", "-q", "main")
+        git_out(shared_repo, "switch", "-qc", "two")
+        item(shared_repo, "1700000002-b", op("add", section, new="Rule."))
+        commit_everything(shared_repo, "b")
+        git_out(shared_repo, "switch", "-q", "main")
+        git_out(shared_repo, "merge", "-q", "--no-ff", "-m", "one", "one")
+        git_out(shared_repo, "merge", "-q", "--no-ff", "-m", "two", "two")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert "refused" not in text, text
         group = group_text(text)
@@ -1161,19 +1203,21 @@ class Test_main:
         assert f"    {said}" in group, text
         assert "\ngroup 2\n" not in text, text
 
-    def test_a_spec_that_joins_no_group_is_read_whole_and_goes(self, repo, capfd):
+    def test_a_spec_that_joins_no_group_is_read_whole_and_goes(
+        self, shared_repo, capfd
+    ):
         """S4: a section that does not parse is listed to read whole with the
         reader's reason at its line, beside a spec with no section, and with
         no open row both leave."""
         bad = "- rename\n  file: docs/a.md\n  to: x"
-        item(repo, "1700000001-a", bad)
-        old = specs_dir(repo, "1700000002-old")
+        item(shared_repo, "1700000001-a", bad)
+        old = specs_dir(shared_repo, "1700000002-old")
         (old / "frame").mkdir(parents=True)
         (old / "frame" / "design.md").write_text(
             "# old\n\n## Scope\n\nIn.\n", encoding="utf-8"
         )
-        commit(repo, "a and old")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a and old")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         whole = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0]
         line = line_of(spec(bad), "- rename")
@@ -1184,17 +1228,19 @@ class Test_main:
         assert (
             f"    1700000002-old  seal/threads/1700000002-old/frame/design.md  {settle.NO_SECTION}"
         ) in whole, text
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
-        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert not specs_dir(shared_repo, "1700000001-a").exists(), text
         assert not old.exists(), text
 
-    def test_the_no_change_block_is_listed_with_no_section_to_write(self, repo, capfd):
+    def test_the_no_change_block_is_listed_with_no_section_to_write(
+        self, shared_repo, capfd
+    ):
         """A spec whose section is the no-change block states that no rule
         changes, so it joins no group and is listed under the block."""
-        item(repo, "1700000001-a", "- nothing\n  why: a release entry.")
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        item(shared_repo, "1700000001-a", "- nothing\n  why: a release entry.")
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert (
             "the no-change block (`- nothing`), so no section to write:\n"
@@ -1203,7 +1249,7 @@ class Test_main:
         assert "\ngroup 1\n" not in text, text
 
     def test_the_judgments_are_printed_by_the_document_each_stands_on(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1167, *Scope* item 12: each released plan's *Judgments of the
         run*, read through `lib/tables.py#gfm_table`, grouped by the
@@ -1249,7 +1295,7 @@ class Test_main:
         }
         lines = {}
         for name, (rounds, rows) in plans.items():
-            item(repo, name, "- nothing\n  why: x.")
+            item(shared_repo, name, "- nothing\n  why: x.")
             table = "".join(f"| {' | '.join(row)} |\n" for row in rows)
             plan = (
                 "# Implementation Plan: x\n\n## Phases\n\n"
@@ -1258,22 +1304,22 @@ class Test_main:
                 "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
                 + table
             )
-            (specs_dir(repo, name) / "frame" / "plan.md").write_text(
+            (specs_dir(shared_repo, name) / "frame" / "plan.md").write_text(
                 plan, encoding="utf-8"
             )
             lines[name] = [
                 line_of(plan, f"| {' | '.join(row)} |") for row in rows if row[0]
             ]
-            held = specs_dir(repo, name) / "trail" / "rounds"
+            held = specs_dir(shared_repo, name) / "trail" / "rounds"
             held.mkdir(parents=True)
             for n in range(1, rounds + 1):
                 (held / f"round-{n}.md").write_text("# round\n", encoding="utf-8")
-        item(repo, "1700000003-c", "- nothing\n  why: x.")
-        (specs_dir(repo, "1700000003-c") / "frame" / "plan.md").write_text(
+        item(shared_repo, "1700000003-c", "- nothing\n  why: x.")
+        (specs_dir(shared_repo, "1700000003-c") / "frame" / "plan.md").write_text(
             "# Implementation Plan: c\n\n## Phases\n", encoding="utf-8"
         )
-        commit(repo, "a, b and c")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a, b and c")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1].split(
             f"\n\n{settle.REMOVES_HEADING}"
@@ -1295,19 +1341,19 @@ class Test_main:
         assert "1700000003-c" not in block, block
 
     def test_a_judgments_section_it_cannot_read_is_named_and_refuses_nothing(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """The core's rule for a script: a section that holds no table under
         the exact header is named as not read, and the dry run still exits 0
         and prints the rest."""
-        item(repo, "1700000001-a", "- nothing\n  why: x.")
-        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+        item(shared_repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(shared_repo, "1700000001-a") / "frame" / "plan.md").write_text(
             "# Implementation Plan: a\n\n## Judgments of the run\n\n"
             "| Date | Judgment | Grounds |\n|---|---|---|\n| 2026-10-01 | x | y |\n",
             encoding="utf-8",
         )
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
         assert block.startswith(
@@ -1319,7 +1365,7 @@ class Test_main:
 
     @pytest.mark.parametrize("shape", ["link", "unlistable"])
     def test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none(
-        self, repo, capfd, monkeypatch, shape
+        self, shared_repo, capfd, monkeypatch, shape
     ):
         """Round 9, finding 1. A `trail/rounds` that is a link, or a
         directory nothing can list, holds a review git carries
@@ -1327,17 +1373,17 @@ class Test_main:
         counted none rather than that none happened. The unlistable
         directory is made by refusing `os.listdir` on that one path, since
         `chmod 000` does not bar a runner that is root."""
-        item(repo, "1700000001-a", "- nothing\n  why: x.")
-        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+        item(shared_repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(shared_repo, "1700000001-a") / "frame" / "plan.md").write_text(
             "# Implementation Plan: a\n\n## Judgments of the run\n\n"
             "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
             "| 2026-10-01 | x | y | z |\n",
             encoding="utf-8",
         )
-        trail = specs_dir(repo, "1700000001-a") / "trail"
+        trail = specs_dir(shared_repo, "1700000001-a") / "trail"
         trail.mkdir()
         if shape == "link":
-            held = repo / "elsewhere"
+            held = shared_repo / "elsewhere"
             held.mkdir()
             (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
             symlink_or_skip(held, trail / "rounds", directory=True)
@@ -1346,7 +1392,7 @@ class Test_main:
             (trail / "rounds" / "round-1.md").write_text(
                 "# Review round 1\n", encoding="utf-8"
             )
-        commit(repo, "a")
+        commit_everything(shared_repo, "a")
         if shape == "unlistable":
             barred = os.path.normcase(os.path.realpath(trail / "rounds"))
             listdir = os.listdir
@@ -1357,7 +1403,7 @@ class Test_main:
                 return listdir(path)
 
             monkeypatch.setattr(os, "listdir", refusing)
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert (
             "    1700000001-a  its trail/rounds is not a directory this can "
@@ -1374,21 +1420,21 @@ class Test_main:
         ],
     )
     def test_refuses_to_read_rows_under_a_heading_near_the_judgments_section(
-        self, repo, capfd, heading
+        self, shared_repo, capfd, heading
     ):
         """Round 9, finding 2. A heading whose letters, case folded, are the
         section's and that is not it is named at its line, and none of its
         rows is read: `--apply` removes the plan, so silence here loses the
         rows unread. Every live heading is the scope this reader scans."""
-        item(repo, "1700000001-a", "- nothing\n  why: x.")
-        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+        item(shared_repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(shared_repo, "1700000001-a") / "frame" / "plan.md").write_text(
             f"# Implementation Plan: a\n\n{heading}\n\n"
             "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
             "| 2026-10-01 | x | y | z |\n",
             encoding="utf-8",
         )
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
         assert block.startswith(
@@ -1398,41 +1444,47 @@ class Test_main:
         ), block
         assert "judged against:" not in block, block
 
-    def test_accepts_a_near_heading_inside_a_fence_without_a_word(self, repo, capfd):
+    def test_accepts_a_near_heading_inside_a_fence_without_a_word(
+        self, shared_repo, capfd
+    ):
         """The edge of finding 2's scope: a heading inside a fence is no
         heading, so the reader names nothing for it."""
         fence = "`" * 3
-        item(repo, "1700000001-a", "- nothing\n  why: x.")
-        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+        item(shared_repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(shared_repo, "1700000001-a") / "frame" / "plan.md").write_text(
             f"# Implementation Plan: a\n\n{fence}\n## Judgments of the Run\n{fence}\n",
             encoding="utf-8",
         )
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.JUDGMENTS_HEADING not in text, text
 
-    def test_accepts_a_near_heading_inside_a_comment_without_a_word(self, repo, capfd):
+    def test_accepts_a_near_heading_inside_a_comment_without_a_word(
+        self, shared_repo, capfd
+    ):
         """Round 10's edge of round 9's finding 2: a heading inside an HTML
         comment is no live heading (`lib/lines.py#live_lines`), so
         the reader names nothing for it."""
-        item(repo, "1700000001-a", "- nothing\n  why: x.")
-        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+        item(shared_repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(shared_repo, "1700000001-a") / "frame" / "plan.md").write_text(
             "# Implementation Plan: a\n\n<!--\n## Judgments of the Run\n-->\n",
             encoding="utf-8",
         )
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.JUDGMENTS_HEADING not in text, text
 
-    def test_a_near_heading_is_named_beside_the_section_it_is_not(self, repo, capfd):
+    def test_a_near_heading_is_named_beside_the_section_it_is_not(
+        self, shared_repo, capfd
+    ):
         """A plan holding a near heading and the exact section gets the line
         for the first and the rows of the second: the naming runs before the
         reader looks for the exact section, and the near rows are not read."""
-        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        item(shared_repo, "1700000001-a", "- nothing\n  why: x.")
         header = "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
-        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+        (specs_dir(shared_repo, "1700000001-a") / "frame" / "plan.md").write_text(
             "# Implementation Plan: a\n\n## Judgments Of The Run\n\n"
             + header
             + "| 2026-10-01 | near | y | z |\n\n## Judgments of the run\n\n"
@@ -1440,8 +1492,8 @@ class Test_main:
             + "| 2026-10-02 | exact | y | z |\n",
             encoding="utf-8",
         )
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
         assert block.startswith(
@@ -1453,7 +1505,7 @@ class Test_main:
         assert "2026-10-01  near" not in block, block
 
     def test_the_judgments_earlier_settles_removed_are_read_from_the_history(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1281, design S1. A plan a commit on the ref deleted is read at
         that commit's parent, after *The judgments*: its rows grouped by the
@@ -1472,14 +1524,19 @@ class Test_main:
         plan = judgments_plan(rows)
         old = "1700000001-old"
         _, short = removed_plan(
-            repo, old, plan, "the old work item (#3)", "settle 0.1.0 (#7)", "v0.1.0"
+            shared_repo,
+            old,
+            plan,
+            "the old work item (#3)",
+            "settle 0.1.0 (#7)",
+            "v0.1.0",
         )
         released_item(
-            repo,
+            shared_repo,
             "1700000002-new",
             {"frame/plan.md": judgments_plan([("2026-10-03", "x", "y", run_doc)])},
         )
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert text.index(settle.JUDGMENTS_HEADING) < text.index(
             settle.EARLIER_HEADING
@@ -1501,7 +1558,7 @@ class Test_main:
         ), block
 
     def test_a_deleted_plan_whose_directory_stands_is_not_an_earlier_one(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1281, design S3. A plan deleted from a work item whose directory
         stands in the working tree is no earlier settle's removal, so it is
@@ -1509,27 +1566,27 @@ class Test_main:
         of `work_items(records)` alone removed."""
         name = "1700000001-a"
         released_item(
-            repo,
+            shared_repo,
             name,
             {
                 "routing.md": "# a — routing\n",
                 "frame/plan.md": judgments_plan([("2026-10-01", "x", "y", "z")]),
             },
         )
-        git(repo, "rm", "-q", f"seal/threads/{name}/frame/plan.md")
-        commit(repo, "a drops its plan (#7)")
-        code, text = dry_run(repo, capfd)
+        git_out(shared_repo, "rm", "-q", f"seal/threads/{name}/frame/plan.md")
+        commit_everything(shared_repo, "a drops its plan (#7)")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.EARLIER_HEADING not in text, text
 
-    def test_a_plan_is_read_once_at_its_newest_deletion(self, repo, capfd):
+    def test_a_plan_is_read_once_at_its_newest_deletion(self, shared_repo, capfd):
         """#1281, design *Scope* item 1. A plan deleted, added again and
         deleted again is read once, at the newest deletion's parent, and
         the work items of one cell come in the order of their removing
         commits, newest first, whatever their ids' order. Seen red with the
         once-only check removed, and with the deletions taken oldest first."""
         removed_plan(
-            repo,
+            shared_repo,
             "1700000000-older",
             judgments_plan([("2026-09-01", "older", "y", "z")]),
             "the older work item (#1)",
@@ -1537,20 +1594,22 @@ class Test_main:
         )
         old = "1700000001-old"
         removed_plan(
-            repo,
+            shared_repo,
             old,
             judgments_plan([("2026-10-01", "first", "y", "z")]),
             "the old work item (#3)",
             "drop it (#5)",
         )
         plan = judgments_plan([("2026-10-02", "second", "y", "z")])
-        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
-        commit(repo, "the old work item again (#6)")
-        git(repo, "rm", "-rq", f"seal/threads/{old}")
-        commit(repo, "settle 0.1.0 (#7)")
-        short = git(repo, "rev-parse", "--short", "HEAD").strip()
-        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
-        code, text = dry_run(repo, capfd)
+        write(shared_repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit_everything(shared_repo, "the old work item again (#6)")
+        git_out(shared_repo, "rm", "-rq", f"seal/threads/{old}")
+        commit_everything(shared_repo, "settle 0.1.0 (#7)")
+        short = git_out(shared_repo, "rev-parse", "--short", "HEAD")
+        released_item(
+            shared_repo, "1700000002-new", {"routing.md": "# new — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.EARLIER_HEADING in text, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
@@ -1565,64 +1624,72 @@ class Test_main:
             f"frame/plan.md:7  2026-10-02  second\n"
         ) in block, block
 
-    def test_a_removed_plan_of_a_non_ascii_id_is_read(self, repo, capfd):
+    def test_a_removed_plan_of_a_non_ascii_id_is_read(self, shared_repo, capfd):
         """#1281, round 1, finding 1. A work item id may hold any character
         the slug takes, and git quotes such a path under the default
         `core.quotePath` unless `-z` is given, so the history is read with
         `-z`. Seen red against the reading without it."""
         old = "1700000001-정렬"
         plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
-        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
-        commit(repo, "the old work item (#3)")
-        git(repo, "rm", "-rq", f"seal/threads/{old}")
-        commit(repo, "settle 0.1.0 (#7)")
-        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
-        code, text = dry_run(repo, capfd)
+        write(shared_repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit_everything(shared_repo, "the old work item (#3)")
+        git_out(shared_repo, "rm", "-rq", f"seal/threads/{old}")
+        commit_everything(shared_repo, "settle 0.1.0 (#7)")
+        released_item(
+            shared_repo, "1700000002-new", {"routing.md": "# new — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert f"\n    {old}  " in text, text
 
-    def test_a_plan_deleted_where_another_is_added_is_still_read(self, repo, capfd):
+    def test_a_plan_deleted_where_another_is_added_is_still_read(
+        self, shared_repo, capfd
+    ):
         """#1281, round 1, finding 2, design *Scope* item 1. One commit
         deletes a work item's plan and adds another's from the same text, so
         git's rename detection would pair the two and list no deletion. Seen
         red with `--no-renames` alone removed from `earlier_judgments`."""
-        git(repo, "config", "diff.renames", "true")
+        git_out(shared_repo, "config", "diff.renames", "true")
         old, new = "1700000001-old", "1700000002-new"
         plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
-        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
-        commit(repo, "the old work item (#3)")
-        git(repo, "rm", "-rq", f"seal/threads/{old}")
-        write(repo / "seal" / "threads" / new, "frame/plan.md", plan)
-        commit(repo, "settle 0.1.0 and frame the new one (#7)")
-        code, text = dry_run(repo, capfd)
+        write(shared_repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit_everything(shared_repo, "the old work item (#3)")
+        git_out(shared_repo, "rm", "-rq", f"seal/threads/{old}")
+        write(shared_repo / "seal" / "threads" / new, "frame/plan.md", plan)
+        commit_everything(shared_repo, "settle 0.1.0 and frame the new one (#7)")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert f"\n    {old}  " in text, text
 
-    def test_a_plan_added_where_another_is_deleted_names_its_release(self, repo, capfd):
+    def test_a_plan_added_where_another_is_deleted_names_its_release(
+        self, shared_repo, capfd
+    ):
         """#1481, design *Scope* item 4. The adding commits are read in one
         `git log` over `seal/threads`, so a commit that deletes one plan and
         adds another from the same text is read as the add it is, and the
         second plan's line names the release that holds it. Seen red with
         `--no-renames` alone removed from `adding_commits`."""
-        git(repo, "config", "diff.renames", "true")
+        git_out(shared_repo, "config", "diff.renames", "true")
         old, new = "1700000001-old", "1700000002-new"
         plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
-        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
-        commit(repo, "the old work item (#3)")
-        git(repo, "rm", "-rq", f"seal/threads/{old}")
-        write(repo / "seal" / "threads" / new, "frame/plan.md", plan)
-        commit(repo, "settle 0.1.0 and frame the new one (#7)")
-        git(repo, "tag", "v0.2.0")
-        git(repo, "rm", "-rq", f"seal/threads/{new}")
-        commit(repo, "settle 0.2.0 (#9)")
-        released_item(repo, "1700000003-next", {"routing.md": "# next — routing\n"})
-        code, text = dry_run(repo, capfd)
+        write(shared_repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit_everything(shared_repo, "the old work item (#3)")
+        git_out(shared_repo, "rm", "-rq", f"seal/threads/{old}")
+        write(shared_repo / "seal" / "threads" / new, "frame/plan.md", plan)
+        commit_everything(shared_repo, "settle 0.1.0 and frame the new one (#7)")
+        git_out(shared_repo, "tag", "v0.2.0")
+        git_out(shared_repo, "rm", "-rq", f"seal/threads/{new}")
+        commit_everything(shared_repo, "settle 0.2.0 (#9)")
+        released_item(
+            shared_repo, "1700000003-next", {"routing.md": "# next — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert f"\n    {new}  released in v0.2.0; removed by " in text, text
 
     @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
     def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
-        self, repo, capfd, monkeypatch, added_by
+        self, shared_repo, capfd, monkeypatch, added_by
     ):
         """#1281, design S4. Where no `vX.Y.Z` tag holds the commit that
         added the plan, the work item's line names that commit, and a
@@ -1631,27 +1698,29 @@ class Test_main:
         own resolution added, the line says so."""
         old = "1700000001-old"
         adding, short = removed_plan(
-            repo,
+            shared_repo,
             old,
             judgments_plan([("2026-10-01", "x", "y", "z")]),
             "the old work item",
             "drop the old work item",
         )
-        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        released_item(
+            shared_repo, "1700000002-new", {"routing.md": "# new — routing\n"}
+        )
         released = (
             "no `vX.Y.Z` tag holds "
-            + git(repo, "rev-parse", "--short", adding).strip()
+            + git_out(shared_repo, "rev-parse", "--short", adding)
             + ", the commit that added its plan"
         )
         if added_by == "no commit":
             monkeypatch.setattr(settle, "adding_commits", lambda *_: {})
             released = "no commit on main adds its plan"
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert f"\n    {old}  {released}; removed by {short}\n" in text, text
 
     def test_names_a_near_heading_in_a_removed_plan_and_reads_none_of_its_rows(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1281, design S5. A removed plan is read by the reader the
         released plans are read by, so a near heading is named at its
@@ -1660,7 +1729,7 @@ class Test_main:
         removed."""
         old = "1700000001-old"
         _, short = removed_plan(
-            repo,
+            shared_repo,
             old,
             judgments_plan(
                 [("2026-10-01", "x", "y", "z")], heading="## Judgments Of The Run"
@@ -1669,8 +1738,10 @@ class Test_main:
             "settle 0.1.0 (#7)",
             "v0.1.0",
         )
-        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
-        code, text = dry_run(repo, capfd)
+        released_item(
+            shared_repo, "1700000002-new", {"routing.md": "# new — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.EARLIER_HEADING in text, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
@@ -1697,7 +1768,7 @@ class Test_main:
         ],
     )
     def test_a_git_that_cannot_read_an_earlier_plan_is_named_and_refuses_nothing(
-        self, repo, capfd, monkeypatch, failing
+        self, shared_repo, capfd, monkeypatch, failing
     ):
         """#1281, design *Scope* item 4, and #1481, design *Scope* item 6.
         Each of the six calls the section reads through, the deletions'
@@ -1707,14 +1778,16 @@ class Test_main:
         is named once with what git said, no row is printed, and the dry run
         exits 0."""
         removed_plan(
-            repo,
+            shared_repo,
             "1700000001-old",
             judgments_plan([("2026-10-01", "x", "y", "z")]),
             "the old work item (#3)",
             "settle 0.1.0 (#7)",
             "v0.1.0",
         )
-        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        released_item(
+            shared_repo, "1700000002-new", {"routing.md": "# new — routing\n"}
+        )
         real = settle.git_run
         subcommand, marker = failing
 
@@ -1724,7 +1797,7 @@ class Test_main:
             return real(root, *args, given=given)
 
         monkeypatch.setattr(settle, "git_run", git_run)
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.EARLIER_HEADING in text, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
@@ -1733,7 +1806,7 @@ class Test_main:
         assert block == "    not read: git said no", block
 
     def test_the_git_calls_do_not_grow_with_the_plans_read(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1481, design S4. The dry run over a history that removed one
         plan makes as many git calls as over one that removed three, each
@@ -1742,7 +1815,7 @@ class Test_main:
         the per-plan `git show`, `git log` and `git tag --contains`."""
         for n in range(1, 4):
             removed_plan(
-                repo,
+                shared_repo,
                 f"170000000{n}-old",
                 judgments_plan([(f"2026-10-0{n}", f"judged {n}", "y", "z")]),
                 f"the old work item {n} (#{n})",
@@ -1751,13 +1824,13 @@ class Test_main:
             )
             if n == 1:
                 released_item(
-                    repo, "1700000009-new", {"routing.md": "# new — routing\n"}
+                    shared_repo, "1700000009-new", {"routing.md": "# new — routing\n"}
                 )
-                counted = calls(monkeypatch, repo, capfd)
-        assert calls(monkeypatch, repo, capfd) == counted
+                counted = calls(monkeypatch, shared_repo, capfd)
+        assert calls(monkeypatch, shared_repo, capfd) == counted
 
     def test_a_plan_git_holds_no_text_for_is_named_and_none_of_its_rows_printed(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1481, design S6. Where `git cat-file --batch` answers `missing`
         for a removed plan, as it does where the plan's blob is gone from
@@ -1767,7 +1840,7 @@ class Test_main:
         that names a plan the batch gave no text for alone removed."""
         old, kept = "1700000001-old", "1700000002-kept"
         adding, short = removed_plan(
-            repo,
+            shared_repo,
             old,
             judgments_plan([("2026-10-01", "gone", "y", "z")]),
             "the old work item (#3)",
@@ -1775,22 +1848,25 @@ class Test_main:
             "v0.1.0",
         )
         removed_plan(
-            repo,
+            shared_repo,
             kept,
             judgments_plan([("2026-10-02", "kept", "y", "z")]),
             "the kept work item (#8)",
             "settle 0.2.0 (#9)",
             "v0.2.0",
         )
-        released_item(repo, "1700000003-new", {"routing.md": "# new — routing\n"})
-        blob = git(repo, "rev-parse", f"{adding}:seal/threads/{old}/frame/plan.md")
-        blob = blob.strip()
-        loose = repo / ".git" / "objects" / blob[:2] / blob[2:]
+        released_item(
+            shared_repo, "1700000003-new", {"routing.md": "# new — routing\n"}
+        )
+        blob = git_out(
+            shared_repo, "rev-parse", f"{adding}:seal/threads/{old}/frame/plan.md"
+        )
+        loose = shared_repo / ".git" / "objects" / blob[:2] / blob[2:]
         # Git writes a loose object read-only, and Windows refuses to unlink
         # a read-only file.
         os.chmod(loose, 0o644)
         loose.unlink()
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
             f"\n\n{settle.REMOVES_HEADING}"
@@ -1805,7 +1881,7 @@ class Test_main:
 
     @pytest.mark.parametrize("beside", [True, False], ids=["beside", "alone"])
     def test_a_removed_plan_whose_path_holds_a_newline_is_named_and_the_rest_read(
-        self, repo, capfd, beside
+        self, shared_repo, capfd, beside
     ):
         """#1481, round 1, finding 2. `git cat-file --batch` reads one name
         per line, so a removed plan whose work item id holds a newline is
@@ -1819,7 +1895,7 @@ class Test_main:
         for name, judged in plans:
             plan = judgments_plan([("2026-10-01", judged, "y", "z")])
             blob = subprocess.run(
-                ["git", "-C", str(repo), "hash-object", "-w", "--stdin"],
+                ["git", "-C", str(shared_repo), "hash-object", "-w", "--stdin"],
                 input=plan,
                 check=True,
                 capture_output=True,
@@ -1830,7 +1906,7 @@ class Test_main:
                 [
                     "git",
                     "-C",
-                    str(repo),
+                    str(shared_repo),
                     "update-index",
                     "--add",
                     "--cacheinfo",
@@ -1849,12 +1925,14 @@ class Test_main:
                     f"no commit here can hold one: {added.stderr.strip()}"
                 )
             assert added.returncode == 0, added.stderr
-        git(repo, "commit", "-qm", "the two work items (#3)")
-        git(repo, "rm", "-r", "-q", "--cached", "--", "seal/threads")
-        git(repo, "commit", "-qm", "settle 0.1.0 (#7)")
-        short = git(repo, "rev-parse", "--short", "HEAD").strip()
-        released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
-        code, text = dry_run(repo, capfd)
+        git_out(shared_repo, "commit", "-qm", "the two work items (#3)")
+        git_out(shared_repo, "rm", "-r", "-q", "--cached", "--", "seal/threads")
+        git_out(shared_repo, "commit", "-qm", "settle 0.1.0 (#7)")
+        short = git_out(shared_repo, "rev-parse", "--short", "HEAD")
+        released_item(
+            shared_repo, "1700000009-new", {"routing.md": "# new — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = earlier_block(text)
         assert (
@@ -1866,7 +1944,7 @@ class Test_main:
         assert "  2026-10-01  odd\n" not in block, block
 
     def test_reads_the_plans_of_the_two_newest_removing_commits_and_names_the_rest(
-        self, repo, capfd
+        self, removals, capfd
     ):
         """#1481, design S1. Of three commits that each removed one plan,
         the dry run prints the rows of the two newest commits' plans, none
@@ -1874,8 +1952,8 @@ class Test_main:
         one older removing commit it did not read and naming
         `seal settle --all-earlier`. Seen red with the bound alone
         removed."""
-        newest, middle, _oldest = three_removals(repo)
-        code, text = dry_run(repo, capfd)
+        shared_repo, (newest, middle, _oldest) = removals
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert earlier_block(text) == (
             "\njudged against: z\n"
@@ -1886,7 +1964,7 @@ class Test_main:
         ), earlier_block(text)
 
     def test_a_removing_commit_that_deleted_two_plans_is_one_commit_of_the_window(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1481, design *Scope* items 1 and 2. The window and the line
         count commits, never plans: a commit that deleted two plans is one
@@ -1894,7 +1972,7 @@ class Test_main:
         commit's, and the one oldest commit is counted once. Seen red with
         the removing commits listed once per plan."""
         removed_plan(
-            repo,
+            shared_repo,
             "1700000001-oldest",
             judgments_plan([("2026-10-01", "oldest", "y", "z")]),
             "the oldest work item (#1)",
@@ -1902,22 +1980,24 @@ class Test_main:
         )
         for name in ("1700000002-a", "1700000003-b"):
             write(
-                repo / "seal" / "threads" / name,
+                shared_repo / "seal" / "threads" / name,
                 "frame/plan.md",
                 judgments_plan([("2026-10-02", name, "y", "z")]),
             )
-        commit(repo, "the two work items (#2)")
-        git(repo, "rm", "-rq", "seal/threads")
-        commit(repo, "settle 0.2.0 (#12)")
+        commit_everything(shared_repo, "the two work items (#2)")
+        git_out(shared_repo, "rm", "-rq", "seal/threads")
+        commit_everything(shared_repo, "settle 0.2.0 (#12)")
         removed_plan(
-            repo,
+            shared_repo,
             "1700000004-newest",
             judgments_plan([("2026-10-04", "newest", "y", "z")]),
             "the newest work item (#4)",
             "settle 0.3.0 (#14)",
         )
-        released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
-        code, text = dry_run(repo, capfd)
+        released_item(
+            shared_repo, "1700000009-new", {"routing.md": "# new — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         block = earlier_block(text)
         for judged in ("newest", "1700000002-a", "1700000003-b"):
@@ -1929,7 +2009,7 @@ class Test_main:
         ), block
 
     def test_prints_the_section_where_it_holds_only_the_line_of_older_commits(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """#1481, design *Scope* item 2. Where the plans the window reads
         hold no row, the section is still printed, holding only the line
@@ -1937,7 +2017,7 @@ class Test_main:
         learns that rows stand past the window. Seen red with that line
         alone left out of what prints the section."""
         removed_plan(
-            repo,
+            shared_repo,
             "1700000001-old",
             judgments_plan([("2026-10-01", "old", "y", "z")]),
             "the old work item (#1)",
@@ -1945,14 +2025,16 @@ class Test_main:
         )
         for n in (2, 3):
             removed_plan(
-                repo,
+                shared_repo,
                 f"170000000{n}-bare",
                 "# Implementation Plan: x\n",
                 f"the bare work item {n} (#{n})",
                 f"settle 0.{n}.0 (#{n + 10})",
             )
-        released_item(repo, "1700000009-new", {"routing.md": "# new — routing\n"})
-        code, text = dry_run(repo, capfd)
+        released_item(
+            shared_repo, "1700000009-new", {"routing.md": "# new — routing\n"}
+        )
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert earlier_block(text) == (
             "\n1 older commit removed plans this section did not read; "
@@ -1960,14 +2042,14 @@ class Test_main:
         ), text
 
     def test_a_batched_read_that_fails_keeps_the_line_of_older_commits(
-        self, repo, capfd, monkeypatch
+        self, removals, capfd, monkeypatch
     ):
         """#1481, design *Scope* items 2 and 6. The deletions' `git log`
         counted the removing commits before the plans' texts were asked, so
         where `git cat-file --batch` fails, the section names the failure,
         prints no row, and still counts the older removing commit. Seen red
         with the failure branch returning no count."""
-        three_removals(repo)
+        shared_repo, _ = removals
         real = settle.git_run
 
         def git_run(root, *args, given=None):
@@ -1976,19 +2058,21 @@ class Test_main:
             return real(root, *args, given=given)
 
         monkeypatch.setattr(settle, "git_run", git_run)
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert earlier_block(text) == (
             "    not read: git said no\n\n1 older commit removed plans this "
             "section did not read; `seal settle --all-earlier` reads them"
         ), earlier_block(text)
 
-    def test_all_earlier_reads_the_plans_of_every_removing_commit(self, repo, capfd):
+    def test_all_earlier_reads_the_plans_of_every_removing_commit(
+        self, removals, capfd
+    ):
         """#1481, design S2. Under `--all-earlier` the section prints the
         rows of every removing commit's plans, newest first, and no line of
         older commits not read."""
-        printed = three_removals(repo)
-        code, text = dry_run(repo, capfd, "--all-earlier")
+        shared_repo, printed = removals
+        code, text = dry_run(shared_repo, capfd, "--all-earlier")
         assert code == 0, text
         assert earlier_block(text) == (
             "\njudged against: z\n" + "".join(printed).rstrip("\n")
@@ -2014,65 +2098,72 @@ class Test_main:
         ],
     )
     def test_refuses_all_earlier_beside_apply_or_draft_and_reads_nothing(
-        self, repo, capfd, monkeypatch, other, sentence
+        self, removals, capfd, monkeypatch, other, sentence
     ):
         """#1481, design S3. `--all-earlier` widens only what the dry run
         prints, so beside `--apply` or `--draft`, which print none of it,
         it is refused with exit 2 and one sentence before anything is read,
         and the tree is left as it was."""
-        three_removals(repo)
-        before = files(repo)
+        shared_repo, _ = removals
+        before = files(shared_repo)
 
         def survey(*_args, **_kwargs):
             raise AssertionError("the refused run read the records")
 
         monkeypatch.setattr(settle, "survey", survey)
-        code, text = dry_run(repo, capfd, "--all-earlier", other)
+        code, text = dry_run(shared_repo, capfd, "--all-earlier", other)
         assert code == 2, text
         assert text == sentence, text
-        assert files(repo) == before
+        assert files(shared_repo) == before
 
     def test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """git reads a moved directory as a rename, never as an add, unless it is
         told not to; the spec would then have no place in the order, and be
         listed last and unordered."""
-        item(repo, "1700000001-old", op("add", "U", new="Rule."))
-        commit(repo, "old")
-        git(repo, "mv", "seal/threads/1700000001-old", "seal/threads/1700000002-new")
-        commit(repo, "renamed")
-        item(repo, "1700000003-b", op("add", "U", new="B."))
-        commit(repo, "b")
-        code, text = dry_run(repo, capfd)
+        item(shared_repo, "1700000001-old", op("add", "U", new="Rule."))
+        commit_everything(shared_repo, "old")
+        git_out(
+            shared_repo,
+            "mv",
+            "seal/threads/1700000001-old",
+            "seal/threads/1700000002-new",
+        )
+        commit_everything(shared_repo, "renamed")
+        item(shared_repo, "1700000003-b", op("add", "U", new="B."))
+        commit_everything(shared_repo, "b")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         group = group_text(text)
         assert group.index("1700000002-new") < group.index("1700000003-b"), text
         assert "unordered" not in group, text
 
-    def test_a_spec_no_commit_adds_is_marked_unordered(self, repo, capfd, monkeypatch):
+    def test_a_spec_no_commit_adds_is_marked_unordered(
+        self, shared_repo, capfd, monkeypatch
+    ):
         """Where the history cannot place a spec, it has no place in the order,
         and the group says so rather than listing it as ordered."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        item(repo, "1700000002-b", op("add", "U", new="B."))
-        commit(repo, "a and b")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        item(shared_repo, "1700000002-b", op("add", "U", new="B."))
+        commit_everything(shared_repo, "a and b")
         monkeypatch.setattr(
             settle.sibling.load(settle.RULES),
             "order",
             lambda r, f, ids, s: [(i, None) for i in ids],
         )
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         said = settle.UNORDERED.format(a="1700000001-a", b="1700000002-b")
         assert said in group_text(text), text
 
-    def test_apply_names_a_document_past_the_ceiling(self, repo, capfd):
+    def test_apply_names_a_document_past_the_ceiling(self, shared_repo, capfd):
         """Scope 5: after the removals, each document past `Document token
         ceiling` is named as one to split, and that refuses nothing."""
-        configure(repo, ("Document token ceiling", "10"))
-        item(repo, "1700000001-a", op("add", "U", new="Released."))
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
+        configure(shared_repo, ("Document token ceiling", "10"))
+        item(shared_repo, "1700000001-a", op("add", "U", new="Released."))
+        commit_everything(shared_repo, "a")
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         assert (
             "docs/a.md is about "
@@ -2084,7 +2175,9 @@ class Test_main:
         ), text
         assert settle.AFTER_HEADING in text, text
 
-    def test_local_mode_lists_a_released_and_an_unreleased_item(self, local, gh, capfd):
+    def test_local_mode_lists_a_released_and_an_unreleased_item(
+        self, local_repo, gh, capfd
+    ):
         """S1 of #955. The root is under the git directory, so `settle` reads
         it there: the item whose branch's pull request merged into `main` is
         released, with its pull request and merge commit, and its rule joins
@@ -2092,15 +2185,15 @@ class Test_main:
         branch. `gh` is asked once per branch, and the run writes and removes
         nothing. A repository holding work items is never told it has none,
         the half of the old local-mode refusal's case that stays."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
-        local_item(local, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
-        oid = merge(local, "feat/1-a")
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        local_item(local_repo, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
+        oid = merge(local_repo, "feat/1-a")
         gh.merged("feat/1-a", (11, oid))
-        before = files(local)
-        records = sorted(p for p in (local / ".git" / "seal").rglob("*"))
-        code, text = dry_run(local, capfd)
+        before = files(local_repo)
+        records = sorted(p for p in (local_repo / ".git" / "seal").rglob("*"))
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
-        home = os.path.join(str(local), ".git", "seal")
+        home = os.path.join(str(local_repo), ".git", "seal")
         assert text.split("\n")[0] == (
             f"local mode: the seal/ root is {home}, under the git directory"
         ), text
@@ -2119,8 +2212,8 @@ class Test_main:
         assert settle.REMOVES_HEADING_LOCAL in text, text
         assert "    seal/threads/1700000001-a/  now\n" in text, text
         assert "has nothing to settle" not in text, text
-        assert files(local) == before, "the dry run wrote to the tree"
-        assert sorted(p for p in (local / ".git" / "seal").rglob("*")) == records
+        assert files(local_repo) == before, "the dry run wrote to the tree"
+        assert sorted(p for p in (local_repo / ".git" / "seal").rglob("*")) == records
         query = ["pr", "list", "--head", "{}", "--state", "merged"]
         query += ["--json", "number,mergeCommit"]
         assert gh.calls() == [
@@ -2128,15 +2221,15 @@ class Test_main:
         ], gh.calls()
 
     def test_a_local_run_from_a_subdirectory_reads_the_repositorys_top(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """Round 1 finding 2 of #955: from a subdirectory the local root is
         still found under the git directory, so the policy root has to be read
         from the repository's top too, or a document that is there reads as
         absent and the settling session is sent to write it."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        below = str(local / "docs")
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        below = str(local_repo / "docs")
         code = settle.main(["--root", below, "--released-at", "main"])
         out = capfd.readouterr()
         text = out.out + out.err
@@ -2147,20 +2240,20 @@ class Test_main:
         assert "not in the tree" not in text, text
 
     def test_a_shared_run_from_a_subdirectory_reads_the_repositorys_top(
-        self, repo, gh, capfd
+        self, shared_repo, gh, capfd
     ):
         """Round 2 finding 1 of #955: `main` resolves the root to the
         repository's top in both modes, so a shared run from a subdirectory
         prints what a run from the top prints. It used to refuse, saying the
         repository had no seal/threads/ at either place, which was false there."""
-        item(repo, "1700000001-a", op("add", "S", new="Rule."))
-        commit(repo, "released a")
-        top = dry_run(repo, capfd)
+        item(shared_repo, "1700000001-a", op("add", "S", new="Rule."))
+        commit_everything(shared_repo, "released a")
+        top = dry_run(shared_repo, capfd)
         assert top[0] == 0, top[1]
         assert group_text(top[1]).startswith(
             "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
         ), top[1]
-        below = str(repo / "docs")
+        below = str(shared_repo / "docs")
         code = settle.main(["--root", below, "--released-at", "main"])
         out = capfd.readouterr()
         assert (code, out.out + out.err) == top, out.out + out.err
@@ -2193,17 +2286,22 @@ class Test_main:
         )
 
     def test_local_specs_are_listed_in_the_order_their_pull_requests_merged(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S2 of #955, one line of history: B was created after A and merged
         before it, so B is listed first, and ancestry orders the pair."""
-        local_item(local, "1700000001-a", "feat/1-a", op("change", "S", "y.", "z."))
         local_item(
-            local, "1700000002-b", "feat/2-b", op("change", "S", "old sentence.", "y.")
+            local_repo, "1700000001-a", "feat/1-a", op("change", "S", "y.", "z.")
         )
-        gh.merged("feat/2-b", (12, merge(local, "feat/2-b")))
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        code, text = dry_run(local, capfd)
+        local_item(
+            local_repo,
+            "1700000002-b",
+            "feat/2-b",
+            op("change", "S", "old sentence.", "y."),
+        )
+        gh.merged("feat/2-b", (12, merge(local_repo, "feat/2-b")))
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         group = group_text(text)
         assert "    1. change  1700000002-b  " in group, text
@@ -2211,110 +2309,114 @@ class Test_main:
         assert "unordered" not in group, text
 
     def test_two_local_merges_no_ancestry_orders_are_marked_unordered(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S2 of #955, two lines of history: each pull request merged into a
         branch of its own, and `main` merged both, so no ancestry orders the
         two merge commits and the pair is marked."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        local_item(local, "1700000002-b", "feat/2-b", op("add", "S", new="B."))
-        git(local, "branch", "one")
-        git(local, "branch", "two")
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a", into="one")))
-        gh.merged("feat/2-b", (12, merge(local, "feat/2-b", into="two")))
-        git(local, "switch", "-q", "main")
-        git(local, "merge", "-q", "--no-ff", "-m", "one", "one")
-        git(local, "merge", "-q", "--no-ff", "-m", "two", "two")
-        code, text = dry_run(local, capfd)
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local_repo, "1700000002-b", "feat/2-b", op("add", "S", new="B."))
+        git_out(local_repo, "branch", "one")
+        git_out(local_repo, "branch", "two")
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a", into="one")))
+        gh.merged("feat/2-b", (12, merge(local_repo, "feat/2-b", into="two")))
+        git_out(local_repo, "switch", "-q", "main")
+        git_out(local_repo, "merge", "-q", "--no-ff", "-m", "one", "one")
+        git_out(local_repo, "merge", "-q", "--no-ff", "-m", "two", "two")
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         said = settle.UNORDERED_LOCAL.format(a="1700000001-a", b="1700000002-b")
         assert f"    {said}" in group_text(text), text
 
     def test_a_merge_commit_the_ref_does_not_reach_leaves_the_item(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S3 of #955: the pull request merged into a branch `--released-at`
         does not reach, so the item is unreleased with that reason, and
         `--apply` keeps it."""
-        git(local, "branch", "other")
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
-        oid = merge(local, "feat/1-a", into="other")
-        git(local, "switch", "-q", "main")
+        git_out(local_repo, "branch", "other")
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        oid = merge(local_repo, "feat/1-a", into="other")
+        git_out(local_repo, "switch", "-q", "main")
         gh.merged("feat/1-a", (11, oid))
-        code, text = dry_run(local, capfd)
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         assert (
             f"    1700000001-a  main reaches no merge commit of the pull requests "
             f"from `feat/1-a` that merged: #11 at {oid}\n"
         ) in text, text
         assert "released at main: 0 work items; 1 unreleased and untouched\n" in text
-        code, text = apply(local, capfd)
+        code, text = apply(local_repo, capfd)
         assert code == 0, text
-        assert local_dir(local, "1700000001-a").exists(), text
+        assert local_dir(local_repo, "1700000001-a").exists(), text
 
     def test_apply_in_local_mode_removes_under_the_git_directory_alone(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S4 of #955: the released item whose record holds no open row goes
         from under the git directory, the one holding a row is kept and its
         row named, the unreleased one stays, and nothing under the
         repository's top is written or removed; with the row closed on disk,
         a second run removes the kept one."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        local_item(local, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local_repo, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
         row = OPEN.replace("a claim nobody ran", "a claim about `questions.md`")
         held = local_item(
-            local, "1700000003-c", "feat/3-c", op("add", "T", new="C."), overview=row
+            local_repo,
+            "1700000003-c",
+            "feat/3-c",
+            op("add", "T", new="C."),
+            overview=row,
         )
         (held / "questions.md").write_text("# q\n", encoding="utf-8")
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        gh.merged("feat/3-c", (13, merge(local, "feat/3-c")))
-        before = files(local)
-        code, text = dry_run(local, capfd)
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        gh.merged("feat/3-c", (13, merge(local_repo, "feat/3-c")))
+        before = files(local_repo)
+        code, text = dry_run(local_repo, capfd)
         rows = text.split(f"{settle.ROWS_HEADING}\n")[1].split("\n\n")[0]
         assert rows == (
             "    1700000003-c\n"
             "        open in gaps.md: a claim about `questions.md`\n"
             "            `questions.md` in the tree"
         ), text
-        code, text = apply(local, capfd)
+        code, text = apply(local_repo, capfd)
         assert code == 1, text
-        assert not local_dir(local, "1700000001-a").exists(), text
-        assert local_dir(local, "1700000002-b").exists(), text
-        assert local_dir(local, "1700000003-c").exists(), text
+        assert not local_dir(local_repo, "1700000001-a").exists(), text
+        assert local_dir(local_repo, "1700000002-b").exists(), text
+        assert local_dir(local_repo, "1700000003-c").exists(), text
         assert "removed seal/threads/1700000001-a/\n" in text, text
         assert (
             "kept seal/threads/1700000003-c/: its record holds 1 open row; close "
             "each (`closed` with what closed it) and run `seal settle --apply` again\n"
             "    open in gaps.md: a claim about `questions.md`\n"
         ) in text, text
-        assert files(local) == before, "the apply wrote or removed in the tree"
-        (local_dir(local, "1700000003-c") / "gaps.md").write_text(
+        assert files(local_repo) == before, "the apply wrote or removed in the tree"
+        (local_dir(local_repo, "1700000003-c") / "gaps.md").write_text(
             OVERVIEW_CLOSED, encoding="utf-8"
         )
-        code, text = apply(local, capfd)
+        code, text = apply(local_repo, capfd)
         assert code == 0, text
-        assert not local_dir(local, "1700000003-c").exists(), text
-        assert local_dir(local, "1700000002-b").exists(), text
+        assert not local_dir(local_repo, "1700000003-c").exists(), text
+        assert local_dir(local_repo, "1700000002-b").exists(), text
         assert "    closed in gaps.md: a claim\n" in text, text
 
     def test_apply_in_local_mode_names_a_gaps_md_away_from_its_place(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S5 of #1126: under the git directory the misplaced file is found
         where `--apply` removes it. The dry run names `trail/gaps.md`, and
         `--apply` removes the directory and names the file under its
         `removed` line. Seen red with the fix reverted in `settle.py`."""
         name = "1700000001-a"
-        path = local_item(local, name, "feat/1-a")
+        path = local_item(local_repo, name, "feat/1-a")
         (path / "trail").mkdir()
         (path / "trail" / "gaps.md").write_text(OPEN, encoding="utf-8")
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        code, text = dry_run(local, capfd)
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        code, text = dry_run(local_repo, capfd)
         line = not_read(name, "trail/gaps.md", "gaps.md")
         assert line in text, text
         assert code == 0, text
-        code, text = apply(local, capfd)
+        code, text = apply(local_repo, capfd)
         assert code == 0, text
         assert not path.exists(), text
         assert f"removed seal/threads/{name}/\n    not read: {line}\n" in text, text
@@ -2322,14 +2424,14 @@ class Test_main:
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
     @pytest.mark.parametrize("state", ["absent", "fails", "garbled", "entry"])
     def test_refuses_a_gh_that_cannot_be_asked_in_local_mode(
-        self, local, gh, capfd, monkeypatch, state, arm
+        self, local_repo, gh, capfd, monkeypatch, state, arm
     ):
         """S5 of #955: with no `gh` to ask, every local item would read as
         unreleased and the run would report nothing to settle, the quiet zero
         the `--released-at` refusal is written against. So it exits 2, names
         `gh` and what it said, and removes nothing."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
         if state == "absent":
             # `lib/gitcmd.py#gh` finds no `gh`, and git is still found.
             which = gitcmd.shutil.which
@@ -2353,9 +2455,9 @@ class Test_main:
                 "`gh pr list --head feat/1-a` exited 4: HTTP 401: Bad "
                 "credentials (https://api.github.com/graphql)"
             )
-        code, text = dry_run(local, capfd, *(["--apply"] if arm else []))
+        code, text = dry_run(local_repo, capfd, *(["--apply"] if arm else []))
         assert code == 2, text
-        assert local_dir(local, "1700000001-a").exists(), text
+        assert local_dir(local_repo, "1700000001-a").exists(), text
         assert text.startswith(
             f"settle: `gh` cannot be asked which pull requests merged: {said}. "
             "Nothing was read and nothing was removed."
@@ -2388,7 +2490,7 @@ class Test_main:
         ],
     )
     def test_refuses_a_git_that_did_not_answer_in_one_line(
-        self, repo, capfd, monkeypatch, flags, words
+        self, shared_repo, capfd, monkeypatch, flags, words
     ):
         """S7 of #1573: a git read past `lib/gitcmd.py#TIMEOUT`, in the dry
         run, `--from`, `--apply` or `--draft`, ends `settle` with one line
@@ -2396,20 +2498,24 @@ class Test_main:
         the bound, at exit 2, with nothing printed or removed and no
         traceback. Seen red against `settle.py` before #1573, where no read
         had a bound and the timeout was raised out of `main`."""
-        item(repo, "1700000001-a", op("add", "S", new="A."))
-        commit(repo, "a")
-        item(repo, "1700000002-b", op("add", "S", new="B."))
-        commit(repo, "b")
-        before = files(repo)
+        item(shared_repo, "1700000001-a", op("add", "S", new="A."))
+        commit_everything(shared_repo, "a")
+        item(shared_repo, "1700000002-b", op("add", "S", new="B."))
+        commit_everything(shared_repo, "b")
+        before = files(shared_repo)
         asked = unanswered(monkeypatch, *words)
-        flags = [str(repo / f) if f == "docs" else f for f in flags]
-        code = settle.main(["--root", str(repo), "--released-at", "main", *flags])
+        flags = [str(shared_repo / f) if f == "docs" else f for f in flags]
+        code = settle.main(
+            ["--root", str(shared_repo), "--released-at", "main", *flags]
+        )
         out = capfd.readouterr()
         assert len(asked) == 1, asked
         assert out.err == f"settle: {past_the_bound(asked[0])}\n", out.err
         assert code == 2, out.err
         assert out.out == "", out.out
-        assert files(repo) == before, "a settle that did not finish changed the tree"
+        assert files(shared_repo) == before, (
+            "a settle that did not finish changed the tree"
+        )
 
     @pytest.mark.parametrize(
         "words",
@@ -2422,17 +2528,17 @@ class Test_main:
         ids=["resolves", "gh", "reaches", "merge_order"],
     )
     def test_refuses_a_git_or_gh_that_did_not_answer_in_local_mode(
-        self, local, gh, capfd, monkeypatch, words
+        self, local_repo, gh, capfd, monkeypatch, words
     ):
         """S7 of #1573 in local mode. A git read past the bound ends the run
         as in a shared root. A `gh` past it is the `gh` that cannot be
         asked, and its refusal names the runner's line. Seen red against
         `settle.py` before #1573, where git raised the timeout out of `main`
         and `gh`'s line spelt the timeout's exception inside its own."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
         asked = unanswered(monkeypatch, *words)
-        code = settle.main(["--root", str(local), "--released-at", "main"])
+        code = settle.main(["--root", str(local_repo), "--released-at", "main"])
         out = capfd.readouterr()
         assert len(asked) == 1, asked
         said = past_the_bound(asked[0])
@@ -2442,78 +2548,82 @@ class Test_main:
             assert out.err == f"settle: {said}\n", out.err
         assert code == 2, out.err
         assert out.out == "", out.out
-        assert local_dir(local, "1700000001-a").exists(), out.err
+        assert local_dir(local_repo, "1700000001-a").exists(), out.err
 
     def test_a_released_at_ref_that_does_not_resolve_is_refused_in_local_mode(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """The `--released-at` refusal holds in local mode too, before `gh`
         is asked: a ref nothing can read would make every merge commit
         unreachable, the quiet zero by another door."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        code = settle.main(["--root", str(local), "--released-at", "no/such/ref"])
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        code = settle.main(["--root", str(local_repo), "--released-at", "no/such/ref"])
         text = capfd.readouterr().err
         assert code == 2, text
         assert "--released-at no/such/ref does not resolve" in text, text
         assert gh.calls() == [], gh.calls()
 
-    def test_gh_is_asked_once_for_a_branch_two_items_name(self, local, gh, capfd):
+    def test_gh_is_asked_once_for_a_branch_two_items_name(self, local_repo, gh, capfd):
         """`gh` is asked once per branch, so two work items naming one branch,
         the reused-branch limit, cost one query and both read as released."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        local_item(local, "1700000002-b", "feat/1-a", op("add", "U", new="B."))
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        code, text = dry_run(local, capfd)
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local_repo, "1700000002-b", "feat/1-a", op("add", "U", new="B."))
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         assert "released at main: 2 work items; 0 unreleased" in text, text
         assert len(gh.calls()) == 1, gh.calls()
 
-    def test_a_released_at_given_as_the_merge_commit_reaches_it(self, local, gh, capfd):
+    def test_a_released_at_given_as_the_merge_commit_reaches_it(
+        self, local_repo, gh, capfd
+    ):
         """The reach is asked of `lib/gitcmd.py#is_ancestor`, which counts a
         commit as reaching itself, and not of `rule_changes.py#_ancestor`,
         which answers False for two equal commits, so a `--released-at` naming the
         merge commit still reads the item as released (round 1 finding 6)."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        oid = merge(local, "feat/1-a")
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        oid = merge(local_repo, "feat/1-a")
         gh.merged("feat/1-a", (11, oid))
-        code = settle.main(["--root", str(local), "--released-at", oid])
+        code = settle.main(["--root", str(local_repo), "--released-at", oid])
         out = capfd.readouterr()
         assert code == 0, out.err
         assert f"released at {oid}: 1 work item;" in out.out, out.out
 
     def test_the_first_listed_pull_request_the_ref_reaches_is_taken(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """Several merged pull requests from one branch: one the ref does not
         reach does not hide a later-listed one it does (round 1 finding 6)."""
-        git(local, "branch", "other")
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        stray = merge(local, "feat/1-a", into="other")
-        git(local, "switch", "-q", "main")
-        git(local, "merge", "-q", "--no-ff", "-m", "m", "feat/1-a")
-        reached = git(local, "rev-parse", "HEAD").strip()
+        git_out(local_repo, "branch", "other")
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        stray = merge(local_repo, "feat/1-a", into="other")
+        git_out(local_repo, "switch", "-q", "main")
+        git_out(local_repo, "merge", "-q", "--no-ff", "-m", "m", "feat/1-a")
+        reached = git_out(local_repo, "rev-parse", "HEAD")
         gh.merged("feat/1-a", (12, stray), (11, reached))
-        code, text = dry_run(local, capfd)
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         assert f"1700000001-a  pull request #11  merge commit {reached}" in text, text
 
     def test_a_pull_request_listed_with_no_merge_commit_is_named_as_such(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """A listed pull request whose `mergeCommit` is null names nothing git
         can reach, so the item is unreleased. `gh` was asked for merged pull
         requests and listed it, so the reason names it as one with no merge
         commit rather than saying none merged (round 1 finding 3)."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         gh.merged("feat/1-a", (11, None))
-        code, text = dry_run(local, capfd)
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         assert (
             "    1700000001-a  main reaches no merge commit of the pull requests "
             "from `feat/1-a` that merged: #11 with no merge commit\n"
         ) in text, text
 
-    def test_shared_mode_asks_gh_for_no_note_it_cannot_read(self, repo, gh, capfd):
+    def test_shared_mode_asks_gh_for_no_note_it_cannot_read(
+        self, shared_repo, gh, capfd
+    ):
         """S6 of #955 and S7 of #1139: a shared root's work items are
         released by presence at `--released-at`, so the dry run asks no
         `gh`, even for an item whose `routing.md` names a branch. `--apply`
@@ -2521,19 +2631,19 @@ class Test_main:
         `changelog.md`, the commit adding another's names no pull request
         though `v1.0.0` holds it, and no version tag holds the third's. Each
         goes, and the line under its `removed` line says which case held."""
-        bare = moment(repo)
+        bare = moment(shared_repo)
         write(
-            specs_dir(repo, "1700000001-a"),
+            specs_dir(shared_repo, "1700000001-a"),
             "routing.md",
             ROUTED.format(name="1700000001-a", branch="feat/1-a"),
         )
-        fragment(repo, "1700000001-a", "feat: a", tag="v1.0.0")
-        unnumbered = git(repo, "rev-parse", "v1.0.0").strip()
-        fragment(repo, "1700000002-b", "feat: b (#42)")
-        untagged = git(repo, "rev-parse", "main").strip()
-        code, text = dry_run(repo, capfd)
+        fragment(shared_repo, "1700000001-a", "feat: a", tag="v1.0.0")
+        unnumbered = git_out(shared_repo, "rev-parse", "v1.0.0")
+        fragment(shared_repo, "1700000002-b", "feat: b (#42)")
+        untagged = git_out(shared_repo, "rev-parse", "main")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         assert not bare.exists(), text
         assert (
@@ -2557,7 +2667,7 @@ class Test_main:
         assert gh.calls() == [], gh.calls()
 
     def test_apply_keeps_a_directory_its_published_note_does_not_carry(
-        self, repo, gh, capfd
+        self, shared_repo, gh, capfd
     ):
         """S4 of #1139. `v1.2.3` holds the fragments of two released work
         items, added by `(#42)` and `(#43)`, and so does `v1.10.0`. The
@@ -2568,10 +2678,10 @@ class Test_main:
         exits 1, and lists the releases once. `v1.10.0`'s note carries #42,
         and a version read by its text would have taken it. The dry run asks
         no `gh`."""
-        kept = fragment(repo, "1700000001-a", "feat: a (#42)")
-        fragment(repo, "1700000002-b", "feat: b (#43)", tag="v1.2.3")
-        git(repo, "tag", "v1.10.0")
-        at = git(repo, "rev-parse", "main").strip()
+        kept = fragment(shared_repo, "1700000001-a", "feat: a (#42)")
+        fragment(shared_repo, "1700000002-b", "feat: b (#43)", tag="v1.2.3")
+        git_out(shared_repo, "tag", "v1.10.0")
+        at = git_out(shared_repo, "rev-parse", "main")
         gh.releases(
             [
                 release("v1.10.0", "[#42](https://github.com/o/r/pull/42)"),
@@ -2583,13 +2693,13 @@ class Test_main:
                 ),
             ]
         )
-        code, text = dry_run(repo, capfd)
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert gh.calls() == [], gh.calls()
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 1, text
         assert kept.exists(), text
-        assert not specs_dir(repo, "1700000002-b").exists(), text
+        assert not specs_dir(shared_repo, "1700000002-b").exists(), text
         assert (
             "kept seal/threads/1700000001-a/: the published note of v1.2.3 does "
             "not carry its entry, a link to pull request #42; repair the note "
@@ -2605,21 +2715,21 @@ class Test_main:
 
     @pytest.mark.parametrize("carried", ["link", "marker"])
     def test_apply_removes_a_directory_its_published_note_carries(
-        self, repo, gh, capfd, carried
+        self, shared_repo, gh, capfd, carried
     ):
         """S5 of #1139. A note carries the entry where it links the pull
         request under any owner and name, since a renamed repository's old
         links redirect, or where it holds the work item's marker, which the
         notes published before #1139 carry. The list comes in two pages, as
         `--paginate` prints a long one."""
-        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        path = fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         body = (
             "[#42](https://github.com/old/name/pull/42)\n"
             if carried == "link"
             else "<!-- specs/1700000001-a -->\n"
         )
         gh.releases([release("v1.0.0")], [release("v1.2.3", body)])
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         assert not path.exists(), text
         assert "removed seal/threads/1700000001-a/\n" in text, text
@@ -2632,15 +2742,15 @@ class Test_main:
 
     @pytest.mark.parametrize("state", ["fails", "garbled", "entry"])
     def test_apply_stops_where_the_release_list_cannot_be_read(
-        self, repo, gh, capfd, state
+        self, shared_repo, gh, capfd, state
     ):
         """S6 of #1139. A `gh` that fails, or answers anything but pages that
         are each a list of objects, stops `--apply` with exit 2 and one
         sentence naming `gh` and what it said. No directory goes, the one
         that needs no note among them, which sorts first so that a note read
         only when its directory's turn comes would have let it go."""
-        bare = moment(repo, "1700000000-bare")
-        tagged = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        bare = moment(shared_repo, "1700000000-bare")
+        tagged = fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         if state == "fails":
             gh.fail("HTTP 401: Bad credentials (https://api.github.com/releases)")
             said = (
@@ -2654,7 +2764,7 @@ class Test_main:
                 else '[{"tag_name": "v1.2.3", "draft": false}][1]'
             )
             said = f"{RELEASES_ASKED} did not answer a list of releases"
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 2, text
         assert bare.exists(), text
         assert tagged.exists(), text
@@ -2665,21 +2775,21 @@ class Test_main:
 
     @pytest.mark.parametrize("listed", ["another", "a draft"])
     def test_apply_keeps_a_directory_whose_tag_has_no_published_release(
-        self, repo, gh, capfd, listed
+        self, shared_repo, gh, capfd, listed
     ):
         """S7b of #1139, its first half. `v1.2.3` holds the fragment, and the
         list holds another published release, so the repository publishes
         Releases and `v1.2.3` lacks one. A draft at `v1.2.3` is not
         published, and another tag's note is not this one's, though both
         link #42."""
-        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
-        at = git(repo, "rev-parse", "main").strip()
+        path = fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        at = git_out(shared_repo, "rev-parse", "main")
         link = "[#42](https://github.com/o/r/pull/42)"
         listing = [release("v1.0.0", link)]
         if listed == "a draft":
             listing.append(release("v1.2.3", link, draft=True))
         gh.releases(listing)
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 1, text
         assert path.exists(), text
         assert (
@@ -2691,14 +2801,14 @@ class Test_main:
 
     @pytest.mark.parametrize("listed", ["none", "a draft"])
     def test_apply_removes_where_the_repository_publishes_no_release(
-        self, repo, gh, capfd, listed
+        self, shared_repo, gh, capfd, listed
     ):
         """S7b of #1139, its second half. The list holds no published
         release, so the repository publishes no Releases: the directory goes,
         and the line under its `removed` line says so."""
-        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        path = fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         gh.releases([release("v1.2.3", draft=True)] if listed == "a draft" else [])
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         assert not path.exists(), text
         assert (
@@ -2708,7 +2818,7 @@ class Test_main:
         ) in text, text
 
     def test_apply_removes_where_no_published_note_is_built_from_the_fragments(
-        self, repo, gh, capfd
+        self, shared_repo, gh, capfd
     ):
         """Round 1 finding 1 of #1139. The release note is built from the
         fragments by this repository's CI script, which ships to nobody. A
@@ -2719,7 +2829,7 @@ class Test_main:
         longer line. No published release holds a whole line the release
         note opens an entry with, so a missing entry says nothing of the
         fragment, and the directory goes, named."""
-        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        path = fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         gh.releases(
             [
                 release(
@@ -2731,7 +2841,7 @@ class Test_main:
                 release("v1.2.3", "- a ([#42](https://github.com/o/r/issues/42))\n"),
             ]
         )
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         assert not path.exists(), text
         assert (
@@ -2742,17 +2852,19 @@ class Test_main:
         ) in text, text
         assert gh.calls() == [RELEASES_CALL], gh.calls()
 
-    def test_apply_removes_a_directory_whose_fragment_is_empty(self, repo, gh, capfd):
+    def test_apply_removes_a_directory_whose_fragment_is_empty(
+        self, shared_repo, gh, capfd
+    ):
         """Round 1 finding 2 of #1139. The release note gives an empty
         fragment no entry (`publish_release_note.py#fragments`), so no note
         can carry it: the directory goes, the line under its `removed` line
         says the fragment holds no text, and no `gh` is asked for it. The
         other notes are built from the fragments and lack its link."""
         path = fragment(
-            repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3", text="\n  \n"
+            shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3", text="\n  \n"
         )
         gh.releases([release("v1.2.3", "[#41](https://github.com/o/r/pull/41)\n")])
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
         assert not path.exists(), text
         assert (
@@ -2763,16 +2875,16 @@ class Test_main:
         assert gh.calls() == [], gh.calls()
 
     def test_an_open_row_keeps_its_directory_before_its_note_is_read(
-        self, repo, gh, capfd
+        self, shared_repo, gh, capfd
     ):
         """S8 of #1139. The record holds an open row and the note lacks the
         entry. The row keeps the directory as before, and no note is read
         for it, so `gh` is not asked."""
-        path = specs_dir(repo, "1700000001-a")
+        path = specs_dir(shared_repo, "1700000001-a")
         write(path, "gaps.md", OPEN)
-        fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         gh.releases([release("v1.2.3", "no entry")])
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 1, text
         assert path.exists(), text
         assert (
@@ -2787,21 +2899,21 @@ class Test_main:
         assert gh.calls() == [], gh.calls()
 
     def test_a_git_that_cannot_read_the_adding_commit_stops_apply(
-        self, repo, gh, capfd, monkeypatch
+        self, shared_repo, gh, capfd, monkeypatch
     ):
         """#1139's phase 2. Where `git` cannot read the commit that added a
         released `changelog.md`, the pull request it names is unknown, and
         removing on an unknown is the quiet path an unreadable release list
         is refused for. So `--apply` exits 2 with what `git` said, asks no
         `gh`, and removes nothing."""
-        bare = moment(repo)
-        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        bare = moment(shared_repo)
+        path = fragment(shared_repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
 
         def refuse(root, revisions, rel):
             raise RuntimeError(f"`git log {revisions} -- {rel}` exited 128: fatal")
 
         monkeypatch.setattr(settle, "adding_commit", refuse)
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 2, text
         assert bare.exists(), text
         assert path.exists(), text
@@ -2813,17 +2925,17 @@ class Test_main:
         assert gh.calls() == [], gh.calls()
 
     def test_a_local_item_with_no_branch_is_unreleased_and_gh_is_not_asked(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S7 of #955: one item has no `routing.md`, the other's has no
         `Branch` row, so there is no branch to ask about."""
-        local_item(local, "1700000001-a", changes=op("add", "S", new="A."))
+        local_item(local_repo, "1700000001-a", changes=op("add", "S", new="A."))
         routing = ROUTED.format(name="1700000002-b", branch="x")
-        local_item(local, "1700000002-b", changes=op("add", "S", new="B."))
-        (local_dir(local, "1700000002-b") / "routing.md").write_text(
+        local_item(local_repo, "1700000002-b", changes=op("add", "S", new="B."))
+        (local_dir(local_repo, "1700000002-b") / "routing.md").write_text(
             routing.replace("| Branch | x |\n", ""), encoding="utf-8"
         )
-        code, text = dry_run(local, capfd)
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
         assert unreleased == (
@@ -2832,56 +2944,58 @@ class Test_main:
         assert gh.calls() == [], gh.calls()
 
     def test_a_local_routing_md_routing_py_does_not_read_names_no_branch(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """A `routing.md` with a `Branch` row whose `Review` answer is outside
         the vocabulary is no declaration to `lib/routing.py#parse`, so the
         item is unreleased and `gh` is not asked. The reason says the file is
         not read as a declaration, since a person who opens it finds the
         `Branch` row there (round 1 finding 3)."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
-        path = local_dir(local, "1700000001-a") / "routing.md"
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        path = local_dir(local_repo, "1700000001-a") / "routing.md"
         text = path.read_text(encoding="utf-8")
         path.write_text(
             text.replace("| Review | through", "| Review | Through"), encoding="utf-8"
         )
-        code, text = dry_run(local, capfd)
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
         assert unreleased == f"    1700000001-a  {NO_BRANCH}", text
         assert gh.calls() == [], gh.calls()
 
-    def test_a_local_repository_with_no_policy_root_settles(self, local, gh, capfd):
+    def test_a_local_repository_with_no_policy_root_settles(
+        self, local_repo, gh, capfd
+    ):
         """S9 of #955: a local-mode repository has no `docs/` until the
         settling session creates it. The dry run says the new document is not
         there, and `--apply` removes the item and reads no policy root."""
-        git(local, "rm", "-rq", "docs")
-        commit(local, "no policy root")
+        git_out(local_repo, "rm", "-rq", "docs")
+        commit_everything(local_repo, "no policy root")
         local_item(
-            local,
+            local_repo,
             "1700000001-a",
             "feat/1-a",
             op("add", new="# New", file="docs/new.md"),
         )
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        code, text = dry_run(local, capfd)
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        code, text = dry_run(local_repo, capfd)
         assert code == 0, text
         assert group_text(text).startswith(
             "    place: docs/new.md, the whole document: the document is not in "
             "the tree"
         ), text
-        code, text = apply(local, capfd)
+        code, text = apply(local_repo, capfd)
         assert code == 0, text
-        assert not local_dir(local, "1700000001-a").exists(), text
+        assert not local_dir(local_repo, "1700000001-a").exists(), text
         assert settle.AFTER_HEADING not in text, text
-        assert not (local / "docs").exists()
+        assert not (local_repo / "docs").exists()
 
     def test_a_repository_with_no_root_at_either_place_says_so(self, tmp_path):
         """The other arm of the same resolution, kept apart from local mode
         because the two are different states and used to share one sentence."""
         repo = tmp_path / "repo"
         repo.mkdir()
-        git(repo, "init", "-q")
+        git_out(repo, "init", "-q")
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
@@ -2897,7 +3011,7 @@ class Test_main:
         had none. That is finding 3's defect through another door."""
         repo = tmp_path / "repo"
         (repo / "docs").mkdir(parents=True)
-        git(repo, "init", "-q")
+        git_out(repo, "init", "-q")
         item = repo / "seal" / "threads" / "1700000001-alpha"
         (item / "frame").mkdir(parents=True)
         (item / "frame" / "design.md").write_text("# a\n", encoding="utf-8")
@@ -2924,7 +3038,7 @@ class Test_main:
         of that sentence was false. The three readers of one marker answer alike."""
         repo = tmp_path / "repo"
         repo.mkdir()
-        git(repo, "init", "-q")
+        git_out(repo, "init", "-q")
         (repo / ".git" / "agentic-scratch").mkdir()
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
@@ -2951,7 +3065,7 @@ class Test_main:
         said nothing."""
         repo = tmp_path / "repo"
         repo.mkdir()
-        git(repo, "init", "-q")
+        git_out(repo, "init", "-q")
         optin = settle.sibling.load(settle.OPTIN)
         calls, received = [], []
         common_dir, home_at = optin.git_common_dir, optin.home_at
@@ -2983,7 +3097,7 @@ class Test_main:
         (
             repo / "seal" / "threads" / "1700000001-alpha" / "frame" / "design.md"
         ).write_text("# a\n", encoding="utf-8")
-        git(repo, "init", "-q")
+        git_out(repo, "init", "-q")
         r = subprocess.run(
             [
                 sys.executable,
@@ -3007,30 +3121,34 @@ class Test_main:
     @pytest.mark.parametrize(
         "flags", [[], ["--apply"], ["--draft"]], ids=["report", "apply", "draft"]
     )
-    def test_accepts_a_settled_root_and_says_so(self, tmp_path, keep_empty_dir, flags):
+    def test_accepts_a_settled_root_and_says_so(
+        self, shared_repo, keep_empty_dir, flags
+    ):
         """G7. After the last settle a fresh checkout has no `seal/threads/` at
         all and the tree that ran `--apply` has an empty one. Both are the state
         a complete settle reaches, and `settle` used to refuse the first at exit
         2 — so the command could not run on its own finished work. `--draft`
         there has no operation to write, and writes nothing (#1217)."""
-        repo = settled_repo(tmp_path, keep_empty_dir)
-        before = git(repo, "status", "--porcelain", "--untracked-files=all")
+        repo = shared_repo
+        if keep_empty_dir:
+            (repo / "seal" / "threads").mkdir()
+        before = git_out(repo, "status", "--porcelain", "--untracked-files=all")
         argv = [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"]
         r = subprocess.run(argv + flags, capture_output=True, encoding="utf-8")
         assert r.returncode == 0, r.stdout + r.stderr
         assert "holds no work item" in r.stdout, r.stdout + r.stderr
         assert "A complete settle ends here" in r.stdout, r.stdout
-        assert git(repo, "status", "--porcelain", "--untracked-files=all") == before
+        assert git_out(repo, "status", "--porcelain", "--untracked-files=all") == before
 
     @pytest.mark.rule("an-empty-root-is-settled")
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
-    def test_accepts_a_settled_local_root_and_names_it(self, local, arm, capfd):
+    def test_accepts_a_settled_local_root_and_names_it(self, local_repo, arm, capfd):
         """S8 of #955: a local root with no work item is settled too. The
         sentence names the root under the git directory, and says nothing
         about a fresh checkout, which carries no local root."""
-        code, text = dry_run(local, capfd, *(["--apply"] if arm else []))
+        code, text = dry_run(local_repo, capfd, *(["--apply"] if arm else []))
         assert code == 0, text
-        home = os.path.join(str(local), ".git", "seal")
+        home = os.path.join(str(local_repo), ".git", "seal")
         assert text == (
             f"settle: {home} is the seal/ root, in local mode, and its threads/ "
             "holds no work item — nothing to show and nothing to remove. A "
@@ -3039,20 +3157,22 @@ class Test_main:
 
     # --- `--from`: the directories a person names (#1054) --------------------
 
-    def test_a_run_without_from_prints_no_named_directory_listing(self, repo, capfd):
+    def test_a_run_without_from_prints_no_named_directory_listing(
+        self, shared_repo, capfd
+    ):
         """#1054 A1: the listing is printed only where a person named a
         directory, so a run without `--from` prints what it printed before;
         the cases above hold that output line for line."""
-        write(repo, "adr/0001.md", "a decision\n")
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd)
+        write(shared_repo, "adr/0001.md", "a decision\n")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd)
         assert code == 0, text
         assert settle.DOCUMENTS_HEADING not in text, text
         assert "adr/0001.md" not in text, text
 
     def test_from_lists_every_document_of_a_named_directory_in_gits_order(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054 A2: every file git lists under the directory is a document,
         nested or of any extension, and an ignored file is none. Each is
@@ -3062,34 +3182,34 @@ class Test_main:
         comes last. The path is read from the directory the command runs in,
         and the listing stands after the judgments and before what `--apply`
         removes."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "one\n")
-        write(repo, "adr/old/moved.md", "moved\n")
-        commit(repo, "first records")
-        first = stamp(repo)
-        write(repo, "adr/sub/0002.md", "nested\n")
-        write(repo, "adr/notes.txt", "no md extension\n")
-        commit(repo, "second records")
-        second = stamp(repo)
-        write(repo, "adr/0001.md", "one, revised\n")
-        commit(repo, "revise the first")
-        third = stamp(repo)
-        git(repo, "mv", "adr/old/moved.md", "adr/moved.md")
-        commit(repo, "move one")
-        fourth = stamp(repo)
-        write(repo, "adr/.gitignore", "*.log\n")
-        git(repo, "add", "adr/.gitignore")
-        git(repo, "commit", "-qm", "ignore logs")
-        fifth = stamp(repo)
-        write(repo, "adr/build.log", "ignored\n")
-        write(repo, "adr/0003.md", "untracked\n")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "adr/0001.md", "one\n")
+        write(shared_repo, "adr/old/moved.md", "moved\n")
+        commit_everything(shared_repo, "first records")
+        first = stamp(shared_repo)
+        write(shared_repo, "adr/sub/0002.md", "nested\n")
+        write(shared_repo, "adr/notes.txt", "no md extension\n")
+        commit_everything(shared_repo, "second records")
+        second = stamp(shared_repo)
+        write(shared_repo, "adr/0001.md", "one, revised\n")
+        commit_everything(shared_repo, "revise the first")
+        third = stamp(shared_repo)
+        git_out(shared_repo, "mv", "adr/old/moved.md", "adr/moved.md")
+        commit_everything(shared_repo, "move one")
+        fourth = stamp(shared_repo)
+        write(shared_repo, "adr/.gitignore", "*.log\n")
+        git_out(shared_repo, "add", "adr/.gitignore")
+        git_out(shared_repo, "commit", "-qm", "ignore logs")
+        fifth = stamp(shared_repo)
+        write(shared_repo, "adr/build.log", "ignored\n")
+        write(shared_repo, "adr/0003.md", "untracked\n")
         # Staged and never committed: `ls-files` prints it after the
         # untracked file, and the listing puts it first by its path.
-        write(repo, "adr/0000-staged.md", "staged\n")
-        git(repo, "add", "adr/0000-staged.md")
-        write(repo, "adr/0001.md", "one, revised again\n")
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
+        write(shared_repo, "adr/0000-staged.md", "staged\n")
+        git_out(shared_repo, "add", "adr/0000-staged.md")
+        write(shared_repo, "adr/0001.md", "one, revised again\n")
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "adr")
         assert code == 0, text
         assert (
             "\nfrom adr/: 7 documents\n"
@@ -3110,111 +3230,111 @@ class Test_main:
         ), text
 
     def test_a_merge_that_resolved_a_document_is_its_last_change(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054, round 1's finding 1: a merge whose conflict resolution
         rewrote a document is the commit that last changed it, since `git log`
         prints a merge's own change only under `--cc`."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "one\n")
-        commit(repo, "a decision")
-        first = stamp(repo)
-        git(repo, "checkout", "-qb", "side")
-        write(repo, "adr/0001.md", "side\n")
-        commit(repo, "side")
-        git(repo, "checkout", "-q", "main")
-        write(repo, "adr/0001.md", "main\n")
-        commit(repo, "main")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "adr/0001.md", "one\n")
+        commit_everything(shared_repo, "a decision")
+        first = stamp(shared_repo)
+        git_out(shared_repo, "checkout", "-qb", "side")
+        write(shared_repo, "adr/0001.md", "side\n")
+        commit_everything(shared_repo, "side")
+        git_out(shared_repo, "checkout", "-q", "main")
+        write(shared_repo, "adr/0001.md", "main\n")
+        commit_everything(shared_repo, "main")
         # The merge conflicts and exits 1, which `git` here would raise on.
         subprocess.run(
-            ["git", "-C", str(repo), "merge", "--no-ff", "-q", "side"],
+            ["git", "-C", str(shared_repo), "merge", "--no-ff", "-q", "side"],
             capture_output=True,
         )
-        write(repo, "adr/0001.md", "resolved\n")
-        commit(repo, "merge side, resolved")
-        merged = stamp(repo)
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
+        write(shared_repo, "adr/0001.md", "resolved\n")
+        commit_everything(shared_repo, "merge side, resolved")
+        merged = stamp(shared_repo)
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "adr")
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
 
     def test_a_clean_merge_of_two_edits_is_a_documents_last_change(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054, round 4's finding 1: a merge with no conflict that combines
         two branches' edits to one document holds content neither parent
         holds. Its hunks are all ones `--cc` calls uninteresting, and
         `--name-status` still names it `MM`, so it is the last change."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
         body = "".join(f"line {i}\n" for i in range(30))
-        write(repo, "adr/0001.md", body)
-        commit(repo, "a decision")
-        first = stamp(repo)
-        git(repo, "checkout", "-qb", "side")
-        write(repo, "adr/0001.md", body.replace("line 25\n", "line 25, side\n"))
-        commit(repo, "side edits the end")
-        git(repo, "checkout", "-q", "main")
-        write(repo, "adr/0001.md", body.replace("line 2\n", "line 2, main\n"))
-        commit(repo, "main edits the start")
-        git(repo, "merge", "--no-ff", "-q", "-m", "merge side", "side")
-        merged = stamp(repo)
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
+        write(shared_repo, "adr/0001.md", body)
+        commit_everything(shared_repo, "a decision")
+        first = stamp(shared_repo)
+        git_out(shared_repo, "checkout", "-qb", "side")
+        write(shared_repo, "adr/0001.md", body.replace("line 25\n", "line 25, side\n"))
+        commit_everything(shared_repo, "side edits the end")
+        git_out(shared_repo, "checkout", "-q", "main")
+        write(shared_repo, "adr/0001.md", body.replace("line 2\n", "line 2, main\n"))
+        commit_everything(shared_repo, "main edits the start")
+        git_out(shared_repo, "merge", "--no-ff", "-q", "-m", "merge side", "side")
+        merged = stamp(shared_repo)
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "adr")
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
 
     def test_a_merge_that_wrote_a_document_no_parent_holds_adds_it(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054, round 2's finding 1: a merge whose result holds a document
         neither parent holds is the commit that added it, since `--cc` gives
         that path one `A` per parent and an add is every letter `A`."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "one\n")
-        commit(repo, "a decision")
-        git(repo, "checkout", "-qb", "side")
-        write(repo, "adr/side.md", "side\n")
-        commit(repo, "side")
-        git(repo, "checkout", "-q", "main")
-        write(repo, "adr/main.md", "main\n")
-        commit(repo, "main")
-        git(repo, "merge", "--no-ff", "--no-commit", "-q", "side")
-        write(repo, "adr/0002.md", "written in the merge\n")
-        commit(repo, "merge side, adding adr/0002.md")
-        merged = stamp(repo)
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "adr/0001.md", "one\n")
+        commit_everything(shared_repo, "a decision")
+        git_out(shared_repo, "checkout", "-qb", "side")
+        write(shared_repo, "adr/side.md", "side\n")
+        commit_everything(shared_repo, "side")
+        git_out(shared_repo, "checkout", "-q", "main")
+        write(shared_repo, "adr/main.md", "main\n")
+        commit_everything(shared_repo, "main")
+        git_out(shared_repo, "merge", "--no-ff", "--no-commit", "-q", "side")
+        write(shared_repo, "adr/0002.md", "written in the merge\n")
+        commit_everything(shared_repo, "merge side, adding adr/0002.md")
+        merged = stamp(shared_repo)
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "adr")
         assert code == 0, text
         assert f"    adr/0002.md  added {merged}  last changed {merged}\n" in text, text
 
     def test_a_merge_that_rewrote_a_document_one_parent_lacks_changes_it(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054, round 2's finding 1: a merge that rewrites a document only
         `side` holds prints `AM` under `--cc`, an `A` against `main` beside an
         `M` against `side`. Not every letter is `A`, so the merge changed the
         document and `side`'s commit still added it."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "one\n")
-        commit(repo, "a decision")
-        git(repo, "checkout", "-qb", "side")
-        write(repo, "adr/side.md", "side\n")
-        commit(repo, "side adds a document")
-        added = stamp(repo)
-        git(repo, "checkout", "-q", "main")
-        write(repo, "adr/main.md", "main\n")
-        commit(repo, "main")
-        git(repo, "merge", "--no-ff", "--no-commit", "-q", "side")
-        write(repo, "adr/side.md", "side, rewritten in the merge\n")
-        commit(repo, "merge side, rewriting adr/side.md")
-        merged = stamp(repo)
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "adr/0001.md", "one\n")
+        commit_everything(shared_repo, "a decision")
+        git_out(shared_repo, "checkout", "-qb", "side")
+        write(shared_repo, "adr/side.md", "side\n")
+        commit_everything(shared_repo, "side adds a document")
+        added = stamp(shared_repo)
+        git_out(shared_repo, "checkout", "-q", "main")
+        write(shared_repo, "adr/main.md", "main\n")
+        commit_everything(shared_repo, "main")
+        git_out(shared_repo, "merge", "--no-ff", "--no-commit", "-q", "side")
+        write(shared_repo, "adr/side.md", "side, rewritten in the merge\n")
+        commit_everything(shared_repo, "merge side, rewriting adr/side.md")
+        merged = stamp(shared_repo)
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "adr")
         assert code == 0, text
         assert f"    adr/side.md  added {added}  last changed {merged}\n" in text, text
 
     def test_a_deletion_is_no_change_to_a_document_head_holds(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054, round 2's finding 1: a status whose letters are `D` says the
         commit took the path out of its tree, so it is neither an add nor a
@@ -3222,41 +3342,41 @@ class Test_main:
         merge keeps `main`'s content, so `--cc` names nothing at the merge and
         `side`'s deletion, which the walk reads after `main`'s change, is not
         the document's last change."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "one\n")
-        commit(repo, "a decision")
-        first = stamp(repo)
-        git(repo, "checkout", "-qb", "side")
-        git(repo, "rm", "-q", "adr/0001.md")
-        commit(repo, "side deletes it")
-        git(repo, "checkout", "-q", "main")
-        write(repo, "adr/0001.md", "one, revised\n")
-        commit(repo, "main revises it")
-        revised = stamp(repo)
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "adr/0001.md", "one\n")
+        commit_everything(shared_repo, "a decision")
+        first = stamp(shared_repo)
+        git_out(shared_repo, "checkout", "-qb", "side")
+        git_out(shared_repo, "rm", "-q", "adr/0001.md")
+        commit_everything(shared_repo, "side deletes it")
+        git_out(shared_repo, "checkout", "-q", "main")
+        write(shared_repo, "adr/0001.md", "one, revised\n")
+        commit_everything(shared_repo, "main revises it")
+        revised = stamp(shared_repo)
         # A modify/delete conflict, which `git` here would raise on.
         subprocess.run(
-            ["git", "-C", str(repo), "merge", "--no-ff", "-q", "side"],
+            ["git", "-C", str(shared_repo), "merge", "--no-ff", "-q", "side"],
             capture_output=True,
         )
-        write(repo, "adr/0001.md", "one, revised\n")
-        commit(repo, "merge side, keeping main's revision")
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
+        write(shared_repo, "adr/0001.md", "one, revised\n")
+        commit_everything(shared_repo, "merge side, keeping main's revision")
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "adr")
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {revised}\n" in text, text
 
     def test_a_file_under_two_named_directories_is_listed_once(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1054 A3: `--from a` and `--from a/b` both hold `a/b/inner.md`, and
         it is listed once, under the first directory named that holds it;
         each path is read from the directory the command runs in."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "a/top.md", "top\n")
-        write(repo, "a/b/inner.md", "inner\n")
-        commit(repo, "a")
-        monkeypatch.chdir(repo / "a")
-        code, text = dry_run(repo, capfd, "--from", ".", "--from", "b")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "a/top.md", "top\n")
+        write(shared_repo, "a/b/inner.md", "inner\n")
+        commit_everything(shared_repo, "a")
+        monkeypatch.chdir(shared_repo / "a")
+        code, text = dry_run(shared_repo, capfd, "--from", ".", "--from", "b")
         assert code == 0, text
         assert text.count("a/b/inner.md  ") == 1, text
         assert "\nfrom a/: 2 documents\n" in text, text
@@ -3264,19 +3384,19 @@ class Test_main:
 
     @pytest.mark.skipif(os.name == "nt", reason="`*` is no character of a name there")
     def test_a_named_directory_is_read_as_its_name_and_never_as_a_pattern(
-        self, repo, capfd, monkeypatch
+        self, shared_repo, capfd, monkeypatch
     ):
         """#1573: `settle.py#git_fields` starts git through
         `lib/gitcmd.py#git` with `--literal-pathspecs`, so `--from 'a*'`
         lists the documents of the directory named `a*` and none of `ab`,
         which the name read as a pattern also matches. Seen red with the
         flag taken out of `git_fields`."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "a*/named.md", "named\n")
-        write(repo, "ab/matched.md", "matched\n")
-        commit(repo, "a")
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "a*")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "a*/named.md", "named\n")
+        write(shared_repo, "ab/matched.md", "matched\n")
+        commit_everything(shared_repo, "a")
+        monkeypatch.chdir(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--from", "a*")
         assert code == 0, text
         assert "\nfrom a*/: 1 document\n" in text, text
         assert "a*/named.md  " in text, text
@@ -3304,7 +3424,7 @@ class Test_main:
         ],
     )
     def test_refuses_a_from_that_names_no_directory_to_read(
-        self, repo, capfd, monkeypatch, tmp_path, where, given, said
+        self, shared_repo, capfd, monkeypatch, tmp_path, where, given, said
     ):
         """#1054 A4: a path that is no directory of the working tree, one
         outside the repository, and the `seal/` root or a path under it, whose
@@ -3315,33 +3435,35 @@ class Test_main:
         (round 1's finding 2)."""
         (tmp_path / "elsewhere").mkdir()
         given = given.format(outside=tmp_path / "elsewhere")
-        write(repo, "adr/0001.md", "a decision\n")
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        commit(repo, "a")
-        before = files(repo)
-        monkeypatch.chdir(repo / where)
-        code, text = dry_run(repo, capfd, "--from", given)
+        write(shared_repo, "adr/0001.md", "a decision\n")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit_everything(shared_repo, "a")
+        before = files(shared_repo)
+        monkeypatch.chdir(shared_repo / where)
+        code, text = dry_run(shared_repo, capfd, "--from", given)
         assert code == 2, text
         assert text.startswith(f"settle: --from {given} {said}"), text
         # The path the command read, which the person opens next.
         assert f" it reads as {os.path.abspath(given)} from " in text, text
         assert text.count("\n") == 1 and text.endswith(".\n"), text
-        assert files(repo) == before
+        assert files(shared_repo) == before
 
-    def test_refuses_from_beside_apply_and_removes_nothing(self, repo, capfd):
+    def test_refuses_from_beside_apply_and_removes_nothing(self, shared_repo, capfd):
         """#1054 A4: `--apply` removes only under `seal/threads/`, so a
         `--from` it accepted would read as one it acted on. The pair exits 2
         with one sentence naming both, and the released directory stays."""
-        write(repo, "adr/0001.md", "a decision\n")
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        commit(repo, "a")
-        before = files(repo)
-        code, text = dry_run(repo, capfd, "--apply", "--from", str(repo / "adr"))
+        write(shared_repo, "adr/0001.md", "a decision\n")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit_everything(shared_repo, "a")
+        before = files(shared_repo)
+        code, text = dry_run(
+            shared_repo, capfd, "--apply", "--from", str(shared_repo / "adr")
+        )
         assert code == 2, text
         assert text.startswith("settle: --from and --apply"), text
         assert text.count("\n") == 1 and text.endswith(".\n"), text
-        assert files(repo) == before
-        assert specs_dir(repo, "1700000001-a").is_dir()
+        assert files(shared_repo) == before
+        assert specs_dir(shared_repo, "1700000001-a").is_dir()
 
     @pytest.mark.parametrize("committed", [True, False], ids=["committed", "no-head"])
     def test_a_root_with_no_work_item_lists_the_named_documents_and_is_settled(
@@ -3354,11 +3476,11 @@ class Test_main:
         repo = tmp_path / "repo"
         mark_root(repo / "seal")
         write(repo, "adr/0001.md", "a decision\n")
-        git(repo, "init", "-q")
-        git(repo, "config", "user.email", "x@example.com")
-        git(repo, "config", "user.name", "x")
+        git_out(repo, "init", "-q")
+        git_out(repo, "config", "user.email", "x@example.com")
+        git_out(repo, "config", "user.name", "x")
         if committed:
-            commit(repo, "a decision")
+            commit_everything(repo, "a decision")
         listed = (
             f"added {stamp(repo)}  last changed {stamp(repo)}"
             if committed
@@ -3379,36 +3501,38 @@ class Test_main:
         assert "holds no work item" in text and "A complete settle ends here" in text
         assert text.count("\n") == settle.DOCUMENTS_HEADING.count("\n") + 6, text
 
-    def test_a_named_directory_is_never_written(self, repo, capfd):
+    def test_a_named_directory_is_never_written(self, shared_repo, capfd):
         """#1054 A6: the dry run with `--from`, then `--apply` removing a
         released work item, leave every file under the named directory with
         the path and the bytes it had, and its `git status` as it was."""
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "a decision\n")
-        write(repo, "adr/sub/0002.txt", "another\n")
-        commit(repo, "a and its records")
-        write(repo, "adr/0001.md", "a decision, revised\n")
-        write(repo, "adr/0003.md", "untracked\n")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(shared_repo, "adr/0001.md", "a decision\n")
+        write(shared_repo, "adr/sub/0002.txt", "another\n")
+        commit_everything(shared_repo, "a and its records")
+        write(shared_repo, "adr/0001.md", "a decision, revised\n")
+        write(shared_repo, "adr/0003.md", "untracked\n")
 
         def named():
-            return {k: v for k, v in files(repo).items() if k.startswith("adr")}
+            return {k: v for k, v in files(shared_repo).items() if k.startswith("adr")}
 
         def status():
-            return git(repo, "status", "--porcelain", "--untracked-files=all", "adr")
+            return git_out(
+                shared_repo, "status", "--porcelain", "--untracked-files=all", "adr"
+            )
 
         before, said = named(), status()
-        code, text = dry_run(repo, capfd, "--from", str(repo / "adr"))
+        code, text = dry_run(shared_repo, capfd, "--from", str(shared_repo / "adr"))
         assert code == 0, text
-        code, text = apply(repo, capfd)
+        code, text = apply(shared_repo, capfd)
         assert code == 0, text
-        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert not specs_dir(shared_repo, "1700000001-a").exists(), text
         assert named() == before
         assert status() == said
 
     # --- `--draft`: the released operations written literally (#1217) --------
 
     def test_draft_writes_each_operation_in_merge_order_and_names_what_it_missed(
-        self, repo, capfd
+        self, shared_repo, capfd
     ):
         """S4 and S5. A was added before B and B's `change` quotes A's `to`,
         so only merge order leaves B's `to`, whatever their ids say. C's
@@ -3416,17 +3540,17 @@ class Test_main:
         coordinate and reason, and C's next operation and D, after it, are
         placed. The run exits 0, writes only under the policy root, and
         leaves every released directory as it was."""
-        item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
-        commit(repo, "a")
-        item(repo, "1700000001-b", op("change", "S", "y.", "z."))
-        commit(repo, "b")
+        item(shared_repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
+        commit_everything(shared_repo, "a")
+        item(shared_repo, "1700000001-b", op("change", "S", "y.", "z."))
+        commit_everything(shared_repo, "b")
         missed = op("change", "T", "gone words.", "w.")
-        item(repo, "1700000005-c", missed + "\n" + op("add", "T", new="Kept."))
-        commit(repo, "c")
-        item(repo, "1700000002-d", op("add", "U", new="Rule."))
-        commit(repo, "d")
-        records = {k: v for k, v in files(repo).items() if k.startswith("seal")}
-        code, text = dry_run(repo, capfd, "--draft")
+        item(shared_repo, "1700000005-c", missed + "\n" + op("add", "T", new="Kept."))
+        commit_everything(shared_repo, "c")
+        item(shared_repo, "1700000002-d", op("add", "U", new="Rule."))
+        commit_everything(shared_repo, "d")
+        records = {k: v for k, v in files(shared_repo).items() if k.startswith("seal")}
+        code, text = dry_run(shared_repo, capfd, "--draft")
         assert code == 0, text
         line = line_of(spec(missed), "- change")
         assert text == (
@@ -3436,25 +3560,27 @@ class Test_main:
             "placed 4 of 5 operations in docs/\n"
             f"{settle.DRAFTED}"
         ), text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == (
+        assert (shared_repo / "docs" / "a.md").read_text(encoding="utf-8") == (
             DOC.replace("old sentence.", "z.")
             .replace("T's text.\n", "T's text.\n\nKept.\n")
             .replace("Last.\n", "Last.\n\nRule.\n")
         )
-        assert git(repo, "status", "--porcelain") == " M docs/a.md\n"
-        assert {k: v for k, v in files(repo).items() if k.startswith("seal")} == (
-            records
-        )
+        assert git(shared_repo, "status", "--porcelain").stdout == " M docs/a.md\n"
+        assert {
+            k: v for k, v in files(shared_repo).items() if k.startswith("seal")
+        } == (records)
 
-    def test_draft_creates_and_deletes_whole_documents(self, repo, capfd):
+    def test_draft_creates_and_deletes_whole_documents(self, shared_repo, capfd):
         """An `add` with no section creates its document, and a `remove`
         that empties one deletes it. A document written with CRLF is read
         and written with its line ends as they are."""
-        (repo / "docs" / "b.md").write_bytes(b"## Only\r\n\r\nText.\r\n\r\n## Two\r\n")
-        write(repo, "docs/c.md", "## Gone\n\nText.\n")
-        commit(repo, "b and c")
+        (shared_repo / "docs" / "b.md").write_bytes(
+            b"## Only\r\n\r\nText.\r\n\r\n## Two\r\n"
+        )
+        write(shared_repo, "docs/c.md", "## Gone\n\nText.\n")
+        commit_everything(shared_repo, "b and c")
         item(
-            repo,
+            shared_repo,
             "1700000001-a",
             "\n".join(
                 [
@@ -3464,60 +3590,62 @@ class Test_main:
                 ]
             ),
         )
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd, "--draft")
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd, "--draft")
         assert code == 0, text
         assert text.startswith("placed 3 of 3 operations in docs/\n"), text
-        assert (repo / "docs" / "new.md").read_bytes() == b"# New\n"
-        assert (repo / "docs" / "b.md").read_bytes() == b"## Two\r\n"
-        assert not (repo / "docs" / "c.md").exists()
+        assert (shared_repo / "docs" / "new.md").read_bytes() == b"# New\n"
+        assert (shared_repo / "docs" / "b.md").read_bytes() == b"## Two\r\n"
+        assert not (shared_repo / "docs" / "c.md").exists()
 
-    def test_draft_creates_the_policy_root_its_first_document_needs(self, repo, capfd):
+    def test_draft_creates_the_policy_root_its_first_document_needs(
+        self, shared_repo, capfd
+    ):
         """A repository whose policy root is absent gets it from the `add`
         that creates its first document."""
-        git(repo, "rm", "-rq", "docs")
-        commit(repo, "no policy root")
-        item(repo, "1700000001-a", op("add", new="# New", file="docs/new.md"))
-        commit(repo, "a")
-        code, text = dry_run(repo, capfd, "--draft")
+        git_out(shared_repo, "rm", "-rq", "docs")
+        commit_everything(shared_repo, "no policy root")
+        item(shared_repo, "1700000001-a", op("add", new="# New", file="docs/new.md"))
+        commit_everything(shared_repo, "a")
+        code, text = dry_run(shared_repo, capfd, "--draft")
         assert code == 0, text
-        assert (repo / "docs" / "new.md").read_bytes() == b"# New\n"
+        assert (shared_repo / "docs" / "new.md").read_bytes() == b"# New\n"
 
     @pytest.mark.parametrize(
         "other", [["--apply"], ["--from", "adr"]], ids=["apply", "from"]
     )
     def test_refuses_draft_beside_apply_or_from_and_writes_nothing(
-        self, repo, capfd, other
+        self, shared_repo, capfd, other
     ):
         """S6: `--draft` writes the released operations and nothing else, so
         a flag beside it that it would ignore is refused with exit 2 and one
         sentence, and the tree is left as it was."""
-        write(repo, "adr/0001.md", "a decision\n")
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        commit(repo, "a")
-        other = [str(repo / "adr") if o == "adr" else o for o in other]
-        before = files(repo)
-        code, text = dry_run(repo, capfd, "--draft", *other)
+        write(shared_repo, "adr/0001.md", "a decision\n")
+        item(shared_repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit_everything(shared_repo, "a")
+        other = [str(shared_repo / "adr") if o == "adr" else o for o in other]
+        before = files(shared_repo)
+        code, text = dry_run(shared_repo, capfd, "--draft", *other)
         assert code == 2, text
         assert text.startswith("settle: --draft and " + other[0]), text
         assert text.count("\n") == 1 and text.endswith(".\n"), text
-        assert files(repo) == before
+        assert files(shared_repo) == before
 
     def test_draft_in_local_mode_reads_the_design_under_the_git_directory(
-        self, local, gh, capfd
+        self, local_repo, gh, capfd
     ):
         """S7: the released design is read from its directory under the git
         directory, and the draft writes the repository's policy root."""
-        local_item(local, "1700000001-a", "feat/1-a", op("add", "U", new="Rule."))
-        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
-        records = sorted(p for p in (local / ".git" / "seal").rglob("*"))
-        code, text = dry_run(local, capfd, "--draft")
+        local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "U", new="Rule."))
+        gh.merged("feat/1-a", (11, merge(local_repo, "feat/1-a")))
+        records = sorted(p for p in (local_repo / ".git" / "seal").rglob("*"))
+        code, text = dry_run(local_repo, capfd, "--draft")
         assert code == 0, text
         assert text.startswith("placed 1 of 1 operation in docs/\n"), text
-        assert (local / "docs" / "a.md").read_text(encoding="utf-8") == (
+        assert (local_repo / "docs" / "a.md").read_text(encoding="utf-8") == (
             DOC.replace("Last.\n", "Last.\n\nRule.\n")
         )
-        assert sorted(p for p in (local / ".git" / "seal").rglob("*")) == records
+        assert sorted(p for p in (local_repo / ".git" / "seal").rglob("*")) == records
 
     def test_s5_settle_shows_a_work_item_released_under_agentic_seal(self, shared):
         """`seal settle`'s dry run reads the work items under
@@ -3540,18 +3668,18 @@ class Test_adding_commit:
         first = "seal/threads/1700000001-first/changelog.md"
         second = "seal/threads/1700000002-second/changelog.md"
         write(repo, first, "- the same text\n")
-        git(repo, "init", "-q", "-b", "main")
-        git(repo, "config", "user.email", "x@example.com")
-        git(repo, "config", "user.name", "x")
-        commit(repo, "the first work item (#1)")
-        git(repo, "rm", "-q", first)
+        git_out(repo, "init", "-q", "-b", "main")
+        git_out(repo, "config", "user.email", "x@example.com")
+        git_out(repo, "config", "user.name", "x")
+        commit_everything(repo, "the first work item (#1)")
+        git_out(repo, "rm", "-q", first)
         write(repo, second, "- the same text\n")
-        commit(repo, "the settle (#2)")
+        commit_everything(repo, "the settle (#2)")
         assert settle.adding_commit(str(repo), "HEAD", first)[1] == 1
         assert settle.adding_commit(str(repo), "HEAD", second)[1] == 2
 
     def test_refuses_a_number_the_subject_does_not_end_with_and_a_failed_git(
-        self, repo
+        self, shared_repo
     ):
         """#1139. A `(#N)` inside the subject is not the pull request's, so
         the adding commit names none. A path no commit adds has no adding
@@ -3560,14 +3688,13 @@ class Test_adding_commit:
         Seen red with the subject's end anchor taken out, and with the check
         of `git`'s exit taken out."""
         path = "seal/threads/1700000001-a/changelog.md"
-        write(repo, path, "- a\n")
-        commit(repo, "fix: (#7) is not where the title ends")
-        added = git(repo, "rev-parse", "HEAD").strip()
-        assert settle.adding_commit(str(repo), "HEAD", path) == (added, None)
+        write(shared_repo, path, "- a\n")
+        added = commit_everything(shared_repo, "fix: (#7) is not where the title ends")
+        assert settle.adding_commit(str(shared_repo), "HEAD", path) == (added, None)
         missing = "seal/threads/1700000002-none/changelog.md"
-        assert settle.adding_commit(str(repo), "HEAD", missing) == (None, None)
+        assert settle.adding_commit(str(shared_repo), "HEAD", missing) == (None, None)
         with pytest.raises(RuntimeError, match="nosuch"):
-            settle.adding_commit(str(repo), "nosuch", path)
+            settle.adding_commit(str(shared_repo), "nosuch", path)
 
 
 def tagged(repo):
@@ -3582,28 +3709,29 @@ def tagged(repo):
         ("c", []),
     ):
         write(repo, f"{name}.txt", f"{name}\n")
-        commit(repo, name)
-        held.append(git(repo, "rev-parse", "HEAD").strip())
+        held.append(commit_everything(repo, name))
         for tag in tags:
-            git(repo, "tag", *tag)
+            git_out(repo, "tag", *tag)
     return tuple(held)
 
 
 class Test_versions:
     def test_accepts_the_lowest_version_tag_by_number_an_annotated_one_peeled(
-        self, repo
+        self, shared_repo
     ):
         """#1481, design *Scope* item 5. Each commit is labelled by the
         lowest `vX.Y.Z` tag that holds it, by number and not by text, an
         annotated tag read at the commit it peels to. Seen red with the peel
         of an annotated tag alone removed, with the tags walked highest
         first, and with the numbers compared as text."""
-        first, second, _third = tagged(repo)
-        labels = settle.versions(str(repo))
+        first, second, _third = tagged(shared_repo)
+        labels = settle.versions(str(shared_repo))
         assert labels[first] == "v1.2.3", labels
         assert labels[second] == "v1.10.0", labels
 
-    def test_accepts_a_version_tag_of_a_tag_at_the_commit_it_peels_to(self, repo):
+    def test_accepts_a_version_tag_of_a_tag_at_the_commit_it_peels_to(
+        self, shared_repo
+    ):
         """#1481, round 1, finding 1. A `vX.Y.Z` tag whose object is
         another tag labels the commit the chain peels to, as
         `git tag --contains` counts it, so that commit is not labelled by
@@ -3611,119 +3739,125 @@ class Test_versions:
         `for-each-ref` one level only, so this is seen red only with such a
         git first on PATH: with git 2.39.3 against the reading of
         `%(*objecttype)`."""
-        write(repo, "a.txt", "a\n")
-        commit(repo, "a")
-        first = git(repo, "rev-parse", "HEAD").strip()
-        git(repo, "tag", "-a", "-m", "inner", "inner")
-        git(repo, "tag", "-a", "-m", "outer", "v0.1.0", "inner")
-        write(repo, "b.txt", "b\n")
-        commit(repo, "b")
-        git(repo, "tag", "v0.2.0")
-        assert settle.versions(str(repo))[first] == "v0.1.0"
+        write(shared_repo, "a.txt", "a\n")
+        first = commit_everything(shared_repo, "a")
+        git_out(shared_repo, "tag", "-a", "-m", "inner", "inner")
+        git_out(shared_repo, "tag", "-a", "-m", "outer", "v0.1.0", "inner")
+        write(shared_repo, "b.txt", "b\n")
+        commit_everything(shared_repo, "b")
+        git_out(shared_repo, "tag", "v0.2.0")
+        assert settle.versions(str(shared_repo))[first] == "v0.1.0"
 
     def test_refuses_a_tag_of_another_shape_one_on_a_tree_and_an_untagged_commit(
-        self, repo
+        self, shared_repo
     ):
         """#1481, design *Scope* item 5. A tag of another shape, or one on
         a tree, labels nothing, and a commit no tag holds is not labelled.
         Seen red with a tag on a tree taken as a tip."""
-        _first, _second, third = tagged(repo)
-        labels = settle.versions(str(repo))
+        _first, _second, third = tagged(shared_repo)
+        labels = settle.versions(str(shared_repo))
         assert third not in labels, labels
         assert set(labels.values()) == {"v1.2.3", "v1.10.0"}, labels
 
 
 class Test_blobs:
-    def test_accepts_each_names_text_in_order(self, repo):
+    def test_accepts_each_names_text_in_order(self, shared_repo):
         """#1481, design *Scope* item 4. One `git cat-file --batch` gives
         each name's text in the order asked, as `git_out` decodes it, a line
         ending `\\r\\n` read as a newline. Seen red with the read past each
         object's text taken one byte short, and with the line endings left
         as git gave them."""
-        (repo / "crlf.md").write_bytes(b"one\r\ntwo\r\n")
-        git(repo, "config", "core.autocrlf", "false")
-        commit(repo, "crlf")
-        assert settle.blobs(str(repo), ["HEAD:crlf.md", "HEAD:docs/a.md"]) == [
+        (shared_repo / "crlf.md").write_bytes(b"one\r\ntwo\r\n")
+        git_out(shared_repo, "config", "core.autocrlf", "false")
+        commit_everything(shared_repo, "crlf")
+        assert settle.blobs(str(shared_repo), ["HEAD:crlf.md", "HEAD:docs/a.md"]) == [
             ("one\ntwo\n", None),
             (DOC, None),
         ]
 
-    def test_refuses_a_name_git_holds_no_text_for(self, repo):
+    def test_refuses_a_name_git_holds_no_text_for(self, shared_repo):
         """#1481, design *Scope* item 6. Where git holds no file's text at
         a name, the batch gives what it answered, `missing` or the kind of
         object it holds, and the names after it are still read. Seen red
         with the kind of object left unread."""
         assert settle.blobs(
-            str(repo), ["HEAD:docs", "HEAD:nope.md", "HEAD:docs/a.md"]
+            str(shared_repo), ["HEAD:docs", "HEAD:nope.md", "HEAD:docs/a.md"]
         ) == [(None, "tree"), (None, "missing"), (DOC, None)]
 
 
 class Test_module:
-    def test_merge_order_is_the_commit_that_adds_the_spec(self, repo):
+    def test_merge_order_is_the_commit_that_adds_the_spec(self, shared_repo):
         """A work item's directory is born with its `routing.md`, often well
         before its `frame/design.md`; the order is the spec's, not the directory's."""
-        early = specs_dir(repo, "1700000001-a")
+        early = specs_dir(shared_repo, "1700000001-a")
         early.mkdir(parents=True)
         (early / "routing.md").write_text("# a — routing\n", encoding="utf-8")
-        commit(repo, "a is declared")
-        item(repo, "1700000002-b", op("add", "U", new="B."))
-        commit(repo, "b")
-        item(repo, "1700000001-a", op("add", "U", new="A."))
-        commit(repo, "a is framed")
+        commit_everything(shared_repo, "a is declared")
+        item(shared_repo, "1700000002-b", op("add", "U", new="B."))
+        commit_everything(shared_repo, "b")
+        item(shared_repo, "1700000001-a", op("add", "U", new="A."))
+        commit_everything(shared_repo, "a is framed")
         ids = ["1700000001-a", "1700000002-b"]
-        found = [i for i, _ in rules.order(str(repo), "HEAD", ids, "seal/threads")]
+        found = [
+            i for i, _ in rules.order(str(shared_repo), "HEAD", ids, "seal/threads")
+        ]
         assert found == ["1700000002-b", "1700000001-a"], found
 
-    def test_merge_order_of_an_id_that_is_not_ascii_is_its_designs_add(self, repo):
+    def test_merge_order_of_an_id_that_is_not_ascii_is_its_designs_add(
+        self, shared_repo
+    ):
         """#1283. `rule_changes.py#order` reads the history with `-z`, so a
         design whose id git quotes under the default `core.quotePath` is
         placed by the commit that adds it, not last with no commit. Seen red
         against the reading without `-z`."""
-        item(repo, "1700000001-정렬", op("add", "U", new="A."))
-        commit(repo, "a is framed")
-        added = git(repo, "rev-parse", "HEAD").strip()
-        item(repo, "1700000002-b", op("add", "U", new="B."))
-        commit(repo, "b is framed")
+        item(shared_repo, "1700000001-정렬", op("add", "U", new="A."))
+        added = commit_everything(shared_repo, "a is framed")
+        item(shared_repo, "1700000002-b", op("add", "U", new="B."))
+        commit_everything(shared_repo, "b is framed")
         ids = ["1700000001-정렬", "1700000002-b"]
-        found = rules.order(str(repo), "HEAD", ids, "seal/threads")
+        found = rules.order(str(shared_repo), "HEAD", ids, "seal/threads")
         assert found[0] == ("1700000001-정렬", added), found
         assert [i for i, _ in found] == ids, found
 
-    def test_merge_order_of_local_specs_is_their_merge_commits_place(self, repo):
+    def test_merge_order_of_local_specs_is_their_merge_commits_place(self, shared_repo):
         """#955: no commit adds a local spec, so `rule_changes.py#merge_order`
         sorts `(id, merge commit)` pairs by each commit's place on the ref,
         whatever order they are handed in. A commit the ref does not reach
         comes last."""
-        a = merge(repo, "feat/1-a")
-        b = merge(repo, "feat/2-b")
+        a = merge(shared_repo, "feat/1-a")
+        b = merge(shared_repo, "feat/2-b")
         stray = "0" * 40
         pairs = [("1700000002-b", b), ("1700000003-c", stray), ("1700000001-a", a)]
-        assert rules.merge_order(str(repo), "HEAD", pairs) == [
+        assert rules.merge_order(str(shared_repo), "HEAD", pairs) == [
             ("1700000001-a", a),
             ("1700000002-b", b),
             ("1700000003-c", stray),
         ]
 
-    def test_merge_order_refuses_a_history_git_did_not_print(self, repo):
+    def test_merge_order_refuses_a_history_git_did_not_print(self, shared_repo):
         """#1573. `rule_changes.py#order` reads the merge order from the
         history git prints, and a git that exits non-zero printed none, so
         the read raises `lib/gitcmd.py#Exited` with git's line rather than
         placing every design last as added by no commit. Seen red against
         `rule_changes.py` before #1573, which read the empty output as the
         history."""
-        item(repo, "1700000001-a", op("add", "U", new="A."))
-        commit(repo, "a is framed")
+        item(shared_repo, "1700000001-a", op("add", "U", new="A."))
+        commit_everything(shared_repo, "a is framed")
         with pytest.raises(gitcmd.Exited, match="no/such/ref"):
-            rules.order(str(repo), "no/such/ref", ["1700000001-a"], "seal/threads")
+            rules.order(
+                str(shared_repo), "no/such/ref", ["1700000001-a"], "seal/threads"
+            )
 
-    def test_merge_order_of_local_specs_refuses_a_history_git_did_not_print(self, repo):
+    def test_merge_order_of_local_specs_refuses_a_history_git_did_not_print(
+        self, shared_repo
+    ):
         """#1573. `rule_changes.py#merge_order` raises `lib/gitcmd.py#Exited`
         where `git rev-list` exits non-zero, rather than sorting every pair
         as a commit the ref does not reach. Seen red against
         `rule_changes.py` before #1573."""
-        a = merge(repo, "feat/1-a")
+        a = merge(shared_repo, "feat/1-a")
         with pytest.raises(gitcmd.Exited, match="no/such/ref"):
-            rules.merge_order(str(repo), "no/such/ref", [("1700000001-a", a)])
+            rules.merge_order(str(shared_repo), "no/such/ref", [("1700000001-a", a)])
 
     def test_a_ref_that_does_not_resolve_is_refused_rather_than_empty(self, tree):
         """The quiet zero this is written against: a ref nothing can read makes
