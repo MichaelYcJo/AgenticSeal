@@ -21,9 +21,21 @@ reaches it, and the cases whose fact is which records `main` hands the arm
 or what `main` makes of the arm's answer: the exit code a draft and
 `--sealing` give, and where a not-read line is printed.
 
-The cases that run `main` beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
+Since #1581's phase 9 the module's three templates are written by `git
+fast-import` (`imported`), and a `main` run whose fact is what an arm makes
+of the records runs with the readers that ask git what HEAD carries
+answered from the disk and `follows` answering that nothing follows
+(`answered`). The diff, the merge base, the trailers, the root's entry and
+a fixed commit's ancestry stay git's in every run. `Test_main`'s first case
+runs every reader real, and each reader the seam answers keeps cases of its
+own over a real history (`Test_follows`, the records arm's cases about what
+a later commit touched).
+
+The cases about the root beside a project's own `seal/` package (#1059)
+call the reader of the root's name, `root_name` or
+`declared_for_this_branch`, with its input given; the ones whose fact only
+`main` holds build `tests/conftest.py`'s `shared` repository, whose root
+stands at `agentic-seal/`.
 `Test_module` holds the copy run without its siblings, from
 `tests/test_a_script_copied_alone_exits_2.py`, and the framer's mark after
 a U+2028, `frame_foot`'s one case, from
@@ -250,55 +262,151 @@ def init(d):
     git(d, "config", "user.name", "t")
 
 
+def born(d, head):
+    """D made an empty repository whose HEAD names the branch HEAD, and
+    whose own commits are t's, as `init` makes them, the identity written
+    into its config rather than set by two more git processes."""
+    d.mkdir(parents=True)
+    git(d, "init", "-q", "-b", head)
+    with open(d / ".git" / "config", "a", encoding="utf-8") as f:
+        f.write("[user]\n\temail = t@t\n\tname = t\n")
+
+
+def imported(d, *commits, at=1700000000):
+    """The ids of COMMITS, written into the repository at D by one `git
+    fast-import`, where committing each through the working tree takes three
+    processes of its own (#1581's phase 9).
+
+    Each of COMMITS is `(ref, start, message, files)`: a commit on the branch
+    REF whose parent is START, a branch, a commit id or the `:<n>` mark of
+    this call's N-th commit, or REF's previous commit of this call where
+    START is None, a root where REF has none; a tuple START is a merge of
+    its parents, the first one's tree under FILES. FILES maps a path to its
+    text, or to None to delete it, a directory whole. A MESSAGE of None makes no commit and points REF at START,
+    and its id is None. Every commit is t's, one second after AT and each a
+    second after the one before, so a world built on two workers is one
+    history. The working tree is not touched."""
+
+    def blob(text):
+        data = text.encode("utf-8")
+        return b"data %d\n%s\n" % (len(data), data)
+
+    stream = []
+    for n, (ref, start, message, files) in enumerate(commits, 1):
+        if message is None:
+            stream.append(f"reset refs/heads/{ref}\nfrom {start}\n\n".encode())
+            continue
+        who = f"t <t@t> {at + n} +0000\n"
+        head = f"commit refs/heads/{ref}\nmark :{n}\nauthor {who}committer {who}"
+        stream.append(head.encode() + blob(message))
+        first, *merged = start if isinstance(start, tuple) else (start,)
+        if first is not None:
+            stream.append(f"from {first}\n".encode())
+        stream.extend(f"merge {parent}\n".encode() for parent in merged)
+        for path, text in files.items():
+            if text is None:
+                stream.append(f"D {path}\n".encode())
+            else:
+                stream.append(f"M 100644 inline {path}\n".encode() + blob(text))
+        stream.append(b"\n")
+    marks = d / ".git" / "marks"
+    subprocess.run(
+        ["git", "-C", str(d), "fast-import", "--quiet", f"--export-marks={marks}"],
+        input=b"".join(stream),
+        check=True,
+        capture_output=True,
+    )
+    ids = dict(line.split() for line in marks.read_text(encoding="utf-8").splitlines())
+    marks.unlink()
+    return [
+        None if message is None else ids[f":{n}"]
+        for n, (_ref, _start, message, _files) in enumerate(commits, 1)
+    ]
+
+
 @pytest.fixture(scope="module")
 def _branch_template(tmp_path_factory):
     """A repository whose `feature/x` declares a work item and reviewed it,
     built once for the module.
 
-    `main` holds one file and a work item another pull request merged, its
-    declaration naming another branch and its one record in the old table's
-    shape with a finding open (S11). `feature/x` adds the declaration, a code
+    `main` holds one file, the root's marked `README.md`, and a work item
+    another pull request merged, its declaration naming another branch and
+    its one record in the old table's shape with a finding open (S11). `feature/x` adds the declaration, a code
     commit, round 1 at that commit with its one finding `fixed` by it, round
     2, the verifying round, confirming `round-1#1` with nothing of its own,
-    and the closing records. Returns `(root, code commit)`."""
+    and the closing records. Three `git fast-import` runs write it, since
+    each record names a commit the one before wrote. Returns `(root, code
+    commit)`."""
     d = tmp_path_factory.mktemp("chain-world") / "r"
-    init(d)
-    write(d, "f.txt", "one\n")
-    write(
+    born(d, "feature/x")
+    merged = ROUTING.format(
+        review="through the review chain", planning="the session"
+    ).replace("feature/x", "feature/merged")
+    _base, _routing, code = imported(
         d,
-        f"{MERGED_ITEM}/routing.md",
-        ROUTING.format(
-            review="through the review chain", planning="the session"
-        ).replace("feature/x", "feature/merged"),
+        (
+            "main",
+            None,
+            "base",
+            {
+                "f.txt": "one\n",
+                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                f"{MERGED_ITEM}/routing.md": merged,
+                f"{MERGED_ITEM}/trail/rounds/round-1.md": OLD_RECORD,
+            },
+        ),
+        (
+            "feature/x",
+            ":1",
+            "routing",
+            {
+                f"{ITEM}/routing.md": ROUTING.format(
+                    review="through the review chain", planning="the session"
+                )
+            },
+        ),
+        ("feature/x", None, "code", {"f.txt": "two\n"}),
     )
-    write(d, f"{MERGED_ITEM}/trail/rounds/round-1.md", OLD_RECORD)
-    commit(d, "base")
-    git(d, "switch", "-q", "-c", "feature/x")
-    write(
+    _round, reviewed = imported(
         d,
-        f"{ITEM}/routing.md",
-        ROUTING.format(review="through the review chain", planning="the session"),
+        (
+            "feature/x",
+            code,
+            "the round record",
+            {
+                f"{ITEM}/trail/rounds/round-1.md": record(
+                    code, [finding(1, f"fixed {code[:8]}")]
+                )
+            },
+        ),
+        (
+            "feature/x",
+            None,
+            "the verifying round",
+            {
+                f"{ITEM}/trail/rounds/round-2.md": record(
+                    code, confirmations=confirm("round-1#1"), n=2
+                )
+            },
+        ),
+        at=1700000010,
     )
-    commit(d, "routing")
-    write(d, "f.txt", "two\n")
-    code = commit(d, "code")
-    write(
-        d,
-        f"{ITEM}/trail/rounds/round-1.md",
-        record(code, [finding(1, f"fixed {code[:8]}")]),
-    )
-    commit(d, "the round record")
-    write(
-        d,
-        f"{ITEM}/trail/rounds/round-2.md",
-        record(code, confirmations=confirm("round-1#1"), n=2),
-    )
-    reviewed = commit(d, "the verifying round")
     # Two runs, the newest last: the earlier one names a commit nobody can
     # see, so a reader that took any run but the last would refuse the file.
-    write(d, f"{ITEM}/trail/gate.md", gate_file("1" * 40, reviewed))
-    write(d, f"{ITEM}/guarantee.md", guarantee_file(reviewed))
-    commit(d, "the closing records")
+    imported(
+        d,
+        (
+            "feature/x",
+            reviewed,
+            "the closing records",
+            {
+                f"{ITEM}/trail/gate.md": gate_file("1" * 40, reviewed),
+                f"{ITEM}/guarantee.md": guarantee_file(reviewed),
+            },
+        ),
+        at=1700000020,
+    )
+    git(d, "reset", "-q", "--hard")
     return d, code
 
 
@@ -349,6 +457,42 @@ def reading(monkeypatch, texts):
         "read_record",
         lambda root, rel: texts[rel] if rel in texts else real(root, rel),
     )
+
+
+def on_disk(root, rel):
+    """REL's text as the working tree at ROOT holds it, or None where it
+    holds no file there: `read_record` under `WORKTREE`, whatever the run
+    set it to."""
+    try:
+        with open(os.path.join(root, *rel.split("/")), encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def answered(monkeypatch, real=()):
+    """`main`'s readers that ask git what HEAD carries answered from the
+    disk, and `follows` answering that nothing outside the work item's
+    records follows, for a case whose fact is what an arm makes of the
+    records, not what git answers of them (#1581's phase 9).
+
+    `read_record` reads the working tree, which a case leaves as HEAD
+    carries it; `tracked_files` lists it, as `worktree_files` does; and
+    `follows` is None, so a case adding commits after the closing records
+    owes no round at HEAD and no new seal. A name in REAL stays the
+    reader's own. The other git a run starts, the top, the baseline, the
+    diff, the merge base, the trailers, the tree the rule-changes arm reads
+    and a fixed commit's ancestry, stays real, so `main` still reads the
+    world the case built; the readers' agreement with git is held by their
+    own cases (`Test_follows`, `Test_main`'s real-git runs)."""
+    answers = {
+        "read_record": on_disk,
+        "tracked_files": chain.worktree_files,
+        "follows": lambda *_args, **_kw: None,
+    }
+    for name, answer in answers.items():
+        if name not in real:
+            monkeypatch.setattr(chain, name, answer)
 
 
 # --- what the pull request changed ----------------------------------------------
@@ -1504,13 +1648,11 @@ def spec_with(section):
     return f"# spec\n\nbody\n\n{rules}## Removes\n\nnone\n\n" + SPEC.split("\n\n")[-1]
 
 
-def put_spec(root, text, committed=True):
-    """Write the work item's `frame/design.md`; where COMMITTED, commit it and the
-    closing records after it, so the spec is the one thing to refuse."""
+def put_spec(root, text):
+    """Write the work item's `frame/design.md` and commit it with whatever
+    else the case wrote beside it."""
     write(root, f"{ITEM}/frame/design.md", text)
-    if committed:
-        commit(root, "the spec")
-        seal(root)
+    commit(root, "the spec")
 
 
 def refused(root, text, item=ITEM):
@@ -1644,7 +1786,7 @@ class Test_rule_changes_read:
         assert (found, notices) == ([refused(root, text)], [heading_unread(root, text)])
 
     def test_names_a_near_heading_in_another_work_items_spec_the_branch_edits(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """The heading is named in every spec the arm reads, an edited spec of
         another work item among them, and the check passes."""
@@ -1652,7 +1794,7 @@ class Test_rule_changes_read:
         text = spec_with(NOTHING).replace("## Rule changes", NEAR_HEADING)
         write(root, f"{MERGED_ITEM}/frame/design.md", text)
         commit(root, "another work item's spec under a near heading")
-        reviewed_to_head(root)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         assert spec_lines(out, MERGED_ITEM) == [
@@ -1668,6 +1810,7 @@ class Test_rule_changes_read:
         root, _code = branch
         text = spec_with(CONTINUED)
         put_spec(root, text)
+        answered(monkeypatch)
         monkeypatch.setenv("GITHUB_ACTIONS", "true")
         code, out = check(root, capsys)
         assert code == 0, out
@@ -1686,7 +1829,7 @@ class Test_rule_changes_read:
         assert spec_lines(out) == [refusal(root, text)], out
 
     def test_refuses_the_spec_of_a_framer_drawn_frame_the_same_way(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """S7: under `Planning | framer`, with the frame arm satisfied, the
         spec is refused as under `Planning | the session`."""
@@ -1699,6 +1842,7 @@ class Test_rule_changes_read:
         write(root, f"{ITEM}/frame/plan.md", "# plan\n")
         text = spec_with(CONTINUED)
         put_spec(root, text)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         assert spec_lines(out) == [refusal(root, text)], out
@@ -1712,10 +1856,9 @@ class Test_rule_changes_read:
         declares a work item of its own; the head branch's own pull request
         reads the same spec."""
         root, _code = branch
-        put_spec(root, spec_with(CONTINUED))
         write(root, f"{MERGED_ITEM}/frame/design.md", spec_with(CONTINUED))
-        commit(root, "another work item's spec")
-        reviewed_to_head(root)
+        put_spec(root, spec_with(CONTINUED))
+        answered(monkeypatch)
         released(root)
         monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
         code, out = check(root, capsys)
@@ -1746,7 +1889,7 @@ class Test_rule_changes_read:
         it, through git."""
         root, _code = branch
         text = spec_with(CONTINUED)
-        put_spec(root, text, committed=False)
+        write(root, f"{ITEM}/frame/design.md", text)
         monkeypatch.setattr(chain, "WORKTREE", True)
         assert chain.rule_changes_read(str(root), ITEM) == [refused(root, text)]
         monkeypatch.setattr(chain, "WORKTREE", False)
@@ -1764,7 +1907,7 @@ class Test_rule_changes_read:
         assert chain.rule_changes_of(str(root), [ITEM]) == []
         write(root, f"{MERGED_ITEM}/frame/design.md", spec_with(NOTHING))
         commit(root, "another work item's spec")
-        reviewed_to_head(root)
+        answered(monkeypatch)
         code = chain.main(["--baseline", "main", "--root", str(root)])
         err = capsys.readouterr().err
         assert code == 2, err
@@ -1797,7 +1940,7 @@ class Test_rule_changes_read:
 
     @pytest.mark.rule("two-review-answers")
     def test_refuses_another_work_items_spec_straight_to_the_pr(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """S14: under `straight to the PR` no round is owed, and the spec is
         still read."""
@@ -1811,45 +1954,45 @@ class Test_rule_changes_read:
         text = spec_with(CONTINUED)
         write(root, f"{MERGED_ITEM}/frame/design.md", text)
         commit(root, "direct, and another work item's spec")
-        seal(root)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         assert spec_lines(out, MERGED_ITEM) == [refusal(root, text, MERGED_ITEM)], out
 
     def test_accepts_a_pull_request_that_declares_nothing_reading_no_spec(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """S15: the promise in `hygiene.yml` and `CONTRIBUTING.md` holds."""
         root, _code = branch
         git(root, "rm", "-rq", ITEM)
         write(root, f"{MERGED_ITEM}/frame/design.md", spec_with(CONTINUED))
         commit(root, "no work item, and a spec")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         assert "declared neither way" in out
         assert spec_lines(out, MERGED_ITEM) == [], out
 
     def test_accepts_a_spec_only_moved_and_a_file_beside_or_below_one(
-        self, branch, ready, capsys
+        self, monkeypatch
     ):
         """S16: a move with the bytes unchanged writes no section; another
         file beside a spec the branch leaves alone, and a `frame/design.md` one
-        directory down, write none either."""
-        root, _code = branch
+        directory down, write none either. The diff is handed over as
+        `changed` gives it, the move's two names in its `moved`
+        (`Test_changed` holds that reading of git); the one design the
+        branch edits is the one the arm reads."""
+        monkeypatch.setattr(chain, "carried_by", lambda *_args: None)
         old, new = "seal/threads/1788000001-old", "seal/threads/1788000001-moved"
-        on_main(root, f"{old}/frame/design.md", spec_with(CONTINUED))
-        on_main(root, f"{MERGED_ITEM}/frame/design.md", spec_with(CONTINUED))
-        git(root, "mv", old, new)
-        write(root, f"{MERGED_ITEM}/frame/plan.md", "# plan\n")
-        # Bytes of its own: a copy of the moved spec's bytes would read as a
-        # second name of that move.
-        write(root, f"{MERGED_ITEM}/notes/frame/design.md", spec_with(PROSE))
-        commit(root, "moved, beside another work item's spec, and below it")
-        reviewed_to_head(root)
-        code, out = check(root, capsys)
-        assert code == 0, out
-        for item in (old, new, MERGED_ITEM, f"{MERGED_ITEM}/notes"):
-            assert spec_lines(out, item) == [], (item, out)
+        moved = {f"{old}/frame/design.md", f"{new}/frame/design.md"}
+        paths = [
+            *sorted(moved),
+            f"{MERGED_ITEM}/frame/plan.md",
+            f"{MERGED_ITEM}/notes/frame/design.md",
+            f"{ITEM}/frame/design.md",
+        ]
+        edited = chain.edited_work_items(".", "main", paths, moved, "seal/threads")
+        assert edited == [ITEM], edited
 
 
 # --- a check line inside a `to`, at the pull request (#1215) --------------------
@@ -1896,7 +2039,7 @@ def reason(root, line):
 @pytest.mark.rule("a-check-line-in-a-to-is-read-at-the-pull-request")
 class Test_check_lines_in:
     def test_refuses_a_line_the_reader_refuses_at_its_line_in_the_design(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """S1: a `to` ending with `check: f.txt, f.txt` is refused at
         that line of the design, exit 1, with `rules.py`'s reason for the
@@ -1904,6 +2047,7 @@ class Test_check_lines_in:
         root, _code = branch
         text = spec_with(change_to("new words.", COMMA))
         put_spec(root, text)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         why = reason(root, COMMA)
@@ -2061,13 +2205,6 @@ def pin_said(file="docs/policy.md"):
     )
 
 
-def planted_spec(root, text):
-    """`put_spec`, with the files a case planted beside it committed and a
-    round at HEAD, so the spec's notices are all the check prints for it."""
-    put_spec(root, text)
-    reviewed_to_head(root)
-
-
 def planted(monkeypatch, root, text):
     """`(found, notices)`: what `rule_changes_read` gives for ITEM's design
     reading TEXT in a copy's working tree at ROOT, read under `WORKTREE`,
@@ -2098,7 +2235,8 @@ class Test_pins_and_copies_in:
         root, _code = branch
         write(root, "tests/test_pinning.py", PINNING)
         text = spec_with(change_to("a new rule.", old=f"{OLD_RULE}."))
-        planted_spec(root, text)
+        put_spec(root, text)
+        answered(monkeypatch)
         number = line_at(text, f"  from: {OLD_RULE}.")
         code, out = check(root, capsys)
         assert code == 0, out
@@ -2386,20 +2524,6 @@ def with_original(text, said):
     return text.replace(" against main\n", f" against main\noriginal: {said}\n")
 
 
-def migrating(root, originals, sha=BASELINE):
-    """`main` declares a migration whose baseline is SHA, merged into
-    `feature/x`; each round record N gains `original: <ORIGINALS[N-1]>`,
-    none where that is None, and the closing records name HEAD."""
-    on_main(root, PARITY, parity_file(sha))
-    for n, said in enumerate(originals, 1):
-        if said is not None:
-            rel = f"{ITEM}/trail/rounds/round-{n}.md"
-            write(root, rel, with_original((root / rel).read_text("utf-8"), said))
-    if any(said is not None for said in originals):
-        commit(root, "the rounds compared with the original")
-    seal(root)
-
-
 def original_lines(out):
     """The lines the check prints about a round record or the config."""
     where = (f"{ITEM}/trail/rounds/", f"{PARITY}:")
@@ -2431,14 +2555,18 @@ def originals_read(monkeypatch, root, originals, sha=BASELINE, paths=("f.txt",))
 @pytest.mark.rule("parity-at-the-pull-request")
 class Test_originals_of:
     def test_refuses_a_record_with_no_original_line_on_a_ready_pull_request(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """S4: in a repository declaring `seal/parity.json`, a chain-declared
         pull request changing code fails while a round record holds no
         `original:` line, each record named with the baseline it owes, and a
-        draft prints the same lines and exits 0."""
+        draft prints the same lines and exits 0. The branch commits the
+        config itself, since the arm reads it at HEAD wherever it came
+        from."""
         root, _code = branch
-        migrating(root, (None, None))
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, "a migration, declared")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         says = chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE)
@@ -2542,6 +2670,7 @@ class Test_originals_of:
         handed over (`reading`), so `main` runs over the module's sealed
         branch as it stands."""
         root, audited = _item_template
+        answered(monkeypatch)
         rel = f"{ITEM}/guarantee.md"
         says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
         for words in (
@@ -2762,16 +2891,31 @@ def _item_template(tmp_path_factory):
     code, then `trail/gate.md` and `guarantee.md` naming that commit, built
     once for the module. Returns `(root, the audited commit)`."""
     d = tmp_path_factory.mktemp("chain-sealed") / "g"
-    init(d)
-    write(d, "f.txt", "one\n")
-    commit(d, "base")
-    git(d, "switch", "-q", "-c", "feature/g")
-    write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
-    write(d, "f.txt", "two\n")
-    audited = commit(d, "the work")
-    write(d, f"{ITEM}/trail/gate.md", gate_file(audited))
-    write(d, f"{ITEM}/guarantee.md", guarantee(audited, "sealed"))
-    commit(d, "the closing records")
+    born(d, "feature/g")
+    _base, audited = imported(
+        d,
+        ("main", None, "base", {"f.txt": "one\n"}),
+        (
+            "feature/g",
+            ":1",
+            "the work",
+            {f"{ITEM}/routing.md": SEALED_ROUTING, "f.txt": "two\n"},
+        ),
+    )
+    imported(
+        d,
+        (
+            "feature/g",
+            audited,
+            "the closing records",
+            {
+                f"{ITEM}/trail/gate.md": gate_file(audited),
+                f"{ITEM}/guarantee.md": guarantee(audited, "sealed"),
+            },
+        ),
+        at=1700000010,
+    )
+    git(d, "reset", "-q", "--hard")
     return d, audited
 
 
@@ -3039,6 +3183,7 @@ class Test_guarantee:
         verdict = "withheld reason: the body claims a README change"
         write(root, rel, guarantee(sha, verdict))
         commit(root, f"the sealer says {verdict}")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
@@ -3255,22 +3400,43 @@ def _bodied_template(tmp_path_factory):
     pr-body` wrote before the guarantee was committed, and the one it wrote
     after."""
     d = tmp_path_factory.mktemp("chain-bodied") / "b"
-    init(d)
-    write(d, "f.txt", "one\n")
-    commit(d, "base")
-    git(d, "switch", "-q", "-c", "feature/g")
-    mark_root(d / "seal")
-    write(d, "seal/config.json", config_json(*LANGUAGES, MARK_ON))
-    write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
-    write(d, f"{ITEM}/pr.md", "Closes #1.\n")
-    write(d, f"{ITEM}/changelog.md", CHANGED_LINE + "\n")
-    write(d, "f.txt", "two\n")
-    audited = commit(d, "the work")
-    write(d, f"{ITEM}/trail/gate.md", gate_file(audited))
-    commit(d, "the broad run")
+    born(d, "feature/g")
+    work = {
+        "seal/README.md": conftest.ROOT_MARKER + "\n",
+        "seal/config.json": config_json(*LANGUAGES, MARK_ON),
+        f"{ITEM}/routing.md": SEALED_ROUTING,
+        f"{ITEM}/pr.md": "Closes #1.\n",
+        f"{ITEM}/changelog.md": CHANGED_LINE + "\n",
+        "f.txt": "two\n",
+    }
+    _base, audited = imported(
+        d,
+        ("main", None, "base", {"f.txt": "one\n"}),
+        ("feature/g", ":1", "the work", work),
+    )
+    imported(
+        d,
+        (
+            "feature/g",
+            audited,
+            "the broad run",
+            {f"{ITEM}/trail/gate.md": gate_file(audited)},
+        ),
+        at=1700000010,
+    )
+    git(d, "reset", "-q", "--hard")
     early = composed_body(d)
-    write(d, f"{ITEM}/guarantee.md", guarantee(audited, "sealed"))
-    commit(d, "the seal")
+    imported(
+        d,
+        (
+            "feature/g",
+            "feature/g",
+            "the seal",
+            {f"{ITEM}/guarantee.md": guarantee(audited, "sealed")},
+        ),
+        at=1700000020,
+    )
+    git(d, "reset", "-q", "--hard")
     return d, early, composed_body(d)
 
 
@@ -3314,6 +3480,7 @@ class Test_body:
         root, early, _late = _bodied_template
         assert MARK not in early
         payload(tmp_path, monkeypatch, early)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         assert body_lines(out) == [
@@ -3464,6 +3631,7 @@ class Test_body:
         """S4. Seen red with the arm absent, where nothing was printed."""
         root, early, _late = _bodied_template
         payload(tmp_path, monkeypatch, early, draft=True)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         [line] = body_lines(out)
@@ -3521,6 +3689,7 @@ class Test_body:
         refuses nothing. Seen red with the arm absent."""
         root, early, _late = _bodied_template
         payload(tmp_path, monkeypatch, early)
+        answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
         assert body_lines(out) == [
@@ -3536,6 +3705,7 @@ class Test_body:
         with the arm absent."""
         root, early, _late = _bodied_template
         payload(tmp_path, monkeypatch, early)
+        answered(monkeypatch)
         code, out = check(root, capsys, "--sealing")
         assert code == 0, out
         [line] = body_lines(out)
@@ -3735,52 +3905,49 @@ class Test_declared_for_this_branch:
         assert os.path.normpath(os.path.join(common_dir(repo), "seal")) in out, out
         assert "seal mode shared" in out, out
 
-    def test_local_mode_says_the_check_judged_nothing(self, repo, capsys, monkeypatch):
+    def test_local_mode_says_the_check_judged_nothing(self, repo):
         """Naming the root does not turn an untracked declaration into a checked
         one: CI reads what git carries, and local mode commits nothing. At a
-        local root each trailer is printed, not judged, so the notice says the
-        check judged nothing."""
+        local root each trailer is printed, not judged, so the why says the
+        check judged nothing. `main` prints the why as its one notice
+        (`test_refuses_a_local_declaration_and_says_it_is_local_mode`)."""
         local_item(repo)
-        _code, out = run_check(repo, capsys, monkeypatch)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
+        assert own == [], own
         assert (
             "the review-chain check judged nothing: at a local root each "
             "commit's `Seal-Routing` trailer is printed, not judged"
-        ) in out, out
-        assert "judged the commit trailers" not in out, out
-        assert "examined nothing" not in out, out
-        assert "through the review chain" not in out, out
+        ) in why, why
+        assert "judged the commit trailers" not in why, why
+        assert "examined nothing" not in why, why
+        assert "through the review chain" not in why, why
 
-    def test_accepts_a_shared_root_and_tells_it_to_add_the_file(
-        self, repo, capsys, monkeypatch
-    ):
-        """A shared-mode repository with no declaration is told to write one."""
-        (repo / "seal" / "threads").mkdir(parents=True)
-        code, out = run_check(repo, capsys, monkeypatch)
-        assert code == 0, out
-        assert ADD_THE_FILE in out, out
-        assert "local mode" not in out, out
-
-    def test_the_shared_sentence_says_what_it_searched_and_for_what(
-        self, repo, capsys, monkeypatch
-    ):
-        """The prefix and the branch are what make the sentence checkable, and
+    def test_the_shared_sentence_says_what_it_searched_and_for_what(self, repo):
+        """A shared-mode repository with no declaration is told to write one.
+        The prefix and the branch are what make the sentence checkable, and
         the trailers are what the check judged where nothing declares the
         branch."""
         (repo / "seal" / "threads").mkdir(parents=True)
-        _code, out = run_check(repo, capsys, monkeypatch)
-        assert "under `seal/threads/`" in out, out
-        assert "declares `feature`" in out, out
-        assert "judged the commit trailers and nothing else" in out, out
-        assert "examined nothing" not in out, out
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
+        assert own == [], own
+        assert ADD_THE_FILE in why and "local mode" not in why, why
+        assert "under `seal/threads/`" in why, why
+        assert "declares `feature`" in why, why
+        assert "judged the commit trailers and nothing else" in why, why
+        assert "examined nothing" not in why, why
 
-    def test_a_repository_with_no_root_is_told_to_add_the_file(
-        self, repo, capsys, monkeypatch
-    ):
-        """With no root to name, the file to write is the answer."""
-        code, out = run_check(repo, capsys, monkeypatch)
-        assert code == 0, out
-        assert ADD_THE_FILE in out, out
-        assert "local mode" not in out, out
+    def test_a_repository_with_no_root_is_told_to_add_the_file(self, repo, monkeypatch):
+        """With no root to name, the root's name is `seal`, and the file to
+        write under it is the answer. The working tree is read, as `main`
+        reads it under `--worktree`."""
+        monkeypatch.setattr(chain, "WORKTREE", True)
+        home = chain.root_name(routing_module, str(repo), None)
+        assert home == "seal", home
+        own, why = chain.declared_for_this_branch(
+            str(repo), routing_module, f"{home}/threads"
+        )
+        assert own == [], own
+        assert ADD_THE_FILE in why and "local mode" not in why, why
 
     @pytest.mark.parametrize(
         "decoy",
@@ -3889,6 +4056,7 @@ class Test_routing_trailers:
         none = commit_saying(root, "chore: b", "Seal-Routing: no work item")
         write(root, "c.txt", "c\n")
         bare = commit_saying(root, "chore: c")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
         lines = out.splitlines()
@@ -3926,11 +4094,11 @@ class Test_routing_trailers:
         assert chain.routing_trailers(str(root), "main") == []
 
     def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         root, _code = branch
         commit_saying(root, "chore: e", "Seal-Routing: 1791999999-a-work-item")
-        seal(root)
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         assert "Seal-Routing" not in out, out
@@ -4053,6 +4221,10 @@ DECLARATION = (
 
 
 NO_GUARANTEE = f"{DECLARED}/guarantee.md:0  git carries no guarantee file"
+# The package's own `seal/README.md`, which opens with no marker, and a
+# root's, which does.
+PACKAGE_README = conftest.PACKAGE["seal/README.md"]
+MARKED = conftest.ROOT_MARKER + "\n"
 
 
 @pytest.fixture
@@ -4086,7 +4258,8 @@ def records_read(monkeypatch, root, texts=None, listed=None):
     `{path: text or None}`, reach it through `read_record` (`reading`).
     Where LISTED is given, it is the round records the arm reads, lowest
     first, in place of what `trail/rounds/` holds at HEAD; every commit the
-    arm asks about is git's."""
+    arm asks about is git's, but where the case answered `follows`
+    (`answered`)."""
     reading(monkeypatch, texts or {})
     if listed is not None:
         monkeypatch.setattr(chain, "round_records", lambda routing, r, i: list(listed))
@@ -4164,6 +4337,7 @@ class Test_main:
         the record, which shows that `main` hands the records arm its round
         records and prints what it refuses."""
         root, code_sha = _branch_template
+        answered(monkeypatch)
         text = record(code_sha, [finding(1, "open")])
         heading = "### 1. the parser drops a row"
         said = (
@@ -4278,6 +4452,7 @@ class Test_main:
         `deferred` findings passes. The last record is round 1, the only
         one the arm reads."""
         root, code_sha = _branch_template
+        answered(monkeypatch)
         found = records_read(monkeypatch, root, listed=[ROUND_1])
         line = next(why for rel, _line, why in found if rel == ROUND_1)
         assert "### 1." in line and chain.VERIFYING_ROUND in line, line
@@ -4353,11 +4528,12 @@ class Test_main:
         )
 
     def test_refuses_a_chain_with_no_record_and_prints_it_on_a_draft(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         root, _code = branch
         git(root, "rm", "-rq", f"{ITEM}/trail/rounds")
         commit(root, "no record")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1 and "holds no `round-N.md`" in out
         ready.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
@@ -4379,6 +4555,7 @@ class Test_main:
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
             "\nWhy it matters.", f"\n{near}\nverdict: fixed\n{FENCE}\n\nWhy it matters."
         )
+        answered(monkeypatch)
         reading(monkeypatch, {ROUND_1: text})
         number = line_at(text, near)
         said = chain.FIELDS.NEAR.format(line=near)
@@ -4412,6 +4589,7 @@ class Test_main:
         nothing of the clean record: a fence inside another fence is that
         fence's."""
         root, code_sha = _branch_template
+        answered(monkeypatch)
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")])
         quoted = f"{FENCE}`markdown\n{FENCE}Seal\nverdict: open\n{FENCE}\n{FENCE}`"
         texts = {ROUND_1: text.replace(f"{FENCE}python\nx = 1\n{FENCE}", quoted)}
@@ -4448,6 +4626,7 @@ class Test_main:
         line naming the template; a fence the proofer never closed hides the
         open finding below it and is named at its opener."""
         root, code_sha = _branch_template
+        answered(monkeypatch)
         for old in (OLD_RECORD.replace("0000000", code_sha), LABELLED):
             found = records_read(monkeypatch, root, {ROUND_1: old})
             assert [p for p in found if p[0] == ROUND_1] == [
@@ -4470,6 +4649,7 @@ class Test_main:
         arm its work item and reads its refusal by `--sealing`."""
         root, _code = _branch_template
         rel = f"{ITEM}/trail/gate.md"
+        answered(monkeypatch, real=("follows",))
         reading(monkeypatch, {rel: gate_file("1" * 40)})
         code, out = check(root, capsys)
         assert code == 1
@@ -4486,6 +4666,7 @@ class Test_main:
         HEAD it passes, and with neither it fails naming both."""
         root, _code = _branch_template
         direct = ROUTING.format(review="straight to the PR", planning="the session")
+        answered(monkeypatch)
         reading(monkeypatch, {f"{ITEM}/routing.md": direct})
         code, out = check(root, capsys)
         assert code == 0, out
@@ -4503,6 +4684,7 @@ class Test_main:
         root, _code = branch
         git(root, "rm", "-rq", ITEM)
         commit(root, "no work item")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0 and "declared neither way" in out
         root, _code = _branch_template
@@ -4520,6 +4702,7 @@ class Test_main:
         release branch itself is the release pull request's own."""
         root, _code = branch
         released(root)
+        answered(monkeypatch)
         monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
         code, out = check(root, capsys)
         assert code == 0, out
@@ -4551,113 +4734,119 @@ class Test_main:
         assert code == 2
         assert "does not resolve" in capsys.readouterr().err
 
-    @pytest.mark.parametrize("removed", [None, "agentic-seal/README.md"])
     def test_s3_the_check_judges_the_declaration_under_agentic_seal(
-        self, declared, capsys, removed
+        self, declared, capsys
     ):
         """The declaration naming the branch under `agentic-seal/threads/` is
-        judged, and so it stays where the pull request deletes only the
-        marker: the merge base's root is still an entry at HEAD."""
+        judged: `main` over `tests/conftest.py#shared` reads the root's name
+        at `agentic-seal/` and hands the arms the declaration under it."""
         write(declared, "docs/a.md", "# a\n")
-        if removed:
-            git_out(declared, "rm", "-q", removed)
         commit_everything_as_e(declared, "the change")
         code, out = checked(capsys, declared)
         assert code == 1, out
         assert NO_GUARANTEE in out, out
         assert "so nothing is declared" not in out, out
 
+    @pytest.mark.parametrize(
+        "head, fork",
+        [
+            ({"seal/README.md": PACKAGE_README}, {"agentic-seal/README.md": MARKED}),
+            (
+                {"seal/README.md": PACKAGE_README, "agentic-seal/README.md": MARKED},
+                {"seal/README.md": PACKAGE_README},
+            ),
+            ({"agentic-seal/README.md": MARKED}, {"seal/README.md": PACKAGE_README}),
+        ],
+        ids=["only-the-marker-deleted", "the-root-added", "added-the-package-gone"],
+    )
+    def test_s3_the_root_is_named_agentic_seal_beside_the_package(
+        self, monkeypatch, head, fork
+    ):
+        """The root's name beside the package's own `seal/` is
+        `agentic-seal`: where the pull request deletes only the marker, the
+        merge base's root names it, as an entry at HEAD still; where the
+        merge base has no root, the name HEAD gives, so the pull request that
+        adds `agentic-seal/` has its declaration judged under it, and so does
+        one that takes the package's `seal/` out of the tree. HEAD and the
+        merge base are handed to `root_name` as the texts each carries."""
+        monkeypatch.setattr(chain, "read_record", lambda _root, rel: head.get(rel))
+
+        def git_at(_root, *args):
+            assert args[0] == "show" and args[1].startswith("fork:"), args
+            return fork.get(args[1].split(":", 1)[1])
+
+        monkeypatch.setattr(chain, "git", git_at)
+        assert chain.root_name(routing_module, ".", "fork") == "agentic-seal"
+
     @pytest.mark.parametrize("outside", [True, False], ids=["the package", "records"])
     def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
-        self, declared, capsys, outside
+        self, monkeypatch, outside
     ):
         """With the migration config at `agentic-seal/parity.json`, a change to
         the package's `seal/__init__.py` owes the comparison, so the config's
         placeholder baseline is refused; a change confined to `agentic-seal/`
-        owes none."""
-        write(declared, "agentic-seal/parity.json", parity_file(None))
-        write(declared, "agentic-seal/follow-up.md", "# follow-up, again\n")
+        owes none. The config is handed over (`reading`)."""
+        config = "agentic-seal/parity.json"
+        reading(monkeypatch, {config: parity_file(None)})
+        paths = [config, "agentic-seal/follow-up.md"]
         if outside:
-            write(declared, "seal/__init__.py", "VERSION = 2\n")
-        commit_everything_as_e(declared, "the change")
-        _code, out = checked(capsys, declared)
-        refused = [
-            ln for ln in out.splitlines() if ln.startswith("agentic-seal/parity")
-        ]
+            paths.append("seal/__init__.py")
+        found = chain.originals_of(
+            routing_module, ".", "agentic-seal", paths, [], [DECLARED]
+        )
         if outside:
-            (line,) = refused
-            assert line.startswith("agentic-seal/parity.json:0  "), line
-            assert "`Baseline commit`" in line, line
+            ((path, line, why),) = found
+            assert (path, line) == (config, 0), found
+            assert "`Baseline commit`" in why, why
         else:
-            assert refused == [], out
+            assert found == [], found
 
     def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
-        self, declared, capsys
+        self, _branch_template, monkeypatch
     ):
         """Another work item's `frame/design.md` the pull request adds under
-        `agentic-seal/threads/` is read by the rule-changes arm, which refuses
-        its section: a line continued past the field's one line."""
+        `agentic-seal/threads/` is one the rule-changes arm reads, which
+        refuses its section: a line continued past the field's one line. The
+        diff is handed over as `changed` gives it."""
+        monkeypatch.setattr(chain, "carried_by", lambda *_args: None)
         other = "agentic-seal/threads/1794200002-another-item"
-        write(
-            declared,
-            f"{other}/frame/design.md",
-            "# spec\n\n## Rule changes\n\n"
-            "- nothing\n  why: a reason\n  that continues two spaces in\n\n"
-            "Framed 2026-11-09 by framer, before the build.\n",
+        paths = [f"{other}/frame/design.md", "docs/a.md"]
+        edited = chain.edited_work_items(
+            ".", "main", paths, set(), "agentic-seal/threads"
         )
-        commit_everything_as_e(declared, "another work item's design")
-        _code, out = checked(capsys, declared)
-        assert any(
-            ln.startswith(f"{other}/frame/design.md:") for ln in out.splitlines()
-        )
-
-    @pytest.mark.parametrize("package_left", [False, True], ids=["kept", "removed"])
-    def test_s3_the_pull_request_that_adds_agentic_seal_is_judged_under_it(
-        self, package, tmp_path, monkeypatch, capsys, package_left
-    ):
-        """A merge base with no root reads under the name HEAD gives, so the
-        pull request that adds `agentic-seal/` has its declaration judged,
-        and so it does where the same pull request takes the package's `seal/`
-        out of the tree."""
-        git_out(package, "switch", "-qc", "feature")
-        mark_root(package / "agentic-seal")
-        write(package, f"{DECLARED}/routing.md", DECLARATION)
-        if package_left:
-            git_out(package, "rm", "-rq", "seal")
-        commit_everything_as_e(package, "the root")
-        event = tmp_path / "event.json"
-        event.write_text(
-            json.dumps({"pull_request": {"draft": False}}), encoding="utf-8"
-        )
-        monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
-        code, out = checked(capsys, package)
-        assert code == 1, out
-        assert NO_GUARANTEE in out, out
+        assert edited == [other], edited
+        root, _code = _branch_template
+        text = spec_with(CONTINUED)
+        found, _notices = read_spec(monkeypatch, root, text, other)
+        assert found == [refused(root, text, other)], found
 
     def test_s3_a_branch_nothing_declares_is_told_to_add_it_under_agentic_seal(
-        self, shared, capsys
+        self, monkeypatch
     ):
         """With no declaration naming the branch, the check names the place it
         searched and the file to add by the root's own name."""
-        git_out(shared, "switch", "-qc", "feature")
-        write(shared, "docs/a.md", "# a\n")
-        commit_everything_as_e(shared, "the change")
-        code, out = checked(capsys, shared)
-        assert code == 0, out
+        monkeypatch.setenv("GITHUB_HEAD_REF", "feature")
+        monkeypatch.setattr(chain, "tracked_declarations", lambda *_args: [])
+        monkeypatch.setattr(chain, "local_root", lambda *_args: "")
+        own, why = chain.declared_for_this_branch(
+            ".", routing_module, "agentic-seal/threads"
+        )
+        assert own == [], own
         assert (
             "Nothing git carries under `agentic-seal/threads/` declares `feature`. "
             "Add agentic-seal/threads/<work-item>/routing.md to declare."
-        ) in out, out
+        ) in why, why
 
     @pytest.mark.parametrize("worktree", [False, True], ids=["HEAD", "--worktree"])
     def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(
-        self, declared, capsys, worktree
+        self, declared, capsys, monkeypatch, worktree
     ):
         """The pull request that takes `agentic-seal/` out of the tree deletes
         the declaration with it, and the package's `seal/` standing at HEAD is
         not the root that stayed. Under `--worktree` the deletion, staged and
         not committed, reads the same."""
         git_out(declared, "rm", "-rq", "agentic-seal")
+        answered(monkeypatch)
         if worktree:
             code = chain.main(
                 ["--baseline", "main", "--root", str(declared), "--worktree"]
@@ -4682,52 +4871,62 @@ OLD_ITEM = "seal/threads/1788000000-an-earlier-item"
 def remove_an_earlier_item(root, applied, whole=True, open_row=False):
     """Declare an earlier work item on `main`, bring it into the branch, and
     remove its directory there, or only its declaration, with or without its
-    rule change applied, and with or without an open row in its record."""
-    git(root, "switch", "-q", "main")
+    rule change applied, and with or without an open row in its record. One
+    `git fast-import` writes the three commits, the merge among them, and
+    the working tree is reset to the branch's head."""
     # Close enough to the branch's own declaration for git's rename detection
     # to pair the two, which `changed` reads without.
-    write(
-        root,
-        f"{OLD_ITEM}/routing.md",
-        ROUTING.format(review="straight to the PR", planning="the session"),
-    )
-    write(
-        root,
-        f"{OLD_ITEM}/frame/design.md",
-        "# a spec\n\n## Rule changes\n\n- add\n  file: docs/policy.md\n  to: A rule.\n",
-    )
+    earlier = {
+        f"{OLD_ITEM}/routing.md": ROUTING.format(
+            review="straight to the PR", planning="the session"
+        ),
+        f"{OLD_ITEM}/frame/design.md": (
+            "# a spec\n\n## Rule changes\n\n- add\n  file: docs/policy.md\n"
+            "  to: A rule.\n"
+        ),
+    }
     if open_row:
-        write(
-            root,
-            f"{OLD_ITEM}/gaps.md",
+        earlier[f"{OLD_ITEM}/gaps.md"] = (
             "# x\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
-            "| a claim nobody ran | the repository owner |\n",
+            "| a claim nobody ran | the repository owner |\n"
         )
-    commit(root, "an earlier item, declared")
-    git(root, "switch", "-q", "feature/x")
-    git(root, "merge", "-q", "--no-edit", "main")
-    git(root, "rm", "-rq", OLD_ITEM if whole else f"{OLD_ITEM}/routing.md")
+    leaves = {OLD_ITEM if whole else f"{OLD_ITEM}/routing.md": None}
     if applied:
-        write(root, "docs/policy.md", "A rule.\n")
-    commit(root, "the earlier item leaves")
+        leaves["docs/policy.md"] = "A rule.\n"
+    imported(
+        root,
+        ("main", "main", "an earlier item, declared", earlier),
+        ("feature/x", ("feature/x", ":1"), "Merge branch 'main'", earlier),
+        ("feature/x", None, "the earlier item leaves", leaves),
+        at=1700000100,
+    )
+    git(root, "reset", "-q", "--hard")
+
+
+def gone_whole(monkeypatch):
+    """The directories `retired` hands `settled`, and the ref with them,
+    each call's appended to the list returned; `settled` answers that each
+    stood there, so a case reads what `retired` passes on."""
+    asked = []
+
+    def settled(root, ref, directories):
+        asked.append((ref, list(directories)))
+        return set(directories)
+
+    monkeypatch.setattr(chain, "settled", settled)
+    return asked
 
 
 @pytest.mark.rule("a-declaration-removed")
 class Test_retired:
-    @pytest.mark.parametrize(
-        "applied, open_row",
-        [(False, True), (True, False)],
-        ids=["an-open-row-and-no-rule-in-docs", "a-closed-record-and-its-rule-in-docs"],
-    )
     @pytest.mark.rule("a-settle-is-no-deletion")
-    def test_accepts_a_declaration_a_settle_removed(
-        self, branch, draft, capsys, applied, open_row
-    ):
+    def test_accepts_a_declaration_a_settle_removed(self, branch, draft, capsys):
         """S6 of #1033: a `routing.md` whose whole directory stood at the
-        merge base and is gone is a settle, whatever its record held there and
-        whatever `docs/` holds of its spec. The notice says what was read."""
+        merge base and is gone is a settle. The notice says what was read.
+        `main` runs over a real removed history, so it hands `retired` the
+        merge base and the declarations' texts at HEAD as git gives them."""
         root, _code = branch
-        remove_an_earlier_item(root, applied=applied, open_row=open_row)
+        remove_an_earlier_item(root, applied=False, open_row=True)
         _code, out = check(root, capsys)
         assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
         # Contract rule 14: the words a person reads, not only the constant.
@@ -4737,15 +4936,54 @@ class Test_retired:
         ) in out, out
         assert "does not carry this file at HEAD" not in out
 
+    @pytest.mark.parametrize(
+        "planted",
+        [{}, {"docs/policy.md": "A rule.\n"}],
+        ids=["nothing-on-disk", "its-rule-in-docs"],
+    )
+    @pytest.mark.rule("a-settle-is-no-deletion")
+    def test_hands_settled_each_directory_gone_whole_and_reads_nothing_else(
+        self, tmp_path, monkeypatch, planted
+    ):
+        """S6 of #1033: what the record held at the merge base and what
+        `docs/` holds of its spec decide nothing: `retired` hands `settled`
+        the directory of each declaration HEAD does not carry and the disk
+        does not hold, with the merge base, and a declaration HEAD carries
+        is no candidate."""
+        for rel, text in planted.items():
+            write(tmp_path, rel, text)
+        asked = gone_whole(monkeypatch)
+        texts = {f"{OLD_ITEM}/routing.md": None, f"{ITEM}/routing.md": "x"}
+        assert chain.retired(str(tmp_path), "fork", texts) == {OLD_ITEM}
+        assert asked == [("fork", [OLD_ITEM])]
+
     def test_refuses_a_declaration_deleted_beside_a_directory_that_stays(
-        self, branch, draft, capsys
+        self, tmp_path, monkeypatch
     ):
         """S8: a `routing.md` deleted beside a `frame/design.md` that stays is a
-        deletion: a settle takes the whole directory."""
+        deletion: a settle takes the whole directory, so `settled` is never
+        asked of it."""
+        write(tmp_path, f"{OLD_ITEM}/frame/design.md", "# a spec\n")
+        asked = gone_whole(monkeypatch)
+        texts = {f"{OLD_ITEM}/routing.md": None}
+        assert chain.retired(str(tmp_path), "fork", texts) == set()
+        assert asked == [("fork", [])]
+
+    def test_refuses_a_deleted_declaration_whose_directory_stays_by_name(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S8, as `main` prints it: the merged item's `routing.md` deleted
+        beside its round record that stays is refused as a declaration git
+        does not carry, and no settle is named."""
         root, _code = branch
-        remove_an_earlier_item(root, applied=True, whole=False)
-        _code, out = check(root, capsys)
-        assert "does not carry this file at HEAD" in out
+        git(root, "rm", "-q", f"{MERGED_ITEM}/routing.md")
+        commit(root, "the merged item's declaration leaves")
+        answered(monkeypatch)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert (
+            f"{MERGED_ITEM}/routing.md:0  git does not carry this file at HEAD"
+        ) in out, out
         assert "retired:" not in out
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
@@ -4762,6 +5000,7 @@ class Test_retired:
         remove_an_earlier_item(root, applied=False)
         git(root, "rm", "-rq", "seal")
         commit(root, "the root leaves the tree")
+        answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         assert (
@@ -4781,7 +5020,7 @@ class Test_retired:
         assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
 
     def test_a_root_that_left_for_a_local_root_says_the_check_judged_nothing(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """The same pull request, read by the session that ran `seal mode
         local`: the root now stands under the common git directory, where
@@ -4792,6 +5031,7 @@ class Test_retired:
         git(root, "rm", "-rq", "seal")
         commit(root, "the root leaves the tree")
         mark_root(os.path.join(common_dir(root), "seal"))
+        answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
         assert (
@@ -4805,7 +5045,7 @@ class Test_retired:
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
     def test_accepts_under_worktree_a_root_the_working_tree_no_longer_has(
-        self, branch, ready, capsys, tmp_path
+        self, branch, ready, capsys, tmp_path, monkeypatch
     ):
         """Round 3 of #952, finding 2: a switch to local mode, run and not
         committed, leaves no `seal` in the working tree, so under `--worktree`
@@ -4814,6 +5054,7 @@ class Test_retired:
         remove_an_earlier_item(root, applied=False)
         shutil.move(str(root / "seal"), str(tmp_path / "moved-seal"))
         git(root, "add", "-A", "seal")
+        answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
         # The line `chain_check.py` prints when no root is in the working
@@ -4822,7 +5063,7 @@ class Test_retired:
         assert "does not carry this file at HEAD" not in out
 
     def test_judges_a_root_the_working_tree_has_under_worktree(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """Round 2 of #952, finding 2: under `--worktree` the tree the check
         reads is the working tree, so a root it holds and HEAD does not is a
@@ -4830,12 +5071,13 @@ class Test_retired:
         root, _code = branch
         git(root, "rm", "-rq", "--cached", "seal")
         git(root, "commit", "-qm", "the root leaves HEAD and stays on disk")
+        answered(monkeypatch, real=("follows",))
         code, out = check(root, capsys, "--worktree")
         assert "so nothing is declared" not in out, out
         assert code == 1 and f"{ITEM}/guarantee.md:0  the guarantee is behind" in out
 
     def test_judges_the_declarations_where_the_working_tree_has_seal_as_a_file(
-        self, branch, ready, capsys
+        self, branch, ready, capsys, monkeypatch
     ):
         """Round 2 of #952, finding 3: a `seal` that is not a directory is
         still an entry, so under `--worktree` the declarations it replaced
@@ -4843,6 +5085,7 @@ class Test_retired:
         root, _code = branch
         shutil.rmtree(root / "seal")
         write(root, "seal", "not a root\n")
+        answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert "so nothing is declared" not in out, out
         assert code == 0 and f"{MERGED_ITEM}/routing.md:0  retired: a settle" in out
