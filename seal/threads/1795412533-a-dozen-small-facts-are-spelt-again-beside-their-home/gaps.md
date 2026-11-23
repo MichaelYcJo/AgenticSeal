@@ -5,6 +5,7 @@
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the format check at the build's last commit, after the base merge that brings in #1576 and #1572 | the orchestrator's broad run, after the review rounds settle |
+| Phase 3 on Windows: the twelve entry points that now call `console.to_utf8()` at a cp1252 console, and `tests/skills/test_pact_check.py`'s Windows-joins case, whose join now differs by whether a path is absolute. Both were run on macOS alone | the `windows-latest` jobs of `.github/workflows/test.yml` on the pull request |
 
 ## Not done
 
