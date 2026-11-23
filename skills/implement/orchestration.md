@@ -420,7 +420,7 @@ the answer writes* above:
 
 | Combination | Why it does not stand |
 |---|---|
-| a work item whose pull request opens without the broad run at HEAD or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
+| a work item whose pull request opens without the broad run or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
 | `crafter` building with no frame | the crafter builds a phase of `frame/plan.md` and fills its Status cell (`agents/crafter.md` *Order of work*) |
 | `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it |
 

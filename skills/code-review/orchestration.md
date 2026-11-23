@@ -265,6 +265,19 @@ verifying round's record is committed where one is owed, the orchestrator
 runs the broad gate again, commits its record, runs `seal pr-body` on the
 body file again and spawns the sealer again.
 
+**A commit after the newest broad run that changes only files under
+`seal/threads/<work-item-id>/` owes no broad run.** It owes `seal pr-body`
+on the body file again and the sealer again, and the sealer reads every
+record at HEAD. A commit that changes any other path owes the broad run
+again, after the round that the row *No fix that no round reads* of
+`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives it.
+`agents/sealer.md` step 1 and the pull request check's broad gate arm read
+the same rule over the branch's own commits
+(`skills/code-review/scripts/chain_check.py#follows`), so neither reads a
+merge, which the paragraph above holds to its own rule. What a `Broad gate`
+command that reads the records misses then is `templates/setup/config.md`
+*Broad gate*'s.
+
 **Where the work's risk is platform-specific, run the other platforms before
 the broad run.** Line endings, the shell and the Python version are such
 risks. Push the branch once the build's last phase closes and run

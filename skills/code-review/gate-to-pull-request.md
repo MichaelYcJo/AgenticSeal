@@ -145,8 +145,9 @@ to skip a party* gives the repair to the sealer, as it does a repair to a
 phase record, the changelog fragment or `pr.md`, make it, commit what it
 changed in the records, run `seal pr-body` on the body file again, and spawn
 the sealer again at the new HEAD, giving a repaired body to a pull request
-already open as the stated limit above says: the record commits after the
-run leave it standing.
+already open as the stated limit above says. Whether the broad run is owed
+again for that commit is `skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals*'s.
 Where the core's row gives it to a round it is a fix nobody reviewed: commit
 it, spawn
 a verifying round on its diff, and once that round's record is committed run

@@ -285,8 +285,8 @@ verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴
 따지고, 어느 시점에 그것을 따지는지는 `docs/running/the-run.md` *The run* 에
 있습니다.
 
-회차가 끝나면 세션이 pull request 가 담을 커밋에서 broad gate 를 한 번
-돌립니다. 에이전트는 이것을 돌리지 않습니다. 리뷰 도중에 돌린 전체 실행은
+회차가 끝나면 세션이 pull request 가 담을 커밋에서, 또는 뒤에 작업 항목의
+기록만 이어지는 커밋에서 broad gate 를 한 번 돌립니다. 에이전트는 이것을 돌리지 않습니다. 리뷰 도중에 돌린 전체 실행은
 다음 수정이 들어오면 쓸모가 없어지기 때문입니다(`docs/running/the-broad-gate.md`).
 sealer 는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
 `seal pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지

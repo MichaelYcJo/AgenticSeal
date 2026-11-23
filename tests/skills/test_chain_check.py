@@ -3093,6 +3093,38 @@ class Test_broad_gate:
         [(path, line, why)] = chain.broad_gate(str(root), ITEM, "main")
         assert (path, line) == (rel, 0) and "the newest gate run" in why, why
 
+    def test_lets_the_records_follow_the_run_and_refuses_any_other_path(self, item):
+        """#1596: a commit after the newest run that changes only the work
+        item's records owes no broad run, while the guarantee, which only
+        the closing records may follow, asks for the sealer again; a later
+        commit of a path outside the records is refused, naming it."""
+        root, _sha = item
+        write(root, f"{ITEM}/pr.md", "Closes #1\n")
+        write(root, f"{ITEM}/changelog.md", "### Changed\n\n- A repair.\n")
+        records = commit(root, "a prose repair after the gate")
+        assert chain.broad_gate(str(root), ITEM, "main") == []
+        assert chain.guarantee(str(root), ITEM, "main") == [
+            (
+                f"{ITEM}/guarantee.md",
+                0,
+                chain.follows_reason(
+                    ("after", records, f"{ITEM}/changelog.md"),
+                    "the guarantee",
+                    "the closing records",
+                )
+                + "; the sealer runs again",
+            )
+        ]
+        write(root, "f.txt", "three\n")
+        code = commit(root, "a code change after the gate")
+        assert chain.broad_gate(str(root), ITEM, "main") == [
+            (
+                f"{ITEM}/trail/gate.md",
+                0,
+                chain.follows_reason(("after", code, "f.txt"), "the newest gate run"),
+            )
+        ]
+
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
         """S5 of #1012: a `trail/gate.md` line that begins with `<!--` is
