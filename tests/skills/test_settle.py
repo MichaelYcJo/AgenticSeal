@@ -3279,6 +3279,26 @@ class Test_main:
         assert "\nfrom a/: 2 documents\n" in text, text
         assert "\nfrom a/b/: 0 documents\n" in text, text
 
+    @pytest.mark.skipif(os.name == "nt", reason="`*` is no character of a name there")
+    def test_a_named_directory_is_read_as_its_name_and_never_as_a_pattern(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1573: `settle.py#git_fields` starts git through
+        `lib/gitcmd.py#git` with `--literal-pathspecs`, so `--from 'a*'`
+        lists the documents of the directory named `a*` and none of `ab`,
+        which the name read as a pattern also matches. Seen red with the
+        flag taken out of `git_fields`."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "a*/named.md", "named\n")
+        write(repo, "ab/matched.md", "matched\n")
+        commit(repo, "a")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "a*")
+        assert code == 0, text
+        assert "\nfrom a*/: 1 document\n" in text, text
+        assert "a*/named.md  " in text, text
+        assert "ab/matched.md" not in text, text
+
     @pytest.mark.parametrize(
         "where, given, said",
         [
