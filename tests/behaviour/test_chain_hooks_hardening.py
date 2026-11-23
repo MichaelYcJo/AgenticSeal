@@ -1,7 +1,7 @@
 """Hardening cases over what the plugin ships and the records it keeps: its
 packaging, the READMEs' account of it, the wording of its skills, of its
-agent definitions and of `docs/running/the-run.md`, and the work item
-directories under `seal/threads/`.
+agent definitions, of `CONTRIBUTING.md` and of `docs/running/the-run.md`,
+and the work item directories under `seal/threads/`.
 
 The module is named for the plugin's hooks, which #1376 removed and #1430
 brought back as two. What the stamp's `Stop` command draws is held in

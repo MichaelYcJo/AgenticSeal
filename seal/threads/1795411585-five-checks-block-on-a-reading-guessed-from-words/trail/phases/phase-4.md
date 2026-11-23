@@ -74,8 +74,9 @@ removal adds no behaviour and owes no run.
 **The module docstring of `tests/behaviour/test_chain_hooks_hardening.py`
 names what the file holds after the removal.** It said the cases hold the
 packaging, the READMEs and the agent definitions' wording. The file also
-holds the wording of skills, of `docs/running/the-run.md`, and the work
-item directories under `seal/threads/`. That was true before this phase,
+holds the wording of skills, of `CONTRIBUTING.md` and of
+`docs/running/the-run.md`, and the work item directories under
+`seal/threads/`. That was true before this phase,
 and *Scope* item 7 asks the docstring to name what the file still holds,
 so it now names all of them. The `# No TARGET:` comment, which gives the
 reason the module declares no target, still holds and was left as it
