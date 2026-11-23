@@ -19,6 +19,6 @@ The owner answered question 1 with `agentic` on 2026-11-23, for the twelve issue
 - **Planning, framer.** The issue leaves open how each module's world is built, which cases become unit calls, and the order across six modules of some 1,200 cases; the measurement it is judged by comes from CI after the release.
 - **Implementation, crafter.** The diff rewrites six large modules.
 - **Review, through the review chain.** Whether each rewritten case still holds what the old one held is a judgment a round reads.
-- **Automation, yes.** The work reaches nothing outside the repository. The `test-durations` artifact that answers *Done when* is read from CI, and the frame takes a local timing as its stand-in until the first push run on `main` after the release.
+- **Automation, yes.** The work reaches nothing outside the repository. The `test-durations` artifact that answers *Done when* is read from CI, and the frame reads the Windows leg of a `workflow_dispatch` run of `tests` on the branch in its stead until the first push run on `main` after the release (`frame/design.md` S1).
 - **Destination, open the pull request**, as under `complete`.
 - **Branch, and the order.** The branch is cut from `origin/release/v0.38.6` at `ef776317b`, after every other item of the release landed, #1580 (PR #1599, the shared `tests/conftest.py#section`, `test_broad_gate.py#unquoted_flat`, `test_chain_check.py`'s reading over `section`) and #1596 (PR #1597, a case in `test_chain_check.py` *Test_broad_gate*) among them. No other item of the release runs beside it.
