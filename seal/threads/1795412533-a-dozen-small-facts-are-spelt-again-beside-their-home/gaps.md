@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the build's last commit, after the base merge that brings in #1576 and #1572 | the orchestrator's broad run, after the review rounds settle |
+| The full suite, the repository-wide lint and the format check at the build's last commit, after the base merge that brings in #1576. `8b8b434b5` merged #1572 and #1574 | the orchestrator's broad run, after the review rounds settle |
 | Phase 3 on Windows: the thirteen entry points, `tests/run_tests.py` among them, that phase 3 gave a call of `console.to_utf8()`, at a cp1252 console, and `tests/skills/test_pact_check.py`'s Windows-joins case, whose join now differs by whether a path is absolute. Both were run on macOS alone | the `windows-latest` jobs of `.github/workflows/test.yml` on the pull request |
 | Phase 4's install lines: `pip install -r tests/requirements.txt pytest-split==0.11.0` in every leg of `.github/workflows/test.yml`, and the `pip install -r` fallback of `CONTRIBUTING.md` *Running the checks*. Neither was run; the `uvx --with-requirements` fallback was run on macOS and installed the file's packages | the `pytest` and `pytest-wide` jobs of `.github/workflows/test.yml` on the pull request |
 | The `seal` job of `.github/workflows/publish-release.yml` installing `-r tests/requirements.txt` from the checkout of the tag. It runs only when a release is published | the `publish-release` run of the release that ships this work |
