@@ -24,6 +24,10 @@ RECORD = ("docs", "running", "the-run.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
+# The steps from the preflight to the open pull request, cut from `ORCH` in
+# #1579 so the orchestrator opens them once the last round has no finding
+# open.
+GATE_TO_PR = ("skills", "code-review", "gate-to-pull-request.md")
 PROOFER = ("agents", "proofer.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The fix pass's procedure, cut from `IMPLEMENT` *5.* and `agents/crafter.md`
@@ -308,7 +312,7 @@ RULES = {
             "`<base>@{upstream}`",
             "`origin/<base>`",
         ),
-        {VERIFY_ORCH: WHAT_THE_GATE_RUNS, ORCH: WHAT_THE_GATE_RUNS},
+        {VERIFY_ORCH: WHAT_THE_GATE_RUNS, GATE_TO_PR: WHAT_THE_GATE_RUNS},
     ),
     # #1578: a document of `docs/forms/` and the agent set each stated what
     # a frame removes, under the same `check:` line. The document went, and
@@ -403,13 +407,13 @@ def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit(
 
 
 def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
-    """S8 of #943 and S12 of #1044, the orchestrator's half. The owner
-    section names the commands that write the pull request body's file and
-    send it, and the constant that marks where the copy of the records
-    starts. Each is something the orchestrator types or opens, so each is
-    held by its spelling; the order and the wording around them are the
-    proofer's to read."""
-    text = flat(*ORCH)
+    """S8 of #943 and S12 of #1044, the orchestrator's half. The steps from
+    the preflight to the open pull request name the commands that write the
+    pull request body's file and send it, and the constant that marks where
+    the copy of the records starts. Each is something the orchestrator types
+    or opens, so each is held by its spelling; the order and the wording
+    around them are the proofer's to read."""
+    text = flat(*GATE_TO_PR)
     pinned = [
         # The command the orchestrator types to open the pull request from
         # the body file.
@@ -459,13 +463,19 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     commands the orchestrator types and what it does at each exit code. The
     case holds those commands, each exit code with the states that name
     exits 4 to 6, and the flag the orchestrator reads the branch's commits
-    with; each row's act is the proofer's to read."""
+    with; each row's act is the proofer's to read. Since #1579 the merge
+    stands in the owner section and the wait in the steps from the
+    preflight to the open pull request, so the case reads both."""
     text = flat(*ORCH)
-    section = text[
+    owner = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
             text.index("## Orchestrator: verify before posting")
         )
     ]
+    steps = flat(*GATE_TO_PR).split(
+        "## Orchestrator: from the preflight to the open pull request", 1
+    )[1]
+    section = owner + steps
     for said in (
         # The read the orchestrator types before each push, and the wait it
         # types when the pull request opens and after each push.

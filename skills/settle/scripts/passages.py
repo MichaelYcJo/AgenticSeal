@@ -36,8 +36,12 @@ TOP_DIRS = ("docs/", "skills/", "agents/", "templates/")
 
 FENCE = re.compile(r"^ *(`{3,}|~{3,})")
 # A section quoted by name after a `.md` path (with or without its
-# possessive). `[^*]` crosses a line break, so a wrapped name is one name.
-SECTION = re.compile(r"`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
+# possessive), with the italic name of a row or paragraph of it where one
+# comes first, as "*<name>* of <path> *<section>*", so a link to one row is
+# one token. `[^*]` crosses a line break, so a wrapped name is one name.
+SECTION = re.compile(
+    r"(?:\*[^*]{1,200}\*\s+of\s+)?`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*"
+)
 SECTION_TOKEN = " section-citation "
 STRIP = str.maketrans("", "", "`*|>#")
 
@@ -68,8 +72,9 @@ def _lines(text):
 
 def words(text):
     """TEXT as a list of words: fenced blocks and heading lines dropped, a
-    quoted section name made one token, then lowercased and stripped of
-    `` ` ``, `*`, `|`, `>` and `#`."""
+    quoted section name made one token with the italic row name a link puts
+    before it (`SECTION`), then lowercased and stripped of `` ` ``, `*`,
+    `|`, `>` and `#`."""
     kept, fence = [], None
     for line in _lines(text):
         opened = FENCE.match(line)

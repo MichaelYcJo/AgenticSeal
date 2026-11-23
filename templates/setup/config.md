@@ -396,7 +396,7 @@ reference root.
 | one or more repository-relative directories, separated by commas, each with or without a trailing `/` | those directories and everything under them |
 | `none` | no reference root |
 | absent or empty | every directory named `specs` outside the plugin's root, at any depth |
-| no `seal/` root at either place | no reference root: the repository has not opted in, and the one layout the plugin read without a root is 0.3.x, whose top-level `specs/` was its own |
+| no `seal/` root at either place | no reference root: the repository has not opted in |
 
 **What it governs.** The checks that would read a record leave a reference
 root out: `seal unverified` prunes it from a directory walk while still
@@ -447,12 +447,6 @@ through `lib/config.py#signer_declaration` and each signer's `Pact` through
 nothing of the pact. A signer whose config holds no `Pact` key naming the
 pact is read as naming no pact, and `seal pact` exits 2 on a relationship
 recorded on one side only.
-
-**A `Pact notify` key is read by nobody.** No command refuses it, prints it
-or names it, like any item no reader asks for, and whoever next edits the
-file deletes it. No reader names it, because naming it would keep a reader
-for a key that changes nothing, and a refusal would stop `seal pact` at the
-pact's repository over it.
 
 ## The seal mark
 

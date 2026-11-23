@@ -488,9 +488,9 @@ has no finding open, and before it runs `seal gate --preflight`**, whichever
 party `routing.md`'s `Implementation` row names: the orchestrator opens the
 pull request, and every commit after the broad run, a `seal/follow-up.md` row
 among them, leaves `trail/gate.md` stale for the sealer
-(`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*). A row is out when it stands at its destination
-below:
+(`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
+preflight to the open pull request*). A row is out when it stands at its
+destination below:
 
 | Remaining item | Destination |
 |---|---|

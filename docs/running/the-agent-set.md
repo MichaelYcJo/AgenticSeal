@@ -24,9 +24,12 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 **The contract's rule numbers are stable.** A prompt saying *contract rule 3
 is narrowed this round*, and a round record compared with another months
-later, hold only while the number still means what it meant; how a retired
-rule keeps its number is the contract's own preamble.
-check: tests/text/test_every_agent_reads_the_contract.py
+later, hold only while the number still means what it meant. So a rule
+number is never reused and never re-ordered. A rule that retires leaves
+`skills/agent-contract/SKILL.md`, and its number is listed here: the
+retired numbers are 8, 16 and 20. A new rule takes the number after the
+highest one used, retired or not.
+check: tests/text/test_every_agent_reads_the_contract.py tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 **The agents are the framer, the crafter, the proofer, the sealer and the
 tracer, and each name says its part of one order.** The framer designs the
