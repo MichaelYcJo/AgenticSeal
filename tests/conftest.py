@@ -886,12 +886,10 @@ def section(text, heading):
     text's, a fence among them as written. The heading line is left out, so
     a phrase pinned in the body is never found in the heading. A text that
     holds HEADING nowhere, or more than once, fails the case naming it."""
-    level = _LINES.heading_level(heading)
-    assert level is not None, f"{heading!r} is not a heading line"
     shown = _LINES.readable(text)
     found = _LINES.sections(shown, heading.strip())
     assert len(found) == 1, f"the text holds {len(found)} headings {heading!r}"
-    start = found[0]
+    start, level = found[0], _LINES.heading_level(heading)
     end = next(
         (
             i
