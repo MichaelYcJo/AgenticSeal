@@ -5,6 +5,7 @@
 - "What `templates/setup/config.md` *Broad gate* says `cmd.exe` does where the reading and `cmd.exe` differ: that `rem` ignores the `&& bin/test` after it, and that a separator glued to a word, as in `a&& bin/x` or `a &&bin/x`, still separates two commands." (`gaps.md` *Not verified*, the template row; who must answer: a measurement, one run of each value under `cmd.exe` on a Windows machine)
 - "Does `uvx ruff check . && uvx ruff format --check . && uv run --no-project tests/run_tests.py -q` run the suite under `cmd.exe` on Windows, with `PYTHONPATH` and `PYTEST_ADDOPTS` kept as the gate sets them?" (`frame/questions.md`, row M1, the question)
 - "The spelling of `design.md` *Scope* item 9 stands" (`frame/questions.md`, row M1, the default until answered)
+- "No run under `cmd.exe` stands behind what the template says `cmd.exe` does with them" (`gaps.md` *Not verified*, the `@bin/test` row; who must answer: a measurement, one run of each value under `cmd.exe` on a Windows machine)
 
 Closes #1577.
 
