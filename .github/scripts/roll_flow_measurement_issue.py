@@ -168,6 +168,7 @@ sys.path.insert(0, os.path.join(ROOT, "lib"))
 import sibling  # noqa: E402
 
 gitcmd = sibling.load("lib/gitcmd.py")
+console = sibling.load("lib/console.py")
 # The rolling log's label, `seal cost --post`'s default: one label for the
 # script that posts a reading and the one that rolls the log it goes to.
 LABEL = sibling.load("skills/verify/scripts/session_cost.py").ROLLING_LABEL
@@ -573,14 +574,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     main()

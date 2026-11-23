@@ -173,6 +173,8 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
+console = sibling.load("lib/console.py")
+
 KEY = "Broad gate"
 
 # The checks, by the name the report prints for each. The first is the
@@ -2265,16 +2267,9 @@ def main(argv=None, console_wants_ascii=False):
 
 if __name__ == "__main__":
     # Whether the report's marks go out in ASCII, asked of stdout as the
-    # process found it — before the loop below moves every stream to UTF-8
-    # (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
-    # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
+    # process found it — before `console.to_utf8()` moves every stream to
+    # UTF-8 (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
+    # exempt from entry_point: stdout is asked how the process found it before console.to_utf8() moves it to UTF-8
     _ascii = not sibling.load(STAMP).is_utf8(sys.stdout)
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main(console_wants_ascii=_ascii))

@@ -85,6 +85,7 @@ import sibling
 # why.
 FLOOR = tuple(sibling.load("lib/launch.py").FLOOR)
 FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
+console = sibling.load("lib/console.py")
 
 # The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`).
 # Pinned to one version, because the oracle is what the readers'
@@ -581,14 +582,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     raise SystemExit(main())

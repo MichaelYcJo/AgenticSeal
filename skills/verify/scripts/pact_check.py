@@ -152,6 +152,8 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
+console = sibling.load("lib/console.py")
+
 PACT_FILE = "pact.md"
 MAP_PARTS = (".claude", "agentic", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
@@ -865,12 +867,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

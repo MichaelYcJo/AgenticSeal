@@ -232,6 +232,7 @@ _optin = sibling.load(OPTIN)
 # The runner every git and `gh` command this starts runs through.
 # `lib/optin.py` loads it already, so this costs no file.
 gitcmd = sibling.load(GITCMD)
+console = sibling.load("lib/console.py")
 WORK_ITEMS = _optin.WORK_ITEMS
 DESIGN = _optin.DESIGN
 PLAN = _optin.PLAN
@@ -2187,16 +2188,5 @@ def _settled(args):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py` owns the reasoning and the three decisions
-    # behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

@@ -134,7 +134,9 @@ import re
 import sys
 
 if __name__ == "__main__":
-    # A record in another language prints through a console's code page.
+    # Before the readers load below: a refusal printed at import must not
+    # meet a console's code page, and neither must a record in another
+    # language.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

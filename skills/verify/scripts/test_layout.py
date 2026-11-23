@@ -155,8 +155,9 @@ import types
 
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
 # loads `lib/gitcmd.py`, which starts every git command this file runs and
-# whose `git_path` spells a path the way git does, and `lib/optin.py`, whose
-# `toplevel` names the repository.
+# whose `git_path` spells a path the way git does, `lib/optin.py`, whose
+# `toplevel` names the repository, and `lib/console.py`, whose `to_utf8` the
+# `__main__` block opens with.
 sys.path.insert(
     0,
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib"),
@@ -165,6 +166,7 @@ import sibling
 
 gitcmd = sibling.load("lib/gitcmd.py")
 optin = sibling.load("lib/optin.py")
+console = sibling.load("lib/console.py")
 
 TARGET_NAME = "TARGET"
 MODULE_CLASS = "Test_module"
@@ -1310,14 +1312,5 @@ def _laid_out(args):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

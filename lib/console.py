@@ -43,25 +43,27 @@ Every entry point owes the answer: each tracked `.py` with a module-level
 `__main__` block opens its first such block with it, and one that cannot
 carries its reason in an exemption above the line
 `tests/censuses.py#entry_point` names, as `lib/launch.py` does. An entry
-point gives it by importing this module and calling `to_utf8()`, or by
-spelling the loop inline. A script that loads nothing from `lib/` at
-import spells the loop, because a load of this module would be one more load
-that can fail before the answer. Many of the scripts under `skills/*/scripts/`
-and `.github/scripts/` already reach `lib/` at import: each imports
-`lib/sibling.py` and loads the modules it reads through `sibling.load`,
-directly or through a sibling script, `skills/implement/scripts/seal.py`
-among them.
-`skills/code-review/scripts/chain_check.py` runs its loop before it loads any
-of them, so that the refusal it prints when one will not load does not meet a
-console's code page. None of the others says why it copies the loop rather
-than loading this module the same way.
-`.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
-`skills/settle/scripts/rules.py` load the tree's modules only when first
-asked, after the arguments are read, so an absent module ends the first and
-the last in `lib/sibling.py`'s sentence at exit 2 and `release_seal.py` in its
-note at exit 0, rather than in a traceback. This command lists every place
-outside the suite that spells the loop, with this file among them, and
-`tests/run_tests.py`, the suite's runner, spells it too:
+point that reaches `lib/` at import, by importing `lib/sibling.py` and
+loading the modules it reads through `sibling.load`, loads this module the
+same way, binds it as `console`, and opens the block with
+`console.to_utf8()`. `skills/implement/scripts/seal.py` and
+`tests/run_tests.py`, the suite's runner, are two of them. Two kinds of
+script spell the loop inline instead, and only these.
+
+- A script that loads nothing from `lib/` at import, because a load of this
+  module would be one more load that can fail before the answer.
+  `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
+  `skills/settle/scripts/rules.py` are of this kind: they load the tree's
+  modules only when first asked, after the arguments are read, so an absent
+  module ends the first and the last in `lib/sibling.py`'s sentence at exit
+  2 and `release_seal.py` in its note at exit 0, rather than in a traceback.
+- `skills/code-review/scripts/chain_check.py` and
+  `skills/code-review/scripts/pr_body.py`, which run their loops before they
+  load any module, so that the refusal each prints when one will not load
+  does not meet a console's code page.
+
+This command lists every place outside the suite that spells the loop, with
+this file among them:
 
     git grep -l "[.]reconfigure(" -- '*.py' ':!tests' ':!evals/behaviour'
 

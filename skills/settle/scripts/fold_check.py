@@ -84,6 +84,8 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
+console = sibling.load("lib/console.py")
+
 INDEX = "README.md"
 
 # The `seal/config.json` key this reads beside `Policy root`, which
@@ -409,15 +411,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # The console's encoding is not UTF-8 everywhere — cp1252 on Windows —
-    # and every line this prints carries an em dash, so stdio is reconfigured
-    # before `main()`, as every other shipped script does.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

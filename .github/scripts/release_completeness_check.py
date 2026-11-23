@@ -102,6 +102,7 @@ import sibling  # noqa: E402
 # level and guards its `main`.
 signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
+console = sibling.load("lib/console.py")
 
 
 # --- reads ----------------------------------------------------------------
@@ -392,14 +393,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

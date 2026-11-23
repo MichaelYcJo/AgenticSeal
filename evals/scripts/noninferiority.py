@@ -55,11 +55,13 @@ import tempfile
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
-# loads `lib/gitcmd.py`, which starts every git command this script runs.
+# loads `lib/gitcmd.py`, which starts every git command this script runs,
+# and `lib/console.py`, whose `to_utf8` the `__main__` block opens with.
 sys.path.insert(0, os.path.join(ROOT, "lib"))
 import sibling  # noqa: E402
 
 gitcmd = sibling.load("lib/gitcmd.py")
+console = sibling.load("lib/console.py")
 SUITE = "evals/behaviour"
 AGENTS = ("proofer", "crafter", "framer", "sealer", "tracer")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
@@ -966,14 +968,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())
