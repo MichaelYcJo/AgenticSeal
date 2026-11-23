@@ -178,6 +178,15 @@ def preloaded():
     return AGENTS + skills
 
 
+def test_the_preloaded_set_holds_the_skills_the_lists_name():
+    """A set that read no `skills:` list would hold the definitions alone,
+    and the case below would pass over every skill a spawn preloads. Every
+    definition lists the core and the contract, so both are in the set."""
+    held = preloaded()
+    for rel in (CORE, CONTRACT):
+        assert os.path.join(ROOT, *rel.split("/")) in held, rel
+
+
 @pytest.mark.parametrize("path", preloaded(), ids=name)
 def test_a_file_every_spawn_preloads_carries_no_check_line(path):
     """`skills/settle/rule-changes.md` *A rule has one shape*: a file every
