@@ -606,9 +606,9 @@ class Test_check:
         over whatever its other cells hold. Nothing else is read as an
         anchor: not a table inside a closed fence, not a table under a
         header `header_key` does not read as the anchor table's, and not a
-        row no table holds (S6). Exit 0, the
-        `READ` line counts the two anchors alone, and it and the summary line
-        name the pact by its URL (contract rule 14)."""
+        row no table holds (S6). Exit 0, the `READ` line counts the two
+        anchors alone, and it and the summary line name the pact by its URL
+        (contract rule 14)."""
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
