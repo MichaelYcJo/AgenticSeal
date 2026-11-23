@@ -274,13 +274,10 @@ def reference_roots(home, name):
     dropped: a reference root is outside the root by definition, and the
     root's records are read whatever the key says.
 
-    **No root at either place is `()`, no reference root at all** — not the
-    default. A reference root is defined against the plugin's root, and a
-    repository with none has not opted in: the one layout the plugin reads
-    without a root is 0.3.x's, whose top-level `specs/` is the plugin's own,
-    and `seal unverified` reads that spelling as its records. A person
-    joining a project runs the bootstrap, which creates the root, before any
-    check reads the tree.
+    **No root at either place, an empty HOME, is the default too**, read
+    without opening any file: no `config.json` exists to declare a key, and
+    one found relative to wherever the process stands is not the
+    repository's.
 
     **A refusal reads as the default**: a file that will not read,
     and a `Reference specs` key written twice or holding no string, which
@@ -288,7 +285,7 @@ def reference_roots(home, name):
     refuse on it: what a refusal costs it is the reading every repository
     had before the key existed, and no record is written or lost on it."""
     if not home:
-        return ()
+        return None
     # A refusal carries no value, so it lands with no key and an empty one.
     value, _refusal = declared_value(home, REFERENCE_KEY)
     if not value:

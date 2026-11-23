@@ -12,7 +12,8 @@ The walk, the root states and `main` read repositories built once for the
 module: a clone of two work items and a
 tracked overview under `build/`, a clone whose second overview is a tracked
 link to the first, built once with the link sorting after its target and
-once before it, a clone with a moved base branch beside its work
+once before it, a clone with no `seal/` root and an overview under
+`specs/`, a clone with a moved base branch beside its work
 branch, a clone of work items a settle can remove, a clone with a `seal/`
 root beside a team's own `specs/`, a `seal/` root with no `specs/`, and a
 `seal/` root whose one work item holds no overview. A case that writes into
@@ -109,13 +110,13 @@ def _committed(base, files):
 
 @pytest.fixture(scope="module")
 def plain(tmp_path_factory):
-    """Two work items in the 0.3.x spelling, `specs/<id>/`, and an overview
-    tracked under `build/`, which every walk skips."""
+    """Two work items under a marked root, and an overview tracked under
+    `build/`, which every walk skips."""
     return _committed(
         tmp_path_factory.mktemp("plain"),
         {
-            f"specs/{WORK}/gaps.md": memo(CANONICAL),
-            f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
+            f"seal/threads/{WORK}/gaps.md": memo(CANONICAL),
+            f"seal/threads/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
             "build/x/gaps.md": memo(CANONICAL, "x"),
         },
     )
@@ -132,15 +133,25 @@ def linked(tmp_path_factory, request):
     #19 stood only where the link sorted first."""
     d = _committed(
         tmp_path_factory.mktemp("linked"),
-        {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
+        {f"seal/threads/{WORK}/gaps.md": memo(CANONICAL)},
     )
-    (d / "specs" / request.param).mkdir()
+    (d / "seal" / "threads" / request.param).mkdir()
     symlink_or_skip(
         os.path.join("..", WORK, "gaps.md"),
-        str(d / "specs" / request.param / "gaps.md"),
+        str(d / "seal" / "threads" / request.param / "gaps.md"),
     )
     commit_everything_as_e(d, "a link")
     return d
+
+
+@pytest.fixture(scope="module")
+def rootless(tmp_path_factory):
+    """A repository with no `seal/` root at either place, whose one overview
+    stands under a `specs/`."""
+    return _committed(
+        tmp_path_factory.mktemp("rootless"),
+        {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
+    )
 
 
 SIBLING = "1780000001-squashed-sibling"
@@ -307,6 +318,14 @@ class Test_overviews:
             "1790000000-ours"
         ]
 
+    def test_refuses_a_specs_directory_on_a_walk_of_a_repository_with_no_root(
+        self, rootless
+    ):
+        """#1576, design S12: a repository with no root reads the default,
+        so its `specs/` is a reference root the walk leaves out, as it is
+        where a root stands and no `Reference specs` key is written."""
+        assert UC.overviews([str(rootless)]) == []
+
 
 class Test_config_at:
     def test_accepts_the_config_reader_and_the_root(self, joined):
@@ -315,15 +334,15 @@ class Test_config_at:
         assert same_path(home, joined / "seal")
         assert name == "seal"
 
-    def test_refuses_to_invent_a_root(self, plain):
-        _config, home, name = UC.config_at(str(plain))
+    def test_refuses_to_invent_a_root(self, rootless):
+        _config, home, name = UC.config_at(str(rootless))
         assert not home and not name
 
 
 class Test_references_at:
-    def test_accepts_the_default_under_a_root_and_none_without_one(self, joined, plain):
+    def test_accepts_the_default_with_a_root_and_without_one(self, joined, rootless):
         assert UC.references_at(str(joined))[1] is None
-        assert UC.references_at(str(plain))[1] == ()
+        assert UC.references_at(str(rootless))[1] is None
 
     def test_refuses_to_fail_where_lib_will_not_load(self, joined, monkeypatch):
         real = UC.sibling.load
@@ -523,8 +542,8 @@ class Test_main:
     def test_accepts_a_walk_outside_a_repository_reading_no_reference_root(
         self, tmp_path, monkeypatch
     ):
-        """Outside a git repository there is no root to be outside of, and
-        every fixture of the 0.3.x spelling lives there."""
+        """Outside a git repository there is no root to be outside of, so
+        the `specs/<name>/` that `memo_at` writes is read."""
 
         def refuse(top):
             raise AssertionError(f"reference roots were read for {top!r}")
