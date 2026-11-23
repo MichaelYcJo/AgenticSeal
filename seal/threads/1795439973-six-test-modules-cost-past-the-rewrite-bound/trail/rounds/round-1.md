@@ -90,6 +90,11 @@ helpers.
 - **`tests/skills/test_settle.py`'s own `git` and `commit` helpers, its `settled_repo` builder, and its `repo` and `local` fixtures.** Its cases reach `tests/conftest.py#git_out`, `#git` and `#commit_everything`, and module worlds copied per case.
 ```
 
+```seal
+verdict: fixed 9b1bbc499
+answer: The finding holds: `at` (`tests/skills/test_settle.py:697-711`) calls `settle.apply` under `--apply` and `settle.report` otherwise, the `--draft` cases run `settle.main` through `dry_run` (`:163`), and at `ef776317b` only `repo` and `local` were fixtures. `changelog.md:20` takes the round's sentence on `at`, and `changelog.md:30` its heading, both read against those lines before they were applied; no other line of the fragment names `at` or the five helpers.
+```
+
 ### 2. Phase 9's 32 "Answered" verdicts are a third kind, and the frame, the judgment and the changelog name two
 
 ```seal
@@ -169,6 +174,11 @@ its sentence on `Test_retired`.
 
 ```markdown
 Phase 9 did not bring `tests/skills/test_chain_check.py` under 60 s by its own estimate. Of the 1,675 processes its cases start, 396 stand in the twelve test functions that run `main` with every reader real, 736 in the 32 that run it with `answered`, each run still starting 12 git processes and each commit three, and 543 in the cases that run no `main`, most of them readers that ask git over a real history (`trail/phases/phase-9.md`, *Q2* and the third of the four parts). Answering the diff, the merge base and the other readers `answered` leaves real in most of the 32, or keeping fewer runs per arm, would cut it further. Those readers' agreement with git is held by their own classes and by the runs with every reader real, so the choice is the framer's and the orchestrator's.
+```
+
+```seal
+verdict: fixed 9b1bbc499
+answer: The finding holds. `frame/design.md:131` and the grounds cell of `frame/plan.md:69` were folded by the orchestrator at `b1eebbe2b`. In `9b1bbc499`, `changelog.md:15` takes the round's three-kind sentence, and `gaps.md:61` says item 11 keeps a `main` run with `answered` where its fact is what `main` does with an arm's answer, and that the readers `answered` leaves real are held by their own classes and the runs with every reader real. In `trail/phases/phase-9.md` part 4, each of the 32 rows that open with "Answered" now names the fact of `main` its case holds, written from that case's assertions at HEAD: the 11 the finding names and the 21 others, some of which named only what changed in the world. The five `Test_retired` rows and the two `test_s3_a_pull_request_deleting_agentic_seal_declares_nothing` rows name the root's entry as their fact. The part's legend calls "Answered" item 11's third verdict, two sentences that called `follows` a case's fact now call it what the refusal rests on, and the two stray closing tags at the end are gone.
 ```
 
 ## Confirmations
