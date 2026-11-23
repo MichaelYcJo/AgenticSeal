@@ -1182,12 +1182,26 @@ class Test_main:
         assert "not inside a git repository" in capsys.readouterr().out
 
     @pytest.mark.parametrize(
-        "words",
-        [("rev-parse", "--show-toplevel"), ("ls-files", "-z")],
-        ids=["toplevel", "tracked"],
+        "words, args",
+        [
+            (("rev-parse", "--show-toplevel"), ["--check"]),
+            (("ls-files", "-z"), ["--check"]),
+            (
+                ("rev-parse", "--show-toplevel"),
+                [
+                    "--moved",
+                    "HEAD",
+                    "--from",
+                    "tests/test_x.py",
+                    "--to",
+                    "tests/test_x.py",
+                ],
+            ),
+        ],
+        ids=["toplevel", "tracked", "moved"],
     )
     def test_refuses_a_git_that_did_not_answer_in_one_line(
-        self, tmp_path, monkeypatch, capsys, words
+        self, tmp_path, monkeypatch, capsys, words, args
     ):
         """#1573: a git command past `lib/gitcmd.py#TIMEOUT` is exit 2 in the
         runner's one line, and a git that hung is not read as no
@@ -1197,7 +1211,7 @@ class Test_main:
         write(tmp_path, "tests/test_x.py", PLACED)
         monkeypatch.chdir(tmp_path)
         asked = unanswered(monkeypatch, *words)
-        assert layout.main(["--check"]) == 2
+        assert layout.main(args) == 2
         out = capsys.readouterr().out
         assert out == f"seal layout: {past_the_bound(asked[0])}\n", out
 
