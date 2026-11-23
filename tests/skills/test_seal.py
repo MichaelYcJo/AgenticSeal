@@ -33,10 +33,8 @@ answers the top `at_top` gives, and `Test_remote_url` the `origin` the
 import's world carries.
 
 The cases that run the commands beside a project's own `seal/` package
-(#1059) take `package` or `shared`, the repositories `tests/conftest.py`'s
-fixtures of those names build, here built once among the worlds: the
-package's repository with no root, and a copy of it whose root is committed
-at `agentic-seal/`.
+(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
+each case, whose root stands at `agentic-seal/`.
 
 #942's phase 6 placed here the writer's cases of
 `tests/test_the_mode_question_is_asked_once.py`, and the two cases of
@@ -61,7 +59,6 @@ import zipfile
 
 import pytest
 from conftest import (
-    PACKAGE,
     REMOTE,
     ROOT,
     ROOT_MARKER,
@@ -194,31 +191,7 @@ def _worlds(tmp_path_factory):
     exporter = copied(base / "local", base / "exporter")
     (base / "zips").mkdir()
     assert SEAL.main(["export", "--output", str(base / "zips")], str(exporter)) == 0
-    package = base / "package"
-    package.mkdir()
-    git(package, "init", "-q", "-b", "main")
-    git(package, "remote", "add", "origin", REMOTE)
-    for rel, text in PACKAGE.items():
-        write(package, rel, text)
-    commit_as_e(package, "the package")
-    beside = copied(package, base / "beside-the-package")
-    records_at(beside / "agentic-seal")
-    commit_as_e(beside, "the root")
     return base
-
-
-@pytest.fixture
-def package(take):
-    """`tests/conftest.py`'s `package`, a repository on `main` whose committed
-    `seal/` is the project's own package, taken from the world built once."""
-    return take("package")
-
-
-@pytest.fixture
-def shared(take):
-    """`tests/conftest.py`'s `shared`, the package's repository with its root
-    committed at `agentic-seal/`, taken from the world built once."""
-    return take("beside-the-package")
 
 
 @pytest.fixture
