@@ -53,10 +53,10 @@ The `seal` commands are Python scripts, and `python3` is the command they run
 with. Run `python3 -V` before you install: macOS ships 3.9 as
 `/usr/bin/python3`, and a version manager answers with whatever it was last
 told. On Windows, where the official installer creates no `python3`,
-`seal.cmd` runs `py -3`, and the plugin's two hooks fall back to it.
+`seal.cmd` runs `py -3`, and the plugin's hooks fall back to it.
 
 That is the whole install. Nothing is written into your `CLAUDE.md` or your
-settings, and the plugin's two hooks come with it (*What runs on your
+settings, and the plugin's hooks come with it (*What runs on your
 machine*). To uninstall, run `/plugin uninstall agentic`; nothing needs
 undoing first.
 
@@ -335,9 +335,9 @@ method.
 ## What runs on your machine
 
 What runs on your machine is a `seal` command you or the session starts,
-and the plugin's two hooks, which Claude Code runs at its own events.
+and the plugin's hooks, which Claude Code runs at its own events.
 
-**The plugin ships two hooks, registered in `hooks/hooks.json`, and neither
+**The plugin ships three hooks, registered in `hooks/hooks.json`, and none
 writes into your settings.**
 
 - **`SessionStart`**, at a session's start and again after `/clear` or a
@@ -348,11 +348,21 @@ writes into your settings.**
 - **`Stop`**, at the end of each turn of the main session, runs
   `seal_stamp.py --stop`, which draws each stamp waiting in the clone the
   session works in, once, and says nothing where none waits.
+- **`PreToolUse`**, before each `AskUserQuestion` call, runs
+  `hooks/ask-under-automation.py`. It reads the `routing.md` of each work
+  item whose branch is checked out in a worktree of the session's
+  repository, as `git worktree list` lists them. Where one reads
+  `Automation` `yes`, it refuses that one call unless each of its questions
+  holds `No default:` and a reason on the same line, and tells the session
+  the rule the run keeps (`docs/running/the-run.md` *The run*) and what lets
+  the call through. It never ends a turn: the session reads the refusal and
+  goes on. Anywhere else it prints nothing.
 
 Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
-the script under the plugin's own directory, so an update moves both hooks
+the script under the plugin's own directory, so an update moves every hook
 with it. The closing `exit 0` makes each command exit 0 whatever happens,
-so neither hook ever stops a turn.
+so no hook ends a turn: the `PreToolUse` hook refuses one call, after which
+the session goes on.
 
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.
@@ -368,9 +378,10 @@ directory or the session's scratchpad. The orchestrator removes the work
 item's directory once the pull request is open, and again after each later
 repair of it.
 
-Neither hook sends your code, your paths or your prompts anywhere: what the
-`SessionStart` hook prints goes into the session's own context, as a file
-the session opens does. These side effects are worth stating outright: the sealer's
+No hook sends your code, your paths or your prompts anywhere: what the
+`SessionStart` hook prints, and the reason the `PreToolUse` hook refuses a
+call with, go into the session's own context, as a file the session opens
+does. These side effects are worth stating outright: the sealer's
 `seal stamp --guarantee`, run once on a `guarantee.md` reading `sealed`,
 writes the stamp's values under `<git-common-dir>/agentic-stamp/`, which the
 stamp's hook renames once drawn and nothing prunes, and a `sealed` refused
@@ -378,7 +389,7 @@ because its audited commit is not on the work item's branch leaves an empty
 file under `<git-common-dir>/agentic-stamp-refused/`, in either mode, which
 nothing prunes either.
 
-Neither hook reaches a network. The places below do: each is a command or a
+No hook reaches a network. The places below do: each is a command or a
 step of the AgenticSeal process, so it runs when you or the session starts
 it, or, in the last row, in your CI on a pull request.
 
@@ -391,7 +402,7 @@ it, or, in the last row, in your CI on a pull request.
 | the AgenticSeal process's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a GitHub Actions workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
-The two hooks are the only things on your machine that run without you or
+The plugin's hooks are the only things on your machine that run without you or
 the session starting them. Each row above that goes through your own `gh`
 login reaches the repository you work in and no other. The AgenticSeal
 process's steps push your branch, with its code, and the pull request's text
@@ -441,7 +452,7 @@ after `!` in a session, or ask the session to run it.
   a line written where nobody compared reads the same.
 - **Windows was run on real hardware once.** The suite passes on a native
   Windows 11 tree, on a Korean cp949 console, with no `PYTHONUTF8=1`. The
-  plugin's two hooks have not run on Windows, and neither has their `py -3`
+  plugin's hooks have not run on Windows, and neither has their `py -3`
   fallback.
 - **The behaviour evals run on the owner's account, not in CI.**
   `evals/behaviour/` holds the cases of a smoke run, through

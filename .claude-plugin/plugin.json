@@ -1,7 +1,7 @@
 {
   "name": "agentic",
   "displayName": "AgenticSeal",
-  "version": "0.38.7",
+  "version": "0.38.8",
   "description": "The AgenticSeal process: agents frame, build, inspect and seal a change, and it ends in a seal bound to a commit.",
   "author": {
     "name": "MichaelYcJo"

@@ -24,12 +24,13 @@ TARGET = "hooks/core-start.py"
 VARIABLE = "${CLAUDE_PLUGIN_ROOT}"
 
 
-def command(where=ROOT):
-    """The `python3` half of the `SessionStart` command in
-    `hooks/hooks.json`, as words: `python3` read as this interpreter, and
-    `${CLAUDE_PLUGIN_ROOT}` as WHERE."""
+def command(where=ROOT, event="SessionStart"):
+    """The `python3` half of the EVENT command in `hooks/hooks.json`, as
+    words: `python3` read as this interpreter, and `${CLAUDE_PLUGIN_ROOT}`
+    as WHERE. `tests/hooks/test_ask_under_automation.py` runs its hook
+    through it."""
     with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
-        (entry,) = json.load(f)["hooks"]["SessionStart"]
+        (entry,) = json.load(f)["hooks"][event]
     (hook,) = entry["hooks"]
     first = hook["command"].split(" || ")[0]
     words = shlex.split(first)
@@ -37,8 +38,8 @@ def command(where=ROOT):
     return [sys.executable] + [w.replace(VARIABLE, str(where)) for w in words[1:]]
 
 
-def start(body, root=None, where=ROOT, cwd=None):
-    """The command run as the harness runs it, with BODY on stdin,
+def start(body, root=None, where=ROOT, cwd=None, event="SessionStart"):
+    """The EVENT command run as the harness runs it, with BODY on stdin,
     `CLAUDE_PLUGIN_ROOT` set to ROOT, or unset where ROOT is None, the script
     found under WHERE and the process started in CWD; its stdout. The hook
     writes nothing to stderr and exits 0."""
@@ -46,7 +47,7 @@ def start(body, root=None, where=ROOT, cwd=None):
     if root is not None:
         env["CLAUDE_PLUGIN_ROOT"] = str(root)
     r = subprocess.run(
-        command(where),
+        command(where, event),
         input=body,
         capture_output=True,
         encoding="utf-8",
