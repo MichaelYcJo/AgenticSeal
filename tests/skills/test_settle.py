@@ -3173,13 +3173,16 @@ class Test_main:
     ):
         """#1603, design S5. Two released designs each change `S` and `T`,
         so the merge order asks the ancestry of their one pair of commits
-        once for each group; an earlier settle removed a plan its tag
+        once for each group, and the first one's record holds an open row,
+        whose paths the dry run looks up in the tracked tree that its scan
+        for citations lists too. An earlier settle removed a plan its tag
         holds, and the second design's fragment is in a published release,
         so `--apply` reads the tags for the judgments and for the note. The
         dry run and `--apply` each start no git command twice with the
         same input, every reader real. Seen red against `settle.py` before
-        #1603, where the pair's `merge-base --is-ancestor` repeats in both
-        runs and, under `--apply`, so do the three reads of `versions`."""
+        #1603, where the pair's `merge-base --is-ancestor` and `ls-files -z`
+        repeat in both runs and, under `--apply`, so do the three reads of
+        `versions`."""
         removed_plan(
             shared_repo,
             "1700000001-old",
@@ -3195,6 +3198,8 @@ class Test_main:
                 op("add", "S", new=rule) + "\n" + op("add", "T", new=rule),
             )
             commit_everything(shared_repo, name)
+        write(specs_dir(shared_repo, "1700000002-a"), "gaps.md", OPEN)
+        commit_everything(shared_repo, "an open row")
         fragment(shared_repo, "1700000003-b", "feat: b (#43)", tag="v0.2.0")
         gh.releases([release("v0.2.0", "[#43](https://github.com/o/r/pull/43)")])
         (code, text), asked = asks(monkeypatch, lambda: dry_run(shared_repo, capfd))
@@ -3202,6 +3207,8 @@ class Test_main:
         assert "\ngroup 2\n" in text, text
         assert repeated(asked) == [], repeated(asked)
         (code, text), asked = asks(monkeypatch, lambda: apply(shared_repo, capfd))
+        assert code == 1, text
+        assert "kept seal/threads/1700000002-a/" in text, text
         assert "removed seal/threads/1700000003-b/\n" in text, text
         assert repeated(asked) == [], repeated(asked)
 
