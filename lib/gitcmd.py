@@ -16,6 +16,17 @@ caller passes `check=True`, because for some commands, such as `merge-base
 that does not catch it ends with that line on stderr at exit 1 and never
 in a traceback.
 
+**A run inside `one_run` asks git each question once.** Inside it, `git`
+answers a command the run already asked from the first answer. A command
+enters it for a run in which nothing the command writes changes what git
+answers it, so an answer given again is the answer git would give.
+`chain-check` writes nothing. `seal settle` writes the working tree under
+`--apply`, and the policy root under `--draft`. The only git read after
+those writes asks where the common git directory is
+(`lib/optin.py#git_common_dir`, from a linked worktree), and neither write
+moves it. A git write inside a run, or any other read after a write the
+run made, is answered as git answered before it. `gh` is asked every time.
+
 **This module is the one place that names which keys reshape what a script
 reads of git, and which subcommands they reshape.** A configuration can put
 text into the fields a script parses, take a commit's paths out of a
@@ -45,13 +56,16 @@ into git's `/`-joined form, `under_root` turns a `/`-joined
 repository-relative path into the disk's, and `inside` answers whether a
 path on the disk is a directory or under it. `http_answer` reads the HTTP
 status and the body out of what `gh api -i` printed, so a caller decides
-on the status and not on the words of gh's stderr.
+on the status and not on the words of gh's stderr. `decoded` reads bytes
+git printed as `git` reads its text, and `batch_texts` reads what `git
+cat-file --batch` printed by the size each header gives.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
 `seal_stamp.py`, and every hook that reads `lib/optin.py`, reach it on
 whatever `python3` starts them.
 """
 
+import contextlib
 import os
 import re
 import shutil
@@ -198,21 +212,58 @@ def _start(command, found, check, encoding, **kwargs):
     return done
 
 
+# The answers of the run `one_run` holds open, each `git` asked in it keyed
+# by what it was asked, or None outside a run.
+_answers = None
+
+
+@contextlib.contextmanager
+def one_run():
+    """A run inside which `git` answers a command it already answered from
+    that first answer and starts no process. The answers are dropped when
+    the run ends, by return or by exception. Entered while a run stands,
+    it joins that run, whose answers outlive the inner one. Which runs may
+    enter it is the module docstring's."""
+    global _answers
+    if _answers is not None:
+        yield
+        return
+    _answers = {}
+    try:
+        yield
+    finally:
+        _answers = None
+
+
 def git(root, *args, given=None, binary=False, env=None, check=False):
     """The `subprocess.CompletedProcess` of `argv("-C", root, *args)`, with
     GIVEN on stdin, text as UTF-8 with undecodable bytes replaced or bytes
     where BINARY is true, and the variables of ENV added to this process's
     environment. `Unrun` where it gave no answer; the exit code is the
     caller's to read unless CHECK is true, where a non-zero one raises
-    `Exited`."""
-    return _start(
-        ["git", *args],
-        argv("-C", root, *args),
-        check,
-        None if binary else "utf-8",
-        input=given,
-        env={**os.environ, **env} if env else None,
-    )
+    `Exited`.
+
+    Inside `one_run`, a command asked with the same ROOT, ARGS, GIVEN,
+    BINARY and ENV as one the run already answered is answered from that
+    process, and CHECK is read on every ask. An `Unrun` is never kept, so
+    the next ask starts the command again."""
+    command = ["git", *args]
+    key = (root, args, given, binary, tuple(sorted(env.items())) if env else None)
+    done = _answers.get(key) if _answers is not None else None
+    if done is None:
+        done = _start(
+            command,
+            argv("-C", root, *args),
+            False,
+            None if binary else "utf-8",
+            input=given,
+            env={**os.environ, **env} if env else None,
+        )
+        if _answers is not None:
+            _answers[key] = done
+    if check and done.returncode:
+        raise Exited(command, done.returncode, done.stderr)
+    return done
 
 
 def gh(*args, root=None, check=False):
@@ -243,6 +294,38 @@ def http_answer(stdout):
     head, _, body = stdout.partition("\n\n")
     found = STATUS_LINE.fullmatch(head.split("\n", 1)[0])
     return (int(found.group(1)) if found else None), body
+
+
+def decoded(data):
+    """DATA as `git` reads text: UTF-8 with each undecodable byte replaced,
+    and every line ending a newline."""
+    return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def batch_texts(out, names):
+    """`[(text, None) or (None, answer)]`, one for each of NAMES, in their
+    order, from OUT, the bytes `git cat-file --batch` printed when NAMES
+    were given it one per line: the object's text as `decoded` reads it
+    where it is a blob, or what the batch answered where it holds no file,
+    such as `missing`, or the kind of object it holds instead. Each object
+    is read by the size its header gives, never by a marker its bytes could
+    hold. A name holds no newline, which git would read as two names."""
+    read, at = [], 0
+    for name in names:
+        end = out.index(b"\n", at)
+        header = decoded(out[at:end])
+        at = end + 1
+        fields = header.split(" ")
+        if len(fields) != 3 or not fields[2].isdigit():
+            # `<name> missing`, `<name> ambiguous`: the name is echoed.
+            read.append((None, header.removeprefix(f"{name} ")))
+            continue
+        size = int(fields[2])
+        content, at = out[at : at + size], at + size + 1
+        read.append(
+            (decoded(content), None) if fields[1] == "blob" else (None, fields[1])
+        )
+    return read
 
 
 def is_ancestor(root, commit, ref):

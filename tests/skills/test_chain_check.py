@@ -77,7 +77,7 @@ from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
 from conftest import seal_block as block
-from test_settle import past_the_bound, unanswered
+from test_settle import asks, past_the_bound, repeated, unanswered
 from test_unverified_check import (
     CANONICAL,
     CLOSED_ITEM,
@@ -3884,6 +3884,80 @@ DECLARES_FEATURE = ROUTING.format(
 ).replace("feature/x", "feature")
 
 
+class Test_tracked_declarations:
+    def test_accepts_the_declarations_at_head_read_in_one_process(
+        self, repo, monkeypatch
+    ):
+        """#1603, design S6. The declarations HEAD carries are read by one
+        `git cat-file --batch`, given the blob ids `ls-tree` lists, and by
+        no `show`, and each reads as `read_record` reads it, the one with
+        `\\r\\n` line ends among them. Where HEAD carries none, and under
+        `WORKTREE`, where each is read from disk, no batch starts. Seen red
+        against phase 1's `tracked_declarations`, which started one `show`
+        per declaration."""
+        root = str(repo)
+
+        def started():
+            found, asked = asks(
+                monkeypatch,
+                lambda: chain.tracked_declarations(root, routing_module, WORK),
+            )
+            return found, [argv[argv.index("-C") + 2] for argv, _given in asked]
+
+        assert started() == ([], ["ls-tree"])
+        git(repo, "config", "core.autocrlf", "false")
+        paths = [f"{WORK}/179900000{n}-item-{n}/routing.md" for n in (1, 2, 3)]
+        texts = [
+            DECLARES_FEATURE.replace("| feature |", f"| feature/{n} |")
+            for n in (1, 2, 3)
+        ]
+        for path, text in zip(paths, texts, strict=True):
+            write(repo, path, text)
+        (repo / paths[2]).write_bytes(texts[2].replace("\n", "\r\n").encode())
+        commit_everything_as_e(repo, "three declarations")
+        found, verbs = started()
+        assert verbs == ["ls-tree", "cat-file"], verbs
+        read = [(p, routing_module.parse(chain.read_record(root, p))) for p in paths]
+        assert found == read, found
+        assert [d["branch"] for _p, d in found] == [
+            "feature/1",
+            "feature/2",
+            "feature/3",
+        ], found
+        (repo / paths[0]).write_text(
+            texts[0].replace("feature/1", "feature/0"), encoding="utf-8"
+        )
+        monkeypatch.setattr(chain, "WORKTREE", True)
+        found, verbs = started()
+        assert verbs == ["ls-tree"], verbs
+        assert [d["branch"] for _p, d in found] == [
+            "feature/0",
+            "feature/2",
+            "feature/3",
+        ], found
+
+    def test_refuses_a_declaration_from_a_batch_that_exited_non_zero(
+        self, repo, monkeypatch
+    ):
+        """#1603, design *Data & interfaces*. A `cat-file --batch` that
+        exits non-zero reads as a `show` that exited non-zero read: an empty
+        text, which `routing.parse` refuses, so no declaration is taken and
+        nothing raises. Seen red against phase 1's `tracked_declarations`,
+        which started no batch, and with the batch's exit code left
+        unread."""
+        write(repo, f"{WORK}/1799000001-an-item/routing.md", DECLARES_FEATURE)
+        commit_everything_as_e(repo, "a declaration")
+        real = subprocess.run
+
+        def run(argv, *args, **kwargs):
+            if "cat-file" in argv:
+                return subprocess.CompletedProcess(argv, 128, b"", b"fatal: no\n")
+            return real(argv, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", run)
+        assert chain.tracked_declarations(str(repo), routing_module, WORK) == []
+
+
 class Test_declared_for_this_branch:
     def test_refuses_a_local_declaration_and_says_it_is_local_mode(
         self, repo, capsys, monkeypatch
@@ -4272,6 +4346,28 @@ class Test_main:
         assert code == 0, out
         assert MERGED_ITEM not in out
 
+    @pytest.mark.parametrize("world", ["branch", "bodied"])
+    def test_asks_git_each_read_once_in_a_run(
+        self, request, tmp_path, capsys, monkeypatch, world
+    ):
+        """#1603, design S1. On a ready pull request, every reader real,
+        a run starts no git command twice with the same input: over
+        `branch`, whose round records the records arm and `unread` each
+        read, and over `bodied` with the body `seal pr-body` wrote after
+        the seal in its payload, whose guarantee's target the guarantee arm
+        and the body arm each ask `follows` of. Seen red against
+        `chain_check.py` before #1603, where the round records' `show` and
+        the guarantee's `follows` reads repeat."""
+        if world == "branch":
+            root, _code = request.getfixturevalue("_branch_template")
+            event(tmp_path, monkeypatch, False)
+        else:
+            root, _early, late = request.getfixturevalue("_bodied_template")
+            payload(tmp_path, monkeypatch, late)
+        (code, out), asked = asks(monkeypatch, lambda: check(root, capsys))
+        assert code == 0, out
+        assert repeated(asked) == [], repeated(asked)
+
     @pytest.mark.parametrize(
         "words",
         [
@@ -4280,6 +4376,7 @@ class Test_main:
             ("diff", "--raw"),
             ("merge-base", "main", "HEAD"),
             ("ls-tree", "-r", "-z", "HEAD"),
+            ("cat-file", "--batch"),
             ("show",),
             ("log",),
             ("merge-base", "--is-ancestor"),
@@ -4292,6 +4389,7 @@ class Test_main:
             "changed",
             "merge_base",
             "declared",
+            "declarations",
             "read_record",
             "trailers",
             "is_ancestor",

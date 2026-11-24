@@ -170,19 +170,37 @@ def apply(repo, capfd):
     return dry_run(repo, capfd, "--apply")
 
 
-def calls(monkeypatch, read):
-    """The number of `git` commands READ() starts."""
-    real, started = subprocess.run, []
+def asks(monkeypatch, read):
+    """`(answer, asked)`: what READ() returned, and each `git` command it
+    started, in order, as its argv and what it was given on stdin. Every
+    run stays real."""
+    real, asked = subprocess.run, []
 
     def run(argv, *args, **kwargs):
         if argv[0] == "git":
-            started.append(argv)
+            asked.append((tuple(argv), kwargs.get("input")))
         return real(argv, *args, **kwargs)
 
     with monkeypatch.context() as patched:
         patched.setattr(subprocess, "run", run)
-        read()
-    return len(started)
+        answer = read()
+    return answer, asked
+
+
+def repeated(asked):
+    """Each of ASKED, as `asks` lists them, that an earlier one equals,
+    named by its words after `-C <root>` and what it was given."""
+    seen, again = set(), []
+    for argv, given in asked:
+        if (argv, given) in seen:
+            again.append((" ".join(argv[argv.index("-C") + 2 :]), given))
+        seen.add((argv, given))
+    return again
+
+
+def calls(monkeypatch, read):
+    """The number of `git` commands READ() starts."""
+    return len(asks(monkeypatch, read)[1])
 
 
 def unanswered(monkeypatch, *words):
@@ -3149,6 +3167,50 @@ class Test_main:
         assert code == 0, text
         assert "released at main: 2 work items; 0 unreleased" in text, text
         assert len(gh.calls()) == 1, gh.calls()
+
+    def test_asks_git_each_read_once_in_a_run(
+        self, shared_repo, gh, capfd, monkeypatch
+    ):
+        """#1603, design S5. Two released designs each change `S` and `T`,
+        so the merge order asks the ancestry of their one pair of commits
+        once for each group, and the first one's record holds an open row,
+        whose paths the dry run looks up in the tracked tree that its scan
+        for citations lists too. An earlier settle removed a plan its tag
+        holds, and the second design's fragment is in a published release,
+        so `--apply` reads the tags for the judgments and for the note. The
+        dry run and `--apply` each start no git command twice with the
+        same input, every reader real. Seen red against `settle.py` before
+        #1603, where the dry run repeats the pair's `merge-base
+        --is-ancestor` and `ls-files -z`, and `--apply` repeats the pair and
+        the three reads of `versions`."""
+        removed_plan(
+            shared_repo,
+            "1700000001-old",
+            judgments_plan([("2026-10-01", "x", "y", "z")]),
+            "the old work item (#3)",
+            "settle 0.1.0 (#7)",
+            "v0.1.0",
+        )
+        for name, rule in (("1700000002-a", "A."), ("1700000003-b", "B.")):
+            item(
+                shared_repo,
+                name,
+                op("add", "S", new=rule) + "\n" + op("add", "T", new=rule),
+            )
+            commit_everything(shared_repo, name)
+        write(specs_dir(shared_repo, "1700000002-a"), "gaps.md", OPEN)
+        commit_everything(shared_repo, "an open row")
+        fragment(shared_repo, "1700000003-b", "feat: b (#43)", tag="v0.2.0")
+        gh.releases([release("v0.2.0", "[#43](https://github.com/o/r/pull/43)")])
+        (code, text), asked = asks(monkeypatch, lambda: dry_run(shared_repo, capfd))
+        assert code == 0, text
+        assert "\ngroup 2\n" in text, text
+        assert repeated(asked) == [], repeated(asked)
+        (code, text), asked = asks(monkeypatch, lambda: apply(shared_repo, capfd))
+        assert code == 1, text
+        assert "kept seal/threads/1700000002-a/" in text, text
+        assert "removed seal/threads/1700000003-b/\n" in text, text
+        assert repeated(asked) == [], repeated(asked)
 
     def test_a_released_at_given_as_the_merge_commit_reaches_it(
         self, local_repo, gh, capfd, monkeypatch
