@@ -45,6 +45,11 @@ run made, is answered as git answered before it. `gh` is asked every time.
 
 The fix also owes the frame's two statements. At `frame/design.md:32`, "Neither starts git" becomes "Neither starts git itself, and each reaches `lib/optin.py#git_common_dir`, which from a linked worktree asks `rev-parse --git-common-dir`; no write of `apply` moves that answer". At `frame/design.md:100`, "after its last git read" becomes "and the only git read after those writes asks where the common git directory is". The fix changes no code, and the round found no case that would pin a docstring.
 
+```seal
+verdict: fixed ed3317753
+answer: Both snippets applied as given, after reading them against lib/optin.py#git_common_dir and settle.py's draft and apply paths: the module docstring of lib/gitcmd.py now names the one read after settle's writes and wraps at 74 columns, and settle.py#main's comment says the same. The frame's two statements were folded by the framer at 539ad6527. git grep for "last git read", "follows its last" and "after its last" over lib, skills, tests, docs and this work item's records found no other statement.
+```
+
 ### 2. The changelog says the declarations were 49 of the 85 distinct processes, and #1581's run asked 48 distinct
 
 ```seal
@@ -61,6 +66,11 @@ Why it matters: the fragment becomes the release note, which tells readers what 
 
 At `frame/design.md:17`, "and 49 of those are `show HEAD:<dir>/routing.md`, one for each work-item directory HEAD carries" becomes "and 48 of those are `show HEAD:<dir>/routing.md`, one for each of the 48 work-item directories HEAD carries".
 
+```seal
+verdict: fixed ed3317753
+answer: changelog.md:4 now reads that in #1581's run the declaration reads were 49 of the 105 processes, 48 of them distinct, one per routing.md its HEAD carries. This is in the pass's own words rather than the snippet's "48 of the 85 distinct processes", because the sentence names tracked_declarations' reads and the 49th, the judged item's own declaration, is a read of the same file the run made, as frame/design.md:17 now states after the framer's fold at 539ad6527. A search of changelog.md, gaps.md, pr.md and both phase records for the counts 37, 48, 49 and 85 found no other statement of the miscount.
+```
+
 ### 3. Four `## Not verified` rows of `gaps.md` stand open, and the target answers each in `frame/plan.md` *Judgments of the run*
 
 ```seal
@@ -76,6 +86,11 @@ Why it matters: an open row tells the sealer, and the reader of the pull request
 | closed How many processes `chain_check.main` starts over #1581's branch after phase 1, and whether it repeats none (`frame/design.md` S9). The phase did not run the probe. | the orchestrator: 85, none repeated, at `1ecdde329` (`frame/plan.md` *Judgments of the run*, the row on S9) |
 | closed Whether `tests/skills/test_chain_check.py` and `tests/skills/test_settle.py` read a lower ratio than the control modules on the Windows leg of `tests` after phase 2 (`frame/design.md` S8). No local figure stands in for the leg. | the orchestrator: runs 45307666454 at `c66128300` and 45311061260 at `c45339551` read no saving out of the leg's spread (`frame/plan.md` *Judgments of the run*, the row on S8) |
 | closed How many processes `chain_check.main` starts over #1581's branch after phase 2, against the 37 `frame/design.md` S9 expects. The phase did not run the probe. | the orchestrator: 39, none repeated, at `cde1d5925` (`frame/plan.md` *Judgments of the run*, the row on S9) |
+```
+
+```seal
+verdict: fixed ed3317753
+answer: gaps.md rows 7, 8, 10 and 11 are closed with the round's cells, each answer opened at frame/plan.md *Judgments of the run* first. Row 11's item text says "the 37 frame/design.md S9 expected at c66128300, before round 1's fold" in place of "expects", because S9 reads 39 since the framer's fold at 539ad6527. Rows 9 and 12 stay open for the broad gate.
 ```
 
 ## Confirmations
