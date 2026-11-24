@@ -1395,6 +1395,20 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
+def declare_automation(home, answer, branch, item="1780000000-a-work-item"):
+    """A `routing.md` under HOME, a records root marked here, for ITEM on
+    BRANCH, whose `Automation` row reads ANSWER; its path.
+    `tests/lib/test_routing.py` and `tests/hooks/test_ask_under_automation.py`
+    write the declarations their open work items read with it."""
+    d = mark_root(home) / "threads" / item
+    d.mkdir(parents=True, exist_ok=True)
+    text = two_axis_text(branch).replace(
+        "| Branch |", f"| Automation | {answer} |\n| Branch |"
+    )
+    (d / "routing.md").write_text(text, encoding="utf-8")
+    return d / "routing.md"
+
+
 # --- a `seal` block, as `lib/fields.py` reads one ---------------------------
 
 

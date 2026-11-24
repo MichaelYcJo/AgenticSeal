@@ -195,7 +195,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
 # Each fact the section of either README edition names, which a user reads
 # to learn what runs on their machine and what it leaves there.
 README_FACTS = (
-    # The file the two hooks are registered in, which a user opens.
+    # The file the hooks are registered in, which a user opens.
     "`hooks/hooks.json`",
     # The harness event of the first hook and the script it runs.
     "`SessionStart`",
@@ -203,7 +203,10 @@ README_FACTS = (
     # The harness event of the second hook and the command it runs.
     "`Stop`",
     "`seal_stamp.py --stop`",
-    # The one command shape both hooks run, as `hooks/hooks.json` spells it.
+    # The harness event of the third hook and the script it runs.
+    "`PreToolUse`",
+    "`hooks/ask-under-automation.py`",
+    # The one command shape the hooks run, as `hooks/hooks.json` spells it.
     '`python3 "<script>" || py -3 "<script>" || exit 0`',
     # The command that writes the stamp's values, and the two directories
     # the queue and a refusal leave under the git common dir.
@@ -216,10 +219,11 @@ README_FACTS = (
 def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     """Round 1's yellow 4. The inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition. Since
-    #1430 the plugin ships two hooks again, so each edition names both, the
-    files and commands they run, and the directories the queue leaves. The
-    editions move together, so both are read, each in its section alone,
-    since *Install* names the two hooks too. What each edition says of them
+    #1430 the plugin ships hooks again, and since #1608 a `PreToolUse` one
+    too, so each edition names each of them, the files and commands they
+    run, and the directories the queue leaves. The editions move together,
+    so both are read, each in its section alone, since *Install* names the
+    hooks too. What each edition says of them
     is the proofer's to read."""
     for edition, heading in (
         ("README.md", "## What runs on your machine"),

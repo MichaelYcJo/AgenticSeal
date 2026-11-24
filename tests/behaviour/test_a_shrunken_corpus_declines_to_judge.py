@@ -115,7 +115,7 @@ CONTENT_FROM_GIT = {}
 
 # 5. It opens nothing it listed.
 OPENS_NOTHING = {
-    "tests/behaviour/test_chain_hooks_hardening.py#test_the_plugin_registers_two_hooks_and_writes_none_into_git": (
+    "tests/behaviour/test_chain_hooks_hardening.py#test_the_plugin_registers_its_hooks_and_writes_none_into_git": (
         "asks whether each script a hook command names is tracked and which "
         "paths under `hooks/` are; no path in the listing is ever opened"
     ),
