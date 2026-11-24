@@ -198,6 +198,11 @@ The orchestrator reads the policy, the SDD set and each ticket the person's
 request names, looking for the questions as well as the answers, and puts
 every one of them in front of the person at the start: a decision only they
 can make, an approval, a credential, a permission the session does not have.
+Before it puts the batch, the orchestrator reads the *Done when* of every
+issue the request names, and puts in the batch each line there that needs a
+real session, a credential, an outside service or a permission. A *Done
+when* line is what the run must deliver, so a need it carries that the batch
+missed stops the run when the work reaches that line.
 
 **A request that names several issues, such as a milestone or a release, has
 one batch, and the batch covers every one of them.** The orchestrator asks it
@@ -237,6 +242,16 @@ Two things sharpen the list:
 Something a session cannot do for itself belongs on the same list — widening
 its own permissions, for one, which the harness blocks by design. Better
 found in the first minute than at the commit.
+
+**A rule that restricts what agents may do in a run comes only from the
+person's answer in this run's batch or from a policy document.** The
+orchestrator writes such a rule under `## Why this way` in the work item's
+`routing.md`, with its source: the batch question and its answer, or the
+document's path and section. A spawn prompt carries such a rule only as that
+`routing.md` states it. A rule a person gave for an earlier run bound that
+run alone, and the orchestrator does not carry it into this one. A rule with
+no source in this run turns a step an agent could take into a question only
+the person can lift, and under `Automation` `yes` nobody is there to lift it.
 
 **Once the batch is answered, the session runs to the pull request, through
 every work item the request names.** What surfaces after it is written down
@@ -286,10 +301,20 @@ the person chose the rows, and where the orchestrator chose them under
 `agentic`, the grounds *Under agentic* asks for, which the sealer reads
 against the diff (`agents/sealer.md` step 4).
 
-**`Automation` is a record, and no script decides anything on it.** While
-the row reads `yes`, the orchestrator follows the paragraph of
-`docs/running/the-run.md` *The run* that opens **On a run whose
-`routing.md` reads `Automation` `yes`**.
+**While the `Automation` row reads `yes`, the plugin's `PreToolUse` hook puts
+the rule for the run in front of the orchestrator at each `AskUserQuestion`
+call.** The rule is the paragraph of `docs/running/the-run.md` *The run* that
+opens **On a run whose `routing.md` reads `Automation` `yes`**, and the
+orchestrator follows it. The hook, `hooks/ask-under-automation.py`, refuses
+an `AskUserQuestion` call while the `routing.md` of a work item whose branch
+is checked out in a worktree of the repository reads `yes`, and its refusal
+prints that paragraph, the open work items and the questions that do not
+state why their default cannot be taken. It lets a call through where each
+question of the call holds, in its text, the marker
+`hooks/ask-under-automation.py#MARKER` gives, followed on the same line by
+the reason. The hook does not judge whether a question is one only the owner
+can decide: the orchestrator writes why, and the person reads it in the
+question. The pull request's check decides nothing on the row.
 
 **The declaration has one more row, and nobody is asked about it.**
 

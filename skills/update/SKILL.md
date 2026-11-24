@@ -158,7 +158,7 @@ sentinel in an `agents/*.md` of the newly installed version, whose directory
 is
 `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/<marketplace>/<plugin>/<version>/`.
 Then type `/reload-plugins` without restarting and spawn the agent. That is
-run 6's own method, one artifact over. The plugin's two hooks run from
+run 6's own method, one artifact over. The plugin's hooks run from
 `${CLAUDE_PLUGIN_ROOT}`, the copy the session loaded, so a session keeps the
 old copy's hooks until a move loads the new one. Whether `/reload-plugins`
 re-reads `hooks/hooks.json` is not measured either; a restart loads it.
