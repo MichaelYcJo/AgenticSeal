@@ -14,7 +14,15 @@ in. Which work items are open is `tests/lib/test_routing.py`'s
 import json
 import os
 
-from conftest import ROOT, census_case, declare_automation, git, git_repo, load
+from conftest import (
+    ROOT,
+    census_case,
+    commit_everything,
+    declare_automation,
+    git,
+    git_repo,
+    load,
+)
 from test_core_start import start
 
 TARGET = "hooks/ask-under-automation.py"
@@ -103,13 +111,28 @@ class Test_main:
     def test_refuses_a_question_under_automation_yes_with_the_rule(self, tmp_path):
         """S1. The reason holds the paragraph of `DOC` *The run* from its
         first line to its last, read from the plugin root the hook stands
-        in, and names the open work item and its branch."""
+        in, and names the open work item and its branch, what makes it open
+        and what ends the refusal."""
         repo = declared(tmp_path / "repo")
         reason = refused(run(asked(repo, question("Which scope?"))))
         lines = paragraph()
         assert lines[0] in reason and lines[-1] in reason, reason
-        assert ITEM in reason and BRANCH in reason, reason
+        assert ITEM + " on branch " + BRANCH in reason, reason
+        assert "counts as open while its branch is checked out" in reason, reason
+        assert "removing the worktree, ends this refusal" in reason, reason
         assert '"Scope"' in reason, reason
+
+    def test_refuses_naming_a_work_item_once_whatever_worktrees_hold_copies(
+        self, tmp_path
+    ):
+        """In shared mode a linked worktree cut after the declaration was
+        committed holds its own copy, and `open_declarations` answers each
+        file. The reason names the work item and its branch once."""
+        repo = declared(tmp_path / "repo")
+        commit_everything(repo, "declare")
+        git(repo, "worktree", "add", "-q", "-b", "other", str(tmp_path / "linked"))
+        reason = refused(run(asked(repo, question("Which scope?"))))
+        assert reason.count(ITEM + " on branch " + BRANCH) == 1, reason
 
     def test_accepts_a_call_whose_every_question_states_why(self, tmp_path):
         """S2. Each question holds `No default:` and a reason on its line,

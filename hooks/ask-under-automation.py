@@ -20,7 +20,8 @@ The hook reads three things exactly and nothing else:
 Where an open work item reads `yes` and any question of the call does not
 hold that form, it prints a `PreToolUse` deny object whose reason holds the
 paragraph, read from the plugin root, the open work items with their
-branches, the header of each question that does not state why, and the form
+branches, each named once, what makes a work item open and what ends the
+refusal, the header of each question that does not state why, and the form
 that lets the call through. Each question is its own stop, so one reason
 does not carry another. A question that holds `MARKER` with its case
 changed is named in the reason as a line this hook did not read; no other
@@ -115,9 +116,10 @@ def _label(one):
 
 
 def _reason(paragraph, items, unstated):
-    """The refusal's text: the rule, the open work items reading `yes`, the
-    questions that do not state why, the form, and each spelling of the
-    marker this hook did not read."""
+    """The refusal's text: the rule, the open work items reading `yes`, what
+    makes one open and what ends the refusal, the questions that do not
+    state why, the form, and each spelling of the marker this hook did not
+    read."""
     rule = paragraph or (
         "Read the paragraph of `" + DOC + "` *" + SECTION + "* that opens with: " + LEAD
     )
@@ -133,12 +135,16 @@ def _reason(paragraph, items, unstated):
         rule,
         "Open work items reading `Automation` `yes`: "
         + "; ".join(name + " on branch " + branch for name, branch in items)
-        + ".",
+        + ". A work item counts as open while its branch is checked out in a "
+        "worktree of this repository. Where its run has ended, checking out "
+        "another branch in that worktree, or removing the worktree, ends this "
+        "refusal, and that work item's records take nothing from this call.",
         "The questions that do not state why their default cannot be taken: "
         + named
-        + ". Where the tree or the work item's frame/questions.md answers a "
-        "question, proceed on its default and record it as that paragraph "
-        "says. A question only the owner can decide states why in its own "
+        + ". Where the tree or the frame/questions.md of the work item this "
+        "session runs answers a question, proceed on its default and record "
+        "it as that paragraph says. A question only the owner can decide "
+        "states why in its own "
         "text: `"
         + MARKER
         + "` and the reason, on the same line. A call whose every question "
@@ -167,11 +173,13 @@ def main():
     import routing
 
     payload = json.load(sys.stdin)
-    items = [
-        (os.path.basename(os.path.dirname(path)), parsed["branch"])
-        for path, parsed in routing.open_declarations(payload["cwd"])
-        if parsed["automation"] == routing.AUTOMATION_YES
-    ]
+    # Each work item once: in shared mode every worktree cut after its
+    # declaration was committed holds a copy, and each copy is a file of its own.
+    items = []
+    for path, parsed in routing.open_declarations(payload["cwd"]):
+        item = (os.path.basename(os.path.dirname(path)), parsed["branch"])
+        if parsed["automation"] == routing.AUTOMATION_YES and item not in items:
+            items.append(item)
     if not items:
         return
     questions = _questions(payload.get("tool_input"))
