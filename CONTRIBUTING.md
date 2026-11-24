@@ -499,8 +499,9 @@ question is not its difficulty, it is when it arrives.
   exist on Windows, and `python3` is the one name its official installer
   does not create. The `py -3` half runs where the `python3` half exits
   non-zero, and the closing `exit 0` makes the command exit 0 whatever
-  happens, so no hook returns the exit 2 that keeps a turn going or
-  blocks a call. None reaches a
+  happens, so no hook returns the exit 2 that keeps a turn going. The
+  `PreToolUse` hook refuses a call through the deny it prints, and the
+  session goes on after it. None reaches a
   network; `README.md` *What runs on your machine* names the commands and
   steps that do, what each reaches, what it sends and when. Anything that
   would send repository contents, paths, or prompts is not on the table.

@@ -49,9 +49,10 @@ def test_the_plugin_registers_its_hooks_and_writes_none_into_git():
     `hooks/ask-under-automation.py`. Each holds one command hook, three
     parts joined by ` || `: `python3` then `py -3`, naming one tracked
     script under `${CLAUDE_PLUGIN_ROOT}` with the same arguments, then
-    `exit 0`, so the command exits 0 whatever its halves did. The harness reads `hooks/hooks.json` at the plugin's root, and
-    `hooks/` holds those files and nothing else. Nothing writes into a
-    clone's git hooks (`docs/checks/the-routing-check.md`).
+    `exit 0`, so the command exits 0 whatever its halves did. The harness
+    reads `hooks/hooks.json` at the plugin's root, and `hooks/` holds those
+    files and nothing else. Nothing writes into a clone's git hooks
+    (`docs/checks/the-routing-check.md`).
 
     The plugin directory refuses a plugin that registers a command hook
     (#1376), and the owner chose on 2026-11-08 to ship such hooks until a
@@ -443,9 +444,9 @@ def test_the_places_that_reach_the_network_are_named():
     """#1055 S4 and #1382. Since #1430 the plugin ships hooks, the stamp's
     `Stop` hook and the `SessionStart` hook that prints the core, and since
     #1608 the `PreToolUse` hook that reads the open work items before a
-    question, and none reaches a network. Each README edition's passage, from the
-    sentence that says so to the next heading, names every place in
-    `NETWORK_PLACES`, and `CONTRIBUTING.md` points at the passage."""
+    question, and none reaches a network. Each README edition's passage,
+    from the sentence that says so to the next heading, names every place
+    in `NETWORK_PLACES`, and `CONTRIBUTING.md` points at the passage."""
     from conftest import flat
 
     for path, said in (

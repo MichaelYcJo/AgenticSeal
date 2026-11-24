@@ -103,8 +103,8 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 # The pull request's check decides nothing on it: it is a record the
 # orchestrator reads (`docs/running/the-run.md` *The run*). The plugin's
 # `PreToolUse` hook, `hooks/ask-under-automation.py`, reads a `yes` alone,
-# through `open_declarations`, and refuses an `AskUserQuestion` call while
-# one stands.
+# through `open_declarations`, and refuses an `AskUserQuestion` call while an
+# open work item's row reads it.
 AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
@@ -367,9 +367,10 @@ def open_declarations(cwd):
     worktree of that repository**, any of the worktrees `git worktree list
     --porcelain` lists, and not only CWD's. A work item's directory outlives
     its run until the settle after its release, so the directory's presence
-    says nothing about whether its run goes on: every released item of this
-    repository reads `Automation` `yes`, and a reader that took them as open
-    would answer for a run nobody is making. A worktree left on a merged
+    says nothing about whether its run goes on: a released item's
+    `Automation` row still reads what its run answered, and a reader that
+    took the item as open would answer for a run nobody is making. A
+    worktree left on a merged
     branch keeps its item open, which is the cost of reading git rather than
     a guess.
 

@@ -57,8 +57,8 @@ LIB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 OWN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # The form a question states why its default cannot be taken in: this text,
-# in this one spelling, then a reason on the same line. Its one home, which
-# `skills/implement/orchestration.md` cites.
+# in this one spelling, then a reason on the same line. This is its one home:
+# a document that states the form cites `hooks/ask-under-automation.py#MARKER`.
 MARKER = "No default:"
 
 # The opening of the first line of the paragraph the reason carries, under
@@ -106,8 +106,8 @@ def _questions(tool_input):
 
 
 def _label(one):
-    """The question's `header` in double quotes, or its text where the
-    header is not a string that is not empty."""
+    """The question's `header` in double quotes, or its `question` text
+    where the header is missing, empty or not a string."""
     header = one.get("header")
     return (
         '"' + (header if isinstance(header, str) and header else one["question"]) + '"'
