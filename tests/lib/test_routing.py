@@ -549,6 +549,33 @@ class Test_open_declarations:
         found = routing.open_declarations(str(repo))
         assert [(p, d["automation"]) for p, d in found] == [(str(path), "no")]
 
+    def test_accepts_a_worktree_path_git_spells_otherwise_in_its_native_spelling(
+        self, tmp_path, monkeypatch
+    ):
+        """Git prints a worktree's path with `/` on Windows, and
+        `declarations` joins the records' path onto it with `\\`, so the path
+        is normalised where git hands it over, as `lib/optin.py#home_paths`
+        does. A listing whose every path ends in `/.` spells it otherwise on
+        every platform, and the pair still answers the native spelling."""
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        path = declare_automation(repo / "seal", "yes", "feature/x")
+        real = routing.gitcmd.git
+
+        def spelt_otherwise(cwd, *args, **kwargs):
+            done = real(cwd, *args, **kwargs)
+            lines = [
+                line + "/." if line.startswith(routing.WORKTREE_LINE) else line
+                for line in done.stdout.split("\n")
+            ]
+            return subprocess.CompletedProcess(
+                done.args, done.returncode, "\n".join(lines), done.stderr
+            )
+
+        monkeypatch.setattr(routing.gitcmd, "git", spelt_otherwise)
+        found = routing.open_declarations(str(repo))
+        assert [p for p, _ in found] == [str(path)]
+
     def test_refuses_a_branch_no_worktree_has_checked_out(self, tmp_path):
         """S5. A work item's directory outlives its run, so a declaration
         whose branch no worktree has checked out is not open, whatever its

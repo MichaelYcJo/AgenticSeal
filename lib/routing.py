@@ -391,8 +391,13 @@ def open_declarations(cwd):
     if done.returncode:
         return []
     lines = done.stdout.split("\n")
+    # `normpath` on git's answer, as `optin.home_paths` does: git prints a
+    # worktree's path with `/` on Windows, and `declarations` joins the
+    # records' path onto it with `\`, which would spell one path two ways.
     trees = [
-        line[len(WORKTREE_LINE) :] for line in lines if line.startswith(WORKTREE_LINE)
+        os.path.normpath(line[len(WORKTREE_LINE) :])
+        for line in lines
+        if line.startswith(WORKTREE_LINE)
     ]
     checked_out = {
         line[len(BRANCH_LINE) :] for line in lines if line.startswith(BRANCH_LINE)
