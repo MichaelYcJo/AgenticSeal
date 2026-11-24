@@ -18,12 +18,6 @@ Methodology for implementing against a written design, leaving a case behind
 each rule, and closing the loop with review. Opened by the `crafter` agent at
 its first step; usable directly.
 
-**`skills/agent-contract/SKILL.md` binds this session too, and only if you
-load it.** A session driving the work directly reads this skill and never
-`agents/*.md`, so the contract every agent it spawns receives at startup
-reaches it by being opened rather than by arriving — `user-invocable: false`
-permits the load and does not oblige it.
-
 **If you are orchestrating a work item rather than building it, read
 `skills/implement/orchestration.md` before the first edit**; an implementer
 never opens it, and everything below is the implementer's and the
@@ -41,13 +35,10 @@ or a pull request. The root is resolved the way every path in this skill is.
 }
 ```
 
-It governs the **prose** in `frame/design.md`, `plan.md`, `gaps.md`,
-`questions.md`, `changelog.md`, the cell contents of `trail/rounds/round-N.md` and
-`trail/phases/phase-N.md` and the text beneath their tables.
-
-**Every way of not naming one lands on English** — no file, no such key, an
-empty value, a file that cannot be read. A config nobody can read must not
-stop the work.
+It governs the **prose** of the records `templates/setup/config.md` *Record
+language* lists. What an absent key is and does is
+`templates/setup/config.md` *An absent language key is a refusal at the pull
+request body, and never at a commit*.
 
 **It is independent of `Commit and pull request language`.** Setting one does
 not carry the other; `docs/layout/one-root-by-lifetime.md` *What the repository
@@ -78,26 +69,21 @@ A `specs/` the project kept before the plugin is neither root: it is a
 read where the work touches what it describes, cited in `frame/design.md` where it was
 read, and never written by anything this skill produces.
 
-The axis is lifetime and authority, **not audience** — humans and AI read all
-three. (Labeling policies "for humans" would push sessions away from reading
-them, and policy outranks everything else when a repository has it.)
-
 Inside the policy root, documents are grouped by who opens them and at which
 step, and any party may open any group.
 
-`seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `lib/optin.py#MARKER` holds, is what
-tells the gates this repository runs the workflow. **Every `seal/…` path in
-this plugin's skills and agents means `<repo>/seal/` where that directory
-exists with the marker, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise.** `seal/` there is
-the records root's name, as the opening paragraph of `skills/core/SKILL.md`
-defines it. The first is
-shared mode: committed, because gitignored files do not follow worktrees or
-other machines. The second is local mode: under the common git directory, so
-every linked worktree of the clone shares it, and never a commit candidate.
-A repository with both is shared, and nothing else — no config key — is
-read. What sits directly under it is permanent; what sits under
+`seal/` stands at the places the opening paragraph of `skills/core/SKILL.md`
+names, and its presence at one of them, with a `README.md` that opens with
+the marker `lib/optin.py#MARKER` holds, is what tells the gates this
+repository runs the workflow. **Every `seal/…` path in this plugin's skills
+and agents means the first of those places that holds the marker**, and
+`seal/` there is the records root's name, as the same paragraph defines it.
+The two places in the tree are shared mode: committed, because gitignored
+files do not follow worktrees or other machines. The place under the common
+git directory is local mode: every linked worktree of the clone shares it,
+and it is never a commit candidate. The order decides a repository with a
+root at more than one place, and nothing else, no config key, is read. What
+sits directly under it is permanent; what sits under
 `seal/threads/` lives as long as its work item. Each file the root holds,
 and the question it answers, is in `docs/layout/the-record-layout.md`
 *seal/*, and each file of a work item's directory is in
@@ -160,13 +146,6 @@ it or dropping it.
   executed, read, or unverified. What a fact with neither is, and why an
   aggregate is not a coordinate, is contract rule 5.
 
-What needs a person is asked by the orchestrator once, in one batch, before
-the first edit of the person's request, whatever number of issues the request
-names. The orchestrator opens `skills/implement/orchestration.md`
-*Orchestrator: what needs a person is asked in one batch, before the first
-edit* when the request starts, and not again when a later work item of the
-request starts.
-
 ### 2. Implement test-first, and let each rule name its test
 
 **Each scenario that adds behaviour is built the same way: its case first,
@@ -182,11 +161,6 @@ under `docs/`, or in the *Verifiable how* cell of the design's scenario table �
 so the case is the record that the rule holds, and CI running the suite is
 the check. A rule no case can hold carries no check line, and review reads
 it. The grammar is `skills/settle/rule-changes.md` *A rule has one shape*.
-
-This is the input for the reviewer and the next ticket: a case somebody can
-run rather than a reading somebody did. A judgment settled by opening code
-and leaving no case behind gets redone by every session that follows — the
-single largest avoidable cost in multi-session work.
 
 **Commit at the smallest step that stands on its own.** No gate stops a
 commit: the routing is checked at the pull request
@@ -222,40 +196,15 @@ saved, so the party that commits runs them. The project's own package
 manager wins; where it names none, Python runs through `uv` and Node.js
 through `pnpm`.
 
-**An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
-not match is an error you see immediately. When the environment routes edits
-through the shell instead — `sed -i`, a heredoc, a short script — a
-substitution whose pattern misses does nothing, says nothing, and exits zero.
-The miss surfaces at the next check, and the cost is another edit and another
-run of whatever you had already run.
-
-So assert the landing. Every shell substitution states what it expected to
-match and fails loudly when it did not:
-
-```python
-assert old in text, f"pattern did not match: {old[:60]}"
-```
-
-This is `verify`'s second condition — *a check that cannot fail is a
-counterfeit seal* — applied one step earlier. An edit that cannot fail is an
-unverified edit, and reporting it as made is the same claim as reporting a
-`read` as passing.
-
 **Three failed fixes stop the work.** The same bug through three failed
 fixes is the architecture talking: stop, and the next step is the
-architecture question, not a fourth fix. Three returns through the broad
-gate read the same way: a fourth says the narrow scope misses a class of
-breakage.
+architecture question, not a fourth fix.
 
 ### 3. The SDD file set
 
-Which files a work item has, and whether it has a `frame/design.md` and a
-`plan.md` at all, is the ladder's, and where the person answered the
-routing question `agentic` it is the orchestrator's choice, which weighs
-the ladder among its signals. The orchestrator reads the ladder in
-`skills/implement/orchestration.md` *Orchestrator: when a work item is
-required*, and the choice in its *Under agentic*, before it spawns a
-framer.
+Which files of the set a work item has is the orchestrator's to decide, by
+the ladder in `skills/implement/orchestration.md` *Orchestrator: when a work
+item is required*.
 
 `questions.md` is not on that ladder: it starts with the batch collected
 before the first edit (`skills/implement/orchestration.md` *Orchestrator:
@@ -284,28 +233,12 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/records/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule) | before implementing |
+| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule and spells the line) | before implementing |
 | `frame/plan.md` | `templates/records/sdd-plan.md` | the framer; the orchestrator adds the rows of `## Judgments of the run` | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it. Its last section holds the orchestrator's judgments of the run, each with its grounds and the document it stands on, which `seal settle`'s dry run reads | before implementing (gated work); a judgment's row when it is made |
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
-| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame's `## Removes` names once, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
+| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame names as `docs/running/the-agent-set.md` *What each party writes, and when* says, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
 | `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `seal pr-body` writes above the records' copy. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ |
-
-The `Starts from` column is not decoration. A template that no shipped
-document names is a template a session cannot find: it reads *bootstrapped
-from `templates/`*, cannot tell which file that means, and writes one from
-scratch.
-
-`Written by` is the same kind of column, for the same kind of reason. The
-split it records is what `agents/framer.md` exists for, and
-`docs/running/the-agent-set.md` *One contract every agent receives, and one
-definition each* says why the party that draws a contract is not the party
-that executes it. A table that lists the set without naming an author reads
-as a list one session works through. Below the ladder's top rung there is no
-framer and no `frame/design.md`, and under `agentic` the orchestrator may
-choose no framer or no frame; the session that builds writes whatever the
-work item has, and the column is about who holds the pen when both parties
-exist.
 
 Reading `plan.md` and spawning the build is the approval, and no line
 records it: the phase's Status cell is the trace that the build happened.
@@ -314,14 +247,15 @@ records it: the phase's Status cell is the trace that the build happened.
 what building the phase taught that `plan.md`'s cells do not.** That is a
 decision settled while writing the code, a constraint found only by trying,
 each `seen red` and mutation claim, every departure from the frame, a
-removal the frame's `## Removes` did not name among them, and anything the
-next phase needs. What the phase was asked is the plan's Delivers cell, and
-a scope a spawn gives beyond it is a decision the framer folds into the
-plan before the spawn (`skills/implement/orchestration.md` *Orchestrator:
-the order inside a ticket*), so the record copies neither. A discovery reaches
-the next phase only through that section or through the orchestrator
-retyping it into the next spawn prompt, and the second goes missing without
-a trace when the orchestrator does not.
+removal the frame did not name among them (`docs/running/the-agent-set.md`
+*What each party writes, and when*), and anything the next phase needs.
+What the phase was asked is the plan's Delivers cell, and a scope a spawn
+gives beyond it is a decision the framer folds into the plan before the
+spawn (`skills/implement/orchestration.md` *Orchestrator: the order inside
+a ticket*), so the record copies neither. A discovery reaches the next phase
+only through that section or through the orchestrator retyping it into the
+next spawn prompt, and the second goes missing without a trace when the
+orchestrator does not.
 
 **`plan.md`'s Phases table is the task list, and there is no other.** Each
 phase carries a **Verified by** column, so it cannot be called done the way a
@@ -330,13 +264,7 @@ commit that closed the phase, or reads `deferred #N` for a phase the work
 item handed to issue #N. A commit and an issue each name something someone
 can open, so a tick and the word `done` are refused where neither is named.
 The party that builds a phase fills its cell as the phase closes, not at the
-end. Where feature branches squash, those commits stop resolving at the merge.
-Nothing measures from the column, which is why that is tolerable. A rebase
-during the work would orphan them earlier and more quietly, because the
-orphaned object still answers `git cat-file` in the worktree that wrote it,
-and it would orphan the commits the round records name as well. So a work
-item's branch is never rebased (`skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*).
+end.
 
 **`frame/design.md` ends with its frame's mark**, `Framed <date> by <who>, before the
 build.`, where `<who>` is the `Planning` row's answer in `routing.md`,
@@ -402,9 +330,6 @@ still the template's placeholder, and `seal settle` prints it as it stands.
 Leaving the original answerer in place beside the word is how a closing goes
 out unproven, and only a reader catches it.
 
-Never record something as passing that you did not run. Findings from reading
-and findings from execution are labeled separately.
-
 ### 5. Incorporate review — read the round records first
 
 A fix pass, the crafter's or a session's, opens
@@ -412,8 +337,3 @@ A fix pass, the crafter's or a session's, opens
 follows it: where the pass starts, how it reads a finding and a paste-ready
 fix, what it runs once the fixes are committed, and the close blocks it
 appends to `trail/rounds/round-N.md`.
-
-Once the last round record has no finding open, the orchestrator moves the
-rows still open to their destinations, as
-`skills/implement/orchestration.md` *Orchestrator: drain the rows before the
-broad run, and keep the records* states.

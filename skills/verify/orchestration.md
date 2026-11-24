@@ -30,9 +30,10 @@ has to guess, and one who reaches for the record does not.
 **It belongs to the orchestrator, and the four conditions of
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
 `seal gate --base <base> --record <item>` is the command the orchestrator
-types, with nothing else running, and `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals* owns when,
-before the sealer is spawned. The run judges no failure and fixes none; the
+types, with nothing else running, and
+`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
+preflight to the open pull request* owns when, before the sealer is
+spawned. The run judges no failure and fixes none; the
 sealer reads its record, and what it guarantees after it
 is `docs/forms/the-guarantee.md` *The guarantee*. `seal gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
@@ -43,13 +44,11 @@ takes fifteen minutes is a finding about the run and deserves its own ticket.
 Moving it ahead of the rounds means paying it twice.
 
 **Which base, and it is the one the merge is judged by.** The gate resolves
-`--base` once, before anything runs, to the ref CI will read: the base's
-upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit: the chain check's
-baseline, the scratch worktree the base comparison checks out, and `trail/gate.md`. A plain
-branch name is a LOCAL ref and a runner has no local branches, so a checkout
-one commit behind its remote would pass green where CI refuses the same
-commit. Where resolving moves the answer the gate prints one line naming both
+`--base` once, before anything runs, to the ref CI will read, in the order
+`docs/running/the-broad-gate.md` *What the gate runs* gives with its reason.
+Every check it runs takes that one commit: the chain check's baseline, the
+scratch worktree the base comparison checks out, and `trail/gate.md`. Where
+resolving moves the answer the gate prints one line naming both
 refs, both commits and the distance, and runs anyway; where the two agree it
 prints nothing. It never fetches, so a remote-tracking ref is only as fresh
 as the last fetch, which is why the gate's report names the ref beside the
@@ -69,11 +68,14 @@ choosing a value*, rule 3, states. A file run at the base by hand runs in a
 worktree and session of the clone shares the one stash stack, so a pop can
 take another session's entry.
 
-- **Failing on base too**: not this work's finding. Name it, record it as a
-  follow-up, and it does not block.
-- **New**: this work broke it. Back to the implement and review loop, and the
-  broad gate runs again afterwards.
-- **New?**, with a reason, means nothing at the base measured it: no pytest
+- **`failing on base too`** (`skills/verify/scripts/broad_gate.py#ON_BASE`):
+  not this work's finding. Name it, record it as a follow-up, and it does
+  not block.
+- **`new`** (`skills/verify/scripts/broad_gate.py#NEW`): this work broke it.
+  Back to the implement and review loop, and the broad gate runs again
+  afterwards.
+- **`new?`** (`skills/verify/scripts/broad_gate.py#NOT_MEASURED`), with a
+  reason, means nothing at the base measured it: no pytest
   the `Broad gate` command ran left a record, because the command started
   no pytest, none it started loaded the gate's recorder, or the one that
   did could not write its record and warned in `suite.txt`, so the file is

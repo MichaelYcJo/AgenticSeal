@@ -48,17 +48,11 @@ refusal, whatever stands above its header; the walk steps over it and
 still refuses a row written after it, before the next heading
 (`gfm_table`'s BESIDE).
 
-Nothing else in a frame is read as an anchor. A table under a near header,
-a table under a header `header_key` leaves out, such as
-`| Pact | Clause | Hashes |`, and a row no anchor table holds are neither
-graded nor refused, and the `READ` line does not count them; only the
-near header is named.
-
-Every `pact:` token outside a closed fence, in any case, is refused at its
-line, with the row to write in its place: it is the inline anchor this
-command read through 0.23.x. A token with a space beside its colon is not
-read: prose writes the word before a colon and a space, and no release read
-that spelling as an anchor.
+Nothing in a frame outside the anchor table is read as an anchor. A table
+under a near header, a table under a header `header_key` leaves out, such
+as `| Pact | Clause | Hashes |`, and a row no anchor table holds are
+neither graded nor refused, and the `READ` line does not count them; only
+the near header is named.
 
 ## Where the signers are
 
@@ -114,9 +108,10 @@ A pact under local mode has no history, so every mismatch there reads
      `Pact signers` key that is absent, empty or will not parse, an entry
      of the machine-local map it cannot use, a `BROKEN` anchor, an anchor
      row it cannot grade or does not read, a row naming a pact the signer
-     does not declare, a `pact:` token, a `Pact` key that will not parse,
-     a relationship recorded on one side only, or a pact's repository with
-     no origin remote
+     does not declare, a `Pact` key that will not parse, a relationship
+     recorded on one side only, a pact's repository with no origin remote,
+     or a git command that did not start or did not finish within
+     `lib/gitcmd.py#TIMEOUT`, named in one line
 
 `BROKEN` is exit 2 and a mismatch is exit 1. A `NOT READ` line is in no
 exit class. Nothing is ever written.
@@ -127,7 +122,6 @@ import glob
 import json
 import os
 import re
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -152,8 +146,9 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
+console = sibling.load("lib/console.py")
+
 PACT_FILE = "pact.md"
-CONFIG_FILE = "config.json"
 MAP_PARTS = (".claude", "agentic", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
@@ -238,15 +233,7 @@ NEAR_HEADER = (
 # run inside it or an escaping `\` stays in the key, and such a cell keys to
 # no cell of the anchor header.
 EMPHASIS_RUN = re.compile(r"(\*{1,3}|_{1,3})(.+)\1")
-# The inline anchor read through 0.23.x, refused wherever it stands outside
-# a closed fence: `pact:` in any case, so `PACT:` and `Pact:` too, with no
-# letter, digit, `_`, `.`, `@`, `/` or `-` before it, so `compact:` is no
-# token, and a character that is not a space after it. A space beside the
-# colon, `pact: x` or `pact :x`, is not read: prose writes the word before a
-# colon and a space, and no release read that spelling as an anchor. One
-# pattern, and it names no typo.
-INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)", re.IGNORECASE)
-# The sentences a row or a token is refused in, each reading after its line.
+# The sentences a row is refused in, each reading after its line.
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
     "host and path — write the origin URL of the pact's repository, bare, as "
@@ -268,31 +255,16 @@ UNDECLARED = (
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
 )
-INLINE = (
-    "a `pact:` token is the inline pact anchor `seal pact` read through "
-    "0.23.x, and nothing reads it now — write it as a row of a "
-    "`| Pact | Clause | Hash |` table, `| <the origin URL of the pact's "
-    "repository> | ## Clause / ### Narrower | <hash> |`; or, where the text "
-    "shows the retired shape rather than citing a clause, put it in a fenced "
-    "code block, which nothing reads"
-)
 # Which exit each finding is.
 EXIT_ONE = frozenset({SUPERSEDED, NOT_TAKEN, UNMATCHED, NOT_FOUND})
 EXIT_TWO = frozenset({BROKEN, ONE_SIDED, REFUSED, UNREADABLE})
 
 
 def git(root, *args):
-    """Git's stdout in ROOT, or None where git refused."""
-    try:
-        done = subprocess.run(
-            ["git", "-C", root, *args],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=60,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
+    """Git's stdout in ROOT through `lib/gitcmd.py#git`, or None where git
+    refused. A git that did not answer raises `lib/gitcmd.py#Failed`, which
+    `main` reads as exit 2."""
+    done = sibling.load("lib/gitcmd.py").git(root, *args)
     return done.stdout if done.returncode == 0 else None
 
 
@@ -335,12 +307,11 @@ def near_headers(tables, text):
     anchor header: a table no row of which is read. Whether it meant the
     anchor table is the judgment of the person reading the report and of
     the proofer reading the frame."""
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
+    lines = tables.blocks.gfm_lines(text)
     want = tuple(map(header_key, ANCHOR_TABLE))
     return [
         (index + 1, lines[index].strip())
-        for index, line in tables.unfenced(lines, text)
+        for index, line in tables.unfenced(lines)
         if (cells := tables.table_cells(line)) is not None
         and cells != ANCHOR_TABLE
         and tuple(map(header_key, cells)) == want
@@ -355,11 +326,10 @@ def first_table(tables, text, header, beside=False):
     table only. A refusal of the walk already says every row below it goes
     unread, a second header among them. BESIDE is `gfm_table`'s: true where
     TEXT may hold other tables after this one, as a frame's section does."""
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
+    lines = tables.blocks.gfm_lines(text)
     headers = [
         index + 1
-        for index, line in tables.unfenced(lines, text)
+        for index, line in tables.unfenced(lines)
         if tables.table_cells(line) == header
     ]
     rows, walked = tables.gfm_table(text, header, beside=beside)
@@ -634,13 +604,16 @@ def check(root, out=sys.stdout, home_dir=None):
     config = sibling.load("lib/config.py")
     tables = sibling.load("lib/tables.py")
     optin = sibling.load("lib/optin.py")
+    gitcmd = sibling.load("lib/gitcmd.py")
     checker = sibling.load(CHECKER)
     home_dir = home_dir or os.path.expanduser("~")
 
     def say(line):
         out.write(line + "\n")
 
-    repo = optin.repo_root(os.path.abspath(root))
+    # `toplevel` raises where git did not answer, so a git that hung is not
+    # read as no repository.
+    repo = optin.toplevel(os.path.abspath(root))
     if not repo:
         say(
             f"seal pact: {shown(root, home_dir=home_dir)} is not in a git "
@@ -674,7 +647,7 @@ def check(root, out=sys.stdout, home_dir=None):
     ours = config.normalise_remote(mine)
     shared = optin.home_paths(repo)[0]
     local = os.path.realpath(home) != os.path.realpath(shared)
-    rel = os.path.relpath(pact_path, repo).replace(os.sep, "/")
+    rel = gitcmd.git_path(os.path.relpath(pact_path, repo))
     history = History(repo, rel)
     # A `Hash` cell is the clause's content hash, as long as the checker
     # writes one.
@@ -701,7 +674,7 @@ def check(root, out=sys.stdout, home_dir=None):
     # The pact's config as a person finds it, under the root's own name:
     # `seal/`, or the second name `lib/optin.py#home_paths` gives beside a
     # project's own.
-    config_here = f"{os.path.basename(home)}/{CONFIG_FILE}"
+    config_here = f"{os.path.basename(home)}/{config.CONFIG}"
     signers, refusals = config.signer_declaration(pairs)
     for refusal in refusals:
         found(REFUSED, config_here, "", refusal)
@@ -753,7 +726,7 @@ def check(root, out=sys.stdout, home_dir=None):
             continue
         pacts, key_refusals = declared
         # The signer's config under its root's own name, as `config_here`.
-        config_shown = f"{os.path.basename(their_home)}/{CONFIG_FILE}"
+        config_shown = f"{os.path.basename(their_home)}/{config.CONFIG}"
         for refusal in key_refusals:
             found(REFUSED, written, config_shown, refusal)
         if not any(n == ours for _w, n in pacts):
@@ -814,10 +787,6 @@ def check(root, out=sys.stdout, home_dir=None):
                 counts[status] += 1
                 if status != OK:
                     found(status, written, f"{at} `{clause}`", detail)
-            view = checker.unquoted(body)
-            for token in INLINE_TOKEN.finditer(view):
-                line = view.count("\n", 0, token.start()) + 1
-                found(REFUSED, written, f"{where}:{line}", INLINE)
         say(
             f"READ {written} {shown(path, home_dir=home_dir)} — {anchors} pact "
             f"anchor{'' if anchors == 1 else 's'} naming this pact"
@@ -864,16 +833,13 @@ def main(argv=None):
         help="the pact's repository (default: the current directory)",
     )
     args = ap.parse_args(argv)
-    return check(args.root)
+    try:
+        return check(args.root)
+    except sibling.load("lib/gitcmd.py").Failed as unanswered:
+        print(f"seal pact: {unanswered.line}")
+        return 2
 
 
 if __name__ == "__main__":
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

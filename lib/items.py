@@ -27,10 +27,10 @@ CONTINUED = " " * 4
 NOTHING = "nothing"
 WHY = "why"
 NOTHING_WRITTEN = f"the block `- {NOTHING}` with `  {WHY}: <reason>`"
-# A first line that opens like the block and is not it: `none` or `nothing`
-# in any case, behind any list marker. The old `none — <why>` line is one.
-# Such a line is no block, and its reader names it (`unread_block`).
-NEAR_NOTHING = re.compile(r"[-*+\s]*(?:none|nothing)\b", re.IGNORECASE)
+# A first line that opens like the block and is not it: `nothing` in any
+# case, behind any list marker. Such a line is no block, and its reader names
+# it (`unread_block`).
+NEAR_NOTHING = re.compile(r"[-*+\s]*nothing\b", re.IGNORECASE)
 UNREAD_BLOCK = (
     f"`{{said}}` opens like {NOTHING_WRITTEN} and is not it, so it was read as prose"
 )

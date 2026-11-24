@@ -55,10 +55,10 @@ commit keeps the fold's tags as text. A copied line equal to `HEADING` is
 refused at the record's line, and so is a copied line holding a `details`
 tag, `<details` or `</details` in any case followed by whitespace, `/`, `>`
 or the line's end, outside a fence, an HTML comment and a code span, and a
-copied line where `close_issues_on_release.py#keywords_in` reads a closing
+copied line where `lib/closing.py#keywords_in` reads a closing
 keyword: the `Closes` line is the orchestrator's, written in `pr.md`.
 The comment is read on the copied line alone, as
-`close_issues_on_release.py#HIDDEN` reads it: one that closes on the line
+`lib/closing.py#HIDDEN` reads it: one that closes on the line
 hides what it holds, and a `<!--` with no `-->` after it on the line is
 text where other text stands before it. A copied line that begins with
 such a `<!--`, after nothing but spaces, tabs and block markers, is refused
@@ -134,7 +134,9 @@ import re
 import sys
 
 if __name__ == "__main__":
-    # A record in another language prints through a console's code page.
+    # Before the readers load below: a refusal printed at import must not
+    # meet a console's code page, and neither must a record in another
+    # language.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),
@@ -169,18 +171,16 @@ except ImportError:
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
 # `lib/config.py`, the one reader of a `seal/config.json` key, and
-# `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
-# reader of a closing keyword. The plugin ships from the repository root, so
-# `.github/scripts/` stands in an installed copy as in a clone. An absent
-# file is `lib/sibling.py#load`'s sentence and exit 2. As a command, a
-# module that raises while it loads ends the run at exit 2; imported, the
-# error is raised to the importer.
+# `lib/closing.py`, whose `keywords_in` is the one reader of a closing
+# keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
+# a command, a module that raises while it loads ends the run at exit 2;
+# imported, the error is raised to the importer.
 try:
     CHAIN = sibling.load("skills/code-review/scripts/chain_check.py")
     GAPS = sibling.load("lib/gaps.py")
     ROUTING = sibling.load("lib/routing.py")
     CONFIG = sibling.load("lib/config.py")
-    CLOSER = sibling.load(".github/scripts/close_issues_on_release.py")
+    CLOSER = sibling.load("lib/closing.py")
 except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
@@ -316,12 +316,12 @@ TOO_LONG = (
 )
 
 # The seal mark, one fixed line between `HEADING`'s blank line and
-# `FOLD`, written where `seal/config.json`'s `MARK_KEY` reads `MARK_ON`
-# exactly and the work item is sealed at HEAD (`seal_mark`). Its address is
-# built from the plugin's manifest, which stands three levels above HERE as
-# `.github/scripts/` does, and which this reads and never writes.
+# `FOLD`, written where `seal/config.json`'s `MARK_KEY` turns it on
+# (`lib/config.py#switch`) and the work item is sealed at HEAD
+# (`seal_mark`). Its address is built from the plugin's manifest, which
+# stands three levels above HERE, at the plugin's root, and which this reads
+# and never writes.
 MARK_KEY = "Pull request seal mark"
-MARK_ON = "yes"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
 MANIFEST_NAME = ".claude-plugin/plugin.json"
 MARK_FIELDS = ("repository", "icon")
@@ -329,13 +329,9 @@ MARK = '<img src="{src}" alt="{alt}" width="{width}">'
 MARK_ALT = "Sealed"
 MARK_WIDTH = 128
 # What `seal_mark` says where the mark is not written and nothing else
-# names why; printed after `seal pr-body: `.
+# names why, and the words that close the switch's sentence on `MARK_KEY`;
+# printed after `seal pr-body: `.
 NO_MARK = "the body carries no seal mark"
-KEY_NOT_YES = (
-    f"`{MARK_KEY}` reads `{{value}}`, not `{MARK_ON}`, so the key is not read "
-    f"and {NO_MARK}"
-)
-KEY_REFUSED = f"`{MARK_KEY}` is not read: {{why}}; {NO_MARK}"
 BASE_UNSEEN = (
     "the guarantee names the base `{base}`, which this repository cannot "
     f"resolve, so whether its seal is at HEAD is not read and {NO_MARK}"
@@ -623,23 +619,19 @@ def seal_mark(item, root, manifest=None, base=None):
     at ROOT: the mark `_unfolded` writes under `HEADING`, or None, and the
     one sentence `seal pr-body` prints about it, or None.
 
-    The mark is written where `MARK_KEY` in the root's `config.json`, read
-    through `lib/config.py#declared_value`, reads `MARK_ON` exactly
-    and the work item is sealed at HEAD against BASE where it is given, and
-    otherwise against the guarantee's own base (`_seal_at_head`). An absent
+    The mark is written where `MARK_KEY` in the root's `config.json` turns
+    it on, as `lib/config.py#switch` reads it, and the work item is sealed
+    at HEAD against BASE where it is given, and otherwise against the
+    guarantee's own base (`_seal_at_head`). An absent
     or empty key, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused key, a base that does not resolve,
     a sealed commit HEAD does not hold, and a manifest the address cannot be
     built from, at MANIFEST or the
     plugin's own, write no mark and are named. Nothing here refuses: the
     mark is a picture, and no key of it stops the body."""
-    value, refused = CONFIG.declared_value(OPTIN.home_at(root), MARK_KEY)
-    if refused is not None:
-        return None, KEY_REFUSED.format(why=refused)
-    if not value:
-        return None, None
-    if value != MARK_ON:
-        return None, KEY_NOT_YES.format(value=value)
+    on, note = CONFIG.switch(OPTIN.home_at(root), MARK_KEY, NO_MARK)
+    if not on:
+        return None, note
     sealed, note = _seal_at_head(item, root, base)
     if not sealed:
         return None, note
@@ -677,7 +669,7 @@ def _section(rel, text, heading):
     return (
         BLOCKS.gfm_lines(text),
         starts[0] + 1,
-        CHAIN.section_end(READER, seen, starts[0]),
+        CHAIN.section_end(seen, starts[0]),
     )
 
 
@@ -717,7 +709,7 @@ def _round(rel, number, text):
     `## Findings` before its first finding, and each finding's heading one
     level down followed by its finding block and its close block, each
     block copied whole."""
-    parsed = CHAIN.round_read(READER, text, rel)
+    parsed = CHAIN.round_read(text, rel)
     if parsed.errors:
         raise Refused(parsed.errors)
     raw = BLOCKS.gfm_lines(text)

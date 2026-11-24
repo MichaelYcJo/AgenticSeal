@@ -16,7 +16,7 @@ place into one group, `unordered` names the pairs inside a group that no
 ancestry orders, and `section_lines` finds a section's lines in a document.
 `pending` reads the designs not yet settled, and `removed_by` says which of
 their `remove` items with no `from` takes a line's section out, for the two
-readers that excuse such a line: `.github/scripts/rules.py` and
+readers that excuse such a line: `skills/settle/scripts/rules.py` and
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 `literals`, `pins` and `copies` say what an operation takes out of a test
 and what its `to` repeats of another rule document, over texts their caller
@@ -35,7 +35,8 @@ module spells no fence or heading rule of its own. A design is a
 record and carries no HTML comment, so `parse` reads it with no comment
 state and refuses a section line that begins with `<!--`; `headings`
 keeps the comment state for `section_lines` and `overlapping`, which read the
-policy documents.
+policy documents. Where an operation's `file` stands in the policy root is
+`lib/config.py#policy_group`'s answer, loaded on first use.
 """
 
 import ast
@@ -43,7 +44,6 @@ import collections
 import glob
 import os
 import re
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -60,6 +60,7 @@ PASSAGES = "skills/settle/scripts/passages.py"
 TABLES = "lib/tables.py"
 GITCMD = "lib/gitcmd.py"
 OPTIN = "lib/optin.py"
+CONFIG_READER = "lib/config.py"
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -135,8 +136,9 @@ def tables():
 
 
 def gitcmd():
-    """`lib/gitcmd.py`, which builds a `git log` read the same under
-    any git configuration, loaded on first use."""
+    """`lib/gitcmd.py`, which starts every git command this reads, under
+    one bound and read the same under any git configuration, loaded on
+    first use."""
     import sibling
 
     return sibling.load(GITCMD)
@@ -147,6 +149,14 @@ def optin():
     import sibling
 
     return sibling.load(OPTIN)
+
+
+def config():
+    """`lib/config.py`, whose `policy_group` reads where a path stands in
+    the policy root, loaded on first use."""
+    import sibling
+
+    return sibling.load(CONFIG_READER)
 
 
 def heading_text(line):
@@ -277,13 +287,10 @@ def parse(text, policy_root):
     for item in ops:
         values, error = g.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
-        # No separator of either system and no drive colon in a name, so a
-        # value joins to one file on every platform: at the top level, or in
-        # one group directory that is neither `.` nor `..`.
-        placed = re.fullmatch(
-            re.escape(policy_root) + r"/(?:([^/\\:]+)/)?[^/\\:]+\.md", file
-        )
-        if not error and (not placed or placed.group(1) in (".", "..")):
+        # At the top level, or in one group directory, as
+        # `lib/config.py#policy_group` reads a policy document's path.
+        placed = config().policy_group(file, policy_root) is not None
+        if not error and not placed:
             error = (
                 item["line"],
                 f"`{file}` is not a `.md` of {policy_root}/ or of one group "
@@ -667,34 +674,22 @@ def overlapping(read):
     return same
 
 
-# Where a thread's design stood before the session-start move brought it into
-# `seal/threads/`, as (directory, name): read from history only, so a moved
-# thread is placed where its design was first added and not at the move's one
-# commit, which adds every moved design at once.
-# exempt from old_names: the 0.22.x path of a design, read from history
-# exempt from root_name: a path of 0.22.x's history, before a second name existed
-EARLIER = ("seal/specs", "spec.md")
-
-
 def order(root, ref, ids, specs):
     """`[(id, commit)]` for IDS in merge order: the first commit reachable from
     REF that adds the id's `frame/design.md` under SPECS, the `/`-joined
-    `<name>/threads` of the root in the tree, or its design at the earlier
-    path (`EARLIER`), in `git log --topo-order --reverse` order, a directory
-    moved under a new id counting as added where it lands. An id no such
-    commit adds comes last, with commit None."""
-    r = subprocess.run(
-        gitcmd().argv(
-            "-C", root, "log", "-z", "--full-history", "--topo-order",
-            "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
-            "--format=%x01%H",
-            ref, "--", specs, EARLIER[0],
-        ),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
+    `<name>/threads` of the root in the tree, in `git log --topo-order
+    --reverse` order, a directory moved under a new id counting as added
+    where it lands. An id no such commit adds comes last, with commit None.
+    Raises `lib/gitcmd.py#Exited` where git exits non-zero, since it then
+    printed no history to read."""
+    r = gitcmd().git(
+        root, "log", "-z", "--full-history", "--topo-order",
+        "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
+        "--format=%x01%H",
+        ref, "--", specs,
+        check=True,
     )  # fmt: skip
-    first, commit = {}, None
+    first, commit, design = {}, None, optin().DESIGN
     # `-z` ends each path with a NUL and quotes none, whatever
     # `core.quotePath` says; a commit's field opens with U+0001, which no
     # path under SPECS starts with, and the path that follows it opens with
@@ -704,10 +699,9 @@ def order(root, ref, ids, specs):
         if line.startswith("\x01"):
             commit = line[1:]
             continue
-        for base, name in ((specs, optin().DESIGN), EARLIER):
-            parts = line[len(base) + 1 :].split("/", 1)
-            if line.startswith(base + "/") and len(parts) == 2 and parts[1] == name:
-                first.setdefault(parts[0], commit)
+        parts = line[len(specs) + 1 :].split("/", 1)
+        if line.startswith(specs + "/") and len(parts) == 2 and parts[1] == design:
+            first.setdefault(parts[0], commit)
     known = [i for i in first if i in ids]
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]
 
@@ -716,26 +710,15 @@ def merge_order(root, ref, pairs):
     """PAIRS, `[(id, commit)]`, sorted by each commit's place in `git rev-list
     --topo-order --reverse REF`: the merge order of local-mode designs, which
     no commit adds, read from their pull requests' merge commits. A pair
-    whose commit REF does not reach comes last, in the order handed."""
-    r = subprocess.run(
-        ["git", "-C", root, "rev-list", "--topo-order", "--reverse", ref],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    whose commit REF does not reach comes last, in the order handed. Raises
+    `lib/gitcmd.py#Exited` where git exits non-zero, as `order` does."""
+    r = gitcmd().git(root, "rev-list", "--topo-order", "--reverse", ref, check=True)
     place = {commit: n for n, commit in enumerate(r.stdout.split())}
     return sorted(pairs, key=lambda pair: place.get(pair[1], len(place)))
 
 
 def _ancestor(root, a, b):
-    return (
-        a != b
-        and subprocess.run(
-            ["git", "-C", root, "merge-base", "--is-ancestor", a, b],
-            capture_output=True,
-        ).returncode
-        == 0
-    )
+    return a != b and gitcmd().is_ancestor(root, a, b)
 
 
 def group(specs, same):

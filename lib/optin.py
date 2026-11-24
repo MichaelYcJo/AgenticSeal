@@ -27,11 +27,17 @@ that read as the AgenticSeal process being switched off. Nothing under
 so it shares the opt-out. `seal/README.md` says so too.
 
 Everything here fails toward "not opted in": a gate that cannot tell should do
-nothing rather than act on a guess.
+nothing rather than act on a guess. `toplevel` alone raises where git did not
+answer, for a caller that must tell that apart from no repository, and
+`repo_root` is `toplevel` read toward "not opted in". Each git command here is
+started by `lib/gitcmd.py#git`.
 """
 
 import os
-import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gitcmd
 
 HOME = "seal"
 # The shared root's second name, taken where the repository's own `seal/`
@@ -66,7 +72,7 @@ PARITY_CONFIG = "parity.json"
 # An empty FILE under the common git directory; its existence is the whole
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory
-# test. A directory of this name is not the opt-out — see `home_at()` below.
+# test. A directory of this name is not the opt-out — see `opted_out()` below.
 SCRATCH = "agentic-scratch"
 # The first line of `templates/setup/seal-README.md`, which first setup writes
 # into every root: a `seal/` is the plugin's root only where its `README.md`
@@ -76,34 +82,20 @@ MARKER = "# What AgenticSeal maintains in seal/"
 README = "README.md"
 
 
-def repo_root(cwd):
-    """The repository root containing cwd, or "" when there is none."""
+def toplevel(cwd):
+    """The repository root containing cwd, or "" when there is none.
+
+    `lib/gitcmd.py#Failed` where git did not answer, for a caller that must
+    tell a git that did not answer from a directory outside any
+    repository."""
     if not cwd or not os.path.isdir(cwd):
         return ""
-    try:
-        out = subprocess.run(
-            ["git", "-C", cwd, "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            # Named, and the `.stdout or ""` below is the second half of the
-            # same defect. `text=True` alone decodes with whatever locale the
-            # parent had; git answers UTF-8, so a repository under a path this
-            # locale cannot decode kills subprocess's reader thread -- and that
-            # exception DOES NOT PROPAGATE. The call returns with `stdout` set
-            # to None, and `.strip()` then raises `AttributeError`, which is
-            # neither of the classes caught here.
-            #
-            # Measured on a cp949 console against a repository under a Korean
-            # path: the caller exited 1 with no answer, where it should have
-            # read the repository as not opted in. Everything in this module is
-            # documented to fail toward "not opted in", and that is silence,
-            # not a crash.
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        ).stdout
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    out = (out or "").strip()
+    # `or ""`: a process whose reader thread died while decoding returns
+    # with `stdout` None, and `.strip()` would then raise `AttributeError`,
+    # where this module fails toward "not opted in". `lib/gitcmd.py#_start`
+    # names the encoding so that the decode does not fail; the None is still
+    # read here.
+    out = (gitcmd.git(cwd, "rev-parse", "--show-toplevel").stdout or "").strip()
     # Spelled the way this platform spells a path, because that is what every
     # caller does with it: `os.path.join` below, and the gates print it to
     # someone who has to recognise their own repository in it. git answers
@@ -117,6 +109,15 @@ def repo_root(cwd):
     # path changes and `normpath` is not asked to guess anything: git has
     # already resolved this to an absolute, existing directory.
     return os.path.normpath(out) if out else ""
+
+
+def repo_root(cwd):
+    """The repository root containing cwd, or "" when there is none or git
+    did not answer: `toplevel` read toward "not opted in"."""
+    try:
+        return toplevel(cwd)
+    except gitcmd.Failed:
+        return ""
 
 
 def git_common_dir(root):
@@ -137,14 +138,8 @@ def git_common_dir(root):
     if os.path.isdir(dotgit):
         return dotgit
     try:
-        out = subprocess.run(
-            ["git", "-C", root, "rev-parse", "--git-common-dir"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        ).stdout
-    except (OSError, subprocess.SubprocessError):
+        out = gitcmd.git(root, "rev-parse", "--git-common-dir").stdout
+    except gitcmd.Failed:
         return ""
     out = (out or "").strip()
     return os.path.normpath(os.path.join(root, out)) if out else ""
@@ -309,13 +304,30 @@ def home_at(root, common=None):
     # once is what lets the two places be produced in one place.
     if common is None:
         common = git_common_dir(root)
-    # A FILE, which is what this module and `seal/README.md` both say the
-    # signal is. `os.path.exists` would also accept a DIRECTORY of that name,
-    # so a directory created where the opt-out goes would turn every
-    # gate off with nothing in the diff that reads as the AgenticSeal
-    # process being switched off.
-    if common and os.path.isfile(os.path.join(common, SCRATCH)):
+    if opted_out(common):
         return ""
+    return marked_home(root, common)
+
+
+def opted_out(common):
+    """True where COMMON, the common git directory, is not empty and the
+    file `SCRATCH` stands under it: the one test of the opt-out, which
+    `home_at` reads and a command asks to tell an opt-out from no root.
+
+    A FILE, which is what this module and `seal/README.md` both say the
+    signal is. `os.path.exists` would also accept a DIRECTORY of that name,
+    so a directory created where the opt-out goes would turn every gate off
+    with nothing in the diff that reads as the AgenticSeal process being
+    switched off. An empty COMMON names no opt-out: joined, it would name a
+    file wherever the process stands."""
+    return bool(common) and os.path.isfile(os.path.join(common, SCRATCH))
+
+
+def marked_home(root, common=None):
+    """The first of `home_paths(root, common)` that is a directory whose
+    `README.md` opens with `MARKER`, or "": `home_at` without the opt-out,
+    for the one reader that runs in a throwaway repository too,
+    `broad_gate.py#seal_home`."""
     for found in home_paths(root, common):
         if found and os.path.isdir(found) and marked(found):
             return found

@@ -33,22 +33,19 @@ line long. That format is strict on purpose — see `lib/gaps.py#check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read · 2 the path or arguments were unusable, which
-includes a scan that found no closing memo at all. Three states of a `seal/`
-root's own `threads` path are exit 0 instead, each saying which it is,
-because a pull request in any of them declares nothing and owes nothing: the
-path holding no work item, empty or absent, which is the state a complete
-settle ends in (`settled_root`); no `seal/` directory at the working tree's
-top level (`absent_root`); and work items none of which carries a `gaps.md`
-(`unwritten_root`).
+includes a scan that found no closing memo at all. One state of a `seal/`
+root's own `threads` path is exit 0 instead, and says so: the path holding no
+work item, empty or absent, which is the state a complete settle ends in
+(`settled_root`).
 """
 
 import argparse
 import os
-import subprocess
 import sys
 
 # `lib/` beside this script. The memo's reader, `lib/gaps.py`, the line
-# that names a file to GitHub, `lib/console.py#annotate`, the path as git
+# that names a file to GitHub, `lib/console.py#annotate`, beside the
+# streams' answer, `lib/console.py#to_utf8`, the path as git
 # spells it, `lib/gitcmd.py#git_path`, the `Reference specs` key's reader and
 # the root's resolver are loaded through `lib/sibling.py`.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -57,10 +54,11 @@ sys.path.insert(0, LIB)
 import sibling  # noqa: E402
 
 GAPS = sibling.load("lib/gaps.py")
-CONSOLE = sibling.load("lib/console.py")
+console = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
 # `lib/optin.py`, whose `WORK_ITEMS` names the directory under a `seal/`
-# root that holds the threads.
+# root that holds the threads, and whose `GAPS` names a thread's closing
+# memo.
 OPTIN = sibling.load("lib/optin.py")
 SKIP_DIRS = {
     ".git",
@@ -98,8 +96,8 @@ def overviews(paths):
                 for d in dirs
                 if d not in SKIP_DIRS and not (skip and skip(os.path.join(root, d)))
             )
-            if GAPS.OVERVIEW in files:
-                found.append(os.path.join(root, GAPS.OVERVIEW))
+            if OPTIN.GAPS in files:
+                found.append(os.path.join(root, OPTIN.GAPS))
     return sorted(dict.fromkeys(found))
 
 
@@ -134,12 +132,13 @@ def references_at(top):
 def reference_rule(start):
     """A predicate on a disk directory — True for one the walk from `start`
     leaves out — or None where nothing is left out: `start` outside a git
-    repository, a `lib/` that will not load, or `start` itself inside a
+    repository or a git that did not answer, which `lib/optin.py#repo_root`
+    reads alike, a `lib/` that will not load, or `start` itself inside a
     reference root, which the person named and so asked for. Every
     directory the walk meets is under `start`, so under `top` as well, and
     has a repository-relative form."""
-    top = repo_root(start)
-    if top is None:
+    top = OPTIN.repo_root(start)
+    if not top:
         return None
     loaded = references_at(top)
     if loaded is None:
@@ -167,7 +166,8 @@ def repo_relative(path, root):
     a repository. A path on another volume is not inside this one -- a
     working tree cannot span drives -- so there is no answer to degrade to,
     and inventing one is the quiet zero this tool refuses. `reference_rule`
-    asks it only of paths under the top `repo_root` found for them.
+    asks it only of paths under the top `lib/optin.py#repo_root` found for
+    them.
     """
     try:
         return GITCMD.git_path(os.path.relpath(path, root))
@@ -201,21 +201,10 @@ def unique_by_target(paths):
     return sorted({os.path.realpath(p) for p in paths})
 
 
-def repo_root(path):
-    here = path if os.path.isdir(path) else (os.path.dirname(path) or ".")
-    r = subprocess.run(
-        ["git", "-C", here, "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return r.stdout.strip() if r.returncode == 0 else None
-
-
 def root_name(top):
     """The name of the `seal/` root of the repository at TOP as the tree
     spells it, `lib/optin.py#home_name`'s answer; `optin.HOME` where TOP is
-    None or holds no shared root. That is the name a local root keeps, and
+    empty or holds no shared root. That is the name a local root keeps, and
     the one each fixture that commits a `seal/` with no marker is read
     under."""
     optin = sibling.load("lib/optin.py")
@@ -226,7 +215,9 @@ def named_root(parent):
     """Whether the directory PARENT carries the name `root_name` gives for
     the repository holding it. Only the name is read: whether PARENT is
     that root is not asked. PARENT is a directory on disk."""
-    return os.path.basename(parent) == root_name(repo_root(os.path.dirname(parent)))
+    return os.path.basename(parent) == root_name(
+        OPTIN.repo_root(os.path.dirname(parent))
+    )
 
 
 def settled_root(path):
@@ -259,63 +250,6 @@ SETTLED = (
 )
 
 
-def absent_root(path):
-    """Whether `path` is the `seal/threads` path of a working tree's top level
-    that holds no `seal/` directory: the `threads` path under the shared
-    place `lib/optin.py#home_paths` gives there, under the second name where
-    the project's own `seal/` stands.
-
-    That is a repository whose records are in local mode, under the git
-    directory, or that never had any, and a teammate's pull request against
-    it declares nothing. Read at the top level only, the directory
-    `git rev-parse --show-toplevel` names, so a `seal/threads` typed from
-    anywhere else is still a mistyped path.
-    """
-    p = os.path.abspath(path)
-    parent = os.path.dirname(p)
-    top = os.path.dirname(parent)
-    if os.path.basename(p) != OPTIN.WORK_ITEMS:
-        return False
-    if os.path.isdir(parent) or not os.path.isdir(top):
-        return False
-    found = repo_root(top)
-    if found is None or not os.path.samefile(found, top):
-        return False
-    optin = sibling.load("lib/optin.py")
-    shared = optin.home_paths(found, optin.git_common_dir(found))[0]
-    return os.path.basename(parent) == os.path.basename(shared)
-
-
-ABSENT = (
-    "seal unverified: {path} has no `seal/` root in this tree, so nothing "
-    "here is declared: there is no record to read. A root in local mode sits "
-    "under the git directory and is never committed"
-)
-
-
-def unwritten_root(path):
-    """Whether `path` is a `seal/` root's own `threads` directory holding work
-    items, none of which carries an `gaps.md`.
-
-    Every work item that never opened a closing memo is in this state, and a
-    pull request against it has no row to read. `main` asks it only
-    once the scan found no closing memo.
-    """
-    p = os.path.abspath(path)
-    parent = os.path.dirname(p)
-    if os.path.basename(p) != OPTIN.WORK_ITEMS or not os.path.isdir(p):
-        return False
-    if not named_root(parent) or settled_root(p):
-        return False
-    return not overviews([p])
-
-
-UNWRITTEN = (
-    "seal unverified: {path} holds work items and none of them carries an "
-    "`gaps.md`, so no `## Not verified` row exists to read"
-)
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="seal unverified",
@@ -324,13 +258,6 @@ def main(argv=None):
     )
     ap.add_argument("path", nargs="*", default=["."])
     args = ap.parse_args(argv)
-
-    # The pull request that moves a root to local mode takes every closing
-    # memo out of the tree, and with no root in it nothing is declared.
-    if all(absent_root(p) for p in args.path):
-        for p in args.path:
-            print(ABSENT.format(path=p))
-        return 0
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing:
@@ -347,7 +274,7 @@ def main(argv=None):
         total_open += len(open_rows)
         total_closed += len(closed_rows)
         for line_no, message in errors:
-            bad.append(CONSOLE.annotate("error", rel, line_no, message))
+            bad.append(console.annotate("error", rel, line_no, message))
         if not errors and (open_rows or closed_rows):
             print(f"  {rel}  {len(open_rows)} open · {len(closed_rows)} closed")
             for _, item, who in open_rows:
@@ -357,12 +284,8 @@ def main(argv=None):
         if all(settled_root(p) for p in args.path):
             print(SETTLED.format(path=", ".join(args.path)))
             return 0
-        if all(settled_root(p) or unwritten_root(p) for p in args.path):
-            for p in args.path:
-                print((SETTLED if settled_root(p) else UNWRITTEN).format(path=p))
-            return 0
         print(
-            f"seal unverified: no {GAPS.OVERVIEW} found under "
+            f"seal unverified: no {OPTIN.GAPS} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )
@@ -393,16 +316,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py`
-    # owns the reasoning and the three decisions behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

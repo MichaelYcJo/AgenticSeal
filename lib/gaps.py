@@ -20,9 +20,11 @@ except for an open item whose own text begins with the word `closed`, which
 reads as closed and which only a reader catches.
 
 Deliberately a text scan of markdown, not a parser library: its lines are
-`lib/lines.py`'s, its items `lib/items.py`'s, and the sentence a comment
-line is refused with `lib/fields.py`'s, each imported beside it. Standard
-library only, and Python 3.9 syntax, as every module under `lib/`.
+`lib/lines.py`'s, a row's cells `lib/tables.py#table_cells`', its items
+`lib/items.py`'s, the sentence a comment line is refused with
+`lib/fields.py`'s, and the memo's file name `lib/optin.py#GAPS`, each
+imported beside it. Standard library only, and Python 3.9 syntax, as every
+module under `lib/`.
 """
 
 import os
@@ -40,20 +42,14 @@ from lines import (
     is_separator,
     readable,
     sections,
-    split_row,
     visible,
 )
+from optin import GAPS
+from tables import table_cells
 
-# A thread's closing memo, at the thread's top: `lib/optin.py#GAPS`, which a
-# case holds this to.
-OVERVIEW = "gaps.md"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
 CLOSED = "closed"
-# The emoji a closed row opened with before the word, U+2705, spelt by its code
-# point so no emoji stands in this file. `parse_section` refuses a row opening
-# with it, naming the edit.
-OLD_MARK = chr(0x2705)
 # What `parse_section` says of a section whose first line is neither the
 # table's header nor the block.
 FOUND_PROSE = (
@@ -88,10 +84,9 @@ def parse_section(body, offset):
     """(open, closed, errors) for the body lines of one section.
 
     `offset` is the file line number of body[0], so every error carries a
-    coordinate the author can open. The header is exactly `HEADER`, a row
-    opening with `OLD_MARK` is refused naming the edit, and a first line
-    that opens like the no-change block and is not it is prose, which
-    `unread_block` names."""
+    coordinate the author can open. The header is exactly `HEADER`, and a
+    first line that opens like the no-change block and is not it is prose,
+    which `unread_block` names."""
     errors, open_rows, closed_rows = [], [], []
     content = [(offset + i, ln) for i, ln in enumerate(body) if ln.strip()]
 
@@ -107,7 +102,7 @@ def parse_section(body, offset):
         errors.extend(block)
         return open_rows, closed_rows, errors
 
-    cells = split_row(first)
+    cells = table_cells(first)
     if cells is None:
         unread = unread_block(content)
         errors.append(
@@ -117,7 +112,7 @@ def parse_section(body, offset):
             )
         )
         return open_rows, closed_rows, errors
-    if tuple(cells) != HEADER:
+    if cells != HEADER:
         errors.append(
             (
                 first_no,
@@ -126,7 +121,7 @@ def parse_section(body, offset):
             )
         )
         return open_rows, closed_rows, errors
-    if len(content) < 2 or not is_separator(split_row(content[1][1]) or []):
+    if len(content) < 2 or not is_separator(table_cells(content[1][1]) or ()):
         errors.append((first_no, "the header row is not followed by a separator row"))
         return open_rows, closed_rows, errors
 
@@ -136,7 +131,7 @@ def parse_section(body, offset):
             (first_no, f"a table with no rows says nothing: write {NOTHING_WRITTEN}")
         )
     for line_no, line in rows:
-        cells = split_row(line)
+        cells = table_cells(line)
         if cells is None:
             errors.append((line_no, "a line inside the table that is not a table row"))
             continue
@@ -168,16 +163,6 @@ def parse_section(body, offset):
             errors.append((line_no, "the template's placeholder is still in the row"))
             continue
         word, rest = closing_word(seen[0])
-        if word == OLD_MARK:
-            errors.append(
-                (
-                    line_no,
-                    f"the row opens with U+2705, which no longer closes a row: a "
-                    f"closed row opens with the word `{CLOSED}`, so write "
-                    f"`| {CLOSED} {rest or '<the item>'} | <what closed it> |`",
-                )
-            )
-            continue
         if word == CLOSED:
             if not rest:
                 errors.append(
@@ -195,12 +180,8 @@ def parse_section(body, offset):
 
 
 def closing_word(cell):
-    """`(first word, the rest)` of an Item cell already through `visible`.
-
-    The old mark is its own word whether or not a space follows it, which is
-    how it was written; every other word ends at whitespace."""
-    if cell.startswith(OLD_MARK):
-        return OLD_MARK, visible(cell[len(OLD_MARK) :])
+    """`(first word, the rest)` of an Item cell already through `visible`;
+    a word ends at whitespace."""
     parts = cell.split(None, 1)
     word = parts[0] if parts else ""
     rest = parts[1].strip() if len(parts) > 1 else ""
@@ -233,7 +214,7 @@ def check_text(text):
     spelling to fix.
 
     **A comment line is refused before any section is looked for.** The
-    first line that begins with `lib/lines.py#OPENER` is refused at its line
+    first line that begins with `lib/blocks.py#OPENER` is refused at its line
     (`comment_lines`). `open_record_rows` hands any refusal on as one
     entry saying the record cannot be read, never as zero open rows."""
     lines = readable(text)
@@ -283,7 +264,7 @@ def open_record_rows(root, directory):
     holds no row."""
     try:
         with open(
-            under_root(root, f"{directory}/{OVERVIEW}"),
+            under_root(root, f"{directory}/{GAPS}"),
             encoding="utf-8",
             errors="replace",
         ) as f:
@@ -293,7 +274,7 @@ def open_record_rows(root, directory):
     rows, _, errors = check_text(overview)
     found = []
     if errors:
-        found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
+        found.append((GAPS, f"cannot be read ({errors[0][1]})"))
     for _, item, _who in rows:
-        found.append((OVERVIEW, item))
+        found.append((GAPS, item))
     return found

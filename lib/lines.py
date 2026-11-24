@@ -1,14 +1,15 @@
 """Shared reader: the lines of a markdown text as a renderer shows them.
 
 Every script that reads markdown or a record by line asks this module:
-which cells a table row holds (`split_row`, `is_separator`), what a cell
-shows (`visible`), which lines a fenced block holds (`fence_spans`,
+whether a table row's cells are a delimiter row (`is_separator`), what a
+cell shows (`visible`), which lines a fenced block holds (`fence_spans`,
 `blank_fences`), which line of a record opens an HTML comment
 (`comment_lines`), whether a line begins live (`liveness`,
 `live_pieces`, `live_lines`), which ATX heading a line is
 (`heading_level`, `headings`, `sections`), and which lines of a record a
-reader judges (`readable`). `lib/gaps.py` reads a closing memo through it,
-and the scripts load it through `lib/sibling.py`.
+reader judges (`readable`). The cells themselves are
+`lib/tables.py#table_cells`'. `lib/gaps.py` reads a closing memo through
+it, and the scripts load it through `lib/sibling.py`.
 
 The fence delimiter rule and the GFM line split are `lib/blocks.py`'s,
 imported beside it. `lib/blocks.py#walk` is the other walk of a markdown
@@ -38,7 +39,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # `live_lines` on purpose, since a row they read is safe at its base reading
 # where the walk is unsure, and `fields.py` refuses a fence line the walk cannot
 # place. Readers that keep a rule of their own, each on purpose: the pull request
-# body readers through `close_issues_on_release.py#FENCE`, which open a fence
+# body readers through `lib/closing.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/releasing/issues-and-milestones.md` *A keyword claims the
 # one number after it*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
@@ -50,10 +51,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Where GFM ends a line: LF, CR or CRLF, and nowhere else. Every reader
 # of markdown or record text reads its lines through `gfm_lines`, because two
 # readers of one text that split it two ways disagree about which line an
-# index names; the `splitlines` census in `tests/censuses.py` holds the
-# remaining splitters to it.
+# index names. The `splitlines` census in `tests/censuses.py` holds every
+# other split under `SHIPPED` to a marker naming the text it splits, which is
+# not markdown.
 try:
-    from blocks import fence_closes, fence_opener, gfm_lines
+    from blocks import CLOSER, OPENER, fence_closes, fence_opener, gfm_lines
 except ImportError as missing:
     # A sentence rather than a bare `ModuleNotFoundError`, as `lib/tables.py`
     # and `lib/fields.py` raise it: this is a module other code imports.
@@ -69,28 +71,14 @@ except ImportError as missing:
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# The two delimiters of an HTML comment. `live_lines` scans for them directly
-# for the callers that read files other than records: it holds the comment
-# state itself, so neither is looked for while it is inside a fence or a code
-# span. A record carries no comment, and `comment_lines` finds a record line
-# that begins with OPENER for the reader that refuses it.
-OPENER = "<!--"
-CLOSER = "-->"
+# OPENER and CLOSER, the two delimiters of an HTML comment, are `blocks`'s,
+# imported above. `live_lines` scans for them directly for the callers that
+# read files other than records: it holds the comment state itself, so
+# neither is looked for while it is inside a fence or a code span. A record
+# carries no comment, and `comment_lines` finds a record line that begins
+# with OPENER for the reader that refuses it.
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
-
-
-def split_row(line):
-    """Cells of one markdown table row, or None if the line is not a row.
-
-    `\\|` inside a cell is an escaped pipe, not a column break."""
-    s = line.strip()
-    if not s.startswith("|"):
-        return None
-    s = s[1:]
-    if s.endswith("|") and not s.endswith("\\|"):
-        s = s[:-1]
-    return [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", s)]
 
 
 def is_separator(cells):
@@ -100,8 +88,8 @@ def is_separator(cells):
 def visible(s):
     """`s` without characters that take no space on screen.
 
-    A zero-width space pastes in from anywhere, and many keyboards emit the
-    old mark followed by U+FE0F. Either one makes `| closed\\u200b | done |`
+    A zero-width space pastes in from anywhere, and many keyboards emit an
+    emoji followed by U+FE0F. Either one makes `| closed\\u200b | done |`
     survive a plain `.strip()` while looking exactly like a bare `closed`,
     which is the one row shape this refuses."""
     return s.translate({ord(c): None for c in INVISIBLE}).strip()

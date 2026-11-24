@@ -139,8 +139,9 @@ the tell. Ask which of two named paths instead, and say what each one does.
 the routing commit, the orchestrator reads `Commit and pull request
 language` and `Record language` in `config.json` under the `seal/` root.
 Where both stand, nothing is asked. Where either is absent in any of the
-four ways `skills/commit-pr-convention/SKILL.md` *Every way of not naming a
-language lands on English* names, the batch asks for both, as
+four ways `templates/setup/config.md` *An absent language key is a refusal
+at the pull request body, and never at a commit* names, the batch asks for
+both, as
 `skills/implement/bootstrap.md` step 1 asks for them at first setup: the
 recent titles from `gh pr list --state all --limit 10` stand beside the
 question, and the language read from them is the option listed first. The
@@ -153,5 +154,5 @@ titles in, and as `English` where the list gives none. `routing.md` *Why
 this way* then says in one sentence that the two keys were written as a
 default taken until answered, naming the language and what it was read
 from, and `pr.md` quotes that sentence. A repository whose `config.json`
-predates the keys is caught here, at its next work item, because
-`seal pr-body` refuses to compose a body without them.
+predates the keys is caught here, at its next work item, before the
+refusal the paragraph cited above gives reaches its pull request body.

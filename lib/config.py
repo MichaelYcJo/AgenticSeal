@@ -237,6 +237,41 @@ def declared_mode(home):
     return ("mode", lowered) if lowered in MODES else ("unknown", value)
 
 
+# --- a key that turns a picture on -------------------------------------------
+#
+# `Pull request seal mark`, read by `seal pr-body`, and `Release note seal
+# mark`, read by the release seal, each turn a picture on where they read
+# SWITCH_ON exactly. What each says of a key that is written and does not
+# turn it on is one of the two sentences below, closed by the caller's own
+# words for what stays off.
+
+SWITCH_ON = "yes"
+SWITCH_NOT_YES = (
+    "`{key}` reads `{value}`, not `" + SWITCH_ON + "`, so the key is not read and {off}"
+)
+SWITCH_NOT_READ = "`{key}` is not read: {why}; {off}"
+
+
+def switch(home, key, off):
+    """`(on, note)` for the switch KEY in `<home>/config.json`.
+
+    ON is True where KEY reads `SWITCH_ON` exactly, and NOTE is then None.
+    No root, no file, no such key and an empty value are off and silent:
+    each is what a repository that never wrote the key has. Any other value
+    is off and named in `SWITCH_NOT_YES`, and a refusal `declared_value`
+    gives in `SWITCH_NOT_READ`, each closed by OFF. Nothing here refuses: a
+    switch turns on a picture, and no value of it stops the command that
+    reads it."""
+    value, refused = declared_value(home, key)
+    if refused is not None:
+        return False, SWITCH_NOT_READ.format(key=key, why=refused, off=off)
+    if not value:
+        return False, None
+    if value != SWITCH_ON:
+        return False, SWITCH_NOT_YES.format(key=key, value=value, off=off)
+    return True, None
+
+
 # --- the reference roots -----------------------------------------------------
 #
 # A project may have kept its own `specs/` before the plugin arrived. The
@@ -261,6 +296,17 @@ def inside_the_root(rel, name):
     return bool(name) and (rel == name or rel.startswith(name + "/"))
 
 
+def _prefix(value):
+    """VALUE, a directory as a person wrote it into a key, with its
+    whitespace taken off, each `\\` turned into `/`, each leading `./` taken
+    off and its trailing `/` taken off: the one normaliser of the
+    `Reference specs` and `Policy root` values."""
+    prefix = value.strip().replace("\\", "/")
+    while prefix.startswith("./"):
+        prefix = prefix[2:]
+    return prefix.rstrip("/")
+
+
 def reference_roots(home, name):
     """The repository-relative directories `<home>/config.json`'s
     `Reference specs` key names, as a tuple; `()` for `none`; or None, the
@@ -274,13 +320,10 @@ def reference_roots(home, name):
     dropped: a reference root is outside the root by definition, and the
     root's records are read whatever the key says.
 
-    **No root at either place is `()`, no reference root at all** — not the
-    default. A reference root is defined against the plugin's root, and a
-    repository with none has not opted in: the one layout the plugin reads
-    without a root is 0.3.x's, whose top-level `specs/` is the plugin's own,
-    and `seal unverified` reads that spelling as its records. A person
-    joining a project runs the bootstrap, which creates the root, before any
-    check reads the tree.
+    **No root at either place, an empty HOME, is the default too**, read
+    without opening any file: no `config.json` exists to declare a key, and
+    one found relative to wherever the process stands is not the
+    repository's.
 
     **A refusal reads as the default**: a file that will not read,
     and a `Reference specs` key written twice or holding no string, which
@@ -288,7 +331,7 @@ def reference_roots(home, name):
     refuse on it: what a refusal costs it is the reading every repository
     had before the key existed, and no record is written or lost on it."""
     if not home:
-        return ()
+        return None
     # A refusal carries no value, so it lands with no key and an empty one.
     value, _refusal = declared_value(home, REFERENCE_KEY)
     if not value:
@@ -297,10 +340,9 @@ def reference_roots(home, name):
         return ()
     out = []
     for entry in value.split(","):
-        prefix = entry.strip().replace("\\", "/")
-        while prefix.startswith("./"):
-            prefix = prefix[2:]
-        prefix = prefix.strip("/")
+        # A leading `/` is taken off too: a reference root is read as a
+        # prefix of a repository path, where `policy_root` refuses one.
+        prefix = _prefix(entry).lstrip("/")
         if prefix and not inside_the_root(prefix, name) and prefix not in out:
             out.append(prefix)
     return tuple(out)
@@ -330,6 +372,29 @@ POLICY_KEY = "Policy root"
 POLICY_DEFAULT = "docs"
 
 
+# A document of the policy root, after the root's own escaped name: at the
+# top level, or in one group directory. No separator of either system and
+# no drive colon in a part, so a path joins to one file on every platform.
+POLICY_DOCUMENT = r"/(?:([^/\\:]+)/)?[^/\\:]+\.md"
+
+
+def declared_policy_root(home):
+    """`(rel, refusal)` for `<home>/config.json`'s `Policy root` key.
+
+    REFUSAL is the sentence `declared_value` refuses the file or the key in,
+    or None. REL is the value as `_prefix` normalises it, or `docs` for
+    every case `policy_root` lists, a refusal among them. A caller that
+    stops on a refusal, `fold_check.py#declared`, and one that reads it as
+    the default, `policy_root`, read the key once and read one answer."""
+    if not home:
+        return POLICY_DEFAULT, None
+    value, refusal = declared_value(home, POLICY_KEY)
+    rel = _prefix(value or "")
+    if not rel or rel.startswith("/") or ".." in rel.split("/"):
+        return POLICY_DEFAULT, refusal
+    return rel, refusal
+
+
 def policy_root(home):
     """The repository-relative directory `<home>/config.json`'s `Policy
     root` key names, without a leading `./` or a trailing `/`, or `docs`.
@@ -338,14 +403,19 @@ def policy_root(home):
     that leaves the repository (an absolute path or a `..` part) all read as
     `docs`, the directory every repository read before the key existed.
     `templates/setup/config.md` *The fold's values* states the key."""
-    value = declared_value(home, POLICY_KEY)[0] if home else None
-    rel = (value or "").strip().replace("\\", "/")
-    while rel.startswith("./"):
-        rel = rel[2:]
-    rel = rel.rstrip("/")
-    if not rel or rel.startswith("/") or ".." in rel.split("/"):
-        return POLICY_DEFAULT
-    return rel
+    return declared_policy_root(home)[0]
+
+
+def policy_group(path, policy):
+    """Where the `/`-joined PATH stands in the policy root POLICY: "" for
+    `<policy>/<name>.md`, the group's name for `<policy>/<group>/<name>.md`,
+    and None for every other path, a group that is `.` or `..` and a part
+    holding `\\` or `:` among them. The one reading of a policy document's
+    path, for `fold_check.py#groups` and `rule_changes.py#parse`."""
+    placed = re.fullmatch(re.escape(policy) + POLICY_DOCUMENT, path)
+    if not placed or placed.group(1) in (".", ".."):
+        return None
+    return placed.group(1) or ""
 
 
 # --- the pact a signer declares ----------------------------------------------
@@ -479,8 +549,8 @@ def pact_declaration(pairs):
     `config_value`'s rule and in its sentence, so it lists no pact.
 
     **Only the `Pact` key is read.** A key of any other name is no answer
-    about a pact, a `Pact notify` key an earlier release read included
-    (`templates/setup/config.md` *Pact*).
+    about a pact. A `Pact notify` key an earlier release read is one: no
+    command refuses it, prints it or names it.
     """
     value, refused = config_value(pairs, PACT_KEY)
     if refused:

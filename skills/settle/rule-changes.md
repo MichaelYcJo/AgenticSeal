@@ -48,7 +48,7 @@ comes first, then one field per line, indented two spaces:
   items, `- nothing` with the reason in its one field `why:`, and the block
   is read in that one spelling. The reason is the proofer's to read: no
   script uses it, so none refuses a block that lacks it. A first line that
-  opens like it and is not it, such as `nothing — <why>` or `- none`, is no
+  opens like it and is not it, such as `nothing — <why>` or `- Nothing`, is no
   block: the section is refused at that line as the items refuse any line
   outside them, and the reader names the line as one it did not read.
   `## Not verified` reads the block the same way.
@@ -128,8 +128,8 @@ line in any of them.
 check: tests/text/test_every_agent_reads_the_contract.py
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
-(`.github/scripts/rules.py`), which reads every check line in a rule file,
-refuses one the grammar refuses and names one it did not read. At the pull
+(`skills/settle/scripts/rules.py`), which reads every check line in a rule
+file, refuses one the grammar refuses and names one it did not read. At the pull
 request, `chain-check` asks the same reader for each check line inside an
 `add` or `change` `to` of a design, and refuses a line that reader refuses
 at that line of the design. A refused

@@ -49,7 +49,7 @@ after the release that ships it, and the history keeps it after that.
 check: tests/github/test_publish_release_note.py
 
 **A change to the way of working writes its process row in its own
-fragment.** A work item whose diff changes `skills/core/SKILL.md`, `CLAUDE.md`, an `agents/*.md` file, a `skills/*/orchestration.md` file or `skills/implement/bootstrap.md` ends its `changelog.md` with the line `### Process changes` and a table in
+fragment.** A work item whose diff changes `skills/core/SKILL.md`, `CLAUDE.md`, an `agents/*.md` file, a `skills/*/orchestration.md` file, or one of the files cut from those for the step that opens them, `skills/code-review/gate-to-pull-request.md`, `skills/implement/bootstrap.md`, `skills/implement/fix-pass.md`, `skills/implement/fold-and-reframe.md`, `skills/implement/merge-order.md`, `skills/implement/multi-repository.md` and `skills/implement/routing-question.md`, ends its `changelog.md` with the line `### Process changes` and a table in
 the shape `templates/records/process.md` gives: one row per change, holding
 the date, the change, one line of why, and a link to the issue comment or
 commit it came from. The party that writes the fragment writes the table
@@ -82,8 +82,8 @@ The standing policy. Its index is `docs/README.md`.
 ## seal/
 
 What the plugin maintains, read and written by machines. Every `seal/…` path
-means `<repo>/seal/` where that directory exists, and the root under the git
-common directory otherwise.
+means the records root, found where the opening paragraph of
+`skills/core/SKILL.md` says.
 
 | File | The question it answers |
 |---|---|

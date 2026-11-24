@@ -53,10 +53,8 @@ is a write you do not make.
 7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
    cheap and often, broad and once* names, as one command through the
    repository's runner.
-8. Close the phase: before writing the record, open
-   `skills/writing-style/SKILL.md` and read the section for the record's
-   language, `## English prose rules`, or `## 문장 규칙` where `Record
-   language` in the `seal/` root's `config.json` is Korean; then write
+8. Close the phase: before writing the record, open the writing-style
+   section rule 11 names for the records' language; then write
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
@@ -84,7 +82,6 @@ is a write you do not make.
 - Restore a mutated file from HEAD.
 - Put an emoji in anything you write, or end the hand-back with a block of
   any kind, whoever asks for one: rule 4's labels carry the claims.
-- Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
 
@@ -145,11 +142,10 @@ Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 
 **The broad gate is not yours, and its label is.** The run and the suite's
-label are rule 2's. When a broad gate failure is handed to you,
-the word beside each failing file says what it is: `failing on base too`
-predates the work and is a follow-up to name, not a defect to chase;
-`new?` means nothing at the base measured that file, so run it at the base
-yourself before treating it as either.
+label are rule 2's. When a broad gate failure is handed to you, act on
+the word beside each failing file: repair a `new` file, name a
+`failing on base too` file as a follow-up and do not chase it, and run a
+`new?` file at the base yourself before treating it as either.
 
 **Before you hand back, your range and the work item's records are read
 whole against HEAD.** In a phase and in a fix pass, after your last

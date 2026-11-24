@@ -78,20 +78,22 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 
 ## Running the checks
 
-The suite needs `pytest` and three packages, each pinned to one version in
-`.github/scripts/run_tests.py`: one parser, `markdown-it-py`, pinned in
-`MARKDOWN_IT`, one renderer, `cmarkgfm`, pinned in `CMARKGFM`, and one YAML
-parser, `PyYAML`, pinned in `PYYAML`.
+The suite's packages are the requirements `tests/requirements.txt` lists,
+the one place each is named and each pin's version is chosen: `pytest`,
+`pytest-xdist`, and three packages pinned to one version each, one parser,
+`markdown-it-py`, one renderer, `cmarkgfm`, and one YAML parser, `PyYAML`.
 The parser is the CommonMark oracle the readers under `lib/` are checked
 against. The renderer is
 GitHub's own, cmark-gfm, and the table walker in `lib/tables.py` is checked
 against what it renders. The YAML parser is how `tests/workflows.py` reads a
-workflow file for the cases that read a job, a step or a key. The three are
-test-only: the gates themselves are stdlib-only Python and
-import nothing the suite installs. `bin/test` acquires all four once: it
-builds a virtualenv at `.venv` on the first call and reuses it afterwards, so
-only the first call pays for an environment. It works from any directory in
-the repository or a worktree of it, and it prints the interpreter it used.
+workflow file for the cases that read a job, a step or a key, and an eval
+case's `case.yaml` and a grader's front matter for the cases that read their
+fields. Every package there is test-only: the gates themselves are
+stdlib-only Python and import nothing the suite installs. `bin/test`
+acquires them once: it builds a virtualenv at `.venv` on the first call
+and reuses it afterwards, so only the first call pays for an environment.
+It works from any directory in the repository or a worktree of it, and it
+prints the interpreter it used.
 
 ```bash
 bin/test tests/skills/test_session_cost.py -q   # one module: the form to type
@@ -140,8 +142,8 @@ nothing here holds the floor for it: macOS ships 3.9 under that name, and a
 version manager points it wherever it was last told.
 
 ```bash
-uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 --with PyYAML==6.0.3 python3 -m pytest tests/ -q
-# or: pip install pytest markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 && python3 -m pytest tests/
+uvx --with-requirements tests/requirements.txt python3 -m pytest tests/ -q
+# or: pip install -r tests/requirements.txt && python3 -m pytest tests/
 ```
 
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); `pytest`,
@@ -405,8 +407,8 @@ adds any mechanism by what it takes away:
   what it costs. `skills/core/SKILL.md` *The rule a mechanism is kept
   against* is why.
   What goes is listed under its `frame/design.md`'s `## Removes`, which the review
-  reads against the diff; `docs/forms/the-reader-registry.md` *A frame names what
-  its work removes* is the rule.
+  reads against the diff; `docs/running/the-agent-set.md` *What each party
+  writes, and when* is the rule.
 - **What it reads.** A pull request that adds or changes a gate names the
   form the gate reads, what the gate names as a line it did not read, and
   the agent and the step that judge the meaning of the same text. The gate
