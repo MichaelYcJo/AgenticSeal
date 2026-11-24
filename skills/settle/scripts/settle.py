@@ -479,23 +479,16 @@ def git_run(root, *args, given=None):
     `RuntimeError`, saying what `git` said, where it fails."""
     r = gitcmd.git(root, "--literal-pathspecs", *args, given=given, binary=True)
     if r.returncode != 0:
-        raise RuntimeError(
-            f"`git {' '.join(args)}` exited {r.returncode}: {decoded(r.stderr).strip()}"
-        )
+        said = gitcmd.decoded(r.stderr).strip()
+        raise RuntimeError(f"`git {' '.join(args)}` exited {r.returncode}: {said}")
     return r.stdout
-
-
-def decoded(data):
-    """DATA as `lib/gitcmd.py#git` reads text: UTF-8 with each undecodable
-    byte replaced, and every line ending a newline."""
-    return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def git_out(root, *args):
     """The standard output of `git ARGS` at ROOT as text (`git_run`,
-    `decoded`). Raises `RuntimeError`, saying what `git` said, where it
-    fails."""
-    return decoded(git_run(root, *args))
+    `lib/gitcmd.py#decoded`). Raises `RuntimeError`, saying what `git`
+    said, where it fails."""
+    return gitcmd.decoded(git_run(root, *args))
 
 
 def versions(root):
@@ -525,7 +518,7 @@ def versions(root):
             named.append((tuple(int(n) for n in matched.group(1).split(".")), name))
     if not named:
         return {}
-    peeled = decoded(
+    peeled = gitcmd.decoded(
         git_run(
             root,
             "cat-file",
@@ -542,7 +535,9 @@ def versions(root):
     if not tips:
         return {}
     given = "".join(f"{tip}\n" for _n, _name, tip in tips).encode()
-    walked = decoded(git_run(root, "rev-list", "--parents", "--stdin", given=given))
+    walked = gitcmd.decoded(
+        git_run(root, "rev-list", "--parents", "--stdin", given=given)
+    )
     parents = {}
     # exempt from splitlines: git output
     for line in walked.splitlines():
@@ -567,27 +562,13 @@ def blobs(root, names):
     holds no file there, such as `missing`, or the kind of object it holds
     instead. One call, whatever the number of names; a name holds no
     newline, which git would read as two names (`earlier_judgments` asks
-    for none that does). Raises `RuntimeError`, saying what `git` said,
-    where it fails."""
+    for none that does), and the output is read by
+    `lib/gitcmd.py#batch_texts`. Raises `RuntimeError`, saying what `git`
+    said, where it fails."""
     out = git_run(
         root, "cat-file", "--batch", given="".join(f"{n}\n" for n in names).encode()
     )
-    read, at = [], 0
-    for name in names:
-        end = out.index(b"\n", at)
-        header = decoded(out[at:end])
-        at = end + 1
-        fields = header.split(" ")
-        if len(fields) != 3 or not fields[2].isdigit():
-            # `<name> missing`, `<name> ambiguous`: the name is echoed.
-            read.append((None, header.removeprefix(f"{name} ")))
-            continue
-        size = int(fields[2])
-        content, at = out[at : at + size], at + size + 1
-        read.append(
-            (decoded(content), None) if fields[1] == "blob" else (None, fields[1])
-        )
-    return read
+    return gitcmd.batch_texts(out, names)
 
 
 def published_releases(root):

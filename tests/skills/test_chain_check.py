@@ -3884,6 +3884,76 @@ DECLARES_FEATURE = ROUTING.format(
 ).replace("feature/x", "feature")
 
 
+class Test_tracked_declarations:
+    def test_reads_the_declarations_at_head_in_one_process(self, repo, monkeypatch):
+        """#1603, design S6. The declarations HEAD carries are read by one
+        `git cat-file --batch`, given the blob ids `ls-tree` lists, and by
+        no `show`, and each reads as `read_record` reads it, the one with
+        `\\r\\n` line ends among them. Under `WORKTREE` each is read from
+        disk, and no batch starts. Seen red against phase 1's
+        `tracked_declarations`, which started one `show` per declaration."""
+        git(repo, "config", "core.autocrlf", "false")
+        paths = [f"{WORK}/179900000{n}-item-{n}/routing.md" for n in (1, 2, 3)]
+        texts = [
+            DECLARES_FEATURE.replace("| feature |", f"| feature/{n} |")
+            for n in (1, 2, 3)
+        ]
+        for path, text in zip(paths, texts, strict=True):
+            write(repo, path, text)
+        (repo / paths[2]).write_bytes(texts[2].replace("\n", "\r\n").encode())
+        commit_everything_as_e(repo, "three declarations")
+        root = str(repo)
+
+        def started():
+            found, asked = asks(
+                monkeypatch,
+                lambda: chain.tracked_declarations(root, routing_module, WORK),
+            )
+            return found, [argv[argv.index("-C") + 2] for argv, _given in asked]
+
+        found, verbs = started()
+        assert verbs == ["ls-tree", "cat-file"], verbs
+        read = [(p, routing_module.parse(chain.read_record(root, p))) for p in paths]
+        assert found == read, found
+        assert [d["branch"] for _p, d in found] == [
+            "feature/1",
+            "feature/2",
+            "feature/3",
+        ], found
+        (repo / paths[0]).write_text(
+            texts[0].replace("feature/1", "feature/0"), encoding="utf-8"
+        )
+        monkeypatch.setattr(chain, "WORKTREE", True)
+        found, verbs = started()
+        assert verbs == ["ls-tree"], verbs
+        assert [d["branch"] for _p, d in found] == [
+            "feature/0",
+            "feature/2",
+            "feature/3",
+        ], found
+
+    def test_reads_no_declaration_from_a_batch_that_exited_non_zero(
+        self, repo, monkeypatch
+    ):
+        """#1603, design *Data & interfaces*. A `cat-file --batch` that
+        exits non-zero reads as a `show` that exited non-zero read: an empty
+        text, which `routing.parse` refuses, so no declaration is taken and
+        nothing raises. Seen red against phase 1's `tracked_declarations`,
+        which started no batch, and with the batch's exit code left
+        unread."""
+        write(repo, f"{WORK}/1799000001-an-item/routing.md", DECLARES_FEATURE)
+        commit_everything_as_e(repo, "a declaration")
+        real = subprocess.run
+
+        def run(argv, *args, **kwargs):
+            if "cat-file" in argv:
+                return subprocess.CompletedProcess(argv, 128, b"", b"fatal: no\n")
+            return real(argv, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", run)
+        assert chain.tracked_declarations(str(repo), routing_module, WORK) == []
+
+
 class Test_declared_for_this_branch:
     def test_refuses_a_local_declaration_and_says_it_is_local_mode(
         self, repo, capsys, monkeypatch
@@ -4302,6 +4372,7 @@ class Test_main:
             ("diff", "--raw"),
             ("merge-base", "main", "HEAD"),
             ("ls-tree", "-r", "-z", "HEAD"),
+            ("cat-file", "--batch"),
             ("show",),
             ("log",),
             ("merge-base", "--is-ancestor"),
@@ -4314,6 +4385,7 @@ class Test_main:
             "changed",
             "merge_base",
             "declared",
+            "declarations",
             "read_record",
             "trailers",
             "is_ancestor",

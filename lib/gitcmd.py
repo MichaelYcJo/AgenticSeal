@@ -53,7 +53,9 @@ into git's `/`-joined form, `under_root` turns a `/`-joined
 repository-relative path into the disk's, and `inside` answers whether a
 path on the disk is a directory or under it. `http_answer` reads the HTTP
 status and the body out of what `gh api -i` printed, so a caller decides
-on the status and not on the words of gh's stderr.
+on the status and not on the words of gh's stderr. `decoded` reads bytes
+git printed as `git` reads its text, and `batch_texts` reads what `git
+cat-file --batch` printed by the size each header gives.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
 `seal_stamp.py`, and every hook that reads `lib/optin.py`, reach it on
@@ -289,6 +291,38 @@ def http_answer(stdout):
     head, _, body = stdout.partition("\n\n")
     found = STATUS_LINE.fullmatch(head.split("\n", 1)[0])
     return (int(found.group(1)) if found else None), body
+
+
+def decoded(data):
+    """DATA as `git` reads text: UTF-8 with each undecodable byte replaced,
+    and every line ending a newline."""
+    return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def batch_texts(out, names):
+    """`[(text, None) or (None, answer)]`, one for each of NAMES, in their
+    order, from OUT, the bytes `git cat-file --batch` printed when NAMES
+    were given it one per line: the object's text as `decoded` reads it
+    where it is a blob, or what the batch answered where it holds no file,
+    such as `missing`, or the kind of object it holds instead. Each object
+    is read by the size its header gives, never by a marker its bytes could
+    hold. A name holds no newline, which git would read as two names."""
+    read, at = [], 0
+    for name in names:
+        end = out.index(b"\n", at)
+        header = decoded(out[at:end])
+        at = end + 1
+        fields = header.split(" ")
+        if len(fields) != 3 or not fields[2].isdigit():
+            # `<name> missing`, `<name> ambiguous`: the name is echoed.
+            read.append((None, header.removeprefix(f"{name} ")))
+            continue
+        size = int(fields[2])
+        content, at = out[at : at + size], at + size + 1
+        read.append(
+            (decoded(content), None) if fields[1] == "blob" else (None, fields[1])
+        )
+    return read
 
 
 def is_ancestor(root, commit, ref):
