@@ -19,9 +19,12 @@ in a traceback.
 **A run inside `one_run` asks git each question once.** Inside it, `git`
 answers a command the run already asked from the first answer. A command
 enters it for a run in which nothing the command writes changes what git
-answers it, so an answer given again is the answer git would give. `chain-check` writes nothing. `seal settle` writes the
-working tree under `--apply`, and the policy root under `--draft`, after
-its last git read. A git write inside a run, or a read after a write the
+answers it, so an answer given again is the answer git would give.
+`chain-check` writes nothing. `seal settle` writes the working tree under
+`--apply`, and the policy root under `--draft`. The only git read after
+those writes asks where the common git directory is
+(`lib/optin.py#git_common_dir`, from a linked worktree), and neither write
+moves it. A git write inside a run, or any other read after a write the
 run made, is answered as git answered before it. `gh` is asked every time.
 
 **This module is the one place that names which keys reshape what a script

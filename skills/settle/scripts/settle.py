@@ -2061,8 +2061,9 @@ def main(argv=None):
     # reads below, so the run stops with the runner's one line at the code
     # of an unusable tree, whichever read it was.
     try:
-        # Every write of the run follows its last git read, so git answers
-        # each read once in it (`lib/gitcmd.py#one_run`).
+        # Its writes change nothing git answers it: the only read after them
+        # asks where the common git directory is. So git answers each read
+        # once in it (`lib/gitcmd.py#one_run`).
         with gitcmd.one_run():
             return _settled(args)
     except gitcmd.Failed as unanswered:
