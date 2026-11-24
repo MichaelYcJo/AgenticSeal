@@ -1889,7 +1889,7 @@ def tracked_declarations(root, routing, work_items):
     if WORKTREE:
         texts = [read_record(root, path) for path, _blob in listed]
     else:
-        texts = blob_texts(root, [blob for _path, blob in listed])
+        texts = _blob_texts(root, [blob for _path, blob in listed])
     found = []
     for (path, _blob), text in zip(listed, texts):
         parsed = routing.parse(text or "")
@@ -1898,7 +1898,7 @@ def tracked_declarations(root, routing, work_items):
     return found
 
 
-def blob_texts(root, blobs):
+def _blob_texts(root, blobs):
     """[text or None] for each of BLOBS, blob ids, in their order, read by
     one `git cat-file --batch`, or by none where BLOBS is empty. None for
     each where the batch exited non-zero, and for a blob it answered

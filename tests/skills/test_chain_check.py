@@ -3885,7 +3885,9 @@ DECLARES_FEATURE = ROUTING.format(
 
 
 class Test_tracked_declarations:
-    def test_reads_the_declarations_at_head_in_one_process(self, repo, monkeypatch):
+    def test_accepts_the_declarations_at_head_read_in_one_process(
+        self, repo, monkeypatch
+    ):
         """#1603, design S6. The declarations HEAD carries are read by one
         `git cat-file --batch`, given the blob ids `ls-tree` lists, and by
         no `show`, and each reads as `read_record` reads it, the one with
@@ -3934,7 +3936,7 @@ class Test_tracked_declarations:
             "feature/3",
         ], found
 
-    def test_reads_no_declaration_from_a_batch_that_exited_non_zero(
+    def test_refuses_a_declaration_from_a_batch_that_exited_non_zero(
         self, repo, monkeypatch
     ):
         """#1603, design *Data & interfaces*. A `cat-file --batch` that
