@@ -3180,9 +3180,9 @@ class Test_main:
         so `--apply` reads the tags for the judgments and for the note. The
         dry run and `--apply` each start no git command twice with the
         same input, every reader real. Seen red against `settle.py` before
-        #1603, where the pair's `merge-base --is-ancestor` and `ls-files -z`
-        repeat in both runs and, under `--apply`, so do the three reads of
-        `versions`."""
+        #1603, where the dry run repeats the pair's `merge-base
+        --is-ancestor` and `ls-files -z`, and `--apply` repeats the pair and
+        the three reads of `versions`."""
         removed_plan(
             shared_repo,
             "1700000001-old",

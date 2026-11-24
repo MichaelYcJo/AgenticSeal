@@ -16,10 +16,10 @@ caller passes `check=True`, because for some commands, such as `merge-base
 that does not catch it ends with that line on stderr at exit 1 and never
 in a traceback.
 
-**A run inside `one_run` asks git each question once.** Inside it, `git` answers a command the run already asked from the
-first answer. A command enters it for a run in which nothing the command
-writes changes what git answers it, so an answer given again is the answer
-git would give. `chain-check` writes nothing. `seal settle` writes the
+**A run inside `one_run` asks git each question once.** Inside it, `git`
+answers a command the run already asked from the first answer. A command
+enters it for a run in which nothing the command writes changes what git
+answers it, so an answer given again is the answer git would give. `chain-check` writes nothing. `seal settle` writes the
 working tree under `--apply`, and the policy root under `--draft`, after
 its last git read. A git write inside a run, or a read after a write the
 run made, is answered as git answered before it. `gh` is asked every time.
