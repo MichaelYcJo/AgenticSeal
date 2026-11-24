@@ -18,7 +18,7 @@ tied row written here is one nobody at that coordinate will ever see.
 import os
 import re
 
-from conftest import ROOT, census_case, read
+from conftest import ROOT, census_case, read, section
 
 TARGET = "seal/follow-up.md"
 
@@ -28,12 +28,10 @@ FOLLOW_UP = os.path.join(ROOT, *TARGET.split("/"))
 COORDINATE = re.compile(r"[\w./-]+\.(?:py|md|json|yml|yaml|sh):\d+")
 
 
-def rows(section):
-    """Table rows under one `## ` heading of follow-up.md."""
-    text = read(FOLLOW_UP)
-    body = text.split(f"## {section}", 1)[1].split("\n## ", 1)[0]
+def rows(heading):
+    """Table rows under the heading line HEADING of follow-up.md."""
     out = []
-    for line in body.splitlines():
+    for line in section(read(FOLLOW_UP), heading).splitlines():
         line = line.strip()
         if not line.startswith("|"):
             continue
@@ -49,7 +47,7 @@ def test_no_schedulable_row_carries_a_coordinate():
     not. The rider list is `grep RIDER:`, and this section is not it."""
     offenders = [
         r
-        for r in rows("Schedulable items with nowhere else to go")
+        for r in rows("## Schedulable items with nowhere else to go")
         if COORDINATE.search(" ".join(r))
     ]
     # `seal/follow-up.md` *Anything tied to a coordinate is a `# RIDER:`
@@ -67,7 +65,7 @@ def test_the_header_gives_the_command_that_lists_the_riders():
 def test_a_rider_waiting_on_a_held_file_names_who_answers_it():
     """A rider that cannot be planted names who answers it, or it is a
     deferral to nobody."""
-    for target in rows("Riders waiting on a file another branch holds"):
+    for target in rows("## Riders waiting on a file another branch holds"):
         assert target[-1].strip() not in ("", "—"), f"no answerer: {target}"
 
 

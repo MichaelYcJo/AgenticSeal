@@ -24,7 +24,7 @@ from test_launch import LAUNCH, load
 # No TARGET: its cases hold the Python floor across lib/launch.py, the runner, ruff.toml, every wrapper under bin/ and what the hooks run.
 
 BIN = os.path.join(ROOT, "bin")
-RUNNER = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
+RUNNER = os.path.join(ROOT, "tests", "run_tests.py")
 RUFF = os.path.join(ROOT, "ruff.toml")
 
 
@@ -133,14 +133,20 @@ def test_a_script_reaches_what_it_hands_the_loader():
 def test_a_script_reaches_no_module_under_tests():
     """S9 of #1482. A path under `tests/` is no load: `tests/` holds no
     module of the plugin, and pytest imports a test module in the
-    virtualenv's process, at the floor. The runner names its pins' test
-    modules by tracked path, so a walk that read them would lint test
-    helpers at a floor nothing runs them under."""
+    virtualenv's process, at the floor. A script that names a test module
+    by its tracked path, as the fixture's does, would otherwise have the
+    walk lint test helpers at a floor nothing runs them under. The runner
+    itself stands
+    under `tests/` and is reached as what `bin/test` hands its interpreter,
+    not as a load."""
     tracked = {".github/scripts/r.py", "tests/t.py", "lib/a.py"}
     text = 'import a\nPINS = (("x", "tests/t.py"),)\n'
     assert loaded_by(".github/scripts/r.py", text, tracked) == {"lib/a.py"}
     reached, _missing = before_any_floor()
-    assert not sorted(r for r in reached if r.startswith("tests/"))
+    handed = set()
+    for entry in sorted(os.listdir(BIN)):
+        handed |= handed_first(read(os.path.join(BIN, entry)))
+    assert not sorted(r for r in reached - handed if r.startswith("tests/"))
 
 
 # --- one number --------------------------------------------------------------
@@ -299,8 +305,9 @@ def before_any_floor(root=ROOT):
     It starts from what is handed an interpreter with nothing in front of it:
     the script each command of `hooks/hooks.json` hands its interpreter
     (`hooked`), and the file each `bin/` wrapper hands its interpreter
-    first. Then it follows `loaded_by` until nothing new is found, so it
-    reaches no file under `tests/`. It errs over, since a string can name a
+    first. Then it follows `loaded_by` until nothing new is found, so a
+    file under `tests/` it reaches is one a wrapper hands its interpreter,
+    as `bin/test` hands the runner. It errs over, since a string can name a
     file nothing loads, and under, for a module reached by a path built any
     other way. No git hook of this plugin
     runs a script since #1027."""

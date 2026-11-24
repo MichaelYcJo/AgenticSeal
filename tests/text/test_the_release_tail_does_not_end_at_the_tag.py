@@ -37,7 +37,7 @@ hold's sentence, in phase 1 of work item
 import os
 import re
 
-from conftest import ROOT
+from conftest import ROOT, flattened, read, section
 
 # No TARGET: its cases hold the release's tail across the release checklist, the branch and release document and the workflows and scripts its boxes name.
 
@@ -57,25 +57,6 @@ COMMANDS = (
 )
 
 
-def read(rel):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(text):
-    """The text with every run of whitespace collapsed to one space."""
-    return " ".join(text.split())
-
-
-def section(rel, heading):
-    """One `##` section's text, heading included, up to the next `##`."""
-    text = read(rel)
-    start = text.index(heading)
-    rest = text[start + len(heading) :]
-    after = re.search(r"^## ", rest, re.M)
-    return heading + (rest[: after.start()] if after else rest)
-
-
 def after_the_tag():
     """`docs/releasing/release-checklist.md` *After the merge* from the acts after the tag on.
 
@@ -83,7 +64,7 @@ def after_the_tag():
     creates. A box above that paragraph is one a reader working down the file
     ticks against the release before this one.
     """
-    body = section(CHECKLIST, "## After the merge")
+    body = section(read(CHECKLIST), "## After the merge")
     return body[body.index("Two acts come after the tag") :]
 
 
@@ -98,7 +79,7 @@ def boxes(text):
         elif found and not line.strip():
             found.append(None)
             found = [f for f in found if f is not None]
-    return [flat(" ".join(block)) for block in found]
+    return [flattened(" ".join(block)) for block in found]
 
 
 # --- A5 --------------------------------------------------------------------
@@ -109,7 +90,7 @@ def test_two_boxes_follow_the_tag_and_each_carries_its_command():
     command cannot be acted on, and a command with no box is not a step."""
     tail = after_the_tag()
     for command, _ in COMMANDS:
-        assert command in flat(tail), (
+        assert command in flattened(tail), (
             f"{CHECKLIST} {AFTER_THE_MERGE} does not carry {command!r} after "
             "the tag, so the "
             "box it answers is one a reader cannot act on"
@@ -168,7 +149,7 @@ def test_the_listing_s_hold_carries_its_date_and_the_branch_it_leaves_running():
     a reader can tell it has aged, and names the branch that keeps taking a
     commit while it holds. A bold lead ends its sentence too, so the lead
     before the hold, which names `dist`, cannot answer for it."""
-    text = flat(section(BRANCHING, "## Cutting a release"))
+    text = flattened(section(read(BRANCHING), "## Cutting a release"))
     sentences = re.split(r"(?<=\.) |(?<=\.\*\*) ", text)
     hold = [s for s in sentences if "The listing has been on hold" in s]
     assert hold, f"{BRANCHING} *Cutting a release* does not say the listing is on hold"
@@ -208,7 +189,7 @@ def squash_rule():
     start = text.index("**What breaks when the last row is squashed.**")
     rest = text[start:]
     end = rest.index("**Two rulesets enforce the merge methods.**")
-    return flat(rest[:end])
+    return flattened(rest[:end])
 
 
 def test_the_squash_rule_cites_the_box_that_reads_what_is_pinned():

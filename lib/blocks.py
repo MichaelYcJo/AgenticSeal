@@ -40,7 +40,6 @@ after a line that leaves one open are uncertain, and nothing is decided about
 them -- after a comment up to its `-->`, a blank line or a block start; after
 any other kind up to a blank line or a block start, because a tag's end needs
 its quoted values followed across lines and the walk follows nothing inline.
-The same holds for a piece of a line (below) that starts inside one.
 
 **Where the walk does not know, it says so, and it decides nothing.** Every
 line carries an `uncertain` flag, and a reader reads an uncertain line by
@@ -58,19 +57,19 @@ uncertain, and why it cannot be exact there:
   - from a construct that never closes, to the end of the file, for its live
     answers (above);
   - the paragraph lines after inline raw HTML a line leaves open -- a
-    comment, CDATA, a processing instruction, a declaration or a tag -- and
-    a piece of a line that starts inside it (above);
+    comment, CDATA, a processing instruction, a declaration or a tag
+    (above);
   - a line behind a container's marker (`>`, a bullet, a number), a line
     indented four columns or more, and a blank line after either: any of
     them may be part of an indented code block, and `-     code` is one
     whose indentation only the marker's column decides.
 
-**A line is a line where GFM ends one, at LF, CR or CRLF.** The readers
-split with `str.splitlines`, which also ends a line at
-U+2028, NEL, a form feed and five more characters; `walk_text` walks the
-file's own lines and answers for each reader line by the line it starts in.
+**A line is a line where GFM ends one, at LF, CR or CRLF.** Every reader
+hands `walk` the lines `gfm_lines` splits its text into, so a U+2028, a NEL
+or a form feed, which `str.splitlines` also ends a line at, stays inside its
+line here as it does for a renderer.
 
-`tests/lib/test_blocks.py`'s `Test_walk_text` holds this to a
+`tests/lib/test_blocks.py`'s `Test_walk` holds this to a
 CommonMark parser that shares nothing with it: on every line the walk does
 not call uncertain, over that file's named shapes and a seeded generated
 corpus, the walk and the parser agree. A context is taken off the list
@@ -94,8 +93,14 @@ import re
 # markdown file to document the format. A rule that knew three backticks
 # only would read the inner fence as the outer one's close and leave the live
 # table inside a fence.
-FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
+#
+# FENCE_RUN is the run alone, which `FENCE`, `BLOCK_LOOKING` and
+# `lib/fields.py` read.
+FENCE_RUN = re.compile(r"`{3,}|~{3,}")
+FENCE = re.compile(r"^ {0,3}(?P<run>" + FENCE_RUN.pattern + r")(?P<info>.*)$")
 
+# The two delimiters of an HTML comment, which `lib/lines.py`,
+# `lib/fields.py` and `lib/tables.py` read from here.
 OPENER = "<" + "!--"
 CLOSER = "-->"
 
@@ -117,7 +122,7 @@ CONTAINER = re.compile(r"^(?:[ \t]*(?:>|(?:[-+*]|\d{1,9}[.)])(?=[ \t]|$)))*[ \t]
 GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
 # What a line that starts a block this walk does not follow looks like, once
 # the container run is taken off: a fence run, or any HTML start.
-BLOCK_LOOKING = re.compile(r"`{3,}|~{3,}|<")
+BLOCK_LOOKING = re.compile(FENCE_RUN.pattern + r"|<")
 # Another kind of HTML block (CommonMark 4.6, types 1 and 3 to 7), at the top
 # level. A comment block's own `<!--` is told apart before this is asked.
 OTHER_HTML = re.compile(r"<[A-Za-z/?!]")
@@ -276,7 +281,8 @@ class Walk:
 
 
 def walk(lines):
-    """The walk over LINES, which may keep their own endings."""
+    """The walk over LINES, which may keep their own endings. A reader of a
+    file hands it `gfm_lines(text)`."""
     text = [raw.rstrip("\r\n") for raw in lines]
     count = len(text)
     kinds = [LIVE] * count
@@ -387,68 +393,3 @@ def gfm_lines(text, keepends=False):
     """
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]
-
-
-def _starts(pieces):
-    out, at = [], 0
-    for piece in pieces:
-        out.append(at)
-        at += len(piece)
-    return out
-
-
-def walk_text(text):
-    """The walk over TEXT, answered for each line of `text.splitlines()`.
-
-    **Every reader splits with `str.splitlines`, and the walk must not.**
-    A reader's grammar keeps its own lines -- which
-    lines form a table is not this module's question -- but whether a line
-    stands in a fence or a comment is a renderer's, and a renderer ends a line
-    at LF, CR and CRLF alone. So the walk reads `gfm_lines(text)`, and each
-    reader line takes the answer of the GFM line it starts in: a piece of a
-    hidden line is hidden, a piece of a shown line is shown unless the line
-    opened inline raw HTML before it and left it open -- a comment or CDATA,
-    a processing instruction, a declaration or a tag; then a renderer hides
-    the piece, and the walk calls it
-    uncertain -- and a piece of a line the walk is not sure of keeps its
-    reader's base reading.
-    An unclosed fence opener, and a paired one in `opens`, is reported at the
-    reader line that starts where it does.
-
-    Called with LINES alone, `walk` reads them as given; every reader that
-    has the text hands it here instead.
-    """
-    renderer = gfm_lines(text, keepends=True)
-    walked = walk([line.rstrip("\r\n") for line in renderer])
-    renderer_starts = _starts(renderer)
-    kinds, uncertain, of = [], [], []
-    line = 0
-    # exempt from splitlines: lines the GFM walk numbers
-    for start in _starts(text.splitlines(keepends=True)):
-        while line + 1 < len(renderer_starts) and renderer_starts[line + 1] <= start:
-            line += 1
-        at_start = start == renderer_starts[line]
-        # A piece that starts inside inline raw HTML its own line opened -- a
-        # comment or any other kind -- is hidden by a
-        # renderer while the line is shown, so the walk is not sure of it and
-        # the reader keeps its base reading. At a line's start the text
-        # before the piece is empty and opens nothing.
-        before = renderer[line][: start - renderer_starts[line]]
-        inside = walked.kinds[line] == LIVE and (
-            leaves_open(before) or leaves_html_open(before)
-        )
-        kinds.append(walked.kinds[line])
-        uncertain.append(walked.uncertain[line] or inside)
-        of.append((line, at_start))
-    opened = set(walked.unclosed)
-    unclosed = [
-        index
-        for index, (line, at_start) in enumerate(of)
-        if at_start and line in opened
-    ]
-    opens = {
-        index: walked.opens[line]
-        for index, (line, at_start) in enumerate(of)
-        if at_start and line in walked.opens
-    }
-    return Walk(kinds, uncertain, unclosed, opens)

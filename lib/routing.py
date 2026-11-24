@@ -33,10 +33,10 @@ of taking the whole declaration down with it.
 
 import os
 import re
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gitcmd
 import optin
 
 try:
@@ -50,6 +50,20 @@ except ImportError as missing:
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
         + ", and it is the walk this reader reads routing.md through, which "
         "tells a live row from one quoted in a fence or parked in a comment. "
+        "This file ships beside it under `lib/`; a copy of one taken on its "
+        "own is not a plugin"
+    ) from missing
+
+try:
+    import tables
+except ImportError as missing:
+    # The same sentence as the walk's above, for the file that splits a row
+    # into its cells as cmark-gfm does.
+    raise ImportError(
+        "cannot read "
+        + os.path.join(os.path.dirname(os.path.abspath(__file__)), "tables.py")
+        + ", and it is the row splitter this reader reads routing.md's cells "
+        "through, which reads an escaped pipe as one literal pipe. "
         "This file ships beside it under `lib/`; a copy of one taken on its "
         "own is not a plugin"
     ) from missing
@@ -96,7 +110,7 @@ AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 FILENAME = "routing.md"
 
 
-def shown(lines, text=None):
+def shown(lines):
     """[(index, line)] for each of LINES `table_rows` reads, ending removed.
 
     The walk's hidden lines are left out, and only those: where it is not
@@ -105,13 +119,12 @@ def shown(lines, text=None):
     renderer's, which `tests/lib/test_routing.py`'s `Test_module`
     holds over a generated corpus.
 
-    TEXT is the file LINES were split from, and `table_rows` passes it: the
-    walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
-    form feed, which `str.splitlines` breaks at, hides nothing a renderer
+    LINES are the file's lines as GFM ends them, which `table_rows` takes
+    from `blocks.gfm_lines`: a `<!--` after a U+2028 or a form feed, which
+    `str.splitlines` breaks at, stays mid-line and hides nothing a renderer
     shows (`lib/tables.py#hidden_lines` says more).
     """
-    walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
-    hidden = walked.hidden()
+    hidden = blocks.walk(lines).hidden()
     return [
         (index, raw.rstrip("\r\n"))
         for index, raw in enumerate(lines)
@@ -120,7 +133,13 @@ def shown(lines, text=None):
 
 
 def table_rows(text):
-    """Every two-cell markdown table row, as (label, value).
+    """Every markdown table row of two cells or more, as (label, value), its
+    first two cells.
+
+    **A row is split as cmark-gfm splits it** (`lib/tables.py#table_cells`):
+    an escaped pipe is one literal pipe in its cell, a row whose closing pipe
+    is left off is a row, and a line four spaces in is code. The delimiter
+    row (`tables.DELIMITER_ROW`) is no row.
 
     Unknown labels are left in rather than filtered: a reader that drops what
     it does not recognise cannot gain a third axis later without the older
@@ -139,15 +158,11 @@ def table_rows(text):
     this module fails in.
     """
     rows = []
-    # exempt from splitlines: lines the GFM walk numbers
-    for _index, line in shown(text.splitlines(), text):
-        line = line.strip()
-        if not line.startswith("|"):
+    for _index, line in shown(blocks.gfm_lines(text)):
+        if tables.DELIMITER_ROW.match(line):
             continue
-        cells = [c.strip() for c in line.strip("|").split("|")]
-        if len(cells) < 2:
-            continue
-        if set(cells[0]) <= set(":- "):  # the separator row
+        cells = tables.table_cells(line)
+        if cells is None or len(cells) < 2:
             continue
         rows.append((cells[0], cells[1]))
     return rows
@@ -247,23 +262,41 @@ def parse(text):
 
 
 def current_branch(cwd):
-    """The checked-out branch, or "" when detached or unreadable.
+    """The checked-out branch, or "" when detached, unreadable or where git
+    did not answer.
 
     A detached HEAD matches no declaration. That is the correct direction: nothing on a detached HEAD is the work item a branch
     was declared for.
     """
     try:
-        out = subprocess.run(
-            ["git", "-C", cwd or ".", "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        )
-    except (OSError, subprocess.SubprocessError):
+        out = gitcmd.git(cwd or ".", "rev-parse", "--abbrev-ref", "HEAD")
+    except gitcmd.Failed:
         return ""
     name = out.stdout.strip() if out.returncode == 0 else ""
     return "" if name == "HEAD" else name
+
+
+def read_declaration(path):
+    """`parse` of the `routing.md` at PATH, or None where the file cannot be
+    read or decoded. `declarations` reads each work item's file through it,
+    and `settle.py` reads one in a records directory `--from` names."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            return parse(f.read())
+    except (OSError, UnicodeDecodeError):
+        # `UnicodeDecodeError` is a `ValueError`, not an `OSError`, and it
+        # is named rather than its parent: `parse()` is pure string work
+        # today, so a `ValueError` reaching here later would be a defect in
+        # it, and swallowing that as "no declaration" is how a gate goes
+        # quiet for a reason nobody wrote down. A
+        # declaration that is not valid UTF-8 would raise out of
+        # `declarations()` into the check that read it, which then decides
+        # nothing on the branch. The module docstring says everything
+        # here fails toward "no declaration"; a file nobody can decode is
+        # not an answer somebody gave, so it reads as none and its branch
+        # reads as undeclared. `chain_check.py` catches both when it reads
+        # the event payload, for the same reason.
+        return None
 
 
 def declarations(root):
@@ -288,23 +321,7 @@ def declarations(root):
     out = []
     for name in names:
         path = os.path.join(where, name, FILENAME)
-        try:
-            with open(path, encoding="utf-8") as f:
-                parsed = parse(f.read())
-        except (OSError, UnicodeDecodeError):
-            # `UnicodeDecodeError` is a `ValueError`, not an `OSError`, and it
-            # is named rather than its parent: `parse()` is pure string work
-            # today, so a `ValueError` reaching here later would be a defect in
-            # it, and swallowing that as "no declaration" is how a gate goes
-            # quiet for a reason nobody wrote down. A
-            # declaration that is not valid UTF-8 would raise out of
-            # `declarations()` into the check that read it, which then decides
-            # nothing on the branch. The module docstring says everything
-            # here fails toward "no declaration"; a file nobody can decode is
-            # not an answer somebody gave, so it is skipped and its branch
-            # reads as undeclared. `chain_check.py` catches both when it reads
-            # the event payload, for the same reason.
-            continue
+        parsed = read_declaration(path)
         if parsed:
             out.append((path, parsed))
     return out
@@ -358,18 +375,6 @@ def _ordered(where):
     """
     try:
         names = os.listdir(where)
-    except NotADirectoryError:
-        # A `rounds` that is a FILE, not a directory. Following an earlier
-        # release's own migration command reaches it: a `git mv` of each round
-        # record into a `rounds` directory fails because `git mv` does not
-        # create its destination, and dropping the trailing slash is what a
-        # person tries next -- which succeeds for a single record and renames
-        # it to a file called `rounds`. Both readers would then say the work
-        # item holds no round record while git carries the review's whole
-        # text, and a review reported as never having happened is the one
-        # direction this module refuses. Raised so a caller says which of the
-        # two it is.
-        raise
     except OSError:
         return []
     found = [(round_number(n), n) for n in names]
@@ -385,11 +390,9 @@ def rounds(item):
 
     `trail/rounds/` rather than the work-item directory itself, because `round-N`
     is the one member of the SDD set that is plural and unbounded, and the
-    structure should say which member grows.
-
-    The old flat location is NOT read. A permanent dual read would put two
-    places to look in the reader the release scripts and the settle depend
-    on, and an expiry nothing enforces is a comment.
+    structure should say which member grows. A `trail/rounds` that is not
+    there, or is a file, holds no record; `rounds_unreadable` names the
+    states that hold records nothing can list.
 
     What stays different between the two readers is deliberate, and it is not
     the order: this one reads the working tree, because its callers, `seal
@@ -399,30 +402,17 @@ def rounds(item):
     """
     if not item:
         return []
-    try:
-        return _ordered(os.path.join(item, *ROUNDS_DIR.split("/")))
-    except NotADirectoryError:
-        # Caught here rather than raised at the gates. A check that raises
-        # names a traceback, not the state it met. Propagating this would
-        # turn a nameable state into that -- the opposite of what `_ordered`
-        # refuses it for.
-        # `rounds_unreadable` is how a caller asks which of the two happened.
-        return []
+    return _ordered(os.path.join(item, *ROUNDS_DIR.split("/")))
 
 
 def rounds_unreadable(item):
-    """True when `rounds` beside the work item is a link of any kind, a path
-    that is not a directory, or a directory nothing can list.
+    """True when `rounds` beside the work item is a link of any kind, or a
+    directory nothing can list.
 
     Told apart from "no records" because the two need opposite answers: one
     is every work item that ran no review and must stay quiet, the other
     is a review whose whole text git is still carrying while every reader
     reports that none happened.
-
-    Reached by following an earlier release's own migration command. A
-    `git mv` of each round record into a `rounds` directory fails -- `git mv`
-    does not create its destination -- and dropping the trailing slash succeeds for a single
-    record, renaming it to a file named `rounds`.
     """
     if not item:
         return False
@@ -435,8 +425,6 @@ def rounds_unreadable(item):
         # and calls it not-a-tree — fails and tells the reader to `mkdir` a
         # path that already exists. The two readers answer for what GIT
         # carries, and git carries a link.
-        return True
-    if os.path.exists(where) and not os.path.isdir(where):
         return True
     if os.path.isdir(where):
         try:

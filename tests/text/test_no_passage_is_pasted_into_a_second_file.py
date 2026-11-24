@@ -18,7 +18,10 @@ words; and everything under `seal/`, which is records.
 one is sanctioned. Fenced code blocks and heading lines are dropped. A quoted
 section name -- a `.md` path followed by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
-of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
+of this method missed. Where the link names a row or paragraph of that
+section first, as `*<name>* of <path> *<section>*`, the name joins the
+token, since #1579 found two correct links to one row of the core counted
+as a copy. Then the text is lowercased, stripped of `` ` ``, `*`,
 `|`, `>` and `#`, and split into words. The selection and the normalisation
 are `skills/settle/scripts/passages.py`'s code (`in_corpus`, `words`,
 `windows`), which `skills/code-review/scripts/chain_check.py` reads a
@@ -31,10 +34,10 @@ definitions, both under `agents/`, is not counted: a passage two definitions
 share states a fact about each file that holds it, and each agent reads only
 its own definition, so a link would cost every spawn a read and remove
 nothing said twice. A definition paired with any other file is counted,
-since a skill or a document restating a definition is a copy. `WINDOW` is
-`skills/settle/scripts/passages.py`'s, never typed here:
-`tests/text/test_a_moved_rule_leaves_its_definition.py` measured it between the longest kept application (10 words) and the
-smallest real copy (25), and this is the same question asked of more files.
+since a skill or a document restating a definition is a copy, and so is a
+definition restating a rule of the agent contract. `WINDOW` is
+`skills/settle/scripts/passages.py`'s, never typed here, and the comment over
+it holds the measurement that chose it.
 
 **Why verbatim.** The measured failure is a paste. A check that tried to
 catch a paraphrase would have to decide when two sentences say the same
@@ -45,7 +48,9 @@ The paraphrase half was measured once, by hand, and is not checked.
 **What it does not catch.** A rule restated in fresh words. Measured against
 the three restatements #730 names, it finds one of three, the merge table,
 through its identical rows; *no real identifiers* and the commit cadence were
-both restated in other words. Saying otherwise would be the counterfeit
+both restated in other words. Nor a passage shorter than `WINDOW` words, a
+short contract rule pasted whole into a definition among them: no verbatim
+check tells it from a citation. Saying otherwise would be the counterfeit
 `CONTRIBUTING.md` refuses.
 """
 

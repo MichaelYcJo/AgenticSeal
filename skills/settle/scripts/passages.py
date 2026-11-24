@@ -7,9 +7,10 @@ file is normalised into words (`words`), and the runs of `WINDOW` words two
 files are compared by (`windows`). `skills/code-review/scripts/chain_check.py`
 reads a design's `to` through the same functions, through
 `skills/settle/scripts/rule_changes.py#copies`, so the notice and the test
-agree on what a copy is. A heading line is told by
+agree on what a copy is. A file's lines and the fenced blocks among them
+are `lib/lines.py#readable`'s, and a heading line is told by
 `lib/lines.py#heading_level`, loaded through `lib/sibling.py`, so this
-module spells no heading rule of its own.
+module spells no line split, fence rule or heading rule of its own.
 Nothing here reads a document or runs a command: each caller lists and
 reads its own files.
 """
@@ -20,33 +21,47 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; the
-# import stands at the first read of a heading, so a copy of this module
-# taken on its own loads nothing until it reads one.
+# import stands at the first read of a text, so a copy of this module taken
+# on its own loads nothing until it reads one.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "lib"))
 READER = "lib/lines.py"
 
 # A run of this many consecutive words is longer than any phrase two rule
 # documents share by writing about the same mechanism, and shorter than the
-# smallest real copy measured. The measurement and the case that keeps both
-# ends of its margin are `tests/text/test_a_moved_rule_leaves_its_definition.py`'s.
+# smallest real copy measured. It was measured on the agent contract and the
+# three agent definitions after phase 4 of #107. The longest run a kept
+# application shared with a contract rule was 10 words, `agents/crafter.md`'s
+# `a bare word is a pathspec and git rejects it`, which the retired probe rule
+# and the design gate's waiver paragraph both spelt; the proofer's 9-word echo
+# of contract rule 6 was the next. Both left with their rewrites (#957, #967),
+# and the widest kept run after them was 8 words, `agents/sealer.md` with
+# contract rule 2. The smallest run a real copy produced, measured on the same
+# files before phase 4 removed the copies, was 25 words (contract rule 10),
+# then 31 (contract rule 9), 37 (a rule #957 folded into contract rule 11), 59
+# (contract rule 11) and 66 (contract rule 3). Fifteen sits between 10 and 25
+# with margin on both sides. No case keeps those ends, so a change to the
+# number measures them again.
 WINDOW = 15
 
 TOP_FILES = ("CLAUDE.md", "CONTRIBUTING.md", "README.md")
 TOP_DIRS = ("docs/", "skills/", "agents/", "templates/")
 
-FENCE = re.compile(r"^ *(`{3,}|~{3,})")
 # A section quoted by name after a `.md` path (with or without its
-# possessive). `[^*]` crosses a line break, so a wrapped name is one name.
-SECTION = re.compile(r"`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
+# possessive), with the italic name of a row or paragraph of it where one
+# comes first, as "*<name>* of <path> *<section>*", so a link to one row is
+# one token. `[^*]` crosses a line break, so a wrapped name is one name.
+SECTION = re.compile(
+    r"(?:\*[^*]{1,200}\*\s+of\s+)?`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*"
+)
 SECTION_TOKEN = " section-citation "
 STRIP = str.maketrans("", "", "`*|>#")
 
 
-def _heading_level(line):
-    """`lib/lines.py#heading_level` of LINE, its module loaded once."""
+def _reader():
+    """`lib/lines.py`, loaded once."""
     import sibling
 
-    return sibling.load(READER).heading_level(line)
+    return sibling.load(READER)
 
 
 def in_corpus(rel):
@@ -61,33 +76,16 @@ def in_corpus(rel):
     )
 
 
-def _lines(text):
-    """TEXT's lines, ended where GFM ends one: LF, CR or CRLF alone."""
-    return text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-
-
 def words(text):
-    """TEXT as a list of words: fenced blocks and heading lines dropped, a
-    quoted section name made one token, then lowercased and stripped of
-    `` ` ``, `*`, `|`, `>` and `#`."""
-    kept, fence = [], None
-    for line in _lines(text):
-        opened = FENCE.match(line)
-        if fence:
-            if (
-                opened
-                and opened.group(1)[0] == fence[0]
-                and len(opened.group(1)) >= len(fence)
-                and not line.strip().strip(fence[0])
-            ):
-                fence = None
-            continue
-        if opened:
-            fence = opened.group(1)
-            continue
-        if _heading_level(line) is not None:
-            continue
-        kept.append(line)
+    """TEXT as a list of words: its lines as `lib/lines.py#readable` gives
+    them, fenced blocks blanked, with heading lines dropped; a quoted
+    section name made one token with the italic row name a link puts before
+    it (`SECTION`); then lowercased and stripped of `` ` ``, `*`, `|`, `>`
+    and `#`."""
+    reader = _reader()
+    kept = [
+        line for line in reader.readable(text) if reader.heading_level(line) is None
+    ]
     text = SECTION.sub(SECTION_TOKEN, "\n".join(kept))
     return text.lower().translate(STRIP).split()
 

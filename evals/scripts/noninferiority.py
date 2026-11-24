@@ -54,6 +54,17 @@ import sys
 import tempfile
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads `lib/gitcmd.py`, which starts every git command this script runs,
+# `lib/console.py`, whose `to_utf8` the `__main__` block opens with, and
+# `skills/verify/scripts/payload_meter.py`, whose `frontmatter` reads the
+# `skills:` list a definition preloads.
+sys.path.insert(0, os.path.join(ROOT, "lib"))
+import sibling  # noqa: E402
+
+gitcmd = sibling.load("lib/gitcmd.py")
+console = sibling.load("lib/console.py")
+meter = sibling.load("skills/verify/scripts/payload_meter.py")
 SUITE = "evals/behaviour"
 AGENTS = ("proofer", "crafter", "framer", "sealer", "tracer")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
@@ -79,20 +90,18 @@ VERDICTS = ("pass", "fail", "no result")
 
 def preload_files(tree, agent):
     """The files AGENT's spawn preloads in TREE: its definition and every
-    skill its `skills:` frontmatter lists.
+    skill its `skills:` frontmatter lists, read by
+    `payload_meter.py#frontmatter` in every form that reader takes.
 
-    A definition with no frontmatter stops the run."""
+    A definition whose frontmatter declares no `name:`, or that has none,
+    stops the run."""
     rel = f"agents/{agent}.md"
     with open(os.path.join(tree, rel), encoding="utf-8") as f:
         text = f.read()
-    m = re.match(r"---\n(?P<head>.*?)\n---\n", text, re.S)
-    if not m:
-        raise SystemExit(f"{rel} has no frontmatter")
-    skills = re.search(
-        r"^skills:\n(?P<items>(?:[ \t]+- .*\n?)+)", m["head"] + "\n", re.M
-    )
-    names = re.findall(r"- (\S+)", skills["items"]) if skills else []
-    return [rel, *(f"skills/{n}/SKILL.md" for n in names)]
+    name, skills = meter.frontmatter(text)
+    if not name:
+        raise SystemExit(f"{rel} declares no `name:` in its frontmatter")
+    return [rel, *(f"skills/{n}/SKILL.md" for n in skills)]
 
 
 def preload_hashes(tree, agent):
@@ -119,19 +128,19 @@ def preload_bytes(tree, agent):
 
 
 def git_bytes(*args, index=None, stdin=None):
-    """`git -C ROOT <args>`'s stdout as bytes, reading INDEX as its index
-    where given and STDIN on its standard input.
+    """`git -C ROOT <args>`'s stdout as bytes, through `lib/gitcmd.py#git`,
+    reading INDEX as its index where given and STDIN on its standard input.
 
-    A non-zero exit stops the run."""
-    env = None if index is None else {**os.environ, "GIT_INDEX_FILE": index}
-    run = subprocess.run(
-        ["git", "-C", ROOT, *args], capture_output=True, env=env, input=stdin
-    )
-    if run.returncode != 0:
-        raise SystemExit(
-            f"git {' '.join(args)}: {run.stderr.decode('utf-8', 'replace')}"
-        )
-    return run.stdout
+    A non-zero exit, or a git that gave no answer, stops the run with the
+    runner's one line (`lib/gitcmd.py#Failed`)."""
+    return gitcmd.git(
+        ROOT,
+        *args,
+        given=stdin,
+        binary=True,
+        env=None if index is None else {"GIT_INDEX_FILE": index},
+        check=True,
+    ).stdout
 
 
 def extract(rev, paths, into):
@@ -960,14 +969,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

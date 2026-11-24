@@ -27,7 +27,7 @@ from conftest import ROOT, code_lines, read
 from test_broad_gate import gate_module
 from workflows import load
 
-# No TARGET: its cases hold the base the broad gate reads across broad_gate.py, .github/workflows/hygiene.yml and the two orchestration documents that describe it.
+# No TARGET: its cases hold the base the broad gate reads across broad_gate.py, .github/workflows/hygiene.yml and the policy document that states it.
 
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
@@ -173,11 +173,13 @@ def test_the_gate_reaches_for_the_spelling_the_workflow_uses(tmp_path):
 # --- the documents say which base, and go red if they stop ---------------------
 
 # #969 moved the base rule with the run, from the sealer's step 1 to the
-# orchestration that now runs the gate before the sealer is spawned.
-REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
-VERIFY = os.path.join(ROOT, "skills", "verify", "orchestration.md")
+# orchestration that runs the gate before the sealer is spawned. #1578 gave
+# the order one statement, in the policy's *What the gate runs*, and the two
+# orchestration files cite it, which `RULES` row 28 of
+# `tests/text/test_the_rules_have_one_owner.py` holds.
+POLICY = os.path.join(ROOT, "docs", "running", "the-broad-gate.md")
 
-# Each document needs ONE block carrying both halves — that the base is
+# The document needs ONE block carrying both halves — that the base is
 # resolved, and what it is resolved TO. A mention of `origin/` in a table
 # three hundred lines from the sentence about the base is not the fact stated.
 #
@@ -187,7 +189,7 @@ VERIFY = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 # the docstring says — a check that cannot fail, which is the counterfeit
 # `skills/verify/SKILL.md` *The Seal Test* is about. Measured: deleting the
 # docstring's paragraph left this case green.
-DESCRIBES_THE_BASE = (REVIEW_ORCH, VERIFY)
+DESCRIBES_THE_BASE = (POLICY,)
 
 
 def says_what_the_base_resolves_to(text):

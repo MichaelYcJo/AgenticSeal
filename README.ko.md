@@ -285,8 +285,9 @@ verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴
 따지고, 어느 시점에 그것을 따지는지는 `docs/running/the-run.md` *The run* 에
 있습니다.
 
-회차가 끝나면 세션이 pull request 가 담을 커밋에서 broad gate 를 한 번
-돌립니다. 에이전트는 이것을 돌리지 않습니다. 리뷰 도중에 돌린 전체 실행은
+회차가 끝나면 세션이 pull request 가 담을 커밋에서, 또는 뒤에 작업 항목의
+기록만 이어지는 커밋에서 broad gate 를 한 번 돌립니다. 에이전트는 이것을
+돌리지 않습니다. 리뷰 도중에 돌린 전체 실행은
 다음 수정이 들어오면 쓸모가 없어지기 때문입니다(`docs/running/the-broad-gate.md`).
 sealer 는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
 `seal pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지
@@ -385,7 +386,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
 | `seal gate`, 곧 broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `chain_check.py` 를 돌리는 단계가 `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `chain_check.py` 를 따로 돌려도 똑같이 묻는다 | GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
-| AgenticSeal 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
+| AgenticSeal 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 | `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
 
 사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 이 두 훅뿐입니다. 위
@@ -401,7 +402,7 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
 
 | 명령 | 하는 일 |
 |---|---|
-| `seal deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사를 이곳에서 돌리는 것이 있는지 말하고, 그 검사를 돌리는 CI 파일을 하나씩 짚는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
+| `seal deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사의 실행기 단어에 맞는 CI 파일과 훅의 줄을 하나씩 짚고, 무엇이 맞든 0 으로 끝난다. 그 검사를 실제로 돌리는지는 CI 파일을 직접 열어 읽는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
 | `seal unverified .` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | 세션의 시간이 어디에 쓰였는지 트랜스크립트에서 읽어 알려 준다 (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |

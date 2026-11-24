@@ -26,8 +26,9 @@ import subprocess
 import zlib
 
 import pytest
-from conftest import ROOT, census_case, config_json, mark_root
+from conftest import ROOT, census_case, config_json, mark_root, symlink_or_skip
 from conftest import load_module as load
+from test_settle import unanswered
 
 TARGET = ".github/scripts/release_seal.py"
 
@@ -95,6 +96,13 @@ def page_image(root, icon=FIXTURE_ICON, data=None):
 
 
 SUITE_KEY = "seal-1234567890"
+# The suite `wired` records for the seal to read: ten `test` lines, whose two
+# counts differ from each other and from every other count the header
+# holds, so a count put in another badge shows. The broad gate's reader
+# resolves the path each line names, which costs seconds on the Windows leg
+# for a record of a real suite's 7,069 `test` lines; no case of `main` asks the
+# width of a count, which `Test_release_rows` holds over rows it is handed.
+SUITE = {"passed": 7, "skipped": 3}
 
 
 def recorded(tmp_path, *sessions, key=SUITE_KEY, extra=""):
@@ -284,9 +292,9 @@ BADGE_LINES = "<br>".join(
         badge("pull%20requests-2%20merged", "pull requests: 2 merged"),
         badge("issues-2%20closed", "issues: 2 closed"),
         badge("outside%20contributors-1", "outside contributors: 1"),
-        badge("suite-7003%20passed", "suite: 7003 passed", GREEN)
+        badge("suite-7%20passed", "suite: 7 passed", GREEN)
         + " "
-        + badge("skipped-66", "skipped: 66", GREY),
+        + badge("skipped-3", "skipped: 3", GREY),
         badge("review-1%20round", "review: 1 round")
         + " "
         + badge("work%20items-1", "work items: 1"),
@@ -364,7 +372,7 @@ def wired(
     defaults = {"TAG": TAG, "REPO": REPO, "SUITE_OUTCOME": "success"}
     defaults.update(env)
     if "SUITE_RECORDS" not in defaults:
-        defaults["SUITE_RECORDS"] = recorded(tmp_path, {"passed": 7003, "skipped": 66})
+        defaults["SUITE_RECORDS"] = recorded(tmp_path, SUITE)
     defaults.setdefault("SUITE_KEY", SUITE_KEY)
     for key in ("DRY_RUN", "SEAL_PNG"):
         monkeypatch.delenv(key, raising=False)
@@ -492,10 +500,10 @@ class Test_suite_counts:
         mod = seal()
         directory = recorded(
             tmp_path,
-            {"passed": 7000, "skipped": 60, "xfailed": 2},
-            {"passed": 69, "skipped": 6, "xpassed": 1},
+            {"passed": 7, "skipped": 4, "xfailed": 2},
+            {"passed": 5, "skipped": 2, "xpassed": 1},
         )
-        assert mod.suite_counts(directory, SUITE_KEY) == (7069, 66)
+        assert mod.suite_counts(directory, SUITE_KEY) == (12, 6)
         assert not hasattr(mod, "ElementTree")
 
     @pytest.mark.parametrize(
@@ -645,12 +653,16 @@ class Test_chain_counts:
         assert "#21" in capsys.readouterr().out
 
     def test_an_unlistable_rounds_leaves_rounds_unread_not_zero(self, tmp_path, capsys):
-        """S10 (round 1's finding 2). A `rounds` that is a file holds records
+        """S10 (round 1's finding 2). A `rounds` that is a link holds records
         nobody can count: the rounds row is not read, and the log names it."""
         root = tree(tmp_path)
         item = tmp_path / "seal" / "threads" / "1700000000-an-item"
         (item / "trail" / "rounds").rmdir()
-        (item / "trail" / "rounds").write_text("# round 1\n", encoding="utf-8")
+        (item / "trail" / "held").mkdir()
+        (item / "trail" / "held" / "round-1.md").write_text(
+            "# round 1\n", encoding="utf-8"
+        )
+        symlink_or_skip("held", item / "trail" / "rounds", directory=True)
         assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
             1,
             None,
@@ -1049,9 +1061,7 @@ class Test_main:
         assert target.is_file()
         assert hub.writes("upload") == [] and hub.writes("edit") == []
         out = capsys.readouterr().out
-        assert (
-            "deferred 1 issue" in out and "suite    7003 passed, 66 skipped" in out
-        ), out
+        assert "deferred 1 issue" in out and "suite    7 passed, 3 skipped" in out, out
         assert 'alt="The 1.2.3 release seal"' in out, out
         assert 'alt="SEALED: v1.2.3">' in out and 'alt="on: main">' in out, out
         assert "::warning::" not in out, out
@@ -1145,14 +1155,37 @@ class Test_module:
                 args, code, stdout=f"{SHA}\n", stderr="HTTP 502\n"
             )
 
-        monkeypatch.setattr(mod.subprocess, "run", run)
+        monkeypatch.setattr(subprocess, "run", run)
         assert mod.gh("release", "view", TAG) == f"{SHA}\n"
         with pytest.raises(mod.Refused, match=r"^gh release edit failed: HTTP 502$"):
             mod.gh("release", "edit", TAG, "--notes", "x")
         assert mod.tagged(TAG) == SHA
-        assert seen[-1] == ["git", "rev-parse", f"{TAG}^{{commit}}"]
+        gitcmd = mod.module("lib/gitcmd.py")
+        assert seen[-1] == gitcmd.argv(
+            "-C", os.curdir, "rev-parse", f"{TAG}^{{commit}}"
+        )
         with pytest.raises(mod.Refused, match=r"^git rev-parse nope failed: HTTP 502$"):
             mod.tagged("nope")
+
+    def test_a_gh_or_git_call_that_gave_no_answer_is_a_reason_naming_it(
+        self, monkeypatch
+    ):
+        """#1573. A `gh` or git past `lib/gitcmd.py#TIMEOUT` is `Refused`
+        with the runner's line, so `main` says it and exits 0, as for a
+        refusal."""
+        mod = seal()
+        unanswered(monkeypatch, "release", "view")
+        with pytest.raises(mod.Refused) as refused:
+            mod.gh("release", "view", TAG)
+        assert str(refused.value) == (
+            f"`gh release view {TAG}` did not finish within 60 seconds"
+        )
+        unanswered(monkeypatch, "rev-parse")
+        with pytest.raises(mod.Refused) as refused:
+            mod.tagged(TAG)
+        assert str(refused.value) == (
+            f"`git rev-parse {TAG}^{{commit}}` did not finish within 60 seconds"
+        )
 
 
 test_census = census_case(TARGET)

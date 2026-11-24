@@ -48,6 +48,9 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     `seal/config.json` here carries a `Mode` key and a `Broad gate` key and
     nothing the reader will not take, so all three answers are the ones it
     had before: the mode, the command as the key wrote it, and no refusal.
+    The refusal is asked of this machine's shell and of `cmd.exe`, so the
+    case fails on a leg whose shell is `/bin/sh` too where the key names a
+    command in a directory of the root, as `bin/test` is.
     """
     module = gate_module()
     config = module.sibling.load(module.CONFIG_READER)
@@ -60,7 +63,9 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     assert command and (KEY, command) in pairs, (
         f"the command the gate reads is not the key as written:\n{command}"
     )
-    assert module.not_as_written(home, command) is None, command
+    assert module.not_as_written(home, command, ROOT) is None, command
+    on_cmd = module.not_as_written(home, command, ROOT, windows=True, comspec="cmd.exe")
+    assert on_cmd is None, on_cmd
 
 
 def test_the_policy_names_the_value_the_gate_row_reads():
@@ -99,11 +104,10 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     the gate prints are text a person reads and acts on, so they are pinned
     whole, and each starts with the word that marks it unmeasured; the names
     the record replaced are asserted gone from the module. Every document
-    that tells a reader what the gate's words mean names `new?`, so an
-    orchestrator handing it on and a crafter reading it are both told it is
-    not `new`, and the **New?** bullet names the files a reader sent to the
-    base opens. What each document says of the word is the proofer's to
-    read."""
+    that tells a reader what the gate's words mean or what to do at them
+    names `new?`, so an orchestrator and a crafter are both told it is not
+    `new`, and the `new?` bullet names the files a reader sent to the base
+    opens. What each document says of the word is the proofer's to read."""
     gate = gate_module()
     assert gate.NOT_MEASURED == "new? not measured"
     earns = (
@@ -212,13 +216,15 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     ):
         assert not hasattr(gate, retired), f"broad_gate.py still carries {retired}"
     # The word `new?`, which `broad_gate.py` prints beside a failing file and
-    # each of these documents tells its reader the meaning of: the
-    # orchestrator, the crafter, and the person choosing the `Broad gate` key.
+    # each of these documents names to its reader: the orchestrator, the
+    # crafter, and the person choosing the `Broad gate` key.
     # `skills/verify/orchestration.md` names it as its bullet's bold lead.
+    # Since #1578 the orchestrator's broad-run step cites that bullet's
+    # section for the words and names none of them; since #1579 that step
+    # stands in `skills/code-review/gate-to-pull-request.md`.
     readers = {
-        ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "crafter.md"): "`new?`",
-        ("skills", "verify", "orchestration.md"): "**New?**",
+        ("skills", "verify", "orchestration.md"): "**`new?`**",
         ("templates", "setup", "config.md"): "`new?`",
     }
     for parts, word in readers.items():
@@ -339,19 +345,20 @@ def test_the_definition_separates_a_coverage_probe_from_a_seal(definition):
 def test_the_crafters_gate_rule_names_the_failure_words_and_rule_2():
     """T4 of #967 (S5): the crafter's broad gate paragraph cites contract
     rule 2, which holds who runs the broad gate, and keeps what is the
-    crafter's own: what `failing on base too` and `new?` mean beside a broad
-    gate failure handed to it. That it names nobody as the runner (#969 moved
-    the run to the orchestrator) is the proofer's to read."""
+    crafter's own: what it does at `failing on base too` and at `new?` beside
+    a broad gate failure handed to it. Since #1578 what each word means is
+    `skills/verify/orchestration.md` *The broad gate*'s. That it names nobody
+    as the runner (#969 moved the run to the orchestrator) is the proofer's
+    to read."""
     with open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8") as handle:
         crafter = handle.read()
     start = crafter.index("**The broad gate is not yours, and its label is.**")
     rule = " ".join(crafter[start:].split("\n\n", 1)[0].split())
     # The words `failing on base too` and `new?`, which `broad_gate.py`
-    # prints beside a failing file and the crafter reads to tell the two
-    # apart.
+    # prints beside a failing file and the crafter acts on.
     assert "`failing on base too`" in rule and "`new?`" in rule, (
-        "the crafter's gate rule stopped saying what the word beside a "
-        "failing file means, which is the half that is the crafter's own"
+        "the crafter's gate rule stopped saying what the crafter does at the "
+        "word beside a failing file, which is the half that is the crafter's own"
     )
     # The contract rule number 2, which the crafter resolves for who runs
     # the broad gate.
@@ -363,7 +370,7 @@ def test_the_crafters_gate_rule_names_the_failure_words_and_rule_2():
 # The contract paragraph this file opens with is held to byte identity by
 # `tests/text/test_every_agent_reads_the_contract.py`, over a glob this file joins
 # on the day it lands. Re-pinning it here would be the duplication that module
-# and `tests/text/test_a_moved_rule_leaves_its_definition.py` exist to refuse, so
+# and `tests/text/test_no_passage_is_pasted_into_a_second_file.py` exist to refuse, so
 # what part 3 pins is what no existing module reads.
 
 

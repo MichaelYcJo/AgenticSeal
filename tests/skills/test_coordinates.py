@@ -22,7 +22,7 @@ KERNEL = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 ec = load_module(KERNEL, "agentic_kernel_for_its_cases")
 
 
-def section(text, path):
+def regions(text, path):
     """The regions the heading path PATH names in the markdown TEXT, asked
     as `pact_check.py#clause_hash` asks for a clause's."""
     parts = [p for p in path.split(ec.HEADING_SEP) if p.strip()]
@@ -37,35 +37,35 @@ class Test_heading_path:
             "# Top\n\nintro\n\n## A\n\nbody of A\n\n"
             "### A1\n\nnested body\n\n## B\n\nbody of B\n"
         )
-        assert section(text, "## A") == [(5, 12)]
-        assert section(text, "### A1") == [(9, 12)]
-        assert section(text, "# Top") == [(1, 15)]
+        assert regions(text, "## A") == [(5, 12)]
+        assert regions(text, "### A1") == [(9, 12)]
+        assert regions(text, "# Top") == [(1, 15)]
 
     def test_a_markdown_locator_is_a_heading_path(self):
         """A section runs to the line before the next heading at its level or
         above, and a path narrows inside it."""
         text = "# Top\n\n## A\n\nbody\n\n### Deep\n\nmore\n\n## B\n\nlast\n"
-        assert section(text, "## A") == [(3, 10)]
-        assert section(text, "## A / ### Deep") == [(7, 10)]
+        assert regions(text, "## A") == [(3, 10)]
+        assert regions(text, "## A / ### Deep") == [(7, 10)]
 
     def test_a_repeated_heading_is_disambiguated_by_its_parent(self):
         text = "## A\n\n### Same\n\none\n\n## B\n\n### Same\n\ntwo\n"
-        assert len(section(text, "### Same")) == 2
-        assert section(text, "## B / ### Same") == [(9, 11)]
+        assert len(regions(text, "### Same")) == 2
+        assert regions(text, "## B / ### Same") == [(9, 11)]
 
     def test_refuses_an_indented_heading_as_the_start_of_a_section(self):
         """An INDENTED `## B` normalises to the same text as the heading but is
         not one."""
         text = "## A\n\n    ## B\n\n## B\n\nreal\n"
         assert ec.heading_level("    ## B") is None
-        assert section(text, "## B") == [(5, 7)]
+        assert regions(text, "## B") == [(5, 7)]
 
     def test_a_heading_quoted_in_a_closed_fence_opens_no_section(self):
         """Read on the lines a renderer shows, a fenced `## B` is no heading: one
         place, and `## A` runs past the fence (#867)."""
         text = "## A\n\nintro\n\n```markdown\n## B\n```\n\nmore\n\n## B\n\nreal\n"
-        assert section(text, "## B") == [(11, 13)]
-        assert section(text, "## A") == [(1, 10)]
+        assert regions(text, "## B") == [(11, 13)]
+        assert regions(text, "## A") == [(1, 10)]
 
     def test_a_heading_indented_three_spaces_is_a_heading_and_an_issue_number_is_not(
         self,
@@ -75,8 +75,8 @@ class Test_heading_path:
         text = "## A\n\n#84's line\n\nbody\n\n   ## B\n\nlast\n"
         assert ec.heading_level("   ## B") == 2
         assert ec.heading_level("#84's line") is None
-        assert section(text, "## A") == [(1, 6)]
-        assert section(text, "## B") == [(7, 9)]
+        assert regions(text, "## A") == [(1, 6)]
+        assert regions(text, "## B") == [(7, 9)]
 
 
 class Test_content_hash:

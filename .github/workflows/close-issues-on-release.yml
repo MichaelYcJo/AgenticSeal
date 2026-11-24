@@ -39,29 +39,12 @@ jobs:
         shell: bash
         run: python3 .github/scripts/close_issues_on_release.py
 
-      # A label this repository's documents specify and the tracker lacks is
-      # an act that was assigned to a person, and a person has no queue
-      # anything here can read: `size: now` was specified in 0.11.1 and three
-      # releases were cut before anybody noticed it had never been created
-      # (#450). Reconciling it here costs no new permission and no new
-      # trigger — the job already holds `issues: write` and already fires
-      # when `main` moves.
-      #
-      # This step and the roll below each read the checked-out tree and the
-      # tracker, and neither needs a step after checkout to have succeeded, so
-      # neither may be skipped by an earlier step failing: #515's over-long
-      # label description failed this step and cost a release its roll. A step
-      # with no `if:` runs only when every step before it succeeded. The job
-      # still goes red on the failure; `!cancelled()` only stops it deciding
-      # whether the steps after it run.
-      - name: create the labels the documents specify and the tracker lacks
-        if: ${{ !cancelled() }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-        shell: bash
-        run: python3 .github/scripts/tracker_labels.py --apply
-
+      # The roll reads the checked-out tree and the tracker, and needs no step
+      # after checkout to have succeeded, so an earlier step failing may not
+      # skip it: #515's over-long label description failed the step before
+      # the roll and cost a release its roll. A step with no `if:` runs only
+      # when every step before it succeeded. The job still goes red on the
+      # failure; `!cancelled()` only stops it deciding whether the roll runs.
       - name: roll the flow-measurement issue to the next version
         if: ${{ !cancelled() }}
         env:

@@ -112,16 +112,14 @@ jobs:
       # (#841), so no test writes where another reads, the spawns can be run
       # several at a time, and the workers scale with whatever cores the
       # runner has rather than with a number written here.
-      # markdown-it-py is the parser the suite's CommonMark oracle reads
-      # (#667), pinned: `.github/scripts/run_tests.py#MARKDOWN_IT` is the one
-      # place the version is chosen, and a case holds this line to it.
-      # cmarkgfm is GitHub's renderer, which the table walker's oracle reads
-      # (#647), pinned in `run_tests.py#CMARKGFM` and held to this line too.
-      # PyYAML is the parser `tests/workflows.py` reads a workflow file with
-      # (#1486), pinned in `run_tests.py#PYYAML` and held to this line too.
-      # pytest-split divides the Windows leg into its shards (#841), pinned
-      # in `run_tests.py#PYTEST_SPLIT` and held to this line the same way.
-      - run: pip install pytest pytest-xdist markdown-it-py==4.2.0 cmarkgfm==2025.10.22 PyYAML==6.0.3 pytest-split==0.11.0
+      # The suite's packages are the requirements `tests/requirements.txt`
+      # lists, the one place each pin is chosen, and the file says why each
+      # is pinned. pytest-split divides the Windows leg into its shards
+      # (#841), pinned for the same reason, since the file of durations it
+      # writes is what the division is computed from. It is CI's alone, so
+      # the file does not list it and this line is its one home: `bin/test`
+      # never stores durations or divides the suite.
+      - run: pip install -r tests/requirements.txt pytest-split==0.11.0
       - run: |
           git config --global user.email ci@ci
           git config --global user.name ci

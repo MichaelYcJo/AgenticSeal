@@ -20,8 +20,8 @@ criterion's rules and the sentence that sends a session which meets the
 refusal to a person instead of letting it choose are the proofer's to read.
 """
 
-from conftest import read
-from test_broad_gate import flat
+from conftest import read, section
+from test_broad_gate import unquoted_flat
 
 # No TARGET: its cases hold the broad gate row across templates/setup/config.md, skills/config/SKILL.md and the two orchestration documents.
 
@@ -29,16 +29,11 @@ from test_broad_gate import flat
 TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
-REVIEW_ORCH = ("skills", "code-review", "orchestration.md")
+# The orchestrator's steps from the preflight to the open pull request, where
+# the broad run and its refusals stand since #1579.
+GATE_TO_PR = ("skills", "code-review", "gate-to-pull-request.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
-
-
-def section(text, heading, level):
-    """The text under HEADING up to the next heading of the same level."""
-    assert heading in text, f"{heading!r} is not a heading any more"
-    body = text.split(heading, 1)[1]
-    return body.split("\n" + "#" * level + " ", 1)[0]
 
 
 def table(text, header):
@@ -72,7 +67,7 @@ def named(table_rows, form):
     """
     for line in table_rows:
         cells = line.split(" | ")
-        if form in flat(cells[0]):
+        if form in unquoted_flat(cells[0]):
             return line
     return None
 
@@ -98,6 +93,9 @@ REFUSED = (
     "`$(…)`",
     # The form it refuses as a value that ends in `&`.
     "trailing `&`",
+    # The form it refuses where the shell is `cmd.exe`, a command name that
+    # starts in a directory with `/`.
+    "a command name that starts in a directory",
 )
 
 
@@ -106,7 +104,7 @@ def test_each_refused_form_is_named_in_the_refused_table():
     REFUSED table, not anywhere under the heading: round 1 found a form of
     one list read in the other. The reason each row gives is the proofer's
     to read."""
-    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
+    body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED)
     refused = table(body, "| Refused |")
     for form in REFUSED:
         assert named(refused, form), f"the refused list does not name {form}"
@@ -117,7 +115,7 @@ def test_the_template_names_the_command_that_rewrites_a_refused_key():
     person rewrites the key, and the lists' section names the command that
     does. That the section says nothing is stripped is the proofer's to
     read."""
-    body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
+    body = unquoted_flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED))
     # The command `/agentic:config`, which a person types to rewrite the key.
     assert "/agentic:config" in body, (
         "the section does not say where a person rewrites the key"
@@ -143,7 +141,7 @@ def test_the_config_skill_sends_the_criterion_to_its_owner_by_name():
     rule (the shape `tests/text/test_the_rules_have_one_owner.py` holds every
     linking carrier to). Whether the skill restates a rule is the proofer's
     to read."""
-    skill = flat(read(*CONFIG_SKILL))
+    skill = unquoted_flat(read(*CONFIG_SKILL))
     # The heading *The criterion for choosing a value*, which a person
     # reading the skill resolves in `templates/setup/config.md`.
     assert CRITERION.lstrip("# ") in skill, (
@@ -153,29 +151,30 @@ def test_the_config_skill_sends_the_criterion_to_its_owner_by_name():
 
 def refusal_bullet():
     """The config skill's paragraph about the refusal, bounded at the blank
-    line — not the file. Round 1's 🟡 8: the clause naming the three forms
+    line — not the file. Round 1's 🟡 8: the clause naming the refused forms
     could be deleted with 15 cases green, because every assertion matched a
     sentence on one side of it or the other."""
     skill = read(*CONFIG_SKILL)
     opening = "**The `Broad gate` key is looked at before it is run**"
     assert opening in skill, "the refusal paragraph is gone from the config skill"
-    return flat(skill[skill.index(opening) :].split("\n\n", 1)[0])
+    return unquoted_flat(skill[skill.index(opening) :].split("\n\n", 1)[0])
 
 
 def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
-    """The door a person reaches later. It names the three forms so somebody
-    reading it knows the refusal exists, and sends the reasoning to the one
-    owner. What the paragraph says of the refusal is the proofer's to read."""
-    skill = flat(read(*CONFIG_SKILL))
+    """The door a person reaches later. It names the refused forms so
+    somebody reading it knows the refusal exists, and sends the reasoning to
+    the one owner. What the paragraph says of the refusal is the proofer's
+    to read."""
+    skill = unquoted_flat(read(*CONFIG_SKILL))
     # The heading of `templates/setup/config.md` the skill cites, which a
     # person opens to learn what the key may hold.
     assert "What is refused, and what stays allowed" in skill, (
         "the config skill does not point at the section that decides this"
     )
     bullet = refusal_bullet()
-    # The three forms `broad_gate.py` refuses in the key, which a person
-    # filling it in has to recognise in what they wrote.
-    for form in ("backticks", "`$(…)`", "trailing `&`"):
+    # The forms `broad_gate.py` refuses in the key, as REFUSED names them,
+    # which a person filling it in has to recognise in what they wrote.
+    for form in REFUSED:
         assert form in bullet, (
             f"the config skill does not name {form}, so somebody reading it "
             "does not learn that the refusal exists"
@@ -198,6 +197,6 @@ def test_the_review_orchestrator_names_the_command_that_answers_the_row():
     broad gate is the one holding finished work with no pull request open
     and a reason to get past it. That it stops the run and asks a person,
     and why, is the proofer's to read."""
-    orchestrator = flat(read(*REVIEW_ORCH))
+    orchestrator = unquoted_flat(read(*GATE_TO_PR))
     # The command `/agentic:config`, which the person runs to answer the key.
     assert "/agentic:config" in orchestrator

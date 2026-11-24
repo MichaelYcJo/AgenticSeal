@@ -7,9 +7,9 @@ one batch of questions asked before the first edit, the rows of the routing
 declaration, the route chosen under `agentic`, the ladder that says whether
 a work item has a frame, the drain before the broad run, and where a
 decision or a lesson is written. Where no `seal/` whose `README.md` opens
-with the marker exists at `<repo>/seal/` or at
-`$(git rev-parse --git-common-dir)/seal/`, the orchestrator reads
-`skills/implement/bootstrap.md` first.
+with the marker stands at any of the places the opening paragraph of
+`skills/core/SKILL.md` names, which `seal mode` answers by exiting 1, the
+orchestrator reads `skills/implement/bootstrap.md` first.
 
 `skills/implement/SKILL.md` is the other half, and the orchestrator reads
 both. The crafter opens that one at its first step and never this one,
@@ -420,7 +420,7 @@ the answer writes* above:
 
 | Combination | Why it does not stand |
 |---|---|
-| a work item whose pull request opens without the broad run at HEAD or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
+| a work item whose pull request opens without the broad run or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
 | `crafter` building with no frame | the crafter builds a phase of `frame/plan.md` and fills its Status cell (`agents/crafter.md` *Order of work*) |
 | `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it |
 
@@ -488,9 +488,9 @@ has no finding open, and before it runs `seal gate --preflight`**, whichever
 party `routing.md`'s `Implementation` row names: the orchestrator opens the
 pull request, and every commit after the broad run, a `seal/follow-up.md` row
 among them, leaves `trail/gate.md` stale for the sealer
-(`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*). A row is out when it stands at its destination
-below:
+(`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
+preflight to the open pull request*). A row is out when it stands at its
+destination below:
 
 | Remaining item | Destination |
 |---|---|

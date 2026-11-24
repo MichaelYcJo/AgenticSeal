@@ -45,7 +45,7 @@ mode and the description of how the meter computes its columns, which
 
 import os
 
-from conftest import ROOT
+from conftest import ROOT, flattened, read, section
 
 # No TARGET: its cases hold the flow log's measurement across skills/verify/orchestration.md and skills/verify/SKILL.md.
 
@@ -56,27 +56,8 @@ SKILL = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 CRAFTERS_SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 SECTION_HEADING = "## Measure the run, and feed the flow log"
-
-
-def read(path=SKILL):
-    with open(path, encoding="utf-8") as f:
-        return f.read()
-
-
-def section_text():
-    """The section with its lines intact, from its heading to the next `## `
-    or to the end of the file, where it is the last section."""
-    text = read()
-    start = text.index(SECTION_HEADING)
-    rest = text[start + len(SECTION_HEADING) :]
-    end = rest.find("\n## ")
-    return rest if end == -1 else rest[:end]
-
-
-def section_body():
-    """Whitespace-collapsed, so a substring check does not break every time
-    the prose re-wraps at a different column."""
-    return " ".join(section_text().split())
+# A case reads the section whitespace-collapsed, so a substring check does
+# not break every time the prose re-wraps at a different column.
 
 
 RUN_TABLE_HEADER = "| Row | Taken from |"
@@ -84,7 +65,7 @@ RUN_TABLE_HEADER = "| Row | Taken from |"
 
 def run_table_rows():
     """The run-level table's data rows, as `[row label, source]` pairs."""
-    lines = section_text().splitlines()
+    lines = section(read(SKILL), SECTION_HEADING).splitlines()
     assert RUN_TABLE_HEADER in lines, (
         "the section carries no run-level table — `" + RUN_TABLE_HEADER + "` "
         "is the header row every case below reads"
@@ -113,7 +94,7 @@ def test_the_section_is_the_orchestrators_and_the_crafters_skill_names_it():
 
 
 def test_the_section_names_the_measure_step():
-    body = section_body()
+    body = flattened(section(read(SKILL), SECTION_HEADING))
     # The script the orchestrator measures the run with.
     assert "session_cost.py" in body, (
         "the section never names `session_cost.py` — a session reading it "
@@ -127,7 +108,7 @@ def test_the_section_says_what_each_exit_of_the_command_means():
     names each exit code with what it means and what the orchestrator does
     next. Whether each code's sentence states the outcomes the command
     gives it is the proofer's to read."""
-    body = section_body()
+    body = flattened(section(read(SKILL), SECTION_HEADING))
     # The three exit codes of `seal cost --work-item --post`: 0 posted or
     # nothing due, 1 nothing posted and named, 2 the command line refused.
     for code in ("Exit 0", "Exit 1", "Exit 2"):
@@ -144,7 +125,7 @@ def test_the_section_says_the_release_posts_what_no_session_posted():
     the log to tell a segment the run's comment named from one no comment
     named, which is what leaves the release's run nothing to post for a
     work item whose run posted."""
-    body = section_body()
+    body = flattened(section(read(SKILL), SECTION_HEADING))
     # The command the orchestrator and the release run.
     assert "seal cost --work-item" in body, (
         "the section never names `seal cost --work-item`, so a run's reading "
@@ -159,7 +140,7 @@ def test_the_section_says_the_release_posts_what_no_session_posted():
 
 
 def test_the_section_names_the_durable_logs_label():
-    body = section_body()
+    body = flattened(section(read(SKILL), SECTION_HEADING))
     # The label the command resolves to the durable log.
     assert "flow-baseline" in body, (
         "the section never names `flow-baseline`, so a reading that only "
@@ -192,7 +173,7 @@ def test_the_token_row_names_the_command_that_prints_it():
 
 
 def test_the_section_names_the_token_fields_the_count_reads():
-    body = section_body()
+    body = flattened(section(read(SKILL), SECTION_HEADING))
     # The transcript's `usage` fields the count reads.
     for field in (
         "output_tokens",
@@ -262,7 +243,7 @@ def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
     the terminal shows one state line, so the line reaches the orchestrator
     only through the read without `--post`. The section states that read as
     a command of its own."""
-    body = section_body()
+    body = flattened(section(read(SKILL), SECTION_HEADING))
     # The label of the line `session_cost.py` prints for a spawn inside a
     # segment, which the orchestrator matches to this section.
     assert "`Contract rule 6` line" in body, (
@@ -272,7 +253,7 @@ def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
     # The read the orchestrator runs before it posts, a fenced line of its
     # own with no `--post` on it.
     assert "seal cost --work-item <the work item's directory>" in (
-        section_text().splitlines()
+        section(read(SKILL), SECTION_HEADING).splitlines()
     ), (
         "the section states only the posting command, whose terminal shows a "
         "state line and no `Contract rule 6` line, so the orchestrator never "

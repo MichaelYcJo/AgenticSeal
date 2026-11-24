@@ -597,7 +597,7 @@ class Test_compose:
         party claimed, are each refused at the record's path and line, with
         a sentence naming what was read there. A closing keyword in a code
         span, a fence or an HTML comment claims nothing, as
-        `close_issues_on_release.py#keywords_in` reads it, one beside a
+        `lib/closing.py#keywords_in` reads it, one beside a
         comment or after a `<!--` that never closes and stands after text
         still claims, as GitHub reads it (#1404), and a `</details>` in a
         fence ends no fold. A copied line that begins with a `<!--` that no

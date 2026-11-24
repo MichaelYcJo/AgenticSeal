@@ -15,6 +15,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 
 import pytest
@@ -167,6 +168,37 @@ def git_listing(root, *args, check=False):
         errors="replace",
         check=check,
     ).stdout.split()
+
+
+def archived(root):
+    """Every path the archive git builds from the index of the repository at
+    ROOT writes, with the working tree's attributes, a directory's among
+    them. The index's tree is written from a copy of the index, so a git
+    process holding the index's lock, a case running beside this one among
+    them, is left to finish."""
+    index = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--git-path", "index"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    with tempfile.TemporaryDirectory() as scratch:
+        copy = os.path.join(scratch, "index")
+        shutil.copyfile(os.path.join(root, index), copy)
+        tree = subprocess.run(
+            ["git", "-C", root, "write-tree"],
+            capture_output=True,
+            check=True,
+            encoding="utf-8",
+            env={**os.environ, "GIT_INDEX_FILE": copy},
+        ).stdout.strip()
+    tar = subprocess.run(
+        ["git", "-C", root, "archive", "--worktree-attributes", "--format=tar", tree],
+        capture_output=True,
+        check=True,
+    ).stdout
+    with tarfile.open(fileobj=io.BytesIO(tar)) as members:
+        return members.getnames()
 
 
 def on_disk(root, listed):
@@ -551,10 +583,10 @@ def posix_row_shell_or_skip():
     a POSIX shell, and it keeps asserting on a POSIX machine whose `/bin/sh`
     is something nobody expected.
 
-    A case that only reads a REFUSAL needs none of this. `not_as_written` is
-    a string test that reaches no shell, and the refusal is right on both
-    platforms — `templates/setup/config.md` names what each shell does with the
-    forms it lists.
+    A case that only reads a REFUSAL needs none of this. `not_as_written`
+    reaches no shell: it reads the value, the platform and the root, and a
+    case passes the platform it means — `templates/setup/config.md` names
+    what each shell does with the forms it lists.
     """
     try:
         r = subprocess.run(
@@ -716,8 +748,8 @@ def census_case(target):
 
 def pytest_configure(config):
     """Register `rule`, the marker a gate test carries for the `check:` line
-    that names it (`.github/scripts/rules.py#markers`), so pytest reads it
-    without an unknown-mark warning."""
+    that names it (`skills/settle/scripts/rules.py#markers`), so pytest reads
+    it without an unknown-mark warning."""
     config.addinivalue_line(
         "markers", "rule(name): the rule a `check:` line names by this marker"
     )
@@ -725,10 +757,10 @@ def pytest_configure(config):
 
 def rule_carriers(marker):
     """The qualified names of the tests that carry MARKER, as
-    `.github/scripts/rules.py#markers` reads them over this repository, so a
-    case pinning a rule's check line reads its tests the one way."""
+    `skills/settle/scripts/rules.py#markers` reads them over this repository,
+    so a case pinning a rule's check line reads its tests the one way."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    path = os.path.join(root, ".github", "scripts", "rules.py")
+    path = os.path.join(root, "skills", "settle", "scripts", "rules.py")
     spec = importlib.util.spec_from_file_location("agentic_rules_carriers", path)
     rules = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rules)
@@ -805,8 +837,7 @@ def names_path(path, text):
 
 # --- helpers more than one test module uses (#942) ----------------------------
 #
-# Each was defined byte-identically in two or more test modules. A module
-# imports the one it needs. A helper that reads a module the case loaded
+# A module imports the one it needs. A helper that reads a module the case loaded
 # itself, such as the chain check, takes that module as
 # its first argument, and the case's module binds it with `functools.partial`.
 
@@ -835,6 +866,39 @@ def flat(*parts):
 def flattened(text):
     """TEXT as one line, each run of whitespace one space."""
     return " ".join(text.split())
+
+
+# `lib/lines.py`, the one spelling of a markdown heading, which `section`
+# places headings by.
+_LINES = load_lib_module("lines.py", "agentic_lines_for_section")
+
+
+def section(text, heading):
+    """The body of the one section of the markdown TEXT whose heading line is
+    HEADING, written whole as the file spells it, such as `## Running the
+    checks`: the lines after it, up to the next heading of its level or above,
+    or to the end, joined with a newline.
+
+    The headings are placed as a renderer shows them, by `lib/lines.py`'s
+    `readable`, `headings` and `sections`, so a heading line inside a fenced
+    block neither opens nor ends a section, and a longer heading that begins
+    with the same words is another heading. The lines returned are the
+    text's, a fence among them as written. The heading line is left out, so
+    a phrase pinned in the body is never found in the heading. A text that
+    holds HEADING nowhere, or more than once, fails the case naming it."""
+    shown = _LINES.readable(text)
+    found = _LINES.sections(shown, heading.strip())
+    assert len(found) == 1, f"the text holds {len(found)} headings {heading!r}"
+    start, level = found[0], _LINES.heading_level(heading)
+    end = next(
+        (
+            i
+            for i, line in _LINES.headings(shown)
+            if i > start and _LINES.heading_level(line) <= level
+        ),
+        len(shown),
+    )
+    return "\n".join(_LINES.gfm_lines(text)[start + 1 : end])
 
 
 def repo_relative(path):
@@ -1114,7 +1178,7 @@ def parity_file(sha):
 # Each command's cases that keep its records under `agentic-seal/` beside a
 # project's own `seal/` package share this world: the module files of
 # `tests/skills/` that hold them, and the `seal rules` case of
-# `tests/github/test_rules.py`.
+# `tests/skills/test_rules.py`.
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"

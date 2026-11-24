@@ -8,25 +8,33 @@ contract is what ends that — but only while the rules are actually in it.
 
 So this module reads the contract's shape. Every rule is a numbered section,
 and the numbers increase without a repeat. A rule that retires leaves the
-file, and the preamble lists its number as retired. So every number from one
-up to the highest that no heading holds is a listed one, and no listed
-number holds a heading: a rule that goes whole with its number unlisted is
-red, and so is a listed number that still has a section. Only the highest
-number used can go unseen, from the list or as a rule, since nothing else
-in the file says it was used; that is left to review. A rule's sentences
-are not pinned here. #1111 found no pin's history showing a catch, and
-every pin's change came with its own rule's rewording, so a rule reworded
-to the same meaning stays green. A sentence deleted from inside a rule that
-keeps its heading is left to review.
+file, and `docs/running/the-agent-set.md` *One contract every agent
+receives, and one definition each*, the paragraph opening **The contract's
+rule numbers are stable.**, lists its number as retired: the numbering
+policy is for whoever edits the contract, so no spawn pays for it (#1579).
+So every number from one up to the highest that no heading holds is a
+listed one, and no listed number holds a heading: a rule that goes whole
+with its number unlisted is red, and so is a listed number that still has
+a section. A paragraph reworded so the list is not read lists nothing, and
+every retired number then reads as a gap. Only the highest number used can
+go unseen, from the list or as a rule, since nothing else says it was used;
+that is left to review. A rule's sentences are not pinned here. #1111
+found no pin's history showing a catch, and every pin's change came with
+its own rule's rewording, so a rule reworded to the same meaning stays
+green. A sentence deleted from inside a rule that keeps its heading is left
+to review.
 
-Three facts are pinned, because a reader depends on their characters: rule
-1's two command forms, which an agent copies into a shell, rule 11's two
-places the `seal/` root resolves to, which an agent opens or runs, and rule
-21's command forms, two that Claude Code's parser reads and one it cannot,
-which an agent copies into a shell. Each is scoped to its section's BODY,
-not the file and not the heading: a fact that moves to another section
-breaks the number a round record cited, and a heading that outlives its
-rule is a section that says nothing.
+Two facts are pinned, because a reader depends on their characters: rule
+1's two command forms, which an agent copies into a shell, and rule 21's
+command forms, two that Claude Code's parser reads and one it cannot, which
+an agent copies into a shell. Each is scoped to its section's BODY, not the
+file and not the heading: a fact that moves to another section breaks the
+number a round record cited, and a heading that outlives its rule is a
+section that says nothing. Rule 11 spelt the places the `seal/` root
+resolves to until #1578, and now cites the opening paragraph of
+`skills/core/SKILL.md`, which states them;
+`tests/text/test_the_rules_have_one_owner.py` holds the places there and
+the citation here.
 
 Two frontmatter facts are pinned as well. `user-invocable: false` keeps the
 contract out of the `/` menu and was measured (2026-09-03, docs/experiments/)
@@ -38,18 +46,23 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import census_case, read
 
 TARGET = "skills/agent-contract/SKILL.md"
 
 CONTRACT = os.path.join(*TARGET.split("/"))
 
+# The document whose paragraph lists the retired numbers, and the words that
+# open that paragraph.
+AGENT_SET = os.path.join("docs", "running", "the-agent-set.md")
+NUMBERING = "**The contract's rule numbers are stable.**"
+
 # The one reader of a contract heading, `## <N> <title>`. Every other module
 # that walks the contract's rules imports it from here.
 HEADING = re.compile(r"^## (\d+) (.+)$", re.M)
 
-# The preamble's list of retired numbers, `the retired numbers are 8, 16 and
-# 20`, read across a line break.
+# The numbering paragraph's list of retired numbers, `the retired numbers are
+# 8, 16 and 20`, read across a line break.
 RETIRED = re.compile(r"retired\s+numbers\s+are\s+((?:\d+,\s+)*\d+(?:\s+and\s+\d+)?)")
 
 # A fact a reader needs fixed character for character, by the rule whose
@@ -60,10 +73,6 @@ FACTS = {
         "the two command forms an agent copies into a shell",
         ("`cmd >/dev/null 2>&1; echo $?`", "`cmd | tail; echo $?`"),
     ),
-    11: (
-        "the two places the `seal/` root resolves to, which an agent opens or runs",
-        ("`<repo>/seal/`", "`$(git rev-parse --git-common-dir)/seal/`"),
-    ),
     21: (
         "the command forms an agent copies into a shell, two that Claude "
         "Code's parser reads and one it holds for a person",
@@ -72,11 +81,6 @@ FACTS = {
 }
 
 SPELLINGS = [(number, spelling) for number in FACTS for spelling in FACTS[number][1]]
-
-
-def read(rel=CONTRACT):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        return f.read()
 
 
 def frontmatter(text):
@@ -114,7 +118,7 @@ def missing_facts(text):
 
 
 def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
-    head = frontmatter(read())
+    head = frontmatter(read(CONTRACT))
     # The front-matter name the harness resolves each definition's
     # `skills:` entry to.
     assert "name: agent-contract" in head
@@ -136,51 +140,57 @@ def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
 # --- shape -----------------------------------------------------------------
 
 
-def retired(text):
-    """The numbers the preamble, the text before the first rule, lists as
-    retired; none where it lists none."""
-    match = RETIRED.search(text[: HEADING.search(text).start()])
+def retired(doc):
+    """The numbers DOC's numbering paragraph, from NUMBERING to the next
+    blank line, lists as retired; none where the paragraph or its list is
+    missing."""
+    at = doc.find(NUMBERING)
+    if at < 0:
+        return []
+    paragraph = doc[at:].split("\n\n", 1)[0]
+    match = RETIRED.search(paragraph)
     return [int(n) for n in re.findall(r"\d+", match.group(1))] if match else []
 
 
-def numbering_faults(text):
-    """[fault] for the contract's numbering: headings that do not increase or
-    repeat a number, each number from one up to the highest heading or
-    listed number that neither a heading nor the list holds, and each
-    listed number a heading holds."""
+def numbering_faults(text, doc=None):
+    """[fault] for the contract TEXT's numbering against the list DOC holds,
+    `docs/running/the-agent-set.md` where none is given: headings that do
+    not increase or repeat a number, each number from one up to the highest
+    heading or listed number that neither a heading nor the list holds, and
+    each listed number a heading holds."""
     numbers = [int(n) for n, _ in HEADING.findall(text)]
-    listed = retired(text)
+    listed = retired(read(AGENT_SET) if doc is None else doc)
     faults = []
     if numbers != sorted(set(numbers)):
         faults.append(f"the headings do not increase without a repeat: {numbers}")
     for n in range(1, max(numbers + listed) + 1):
         if n not in numbers and n not in listed:
-            faults.append(f"{n} has no heading and the preamble does not list it")
+            faults.append(f"{n} has no heading and the document does not list it")
         if n in numbers and n in listed:
             faults.append(f"{n} is listed as retired and has a heading")
     return faults
 
 
 def test_the_sections_are_numbered_from_one_without_a_gap_or_a_repeat():
-    assert numbering_faults(read()) == []
+    assert numbering_faults(read(CONTRACT)) == []
 
 
-def test_a_gap_the_preamble_does_not_list_is_named():
+def test_a_gap_the_document_does_not_list_is_named():
     """A rule that goes whole, with its number left off the list, is red."""
-    text = read()
+    text = read(CONTRACT)
     assert numbering_faults(text) == []
     heads = list(HEADING.finditer(text))
     first, after = heads[0], heads[1]
     mutated = text[: first.start()] + text[after.start() :]
     assert numbering_faults(mutated) == [
-        f"{first.group(1)} has no heading and the preamble does not list it"
+        f"{first.group(1)} has no heading and the document does not list it"
     ]
 
 
 def test_a_repeated_number_is_named():
     """A second section under a number already used is red, though no
     number goes missing."""
-    text = read()
+    text = read(CONTRACT)
     assert numbering_faults(text) == []
     first, after = list(HEADING.finditer(text))[:2]
     copy = text[first.start() : after.start()]
@@ -193,19 +203,21 @@ def test_a_repeated_number_is_named():
 
 def test_a_listed_number_that_has_a_heading_is_named():
     """A number added to the list while its rule still stands is red."""
-    text = read()
-    assert numbering_faults(text) == []
+    text, doc = read(CONTRACT), read(AGENT_SET)
+    assert numbering_faults(text, doc) == []
     standing = HEADING.search(text).group(1)
-    at = RETIRED.search(text).start(1)
-    mutated = text[:at] + f"{standing}, " + text[at:]
-    assert numbering_faults(mutated) == [
+    at = RETIRED.search(doc, doc.find(NUMBERING)).start(1)
+    mutated = doc[:at] + f"{standing}, " + doc[at:]
+    assert numbering_faults(text, mutated) == [
         f"{standing} is listed as retired and has a heading"
     ]
 
 
 def test_no_pin_is_its_own_heading():
     """A fact the heading satisfies survives the body being emptied."""
-    headings = {number: heading for number, (heading, _, _) in spans(read()).items()}
+    headings = {
+        number: heading for number, (heading, _, _) in spans(read(CONTRACT)).items()
+    }
     for number, spelling in SPELLINGS:
         assert spelling not in headings[number], f"rule {number} pins its heading"
 
@@ -215,7 +227,7 @@ def test_no_pin_is_its_own_heading():
 
 @pytest.mark.parametrize("number", sorted(FACTS))
 def test_each_section_holds_its_rule(number):
-    missing = [s for n, s in missing_facts(read()) if n == number]
+    missing = [s for n, s in missing_facts(read(CONTRACT)) if n == number]
     assert missing == [], f"rule {number} no longer holds {FACTS[number][0]}: {missing}"
 
 
@@ -237,7 +249,7 @@ def without_fact(text, number, spelling):
 )
 def test_deleting_a_pinned_phrase_is_caught(number, spelling):
     """A pin that survives its own deletion pins nothing."""
-    text = read()
+    text = read(CONTRACT)
     mutated = without_fact(text, number, spelling)
     assert (number, spelling) in missing_facts(mutated)
     assert len(spans(mutated)) == len(spans(text)), "the heading was deleted too"
@@ -245,23 +257,27 @@ def test_deleting_a_pinned_phrase_is_caught(number, spelling):
 
 def test_moving_a_sentence_to_another_section_is_caught():
     """The fact is scoped to its section, so a rule that keeps its words and
-    loses its number — the drift a cited rule number cannot survive — is red."""
-    text = read()
-    _, start, end = spans(text)[11]
+    loses its number — the drift a cited rule number cannot survive — is red.
+    Rule 21 is moved, since rule 11 holds no pinned fact after #1578."""
+    text = read(CONTRACT)
+    numbers = sorted(spans(text))
+    before = numbers[numbers.index(21) - 1]
+    _, start, end = spans(text)[21]
     rest = text[start:end]
-    _, _, end10 = spans(text)[10]
-    # Rule 11 keeps its heading and nothing else; its body now sits under 10.
+    _, _, end_before = spans(text)[before]
+    # Rule 21 keeps its heading and nothing else; its body now sits under the
+    # rule before it.
     moved = (
-        text[:end10].rstrip("\n")
+        text[:end_before].rstrip("\n")
         + "\n"
         + rest
-        + text[end10:start]
+        + text[end_before:start]
         + "\n\n"
         + text[end:]
     )
     missing = missing_facts(moved)
-    assert [s for n, s in missing if n == 11] == list(FACTS[11][1])
-    assert all(s in " ".join(bodies(moved)[10].split()) for s in FACTS[11][1])
+    assert [s for n, s in missing if n == 21] == list(FACTS[21][1])
+    assert all(s in " ".join(bodies(moved)[before].split()) for s in FACTS[21][1])
 
 
 def misspelled_headings(text):
@@ -277,11 +293,11 @@ def misspelled_headings(text):
 def test_every_heading_of_the_contract_is_a_numbered_rule():
     """S1 of #1005: a heading in another spelling is not a rule HEADING
     reads, so it is refused at its line rather than skipped."""
-    assert misspelled_headings(read()) == []
+    assert misspelled_headings(read(CONTRACT)) == []
 
 
 def test_a_heading_in_the_old_spelling_is_refused_at_its_line():
-    text = read()
+    text = read(CONTRACT)
     first = HEADING.search(text)
     old = f"## \N{SECTION SIGN}{first.group(1)} {first.group(2)}"
     mutated = text[: first.start()] + old + text[first.end() :]

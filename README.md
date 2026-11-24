@@ -283,7 +283,8 @@ pays, and `docs/running/the-run.md` *The run* gives the point where it
 weighs that.
 
 After the rounds, the session runs the broad gate once: the full suite, lint
-and typecheck, at the commit the pull request will carry. No agent runs it,
+and typecheck, at the pull request's head commit or at one that only the work
+item's records follow. No agent runs it,
 because a full run taken mid-review is spent by the next fix
 (`docs/running/the-broad-gate.md`). The sealer reads the gate's record and
 every other party's, checks that the pull request body `seal pr-body` wrote
@@ -387,7 +388,7 @@ it, or, in the last row, in your CI on a pull request.
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. With `--work-item`, it also names the work item's directory and branch, and the directory of each other work item a segment's spawn prompt also names, read from the records directory and from every local branch, pushed or not. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
 | `seal gate`, the broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, asked by its `chain_check.py` step to learn whether the branch's pull request is a draft. `chain_check.py` run on its own asks the same | each run outside GitHub Actions, where `gh` is on the PATH |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
-| the AgenticSeal process's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a GitHub Actions workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
+| the AgenticSeal process's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a GitHub Actions workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
 The two hooks are the only things on your machine that run without you or
@@ -404,7 +405,7 @@ after `!` in a session, or ask the session to run it.
 
 | Command | Does |
 |---|---|
-| `seal deferrals . [--kind all]` | says whether anything here runs the check an `unverified` row defers, and names each CI file that does (`skills/verify/SKILL.md` *The answerer has to exist*) |
+| `seal deferrals . [--kind all]` | names each CI file and hook line a runner word matches for the check an `unverified` row defers, and exits 0 whatever it matched; whether anything runs the check is read in the CI files themselves (`skills/verify/SKILL.md` *The answerer has to exist*) |
 | `seal unverified .` | lists the rows the `unverified` labels left open, in which work item, and who was named to answer each (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | says where a session's minutes went, from its transcript (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |

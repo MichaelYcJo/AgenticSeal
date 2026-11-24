@@ -8,8 +8,8 @@ and answer with one exit code per outcome.
 The orchestrator runs `--once` before each push to the pull request's
 branch, and the wait when the pull request opens and after each push. It
 acts on the exit code; what it does at each one is
-`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*.
+`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
+preflight to the open pull request*.
 
 Exit codes:
 
@@ -51,8 +51,9 @@ runner can run longer than any limit short enough to help. After the
 start, a read whose head is not HEAD ends the wait at exit 3, and a
 `mergeable` of `UNKNOWN` reads the checks as `MERGEABLE` does: GitHub
 can compute it again while the checks of HEAD run, as when the base
-moves, and those checks are still the ones to read. Each `gh` call is
-bounded at `GH_TIMEOUT`, so a call that hangs ends the wait at exit 2.
+moves, and those checks are still the ones to read. Each `gh` and `git`
+call is bounded at `lib/gitcmd.py#TIMEOUT`, so a call that hangs ends the
+wait at exit 2.
 
 Why each read is there:
 
@@ -109,8 +110,6 @@ usage error on stderr, at exit 2.
 import argparse
 import json
 import os
-import shutil
-import subprocess
 import sys
 import time
 
@@ -140,7 +139,6 @@ PASSED, FAILED, UNANSWERED, NO_CHECK, MERGED, CLOSED, CONFLICTING = range(7)
 
 INTERVAL = 10  # seconds between two polls, as `gh pr checks --watch` waits
 LIMIT = 120  # seconds from the start for a `pull_request` check to be listed
-GH_TIMEOUT = 60  # seconds one `gh` call may take before it is a failure
 
 VIEW = ("state", "mergeable", "headRefOid", "statusCheckRollup")
 CHECKS = ("name", "workflow", "event", "bucket")
@@ -175,26 +173,15 @@ class Unanswered(Exception):
 
 
 def gh(*args):
-    """`gh <args>`'s stdout, or `Unanswered` naming the call and its stderr."""
-    shown = "`gh " + " ".join(args) + "`"
-    found = shutil.which("gh")
-    if found is None:
-        raise Unanswered("could not ask: no `gh` on PATH")
+    """`gh <args>`'s stdout, or `Unanswered` naming the call and its stderr;
+    a `gh` that did not answer, `lib/gitcmd.py#Unrun`, in the runner's
+    line."""
     try:
-        done = subprocess.run(
-            [found, *args],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=GH_TIMEOUT,
-        )
-    except subprocess.TimeoutExpired:
-        raise Unanswered(
-            f"could not ask: {shown} did not answer within {GH_TIMEOUT} seconds"
-        ) from None
-    except OSError as exc:
-        raise Unanswered(f"could not ask: {shown} did not run ({exc})") from None
+        done = gitcmd.gh(*args)
+    except gitcmd.Unrun as unrun:
+        raise Unanswered(f"could not ask: {unrun.line}") from None
     if done.returncode:
+        shown = "`gh " + " ".join(args) + "`"
         raise Unanswered(
             f"could not ask: {shown} exited {done.returncode}", done.stderr
         )
@@ -203,18 +190,12 @@ def gh(*args):
 
 def head():
     """The commit this checkout's HEAD names, the one the orchestrator
-    pushed last, or `Unanswered`."""
+    pushed last, or `Unanswered`; a git that did not answer in the runner's
+    line, as `gh` gives it."""
     try:
-        done = subprocess.run(
-            gitcmd.argv("rev-parse", "HEAD"),
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-        )
-    except OSError as exc:
-        raise Unanswered(
-            f"could not ask: `git rev-parse HEAD` did not run ({exc})"
-        ) from None
+        done = gitcmd.git(os.curdir, "rev-parse", "HEAD")
+    except gitcmd.Unrun as unrun:
+        raise Unanswered(f"could not ask: {unrun.line}") from None
     if done.returncode:
         raise Unanswered(
             f"could not ask: `git rev-parse HEAD` exited {done.returncode}", done.stderr

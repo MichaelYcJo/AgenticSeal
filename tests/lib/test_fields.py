@@ -50,10 +50,6 @@ def finding_with(line):
     return block(*lines)
 
 
-def read(text, kinds=None):
-    return fields.read(text, kinds or fields.GUARANTEE)
-
-
 def line_of(text, line, after=0):
     """The 1-based number of the first line of TEXT equal to LINE, past AFTER."""
     lines = text.split("\n")
@@ -68,7 +64,7 @@ class Test_read:
             verdict("aaa1111", "withheld reason: the gate failed"),
             verdict(SHA, "sealed", original=BASE),
         )
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         assert (found.refusals, found.notices) == ([], [])
         first, newest = found.blocks
         assert (first.kind, newest.kind) == (fields.VERDICT_BLOCK,) * 2
@@ -107,7 +103,7 @@ class Test_read:
                 block("confirms: round-1#3"),
             ]
         )
-        found = read(text, fields.ROUND_RECORD)
+        found = fields.read(text, fields.ROUND_RECORD)
         assert (found.refusals, found.notices) == ([], [])
         assert [b.kind.name for b in found.blocks] == [
             "round",
@@ -122,18 +118,26 @@ class Test_read:
         assert close[fields.ANSWER].value == ""
         assert found.blocks[4].fields[fields.VERDICT].match["commit"] == SHA
 
-    def test_reads_confirms_none_in_a_record_written_before_1319(self):
-        """#1319's C1: the template writes no `confirms: none` since #1319,
-        and a committed record that carries one still reads, naming no
-        finding."""
-        found = read(block("confirms: none"), fields.ROUND_RECORD)
-        assert (found.refusals, len(found.blocks)) == ([], 1)
-        assert found.blocks[0].fields[fields.CONFIRMS].match["round"] is None
+    def test_refuses_confirms_none_at_its_line(self):
+        """#1576, design S11: a confirmation names the earlier finding it
+        confirms, and `none` is no spelling of it, so the line is refused at
+        its line with the one shape."""
+        text = block("confirms: none")
+        said = fields.SHAPE.format(
+            line="confirms: none",
+            key=fields.CONFIRMS,
+            says=fields.CONFIRMATION_BLOCK.keys[fields.CONFIRMS].says,
+        )
+        found = fields.read(text, fields.ROUND_RECORD)
+        assert (found.blocks, found.refusals) == (
+            [],
+            [(line_of(text, "confirms: none"), said)],
+        )
 
     def test_accepts_run_blocks_of_a_gate_record(self):
         text = "# gate\n\n" + block(f"run: {SHA} against {BASE}") + "\n"
         text += block(f"run: {BASE} against {BASE}")
-        found = read(text, fields.GATE)
+        found = fields.read(text, fields.GATE)
         assert [b.fields[fields.RUN].match["commit"] for b in found.blocks] == [
             SHA,
             BASE,
@@ -160,7 +164,7 @@ class Test_read:
         text = guarantee(
             f"{opener}\ntarget: {SHA} against main\nVerdict: sealed\n{closer}\n"
         )
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         assert (found.blocks, found.refusals) == ([], [])
         assert found.notices == [
             (line_of(text, opener), fields.NEAR.format(line=opener))
@@ -168,7 +172,9 @@ class Test_read:
 
     @pytest.mark.parametrize("info", ["", "markdown", "sealed", "python seal"])
     def test_refuses_to_name_a_fence_whose_first_word_is_not_seal(self, info):
-        found = read(guarantee(f"{FENCE}{info}\nVerdict: sealed\n{FENCE}\n"))
+        found = fields.read(
+            guarantee(f"{FENCE}{info}\nVerdict: sealed\n{FENCE}\n"), fields.GUARANTEE
+        )
         assert (found.blocks, found.refusals, found.notices) == ([], [], [])
 
     def test_refuses_a_fence_that_never_closes_at_its_opener(self):
@@ -179,17 +185,17 @@ class Test_read:
         text = guarantee(
             verdict(), FENCE + "`\n", verdict(said="withheld reason: the gate failed")
         )
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         assert found.refusals == [(line_of(text, FENCE + "`"), fields.UNCLOSED)]
         open_block = guarantee(f"{FENCE}seal\ntarget: {SHA} against main\n")
-        assert read(open_block).refusals == [
+        assert fields.read(open_block, fields.GUARANTEE).refusals == [
             (line_of(open_block, FENCE + "seal"), fields.UNCLOSED)
         ]
-        assert read(open_block).blocks == []
+        assert fields.read(open_block, fields.GUARANTEE).blocks == []
 
     def test_refuses_a_blank_line_inside_a_block_at_its_line(self):
         text = guarantee(block(f"target: {SHA} against main", "", "Verdict: sealed"))
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         blank = line_of(text, f"target: {SHA} against main") + 1
         assert (found.blocks, found.refusals) == ([], [(blank, fields.BLANK)])
 
@@ -207,7 +213,7 @@ class Test_read:
         of its kind is refused at its line with the keys the kind takes, and
         the block is read no further."""
         text = guarantee(block(f"target: {SHA} against main", line))
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         said = fields.NOT_A_FIELD.format(
             line=line,
             kind="verdict",
@@ -220,7 +226,7 @@ class Test_read:
             block(f"target: {SHA} against main", "Verdict: sealed", "Verdict: sealed")
         )
         second = line_of(text, "Verdict: sealed") + 1
-        assert read(text).refusals == [
+        assert fields.read(text, fields.GUARANTEE).refusals == [
             (second, fields.TWICE.format(key="Verdict:", kind="verdict"))
         ]
         finding = block(
@@ -231,7 +237,7 @@ class Test_read:
             "reopens: round-1#1",
         )
         said = fields.ONE_OF.format(key="reopens:", other="regression:", kind="finding")
-        found = read(finding, fields.ROUND_RECORD)
+        found = fields.read(finding, fields.ROUND_RECORD)
         assert (found.blocks, found.refusals) == ([], [(6, said)])
 
     @pytest.mark.parametrize(
@@ -249,7 +255,7 @@ class Test_read:
         said = fields.SHAPE.format(
             line=line, key=key, says=fields.VERDICT_BLOCK.keys[says].says
         )
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
 
     def test_accepts_each_shape_of_a_close_a_location_and_a_reference(self):
@@ -264,7 +270,7 @@ class Test_read:
             ("deferred #12", "#12"),
             ("deferred the frame", "the frame"),
         ):
-            (found,) = read(
+            (found,) = fields.read(
                 block(f"verdict: {value}", "answer:"), fields.ROUND_RECORD
             ).blocks
             said = found.fields[fields.VERDICT].match
@@ -277,13 +283,15 @@ class Test_read:
             "`a.py:1`, `docs/b.md:3-4`",
             "`a.py:1`, `b.py`, `c/d.md:9`",
         ):
-            assert read(finding_with(f"location: {value}"), fields.ROUND_RECORD).blocks
+            assert fields.read(
+                finding_with(f"location: {value}"), fields.ROUND_RECORD
+            ).blocks
         for value, ref in (
             ("round-2#3", ("2", "3")),
             ("round-2", ("2", None)),
             ("round-12#10", ("12", "10")),
         ):
-            (found,) = read(
+            (found,) = fields.read(
                 finding_with(f"regression: {value}"), fields.ROUND_RECORD
             ).blocks
             said = found.fields[fields.REGRESSION].match
@@ -367,7 +375,7 @@ class Test_read:
         else:
             text, kind = finding_with(line), fields.FINDING_BLOCK
         said = fields.SHAPE.format(line=line, key=key, says=kind.keys[key].says)
-        found = read(text, fields.ROUND_RECORD)
+        found = fields.read(text, fields.ROUND_RECORD)
         assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
 
     def test_the_verdict_shape_says_the_three_shapes(self):
@@ -383,23 +391,23 @@ class Test_read:
         text = guarantee(block(f"target: {SHA} against main"))
         opener = line_of(text, FENCE + "seal")
         said = fields.MISSING.format(kind="verdict", key="Verdict:")
-        assert read(text).refusals == [(opener, said)]
+        assert fields.read(text, fields.GUARANTEE).refusals == [(opener, said)]
 
     def test_refuses_an_empty_block_and_one_no_kind_of_the_record_opens(self):
         empty = guarantee(block())
-        assert read(empty).refusals == [
+        assert fields.read(empty, fields.GUARANTEE).refusals == [
             (line_of(empty, FENCE + "seal"), fields.EMPTY.format(openers="`target:`"))
         ]
         other = guarantee(block(f"run: {SHA} against {BASE}"))
         said = fields.NO_KIND.format(
             line=f"run: {SHA} against {BASE}", openers="`target:`"
         )
-        assert read(other).refusals == [
+        assert fields.read(other, fields.GUARANTEE).refusals == [
             (line_of(other, f"run: {SHA} against {BASE}"), said)
         ]
         openers = "`target:`, `severity:`, `verdict:` or `confirms:`"
         assert fields.EMPTY.format(openers=openers) in [
-            why for _n, why in read(block(), fields.ROUND_RECORD).refusals
+            why for _n, why in fields.read(block(), fields.ROUND_RECORD).refusals
         ]
 
     def test_refuses_a_comment_line_outside_every_fence(self):
@@ -413,7 +421,7 @@ class Test_read:
             verdict(),
             "   <!-- a note\n-->\n",
         )
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         assert found.refusals == [
             (line_of(text, "<!-- " + FENCE + "seal"), fields.COMMENT_LINE),
             (line_of(text, "   <!-- a note"), fields.COMMENT_LINE),
@@ -431,7 +439,7 @@ class Test_read:
         cannot place is refused at its line, so a later run's block is never
         silently dropped behind an earlier one."""
         text = guarantee(verdict(), above + "\n", verdict(said="withheld reason: x"))
-        found = read(text)
+        found = fields.read(text, fields.GUARANTEE)
         assert len(found.blocks) == 1
         unsure = [n for n, why in found.refusals if why == fields.UNSURE]
         assert unsure and min(unsure) >= line_of(text, above), found.refusals
@@ -441,7 +449,7 @@ class Test_read:
     def test_refuses_to_read_a_block_quoted_inside_another_fence(self):
         """A `seal` block inside a fix's fence belongs to the fix."""
         text = guarantee(FENCE + "`markdown\n" + verdict() + FENCE + "`\n")
-        assert read(text) == fields.Read([], [], [])
+        assert fields.read(text, fields.GUARANTEE) == fields.Read([], [], [])
 
     def test_reads_a_long_line_in_linear_time(self):
         """#941's round 3 met a pattern that backtracked exponentially; each
@@ -453,12 +461,14 @@ class Test_read:
             "Verdict: undecided question:" + " " * 100000,
             f"target: {SHA} against " + "x" * 100000 + " ",
         ):
-            read(guarantee(block(f"target: {SHA} against main", line)))
+            fields.read(
+                guarantee(block(f"target: {SHA} against main", line)), fields.GUARANTEE
+            )
         for line in (
             "location: `" + "a:1" * 30000 + "`",
             "verdict: deferred " + "x " * 50000,
         ):
-            read(block("severity: must", line), fields.ROUND_RECORD)
+            fields.read(block("severity: must", line), fields.ROUND_RECORD)
         assert time.monotonic() - start < 5.0
 
     def test_the_unfilled_template_is_no_guarantee(self):
@@ -490,11 +500,11 @@ class Test_verdict_word:
             ("withheld reason: x", fields.WITHHELD),
             ("undecided question: y?", fields.UNDECIDED),
         ):
-            (found,) = read(verdict(said=said)).blocks
+            (found,) = fields.read(verdict(said=said), fields.GUARANTEE).blocks
             assert fields.verdict_word(found) == word
 
     def test_refuses_a_block_of_another_kind(self):
-        (found,) = read(block(f"run: {SHA} against {BASE}"), fields.GATE).blocks
+        (found,) = fields.read(block(f"run: {SHA} against {BASE}"), fields.GATE).blocks
         assert fields.verdict_word(found) is None
 
 

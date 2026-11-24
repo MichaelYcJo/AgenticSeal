@@ -4,8 +4,8 @@ Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks* and the agent definitions that send
 a reader to the runner.
 
-The cases of `.github/scripts/run_tests.py`'s functions stand in
-`tests/github/test_run_tests.py`, and this file reads the runner through that
+The cases of `tests/run_tests.py`'s functions stand in
+`tests/test_run_tests.py`, and this file reads the runner through that
 file's `rt`.
 """
 
@@ -13,14 +13,17 @@ import os
 import subprocess
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, flat, flattened, read, section
 from test_run_tests import rt
 from workflows import load, pytest_jobs
 
-# No TARGET: its cases list every command under bin/, and hold the runner's floor and parser across .github/workflows/test.yml, CONTRIBUTING.md and the agent definitions.
+# No TARGET: its cases list every command under bin/, and hold the runner's floor and tests/requirements.txt across .github/workflows/test.yml, CONTRIBUTING.md and the agent definitions.
 
 
 BIN = os.path.join(ROOT, "bin")
+# `CONTRIBUTING.md` *Running the checks*, the section a person in a clone
+# copies the commands from.
+RUNNING = "## Running the checks"
 
 
 def suite_jobs():
@@ -46,9 +49,9 @@ def test_both_wrappers_ship_and_point_at_the_runner():
     assert os.path.isfile(posix), "bin/test missing"
     assert os.path.isfile(windows), "bin/test.cmd missing"
     # The runner's path in each wrapper, which the shell and cmd.exe run.
-    assert ".github/scripts/run_tests.py" in read(posix)
+    assert "tests/run_tests.py" in read(posix)
     text = read(windows)
-    assert ".github\\scripts\\run_tests.py" in text
+    assert "tests\\run_tests.py" in text
     # The two interpreter commands the `.cmd` twin runs, in its order.
     assert "py -3" in text and "python " in text, (
         "the .cmd twin prefers `py -3` and falls back to `python`"
@@ -107,79 +110,67 @@ def test_a_copy_without_the_runner_beside_it_says_so(tmp_path):
     assert "Traceback" not in result.stderr
 
 
-def test_ci_installs_the_parser_the_runner_pins():
-    """#667, phase 1. The pin is chosen once, in `MARKDOWN_IT`, and each CI
-    job that runs the suite installs its own list. A version bumped in one
-    place and not the other runs the oracle's cases against two parsers.
-    Seen red with `pytest-wide`'s steps a copy whose install line names
-    another PyYAML (#1516)."""
+def requirement_names():
+    """The name of each requirement `tests/requirements.txt` lists,
+    lowercased, as the runner read the file."""
+    return {each.partition("==")[0].lower() for each in rt.PACKAGES}
+
+
+def test_ci_installs_the_requirements_file():
+    """#667, phase 1, and #1575. Each CI job that runs the suite installs
+    `tests/requirements.txt`, the one place each pin is chosen, and spells
+    none of its packages again: a version written on the line beside the
+    file runs the oracle's cases against a parser the file does not name.
+    `pytest-split` divides the Windows leg (#841) and is CI's alone, so the
+    file does not list it, `bin/test` never installs it, and the install
+    line is its one home, with its version."""
     for name, job in suite_jobs().items():
         installs = [
             step["run"].split()
             for step in job["steps"]
             if step.get("run", "").startswith("pip install")
         ]
-        assert installs, f"`{name}` installs nothing to compare"
-        # The pinned parser `run_tests.py#MARKDOWN_IT` names, which the runner
-        # installs before the suite runs, and no other version of it.
-        assert any(rt.MARKDOWN_IT in words for words in installs), (name, installs)
+        assert installs, f"`{name}` installs nothing"
+        # The file, which every run of the suite installs.
+        assert any(
+            words[index : index + 2] == ["-r", "tests/requirements.txt"]
+            for words in installs
+            for index in range(len(words))
+        ), (name, installs)
+        # No package of the file spelt on the line again.
         assert not any(
-            word.startswith("markdown-it-py") and word != rt.MARKDOWN_IT
+            word.partition("==")[0].lower() in requirement_names()
             for words in installs
             for word in words
         ), (name, installs)
-        # #647: cmarkgfm joins the same line, at the version the runner pins.
-        assert any(rt.CMARKGFM in words for words in installs), (name, installs)
-        assert not any(
-            word.lower().startswith("cmarkgfm") and word != rt.CMARKGFM
+        # #841: pytest-split on the line, with a version. With the assertion
+        # above, the file does not list it.
+        assert any(
+            word.partition("==")[0] == "pytest-split" and word.partition("==")[2]
             for words in installs
             for word in words
         ), (name, installs)
-        # #1486: PyYAML joins the same line, at the version the runner pins.
-        assert any(rt.PYYAML in words for words in installs), (name, installs)
-        assert not any(
-            word.lower().startswith("pyyaml") and word != rt.PYYAML
-            for words in installs
-            for word in words
-        ), (name, installs)
-        # #841: pytest-split joins the same line, at the version the runner pins.
-        # It is CI's alone, so it is not in `PACKAGES` and `bin/test` never
-        # installs it.
-        assert any(rt.PYTEST_SPLIT in words for words in installs), (name, installs)
-        assert not any(
-            word.lower().startswith("pytest-split") and word != rt.PYTEST_SPLIT
-            for words in installs
-            for word in words
-        ), (name, installs)
-    assert rt.PYTEST_SPLIT not in rt.PACKAGES, rt.PACKAGES
 
 
-def test_the_section_names_the_parser_and_where_it_is_pinned():
-    """#667, phase 1. The section names the parser and the constant that
-    pins it, and the fallback commands carry the pin as the runner spells
-    it, so the fallback cannot run the oracle against another version
-    either."""
-    section = running_the_checks()
-    # The parser's package and the constant that pins it, which a reader
-    # installs and resolves in the runner.
-    assert "`markdown-it-py`" in section and "MARKDOWN_IT" in section, section
-    # The two fallback commands with the parser's pin, which a reader copies.
-    assert f"uvx --with pytest --with {rt.MARKDOWN_IT} " in section, section
-    assert f"pip install pytest {rt.MARKDOWN_IT} " in section, section
-    # #647: the renderer's package and the constant that pins it, which a
-    # reader installs and resolves in the runner.
-    assert "`cmarkgfm`" in section and "`CMARKGFM`" in section, section
-    # #1486: the YAML parser's package and the constant that pins it, which
-    # a reader installs and resolves in the runner.
-    assert "`PyYAML`" in section and "`PYYAML`" in section, section
-    # The two fallback commands carrying the three pins in the runner's
-    # order, which a reader copies.
+def test_the_section_names_the_requirements_file_and_its_commands_read_it():
+    """#667, phase 1, and #1575. The section names the packages the suite
+    needs and the file that lists them, and the fallback commands read that
+    file, so the fallback cannot run the oracle against another version, and
+    no version is spelt in the section to fall behind the file."""
+    body = section(read("CONTRIBUTING.md"), RUNNING)
+    # The file, and the packages a reader reads about.
+    assert "`tests/requirements.txt`" in body, body
+    for package in ("`markdown-it-py`", "`cmarkgfm`", "`PyYAML`"):
+        assert package in body, (package, body)
+    # The two fallback commands, which a reader copies.
     assert (
-        f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} --with {rt.PYYAML} " in section
-    ), section
+        "uvx --with-requirements tests/requirements.txt python3 -m pytest tests/ -q"
+        in body
+    ), body
     assert (
-        f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} {rt.PYYAML} " in section
-    ), section
+        "pip install -r tests/requirements.txt && python3 -m pytest tests/" in body
+    ), body
+    assert not any(pin.spec in body for pin in rt.PINS), body
 
 
 # A command nobody is pointed at costs what the old one cost. Three documents
@@ -187,28 +178,18 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
 # `CONTRIBUTING.md` for a person in a clone, the handoff protocol for the
 # orchestrator writing a spawn prompt, and `agents/crafter.md` for the segment
 # that was not told.
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(os.path.join(ROOT, *parts)).split())
-
-
-def running_the_checks():
-    """`CONTRIBUTING.md` *Running the checks*, to the next heading."""
-    text = read(os.path.join(ROOT, "CONTRIBUTING.md"))
-    start = text.index("## Running the checks")
-    return text[start : text.index("\n## ", start + 1)]
 
 
 def test_the_section_names_the_cheap_command_before_the_slow_one():
     """A reader copies the first command in the block. That is the whole of
     #156: the first one paid 55-58 seconds for its environment on every
     call, and a section that names the cheap one second still costs that."""
-    section = running_the_checks()
+    body = section(read("CONTRIBUTING.md"), RUNNING)
     # The runner's command, which a reader copies from the section.
-    assert "bin/test" in section, (
+    assert "bin/test" in body, (
         "`CONTRIBUTING.md` *Running the checks* does not name the runner at all"
     )
-    assert section.index("bin/test") < section.index("uvx --with pytest"), (
+    assert body.index("bin/test") < body.index("uvx --with-requirements"), (
         "the slow form is still the first command in the section, so it is "
         "still what a reader copies"
     )
@@ -219,15 +200,15 @@ def test_the_section_and_the_runner_state_the_same_floor():
     saying a number is two places to disagree, and the disagreement is
     invisible until somebody's 3.11 builds an environment the suite needs
     3.12 for."""
-    section = running_the_checks()
+    body = section(read("CONTRIBUTING.md"), RUNNING)
     # The floor's version, read from the runner's `FLOOR`, which a reader
     # installs at least; and the constant's name, which the reader resolves
     # in the runner.
-    assert rt.FLOOR_TEXT in section, (
+    assert rt.FLOOR_TEXT in body, (
         "the section no longer states the floor the runner enforces "
-        f"({rt.FLOOR_TEXT} in .github/scripts/run_tests.py's FLOOR)"
+        f"({rt.FLOOR_TEXT} in tests/run_tests.py's FLOOR)"
     )
-    assert "FLOOR" in section, (
+    assert "FLOOR" in body, (
         "the sentence names a number the reader cannot trace to the code that holds it"
     )
 
@@ -262,15 +243,15 @@ def test_the_section_names_the_contract_and_the_narrow_form():
     contract rule 2 forbids to every agent. The section that makes it cheap
     names where that rule is and the form a segment types; whose the full
     run is, in its words, is the proofer's to read."""
-    section = " ".join(running_the_checks().split())
+    body = flattened(section(read("CONTRIBUTING.md"), RUNNING))
     # The path of the contract, which a reader opens for the rule that keeps
     # the full run out of an agent's hands.
-    assert "`skills/agent-contract/SKILL.md`" in section, (
+    assert "`skills/agent-contract/SKILL.md`" in body, (
         "the section makes the full suite cheap and says nothing about the "
         "rule that forbids it to a segment"
     )
     # The narrow form, which a segment copies to run one module.
-    assert "bin/test tests/" in section, (
+    assert "bin/test tests/" in body, (
         "no narrow form is shown, so the only command a segment can copy is "
         "the one it must not run"
     )

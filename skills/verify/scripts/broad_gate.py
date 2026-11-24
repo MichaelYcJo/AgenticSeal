@@ -19,9 +19,10 @@ What it does, in order, from the repository root:
      or a key written twice or holding no string, which is refused rather
      than read as absent; or a value this gate would not run as the
      command it reads as — the whole command wrapped in backticks or in
-     `$(…)`, or ending in a single `&`. No refusal names a command to
-     write: the key is a person's, and the message says where they answer
-     it
+     `$(…)`, ending in a single `&`, or, where the shell is `cmd.exe`,
+     naming a command that starts in a directory with `/`. No refusal
+     names a command to write: the key is a person's, and the message says
+     where they answer it
   2. `chain_check.py --baseline <base> --sealing`   judged by the pull
      request's state as the check reads it, with `trail/gate.md`, which this
      run is about to write, and `guarantee.md`, which the sealer writes after
@@ -108,9 +109,12 @@ Usage:
   seal gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
 
 Exit codes: 0 passed · 1 failed · 2 refused — no key, no repository, a
-base that does not resolve, a copy of the plugin whose sibling will not
-load (a malformed `seal-mark.txt` among them), a `trail/gate.md` that could
-not be written; nothing ran on 2 except where the refusal names what ran.
+base that does not resolve, a copy of the plugin that lacks a module it
+loads, a `trail/gate.md` that could not be written, or a git command that
+did not start or did not finish within `lib/gitcmd.py#TIMEOUT`, whose one
+line, `seal gate: ` and the command, is the refusal; nothing ran on 2
+except where the refusal names what ran, or where git stopped answering
+after the checks ran.
 Under `--preflight`: 0 every record arm passed · 1 an arm failed · 2
 refused, with nothing run, `--record` given among the refusals.
 """
@@ -139,16 +143,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = "skills/verify/scripts/seal_stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
-CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
-# `chain_check.SEALING`, the flag the chain arm passes. Spelled here
-# because the arm runs the check as a process; a case holds the two equal.
-CHAIN_SEALING = "--sealing"
+# The chain arm runs the check as a process, and passes the check's own
+# `SEALING`, read from the module `main` loads before any arm runs.
+CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
+CHAIN = os.path.join(PLUGIN, *CHAIN_CHECK.split("/"))
 CONFIG_READER = "lib/config.py"
 # `lib/fields.py`, which assembles the run block `--record` appends and
 # reads the blocks already there.
 FIELDS_READER = "lib/fields.py"
 OPTIN = "lib/optin.py"
-# `lib/routing.py`, whose `rounds` lists a work item's round records.
+# `lib/routing.py`, whose `rounds` lists a work item's round records and
+# whose `current_branch` names the branch checked out.
 ROUTING = "lib/routing.py"
 
 # `lib/sibling.py` loads every other module this command reads, and an
@@ -168,7 +173,8 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-CONFIG = "config.json"
+console = sibling.load("lib/console.py")
+
 KEY = "Broad gate"
 
 # The checks, by the name the report prints for each. The first is the
@@ -204,66 +210,25 @@ class Refused(Exception):
     """A reason nothing ran (exit 2)."""
 
 
-def sibling_module(rel):
-    """The module at REL through `lib/sibling.py#load`, or `Refused` where
-    executing it raises: `seal_stamp.py` reads its disc's mark sprite
-    at import and raises `SPRITE_MALFORMED`'s sentence for one that is not
-    in shape, which then ends the gate at exit 2 with that sentence and
-    nothing run, rather than in a traceback. The exception's own sentence is
-    what the person reads; one with none is named by its type. A
-    `SystemExit` is no `Exception` and keeps its own exit, and so does the
-    loader's for an absent file."""
-    try:
-        return sibling.load(rel)
-    except Exception as exc:
-        said = str(exc) or type(exc).__name__
-        path = os.path.join(PLUGIN, *rel.split("/"))
-        raise Refused(
-            f"seal gate: {path} will not load, so nothing ran: {said}"
-        ) from exc
-
-
 def stamp_module():
     """`seal_stamp.py`, loaded once per process: `panel` asks it the one
     question both of them answer (`ref_is_commit`), and a case drives
     `panel` without a gate around it to have loaded it."""
-    return sibling_module(STAMP)
+    return sibling.load(STAMP)
 
 
 def gitcmd_module():
-    """`lib/gitcmd.py`, loaded once per process, or `Refused`. A
-    refusal leaves nothing loaded, so each later call raises it again."""
-    return sibling_module("lib/gitcmd.py")
+    """`lib/gitcmd.py`, loaded once per process: absent, it is the loader's
+    sentence and exit 2."""
+    return sibling.load("lib/gitcmd.py")
 
 
 def git(root, *args):
-    """stdout of a git call in `root`, or None on a non-zero exit. The argv
-    is `lib/gitcmd.py#argv`'s, and a helper that will not load raises
-    `Refused`."""
-    r = subprocess.run(
-        gitcmd_module().argv("-C", root, *args),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    """stdout of a git call in `root` through `lib/gitcmd.py#git`, or None
+    on a non-zero exit. A git that did not answer raises
+    `lib/gitcmd.py#Failed`, which `main` reads as the gate's refusal."""
+    r = gitcmd_module().git(root, *args)
     return r.stdout if r.returncode == 0 else None
-
-
-def repo_root(start):
-    out = git(start, "rev-parse", "--show-toplevel")
-    return os.path.normpath(out.strip()) if out and out.strip() else None
-
-
-def branch_name(root):
-    """The branch checked out at `root`, or None on a detached HEAD.
-
-    What the `BROAD GATE PASSED` and `BROAD GATE FAILED` lines name beside
-    the tree: a hash tells a reader which commit a line is about and never
-    which branch, and the branch is what matches a line to its work.
-    `symbolic-ref -q` exits non-zero on a detached HEAD and prints nothing,
-    which is the None the lines read as *leave the branch out*."""
-    out = git(root, "symbolic-ref", "--short", "-q", "HEAD")
-    return out.strip() if out and out.strip() else None
 
 
 # --- which copy of the gate runs, and the stamp says which ------------------
@@ -315,19 +280,8 @@ def plugin_version(plugin):
     manifest. The manifest is read by `lib/core.py#manifest`, which loads
     as every other `lib/` module does: absent, it is the loader's sentence
     and exit 2."""
-    version = sibling_module(CORE).manifest(plugin).get("version")
+    version = sibling.load(CORE).manifest(plugin).get("version")
     return str(version) if version else "?"
-
-
-def under(path, root):
-    """Whether `path` lies under `root`, both taken by realpath."""
-    if root is None:
-        return False
-    path, root = os.path.realpath(path), os.path.realpath(root)
-    try:
-        return os.path.commonpath([path, root]) == root
-    except ValueError:  # different drives on Windows
-        return False
 
 
 def copy_origin(root, plugin=PLUGIN, running=None):
@@ -342,11 +296,13 @@ def copy_origin(root, plugin=PLUGIN, running=None):
     stderr carries the path in full, the way `moved_line` carries what the
     panel cannot. Elided at the frame (`fit`), so a long
     version is a shorter label and never a wider row. `running` is this
-    file unless a case names another.
+    file unless a case names another. The two paths are compared resolved.
     """
-    origin = (
-        "tree" if under(__file__ if running is None else running, root) else "plugin"
+    running = __file__ if running is None else running
+    tree = root is not None and gitcmd_module().inside(
+        os.path.realpath(running), os.path.realpath(root)
     )
+    origin = "tree" if tree else "plugin"
     return stamp_module().fit(f"{origin} {plugin_version(plugin)}")
 
 
@@ -378,7 +334,9 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     branch that changed the gate would print nothing exactly when it matters.
     """
     running = __file__ if running is None else running
-    if not under(running, root):
+    if root is None or not gitcmd_module().inside(
+        os.path.realpath(running), os.path.realpath(root)
+    ):
         return None
     if installed:
         try:
@@ -473,9 +431,9 @@ def moved_line(root, base):
     an upstream — answers with something that is not `origin/<base>`, and the
     workflow spells `origin/<base>` literally. Where the two part, the line
     says what THIS checkout declares and names the ref a runner would read
-    beside it. `skills/code-review/orchestration.md` has the orchestrator
-    quote this line, so a sentence that can be wrong here is wrong in what
-    a person reads.
+    beside it. `skills/code-review/gate-to-pull-request.md` has the
+    orchestrator quote this line, so a sentence that can be wrong here is
+    wrong in what a person reads.
 
     **And it names a runner's ref only where a runner could hold one.** One
     spelling would over-claim the clause above: `--base @{-1}` passes
@@ -628,14 +586,11 @@ def seal_home(root):
     `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
     this plugin resolves to (contract rule 11), read in that order. Each is
     the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
-    the project keeps for itself is never read for a command. The places and the marker are
-    `optin`'s; the scratch opt-out is not read here, because a throwaway
-    repository still runs its broad command when somebody asks for it."""
-    optin = sibling_module(OPTIN)
-    for found in optin.home_paths(root):
-        if found and os.path.isdir(found) and optin.marked(found):
-            return found
-    return None
+    the project keeps for itself is never read for a command. The answer is
+    `lib/optin.py#marked_home`'s; the scratch opt-out is not read here,
+    because a throwaway repository still runs its broad command when
+    somebody asks for it."""
+    return sibling.load(OPTIN).marked_home(root) or None
 
 
 def broad_command(home):
@@ -649,7 +604,7 @@ def broad_command(home):
     nothing run. Read as no key, an unreadable file would be reported
     as a missing one, which sends a person to add a key the file already
     holds, and a doubled key would run one of its commands."""
-    config = sibling_module(CONFIG_READER)
+    config = sibling.load(CONFIG_READER)
     pairs, refused = config.config_pairs(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
@@ -670,7 +625,8 @@ def missing_row(home):
     afterwards. The message says whose the key is and where they answer
     it."""
     return (
-        f"seal gate: {os.path.join(home, CONFIG)} has no `{KEY}` key, so "
+        f"seal gate: {sibling.load(CONFIG_READER).config_path(home)} has no "
+        f"`{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
@@ -712,7 +668,130 @@ def wholly_substituted(value):
     return None
 
 
-def not_as_written(home, command):
+# --- what `cmd.exe` reads as a command name ----------------------------------
+#
+# `subprocess.run(..., shell=True)` on Windows runs `%COMSPEC% /c "<string>"`,
+# and `COMSPEC` is `cmd.exe` unless somebody changed it. `cmd.exe` reads a `/`
+# in a command NAME as the start of a switch, so `bin/test -q` runs a command
+# called `bin` with the argument `/test`, prints "not recognized" in the
+# machine's own language, and exits 1, which the failure form then reports as
+# the suite failing (#448). `not_as_written` refuses that name, and nothing
+# is rewritten.
+
+CMD_EXE = "cmd.exe"
+# Each can move where `cmd.exe` ends a command: a `"` hides a separator, a `^`
+# escapes one, and a `%VAR%` can expand to one. The reading stops at the first.
+CMD_CUT = '"^%'
+# The words after which `cmd.exe` reads the next word as a command name.
+CMD_SEPARATORS = ("&&", "||", "&", "|")
+CMD_WORD = re.compile(r"[^ \t]+")
+
+
+def cmd_exe_reads(windows=None, comspec=None):
+    """Whether `subprocess.run(..., shell=True)` hands its string to
+    `cmd.exe`: Windows, where `COMSPEC` names `cmd.exe` or is unset, which
+    Python answers with `cmd.exe` too.
+
+    `not_as_written` reads a command name for `cmd.exe` only, and this is
+    where it asks. Keyed on the shell and not on `os.name` alone, because a
+    Windows machine can name a POSIX shell in `COMSPEC`
+    (`tests/conftest.py#posix_row_shell_or_skip` exists for that machine),
+    and a POSIX shell runs `bin/test` as written. `windows` and `comspec`
+    default to this machine's, and are arguments so that both branches can
+    be driven from either platform; `seal_stamp.py#quote`'s docstring says
+    what reading `os.name` in the body costs.
+    """
+    if windows is None:
+        windows = os.name == "nt"
+    if not windows:
+        return False
+    if comspec is None:
+        comspec = os.environ.get("COMSPEC")
+    # `ntpath` whatever this machine is: `C:\Windows\System32\cmd.exe` has no
+    # `/` in it for `posixpath.basename` to split at.
+    return not comspec or ntpath.basename(comspec.strip().strip('"')).lower() == CMD_EXE
+
+
+def cmd_cut(value):
+    """Where the reading of VALUE stops: its first `"`, `^` or `%`, or its
+    length where it holds none."""
+    found = [at for at in map(value.find, CMD_CUT) if at >= 0]
+    return min(found, default=len(value))
+
+
+def command_names(text):
+    """Each word of TEXT read as a command name, with its offset, in the
+    order they stand: TEXT split at blanks and tabs, and a word is a command
+    name where it is the first, or where the word before it is exactly one
+    of `CMD_SEPARATORS`."""
+    before = None
+    for match in CMD_WORD.finditer(text):
+        if before is None or before in CMD_SEPARATORS:
+            yield match.start(), match.group()
+        before = match.group()
+
+
+def names_in_a_directory(command, is_directory):
+    """`(refused, not_read)`: the command names of COMMAND that start in a
+    directory with `/`, split in two at `cmd_cut`. A name that ends before
+    the cut is refused. A name that reaches the cut, holding its character,
+    or stands past it is named as not read and never refused, so no refusal
+    speaks of a spelling past the cut. Two lists of words in the order they
+    stand, as the blank split of COMMAND gives them.
+
+    A name starts in a directory where it holds a `/` and `is_directory`
+    answers true for the part before its first `/`. The scan does no I/O of
+    its own: `not_as_written` asks the root the command runs in (`in_root`).
+    """
+    cut = cmd_cut(command)
+    refused, not_read = [], []
+    for at, word in command_names(command):
+        if "/" in word and is_directory(word.split("/", 1)[0]):
+            (refused if at + len(word) <= cut else not_read).append(word)
+    return refused, not_read
+
+
+def listed(words):
+    """WORDS in backticks, the last joined with `and`."""
+    *rest, last = [f"`{word}`" for word in words]
+    return f"{', '.join(rest)} and {last}" if rest else last
+
+
+def backslashed(value, refused):
+    """VALUE with `/` written `\\` in each word read as a command name that
+    REFUSED holds and that ends before `cmd_cut`, and every other character
+    where it was. A word spelt the same as an argument keeps its `/`, and so
+    does the same name where it stands again past the cut."""
+    out = list(value)
+    cut = cmd_cut(value)
+    for at, word in command_names(value):
+        if at + len(word) <= cut and word in refused:
+            out[at : at + len(word)] = word.replace("/", "\\")
+    return "".join(out)
+
+
+def in_root(root):
+    """The directory question `names_in_a_directory` asks, put to ROOT: an
+    empty part, `.` and `..` each name a directory there, and on Windows so
+    does a drive such as `C:`, which `os.path.join` there answers with a
+    directory on that drive."""
+    return lambda part: os.path.isdir(os.path.join(root, part))
+
+
+def not_read_line(config, value, not_read):
+    """The one line naming the words the reading stopped before, or ""."""
+    if not not_read:
+        return ""
+    return (
+        f"seal gate: the gate stopped reading the `{KEY}` key in {config} at its "
+        f"first `{value[cmd_cut(value)]}`, which can move where cmd.exe ends a "
+        f"command, so it did not read {listed(dict.fromkeys(not_read))}. Read as "
+        "a command name, each starts in a directory, and cmd.exe would read its "
+        "`/` as the start of a switch."
+    )
+
+
+def not_as_written(home, command, root, windows=None, comspec=None):
     """The refusal for a `Broad gate` value the gate would not run as the
     command it reads as — or None for every value it would.
 
@@ -723,12 +802,34 @@ def not_as_written(home, command):
     This function is the half that acts; a form belongs here only by failing
     one of those halves there.
 
-    Three forms fail one. The whole value wrapped in backticks, or in the
+    Four forms fail one. The whole value wrapped in backticks, or in the
     `$(…)` spelling of the same thing, runs the checks first, DISCARDS their
     exit status, and executes their output as a command: the same content
     exits 1 bare and 0 wrapped, with the failure still on the screen. A
     trailing `&` backgrounds the line, so the shell answers 0 before any
-    check has finished.
+    check has finished. And where the shell is `cmd.exe` (`cmd_exe_reads`
+    with `windows` and `comspec`, this machine's by default), a command name
+    that starts in a directory with `/` runs the part before the `/` as the
+    command (`names_in_a_directory`).
+
+    **What `cmd.exe` reads is read only as far as it is read exactly.** The
+    value is read up to its first `"`, `^` or `%`, split at blanks and tabs,
+    and a word is a command name where it is the first or follows a word
+    that is exactly `&&`, `||`, `&` or `|`: within that part no quote hides
+    a separator and no caret escapes one. A name is refused where the part
+    before its first `/` is a directory under ROOT, the root the command
+    runs in, or on Windows a drive (`in_root`). A word that reaches the cut,
+    holding its character, or stands past it is never refused: where the
+    same reading would refuse it, it is named on one stderr line before the
+    run, or inside the refusal, and decides nothing. A name `cmd.exe` reads where
+    this reading takes no command name, such as after a separator glued to
+    a word in `a&& bin/x`, is neither refused nor named:
+    `templates/setup/config.md` *Broad gate* states the rule the reading
+    decides by and what a key that leaves it does.
+
+    The key as meant removes the form its refusal names and nothing else, so
+    a key that holds a second refused form is refused for it on the next
+    run, by name.
 
     Everything else stays legal, a pipe included, because the value is an
     arbitrary shell command line by design and telling a status-discarding
@@ -738,8 +839,10 @@ def not_as_written(home, command):
     Nothing is stripped or rewritten. A value silently repaired here leaves
     the file still wrong and teaches the next person that it was right.
     """
+    config = sibling.load(CONFIG_READER).config_path(home)
     value = command.strip()
     opener = wholly_substituted(value)
+    unread = ""
     if opener == "`":
         form = "is the whole command wrapped in backticks"
         does = (
@@ -748,6 +851,7 @@ def not_as_written(home, command):
             "executed as a command. What this gate would read is that "
             "command's exit code and not the checks'"
         )
+        meant = value[1:-1].strip()
     elif opener == "$(":
         form = "is the whole command wrapped in `$(…)`"
         does = (
@@ -755,6 +859,7 @@ def not_as_written(home, command):
             "the same thing: the checks' exit status is DISCARDED and their "
             "output is executed as a command in its place"
         )
+        meant = value[2:-1].strip()
     elif value.endswith("&") and not value.endswith("&&"):
         form = "ends in a single `&`"
         does = (
@@ -764,20 +869,39 @@ def not_as_written(home, command):
             "instead, which is a different wrong answer refused for the same "
             "reason: the exit code read is not the checks'"
         )
+        meant = value[:-1].strip()
     else:
-        return None
-    rewritten = (value[len(opener) : -1] if opener else value[:-1]).strip()
+        if not cmd_exe_reads(windows, comspec):
+            return None
+        refused, not_read = names_in_a_directory(value, in_root(root))
+        unread = not_read_line(config, value, not_read)
+        if not refused:
+            if unread:
+                sys.stderr.write(unread + "\n")
+            return None
+        names = list(dict.fromkeys(refused))
+        meant = backslashed(value, names)
+        turned = [name.replace("/", "\\") for name in names]
+        form = f"starts a command name in a directory with `/`: {listed(names)}"
+        does = (
+            "and the shell here is cmd.exe, which reads a `/` in a command "
+            "name as the start of a switch, so it runs the part before the `/` "
+            "as the command, which fails before any check has run, and the "
+            f"report reads as the suite failing. cmd.exe runs {listed(turned)}, "
+            "and `/bin/sh` reads that spelling as another name, so a key run "
+            "under both shells names its commands with no directory in front, "
+            "and hands a script's path to an interpreter as an argument"
+        )
     return (
-        f"seal gate: the `{KEY}` key in {os.path.join(home, CONFIG)} {form}, "
-        f"{does}.\n"
+        f"seal gate: the `{KEY}` key in {config} {form}, {does}.\n"
         f"    as written: {json.dumps({KEY: value}, ensure_ascii=False)[1:-1]}\n"
-        f"    as meant:   {json.dumps({KEY: rewritten}, ensure_ascii=False)[1:-1]}\n"
+        f"    as meant:   {json.dumps({KEY: meant}, ensure_ascii=False)[1:-1]}\n"
         "Nothing ran, and nothing was repaired: the key is a person's to "
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
         "`/agentic:config` is the door to the key."
-    )
+    ) + (f"\n{unread}" if unread else "")
 
 
 # --- running one check ---------------------------------------------------
@@ -799,28 +923,17 @@ class Check:
         return lines[:n]
 
 
-def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=None):
+def run(name, command, root, keep, shell=False, env=None):
     """Run one check from the repository root, keep its output under
     `keep/<name>.txt`, and return it with the exit code read directly.
 
-    **A shell string is handed over through `handed_to_shell`**, which is the
-    one place this module's shell sites meet: `gate`'s `SUITE` and
-    `compare_at_base`'s `suite-at-base` both arrive here, so neither needs a
-    change of its own. Where what the shell is handed differs from what
-    the key says, one stderr line says so before the run, and the kept file
-    carries both lines above the exit code — the command as written first, because
-    that is the line a reader retypes. `windows` and `comspec` are the
-    platform, passed through, so a case can drive the `cmd.exe` branch from
-    any machine the way `seal_stamp.py#quote` is driven. `root` is passed through too,
-    because it is where the command runs, and so where a command name's first
-    part is asked whether it is a directory.
+    A shell string is handed over as the key wrote it, on every platform:
+    `gate`'s `SUITE` and `compare_at_base`'s `suite-at-base` both arrive
+    here, and `gate` has refused, before either runs, a value the gate would
+    not run as the command it reads as (`not_as_written`).
     """
-    handed = handed_to_shell(command, windows, comspec, root) if shell else command
-    rewritten = shell and handed != command
-    if rewritten:
-        sys.stderr.write(handed_line(name, handed) + "\n")
     r = subprocess.run(
-        handed,
+        command,
         cwd=root,
         shell=shell,
         capture_output=True,
@@ -832,323 +945,9 @@ def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=
     path = os.path.join(keep, f"{name}.txt")
     with open(path, "w", encoding="utf-8") as handle:
         handle.write(f"$ {command if shell else shlex.join(command)}\n")
-        if rewritten:
-            handle.write(f"{HANDED} {handed}\n")
         handle.write(f"exit {r.returncode}\n\n")
         handle.write(text)
     return Check(name, r.returncode, text, path)
-
-
-# --- what `cmd.exe` is handed ------------------------------------------------
-#
-# `subprocess.run(..., shell=True)` on Windows runs `%COMSPEC% /c "<string>"`,
-# and `COMSPEC` is `cmd.exe` unless somebody changed it. `cmd.exe` reads a `/`
-# in a command NAME as the start of a switch, so the command `bin/test -q && …`
-# runs a command called `bin` with the argument `/test`, prints "not
-# recognized" in the machine's own language, and exits 1 — which the failure
-# form then reports as the suite failing. `bin/test.cmd` exists so that
-# `cmd.exe` can call the runner, and it is reached as `bin\test`.
-
-CMD_EXE = "cmd.exe"
-# The kept file's second line where the shell was handed something else.
-HANDED = "cmd.exe was handed:"
-
-
-def handed_line(name, handed):
-    """The one stderr line a rewritten check prints before it runs."""
-    return (
-        f"seal gate: {name} — cmd.exe reads a `/` in a command name as the "
-        f"start of a switch, so a command name that starts in a directory has "
-        f"its `/` handed to it as `\\`: {handed}"
-    )
-
-
-CMD_VARIABLE = re.compile(r"%([^%]+)%")
-
-
-def as_cmd_expands(part, here):
-    """`part` with each plain `%NAME%` replaced as `cmd /c` replaces it
-    before it reads a command name. What of `cmd.exe`'s expansion is
-    modelled is the list below, and nothing past it.
-
-    A name defined in this process's environment takes its value, which is
-    the environment `run` hands the shell. Where the environment defines
-    neither `CD` nor `__CD__`, `cmd.exe` computes them, and both name the
-    directory the command runs in, which is `here`. A defined one wins, as it
-    does in `cmd.exe` (`set /?`), so the environment is asked first.
-    Any other name is left as written, as `cmd /c` leaves an undefined one,
-    and so is `%%`. A substring or substitution (`%NAME:~0,2%`,
-    `%NAME:a=b%`) is not modelled and is left as written too, so a name that
-    starts with one keeps its `/`. Nor is where `cmd.exe` resumes scanning
-    after an undefined name: this resumes after the name's closing `%`, and
-    whether `cmd.exe` does is unverified, since only a Windows run answers
-    it. Nothing else is expanded: `$NAME` and `'…'` mean nothing to
-    `cmd.exe`, which is why this is not `ntpath.expandvars`.
-    """
-
-    def value(match):
-        name = match.group(1)
-        if name in os.environ:
-            return os.environ[name]
-        if name.upper() == "CD":
-            return os.path.abspath(here)
-        if name.upper() == "__CD__":
-            return os.path.join(os.path.abspath(here), "")
-        return match.group(0)
-
-    return CMD_VARIABLE.sub(value, part)
-
-
-def cmd_exe_reads(windows=None, comspec=None):
-    """Whether `subprocess.run(..., shell=True)` hands its string to
-    `cmd.exe`: Windows, where `COMSPEC` names `cmd.exe` or is unset, which
-    Python answers with `cmd.exe` too.
-
-    `handed_to_shell` rewrites a command name only for `cmd.exe`, and this
-    is where it asks. `windows` and `comspec` default to this
-    machine's, for the reason `handed_to_shell`'s docstring gives.
-    """
-    if windows is None:
-        windows = os.name == "nt"
-    if not windows:
-        return False
-    if comspec is None:
-        comspec = os.environ.get("COMSPEC")
-    # `ntpath` whatever this machine is: `C:\Windows\System32\cmd.exe` has no
-    # `/` in it for `posixpath.basename` to split at.
-    return not comspec or ntpath.basename(comspec.strip().strip('"')).lower() == CMD_EXE
-
-
-def handed_to_shell(command, windows=None, comspec=None, root=None):
-    """The string `subprocess.run(command, shell=True)` should be given.
-
-    `command` unchanged everywhere but one place: Windows, where the shell
-    `COMSPEC` names is `cmd.exe` — or `COMSPEC` is unset, which Python
-    answers with `cmd.exe` too. There a COMMAND NAME that starts in a
-    directory has its `/` written `\\`, and nothing else changes
-    (`command_names_backslashed`).
-
-    **The directory is asked here, and the scan stays pure.** `root` is
-    where the command runs — `run`'s own `root`, which is the repository for
-    `gate` and the scratch worktree for `compare_at_base` — and a name's
-    first part is a directory where `os.path.isdir(os.path.join(root,
-    part))` says so, once any `%VAR%` in it is expanded, because `cmd.exe`
-    expands it before it reads the name — as far as `as_cmd_expands` models
-    that expansion, which its docstring states; a variable that names
-    nothing stays as written and names no directory.
-    `None` is the current directory, which is where
-    `subprocess.run` with `cwd=None` would run the command. The read happens
-    here because this function already reads `COMSPEC` from the
-    environment; the scan takes the answer as an argument.
-
-    Keyed on the shell and not on `os.name` alone, because a Windows machine
-    can name a POSIX shell in `COMSPEC` (`tests/conftest.py#
-    posix_row_shell_or_skip` exists for that machine), and a POSIX shell
-    runs `bin/test` as written. `windows` and `comspec` default to this
-    machine's, and are arguments so that both branches can be driven from
-    either platform — `seal_stamp.py#quote`'s docstring says what reading
-    `os.name` in the body costs.
-    """
-    if not cmd_exe_reads(windows, comspec):
-        return command
-    here = os.curdir if root is None else root
-    # `cmd.exe` expands `%VAR%` before it reads the name, so the part is
-    # expanded before it is asked, as far as `as_cmd_expands` models it.
-    return command_names_backslashed(
-        command,
-        lambda part: os.path.isdir(os.path.join(here, as_cmd_expands(part, here))),
-    )
-
-
-# `cmd.exe`'s own commands. Written straight against one of them, a `/` is
-# that command's switch -- `rd/s/q`, `dir/b`, `cd/d` -- and `cmd.exe` runs the
-# command as written. Turned into `\` it stops being a switch, so it is left.
-CMD_BUILTINS = frozenset(
-    {
-        "assoc",
-        "break",
-        "call",
-        "cd",
-        "chdir",
-        "cls",
-        "color",
-        "copy",
-        "date",
-        "del",
-        "dir",
-        "echo",
-        "endlocal",
-        "erase",
-        "exit",
-        "for",
-        "ftype",
-        "goto",
-        "if",
-        "md",
-        "mkdir",
-        "mklink",
-        "move",
-        "path",
-        "pause",
-        "popd",
-        "prompt",
-        "pushd",
-        "rd",
-        "rem",
-        "ren",
-        "rename",
-        "rmdir",
-        "set",
-        "setlocal",
-        "shift",
-        "start",
-        "time",
-        "title",
-        "type",
-        "ver",
-        "verify",
-        "vol",
-    }
-)
-
-
-def command_names_backslashed(command, is_directory):
-    """`command` with `/` written `\\` inside each word `cmd.exe` reads as a
-    command name and that starts in a directory, and every other character
-    exactly where it was.
-
-    **Which names start in a directory is asked, not read.** `is_directory`
-    is called with the part of a name before its first `/`, with its `"`
-    and `^` removed and every leading `@` dropped, as the built-in check
-    drops them, and answers whether that
-    part names a directory. The scan does no I/O of its own:
-    `handed_to_shell` asks the filesystem where the command runs, and a case
-    can answer from any machine. An empty part is a name that begins with
-    `/`, which starts at the drive's root; that always exists, so it is
-    answered here without asking.
-
-    **A position scan over the string, never a tokenise-and-re-render**,
-    because re-rendering is how quoting gets lost. The part of `cmd.exe`'s
-    lexer it models:
-
-      - a word is in COMMAND POSITION at the start of the line and after
-        `&&`, `||`, `&` or `|`; blanks and a `(` that opens a block are
-        passed over there, and the word begins at the next character;
-      - the command name runs from there to the first unquoted blank, tab,
-        `<`, `>`, `&`, `|` or `(`. At its first `/` one decision is made for
-        the whole name: where the part before it names a directory, that
-        `/` and every later one in the name become `\\` — inside a quoted
-        stretch too, since a quoted Windows path takes `\\`; where it does
-        not, every `/` in the name is handed over as written, because
-        `bin/test` is a path and `xcopy/e` is a program and its switch;
-      - `"` is the only quote; outside one, `^` escapes the next character,
-        and that character is copied as written, so `^&` is never a
-        separator and `^/` is never rewritten — in command position it is
-        the name's first character, so `^a b/c` keeps `b/c` an argument;
-      - a `<` or `>` ends command position until the next separator;
-      - a `/` written straight after one of `cmd.exe`'s own commands
-        (`CMD_BUILTINS`, a leading `@` aside) is that command's switch, so
-        `rd/s/q` and `dir/b` stay as written and the name ends there. This
-        is asked first, before any directory, so a `dir/` directory in the
-        tree does not turn `dir/b` into a path.
-
-    Three things `cmd.exe` does are left unmodelled because modelling them
-    changes no output, and a branch that changes no output is one nothing
-    can hold: a leading `@` is read as the first character of the name,
-    which has no `/` in it, and is dropped only where the name is asked
-    about — the built-in check and the directory part; a `)` does not end
-    a name, which only matters for a `/` written straight after one; and
-    the `&` of `2>&1` is read as a separator, which makes the handle digit
-    after it a "name" with no `/` in it. The `2>&1` row of
-    `tests/skills/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
-    to what it hands over.
-
-    **Not rewritten, and named rather than claimed:** a path after `call`,
-    `start`, `if`, `else`, `for … do` or `cmd /c`, which `cmd.exe` reads as
-    an argument of those words and then splits at its `/` as though nothing
-    had been rewritten; and a command name after a redirection at the start of a
-    command (`>out bin/test`), where this scan stops treating the rest as
-    command position. None is worse than the command handed as written, and
-    `templates/setup/config.md` *Broad gate* states the rule and these examples.
-
-    **Judged where the command starts, and bounded there, named rather than
-    claimed:** a directory an earlier command in the same line makes, or
-    one a `cd` earlier in the line enters, is not seen, so that name is
-    handed over as written, which is no worse than the command itself. And
-    a directory at the root named like a program the command calls with a
-    glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path;
-    `cmd.exe` itself is ambiguous in that tree, and a blank before the
-    switch (`xcopy /e`) is never rewritten.
-    `templates/setup/config.md` *Broad gate* states both.
-    """
-    out = []
-    at_command = True  # the next word read is a command name
-    in_name = False  # inside that command name now
-    quoted = False
-    start = 0  # where the current command name began
-    turned = None  # the name's one decision, taken at its first `/`
-
-    def opens_name(at):
-        nonlocal at_command, in_name, start, turned
-        at_command, in_name, start, turned = False, True, at, None
-
-    def turn(at):
-        """Whether the name's `/` at `at` is written `\\`."""
-        nonlocal turned
-        if turned is None:
-            part = command[start:at]
-            part = part.lstrip("@").replace('"', "").replace("^", "")
-            turned = part == "" or bool(is_directory(part))
-        return turned
-
-    i, n = 0, len(command)
-    while i < n:
-        c = command[i]
-        if quoted:
-            if c == '"':
-                quoted = False
-            elif c == "/" and in_name and turn(i):
-                c = "\\"
-            out.append(c)
-            i += 1
-            continue
-        if c == '"':
-            quoted = True
-            if at_command:
-                opens_name(i)
-            out.append(c)
-            i += 1
-            continue
-        if c == "^":
-            # The escaped character is the name's first one where it stands
-            # in command position, so the next blank ends that name.
-            if at_command:
-                opens_name(i)
-            out.append(command[i : i + 2])
-            i += 2
-            continue
-        if c in "&|":
-            # `&&` and `||` are two of these in a row, which is the same state.
-            at_command, in_name = True, False
-        elif c in "<>":
-            at_command, in_name = False, False
-        elif c in " \t(":
-            # A `(` opens a block in command position, which stays command
-            # position; anywhere else it ends the name, so `echo(a/b)` keeps
-            # its argument as written.
-            in_name = False
-        else:
-            if at_command:
-                opens_name(i)
-            if c == "/" and in_name:
-                if command[start:i].lstrip("@").lower() in CMD_BUILTINS:
-                    # A built-in's switch, written against it: as written.
-                    in_name = False
-                elif turn(i):
-                    c = "\\"
-        out.append(c)
-        i += 1
-    return "".join(out)
 
 
 # --- the reactive base comparison ------------------------------------------
@@ -1659,10 +1458,15 @@ def compare_at_base(root, base, command, files, keep):
         record = read_record(records_dir(keep), key, scratch)
         return {f: base_word(record, ran.code, f) for f in files}
     finally:
-        subprocess.run(
-            ["git", "-C", root, "worktree", "remove", "--force", scratch],
-            capture_output=True,
-        )
+        # A removal git did not answer names the worktree left behind and
+        # does not replace the words the run above gave.
+        try:
+            git(root, "worktree", "remove", "--force", scratch)
+        except gitcmd_module().Failed as unanswered:
+            sys.stderr.write(
+                f"seal gate: the scratch worktree {scratch} was not removed: "
+                f"{unanswered.line}\n"
+            )
 
 
 # --- what the panel reads --------------------------------------------------
@@ -1707,13 +1511,13 @@ def write_gate_file(item, tree, base):
     <base>`, below the text already there, a work item's heading opening a
     file that was not, and return its path. Nothing is appended where the
     last block the file holds names the same run. Raises `Refused`, and
-    writes nothing, where the file cannot be read or written, the reader will
-    not load, the run is not one the reader reads, or the file as it
-    will stand, the held file where nothing is appended, is one the reader
-    refuses at a line or reads with another run last."""
+    writes nothing, where the file cannot be read or written, the run is not
+    one the reader reads, or the file as it will stand, the held file where
+    nothing is appended, is one the reader refuses at a line or reads with
+    another run last."""
     # `lib/optin.py#GATE` is `/`-joined; split on `/`, the disk path takes
     # the platform's separator throughout.
-    path = os.path.join(item, *sibling_module(OPTIN).GATE.split("/"))
+    path = os.path.join(item, *sibling.load(OPTIN).GATE.split("/"))
     try:
         with open(path, encoding="utf-8") as handle:
             held = handle.read()
@@ -1722,7 +1526,7 @@ def write_gate_file(item, tree, base):
         held = f"# {name} {chr(0x2014)} broad gate\n"
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused(f"seal gate: {path} could not be read ({exc})") from exc
-    fields = sibling_module(FIELDS_READER)
+    fields = sibling.load(FIELDS_READER)
     value = f"{tree} against {base}"
     try:
         block = fields.assemble([(fields.RUN, value)], fields.GATE)
@@ -1768,25 +1572,12 @@ def rounds_rows(item):
     the panel as ASCII, anything outside it reading `?`, because the letter
     twin maps only the owner's characters. A record the check's reader
     refuses anything of adds nothing beneath."""
-    records = sibling_module(ROUTING).rounds(item)
+    records = sibling.load(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
-    # The deferred row beneath never stops a run that passed, so an absent
-    # check is said here and the run goes on. `lib/routing.py`, which lists
-    # the records above, loads as every other `lib/` module does: absent, it
-    # is the loader's sentence and exit 2.
-    try:
-        with sibling.going_on():
-            chain = sibling_module("skills/code-review/scripts/chain_check.py")
-    except sibling.Absent as absent:
-        sys.stderr.write(
-            f"seal gate: the round records' deferred findings are not counted: "
-            f"{absent.path} is absent\n"
-        )
-        return rows
-    except (Refused, SystemExit):
-        return rows
+    # `main` loaded the check before any arm ran and the chain arm read its
+    # `SEALING`, so this is the module the process already holds.
+    chain = sibling.load(CHAIN_CHECK)
     stamp = stamp_module()
-    reader = chain.SHARED_READER
     count, homes = 0, []
     for path in records:
         try:
@@ -1794,7 +1585,7 @@ def rounds_rows(item):
                 text = handle.read()
         except (OSError, UnicodeDecodeError):
             continue
-        found, errors = chain.record_findings(reader, text, path)
+        found, errors = chain.record_findings(text, path)
         for kind, home in [] if errors else [f.verdict for f in found]:
             if kind != chain.DEFERRED:
                 continue
@@ -1826,7 +1617,8 @@ def panel(
     stamp's, and carry no title row.
 
     `base` is a `Base`. `copy` is `gate_copy`'s value and None leaves the
-    `gate` row out; `branch` is `branch_name`'s, None on a detached HEAD;
+    `gate` row out; `branch` is `lib/routing.py#current_branch`'s, None on
+    a detached HEAD;
     `run` is the `RunRecord` of the command's run here, whose `suite_counts`
     the `suite` row prints — never the command's printed output, which
     a test can print into.
@@ -2148,8 +1940,10 @@ def gate(args, ascii_marks=False):
     in ASCII: `is_utf8` asked of stdout as the process found it, negated,
     which is what `__main__` passes. The report is the same text on a
     terminal and a pipe, and nothing is drawn on either."""
-    root = repo_root(os.path.abspath(args.root or os.getcwd()))
-    if root is None:
+    # `toplevel` raises where git did not answer, so a git that hung is not
+    # read as no repository.
+    root = sibling.load(OPTIN).toplevel(os.path.abspath(args.root or os.getcwd()))
+    if not root:
         raise Refused(
             f"seal gate: {args.root or os.getcwd()} is not in a git repository — "
             "nothing ran"
@@ -2159,7 +1953,7 @@ def gate(args, ascii_marks=False):
         # The two places as `optin.home_paths` gives them, as `seal mode`
         # prints them: beside a project's own `seal/` the shared one takes
         # the second name, which a literal `<repo>/seal/` would misname.
-        shared, local = sibling_module(OPTIN).home_paths(root)
+        shared, local = sibling.load(OPTIN).home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
@@ -2175,7 +1969,7 @@ def gate(args, ascii_marks=False):
     # reached only after the run below, so this refusal closes it by
     # reachability rather than by a second guard in a second place. It runs
     # the very command this refusal passed.
-    unrunnable = not_as_written(home, command)
+    unrunnable = not_as_written(home, command, root)
     if unrunnable:
         raise Refused(unrunnable)
     head = git(root, "rev-parse", "--short", "HEAD")
@@ -2197,7 +1991,12 @@ def gate(args, ascii_marks=False):
             "compared against"
         )
     tree = head.strip()
-    branch = branch_name(root)
+    # What the `BROAD GATE PASSED` and `BROAD GATE FAILED` lines name beside
+    # the tree: a hash tells a reader which commit a line is about and never
+    # which branch, and the branch is what matches a line to its work. None
+    # on a detached HEAD, and where git did not answer for the branch, reads
+    # as *leave the branch out*.
+    branch = sibling.load(ROUTING).current_branch(root) or None
     item = None
     if args.record:
         if args.preflight:
@@ -2211,10 +2010,10 @@ def gate(args, ascii_marks=False):
     checks = {}
     # The first of `verify`'s four conditions is to name the command before
     # running it, and the command is the only part of this run the gate did
-    # not choose. `skills/code-review/orchestration.md` asks the orchestrator
-    # to quote the gate's lines and let the reader judge them, so the command
-    # is written here, on stderr: `run` writes it only to the kept output
-    # file, which the report does not quote.
+    # not choose. `skills/code-review/gate-to-pull-request.md` asks the
+    # orchestrator to quote the gate's lines and let the reader judge them,
+    # so the command is written here, on stderr: `run` writes it only to the
+    # kept output file, which the report does not quote.
     said = moved_line(root, base)
     if said:
         sys.stderr.write(said + "\n")
@@ -2243,9 +2042,10 @@ def gate(args, ascii_marks=False):
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
     # written into the environment for it.
+    sealing = sibling.load(CHAIN_CHECK).SEALING
     checks[CHAIN_NAME] = run(
         CHAIN_NAME,
-        [py, CHAIN, "--baseline", base.commit, "--root", root, CHAIN_SEALING],
+        [py, CHAIN, "--baseline", base.commit, "--root", root, sealing],
         root,
         keep,
     )
@@ -2363,11 +2163,6 @@ def main(argv=None, console_wants_ascii=False):
     """`console_wants_ascii` is `is_utf8` asked of stdout as the process
     found it, negated — `__main__` asks before it reconfigures the
     streams. A caller in process names it, or gets the owner's marks."""
-    try:
-        sibling_module(STAMP)
-    except Refused as exc:
-        sys.stderr.write(str(exc) + "\n")
-        return 2
     parser = argparse.ArgumentParser(
         prog="seal gate",
         description="The one broad run, after the rounds settle: the "
@@ -2412,53 +2207,48 @@ def main(argv=None, console_wants_ascii=False):
     # child resolves it for itself. A root that is not a repository takes
     # `gate`'s own refusal below, unchanged.
     known, _unknown = parser.parse_known_args(argv)
-    # The first git call: a helper that will not load ends the gate here.
+    # Loaded before `lib/optin.py`, which imports it, so a copy of the
+    # plugin without it is the loader's sentence about this file. A git
+    # command that did not answer, at any step, is the gate's refusal.
+    failed = gitcmd_module().Failed
     try:
-        root = repo_root(os.path.abspath(known.root or os.getcwd()))
-    except Refused as exc:
-        sys.stderr.write(str(exc) + "\n")
-        return 2
-    if root is not None:
-        shipped = shipped_gate(root)
-        if shipped is not None:
-            sys.stderr.write(redirect_line(root, shipped) + "\n")
-            handed = sys.argv[1:] if argv is None else list(argv)
-            env = {**os.environ, INVOKED_AS_VAR: os.path.realpath(__file__)}
-            return subprocess.run(
-                [sys.executable, shipped, *handed], env=env
-            ).returncode
-    args = parser.parse_args(argv)
-    # Taken OUT of the environment rather than read from it: every check
-    # below inherits this process's environment, and a suite that loads this
-    # module in process would otherwise answer `gate_copy` for a redirect it
-    # never made.
-    args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
-    if root is not None:
-        sys.stderr.write(running_line(root) + "\n")
-    try:
+        root = sibling.load(OPTIN).toplevel(os.path.abspath(known.root or os.getcwd()))
+        if root:
+            shipped = shipped_gate(root)
+            if shipped is not None:
+                sys.stderr.write(redirect_line(root, shipped) + "\n")
+                handed = sys.argv[1:] if argv is None else list(argv)
+                env = {**os.environ, INVOKED_AS_VAR: os.path.realpath(__file__)}
+                return subprocess.run(
+                    [sys.executable, shipped, *handed], env=env
+                ).returncode
+        args = parser.parse_args(argv)
+        # Taken OUT of the environment rather than read from it: every check
+        # below inherits this process's environment, and a suite that loads
+        # this module in process would otherwise answer `gate_copy` for a
+        # redirect it never made.
+        args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
+        if root:
+            sys.stderr.write(running_line(root) + "\n")
+        # The check whose `SEALING` the chain arm passes, loaded before any
+        # arm runs: a copy of the plugin without it is the loader's sentence
+        # and exit 2, with no arm run, where the suite would otherwise run
+        # first and the chain arm then fail.
+        sibling.load(CHAIN_CHECK)
         return gate(args, console_wants_ascii)
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
+        return 2
+    except failed as unanswered:
+        sys.stderr.write(f"seal gate: {unanswered.line}\n")
         return 2
 
 
 if __name__ == "__main__":
     # Whether the report's marks go out in ASCII, asked of stdout as the
-    # process found it — before the loop below moves every stream to UTF-8
-    # (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
-    # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
-    try:
-        _stamp = sibling_module(STAMP)
-    except Refused as _exc:
-        sys.stderr.write(str(_exc) + "\n")
-        sys.exit(2)
-    _ascii = not _stamp.is_utf8(sys.stdout)
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    # process found it — before `console.to_utf8()` moves every stream to
+    # UTF-8 (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
+    # exempt from entry_point: stdout is asked how the process found it before console.to_utf8() moves it to UTF-8
+    _ascii = not sibling.load(STAMP).is_utf8(sys.stdout)
+    console.to_utf8()
     sys.exit(main(console_wants_ascii=_ascii))

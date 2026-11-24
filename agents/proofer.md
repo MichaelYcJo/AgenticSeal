@@ -38,10 +38,8 @@ here is a write you do not make.
 5. Where `seal/parity.json` is declared, open `skills/legacy-parity/SKILL.md`
    and compare the behaviour with the original, recording it as that
    skill's *Recording the comparison* states.
-6. Before writing the record, open `skills/writing-style/SKILL.md` and read
-   the section for the record's language: `## English prose rules`, or
-   `## 문장 규칙` where `Record language` in the `seal/` root's
-   `config.json` is Korean.
+6. Before writing the record, open the writing-style section rule 11 names
+   for the records' language.
 7. Write the record from `templates/records/sdd-round.md`: its round block
    with the `target:` line, and under each finding's heading one finding
    block holding its `severity:`, `location:` and `evidence:` lines, each

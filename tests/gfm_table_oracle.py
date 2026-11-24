@@ -16,7 +16,7 @@ had been checked only against a list of shapes its own author wrote.
 **Why cmark-gfm and not markdown-it-py**, which the suite already pins: GitHub
 renders these files with cmark-gfm, and markdown-it-py's table rule is a
 reimplementation of it. The version is pinned in
-`.github/scripts/run_tests.py#CMARKGFM`, so the renderer cannot move under the
+`tests/requirements.txt`, so the renderer cannot move under the
 suite.
 
 The document is rendered with GitHub's extensions and raw HTML left out, and

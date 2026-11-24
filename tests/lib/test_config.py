@@ -134,15 +134,14 @@ class Test_reference_roots:
                 "specsheet/a",
             ):
                 assert not config.under_reference_root(rel, roots, "seal"), rel
-        # No root at either place is no reference root at all: the repository has
-        # not opted in, and the 0.3.x `specs/` the checks still read was the
-        # plugin's own. Never a `config.json` found relative to wherever the
-        # process happens to stand, either.
+        # No root at either place is the default too (#1576, design S12), and
+        # never a `config.json` found relative to wherever the process happens
+        # to stand.
         stray = tmp_path / "elsewhere"
         write_config(str(stray), table(("Reference specs", "docs/adr")))
         monkeypatch.chdir(stray)
-        assert config.reference_roots("", "") == ()
-        assert not config.under_reference_root("specs/x/design.md", (), "")
+        assert config.reference_roots("", "") is None
+        assert config.under_reference_root("specs/x/design.md", None, "")
 
     def test_refuses_a_row_written_twice_or_a_file_that_will_not_read(self, tmp_path):
         """#867. A `Reference specs` key written twice has no value, by
@@ -206,6 +205,111 @@ class Test_reference_roots:
         assert config.under_reference_root("seal/vendor/specs/x.md", None, "")
         write_config(home, table(("Reference specs", "docs/adr, seal/vendor/specs")))
         assert config.reference_roots(home, "") == ("docs/adr", "seal/vendor/specs")
+
+
+class Test_declared_policy_root:
+    def test_accepts_the_value_normalised_with_no_refusal(self, tmp_path):
+        """Whitespace, `\\`, a leading `./` and a trailing `/` are taken off
+        the way `Reference specs` takes them off; no root is `docs`."""
+        home = str(tmp_path / "seal")
+        write_config(home, table(("Policy root", " .\\policy\\ ")))
+        assert config.declared_policy_root(home) == ("policy", None)
+        assert config.declared_policy_root("") == ("docs", None)
+
+    def test_refuses_a_key_written_twice_beside_docs(self, tmp_path):
+        """The refusal comes back beside `docs`, so `seal fold`, which stops
+        on it, and `policy_root`, which reads it as the default, read one
+        answer."""
+        home = str(tmp_path / "seal")
+        write_config(home, table(("Policy root", "a"), ("Policy root", "b")))
+        assert config.declared_policy_root(home) == (
+            "docs",
+            "`Policy root` appears 2 times — one value",
+        )
+        assert config.policy_root(home) == "docs"
+
+
+class Test_policy_group:
+    @pytest.mark.parametrize(
+        "path, policy, group",
+        [
+            ("docs/a.md", "docs", ""),
+            ("docs/running/a.md", "docs", "running"),
+            ("my.docs/a.md", "my.docs", ""),
+        ],
+    )
+    def test_accepts_a_document_at_the_top_or_in_one_group(self, path, policy, group):
+        """ "" at the top level and the group's name in one group
+        directory."""
+        assert config.policy_group(path, policy) == group
+
+    @pytest.mark.parametrize(
+        "path, policy",
+        [
+            ("myxdocs/a.md", "my.docs"),
+            ("docs/a/b/c.md", "docs"),
+            ("docs/./a.md", "docs"),
+            ("docs/../a.md", "docs"),
+            ("docs/a\\b.md", "docs"),
+            ("docs/c:/a.md", "docs"),
+            ("docs/a.txt", "docs"),
+            ("other/a.md", "docs"),
+        ],
+    )
+    def test_refuses_every_other_path_as_none(self, path, policy):
+        """A deeper path, `.` or `..` as the group, a part holding `\\` or
+        `:`, another suffix and another directory are None. POLICY is read
+        as text, not as a pattern."""
+        assert config.policy_group(path, policy) is None
+
+
+class Test_switch:
+    def test_accepts_yes_exactly_as_on_and_says_nothing(self, tmp_path):
+        home = str(tmp_path / "seal")
+        write_config(home, table(("A switch", "yes")))
+        assert config.switch(home, "A switch", "nothing is drawn") == (True, None)
+
+    @pytest.mark.parametrize(
+        "text",
+        [None, table(("Mode", "shared")), table(("A switch", ""))],
+        ids=["no file", "no key", "empty"],
+    )
+    def test_refuses_no_root_no_key_and_an_empty_key_in_silence(self, tmp_path, text):
+        home = str(tmp_path / "seal")
+        if text is not None:
+            write_config(home, text)
+        assert config.switch(home, "A switch", "nothing is drawn") == (False, None)
+        assert config.switch("", "A switch", "nothing is drawn") == (False, None)
+
+    @pytest.mark.parametrize(
+        "text, said",
+        [
+            (
+                table(("A switch", "Yes")),
+                "`A switch` reads `Yes`, not `yes`, so the key is not read and "
+                "nothing is drawn",
+            ),
+            (
+                table(("A switch", "{on}")),
+                "`A switch` reads `{on}`, not `yes`, so the key is not read and "
+                "nothing is drawn",
+            ),
+            (
+                table(("A switch", "yes"), ("A switch", "yes")),
+                "`A switch` is not read: `A switch` appears 2 times — one value; "
+                "nothing is drawn",
+            ),
+        ],
+        ids=["Yes", "braces", "written twice"],
+    )
+    def test_refuses_any_other_value_and_a_refusal_naming_the_key(
+        self, tmp_path, text, said
+    ):
+        """OFF, the caller's words for what stays off, closes each
+        sentence."""
+        home = str(tmp_path / "seal")
+        write_config(home, text)
+        assert config.switch(home, "A switch", "nothing is drawn") == (False, said)
 
 
 class Test_normalise_remote:
@@ -500,7 +604,7 @@ class Test_pact_declaration:
         ids=["a value outside the old vocabulary", "written twice"],
     )
     def test_a_pact_notify_row_an_earlier_release_read_is_ignored(self, rows):
-        """`templates/setup/config.md` *Pact*: a `Pact notify` key left in the
+        """`lib/config.py#pact_declaration`: a `Pact notify` key left in the
         config is read by nobody, with a `Pact` key or without one, so neither
         a value outside the vocabulary it once had nor the key written twice is
         refused. Seen red by `seal mutate` against a reader that refused the
@@ -571,7 +675,7 @@ class Test_declared_pacts:
     def test_accepts_a_pact_notify_row_an_earlier_release_read_as_nothing(
         self, world, rows
     ):
-        """`templates/setup/config.md` *Pact*: a `Pact notify` key left in a
+        """`lib/config.py#pact_declaration`: a `Pact notify` key left in a
         signer's config is read by nobody."""
         write(world.web, "seal/config.json", signer_config(("Pact", PACT_URL), *rows))
         world.cite(clause(V2))
@@ -758,8 +862,9 @@ class Test_module:
     def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
         self, tmp_path, value, root
     ):
-        """`lib/config.py#policy_root`, the one reader every reader asks: an
-        empty value and one that leaves the repository read as `docs`."""
+        """`lib/config.py#policy_root`, which reads through
+        `declared_policy_root` as `seal fold` does: an empty value and one
+        that leaves the repository read as `docs`."""
         config = load_lib_module("config.py", "agentic_config_for_policy_root")
         (tmp_path / "config.json").write_text(
             table(("Policy root", value)), encoding="utf-8"

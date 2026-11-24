@@ -44,7 +44,7 @@ LIMIT = 88
 
 
 def _rules():
-    path = os.path.join(ROOT, ".github", "scripts", "rules.py")
+    path = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
     spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -144,6 +144,9 @@ COVERED = [
     # was cut from — dropping it here would lose coverage 418 lines
     # of prose already had.
     "skills/code-review/orchestration.md",
+    # Its steps from the preflight to the open pull request, cut from it in
+    # #1579, wrapped as they were.
+    "skills/code-review/gate-to-pull-request.md",
     # The orchestrator's half of `implement` (#292), the same way: its prose
     # fits at birth (83 columns, measured when it was cut), where the file it
     # was cut from does not, so covering it here loses nothing and keeps it.

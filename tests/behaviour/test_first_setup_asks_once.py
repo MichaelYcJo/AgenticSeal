@@ -7,46 +7,32 @@ does. The commands resolve
 the root in code (`lib/optin.py#home_at`) and are pinned by
 `tests/lib/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
-skill asks, the sentence a session needs, the workflow template
+skill asks, the workflow template
 `seal pr-checks install` writes and the commands its header names, and the
-switch the READMEs give.
+switch the READMEs give. The places a session finds the root at are stated
+once, in the opening paragraph of `skills/core/SKILL.md` (#1578), and
+`tests/text/test_the_rules_have_one_owner.py` holds them there with each
+skill's citation of that paragraph.
 """
 
 import re
 import subprocess
 
 import pytest
-from conftest import local_home, read, shell_probe
+from conftest import flattened, local_home, read, section, shell_probe
 
-# No TARGET: its cases hold where the root lives across the bootstrap, the implement and config skills, the agent contract, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
+# No TARGET: its cases hold where the root lives across the bootstrap, the orchestrator's half of the implement skill, the config skill, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
-# The local root's path as a session reads it, which the Q1 cases below hold
-# in each place: the path `lib/optin.py` resolves, where a session looks.
-SESSION_RULE = f"`{COMMON_DIR}`"
-
-
-def section(text, heading, level):
-    """The text under HEADING up to the next heading of the same LEVEL."""
-    assert heading in text, f"{heading!r} is not a heading any more"
-    body = text.split(heading, 1)[1]
-    return body.split("\n" + "#" * level + " ", 1)[0]
 
 
 def paragraph(text, opening):
     """The paragraph whose first words are OPENING, its line breaks folded."""
     i = text.find(opening)
     assert i >= 0, f"no paragraph opens with {opening!r}"
-    return flat(text[i:].split("\n\n", 1)[0])
+    return flattened(text[i:].split("\n\n", 1)[0])
 
 
-def flat(text):
-    """Runs of whitespace folded to one space, so a phrase that a hand-wrap
-    splits across two lines still reads as the phrase."""
-    return re.sub(r"\s+", " ", text)
-
-
-SKILL = ("skills", "implement", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
 # The bootstrap is the orchestrator's since #292: it asks a person, which a
 # crafter spawn may not, so it lives in a file no `skills:` list injects. It
@@ -56,7 +42,7 @@ BOOT = ("skills", "implement", "bootstrap.md")
 
 
 def bootstrap():
-    return section(read(*BOOT), "## Orchestrator: Bootstrap", 2)
+    return section(read(*BOOT), "## Orchestrator: Bootstrap")
 
 
 # --- S4: one question, three options, records only first ------------------
@@ -111,17 +97,6 @@ def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
     assert "`.git/seal/`" not in bootstrap()
 
 
-def test_a_repository_with_the_root_at_either_place_is_never_asked():
-    """S4 (d) and S12: the prompt budget is one question, once per repository.
-    The paragraph names the two places the orchestrator looks before it
-    asks."""
-    never_again = paragraph(bootstrap(), "Ask only here")
-    # The path of the shared root and the command that finds the local one,
-    # which the orchestrator checks before it asks.
-    assert "<repo>/seal/" in never_again
-    assert "git rev-parse --git-common-dir" in never_again
-
-
 def test_the_parity_question_follows_the_mode_question():
     boot = bootstrap()
     # The question the orchestrator puts to the person word for word, after
@@ -142,7 +117,7 @@ def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them
     session, with the recent pull request titles shown beside the question,
     and writes the answers into the file `seal mode` wrote. What each option
     says its key governs is the proofer's to read."""
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     # The two keys of `config.json` first setup asks for, which
     # `lib/config.py#declared_value` reads.
     for key in LANGUAGE_ROWS:
@@ -207,7 +182,7 @@ def test_a_candidate_carrying_a_quote_or_a_backslash_is_escaped_where_derived():
     warning gives the escape. What a bare one costs, and what the warning
     says of a pipe, are the proofer's to read.
     """
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     warning = boot[boot.index('**A candidate carrying a `"` or a `\\` is written') :]
     warning = warning[: warning.index("**Name the criterion")]
     # The JSON escapes the orchestrator writes into the `Broad gate` value,
@@ -275,42 +250,6 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert f"`{COMMON_DIR}`" in own, own
 
 
-# --- Q1: the sentence a session reads, in each place ----------------------
-
-
-@pytest.mark.parametrize(
-    "parts",
-    [
-        ("skills", "implement", "SKILL.md"),
-        # Phases 3 and 4 of #107 re-pointed both definitions' rows here. The
-        # sentence was in two of them verbatim and in the third not at all,
-        # and the agent without it is the one that reads `seal/parity.json`. It
-        # is contract rule 11 now, which every agent receives at startup.
-        ("skills", "agent-contract", "SKILL.md"),
-    ],
-)
-def test_the_session_rule_names_both_places(parts):
-    text = read(*parts)
-    # The two places a session resolves the root at: the path of the shared
-    # root, and the local one through the command that finds it.
-    assert "`<repo>/seal/`" in text, "/".join(parts)
-    assert SESSION_RULE in text, "/".join(parts)
-
-
-def test_the_session_rule_sits_in_the_layout_section_of_the_skill():
-    """The layout section runs from its heading to `## Procedure`; the
-    bootstrap that used to close it left with #292 and is in
-    `skills/implement/bootstrap.md` now (#1046)."""
-    skill = read(*SKILL)
-    # The section a session opens for where the root lives, which holds the
-    # local root's path.
-    assert (
-        skill.index("## Document layout")
-        < skill.index(SESSION_RULE)
-        < skill.index("## Procedure")
-    )
-
-
 # --- S5 and S7: what `seal pr-checks install` writes, and local mode --------
 
 
@@ -337,7 +276,7 @@ def test_the_template_header_names_the_commands_that_write_and_remove_it():
     """#952: the header of the workflow template names the command that
     writes the file and the one that takes it out. What local mode does to
     a copy is the proofer's to read."""
-    header = flat(
+    header = flattened(
         "\n".join(
             line
             for line in template().split("\nname:", 1)[0].splitlines()
@@ -356,7 +295,7 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
     the file has one writer (#952). The bootstrap names the template, the
     path it is written to, and the command. When the file is written is the
     proofer's to read."""
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     # The template path and the workflow path, which the orchestrator
     # resolves to tell whether the command wrote the file or left one alone.
     assert "templates/setup/hygiene.yml" in boot
@@ -392,17 +331,17 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     text = read(readme)
     first_run, subsection = READMES[readme]
     assert text.index(subsection) > text.index(first_run)
-    body = section(text, subsection, 3)
+    body = section(text, subsection)
     # The two commands a person runs to install and remove the checks.
     assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
     # #1055 S6: the citation of the skill section that holds the way back
     # before the commit to shared, which a reader resolves.
-    assert SHARED_WAY_BACK in flat(body), readme
+    assert SHARED_WAY_BACK in flattened(body), readme
     # The citation of the section that says which pin a workflow left behind
     # by a move to local passes, which a reader resolves.
-    assert LEFT_BEHIND[readme] in flat(body), LEFT_BEHIND[readme]
+    assert LEFT_BEHIND[readme] in flattened(body), LEFT_BEHIND[readme]
     # The pair of commands a person runs to carry the records between two
     # machines.
     assert "seal export" in body and "seal import" in body, (
@@ -426,10 +365,10 @@ def test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table(read
     """The paragraph right under the table of the three answers names what
     holds the pull request's rows of the core's table in local mode. What it
     says of them is the proofer's to read."""
-    body = section(read(readme), READMES[readme][1], 3)
+    body = section(read(readme), READMES[readme][1])
     chunks = body.split("\n\n")
     table = next(i for i, chunk in enumerate(chunks) if chunk.startswith("|"))
-    under = flat(chunks[table + 1])
+    under = flattened(chunks[table + 1])
     for cited in LOCAL_LIMIT:
         assert cited in under, (readme, cited, under)
 
@@ -446,7 +385,7 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
     rather than restating it. Why a bare `git reset` is not the way back is
     the proofer's to read."""
     skill = read("skills", "config", "SKILL.md")
-    body = flat(section(skill, "## " + SHARED_HEADING, 2))
+    body = flattened(section(skill, "## " + SHARED_HEADING))
     for said in (
         # The two commands a person runs to walk the switch back.
         "`git reset -- :/seal`",
@@ -474,7 +413,7 @@ def switch_block():
     """
     text = read("templates", "setup", "seal-README.md")
     assert TO_SHARED in text, f"no paragraph gives the move {TO_SHARED!r}"
-    paragraph = flat(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
+    paragraph = flattened(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
     assert TO_LOCAL in paragraph, f"the paragraph gives no move {TO_LOCAL!r}"
     moves = [re.findall(r"`([^`]+)`", half) for half in paragraph.split(TO_LOCAL)]
     for spans in moves:
@@ -562,7 +501,7 @@ def test_the_seal_readme_points_at_the_drain():
     and where each goes is `skills/implement/orchestration.md`'s drain
     section's alone, and the README names the section."""
     text = read("templates", "setup", "seal-README.md")
-    rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
+    rules = flattened(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = (
         "## Orchestrator: drain the rows before the broad run, and keep the records"
     )
@@ -598,8 +537,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
     editions."""
     text = read(*parts)
     # The name of the opt-out file, which `lib/optin.py` looks for.
-    assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
-    body = " ".join(section(text, setup, 2).split())
+    assert "agentic-scratch" in section(text, opt_in), "/".join(parts)
+    body = flattened(section(text, setup))
     # The template path, the local root's path and the harness tool, which
     # the orchestrator resolves at first setup.
     for needle in ("templates/setup/hygiene.yml", COMMON_DIR, "AskUserQuestion"):
@@ -624,17 +563,16 @@ def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
     """S3 of #1046. A session that opens `orchestration.md` first, under an
     older release's preset block written before the bootstrap left that
     file, meets the bootstrap's file in the opening paragraph, before any
-    section, with both places the root can be."""
+    section. The places the root can be are the core's opening paragraph's
+    since #1578, and the paragraph names them by citing it, which
+    `tests/text/test_the_rules_have_one_owner.py` holds, so this case holds
+    the bootstrap's citation alone."""
     opening = paragraph(read(*ORCH), "This file is the orchestrator's")
     # The path of the bootstrap, which the orchestrator opens where no root
     # stands yet.
     assert "`skills/implement/bootstrap.md`" in opening, (
         "the orchestrator's half does not send a fresh repository to the bootstrap"
     )
-    # The two paths the orchestrator looks at for a root before it opens
-    # the bootstrap.
-    assert "`<repo>/seal/`" in opening, opening
-    assert COMMON_DIR in opening, opening
 
 
 def test_the_bootstrap_records_the_answer_it_was_given():
@@ -643,6 +581,6 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     followed the routing rule are byte-identical until something writes the
     key, so a bootstrap that records nothing leaves no trace that anybody was
     asked."""
-    boot = flat(bootstrap())
+    boot = flattened(bootstrap())
     # The command the orchestrator runs to record the answer.
     assert "seal mode" in boot

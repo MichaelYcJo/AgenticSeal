@@ -186,20 +186,6 @@ class Test_main:
             "there is no docs/README.md, so nothing was checked\n"
         ), out
 
-    @pytest.mark.parametrize("row", ["Document line ceiling", "Fold shape from"])
-    def test_a_retired_row_is_no_longer_read(self, tmp_path, row):
-        """S12: `Document token ceiling` replaced the line row, and the shape the
-        cutoff row bound left with its markers, so a repository that still
-        writes either has declared nothing."""
-        root = config_root(tmp_path, [(row, "1")])
-        code, out, err = command("--root", root)
-        config = os.path.join(root, "seal", "config.json")
-        assert code == 0, (out, err)
-        assert out == (
-            f"seal fold: `Document token ceiling` is not declared in {config}, and "
-            "there is no docs/README.md, so nothing was checked\n"
-        ), out
-
     def test_a_row_with_an_empty_value_is_not_declared(self, tmp_path):
         """The template writes a row it leaves open with an empty cell, as it does
         `Mode` and `Broad gate`; an empty cell is no value, not a bad one."""
@@ -262,7 +248,7 @@ class Test_main:
         assert code == 2 and not out, (out, err)
         assert err == f"seal fold: in {config}, {says} — nothing was checked\n", err
 
-    @pytest.mark.parametrize("row", ["Document token ceiling"])
+    @pytest.mark.parametrize("row", ["Document token ceiling", "Policy root"])
     def test_a_row_written_twice_is_refused_and_nothing_is_checked(self, tmp_path, row):
         """S1 of #867, `seal fold`'s half. A key written twice has no value, by
         `lib/config.py#config_value`'s rule: the run exits 2 naming the key and

@@ -3,8 +3,8 @@
 PNG beside them where the repository turns the image on.
 
 **The image is one key's to turn on.** `MARK_KEY` in the
-`config.json` of the tree's `seal/` root, read through `lib/config.py`,
-turns it on where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is
+`config.json` of the tree's `seal/` root turns it on where
+`lib/config.py#switch` reads the key as on (`mark_on`). Then the PNG is
 attached as `ASSET` and the note's header becomes a paragraph holding the
 image floated beside the results. Under any other answer nothing is drawn
 or attached, and the header becomes a paragraph of the results alone. An
@@ -66,7 +66,6 @@ Exit code: 0, always.
 
 import json
 import os
-import subprocess
 import sys
 import tempfile
 
@@ -130,10 +129,6 @@ NOT_READ = "not read"
 CAPPED_LABEL = "chain: capped"
 
 
-def plural(count, word):
-    return f"{count} {word}{'' if count == 1 else 's'}"
-
-
 def release_rows(version, sha, pulls_n, issues_n, suite, chain):
     """The panel's rows for a release, `(label, value)` with `""` for a
     continuation, in `LABELS`' order.
@@ -164,13 +159,18 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
             "items",
             NOT_READ
             if items is None or rounds is None
-            else f"{items} . {plural(rounds, 'round')}",
+            else f"{items} . {module('lib/console.py').plural(rounds, 'round')}",
         ),
         (
             "capped",
             NOT_READ if capped is None or items is None else f"{capped} of {items}",
         ),
-        ("deferred", NOT_READ if deferred is None else plural(deferred, "issue")),
+        (
+            "deferred",
+            NOT_READ
+            if deferred is None
+            else module("lib/console.py").plural(deferred, "issue"),
+        ),
     ]
     return rows
 
@@ -271,13 +271,13 @@ def suite_counts(directory, key):
 
 
 def readers():
-    """`(routing, chain_check, the markdown reader)`: the modules the review
-    chain's own gates read round records with, so the counts here are the
-    ones a gate would read and a change to where records live has to move
-    these readers first. The markdown reader is the one the check loaded."""
+    """`(routing, chain_check)`: the modules the review chain's own gates
+    read round records with, so the counts here are the ones a gate would
+    read and a change to where records live has to move these readers
+    first."""
     chain = module("skills/code-review/scripts/chain_check.py")
     routing = module("lib/routing.py")
-    return routing, chain, chain.SHARED_READER
+    return routing, chain
 
 
 def labels_of(pull):
@@ -321,7 +321,7 @@ def chain_counts(root, pulls):
         # `lib/sibling.py#Absent` with no sentence of the loader's, and the
         # line below names it.
         with sibling.going_on():
-            routing, chain, reader = readers()
+            routing, chain = readers()
     except (Exception, SystemExit) as problem:
         # `Absent`'s path; an `ImportError` carries a `path` of its own.
         if isinstance(problem, SystemExit) and getattr(problem, "path", None):
@@ -361,7 +361,7 @@ def chain_counts(root, pulls):
             except (OSError, UnicodeDecodeError):
                 unread.append(path)
                 continue
-            found, errors = chain.record_findings(reader, text, path)
+            found, errors = chain.record_findings(text, path)
             # A finding the reader refused is a verdict nobody counted.
             if errors:
                 unread.append(path)
@@ -395,41 +395,28 @@ def chain_counts(root, pulls):
 # The asset's name on the release, and so the last part of its URL.
 ASSET = "seal.png"
 
-# The key of the tree's `seal/config.json` that turns the image on,
-# and the one value that does. What `mark_on` says where a key is written
-# and does not turn it on, printed after `IMAGE_WARNING`.
+# The key of the tree's `seal/config.json` that turns the image on, read
+# by `lib/config.py#switch`. What `mark_on` says where a key is written and
+# does not turn it on is the switch's sentence, closed by `NO_IMAGE` and
+# printed after `IMAGE_WARNING`.
 MARK_KEY = "Release note seal mark"
-MARK_ON = "yes"
 IMAGE_WARNING = "::warning::release seal image: "
 NO_IMAGE = "the note's header holds the results without the seal's image"
-KEY_NOT_YES = (
-    f"`{MARK_KEY}` reads `{{value}}`, not `{MARK_ON}`, so the key is not read "
-    f"and {NO_IMAGE}"
-)
-KEY_REFUSED = f"`{MARK_KEY}` is not read: {{why}}; {NO_IMAGE}"
 
 
 def mark_on(root):
     """`(on, note)`: whether `MARK_KEY` in the `config.json` of the `seal/`
-    root of the tree at ROOT reads `MARK_ON` exactly, and the sentence
-    naming a key that is written and does not, or None.
+    root of the tree at ROOT turns the image on, and the sentence naming a
+    key that is written and does not, or None.
 
     The root is `lib/optin.py#home_at`'s, and the key is read through
-    `lib/config.py#declared_value`, the one reader of a key, which
-    reads a tree with no root as no file. A tree with no root, an absent key
-    and an empty one are off and say nothing; any other value, and a
-    refusal the reader returns, are off and named. Nothing here refuses:
-    the image is a picture, and the results go in whatever the key says."""
+    `lib/config.py#switch`, which reads a tree with no root as no file. A
+    tree with no root, an absent key and an empty one are off and say
+    nothing; any other value, and a refusal the reader returns, are off and
+    named, closed by `NO_IMAGE`. Nothing here refuses: the image is a
+    picture, and the results go in whatever the key says."""
     home = module("lib/optin.py").home_at(root)
-    config = module("lib/config.py")
-    value, refused = config.declared_value(home, MARK_KEY)
-    if refused is not None:
-        return False, KEY_REFUSED.format(why=refused)
-    if not value:
-        return False, None
-    if value != MARK_ON:
-        return False, KEY_NOT_YES.format(value=value)
-    return True, None
+    return module("lib/config.py").switch(home, MARK_KEY, NO_IMAGE)
 
 
 class Refused(Exception):
@@ -437,18 +424,29 @@ class Refused(Exception):
 
 
 def gh(*args):
-    """`gh <args>`'s stdout, or `Refused` naming the call and what it said."""
-    out = subprocess.run(["gh", *args], capture_output=True, encoding="utf-8")
+    """`gh <args>`'s stdout, or `Refused` naming the call and what it said.
+
+    `gh` starts through `lib/gitcmd.py#gh`, loaded here at first use, and a
+    `gh` that gave no answer is `Refused` with the runner's line."""
+    gitcmd = module("lib/gitcmd.py")
+    try:
+        out = gitcmd.gh(*args)
+    except gitcmd.Failed as failed:
+        raise Refused(failed.line) from None
     if out.returncode:
         raise Refused(f"gh {' '.join(args[:2])} failed: {out.stderr.strip()}")
     return out.stdout
 
 
 def tagged(tag):
-    """The commit `tag` names, which the panel's `tag` row shows."""
-    out = subprocess.run(
-        ["git", "rev-parse", f"{tag}^{{commit}}"], capture_output=True, encoding="utf-8"
-    )
+    """The commit `tag` names, which the panel's `tag` row shows, asked in
+    the directory this runs in through `lib/gitcmd.py#git`; `Refused` as
+    `gh` refuses."""
+    gitcmd = module("lib/gitcmd.py")
+    try:
+        out = gitcmd.git(os.curdir, "rev-parse", f"{tag}^{{commit}}")
+    except gitcmd.Failed as failed:
+        raise Refused(failed.line) from None
     if out.returncode:
         raise Refused(f"git rev-parse {tag} failed: {out.stderr.strip()}")
     return out.stdout.strip()

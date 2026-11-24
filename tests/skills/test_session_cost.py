@@ -167,7 +167,8 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, git
+from conftest import GH_DRAFT_ARGS, ROOT, census_case, git, git_out
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/session_cost.py"
 
@@ -823,6 +824,10 @@ def _gh(monkeypatch, module, listing=None, list_code=0, comment_code=0, stderr="
 
     monkeypatch.setattr(module, "run_gh", fake)
     return seen
+
+
+# The line `run_gh` hands over as stderr for a `gh` that gave no answer.
+GAVE_NO_ANSWER = "`gh api` did not finish within 60 seconds"
 
 
 def _opened(seen):
@@ -5055,6 +5060,53 @@ class Test_emit:
         assert "t.jsonl" in posted["body"], posted
 
 
+class Test_run_gh:
+    def test_accepts_a_call_gh_answers_as_its_code_and_streams(self):
+        """The suite's `gh` stub answers `GH_DRAFT_ARGS` with exit 1 and a
+        line on stderr, as `gh` does for a branch with no pull request."""
+        code, out, err = _cost().run_gh(GH_DRAFT_ARGS)
+        assert (code, out) == (1, "") and "no pull requests found" in err
+
+    def test_refuses_a_gh_that_gave_no_answer_as_none_and_the_runners_line(
+        self, tmp_path, monkeypatch
+    ):
+        """#1573: a `gh` past `lib/gitcmd.py#TIMEOUT`, and a `gh` not on PATH,
+        are `None` with the runner's line, never an exit code. Seen red
+        against `session_cost.py` before #1573, which raised
+        `subprocess.TimeoutExpired` and named no command."""
+        module = _cost()
+        asked = unanswered(monkeypatch, "issue", "list")
+        assert module.run_gh(["issue", "list"]) == (None, "", past_the_bound(asked[0]))
+        monkeypatch.setenv("PATH", str(tmp_path))
+        assert module.run_gh(["issue", "list"]) == (
+            None,
+            "",
+            "`gh issue list` could not be run: `gh` is not on PATH",
+        )
+
+
+class Test_run_git:
+    def test_accepts_bytes_on_stdin_and_answers_bytes(self, tmp_path):
+        git(tmp_path, "init", "-q")
+        git(tmp_path, "commit", "-q", "--allow-empty", "-m", "one")
+        head = git_out(tmp_path, "rev-parse", "HEAD").strip().encode("ascii")
+        code, out = _cost().run_git(str(tmp_path), ["cat-file", "--batch"], b"HEAD\n")
+        assert code == 0 and out.startswith(head + b" commit ")
+
+    def test_refuses_a_git_that_gave_no_answer_and_keeps_an_exit_code(
+        self, tmp_path, monkeypatch
+    ):
+        """#1573: a git past `lib/gitcmd.py#TIMEOUT` is `(None, b"")`, the
+        reading of a git that could not start; a git that ran and exited
+        non-zero keeps its code. Seen red against `session_cost.py` before
+        #1573, which raised `subprocess.TimeoutExpired`."""
+        module = _cost()
+        code, _out = module.run_git(str(tmp_path), ["rev-parse", "--show-toplevel"])
+        assert code not in (None, 0)
+        unanswered(monkeypatch, "for-each-ref")
+        assert module.run_git(str(tmp_path), ["for-each-ref"]) == (None, b"")
+
+
 class Test_post:
     """Where two cases call `post` alike, the world differs: `_gh` answers
     the lookup with no log, a failure, no `gh`, a closed log, one or two open
@@ -5093,12 +5145,15 @@ class Test_post:
         assert _posted(seen) == [] and _opened(seen) == []
 
     def test_gh_missing_from_path_is_the_same_no_op(self, monkeypatch, capsys):
-        """`run_gh` answers `None` for a `gh` that is not installed, which the
-        caller must not read as the exit code 0 that `None` is not."""
+        """`run_gh` answers `None` for a `gh` that is not installed, with
+        `lib/gitcmd.py#gh`'s line for stderr, which the caller must not read
+        as the exit code 0 that `None` is not, and names in that line
+        (#1573)."""
         module = _cost()
-        seen = _gh(monkeypatch, module, list_code=None, stderr="no gh")
+        line = "`gh issue list` could not be run: `gh` is not on PATH"
+        seen = _gh(monkeypatch, module, list_code=None, stderr=line)
         assert module.post("r", "s", "flow-measurement") == 0
-        assert "not on PATH" in capsys.readouterr().out
+        assert f"lookup could not run ({line})," in capsys.readouterr().out
         assert _posted(seen) == [] and _opened(seen) == []
 
     # --- A7: a closed log is named, never reopened --------------------------------
@@ -5209,6 +5264,25 @@ class Test_post:
         )
         assert module.post("r", "s", "flow-measurement") == 1
         assert "was not posted" in capsys.readouterr().out
+
+    def test_a_comment_gh_gave_no_answer_for_is_named_in_the_runners_line(
+        self, monkeypatch, capsys
+    ):
+        """#1573: a comment `run_gh` answers `None` for, a `gh` past
+        `lib/gitcmd.py#TIMEOUT` or not on PATH, is named in the runner's
+        line, which `run_gh` hands over as stderr, and not as a `gh` missing
+        from PATH."""
+        module = _cost()
+        line = "`gh issue comment 42` did not finish within 60 seconds"
+        _gh(
+            monkeypatch,
+            module,
+            listing=_listing((42, "OPEN")),
+            comment_code=None,
+            stderr=line,
+        )
+        assert module.post("r", "s", "flow-measurement") == 1
+        assert capsys.readouterr().out == f"the comment on #42 was not posted: {line}\n"
 
     def test_the_durable_log_is_reachable_under_its_own_label(
         self, monkeypatch, capsys
@@ -5322,7 +5396,8 @@ class Test_work_item:
             if args[:2] == ["issue", "list"]:
                 return list_code, listing, "" if list_code == 0 else "HTTP 401"
             if args[:1] == ["api"]:
-                return api_code, "\n".join(pages), "" if api_code == 0 else "HTTP 502"
+                said = {0: "", None: GAVE_NO_ANSWER}.get(api_code, "HTTP 502")
+                return api_code, "\n".join(pages), said
             if args[:2] == ["issue", "comment"]:
                 with open(
                     args[args.index("--body-file") + 1], encoding="utf-8"
@@ -5809,18 +5884,27 @@ class Test_work_item:
         assert "so nothing was left out" in out, out
         assert "agent-a.jsonl" in out and "agent-b.jsonl" in out, out
 
+    @pytest.mark.parametrize(
+        "api_code, why",
+        [(1, "exit 1: HTTP 502"), (None, GAVE_NO_ANSWER)],
+        ids=["refused", "no answer"],
+    )
     def test_a_comment_page_that_cannot_be_read_posts_nothing(
-        self, monkeypatch, capsys, tmp_path, item
+        self, monkeypatch, capsys, tmp_path, item, api_code, why
     ):
         """With `--post`, comments that cannot be read would make every
         segment look unposted, and a second post of a reading is a comment a
-        person deletes. So the mode names it and exits 1."""
+        person deletes. So the mode names it and exits 1, a `gh` that gave no
+        answer in the runner's line (#1573)."""
         self.by_dir_and_by_branch(tmp_path)
         module = _cost()
-        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")), api_code=1)
+        seen, bodies = self.gh(
+            monkeypatch, module, _listing((42, "OPEN")), api_code=api_code
+        )
         assert self.main(monkeypatch, tmp_path, module, item, post=True) == 1
         assert bodies == [] and _posted(seen) == [], seen
-        assert "comments on #42 could not be read" in capsys.readouterr().out
+        out = capsys.readouterr().out
+        assert f"comments on #42 could not be read ({why})" in out, out
 
     def test_refuses_a_directory_whose_routing_names_no_branch(
         self, monkeypatch, capsys, tmp_path, item
@@ -6208,6 +6292,21 @@ class Test_family:
             "cat tests/skills/test_session_cost.py",
         ):
             assert module.family(command) != "test", command
+
+    def test_reads_the_runner_words_seal_deferrals_holds(self):
+        """#1572: `test` and `lint/type` are built from
+        `deferral_check.py#RUNNERS`, the one list of runner words, so a
+        command only `seal deferrals` named before is charged here too:
+        `pylint` and `go vet` to `lint/type`, a `unittest` run and a Maven
+        run with a goal before `test` to `test`."""
+        module = load_script()
+        for command, expected in (
+            ("pylint src", "lint/type"),
+            ("go vet ./...", "lint/type"),
+            ("python -m unittest discover", "test"),
+            ("mvn clean test", "test"),
+        ):
+            assert module.family(command) == expected, command
 
     def test_a_runner_named_inside_a_heredoc_is_not_a_run_of_it(self, tmp_path):
         """The other half of #200's *wrong in both directions*, in the same
@@ -6808,6 +6907,31 @@ class Test_largest_context:
 
 
 class Test_module:
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(self, tmp_path):
+        """S4 of #1482. A copy of this script taken without its siblings
+        exits 2, with the loader's one sentence naming the absent
+        `lib/sibling.py` by its path: 2 means nothing was read. The guard
+        stands at import, where `FAMILIES` loads `deferral_check.py#RUNNERS`
+        (#1572), so `--help` reaches it too."""
+        import sibling
+
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / "session_cost.py"
+        with open(SCRIPT, encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(copy), "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(tmp_path),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
+        said = sibling.MISSING.format(path=os.path.normpath(lib))
+        assert done.stderr == said + "\n", done.stderr
+
     def test_a_transcript_that_cannot_be_opened_is_skipped_rather_than_raised(
         self, tmp_path
     ):

@@ -13,17 +13,39 @@ by reader; the rules that left with their mechanism left this table, and the
 ones that stayed name their owner in `docs/running/the-run.md`.
 """
 
+import os
 import re
 
 import pytest
-from conftest import flat
+from conftest import ROOT, flat, load_lib_module, load_module
 
 # No TARGET: its cases hold each review-chain rule's owner across the skills, the definitions and the documents that carry it.
+
+
+def script(*parts):
+    """The script at PARTS under the repository, loaded as a module."""
+    return load_module(os.path.join(ROOT, *parts), f"agentic_{parts[-1][:-3]}_owner")
+
+
+# The code that defines the words and codes the owners spell: the close
+# verdicts, the line keywords of a verifying round, the broad gate's words
+# beside a failing file, and the wait's exit codes and states.
+chain = script("skills", "code-review", "scripts", "chain_check.py")
+fields = load_lib_module("fields.py", "agentic_fields_owner")
+gate = script("skills", "verify", "scripts", "broad_gate.py")
+wait = script("skills", "code-review", "scripts", "pr_wait.py")
+LINE_KEYWORDS = tuple(
+    f"`{keyword}`" for keyword in (fields.CONFIRMS, fields.REGRESSION, fields.REOPENS)
+)
 
 RECORD = ("docs", "running", "the-run.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
+# The steps from the preflight to the open pull request, cut from `ORCH` in
+# #1579 so the orchestrator opens them once the last round has no finding
+# open.
+GATE_TO_PR = ("skills", "code-review", "gate-to-pull-request.md")
 PROOFER = ("agents", "proofer.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The fix pass's procedure, cut from `IMPLEMENT` *5.* and `agents/crafter.md`
@@ -47,6 +69,11 @@ PR_CHECK = ("docs", "checks", "the-pull-request-check.md")
 RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
+# The orchestrator's half of the verify skill, which holds the broad gate's
+# reading.
+VERIFY_ORCH = ("skills", "verify", "orchestration.md")
+BROAD_GATE = ("docs", "running", "the-broad-gate.md")
+AGENT_SET = ("docs", "running", "the-agent-set.md")
 
 # Each link is the owner's path and section, the citation a reader of the
 # linking carrier resolves; the sentence around it is the proofer's to read.
@@ -72,6 +99,9 @@ THE_CORES_ROW = (
 )
 CONVENTION = ("skills", "commit-pr-convention", "SKILL.md")
 OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
+CONTRACT = ("skills", "agent-contract", "SKILL.md")
+THE_CORES_PLACES = "the opening paragraph of `skills/core/SKILL.md`"
+WHAT_THE_GATE_RUNS = "`docs/running/the-broad-gate.md` *What the gate runs*"
 
 
 # rule -> (owner, the facts the owner states, {link carrier: the citation it
@@ -127,22 +157,16 @@ RULES = {
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
     # of the fix with the frame (the owner, 2026-10-16, on round 8).
+    # #1578: the line a reframe adds was spelt in three files, so *The run*
+    # spells it and the others name the line and that section.
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
-        (),
-        {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
-    ),
-    # #945, S5: one crafter resumed across phases read 941,799 tokens in one
-    # turn, so a fix pass resumes only below the largest context a fresh
-    # crafter reached in the 0.22.0 run.
-    "18 a fix pass resumes the implementer only below the threshold": (
-        ORCH,
         (
-            # The per-turn context, in tokens, the orchestrator compares the
-            # implementer's `context` column with.
-            "806,241",
+            # The line the framer writes under its mark, which
+            # `chain_check.py#REFRAME_RE` reads.
+            "`Reframed <date> by <who>, after round <N>.`",
         ),
-        {},
+        {FOLD: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
     # #1476: four files each said what the three lines mean, and #161's
     # rounds corrected such copies a few at a time. The review skill, which
@@ -152,14 +176,12 @@ RULES = {
         SKILL,
         (
             # The two close verdicts a fix pass writes, which the chain check
-            # reads.
-            "`fixed <commit>`",
-            "`rejected`",
+            # spells as `FIXED` and `REJECTED` and reads.
+            f"`{chain.FIXED} <commit>`",
+            f"`{chain.REJECTED}`",
             # The three line keywords `lib/fields.py` spells, which the
             # proofer writes and the chain check reads.
-            "`confirms:`",
-            "`regression:`",
-            "`reopens:`",
+            *LINE_KEYWORDS,
         ),
         {PROOFER: EARLIER_ROUNDS, RECORD: EARLIER_ROUNDS, ORCH: EARLIER_ROUNDS},
     ),
@@ -200,6 +222,117 @@ RULES = {
             OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
         },
     ),
+    # #1578: eleven files each spelt where the root is found with
+    # `<repo>/seal/` as the shared place, and none named the second name
+    # #1059 gave it. The core reaches every agent and every session where a
+    # root stands, and is the one file the second name may stand in, so its
+    # opening paragraph names the places and each of the eleven names that
+    # paragraph. The six links below each replace a case that pinned that
+    # file's copy of the places.
+    "24 where the records root is found": (
+        CORE,
+        (
+            # The three places, in the order the gates read them, which an
+            # agent opens or runs.
+            "`<repo>/seal/`",
+            "`agentic-seal/`",
+            "`$(git rev-parse --git-common-dir)/seal/`",
+            # The function that reads them, which a reader resolves for the
+            # order.
+            "`lib/optin.py#home_at`",
+        ),
+        {
+            CONTRACT: THE_CORES_PLACES,
+            IMPLEMENT: THE_CORES_PLACES,
+            ORCH_IMPL: THE_CORES_PLACES,
+            BOOTSTRAP: THE_CORES_PLACES,
+            CONVENTION: THE_CORES_PLACES,
+            CONFIG_SKILL: THE_CORES_PLACES,
+        },
+    ),
+    # #1578: five files each listed the records `Record language` governs,
+    # and none of the lists held the phase record the implement skill named.
+    # The template documents every key, so its section lists them and the
+    # others name it.
+    "25 what Record language governs": (
+        CONFIG_TEMPLATE,
+        (
+            # The record a crafter writes at each phase's close, which the
+            # other lists left out.
+            "`trail/phases/phase-N.md`",
+        ),
+        {},
+    ),
+    # #1578: eight files, the template among them, each said how a language
+    # key is absent or what an absent one does, and the commit skill's four
+    # ways were the only complete list. The template's paragraph states
+    # both, and each fact here is spelt as that paragraph alone spells it,
+    # since the file names `no such key` and `seal pr-body` in other
+    # sentences too.
+    "26 what an absent language key is and does": (
+        CONFIG_TEMPLATE,
+        (
+            # The four ways a key is absent, which a reader of `config.json`
+            # checks the file against.
+            "no file, no such key, an empty value",
+            "does not parse as one JSON object",
+            # The fourth way counted as absent for the two language keys,
+            # where the next paragraph's lead refuses it for every key.
+            "for these two keys it counts as absent",
+            # What absence does at the pull request body, and at a commit or
+            # a record.
+            "`seal pr-body` refuses with nothing written",
+            "commit or a record is written in English",
+        ),
+        {},
+    ),
+    # #1578: three files each said what the words beside a failing file
+    # mean, and the one the other two cited labelled its bullets with none
+    # of the words the gate prints. Its bullets now open with them.
+    "27 what the word beside a failing file tells the orchestrator": (
+        VERIFY_ORCH,
+        (
+            # The three words `broad_gate.py#ON_BASE`, `#NEW` and
+            # `#NOT_MEASURED` print, which the orchestrator reads in the
+            # gate's output. `NOT_MEASURED` opens with its word and goes on
+            # to say why.
+            f"`{gate.ON_BASE}`",
+            f"`{gate.NEW}`",
+            f"`{gate.NOT_MEASURED.split()[0]}`",
+        ),
+        {},
+    ),
+    # #1578: four files each gave the order the gate resolves its base in,
+    # and one left out the ref as given. The policy spells the refs, the
+    # sealer keeps the steps it types itself, and
+    # each link replaces `DESCRIBES_THE_BASE` of
+    # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py`, which
+    # held both orchestration files to their copies.
+    "28 the order the base is resolved in": (
+        BROAD_GATE,
+        (
+            # The two refs `broad_gate.py#resolve_base` tries before the ref
+            # as given, which a person doubting a seal checks the printed
+            # base against.
+            "`<base>@{upstream}`",
+            "`origin/<base>`",
+        ),
+        {VERIFY_ORCH: WHAT_THE_GATE_RUNS, GATE_TO_PR: WHAT_THE_GATE_RUNS},
+    ),
+    # #1578: a document of `docs/forms/` and the agent set each stated what
+    # a frame removes, under the same `check:` line. The document went, and
+    # the agent set's paragraph took its one clause.
+    "29 what a frame removes": (
+        AGENT_SET,
+        (
+            # The section of `frame/design.md` the framer writes and the
+            # proofer reads against the diff.
+            "`## Removes`",
+            # The block a work item removing nothing writes in its place.
+            "`skills/settle/rule-changes.md` *Rule changes*",
+        ),
+        {},
+    ),
 }
 
 
@@ -232,7 +365,8 @@ FIX_PASS = "## Orchestrator: a phase is a fresh crafter, and a fix pass resumes 
 
 
 def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
-    """S5 of #945. Rule 18 holds the threshold; this holds what lets an
+    """S5 of #945. The threshold is a measurement of the 0.22.0 run that
+    no code reads, and the section is its one home; this holds what lets an
     orchestrator act on the section: the command that reads the
     implementer's context and the column it reads, the section a fold of the
     records follows, and the record the commit of the closes holds."""
@@ -279,13 +413,13 @@ def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit(
 
 
 def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
-    """S8 of #943 and S12 of #1044, the orchestrator's half. The owner
-    section names the commands that write the pull request body's file and
-    send it, and the constant that marks where the copy of the records
-    starts. Each is something the orchestrator types or opens, so each is
-    held by its spelling; the order and the wording around them are the
-    proofer's to read."""
-    text = flat(*ORCH)
+    """S8 of #943 and S12 of #1044, the orchestrator's half. The steps from
+    the preflight to the open pull request name the commands that write the
+    pull request body's file and send it, and the constant that marks where
+    the copy of the records starts. Each is something the orchestrator types
+    or opens, so each is held by its spelling; the order and the wording
+    around them are the proofer's to read."""
+    text = flat(*GATE_TO_PR)
     pinned = [
         # The command the orchestrator types to open the pull request from
         # the body file.
@@ -335,13 +469,31 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     commands the orchestrator types and what it does at each exit code. The
     case holds those commands, each exit code with the states that name
     exits 4 to 6, and the flag the orchestrator reads the branch's commits
-    with; each row's act is the proofer's to read."""
+    with; each row's act is the proofer's to read. Since #1579 the merge
+    stands in the owner section and the wait in the steps from the
+    preflight to the open pull request, so the case reads both."""
     text = flat(*ORCH)
-    section = text[
+    owner = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
             text.index("## Orchestrator: verify before posting")
         )
     ]
+    steps = flat(*GATE_TO_PR).split(
+        "## Orchestrator: from the preflight to the open pull request", 1
+    )[1]
+    section = owner + steps
+    # The `state` each of `pr_wait.py#STATES` names, by the exit code it
+    # stops on, and the one that stops on none, which the conflict code
+    # pairs with `mergeable`.
+    stops = {value[0]: state for state, value in wait.STATES.items() if value}
+    (open_state,) = (state for state, value in wait.STATES.items() if not value)
+    # The `mergeable` value the conflict code is named after, one of
+    # `pr_wait.py#MERGEABLE`.
+    (conflicting,) = (
+        value
+        for value in wait.MERGEABLE
+        if getattr(wait, value, None) == wait.CONFLICTING
+    )
     for said in (
         # The read the orchestrator types before each push, and the wait it
         # types when the pull request opens and after each push.
@@ -349,14 +501,14 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "`seal pr-wait <N>`",
         # Each exit code the command answers with, as a row of the table that
         # gives the orchestrator's act at it.
-        "| 0 |",
-        "| 1 |",
-        "| 2 |",
-        "| 3 |",
+        *(
+            f"| {code} |"
+            for code in (wait.PASSED, wait.FAILED, wait.UNANSWERED, wait.NO_CHECK)
+        ),
         # The three states that stop the push or the wait, each with its code.
-        "| 4 | `state` is `MERGED` |",
-        "| 5 | `state` is `CLOSED` |",
-        "| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` |",
+        *(f"| {code} | `state` is `{stops[code]}` |" for code in sorted(stops)),
+        f"| {wait.CONFLICTING} | `state` is `{open_state}` and `mergeable` is "
+        f"`{conflicting}` |",
         # The flag the orchestrator reads the branch's commits with, so a
         # merge commit is left out.
         "`--no-merges`",
@@ -513,21 +665,20 @@ def test_a_close_that_does_not_hold_reopens_it():
 
     def both(carrier):
         return [
-            s
-            for s in sentences(flat(*carrier))
-            if "`confirms:`" in s and "`regression:`" in s
+            s for s in sentences(flat(*carrier)) if confirms in s and regression in s
         ]
 
-    # The two line keywords `lib/fields.py` spells, which the proofer
+    # The three line keywords `lib/fields.py` spells, which the proofer
     # writes and the chain check reads.
+    confirms, regression, reopens = LINE_KEYWORDS
     assert both(SKILL), f"{'/'.join(SKILL)} names the channel nowhere"
     for carrier in (RECORD, PROOFER, SKILL, ORCH):
         for s in both(carrier):
-            # The third line keyword of the same channel, `reopens:`, which
-            # the proofer writes and the chain check reads.
-            assert "`reopens:`" in s, (
-                f"{'/'.join(carrier)} names the channel by `confirms:` and "
-                f"`regression:` alone: {s}"
+            # The third line keyword of the same channel, which the proofer
+            # writes and the chain check reads.
+            assert reopens in s, (
+                f"{'/'.join(carrier)} names the channel by {confirms} and "
+                f"{regression} alone: {s}"
             )
 
 

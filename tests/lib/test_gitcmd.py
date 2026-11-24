@@ -1,19 +1,29 @@
-"""`lib/gitcmd.py`: the argv of a git command whose output a script
-parses, read the same under any person's or repository's git configuration.
+"""`lib/gitcmd.py`: the one place a script starts git or `gh`, and the argv
+of every git command, read the same under any person's or repository's git
+configuration.
 
 One parameter per key of `gitcmd.KEYS`. Each builds a repository in which
 that key, set otherwise than git's default, changes what one command
 prints, and names what the command prints under git's default. The scripts'
-own readers build their `log` and `status` with `argv`, which the proofer
-reads in the diff (`docs/running/what-a-script-gates.md` *Which gate a script
-holds*); the cases here hold each key once, over the helper.
+own readers start git through `git`, which builds the argv with `argv`, and
+the proofer reads that in the diff (`docs/running/what-a-script-gates.md`
+*Which gate a script holds*); the cases here hold each key once, over the
+helper.
+
+`Test_git`, `Test_gh` and `Test_is_ancestor` hold the runner (#1573): a
+command that did not start or did not finish within `TIMEOUT` raises
+`Unrun`, a non-zero exit is the caller's to read unless it passes
+`check=True`, and `Test_Failed` holds what an uncaught one does to a
+process. `Test_http_answer` holds the reader of what `gh api -i` printed,
+the HTTP status the release scripts decide on.
 """
 
 import os
 import subprocess
+import sys
 
 import pytest
-from conftest import census_case, git, load_lib_module, write
+from conftest import census_case, gh_answers, git, load_lib_module, write
 
 TARGET = "lib/gitcmd.py"
 
@@ -186,6 +196,335 @@ class Test_under_root:
 
     def test_refuses_to_read_the_path_as_one_name(self):
         assert gitcmd.under_root("r", "a/b") != os.path.join("r", "a" + chr(0) + "b")
+
+
+class Test_inside:
+    """`inside` came here from `seal.py`, `settle.py` and `broad_gate.py`
+    (#1575), each of which answered it by `commonpath`."""
+
+    def test_accepts_the_top_itself_and_a_path_under_it(self, tmp_path, monkeypatch):
+        """A relative path is read from the directory this runs in, as
+        `seal.py`'s `display` hands one over."""
+        top = tmp_path / "repo"
+        top.mkdir()
+        assert gitcmd.inside(str(top), str(top))
+        assert gitcmd.inside(os.path.join(str(top), "a", "b.md"), str(top))
+        monkeypatch.chdir(top)
+        assert gitcmd.inside(os.path.join("a", "b.md"), str(top))
+
+    def test_refuses_a_sibling_sharing_its_prefix_a_parent_and_two_drives(
+        self, tmp_path, monkeypatch
+    ):
+        """`/repo-2/x` begins with `/repo` and is not under it, which a
+        `startswith` would miss. `commonpath` raises for paths on two drives,
+        which only a Windows run meets, so the raise stands in for it."""
+        top = str(tmp_path / "repo")
+        assert not gitcmd.inside(str(tmp_path / "repo-2" / "x"), top)
+        assert not gitcmd.inside(str(tmp_path), top)
+
+        def two_drives(paths):
+            raise ValueError("Paths don't have the same drive")
+
+        monkeypatch.setattr(gitcmd.os.path, "commonpath", two_drives)
+        assert not gitcmd.inside(top, top)
+
+
+def starts(monkeypatch, outcome):
+    """`subprocess.run` replaced by one that records each call's argv and
+    keywords and answers OUTCOME: an exception raised, or a (code, stdout,
+    stderr) triple. Returns the calls."""
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append((list(command), kwargs))
+        if isinstance(outcome, BaseException):
+            raise outcome
+        return subprocess.CompletedProcess(command, *outcome)
+
+    monkeypatch.setattr(gitcmd.subprocess, "run", run)
+    return calls
+
+
+def no_program_on_path(monkeypatch, tmp_path):
+    """PATH set to one empty directory, so neither git nor `gh` is found."""
+    empty = tmp_path / "empty-path"
+    empty.mkdir()
+    monkeypatch.setenv("PATH", str(empty))
+
+
+class Test_git:
+    def test_accepts_the_argv_argv_builds_and_returns_the_process(
+        self, tmp_path, monkeypatch
+    ):
+        """The command started is `argv("-C", root, *args)`, under
+        `TIMEOUT`, in text mode as UTF-8 with undecodable bytes replaced,
+        and with `given` on stdin; the `CompletedProcess` is returned as
+        it is."""
+        calls = starts(monkeypatch, (0, "out\n", ""))
+        done = gitcmd.git("/r", "cat-file", "--batch", given="HEAD\n")
+        assert done.stdout == "out\n"
+        [(command, kwargs)] = calls
+        assert command == gitcmd.argv("-C", "/r", "cat-file", "--batch")
+        assert kwargs["timeout"] == gitcmd.TIMEOUT
+        assert kwargs["input"] == "HEAD\n"
+        assert (kwargs["encoding"], kwargs["errors"]) == ("utf-8", "replace")
+        assert kwargs["env"] is None
+
+    def test_accepts_bytes_and_an_environment_added_to_this_one(
+        self, tmp_path, monkeypatch
+    ):
+        """`binary=True` returns bytes, and `env` reaches git, both read
+        from a real repository; `env` is added to the environment the
+        process inherits rather than replacing it."""
+        repo = new_repo(tmp_path)
+        write(repo, "a.txt", "a\n")
+        sha = commit(repo, "a")
+        done = gitcmd.git(str(repo), "log", "-1", "--format=%H", binary=True)
+        assert done.stdout == f"{sha}\n".encode()
+        held = {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "agentic.probe",
+            "GIT_CONFIG_VALUE_0": "seen",
+        }
+        done = gitcmd.git(str(repo), "config", "--get", "agentic.probe", env=held)
+        assert done.stdout == "seen\n"
+        monkeypatch.setenv("AGENTIC_INHERITED", "kept")
+        calls = starts(monkeypatch, (0, b"", b""))
+        gitcmd.git(str(repo), "status", binary=True, env={"A": "1"})
+        [(_, kwargs)] = calls
+        assert kwargs["env"]["A"] == "1"
+        assert kwargs["env"]["AGENTIC_INHERITED"] == "kept"
+        assert (kwargs["encoding"], kwargs["errors"]) == (None, None)
+
+    def test_accepts_a_non_zero_exit_as_the_callers_to_read(self, tmp_path):
+        """For `merge-base --is-ancestor`, `diff --quiet`, `config --get`
+        and `rev-parse --verify --quiet`, exit 1 is an answer, so without
+        `check` the exit code is returned and nothing is raised."""
+        repo = new_repo(tmp_path)
+        done = gitcmd.git(str(repo), "config", "--get", "agentic.absent")
+        assert done.returncode == 1
+        assert done.stdout == ""
+
+    def test_refuses_a_command_past_the_bound_as_no_answer(self, monkeypatch):
+        """A command that did not finish within `TIMEOUT` raises `Unrun`,
+        whose line names the program, the arguments the caller passed and
+        the bound, and none of `argv`'s `-c` pairs or the `-C <root>`."""
+        starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
+        with pytest.raises(gitcmd.Unrun) as raised:
+            gitcmd.git("/r", "rm", "-r", "--cached", ":/seal")
+        assert raised.value.command == ["git", "rm", "-r", "--cached", ":/seal"]
+        assert str(raised.value) == (
+            f"`git rm -r --cached :/seal` did not finish within "
+            f"{gitcmd.TIMEOUT} seconds"
+        )
+        assert raised.value.code == str(raised.value)
+
+    def test_refuses_a_git_that_is_not_on_path_as_no_answer(
+        self, tmp_path, monkeypatch
+    ):
+        """A program that cannot be found raises `Unrun` naming it, and
+        never the `FileNotFoundError` the process call raised."""
+        no_program_on_path(monkeypatch, tmp_path)
+        with pytest.raises(gitcmd.Unrun) as raised:
+            gitcmd.git(str(tmp_path), "status")
+        assert str(raised.value) == (
+            "`git status` could not be run: `git` is not on PATH"
+        )
+
+    def test_refuses_a_command_that_could_not_start_as_no_answer(self, monkeypatch):
+        """Any other error of the start raises `Unrun` with the error's
+        text."""
+        starts(monkeypatch, PermissionError(13, "Permission denied"))
+        with pytest.raises(gitcmd.Unrun) as raised:
+            gitcmd.git("/r", "status")
+        assert str(raised.value) == (
+            "`git status` could not be run: [Errno 13] Permission denied"
+        )
+
+    def test_refuses_a_non_zero_exit_where_the_caller_checks(self, tmp_path):
+        """`check=True` turns a non-zero exit into `Exited`, which carries
+        the code and stderr, and whose line holds the code and git's first
+        line on stderr."""
+        repo = new_repo(tmp_path)
+        with pytest.raises(gitcmd.Exited) as raised:
+            gitcmd.git(str(repo), "rev-parse", "--verify", "nowhere", check=True)
+        assert raised.value.returncode == 128
+        first = raised.value.stderr.strip().splitlines()[0]
+        assert first.startswith("fatal: "), raised.value.stderr
+        assert str(raised.value) == (
+            f"`git rev-parse --verify nowhere` exited 128: {first}"
+        )
+
+
+class Test_gh:
+    def test_accepts_the_gh_on_path_in_the_directory_named(self, tmp_path, monkeypatch):
+        """The `gh` `shutil.which` finds is started in `root`, and what it
+        printed is returned; the suite's stub answers this one question."""
+        monkeypatch.setenv("PATH", gh_answers(dict(os.environ), "ready")["PATH"])
+        done = gitcmd.gh("pr", "view", "--json", "isDraft", root=str(tmp_path))
+        assert (done.returncode, done.stdout) == (0, '{"isDraft":false}\n')
+        calls = starts(monkeypatch, (0, "", ""))
+        gitcmd.gh("pr", "view", root=str(tmp_path))
+        [(command, kwargs)] = calls
+        assert command[1:] == ["pr", "view"]
+        assert os.path.normcase(os.path.basename(command[0])).startswith("gh")
+        assert kwargs["cwd"] == str(tmp_path)
+        assert kwargs["timeout"] == gitcmd.TIMEOUT
+        assert (kwargs["encoding"], kwargs["errors"]) == ("utf-8", "replace")
+
+    def test_refuses_a_gh_that_is_not_on_path_as_no_answer(self, tmp_path, monkeypatch):
+        no_program_on_path(monkeypatch, tmp_path)
+        with pytest.raises(gitcmd.Unrun) as raised:
+            gitcmd.gh("pr", "view")
+        assert raised.value.command == ["gh", "pr", "view"]
+        assert str(raised.value) == (
+            "`gh pr view` could not be run: `gh` is not on PATH"
+        )
+
+    def test_refuses_a_command_past_the_bound_as_no_answer(self, monkeypatch):
+        starts(monkeypatch, subprocess.TimeoutExpired(["gh"], gitcmd.TIMEOUT))
+        with pytest.raises(gitcmd.Unrun) as raised:
+            gitcmd.gh("api", "repos/x/y")
+        assert str(raised.value) == (
+            f"`gh api repos/x/y` did not finish within {gitcmd.TIMEOUT} seconds"
+        )
+
+    def test_refuses_a_non_zero_exit_where_the_caller_checks(self, monkeypatch):
+        """Without `check` the exit is returned; with it, `Exited` names the
+        code and the first line `gh` said."""
+        monkeypatch.setenv("PATH", gh_answers(dict(os.environ), "unknown")["PATH"])
+        done = gitcmd.gh("pr", "view", "--json", "isDraft")
+        assert done.returncode == 1
+        with pytest.raises(gitcmd.Exited) as raised:
+            gitcmd.gh("pr", "view", "--json", "isDraft", check=True)
+        assert str(raised.value) == (
+            "`gh pr view --json isDraft` exited 1: no pull requests found for "
+            'branch "x"'
+        )
+
+
+# What `gh api -i` printed to stdout, in the shape measured with gh 2.92.0
+# for a release and an issue that are missing and present (#1572): the
+# status line, the headers, an empty line and the body. `gitcmd.gh` reads it
+# in text mode, so each line ends in LF.
+MISSING = (
+    "HTTP/2.0 404 Not Found\nContent-Type: application/json; charset=utf-8\n\n"
+    '{"message":"Not Found","status":"404"}'
+)
+PRESENT = 'HTTP/2.0 200 OK\nContent-Type: application/json\n\n{"state":"open"}'
+
+
+class Test_http_answer:
+    @pytest.mark.parametrize(
+        "stdout, answer",
+        [
+            (MISSING, (404, '{"message":"Not Found","status":"404"}')),
+            (PRESENT, (200, '{"state":"open"}')),
+            ("HTTP/1.1 204\nServer: x\n\n", (204, "")),
+            ("HTTP/2 200 OK\n\nfirst\n\nsecond", (200, "first\n\nsecond")),
+        ],
+        ids=["a-404", "a-200", "no-reason-phrase", "a-body-holding-an-empty-line"],
+    )
+    def test_accepts_the_status_line_and_the_body_after_the_headers(
+        self, stdout, answer
+    ):
+        """The status is the status line's second field, and the body is
+        everything after the first empty line, an empty line of its own
+        among it."""
+        assert gitcmd.http_answer(stdout) == answer
+
+    @pytest.mark.parametrize(
+        "stdout",
+        [
+            "",
+            "error connecting to no-such-host.invalid\n",
+            "HTTP/2.0 2000 OK\n\n{}",
+            "HTTP/2.0 20 OK\n\n{}",
+            "HTTP/2.0 200OK\n\n{}",
+            'Content-Type: x\nHTTP/2.0 200 OK\n\n{"state":"open"}',
+        ],
+        ids=[
+            "nothing-printed",
+            "no-http-answer",
+            "four-digits",
+            "two-digits",
+            "no-space-after-the-code",
+            "a-status-line-that-is-not-first",
+        ],
+    )
+    def test_refuses_an_answer_with_no_status_line_as_no_status(self, stdout):
+        """Text whose first line is not `HTTP/<version> <three digits>`
+        carries no status, and the body after its empty line is read as it
+        is printed: the callers decide on the status alone."""
+        status, body = gitcmd.http_answer(stdout)
+        assert status is None
+        assert body == stdout.partition("\n\n")[2]
+
+
+class Test_is_ancestor:
+    def test_accepts_a_commit_the_ref_reaches_and_the_ref_itself(self, tmp_path):
+        repo = new_repo(tmp_path)
+        write(repo, "a.txt", "a\n")
+        first = commit(repo, "a")
+        write(repo, "a.txt", "b\n")
+        second = commit(repo, "b")
+        assert gitcmd.is_ancestor(str(repo), first, second) is True
+        assert gitcmd.is_ancestor(str(repo), second, second) is True
+
+    def test_refuses_a_commit_the_ref_does_not_reach(self, tmp_path, monkeypatch):
+        """A later commit is not reached from an earlier one, and a git that
+        did not answer is no `False`: it raises `Unrun`."""
+        repo = new_repo(tmp_path)
+        write(repo, "a.txt", "a\n")
+        first = commit(repo, "a")
+        write(repo, "a.txt", "b\n")
+        second = commit(repo, "b")
+        assert gitcmd.is_ancestor(str(repo), second, first) is False
+        starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
+        with pytest.raises(gitcmd.Unrun):
+            gitcmd.is_ancestor(str(repo), first, second)
+
+
+# A script that lets `Unrun` reach the interpreter, and an `except
+# Exception` around it that must not catch it.
+UNCAUGHT = """import sys
+sys.path.insert(0, {lib!r})
+import gitcmd
+try:
+    gitcmd.git({where!r}, "status")
+except Exception:
+    print("caught as an Exception")
+"""
+
+
+class Test_Failed:
+    def test_accepts_an_uncaught_one_as_its_line_at_exit_1(self, tmp_path):
+        """An entry point that catches nothing ends with the runner's line
+        on stderr, at exit 1, and with no traceback (design G14)."""
+        lib = os.path.dirname(gitcmd.__file__)
+        script = tmp_path / "uncaught.py"
+        script.write_text(
+            UNCAUGHT.format(lib=lib, where=str(tmp_path)), encoding="utf-8"
+        )
+        empty = tmp_path / "empty-path"
+        empty.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(script)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            env={**os.environ, "PATH": str(empty)},
+        )
+        assert done.returncode == 1, done
+        assert done.stdout == ""
+        assert done.stderr == "`git status` could not be run: `git` is not on PATH\n"
+
+    def test_refuses_to_be_caught_as_an_exception(self):
+        """A handler written for an error of the caller's own does not
+        swallow a git that did not answer."""
+        assert not issubclass(gitcmd.Failed, Exception)
+        assert issubclass(gitcmd.Unrun, SystemExit)
+        assert issubclass(gitcmd.Exited, gitcmd.Failed)
 
 
 test_census = census_case(TARGET)

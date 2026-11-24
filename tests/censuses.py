@@ -37,6 +37,11 @@ import tokenize
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXEMPTION = re.compile(r"^\s*#\s*exempt from ([a-z_]+):\s*\S")
 COMMENT_LINE = re.compile(r"^\s*#")
+# The code `splitlines` and `heading_rule` read: `lib/` and `skills/`, and
+# the release automation under `.github/scripts/`, which the workflows run
+# from the tree and `dist` does not hold. A `.py` file under any other root
+# is not read: `hooks/`, which the plugin ships, and `tests/`, which holds
+# the suite and its runner.
 SHIPPED = ("lib/", "skills/", ".github/scripts/")
 
 
@@ -802,11 +807,12 @@ def entry_point(rel, root=None):
 
 
 def splitlines(rel, root=None):
-    """No shipped reader splits a document's lines with `.splitlines(`,
-    which also ends a line at the eight separators GFM does not. A reader
-    of markdown or record text reads `lib/blocks.py#gfm_lines`, and a call
-    over any other text, git's output or a tool's, carries its exemption
-    above the line that names `splitlines`."""
+    """No reader under `SHIPPED` splits a document's lines with
+    `.splitlines(`, which also ends a line at the eight separators GFM does
+    not. A reader of markdown or record text reads
+    `lib/blocks.py#gfm_lines`, and a call over any other text, git's output
+    or a tool's, carries its exemption above the line that names
+    `splitlines`."""
     text = _python(rel, root, SHIPPED)
     if text is None:
         return []
@@ -841,7 +847,7 @@ def splitlines(rel, root=None):
 # A format this repository owns is read by one reader. A markdown heading was
 # read by four rules, and the copies answered one file differently. Each copy
 # had been written beside a docstring pointing at the original, so what holds
-# the one reader is a census over every shipped script.
+# the one reader is a census over every script under `SHIPPED`.
 
 # A code line that reads a markdown heading by a rule of its own: a counted
 # `#` run in a pattern, `#{1,6}`, `#{2,3}` or any `#{<digit>`, or a
@@ -866,8 +872,8 @@ def code_lines(text):
 
 
 def heading_rule(rel, root=None):
-    """No shipped script spells the markdown heading rule again: a reader of
-    a document's sections asks `lib/lines.py#heading_level`. A docstring
+    """No script under `SHIPPED` spells the markdown heading rule again: a
+    reader of a document's sections asks `lib/lines.py#heading_level`. A docstring
     and a whole-line comment are prose about the rule and are not read."""
     text = _python(rel, root, SHIPPED)
     if text is None:
@@ -1100,112 +1106,6 @@ def real_identifiers(rel, root=None):
     return _held("real_identifiers", rel, text, flagged)
 
 
-# --- old_names (#1051) ----------------------------------------------------------
-#
-# The plugin was renamed AgenticSeal in one release: its prefix, its agents,
-# its record layout and its command line each have one spelling, #1051's
-# mapping, and a living file that writes the old one names a thing that no
-# longer exists. The census reads every tracked text file outside the records
-# below, so a name the sweep missed, or one a later edit brings back, is a
-# line with its coordinate.
-#
-# Each alternative is one old name, or one family of them. The pattern is
-# built from halves, so this file does not write the names it refuses.
-_OLD = "spec" + "seal"
-OLD_NAME = re.compile(
-    "|".join(
-        (
-            # The brand, the plugin's old `name` and prefix, every identifier
-            # and variable spelt after it, and the old trailer key.
-            _OLD,
-            # The tagline the one sentence replaced.
-            "specs, " + "sealed",
-            # The agents now named crafter, proofer and tracer.
-            r"\b(?:" + "smi" + "th|war" + "den|scr" + r"ibe)\b",
-            # A work item's directory, now `seal/threads/<id>/`.
-            "seal/" + r"specs\b",
-            # The frame's design and the closing memo, now `frame/design.md`
-            # and `gaps.md`; a file named for its subject, such as
-            # `graders/shape-writes-spec.md`, is not the record.
-            r"(?<![\w-])(?:" + "sp" + "ec|over" + r"view)\.md\b",
-            # The broad run's record, now `trail/gate.md`, and the command
-            # now `seal gate`; `docs/running/the-broad-gate.md` names the act.
-            r"(?<!the-)broad" + "-gate",
-            # The hand-offs, now under a thread's `trail/`.
-            r"(?<!trail/)\b(?:pha" + "ses|rou" + "nds)/",
-            # The commands `seal <subcommand>` replaced.
-            r"\b(?:session-" + "cost|mutation-" + "check|unverified-" + "check"
-            r"|arm-" + "check|deferral-" + "check|fold-" + "check|pact-" + "check"
-            r"|payload-" + "meter|seal-" + "stamp|test-" + r"layout)\b",
-        )
-    ),
-    re.IGNORECASE,
-)
-# The old spellings a living file keeps on purpose, each for a reader that
-# still meets it, and each taken out of a line before OLD_NAME reads it.
-KEPT_OLD_NAMES = (
-    # The trailer key a commit made before the rename carries, which
-    # `chain_check.py` no longer reads. It is still spelt by the case in
-    # `tests/skills/test_chain_check.py#Test_routing_trailers` that pins the
-    # key as unread.
-    "Spec" + "Seal-Routing",
-    # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
-    # the plugin's old name to its new one and is append-only.
-    f'"{_OLD}": "agentic"',
-    # The 0.3.x directory, which `docs/layout/one-root-by-lifetime.md` names as one
-    # no code of the plugin opens, and which the cases pinning it as unread
-    # spell.
-    f".{_OLD}",
-)
-# A released work item's record cited at the commit that holds it, as
-# `<commit>:<path>`, the form `git show` opens as written: the settle removed
-# the directory and nothing rewrites history, so the old path is the only one
-# any commit holds. Taken out of a line before OLD_NAME
-# reads it, whole, so the record names inside the path pass with it.
-HISTORY_PATH = re.compile(
-    r"(?<![\w/:])[0-9a-f]{7,40}:"
-    + "seal/"
-    + r"specs/[0-9]{10}-[a-z0-9-]+(?:/[\w.-]+)*/?"
-)
-# The records of a moment, which keep the names they were written under. A
-# thread is read against the commits it names until the settle after its
-# release removes it, and the thread that renames a name quotes the name it
-# renames.
-OLD_NAME_RECORDS = ("seal/threads/",)
-# A replayed or seeded eval case holds a run at a recorded commit, so its
-# bytes are the record (`evals/README.md`).
-RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
-
-
-def old_names(rel, root=None):
-    """No living file writes a name the rename to AgenticSeal replaced:
-    the brand, the old prefix and identifiers, the old agents, the old
-    record layout, the old commands and the tagline. A spelling kept on
-    purpose is in KEPT_OLD_NAMES, a record or a recorded case is passed over
-    whole, a released work item's record passes only cited at a commit
-    (HISTORY_PATH), and any other line that keeps an old name carries its
-    exemption. A file that is not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
-        return []
-    text = _text(rel, root)
-    if text is None:
-        return []
-    flagged = {}
-    for number, line in enumerate(text.split("\n"), 1):
-        for kept in KEPT_OLD_NAMES:
-            line = line.replace(kept, "")
-        line = HISTORY_PATH.sub("", line)
-        found = OLD_NAME.search(line)
-        if found:
-            flagged[number] = (
-                f"`{found.group(0)}` is a name the rename to AgenticSeal "
-                "replaced; write the new one from #1051's mapping, or put "
-                "`# exempt from old_names: <why>` on its own line above a "
-                "line that keeps it on purpose"
-            )
-    return _held("old_names", rel, text, flagged)
-
-
 # --- vacated_paths (#1060) ------------------------------------------------------
 #
 # #1060 moves files one directory down: a module of `hooks/` into
@@ -1219,8 +1119,13 @@ def old_names(rel, root=None):
 # refuses nothing until a file has moved.
 
 # Each directory a move fills, with each directory whose spelling it
-# vacates. `tests/e2e/` is not an area: its files never stood at the top of
-# `tests/`, and `docs/experiments/` is no group of the policy root.
+# vacates. A row names the files that moved, not the directory they left:
+# `hooks/` and `tests/hooks/` hold live files again since #1430, and the
+# census flags `hooks/<name>` or `tests/hooks/<name>` only where the file
+# stands in `lib/` or `tests/lib/` and no file holds that path. `TEST_AREAS`
+# are the areas whose files once stood at the top of `tests/`, so
+# `tests/hooks/` and `tests/e2e/` are not among them, and `docs/experiments/`
+# is no group of the policy root.
 TEST_AREAS = ("lib", "skills", "github", "evals", "behaviour", "text")
 POLICY_GROUPS = ("forms", "running", "releasing", "checks", "layout")
 VACATING = (
@@ -1236,6 +1141,13 @@ VACATING = (
 # written; the old path is the one that commit holds. Taken out of a line
 # before the census reads it.
 COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
+# The records of a moment, which keep the paths they were written under. A
+# thread is read against the commits it names until the settle after its
+# release removes it.
+THREAD_RECORDS = ("seal/threads/",)
+# A replayed or seeded eval case holds a run at a recorded commit, so its
+# bytes are the record (`evals/README.md`).
+RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 
 
 def vacated(root=None):
@@ -1260,11 +1172,11 @@ def vacated_paths(rel, root=None):
     `hooks/<name>` once the file stands at `lib/<name>`, and the same for
     `templates/` and `tests/`. A spelling counts as a word, at the start
     of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
-    not inside a longer path. The records and the recorded cases `old_names`
-    passes are passed over whole, a path cited at a commit passes, and any
-    other line that keeps an old path carries its exemption. A file that is
-    not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
+    not inside a longer path. A work item's records and a replayed or
+    seeded eval case are passed over whole, a path cited at a commit passes,
+    and any other line that keeps an old path carries its exemption. A file
+    that is not UTF-8 text is not read."""
+    if rel.startswith(THREAD_RECORDS) or RECORDED_CASE.match(rel):
         return []
     moved = vacated(root)
     if not moved:
@@ -1511,7 +1423,6 @@ CENSUSES = (
     floor_syntax,
     section_sign,
     real_identifiers,
-    old_names,
     vacated_paths,
     slash_in_join,
     root_name,

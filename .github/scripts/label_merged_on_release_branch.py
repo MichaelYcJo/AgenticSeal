@@ -12,12 +12,12 @@ out of the commit subjects that arrived, fetches those pull request bodies,
 and puts `merged: X.Y.Z` on every issue their closing keywords name. The
 version comes from the branch name.
 
-**Nothing here parses anything new.** `MERGED_PR`, `keywords_in`,
-`pull_request_body` and `arrived` all come from
-`close_issues_on_release.py`, which is the module that already reads exactly
-these three things and whose `HIDDEN` treatment of a quoted keyword is
-the behaviour a second reader would have to reproduce. Importing it runs
-nothing: its `main` is guarded.
+**Nothing here parses anything new.** `MERGED_PR` and `keywords_in` come
+from `lib/closing.py`, whose `HIDDEN` treatment of a quoted keyword is the
+behaviour a second reader would have to reproduce, and `pull_request_body`
+and `arrived` come from `close_issues_on_release.py`, the closer, which reads
+the same three things with them. Importing the closer runs nothing: its
+`main` is guarded.
 
 Four things it deliberately does not do.
 
@@ -68,6 +68,10 @@ RELEASE_BRANCH = re.compile(r"^release/v(\d+\.\d+\.\d+)$")
 # the same neighbour the workflow does. `sys.path[0]` is this directory only
 # when the script is the entry point.
 closer = sibling.load(".github/scripts/close_issues_on_release.py")
+# `lib/closing.py`, the readers of a squash subject and a closing keyword the
+# closer reads with.
+closing = sibling.load("lib/closing.py")
+console = sibling.load("lib/console.py")
 
 
 # --- the name mapping -----------------------------------------------------
@@ -96,20 +100,18 @@ def label_name(version):
 # The most characters GitHub accepts in a label's description. The number is
 # GitHub's, not this repository's: `gh label create` with a longer one is
 # refused with `HTTP 422 ... description is too long (maximum is 100
-# characters)`, and a 119-character description sent there fails the
-# close-issues workflow after a release and skips the step behind it.
-# Every description this directory sends to `gh label create` is held
-# under it by a case, so an over-long one is refused by the suite before a
-# merge rather than by the tracker after one. Raising it does not make a longer
+# characters)`, and a 119-character description sent there failed the
+# close-issues workflow after a release and skipped the step behind it (#515).
+# The description this script sends to `gh label create` is held under it
+# by a case, so an over-long one is refused by the suite before a merge
+# rather than by the tracker after one. Raising it does not make a longer
 # description fit; it moves the refusal back to the tracker.
 #
-# No function here reads it. The cases that read it are in
-# `tests/github/test_label_merged_on_release_branch.py` and
-# `tests/github/test_tracker_labels.py`. It stays in this script rather than
-# in a test because the cap binds the description this script writes: a
-# person editing `label_description` meets it here, where a test would show
-# it only after the edit fails. `tracker_labels.py`'s note on its own
-# descriptions points here for the same reason.
+# No function here reads it. The case that reads it is in
+# `tests/github/test_label_merged_on_release_branch.py`. It stays in this
+# script rather than in a test because the cap binds the description this
+# script writes: a person editing `label_description` meets it here, where a
+# test would show it only after the edit fails.
 LABEL_DESCRIPTION_LIMIT = 100
 
 
@@ -135,9 +137,10 @@ def issue_labels(repo, number):
     `close_issues_on_release.py` reads an issue's labels too, to take a
     spent `size: now` off the issue it is closing, so the reader lives on
     that module, which owns the 404-tolerant read it is built on, and this
-    is the delegation -- one source, the way both scripts take `MERGED_PR`,
-    `keywords_in`, `pull_request_body` and `arrived` from one source. The
-    name stays here, so a caller of this module reads labels through it.
+    is the delegation -- one source, the way both scripts take `MERGED_PR`
+    and `keywords_in` from `lib/closing.py`, and `pull_request_body` and
+    `arrived` from the closer. The name stays here, so a caller of this
+    module reads labels through it.
     """
     return closer.issue_labels(repo, number)
 
@@ -195,7 +198,7 @@ def issues_in(repo, subjects):
     """{issue number: the pull request that claimed it}, in arrival order."""
     wanted = {}
     for subject in subjects:
-        found = closer.MERGED_PR.search(subject.strip())
+        found = closing.MERGED_PR.search(subject.strip())
         if not found:
             continue
         number = int(found.group(1))
@@ -203,7 +206,7 @@ def issues_in(repo, subjects):
         if body is None:
             print(f"#{number} is not a pull request — a hand-written number")
             continue
-        for issue in closer.keywords_in(body):
+        for issue in closing.keywords_in(body):
             wanted.setdefault(int(issue), number)
     return wanted
 
@@ -250,14 +253,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

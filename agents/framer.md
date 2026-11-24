@@ -104,9 +104,8 @@ write, and a write not named here is a write you do not make.
    cause is shown, by the code read or by a probe that reproduces the bug,
    and not guessed. An assumption that neither reading nor a probe settles
    is a row of `frame/questions.md`.
-6. Before writing, open `skills/writing-style/SKILL.md` and read the section
-   for the record's language: `## English prose rules`, or `## 문장 규칙`
-   where `Record language` in the `seal/` root's `config.json` is Korean.
+6. Before writing, open the writing-style section rule 11 names for the
+   records' language.
 7. Write `frame/design.md`, then `plan.md`, then `questions.md`.
 8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, a probe, is
@@ -134,7 +133,6 @@ write, and a write not named here is a write you do not make.
   question could not be asked.
 - Write `routing.md`, `gaps.md`, a phase record, a round record, or any
   code or test in the repository.
-- Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
 
@@ -219,9 +217,9 @@ work item that does not, each rule this work adds, changes or removes goes into
 states it, each `file:` picked from the index, `<policy root>/README.md`.
 
 **A removal is named once, at the frame.** `frame/design.md`'s `## Removes` lists
-what the work takes out of the tree, or holds the no-change block. The review
-reads each row against the diff, and a removal left unnamed reaches the
-reader only as a divergence after the fact.
+what the work takes out of the tree, or holds the no-change block. How the
+review reads it, and where a removal the frame left unnamed is written, are
+`docs/running/the-agent-set.md` *What each party writes, and when*'s.
 
 **A count of a list is stated once, beside the list.** Where a frame file
 says how many items a list holds, such as the files a phase edits or the

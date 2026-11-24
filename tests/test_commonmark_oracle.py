@@ -4,8 +4,8 @@ The oracle says which lines of a markdown document a CommonMark renderer
 hides, and the readers under `lib/` are held to it in their own module
 files. The cases here hold the oracle itself: on every shape of
 `tests/block_shapes.py` it gives the *Renderer* column, it names each kind
-it hides, it counts the lines the parser's strip drops, and it reads a
-reader's split as the text it is.
+it hides, it counts the lines the parser's strip drops, and it ends a line
+where CommonMark does.
 
 That it imports the parser and nothing of this repository's is held in
 `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py` with the
@@ -25,7 +25,7 @@ TARGET = "tests/commonmark_oracle.py"
 # is neither a space nor a tab, which CommonMark reads as indentation or a
 # blank line. Computed, so a Unicode version that adds one tests it without a
 # row being written. The breaks `str.splitlines` makes and CommonMark does
-# not are `hidden_text`'s mapping, and `BREAKS` holds them.
+# not end no line for `hidden_text`, and `BREAKS` holds them.
 DROPPED_BY_THE_STRIP = [
     chr(point)
     for point in range(0x110000)
@@ -279,42 +279,29 @@ class Test_module:
         assert not {" ", "\t"} & dropped
 
     @pytest.mark.parametrize("name", sorted(BREAKS))
-    def test_the_oracle_reads_the_text_not_a_readers_split(self, name):
-        """#667 round 1, 🟡 1. `hidden_text` hands the parser TEXT, broken where
-        CommonMark breaks, and answers per `text.splitlines()` line: a reader's
-        line that is a piece of a shown line is shown, and a piece of a hidden
-        line is hidden. Before, the oracle joined the reader's split and so
-        agreed with any walk that read it."""
+    def test_the_oracle_ends_a_line_where_commonmark_does(self, name):
+        """#667 round 1, 🟡 1, re-pinned by #1574. `hidden_text` hands the
+        parser TEXT, broken where CommonMark breaks, and answers per
+        CommonMark line, so a character `str.splitlines` breaks at and
+        CommonMark does not stays inside its line: a fenced line holding one
+        is one hidden line, and the text after one on a line that opened
+        inline raw HTML is part of that shown line. Until #1574 the oracle
+        answered per `str.splitlines` piece, the split the readers under
+        `lib/` read then; they now read CommonMark's lines."""
         brk = BREAKS[name]
         assert oracle.hidden_text(f"A note{brk}{OPEN}\n\n| a |\n{CLOSE}\n") == {}
-        assert set(oracle.hidden_text(f"```\nx{brk}y\n```\nz\n")) == {0, 1, 2, 3}
-        # round 2: a piece is asked where it starts, not where its line does --
-        # inside a comment its own line opened, and just past one it closed
+        assert set(oracle.hidden_text(f"```\nx{brk}y\n```\nz\n")) == {0, 1, 2}
         assert oracle.hidden_text(f"x {OPEN} a{brk}| b |\n{CLOSE}\n") == {
-            1: "inline html",
-            2: "inline html",
+            1: "inline html"
         }
         assert oracle.hidden_text(f"x {OPEN} a\nb {CLOSE}{brk}| c |\n") == {
             1: "inline html"
         }
-        # #673: every other kind of inline raw HTML, opened before the break and
-        # closed after it, holds the piece; closed before the break, it holds
-        # nothing after it
         for opener, closer in INLINE_KINDS:
             assert oracle.hidden_text(f"x {opener}{brk}| b |\n{closer}\n") == {
-                1: "inline html",
-                2: "inline html",
+                1: "inline html"
             }, opener
             assert oracle.hidden_text(f"x {opener} {closer}{brk}| c |\n") == {}, opener
-        # an open tag's piece between its attributes, and a closing tag's piece
-        # at its `>`, where no letter may stand
-        assert oracle.hidden_text(f'x <span{brk}lang="en">\n') == {1: "inline html"}
-        assert oracle.hidden_text(f"x </span{brk}>\n") == {1: "inline html"}
-        # inside an image description, whose tokens are the image's children: a
-        # renderer writes the description as the `alt` text and leaves HTML out
-        assert oracle.hidden_text(f'![x <span title="a{brk}b">](u)\n') == {
-            1: "inline html"
-        }
 
 
 test_census = census_case(TARGET)

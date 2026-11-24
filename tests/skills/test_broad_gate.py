@@ -1,24 +1,30 @@
 """`skills/verify/scripts/broad_gate.py`, one class per function.
 
-Rebuilt from the code by #942's phase 5. The pure units are driven with text,
-hand-built records and an `is_directory` answer, so no git and no shell runs
-under them. Git runs where the unit asks git a question: the base's
-resolution over one repository built once for the module, and the base
-comparison and the gate's own run over a fixture repository built once and
-copied for each case. Those cases run the fixture's one-test suite through
-the gate's recorder, one row per kind of answer, and each copy is the reset.
+Rebuilt from the code by #942's phase 5, and again by #1581's phase 7. The
+pure units are driven with text and hand-built records, so no git and no
+shell runs under them. Git runs where the unit asks git a question: the
+base's resolution over one repository built once for the module, and the
+base comparison and the gate's own run over a fixture repository built once
+and copied for each case. Each world is one `git fast-import` (`history`).
+The cases about what the recorder writes for a session an act ended run a
+real pytest with the recorder in a directory with no git, and read the
+record back through `read_record`. The gate's own runs are one per kind of
+answer it gives a run; where a case's fact is one arm, the other arms are
+answered for it (`arms_answered`), and `a_recorded_run`, `a_sealed_run`, the
+preflight and the runs of a copied plugin keep every arm real. Each copy is
+the reset.
 
 Phase 6 placed the light files' cases here as they stood. The cases of
-`run` and `handed_to_shell` that came from the file on what `cmd.exe` is
-handed (#448, #596) drive the Windows half with the platform passed in as an
-argument; two of them run the machine's real shell, and only CI's
-`windows-latest` leg runs its `cmd.exe` path. The cases of `main` that run
-the command build a repository with a `feature` branch and run it over that
-branch.
+`not_as_written` that read a command name the way `cmd.exe` does (#1577)
+drive the Windows half with the platform passed in as an argument and a root
+built for the case; two cases of `run` run the machine's real shell, and only
+CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that
+run the command run it over a repository with a `feature` branch, built once
+(`_sealable_template`) and copied by the cases that write into it.
 
-The cases that run the command beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
+The case that runs the command beside a project's own `seal/` package
+(#1059) builds `tests/conftest.py`'s `package` repository, whose root stands
+at `agentic-seal/`.
 """
 
 import argparse
@@ -36,7 +42,6 @@ import conftest
 import pytest
 from conftest import (
     census_case,
-    commit_everything_as_e,
     config_json,
     git,
     git_out,
@@ -48,6 +53,7 @@ from conftest import (
 )
 from conftest import commit_everything_as_e as commit
 from test_seal import configured, tool
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/broad_gate.py"
 
@@ -150,6 +156,59 @@ def clean_env():
     return {k: v for k, v in os.environ.items() if k not in AMBIENT}
 
 
+def history(repo, *commits, head, refs=(), checkout=True):
+    """REPO made a repository whose history one `git fast-import` writes;
+    the commits' ids, in order.
+
+    Each of COMMITS is `(ref, start, files)`: a commit on REF, a branch name
+    or a full ref, whose tree is REF's last commit with FILES, path to text,
+    written over it; where REF has no commit yet, its first starts from
+    START's last, or is a root where START is None. REFS maps each further
+    ref to the number of the commit it names, from 1. HEAD is the branch
+    the repository is on, checked out where CHECKOUT. Every commit is e's at
+    one fixed time, so a world built on two workers is one history, and the
+    whole build is three git processes where a commit made through the
+    working tree takes three of its own."""
+    repo = pathlib.Path(repo)
+    repo.mkdir(parents=True)
+    git(repo, "init", "-q", "-b", head)
+
+    def full(ref):
+        return ref if ref.startswith("refs/") else f"refs/heads/{ref}"
+
+    def blob(text):
+        data = text.encode("utf-8")
+        return b"data %d\n%s\n" % (len(data), data)
+
+    stream, started = [], set()
+    for n, (ref, start, files) in enumerate(commits, 1):
+        stream.append(
+            b"commit %s\nmark :%d\n" % (full(ref).encode(), n)
+            + b"author e <e@example.com> 1700000000 +0000\n"
+            + b"committer e <e@example.com> 1700000000 +0000\n"
+            + blob(f"commit {n}")
+        )
+        if ref not in started and start is not None:
+            stream.append(b"from %s\n" % full(start).encode())
+        started.add(ref)
+        for path, text in files.items():
+            stream.append(b"M 100644 inline %s\n" % path.encode() + blob(text))
+    for ref, n in dict(refs).items():
+        stream.append(b"reset %s\nfrom :%d\n\n" % (ref.encode(), n))
+    marks = repo / ".git" / "marks"
+    subprocess.run(
+        ["git", "-C", str(repo), "fast-import", "--quiet", f"--export-marks={marks}"],
+        input=b"".join(stream),
+        check=True,
+        capture_output=True,
+    )
+    ids = dict(line.split() for line in marks.read_text(encoding="utf-8").splitlines())
+    marks.unlink()
+    if checkout:
+        git(repo, "reset", "-q", "--hard")
+    return [ids[f":{n}"] for n in range(1, len(commits) + 1)]
+
+
 # --- the module as a whole ------------------------------------------------------
 
 
@@ -194,9 +253,6 @@ class Test_module:
         ]
         assert len(reads) == 1, [node.lineno for node in reads]
 
-    def test_the_gate_and_the_check_spell_the_flag_alike(self):
-        assert gate.CHAIN_SEALING == chain.SEALING
-
     def test_a_file_the_gate_wrote_is_read_by_the_check(self, tmp_path):
         """#1198, *Scope* item 2: the run block the gate appends is the one
         `chain_check.py#broad_gate` reads, through the same reader."""
@@ -206,98 +262,6 @@ class Test_module:
         assert (found.refusals, found.notices) == ([], [])
         (run,) = found.blocks
         assert run.fields[chain.FIELDS.RUN].match["commit"] == "abc1234"
-
-    def test_the_one_shell_site_is_run_and_it_applies_the_rewrite(self):
-        """A2, the class by construction. `broad_gate.py` has exactly one call
-        passing `shell=`, it is inside `run`, and the string it is handed is the
-        one `handed_to_shell` produced. `gate`'s `SUITE` and `compare_at_base`'s
-        `suite-at-base` both reach a shell through it, so a third shell site
-        written anywhere else turns this red rather than going unrewritten."""
-        with open(GATE, encoding="utf-8") as handle:
-            tree = ast.parse(handle.read())
-        sites, callers = [], []
-        for fn in ast.walk(tree):
-            if not isinstance(fn, ast.FunctionDef):
-                continue
-            for node in ast.walk(fn):
-                if not isinstance(node, ast.Call) or not any(
-                    kw.arg == "shell" for kw in node.keywords
-                ):
-                    continue
-                func = node.func
-                if (
-                    isinstance(func, ast.Attribute)
-                    and isinstance(func.value, ast.Name)
-                    and func.value.id == "subprocess"
-                ):
-                    sites.append((fn.name, node))
-                elif isinstance(func, ast.Name) and func.id == "run":
-                    callers.append(fn.name)
-        names = [name for name, _ in sites]
-        assert names == ["run"], f"`subprocess` calls passing `shell=` are in: {names}"
-        # The two callers the spec enumerates, and a third is a change to read.
-        assert sorted(callers) == ["compare_at_base", "gate"], callers
-        run_fn = next(
-            fn
-            for fn in tree.body
-            if isinstance(fn, ast.FunctionDef) and fn.name == "run"
-        )
-        call = sites[0][1]
-        assert call.args and isinstance(call.args[0], ast.Name), ast.dump(call)
-        handed = call.args[0].id
-        assigned_from_rewrite = [
-            node
-            for node in ast.walk(run_fn)
-            if isinstance(node, ast.Assign)
-            and any(isinstance(t, ast.Name) and t.id == handed for t in node.targets)
-            and any(
-                isinstance(inner, ast.Call)
-                and isinstance(inner.func, ast.Name)
-                and inner.func.id == "handed_to_shell"
-                for inner in ast.walk(node.value)
-            )
-        ]
-        assert assigned_from_rewrite, (
-            f"`run` hands the shell `{handed}`, and nothing in `run` assigns it "
-            "from `handed_to_shell`"
-        )
-
-
-# --- loading a sibling ------------------------------------------------------------
-
-
-class Test_sibling_module:
-    def test_accepts_a_sibling_that_imports(self):
-        assert gate.sibling_module(gate.STAMP) is stamp
-
-    def test_refuses_a_sibling_that_raises_with_its_own_sentence(
-        self, tmp_path, monkeypatch
-    ):
-        """#869. The loader hands a module's exception back unchanged, and
-        the gate turns it into `Refused` with the module's own sentence, or
-        its type where it has none. The plugin root is the case's own, so
-        the raising module stands under it."""
-        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
-        write(
-            tmp_path,
-            "bad_beside_the_gate.py",
-            "raise ValueError('the chart is malformed')\n",
-        )
-        write(tmp_path, "bare_beside_the_gate.py", "raise ValueError()\n")
-        with pytest.raises(gate.Refused) as said:
-            gate.sibling_module("bad_beside_the_gate.py")
-        assert str(said.value).endswith("nothing ran: the chart is malformed")
-        with pytest.raises(gate.Refused) as bare:
-            gate.sibling_module("bare_beside_the_gate.py")
-        assert str(bare.value).endswith("nothing ran: ValueError")
-
-    def test_refuses_to_turn_a_siblings_exit_into_a_refusal(
-        self, tmp_path, monkeypatch
-    ):
-        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
-        write(tmp_path, "floor_beside_the_gate.py", "raise SystemExit(3)\n")
-        with pytest.raises(SystemExit):
-            gate.sibling_module("floor_beside_the_gate.py")
 
 
 # --- which copy runs ----------------------------------------------------------------
@@ -328,15 +292,6 @@ class Test_plugin_version:
         assert gate.plugin_version(str(tmp_path)) == "?"
         write(tmp_path, ".claude-plugin/plugin.json", "{}")
         assert gate.plugin_version(str(tmp_path)) == "?"
-
-
-class Test_under:
-    def test_accepts_a_path_under_the_root(self, tmp_path):
-        assert gate.under(str(tmp_path / "a" / "b"), str(tmp_path))
-
-    def test_refuses_a_sibling_and_no_root(self, tmp_path):
-        assert not gate.under(str(tmp_path / "b"), str(tmp_path / "a"))
-        assert not gate.under(str(tmp_path), None)
 
 
 class Test_copy_origin:
@@ -389,23 +344,28 @@ def refs(tmp_path_factory):
     no upstream and `origin/solo` stands one commit ahead of it; `gone`
     exists only as `origin/gone`; and `origin/HEAD` points at `solo`."""
     d = tmp_path_factory.mktemp("refs") / "repo"
-    d.mkdir()
-    git(d, "init", "-q", "-b", "base")
-    write(d, "a.txt", "1\n")
-    first = commit(d, "first")
-    write(d, "a.txt", "2\n")
-    second = commit(d, "second")
-    git(d, "reset", "-q", "--hard", first)
-    git(d, "branch", "-q", "solo")
-    git(d, "update-ref", "refs/remotes/other/base", second)
-    git(d, "update-ref", "refs/remotes/origin/base", second)
-    git(d, "update-ref", "refs/remotes/origin/solo", second)
-    git(d, "update-ref", "refs/remotes/origin/gone", second)
+    first, second = history(
+        d,
+        ("base", None, {"a.txt": "1\n"}),
+        ("refs/remotes/origin/base", "base", {"a.txt": "2\n"}),
+        head="base",
+        refs={
+            "refs/heads/solo": 1,
+            "refs/remotes/other/base": 2,
+            "refs/remotes/origin/solo": 2,
+            "refs/remotes/origin/gone": 2,
+        },
+        checkout=False,
+    )
     git(d, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/solo")
-    git(d, "config", "branch.base.remote", "other")
-    git(d, "config", "branch.base.merge", "refs/heads/base")
-    git(d, "config", "remote.other.url", ".")
-    git(d, "config", "remote.other.fetch", "+refs/heads/*:refs/remotes/other/*")
+    # The upstream and the remote written into the config file git reads, as
+    # `git config` writes them.
+    with open(d / ".git" / "config", "a", encoding="utf-8") as config:
+        config.write(
+            '[branch "base"]\n\tremote = other\n\tmerge = refs/heads/base\n'
+            '[remote "other"]\n\turl = .\n'
+            "\tfetch = +refs/heads/*:refs/remotes/other/*\n"
+        )
     return str(d), first[:7], second[:7]
 
 
@@ -598,7 +558,7 @@ class Test_broad_command:
         assert said in str(refused.value), refused.value
 
 
-def flat(text):
+def unquoted_flat(text):
     """Runs of whitespace folded to one space, so a phrase a hand-wrap splits
     across two lines still reads as the phrase.
 
@@ -618,7 +578,7 @@ def missing_row_text():
     spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return flat(module.missing_row("/seal"))
+    return unquoted_flat(module.missing_row("/seal"))
 
 
 class Test_missing_row:
@@ -638,23 +598,17 @@ class Test_missing_row:
         said = gate.missing_row(home)
         assert f"seal gate: {os.path.join(home, 'config.json')} has no" in said
 
-    def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one(self):
-        """The only reader standing in front of this message is a session, so
-        *write the repository's own broad command into it* asked the one party
-        that may not. It printed the key to type, too."""
-        said = missing_row_text()
-        assert "Write the repository's own broad command" not in said
-        assert "<the full suite, the repository-wide lint, the typecheck>" not in said
-        assert "not this session's to do" in said
-
     def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered(
         self,
     ):
-        """Naming the door is what keeps *not this session's* from reading as a
-        dead end — which is how a refusal with no route becomes a session filling
-        the key in anyway. #1454: the door adds the key alone, since a JSON file
-        carries no section beside it."""
+        """The only reader standing in front of this message is a session, so
+        it says the command is not that session's to choose. Naming the door
+        is what keeps *not this session's* from reading as a dead end — which
+        is how a refusal with no route becomes a session filling the key in
+        anyway. #1454: the door adds the key alone, since a JSON file carries
+        no section beside it."""
         said = missing_row_text()
+        assert "not this session's to do" in said
         assert "the key is a thing a person wrote" in said
         assert "/agentic:config" in said
         assert "it shows every key and adds this one —" in said
@@ -680,12 +634,46 @@ class Test_wholly_substituted:
         assert gate.wholly_substituted(value) is None
 
 
+CMD = r"C:\Windows\System32\cmd.exe"
+# The key as #448 measured it, with its suite command after a separator.
+OLD_KEY = "uvx ruff check . && bin/test -q"
+# The `seal/` root a refusal names, which no case opens.
+HOME = "home"
+CONFIG_PATH = os.path.join(HOME, "config.json")
+
+
+def a_root(tmp_path, *directories):
+    """A root the command runs in, holding DIRECTORIES and nothing else, so
+    no case asks about pytest's working directory."""
+    root = tmp_path / "root"
+    root.mkdir()
+    for name in directories:
+        (root / name).mkdir()
+    return str(root)
+
+
+def on_cmd_exe(value, root):
+    """`not_as_written`'s answer for VALUE on Windows under `cmd.exe`."""
+    return gate.not_as_written(HOME, value, root, windows=True, comspec=CMD)
+
+
+def not_read_line(char, *words):
+    """The line naming WORDS as not read past the first CHAR."""
+    listed = " and ".join(f"`{word}`" for word in words)
+    return (
+        f"seal gate: the gate stopped reading the `{ROW}` key in {CONFIG_PATH} "
+        f"at its first `{char}`, which can move where cmd.exe ends a command, "
+        f"so it did not read {listed}. Read as a command name, each starts in a "
+        "directory, and cmd.exe would read its `/` as the start of a switch."
+    )
+
+
 class Test_not_as_written:
     @pytest.mark.parametrize(
         "value", ["a && b", "a | tee f", "a & b", "x $(y)", "a &&"]
     )
-    def test_accepts_a_value_that_runs_as_it_reads(self, value):
-        assert gate.not_as_written("/h", value) is None
+    def test_accepts_a_value_that_runs_as_it_reads(self, value, tmp_path):
+        assert gate.not_as_written(HOME, value, str(tmp_path)) is None
 
     @pytest.mark.parametrize(
         ("value", "form", "meant"),
@@ -695,57 +683,196 @@ class Test_not_as_written:
             ("bin/test -q &", "ends in a single `&`", "bin/test -q"),
         ],
     )
-    def test_refuses_a_wrapped_or_backgrounded_value(self, value, form, meant):
-        said = gate.not_as_written("/h", f"  {value} ")
+    def test_refuses_a_wrapped_or_backgrounded_value(
+        self, value, form, meant, tmp_path
+    ):
+        said = gate.not_as_written(HOME, f"  {value} ", str(tmp_path))
         assert form in said
         assert f'    as written: "{ROW}": {json.dumps(value)}' in said
         assert f'    as meant:   "{ROW}": {json.dumps(meant)}' in said
 
+    @pytest.mark.parametrize(
+        "value", ["`bin/test -q`", "$(bin/test -q)", "bin/test -q &"]
+    )
+    @pytest.mark.parametrize(
+        ("windows", "comspec"),
+        [
+            (False, None),
+            (True, r"C:\Program Files\Git\bin\bash.exe"),
+            (True, CMD),
+        ],
+        ids=["sh", "another-comspec", "cmd-exe"],
+    )
+    def test_refuses_a_wrapped_value_with_only_its_form_off_as_meant(
+        self, tmp_path, value, windows, comspec
+    ):
+        """The key as meant of a wrapped or backgrounded value is its content
+        with the refused form taken off and nothing else, in a root that
+        holds `bin/` too. Under `/bin/sh` the `\\` spelling would be another
+        name, and on `cmd.exe` the next run refuses `bin/test` by name: the
+        key as meant removes the form the refusal names, and no other."""
+        root = a_root(tmp_path, "bin")
+        said = gate.not_as_written(HOME, value, root, windows, comspec)
+        meant = json.dumps("bin/test -q")
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
+    def test_refuses_a_command_name_cmd_exe_reads_as_a_switch(self, tmp_path):
+        """#1577, *Scope* item 1. On `cmd.exe`, in a root holding `bin/`,
+        `bin/test` is refused with exit 2's message, pinned whole here
+        (contract rule 14): the name and its `\\` spelling, why `cmd.exe`
+        fails on it, why `/bin/sh` cannot take the other spelling, and the
+        key as meant."""
+        said = on_cmd_exe(OLD_KEY, a_root(tmp_path, "bin"))
+        assert said == (
+            f"seal gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
+            "in a directory with `/`: `bin/test`, and the shell here is cmd.exe, "
+            "which reads a `/` in a command name as the start of a switch, so it "
+            "runs the part before the `/` as the command, which fails before any "
+            "check has run, and the report reads as the suite failing. cmd.exe "
+            "runs `bin\\test`, and `/bin/sh` reads that spelling as another name, "
+            "so a key run under both shells names its commands with no directory "
+            "in front, and hands a script's path to an interpreter as an "
+            "argument.\n"
+            f'    as written: "{ROW}": "uvx ruff check . && bin/test -q"\n'
+            f'    as meant:   "{ROW}": "uvx ruff check . && bin\\\\test -q"\n'
+            "Nothing ran, and nothing was repaired: the key is a person's to "
+            "write, and a value quietly fixed here would leave the file still "
+            "wrong. `templates/setup/config.md` *Broad gate* lists what is "
+            "refused and what stays allowed, with the reason for each, and "
+            "`/agentic:config` is the door to the key."
+        )
+
+    @pytest.mark.parametrize(
+        ("windows", "comspec", "directories"),
+        [
+            (False, None, ("bin",)),
+            (True, r"C:\Program Files\Git\bin\bash.exe", ("bin",)),
+            (True, CMD, ()),
+        ],
+        ids=["sh", "another-comspec", "no-bin"],
+    )
+    def test_accepts_the_name_where_sh_runs_it_or_no_directory_starts_it(
+        self, tmp_path, capsys, windows, comspec, directories
+    ):
+        """The same key under `/bin/sh`, under a Windows `COMSPEC` naming
+        another shell, and on `cmd.exe` in a root with no `bin/`: nothing is
+        refused and nothing is said."""
+        root = a_root(tmp_path, *directories)
+        assert gate.not_as_written(HOME, OLD_KEY, root, windows, comspec) is None
+        assert capsys.readouterr().err == ""
+
+    @pytest.mark.parametrize("separator", ["&&", "||", "&", "|"])
+    def test_refuses_a_name_after_each_separator_word(self, tmp_path, separator):
+        said = on_cmd_exe(
+            f"uvx ruff check . {separator} bin/test", a_root(tmp_path, "bin")
+        )
+        meant = json.dumps(f"uvx ruff check . {separator} bin\\test")
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
+    @pytest.mark.parametrize(
+        "value", ["call bin/test", "echo bin/test", "uvx ruff check bin/x"]
+    )
+    def test_accepts_a_name_after_any_other_word(self, tmp_path, value):
+        assert on_cmd_exe(value, a_root(tmp_path, "bin")) is None
+
+    @pytest.mark.parametrize("value", ["a&& bin/x", "a &&bin/x", "echo a^&& bin/x"])
+    def test_neither_refuses_nor_names_a_name_after_a_glued_separator(
+        self, tmp_path, capsys, value
+    ):
+        """The bound `templates/setup/config.md` *Broad gate* states: a
+        separator glued to a word is no separator to the reading, so the
+        name after it is neither refused nor named as not read, though
+        `cmd.exe` reads it as a command name."""
+        assert on_cmd_exe(value, a_root(tmp_path, "bin")) is None
+        assert capsys.readouterr().err == ""
+
+    def test_accepts_a_name_with_no_slash_where_a_directory_has_its_name(
+        self, tmp_path
+    ):
+        """Only a name holding a `/` is asked about: `bin -q` names a program,
+        however the root's `bin/` is named."""
+        assert on_cmd_exe("bin -q && bin", a_root(tmp_path, "bin")) is None
+
+    @pytest.mark.parametrize(
+        ("name", "turned"),
+        [("/abs/x", "\\abs\\x"), ("./x", ".\\x"), ("../x/y", "..\\x\\y")],
+        ids=["empty", "dot", "dot-dot"],
+    )
+    def test_refuses_a_name_whose_part_is_empty_dot_or_dot_dot(
+        self, tmp_path, name, turned
+    ):
+        """An empty part (a name opening with `/`), `.` and `..` each name a
+        directory, in a root that holds none of its own."""
+        said = on_cmd_exe(f"{name} -q", a_root(tmp_path))
+        assert f'    as meant:   "{ROW}": {json.dumps(f"{turned} -q")}\n' in said, said
+
+    def test_accepts_a_glued_switch_on_a_program_the_root_has_no_directory_for(
+        self, tmp_path
+    ):
+        """`xcopy/e/i` is a program and its switches, and `cmd.exe` runs it
+        as written; only the `bin/test` after it is refused."""
+        root = a_root(tmp_path, "bin")
+        assert on_cmd_exe("xcopy/e/i a b", root) is None
+        said = on_cmd_exe("xcopy/e/i a b && bin/test", root)
+        meant = json.dumps("xcopy/e/i a b && bin\\test")
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
+    @pytest.mark.parametrize(
+        ("value", "char", "unread"),
+        [
+            ('echo "a && bin/x"', '"', ('bin/x"',)),
+            ("echo a^& && bin/x", "^", ("bin/x",)),
+            ("echo %X% && bin/x", "%", ("bin/x",)),
+            # Each word once, in the order it stands.
+            ('echo "a" && bin/x | tools/y && bin/x', '"', ("bin/x", "tools/y")),
+            # A name that reaches the cut is named, never refused.
+            ("bin/%TOOL% -q", "%", ("bin/%TOOL%",)),
+            ('bin/"a b"/x -q', '"', ('bin/"a',)),
+            ("bin/x^& && echo", "^", ("bin/x^&",)),
+        ],
+    )
+    def test_names_what_it_did_not_read_and_runs_it_as_written(
+        self, tmp_path, capsys, value, char, unread
+    ):
+        """*Scope* item 2. The reading stops at the first `"`, `^` or `%`, and
+        each word that holds it or stands past it that the reading would
+        refuse is named on one stderr line, pinned here, and decides
+        nothing."""
+        assert on_cmd_exe(value, a_root(tmp_path, "bin", "tools")) is None
+        assert capsys.readouterr().err == not_read_line(char, *unread) + "\n"
+
+    def test_a_refusal_carries_what_it_did_not_read(self, tmp_path, capsys):
+        said = on_cmd_exe('bin/test "a b" && bin/x', a_root(tmp_path, "bin"))
+        assert said.startswith(
+            f"seal gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
+            "in a directory with `/`: `bin/test`, and"
+        ), said
+        assert said.endswith("door to the key.\n" + not_read_line('"', "bin/x")), said
+        assert capsys.readouterr().err == ""
+
+    def test_refuses_each_name_and_turns_each_in_the_key_as_meant(self, tmp_path):
+        """Several refused names: each is named once with its `\\` spelling,
+        and each is turned where it stands, an argument spelt the same left
+        as written."""
+        value = "bin/a tools/b && tools/b -q | bin/a"
+        said = on_cmd_exe(value, a_root(tmp_path, "bin", "tools"))
+        assert "`/`: `bin/a` and `tools/b`, and the shell" in said, said
+        assert "cmd.exe runs `bin\\a` and `tools\\b`, and" in said, said
+        meant = json.dumps("bin\\a tools/b && tools\\b -q | bin\\a")
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
+    def test_refuses_a_name_that_stands_again_past_the_cut_with_one_spelling(
+        self, tmp_path
+    ):
+        """A refused name that stands again past the cut keeps its `/` there,
+        and the refusal still gives the one spelling `cmd.exe` runs."""
+        said = on_cmd_exe('bin/a "x" && bin/a', a_root(tmp_path, "bin"))
+        assert "cmd.exe runs `bin\\a`, and" in said, said
+        meant = json.dumps('bin\\a "x" && bin/a')
+        assert f'    as meant:   "{ROW}": {meant}\n' in said, said
+
 
 # --- running one check ----------------------------------------------------------------
-
-CMD = r"C:\Windows\System32\cmd.exe"
-CMD_ROW = "bin/test -q && uvx ruff check . && uvx ruff format --check ."
-HANDED = r"bin\test -q && uvx ruff check . && uvx ruff format --check ."
-
-# Every directory a row in this module starts a command name in. A name is
-# rewritten only where it starts in a directory that exists where the row
-# runs (#596), so each case says where that is rather than leaning on
-# whatever pytest's working directory happens to hold.
-DIRECTORIES = ("bin", "tools", "x")
-
-
-@pytest.fixture
-def tree(tmp_path):
-    root = tmp_path / "tree"
-    for name in DIRECTORIES:
-        (root / name).mkdir(parents=True)
-    return str(root)
-
-
-def only_slashes_turned(row, got):
-    """A3. Every character but `/` → `\\` stays where it was."""
-    assert len(got) == len(row)
-    moved = [(a, b) for a, b in zip(row, got, strict=True) if a != b]
-    assert all(pair == ("/", "\\") for pair in moved), moved
-
-
-class _Ran:
-    """A stand-in for `subprocess.run` that records what it was handed."""
-
-    def __init__(self):
-        self.handed = []
-
-    def __call__(self, args, **kwargs):
-        self.handed.append((args, kwargs.get("shell")))
-        return subprocess.CompletedProcess(args, 0, "1 passed in 0.01s\n", "")
-
-
-def runs_under_cmd_exe(gate, repo):
-    """Whether this machine's shell is `cmd.exe`, read from what the gate
-    would hand it. `repo` holds `bin/`, so the probe's answer does not rest
-    on what pytest's working directory happens to hold (#596)."""
-    return gate.handed_to_shell("bin/probe", root=str(repo)) != "bin/probe"
 
 
 class Test_Check:
@@ -768,127 +895,15 @@ class Test_run:
         kept = pathlib.Path(check.path).read_text(encoding="utf-8").splitlines()
         assert kept[1:3] == ["exit 3", ""]
 
-    def test_refuses_to_hide_what_cmd_exe_was_handed(self, tmp_path, capsys):
-        (tmp_path / "bin").mkdir()
-        check = gate.run(
-            "suite",
-            "bin/echo hi",
-            str(tmp_path),
-            str(tmp_path),
-            shell=True,
-            windows=True,
-            comspec="cmd.exe",
-        )
-        kept = pathlib.Path(check.path).read_text(encoding="utf-8").splitlines()
-        assert kept[:2] == ["$ bin/echo hi", "cmd.exe was handed: bin\\echo hi"]
-        assert "seal gate: suite — cmd.exe reads a `/`" in capsys.readouterr().err
-
-    def test_a_rewritten_row_is_kept_and_said_beside_the_row_as_written(
-        self, tree, tmp_path, monkeypatch, capsys
+    def test_refuses_the_row_only_under_cmd_exe_and_runs_it_on_the_real_platform(
+        self, tmp_path
     ):
-        """A3. The shell is handed `bin\\test`; the kept file's first line is the
-        row as written and its second is what `cmd.exe` was handed; and one
-        stderr line, pinned verbatim here (contract rule 14), says the same before the run.
-        `run` asks about the directory where the row runs, its own `root`."""
-        gate = gate_module()
-        ran = _Ran()
-        monkeypatch.setattr(gate.subprocess, "run", ran)
-        check = gate.run(
-            "suite",
-            CMD_ROW,
-            tree,
-            str(tmp_path),
-            shell=True,
-            windows=True,
-            comspec=CMD,
-        )
-        assert ran.handed == [(HANDED, True)], ran.handed
-        kept = (tmp_path / "suite.txt").read_text(encoding="utf-8").splitlines()
-        assert kept[:3] == [
-            f"$ {CMD_ROW}",
-            f"cmd.exe was handed: {HANDED}",
-            "exit 0",
-        ], kept
-        assert capsys.readouterr().err == (
-            "seal gate: suite — cmd.exe reads a `/` in a command name as the start "
-            "of a switch, so a command name that starts in a directory has its `/` "
-            f"handed to it as `\\`: {HANDED}\n"
-        )
-        assert check.code == 0
-
-    def test_run_judges_the_directory_where_the_row_runs(self, tmp_path, monkeypatch):
-        """A5. The same row, run from a root with no `bin/`, is handed over as
-        written: `run` passes its own `root` on, and the directory is asked
-        there and not in the caller's working directory."""
-        gate = gate_module()
-        ran = _Ran()
-        monkeypatch.setattr(gate.subprocess, "run", ran)
-        bare = tmp_path / "bare"
-        bare.mkdir()
-        gate.run(
-            "suite",
-            CMD_ROW,
-            str(bare),
-            str(tmp_path),
-            shell=True,
-            windows=True,
-            comspec=CMD,
-        )
-        assert ran.handed == [(CMD_ROW, True)], ran.handed
-
-    @pytest.mark.parametrize(
-        "windows, comspec, row",
-        [
-            (False, None, CMD_ROW),
-            (True, r"C:\Program Files\Git\bin\bash.exe", CMD_ROW),
-            # Nothing to rewrite, so nothing changed, so nothing extra is said.
-            (True, CMD, "uvx ruff check ."),
-        ],
-    )
-    def test_a_row_handed_as_written_adds_nothing_to_the_record(
-        self, tmp_path, monkeypatch, capsys, windows, comspec, row
-    ):
-        """A3, the other half. Where nothing was rewritten, the kept file is the
-        shape it always was and nothing is printed."""
-        gate = gate_module()
-        ran = _Ran()
-        monkeypatch.setattr(gate.subprocess, "run", ran)
-        gate.run(
-            "suite",
-            row,
-            str(tmp_path),
-            str(tmp_path),
-            shell=True,
-            windows=windows,
-            comspec=comspec,
-        )
-        assert ran.handed == [(row, True)], ran.handed
-        kept = (tmp_path / "suite.txt").read_text(encoding="utf-8").splitlines()
-        assert kept[:2] == [f"$ {row}", "exit 0"], kept
-        assert capsys.readouterr().err == ""
-
-    def test_an_argv_check_is_never_rewritten(self, tmp_path, monkeypatch, capsys):
-        """A3. The plugin's own checks are argv lists with `shell=False`, which
-        reach `CreateProcess` directly and take no shell's reading; the rewrite is
-        for shell strings only, whatever the platform."""
-        gate = gate_module()
-        ran = _Ran()
-        monkeypatch.setattr(gate.subprocess, "run", ran)
-        argv = [sys.executable, "tools/check.py"]
-        gate.run(
-            "ledger", argv, str(tmp_path), str(tmp_path), windows=True, comspec=CMD
-        )
-        assert ran.handed == [(argv, False)], ran.handed
-        assert capsys.readouterr().err == ""
-
-    def test_the_row_runs_on_the_real_platform(self, tmp_path):
-        """A4. A fixture with the pair `bin/probe` (sh) and `bin/probe.cmd`, and
-        the row `bin/probe`, run through the real shell of whatever machine this
-        is. On macOS and ubuntu `sh` runs the POSIX half; only on
-        `windows-latest` does `cmd.exe` run `bin\\probe` and resolve it to
-        `bin\\probe.cmd`. Its red on Windows without the fix is #448's own
-        measurement, not a run of this case."""
-        gate = gate_module()
+        """A fixture with the pair `bin/probe` (sh) and `bin/probe.cmd`, run
+        through the real shell of whatever machine this is. Where the shell is
+        `cmd.exe`, `bin/probe` is refused naming `bin\\probe`, and `bin\\probe`
+        runs under `cmd` and resolves to `bin\\probe.cmd`; only CI's
+        `windows-latest` leg runs that half. Elsewhere `bin/probe` is not
+        refused and runs under `sh`."""
         repo = tmp_path / "repo"
         (repo / "bin").mkdir(parents=True)
         probe = repo / "bin" / "probe"
@@ -899,58 +914,44 @@ class Test_run:
         )
         keep = tmp_path / "keep"
         keep.mkdir()
-        check = gate.run("suite", "bin/probe", str(repo), str(keep), shell=True)
+        said = gate.not_as_written(HOME, "bin/probe", str(repo))
+        if gate.cmd_exe_reads():
+            assert said is not None and "cmd.exe runs `bin\\probe`" in said, said
+            row, under = "bin\\probe", "cmd"
+        else:
+            assert said is None, said
+            row, under = "bin/probe", "sh"
+        check = gate.run("suite", row, str(repo), str(keep), shell=True)
         kept = (keep / "suite.txt").read_text(encoding="utf-8")
         assert check.code == 0, kept
-        under = "cmd" if runs_under_cmd_exe(gate, repo) else "sh"
         assert f"probe ran under {under}" in check.text, kept
         assert f"probe ran under {under}" in kept, kept
 
     def test_a_switch_against_a_program_runs_on_the_real_platform(self, tmp_path):
-        """A6, #596. `where/q cmd` — a program that ships with Windows and is not
-        one of `CMD_BUILTINS`, with a switch written straight against it —
-        run through `run(..., shell=True)` from a root with no `where`
-        directory, exits 0: `/q` prints nothing and `where` finds `cmd`. Only
-        CI's `windows-latest` leg executes it; elsewhere the shell is not
-        `cmd.exe` and the row means nothing there (`questions.md` M1)."""
-        gate = gate_module()
+        """#596. `where/q cmd`, a program that ships with Windows with a switch
+        written straight against it, from a root with no `where` directory, is
+        not refused, and run through `run(..., shell=True)` it exits 0: `/q`
+        prints nothing and `where` finds `cmd`. Only CI's `windows-latest` leg
+        executes it; elsewhere the shell is not `cmd.exe` and the row means
+        nothing there."""
         repo = tmp_path / "repo"
         (repo / "bin").mkdir(parents=True)
-        if not runs_under_cmd_exe(gate, repo):
+        if not gate.cmd_exe_reads():
             # On Windows this case exists to run, and a skip there would let the
-            # leg's green say nothing about M1: so it fails instead, and a pass on
-            # `windows-latest` means it ran (round 2, M1).
+            # leg's green say nothing: so it fails instead, and a pass on
+            # `windows-latest` means it ran.
             assert os.name != "nt", (
                 "this is Windows and the shell the gate hands the row to is not "
-                "cmd.exe, so the case cannot answer M1"
+                "cmd.exe, so the case cannot run the row under cmd.exe"
             )
             pytest.skip("the shell here is not cmd.exe")
         keep = tmp_path / "keep"
         keep.mkdir()
         row = "where/q cmd"
-        assert gate.handed_to_shell(row, root=str(repo)) == row
+        assert gate.not_as_written(HOME, row, str(repo)) is None
         check = gate.run("suite", row, str(repo), str(keep), shell=True)
         kept = (keep / "suite.txt").read_text(encoding="utf-8")
         assert check.code == 0, kept
-
-
-class Test_as_cmd_expands:
-    def test_accepts_cd_and_its_twin_as_the_rows_directory(self, tmp_path, monkeypatch):
-        monkeypatch.delenv("CD", raising=False)
-        monkeypatch.delenv("__CD__", raising=False)
-        here = str(tmp_path)
-        assert gate.as_cmd_expands("%CD%\\x", here) == os.path.abspath(here) + "\\x"
-        assert gate.as_cmd_expands("%__CD__%x", here) == os.path.join(here, "x")
-
-    def test_refuses_to_compute_a_name_the_environment_defines(
-        self, tmp_path, monkeypatch
-    ):
-        monkeypatch.setenv("CD", "/set")
-        monkeypatch.delenv("NOT_DEFINED_HERE", raising=False)
-        assert gate.as_cmd_expands("%CD%", str(tmp_path)) == "/set"
-        assert gate.as_cmd_expands("%NOT_DEFINED_HERE%%%", "/x") == (
-            "%NOT_DEFINED_HERE%%%"
-        )
 
 
 class Test_cmd_exe_reads:
@@ -962,291 +963,6 @@ class Test_cmd_exe_reads:
     def test_refuses_another_shell_and_another_platform(self):
         assert not gate.cmd_exe_reads(True, r"C:\msys64\usr\bin\bash.exe")
         assert not gate.cmd_exe_reads(False, "cmd.exe")
-
-
-class Test_handed_to_shell:
-    def test_accepts_a_name_starting_in_a_directory_of_the_root(self, tmp_path):
-        (tmp_path / "bin").mkdir()
-        handed = gate.handed_to_shell("bin/test -q", True, "cmd.exe", str(tmp_path))
-        assert handed == "bin\\test -q"
-
-    def test_refuses_to_turn_a_name_whose_directory_the_root_lacks(self, tmp_path):
-        assert gate.handed_to_shell("bin/test", True, "cmd.exe", str(tmp_path)) == (
-            "bin/test"
-        )
-        assert gate.handed_to_shell("bin/test", False, None, str(ROOT)) == "bin/test"
-
-    @pytest.mark.parametrize(
-        "windows, comspec, expected",
-        [
-            (True, CMD, HANDED),
-            (True, "CMD.EXE", HANDED),
-            (True, f'"{CMD}"', HANDED),
-            # Unset and empty are what Python itself answers with `cmd.exe`.
-            (True, "", HANDED),
-            (True, r"C:\Program Files\Git\bin\bash.exe", CMD_ROW),
-            (
-                True,
-                r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
-                CMD_ROW,
-            ),
-            (False, CMD, CMD_ROW),
-            (False, None, CMD_ROW),
-        ],
-    )
-    def test_only_cmd_exe_on_windows_is_handed_the_backslashed_row(
-        self, tree, windows, comspec, expected
-    ):
-        """A1. Windows and a `COMSPEC` naming `cmd.exe` get `bin\\test`; POSIX,
-        and a Windows `COMSPEC` naming any other shell, get the row as written.
-        Keyed on the shell rather than `os.name`, because a POSIX shell in
-        `COMSPEC` runs `bin/test` as written."""
-        gate = gate_module()
-        got = gate.handed_to_shell(CMD_ROW, windows=windows, comspec=comspec, root=tree)
-        assert got == expected, f"windows={windows} comspec={comspec!r}: {got!r}"
-
-    def test_an_unset_comspec_on_windows_is_cmd_exe(self, tree, monkeypatch):
-        """A1, the default. `subprocess` falls back to `cmd.exe` where `COMSPEC`
-        is unset, so the rewrite must too — read from the environment when the
-        argument is not given."""
-        monkeypatch.delenv("COMSPEC", raising=False)
-        gate = gate_module()
-        assert gate.handed_to_shell(CMD_ROW, windows=True, root=tree) == HANDED
-
-    @pytest.mark.parametrize(
-        "row, expected",
-        [
-            (CMD_ROW, HANDED),
-            # A runner handed quoted paths.
-            ('bin/test "tests/x.py"', r'bin\test "tests/x.py"'),
-            ("bin/test tests/a/b.py --out=dir/x", r"bin\test tests/a/b.py --out=dir/x"),
-            ('"tools/run tests" -q "a/b"', r'"tools\run tests" -q "a/b"'),
-            ("bin/test %OUT%/x & tools/lint", r"bin\test %OUT%/x & tools\lint"),
-            ("bin/test ^& not/a/command", r"bin\test ^& not/a/command"),
-            # An escaped character opens the command name it stands in, so the
-            # word after the next blank is an argument and keeps its `/`: a
-            # one-character name that is escaped is still the name.
-            ("^a b/c", "^a b/c"),
-            ('bin/test "a & b/c" && x/y', r'bin\test "a & b/c" && x\y'),
-            ("(bin/a && bin/b) || bin/c", r"(bin\a && bin\b) || bin\c"),
-            (
-                "bin/test 2>&1 | tools/tee out/log.txt",
-                r"bin\test 2>&1 | tools\tee out/log.txt",
-            ),
-            ("bin/test>out/log.txt", r"bin\test>out/log.txt"),
-            ("bin/test<in/x.txt", r"bin\test<in/x.txt"),
-            ("bin/test\tx/y", "bin\\test\tx/y"),
-            ("@bin/test -q", r"@bin\test -q"),
-            ("  bin/test", r"  bin\test"),
-            ("echo a/b", "echo a/b"),
-            ("echo (a/b)", "echo (a/b)"),
-            ("echo(a/b)", "echo(a/b)"),
-            ("cmd /c bin/x", "cmd /c bin/x"),
-            # A `/` written against one of `cmd.exe`'s own commands is that
-            # command's switch, which runs as written today.
-            ("rd/s/q build && bin/test", r"rd/s/q build && bin\test"),
-            ("@dir/b tests & bin/test", r"@dir/b tests & bin\test"),
-            ("CD/D x && bin/test", r"CD/D x && bin\test"),
-            ("echo/ && bin/test", r"echo/ && bin\test"),
-            # The same after a separator: the built-in is the name that began there.
-            ("bin/test && rd/s/q out", r"bin\test && rd/s/q out"),
-            # A block that opens after `if`, `else` or `for … in` is not in
-            # command position, which the template names as left as written.
-            ("if exist x (bin/a) else (bin/b)", "if exist x (bin/a) else (bin/b)"),
-            ("for %i in (x/y) do tools/x %i", "for %i in (x/y) do tools/x %i"),
-            # Positions `templates/setup/config.md` names as not rewritten, pinned so
-            # the gap stays the one it states.
-            ("call bin/test", "call bin/test"),
-            (">out.txt bin/test", ">out.txt bin/test"),
-            # The redirection's target is not a command name, blank or not.
-            ("> out/log.txt bin/test", "> out/log.txt bin/test"),
-            # #596, the other side of the rows above: a name whose part before
-            # its first `/` names no directory where the row runs.
-            # A program with a switch written against it: no directory carries
-            # the program's name, so the name and its switch reach `cmd.exe`.
-            ("nothere/x -q", "nothere/x -q"),
-            ('"nothere/run tests" -q', '"nothere/run tests" -q'),
-            ("^nothere/x", "^nothere/x"),
-            ("@nothere/x", "@nothere/x"),
-            # Every leading `@` is dropped, as the built-in check drops them
-            # (round 1, ⬜ 9).
-            ("@@bin/test", r"@@bin\test"),
-            # The same shapes, starting in a directory that exists.
-            ("^bin/x", r"^bin\x"),
-            ('@"tools/run tests"', r'@"tools\run tests"'),
-            ('"bin"/x', r'"bin"\x'),
-            # `.` and `..` are directories wherever the row runs.
-            ("./bin/test", r".\bin\test"),
-            ("../x/y", r"..\x\y"),
-            # An empty part is the drive's root, which always exists.
-            ("/abs/x -q", r"\abs\x -q"),
-            # One decision per name: every later `/` goes the way the first did.
-            ("bin/nothere/x", r"bin\nothere\x"),
-            ("nothere/bin/x", "nothere/bin/x"),
-            # Each name after a separator is judged on its own.
-            ("bin/test && nothere/x a/b", r"bin\test && nothere/x a/b"),
-            ("nothere/x & bin/test", r"nothere/x & bin\test"),
-            ("(nothere/a && bin/b)", r"(nothere/a && bin\b)"),
-            # A quoted or escaped name after a separator starts where it stands,
-            # not where the name before it did.
-            ('nothere/x && "bin/run tests"', r'nothere/x && "bin\run tests"'),
-            ("bin/test && ^nothere/x", r"bin\test && ^nothere/x"),
-        ],
-    )
-    def test_only_the_command_names_have_their_slash_turned(self, tree, row, expected):
-        """A2. Arguments, quoted arguments, `%VAR%`, `^&`, `2>&1`, blocks and
-        every operator reach `cmd.exe` as written; only `/` inside a command
-        name changes. And the rewrite moves no character: the only difference
-        anywhere is `/` → `\\`, position for position. Driven from a root in
-        which the rows before #596's start in a directory (`DIRECTORIES`), so
-        each is handed over exactly as it was before #596. #596's rows: a
-        command name whose part before its first `/` names no directory where
-        the row runs is handed over as written, and one that does is
-        rewritten, whatever opened it."""
-        gate = gate_module()
-        got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
-        assert got == expected, f"{row!r} was handed as {got!r}"
-        only_slashes_turned(row, got)
-
-    def test_a_name_rooted_in_a_variable_is_judged_where_the_variable_points(
-        self, tree, monkeypatch
-    ):
-        """#596, round 1's 🟡 3 and round 2's 🟡 1. `cmd.exe` expands `%VAR%`
-        before it reads a command name, so the part is expanded before it is
-        asked whether it is a directory, as far as `as_cmd_expands` models it: a
-        name from the environment takes its value, and `%CD%` and `%__CD__%`,
-        which `cmd.exe` computes where the environment defines neither, name the
-        directory the row runs in. A defined `CD` wins, as it does in `cmd.exe`
-        (#616). 0.15.3 rewrote `%CD%/bin/test`, and a literal `%CD%` directory
-        never exists, so without the expansion that row stopped running. `$HOME`
-        means nothing to `cmd.exe` and is not expanded."""
-        gate = gate_module()
-        monkeypatch.setenv("AGENTIC_PROBE_TREE", tree)
-        monkeypatch.delenv("AGENTIC_PROBE_NOWHERE", raising=False)
-        monkeypatch.delenv("CD", raising=False)
-        monkeypatch.delenv("__CD__", raising=False)
-        # A `$HOME` that names the tree, so only the expansion's rule can leave
-        # it as written.
-        monkeypatch.setenv("HOME", tree)
-        for row, expected in (
-            ("%AGENTIC_PROBE_TREE%/bin/test -q", r"%AGENTIC_PROBE_TREE%\bin\test -q"),
-            ("%AGENTIC_PROBE_NOWHERE%/bin/x", "%AGENTIC_PROBE_NOWHERE%/bin/x"),
-            ("xcopy/e/i a b", "xcopy/e/i a b"),
-            # `CD` is computed by cmd.exe where the environment defines none, and
-            # the case deletes it above (round 2, 🟡 1).
-            ("%CD%/bin/test -q", r"%CD%\bin\test -q"),
-            ("%cd%/bin/test -q", r"%cd%\bin\test -q"),
-            ("%__CD__%bin/test", r"%__CD__%bin\test"),
-            # A substring is not modelled, as `templates/setup/config.md` says (#616):
-            # the name it starts is handed as written, although the variable it
-            # cuts from names the tree.
-            ("%AGENTIC_PROBE_TREE:~0,500%/bin/test -q",) * 2,
-            ("$HOME/x", "$HOME/x"),
-        ):
-            got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
-            assert got == expected, got
-            only_slashes_turned(row, got)
-        # cmd.exe lets a defined `CD` override the one it computes (`set /?`),
-        # so the environment is asked first (#616, round 3 of 1790297086, note 1).
-        monkeypatch.setenv("CD", os.path.join(tree, "nowhere"))
-        got = gate.handed_to_shell(
-            "%CD%/bin/test -q", windows=True, comspec=CMD, root=tree
-        )
-        assert got == "%CD%/bin/test -q", got
-
-    @pytest.mark.parametrize(
-        "row, handed",
-        [
-            ("xcopy/e/i a b && bin/test", r"xcopy/e/i a b && bin\test"),
-            ("findstr/s x *.py", "findstr/s x *.py"),
-            ("timeout/t 5 && bin/test", r"timeout/t 5 && bin\test"),
-            ("ipconfig/all", "ipconfig/all"),
-            # The blank the template also names, which was never rewritten.
-            ("xcopy /e /i a b && bin/test", r"xcopy /e /i a b && bin\test"),
-        ],
-    )
-    def test_a_switch_against_another_program_reaches_cmd_exe_as_written(
-        self, tree, row, handed
-    ):
-        """A1, #596. A `/` written straight after a program that is not one of
-        `CMD_BUILTINS` is that program's switch: no directory carries the
-        program's name where the row runs, so `xcopy/e/i` reaches `cmd.exe` as
-        written, and the `bin/test` after it is still rewritten. Before #596
-        this case pinned the opposite, `xcopy\\e\\i`, as a documented bound."""
-        gate = gate_module()
-        got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
-        assert got == handed, got
-        only_slashes_turned(row, got)
-
-
-class Test_command_names_backslashed:
-    @staticmethod
-    def turned(command, *dirs):
-        return gate.command_names_backslashed(command, lambda part: part in dirs)
-
-    def test_accepts_each_name_in_command_position(self):
-        assert self.turned("bin/test -q a/b && tools/x", "bin", "tools") == (
-            "bin\\test -q a/b && tools\\x"
-        )
-        assert self.turned("a | bin/test", "bin") == "a | bin\\test"
-        assert self.turned("/abs/x") == "\\abs\\x"
-        assert self.turned('"bin/a b/c" d/e', "bin") == '"bin\\a b\\c" d/e'
-
-    def test_refuses_a_builtins_switch_a_program_and_an_escaped_separator(self):
-        assert self.turned("rd/s/q x", "rd") == "rd/s/q x"
-        assert self.turned("xcopy/e a") == "xcopy/e a"
-        assert self.turned("echo a^&bin/test", "bin") == "echo a^&bin/test"
-        assert self.turned("echo >out bin/test", "bin") == "echo >out bin/test"
-
-    def test_refuses_to_turn_a_redirections_target_at_the_start_of_a_command(self):
-        """A `<` or `>` ends command position until the next separator, so the
-        target written after one is a file, even where it starts in a
-        directory, and so is the word after it."""
-        assert self.turned(">tests/out.txt bin/test", "tests", "bin") == (
-            ">tests/out.txt bin/test"
-        )
-
-    @pytest.mark.parametrize(
-        "row, asked",
-        [
-            ("bin/test -q", ["bin"]),
-            ('"tools/run tests" -q', ["tools"]),
-            ("^bin/x", ["bin"]),
-            ("@bin/test", ["bin"]),
-            ('@"a b"/c', ["a b"]),
-            ("./bin/x", ["."]),
-            # One question per name, at its first `/`.
-            ("a/b/c && d/e", ["a", "d"]),
-            # An empty part is answered without asking.
-            ("/abs/x", []),
-            # A built-in is asked about first, and is never a directory.
-            ("rd/s/q x && y/z", ["y"]),
-            # Only command names are asked about.
-            ("echo a/b", []),
-        ],
-    )
-    @pytest.mark.parametrize("answer", [True, False])
-    def test_the_scan_asks_about_a_name_and_reads_nothing_itself(
-        self, row, asked, answer
-    ):
-        """A4. The scan takes the directory question as an argument and does no
-        I/O: a predicate here answers from no filesystem at all, and records
-        what it was asked — the part before a name's first `/`, with `"`, `^`
-        and a leading `@` removed. Both answers are driven, and the answer is
-        what decides."""
-        gate = gate_module()
-        heard = []
-
-        def is_directory(part):
-            heard.append(part)
-            return answer
-
-        got = gate.command_names_backslashed(row, is_directory)
-        assert heard == asked, heard
-        only_slashes_turned(row, got)
-        if asked:
-            # Every asked name's `/` follows the answer.
-            assert ("\\" in got) is answer, got
 
 
 # --- the base comparison ----------------------------------------------------------------
@@ -1302,7 +1018,111 @@ class Test_record_path:
         )
 
 
+# The acts after pytest's run loop that turn a red session's row exit into 0
+# (#1301, G1 of its frame), each a `tests/conftest.py`. The fourth, a part of
+# the row after pytest, is the row's own composition, and `Test_gate` runs it
+# through the gate as `ROW_OR_INTERPRETER`.
+LATE_ACTS = {
+    "late-pytest-exit-0": (
+        "import pytest\n\n\n@pytest.hookimpl(trylast=True)\n"
+        "def pytest_sessionfinish(session):\n"
+        "    pytest.exit('late', returncode=0)\n"
+    ),
+    "early-exitstatus-0": (
+        "import pytest\n\n\n@pytest.hookimpl(tryfirst=True)\n"
+        "def pytest_sessionfinish(session):\n"
+        "    session.exitstatus = 0\n"
+    ),
+    "unconfigure-os-exit-0": (
+        "import os\n\n\ndef pytest_unconfigure(config):\n    os._exit(0)\n"
+    ),
+}
+
+
+def a_stop(stop):
+    """A test file whose first test runs STOP and whose second would fail."""
+    return (
+        "import os\n\nimport pytest\n\n\n"
+        f"def test_a():\n    {stop}\n\n\n"
+        "def test_b():\n    assert False, 'never reached'\n"
+    )
+
+
+def recorded(tmp_path, files, row=SUITE_ROW):
+    """ROW run in a directory holding FILES and no repository, through `run`
+    with the recorder loaded, as `gate` runs its row; the check and the
+    record `read_record` reads back."""
+    root = tmp_path / "root"
+    for rel, text in files.items():
+        write(root, rel, text)
+    keep = tmp_path / "keep"
+    keep.mkdir()
+    key = gate.record_key("head")
+    check = gate.run(
+        gate.SUITE,
+        row,
+        str(root),
+        str(keep),
+        shell=True,
+        env=gate.recording_env(str(keep), key),
+    )
+    return check, gate.read_record(gate.records_dir(str(keep)), key, str(root))
+
+
 class Test_read_record:
+    @pytest.mark.parametrize("act", list(LATE_ACTS), ids=list(LATE_ACTS))
+    def test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0(
+        self, tmp_path, act
+    ):
+        """S1 and S2 of #1301, over a real pytest. A test fails, and a hook
+        after the recorder's raises `pytest.exit(returncode=0)`, a hook before
+        it sets the session's exit status, or a `pytest_unconfigure` ends the
+        process. The row exits 0, and the record still reads a session that
+        ran to its end at exit 1: it did not pass, it stopped nothing, and it
+        names the file that failed. `failure_lines` reads such a record as
+        `NOT_PASSED_AT_EXIT_0` with no `UNENDED_HERE`, and `Test_gate` runs
+        the gate over a red session the row's own composition ends at 0."""
+        check, record = recorded(
+            tmp_path,
+            {
+                "tests/test_one.py": PASSING_TEST,
+                "tests/test_two.py": FAILING_TEST,
+                "tests/conftest.py": LATE_ACTS[act],
+            },
+        )
+        assert check.code == 0, check.text
+        assert (record.sessions, record.unpassed, record.unended) == (1, 1, 0)
+        assert list(record.failing) == ["tests/test_two.py"]
+        assert record.counts == {"failed": 1, "passed": 1}
+
+    def test_refuses_a_session_a_test_ended_with_os_exit_0(self, tmp_path):
+        """S2 of #883, over a real pytest. `os._exit(0)` in a test leaves the
+        row at 0 with a later test never run, and writes no `end` line: the
+        session stopped part-way and did not pass, and no file failed, so
+        the gate has nothing to compare at the base."""
+        check, record = recorded(
+            tmp_path, {"tests/test_stop.py": a_stop("os._exit(0)")}
+        )
+        assert check.code == 0, check.text
+        assert (record.sessions, record.unpassed, record.unended) == (1, 1, 1)
+        assert record.failing == {}
+
+    def test_accepts_a_green_session_a_late_hook_exits_with_0(self, tmp_path):
+        """S3 of #1301, over a real pytest. A late `pytest_sessionfinish`
+        hook runs after the run loop and cannot skip a test, so over a green
+        session the record reads a session that passed and stopped
+        nothing, and the gate passes it as it passes `a_recorded_run`."""
+        check, record = recorded(
+            tmp_path,
+            {
+                "tests/test_one.py": PASSING_TEST,
+                "tests/conftest.py": LATE_ACTS["late-pytest-exit-0"],
+            },
+        )
+        assert check.code == 0, check.text
+        assert (record.sessions, record.unpassed, record.unended) == (1, 0, 0)
+        assert record.counts == {"passed": 1}
+
     def test_accepts_its_keys_files_in_the_order_they_were_written(self, tmp_path):
         # Written b, c, a, last modified c, a, b, and named a, b, c: the order
         # read is the third, whatever the directory lists first.
@@ -1603,53 +1423,6 @@ class Test_rounds_rows:
         write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
-    @pytest.mark.parametrize(
-        "raised", [ValueError("planted"), SystemExit(3)], ids=["raises", "exits"]
-    )
-    def test_refuses_to_stop_a_run_where_the_check_will_not_load(
-        self, tmp_path, monkeypatch, raised
-    ):
-        """The deferred row never stops a run that passed: a check that raises
-        or exits while it loads leaves the count alone beneath it. An absent
-        check is `lib/sibling.py#Absent`, which the case below holds."""
-        real = gate.sibling.load
-
-        def load(rel):
-            if rel == "skills/code-review/scripts/chain_check.py":
-                raise raised
-            return real(rel)
-
-        monkeypatch.setattr(gate.sibling, "load", load)
-        item = tmp_path / "1799000004-z"
-        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
-        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
-
-    def test_names_the_absent_check_in_its_own_line_and_goes_on(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """An absent check leaves the count alone beneath it, and the gate
-        says in its own line that the deferred findings were not counted,
-        naming the file, where the loader's sentence would say that nothing
-        was read of a run that goes on (#1482 round 1, finding 1).
-        `lib/routing.py`, which lists the round records, is the tree's,
-        loaded before the root moves, so only the check is absent."""
-        plugin = tmp_path / "no-plugin"
-        routing, load = gate.sibling_module(gate.ROUTING), gate.sibling_module
-        monkeypatch.setattr(
-            gate,
-            "sibling_module",
-            lambda rel: routing if rel == gate.ROUTING else load(rel),
-        )
-        monkeypatch.setattr(gate.sibling, "ROOT", str(plugin))
-        item = tmp_path / "1799000005-w"
-        write(item, "trail/rounds/round-1.md", a_round("deferred #7"))
-        assert gate.rounds_rows(str(item)) == [("rounds", "1")]
-        absent = os.path.join(str(plugin), "skills", "code-review", "scripts")
-        assert capsys.readouterr().err == (
-            "seal gate: the round records' deferred findings are not counted: "
-            f"{os.path.join(absent, 'chain_check.py')} is absent\n"
-        )
-
 
 def checks(suite=0, chain_code=0):
     return {
@@ -1902,46 +1675,61 @@ class Test_report_lines:
 
 @pytest.fixture(scope="module")
 def _repo_template(tmp_path_factory):
-    """A repository on `base` with a one-test suite, the config key and an
-    overview, then `feature` one commit ahead; built once, and copied for each
-    case by `tests/conftest.py#repo`."""
+    """A repository on `feature`, one commit ahead of `base`, which holds a
+    one-test suite, the config key and an overview. Two branches start from
+    `base` beside it and are never checked out: `red-base` adds a failing
+    `tests/test_two.py`, and `red-elsewhere` a failing `tests/test_red.py`,
+    the bases a comparison asks about. Built once, and copied for each case
+    by `tests/conftest.py#repo`."""
     d = tmp_path_factory.mktemp("gate-template") / "repo"
-    d.mkdir()
-    git(d, "init", "-q", "-b", "base")
-    write(d, "tests/test_one.py", PASSING_TEST)
-    write(d, "seal/config.json", config_of())
-    mark_root(d / "seal")
-    write(d, f"{ITEM}/gaps.md", OVERVIEW)
-    commit(d, "base")
-    git(d, "switch", "-qc", "feature")
-    write(d, "README.md", "# a fixture\n")
-    commit(d, "feature")
+    history(
+        d,
+        (
+            "base",
+            None,
+            {
+                "tests/test_one.py": PASSING_TEST,
+                "seal/config.json": config_of(),
+                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                f"{ITEM}/gaps.md": OVERVIEW,
+            },
+        ),
+        ("red-base", "base", {"tests/test_two.py": FAILING_TEST}),
+        ("red-elsewhere", "base", {"tests/test_red.py": FAILING_TEST}),
+        ("feature", "base", {"README.md": "# a fixture\n"}),
+        head="feature",
+    )
     return d
 
 
-def failing_on_feature(repo, on_base=False):
-    """A failing `tests/test_two.py` on `feature`, and on `base` too where
-    ON_BASE, committed in both."""
-    if on_base:
-        git(repo, "switch", "-q", "base")
-        write(repo, "tests/test_two.py", FAILING_TEST)
-        commit(repo, "a failure on the base")
-        git(repo, "switch", "-q", "feature")
-        git(
-            repo,
-            "-c",
-            "user.email=e@example.com",
-            "-c",
-            "user.name=e",
-            "merge",
-            "-q",
-            "--no-edit",
-            "base",
-        )
-    else:
-        write(repo, "tests/test_two.py", FAILING_TEST)
-        commit(repo, "a failure")
+def failing_here(repo):
+    """A failing `tests/test_two.py` in the working tree on `feature`, not
+    committed: the row runs over the working tree, and the base's worktree
+    is checked out at the base's commit, so no case about the run needs the
+    file in a commit."""
+    write(repo, "tests/test_two.py", FAILING_TEST)
     return repo
+
+
+def arms_answered(monkeypatch, *names):
+    """The arms NAMES answered as passed for the case, and every other run
+    the gate starts real, the row again at the base among them. For a case
+    whose fact is another arm: `a_recorded_run`, `a_sealed_run`, the
+    preflight and the runs of a copied plugin keep every arm real."""
+    real = gate.run
+
+    def run(name, command, root, keep, shell=False, env=None):
+        if name in names:
+            return gate.Check(name, 0, "", os.path.join(keep, f"{name}.txt"))
+        return real(name, command, root, keep, shell=shell, env=env)
+
+    monkeypatch.setattr(gate, "run", run)
+
+
+def suite_alone(monkeypatch):
+    """`arms_answered` for the chain and mode arms, for a case whose fact is
+    the suite arm."""
+    arms_answered(monkeypatch, gate.CHAIN_NAME, gate.MODE_NAME)
 
 
 def args_for(repo, keep, *extra):
@@ -1960,8 +1748,12 @@ def namespace(repo, keep, base="base", record=None, preflight=False):
 
 
 class Test_compare_at_base:
+    """`compare_at_base` reads the base's commit and never `HEAD`'s, so a
+    case gives it the base it asks about: `base`, which lacks
+    `tests/test_two.py`, or `red-base` or `red-elsewhere` of
+    `_repo_template`."""
+
     def test_accepts_a_file_the_base_never_had_as_new(self, repo, tmp_path):
-        failing_on_feature(repo)
         words = gate.compare_at_base(
             str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
@@ -1970,22 +1762,16 @@ class Test_compare_at_base:
         assert len(git_out(repo, "worktree", "list").splitlines()) == 1
 
     def test_accepts_a_file_the_base_fails_too(self, repo, tmp_path):
-        failing_on_feature(repo, on_base=True)
         words = gate.compare_at_base(
-            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+            str(repo), "red-base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
         assert words == {"tests/test_two.py": gate.ON_BASE}
 
     def test_refuses_new_for_a_file_a_red_base_never_collected(self, repo, tmp_path):
         """The base's run exited non-zero and never collected the file, so it
         may have stopped before reaching it, and the word carries the exit."""
-        git(repo, "switch", "-q", "base")
-        write(repo, "tests/test_red.py", FAILING_TEST)
-        commit(repo, "a failure only the base has")
-        git(repo, "switch", "-q", "feature")
-        failing_on_feature(repo)
         words = gate.compare_at_base(
-            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+            str(repo), "red-elsewhere", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
         assert words == {"tests/test_two.py": gate.NOT_REACHED.format(code=1)}
 
@@ -1996,6 +1782,28 @@ class Test_compare_at_base:
             str(repo), "0" * 40, SUITE_ROW, ["a.py", "b.py"], str(tmp_path)
         )
         assert words == {"a.py": gate.NOT_CHECKED_OUT, "b.py": gate.NOT_CHECKED_OUT}
+
+    def test_refuses_to_let_a_removal_git_did_not_answer_replace_the_words(
+        self, repo, tmp_path, monkeypatch, capsys
+    ):
+        """#1573: the scratch worktree is removed in a `finally`, and a
+        removal past `lib/gitcmd.py#TIMEOUT` names the worktree it left on
+        stderr while the words the run gave stand. Seen red against
+        `broad_gate.py` before #1573, where `subprocess.TimeoutExpired`
+        replaced them."""
+        asked = unanswered(monkeypatch, "worktree", "remove")
+        words = gate.compare_at_base(
+            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+        )
+        assert words == {"tests/test_two.py": gate.NEW}
+        (held,) = asked
+        scratch = held[-1]
+        assert capsys.readouterr().err == (
+            f"seal gate: the scratch worktree {scratch} was not removed: "
+            f"{past_the_bound(held)}\n"
+        )
+        shutil.rmtree(scratch, ignore_errors=True)
+        git(repo, "worktree", "prune")
 
 
 class Test_uncommitted_line:
@@ -2012,28 +1820,10 @@ class Test_uncommitted_line:
         assert gate.uncommitted_line(str(repo), None) is None
 
 
-# The acts after pytest's run loop that turn a red session's row exit into 0
-# (#1301, G1 of its frame), each a `tests/conftest.py` and the row it runs
-# under, or None and the row alone where the row's own composition does it.
-LATE_ACTS = {
-    "late-pytest-exit-0": (
-        "import pytest\n\n\n@pytest.hookimpl(trylast=True)\n"
-        "def pytest_sessionfinish(session):\n"
-        "    pytest.exit('late', returncode=0)\n",
-        SUITE_ROW,
-    ),
-    "early-exitstatus-0": (
-        "import pytest\n\n\n@pytest.hookimpl(tryfirst=True)\n"
-        "def pytest_sessionfinish(session):\n"
-        "    session.exitstatus = 0\n",
-        SUITE_ROW,
-    ),
-    "unconfigure-os-exit-0": (
-        "import os\n\n\ndef pytest_unconfigure(config):\n    os._exit(0)\n",
-        SUITE_ROW,
-    ),
-    "row-or-interpreter": (None, f"{SUITE_ROW} || {sys.executable} -c pass"),
-}
+# The row whose own composition turns a red session's exit into 0: the part
+# after pytest, `||` and the interpreter, which `/bin/sh` and `cmd.exe` both
+# read as "run this where the first part failed", so every leg runs it.
+ROW_OR_INTERPRETER = f"{SUITE_ROW} || {sys.executable} -c pass"
 
 
 @pytest.fixture(scope="module")
@@ -2081,50 +1871,41 @@ class Test_gate:
         assert "unverified" not in out.stdout
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
+        # The chain arm passes the check's own flag, which `main` loads the
+        # check for (#1575).
+        assert chain_kept.splitlines()[0].endswith(f" {chain.SEALING}")
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "agentic-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
         assert f"```seal\nrun: {tree} against {base}\n```\n" in record
         assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
-    def test_accepts_a_failure_the_base_shares_as_failing_on_base_too(
-        self, repo, tmp_path, capsys
+    def test_refuses_a_failing_test_the_base_lacks_as_new(
+        self, repo, tmp_path, monkeypatch, capsys
     ):
-        failing_on_feature(repo, on_base=True)
-        assert gate.gate(namespace(repo, tmp_path / "out")) == 1
-        out = capsys.readouterr().out
-        assert out.startswith("BROAD GATE FAILED   feature @ ")
-        assert "  tests/test_two.py  failing on base too" in out
-
-    def test_refuses_a_failing_test_the_base_lacks_as_new(self, repo, tmp_path, capsys):
-        failing_on_feature(repo)
+        suite_alone(monkeypatch)
+        failing_here(repo)
         assert gate.gate(namespace(repo, tmp_path / "out")) == 1
         out = capsys.readouterr().out
         assert "  tests/test_two.py  new\n" in out
         assert "1 failed, 1 passed" in out
         assert not (repo / ITEM / "trail" / "gate.md").exists()
 
-    @pytest.mark.parametrize(
-        "stop",
-        ["pytest.exit('stopping here', returncode=0)", "os._exit(0)"],
-        ids=["pytest-exit-0", "os-exit-0"],
-    )
     def test_refuses_a_suite_a_test_stopped_at_exit_0(
-        self, repo, tmp_path, capsys, stop
+        self, repo, tmp_path, monkeypatch, capsys
     ):
-        """S1 and S2 of #883. The row exits 0 with a later test never run:
-        `pytest.exit()` writes an `end` line whose `stopped` names it, and
-        `os._exit(0)` writes no `end` line at all. Either fails the suite,
-        writes no `trail/gate.md`, and runs nothing at the base, because the
-        record holds no failing file to compare."""
+        """S1 of #883. The row exits 0 with a later test never run, and
+        `pytest.exit()` writes an `end` line whose `stopped` names it. The
+        suite fails, no `trail/gate.md` is written, and nothing runs at the
+        base, because the record holds no failing file to compare. A test's
+        `os._exit(0)`, which writes no `end` line, is
+        `Test_read_record::test_refuses_a_session_a_test_ended_with_os_exit_0`."""
+        suite_alone(monkeypatch)
         write(
             repo,
             "tests/test_stop.py",
-            "import os\n\nimport pytest\n\n\n"
-            f"def test_a():\n    {stop}\n\n\n"
-            "def test_b():\n    assert False, 'never reached'\n",
+            a_stop("pytest.exit('stopping here', returncode=0)"),
         )
-        commit(repo, "a test that stops the session")
         keep = tmp_path / "out"
         assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
         out = capsys.readouterr().out
@@ -2135,51 +1916,32 @@ class Test_gate:
         assert not (repo / ITEM / "trail" / "gate.md").exists()
         assert not (keep / "suite-at-base.txt").exists()
 
-    @pytest.mark.parametrize("act", list(LATE_ACTS), ids=list(LATE_ACTS))
     def test_refuses_a_red_suite_an_act_after_the_run_loop_turned_to_exit_0(
-        self, repo, tmp_path, capsys, act
+        self, repo, tmp_path, monkeypatch, capsys
     ):
-        """S1 and S2 of #1301. A test fails, and something after pytest's run
-        loop turns the row's exit into 0: a hook after the recorder's that
-        raises `pytest.exit(returncode=0)`, a hook before it that sets the
-        session's exit status, a `pytest_unconfigure` that ends the process,
-        or a part of the row after pytest. The `end` line still reads exit 1,
+        """S1 and S2 of #1301. A test fails, and a part of the row after
+        pytest turns the row's exit into 0. The `end` line still reads exit 1,
         so the suite fails, its failing file is compared at the base, and no
-        `trail/gate.md` is written. The row's part is `||` and the
-        interpreter, which `/bin/sh` and `cmd.exe` both read as "run this
-        where the first part failed", so every leg runs every shape."""
-        conftest_text, row = LATE_ACTS[act]
-        failing_on_feature(repo)
-        if conftest_text is not None:
-            write(repo, "tests/conftest.py", conftest_text)
-        write(repo, "seal/config.json", config_of(row))
-        commit(repo, f"a failure, and {act} after the run loop")
+        `trail/gate.md` is written. The base is `red-base`, which fails the
+        file too, so the line carries the word the base's own run gave. The
+        acts inside pytest that end a red session at 0, a late hook, an early
+        one and `pytest_unconfigure`, are
+        `Test_read_record::test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0`."""
+        suite_alone(monkeypatch)
+        failing_here(repo)
+        write(repo, "seal/config.json", config_of(ROW_OR_INTERPRETER))
         keep = tmp_path / "out"
-        assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
+        ran = namespace(repo, keep, base="red-base", record=str(repo / ITEM))
+        assert gate.gate(ran) == 1
         out = capsys.readouterr().out
         assert out.startswith("BROAD GATE FAILED   feature @ "), out
         assert re.search(r"^  suite +exit 0$", out, re.M), out
         assert f"  {NOT_PASSED_AT_EXIT_0}\n" in out
-        assert "  tests/test_two.py  new\n" in out
+        assert "  tests/test_two.py  failing on base too\n" in out
         assert "1 failed, 1 passed" in out
         assert gate.UNENDED_HERE.format(count=1) not in out
         assert not (repo / ITEM / "trail" / "gate.md").exists()
         assert (keep / "suite-at-base.txt").is_file()
-
-    def test_accepts_a_green_suite_a_late_hook_exits_with_0(
-        self, repo, tmp_path, capsys
-    ):
-        """S3 of #1301. A late `pytest_sessionfinish` hook runs after the run
-        loop and cannot skip a test, so over a green session it is no stop
-        and the gate passes and writes `trail/gate.md`."""
-        write(repo, "tests/conftest.py", LATE_ACTS["late-pytest-exit-0"][0])
-        commit(repo, "a late hook over a green suite")
-        assert (
-            gate.gate(namespace(repo, tmp_path / "out", record=str(repo / ITEM))) == 0
-        )
-        out = capsys.readouterr().out
-        assert out.startswith("BROAD GATE PASSED   feature @ "), out
-        assert (repo / ITEM / "trail" / "gate.md").is_file()
 
     def test_accepts_a_preflight_that_runs_no_row_and_writes_nothing(
         self, repo, tmp_path, capsys
@@ -2201,16 +1963,33 @@ class Test_gate:
         assert str(said.value) == gate.PREFLIGHT_RECORD
 
     @pytest.mark.parametrize(
-        ("config", "said"),
+        ("config", "said", "cmd_exe"),
         [
-            (config_of(None), "has no `Broad gate` key"),
-            (config_of(f"`{SUITE_ROW}`"), "is the whole command wrapped in backticks"),
+            (config_of(None), "has no `Broad gate` key", False),
+            (
+                config_of(f"`{SUITE_ROW}`"),
+                "is the whole command wrapped in backticks",
+                False,
+            ),
+            (
+                config_of(OLD_KEY),
+                "starts a command name in a directory with `/`: `bin/test`",
+                True,
+            ),
         ],
-        ids=["no-row", "wrapped-row"],
+        ids=["no-row", "wrapped-row", "cmd-exe-row"],
     )
     def test_refuses_a_row_it_cannot_run_and_runs_nothing(
-        self, repo, tmp_path, config, said
+        self, repo, tmp_path, monkeypatch, config, said, cmd_exe
     ):
+        """The `cmd-exe-row` row is #1577's: the gate asks `cmd_exe_reads`
+        with this machine's platform, patched here to answer `cmd.exe`, and
+        asks about `bin/` in the repository it gates, from a working
+        directory that holds no `bin/`."""
+        if cmd_exe:
+            monkeypatch.setattr(gate, "cmd_exe_reads", lambda *_: True)
+            (repo / "bin").mkdir(exist_ok=True)
+            monkeypatch.chdir(tmp_path)
         write(repo, "seal/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
@@ -2220,6 +1999,18 @@ class Test_gate:
     def test_refuses_a_base_that_does_not_resolve(self, repo, tmp_path):
         with pytest.raises(gate.Refused, match="--base nowhere does not resolve"):
             gate.gate(namespace(repo, tmp_path / "out", base="nowhere"))
+
+    def test_refuses_to_read_a_git_that_did_not_answer_as_no_repository(
+        self, repo, tmp_path, monkeypatch
+    ):
+        """#1573: a git past `lib/gitcmd.py#TIMEOUT` for the repository's top
+        raises the runner's `Unrun`, which `main` writes as the refusal, and
+        is not `Refused` as a root outside any repository. Seen red with
+        `lib/optin.py#repo_root` asked in place of `toplevel`."""
+        asked = unanswered(monkeypatch, "rev-parse", "--show-toplevel")
+        with pytest.raises(gate.gitcmd_module().Unrun) as raised:
+            gate.gate(namespace(repo, tmp_path / "out"))
+        assert raised.value.line == past_the_bound(asked[0])
 
     def test_refuses_a_root_that_is_no_repository_or_not_opted_in(self, tmp_path):
         with pytest.raises(gate.Refused, match="is not in a git repository"):
@@ -2249,28 +2040,44 @@ class Test_gate:
 CONFIG = config_json(("Mode", "shared"), ("Broad gate", f"{sys.executable} -c pass"))
 
 
-def sealable_repo(tmp_path):
-    """A repository on `base` with a `feature` branch one commit ahead,
-    driven from Python."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    git(repo, "init", "-q", "-b", "base")
-    write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
-    write(repo, "seal/config.json", CONFIG)
-    mark_root(repo / "seal")
-    write(repo, f"{ITEM}/gaps.md", OVERVIEW)
-    commit(repo, "base")
-    git(repo, "switch", "-qc", "feature")
-    write(repo, "src/service.py", "def handler(x):\n    return x + 2\n")
-    commit(repo, "feature changes the handler")
+@pytest.fixture(scope="module")
+def _sealable_template(tmp_path_factory):
+    """A repository on `feature`, one commit ahead of `base`, on which every
+    arm passes; built once. A run of the gate with no `--record` writes
+    nothing into it, so a case that only runs the gate reads it as it
+    stands, and `sealable` copies it for a case that writes."""
+    repo = tmp_path_factory.mktemp("sealable") / "repo"
+    history(
+        repo,
+        (
+            "base",
+            None,
+            {
+                "src/service.py": "def handler(x):\n    return x + 1\n",
+                "seal/config.json": CONFIG,
+                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                f"{ITEM}/gaps.md": OVERVIEW,
+            },
+        ),
+        ("feature", "base", {"src/service.py": "def handler(x):\n    return x + 2\n"}),
+        head="feature",
+    )
     return repo
 
 
-def run_gate(repo, keep, base="base"):
+@pytest.fixture
+def sealable(tmp_path, _sealable_template):
+    """A copy of `_sealable_template` for the case to write into."""
+    repo = tmp_path / "repo"
+    shutil.copytree(_sealable_template, repo)
+    return repo
+
+
+def run_gate(repo, keep, base="base", script=GATE):
     return subprocess.run(
         [
             sys.executable,
-            GATE,
+            str(script),
             "--base",
             base,
             "--root",
@@ -2283,7 +2090,23 @@ def run_gate(repo, keep, base="base"):
         encoding="utf-8",
         errors="replace",
         timeout=300,
+        env=clean_env(),
     )
+
+
+@pytest.fixture(scope="module")
+def a_sealed_run(tmp_path_factory, _sealable_template):
+    """One run of the shipped gate over `_sealable_template`, started as a
+    person starts it, read by the cases that only read what it printed."""
+    return run_gate(_sealable_template, tmp_path_factory.mktemp("sealed") / "out")
+
+
+def gated(repo, keep, capsys):
+    """`main` run in this process over REPO against `base`, as `run_gate`
+    runs the script; its exit code, stdout and stderr."""
+    code = gate.main(args_for(repo, keep, "--shape"))
+    said = capsys.readouterr()
+    return code, said.out, said.err
 
 
 FIXTURE_WORKFLOW = """\
@@ -2311,9 +2134,9 @@ jobs:
 
 def with_workflow(repo):
     """The fixture, given a hygiene workflow whose `release` job runs three
-    named steps, one of them only on a pull request into `main`."""
+    named steps, one of them only on a pull request into `main`, in its
+    working tree, where the gate would read it if it read one."""
     write(repo, ".github/workflows/hygiene.yml", FIXTURE_WORKFLOW)
-    commit(repo, "the repository gains a hygiene workflow")
     return repo
 
 
@@ -2364,44 +2187,43 @@ class Test_main:
         err = capsys.readouterr().err
         assert f"seal gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
 
-    def test_refuses_a_copy_whose_sibling_will_not_load(self, tmp_path):
-        scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
-        scripts.mkdir(parents=True)
-        shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
-        (tmp_path / "plugin" / "lib").mkdir()
-        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
-        write(scripts, "seal_stamp.py", "raise ValueError('the mark chart is bad')\n")
-        keep = tmp_path / "out"
-        out = subprocess.run(
-            [
-                sys.executable,
-                str(scripts / "broad_gate.py"),
-                "--base",
-                "x",
-                "--keep-output",
-                str(keep),
-            ],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=120,
-            cwd=tmp_path,
-        )
-        assert out.returncode == 2
-        assert "will not load, so nothing ran: the mark chart is bad" in out.stderr
-        assert "Traceback" not in out.stderr and not keep.exists()
+    @pytest.mark.parametrize(
+        "words",
+        [
+            ("rev-parse", "--show-toplevel"),
+            ("rev-parse", "--short", "HEAD"),
+            ("check-ref-format", "--branch"),
+        ],
+        ids=["toplevel", "head", "base"],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, repo, tmp_path, monkeypatch, capsys, words
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT`, asked for the
+        repository's top, for HEAD or while the base resolves, is the gate's
+        refusal at 2 in the runner's one line, and a git that hung is not
+        read as no repository. Seen red against `broad_gate.py` before
+        #1573, which raised `subprocess.TimeoutExpired` out of `main`."""
+        asked = unanswered(monkeypatch, *words)
+        assert gate.main(args_for(repo, tmp_path / "out")) == 2
+        err = capsys.readouterr().err
+        assert err.endswith(f"seal gate: {past_the_bound(asked[0])}\n"), err
+        assert len(asked) == 1 and "not in a git repository" not in err
 
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
         """#1283, round 1's finding 1. The gate builds every git command with
         `lib/gitcmd.py#argv`, and `main` asks git for the root before
         anything runs. A copy whose `seal_stamp.py` loads and whose plugin
         holds no helper exits 2 with the loader's sentence, not 1 in a
-        traceback, which reads as a gate that ran and failed."""
+        traceback, which reads as a gate that ran and failed. The copy holds
+        `lib/console.py`, which the gate loads at import since #1575, and
+        whose load needs no helper."""
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
         scripts.mkdir(parents=True)
         shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
         (tmp_path / "plugin" / "lib").mkdir()
-        shutil.copy(ROOT / "lib" / "sibling.py", tmp_path / "plugin" / "lib")
+        for name in ("sibling.py", "console.py"):
+            shutil.copy(ROOT / "lib" / name, tmp_path / "plugin" / "lib")
         write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
         keep = tmp_path / "out"
         out = subprocess.run(
@@ -2424,17 +2246,29 @@ class Test_main:
         assert gate.sibling.MISSING.format(path=str(helper)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
-    def test_refuses_to_run_when_called_in_process_beside_a_broken_sibling(
-        self, tmp_path, monkeypatch, capsys
+    def test_refuses_a_copy_without_its_chain_check_before_any_arm(
+        self, tmp_path, _sealable_template
     ):
-        write(tmp_path, "seal_stamp.py", "raise ValueError('the chart is short')\n")
-        monkeypatch.setattr(gate.sibling, "ROOT", str(tmp_path))
-        monkeypatch.setattr(gate, "STAMP", "seal_stamp.py")
-        monkeypatch.delitem(sys.modules, "seal_stamp", raising=False)
-        assert gate.main(["--base", "x", "--root", str(ROOT)]) == 2
-        captured = capsys.readouterr()
-        assert "will not load, so nothing ran: the chart is short" in captured.err
-        assert "ships its own gate" not in captured.err
+        """#1575 S6. The chain arm passes `chain_check.py#SEALING`, and the
+        gate loads the check for it before the first arm runs. A copy of the
+        plugin without the check, run over the fixture branch every arm
+        passes, exits 2 with the loader's sentence naming it, and runs no
+        arm, so no arm's output is kept. Seen red against the gate before
+        #1575, which ran the suite and failed the chain arm at exit 1."""
+        plugin = tmp_path / "plugin"
+        for part in ("lib", "skills", ".claude-plugin"):
+            shutil.copytree(
+                ROOT / part,
+                plugin / part,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        check = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
+        check.unlink()
+        keep = tmp_path / "out"
+        out = run_gate(_sealable_template, keep, script=plugin / TARGET)
+        assert out.returncode == 2, out.stdout + out.stderr
+        assert gate.sibling.MISSING.format(path=str(check)) in out.stderr
+        assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_accepts_the_command_a_person_types(self):
         wrapper = ROOT / "bin" / "seal"
@@ -2459,36 +2293,65 @@ class Test_main:
         assert out.returncode == 0, out.stderr
         assert out.stdout.startswith("usage: seal gate")
 
-    def test_the_fixture_branch_passes(self, tmp_path):
+    def test_the_fixture_branch_passes(self, a_sealed_run):
         """The other cases' starting point: every arm passes on the fixture, so a
         refusal below is the one thing each case changed."""
-        repo = sealable_repo(tmp_path)
-        result = run_gate(repo, tmp_path / "out")
+        result = a_sealed_run
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
 
-    def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(self, tmp_path):
+    def test_a_malformed_sprite_leaves_the_verdict_and_the_report_as_they_were(
+        self, tmp_path, _sealable_template, a_sealed_run
+    ):
+        """#1582 S1. The gate draws nothing, so the disc's mark sprite is no
+        input of its verdict: a copy of the plugin whose `seal-mark.txt` is
+        cut to one line passes the fixture branch and prints the report the
+        shipped gate prints over it in `a_sealed_run`. It exited 2 before,
+        because loading `seal_stamp.py` read the sprite and refused it."""
+        plugin = tmp_path / "plugin"
+        for part in ("lib", "skills", ".claude-plugin"):
+            shutil.copytree(
+                ROOT / part,
+                plugin / part,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        copy = plugin / TARGET
+        sprite = copy.parent / "seal-mark.txt"
+        first = sprite.read_text(encoding="utf-8").split("\n")[0]
+        sprite.write_text(first + "\n", encoding="utf-8")
+        cut = run_gate(_sealable_template, tmp_path / "cut", script=copy)
+        shipped = a_sealed_run
+        assert shipped.returncode == 0, shipped.stdout + shipped.stderr
+        assert cut.returncode == 0, cut.stdout + cut.stderr
+        assert cut.stdout == shipped.stdout
+
+    def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(
+        self, sealable, tmp_path, monkeypatch, capsys
+    ):
         """A3's behavioural half for the other arm #468 added. `seal/config.json`
         says the root lives under the git directory and the root is committed in
         the tree, which is the one direction of that disagreement CI can ever
-        reach — and the gate said nothing about it until this arm existed.
+        reach — and the gate said nothing about it until this arm existed. The
+        key is written in the working tree, which the mode arm reads, and the
+        chain arm is answered for the case.
 
         Red against the gate as it stood: this fixture sealed green."""
-        repo = sealable_repo(tmp_path)
+        arms_answered(monkeypatch, gate.CHAIN_NAME)
         write(
-            repo,
+            sealable,
             "seal/config.json",
             CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
-        commit(repo, "the key now says local while the folder is committed")
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 1, result.stdout + result.stderr
-        assert result.stdout.startswith("BROAD GATE FAILED   "), result.stdout
-        assert gate.MODE_NAME in result.stdout, (
-            f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{result.stdout}"
+        code, out, err = gated(sealable, tmp_path / "out", capsys)
+        assert code == 1, out + err
+        assert out.startswith("BROAD GATE FAILED   "), out
+        assert gate.MODE_NAME in out, (
+            f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{out}"
         )
 
-    def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(self, tmp_path):
+    def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(
+        self, sealable, tmp_path, monkeypatch, capsys
+    ):
         """#1483's S3, the issue's third *Done when*. The gate reads no
         workflow, so a repository whose `hygiene.yml` holds a `release` job is
         gated as one with none: its report carries `HISTORICAL_ROWS` and its
@@ -2499,10 +2362,12 @@ class Test_main:
         this fixture. The searched names are the job as that line spelled it,
         the workflow's path and the fixture's step names, never a bare
         `release`, which a checkout under a `release/` directory carries
-        (#499)."""
-        repo = with_workflow(sealable_repo(tmp_path))
-        result = run_gate(repo, tmp_path / "out")
-        assert result.returncode == 0, result.stdout + result.stderr
+        (#499). The chain and mode arms are answered for the case: what an
+        arm prints goes to its kept file, so stderr and the report are the
+        gate's own, and the copy #1483 removed was the gate's."""
+        arms_answered(monkeypatch, gate.CHAIN_NAME, gate.MODE_NAME)
+        code, out, err = gated(with_workflow(sealable), tmp_path / "out", capsys)
+        assert code == 0, out + err
         steps = re.findall(r"^\s*- name: (.+)$", FIXTURE_WORKFLOW, re.M)
         assert steps, "the fixture names no step"
         for names_the_workflow in (
@@ -2510,14 +2375,14 @@ class Test_main:
             "`release`",
             *steps,
         ):
-            assert names_the_workflow not in result.stderr, (
+            assert names_the_workflow not in err, (
                 f"the gate names {names_the_workflow!r} for a repository whose "
-                f"workflow it does not read:\n{result.stderr}"
+                f"workflow it does not read:\n{err}"
             )
         # The report's rows as the run printed them under its head line: each
         # label padded to the stamp's width, a branch's row and a blank one
         # carrying none.
-        _head, *rows = result.stdout.splitlines()
+        _head, *rows = out.splitlines()
         labels = tuple(
             label
             for label in (row[: stamp.LABEL_WIDTH].strip() for row in rows)
@@ -2528,23 +2393,24 @@ class Test_main:
         )
 
     def test_s5_gate_reads_its_key_from_agentic_seal_and_names_it_where_none_is(
-        self, package, tmp_path
+        self, package
     ):
         """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
         the shared place a root would stand, not the package's `seal/`; with
-        the root there, it reads the `Broad gate` key of `agentic-seal/config.json`."""
+        the root there, the gate's root is `agentic-seal/` and its command the
+        `Broad gate` key of `agentic-seal/config.json`, read by `seal_home`
+        and `broad_command`, which `gate` asks before anything runs."""
         top = os.path.realpath(package)
         code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
         assert code == 2, err
         shared = os.path.join(top, "agentic-seal")
         assert f"at either place a root lives (`{shared}`, `" in err, err
         command = f"{sys.executable} -c pass"
-        configured(records_at(package / "agentic-seal"), ("Broad gate", command))
-        commit_everything_as_e(package, "the root")
-        _code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
-        assert f"seal gate: `Broad gate` says: {command} — read, and not run" in err, (
-            err
-        )
+        root = records_at(package / "agentic-seal")
+        configured(root, ("Broad gate", command))
+        home = gate.seal_home(str(package))
+        assert home == str(root), home
+        assert gate.broad_command(home) == command
 
 
 test_census = census_case(TARGET)

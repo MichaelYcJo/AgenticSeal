@@ -1,11 +1,16 @@
 """`seal layout` holds the test layout, and these are its cases (#942).
 
-Every case but one reads fixture text handed to the script's functions, so
-no case builds a repository or runs git: `check` takes the tracked paths
-and a reader of the target's source as arguments. `Test_main` replaces the
-two git readings with fixture values, and its one case over this
-repository's own `tests/` is the suite case the layout rests on: it runs
-`--check` there and fails when a file in the layout breaks it.
+Every case outside `Test_main` reads fixture text handed to the script's
+functions, so it builds no repository and runs no git: `check` takes the
+tracked paths and a reader of the target's source as arguments, and
+`moved` takes the old files, the new files and each side's modules under
+`tests/` as texts. `Test_main` runs `main`. Its `--check` and `--pairs`
+cases replace a git reading with a fixture value or run git over a
+repository of one file. Its `--moved` runs go through real git and
+`pytest --collect-only` over one world built per module, since their facts
+are the count pytest collects, the base's worktree removed, the exit code,
+and the base read through git agreeing with the working tree read from the
+disk.
 
 Seen red before they were committed (contract rule 15): every case failed
 against the tree without the script, and `seal mutate` broke each refusal
@@ -20,6 +25,7 @@ import textwrap
 
 import pytest
 from conftest import ROOT, census_case, commit_everything_as_e, git_out, write
+from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/test_layout.py"
 
@@ -328,14 +334,16 @@ class Test_pairs:
         assert layout.pairs({"tests/test_x.py": source}) == []
 
 
-# The move check's world: three old files at a base commit and the conftest
-# beside them. A case asks for a fixture by a parameter, by `usefixtures` on
+# The move check's world: old files at a base commit and the conftest beside
+# them. A case asks for a fixture by a parameter, by `usefixtures` on
 # its class or in `pytestmark`, and by an autouse fixture of its class; `box`
 # requests `base_dir`, and `a` is both a conftest fixture and a parametrized
 # name. The third old file holds a case and a fixture that define functions
-# and a class with docstrings over three lines, at every depth. Each case
-# writes its new file into a copy and runs `--moved` there, which collects
-# at the base in a worktree of its own and in the copy.
+# and a class with docstrings over three lines, at every depth. A case of
+# `Test_moved` hands its new files and the world to `moved` as texts. A
+# `--moved` run of `Test_main` writes its new files into a copy of the world
+# committed once, and runs there, collecting at the base in a worktree of
+# its own and in the copy.
 MOVED_CONFTEST = (
     "import pytest\n"
     "\n"
@@ -696,27 +704,49 @@ AGAIN = "moved: tests/test_old_b.py::TestThree::test_three_again"
 EVERY = (ONE, TWO, THREE_OLD, AGAIN)
 
 
+# Every file of the base under `tests/`, by path. `_moved_world` commits it,
+# and `moved_lines` reads it as the base and, with a case's files written
+# over it, as the working tree.
+WORLD = {
+    CONFTEST: MOVED_CONFTEST,
+    OLD_A: MOVED_OLD_A,
+    OLD_B: MOVED_OLD_B,
+    OLD_C: MOVED_OLD_C,
+    OLD_D: MOVED_OLD_D,
+    SHAPES_D: SHAPES,
+    "tests/test_e.py": "V = 1\nW = 1\n",
+    OLD_G: "import test_e\n\n\ndef test_attribute():\n    assert test_e.V\n",
+    OLD_H: INSIDE,
+    OLD_K: VIEW + "def test_view():\n    assert view()\n",
+    OLD_N: UNREAD,
+    SORTED: "V = 1\n",
+    OLD_P: SORTED_CASE,
+    "tests/data/rows.txt": "a 1\n",
+}
+
+
+def moved_lines(news, beside=None, olds=(OLD_A, OLD_B)):
+    """`moved`'s lines for OLDS read in `WORLD`, the base, and NEWS, `{path:
+    source}`, read in the working tree, which is `WORLD` with NEWS and
+    BESIDE, `{path: source}` such as `tests/conftest.py`, written over it.
+    Each side's modules under `tests/` are read through `_test_modules`,
+    as `_moved_main` reads them from git and from the disk."""
+    tree = {**WORLD, **news, **(beside or {})}
+    return layout.moved(
+        {rel: WORLD[rel] for rel in olds},
+        news,
+        layout._test_modules(WORLD, WORLD.get),
+        layout._test_modules(tree, tree.get),
+    )
+
+
 @pytest.fixture(scope="module")
 def _moved_world(tmp_path_factory):
     repo = tmp_path_factory.mktemp("moved") / "repo"
     repo.mkdir()
     git_out(repo, "init", "-q")
-    write(repo, "tests/conftest.py", MOVED_CONFTEST)
-    write(repo, "tests/test_old_a.py", MOVED_OLD_A)
-    write(repo, "tests/test_old_b.py", MOVED_OLD_B)
-    write(repo, OLD_C, MOVED_OLD_C)
-    write(repo, OLD_D, MOVED_OLD_D)
-    write(repo, SHAPES_D, SHAPES)
-    write(repo, "tests/test_e.py", "V = 1\nW = 1\n")
-    write(
-        repo, OLD_G, "import test_e\n\n\ndef test_attribute():\n    assert test_e.V\n"
-    )
-    write(repo, OLD_H, INSIDE)
-    write(repo, OLD_K, VIEW + "def test_view():\n    assert view()\n")
-    write(repo, OLD_N, UNREAD)
-    write(repo, SORTED, "V = 1\n")
-    write(repo, OLD_P, SORTED_CASE)
-    write(repo, "tests/data/rows.txt", "a 1\n")
+    for rel, source in WORLD.items():
+        write(repo, rel, source)
     return repo, commit_everything_as_e(repo, "base")
 
 
@@ -738,13 +768,13 @@ def run_moved(world, tmp_path, monkeypatch, news, beside=None, olds=(OLD_A, OLD_
 
 class Test_moved:
     @pytest.mark.parametrize(
-        "news, beside, olds, cases, items",
+        "news, beside, olds",
         [
-            ({X: MOVED_NEW}, None, (OLD_A, OLD_B), 4, 5),
-            ({Z: NESTED_NEW}, None, (OLD_C,), 1, 1),
+            ({X: MOVED_NEW}, None, (OLD_A, OLD_B)),
+            ({Z: NESTED_NEW}, None, (OLD_C,)),
         ]
         + [
-            ({D: new}, beside, (OLD_D,), 10, 11)
+            ({D: new}, beside, (OLD_D,))
             for new, beside in [
                 (
                     NAMED_NEW.replace(PARSE, "").replace(
@@ -778,10 +808,10 @@ class Test_moved:
             ]
         ]
         + [
-            ({new: source}, {"tests/test_e.py": "V = 1\nW = 2\n"}, (old,), cases, cases)
-            for new, source, old, cases in [
-                (H, INSIDE_NEW, OLD_H, 1),
-                (N, UNREAD_NEW, OLD_N, 2),
+            ({new: source}, {"tests/test_e.py": "V = 1\nW = 2\n"}, (old,))
+            for new, source, old in [
+                (H, INSIDE_NEW, OLD_H),
+                (N, UNREAD_NEW, OLD_N),
             ]
         ]
         + [
@@ -793,13 +823,8 @@ class Test_moved:
                 },
                 {"tests/lib/test_f.py": "V = 1\n"},
                 (OLD_D,),
-                10,
-                11,
             ),
-            # #1283: the base's tests are listed with `-z`, so a test file
-            # git quotes the name of is read at the base as it is. Seen red
-            # against the listing without `-z`.
-            ({P: SORTED_NEW}, None, (OLD_P,), 1, 1),
+            ({P: SORTED_NEW}, None, (OLD_P,)),
         ],
         ids=[
             "every-kind-of-move",
@@ -816,45 +841,16 @@ class Test_moved:
             "a-name-imported-from-a-test-file-whose-name-is-not-ascii",
         ],
     )
-    def test_accepts_a_pure_move(
-        self,
-        _moved_world,
-        tmp_path,
-        monkeypatch,
-        capsys,
-        news,
-        beside,
-        olds,
-        cases,
-        items,
-    ):
-        code, others, base = run_moved(
-            _moved_world, tmp_path, monkeypatch, news, beside, olds
-        )
-        out = capsys.readouterr().out
-        assert code == 0, out
-        assert "moved:" not in out.replace("seal layout: moved:", "")
-        assert out.splitlines()[-1] == (
-            f"seal layout: moved: {cases} old cases, {items} items against {items} "
-            f"at {base[:12]}, 0 failed"
-        )
-        assert others == 0, "the base's worktree was left behind"
+    def test_accepts_a_pure_move(self, news, beside, olds):
+        assert moved_lines(news, beside, olds) == []
 
     @pytest.mark.parametrize(
         "news, olds",
         [(SPLIT, (OLD_A,)), (KEPT, (OLD_A, OLD_B))],
         ids=["one-old-file-in-two-new-files", "an-old-file-in-both-sets"],
     )
-    def test_accepts_an_old_file_split_across_two_new_files(
-        self, _moved_world, tmp_path, monkeypatch, capsys, news, olds
-    ):
-        code, others, _base = run_moved(
-            _moved_world, tmp_path, monkeypatch, news, olds=olds
-        )
-        out = capsys.readouterr().out
-        assert code == 0, out
-        assert out.splitlines()[-1].endswith(", 0 failed"), out
-        assert others == 0, "the base's worktree was left behind"
+    def test_accepts_an_old_file_split_across_two_new_files(self, news, olds):
+        assert moved_lines(news, olds=olds) == []
 
     @pytest.mark.parametrize(
         "news, beside, lines, olds",
@@ -864,17 +860,12 @@ class Test_moved:
                 (
                     {X: MOVED_NEW.replace(THREE, "")},
                     None,
-                    [
-                        COUNT.format(3),
-                        f"{THREE_OLD}: {BODY_GONE}",
-                        f"{AGAIN}: {BODY_GONE}",
-                    ],
+                    [f"{THREE_OLD}: {BODY_GONE}", f"{AGAIN}: {BODY_GONE}"],
                 ),
                 (
                     {X: MERGED},
                     None,
                     [
-                        COUNT.format(3),
                         f"{ONE}: {BODY_GONE}",
                         f"{THREE_OLD}: {BODY_GONE}",
                         f"{AGAIN}: {BODY_GONE}",
@@ -884,12 +875,12 @@ class Test_moved:
                 (
                     {X: MOVED_NEW.replace(REFUSE_3 + "\n", "")},
                     None,
-                    [COUNT.format(4), f"{AGAIN}: {BODY_GONE}"],
+                    [f"{AGAIN}: {BODY_GONE}"],
                 ),
                 (
                     {X: MOVED_NEW, Y: TWICE},
                     None,
-                    [COUNT.format(6), f"moved: {Y}::test_one_again: {NO_OLD}"],
+                    [f"moved: {Y}::test_one_again: {NO_OLD}"],
                 ),
                 (
                     {
@@ -1074,8 +1065,184 @@ class Test_moved:
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(
+        self, news, beside, lines, olds
+    ):
+        assert moved_lines(news, beside, olds) == lines
+
+
+class Test_main:
+    """Where two cases call `main` alike, the world differs: a monkeypatched
+    `lib/optin.py#toplevel` puts the repository at a fixture directory or
+    nowhere, or a git command does not answer."""
+
+    def test_accepts_a_pair_and_exits_zero(self, tmp_path, monkeypatch, capsys):
+        (tmp_path / "tests").mkdir()
+        source = PLACED.replace('x.parse("") is None', 'x.parse("a") is not None')
+        (tmp_path / "tests" / "test_x.py").write_text(source, encoding="utf-8")
+        monkeypatch.setattr(layout.optin, "toplevel", lambda start: str(tmp_path))
+        assert layout.main(["--pairs"]) == 0
+        assert "test_accepts_text and test_refuses_nothing" in capsys.readouterr().out
+
+    def test_refuses_a_misplaced_class_with_exit_one(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        (tmp_path / "tests" / "lib").mkdir(parents=True)
+        (tmp_path / "lib").mkdir()
+        source = PLACED.replace("Test_parse", "Test_render")
+        (tmp_path / "tests" / "lib" / "test_x.py").write_text(source, encoding="utf-8")
+        (tmp_path / "lib" / "x.py").write_text(MODULE, encoding="utf-8")
+        monkeypatch.setattr(layout.optin, "toplevel", lambda start: str(tmp_path))
+        monkeypatch.setattr(layout, "_tracked", lambda root: set(TRACKED))
+        assert layout.main(["--check"]) == 1
+        out = capsys.readouterr().out
+        assert "tests/lib/test_x.py: class Test_render" in out
+
+    def test_refuses_a_path_that_names_nothing(self, capsys):
+        missing = os.path.join(ROOT, "tests", "test_no_such_file.py")
+        assert layout.main(["--check", missing]) == 2
+        assert f"{missing} names no file or directory" in capsys.readouterr().out
+
+    def test_refuses_a_directory_outside_a_repository(self, monkeypatch, capsys):
+        monkeypatch.setattr(layout.optin, "toplevel", lambda start: "")
+        assert layout.main(["--check"]) == 2
+        assert "not inside a git repository" in capsys.readouterr().out
+
+    @pytest.mark.parametrize(
+        "words, args",
+        [
+            (("rev-parse", "--show-toplevel"), ["--check"]),
+            (("ls-files", "-z"), ["--check"]),
+            (
+                ("rev-parse", "--show-toplevel"),
+                [
+                    "--moved",
+                    "HEAD",
+                    "--from",
+                    "tests/test_x.py",
+                    "--to",
+                    "tests/test_x.py",
+                ],
+            ),
+        ],
+        ids=["toplevel", "tracked", "moved"],
+    )
+    def test_refuses_a_git_that_did_not_answer_in_one_line(
+        self, tmp_path, monkeypatch, capsys, words, args
+    ):
+        """#1573: a git command past `lib/gitcmd.py#TIMEOUT` is exit 2 in the
+        runner's one line, and a git that hung is not read as no
+        repository. Seen red against `test_layout.py` before #1573, which
+        raised `subprocess.TimeoutExpired` out of `main`."""
+        git_out(tmp_path, "init", "-q")
+        write(tmp_path, "tests/test_x.py", PLACED)
+        monkeypatch.chdir(tmp_path)
+        asked = unanswered(monkeypatch, *words)
+        assert layout.main(args) == 2
+        out = capsys.readouterr().out
+        assert out == f"seal layout: {past_the_bound(asked[0])}\n", out
+
+    def test_refuses_a_listing_git_refused_in_one_line(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1573: `_tracked` passes `check=True`, so a `git ls-files` that
+        exits non-zero, here over an index git cannot read, is exit 2 in
+        `lib/gitcmd.py#Exited`'s line, and not a repository read as holding
+        no tracked file."""
+        git_out(tmp_path, "init", "-q")
+        write(tmp_path, "tests/test_x.py", PLACED)
+        (tmp_path / ".git" / "index").write_bytes(b"junk")
+        monkeypatch.chdir(tmp_path)
+        assert layout.main(["--check"]) == 2
+        out = capsys.readouterr().out
+        assert out.startswith("seal layout: `git ls-files -z` exited 128: "), out
+        assert out.count("\n") == 1, out
+
+    @pytest.mark.parametrize(
+        "news, beside, olds, cases, items",
+        [
+            ({X: MOVED_NEW}, None, (OLD_A, OLD_B), 4, 5),
+            (
+                {
+                    "tests/lib/test_d.py": NAMED_NEW.replace(
+                        "from test_e import", "from test_f import"
+                    )
+                },
+                {"tests/lib/test_f.py": "V = 1\n"},
+                (OLD_D,),
+                10,
+                11,
+            ),
+            # #1283: the base's tests are listed with `-z`, so a test file
+            # git quotes the name of is read at the base as it is. Seen red
+            # against the listing without `-z`.
+            ({P: SORTED_NEW}, None, (OLD_P,), 1, 1),
+            # An old file in both lists, changed in the working tree: the
+            # old files are collected at the base, not where the new ones are.
+            (KEPT, None, (OLD_A, OLD_B), 4, 5),
+        ],
+        ids=[
+            "every-kind-of-move",
+            "a-name-imported-from-a-test-file-in-an-area",
+            "a-name-imported-from-a-test-file-whose-name-is-not-ascii",
+            "an-old-file-in-both-sets",
+        ],
+    )
+    def test_accepts_a_pure_move_and_removes_the_base_worktree(
+        self,
+        _moved_world,
+        tmp_path,
+        monkeypatch,
+        capsys,
+        news,
+        beside,
+        olds,
+        cases,
+        items,
+    ):
+        """`--moved` over real git: the base's files are read through `git
+        show` and `git ls-tree`, the working tree's from the disk, and
+        pytest collects each side."""
+        code, others, base = run_moved(
+            _moved_world, tmp_path, monkeypatch, news, beside, olds
+        )
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert "moved:" not in out.replace("seal layout: moved:", "")
+        assert out.splitlines()[-1] == (
+            f"seal layout: moved: {cases} old cases, {items} items against {items} "
+            f"at {base[:12]}, 0 failed"
+        )
+        assert others == 0, "the base's worktree was left behind"
+
+    @pytest.mark.parametrize(
+        "news, beside, lines, olds",
+        [
+            (
+                {X: MOVED_NEW.replace(THREE, "")},
+                None,
+                [COUNT.format(3), f"{THREE_OLD}: {BODY_GONE}", f"{AGAIN}: {BODY_GONE}"],
+                (OLD_A, OLD_B),
+            ),
+            (
+                {X: MOVED_NEW, Y: TWICE},
+                None,
+                [COUNT.format(6), f"moved: {Y}::test_one_again: {NO_OLD}"],
+                (OLD_A, OLD_B),
+            ),
+            (
+                {D: NAMED_NEW},
+                {"tests/test_e.py": "V = 2\n"},
+                [f"moved: {OLD_D}::test_value: name V: {DIFFERS}"],
+                (OLD_D,),
+            ),
+        ],
+        ids=["a-cut", "a-case-landing-twice", "a-changed-name-in-another-test-file"],
+    )
+    def test_refuses_a_moved_group_with_exit_one(
         self, _moved_world, tmp_path, monkeypatch, capsys, news, beside, lines, olds
     ):
+        """The count pytest collects on each side, fewer and more, and a
+        module read at the base through git against the one on the disk."""
         code, others, _base = run_moved(
             _moved_world, tmp_path, monkeypatch, news, beside, olds
         )
@@ -1086,6 +1253,27 @@ class Test_moved:
         )
         assert out.splitlines()[-1].endswith(f"{len(lines)} failed"), out
         assert others == 0, "the base's worktree was left behind"
+
+    def test_refuses_to_let_a_removal_git_did_not_answer_replace_the_run(
+        self, _moved_world, tmp_path, monkeypatch, capsys
+    ):
+        """#1573: the base's worktree is removed in a `finally`, and a
+        removal past `lib/gitcmd.py#TIMEOUT` names the worktree on stderr
+        while the run's result stands. Seen red against `test_layout.py`
+        before #1573, where `subprocess.TimeoutExpired` replaced it."""
+        asked = unanswered(monkeypatch, "worktree", "remove")
+        code, others, _base = run_moved(
+            _moved_world, tmp_path, monkeypatch, {X: MOVED_NEW}
+        )
+        out, err = capsys.readouterr()
+        assert code == 0, out + err
+        assert out.splitlines()[-1].endswith(", 0 failed"), out
+        (held,) = asked
+        assert err == (
+            f"seal layout: the scratch worktree {held[-1]} was not removed: "
+            f"{past_the_bound(held)}\n"
+        )
+        assert others == 1, "the base's worktree is still in git's list"
 
     def test_refuses_a_base_or_a_file_it_cannot_read(
         self, _moved_world, tmp_path, monkeypatch, capsys
@@ -1120,43 +1308,6 @@ class Test_moved:
             layout.main(args)
         assert stopped.value.code == 2
         assert "--to" in capsys.readouterr().err
-
-
-class Test_main:
-    """Where two cases call `main` alike, the world differs: a monkeypatched
-    `_toplevel` puts the repository at a fixture directory or nowhere."""
-
-    def test_accepts_a_pair_and_exits_zero(self, tmp_path, monkeypatch, capsys):
-        (tmp_path / "tests").mkdir()
-        source = PLACED.replace('x.parse("") is None', 'x.parse("a") is not None')
-        (tmp_path / "tests" / "test_x.py").write_text(source, encoding="utf-8")
-        monkeypatch.setattr(layout, "_toplevel", lambda start: str(tmp_path))
-        assert layout.main(["--pairs"]) == 0
-        assert "test_accepts_text and test_refuses_nothing" in capsys.readouterr().out
-
-    def test_refuses_a_misplaced_class_with_exit_one(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        (tmp_path / "tests" / "lib").mkdir(parents=True)
-        (tmp_path / "lib").mkdir()
-        source = PLACED.replace("Test_parse", "Test_render")
-        (tmp_path / "tests" / "lib" / "test_x.py").write_text(source, encoding="utf-8")
-        (tmp_path / "lib" / "x.py").write_text(MODULE, encoding="utf-8")
-        monkeypatch.setattr(layout, "_toplevel", lambda start: str(tmp_path))
-        monkeypatch.setattr(layout, "_tracked", lambda root: set(TRACKED))
-        assert layout.main(["--check"]) == 1
-        out = capsys.readouterr().out
-        assert "tests/lib/test_x.py: class Test_render" in out
-
-    def test_refuses_a_path_that_names_nothing(self, capsys):
-        missing = os.path.join(ROOT, "tests", "test_no_such_file.py")
-        assert layout.main(["--check", missing]) == 2
-        assert f"{missing} names no file or directory" in capsys.readouterr().out
-
-    def test_refuses_a_directory_outside_a_repository(self, monkeypatch, capsys):
-        monkeypatch.setattr(layout, "_toplevel", lambda start: None)
-        assert layout.main(["--check"]) == 2
-        assert "not inside a git repository" in capsys.readouterr().out
 
 
 test_census = census_case(TARGET)

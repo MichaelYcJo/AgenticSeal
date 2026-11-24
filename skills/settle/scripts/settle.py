@@ -167,8 +167,12 @@ a complete settle reaches; 1 `--apply` kept a directory whose record holds
 an open row or cannot be read, or whose published note does not carry its
 entry; 2 the
 arguments or the tree were unusable: a `--released-at` ref that does not
-resolve, a root at neither place, a repository that opted out, in local mode
-a `gh` that is not on PATH or whose query fails, under `--apply` a release
+resolve, a root at neither place, a repository that opted out, a git
+command that could not start or did not finish within
+`lib/gitcmd.py#TIMEOUT`, or that exits non-zero on the history the merge
+order is read from, said in one line, `settle: ` and the runner's line, in
+local mode a `gh` that is not on PATH, does not finish within the same
+bound or whose query fails, under `--apply` a release
 list `gh` cannot give or a `git` that cannot read what a note is checked
 by, each before anything is removed, a sibling script that is
 not beside it, a `--from` that names no directory of the working tree, one
@@ -185,7 +189,6 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -223,13 +226,18 @@ except ImportError:
     raise SystemExit(2) from None
 
 # A thread's places, `lib/optin.py`'s: the sub-directory of the root that
-# holds the work items, a thread's design, its plan and its changelog
-# fragment.
+# holds the work items, a thread's design, its plan, its changelog fragment
+# and its closing memo.
 _optin = sibling.load(OPTIN)
+# The runner every git and `gh` command this starts runs through.
+# `lib/optin.py` loads it already, so this costs no file.
+gitcmd = sibling.load(GITCMD)
+console = sibling.load("lib/console.py")
 WORK_ITEMS = _optin.WORK_ITEMS
 DESIGN = _optin.DESIGN
 PLAN = _optin.PLAN
 CHANGELOG = _optin.CHANGELOG
+GAPS = _optin.GAPS
 # The section and table of the plan the orchestrator writes its judgments of
 # the run to (`templates/records/sdd-plan.md`).
 JUDGMENTS = "Judgments of the run"
@@ -240,16 +248,6 @@ NEAR_JUDGMENTS = (
     "none of its rows were read"
 )
 TESTS = "tests/"
-
-# The command asked in local mode, once per branch, and by `--apply` for the
-# release list where the root is shared; and how long it may take.
-GH = "gh"
-GH_TIMEOUT = 60
-
-
-def under(root, rel):
-    """The disk path of a `/`-joined repository-relative path."""
-    return os.path.join(root, *rel.split("/"))
 
 
 def policy_root(root):
@@ -262,19 +260,8 @@ def policy_root(root):
 
 
 def show(root, ref, rel):
-    r = subprocess.run(
-        ["git", "-C", root, "show", f"{ref}:{rel}"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    r = gitcmd.git(root, "show", f"{ref}:{rel}")
     return r.stdout if r.returncode == 0 else None
-
-
-def plural(count, many="s", one=""):
-    """`s` unless there is one of them. Every count this prints is read by a
-    person, and `1 work items` is the tell that nobody read the output."""
-    return one if count == 1 else many
 
 
 # --- what the tree says ----------------------------------------------------
@@ -292,7 +279,7 @@ def threads(home):
 def work_items(records, specs):
     """Every work item id with a directory under SPECS (`threads`) in
     RECORDS, the directory holding the `seal/` root, in id order."""
-    top = under(records, specs)
+    top = gitcmd.under_root(records, specs)
     if not os.path.isdir(top):
         return []
     return sorted(
@@ -309,12 +296,7 @@ def released(root, ref, specs):
     say there is nothing to do, the quiet zero every checker here is written
     against. `-z` ends each path with a NUL and quotes none, whatever
     `core.quotePath` says, so an id that is not ASCII is read as it is."""
-    r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    r = gitcmd.git(root, "ls-tree", "-r", "-z", "--name-only", ref)
     if r.returncode != 0:
         return None
     prefix = specs + "/"
@@ -329,19 +311,7 @@ def released(root, ref, specs):
 
 def resolves(root, ref):
     """Whether REF names a commit in the repository at ROOT."""
-    r = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
-        capture_output=True,
-    )
-    return r.returncode == 0
-
-
-def reaches(root, ref, commit):
-    """Whether COMMIT is reachable from REF, REF itself included."""
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", "--is-ancestor", commit, ref],
-        capture_output=True,
-    )
+    r = gitcmd.git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
     return r.returncode == 0
 
 
@@ -418,21 +388,12 @@ class Unasked(Exception):
 def ask_gh(root, args, asked):
     """What `gh ARGS` printed, asked from the repository's top ROOT. ASKED
     is the command as a person reads it. Raises `Unasked` where `gh` is not
-    on PATH, does not run, or exits non-zero."""
-    found = shutil.which(GH)
-    if found is None:
-        raise Unasked(f"`{GH}` is not on PATH")
+    on PATH, does not run, or does not finish (`lib/gitcmd.py#Unrun`, whose
+    line it says), or exits non-zero."""
     try:
-        r = subprocess.run(
-            [found, *args],
-            cwd=root,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=GH_TIMEOUT,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise Unasked(f"{asked} did not run ({exc})") from exc
+        r = gitcmd.gh(*args, root=root)
+    except gitcmd.Unrun as unrun:
+        raise Unasked(unrun.line) from None
     if r.returncode != 0:
         said = (r.stderr or r.stdout or "").strip().partition("\n")[0].strip()
         raise Unasked(f"{asked} exited {r.returncode}" + (f": {said}" if said else ""))
@@ -444,7 +405,7 @@ def merged_pull_requests(root, branch):
     that have merged, as `gh` lists them, asked from the repository's top.
     Raises `Unasked` where `gh` cannot be asked (`ask_gh`) or answers
     anything but a list of objects."""
-    asked = f"`{GH} pr list --head {branch}`"
+    asked = f"`gh pr list --head {branch}`"
     query = ["--head", branch, "--state", "merged", "--json", "number,mergeCommit"]
     printed = ask_gh(root, ["pr", "list", *query], asked)
     try:
@@ -516,11 +477,7 @@ def git_run(root, *args, given=None):
     literal, with GIVEN, bytes, on its standard input where it is not None.
     `git_out` and the batched readers start their `git` here. Raises
     `RuntimeError`, saying what `git` said, where it fails."""
-    r = subprocess.run(
-        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
-        input=given,
-        capture_output=True,
-    )
+    r = gitcmd.git(root, "--literal-pathspecs", *args, given=given, binary=True)
     if r.returncode != 0:
         raise RuntimeError(
             f"`git {' '.join(args)}` exited {r.returncode}: {decoded(r.stderr).strip()}"
@@ -529,8 +486,8 @@ def git_run(root, *args, given=None):
 
 
 def decoded(data):
-    """DATA as the text mode of `subprocess.run` reads it: UTF-8 with each
-    undecodable byte replaced, and every line ending a newline."""
+    """DATA as `lib/gitcmd.py#git` reads text: UTF-8 with each undecodable
+    byte replaced, and every line ending a newline."""
     return data.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
 
 
@@ -639,7 +596,7 @@ def published_releases(root):
     `Unasked` where `gh` cannot be asked (`ask_gh`), or answers anything but
     pages that are each a list of objects: `--paginate` prints one JSON
     array per page, one after another."""
-    asked = f"`{GH} api --paginate {RELEASES}`"
+    asked = f"`gh api --paginate {RELEASES}`"
     printed = ask_gh(root, ["api", "--paginate", RELEASES], asked)
     decoder, at, pages = json.JSONDecoder(), 0, []
     while True:
@@ -796,19 +753,6 @@ NOT_REACHED = (
 )
 
 
-def declared_branch(records, work_item_id, routing, specs):
-    """The `Branch` row of the work item's `routing.md` under SPECS
-    (`threads`), read by `lib/routing.py#parse`, or None where there is no
-    file, no row, or a file `parse` does not read as a declaration."""
-    path = under(records, f"{specs}/{work_item_id}/{routing.FILENAME}")
-    try:
-        with open(path, encoding="utf-8") as f:
-            declared = routing.parse(f.read())
-    except (OSError, UnicodeDecodeError):
-        return None
-    return (declared or {}).get("branch") or None
-
-
 def released_local(root, records, ref, ids, specs):
     """`(merged, why)` for the local work items IDS under SPECS
     (`threads`): `merged` is `{id:
@@ -823,7 +767,12 @@ def released_local(root, records, ref, ids, specs):
     routing = sibling.load(ROUTING)
     asked, merged, why = {}, {}, {}
     for work_item_id in ids:
-        branch = declared_branch(records, work_item_id, routing, specs)
+        # The `Branch` row of the work item's `routing.md`, or None where
+        # there is no file, no row, or a file `parse` does not read.
+        declared = routing.read_declaration(
+            gitcmd.under_root(records, f"{specs}/{work_item_id}/{routing.FILENAME}")
+        )
+        branch = (declared or {}).get("branch") or None
         if branch is None:
             why[work_item_id] = NO_BRANCH
             continue
@@ -834,7 +783,12 @@ def released_local(root, records, ref, ids, specs):
             why[work_item_id] = NO_PULL_REQUEST.format(branch=branch)
             continue
         reached = next(
-            ((n, c) for n, c in prs if c is not None and reaches(root, ref, c)), None
+            (
+                (n, c)
+                for n, c in prs
+                if c is not None and gitcmd.is_ancestor(root, c, ref)
+            ),
+            None,
         )
         if reached is None:
             listed = ", ".join(
@@ -851,13 +805,15 @@ def released_local(root, records, ref, ids, specs):
 def has_spec(records, work_item_id, specs):
     """Whether the work item's directory under SPECS (`threads`) holds a
     `frame/design.md` on disk."""
-    return os.path.isfile(under(records, f"{specs}/{work_item_id}/{DESIGN}"))
+    return os.path.isfile(
+        gitcmd.under_root(records, f"{specs}/{work_item_id}/{DESIGN}")
+    )
 
 
 def read_text(root, rel):
     """A file's text as it stands, line ends kept, or None where it is absent."""
     try:
-        with open(under(root, rel), encoding="utf-8", newline="") as f:
+        with open(gitcmd.under_root(root, rel), encoding="utf-8", newline="") as f:
             return f.read()
     except OSError:
         return None
@@ -970,7 +926,7 @@ EARLIER_WINDOW = 2
 # The section's last line where the window left removing commits out: a count
 # of commits, never of rows.
 EARLIER_OLDER = (
-    "{count} older commit{s} removed plans this section did not read; "
+    "{commits} removed plans this section did not read; "
     "`seal settle --all-earlier` reads them"
 )
 NO_RELEASE_TAG = "no `vX.Y.Z` tag holds {commit}, the commit that added its plan"
@@ -1088,11 +1044,7 @@ def named_paths(item):
 def tracked_names(root):
     """The base names of every tracked file, so a row naming `design.md` or
     `broad_gate.py` alone is looked for by name."""
-    r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
-    listed = (
-        r.stdout.decode("utf-8", "replace").split("\0") if r.returncode == 0 else []
-    )
-    return {rel.rsplit("/", 1)[-1] for rel in listed if rel}
+    return {rel.rsplit("/", 1)[-1] for rel in git_fields(root, "ls-files", "-z") if rel}
 
 
 def in_tree(root, records, work_item_id, path, names, specs):
@@ -1101,9 +1053,9 @@ def in_tree(root, records, work_item_id, path, names, specs):
     directory under SPECS (`threads`) in RECORDS, or, for a bare file name,
     as the name of a tracked file."""
     rel = path.rstrip("/")
-    if os.path.exists(under(root, rel)):
+    if os.path.exists(gitcmd.under_root(root, rel)):
         return True
-    if os.path.exists(under(records, f"{specs}/{work_item_id}/{rel}")):
+    if os.path.exists(gitcmd.under_root(records, f"{specs}/{work_item_id}/{rel}")):
         return True
     return "/" not in rel and rel in names
 
@@ -1137,20 +1089,20 @@ def open_rows(root, records, ids, reader, specs):
     return out
 
 
-def misplaced(records, work_item_id, reader, specs):
+def misplaced(records, work_item_id, specs):
     """`[(path, place)]` for each misplaced record file in the work item's
     directory under SPECS (`threads`) in RECORDS, sorted: a regular file, or
     a link to one, whose
     name is the last part of a record this reads in the directory, the
-    closing memo (`lib/gaps.py#OVERVIEW`), `DESIGN` or `PLAN`, and
+    closing memo (`GAPS`), `DESIGN` or `PLAN`, and
     whose path from the directory is not that record's. PATH is that path,
     and PLACE is the record's.
 
     Only the exact name is read, and no file's content: whether such a file
     holds what its record would is the settling session's to judge. A linked
     directory is not followed."""
-    places = {p.rsplit("/", 1)[-1]: p for p in (reader.OVERVIEW, DESIGN, PLAN)}
-    top = under(records, f"{specs}/{work_item_id}")
+    places = {p.rsplit("/", 1)[-1]: p for p in (GAPS, DESIGN, PLAN)}
+    top = gitcmd.under_root(records, f"{specs}/{work_item_id}")
     out = []
     for here, _dirs, names in os.walk(top):
         for name in names:
@@ -1158,7 +1110,7 @@ def misplaced(records, work_item_id, reader, specs):
             path = os.path.join(here, name)
             if place is None or not os.path.isfile(path):
                 continue
-            rel = os.path.relpath(path, top).replace(os.sep, "/")
+            rel = gitcmd.git_path(os.path.relpath(path, top))
             if rel != place:
                 out.append((rel, place))
     return sorted(out)
@@ -1175,9 +1127,9 @@ def judgments(records, ids, specs):
               group and each work item in the order IDS lists them first.
               `rounds` is how many `round-N.md` the work item's
               `trail/rounds/` holds (`lib/routing.py#rounds`), or None
-              where that is not a directory this can list
-              (`lib/routing.py#rounds_unreadable`): a file, a link or
-              a directory nothing can list, which holds a review git carries
+              where it holds records this cannot count
+              (`lib/routing.py#rounds_unreadable`): a link or a
+              directory nothing can list, which holds a review git carries
       unread  `[(id, why)]` for each line `plan_rows` names as not read
 
     Each plan is read by `plan_rows`, the reader the plans earlier settles
@@ -1193,7 +1145,7 @@ def judgments(records, ids, specs):
         unread += [(work_item_id, why) for why in whys]
         if not rows:
             continue
-        where = under(records, f"{specs}/{work_item_id}")
+        where = gitcmd.under_root(records, f"{specs}/{work_item_id}")
         # `routing.rounds` returns [] both for no record and for a
         # `trail/rounds` it cannot list; `rounds_unreadable` says which.
         rounds = (
@@ -1538,7 +1490,7 @@ def survey(root, ref, home=None, every=False):
 
     None where `ref` does not resolve. Raises `Unasked` where local mode
     needs `gh` and it cannot be asked."""
-    home = home or under(root, sibling.load(OPTIN).HOME)
+    home = home or gitcmd.under_root(root, sibling.load(OPTIN).HOME)
     local, records = records_of(root, home)
     specs = threads(home)
     present = work_items(records, specs)
@@ -1565,9 +1517,7 @@ def survey(root, ref, home=None, every=False):
         "why": why,
         "timeline": timeline(root, ref, ids, reader, records, specs, merged),
         "rows": open_rows(root, records, ids, reader, specs),
-        "misplaced": [
-            (i, held) for i in ids if (held := misplaced(records, i, reader, specs))
-        ],
+        "misplaced": [(i, held) for i in ids if (held := misplaced(records, i, specs))],
         "judgments": judgments(records, ids, specs),
         "earlier": earlier_judgments(root, ref, present, specs, every),
         "nothing": sibling.load(ITEMS).NOTHING,
@@ -1577,15 +1527,6 @@ def survey(root, ref, home=None, every=False):
 
 
 # --- the directories a person names ----------------------------------------
-
-
-def inside(path, top):
-    """Whether the resolved PATH is TOP or under it. Paths on two drives
-    share no prefix, and `commonpath` raises for them."""
-    try:
-        return os.path.commonpath([path, top]) == top
-    except ValueError:
-        return False
 
 
 def named_directory(root, home, given):
@@ -1599,20 +1540,17 @@ def named_directory(root, home, given):
     top = os.path.realpath(root)
     if not os.path.isdir(path):
         return None, FROM_NOT_A_DIRECTORY.format(given=given, path=read)
-    if not inside(path, top):
+    if not gitcmd.inside(path, top):
         return None, FROM_OUTSIDE.format(given=given, root=root, path=read)
-    if inside(path, os.path.realpath(home)):
+    if gitcmd.inside(path, os.path.realpath(home)):
         return None, FROM_UNDER_ROOT.format(given=given, home=home, path=read)
-    return os.path.relpath(path, top).replace(os.sep, "/"), None
+    return gitcmd.git_path(os.path.relpath(path, top)), None
 
 
 def git_fields(root, *args):
     """The NUL-separated fields of `git ARGS` run at ROOT with every
     pathspec literal, or [] where git exits non-zero."""
-    r = subprocess.run(
-        sibling.load(GITCMD).argv("-C", root, "--literal-pathspecs", *args),
-        capture_output=True,
-    )
+    r = gitcmd.git(root, "--literal-pathspecs", *args, binary=True)
     if r.returncode != 0:
         return []
     return r.stdout.decode("utf-8", "replace").split("\0")
@@ -1716,7 +1654,7 @@ def write_documents(listed, out):
     """The listing `documents` read, under its heading."""
     out.write(f"{DOCUMENTS_HEADING}\n")
     for rel, held in listed:
-        out.write(f"\nfrom {rel}/: {len(held)} document{plural(len(held))}\n")
+        out.write(f"\nfrom {rel}/: {console.plural(len(held), 'document')}\n")
         for path, added, last, touched in held:
             if added is None:
                 out.write(f"    {path}  {NO_COMMIT}\n")
@@ -1745,14 +1683,11 @@ def names(name, work_item_id):
 def tracked_text(root, specs):
     """`(repo-relative path, text)` for every tracked text file outside
     SPECS (`threads`). A file holding a NUL byte is binary and skipped."""
-    r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
-    if r.returncode != 0:
-        return
-    for rel in r.stdout.decode("utf-8", "replace").split("\0"):
+    for rel in git_fields(root, "ls-files", "-z"):
         if not rel or rel.startswith(specs + "/"):
             continue
         try:
-            with open(under(root, rel), "rb") as f:
+            with open(gitcmd.under_root(root, rel), "rb") as f:
                 data = f.read()
         except OSError:
             continue
@@ -1806,13 +1741,14 @@ def report(found, ref, out):
     if local:
         write(LOCAL_LINE.format(home=local))
     write(
-        f"released at {ref}: {total} work item{plural(total)}; "
+        f"released at {ref}: {console.plural(total, 'work item')}; "
         f"{len(found['unreleased'])} unreleased and untouched\n"
         f"    {t['with_rules']} state rule changes, {len(t['nothing'])} hold the "
         f"no-change block, {len(t['whole'])} to read whole, "
         f"{len(t['spec_less'])} wrote no frame/design.md\n"
-        f"    {len(t['groups'])} group{plural(len(t['groups']))}; {count} open "
-        f"row{plural(count)} in {len(rows)} record{plural(len(rows))}\n"
+        f"    {console.plural(len(t['groups']), 'group')}; "
+        f"{console.plural(count, 'open row')} in "
+        f"{console.plural(len(rows), 'record')}\n"
     )
     if local and found["released"]:
         write(f"\n{MERGED_HEADING}\n")
@@ -1873,7 +1809,7 @@ def report(found, ref, out):
             write(f"\njudged against: {against or 'an empty cell'}\n")
             for work_item_id, rounds, held in members:
                 counted = (
-                    f"{rounds} round{plural(rounds)}"
+                    console.plural(rounds, "round")
                     if rounds is not None
                     else "its trail/rounds is not a directory this can list, "
                     "so no round was counted"
@@ -1896,7 +1832,8 @@ def report(found, ref, out):
                     write(f"        {where}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
         if older:
-            write(f"\n{EARLIER_OLDER.format(count=older, s=plural(older))}\n")
+            commits = console.plural(older, "older commit")
+            write(f"\n{EARLIER_OLDER.format(commits=commits)}\n")
     if "documents" in found:
         write("\n")
         write_documents(found["documents"], out)
@@ -1904,7 +1841,9 @@ def report(found, ref, out):
         write(f"\n{REMOVES_HEADING_LOCAL if local else REMOVES_HEADING}\n")
         for work_item_id in found["released"]:
             held = len(rows.get(work_item_id, []))
-            when = f"once its {held} open row{plural(held)} close" if held else "now"
+            when = (
+                f"once its {console.plural(held, 'open row')} close" if held else "now"
+            )
             write(f"    {specs}/{work_item_id}/  {when}\n")
             for where in found["citations"].get(work_item_id, []):
                 write(f"        cited from {where}\n")
@@ -1946,7 +1885,7 @@ def draft(found, root, out):
             texts[op.file] = text
             placed += 1
     for rel, text in texts.items():
-        path = under(root, rel)
+        path = gitcmd.under_root(root, rel)
         if text is None:
             if os.path.isfile(path):
                 os.remove(path)
@@ -1955,7 +1894,7 @@ def draft(found, root, out):
         with open(path, "w", encoding="utf-8", newline="") as f:
             f.write(text)
     policy = policy_root(root)
-    out.write(f"placed {placed} of {total} operation{plural(total)} in {policy}/\n")
+    out.write(f"placed {placed} of {console.plural(total, 'operation')} in {policy}/\n")
     out.write(DRAFTED)
     return 0
 
@@ -1991,7 +1930,7 @@ def closed_rows(records, directory, reader):
     """`[(item, what closed it)]` for each closed row of DIRECTORY's record
     under RECORDS in the working tree, read by
     `lib/gaps.py#check_text`."""
-    text = read_text(records, f"{directory}/{reader.OVERVIEW}")
+    text = read_text(records, f"{directory}/{GAPS}")
     if text is None:
         return []
     _, closed, _ = reader.check_text(text)
@@ -2029,13 +1968,13 @@ def apply(found, root, out):
         rows = held[work_item_id]
         unread = [
             f"    not read: {MISPLACED.format(path=f'{directory}/{rel}', place=place)}\n"
-            for rel, place in misplaced(records, work_item_id, reader, specs)
+            for rel, place in misplaced(records, work_item_id, specs)
         ]
         if rows:
             kept += 1
             out.write(
-                f"kept {directory}/: its record holds {len(rows)} open "
-                f"row{plural(len(rows))}; close each (`closed` with what closed "
+                f"kept {directory}/: its record holds "
+                f"{console.plural(len(rows), 'open row')}; close each (`closed` with what closed "
                 "it) and run `seal settle --apply` again\n"
             )
             for name, item in rows:
@@ -2049,20 +1988,20 @@ def apply(found, root, out):
             out.write("".join(unread))
             continue
         closed = closed_rows(records, directory, reader)
-        shutil.rmtree(under(records, directory))
+        shutil.rmtree(gitcmd.under_root(records, directory))
         removed += 1
         out.write(f"removed {directory}/\n")
         if line:
             out.write(f"    {line}\n")
         out.write("".join(unread))
         for item, who in closed:
-            out.write(f"    closed in {reader.OVERVIEW}: {item}\n")
+            out.write(f"    closed in {GAPS}: {item}\n")
             out.write(f"        what closed it: {who}\n")
     policy = policy_root(root)
-    if os.path.isdir(under(root, policy)):
+    if os.path.isdir(gitcmd.under_root(root, policy)):
         write_after(root, policy, out)
     out.write(
-        f"\nremoved {removed} director{plural(removed, 'ies', 'y')}; kept {kept} "
+        f"\nremoved {console.plural(removed, 'directory', 'directories')}; kept {kept} "
         f"with a row to close and {kept_for_note} whose note lacks its entry\n"
     )
     return 1 if kept or kept_for_note else 0
@@ -2137,7 +2076,19 @@ def main(argv=None):
     if args.all_earlier and args.draft:
         sys.stderr.write(EARLIER_WITH_DRAFT)
         return 2
+    # A git or `gh` command that did not answer is no answer to any of the
+    # reads below, so the run stops with the runner's one line at the code
+    # of an unusable tree, whichever read it was.
+    try:
+        return _settled(args)
+    except gitcmd.Failed as unanswered:
+        sys.stderr.write(f"settle: {unanswered.line}\n")
+        return 2
 
+
+def _settled(args):
+    """The run `main` parsed ARGS for, past the refusals of its flags: the
+    dry run, `--apply`, `--from` or `--draft`, and its exit code."""
     root = os.path.abspath(args.root or os.getcwd())
     # The root is resolved through the one resolver, `lib/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
@@ -2150,10 +2101,7 @@ def main(argv=None):
     common = optin.git_common_dir(root)
     home = optin.home_at(root, common)
     if not home:
-        # `home_at` answers "" for no root and for an opt-out; they are two
-        # sentences. `isfile`, as `home_at` reads it: a directory of the
-        # marker's name is not an opt-out.
-        if common and os.path.isfile(os.path.join(common, optin.SCRATCH)):
+        if optin.opted_out(common):
             sys.stderr.write(
                 f"settle: {root} has opted out — `{optin.SCRATCH}` is under "
                 "its git directory, so every gate in this plugin reads it as "
@@ -2218,16 +2166,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py` owns the reasoning and the three decisions
-    # behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

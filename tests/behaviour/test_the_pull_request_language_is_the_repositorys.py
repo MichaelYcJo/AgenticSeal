@@ -22,13 +22,15 @@ import os
 import subprocess
 
 import pytest
-from conftest import ROOT, config_json, flat, local_home, read
+from conftest import ROOT, config_json, flat, flattened, local_home, read, section
 
 # No TARGET: its cases hold the language rows across skills/commit-pr-convention/SKILL.md, templates/setup/config.md and lib/config.py, and walk every template and pull request mirror git lists.
 
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 TEMPLATE = ("templates", "setup", "config.md")
+# The template's section that lists what stays English whatever a key says.
+GOVERNS_NOTHING = "## What no key governs"
 
 
 # --- the key, and where it is read from -------------------------------------
@@ -45,21 +47,6 @@ def test_the_skill_names_the_file_and_the_row():
     # to. No hook or command of the plugin asks for this key; the cases of
     # this file read it through `lib/config.py#declared_value`.
     assert "Commit and pull request language" in text, "the skill does not name the key"
-
-
-def test_the_root_is_resolved_rather_than_spelled():
-    """S3. Local mode (#80) keeps the whole root under the common git
-    directory. A skill that spells `<repo>/seal/` and stops sends a
-    local-mode session to a path that is not there, and the config it then
-    reports missing is the file that exists."""
-    text = flat(*SKILL)
-    # The command a session runs to find the local-mode root.
-    assert "git rev-parse --git-common-dir" in text, (
-        "the skill spells one place for the root, so a local-mode repository "
-        "cannot carry a config at all"
-    )
-    # The path of the shared root, which a session opens first.
-    assert "<repo>/seal/" in text, "the shared place went with the fix"
 
 
 # --- what the row deliberately does not reach -------------------------------
@@ -408,8 +395,10 @@ def configured_language(root=None, row=COMMIT_ROW):
 # FOUR ways, in five ids. "Cannot be read or is not one JSON object" is one
 # way with two spellings, and the last two below are both that way — a file
 # that does not parse as JSON, and one whose top level is an array. Round 2
-# ❓ 8 settled the count: the skill's sentence says four, so four is the
-# number, and keeping five shapes here costs nothing and exercises more.
+# ❓ 8 settled the count: the sentence says four, so four is the number, and
+# keeping five shapes here costs nothing and exercises more. Since #1578 the
+# sentence is the paragraph of `templates/setup/config.md` *An absent
+# language key is a refusal at the pull request body, and never at a commit*.
 UNNAMED = [
     ("no file at all", None),
     ("a file with no such key", config_json(("Other", "x"))),
@@ -962,14 +951,6 @@ def test_the_layout_lists_the_config(parts):
 # --- the exclusion list, derived rather than compared ----------------------
 
 
-def _governs_nothing():
-    """The `What no key governs` section of the template, flattened."""
-    text = read(*TEMPLATE)
-    start = text.index("## What no key governs")
-    end = text.index("\n## ", start + 1)
-    return " ".join(text[start:end].split())
-
-
 def _literal_strings():
     """Every string the checkers match literally, read from the checkers.
 
@@ -987,13 +968,13 @@ def _literal_strings():
     The settle reads a plan's *Judgments of the run* under its exact heading
     and header, the release note lifts a fragment's process section under
     the first line of `templates/records/process.md`, and a design's `to`
-    holds `check:` lines that `.github/scripts/rules.py` reads (#1319).
+    holds `check:` lines that `skills/settle/scripts/rules.py` reads (#1319).
     """
     unverified = _checker("gaps", "lib", "gaps.py")
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
     body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
     settle = _checker("settle", "skills", "settle", "scripts", "settle.py")
-    checks = _checker("rules", ".github", "scripts", "rules.py")
+    checks = _checker("rules", "skills", "settle", "scripts", "rules.py")
     process = read("templates", "records", "process.md").splitlines()[0]
     chain = _chain()
     fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}
@@ -1026,7 +1007,7 @@ def test_the_exclusion_list_points_at_the_block_grammar():
     which `chain_check.py` and the stamp read them through, so the list names
     the module. Whether a key of it is copied beside the citation is the
     proofer's to read."""
-    said = _governs_nothing()
+    said = flattened(section(read(*TEMPLATE), GOVERNS_NOTHING))
     # The citation of the module that spells the keys, which a person
     # translating the records resolves to the keys that stay English.
     assert BLOCK_GRAMMAR in said, (
@@ -1051,7 +1032,7 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     # BARE substring is satisfied by a longer entry that contains it —
     # `fixed` was held by `agreed, fixed` alone, and deleting the standalone
     # entry left this case green (round 2).
-    assert f"`{literal}`" in _governs_nothing(), (
+    assert f"`{literal}`" in flattened(section(read(*TEMPLATE), GOVERNS_NOTHING)), (
         f"a checker matches `{literal}` literally and the exclusion list does "
         "not hold it as an item of its own, so a repository translating its "
         "records breaks that checker with nothing to warn it"
@@ -1071,7 +1052,7 @@ ROW_READERS = [
     # record-language section was in two of them in near-identical words and
     # in the third not at all, and it is contract rule 11 now. That
     # neither definition kept a copy is held by
-    # `tests/text/test_a_moved_rule_leaves_its_definition.py`, so removing a row
+    # `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, so removing a row
     # from this list is a move rather than a deletion.
     ("skills", "agent-contract", "SKILL.md"),
 ]

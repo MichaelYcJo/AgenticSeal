@@ -17,7 +17,7 @@ import os
 import subprocess
 import sys
 
-from conftest import ROOT, flat, flattened, load_module, read
+from conftest import ROOT, flat, flattened, load_module, read, section
 
 # No TARGET: its cases hold the stamp across docs/checks/the-stamp.md, two skills, agents/sealer.md and both READMEs, and hold seal_stamp.py's and broad_gate.py's --help to one fact.
 
@@ -41,11 +41,10 @@ def seal_stamp(*args):
     )
 
 
-def stamp_section():
-    """`docs/checks/the-stamp.md` *The stamp*, flattened: the stamp's rules
-    stand in a document of their own since #1312."""
-    text = flat("docs", "checks", "the-stamp.md")
-    return text.split("## The stamp ", 1)[1]
+# `docs/checks/the-stamp.md` *The stamp*, read flattened: the stamp's rules
+# stand in a document of their own since #1312.
+STAMP_DOC = ("docs", "checks", "the-stamp.md")
+STAMP_HEADING = "## The stamp"
 
 
 # --- S16: the rules are where they are read ----------------------------------
@@ -58,12 +57,12 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
     lines the broad run opens with, which the orchestrator relays, and the
     command that stays the person's to type. When the stamp is drawn, that
     the orchestrator draws none, and what it does with the sealer's line are
-    the proofer's to read."""
-    text = flat("skills", "code-review", "orchestration.md")
+    the proofer's to read. Since #1579 that section stands in the file the
+    orchestrator opens once the last round has no finding open."""
+    text = flat("skills", "code-review", "gate-to-pull-request.md")
     section = text.split(
-        "## Orchestrator: the pull request opens once the sealer seals", 1
+        "## Orchestrator: from the preflight to the open pull request", 1
     )[1]
-    section = section.split("## Orchestrator: verify before posting", 1)[0]
     for fact in (
         # The command the sealer queues the stamp with, whose line the
         # orchestrator meets in the sealer's hand-back.
@@ -106,15 +105,15 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     the proofer's to read (1792363231 S7 and S8, #1027 and #1376); the
     command's closing ` || exit 0` is pinned. #1492: the measurement of
     2026-11-06 is cited from its `docs/experiments/` record."""
-    text = stamp_section()
+    text = flattened(section(read(*STAMP_DOC), STAMP_HEADING))
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
     # The command that queues the stamp, and the one that draws it, which a
     # person resolves to see what wrote the values file and what read it.
     assert "`seal stamp --guarantee <path>`" in rule
     assert "`seal stamp --stop`" in rule
-    # The marker `.github/scripts/rules.py#markers` reads on the rule's check
-    # line, whose carriers the loop below reads back from that reader.
+    # The marker `skills/settle/scripts/rules.py#markers` reads on the rule's
+    # check line, whose carriers the loop below reads back from that reader.
     assert "check: stamp-drawn-once" in rule
     from conftest import rule_carriers
 
@@ -155,7 +154,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     floor, and `sealed_before`, which skips a recorded refusal as the chain
     does; and its `check:` line names the marker the cases that hold each
     carry. Its sentences are the proofer's to read."""
-    text = stamp_section()
+    text = flattened(section(read(*STAMP_DOC), STAMP_HEADING))
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "
         "leaves a refusal record",
@@ -174,8 +173,8 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         "`sealed_before`",
     ):
         assert fact in rule, fact
-    # The marker `.github/scripts/rules.py#markers` reads on the rule's check
-    # line, whose carriers the loop below reads back from that reader.
+    # The marker `skills/settle/scripts/rules.py#markers` reads on the rule's
+    # check line, whose carriers the loop below reads back from that reader.
     assert "check: refused-sealed-leaves-a-record" in rule
     from conftest import rule_carriers
 

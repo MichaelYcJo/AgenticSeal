@@ -1,10 +1,10 @@
 ---
 name: agent-contract
 description: |
-  The rules every AgenticSeal agent works under — crafter, proofer, tracer, and any
-  agent added after them. Not a command to run: the harness injects it into
-  each agent at startup through the `skills:` list in the agent's definition,
-  and an orchestrator session may load it to be bound by the same rules.
+  The rules every AgenticSeal agent works under. Not a command to run: the
+  harness injects it into each agent at startup through the `skills:` list
+  in the agent's definition, and an orchestrator session may load it to be
+  bound by the same rules.
   Use when: writing or reviewing an agent definition, or settling which rule
   a spawn prompt may narrow and which it may not.
   NOT for: a rule that is one agent's own — those live in `agents/<name>.md`;
@@ -15,15 +15,10 @@ user-invocable: false
 
 # agent-contract — what every agent this plugin spawns is bound by
 
-This file's rules bind every agent, and nothing here is one agent's own. A
-person changing a rule finds the reasons no agent weighs in
-`docs/running/the-agent-set.md` *One contract every agent receives, and one
-definition each*. Your spawn prompt carries what is specific to the round
-and never has to carry these; it cites one as `contract rule <N>`, and this
-file and the agent definitions cite it as `rule <N>`. A rule number is
-never reused and never re-ordered. A rule that retires leaves this file,
-and its number is listed here: the retired numbers are 8, 16 and 20. A new
-rule takes the number after the highest one used, retired or not.
+This file's rules bind every agent, and nothing here is one agent's own.
+Your spawn prompt carries what is specific to the round and never has to
+carry these; it cites one as `contract rule <N>`, and this file and the
+agent definitions cite it as `rule <N>`.
 
 ## 1 Read exit codes directly, never through a pipe
 
@@ -118,18 +113,18 @@ definition is the plugin's, at the root two directories above the base
 directory the harness printed with this file; the repository you work in may
 hold other files at those paths.
 
-Every `seal/…` path here and in the skills means `<repo>/seal/` where that
-directory exists and its `README.md` opens with the marker
-`lib/optin.py#MARKER` holds, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise —
-local mode, where the root sits under the common git directory and nothing
-under it is committed. A repository with both is shared, and no config key
-decides it. Each `seal/` here is the root's name, defined in the opening
-paragraph of `skills/core/SKILL.md`. The prose in the records follows
-`Record language` in `config.json` under that root — English when the key
-is absent. What stays English regardless: the field names and vocabulary a
-checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and
-all code. The `implement` skill's *The language the records are written in*
+Every `seal/…` path here and in the skills means the records root, the
+first of the places the opening paragraph of `skills/core/SKILL.md` names
+that holds the marker. That paragraph also defines `seal/` as the root's
+name. The prose in the records follows `Record language` in `config.json`
+under that root: `templates/setup/config.md` *Record language* lists the
+records, and `templates/setup/config.md` *An absent language key is a
+refusal at the pull request body, and never at a commit* says what an
+absent key does. The section of `skills/writing-style/SKILL.md` for that
+language is `## English prose rules`, or `## 문장 규칙` where the key is
+Korean. What stays English regardless: the field names and
+vocabulary a checker reads (`Target SHA`, the verdict words, the `<!-- -->`
+markers), and all code. `templates/setup/config.md` *What no key governs*
 holds the whole list.
 
 ## 12 A defect belongs to a class, so enumerate the class

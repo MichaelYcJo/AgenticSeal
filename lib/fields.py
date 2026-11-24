@@ -69,9 +69,6 @@ except ImportError as missing:
 INFO = "seal"
 FENCE = "`" * 3
 OPENER = FENCE + INFO
-# A fence run, once a line's container markers are taken off.
-FENCE_RUN = re.compile(r"`{3,}|~{3,}")
-COMMENT_OPENER = "<" + "!--"
 
 ONE, AT_MOST_ONE = "one", "at most one"
 
@@ -185,14 +182,11 @@ CLOSE_BLOCK = Kind(
         ),
     },
 )
-# `none` reads for a record written from an earlier release's template,
-# which offered it. The template offers no `none`: a claim that matched with
-# no earlier finding to name is prose.
 CONFIRMATION_BLOCK = Kind(
     "confirmation",
     {
         CONFIRMS: Spec(
-            r"none|round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)",
+            r"round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)",
             ONE,
             "it is `round-<N>#<n>`, the earlier finding it confirms",
         ),
@@ -359,11 +353,11 @@ def read(text, kinds):
     for index, line in enumerate(lines):
         if index in inside or index in walked.unclosed:
             continue
-        if line.lstrip().startswith(COMMENT_OPENER):
+        if line.lstrip().startswith(blocks.OPENER):
             refusals.append((index + 1, COMMENT_LINE))
         elif walked.uncertain[index]:
             rest = line[len(blocks.CONTAINER.match(line).group(0)) :]
-            if FENCE_RUN.match(rest):
+            if blocks.FENCE_RUN.match(rest):
                 refusals.append((index + 1, UNSURE))
     return Read(found, sorted(refusals), notices)
 

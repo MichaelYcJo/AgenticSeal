@@ -14,10 +14,17 @@ read it are its S11.
 import os
 
 import pytest
-from conftest import ROOT
+from conftest import ROOT, load_module
 from conftest import flattened as flat
 
 # No TARGET: its cases hold the settle across its skill, both editions of the README and of the seal README, the framer's definition and the release checklist.
+
+# The chain check, whose `TRAILER` and `NO_WORK_ITEM` spell the trailer a
+# settle's commits carry.
+chain = load_module(
+    os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
+    "agentic_chain_check_for_the_settle",
+)
 
 
 def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
@@ -62,9 +69,10 @@ def test_the_skill_names_how_a_settle_commits():
     its commits carry. Why a settle is no work item is the proofer's to
     read."""
     text = flat(skill())
-    # The commit trailer `skills/code-review/scripts/chain_check.py`
-    # matches, which the settling session writes.
-    assert "`Seal-Routing: no work item`" in text, (
+    # The commit trailer `skills/code-review/scripts/chain_check.py#TRAILER`
+    # matches with its value `#NO_WORK_ITEM`, which the settling session
+    # writes.
+    assert f"`{chain.TRAILER}: {chain.NO_WORK_ITEM}`" in text, (
         "the skill does not say how a settle commits"
     )
 

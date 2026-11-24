@@ -41,7 +41,7 @@ directory still wins in the moment, and nothing in the tree reads a prompt.
 
 import os
 
-from conftest import ROOT, read
+from conftest import ROOT, flattened, read, section
 
 # No TARGET: its cases hold the scratch directory's name across the four agent definitions, the agent contract and the skills that name it.
 
@@ -50,7 +50,9 @@ SEALER = os.path.join(ROOT, "agents", "sealer.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")
 CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
-REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
+# The orchestrator's steps from the preflight to the open pull request, cut
+# from `skills/code-review/orchestration.md` in #1579.
+GATE_TO_PR = os.path.join(ROOT, "skills", "code-review", "gate-to-pull-request.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 IMPLEMENT_ORCH = os.path.join(ROOT, "skills", "implement", "orchestration.md")
 
@@ -61,16 +63,10 @@ PHASE_HOME = "<scratchpad>/<work-item-id>/phase-<n>/"
 FIX_HOME = "<scratchpad>/<work-item-id>/fix-<n>/"
 LEAF_HOME = "<scratchpad>/<work-item-id>/<leaf>/"
 WORK_ITEM_HOME = "<scratchpad>/<work-item-id>/"
-
-
-def section(path, heading):
-    """`## <heading>` to the next `## `, as one line so a pinned phrase
-    survives re-wrapping."""
-    text = read(path)
-    start = text.index(f"## {heading}")
-    end = text.find("\n## ", start + 1)
-    body = text[start : end if end != -1 else len(text)]
-    return " ".join(body.split())
+# The heading of contract rule 17, the rule that names the scratch directory.
+RULE_17 = (
+    "## 17 Name your scratch for the work item, keep it, stop only what you started"
+)
 
 
 def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
@@ -81,7 +77,7 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     the round makes outside the clone sits beside the clone. Why the name
     carries the work item is contract rule 17's, which the definition
     cites."""
-    where = section(PROOFER, "Rules")
+    where = flattened(section(read(PROOFER), "## Rules"))
     # The path the proofer clones the target into.
     assert CLONE in where, (
         "`agents/proofer.md` *Rules* does not name the clone directory "
@@ -103,7 +99,7 @@ def test_the_framers_probe_is_named_for_the_work_item():
     a proofer alive at once in one session cannot pick the same name. Why
     the name carries the work item is contract rule 17's, which the
     definition cites."""
-    where = section(FRAMER, "Rules")
+    where = flattened(section(read(FRAMER), "## Rules"))
     # The path the framer writes its probe's script, captures and clone
     # under.
     assert FRAME_HOME in where, (
@@ -120,7 +116,7 @@ def test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase():
     the phase, and a fix pass's under one named for the round it fixes, so
     two crafters alive at once cannot pick one name. Why the name carries
     the work item is contract rule 17's, which the definition cites."""
-    where = section(CRAFTER, "Rules")
+    where = flattened(section(read(CRAFTER), "## Rules"))
     # The path the crafter writes a phase's scratch under.
     assert PHASE_HOME in where, (
         "`agents/crafter.md` *Rules* does not name a phase's directory as "
@@ -140,7 +136,7 @@ def test_rule_17_names_the_scratch_directory_for_the_work_item():
     left its directory standing. No agent removes a scratch directory, so a
     second sealer or proofer of one work item that cloned into the standing
     directory would fail, and the rule gives it the next free leaf."""
-    where = section(CONTRACT, "17 ")
+    where = flattened(section(read(CONTRACT), RULE_17))
     # The path an agent puts the leaf its definition names in.
     assert LEAF_HOME in where, (
         "contract rule 17 does not name the scratch directory as "
@@ -160,7 +156,9 @@ def test_the_orchestrators_one_removal_names_the_work_items_directory():
     pushes to the open pull request. A removal that named the scratchpad
     took every agent's files with it in the 0.37.0 run, so the sentence
     names the work item's directory, written out."""
-    where = section(IMPLEMENT_ORCH, "Orchestrator: the order inside a ticket")
+    where = flattened(
+        section(read(IMPLEMENT_ORCH), "## Orchestrator: the order inside a ticket")
+    )
     # The path the orchestrator's removal names.
     assert f"`{WORK_ITEM_HOME}`" in where, (
         "the orchestrator's removal does not name the work item's directory "
@@ -179,8 +177,11 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     the 0.15.0 runs were not misread. Two work items run in parallel by one
     session would otherwise write one log over each other. The sealer keeps
     its own scratch: the clone a `seen red` is re-run in."""
-    command = section(
-        REVIEW_ORCH, "Orchestrator: the pull request opens once the sealer seals"
+    command = flattened(
+        section(
+            read(GATE_TO_PR),
+            "## Orchestrator: from the preflight to the open pull request",
+        )
     )
     # The path the orchestrator redirects the gate's output to.
     assert "<scratchpad>/<work-item-id>/gate.log" in command, (
@@ -194,7 +195,7 @@ def test_the_gates_capture_file_carries_the_work_item_id():
         "`outputs kept under` line, which is the one name per run the gate "
         "itself makes"
     )
-    sealer = section(SEALER, "Rules")
+    sealer = flattened(section(read(SEALER), "## Rules"))
     # The path the sealer re-runs a `seen red` in.
     assert "<scratchpad>/<work-item-id>/at-base/" in sealer, (
         "the clone a `seen red` is re-run in is not named for the work item"

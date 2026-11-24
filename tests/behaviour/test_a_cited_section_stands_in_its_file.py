@@ -32,9 +32,10 @@ extension. Each file is read through `flowing`, so a citation wrapped across
 The readers of a section and of a name also read a second corpus,
 `corpus(root, archive=True)`, whose paths are those of the archive git
 builds from the tree, because `dist`, the branch the plugin directory
-reads, is the archive of each release's tag (#1374). `archived` lists them
-with two commands: `git write-tree` under a copy of the index, then `git
-archive --worktree-attributes` of that tree. So a file staged and not
+reads, is the archive of each release's tag (#1374).
+`tests/conftest.py#archived` lists them with two commands: `git
+write-tree` under a copy of the index, then `git archive
+--worktree-attributes` of that tree. So a file staged and not
 committed, or a `.gitattributes` line not committed, is read as CI reads it
 once committed. Its texts come from disk, as the tree reading's do. A
 citation in a file the archive holds dangles where the archive lacks its
@@ -47,8 +48,7 @@ cites, say `/templates/`, leaves the citation unread and this module green,
 and review of the `.gitattributes` line is what reads it. An index with
 unmerged entries stops `git write-tree`, and the archive reading with it.
 The same reading of this repository holds that the archive carries no file
-under `.github/workflows/`, which the publish workflow's token may not push
-to `dist`.
+under `.github/` and that no file it carries loads a script from there.
 
 A name token preceded by a word character, `.`, `/`, `:` or `-` is not
 read, so a `<commit>:<path>#<name>` is left unread and no commit is opened.
@@ -68,30 +68,27 @@ file holds no dangling contract citation of its own.
 import ast
 import collections
 import functools
-import io
 import os
 import pathlib
 import re
-import shutil
 import subprocess
-import tarfile
-import tempfile
 import warnings
 
 import pytest
 from censuses import RECORDS
 from conftest import (
     ROOT,
+    archived,
     build_tracked_tree,
     config_json,
     load_lib_module,
     load_module,
     on_disk,
     op,
+    read,
     spec,
 )
 from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
-from test_the_agent_contract_holds_the_universal_rules import read as read_at_root
 
 # No TARGET: its cases read every tracked file's citations and the archive git builds of the tree.
 
@@ -234,37 +231,6 @@ def excuser(rel, line, cited, text, pending):
             if holds(o.old, cited) and not holds(o.new, cited):
                 return item
     return rules.removed_by(pending, rel, text, line)
-
-
-def archived(root):
-    """Every path the archive git builds from the index of the repository at
-    ROOT writes, with the working tree's attributes, a directory's among
-    them. The index's tree is written from a copy of the index, so a git
-    process holding the index's lock, a case running beside this one among
-    them, is left to finish."""
-    index = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--git-path", "index"],
-        capture_output=True,
-        check=True,
-        encoding="utf-8",
-    ).stdout.strip()
-    with tempfile.TemporaryDirectory() as scratch:
-        copy = os.path.join(scratch, "index")
-        shutil.copyfile(os.path.join(root, index), copy)
-        tree = subprocess.run(
-            ["git", "-C", root, "write-tree"],
-            capture_output=True,
-            check=True,
-            encoding="utf-8",
-            env={**os.environ, "GIT_INDEX_FILE": copy},
-        ).stdout.strip()
-    tar = subprocess.run(
-        ["git", "-C", root, "archive", "--worktree-attributes", "--format=tar", tree],
-        capture_output=True,
-        check=True,
-    ).stdout
-    with tarfile.open(fileobj=io.BytesIO(tar)) as members:
-        return members.getnames()
 
 
 def corpus(root, archive=False):
@@ -904,58 +870,66 @@ def test_the_archive_is_read_while_another_process_holds_the_index(tmp_path):
     assert lock.exists()
 
 
-def test_this_repository_s_archive_holds_no_workflow_file():
-    """A7: GitHub refuses a push made with a workflow's own token that
-    creates or changes a file under `.github/workflows/`, and that token
-    cannot be granted the `workflows` permission. So `dist`, whose commits
-    the publish workflow pushes with it, holds none, and this repository's
-    archive is read for one (#1374, round 1's finding 1)."""
+# A path under `.github/scripts/`, in either separator.
+GITHUB_SCRIPT = re.compile(r"\.github[/\\]+scripts[/\\]")
+
+
+def code_strings(text):
+    """Every `str` constant of the Python source TEXT that is no docstring,
+    a piece of an f-string among them."""
+    tree = ast.parse(text)
+    docstrings = {
+        id(node.body[0].value)
+        for node in ast.walk(tree)
+        if isinstance(
+            node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        )
+        and node.body
+        and isinstance(node.body[0], ast.Expr)
+        and isinstance(node.body[0].value, ast.Constant)
+        and isinstance(node.body[0].value.value, str)
+    }
+    return [
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and id(node) not in docstrings
+    ]
+
+
+def test_this_repository_s_archive_holds_nothing_under_github_and_loads_nothing_there():
+    """A7: the archive holds no path under `.github/`, and no code string of
+    a `.py` file the archive holds names a path under `.github/scripts/`
+    (#1571). `.github/` holds this repository's workflows and the release
+    automation they run. GitHub refuses a push made with a workflow's own
+    token that creates or changes a file under `.github/workflows/`, and
+    that token cannot be granted the `workflows` permission, so `dist`,
+    whose commits the publish workflow pushes with it, can hold no workflow
+    (#1374, round 1's finding 1). An installed copy is `main`'s whole tree,
+    `.github/` among it, so a shipped file that loads a release script still
+    runs for a user while the version check watches nothing under
+    `.github/`. A load, a tool's path and a message naming one all stand in
+    a code string, and a docstring or a comment runs nothing."""
     held = archived(ROOT)
     assert ".claude-plugin/plugin.json" in held, sorted(held)[:20]
-    workflows = sorted(p for p in held if p.startswith(".github/workflows/"))
-    assert not workflows, (
-        f"the archive holds {workflows}, which the `dist` job's push may not "
-        "carry; `.gitattributes` marks `/.github/workflows/` `export-ignore` "
-        "so that it does not"
+    github = sorted(p for p in held if p == ".github" or p.startswith(".github/"))
+    assert not github, (
+        f"the archive holds {github}; `.gitattributes` marks `/.github/` "
+        "`export-ignore` so that `dist` holds nothing under it"
     )
-
-
-# Each script under `.github/scripts/` that `dist` keeps, with the shipped
-# file that runs it. Every other script there is release automation the
-# workflows run from the tree (#1376).
-RUN_BY_A_SHIPPED_COMMAND = {
-    ".github/scripts/close_issues_on_release.py": "skills/code-review/scripts/pr_body.py",
-    ".github/scripts/rules.py": "skills/implement/scripts/seal.py",
-    ".github/scripts/run_tests.py": "bin/test",
-}
-
-
-def test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs():
-    """A8: of `.github/scripts/`, the archive holds the three scripts a
-    shipped command runs, each beside the file that runs it, and no other,
-    because `.gitattributes` marks each release-only script `export-ignore`.
-    The paragraph of `docs/releasing/branch-and-release.md` on `dist` names
-    the three and what runs each (#1376)."""
-    held = archived(ROOT)
-    scripts = sorted(
-        p for p in held if p.startswith(".github/scripts/") and p.endswith(".py")
+    present, _missing = on_disk(ROOT, [p for p in held if p.endswith(".py")])
+    named = sorted(
+        (rel, said)
+        for rel in present
+        for said in code_strings(text_of(os.path.join(ROOT, rel)) or "")
+        if GITHUB_SCRIPT.search(said)
     )
-    assert scripts == sorted(RUN_BY_A_SHIPPED_COMMAND), (
-        f"the archive holds {scripts} of `.github/scripts/`; a script no shipped "
-        "command runs gets its own `export-ignore` line in `.gitattributes`"
+    assert not named, (
+        f"these files the archive holds name a script under `.github/scripts/` "
+        f"in code: {named}. A module a shipped file loads stands under a "
+        "directory `dist` holds, such as `lib/` or a skill's `scripts/`"
     )
-    for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
-        assert runner in held, f"{runner}, which runs {script}, is not shipped"
-    doc = read_at_root(os.path.join("docs", "releasing", "branch-and-release.md"))
-    lead = "**The plugin directory reads `dist`"
-    assert lead in doc, "the paragraph's lead is gone"
-    paragraph = re.sub(r"\s+", " ", doc.split(lead, 1)[1].split("\n\n", 1)[0])
-    for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
-        # The path of each script `dist` keeps and of the shipped file that
-        # runs it, which a reader of the `dist` paragraph resolves.
-        assert f"`{script}`" in paragraph and f"`{runner}`" in paragraph, (
-            f"the paragraph does not name `{script}` and `{runner}`, which runs it"
-        )
 
 
 # The file types the plugin directory accepts from an organization that is
@@ -1000,7 +974,7 @@ def test_a_record_is_not_read(tmp_path, record):
     """S8: a file under a prefix of `tests/censuses.py#RECORDS` keeps what it
     said when it was written, so its citations are not read, a contract
     rule's and a name's among them (#1127 S4)."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     cited = f"contract rule {max(numbers) + 1}\n"
     rel = record if record.endswith(".md") else record + "x.md"
     root = repo(
@@ -1246,7 +1220,7 @@ def test_every_cited_section_exists():
     has. A rule that moves or retires leaves its number behind, and a
     citation left at an old number points a reader at a different rule or at
     none."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     _, files = corpus(ROOT)
     assert len(files) > 100, "the corpus held almost nothing to read"
     assert sum(len(cited_sections(r, t)) for r, t in files) > 50, (
@@ -1270,7 +1244,7 @@ def test_every_cited_section_exists():
 def test_a_citation_above_the_last_section_is_caught(rel, line):
     """T3 can fail: in every tree and every spelling, a number one above the
     last heading is named, at the line the citation starts on."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     text = line.format(n=max(numbers) + 1)
     assert contract_dangling([(rel, text)], numbers) == [
         (f"{rel}:1", f"rule {max(numbers) + 1}")
@@ -1278,7 +1252,7 @@ def test_a_citation_above_the_last_section_is_caught(rel, line):
 
 
 def test_a_wrapped_citation_is_named_at_the_line_it_starts_on():
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     text = f"intro\nas the contract\nrule {max(numbers) + 1} says"
     assert contract_dangling([("skills/x/SKILL.md", text)], numbers) == [
         ("skills/x/SKILL.md:2", f"rule {max(numbers) + 1}")
@@ -1289,7 +1263,7 @@ def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
     """Outside the contract and `agents/`, `rule <N>` can be any list's rule,
     such as the behaviour suite's pass rules, so only `contract rule <N>`
     is read there."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     text = f"pass rule {max(numbers) + 1} holds"
     assert contract_dangling([("hooks/x.py", text)], numbers) == []
 
@@ -1307,7 +1281,7 @@ OUTSIDE_THE_SIX_TREES = (
 def test_a_file_outside_the_six_trees_is_read(tmp_path):
     """#1127 S3: every tracked text file outside the records is read,
     whatever its tree or extension."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     n = max(numbers) + 1
     root = repo(
         tmp_path, {rel: f"as contract rule {n} says\n" for rel in OUTSIDE_THE_SIX_TREES}
@@ -1331,7 +1305,7 @@ def test_a_citation_wrapped_in_code_is_named_at_the_line_it_starts_on(tmp_path, 
     """#1127 S5 and S6: comment markers are dropped and adjacent literals
     joined before the citation is read, and the line it starts on is
     named."""
-    numbers = set(spans(read_at_root()))
+    numbers = set(spans(read(CONTRACT)))
     n = max(numbers) + 1
     root = repo(tmp_path, {rel: WRAPPED_IN_CODE[rel].format(n=n)})
     assert contract_dangling(corpus(root)[1], numbers) == [(f"{rel}:1", f"rule {n}")]
@@ -1339,8 +1313,8 @@ def test_a_citation_wrapped_in_code_is_named_at_the_line_it_starts_on(tmp_path, 
 
 def near_citations(rel, text):
     """[line] where a near miss of `contract rule <N>` starts in file REL,
-    read through `flowing`: such a spelling is neither read as a citation
-    nor let pass."""
+    read through `flowing`: such a spelling is not read as a citation, and
+    `warn_near_misses` names it."""
     flow = flowing(rel, text)
     return [
         flow.count("\n", 0, m.start()) + 1
@@ -1349,30 +1323,60 @@ def near_citations(rel, text):
     ]
 
 
-def test_no_file_cites_the_contract_in_a_near_miss():
-    found = [
-        f"{rel}:{n}" for rel, text in corpus(ROOT)[1] for n in near_citations(rel, text)
+def warn_near_misses(files):
+    """Warn once for each near miss in FILES, a list of `(rel, text)`, at
+    its `path:line` with the one spelling to write. The pattern reads words,
+    so whether the spelling meant a contract citation is the reader's
+    judgment, and a near miss decides nothing (#1572)."""
+    for rel, text in files:
+        for n in near_citations(rel, text):
+            warnings.warn(
+                f"{rel}:{n} reads as a contract citation in a spelling the "
+                "citation check does not read; cite one contract rule as "
+                "`contract rule <N>`, one number each",
+                stacklevel=2,
+            )
+
+
+def test_every_near_miss_in_the_tree_is_reported():
+    warn_near_misses(corpus(ROOT)[1])
+
+
+def test_each_near_miss_is_named_in_a_warning_and_decides_nothing():
+    """#1572 S8: a file citing the contract with a capital `Rule` is named
+    in a warning, at its line with the one spelling to write, and nothing
+    fails. A second near miss in the file gets a warning of its own. The
+    shapes are built here so this file holds none."""
+    n = 7
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        warn_near_misses(
+            [("docs/x.md", f"intro\nContract Rule {n}\nthe contract's rule {n}")]
+        )
+    # The warning a person reads in the suite's summary: where the near miss
+    # starts and the one spelling the citation reader reads.
+    assert [str(w.message) for w in caught] == [
+        f"docs/x.md:{line} reads as a contract citation in a spelling the "
+        "citation check does not read; cite one contract rule as "
+        "`contract rule <N>`, one number each"
+        for line in (2, 3)
     ]
-    assert not found, (
-        "cite one contract rule as `contract rule <N>`, one number each: "
-        + ", ".join(found)
-    )
 
 
 @pytest.mark.parametrize(
     "shape",
     ["Contract Rule {n}", "contract rules {m} and {n}", "the contract's rule {n}"],
 )
-def test_a_near_miss_citation_is_refused_at_its_line(shape):
+def test_a_near_miss_citation_is_named_at_its_line(shape):
     """A capital `Rule`, a plural with a list, and a possessive each mean a
-    contract citation the reader does not read, so each is refused at the
+    contract citation the reader does not read, so each is named at the
     line it starts on; the shapes are built here so this file holds none."""
     assert near_citations("docs/x.md", "intro\n" + shape.format(m=7, n=21)) == [2]
 
 
-def test_a_near_miss_wrapped_across_comment_markers_is_refused_at_its_line():
+def test_a_near_miss_wrapped_across_comment_markers_is_named_at_its_line():
     """#1127 S7: a near miss wrapped across `#` comment lines is read as
-    one, and refused at the line it starts on."""
+    one, and named at the line it starts on."""
     assert near_citations("hooks/x.py", "# per the contract's\n# rule 7\n") == [1]
 
 

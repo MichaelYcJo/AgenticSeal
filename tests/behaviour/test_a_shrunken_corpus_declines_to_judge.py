@@ -127,6 +127,21 @@ OPENS_NOTHING = {
         "asserts what the listing says about a fixture repository, which is "
         "the fixture shape itself rather than a corpus"
     ),
+    "tests/skills/test_settle.py#test_refuses_a_git_that_did_not_answer_in_one_line": (
+        "its parametrize names the words of the git reads `settle` makes, "
+        "`ls-tree` and `ls-files` among them, so that each one times out; "
+        "the case lists no path and opens none"
+    ),
+    "tests/skills/test_chain_check.py#test_refuses_a_git_that_did_not_answer_in_one_line": (
+        "its parametrize names the words of the git reads `chain-check` "
+        "makes, `ls-tree` among them, so that each one times out; the case "
+        "lists no path and opens none"
+    ),
+    "tests/skills/test_test_layout.py#test_refuses_a_git_that_did_not_answer_in_one_line": (
+        "its parametrize names the words of the git reads `seal layout` "
+        "makes, `ls-files` among them, so that each one times out; the case "
+        "lists no path and opens none"
+    ),
 }
 
 # 6. It lists a repository the case built, so what is on disk there is what

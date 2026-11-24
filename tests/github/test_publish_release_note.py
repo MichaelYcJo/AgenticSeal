@@ -25,12 +25,13 @@ history at the tag (S1, S5, S6), and the note carries the release's theme,
 one sentence of its milestone's description (S2, S3, S4), under its header
 (#1153).
 
-**Nothing here reaches GitHub.** `gh` is replaced at the module's own `run`
-and `release_exists` by `Releases`, which records the calls as argument
-tuples, in order, so a case can assert about a write that did NOT happen as
-well as one that did. The milestone list is answered by `Milestones`, which
-stands in for `subprocess.run`. The cases that read the history drive a real
-`git` repository in `tmp_path`.
+**Nothing here reaches GitHub.** `Releases` stands in for `subprocess.run`
+under `lib/gitcmd.py`, so every git and `gh` command the script starts
+reaches it with the argv the runner built, and `release_exists` is replaced
+by it too. It records the calls as argument tuples, in order, so a case can
+assert about a write that did NOT happen as well as one that did. It hands
+the milestone list to `Milestones`. The cases that read the history drive a
+real `git` repository in `tmp_path`.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
@@ -56,6 +57,7 @@ from conftest import (
     mark_root,
     write,
 )
+from test_settle import unanswered
 
 TARGET = ".github/scripts/publish_release_note.py"
 
@@ -123,8 +125,11 @@ def milestone(description, version=VERSION):
 class Releases:
     """The releases a repository has, and every command the script ran.
 
-    `calls` holds the argument tuples as the script passed them, in order, so
-    a case can ask about absence — which is what A2 is entirely about.
+    It stands in for `subprocess.run` under `lib/gitcmd.py`. `calls` holds
+    each command but the milestone list as the program and the arguments
+    the script passed, without `lib/gitcmd.py#argv`'s `-c` pairs and
+    `-C <root>` or the path `shutil.which` found for `gh`, in order, so a
+    case can ask about absence — which is what A2 is entirely about.
     """
 
     def __init__(self, existing=()):
@@ -134,13 +139,20 @@ class Releases:
     def exists(self, repo, tag):
         return tag in self.existing
 
-    def run(self, *args):
+    def __call__(self, argv, **_):
+        held = list(argv)
+        if "-C" in held:
+            args = ("git", *held[held.index("-C") + 2 :])
+        else:
+            args = ("gh", *held[1:])
+            if args[:2] == ("gh", "api"):
+                return self.milestones(args)
         self.calls.append(args)
         if args[:3] == ("gh", "release", "create"):
             self.existing.add(args[3])
-            return ""
-        if args[0] == "git" and "log" in args:
-            return self.message
+            return Done(0)
+        if args[0] == "git" and "log" in args and "--format=%B" in args:
+            return Done(0, self.message)
         raise AssertionError(f"unexpected command: {args}")
 
     message = ""
@@ -171,12 +183,11 @@ def wire(
     tracker = Releases(existing)
     tracker.message = message
     monkeypatch.setattr(mod, "ROOT", str(tmp_path))
-    monkeypatch.setattr(mod, "run", tracker.run)
     monkeypatch.setattr(mod, "release_exists", tracker.exists)
     monkeypatch.setattr(mod, "previous_tag", lambda tag: PREVIOUS)
     monkeypatch.setattr(mod, "fragments", lambda revisions: list(entries))
     tracker.milestones = Milestones(None if milestones is None else list(milestones))
-    monkeypatch.setattr(mod.subprocess, "run", tracker.milestones)
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", tracker)
     monkeypatch.setenv("TAG", env.pop("TAG", TAG))
     monkeypatch.setenv("REPO", REPO)
     monkeypatch.delenv("DRY_RUN", raising=False)
@@ -375,7 +386,7 @@ class Folds(html.parser.HTMLParser):
 def folds_read(body):
     """The `details` elements of `body` as GitHub renders a release note:
     cmark-gfm, the renderer the suite pins
-    (`.github/scripts/run_tests.py#CMARKGFM`), with raw HTML kept."""
+    (`tests/requirements.txt`), with raw HTML kept."""
     reader = Folds()
     reader.feed(
         cmarkgfm.github_flavored_markdown_to_html(
@@ -903,7 +914,7 @@ class Test_module:
             seen.append(args)
             return Done(0, '[{"number": 1, "title": "t", "author": {"login": "x"}}]')
 
-        monkeypatch.setattr(mod.subprocess, "run", fake)
+        monkeypatch.setattr(mod.gitcmd.subprocess, "run", fake)
         assert mod.merged_pulls(REPO, VERSION)[0]["number"] == 1
         args = seen[0]
         assert args[args.index("--base") + 1] == f"release/v{VERSION}"
@@ -918,11 +929,71 @@ class Test_module:
         assert args[args.index("--repo") + 1] == REPO
 
         monkeypatch.setattr(
-            mod.subprocess, "run", lambda args, **_: Done(1, err="HTTP 502")
+            mod.gitcmd.subprocess, "run", lambda args, **_: Done(1, err="HTTP 502")
         )
         assert mod.merged_pulls(REPO, VERSION) is None
         out = capsys.readouterr().out
         assert "the note is the theme line and the fragments alone" in out, out
+        assert "gh pr list failed, so" in out and "alone: HTTP 502" in out, out
+
+    def test_a_create_gh_refuses_stops_the_run_in_the_runners_line(self, monkeypatch):
+        """A release GitHub did not create is a red job, said in
+        `lib/gitcmd.py#Exited`'s line, which names the command and what `gh`
+        said (#1573)."""
+        mod = publisher()
+        monkeypatch.setattr(
+            mod.gitcmd.subprocess,
+            "run",
+            lambda args, **_: Done(1, err="HTTP 422: Validation Failed\n"),
+        )
+        with pytest.raises(SystemExit) as stopped:
+            mod.create(REPO, TAG, "a title", "a body")
+        said = str(stopped.value.code)
+        assert said.startswith(f"`gh release create {TAG} --repo {REPO} "), said
+        assert said.endswith("exited 1: HTTP 422: Validation Failed"), said
+
+    def test_a_gh_that_gave_no_answer_is_read_as_each_read_reads_a_failure(
+        self, monkeypatch, capsys
+    ):
+        """#1573. A `gh` past `lib/gitcmd.py#TIMEOUT` leaves the theme out and
+        the summary out, each saying so in the runner's line, and stops the
+        run where it was asked whether the release exists, since a release
+        that cannot be looked up may be published twice."""
+        mod = publisher()
+        unanswered(monkeypatch, "--paginate")
+        assert mod.milestone_description(REPO, VERSION) == (
+            "",
+            "the milestones could not be listed: `gh api --paginate "
+            f"repos/{REPO}/milestones?state=all&per_page=100` did not finish "
+            "within 60 seconds",
+        )
+        unanswered(monkeypatch, "pr", "list")
+        assert mod.merged_pulls(REPO, VERSION) is None
+        out = capsys.readouterr().out
+        assert "gh pr list failed, so the note is the theme line and the " in out, out
+        assert "alone: `gh pr list --repo example/repo --base release/v1.2.3" in out
+        unanswered(monkeypatch, f"repos/{REPO}/releases/tags/{TAG}")
+        with pytest.raises(SystemExit) as stopped:
+            mod.release_exists(REPO, TAG)
+        assert stopped.value.code == (
+            f"`gh api -i repos/{REPO}/releases/tags/{TAG}` did not finish within "
+            "60 seconds"
+        )
+
+    def test_a_git_read_that_fails_stops_the_run_in_the_runners_line(
+        self, tmp_path, monkeypatch
+    ):
+        """#1573. The note's history reads stop the run where git refuses,
+        with `lib/gitcmd.py#Exited`'s line naming the command and git's
+        error."""
+        repo = git_repo(tmp_path / "repo")
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        with pytest.raises(SystemExit) as stopped:
+            mod.commit_message("v9.9.9")
+        assert str(stopped.value.code).startswith(
+            "`git log -1 --format=%B v9.9.9` exited 128: fatal: "
+        ), stopped.value.code
 
     def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
@@ -1290,6 +1361,67 @@ class Test_module:
         # Trailing whitespace after the symptoms is no part of the title.
         spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
         assert spaced == title, spaced
+
+
+def gh_api_answers(monkeypatch, mod, returncode, stdout, stderr):
+    """`gh api -i` replaced by one answer, so `release_exists` itself is what
+    runs. Returns the argv of each run."""
+    asked = []
+
+    def run(argv, **_):
+        asked.append(list(argv))
+        return Done(returncode, stdout, stderr)
+
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", run)
+    return asked
+
+
+# What `gh api -i` prints to stdout for a release, in the shape
+# `tests/lib/test_gitcmd.py#Test_http_answer` reads.
+RELEASE_MISSING = 'HTTP/2.0 404 Not Found\nContent-Type: x\n\n{"message":"Not Found"}'
+RELEASE_FORBIDDEN = 'HTTP/2.0 403 Forbidden\nContent-Type: x\n\n{"message":"x"}'
+RELEASE_PRESENT = 'HTTP/2.0 200 OK\nContent-Type: x\n\n{"tag_name":"v1.2.3"}'
+
+
+class Test_release_exists:
+    """`release_exists` decides on the HTTP status `gh api -i` printed, read
+    by `lib/gitcmd.py#http_answer`, and never on the words of gh's stderr.
+    Where two cases call `release_exists` alike, the world differs: the
+    answer `gh api -i` gives."""
+
+    @pytest.mark.parametrize(
+        "returncode, stdout, stderr, exists",
+        [
+            (1, RELEASE_MISSING, "gh: Not Found (HTTP 404)", False),
+            (0, RELEASE_PRESENT, "", True),
+        ],
+        ids=["a-404-is-no-release", "a-200-is-a-release"],
+    )
+    def test_accepts_a_404_as_no_release_and_a_2xx_as_one(
+        self, monkeypatch, returncode, stdout, stderr, exists
+    ):
+        mod = publisher()
+        asked = gh_api_answers(monkeypatch, mod, returncode, stdout, stderr)
+        assert mod.release_exists(REPO, TAG) is exists
+        assert asked[0][1:] == ["api", "-i", f"repos/{REPO}/releases/tags/{TAG}"]
+
+    @pytest.mark.parametrize(
+        "stdout, stderr",
+        [(RELEASE_FORBIDDEN, "gh: Not Found (HTTP 403)"), ("", "HTTP 502")],
+        ids=["a-403-whose-stderr-says-not-found", "no-http-answer"],
+    )
+    def test_refuses_any_other_status_and_no_status_by_exiting(
+        self, monkeypatch, stdout, stderr
+    ):
+        """A token without the scope to read releases, read as no release,
+        would publish a second one at the tag."""
+        mod = publisher()
+        gh_api_answers(monkeypatch, mod, 1, stdout, stderr)
+        with pytest.raises(SystemExit) as stopped:
+            mod.release_exists(REPO, TAG)
+        assert str(stopped.value.code) == (
+            f"gh api releases/tags/{TAG} failed: {stderr}"
+        )
 
 
 class Test_section:

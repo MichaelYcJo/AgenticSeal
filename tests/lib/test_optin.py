@@ -97,7 +97,7 @@ class Test_repo_root:
         def decoded_nothing(*args, **kwargs):
             return subprocess.CompletedProcess(args, 0, stdout=None, stderr=None)
 
-        monkeypatch.setattr(optin.subprocess, "run", decoded_nothing)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", decoded_nothing)
         assert optin.repo_root(str(ROOT)) == ""
         assert optin.opted_in(str(ROOT)) is False
 
@@ -114,7 +114,7 @@ class Test_repo_root:
         def answering(cmd, **kwargs):
             return subprocess.CompletedProcess(cmd, 0, stdout=answer + "\n", stderr="")
 
-        monkeypatch.setattr(optin.subprocess, "run", answering)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", answering)
         assert optin.repo_root(str(tmp_path)) == os.path.normpath(answer)
 
     def test_refuses_a_path_that_is_no_directory_whatever_git_answers(
@@ -131,8 +131,53 @@ class Test_repo_root:
                 cmd, 0, stdout=str(tmp_path) + "\n", stderr=""
             )
 
-        monkeypatch.setattr(optin.subprocess, "run", answering)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", answering)
         assert optin.repo_root(str(afile)) == ""
+
+    def test_refuses_a_git_that_did_not_answer_and_answers_empty(
+        self, repo, monkeypatch, optin
+    ):
+        """#1573. A git past `lib/gitcmd.py#TIMEOUT` is no answer, and
+        `repo_root` reads it as no repository: not opted in, never an
+        exception."""
+        home(repo)
+        assert optin.opted_in(str(repo)) is True
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", timed_out)
+        assert optin.repo_root(str(repo)) == ""
+        assert optin.opted_in(str(repo)) is False
+
+
+def timed_out(command, **kwargs):
+    """A `subprocess.run` whose every command passes the runner's bound."""
+    raise subprocess.TimeoutExpired(command, kwargs.get("timeout"))
+
+
+class Test_toplevel:
+    def test_accepts_the_repositorys_top_from_a_directory_inside_it(self, optin, repo):
+        inside = repo / "a" / "b"
+        inside.mkdir(parents=True)
+        assert os.path.samefile(optin.toplevel(str(inside)), repo)
+        assert optin.toplevel(str(inside)) == os.path.normpath(
+            optin.toplevel(str(inside))
+        )
+
+    def test_refuses_a_git_that_did_not_answer_as_no_repository(
+        self, optin, repo, tmp_path, monkeypatch
+    ):
+        """A directory outside any repository is `""`, as `repo_root`
+        answers, and a git past the bound raises `Unrun` naming the command
+        and the bound, so a caller can tell the two apart (#1573)."""
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path))
+        assert optin.toplevel(str(outside)) == ""
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", timed_out)
+        with pytest.raises(optin.gitcmd.Unrun) as raised:
+            optin.toplevel(str(repo))
+        assert str(raised.value) == (
+            "`git rev-parse --show-toplevel` did not finish within "
+            f"{optin.gitcmd.TIMEOUT} seconds"
+        )
 
 
 class Test_git_common_dir:
@@ -140,7 +185,7 @@ class Test_git_common_dir:
         """A `.git` directory at the toplevel is the git directory, so the common
         case costs no process, which every gated command would pay."""
         monkeypatch.setattr(
-            optin.subprocess,
+            optin.gitcmd.subprocess,
             "run",
             lambda *a, **k: (_ for _ in ()).throw(AssertionError("git was asked")),
         )
@@ -180,7 +225,7 @@ class Test_git_common_dir:
                 )
             return real(args, **kwargs)
 
-        monkeypatch.setattr(optin.subprocess, "run", answering)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", answering)
         got = optin.git_common_dir(str(other))
         assert got == os.path.normpath(got), "the answer was not normalised"
         assert os.path.samefile(got, repo / ".git")
@@ -202,11 +247,23 @@ class Test_git_common_dir:
         def decoded_nothing(*args, **kwargs):
             return subprocess.CompletedProcess(args, 0, stdout=None, stderr=None)
 
-        monkeypatch.setattr(optin.subprocess, "run", decoded_nothing)
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", decoded_nothing)
         assert optin.git_common_dir(str(linked)) == ""
         assert optin.home_at(str(linked)) == ""
         assert optin.home(str(linked)) == ""
         assert optin.opted_in(str(linked)) is False
+
+    def test_refuses_a_git_that_did_not_answer_and_answers_empty(
+        self, optin, repo, tmp_path, monkeypatch
+    ):
+        """#1573. A linked worktree asks git, and a git past the bound reads
+        as no common directory, so no local root, and never raises."""
+        local_home(repo)
+        other = linked_worktree(repo, tmp_path)
+        assert optin.home_at(str(other)) != ""
+        monkeypatch.setattr(optin.gitcmd.subprocess, "run", timed_out)
+        assert optin.git_common_dir(str(other)) == ""
+        assert optin.home_at(str(other)) == ""
 
 
 class Test_home_paths:
@@ -241,13 +298,13 @@ class Test_home_paths:
         def refuse(*a, **k):
             raise AssertionError("home_paths asked git a second time")
 
-        optin.subprocess.run, saved = refuse, optin.subprocess.run
+        optin.gitcmd.subprocess.run, saved = refuse, optin.gitcmd.subprocess.run
         try:
             assert optin.home_paths(str(repo), common)[1] == os.path.join(
                 common, "seal"
             )
         finally:
-            optin.subprocess.run = saved
+            optin.gitcmd.subprocess.run = saved
 
     def test_accepts_a_passed_common_directory_in_this_platforms_spelling(
         self, optin, tmp_path
@@ -373,6 +430,43 @@ class Test_marked:
         readme_at(tmp_path, optin.MARKER + "\n")
         monkeypatch.chdir(tmp_path)
         assert not optin.marked("")
+
+
+class Test_opted_out:
+    def test_accepts_the_file_under_the_common_directory(self, optin, tmp_path):
+        """The opt-out is a FILE named `SCRATCH` under the common git
+        directory; a directory of that name is none."""
+        (tmp_path / optin.SCRATCH).mkdir()
+        assert not optin.opted_out(str(tmp_path))
+        (tmp_path / optin.SCRATCH).rmdir()
+        (tmp_path / optin.SCRATCH).write_text("", encoding="utf-8")
+        assert optin.opted_out(str(tmp_path))
+
+    def test_refuses_an_empty_common_directory_wherever_the_process_stands(
+        self, optin, tmp_path, monkeypatch
+    ):
+        """ "" is the answer `git_common_dir` gives where git did not answer,
+        and it names no opt-out, even in a directory holding the file."""
+        (tmp_path / optin.SCRATCH).write_text("", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        assert not optin.opted_out("")
+
+
+class Test_marked_home:
+    def test_accepts_the_marked_root_where_the_opt_out_stands(self, optin, repo):
+        """`home_at` reads the opt-out, and `marked_home` answers only where
+        the root is, so the broad gate of a throwaway repository still finds
+        its command."""
+        home(repo)
+        scratch(repo)
+        assert optin.home_at(str(repo)) == ""
+        assert optin.marked_home(str(repo)) == os.path.join(str(repo), "seal")
+
+    def test_refuses_a_place_whose_readme_is_not_the_marker(self, optin, repo):
+        """A directory at a place `home_paths` names, here the local one,
+        whose README is not the marker is no root here either."""
+        readme_at(repo / ".git" / "seal", FOREIGN)
+        assert optin.marked_home(str(repo)) == ""
 
 
 class Test_home_at:
@@ -644,12 +738,6 @@ class Test_module:
             os.path.join(ROOT, "templates", "setup", "seal-README.md"), encoding="utf-8"
         ) as f:
             assert f.readline().rstrip("\r\n") == optin.MARKER
-
-    def test_the_move_notice_is_gone(self, optin):
-        """Deleted, not muted. A notice with nobody left to warn is a branch that
-        runs in no repository and still has to be kept true."""
-        for name in ("legacy_only", "MOVE_NOTICE", "notice_due", "NOTICE_DIR"):
-            assert not hasattr(optin, name), name
 
     def test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore(
         self, repo

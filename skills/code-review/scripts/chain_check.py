@@ -33,10 +33,11 @@ judged (`carried_by`). The arms are nine:
                 no such section, and a work item with no design, pass, and a
                 heading near `## Rule changes` outside the section is another
                 section; in a section that parses, each `check:` line inside
-                an `add` or `change` `to` is read by `.github/scripts/rules.py`,
-                the reader `seal rules --check` uses, and a line it refuses is
-                refused at its line in the design (`check_lines_in`); a `from`
-                is read for no check line; and against each operation, the
+                an `add` or `change` `to` is read by
+                `skills/settle/scripts/rules.py`, the reader `seal rules
+                --check` uses, and a line it refuses is refused at its line in
+                the design (`check_lines_in`); a `from` is read for no check
+                line; and against each operation, the
                 string constants of the tracked tests under `tests/` and the
                 rule documents are read from the working tree, to name its
                 test pins and copies (`pins_and_copies_in`)
@@ -129,7 +130,10 @@ stands on that guarantee, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a reader that will not
-load among the causes. A line or a file the check did not read is printed
+load among the causes, and a git command that could not start or did not
+finish within `lib/gitcmd.py#TIMEOUT`, named in one line on stderr. A `gh`
+that did not answer where no event payload exists reads as a pull request
+whose state is unknown. A line or a file the check did not read is printed
 `path:line  not read: <why>`, a notice annotation in CI and never an error,
 and changes no exit code.
 """
@@ -140,8 +144,6 @@ import json
 import os
 import posixpath
 import re
-import shutil
-import subprocess
 import sys
 
 if __name__ == "__main__":
@@ -166,10 +168,10 @@ READER = "lib/lines.py"
 ROUTING = "lib/routing.py"
 FIELDS_READER = "lib/fields.py"
 RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
-# `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
-# rules --check` runs over the rule files. A user's CI clones the plugin
+# `skills/settle/scripts/rules.py`, the one reader of a `check:` line, which
+# `seal rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
-CHECK_LINES_READER = ".github/scripts/rules.py"
+CHECK_LINES_READER = "skills/settle/scripts/rules.py"
 
 # A round record's fields stand in `seal` blocks, and `lib/fields.py`
 # is the one spelling of their grammar. What this file holds is where
@@ -227,25 +229,24 @@ UNSEEN_SAYS = (
     "the pull request's state is unknown, and it is not judged as a ready "
     "pull request; CI judges it from GitHub's payload"
 )
-GH_DRAFT = ["gh", "pr", "view", "--json", "isDraft"]
-GH_TIMEOUT = 30
+GH_DRAFT = ("pr", "view", "--json", "isDraft")
 NO_PAYLOAD = "no pull-request event payload"
 REGULAR = ("100644", "100755")
 # A squash merge on GitHub: the server commits it, and the subject ends with
-# the number of the pull request it carried (`carried_by`).
+# the number of the pull request it carried, as `lib/closing.py#MERGED_PR`
+# reads it (`carried_by`).
 SQUASH_COMMITTER = "noreply@github.com"
-SQUASH_SUBJECT = re.compile(r"\(#\d+\)$")
 CARRIED_SAYS = (
     "judged at its own pull request: {sha} `{subject}` squashed it onto this branch"
 )
 
 
-def section_end(reader, lines, start):
+def section_end(lines, start):
     """The index of the line that ends the section opened at `start`: the
     first heading of its level or shallower, else `len(lines)`."""
-    level = reader.heading_level(lines[start]) or 1
+    level = SHARED_READER.heading_level(lines[start]) or 1
     for i in range(start + 1, len(lines)):
-        found = reader.heading_level(lines[i])
+        found = SHARED_READER.heading_level(lines[i])
         if found is not None and found <= level:
             return i
     return len(lines)
@@ -267,8 +268,9 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-# Loaded once, here, and read by `main` and by every importer through this
-# name. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As a
+# Loaded once, here, and read through this name by every function of this
+# check that reads a record's lines, and by `pr_body.py`, which reads lines
+# itself. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As a
 # command, a reader that raises while it loads ends the run at exit 2
 # naming the error; imported, the error is raised and the importer decides
 # what a check that cannot read a record means to it.
@@ -278,13 +280,16 @@ try:
     BLOCKS = sibling.load("lib/blocks.py")
     # `lib/fields.py`, the one reader of a record's `seal` blocks.
     FIELDS = sibling.load(FIELDS_READER)
-    # `lib/gitcmd.py`, which builds every git command `git` runs and spells
-    # a path as git does.
+    # `lib/gitcmd.py`, which starts every git and `gh` command this check
+    # runs and spells a path as git does.
     GITCMD = sibling.load("lib/gitcmd.py")
     # `lib/optin.py`, which finds the repository and its `seal/` root.
     OPTIN = sibling.load("lib/optin.py")
     # `lib/console.py`, whose `annotate` prints a line about a file.
     CONSOLE = sibling.load("lib/console.py")
+    # `lib/closing.py`, whose `MERGED_PR` reads the pull request a squash
+    # subject names.
+    CLOSING = sibling.load("lib/closing.py")
 except (OSError, SyntaxError, ImportError) as _exc:
     if __name__ != "__main__":
         raise
@@ -350,14 +355,9 @@ OPEN_SAYS = (
 
 
 def git(root, *args):
-    """`git -C root <args>`'s stdout, or None where git exited non-zero."""
-    r = subprocess.run(
-        GITCMD.argv("-C", root, *args),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=60,
-    )
+    """`git -C root <args>`'s stdout, or None where git exited non-zero.
+    `lib/gitcmd.py#Unrun` where git did not answer, which `main` reads."""
+    r = GITCMD.git(root, *args)
     return r.stdout if r.returncode == 0 else None
 
 
@@ -442,8 +442,8 @@ def carried_by(root, base, rel):
     committer `noreply@github.com`, subject ending `(#N)` — the declaration
     reached this branch inside that pull request, which judged it; the newest
     such commit is returned. Any other commit, an uncommitted change under
-    `WORKTREE`, no commit at all, or git failing leaves it this pull
-    request's."""
+    `WORKTREE`, no commit at all, or a git that exits non-zero leaves it
+    this pull request's."""
     if WORKTREE:
         dirty = git(root, "status", "--porcelain", "--", rel)
         if dirty is None or dirty.strip():
@@ -465,7 +465,7 @@ def carried_by(root, base, rel):
         if (
             len(entry) != 3
             or entry[1].strip().lower() != SQUASH_COMMITTER
-            or not SQUASH_SUBJECT.search(entry[2].strip())
+            or not CLOSING.MERGED_PR.search(entry[2].strip())
         ):
             return None
     return commits[0][0].strip(), commits[0][2].strip()
@@ -538,7 +538,7 @@ def round_records(routing, root, item):
     return rounds_listed(routing, root, item)[0]
 
 
-def unread(reader, routing, root, item, chained):
+def unread(routing, root, item, chained):
     """[(path, line, why)] for what the check did not read of a work item:
     under `chained`, each file under `trail/rounds/` that is no
     `round-N.md` (`UNREAD_FILE`) and each fence of a round record like a
@@ -562,7 +562,7 @@ def event_payload_present():
     return bool(path) and os.path.exists(path)
 
 
-def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
+def pull_request_state(root=None):
     """(`draft` | `ready` | `unknown`, where that was read from).
 
     The event payload GitHub writes is the answer wherever it exists; with
@@ -573,7 +573,7 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
     if not path or not os.path.exists(path):
         if root is None:
             return "unknown", NO_PAYLOAD
-        return pull_request_from_gh(root, which, run)
+        return pull_request_from_gh(root)
     try:
         with open(path, encoding="utf-8") as f:
             event = json.load(f)
@@ -615,22 +615,14 @@ def pull_request_body():
     return text, path
 
 
-def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
-    """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`."""
-    found = which(GH_DRAFT[0])
-    if found is None:
-        return "unknown", f"{NO_PAYLOAD}, and no `gh` on PATH to ask"
+def pull_request_from_gh(root):
+    """(`draft` | `ready` | `unknown`, where) from `gh pr view --json isDraft`.
+    A `gh` that did not answer, `lib/gitcmd.py#Unrun`, is `unknown` with
+    the runner's line."""
     try:
-        r = run(
-            [found, *GH_DRAFT[1:]],
-            cwd=root,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=GH_TIMEOUT,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        return "unknown", f"{NO_PAYLOAD}, and `gh pr view` did not run ({exc})"
+        r = GITCMD.gh(*GH_DRAFT, root=root)
+    except GITCMD.Unrun as unrun:
+        return "unknown", f"{NO_PAYLOAD}, and {unrun.line}"
     if r.returncode != 0:
         said = (r.stderr or r.stdout or "").strip().partition("\n")[0].strip()
         return "unknown", (
@@ -648,16 +640,6 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
             "request is a draft"
         )
     return ("draft" if draft else "ready"), "`gh pr view --json isDraft`"
-
-
-def table_rows(reader, lines):
-    """Every table row in already-`readable` lines, as lists of cells."""
-    out = []
-    for line in lines:
-        cells = reader.split_row(line)
-        if cells is not None:
-            out.append(cells)
-    return out
 
 
 def reference(found):
@@ -679,29 +661,29 @@ def location_paths(value):
     return [item.strip("`").split(":")[0] for item in value.split(", ")]
 
 
-def sections_of(reader, lines, heading):
+def sections_of(lines, heading):
     """The index of every heading of already-`readable` lines that reads
     HEADING."""
-    return [i for i, said in reader.headings(lines) if said.strip() == heading]
+    return [i for i, said in SHARED_READER.headings(lines) if said.strip() == heading]
 
 
-def finding_spans(reader, lines):
+def finding_spans(lines):
     """`((start, end), [(first, stop)], error)` for the one `## Findings`
     section of already-`readable` lines: where it stands, and each `### `
     section in it, from its heading to the next. `error` is the refusal for
     a record with no such section or with two, and the spans are then
     empty."""
-    starts = sections_of(reader, lines, FINDINGS_HEADING)
+    starts = sections_of(lines, FINDINGS_HEADING)
     if not starts:
         return None, [], (0, NO_FINDINGS)
     if len(starts) > 1:
         return None, [], (starts[1] + 1, TWO_FINDINGS)
     start = starts[0]
-    end = section_end(reader, lines, start)
+    end = section_end(lines, start)
     heads = [
         i
         for i in range(start + 1, end)
-        if reader.heading_level(lines[i]) == FINDING_LEVEL
+        if SHARED_READER.heading_level(lines[i]) == FINDING_LEVEL
     ]
     return (start, end), list(zip(heads, [*heads[1:], end])), None
 
@@ -720,7 +702,7 @@ HIDING = (FIELDS.UNCLOSED, FIELDS.UNSURE)
 NOT_A_BLOCK_LINE = (FIELDS.COMMENT_LINE, *HIDING)
 
 
-def round_read(reader, text, rel):
+def round_read(text, rel):
     """`Parsed` for one round record: its `seal` blocks read through
     `lib/fields.py`, placed by its headings, read once.
 
@@ -738,9 +720,9 @@ def round_read(reader, text, rel):
     out of its place. Below a fence that never closes, or one the walk could
     not place, no block is read: a finding reaching it is read for the
     blocks above it, and what it lacks is not refused again."""
-    lines = reader.readable(text or "")
+    lines = SHARED_READER.readable(text or "")
     read = FIELDS.read(text or "", FIELDS.ROUND_RECORD)
-    section, spans, error = finding_spans(reader, lines)
+    section, spans, error = finding_spans(lines)
     held = {finding_number(lines[first].strip()) for first, _stop in spans}
     held.discard(None)
 
@@ -782,7 +764,8 @@ def round_read(reader, text, rel):
             outside.append(block)
             if block.kind is FIELDS.ROUND_BLOCK:
                 rounds.append(block)
-            elif (said := block.fields[FIELDS.CONFIRMS]).match["round"]:
+            else:
+                said = block.fields[FIELDS.CONFIRMS]
                 confirms.append((said.line, reference(said.match)))
     if not rounds and not errors:
         return Parsed(
@@ -873,22 +856,22 @@ def finding_of(rel, heading, number, first, blocks):
     )
 
 
-def record_findings(reader, text, rel):
+def record_findings(text, rel):
     """`(findings, errors)` of one round record through `round_read`: the
     one reader the arm, the panel and the release seal read a record
     through, so a comment line, a fence that hides blocks, or a record
     naming no commit it reviewed, fails closed for each of them."""
-    parsed = round_read(reader, text, rel)
+    parsed = round_read(text, rel)
     return parsed.findings, parsed.errors
 
 
-def round_of(reader, text, rel, number):
+def round_of(text, rel, number):
     """`(Round, errors)` for one record through `round_read`: its findings,
     the number of every `### <n>. ` heading of its `## Findings`, read or
     refused, so a reference to a refused finding still names one it holds,
     its `confirms:` references, and its round block's commit. A record
     whose round block was refused, or holds none, has no target."""
-    parsed = round_read(reader, text, rel)
+    parsed = round_read(text, rel)
     block = parsed.round
     target = block.fields[FIELDS.TARGET].match["commit"] if block else None
     read = Round(rel, number, parsed.findings, parsed.held, parsed.confirms, target)
@@ -1005,15 +988,6 @@ def records_only(root, item, commit):
     return bool(changed) and all(under(p, item) for p in changed)
 
 
-def is_ancestor(root, sha, ref):
-    """True where `sha` is `ref` or an ancestor of it."""
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", "--is-ancestor", sha, ref],
-        capture_output=True,
-    )
-    return r.returncode == 0
-
-
 def follows(root, sha, base, item, only=None):
     """None where `sha` is HEAD or every commit after it on the branch
     touches only `item/` — only the files of `item/` named in `only`, where
@@ -1029,18 +1003,13 @@ def follows(root, sha, base, item, only=None):
     if full is None:
         return ("unseen", sha, "")
     full = full.strip()
-    if not is_ancestor(root, full, "HEAD"):
+    if not GITCMD.is_ancestor(root, full, "HEAD"):
         return ("off", sha, "")
     out = git(
         root, "rev-list", "--reverse", "--no-merges", "HEAD", f"^{full}", f"^{base}"
     )
     for later in (out or "").split():
-        touched = git(
-            root, "diff-tree", "--no-commit-id", "--name-only", "-r", "-z", later
-        )
-        for path in (touched or "").split("\0"):
-            if not path:
-                continue
+        for path in touched(root, later) or []:
             if not path.startswith(f"{item}/") or (
                 allowed is not None and path not in allowed
             ):
@@ -1061,7 +1030,7 @@ def follows_reason(found, what, outside="the work item's records"):
     )
 
 
-def frame_foot(reader, text):
+def frame_foot(text):
     """(the `Framed` mark as (when, who) or None, [(when, who, round)] for
     every `Reframed` line under it), read from the last non-empty line up."""
     reframes = []
@@ -1079,7 +1048,7 @@ def frame_foot(reader, text):
     return None, list(reversed(reframes))
 
 
-def frame(reader, routing, root, item, declared):
+def frame(routing, root, item, declared):
     """[problem] for a declaration that says a framer drew the frame."""
     if declared.get("planning") != routing.BY_FRAMER:
         return []
@@ -1092,7 +1061,7 @@ def frame(reader, routing, root, item, declared):
         problems.append(f"declares {who} and git carries no {item}/{OPTIN.PLAN}")
     if spec is None:
         return problems
-    mark, reframes = frame_foot(reader, spec)
+    mark, reframes = frame_foot(spec)
     if mark is None:
         problems.append(
             f"{item}/{OPTIN.DESIGN} does not end with `Framed <date> by <who>, before "
@@ -1123,8 +1092,9 @@ RULE_CHANGES_SAYS = (
 RULE_CHANGES_UNREAD = "not read: {why}"
 # A check line inside an `add` or `change` `to` that `rules.py` refuses.
 CHECK_LINE_SAYS = (
-    "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
-    "this check line, which the settle writes into `{file}` as it stands: {why}"
+    "`skills/settle/scripts/rules.py`, the reader `seal rules --check` uses, "
+    "refuses this check line, which the settle writes into `{file}` as it "
+    "stands: {why}"
 )
 # A string constant of a test that an operation takes out of the policy root
 # and its `to` does not hold (`rule_changes.py#pins`), named at the `from`.
@@ -1172,8 +1142,8 @@ def check_lines_reader():
             _check_lines = sibling.load(CHECK_LINES_READER)
         except (OSError, SyntaxError, ImportError, SystemExit) as exc:
             raise Unreadable(
-                f"the check-line reader `.github/scripts/rules.py` would not load "
-                f"({exc})"
+                "the check-line reader `skills/settle/scripts/rules.py` would not "
+                f"load ({exc})"
             ) from None
     return _check_lines
 
@@ -1198,8 +1168,8 @@ def check_lines_in(root, rel, ops, notices=None):
             unread = checks.unread_lines(text)
         except checks.Unreadable as exc:
             raise Unreadable(
-                f"`.github/scripts/rules.py` could not read the check lines of "
-                f"{rel}: {exc}"
+                "`skills/settle/scripts/rules.py` could not read the check lines "
+                f"of {rel}: {exc}"
             ) from None
         found += [
             (rel, numbers[n - 1], CHECK_LINE_SAYS.format(file=op.file, why=why))
@@ -1294,7 +1264,7 @@ def _section_text(rules, root, op):
     return "\n".join(BLOCKS.gfm_lines(text)[span[0] - 1 : span[1]]), None
 
 
-def pins_and_copies_in(reader, root, rel, ops, sources):
+def pins_and_copies_in(root, rel, ops, sources):
     """[(path, line, notice)] for OPS, a design's operations at REL, refusing
     nothing: each test literal an operation takes out of the policy root and
     its `to` does not hold (`rule_changes.py#pins`), at the first line of its
@@ -1370,7 +1340,7 @@ def policy_root(root):
     return config.policy_root(OPTIN.home_at(root, OPTIN.git_common_dir(root)))
 
 
-def rule_changes_read(reader, root, item, notices=None, sources=None):
+def rule_changes_read(root, item, notices=None, sources=None):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
     groups by, refuses, or, where it parses, for each check line inside an
@@ -1398,21 +1368,25 @@ def rule_changes_read(reader, root, item, notices=None, sources=None):
     if notices is not None:
         notices.extend(
             pins_and_copies_in(
-                reader, root, rel, parsed.ops or [], {} if sources is None else sources
+                root, rel, parsed.ops or [], {} if sources is None else sources
             )
         )
     return found
 
 
-def rule_changes_of(reader, root, items, notices=None, sources=None):
+def rule_changes_of(root, items, notices=None, sources=None):
     """[(path, line, problem)] from `rule_changes_read` over every work item
     directory of ITEMS, its notices going to NOTICES and what it reads of the
     tree to SOURCES, or None where a reader would not load or could not
-    read, which is said on stderr."""
+    read, which is said on stderr. A git that did not answer
+    (`lib/gitcmd.py#Failed`, a `SystemExit`) is no reader that would not
+    load: it reaches `main`, which names the command."""
     found = []
     try:
         for item in items:
-            found.extend(rule_changes_read(reader, root, item, notices, sources))
+            found.extend(rule_changes_read(root, item, notices, sources))
+    except GITCMD.Failed:
+        raise
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
         print(
             f"chain-check: the rule-changes reader would not load ({exc})",
@@ -1454,7 +1428,7 @@ def verdict_problems(root, path, f):
     if kind != FIXED:
         return []
     said = f"{f.heading} {DASH} reads `{FIELDS.VERDICT} {FIXED} {commit}`, and "
-    if not is_ancestor(root, commit, "HEAD"):
+    if not GITCMD.is_ancestor(root, commit, "HEAD"):
         return [
             (
                 path,
@@ -1479,7 +1453,7 @@ def verdict_problems(root, path, f):
     ]
 
 
-def records(reader, routing, root, item, rel, base):
+def records(routing, root, item, rel, base):
     """[(path, line, problem)] for a work item declared through the review
     chain: no record; a record `round_of` cannot read; a finding with no
     close block; a `fixed` naming a commit HEAD does not descend from, or
@@ -1502,7 +1476,7 @@ def records(reader, routing, root, item, rel, base):
     for path in found:
         text = read_record(root, path)
         number = routing.round_number(path)
-        read, errors = round_of(reader, text, path, number)
+        read, errors = round_of(text, path, number)
         rounds.append(read)
         problems.extend(errors)
         for f in read.findings:
@@ -1573,7 +1547,7 @@ NO_GUARANTEE_ORIGINAL = (
 )
 
 
-def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
+def original_of(text, rel, sha, config, missing=NO_ORIGINAL):
     """[(rel, line, problem)] for the `original:` line of a round record's
     round block, held against SHA, the `Baseline commit` of the migration
     config at CONFIG: a round block with no such line, said as MISSING at
@@ -1583,7 +1557,7 @@ def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
     refuses, an `original:` line in a finding block, a second one or one
     spelt otherwise among them, or holding no round block, is the records
     arm's refusal, and none is added here."""
-    block = round_read(reader, text, rel).round
+    block = round_read(text, rel).round
     if block is None or FIELDS.read(text or "", FIELDS.ROUND_RECORD).refusals:
         return []
     said = block.fields.get(FIELDS.ORIGINAL)
@@ -1619,7 +1593,7 @@ def guarantee_original(text, rel, sha, config):
     return [(rel, said.line, OTHER_ORIGINAL.format(said=commit, sha=sha))]
 
 
-def originals_of(reader, routing, root, home, paths, items, direct=()):
+def originals_of(routing, root, home, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
@@ -1650,7 +1624,7 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     found = []
     for item in items:
         for rel in round_records(routing, root, item):
-            found.extend(original_of(reader, read_record(root, rel), rel, sha, config))
+            found.extend(original_of(read_record(root, rel), rel, sha, config))
     for item in direct:
         rel = f"{item}/{OPTIN.GUARANTEE}"
         said = read_record(root, rel)
@@ -1678,7 +1652,7 @@ def blocks_of(rel, text, kinds, notices=None):
     return found.blocks, [(rel, line, why) for line, why in found.refusals]
 
 
-def broad_gate(reader, root, item, base, notices=None):
+def broad_gate(root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `trail/gate.md`: absent,
     a line `lib/fields.py` refuses, no run block, or a newest run, the
     last block, behind HEAD. A fence named as not read goes to NOTICES."""
@@ -1717,7 +1691,7 @@ NO_VERDICT_BLOCK = (
 )
 
 
-def guarantee(reader, root, item, base, notices=None):
+def guarantee(root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, a
     line `lib/fields.py` refuses, a fence nobody closed and a line that
     begins with `<!--` among them, no verdict block, or a newest block, the
@@ -1939,12 +1913,12 @@ def declared_for_this_branch(root, routing, work_items):
                 f"this repository keeps its root at {home} — local mode, where "
                 "nothing under the root is committed. So no routing declaration "
                 f"for `{branch}` can be read from what git carries, and the "
-                "review-chain check examined nothing. `seal mode shared` moves "
-                "the root into the tree and gets the check running."
+                f"review-chain check {PRINTED_TRAILERS}. `seal mode shared` "
+                "moves the root into the tree and gets the declarations judged."
             )
         return [], (
             "this pull request declared neither way, so the review-chain check "
-            f"examined nothing. Nothing git carries under `{work_items}/` "
+            f"{JUDGED_TRAILERS}. Nothing git carries under `{work_items}/` "
             f"declares `{branch}`. Add {work_items}/<work-item>/"
             f"{routing.FILENAME} to declare."
         )
@@ -1961,8 +1935,7 @@ SETTLE_SAYS = (
 ROOT_LEFT_SAYS = (
     "the tree the check reads has no top-level `{home}` entry, so nothing is "
     "declared: the routing declarations this pull request deletes left the "
-    "tree with the root, and the review-chain check judged the commit "
-    "trailers and nothing else"
+    "tree with the root, and the review-chain check {trailers}"
 )
 
 # The trailer a session's commit ends with (`docs/checks/the-routing-check.md` *At
@@ -1983,6 +1956,14 @@ NO_WORK_ITEM_TRAILER = (
     f"commit {{sha}} carries `{TRAILER}: {NO_WORK_ITEM}`: its session recorded "
     "that the change belongs to no work item, and nothing here checks it "
     "further"
+)
+# What the review-chain check did with the commit trailers where nothing is
+# declared: judged them, or, at a local root, printed them
+# (`trailer_findings`).
+JUDGED_TRAILERS = "judged the commit trailers and nothing else"
+PRINTED_TRAILERS = (
+    f"judged nothing: at a local root each commit's `{TRAILER}` trailer is "
+    "printed, not judged"
 )
 
 
@@ -2043,15 +2024,8 @@ def trailer_findings(trailers, judged, local=False):
 
 def commit_of(root, ref):
     """The commit `ref` names in `root`, or None. `resolves` asks it."""
-    r = subprocess.run(
-        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if r.returncode != 0:
-        return None
-    return r.stdout.strip() or None
+    out = git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+    return (out or "").strip() or None
 
 
 def resolves(root, ref):
@@ -2082,15 +2056,8 @@ def merge_base(root, ref):
     `HEAD` that names no commit (exit 128). A shallow clone whose base ref
     resolves while their common ancestor sits beyond the graft lands in the
     first."""
-    r = subprocess.run(
-        ["git", "-C", root, "merge-base", ref, "HEAD"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if r.returncode != 0:
-        return None
-    return r.stdout.strip() or None
+    out = git(root, "merge-base", ref, "HEAD")
+    return (out or "").strip() or None
 
 
 def settled(root, ref, directories):
@@ -2122,16 +2089,11 @@ def tree_at(root, ref, directory):
                 rel = os.path.relpath(os.path.join(here, name), root)
                 out.append(GITCMD.git_path(rel))
         return out
-    r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
+    out = git(root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory)
+    return [rel for rel in (out or "").split("\0") if rel]
 
 
-def retired(reader, root, fork, records):
+def retired(root, fork, records):
     """The work item directories of the removed declarations that read as a
     settle: each stood at the merge base and is gone whole, asked of the one
     predicate, `settled`. RECORDS maps each declaration
@@ -2156,14 +2118,22 @@ def main(argv=None):
     args = ap.parse_args(argv)
     global WORKTREE
     WORKTREE = args.worktree
+    try:
+        return _checked(args)
+    except GITCMD.Failed as unanswered:
+        print(f"chain-check: {unanswered.line}", file=sys.stderr)
+        return 2
 
-    reader = SHARED_READER
+
+def _checked(args):
+    """The check over parsed ARGS, for `main`, which reads a git that did
+    not answer. Returns the exit code."""
     try:
         routing = sibling.load(ROUTING)
     except (OSError, SyntaxError, ImportError) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2
-    root = OPTIN.repo_root(os.path.abspath(args.root))
+    root = OPTIN.toplevel(os.path.abspath(args.root))
     if not root:
         print(f"chain-check: {args.root} is not in a git repository", file=sys.stderr)
         return 2
@@ -2202,14 +2172,18 @@ def main(argv=None):
     # directory, so a root that is not a directory, or one whose marker alone
     # left, keeps the declarations judged. A root that left is named by the
     # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
-    # root that stayed. Where git cannot answer, `git()` is None and
+    # root that stayed. Where git exits non-zero, `git()` is None and
     # the declarations stay judged.
     if WORKTREE:
         gone = not os.path.lexists(os.path.join(root, home))
     else:
         gone = git(root, "ls-tree", "HEAD", "--", home) == ""
+    # At a local root every work item's trailer is printed, not judged
+    # (`trailer_findings`), and the notice says which the run did.
+    local = bool(local_root(root, routing))
     if declarations and gone:
-        declarations, why = [], ROOT_LEFT_SAYS.format(home=home)
+        said = PRINTED_TRAILERS if local else JUDGED_TRAILERS
+        declarations, why = [], ROOT_LEFT_SAYS.format(home=home, trailers=said)
 
     state, where = pull_request_state(root)
     unseen = state == "unknown" and not event_payload_present()
@@ -2232,9 +2206,7 @@ def main(argv=None):
         )
         return 2
     judged_ids = {os.path.basename(os.path.dirname(rel)) for rel in declarations}
-    problems, notices = trailer_findings(
-        trailers, judged_ids, local=bool(local_root(root, routing))
-    )
+    problems, notices = trailer_findings(trailers, judged_ids, local=local)
     kind = "error" if strict else "notice"
     if not declarations:
         print(CONSOLE.annotate("notice", "", 0, why))
@@ -2257,7 +2229,7 @@ def main(argv=None):
     # once on the first design with operations.
     sources = {}
     texts = {rel: read_record(root, rel) for rel in declarations}
-    by_settle = retired(reader, root, fork, texts)
+    by_settle = retired(root, fork, texts)
     # The judged work items whose declaration reads, which the body arm
     # chooses its one work item from.
     bodied = []
@@ -2289,21 +2261,19 @@ def main(argv=None):
             )
             continue
         bodied.append(item)
-        problems.extend(
-            (rel, 0, p) for p in frame(reader, routing, root, item, declared)
-        )
-        found = rule_changes_of(reader, root, [item], notices, sources)
+        problems.extend((rel, 0, p) for p in frame(routing, root, item, declared))
+        found = rule_changes_of(root, [item], notices, sources)
         if found is None:
             return 2
         problems.extend(found)
         if declared["review"] == routing.CHAIN:
-            problems.extend(records(reader, routing, root, item, rel, args.baseline))
+            problems.extend(records(routing, root, item, rel, args.baseline))
             chained.append(item)
         else:
             direct.append(item)
-        notices.extend(unread(reader, routing, root, item, item in chained))
-        gate = broad_gate(reader, root, item, args.baseline, notices)
-        gate += guarantee(reader, root, item, args.baseline, notices)
+        notices.extend(unread(routing, root, item, item in chained))
+        gate = broad_gate(root, item, args.baseline, notices)
+        gate += guarantee(root, item, args.baseline, notices)
         if args.sealing:
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
@@ -2319,11 +2289,11 @@ def main(argv=None):
         notices.extend((p, n, f"{BODY_SEALING_SAYS}: {m}") for p, n, m in found)
     else:
         problems.extend(found)
-    found = rule_changes_of(reader, root, edited, notices, sources)
+    found = rule_changes_of(root, edited, notices, sources)
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, home, paths, chained, direct)
+    found = originals_of(routing, root, home, paths, chained, direct)
     if found is None:
         return 2
     for rel, line, message in found:

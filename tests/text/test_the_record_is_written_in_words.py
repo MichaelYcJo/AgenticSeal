@@ -18,7 +18,7 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, read, section
 
 # No TARGET: its cases read every definition under agents/, every file of a skill's directory and every template.
 
@@ -49,17 +49,6 @@ def corpus():
         assert paths, f"{pattern} names no file"
         found += [os.path.relpath(p, ROOT).replace(os.sep, "/") for p in paths]
     return found
-
-
-def section(text, heading):
-    """The lines of the `## ` section HEADING, to the next `## ` heading."""
-    lines = text.split("\n")
-    start = lines.index(heading)
-    end = next(
-        (i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")),
-        len(lines),
-    )
-    return lines[start:end], start
 
 
 def test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block():
@@ -95,7 +84,7 @@ def test_the_parity_verdicts_are_four_words():
     The labels were four emoji nobody read, and no case read the section, so
     a mark or a fifth label could come back with every other case green."""
     rel, heading = PARITY_REVIEW
-    lines, _ = section(read(rel), heading)
+    lines = section(read(rel), heading).split("\n")
     fences = [i for i, line in enumerate(lines) if line.startswith("```")]
     assert len(fences) == 2, f"{rel} {heading} holds no one block of labels"
     labels = [
@@ -117,7 +106,7 @@ def sentences(lines):
 @pytest.mark.rule("fix-pass-two-lines")
 def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
     rel = "docs/forms/the-round-record.md"
-    lines, _ = section(read(rel), "## The round record")
+    lines = section(read(rel), "## The round record").split("\n")
     opener = "**The fix pass appends one close block per finding"
     start = next(i for i, line in enumerate(lines) if line.startswith(opener))
     end = next(i for i in range(start, len(lines)) if lines[i].startswith("check: "))

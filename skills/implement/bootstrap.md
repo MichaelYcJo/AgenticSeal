@@ -1,8 +1,8 @@
 # implement, the bootstrap
 
 This file is the orchestrator's, read before the first edit only where no
-`seal/` root carrying the marker stands yet, neither at `<repo>/seal/` nor at
-`$(git rev-parse --git-common-dir)/seal/`. It creates the root, asks where it
+`seal/` root carrying the marker stands yet at any of the places the opening
+paragraph of `skills/core/SKILL.md` names. It creates the root, asks where it
 lands and whether the project ports an original, and then the orchestrator
 goes back to `skills/implement/orchestration.md` for the routing question.
 
@@ -76,9 +76,10 @@ carries the `Broad gate` question and the two language questions.
      read committed files, so CI cannot run them, and a new machine or a
      re-clone starts empty.
 
-   Whichever the answer, the mode is the place: the commands read
-   `<repo>/seal/` and then the common git directory, and a repository with
-   both is shared.
+   Whichever the answer, the mode is the place: the commands read the
+   places the opening paragraph of `skills/core/SKILL.md` names in its
+   order, so a repository with a root in the tree and one under the git
+   directory is shared.
 
    **The answer is not a door that shuts.** `seal mode` reports where the
    root is, and `seal mode local` or `seal mode shared` moves it, writing the
@@ -136,9 +137,10 @@ carries the `Broad gate` question and the two language questions.
    fills the key in at any point before then.
 
    **The third and fourth questions are the two language keys, with the
-   recent titles beside them.** `seal pr-body` refuses to compose a pull
-   request body where either key is absent, so first setup asks for both
-   while the session is already stopped. Beside the two questions the
+   recent titles beside them.** First setup asks for both while the session
+   is already stopped, since what an absent one does is
+   `templates/setup/config.md` *An absent language key is a refusal at the
+   pull request body, and never at a commit*. Beside the two questions the
    orchestrator shows the titles `gh pr list --state all --limit 10`
    returned and names the language it reads them in; where the list is
    empty or `gh` cannot read it, it says so. The option listed first in
@@ -199,8 +201,8 @@ later**: it shows every key with its value and routes a change to whatever
 owns that key. The orchestrator says so once, here, because a person who
 answers a question in a batch has no reason to expect a way back to it.
 
-Ask only here. A repository that has a `seal/` carrying the marker at either
-place, `<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been
+Ask only here. A repository that has a `seal/` carrying the marker at one of
+the places the opening paragraph of `skills/core/SKILL.md` names has been
 through this: the mode is read from where the folder is, and asking again is the
 nagging this plugin exists to avoid. The two language keys are the one
 exception, and only where either is missing: the batch asks for them

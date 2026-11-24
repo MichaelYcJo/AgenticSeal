@@ -88,10 +88,40 @@ import math
 import os
 import re
 import shlex
-import subprocess
 import sys
 import tempfile
 from collections import defaultdict
+
+LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
+
+# `lib/sibling.py` loads every other module this command reads:
+# `deferral_check.py` at import, for the runner words `FAMILIES` reads,
+# `lib/console.py` at import, for the stream answer `__main__` opens with,
+# and each other module of `lib/` at its first use (`lib_module`). An
+# absent one is its sentence and exit 2, since a copy of this script taken
+# without its siblings is a broken plugin copy, where nothing ran. Where it
+# is absent itself, the refusal is the same sentence about it, spelt here
+# because the file that holds the sentence is the one missing.
+sys.path.insert(0, LIB)
+try:
+    import sibling
+except ImportError:
+    sys.stderr.write(
+        "cannot read "
+        + os.path.normpath(os.path.join(LIB, "sibling.py"))
+        + ", which this command loads. It ships in the plugin beside this "
+        "script; a copy of one script taken on its own is not a plugin. "
+        "Nothing was read.\n"
+    )
+    raise SystemExit(2) from None
+
+# The runner words of each kind of check, the one list `seal deferrals`
+# reads too.
+RUNNERS = sibling.load("skills/verify/scripts/deferral_check.py").RUNNERS
+# `lib/console.py`, whose `to_utf8` the `__main__` block opens with. It
+# reads nothing beside the standard library as it loads, so it adds no way
+# to fail before the answer that the load above does not already have.
+console = sibling.load("lib/console.py")
 
 
 def projects_dir():
@@ -108,14 +138,16 @@ def projects_dir():
 # Command families, in priority order — the first match wins, so a compound
 # `ruff … && pytest …` is charged to the test run that dominates it.
 #
-# **A repository's own runner is named by PATH.** A project that ships
+# **`test` and `lint/type` are built from `RUNNERS`, the runner words `seal
+# deferrals` reads**, so a runner either reader names, both read. A
+# repository's own runner is named by PATH there. A project that ships
 # `bin/test` has said what its test command is, in the filesystem, and a
 # family list of tool names alone charges every call of it to `other` — the
 # row nobody reads because it is the row everything falls into. Over 180
 # transcripts, tool names alone put 266 `./bin/test` calls in `other` and the
 # rest in four different families, by what else shared the command line.
 #
-# What is added here is only the shapes that mean the same thing in any
+# The list holds only the shapes that mean the same thing in any
 # repository: a script named `test` invoked by path, and the runners a
 # language's own convention names. What CANNOT be added is a runner with a
 # name nobody outside that repository can guess — `bin/check`, `./run-suite` —
@@ -143,17 +175,8 @@ def projects_dir():
 # stays `test` and `ls && git status` stays `git`. `READ_WORDS` states the
 # criterion a word is admitted by.
 FAMILIES = [
-    (
-        "test",
-        re.compile(
-            r"\b(pytest|jest|vitest|go test|cargo test|mvn test|tox|nox|rspec"
-            r"|phpunit|dotnet test|bun test|deno test)\b"
-            r"|(^|[\s./\\])(bin|scripts)[/\\]test\b"
-            r"|\btest\.(sh|bash|bat|cmd|ps1)\b"
-            r"|(^|[\s./\\])(make|just|task|npm|yarn|pnpm|gradlew?)\s+(run\s+)?test\b"
-        ),
-    ),
-    ("lint/type", re.compile(r"\b(ruff|mypy|eslint|tsc|flake8|black|lint-imports)\b")),
+    ("test", re.compile("|".join(RUNNERS["tests"]))),
+    ("lint/type", re.compile("|".join(RUNNERS["lint"] + RUNNERS["typecheck"]))),
     ("build", re.compile(r"\b(make|cargo build|npm run build|tsc -b|docker build)\b")),
     ("git", re.compile(r"^\s*(git|gh)\b")),
     ("read", None),
@@ -2762,22 +2785,23 @@ LOOKUP_LIMIT = 200
 
 
 def run_gh(args):
-    """`gh` with `args`, as `(exit code, stdout, stderr)`.
+    """`gh` with `args` through `lib/gitcmd.py#gh`, as `(exit code, stdout,
+    stderr)`.
 
     The one place this module touches a network, and the seam every case
     below replaces. The exit code is read straight off the subprocess
     (contract rule 1) rather than through a pipe.
 
-    A `gh` that is not on PATH comes back with `None` for the code — a
+    A `gh` that gave no answer, not on PATH or past `lib/gitcmd.py#TIMEOUT`,
+    comes back with `None` for the code and the runner's line for stderr — a
     different fact from a lookup that ran and failed, and the caller treats
     both the same way on purpose.
     """
+    gitcmd = lib_module("gitcmd")
     try:
-        done = subprocess.run(
-            ["gh", *args], capture_output=True, encoding="utf-8", errors="replace"
-        )
-    except OSError as exc:
-        return None, "", str(exc)
+        done = gitcmd.gh(*args)
+    except gitcmd.Unrun as unrun:
+        return None, "", unrun.line
     return done.returncode, done.stdout, done.stderr
 
 
@@ -2811,12 +2835,12 @@ def open_log(label):
             "number,state",
         ]
     )
+    if code is None:
+        return UNREADABLE, err
     if code != 0:
         # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
-        return UNREADABLE, (
-            "`gh` is not on PATH" if code is None else f"exit {code}"
-        ) + (f": {first[0]}" if first else "")
+        return UNREADABLE, f"exit {code}" + (f": {first[0]}" if first else "")
     try:
         issues = json.loads(out or "[]")
     except ValueError as exc:
@@ -2919,10 +2943,13 @@ def post(reading, says, label, found=None):
         )
     finally:
         os.unlink(body_file)
+    if code is None:
+        print(f"the comment on #{payload} was not posted: {err}")
+        return 1
     if code != 0:
-        where = "`gh` is not on PATH" if code is None else f"exit {code}"
         print(
-            f"the comment on #{payload} was not posted ({where}): {(err or out).strip()}"
+            f"the comment on #{payload} was not posted (exit {code}): "
+            f"{(err or out).strip()}"
         )
         return 1
     print(f"posted the run's reading to #{payload}")
@@ -3042,18 +3069,10 @@ POSTED_NAME = re.compile(r"# (\S+\.jsonl)")
 KEY_EDGE = "A-Za-z0-9_-"
 
 
-# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
-# first use of a module of `lib/` (`lib_module`).
-sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
-)
-
-
 def lib_module(name):
     """`lib/<name>.py` beside this plugin's `skills/`, loaded on first use,
-    so a reading that is not `--work-item` loads nothing from `lib/`."""
-    import sibling
-
+    so a reading that is not `--work-item` and asks no git or `gh` command
+    loads no module of `lib/` but `sibling.py` and `console.py`."""
     return sibling.load(f"lib/{name}.py")
 
 
@@ -3083,21 +3102,21 @@ def work_item_keys(directory):
 
 
 def run_git(cwd, args, stdin=None):
-    """`git -C CWD` with ARGS, as `(exit code, stdout bytes)`, or `(None, b"")`
-    where git could not start. Bytes, because `cat-file --batch` gives each
-    object's size in bytes. Every call here only reads, and none fetches: in
-    a partial clone `cat-file` would fetch a blob the clone lacks from its
-    remote, and `GIT_NO_LAZY_FETCH` makes it answer `missing` instead, which
-    `branch_declarations` reads as a directory with no `routing.md`. A git
-    too old to know the variable ignores it and fetches."""
+    """`git -C CWD` with ARGS through `lib/gitcmd.py#git`, as `(exit code,
+    stdout bytes)`, or `(None, b"")` where git gave no answer: it could not
+    start or did not finish within `lib/gitcmd.py#TIMEOUT`. Bytes, because
+    `cat-file --batch` gives each object's size in bytes. Every call here
+    only reads, and none fetches: in a partial clone `cat-file` would fetch
+    a blob the clone lacks from its remote, and `GIT_NO_LAZY_FETCH` makes it
+    answer `missing` instead, which `branch_declarations` reads as a
+    directory with no `routing.md`. A git too old to know the variable
+    ignores it and fetches."""
+    gitcmd = lib_module("gitcmd")
     try:
-        done = subprocess.run(
-            ["git", "-C", cwd, *args],
-            input=stdin,
-            capture_output=True,
-            env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        done = gitcmd.git(
+            cwd, *args, given=stdin, binary=True, env={"GIT_NO_LAZY_FETCH": "1"}
         )
-    except OSError:
+    except gitcmd.Failed:
         return None, b""
     return done.returncode, done.stdout
 
@@ -3253,11 +3272,12 @@ def log_comments(number):
     code, out, err = run_gh(
         ["api", "--paginate", f"repos/{{owner}}/{{repo}}/issues/{number}/comments"]
     )
+    if code is None:
+        return None, err
     if code != 0:
-        where = "`gh` is not on PATH" if code is None else f"exit {code}"
         # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
-        return None, where + (f": {first[0]}" if first else "")
+        return None, f"exit {code}" + (f": {first[0]}" if first else "")
     decoder, text, at, bodies = json.JSONDecoder(), out or "", 0, []
     while True:
         while at < len(text) and text[at].isspace():
@@ -3652,16 +3672,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a script run for its output says "nothing to see
-    # here". `lib/console.py` owns the reasoning and the three decisions
-    # behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

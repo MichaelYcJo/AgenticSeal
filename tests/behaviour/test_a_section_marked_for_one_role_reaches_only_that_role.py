@@ -24,7 +24,7 @@ parser — and fails when
 What it does not catch, stated rather than left to be found: a section
 written for the orchestrator under a heading that carries no marker. The
 check reads the marker, not the meaning, and a paraphrase is the reviewer's
-finding — the same limit `test_a_moved_rule_leaves_its_definition.py`
+finding — the same limit `test_no_passage_is_pasted_into_a_second_file.py`
 states for itself.
 
 Red-first, per contract rule 15: the planted cases build a temp tree with

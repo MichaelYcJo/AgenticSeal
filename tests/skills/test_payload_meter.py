@@ -869,10 +869,20 @@ class Test_module:
         is, so a copy that holds the loader and the core hook's module and
         neither of those exits 2 with no flag at all, in the loader's
         sentence naming the first it loads, `lib/blocks.py`.
-        Every run loads `lib/core.py` first, so this copy carries it and
-        `lib/optin.py`, the one module it loads."""
+        Every run loads `lib/core.py` first, so this copy carries it,
+        `lib/optin.py`, the one module it loads, and `lib/gitcmd.py`, which
+        `lib/optin.py` starts git through. The meter loads `lib/console.py`
+        at import since #1575, for its `__main__` block's `to_utf8`, so the
+        copy carries it too."""
         alone = tmp_path / "alone"
-        for rel in (TARGET, "lib/sibling.py", "lib/core.py", "lib/optin.py"):
+        for rel in (
+            TARGET,
+            "lib/sibling.py",
+            "lib/console.py",
+            "lib/core.py",
+            "lib/optin.py",
+            "lib/gitcmd.py",
+        ):
             copy = alone.joinpath(*rel.split("/"))
             copy.parent.mkdir(parents=True, exist_ok=True)
             with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:

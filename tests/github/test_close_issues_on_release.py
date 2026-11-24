@@ -50,13 +50,21 @@ cases that read the workflow, the documents and the records.
 
 import ast
 import importlib.util
-import json
 import os
 import re
 import sys
 
 import pytest
-from conftest import ROOT, census_case, commit_everything, git_out, git_repo, read
+from conftest import (
+    ROOT,
+    census_case,
+    commit_everything,
+    gh_answers,
+    git_out,
+    git_repo,
+    read,
+)
+from test_settle import unanswered
 
 TARGET = ".github/scripts/close_issues_on_release.py"
 
@@ -85,11 +93,12 @@ def argv_words(text):
     """The literal words of every argv in TEXT, a script's source: each list
     or tuple literal's elements and each call's positional arguments.
 
-    BOTH argv shapes the release scripts use are read: `run("gh", …)` spreads
-    the words as call arguments, and `subprocess.run(["gh", …], …)` passes a
-    list. A reader that knew only the first parsed zero calls of the second
-    and asserted nothing, measured on the first spelling of round 1's fix of
-    #450. A tuple, `subprocess.run(("gh", …))`, is read as a list is, and so
+    BOTH argv shapes are read: `run("gh", …)` spreads the words as call
+    arguments, the shape the release scripts use since #1573, and
+    `subprocess.run(["gh", …], …)` passes a list. A reader that knew only
+    the first parsed zero calls of the second and asserted nothing, measured
+    on the first spelling of round 1's fix of #450. A tuple,
+    `subprocess.run(("gh", …))`, is read as a list is, and so
     is a tuple spread whole, `run(*("gh", …))`: a fold of the source caught
     both, and a reader of lists alone did not, measured in round 1 of #1493.
     A first word written `f"gh"` or `b"gh"` is read as `"gh"` is: a fold of
@@ -170,13 +179,13 @@ def _closer():
 
 
 class Tracker:
-    """A repository's issues, pull requests and labels, and every call made."""
+    """A repository's issues with their labels, its pull requests, and every
+    call made."""
 
-    def __init__(self, issues=None, pulls=None, labels=(), refuse=()):
+    def __init__(self, issues=None, pulls=None, refuse=()):
         self.issues = {n: list(v) for n, v in (issues or {}).items()}
         self.states = dict.fromkeys(self.issues, "open")
         self.pulls = dict(pulls or {})
-        self.labels = set(labels)
         self.refuse = set(refuse)
         self.calls = []
 
@@ -192,42 +201,26 @@ class Tracker:
 
     def run(self, *args):
         self.calls.append(args)
-        if args[:3] == ("gh", "label", "list"):
-            return json.dumps([{"name": name} for name in sorted(self.labels)])
-        if args[:3] == ("gh", "label", "create"):
-            self.labels.add(args[3])
-            return ""
         raise AssertionError(f"unexpected command: {args}")
 
     def attempt(self, *args):
         """Stands in for the closer's `attempt`, which the close goes through
-        since #536 so a refusal cannot end the run. Every close succeeds here;
-        the refusing tracker is `RefusingTracker` below."""
+        since #536 so a refusal cannot end the run, and the label removal
+        since #1573. Every close succeeds here; the refusing tracker is
+        `RefusingTracker` below. The removal is refused for the issues
+        `refuse` names."""
         self.calls.append(args)
         if args[:3] == ("gh", "issue", "close"):
             self.states[int(args[3])] = "closed"
             return True, ""
+        if args[:3] == ("gh", "issue", "edit"):
+            number = int(args[3])
+            if number in self.refuse:
+                return False, "HTTP 502"
+            if LABEL in self.issues.get(number, []):
+                self.issues[number].remove(LABEL)
+            return True, ""
         raise AssertionError(f"unexpected command: {args}")
-
-    def edit(self, command, **kwargs):
-        """Stands in for `subprocess.run` on the label removal alone."""
-        self.calls.append(tuple(command))
-        number = int(command[3])
-
-        class Result:
-            pass
-
-        result = Result()
-        if number in self.refuse:
-            result.returncode, result.stderr = 1, "HTTP 502"
-            return result
-        if LABEL in self.issues.get(number, []):
-            self.issues[number].remove(LABEL)
-        result.returncode, result.stderr = 0, ""
-        return result
-
-    def writes(self):
-        return [a for a in self.calls if a[:3] != ("gh", "label", "list")]
 
 
 def wire_closer(monkeypatch, tracker, subjects):
@@ -236,7 +229,6 @@ def wire_closer(monkeypatch, tracker, subjects):
     monkeypatch.setattr(mod, "_issue_api", tracker.api)
     monkeypatch.setattr(mod, "run", tracker.run)
     monkeypatch.setattr(mod, "attempt", tracker.attempt)
-    monkeypatch.setattr(mod.subprocess, "run", tracker.edit)
     monkeypatch.setenv("AFTER", "aaa")
     monkeypatch.setenv("BEFORE", "bbb")
     monkeypatch.setenv("REPO", REPO)
@@ -320,20 +312,12 @@ class RefusingTracker:
                 return False, REST_REFUSAL
             self.states[number] = "closed"
             return True, ""
+        if args[:3] == ("gh", "issue", "edit"):
+            number = int(args[3])
+            if LABEL in self.issues.get(number, []):
+                self.issues[number].remove(LABEL)
+            return True, ""
         raise AssertionError(f"unexpected command: {args}")
-
-    def edit(self, command, **kwargs):
-        """Stands in for `subprocess.run` on the label removal alone."""
-        self.calls.append(tuple(command))
-        assert command[:3] == ["gh", "issue", "edit"], command
-        number = int(command[3])
-
-        class Result:
-            returncode, stderr = 0, ""
-
-        if LABEL in self.issues.get(number, []):
-            self.issues[number].remove(LABEL)
-        return Result()
 
     def closes(self):
         """`(number, route)` for every close attempted, in order."""
@@ -356,7 +340,6 @@ def wire(monkeypatch, tracker):
     # before the fix, where no `attempt` exists and every close goes through
     # `run` — rather than red on this line.
     monkeypatch.setattr(mod, "attempt", tracker.attempt, raising=False)
-    monkeypatch.setattr(mod.subprocess, "run", tracker.edit)
     monkeypatch.setenv("AFTER", "aaa")
     monkeypatch.setenv("BEFORE", "bbb")
     monkeypatch.setenv("REPO", REPO)
@@ -396,10 +379,10 @@ def _offline(monkeypatch, m, closed):
       `pull_request_body` and `issue_labels` all go through it. Cases that
       stub those three by name keep their own stubs; this catches whatever
       they did not name, now or later.
-    - `subprocess.run` is what `run` and `drop_label` reach for, and it
-      RAISES rather than returning a stub, so a future path that escapes
-      fails loudly and identically for everyone instead of passing for
-      whoever holds a token.
+    - `subprocess.run` is what `lib/gitcmd.py` reaches for under `run`,
+      `attempt` and `_issue_api`, and it RAISES rather than returning a
+      stub, so a future path that escapes fails loudly and identically for
+      everyone instead of passing for whoever holds a token.
     """
 
     def no_network(*args, **kwargs):
@@ -410,7 +393,7 @@ def _offline(monkeypatch, m, closed):
             "that on #500 and no local run could have"
         )
 
-    monkeypatch.setattr(m.subprocess, "run", no_network)
+    monkeypatch.setattr(m.gitcmd.subprocess, "run", no_network)
     # An issue that exists and carries no labels: consistent with the
     # `issue_state` stubs above it, and it leaves `spent` False, so no case
     # here changes what it asserts.
@@ -421,186 +404,102 @@ def _offline(monkeypatch, m, closed):
     monkeypatch.setattr(m, "attempt", lambda *a: closed.append(a) or (True, ""))
 
 
-class Test_keywords_in:
-    def test_accepts_only_a_keyword_before_a_number(self):
-        """The regexes, read rather than searched for.
-
-        The fenced `Closes #88` in `docs/releasing/branch-and-release.md` is the example a
-        person copies, so a pull request body quoting the document must not close
-        the issue the document names — and bodies here quote documents routinely.
-        """
-        m = _closer()
-        assert m.keywords_in("Closes #88") == ["88"]
-        assert m.keywords_in("Closes #88, closes #92") == ["88", "92"]
-        assert m.keywords_in("Part of #90") == []
-        assert m.keywords_in("see #90 and #92") == [], (
-            "a bare number with no keyword closes an issue"
-        )
-        assert m.keywords_in("```\nCloses #88\n```") == [], (
-            "a fenced example closes the issue it names"
-        )
-        assert m.keywords_in("see `Closes #54` in the doc") == [], (
-            "an inline code span closes the issue it names"
-        )
-        assert m.keywords_in("```\nCloses #1\n```\nCloses #88") == ["88"], (
-            "prose after a fence stopped being read"
-        )
-        assert m.MERGED_PR.search("feat: a thing (#100)").group(1) == "100"
-        assert m.MERGED_PR.search("fix: the (#61) thing was wrong") is None, (
-            "a number mid-subject is read as a merged pull request"
-        )
-
-    # #266: review round 1 of work item 1788844400 enumerated five well-formed
-    # shapes `FENCE` and `SPAN` did not mask, by construction rather than by
-    # reading. A closing keyword inside any of them was read as a claim, so a
-    # RELEASE closed the issue. Four are masked now, the HTML comment since
-    # #1181 measured GitHub's reading of it, and the four-space indented block
-    # is deliberately not; each shape has a case, so a later widening or
-    # narrowing is a red rather than a drift. The direction is stated at the
-    # patterns: masking more closes fewer, and an unclosed issue is visible and
-    # re-runnable where a wrong close is a false record on the tracker.
-
-    def test_refuses_a_keyword_inside_a_tilde_fence(self):
-        """`~~~` is a fence to CommonMark and to GitHub, and it was invisible here
-        because the pattern spelled backticks."""
-        m = _closer()
-        assert m.keywords_in("~~~\nCloses #1\n~~~\nCloses #4") == ["4"], (
-            "a keyword inside a tilde fence closes the issue it names"
-        )
-        # A fence closes on ITS delimiter. Read as any delimiter, this one ends
-        # at the backticks and the keyword after them is prose.
-        assert m.keywords_in("~~~\n```\nCloses #1\n~~~\nCloses #4") == ["4"], (
-            "a tilde fence was closed by a backtick line inside it"
-        )
-
-    def test_a_fence_indented_under_a_list_item_masks_a_keyword(self):
-        """A fence inside a list item is indented to the item's content, and the
-        pattern anchored the delimiter at column 0."""
-        m = _closer()
-        body = "- the example:\n  ```\n  Closes #2\n  ```\nCloses #4"
-        assert m.keywords_in(body) == ["4"], (
-            "a keyword inside a fence indented under a list item closes the issue"
-        )
-
-    def test_a_double_backtick_span_masks_a_keyword(self):
-        """A span opened with two backticks closes with two, and may hold a
-        single backtick inside. The one-backtick pattern read `` ``#150`` `` as
-        two EMPTY spans with the number in prose between them."""
-        m = _closer()
-        assert m.keywords_in("Closes ``#3``\nCloses #4") == ["4"], (
-            "a double-backtick span around the number leaves the keyword read"
-        )
-        assert m.keywords_in("see ``Closes #3`` there\nCloses #4") == ["4"], (
-            "a double-backtick span around the whole claim leaves it read"
-        )
-        # The inner backtick is UNPAIRED on purpose: with a pair, the one-backtick
-        # arm masks the claim anyway and the double form's reach is unmeasured.
-        assert m.keywords_in("see ``Closes #3 ` x`` and Closes #4") == ["4"], (
-            "a double-backtick span holding a single backtick is cut at the inner backtick"
-        )
-
-    def test_a_keyword_inside_an_html_comment_claims_nothing(self):
-        """#1181. Pull requests into `main` measured GitHub's reading of a
-        comment: a comment that closes hides its keyword wherever it stands
-        (#1402, #1403), and a `<!--` that never closes hides everything below
-        it where it begins a line (#1403, #1405). The fence, the comment and
-        the span are masked in one pass, and whichever opens first wins."""
-        m = _closer()
-        assert m.keywords_in("<!-- Closes #6 -->") == [], (
-            "a keyword inside a comment, the shape #1402 measured, closes the issue"
-        )
-        for body in (
-            "a note <!-- Closes #1 --> mid-line\nCloses #4",
-            "<!--\nCloses #1\nmore\n-->\nCloses #4",
-            "- an item\n  <!-- Closes #1 -->\nCloses #4",
-            "<!---->\nCloses #4",
-        ):
-            assert m.keywords_in(body) == ["4"], body
-        # The first to open wins. A `<!--` inside a span opens no comment, and
-        # a backtick inside a comment opens no span.
-        assert m.keywords_in("the `<!--` marker\nCloses #4\nthe `-->` end") == ["4"], (
-            "a comment opened inside a code span hid the claim after the span"
-        )
-        assert m.keywords_in("<!-- it's ` here --> Closes #4 and `x`") == ["4"], (
-            "a backtick inside a comment opened a span that hid the claim"
-        )
-        # A `<!--` that never closes, at a line start (#1403, #1405), and
-        # behind a list marker, where GitHub hides what follows past the
-        # list's end (#1408).
-        assert m.keywords_in("Closes #1401\nCloses #4\n<!-- Closes #32") == [
-            "1401",
-            "4",
-        ], "a keyword after an opener that begins its line and never closes"
-        assert m.keywords_in("Closes #1401\n<!--\nCloses #103") == ["1401"], (
-            "a keyword below an opener that begins its line and never closes"
-        )
-        assert m.keywords_in("- <!-- note\nCloses #4") == [], (
-            "a keyword below an opener behind a list marker that never closes"
-        )
-
-    @pytest.mark.parametrize(
-        ("body", "claimed"),
-        [
-            # Four spaces open an indented code block to CommonMark, and they
-            # are ALSO how this repository's pull request bodies continue a
-            # bullet's text onto the next line, so masking the shape would
-            # drop real claims, which is the wrong direction for a closer.
-            ("- a bullet whose text\n    Closes #5", ["5"]),
-            # A `<!--` that never closes, after other text on its line, is
-            # text to GitHub: #1404 held this body with no `-->` anywhere, and
-            # `closingIssuesReferences` named #1247 as well as the control.
-            ("Closes #1401\nsee the <!-- marker\nCloses #1247", ["1401", "1247"]),
-        ],
-    )
-    def test_accepts_a_shape_left_unmasked_as_a_claim(self, body, claimed):
-        """Deliberately unmasked, each for the reason above its row. Stated at
-        the pattern; this case turns a future widening into a decision."""
-        m = _closer()
-        assert m.keywords_in(body) == claimed
-
-
 class Test_run:
-    def test_accepts_a_call_that_succeeds_and_answers_what_it_printed(self):
-        """The real call, through this interpreter, which every CI leg has.
-        Every case of `Test_main` replaces `run`."""
+    def test_accepts_a_git_or_gh_call_and_answers_what_it_printed(
+        self, tmp_path, monkeypatch
+    ):
+        """The real calls: git in the directory the closer runs in, and the
+        suite's `gh` stub, which answers `pr view --json isDraft`. Every case
+        of `Test_main` replaces `run`."""
         mod = closer_module()
-        assert mod.run(sys.executable, "-c", "print('the labels')") == "the labels\n"
+        _three_commits(tmp_path, monkeypatch)
+        assert mod.run("git", "log", "-1", "--format=%s") == "feat: commit 3 (#3)\n"
+        monkeypatch.setenv("PATH", gh_answers(dict(os.environ), "ready")["PATH"])
+        assert mod.run("gh", "pr", "view", "--json", "isDraft") == '{"isDraft":false}\n'
 
-    def test_refuses_a_failed_call_by_exiting_and_naming_what_it_wrote(self):
-        """A read the rest of the run depends on stops the run when it fails,
-        and the exit carries the call's own error."""
+    def test_refuses_a_failed_call_by_exiting_in_the_runners_line(
+        self, tmp_path, monkeypatch
+    ):
+        """A read the rest of the run depends on stops the run when it fails
+        or gives no answer, and the exit is `lib/gitcmd.py`'s one line, which
+        names the command and git's own error (#1573). A program that is
+        neither git nor `gh` is no call of the closer's."""
         mod = closer_module()
-        failing = "import sys; sys.stderr.write('HTTP 502'); sys.exit(3)"
+        _three_commits(tmp_path, monkeypatch)
         with pytest.raises(SystemExit) as stopped:
-            mod.run(sys.executable, "-c", failing)
-        assert "HTTP 502" in str(stopped.value.code)
+            mod.run("git", "rev-parse", "--verify", "nowhere")
+        assert str(stopped.value.code).startswith(
+            "`git rev-parse --verify nowhere` exited 128: fatal: "
+        ), stopped.value.code
+        unanswered(monkeypatch, "pr", "view")
+        with pytest.raises(SystemExit) as stopped:
+            mod.run("gh", "pr", "view")
+        assert stopped.value.code == "`gh pr view` did not finish within 60 seconds"
+        with pytest.raises(ValueError):
+            mod.run(sys.executable, "-c", "print('the labels')")
 
 
 def _gh_answers(monkeypatch, mod, returncode, stdout="", stderr=""):
-    """`gh api` replaced by one answer, so `_issue_api` itself is what runs."""
+    """`gh api` replaced by one answer, so `_issue_api` itself is what runs.
+    Returns the argv of each run."""
 
     class Result:
         pass
 
     result = Result()
     result.returncode, result.stdout, result.stderr = returncode, stdout, stderr
-    monkeypatch.setattr(mod.subprocess, "run", lambda *a, **k: result)
+    asked = []
+
+    def run(argv, *_, **__):
+        asked.append(list(argv))
+        return result
+
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", run)
+    return asked
+
+
+# What `gh api -i` prints to stdout for an issue, in the shape
+# `tests/lib/test_gitcmd.py#Test_http_answer` reads.
+ISSUE_MISSING = 'HTTP/2.0 404 Not Found\nContent-Type: x\n\n{"message":"Not Found"}'
+ISSUE_FORBIDDEN = 'HTTP/2.0 403 Forbidden\nContent-Type: x\n\n{"message":"x"}'
+ISSUE_PRESENT = 'HTTP/2.0 200 OK\nContent-Type: x\n\n{"state": "open", "comments": 2}'
 
 
 class Test__issue_api:
-    def test_accepts_a_404_as_an_issue_that_does_not_exist(self, monkeypatch):
+    """`_issue_api` decides on the HTTP status `gh api -i` printed, read by
+    `lib/gitcmd.py#http_answer`, and never on the words of gh's stderr."""
+
+    @pytest.mark.parametrize(
+        "returncode, stdout, stderr, answer",
+        [
+            (1, ISSUE_MISSING, "gh: Not Found (HTTP 404)", (None, False)),
+            (0, ISSUE_PRESENT, "", ({"state": "open", "comments": 2}, True)),
+        ],
+        ids=["a-404", "a-200"],
+    )
+    def test_accepts_a_404_as_no_issue_and_a_2xx_as_its_body(
+        self, monkeypatch, returncode, stdout, stderr, answer
+    ):
         """A number that names nothing is input, from a `(#N)` typed in a
         subject or a typo in a body, and a release does not stop on it."""
         mod = closer_module()
-        _gh_answers(monkeypatch, mod, 1, stderr="gh: Not Found (HTTP 404)")
-        assert mod._issue_api(REPO, 9999) == (None, False)
+        asked = _gh_answers(monkeypatch, mod, returncode, stdout, stderr)
+        assert mod._issue_api(REPO, 9999) == answer
+        assert asked[0][1:] == ["api", "-i", f"repos/{REPO}/issues/9999"]
 
-    def test_refuses_any_other_failure_by_exiting(self, monkeypatch):
+    @pytest.mark.parametrize(
+        "stdout, stderr",
+        [(ISSUE_FORBIDDEN, "gh: Not Found (HTTP 403)"), ("", REST_REFUSAL)],
+        ids=["a-403-whose-stderr-says-not-found", "no-http-answer"],
+    )
+    def test_refuses_any_other_status_and_no_status_by_exiting(
+        self, monkeypatch, stdout, stderr
+    ):
         mod = closer_module()
-        _gh_answers(monkeypatch, mod, 1, stderr=REST_REFUSAL)
+        _gh_answers(monkeypatch, mod, 1, stdout, stderr)
         with pytest.raises(SystemExit) as stopped:
             mod._issue_api(REPO, 7)
-        assert REST_REFUSAL in str(stopped.value.code)
+        assert str(stopped.value.code) == f"gh api issues/7 failed: {stderr}"
 
 
 class Test_issue_state:
@@ -1140,7 +1039,8 @@ class Test_module:
     ):
         """Every case above fakes `attempt`, so a mutation making it report every
         write as refused left all of them green. This one drives the real
-        function against a fake `subprocess.run`, both ways round."""
+        function against a fake `subprocess.run` under `lib/gitcmd.py`, both
+        ways round."""
         mod = closer_module()
         outcomes = iter([(0, ""), (1, "HTTP 502: Bad Gateway\n")])
 
@@ -1149,12 +1049,23 @@ class Test_module:
                 self.returncode, self.stderr = returncode, stderr
 
         monkeypatch.setattr(
-            mod.subprocess, "run", lambda *a, **k: Result(*next(outcomes))
+            mod.gitcmd.subprocess, "run", lambda *a, **k: Result(*next(outcomes))
         )
         assert mod.attempt("gh", "issue", "close", "1") == (True, "")
         assert mod.attempt("gh", "issue", "close", "2") == (
             False,
             "HTTP 502: Bad Gateway",
+        )
+
+    def test_attempt_answers_a_write_that_gave_no_answer_as_refused(self, monkeypatch):
+        """A `gh` past `lib/gitcmd.py#TIMEOUT` is a write that did not happen,
+        and the error is the runner's line, so the close loop goes on to the
+        next issue and names it at the end (#1573)."""
+        mod = closer_module()
+        unanswered(monkeypatch, "issue", "close")
+        assert mod.attempt("gh", "issue", "close", "1") == (
+            False,
+            "`gh issue close 1` did not finish within 60 seconds",
         )
 
     def test_the_fallback_comments_through_the_api_and_not_through_issue_comment(self):
@@ -1219,9 +1130,9 @@ class Test_module:
         # them for exactly the reason the `edit` one did. The folded reader is
         # gone from this case entirely; there is one reader and it does not care
         # how the argv is laid out.
-        # The one `issue edit` is written as a list, `subprocess.run(["gh", …],
-        # …)`, and the close as call arguments, `attempt("gh", …)`; `argv_words`
-        # reads both shapes.
+        # The one `issue edit` and the close are both written as call
+        # arguments, `attempt("gh", …)`; `argv_words` reads that shape and the
+        # list one.
         argvs = argv_words(
             read_text(".github", "scripts", "close_issues_on_release.py")
         )

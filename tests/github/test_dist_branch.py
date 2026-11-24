@@ -19,8 +19,8 @@ the release's tag:
   D6  a tag the checkout cannot resolve, or no tag named, pushes nothing
       and exits non-zero
 
-What the archive of this repository holds, `.github/workflows/` left out
-among it, is held by the census's archive cases in
+What the archive of this repository holds, `.github/` left out among it,
+is held by the census's archive cases in
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 
 **Nothing here reaches GitHub.** Each case drives a real repository in
@@ -36,7 +36,9 @@ of the run's own.
 import importlib.util
 import os
 
+import pytest
 from conftest import ROOT, census_case, commit_everything, git, git_out, git_repo, write
+from test_settle import unanswered
 
 TARGET = ".github/scripts/dist_branch.py"
 
@@ -232,6 +234,22 @@ class Test_main:
         """D6."""
         repo, remote = released(tmp_path)
         assert wire(monkeypatch, repo, TAG="").main() == 2
+        assert tip_of(remote) == ""
+
+    def test_refuses_a_push_that_gave_no_answer_in_the_runners_line(
+        self, monkeypatch, tmp_path
+    ):
+        """#1573. A git past `lib/gitcmd.py#TIMEOUT` ends the run with the
+        runner's line naming the command, at exit 1, and pushes nothing."""
+        repo, remote = released(tmp_path)
+        mod = wire(monkeypatch, repo)
+        unanswered(monkeypatch, "push")
+        with pytest.raises(SystemExit) as stopped:
+            mod.main()
+        said = str(stopped.value.code)
+        assert said.startswith("`git push origin ") and said.endswith(
+            ":refs/heads/dist` did not finish within 60 seconds"
+        ), said
         assert tip_of(remote) == ""
 
 

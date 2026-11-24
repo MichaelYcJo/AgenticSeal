@@ -43,9 +43,10 @@ REPO = "example/repo"
 def signal():
     """The labelling script, imported so its readers can be monkeypatched.
 
-    Importing it also loads `close_issues_on_release.py`, which is the point:
-    a copy of those readers is exactly what this script exists not to have,
-    and a test that stubbed them out could not see one arrive.
+    Importing it also loads `close_issues_on_release.py` and `lib/closing.py`,
+    which is the point: a copy of those readers is exactly what this script
+    exists not to have, and a test that stubbed them out could not see one
+    arrive.
     """
     spec = importlib.util.spec_from_file_location(
         "agentic_label_merged_for_tests", SCRIPT
@@ -377,7 +378,7 @@ class Test_module:
         )
 
     def test_the_label_description_fits_the_trackers_cap_for_a_long_version(self):
-        """#515's class. This description goes to `gh label create` too, and the
+        """#515's class. This description goes to `gh label create`, and the
         tracker refuses one past its cap with a 422 — in the workflow that runs
         when a release branch moves, after the merge. The version is the only part
         that grows, so the case takes one far longer than any this repository will
@@ -418,7 +419,7 @@ class Test_module:
             "leave"
         )
 
-    def test_the_readers_come_from_the_closer_rather_than_a_second_copy(self):
+    def test_the_readers_come_from_lib_closing_rather_than_a_second_copy(self):
         """Two readers of the same pull request body drifted apart here before.
 
         `FENCE` and `SPAN` were widened once, for #266, and the comment above
@@ -427,11 +428,11 @@ class Test_module:
         author never read the comment.
         """
         source = read(SCRIPT)
-        assert "close_issues_on_release.py" in source, "the closer is not imported"
+        assert '"lib/closing.py"' in source, "the closing readers are not imported"
         for own in ("CLOSING = re.compile", "FENCE = re.compile", "SPAN = re.compile"):
             assert own not in source, f"the script wrote its own {own.split()[0]}"
         m = signal()
-        assert m.closer.keywords_in("see `Closes #54` in the doc") == [], (
+        assert m.closing.keywords_in("see `Closes #54` in the doc") == [], (
             "the imported reader is not the one that ignores a code span"
         )
 

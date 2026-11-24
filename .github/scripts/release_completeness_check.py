@@ -97,11 +97,12 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
 # The signal holds the name mapping — branch -> version -> milestone -> label
-# — and reaches the closer's readers through its own `closer`. Loading it
-# runs nothing: it defines constants and functions at module level and
-# guards its `main`.
+# — and reaches the closer's `run` through its own `closer`.
+# Loading it runs nothing: it defines constants and functions at module
+# level and guards its `main`.
 signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
+console = sibling.load("lib/console.py")
 
 
 # --- reads ----------------------------------------------------------------
@@ -131,7 +132,7 @@ def merge_base(base, head="HEAD"):
 
 
 def subjects_since(point, head="HEAD"):
-    out = closer.run(*closer.gitcmd.argv("log", "--format=%s", f"{point}..{head}"))
+    out = closer.run("git", "log", "--format=%s", f"{point}..{head}")
     # exempt from splitlines: git output
     return out.splitlines()
 
@@ -392,14 +393,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     sys.exit(main())

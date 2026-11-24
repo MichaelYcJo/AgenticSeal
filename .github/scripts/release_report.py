@@ -70,6 +70,7 @@ METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
 CONFIG = "lib/config.py"
 OPTIN = "lib/optin.py"
+GITCMD = "lib/gitcmd.py"
 LAUNCH = "lib/launch.py"
 # Beside these, each document of the policy root `FOLD`'s `documents` lists.
 DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md")
@@ -236,6 +237,7 @@ def documents(root):
     ]
     config = module(CONFIG)
     optin = module(OPTIN)
+    gitcmd = module(GITCMD)
     # The shared root's name, or `optin.HOME` where none is marked, so an
     # unmarked `seal/` is read under the name `seal`.
     home = os.path.join(root, optin.home_name(root) or optin.HOME)
@@ -250,7 +252,7 @@ def documents(root):
     out = {}
     for path in paths:
         if os.path.isfile(path):
-            out[os.path.relpath(path, root).replace(os.sep, "/")] = lf_bytes(path)
+            out[gitcmd.git_path(os.path.relpath(path, root))] = lf_bytes(path)
     return out
 
 

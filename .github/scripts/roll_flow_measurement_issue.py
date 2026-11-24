@@ -118,16 +118,16 @@ issue create` that fails after the mutation lands would, on retry, open a
 second issue -- the exactly-one-open invariant broken from the other side, by
 the script that exists to keep it. So a failed create is followed by
 `landed_create`'s lookup, and the ladder ends where that lookup finds the
-create landed. The last rung uses `run` rather than `try_run`, so a create
-that fails all the way down still exits loudly into the recovery message
-below.
+create landed. The last rung asks `lib/gitcmd.py#gh` with `check=True`
+rather than `try_run`, so a create that fails all the way down still exits
+loudly into the recovery message below.
 
 **The index label and the milestone are this repository's own names, and they
 belong here rather than in the skill.** `skills/verify/orchestration.md` ships to
 repositories that have neither, so it names `flow-measurement` and
-`flow-baseline` and stops there. `.github/` stays home
-(`tests/behaviour/test_the_release_check_watches_what_ships.py`), which is what lets
-this file name `measurement` and `log: measurement`.
+`flow-baseline` and stops there. `.github/` leaves `dist` whole by a line
+of `.gitattributes`, and no shipped file loads it, which is what lets this
+file name `measurement` and `log: measurement`.
 
 **The close and the open are not one transaction.** `main` closes the old
 issue first and only then opens the next one, so a `gh issue create` failure
@@ -146,19 +146,32 @@ by hand.
 
 Exit codes: 0 rolled, and 0 for a run where nothing was due -- the printed
 line is what tells those apart, because both leave the job green. Non-zero:
-the open-issue count was not exactly 1 (after the retry), a `gh` call failed,
-or the close succeeded and the open then failed (message names the closed
-issue and the recovery title).
+the open-issue count was not exactly 1 (after the retry), a `gh` call failed
+or gave no answer (`lib/gitcmd.py#Failed`'s one line), or the close
+succeeded and the open then failed (message names the closed issue and the
+recovery title).
+
+Every `gh` call starts through `lib/gitcmd.py#gh`, loaded at import through
+`lib/sibling.py` as the scripts beside this one load `lib/`. The label is
+`skills/verify/scripts/session_cost.py#ROLLING_LABEL`, loaded the same way.
 """
 
 import json
 import os
-import subprocess
 import sys
 import time
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-LABEL = "flow-measurement"
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from; it
+# loads every other module this script reads.
+sys.path.insert(0, os.path.join(ROOT, "lib"))
+import sibling  # noqa: E402
+
+gitcmd = sibling.load("lib/gitcmd.py")
+console = sibling.load("lib/console.py")
+# The rolling log's label, `seal cost --post`'s default: one label for the
+# script that posts a reading and the one that rolls the log it goes to.
+LABEL = sibling.load("skills/verify/scripts/session_cost.py").ROLLING_LABEL
 BASELINE_LABEL = "flow-baseline"
 INDEX_LABEL = "measurement"
 INDEX_MILESTONE = "log: measurement"
@@ -203,22 +216,20 @@ INDEX_NOTE = (
 )
 
 
-def run(*args):
-    out = subprocess.run(args, capture_output=True, encoding="utf-8")
-    if out.returncode:
-        sys.exit(f"{' '.join(args)} failed: {out.stderr.strip()}")
-    return out.stdout
-
-
 def try_run(*args):
-    """`run` without the exit -- `None` where the call failed.
+    """The standard output of `gh <args>`, or `None` where the call failed
+    or gave no answer -- `lib/gitcmd.py#gh` without the exit.
 
     For the parts of this script whose failure must not stop a release: the
     durable log's lookup, and the best-effort arguments to the create. None
     of them touches the exactly-one-open invariant, which is the thing worth
-    failing a release over.
+    failing a release over. Every other call asks `lib/gitcmd.py#gh` with
+    `check=True`, whose `Failed` ends the run in one line.
     """
-    out = subprocess.run(args, capture_output=True, encoding="utf-8")
+    try:
+        out = gitcmd.gh(*args)
+    except gitcmd.Failed:
+        return None
     return None if out.returncode else out.stdout
 
 
@@ -277,8 +288,7 @@ def read_version(root=ROOT):
 
 def list_open_issues(repo):
     """The open `flow-measurement` issues, right now, as `gh` reports them."""
-    out = run(
-        "gh",
+    out = gitcmd.gh(
         "issue",
         "list",
         "--repo",
@@ -289,8 +299,9 @@ def list_open_issues(repo):
         "open",
         "--json",
         "number,title,comments",
+        check=True,
     )
-    return json.loads(out)
+    return json.loads(out.stdout)
 
 
 def comment_count(issue):
@@ -348,8 +359,7 @@ def close_issue(repo, number, shipped, comments=None):
     empty is a false record.
     """
     empty = f" {empty_log_note(number)}" if comments == 0 else ""
-    run(
-        "gh",
+    gitcmd.gh(
         "issue",
         "close",
         str(number),
@@ -357,10 +367,11 @@ def close_issue(repo, number, shipped, comments=None):
         repo,
         "--comment",
         f"Closed by the release that just shipped {shipped}. The next "
-        f"flow-measurement issue opens as `{log_title(shipped)}` -- named "
+        f"{LABEL} issue opens as `{log_title(shipped)}` -- named "
         f"after the version this release shipped, and closed by whatever "
         f"ships after it. `docs/running/measuring-a-run.md`'s \"Where a reading "
         f'goes" section has the reasoning.{empty}',
+        check=True,
     )
 
 
@@ -383,7 +394,6 @@ def find_baseline_issue(repo):
     body carrying the only one.
     """
     out = try_run(
-        "gh",
         "issue",
         "list",
         "--repo",
@@ -432,8 +442,8 @@ def issue_body(shipped, closed_number, baseline_number, notes=(), comments=None)
 
 
 def create_args(repo, title, body, extras):
+    """The arguments of `gh issue create` for one rung of the ladder."""
     return (
-        "gh",
         "issue",
         "create",
         "--repo",
@@ -497,7 +507,7 @@ def open_issue(repo, shipped, closed_number, comments=None):
         (MILESTONE_NOTE, INDEX_NOTE, *baseline_notes),
         comments,
     )
-    run(*create_args(repo, title, body, ()))
+    gitcmd.gh(*create_args(repo, title, body, ()), check=True)
     return title
 
 
@@ -564,14 +574,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # A console that cannot encode what this prints kills it with stdout
-    # empty; `lib/console.py` owns the reasoning behind these lines.
-    for _name, _errors in (
-        ("stdin", "replace"),
-        ("stdout", "replace"),
-        ("stderr", "backslashreplace"),
-    ):
-        _stream = getattr(sys, _name, None)
-        if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    console.to_utf8()
     main()

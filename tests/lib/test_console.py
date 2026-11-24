@@ -74,4 +74,58 @@ class Test_annotate:
         assert console.annotate("notice", None, 1, "m") == line
 
 
+class Test_write_output:
+    """`write_output` came here from `.github/scripts/publish_release_note.py`
+    (#1573), so that `tag_release.py` reads it without loading the release
+    note's script."""
+
+    def test_accepts_a_pair_appended_to_the_file_the_runner_names(
+        self, monkeypatch, tmp_path
+    ):
+        out = tmp_path / "github_output"
+        out.write_text("tag=\n", encoding="utf-8")
+        monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+        console.write_output("created", "true")
+        assert out.read_text(encoding="utf-8") == "tag=\ncreated=true\n"
+
+    def test_refuses_to_write_without_a_file_or_to_raise_on_one_it_cannot_write(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """No `$GITHUB_OUTPUT`, as on a laptop: nothing is written. One that
+        cannot be written is printed and ignored, since the act it reports
+        on already happened."""
+        monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+        console.write_output("created", "true")
+        assert list(tmp_path.iterdir()) == []
+        monkeypatch.setenv("GITHUB_OUTPUT", str(tmp_path))
+        console.write_output("created", "true")
+        assert "could not write created=true to $GITHUB_OUTPUT: " in (
+            capsys.readouterr().out
+        )
+
+
+class Test_plural:
+    """`plural` came here from five scripts (#1575), each of which printed
+    `1 <word>` or `<count> <word>s`, and one of which also needed
+    `directories`."""
+
+    @pytest.mark.parametrize(
+        "count, word, many, said",
+        [
+            (1, "file", None, "1 file"),
+            (2, "file", None, "2 files"),
+            (0, "issue", None, "0 issues"),
+            (1, "directory", "directories", "1 directory"),
+            (3, "directory", "directories", "3 directories"),
+        ],
+    )
+    def test_accepts_one_as_the_word_and_any_other_count_as_its_plural(
+        self, count, word, many, said
+    ):
+        assert console.plural(count, word, many) == said
+
+    def test_refuses_to_add_an_s_to_a_plural_it_was_given(self):
+        assert console.plural(2, "director", "directories") == "2 directories"
+
+
 test_census = census_case(TARGET)

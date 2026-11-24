@@ -440,7 +440,7 @@ class Test_parse:
         assert reason in why, why
 
     @pytest.mark.parametrize(
-        "first", ["nothing — a reason.", "Nothing — a reason.", "- none"]
+        "first", ["nothing — a reason.", "Nothing — a reason.", "- Nothing"]
     )
     def test_a_line_that_opens_like_the_block_is_named_beside_its_refusal(self, first):
         """#1167, *Scope* item 9: a first line that opens like the no-change
