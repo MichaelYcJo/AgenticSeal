@@ -118,12 +118,16 @@ class Test_main:
         lines = paragraph()
         assert lines[0] in reason and lines[-1] in reason, reason
         assert ITEM + " on branch " + BRANCH in reason, reason
-        assert "counts as open while its branch is checked out" in reason, reason
-        ends = (
-            "checking out another branch in that worktree, or removing the "
-            "worktree, ends this refusal, and that work item's records take "
-            "nothing from this call"
+        opened = (
+            "A work item counts as open while its branch is checked out in a "
+            "worktree of this repository."
         )
+        ends = (
+            "Where its run has ended, checking out another branch in that "
+            "worktree, or removing the worktree, ends this refusal, and that "
+            "work item's records take nothing from this call."
+        )
+        assert opened in reason, reason
         assert ends in reason, reason
         assert '"Scope"' in reason, reason
 
