@@ -57,4 +57,4 @@ The spawn names no other open work item of `release/v0.38.8`, and the milestone 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-24 | The pull request's title takes `feat:`, not the `fix:` of the issue's title | The hook enforces a paragraph `docs/running/the-run.md` *The run* stated before the change, which alone would be `fix:`. The change also adds a rule no document stated, that a rule restricting what agents may do in a run comes only from this run's batch or a policy document, and a hook a user meets in every session of a repository that runs the process. Where a change does more than one kind, the highest row of the table decides | `skills/commit-pr-convention/SKILL.md`, the table under **A prefix is the writer's judgment of what the change does for whoever meets it after the merge** and the paragraph **Where a change does more than one of these** |
