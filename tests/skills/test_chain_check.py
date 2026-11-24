@@ -3889,9 +3889,20 @@ class Test_tracked_declarations:
         """#1603, design S6. The declarations HEAD carries are read by one
         `git cat-file --batch`, given the blob ids `ls-tree` lists, and by
         no `show`, and each reads as `read_record` reads it, the one with
-        `\\r\\n` line ends among them. Under `WORKTREE` each is read from
-        disk, and no batch starts. Seen red against phase 1's
-        `tracked_declarations`, which started one `show` per declaration."""
+        `\\r\\n` line ends among them. Where HEAD carries none, and under
+        `WORKTREE`, where each is read from disk, no batch starts. Seen red
+        against phase 1's `tracked_declarations`, which started one `show`
+        per declaration."""
+        root = str(repo)
+
+        def started():
+            found, asked = asks(
+                monkeypatch,
+                lambda: chain.tracked_declarations(root, routing_module, WORK),
+            )
+            return found, [argv[argv.index("-C") + 2] for argv, _given in asked]
+
+        assert started() == ([], ["ls-tree"])
         git(repo, "config", "core.autocrlf", "false")
         paths = [f"{WORK}/179900000{n}-item-{n}/routing.md" for n in (1, 2, 3)]
         texts = [
@@ -3902,15 +3913,6 @@ class Test_tracked_declarations:
             write(repo, path, text)
         (repo / paths[2]).write_bytes(texts[2].replace("\n", "\r\n").encode())
         commit_everything_as_e(repo, "three declarations")
-        root = str(repo)
-
-        def started():
-            found, asked = asks(
-                monkeypatch,
-                lambda: chain.tracked_declarations(root, routing_module, WORK),
-            )
-            return found, [argv[argv.index("-C") + 2] for argv, _given in asked]
-
         found, verbs = started()
         assert verbs == ["ls-tree", "cat-file"], verbs
         read = [(p, routing_module.parse(chain.read_record(root, p))) for p in paths]
