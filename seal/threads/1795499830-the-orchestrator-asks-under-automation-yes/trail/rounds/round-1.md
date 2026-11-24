@@ -34,6 +34,11 @@ The fix normalises the path where git hands it over. With that change, the case 
     ]
 ```
 
+```seal
+verdict: fixed 7a7febdb4
+answer: Applied the fix: `lib/routing.py#open_declarations` normalises each worktree path git prints, with a comment citing `optin.home_paths`. A new case, `Test_open_declarations::test_accepts_a_worktree_path_git_spells_otherwise_in_its_native_spelling`, wraps `gitcmd.git` so every `worktree` line ends in `/.`, which spells the path otherwise on every platform. It was seen red against the reader without `normpath` (executed: the mixed spelling at `tests/lib/test_routing.py:577`), and `seal mutate` dropping `normpath` turns it red again. The case at `tests/lib/test_routing.py:550` is unchanged and ran green on macOS alone; whether the Windows runner's temporary directory reaches git and Python in one long spelling is a new `gaps.md` row for the Windows legs on the pushed branch. `gaps.md`'s Windows row now says what the four Windows legs run and what stays unrun, the `py -3` half and a session, in `61025f3d4`.
+```
+
 ### 2. The refusal does not say what makes a work item open or what ends the refusal, so after a merge it sends a session to record its default in a finished work item
 
 ```seal
@@ -74,6 +79,12 @@ This is a defect in the reason's text, which the session acts on. It is not a ch
 ```
 
 The single-naming assertion holds the deduplication only where two worktrees hold the item. So the fix pass either adds a case that builds a linked worktree holding a copy, as `tests/lib/test_routing.py:573` builds one, or says why S1 is enough.
+
+```seal
+verdict: fixed 992ad7670
+location: `seal/threads/1795499830-the-orchestrator-asks-under-automation-yes/changelog.md`
+answer: Applied in my own placement: the reason's open-items part now says that a work item counts as open while its branch is checked out in a worktree of this repository, and that where its run has ended, checking out another branch in that worktree or removing the worktree ends the refusal and that item's records take nothing from the call. The next part sends the session to the `frame/questions.md` of the work item it runs. Each item is named once, deduplicated in `main` where the pairs are built rather than in `_reason`. S1 pins both sentences, the second whole in `94ece093e` after `seal mutate` dropping its first half survived the shorter pin. A new case, `test_refuses_naming_a_work_item_once_whatever_worktrees_hold_copies`, commits the declaration and adds a linked worktree on another branch, so two files name the item; it was seen red with the item named twice, and `seal mutate` dropping the dedupe turns it red again. The hook's docstrings and the changelog fragment say what the reason now holds, in `992ad7670` and `61025f3d4`.
+```
 
 ### 3. The first `## Rule changes` item's `to` repeats the passage `skills/implement/orchestration.md` keeps on the hook
 
@@ -118,6 +129,11 @@ The orchestrator asked whether the hook is now stated in more places than its on
     frame, or it goes into the code, and it is never deferred to the pull
     request body.
     check: tests/hooks/test_ask_under_automation.py
+```
+
+```seal
+verdict: fixed c35d7f384
+answer: The framer folded it, since the finding is located in a frame file (`frame/plan.md` *Judgments of the run*): the first item's `to` keeps the rule and the marker's form and cites `docs/running/what-a-script-gates.md` *The checks* for when the hook refuses, and the *The checks* row states the refusal. The fix pass changed no frame file. At HEAD the chain check prints no repeat notice at the item (executed: `chain_check.py --baseline 7c8f67103 --worktree`), a probe calling `parse` and `apply_op` of `skills/settle/scripts/rule_changes.py` on `frame/design.md` read no error and no unread line and placed all four items (executed, `test_tmp_rule_changes.py` in this pass's scratch, run once), and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` passed in the scoped run. On the sentence of `skills/implement/orchestration.md` *Orchestrator: how the work is routed* on what counts as open: it stays until the settle, because *The checks* has no row for the hook before the settle; once the settle writes that row, that sentence can cite it in place of restating the reading, which is the settle's diff to make.
 ```
 
 The fix pass runs `parse` and `apply_op` of `skills/settle/scripts/rule_changes.py` on the rewritten item, as `frame/design.md:49` records the framer did. It also runs `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, since the `to` now cites *The checks*, a section the third item adds a row to and does not create.
