@@ -31,7 +31,7 @@ The failure scenario of the chosen approach, six months on: someone adds a git w
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1, 2 and 3, with the cases of S1 to S5 | Each new case is shown red against `136cfca25` or with the guard it names removed, as `frame/design.md` S1 to S5 say, and the phase record names how. `frame/design.md` S7's `bin/test` line passes. The orchestrator runs S9's probe at the phase's commit and reads S9's count for phase 1, and runs S8's dispatch. | `1ecdde329` |
-| 2 | *Scope* items 4, 5 and 6, with the case of S6; the crafter writes `changelog.md` and moves the version in one commit | S6's case is shown red against phase 1's per-file reads. `Test_blobs` passes unchanged. S7's `bin/test` line passes. `git grep -n -E '^def decoded' -- lib skills` names `lib/gitcmd.py` alone. The orchestrator runs S9's probe and reads S9's count for phase 2, and runs S8's dispatch. S10 holds. | |
+| 2 | *Scope* items 4, 5 and 6, with the case of S6; the crafter writes `changelog.md` and moves the version in one commit | S6's case is shown red against phase 1's per-file reads. `Test_blobs` passes unchanged. S7's `bin/test` line passes. `git grep -n -E '^def decoded' -- lib skills` names `lib/gitcmd.py` alone. The orchestrator runs S9's probe and reads S9's count for phase 2, and runs S8's dispatch. S10 holds. | `4646cc303` |
 
 ## Overlap with the release
 
