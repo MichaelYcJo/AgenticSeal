@@ -2119,7 +2119,10 @@ def main(argv=None):
     global WORKTREE
     WORKTREE = args.worktree
     try:
-        return _checked(args)
+        # The run writes nothing, so git answers each read once in it, the
+        # body arm's and the rule-changes arm's among them.
+        with GITCMD.one_run():
+            return _checked(args)
     except GITCMD.Failed as unanswered:
         print(f"chain-check: {unanswered.line}", file=sys.stderr)
         return 2

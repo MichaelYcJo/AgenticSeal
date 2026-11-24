@@ -2080,7 +2080,10 @@ def main(argv=None):
     # reads below, so the run stops with the runner's one line at the code
     # of an unusable tree, whichever read it was.
     try:
-        return _settled(args)
+        # Every write of the run follows its last git read, so git answers
+        # each read once in it (`lib/gitcmd.py#one_run`).
+        with gitcmd.one_run():
+            return _settled(args)
     except gitcmd.Failed as unanswered:
         sys.stderr.write(f"settle: {unanswered.line}\n")
         return 2

@@ -16,6 +16,14 @@ caller passes `check=True`, because for some commands, such as `merge-base
 that does not catch it ends with that line on stderr at exit 1 and never
 in a traceback.
 
+**A run inside `one_run` asks git each question once.** Inside it, `git` answers a command the run already asked from the
+first answer. A command enters it for a run in which nothing the command
+writes changes what git answers it, so an answer given again is the answer
+git would give. `chain-check` writes nothing. `seal settle` writes the
+working tree under `--apply`, and the policy root under `--draft`, after
+its last git read. A git write inside a run, or a read after a write the
+run made, is answered as git answered before it. `gh` is asked every time.
+
 **This module is the one place that names which keys reshape what a script
 reads of git, and which subcommands they reshape.** A configuration can put
 text into the fields a script parses, take a commit's paths out of a
@@ -52,6 +60,7 @@ Standard library only, and Python 3.9 syntax: the `Stop` hook's
 whatever `python3` starts them.
 """
 
+import contextlib
 import os
 import re
 import shutil
@@ -198,21 +207,58 @@ def _start(command, found, check, encoding, **kwargs):
     return done
 
 
+# The answers of the run `one_run` holds open, each `git` asked in it keyed
+# by what it was asked, or None outside a run.
+_answers = None
+
+
+@contextlib.contextmanager
+def one_run():
+    """A run inside which `git` answers a command it already answered from
+    that first answer and starts no process. The answers are dropped when
+    the run ends, by return or by exception. Entered while a run stands,
+    it joins that run, whose answers outlive the inner one. Which runs may
+    enter it is the module docstring's."""
+    global _answers
+    if _answers is not None:
+        yield
+        return
+    _answers = {}
+    try:
+        yield
+    finally:
+        _answers = None
+
+
 def git(root, *args, given=None, binary=False, env=None, check=False):
     """The `subprocess.CompletedProcess` of `argv("-C", root, *args)`, with
     GIVEN on stdin, text as UTF-8 with undecodable bytes replaced or bytes
     where BINARY is true, and the variables of ENV added to this process's
     environment. `Unrun` where it gave no answer; the exit code is the
     caller's to read unless CHECK is true, where a non-zero one raises
-    `Exited`."""
-    return _start(
-        ["git", *args],
-        argv("-C", root, *args),
-        check,
-        None if binary else "utf-8",
-        input=given,
-        env={**os.environ, **env} if env else None,
-    )
+    `Exited`.
+
+    Inside `one_run`, a command asked with the same ROOT, ARGS, GIVEN,
+    BINARY and ENV as one the run already answered is answered from that
+    process, and CHECK is read on every ask. An `Unrun` is never kept, so
+    the next ask starts the command again."""
+    command = ["git", *args]
+    key = (root, args, given, binary, tuple(sorted(env.items())) if env else None)
+    done = _answers.get(key) if _answers is not None else None
+    if done is None:
+        done = _start(
+            command,
+            argv("-C", root, *args),
+            False,
+            None if binary else "utf-8",
+            input=given,
+            env={**os.environ, **env} if env else None,
+        )
+        if _answers is not None:
+            _answers[key] = done
+    if check and done.returncode:
+        raise Exited(command, done.returncode, done.stderr)
+    return done
 
 
 def gh(*args, root=None, check=False):

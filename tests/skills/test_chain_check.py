@@ -77,7 +77,7 @@ from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
 from conftest import seal_block as block
-from test_settle import past_the_bound, unanswered
+from test_settle import asks, past_the_bound, repeated, unanswered
 from test_unverified_check import (
     CANONICAL,
     CLOSED_ITEM,
@@ -4271,6 +4271,28 @@ class Test_main:
         code, out = check(root, capsys)
         assert code == 0, out
         assert MERGED_ITEM not in out
+
+    @pytest.mark.parametrize("world", ["branch", "bodied"])
+    def test_asks_git_each_read_once_in_a_run(
+        self, request, tmp_path, capsys, monkeypatch, world
+    ):
+        """#1603, design S1. On a ready pull request, every reader real,
+        a run starts no git command twice with the same input: over
+        `branch`, whose round records the records arm and `unread` each
+        read, and over `bodied` with the body `seal pr-body` wrote after
+        the seal in its payload, whose guarantee's target the guarantee arm
+        and the body arm each ask `follows` of. Seen red against
+        `chain_check.py` before #1603, where the round records' `show` and
+        the guarantee's `follows` reads repeat."""
+        if world == "branch":
+            root, _code = request.getfixturevalue("_branch_template")
+            event(tmp_path, monkeypatch, False)
+        else:
+            root, _early, late = request.getfixturevalue("_bodied_template")
+            payload(tmp_path, monkeypatch, late)
+        (code, out), asked = asks(monkeypatch, lambda: check(root, capsys))
+        assert code == 0, out
+        assert repeated(asked) == [], repeated(asked)
 
     @pytest.mark.parametrize(
         "words",
