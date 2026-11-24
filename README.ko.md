@@ -378,8 +378,9 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 
 훅은 모두 사용자의 코드나 경로, 프롬프트를 어디로도 보내지 않습니다.
 `SessionStart` 훅이 찍는 것과 `PreToolUse` 훅이 호출을 거절하며 내놓는 이유는
-세션이 연 파일처럼 그 세션의 컨텍스트에 들어갈 뿐입니다. 다음 부수 효과는 밝혀 둡니다. sealer 가 `sealed` 로 읽히는
-`guarantee.md` 에 한 번 돌리는 `seal stamp --guarantee` 는 도장에 들어갈 값을
+세션이 연 파일처럼 그 세션의 컨텍스트에 들어갈 뿐입니다. 다음 부수 효과는
+밝혀 둡니다. sealer 가 `sealed` 로 읽히는 `guarantee.md` 에 한 번 돌리는
+`seal stamp --guarantee` 는 도장에 들어갈 값을
 `<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
 `sealed` 는 어느 모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
