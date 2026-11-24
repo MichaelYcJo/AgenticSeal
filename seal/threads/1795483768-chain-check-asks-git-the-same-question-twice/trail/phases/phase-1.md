@@ -43,6 +43,8 @@ Each row is one `seal mutate` run over a committed file (executed). Rows 1 to 12
 
 One `bin/test ... -q` over 34 paths passed 4,468 cases and skipped 10, at `2d7e0767a` with this phase's records on disk (executed). The paths are `frame/design.md` S7's four modules, every other test file whose text names `gitcmd`, `chain_check`, `settle.py`, `settle.main`, `seal settle` or `pr_body` (`git grep -l -E` over `tests/*.py`, with `tests/conftest.py` left out), and `tests/text` and `tests/behaviour`. A test file that reaches `lib/gitcmd.py` only through another module is outside that list, and `gaps.md` names it. The run before the records were written failed one case, `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview`, on the `gaps.md` this phase writes.
 
+`1ecdde329` follows that run and changes two docstrings alone, `lib/gitcmd.py`'s module docstring and S5's case. `bin/test tests/lib/test_gitcmd.py tests/skills/test_settle.py tests/skills/test_chain_check.py -q -k "Test_one_run or test_asks_git_each_read_once_in_a_run or Test_git or census"` passed 57 cases at that commit, so both modules still import (executed).
+
 ### For phase 2
 
 `tests/skills/test_settle.py#asks` lists each git command a call starts, with its stdin, so S6's count of `cat-file --batch` and `show` processes can be read through it.
