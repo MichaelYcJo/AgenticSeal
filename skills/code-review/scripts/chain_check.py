@@ -1868,9 +1868,16 @@ def root_name(routing, root, fork):
 
 def tracked_declarations(root, routing, work_items):
     """(path, parsed) for every routing declaration git carries at HEAD
-    under WORK_ITEMS, the `/`-joined directory of the work items."""
+    under WORK_ITEMS, the `/`-joined directory of the work items.
+
+    The texts are read by one `git cat-file --batch` given the blob ids
+    `ls-tree` lists (`lib/gitcmd.py#batch_texts`), whatever their number,
+    and each reads as `read_record` reads it. A batch that exits non-zero,
+    or answers `missing` for a blob, reads as a `show` that exited non-zero
+    reads: an empty text, which `routing.parse` refuses. Under `WORKTREE`
+    each is read from disk through `read_record`."""
     out = git(root, "ls-tree", "-r", "-z", "HEAD", "--", f"{work_items}/")
-    found = []
+    listed = []
     for entry in (out or "").split("\0"):
         meta, _, path = entry.partition("\t")
         parts = meta.split()
@@ -1878,10 +1885,36 @@ def tracked_declarations(root, routing, work_items):
             continue
         if os.path.basename(path) != routing.FILENAME:
             continue
-        parsed = routing.parse(read_record(root, path) or "")
+        listed.append((path, parts[2]))
+    if WORKTREE:
+        texts = [read_record(root, path) for path, _blob in listed]
+    else:
+        texts = _blob_texts(root, [blob for _path, blob in listed])
+    found = []
+    for (path, _blob), text in zip(listed, texts):
+        parsed = routing.parse(text or "")
         if parsed:
             found.append((path, parsed))
     return found
+
+
+def _blob_texts(root, blobs):
+    """[text or None] for each of BLOBS, blob ids, in their order, read by
+    one `git cat-file --batch`, or by none where BLOBS is empty. None for
+    each where the batch exited non-zero, and for a blob it answered
+    otherwise than with its text."""
+    if not blobs:
+        return []
+    r = GITCMD.git(
+        root,
+        "cat-file",
+        "--batch",
+        given="".join(f"{b}\n" for b in blobs).encode(),
+        binary=True,
+    )
+    if r.returncode != 0:
+        return [None] * len(blobs)
+    return [text for text, _answer in GITCMD.batch_texts(r.stdout, blobs)]
 
 
 def declared_for_this_branch(root, routing, work_items):
@@ -2119,7 +2152,10 @@ def main(argv=None):
     global WORKTREE
     WORKTREE = args.worktree
     try:
-        return _checked(args)
+        # The run writes nothing, so git answers each read once in it, the
+        # body arm's and the rule-changes arm's among them.
+        with GITCMD.one_run():
+            return _checked(args)
     except GITCMD.Failed as unanswered:
         print(f"chain-check: {unanswered.line}", file=sys.stderr)
         return 2

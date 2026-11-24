@@ -356,6 +356,76 @@ class Test_git:
         )
 
 
+class Test_one_run:
+    """The accepting cases ask inside a run, the refusing ones outside one
+    or of a command that gave no answer."""
+
+    def test_accepts_one_process_for_a_command_asked_again_in_a_run(self, monkeypatch):
+        """#1603, design S2. Inside a run, a command asked again with the
+        same root, arguments, input, mode and environment starts no
+        process and returns the first answer; a change to any of them is
+        another command. A run entered inside it joins it, so its answers
+        stand after the inner one ends."""
+        calls = starts(monkeypatch, (0, "out\n", ""))
+        with gitcmd.one_run():
+            first = gitcmd.git("/r", "status")
+            with gitcmd.one_run():
+                assert gitcmd.git("/r", "status") is first
+            assert gitcmd.git("/r", "status") is first
+            gitcmd.git("/s", "status")
+            gitcmd.git("/r", "status", "-z")
+            gitcmd.git("/r", "status", given="x")
+            gitcmd.git("/r", "status", binary=True)
+            gitcmd.git("/r", "status", env={"A": "1"})
+            gitcmd.git("/r", "status", env={"A": "1"})
+        assert len(calls) == 6, calls
+
+    def test_accepts_a_new_answer_in_a_run_entered_after_one_ended(self, tmp_path):
+        """#1603, design S2. The answers die with their run, by return or
+        by exception, so a run entered after a commit reads the commit."""
+        repo = new_repo(tmp_path)
+        write(repo, "a.txt", "a\n")
+        first = commit(repo, "a")
+        with gitcmd.one_run():
+            assert gitcmd.git(str(repo), "rev-parse", "HEAD").stdout == f"{first}\n"
+        write(repo, "a.txt", "b\n")
+        second = commit(repo, "b")
+        with pytest.raises(KeyError), gitcmd.one_run():
+            assert gitcmd.git(str(repo), "rev-parse", "HEAD").stdout == f"{second}\n"
+            raise KeyError("the run ends by an exception")
+        write(repo, "a.txt", "c\n")
+        third = commit(repo, "c")
+        with gitcmd.one_run():
+            assert gitcmd.git(str(repo), "rev-parse", "HEAD").stdout == f"{third}\n"
+
+    def test_refuses_to_answer_again_outside_a_run(self, monkeypatch):
+        """#1603, design S3. Outside a run, each ask starts its command."""
+        calls = starts(monkeypatch, (0, "out\n", ""))
+        gitcmd.git("/r", "status")
+        gitcmd.git("/r", "status")
+        assert len(calls) == 2, calls
+
+    def test_refuses_to_keep_a_command_that_gave_no_answer(self, monkeypatch):
+        """#1603, design S4. Inside a run, a command that did not finish
+        raises `Unrun` on each ask and is started again, and a non-zero
+        exit is read against `check` on each ask, so an ask with `check`
+        after one without it raises `Exited`."""
+        calls = starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
+        with gitcmd.one_run():
+            for _ in range(2):
+                with pytest.raises(gitcmd.Unrun):
+                    gitcmd.git("/r", "status")
+        assert len(calls) == 2, calls
+        calls = starts(monkeypatch, (1, "", "fatal: no\n"))
+        with gitcmd.one_run():
+            assert gitcmd.git("/r", "status").returncode == 1
+            for _ in range(2):
+                with pytest.raises(gitcmd.Exited) as raised:
+                    gitcmd.git("/r", "status", check=True)
+                assert str(raised.value) == "`git status` exited 1: fatal: no"
+        assert len(calls) == 1, calls
+
+
 class Test_gh:
     def test_accepts_the_gh_on_path_in_the_directory_named(self, tmp_path, monkeypatch):
         """The `gh` `shutil.which` finds is started in `root`, and what it
