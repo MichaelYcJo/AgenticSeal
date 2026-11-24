@@ -603,6 +603,29 @@ class Test_open_declarations:
         monkeypatch.setenv("PATH", str(empty))
         assert routing.open_declarations(str(repo)) == []
 
+    def test_refuses_a_listing_from_a_git_that_exited_non_zero(
+        self, tmp_path, monkeypatch
+    ):
+        """A git that exits non-zero gave no answer, whatever it printed: a
+        stub `git` first on PATH prints a listing that would open the
+        declaration on the checked-out branch, and exits 1."""
+        if os.name == "nt":
+            pytest.skip("the stub `git` is a sh script, which Windows does not start")
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        declare_automation(repo / "seal", "yes", "feature/x")
+        stub = tmp_path / "stub"
+        stub.mkdir()
+        (stub / "git").write_text(
+            "#!/bin/sh\n"
+            f"printf 'worktree %s\\nbranch refs/heads/feature/x\\n' '{repo}'\n"
+            "exit 1\n",
+            encoding="utf-8",
+        )
+        (stub / "git").chmod(0o755)
+        monkeypatch.setenv("PATH", str(stub) + os.pathsep + os.environ["PATH"])
+        assert routing.open_declarations(str(repo)) == []
+
 
 class Test_read_declaration:
     """The one read of one `routing.md`, which `declarations` makes per
