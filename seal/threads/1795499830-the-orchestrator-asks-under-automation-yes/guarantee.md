@@ -69,3 +69,70 @@ records. The settle decides those rows with the memo's other open rows.
 target: 80d06b8f3 against 7c8f67103
 Verdict: sealed
 ```
+
+## Run at 3144b6dc3
+
+This audit read the tree at `3144b6dc3` against the base
+`release/v0.38.8`. `release/v0.38.8@{upstream}` still resolves to
+`7c8f67103` (executed: `git rev-parse --verify --quiet`).
+
+`trail/gate.md` names `02bb84db9 against 7c8f67103`, an ancestor of HEAD
+(executed: `git merge-base --is-ancestor`). Three commits follow it:
+`80d06b8f3` (`trail/gate.md`), `6080007cc` (`guarantee.md`) and
+`3144b6dc3` (`frame/plan.md`, `pr.md`). All three touch only this work
+item's directory (executed:
+`git log --no-merges --name-only 02bb84db9..HEAD ^7c8f67103`).
+`git diff --quiet 80d06b8f3 HEAD -- . ':!seal/threads/1795499830-the-orchestrator-asks-under-automation-yes'`
+exited 0 (executed). So the code, the tests and every document outside
+the records are the tree the run above audited. Its claim rows hold at HEAD
+without a re-run, and no `seen red` falls in this run's scope.
+
+`seal pr-body seal/threads/1795499830-the-orchestrator-asks-under-automation-yes --body <the body file> --check`
+exited 0 (executed). The issue was read again with
+`gh issue view 1608 --json title,body,comments,labels,milestone`. It is
+unchanged and has no comments. Its title opens with `fix:`, and its
+milestone is `release: 0.38.8` (executed). No `seal/parity.json` is
+tracked (executed, `git ls-files`), and `seal/config.json` names English
+for both language keys, so no parity comparison and no `pr.<lang>.md` are
+owed.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The orchestrator's first quote stands at its coordinate | `pr.md:1`; `frame/plan.md:60` | `git grep -n -E 'feat:\|fix:\|0\.39' HEAD -- seal/threads/1795499830-the-orchestrator-asks-under-automation-yes`, and `seal pr-body --check` | holds: the quoted text is the Judgment cell of `frame/plan.md:60` word for word, and `--check` exits 0 (executed). No record of the work item names `feat:` as the title's prefix or `0.39` as the release (executed) |
+| `.github/scripts/release_completeness_check.py` refuses a `feat:` in a patch | `frame/plan.md:60`, Grounds | `bin/test tests/github/test_release_completeness_check.py -q -p no:xdist -k "feat or patch"` | holds: 10 passed, exit 0, `test_refuses_a_feat_in_a_patch_and_names_each_subject_and_each_repair` among them (executed). The module docstring says a release whose version's third number is not 0 fails on a subject that opens with `feat:` (read) |
+| The row's sources stand: the `fix:` example and the release pull request's check | `frame/plan.md:60`, Judged against | `sed -n` of `skills/commit-pr-convention/SKILL.md:126-141` and `docs/releasing/release-checklist.md:130-176` | holds: `skills/commit-pr-convention/SKILL.md:132` gives `fix:` the example "a check that let through what its rule refused", and `docs/releasing/release-checklist.md` *The release pull request* names "a patch carrying a `feat:`" as a failure of that check (read) |
+| The release stays the patch 0.38.8 | `frame/plan.md:60`, Judgment | `git show HEAD:.claude-plugin/plugin.json`; the issue's milestone above | holds: `"version": "0.38.8"` at line 4, and the milestone `release: 0.38.8` (executed) |
+| The title's prefix reaches the release branch only through the squash | `docs/releasing/branch-and-release.md:217`; `.github/scripts/release_completeness_check.py`, the docstring's D | `git log --format=%s 7c8f67103..HEAD` | holds: the branch carries one `feat:` subject, `40154efea`. A feature branch is squashed into `release/vX.Y.Z` (read, `docs/releasing/branch-and-release.md:217`), so the check reads the pull request's title and not that subject (executed, read) |
+| The repository owner chose `fix:` and 0.38.8 over `feat:` and 0.39.0 on 2026-11-24 | `frame/plan.md:60`, Grounds | not re-run | unverified. The choice stands in the orchestrator's session and in no file or issue comment this audit can open. The repository owner answers it when the pull request is retitled. The issue's `fix:` title and the 0.38.8 milestone agree with it (executed, above) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| The design | Unchanged since `80d06b8f3` | the run above (`git diff --name-only 80d06b8f3 HEAD` lists no file of `frame/design.md`, executed) | none |
+| The build | Unchanged since `80d06b8f3` | the run above; `git diff --quiet` outside the work item's directory exits 0 (executed) | none |
+| The last round | Round 3 at `7a56bbc2d` opens no finding | the run above. The only commit after the last seal changes two records and closes no finding, so no round owes it a reading and no fix stands unread (executed, `git show --stat 3144b6dc3`) | none |
+| The changelog | Unchanged since `80d06b8f3`. It keeps an *Added* item for the hook and moves the version to 0.38.8 | `.claude-plugin/plugin.json:4` (executed). Neither the *Added* heading nor the release notes are tied to the title's prefix in any file this audit read | none |
+| The orchestrator's part of the pull request body | The first quote now reads that the title takes `fix:` and the release stays the patch 0.38.8. Quotes 2 and 3 and `Closes #1608.` are unchanged | `frame/plan.md:60` word for word; `seal pr-body --check` exit 0; the issue's title prefix and milestone; the plugin's version (executed). `frame/plan.md:60`'s grounds cite the convention table and the release check, and both stand as cited (read, executed above) | none |
+
+Read, and not a reason to withhold:
+
+- The prefix is a judgment of the orchestrator and the owner, and this
+  audit does not judge it again. `frame/plan.md:60` reads the hook as the
+  table's `fix:` example. The passage on where a rule restricting agents
+  may come from states a rule #1608 says no document stated before, which
+  the earlier row read as `feat:`. The issue's own title is `fix:`, and the
+  owner's choice settles which reading the title takes.
+- Pull request #1609 is open into `release/v0.38.8`, and its title opens
+  with `feat:`. Its head is `6080007cc`, not `3144b6dc3` (executed,
+  `gh pr view 1609 --json title,state,baseRefName,headRefOid`). The title
+  becomes the squash subject the release check reads. The orchestrator owns
+  the retitle to `fix:` and the push of `3144b6dc3`, and the release pull
+  request's check refuses a `feat:` subject if the retitle does not happen.
+
+```seal
+target: 3144b6dc3 against 7c8f67103
+Verdict: sealed
+```
