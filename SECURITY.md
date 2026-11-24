@@ -20,12 +20,14 @@ a reader should keep separate:
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
   (`seal fold`, `seal unverified`, `seal pact` and the rest), which read a
   repository's records and the files those records name.
-- **The plugin's two hooks** — the scripts that run without anybody
-  asking: the stamp's `Stop` hook at the end of each turn, and the
+- **The plugin's hooks** — the scripts that run without anybody
+  asking: the stamp's `Stop` hook at the end of each turn, the
   `SessionStart` hook, which prints the core at a session's start where its
-  repository holds a `seal/` root. `hooks/hooks.json` registers both. A
-  defect in either is worth more than the same defect in a checker, because
-  nobody chose to run it at that moment.
+  repository holds a `seal/` root, and the `PreToolUse` hook, which reads
+  the work items open in the session's repository before each
+  `AskUserQuestion` call and may refuse that call. `hooks/hooks.json`
+  registers each of them. A defect in any of them is worth more than the
+  same defect in a checker, because nobody chose to run it at that moment.
 
 The records are committed files, so writing one normally requires write
 access to the repository, and in an ordinary project a malicious record crosses

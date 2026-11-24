@@ -4,9 +4,11 @@ agent definitions, of `CONTRIBUTING.md` and of `docs/running/the-run.md`,
 and the work item directories under `seal/threads/`.
 
 The module is named for the plugin's hooks, which #1376 removed and #1430
-brought back as two. What the stamp's `Stop` command draws is held in
-`tests/skills/test_seal_stamp.py`, and what the `SessionStart` command
-prints in `tests/hooks/test_core_start.py`.
+brought back; #1608 added the `PreToolUse` hook. What the stamp's `Stop`
+command draws is held in `tests/skills/test_seal_stamp.py`, what the
+`SessionStart` command prints in `tests/hooks/test_core_start.py`, and what
+the `PreToolUse` command refuses in
+`tests/hooks/test_ask_under_automation.py`.
 """
 
 import json
@@ -23,39 +25,51 @@ from conftest import ROOT, git_listing, shell_probe
 
 # --- packaging sanity ------------------------------------------------------
 
-# The two entries `hooks/hooks.json` registers, each event's matcher (None
-# for an entry with none), and the files `hooks/` holds.
-HOOK_ENTRIES = {"Stop": None, "SessionStart": "startup|clear|compact"}
-HOOK_FILES = ["hooks/core-start.py", "hooks/hooks.json"]
+# The entries `hooks/hooks.json` registers, each event's matcher (None for
+# an entry with none), and the files `hooks/` holds.
+HOOK_ENTRIES = {
+    "Stop": None,
+    "SessionStart": "startup|clear|compact",
+    "PreToolUse": "AskUserQuestion",
+}
+HOOK_FILES = [
+    "hooks/ask-under-automation.py",
+    "hooks/core-start.py",
+    "hooks/hooks.json",
+]
 PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
 
 
-def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
-    """#1430 *Scope* items 1 and 4. The plugin ships two command hooks and
-    no dispatcher: a `Stop` entry with no matcher that runs
-    `seal_stamp.py --stop`, and a `SessionStart` entry matched to
-    `startup|clear|compact` that runs `hooks/core-start.py`. Each holds one
-    command hook, three parts joined by ` || `: `python3` then `py -3`,
-    naming one tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same
-    arguments, then `exit 0`, so the command exits 0 whatever its halves
-    did. The harness reads `hooks/hooks.json` at the plugin's root, and
-    `hooks/` holds those two files and nothing else. Nothing writes into a
+def test_the_plugin_registers_its_hooks_and_writes_none_into_git():
+    """#1430 *Scope* items 1 and 4, and #1608 S8. The plugin ships command
+    hooks and no dispatcher: a `Stop` entry with no matcher that runs
+    `seal_stamp.py --stop`, a `SessionStart` entry matched to
+    `startup|clear|compact` that runs `hooks/core-start.py`, and a
+    `PreToolUse` entry matched to `AskUserQuestion` that runs
+    `hooks/ask-under-automation.py`. Each holds one command hook, three
+    parts joined by ` || `: `python3` then `py -3`, naming one tracked
+    script under `${CLAUDE_PLUGIN_ROOT}` with the same arguments, then
+    `exit 0`, so the command exits 0 whatever its halves did. The harness reads `hooks/hooks.json` at the plugin's root, and
+    `hooks/` holds those files and nothing else. Nothing writes into a
     clone's git hooks (`docs/checks/the-routing-check.md`).
 
     The plugin directory refuses a plugin that registers a command hook
-    (#1376), and the owner chose on 2026-11-08 to ship these two until a
-    listing is possible. When the directory lists the plugin with its hooks,
-    or lists it on condition they go, the removal undoes: `hooks/hooks.json`,
-    `hooks/core-start.py`, `lib/core.py`, `tests/hooks/test_core_start.py`,
-    `tests/lib/test_core.py`, this case, `hooks` in the hygiene step's
-    pattern and the roots sentence of
+    (#1376), and the owner chose on 2026-11-08 to ship such hooks until a
+    listing is possible (#1430), and filed #1608 for the `PreToolUse` one.
+    When the directory lists the plugin with its hooks, or lists it on
+    condition they go, the removal undoes: `hooks/hooks.json`,
+    `hooks/core-start.py`, `hooks/ask-under-automation.py`, `lib/core.py`,
+    `lib/routing.py#open_declarations`, `tests/hooks/test_core_start.py`,
+    `tests/hooks/test_ask_under_automation.py`, `tests/lib/test_core.py`,
+    `Test_open_declarations` in `tests/lib/test_routing.py`, this case,
+    `hooks` in the hygiene step's pattern and the roots sentence of
     `docs/releasing/branch-and-release.md` *Cutting a release*, `ruff.toml`'s
     `hooks/*.py` line and the start of
     `tests/behaviour/test_every_entry_point_runs_at_the_floor.py`'s floor
     derivation, `skills/verify/scripts/payload_meter.py#HOOK_ROW`, and the
     sentences this command lists:
 
-        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from"
+        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from\\|PreToolUse\\|ask-under-automation"
 
     and it gives the core and the stamp new carriers, which that work's frame
     decides."""
@@ -426,9 +440,10 @@ def network_passage(path, said):
 
 
 def test_the_places_that_reach_the_network_are_named():
-    """#1055 S4 and #1382. Since #1430 the plugin ships two hooks, the
-    stamp's `Stop` hook and the `SessionStart` hook that prints the core,
-    and neither reaches a network. Each README edition's passage, from the
+    """#1055 S4 and #1382. Since #1430 the plugin ships hooks, the stamp's
+    `Stop` hook and the `SessionStart` hook that prints the core, and since
+    #1608 the `PreToolUse` hook that reads the open work items before a
+    question, and none reaches a network. Each README edition's passage, from the
     sentence that says so to the next heading, names every place in
     `NETWORK_PLACES`, and `CONTRIBUTING.md` points at the passage."""
     from conftest import flat
@@ -436,8 +451,8 @@ def test_the_places_that_reach_the_network_are_named():
     for path, said in (
         # The sentence each edition's passage opens at, which only locates
         # the passage the places are read in.
-        ("README.md", "Neither hook reaches a network."),
-        ("README.ko.md", "두 훅 모두 네트워크를 타지 않습니다."),
+        ("README.md", "No hook reaches a network."),
+        ("README.ko.md", "훅은 모두 네트워크를 타지 않습니다."),
     ):
         passage = network_passage(path, said)
         for place in NETWORK_PLACES:

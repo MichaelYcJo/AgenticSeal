@@ -482,21 +482,25 @@ question is not its difficulty, it is when it arrives.
   `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every
   tracked `X.ko.md` beside an `X.md`, wherever it stands, the READMEs among
   them, and requires the same sequence of heading levels.
-- **The plugin ships two hooks, and neither writes outside the
-  repository.** `hooks/hooks.json` registers a `Stop` entry that runs
+- **The plugin's hooks write nothing outside the repository.**
+  `hooks/hooks.json` registers a `Stop` entry that runs
   `skills/verify/scripts/seal_stamp.py --stop`, which draws the sealer's
-  stamp at the end of the main session's turn, and a `SessionStart` entry
+  stamp at the end of the main session's turn, a `SessionStart` entry
   that runs `hooks/core-start.py`, which prints the core into a session
-  whose repository holds a `seal/` root. The plugin directory refuses a
-  plugin that registers a command hook (#1376), and the owner chose on
-  2026-11-08 to ship these two until a listing is possible (#1430). Each
+  whose repository holds a `seal/` root, and a `PreToolUse` entry matched
+  to `AskUserQuestion` that runs `hooks/ask-under-automation.py`, which
+  refuses a question while an open work item reads `Automation` `yes` and
+  the question does not state why its default cannot be taken. The plugin
+  directory refuses a plugin that registers a command hook (#1376), and the
+  owner chose on 2026-11-08 to ship such hooks until a listing is possible
+  (#1430), and filed #1608 for the `PreToolUse` one. Each
   command is `python3 <script> || py -3 <script> || exit 0`, with the
   script named under `${CLAUDE_PLUGIN_ROOT}`: shebangs and exec bits do not
   exist on Windows, and `python3` is the one name its official installer
   does not create. The `py -3` half runs where the `python3` half exits
   non-zero, and the closing `exit 0` makes the command exit 0 whatever
-  happens, so neither hook returns the exit 2 that keeps a turn going.
-  Neither reaches a
+  happens, so no hook returns the exit 2 that keeps a turn going or
+  blocks a call. None reaches a
   network; `README.md` *What runs on your machine* names the commands and
   steps that do, what each reaches, what it sends and when. Anything that
   would send repository contents, paths, or prompts is not on the table.

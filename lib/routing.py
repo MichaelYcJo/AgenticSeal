@@ -100,8 +100,11 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 # `no` is not "a person did it by hand". It is "this run may stop to ask", which
 # is the half a label cannot say and the half a reader gets wrong.
 #
-# No script decides anything on it: it is a record the orchestrator reads
-# (`docs/running/the-run.md` *The run*).
+# The pull request's check decides nothing on it: it is a record the
+# orchestrator reads (`docs/running/the-run.md` *The run*). The plugin's
+# `PreToolUse` hook, `hooks/ask-under-automation.py`, reads a `yes` alone,
+# through `open_declarations`, and refuses an `AskUserQuestion` call while
+# one stands.
 AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
@@ -202,8 +205,10 @@ def parse(text):
     and spawned `crafter` to build it -- so neither may stand in for the other.
 
     `Automation` is the fifth row and it is read on the same looser terms, for
-    the same reason one step further along: no script decides anything on it,
-    and an absent or unreadable row reads as never asked. A required row would
+    the same reason one step further along: the pull request's check decides
+    nothing on it, and the plugin's `PreToolUse` hook reads a `yes` alone, so
+    an absent or unreadable row reads as never asked and that hook lets the
+    session's question through. A required row would
     turn every declaration committed without it into "not a declaration",
     and the pull request's check would read every branch that already
     answered as undeclared.
@@ -344,6 +349,61 @@ def item_dir(root, branch):
         return ""
     matching = [path for path, d in declarations(root) if d["branch"] == branch]
     return os.path.dirname(matching[0]) if len(matching) == 1 else ""
+
+
+# The two lines of `git worktree list --porcelain` `open_declarations`
+# reads: the one that opens each worktree's entry with its path, and the
+# one that names the branch it has checked out. A bare or detached entry has
+# no `branch` line.
+WORKTREE_LINE = "worktree "
+BRANCH_LINE = "branch refs/heads/"
+
+
+def open_declarations(cwd):
+    """The declarations of the work items open in the repository CWD stands
+    in, as `declarations` gives them: (path, parsed) pairs.
+
+    **Open means that the branch a declaration names is checked out in a
+    worktree of that repository**, any of the worktrees `git worktree list
+    --porcelain` lists, and not only CWD's. A work item's directory outlives
+    its run until the settle after its release, so the directory's presence
+    says nothing about whether its run goes on: every released item of this
+    repository reads `Automation` `yes`, and a reader that took them as open
+    would answer for a run nobody is making. A worktree left on a merged
+    branch keeps its item open, which is the cost of reading git rather than
+    a guess.
+
+    The declarations are read under the root `optin.home_at` finds for each
+    listed worktree, and each `routing.md` counts once, by its real path: in
+    local mode every worktree answers the one root under the common git
+    directory. `[]` where CWD is empty, where git does not start or does not
+    finish (`gitcmd.Failed`, a `SystemExit` a bare `except Exception` does
+    not catch), exits non-zero, or lists no worktree.
+    `hooks/ask-under-automation.py` reads it.
+    """
+    if not cwd:
+        return []
+    try:
+        done = gitcmd.git(cwd, "worktree", "list", "--porcelain")
+    except gitcmd.Failed:
+        return []
+    if done.returncode:
+        return []
+    lines = done.stdout.split("\n")
+    trees = [
+        line[len(WORKTREE_LINE) :] for line in lines if line.startswith(WORKTREE_LINE)
+    ]
+    checked_out = {
+        line[len(BRANCH_LINE) :] for line in lines if line.startswith(BRANCH_LINE)
+    }
+    out, seen = [], set()
+    for tree in trees:
+        for path, parsed in declarations(tree):
+            real = os.path.realpath(path)
+            if parsed["branch"] in checked_out and real not in seen:
+                seen.add(real)
+                out.append((path, parsed))
+    return out
 
 
 ROUND_RE = re.compile(r"round-(\d+)\.md")

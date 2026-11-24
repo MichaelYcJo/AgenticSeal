@@ -27,9 +27,12 @@ from block_shapes import BREAKS, RENDERER, SHAPES
 from conftest import (
     ROOT,
     census_case,
+    declare_automation,
     git,
     git_repo,
+    linked_worktree,
     load_lib_module,
+    local_home,
     names_path,
     opted_in_repo,
     symlink_or_skip,
@@ -528,6 +531,77 @@ class Test_declarations:
         (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
         monkeypatch.chdir(here)
         assert routing.declarations(str(repo)) == []
+
+
+class Test_open_declarations:
+    """#1608. A declaration is open where the branch it names is checked out
+    in a worktree of the repository `cwd` stands in, which
+    `hooks/ask-under-automation.py` reads. The pairs differ by the tree the
+    fixture builds: which branches are checked out where, and which root
+    holds the declaration."""
+
+    def test_accepts_a_declaration_on_the_branch_checked_out(self, tmp_path):
+        """S5's first tree: one `routing.md` on the checked-out branch is
+        answered whatever its `Automation` row reads, here `no`."""
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        path = declare_automation(repo / "seal", "no", "feature/x")
+        found = routing.open_declarations(str(repo))
+        assert [(p, d["automation"]) for p, d in found] == [(str(path), "no")]
+
+    def test_refuses_a_branch_no_worktree_has_checked_out(self, tmp_path):
+        """S5. A work item's directory outlives its run, so a declaration
+        whose branch no worktree has checked out is not open, whatever its
+        `Automation` row reads."""
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        declare_automation(repo / "seal", "yes", "feature/released")
+        assert routing.open_declarations(str(repo)) == []
+
+    def test_refuses_a_repository_with_no_root_and_a_directory_outside_git(
+        self, tmp_path
+    ):
+        """S5's last two trees: no root, and no repository, answer `[]`,
+        and so does an empty `cwd`, which names no repository."""
+        repo = git_repo(tmp_path / "plain")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        for cwd in (str(repo), str(outside), ""):
+            assert routing.open_declarations(cwd) == [], cwd
+
+    def test_accepts_a_linked_worktrees_declaration_once_in_shared_mode(
+        self, repo, tmp_path
+    ):
+        """S6. The session sits in the main checkout, on a branch no
+        declaration names, and the work item's declaration stands in the
+        root of a linked worktree on `feature/x`: it is open, once."""
+        other = linked_worktree(repo, tmp_path)
+        path = declare_automation(other / "seal", "yes", "feature/x")
+        found = routing.open_declarations(str(repo))
+        assert [os.path.realpath(p) for p, _ in found] == [os.path.realpath(path)]
+
+    def test_accepts_a_local_roots_declaration_once_from_two_worktrees(
+        self, repo, tmp_path
+    ):
+        """S6 in local mode. Both worktrees answer the one root under the
+        common git directory, so its `routing.md` is read twice and counted
+        once, by its real path."""
+        linked_worktree(repo, tmp_path)
+        path = declare_automation(local_home(repo), "yes", "feature/x")
+        found = routing.open_declarations(str(repo))
+        assert [os.path.realpath(p) for p, _ in found] == [os.path.realpath(path)]
+
+    def test_refuses_to_raise_where_git_is_not_on_path(self, tmp_path, monkeypatch):
+        """S7. A git that does not start raises `lib/gitcmd.py#Failed`, a
+        `SystemExit`, and `open_declarations` answers `[]` in its place."""
+        repo = git_repo(tmp_path / "repo")
+        git(repo, "checkout", "-q", "-b", "feature/x")
+        declare_automation(repo / "seal", "yes", "feature/x")
+        empty = tmp_path / "no-git"
+        empty.mkdir()
+        monkeypatch.setenv("PATH", str(empty))
+        assert routing.open_declarations(str(repo)) == []
 
 
 class Test_read_declaration:
