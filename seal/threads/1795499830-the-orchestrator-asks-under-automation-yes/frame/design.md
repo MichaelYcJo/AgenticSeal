@@ -133,13 +133,10 @@ Out of scope:
     owner can decide, and only where proceeding on a default would be costly to undo or
     would reach outside the repository. Each question of such a call states why
     its default cannot be taken, in its text, after the marker
-    `hooks/ask-under-automation.py#MARKER` holds. The plugin's `PreToolUse`
-    hook, `hooks/ask-under-automation.py`, refuses an `AskUserQuestion` call
-    while the `routing.md` of a work item whose branch is checked out in a
-    worktree of the repository reads `Automation` `yes`, and lets the call
-    through where every question of it states why. Whether the question is
-    the owner's is not the hook's to judge: the person reads the reason in
-    the question. A question or a remark the owner raises
+    `hooks/ask-under-automation.py#MARKER` holds, followed on the same line by
+    the reason. The plugin's `PreToolUse` hook refuses an `AskUserQuestion`
+    call whose questions do not, as `docs/running/what-a-script-gates.md`
+    *The checks* states. A question or a remark the owner raises
     during the run is taken up when it arrives: the framer folds it into the
     frame, or it goes into the code, and it is never deferred to the pull
     request body.
@@ -147,7 +144,7 @@ Out of scope:
 - add
   file: docs/running/what-a-script-gates.md
   section: The checks
-  to: | the `PreToolUse` hook (`hooks/ask-under-automation.py`) | each `AskUserQuestion` call of a session | the `Automation` row of each `routing.md` through `lib/routing.py`, under the root of each worktree `git worktree list --porcelain` lists, where the row's `Branch` is checked out in one of them; the text of each question of the call, for `hooks/ask-under-automation.py#MARKER` | lets the call through, printing nothing, where the payload, the question list, git or a root cannot be read; names a question holding the marker with its case changed as not read and refuses the call; reads no other spelling | whether a question is one only the owner can decide: the orchestrator writing the reason, and the person reading it |
+  to: | the `PreToolUse` hook (`hooks/ask-under-automation.py`) | each `AskUserQuestion` call of a session | the `Automation` row of each `routing.md` through `lib/routing.py`, under the root of each worktree `git worktree list --porcelain` lists, where the row's `Branch` is checked out in one of them; and, where one of those rows reads `yes`, the text of each question of the call, for `hooks/ask-under-automation.py#MARKER` followed on the same line by a reason, refusing the call where a question lacks it | lets the call through, printing nothing, where the payload, the question list, git or a root cannot be read; names a question holding the marker with its case changed as not read and refuses the call; reads no other spelling | whether a question is one only the owner can decide: the orchestrator writing the reason, and the person reading it |
 - change
   file: docs/running/measuring-a-run.md
   section: Where a reading goes
