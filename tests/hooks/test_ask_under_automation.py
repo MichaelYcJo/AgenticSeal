@@ -119,7 +119,12 @@ class Test_main:
         assert lines[0] in reason and lines[-1] in reason, reason
         assert ITEM + " on branch " + BRANCH in reason, reason
         assert "counts as open while its branch is checked out" in reason, reason
-        assert "removing the worktree, ends this refusal" in reason, reason
+        ends = (
+            "checking out another branch in that worktree, or removing the "
+            "worktree, ends this refusal, and that work item's records take "
+            "nothing from this call"
+        )
+        assert ends in reason, reason
         assert '"Scope"' in reason, reason
 
     def test_refuses_naming_a_work_item_once_whatever_worktrees_hold_copies(
