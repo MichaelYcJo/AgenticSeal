@@ -41,6 +41,11 @@ This is a gap in a case that holds a fact the frame states, so it is a `should` 
         assert ends in reason, reason
 ```
 
+```seal
+verdict: fixed cb6e41818
+answer: Applied the fix as written: S1 now pins both sentences whole, from "A work item counts as open" to "in a worktree of this repository." and from "Where its run has ended," to "nothing from this call.". Seen red after the commit with only the guard each names removed (executed, `seal mutate` over the committed hook, running the whole module): "Where its run has ended, checking out " read as "Now, checking out " fails at `assert ends in reason`, and "worktree of this repository." read as "worktree here." fails at `assert opened in reason`, each with the other ten cases passing. Round 1's close of finding 2 said "the second whole" of the pin `94ece093e` wrote; that was wrong, since that pin opened after the condition. The round record of round 1 and the commit's title are not edited; this close and `cb6e41818` correct it. The S1 docstring stays true.
+```
+
 ### 2. The close of finding 3 hands the settle a change that no record the settle reads carries
 
 ```seal
@@ -58,6 +63,11 @@ Before the settle, the paragraph has to keep its statement, because the row does
 
 ```markdown
 | Whether `skills/implement/orchestration.md` *Orchestrator: how the work is routed*, the paragraph opening **While the `Automation` row reads `yes`**, still states when the hook refuses a call after the settle writes the hook's row of `docs/running/what-a-script-gates.md` *The checks* from `frame/design.md` `## Rule changes`. After the settle both would state it, and the paragraph can cite the row in its place (round 1 finding 3). The settle writes the policy root alone (`frame/design.md` G7), so this row is what puts the paragraph in front of it. | the settle after the 0.38.8 release |
+```
+
+```seal
+verdict: fixed 07a5e180c
+answer: The deferral's home is a row of `gaps.md` `## Not verified`, which the settle decides with this memo's open rows. A tracker issue is not mine to open, since an agent posts nothing (contract rule 6), so the row is the home within my writes. The row is the round's text with two changes: it names round 2 finding 2 beside round 1 finding 3, and it says that before the settle the paragraph keeps its statement; its answerer is the session that runs the settle after the 0.38.8 release. `skills/implement/orchestration.md` is not changed in this pass, because before the settle the row of *The checks* does not stand. The same commit closes the row on the Windows legs, against run 45343775784 at `61513fa00`.
 ```
 
 ## Confirmations
