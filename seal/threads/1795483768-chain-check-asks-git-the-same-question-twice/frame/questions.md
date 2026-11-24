@@ -3,7 +3,7 @@
 The ticket and the spawn left these open, and the tree answered each. They are not reopened here:
 
 - Which reads cannot change within one run, the working-tree reads under `--worktree` among them: `frame/design.md` *Grounding*, *Which reads cannot change within one run*.
-- Whether `settle` repeats a read within one run: `frame/design.md` *Grounding*, *`settle` repeats reads within one run*, and *`settle` writes after its last git read*.
+- Whether `settle` repeats a read within one run: `frame/design.md` *Grounding*, *`settle` repeats reads within one run*, and *`settle`'s only git read after a write asks where the common git directory is*.
 - Where the memo lives, and whether `lib/gitcmd.py` widens the change past the issue: `frame/design.md` *Grounding*, *Where a per-run memo has to live*, and `frame/plan.md` *Alternatives considered* A1 and A2.
 - Whether batching is worth its code against memoizing alone: `frame/plan.md` *Alternatives considered* A5 to A9.
 - How the cases that count or order git calls are treated: `frame/design.md` *Grounding*, *The cases that count or order the git calls*.
