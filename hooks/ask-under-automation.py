@@ -167,12 +167,9 @@ def main():
     import routing
 
     payload = json.load(sys.stdin)
-    cwd = payload.get("cwd")
-    if not isinstance(cwd, str):
-        return
     items = [
         (os.path.basename(os.path.dirname(path)), parsed["branch"])
-        for path, parsed in routing.open_declarations(cwd)
+        for path, parsed in routing.open_declarations(payload["cwd"])
         if parsed["automation"] == routing.AUTOMATION_YES
     ]
     if not items:

@@ -163,12 +163,20 @@ class Test_main:
         ):
             assert run(asked(cwd, question("Which scope?"))) == "", cwd
 
-    def test_accepts_a_payload_it_cannot_read(self, tmp_path):
-        """S7. A payload that is not JSON, and one with no question list,
-        print nothing, write nothing to stderr and exit 0 (`start` asserts
-        the last two)."""
+    def test_accepts_a_payload_that_is_not_json_and_prints_nothing(self, tmp_path):
+        """S7. A payload that is not a JSON object, under S1's repository,
+        prints nothing, writes nothing to stderr and exits 0 (`start`
+        asserts the last two)."""
         repo = declared(tmp_path / "repo")
-        assert run("not json") == ""
+        for body in ("not json", "[1]", json.dumps({"cwd": 7})):
+            assert run(body) == "", body
+        assert run(asked(repo, question("Which scope?"))) != ""
+
+    def test_accepts_a_payload_with_no_question_list_and_prints_nothing(self, tmp_path):
+        """S7. An input with no question list, an empty one, or a question
+        with no string `question`, under S1's repository, prints nothing,
+        writes nothing to stderr and exits 0."""
+        repo = declared(tmp_path / "repo")
         for tool_input in ({}, {"questions": []}, {"questions": [{"header": "x"}]}):
             body = json.dumps({"cwd": str(repo), "tool_input": tool_input})
             assert run(body) == "", tool_input
@@ -184,7 +192,10 @@ class Test_main:
         )
         repo = declared(tmp_path / "repo")
         reason = refused(run(asked(repo, question("Which scope?")), root=root))
-        assert f"`{DOC}` *The run*" in reason and hook.LEAD in reason, reason
+        # The sentence that stands in the paragraph's place: its document,
+        # its section and the opening of its first line.
+        said = f"`{DOC}` *The run* that opens with: {hook.LEAD}"
+        assert said in reason, reason
         assert paragraph()[-1] not in reason, reason
 
 
