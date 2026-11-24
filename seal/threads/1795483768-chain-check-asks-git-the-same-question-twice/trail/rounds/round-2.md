@@ -30,6 +30,11 @@ In its loop over the directories, `misplaced` (`:1971`) and `closed_rows` (`:199
 
 No other statement in the tree places `closed_rows` after the removals. `frame/plan.md:13` names "a read other than `git_common_dir`'s after `apply`'s first `rmtree`", which agrees with the fix (executed: `git grep -n 'closed_rows' 76816d131 -- seal/threads/1795483768-chain-check-asks-git-the-same-question-twice`).
 
+```seal
+verdict: fixed 07794726d
+answer: The framer folded the round's sentence into frame/design.md:32 as given at 07794726d: misplaced and closed_rows run inside apply's loop before each directory's rmtree, and policy_root and write_after after the loop; the paragraph's conclusion is unchanged. The framer's grep of the three frame files for closed_rows, misplaced and "after the removals" found no other statement of the order. The finding names records alone, so no verifying round reads this close; the sealer reads the fold at HEAD.
+```
+
 ## Confirmations
 
 ```seal
