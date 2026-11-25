@@ -41,6 +41,7 @@ ones reach, the trade was wrong and the list comes back.
 |---|---|
 | Whether `seal layout --moved` (`skills/verify/scripts/test_layout.py#_moved_main`), the move check `CONTRIBUTING.md` *The test layout* asks for, is kept or dropped, weighed by `skills/core/SKILL.md` *The rule a mechanism is kept against* on what it has caught against what it costs. #1576 kept it in 0.38.6 and sent the question here | the repository owner |
 | Whether the AST analyser of `tests/skills/test_session_cost.py`, the units from `SITE_KINDS` to `#classify`, is kept or dropped, weighed by the same rule. Its one recorded catch is #175. #1576 kept it in 0.38.6 and sent the question here | the repository owner |
+| Whether the next release's classification of a repository that runs the chain counts fewer fix-made findings on a count or a universal than the 14 of 72 that #1613 measured in owlery releases 0.0.2 to 0.0.4, the issue's second *Done when* line. As many or more sends contract rule 19's clauses on what a change writes to the weighing of `skills/core/SKILL.md` *The rule a mechanism is kept against*. #1613 sent the question here in 0.39.0 | the repository owner |
 
 ## Riders waiting on a file another branch holds
 
