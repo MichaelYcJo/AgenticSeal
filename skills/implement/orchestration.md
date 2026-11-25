@@ -108,10 +108,10 @@ file that holds one whole against HEAD, not only the named line, and
 folds every statement HEAD contradicts. In a section the frame dates to
 the commit it read, a statement of the tree is not folded, and a sentence
 that says what the work does or concludes is rewritten with a decision's
-fact, or removed or narrowed where its source is what a fix changed; a
-section that states the tree with no date gets the date and keeps
-its text (`skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes*). After a fold commit of its own, the
+fact, and is otherwise folded as the paragraph opening **The framer writes
+a decision's fold** states; a section that states the tree with no date
+gets the date and keeps its text (`skills/implement/SKILL.md` *Document
+layout — two roots, three lifetimes*). After a fold commit of its own, the
 orchestrator reads that commit and each file of the work item's directory
 that states the present whole against HEAD, the second method of contract
 rule 12; a decision's fold is read by the framer that writes it.
@@ -169,12 +169,12 @@ work over deletes it once it has read it.
 
 **A problem that recurs within a run gets a prevention home at once.** When
 the same problem appears a second time in one run, the orchestrator gives it
-a home before the next spawn: a mechanism that stops it, or a rule written
-into the file the recurring act is read from. The work item in progress
-builds that home. The home is a decision, so the framer folds it into that
-work item's frame as the paragraph opening *A decision made after the frame
-is committed is folded* states, and the orchestrator records the home in a
-comment on the issue of the work item in progress.
+a home before the next spawn or resume: a mechanism that stops it, or a
+rule written into the file the recurring act is read from. The work item
+in progress builds that home. The home is a decision, so the framer folds
+it into that work item's frame as the paragraph opening *A decision made
+after the frame is committed is folded* states, and the orchestrator
+records the home in a comment on the issue of the work item in progress.
 
 ### The frame is read against the issue at the spawn
 

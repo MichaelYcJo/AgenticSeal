@@ -106,10 +106,10 @@ context*, so each coordinate and present-tense statement of the tree there
 is a claim about that commit, which the build was bound to move and HEAD
 does not contradict. A sentence there that says what the work does or
 concludes is no claim about that commit: a fold rewrites it with a
-decision's fact, or removes or narrows it where its source is what a fix
-changed, as the paragraph opening **The framer writes a decision's fold**
-of `skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket* states, and a reader holds it against HEAD.
+decision's fact, and otherwise folds it as the paragraph opening **The
+framer writes a decision's fold** of `skills/implement/orchestration.md`
+*Orchestrator: the order inside a ticket* states, and a reader holds it
+against HEAD.
 
 **Judgment precedence is policy > SDD > code where policy exists, and
 SDD > code where it does not.** Most repositories are the second kind. Do not
