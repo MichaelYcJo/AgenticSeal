@@ -53,6 +53,12 @@ The route table cell at `skills/code-review/orchestration.md:228`:
 where what the fix did is add a unit the frame does not name, the framer's fold designs the unit before that fix pass, as `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* states
 ```
 
+```seal
+verdict: fixed 474d41883
+location: `seal/threads/1795590951-a-fix-builds-a-unit-no-frame-designed/changelog.md`
+answer: Built to the framer's fold at `d154f13fd`, `frame/design.md` *Scope* item 1, not to the snippet. `skills/implement/fix-pass.md` now defines a unit as a new name or path the frame holds nowhere, new where the tree at the round's `target:` holds no part by it, and drops "a rule a procedure gains" and "a section" for "a heading". A paragraph of its own says a change to the body of a part the tree already holds, whether or not the frame names it, adds no unit, a sentence added to a section among them. The stop reads "a unit the frame does not hold". The route table cell at `skills/code-review/orchestration.md:228` reads "where what the fix did is add a unit the frame does not hold". The changelog's first item and its first *Process changes* row state the new definition. The frame's half is the fold's.
+```
+
 ### 2. "By what it does" lets a helper that carries out a behaviour the frame states pass the stop, which is #1612's link chase
 
 ```seal
@@ -77,6 +83,11 @@ it does, such as a guard, a reader or a check. A behaviour the frame
 states, which the unit would carry out, does not name the unit.
 ```
 
+```seal
+verdict: fixed 474d41883
+answer: Built to the fold's reading B, `frame/design.md` *Scope* item 1's second bullet at `d154f13fd`, not to the snippet. `skills/implement/fix-pass.md` says the frame holds a unit where a frame section "writes the unit's name or path", and "A helper whose job the frame states, but whose name the frame does not hold, is a unit". "By what it does" is gone from the file.
+```
+
 ### 3. A new test module and a helper in a test module are units, which no grounding row measured
 
 ```seal
@@ -96,6 +107,11 @@ The frame holds the definition, so the framer folds first, as finding 1 says. Wh
 ```markdown
 A part only the tests read, a new test module or a helper, a fixture or a
 constant in one, is not a new unit either.
+```
+
+```seal
+verdict: fixed 474d41883
+answer: Built to the fold, `frame/design.md` *Scope* item 1's third bullet at `d154f13fd`, which exempts test parts and names the stop's stated limit. `skills/implement/fix-pass.md`'s paragraph opening "Two kinds of change add no unit" gives the second kind as "a part only the tests read, such as a test module, or a helper, a fixture or a constant in one". It also says a fix that writes a helper's code into an existing body is not stopped, the stop's stated limit, which answers this round's first *Not judged* row as the fold decided it.
 ```
 
 ### 4. Four statements of the narrowing say "after a fix" where its home says "a fix or a build", and the `skills/implement/SKILL.md` sentence cites the paragraph that holds only one of its halves
@@ -146,6 +162,11 @@ unit already or the unit is not owed, as you reject any decision. Every
 other fold after a fix or a build narrows, by the paragraph opening **The framer
 ```
 
+```seal
+verdict: fixed 474d41883
+answer: Built to the fold, `frame/design.md` *Scope* items 2, 3 and 5 at `d154f13fd`, which have each statement cite the narrowing's one home and state no scope of its own, in place of the snippets' "or a build". `skills/implement/orchestration.md`, the paragraph opening **One fold reaches every statement of the fact it changes.**, now says a sentence that says what the work does "is rewritten with a decision's fact, and is otherwise folded as the paragraph opening **The framer writes a decision's fold** states". `skills/implement/SKILL.md` says a fold "rewrites it with a decision's fact, and otherwise folds it as" that paragraph states, and keeps the words `RULES` key `"33 "` reads. `skills/implement/fold-and-reframe.md` says "Every other fold is written as" that paragraph states. Key `"33 "`'s links in the last two were seen red again at `474d41883` with `seal mutate`, each removing "the paragraph opening" before the bold lead. `git grep -n -E "what a fix changed|a fix or a build|after a fix"` over `skills/implement/` and `skills/code-review/orchestration.md` now exits 1 and prints nothing, executed after `6d924dc05`; the home's own "what a fix or a build changed" wraps across two lines, so this line search is a sample. The frame's sentences are the fold's.
+```
+
 ### 5. Where the framer rejects the decision, no step closes the finding the stop left open
 
 ```seal
@@ -175,6 +196,12 @@ framer's rejection, and resumes the fix pass, or spawns it fresh by the
 threshold above.
 ```
 
+```seal
+verdict: fixed 474d41883
+location: `seal/threads/1795590951-a-fix-builds-a-unit-no-frame-designed/changelog.md`
+answer: Both snippets applied as given. `skills/implement/fix-pass.md`'s stop paragraph ends "Where the framer rejects the decision, the fix pass that follows answers the finding by the route the orchestrator's row of `frame/plan.md` *Judgments of the run* gives it, and its `answer:` names that row". `skills/code-review/orchestration.md` has the orchestrator commit "the fold, or its row that records the framer's rejection" before it resumes or spawns the pass. Neither sentence adds a unit by `skills/implement/fix-pass.md`'s own definition: each is a sentence added to a section the tree holds. The changelog's first two items and two *Process changes* rows name the path.
+```
+
 ### 6. The frame still says the resumed pass builds the unit, where the target lets it be a fresh spawn
 
 ```seal
@@ -199,6 +226,11 @@ Departure 1 (`phase-1.md:7`) wrote "the fix pass that follows" (`skills/implemen
 resumes the fix pass, or spawns it fresh at the context threshold
 ```
 
+```seal
+verdict: fixed d154f13fd
+answer: The framer's fold rewrote the three sentences. At HEAD `frame/design.md` *Scope* item 1's fifth bullet reads "the fix pass that follows builds the unit", *Scope* item 4's first bullet "resumes the fix pass, or spawns it fresh at the context threshold", and acceptance row A2 "resumes the fix pass or spawns it fresh at the context threshold", read. No tree change was owed.
+```
+
 ### 7. The prevention home's deadline is still the next spawn, a fourth sentence of the section that departure 2's list missed
 
 ```seal
@@ -216,6 +248,12 @@ the same problem appears a second time in one run, the orchestrator gives it
 a home before the next spawn or resume: a mechanism that stops it, or a rule written
 ```
 
+```seal
+verdict: fixed 474d41883
+location: `tests/text/test_the_rules_have_one_owner.py`
+answer: `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* now gives the prevention home "before the next spawn or resume", with the paragraph rewrapped. `git grep -n -i "before the next spawn"` over the tree outside `seal/threads/` then printed one more statement, the docstring of `tests/text/test_the_rules_have_one_owner.py#test_a_recurring_problem_gets_a_prevention_home`, which `6d924dc05` rewrote the same way. A search on words is a sample. The record `trail/phases/phase-1.md:9` stays as the phase wrote it, since a fix pass writes no phase record.
+```
+
 ### 8. The follow-up row cites `frame/design.md` G11, which the settle removes before the owner answers the row
 
 ```seal
@@ -230,6 +268,11 @@ The row reads "whose folded units are followed by a `regression:` or `reopens:` 
 
 ```markdown
 as often as the unframed ones #1614 counted on 2026-11-25: of the `fixed` commits that added a unit, 7 of 14 in this repository and 20 of 36 in owlery were followed by such a line, against 127 of 522 and 31 of 147 of those that added none
+```
+
+```seal
+verdict: fixed 6ee02726f
+answer: The orchestrator's commit wrote the counts into the row. At HEAD `seal/follow-up.md:46` reads "as often as the unframed ones #1614 counted on 2026-11-25: of the `fixed` commits that added a unit, 7 of 14 in this repository and 20 of 36 in owlery were followed by such a line, against 127 of 522 and 31 of 147 of those that added none", read; `0fd12e5ba` changed the same row for the held commit and left that clause.
 ```
 
 ### 9. The frame rejects every mechanism beside the text on a ground that holds for the crafter's stop and not for the orchestrator's two acts
@@ -252,6 +295,12 @@ The orchestrator's half has two backstops the frame does not name. The crafter's
 ```
 
 The second row's last two cells are the framer's to write, so the snippet leaves them as words in parentheses.
+
+```seal
+verdict: fixed d154f13fd
+location: `seal/threads/1795590951-a-fix-builds-a-unit-no-frame-designed/frame/questions.md`
+answer: The framer's fold narrowed the chosen row's ground to the crafter's stop, named the backstops of the orchestrator's sort and held commit, and weighed four mechanisms on the orchestrator's half in `frame/plan.md` *Alternatives considered*, the `chain_check.py` check among them, each rejected; `frame/questions.md`'s line on mechanisms names the new rows, read. `pr.md:1` quotes the new verdict cell at `0fd12e5ba`, and its words stand in `frame/plan.md`'s cell, read. No tree change was owed.
+```
 
 ### 10. The `## Rule changes` `to:` repeats the reason `skills/implement/fix-pass.md` keeps, so the settle leaves the passage in two files
 
@@ -281,6 +330,11 @@ The snippet also carries finding 4's "or a build". The framer folds it, and the 
     `skills/implement/orchestration.md` *Orchestrator: the order inside a
     ticket*.
     check: tests/text/test_the_rules_have_one_owner.py
+```
+
+```seal
+verdict: fixed d154f13fd
+answer: The framer's fold applied the snippet's `to:`, with "or a build", and dropped the reason and the close-block clause. `python3 -I skills/code-review/scripts/chain_check.py --baseline origin/release/v0.39.0 --root <the repository> --worktree`, executed after `6d924dc05`, exited 0 and printed no notice that this design's `to` repeats a passage. Its only lines on this work item name this record's findings as open, which these close blocks answer.
 ```
 
 ## Confirmations
