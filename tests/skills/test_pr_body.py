@@ -1301,7 +1301,7 @@ class Test_main:
         longer holds, after a fix rewrote the row, is refused by either form
         at `pr.md`'s line, naming the file that does not hold it, and the
         body file is left as it stood. Seen red against `first_part` as
-        `aa32e8473` shipped it, where both forms exited 0."""
+        0.38.8 shipped it, where both forms exited 0."""
         own = '- "the writer | its cases" (`frame/plan.md` *Phases*, row 2)\n'
         records = {**RECORDS, "frame/plan.md": PLAN.replace("the writer", "the pen")}
         item = item_of(tmp_path, records, own=own + "\nCloses #1.\n")
@@ -1350,7 +1350,7 @@ class Test_main:
         one that is not there, the root's `config.json`, a file that stands
         outside the directory, and an absolute path, which names no file
         under it whatever file the path ends in. Seen red against `first_part` as
-        `aa32e8473` shipped it, where both forms exited 0."""
+        0.38.8 shipped it, where both forms exited 0."""
         own = f'- "English" (`{path}`, line 2)\n\nCloses #1.\n'
         item = item_of(tmp_path, RECORDS, own=own)
         body = tmp_path / "pr-body.md"
@@ -1408,7 +1408,7 @@ class Test_main:
         list marker, stand indented under a list item, hold a `" (` that is
         the opening quote's own mark, lack the path's closing backtick,
         name an empty path, and lack the `)` at the line's end. Seen red
-        against `first_part` as `aa32e8473` shipped it, which printed no
+        against `first_part` as 0.38.8 shipped it, which printed no
         note."""
         item = item_of(tmp_path, RECORDS, own=own)
         body = tmp_path / "pr-body.md"

@@ -3768,7 +3768,7 @@ class Test_body:
         quotes words its `changelog.md` does not hold is refused at
         `pr.md`'s line, with the cause `seal pr-body` gives, since the arm
         reads the body through `compared`. Seen red against `first_part` as
-        `aa32e8473` shipped it, where the arm named the body's first line
+        0.38.8 shipped it, where the arm named the body's first line
         and not the quote."""
         root, _early, late = bodied
         write(
