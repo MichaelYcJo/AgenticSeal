@@ -114,10 +114,9 @@ def _records(item):
     """The `/`-joined paths of the `.md` files under ITEM this hook
     searches."""
     found = []
-    for at, dirs, files in os.walk(item):
+    for at, _, files in os.walk(item):
         under = os.path.relpath(at, item)
         prefix = "" if under == os.curdir else "/".join(under.split(os.sep)) + "/"
-        dirs[:] = [d for d in dirs if _read(prefix + d)]
         for name in files:
             if name.endswith(".md") and _read(prefix + name):
                 found.append(prefix + name)
@@ -207,7 +206,7 @@ def main():
     if payload.get("tool_name") != "Edit":
         return
     # A `tool_input` that is not an object, and a field that is missing or
-    # not a string, raise at the first use below.
+    # not a string, raise at the first use below or name no record.
     tool_input = payload["tool_input"]
     path, old, new = (tool_input[k] for k in ("file_path", "old_string", "new_string"))
     located = _located(path, optin)
@@ -216,10 +215,7 @@ def main():
     item, rel = located
     if not os.path.isfile(os.path.join(item, *rel.split("/"))):
         return
-    spans = _spans(old, new)
-    if not spans:
-        return
-    places = _places(item, _records(item), spans)
+    places = _places(item, _records(item), _spans(old, new))
     if not places:
         return
     said = {
