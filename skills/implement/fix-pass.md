@@ -1,13 +1,21 @@
 # implement, the fix pass
 
 A fix pass opens this file before it judges the first finding of a round
-record, and nothing else opens it. The crafter opens it at step 9 of
-`agents/crafter.md`, and a session that fixes review feedback opens it from
+record, and nothing else opens it. A fix pass is the crafter's or the
+orchestrator's. The crafter opens this file at step 9 of
+`agents/crafter.md`. The orchestrator opens it from
 `skills/implement/SKILL.md` *5. Incorporate review — read the round records
-first*. `skills/code-review/orchestration.md` *Orchestrator: a phase is a
-fresh crafter, and a fix pass resumes the implementer* holds the
-orchestrator's half: who runs the pass, what it is handed, and the commit
-of the round record after it.
+first*, and makes every fix pass where `routing.md` answers
+`Implementation` with `the session`. `skills/code-review/orchestration.md`
+*Orchestrator: a phase is a fresh crafter, and a fix pass resumes the
+implementer* holds the orchestrator's half: who runs the pass, what it is
+handed, and the commit of the round record after it. Where this file has a
+crafter's hand-back name something for the orchestrator, the orchestrator
+in its own pass acts on it at the point the pass meets it, by the step of
+its own procedure that acts on that hand-back. So where its pass meets the
+stop of *A fix that needs a unit the frame does not name waits for the
+fold*, the orchestrator sends the finding to the framer before the pass
+that builds the unit.
 
 ## Read the round records first
 
@@ -86,9 +94,29 @@ check: tests/text/test_the_rules_have_one_owner.py
 
 Once the fixes are committed, the fix pass runs the set the *Review rounds
 1..n* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and
-once* names, as one command through the repository's runner. A crafter
-then makes the reading `agents/crafter.md` *Before you hand back, your
-range and the work item's records are read whole against HEAD* asks for.
+once* names, as one command through the repository's runner.
+
+**Then whoever makes the pass, the crafter or the orchestrator, makes the
+reading `agents/crafter.md` *Before you hand back, your range and the work
+item's records are read whole against HEAD* asks for.** The orchestrator
+makes every fix pass where `routing.md` answers `Implementation` with
+`the session`, and in every route it makes the fix it writes after the
+last round, which `skills/code-review/orchestration.md` *Orchestrator: a
+phase is a fresh crafter, and a fix pass resumes the implementer* gives
+it. In the orchestrator's pass, that rule's *Job* stands for what the
+orchestrator writes in a fix pass. In its fix commits it corrects every
+statement HEAD contradicts in its range, in `gaps.md` and in
+`changelog.md`. A statement HEAD contradicts in `routing.md` or a frame
+file, it folds as it folds one a crafter's hand-back names, in a commit of
+its own before it appends the close blocks, as
+`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket* states. That rule's hand-back stands for the close blocks. The
+method of the read, each statement across the tree the read leaves
+standing with why, and where the part a sample did not reach stands go
+into the `answer:` of the close block of the finding they concern, and
+otherwise into the `answer:` of the last close block the pass appends.
+What the pass did not finish goes to `gaps.md` `## Not done`.
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## The close blocks, last
 

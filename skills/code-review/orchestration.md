@@ -51,6 +51,13 @@ longer exists, on a new day or another machine, and the orchestrator hands it
 the same records. An orchestrator in a new session reads the routing from
 the work item's `routing.md` and asks nothing again before the spawn.
 
+**Where `routing.md` answers `Implementation` with `the session`, the
+orchestrator is the implementer and makes each fix pass itself, by
+`skills/implement/fix-pass.md`.** The resume threshold and the fresh spawn
+above do not apply, and the orchestrator appends the close blocks as the
+pass, so the paragraphs below that leave the close blocks and the
+hand-back to the crafter speak of a crafter's pass.
+
 **The crafter's fix pass appends one close block to each open finding of
 `trail/rounds/round-N.md`, and it edits nothing else in the record**
 (`docs/forms/the-round-record.md` *The round record*); it writes no
@@ -69,7 +76,9 @@ the last round, and the commit that integrates a sibling's squash. Each one that
 changes what the work item ships brings the work item's `changelog.md` along, the
 way the crafter's fix pass does.
 `docs/layout/the-record-layout.md` *A commit after the build brings its changelog
-fragment along* owns that rule.
+fragment along* owns that rule. A fix written after the last round makes the
+reading `skills/implement/fix-pass.md` *The narrow set, then the read of the
+range* binds, before the round or the sealer that reads the fix.
 
 **The fix pass then finds what the fixes left standing.** A fix repairs the
 coordinate a finding named, and the fact the finding was about is usually

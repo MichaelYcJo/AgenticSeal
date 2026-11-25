@@ -445,6 +445,10 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         # The path of the record the orchestrator's commit of the closes
         # holds (#1041).
         "`trail/rounds/round-N.md`",
+        # The routing row and its answer under which the orchestrator is the
+        # implementer and makes each fix pass itself (#1623).
+        "`Implementation`",
+        "`the session`",
     ):
         assert fact in section, f"the fix-pass section no longer says {fact!r}"
 
