@@ -21,7 +21,8 @@ Before you write what a decision says, open each coordinate it cites, such
 as an issue it restates, as contract rule 5 asks of a fact that reaches you
 in prose. Then rewrite in place every sentence of your three files that the
 decision changes, reading each file whole, the second method of contract
-rule 12. Read the orchestrator's *Judgments of the run* row for
+rule 12, and write no count and no universal contract rule 19 refuses.
+Read the orchestrator's *Judgments of the run* row for
 each decision with `plan.md`, where it stands written and not yet
 committed, and name any defect in it in your hand-back. You write no line
 under your mark, no Status cell and no *Judgments of the run* row, and a

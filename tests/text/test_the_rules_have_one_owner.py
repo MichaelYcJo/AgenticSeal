@@ -333,6 +333,25 @@ RULES = {
         ),
         {},
     ),
+    # #1613: a fix pass, a fold and the orchestrator's record edits wrote a
+    # count or a universal that the next fix made false, and the rule stood
+    # in `agents/framer.md` for the frame's counts alone. It went into
+    # contract rule 19 beside what a change does to the text it amends, and
+    # the file of each link below cites it at the step where its party
+    # writes after round 1.
+    "30 a change writes no count or universal a later change makes false": (
+        CONTRACT,
+        (
+            # The rule's number, which each link below names it by.
+            "## 19 ",
+        ),
+        {
+            FIX_PASS_PROCEDURE: "contract rule 19",
+            FOLD: "contract rule 19",
+            ORCH_IMPL: "contract rule 19",
+            ORCH: "contract rule 19",
+        },
+    ),
 }
 
 

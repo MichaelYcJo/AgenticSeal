@@ -36,9 +36,10 @@ and every input the code hands that unit. A procedure step is also read as
 its own reader would: in either `seal/` root (contract rule 11), under
 every condition its file names, and in the release that ships it. In that
 release, a section the step cites holds the text the release ships, not the
-text a design's `## Rule changes` writes at a later settle. Where that
-reading fails, the fix pass writes the fix in its own words and says so in
-`answer:`.
+text a design's `## Rule changes` writes at a later settle. A paste-ready
+fix that writes a count or a universal contract rule 19 refuses fails that
+reading too. Where that reading fails, the fix pass writes the fix in its
+own words and says so in `answer:`.
 
 ## The narrow set, then the read of the range
 
