@@ -36,9 +36,51 @@ and every input the code hands that unit. A procedure step is also read as
 its own reader would: in either `seal/` root (contract rule 11), under
 every condition its file names, and in the release that ships it. In that
 release, a section the step cites holds the text the release ships, not the
-text a design's `## Rule changes` writes at a later settle. Where that
-reading fails, the fix pass writes the fix in its own words and says so in
-`answer:`.
+text a design's `## Rule changes` writes at a later settle. A paste-ready
+fix that writes a count or a universal contract rule 19 refuses fails that
+reading too. Where that reading fails, the fix pass writes the fix in its
+own words and says so in `answer:`.
+
+## A fix that needs a unit the frame does not name waits for the fold
+
+**A fix that needs a unit the frame does not name is built only once the
+framer's fold has designed the unit.** A unit the fix pass designs and
+builds in one act reaches the next round with no judge but its builder,
+and `skills/core/SKILL.md` *Each agent judges its own target, independently
+of the others* gives the framer what the work should be.
+
+A unit is a new name or path that the frame holds nowhere: a file or a
+directory; a function, a class, a type or a module-level name, private
+helpers among them; a hook's entry; a `seal` subcommand or flag; a
+configuration key; a field of a record's form; or a heading of a skill, a
+document or a template. A name or path is new where the tree at the
+round's `target:` holds no part by it. The frame holds a unit where
+`frame/design.md` *Scope* or *Data & interfaces*, or the `frame/plan.md`
+row of the phase that built the code, writes the unit's name or path. A
+helper whose job the frame states, but whose name the frame does not hold,
+is a unit.
+
+Two kinds of change add no unit. One is a change to the body of a part the
+tree already holds, whether or not the frame names the part, such as a
+branch added to a function or a sentence added to a section. The other is
+a part only the tests read, such as a test module, or a helper, a fixture
+or a constant in one. So a fix that writes a helper's code into an existing
+body is not stopped: that is the stop's stated limit, and the round after
+reads such a fix as it reads any fix.
+
+Where a finding's fix needs a unit the frame does not hold, a paste-ready
+fix's among them, the fix pass builds no part of that fix and writes no
+close block for the finding, which stays open. It fixes the other
+findings. Its hand-back names the finding, the unit's name or path, and
+why neither `frame/design.md` *Scope*, nor its *Data & interfaces*, nor
+the phase's `frame/plan.md` row holds it. Once
+the orchestrator has committed the framer's fold, the fix pass that
+follows builds the unit to the fold's design and closes the finding, and
+its `answer:` names the *Scope* item the fold added. Where the framer
+rejects the decision, the fix pass that follows answers the finding by the
+route the orchestrator's row of `frame/plan.md` *Judgments of the run*
+gives it, and its `answer:` names that row.
+check: tests/text/test_the_rules_have_one_owner.py
 
 ## The narrow set, then the read of the range
 
@@ -60,7 +102,13 @@ finding's `verdict:` decides it, and severity is for people* gives the
 values its `verdict:` takes, and `docs/forms/the-round-record.md` *The fix
 pass appends one close block per finding and edits nothing else in the
 file* gives when the block carries a `location:` line of its own. Its
-`answer:` says what was done.
+`answer:` says what was done. Where a finding's `evidence:` line names the
+command that lists each place stating a fact, as
+`skills/code-review/SKILL.md` *A paste-ready fix reaches every statement of
+the fact it repairs, or names where it stops* asks, the fix pass runs it
+again after its last fix commit, and the close block's `answer:` names each
+place it still prints with why that place stands, or says that it prints
+none.
 The pass edits nothing else in the record: the finding's own block is the
 proofer's (`docs/forms/the-round-record.md` *The round record*). The
 build's phases keep their records.

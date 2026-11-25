@@ -31,6 +31,17 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/edit-leaves-copies.py\" || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/edit-leaves-copies.py\" || exit 0"
+          }
+        ]
+      }
     ]
   }
 }
