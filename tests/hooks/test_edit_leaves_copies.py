@@ -312,6 +312,71 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", out
 
+    def test_refuses_to_print_where_the_edited_file_is_a_link(self, tmp_path):
+        """A10, round 2's Probe D1. The edited `frame/design.md` is a link
+        to a file outside the repository. Only that file's words can widen
+        `old_string` into a span `gaps.md` holds, and the hook reads
+        nothing through the link, so it prints nothing."""
+        sentence = (
+            "The settle reads each record and the next round finds {} copy it left."
+        )
+        outside = tmp_path / "outside.md"
+        outside.write_text(design(sentence.format("each")), encoding="utf-8")
+        directory = item(
+            tmp_path / "repo",
+            {"gaps.md": "# Gaps\n\n" + sentence.format("every") + "\n"},
+        )
+        (directory / "frame").mkdir()
+        (directory / "frame" / "design.md").symlink_to(outside)
+        path = directory / "frame" / "design.md"
+        assert run(edited(path, "finds every", "finds each")) == ""
+
+    def test_refuses_to_print_where_the_work_items_directory_is_a_link(self, tmp_path):
+        """A10, round 2's Probe D2. The item's directory under `threads/`
+        is a link to a directory outside the repository, which holds the
+        edited file and a copy of the replaced words in a `.md` file deep
+        below it. The hook neither opens the file nor walks the directory,
+        so it prints nothing."""
+        outside = tmp_path / "outside"
+        (outside / "frame").mkdir(parents=True)
+        (outside / "frame" / "design.md").write_text(design(AFTER), encoding="utf-8")
+        (outside / "deep" / "er").mkdir(parents=True)
+        (outside / "deep" / "er" / "notes.md").write_text(
+            quoted(BEFORE), encoding="utf-8"
+        )
+        home = tmp_path / "repo" / "seal"
+        mark_root(home)
+        (home / "threads").mkdir()
+        (home / "threads" / ITEM).symlink_to(outside)
+        path = home / "threads" / ITEM / "frame" / "design.md"
+        assert run(edited(path, BEFORE, AFTER)) == ""
+
+    def test_refuses_to_print_where_the_root_threads_or_a_directory_in_the_item_is_a_link(
+        self, tmp_path
+    ):
+        """A10. A link at any other component from the root down to the
+        edited file, the root itself, its `threads/` or a directory inside
+        the item, prints nothing, though the tree behind it holds a copy
+        of the replaced words in `pr.md`."""
+        real = item(
+            tmp_path / "real",
+            {"frame/design.md": design(AFTER), "pr.md": quoted(BEFORE)},
+        )
+        via_root = tmp_path / "via-root"
+        via_root.mkdir()
+        (via_root / "seal").symlink_to(real.parent.parent)
+        via_threads = tmp_path / "via-threads" / "seal"
+        mark_root(via_threads)
+        (via_threads / "threads").symlink_to(real.parent)
+        via_frame = item(tmp_path / "via-frame", {"pr.md": quoted(BEFORE)})
+        (via_frame / "frame").symlink_to(real / "frame")
+        for path in (
+            via_root / "seal" / "threads" / ITEM / "frame" / "design.md",
+            via_threads / "threads" / ITEM / "frame" / "design.md",
+            via_frame / "frame" / "design.md",
+        ):
+            assert run(edited(path, BEFORE, AFTER)) == "", path
+
     def test_refuses_to_print_for_an_edit_of_a_file_it_does_not_read(self, tmp_path):
         """A10. A copy stands in `pr.md` each time, and the edited file is
         under `trail/`, is `guarantee.md`, or is not a `.md` file."""

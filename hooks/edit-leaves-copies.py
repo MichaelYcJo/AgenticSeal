@@ -54,12 +54,14 @@ path, a path outside a marked root's work item, an edited file that is not
 there, a `Write` call, which `hooks/hooks.json` does not match, and a
 record that cannot be read as UTF-8 text each print nothing, and so does
 anything that raises: the `__main__` block turns every raise into exit 0.
-A `.md` name in the work item that is a link is no record and is not read,
-since it can name a file outside the repository, or a device whose read
-never ends. The hook writes nothing,
-starts no process and reaches no network. Its command in `hooks/hooks.json`
-ends with ` || exit 0`, so the command exits 0 whatever happens, a file its
-interpreter cannot load among them.
+An edited path with a link anywhere from the root down to the file, the
+root itself, its `threads/`, the work item's directory and the file among
+them, prints nothing, and a `.md` name in the work item that is a link is
+no record and is not read: a link can name a file or a directory outside
+the repository, or a device whose read never ends. The hook writes
+nothing, starts no process and reaches no network. Its command in
+`hooks/hooks.json` ends with ` || exit 0`, so the command exits 0 whatever
+happens, a file its interpreter cannot load among them.
 """
 
 import difflib
@@ -252,6 +254,16 @@ def main():
     if located is None:
         return
     item, rel = located
+    # A link anywhere from the root down to the edited file can name a
+    # file or a directory outside the repository: `open` follows it at the
+    # file and at every directory over it, and `os.walk` follows the item's
+    # directory it starts at. So the hook reads nothing on such a path.
+    parts = rel.split("/")
+    root = os.path.dirname(os.path.dirname(item))
+    on_path = [root, os.path.dirname(item)]
+    on_path += [os.path.join(item, *parts[:n]) for n in range(len(parts) + 1)]
+    if any(os.path.islink(p) for p in on_path):
+        return
     # The open raises on an edited file that is not there or does not
     # decode, and the raise prints nothing.
     with open(os.path.join(item, *rel.split("/")), encoding="utf-8") as f:
