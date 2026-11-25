@@ -26,7 +26,7 @@ The failure scenario of the chosen approach, six months on: a party reads R5's l
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 8 | `bin/test -q tests/text/test_the_rules_have_one_owner.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_no_passage_is_pasted_into_a_second_file.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/text/test_every_agent_reads_the_contract.py`; the new `RULES` row seen red once per carrier with that carrier's citation removed; `git grep -n -F 'A count of a list is stated once' -- agents skills docs templates` and `git grep -n -F 'no sentence counts the examples' -- agents skills docs templates` each print nothing (at `b03b0e290` each prints the one line `frame/design.md` G8 and G9 name, which Scope items 6 and 5 take out) | |
+| 1 | `frame/design.md` *Scope* items 1 to 8 | `bin/test -q tests/text/test_the_rules_have_one_owner.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_no_passage_is_pasted_into_a_second_file.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/text/test_every_agent_reads_the_contract.py`; the new `RULES` row seen red once per carrier with that carrier's citation removed; `git grep -n -F 'A count of a list is stated once' -- agents skills docs templates` and `git grep -n -F 'no sentence counts the examples' -- agents skills docs templates` each print nothing (at `b03b0e290` each prints the one line `frame/design.md` G8 and G9 name, which Scope items 6 and 5 take out) | `935f8bf56` |
 
 ## Overlap with the release
 
