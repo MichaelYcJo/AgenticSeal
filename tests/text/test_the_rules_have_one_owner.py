@@ -337,7 +337,8 @@ RULES = {
     # count or a universal that the next fix made false, and the rule stood
     # in `agents/framer.md` for the frame's counts alone. It went into
     # contract rule 19 beside what a change does to the text it amends, and
-    # each step where a party writes after round 1 cites it there.
+    # the file of each link below cites it at the step where its party
+    # writes after round 1.
     "30 a change writes no count or universal a later change makes false": (
         CONTRACT,
         (
