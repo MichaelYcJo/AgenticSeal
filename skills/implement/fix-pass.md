@@ -117,7 +117,10 @@ into the `answer:` of the close block of the finding they concern, and
 otherwise into the `answer:` of the last close block the pass appends.
 Where the pass appends no close block, because no finding names its fix,
 they go into `gaps.md` `## Not done`. What the pass did not finish goes to
-`gaps.md` `## Not done` too.
+`gaps.md` `## Not done` too. The account states only the reads the pass's
+commands made after its last fix commit, each labelled as contract rule 4
+asks. A part the pass held from its own edit or from a hand-back, and did
+not print again after that commit, it names as held and not read.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## The close blocks, last

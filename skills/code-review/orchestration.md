@@ -33,10 +33,11 @@ every turn to hold what the record already holds.
 
 **A fix pass resumes the implementer only while the implementer's largest
 per-turn context is below 806,241 tokens, and is a fresh `crafter` spawn
-otherwise.** The implementer is the party that wrote the work item's last
-build or fix commit: the crafter, or the orchestrator where `routing.md`
-answers `Implementation` with `the session`. Before the fix pass, the
-orchestrator runs
+otherwise.** The implementer is the orchestrator where `routing.md` answers
+`Implementation` with `the session`. In every other route it is the crafter
+that made the work item's last build phase or fix pass, also where a fix
+the orchestrator wrote after the last round came later. Before the fix
+pass, the orchestrator runs
 `seal cost --segments <the implementer's agent-*.jsonl>` on the
 implementer's own transcript, the file the harness's task output named, and
 reads the largest value of its `context` column. Below the threshold, the

@@ -299,6 +299,10 @@ def test_whoever_makes_the_fix_pass_makes_the_reading_of_the_range():
         "`answer:`",
         # The file and the heading what the pass did not finish goes under.
         "`gaps.md` `## Not done`",
+        # The contract rule whose labels the account of the read carries, so
+        # that it claims only the reads the pass's commands made (round 3 of
+        # #1623).
+        "contract rule 4",
     ):
         assert fact in section, (
             f"*The narrow set, then the read of the range* no longer says {fact!r}"
