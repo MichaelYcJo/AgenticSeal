@@ -58,7 +58,11 @@ the work item's `routing.md` and asks nothing again before the spawn.
 **The orchestrator writes no close block of a finding the fix pass answers,
 and its fix-pass prompt leaves every such block to the crafter.** A close the
 orchestrator doubts goes into the verifying round's spawn prompt, since that
-round weighs every close, and the orchestrator does not rewrite the block.
+round weighs every close. Where the row *No fix that no round reads* of
+`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the
+pass to the sealer and no round follows it, the doubt goes into the
+sealer's spawn prompt, since the sealer reads that close at step 4 of
+`agents/sealer.md`. The orchestrator does not rewrite the block.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -90,8 +94,8 @@ finding to the framer, commits the fold, or its row that records the
 framer's rejection, and resumes the fix pass, or spawns it fresh by the
 threshold above. **On the hand-back that leaves no
 finding open for a fold, the orchestrator commits the round record as the
-fix pass left it, in one commit for the whole pass, before it spawns the
-verifying round, and changes none of its lines.** That commit holds
+fix pass left it, in one commit for the whole pass, before it reads
+whether a round follows the pass, and changes none of its lines.** That commit holds
 `trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
@@ -123,6 +127,23 @@ So a run ends with a **verifying round**, and three things define it.
 | Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `agents/proofer.md` *Rules* states the bound, in the rule opening **A verifying round answers the closed findings**, and the read of the work item's records that stands beside the bound, in the rule opening **Every round reads the work item's records that state the present** |
 | Job | the answers, not new findings. The round answers each finding the previous round closed `fixed <commit>` or `rejected`, as `skills/code-review/SKILL.md` *Earlier rounds* states |
 
+**Whether a round follows a fix pass is read off the chain check, not
+judged by eye.** Once it has committed the pass's round record, the
+orchestrator runs the read the proofer runs before it hands back,
+`python3 skills/code-review/scripts/chain_check.py --baseline <base>
+--root <the branch worktree> --worktree`. Where its output names that
+record with the words `skills/code-review/scripts/chain_check.py#VERIFYING_ROUND`
+holds, "a verifying round is owed", a round reads the pass, and the
+orchestrator spawns it, since the run does not end on a fix that the row
+*No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not
+licence to skip a party* gives to a round. Where a line names that record
+with other words, the check could not read the record as the pass left
+it. The orchestrator has the party that wrote the named line repair it,
+the fix pass where the line is a close block and the proofer where it is
+the finding's own block, and runs the read again. Where no line of its
+output names that record, no round follows the pass, and the orchestrator
+opens `skills/code-review/gate-to-pull-request.md`.
+
 **You end the rounds when they stop paying.** Which rounds count, the
 three finding rounds at which the weighing is owed and which are no cap,
 and where the count starts again are `docs/running/the-run.md` *The run*'s.
@@ -142,14 +163,17 @@ round reads it. This weighs what a round costs and changes no invariant.
 
 The verifying round a regression's fix pass is owed whatever the count, and
 the row of `frame/plan.md` *Judgments of the run* that each decision to go
-on or to stop takes, are *The run*'s too. When you stop, every
+on or to stop takes, are *The run*'s too. That round is not owed where the
+row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not
+licence to skip a party* gives the pass to the sealer. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
 
 **A row that judges the run excessive binds every row after it.** Its
 grounds name what the next round could catch and what it would cost. From
-that row on, a `must` gets its fix pass and its verifying round. Every
+that row on, a `must` gets its fix pass, and its verifying round unless the
+core's row gives that pass to the sealer. Every
 other finding takes a home that costs no round. That home is rung 2, 3 or 4
 of the homes *The run* gives, where you append its close block reading
 `deferred <home>` and spawn no fix pass for it, or a fix that the row *No
@@ -200,7 +224,8 @@ round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a
 party* gives to a round, so one more verifying round
 reads that answer alone, and answers it as `skills/code-review/SKILL.md`
 *Earlier rounds* states. A finding of that round that carries a `reopens:`
-line gets its fix pass and one more verifying round; a round carrying a
+line gets its fix pass, and one more verifying round unless the core's row
+gives that pass to the sealer; a round carrying a
 `regression:` line is routed as the section below says, and where the work
 item returns to its framer the run goes on with the redesign. The run ends
 only on a round whose record holds no finding without a close block, no
