@@ -58,10 +58,12 @@ An edited path with a link anywhere from the root down to the file, the
 root itself, its `threads/`, the work item's directory and the file among
 them, prints nothing, and a `.md` name in the work item that is a link is
 no record and is not read: a link can name a file or a directory outside
-the repository, or a device whose read never ends. The hook writes
-nothing, starts no process and reaches no network. Its command in
-`hooks/hooks.json` ends with ` || exit 0`, so the command exits 0 whatever
-happens, a file its interpreter cannot load among them.
+the repository, or a device whose read never ends. The root's
+`README.md`, where it is itself a link, stands outside that guard:
+`lib/optin.py#marked` reads it, as every hook and gated command does. The
+hook writes nothing, starts no process and reaches no network. Its command
+in `hooks/hooks.json` ends with ` || exit 0`, so the command exits 0
+whatever happens, a file its interpreter cannot load among them.
 """
 
 import difflib
@@ -108,13 +110,17 @@ def _located(path, optin):
         if parent == here:
             return None
         rel.insert(0, os.path.basename(here))
-        if os.path.basename(parent) == optin.WORK_ITEMS and optin.marked(
-            os.path.dirname(parent)
-        ):
-            inner = "/".join(rel[1:])
-            if inner.endswith(".md") and _read(inner):
-                return os.path.join(parent, rel[0]), inner
-            return None
+        if os.path.basename(parent) == optin.WORK_ITEMS:
+            root = os.path.dirname(parent)
+            # A root that is a link is not opened: `optin.marked` reads its
+            # `README.md`, which the link can place outside the repository.
+            if os.path.islink(root):
+                return None
+            if optin.marked(root):
+                inner = "/".join(rel[1:])
+                if inner.endswith(".md") and _read(inner):
+                    return os.path.join(parent, rel[0]), inner
+                return None
         here = parent
 
 
@@ -255,12 +261,15 @@ def main():
         return
     item, rel = located
     # A link anywhere from the root down to the edited file can name a
-    # file or a directory outside the repository: `open` follows it at the
-    # file and at every directory over it, and `os.walk` follows the item's
+    # file or a directory outside the repository. `_located` has refused a
+    # root that is a link, ahead of `optin.marked`, which opens the root's
+    # `README.md`. This guard refuses a link at the root's `threads/`, the item's
+    # directory or any component under it down to the edited file, before
+    # the first record is opened: `open` follows such a link at the file
+    # and at every directory over it, and `os.walk` follows the item's
     # directory it starts at. So the hook reads nothing on such a path.
     parts = rel.split("/")
-    root = os.path.dirname(os.path.dirname(item))
-    on_path = [root, os.path.dirname(item)]
+    on_path = [os.path.dirname(item)]
     on_path += [os.path.join(item, *parts[:n]) for n in range(len(parts) + 1)]
     if any(os.path.islink(p) for p in on_path):
         return
