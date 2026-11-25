@@ -91,10 +91,12 @@ following one request end to end: one asks what a second actor does while
 the first is mid-flight, the other what an input nobody sends in good faith
 does.
 
-The four record rows are walked over the records `agents/proofer.md` *Every
-round reads the work item's records that state the present, whole, against
-its target* names, and that rule says which records they are and how a
-frame section dated to the framer's commit reads.
+The rows *Record against the code*, *Record against record*, *Record
+against another work item's frame* and *Figure against its text* are walked
+over the records `agents/proofer.md` *Every round reads the work item's
+records that state the present, whole, against its target* names, and that
+rule says which records they are and how a frame section dated to the
+framer's commit reads.
 
 The response-shape row is walked from the reference to the code. The
 reference is what stage 1 reads above the code: the policy documents and the
