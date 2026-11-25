@@ -44,12 +44,11 @@ design rests on is probed before it is relied on.
   `agent_id`, `agent_type`, `agent_transcript_path`, and
   `last_assistant_message`", where `agent_transcript_path` "is the subagent's
   own transcript stored in a nested `subagents/` folder". No commit, diff or
-  file list. The claude-code-guide agent also read that, with
-  SubagentHandback, the report is that call's `message` input, which a
-  Pre/PostToolUse hook matched on `SubagentHandback` receives as
-  `tool_input.message`, and `last_assistant_message` is not the report; round 2
-  found no such sentence in the hooks.md and sub-agents.md it fetched, so this
-  line is unconfirmed.
+  file list. hooks.md *SubagentStop input*, on v2.1.271 or later: "The
+  `last_assistant_message` field then holds the subagent's closing text, if
+  any, which is not the delivered report. The report is that call's `message`
+  input, which a `PreToolUse` or `PostToolUse` hook matched on
+  `SubagentHandback` receives as `tool_input.message`."
 - On SubagentStop, `decision: "block"` with a `reason` from a `command` hook,
   or `{ok: false, reason}` from a `prompt` or `agent` hook, "is fed back to
   Claude as its next instruction and the turn continues": the stopping
