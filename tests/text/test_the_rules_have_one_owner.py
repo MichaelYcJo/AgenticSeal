@@ -592,7 +592,8 @@ def the_order():
 def test_a_decision_after_the_frame_is_folded_into_it():
     """S9 of #945. A crafter reads the frame and not the issue's comments, so
     a decision made after the frame is committed is folded into it before
-    the next crafter spawns, and before framing into the issue body.
+    the next crafter spawns or is resumed, and before framing into the issue
+    body.
 
     #1477 rewrote the one paragraph of ordered acts as six paragraphs of
     judgment, numbered as rows of that work item's `frame/design.md` D1.

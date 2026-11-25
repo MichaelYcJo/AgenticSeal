@@ -94,7 +94,7 @@ fresh as `skills/code-review/orchestration.md` *Orchestrator: a phase is a
 fresh crafter, and a fix pass resumes the implementer* states.
 
 **One fold reaches every statement of the fact it changes.** Before the
-spawn that will read the decisions, the orchestrator sends every decision
+spawn or the resume that will read the decisions, the orchestrator sends every decision
 then pending to the framer in one message, each with its grounds and the
 coordinates it stands on: the finding, the comment or the owner's words.
 The fact a decision changes often stands in sections the decision does not
@@ -104,7 +104,7 @@ fact and says that its coordinates are the statements the orchestrator has
 seen, not the whole list. The statements a crafter's hand-back names are
 its reading of a file it does not write, so the orchestrator reads each
 file that holds one whole against HEAD, not only the named line, and
-rewrites every statement HEAD contradicts. In a section the frame dates to
+folds every statement HEAD contradicts. In a section the frame dates to
 the commit it read, a statement of the tree is not folded, and a sentence
 that says what the work does or concludes is rewritten with a decision's
 fact, or removed or narrowed where its source is what a fix changed; a
@@ -116,7 +116,7 @@ that states the present whole against HEAD, the second method of contract
 rule 12; a decision's fold is read by the framer that writes it.
 
 **The orchestrator writes its row before it sends a decision, and commits
-the fold before the spawn.** Until a decision is folded, the orchestrator
+the fold before the spawn or the resume.** Until a decision is folded, the orchestrator
 keeps one line of its own in `plan.md` naming the comments to fold, below
 the title, and deletes that line in the commit that folds them. Before it
 sends, the orchestrator writes each decision, its grounds and the document
@@ -131,7 +131,8 @@ and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
 answers. The orchestrator corrects its row where the framer's
 hand-back names a defect in it, then commits the frame files the framer
-changed and its own rows in one commit, before the spawn that reads them.
+changed and its own rows in one commit, before the spawn or the resume
+that reads them.
 
 **A decision the framer rejects stands as its judgment, as a proposal left
 after the exchange of *The frame is read against the issue at the spawn*
