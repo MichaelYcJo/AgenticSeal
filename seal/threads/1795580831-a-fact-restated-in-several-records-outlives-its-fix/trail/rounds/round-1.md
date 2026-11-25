@@ -32,6 +32,11 @@ frame/plan.md, row at line 26, the sentence in the failure-scenario cell:
 `frame/questions.md` Q1's measurement found a plugin hook's text delivered in the main session and inside a plugin's subagent, and this hook's own text in the main session
 ```
 
+```seal
+verdict: fixed f1fd9f345
+answer: The `frame/plan.md:26` half is the framer's fold at `17003563a`, whose row now says Q1 found a plugin hook's fixed text in the main session and inside a plugin's subagent, and this hook's own text in the main session. The `gaps.md` half is `f1fd9f345`, in my own words rather than the snippet's: the snippet rewrote the item and kept it closed with the old answerer in place, so the old row is closed as answered for the main session by Q1's third session, and a new open row holds what Q1 did not measure, this hook's own text inside a subagent, with the orchestrator as its answerer. The listing command run again at `f1fd9f345` prints `frame/plan.md:26`, `frame/questions.md:14`, and `gaps.md:10` and `:11`; each states Q1's measurement as Q1's Status cell records it, which is the home the others cite.
+```
+
 ### 2. The hook takes its context words from `old_string` alone, so it can print nothing for 824 of 2,174 measured edits of work item records, while the frame's grounds measured context taken from the file
 
 ```seal
@@ -79,6 +84,11 @@ def _widened(text, old, new):
     places = _places(item, _records(item), _spans(old, new))
 ```
 
+```seal
+verdict: fixed 3d4a8810e
+answer: The frame's half is the framer's fold at `17003563a`: `frame/design.md` *Data & interfaces*, the hook's second bullet, *Scope* items 9 and 11, acceptance row A13, the `## Rule changes` add row, and `frame/plan.md:26` and `:27`. The code is `4be875457`, then `3d4a8810e`. `_widened` takes the three words on each side from the edited file around `new_string`'s first place, falling back to `old_string` alone where `new_string` is empty or not in the file, and `main` opens the edited file in place of the `isfile` check. The snippet was read before it was applied, and one part was not taken. Its conditions `middle[:1].strip()` and `middle[-1:].strip()` survived `seal mutate`, since a joined string that holds a space splits there again in `#_spans`, so `3d4a8810e` removed them. The A13 case `test_accepts_and_names_a_copy_where_old_string_ends_at_the_change` and the edge case `test_accepts_and_names_a_copy_where_a_word_is_cut_at_an_edge` were seen red against the hook that read `old_string` alone: each printed nothing and failed at `json.loads`. `test_accepts_and_names_a_deletion_by_the_words_of_old_string` covers the fallback. At `3d4a8810e`, `seal mutate` over the link skip and each unit of the widening gave 9 mutants, all red. The docstring at lines 23 to 36, the comment over `AROUND` and `changelog.md:3` are rewritten. The listing command run again at `7e4626370` prints the hook's docstring and comments, which state the new reading; `changelog.md:3`; the frame lines the fold wrote; `trail/phases/phase-2.md:17` and this record, which record past acts and stay; `tests/hooks/test_edit_leaves_copies.py:27`, whose `SPAN` the widened reading still gives; `:165`, whose three words on each side of an insertion still hold; and `:223`, the new fallback case.
+```
+
 ### 3. The hook opens a record that is a link, so a work item in a checked-out repository can make it read a file outside the repository, or `/dev/zero` without end
 
 ```seal
@@ -111,6 +121,11 @@ def _records(item):
             if name.endswith(".md") and _read(prefix + name):
                 found.append(prefix + name)
     return found
+```
+
+```seal
+verdict: fixed 4be875457
+answer: `#_records` skips a name that `os.path.islink` reads as a link, and its docstring and the module's list of what prints nothing name a link as no record. This is in my own words rather than the snippet's: its `or not os.path.isfile(full)` holds only a name that is not a link and not a regular file, such as a FIFO, which git does not commit, and no case could show that guard red without a read that never ends, so it was left out. `test_refuses_to_print_where_the_words_stand_only_behind_a_link`, a `leak.md` link to a file outside the repository that holds the replaced words, printed the `leak.md` place against the hook before the fix, and prints nothing after it. Mutant 1 of the batch at `3d4a8810e`, the skip replaced with `if False:`, was red. The same class outside the diff, `lib/routing.py#read_declaration` and `hooks/ask-under-automation.py#_paragraph`, is the orchestrator's: `frame/plan.md` *Judgments of the run* sends it to an issue of its own. The listing command run again at `7e4626370` prints `docs/checks/the-pull-request-check.md:49`, on another fact; `frame/design.md:59` and `:133`, which hold at HEAD; `frame/plan.md:67`; and this record. `frame/design.md:90`, the hook's first bullet, says the hook searches the item's `.md` files and names no link, which the search does not print; it is the framer's to fold.
 ```
 
 ## Confirmations
