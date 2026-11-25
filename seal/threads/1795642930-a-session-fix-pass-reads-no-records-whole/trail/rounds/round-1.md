@@ -113,6 +113,11 @@ implementer where the session builds") the same check. Both stay true if
 the definition at `:36-37` carries the orchestrator, as the first snippet
 writes.
 
+```seal
+verdict: fixed 9e2b4c5e2
+answer: The finding holds. `skills/code-review/orchestration.md` now defines the implementer once, in place, in the paragraph opening **A fix pass resumes the implementer only while**: "the party that wrote the last commit the round reviewed: the crafter, or the orchestrator where `routing.md` answers `Implementation` with `the session`". The paragraph opening **Where `routing.md` answers `Implementation` with `the session`** no longer defines the term. `skills/implement/SKILL.md`'s opening now reads "the crafter never opens it, and everything below is the crafter's and the orchestrator's alike", the snippet's wording. So `frame/design.md` *Removes* row 2, "Rewritten in place", holds at HEAD. The test comment at the `Implementation` and `the session` facts of `tests/text/test_the_rules_have_one_owner.py` and `changelog.md`'s "names it as the implementer where the session builds" both stay true under the definition in place, as the finding says, so neither changed (read). `git grep -n -F -e "orchestrator is the implementer" -e "an implementer never"` outside the records prints nothing at HEAD (executed).
+```
+
 ### 2. The close-block ban and the round record's commit are scoped from a paragraph above them, not amended where they stand, and which paragraphs the scope reaches has two readings
 
 ```seal
@@ -186,6 +191,11 @@ round record "from the hand-back". That file is under `docs/`, and
 settle. So this finding does not ask for that change. It names that file as
 the one place the search printed and the snippet does not reach.
 
+```seal
+verdict: fixed 9e2b4c5e2
+answer: The finding holds. The scoping clause is gone: the paragraph opening **Where `routing.md` answers `Implementation` with `the session`** now ends "The orchestrator appends the close blocks of its own pass, as `skills/implement/fix-pass.md` *The close blocks, last* states." The ban's bold lead carries its condition where it stands, "where a crafter makes the pass", the hand-back sentence reads "A crafter's hand-back carries", and the round record's commit binds "On the hand-back that leaves no finding open for a fold, and at the end of its own pass where it leaves none open", each the snippet's wording, with the opening words of both bold leads kept. `git grep -n -F "speak of a crafter"` outside the records prints nothing at HEAD (executed). `docs/forms/the-round-record.md:99-100` stays, as the finding asks, for the settle (`frame/design.md` *Scope*, Out). `trail/phases/phase-1.md` still describes the clause as the phase built it; the phase keeps its record (`skills/implement/fix-pass.md` *The close blocks, last*).
+```
+
 ### 3. `skills/implement/SKILL.md` *5* calls the orchestrator's pass "a session's", and the file it sends that pass to now calls it the orchestrator's
 
 ```seal
@@ -214,6 +224,11 @@ line outside the records.
 ```markdown
 <!-- skills/implement/SKILL.md:338 -->
 A fix pass, the crafter's or the orchestrator's, opens
+```
+
+```seal
+verdict: fixed 9e2b4c5e2
+answer: The finding holds. `skills/implement/SKILL.md` *5. Incorporate review* now reads "A fix pass, the crafter's or the orchestrator's, opens", the snippet's wording. `git grep -n -F "or a session's" -- ':!seal/threads'` prints nothing at HEAD (executed).
 ```
 
 ### 4. The read's account has no home in the orchestrator's fix after the last round, the second case the paragraph names, where the pass appends no close block
@@ -266,6 +281,11 @@ What the pass did not finish goes to `gaps.md` `## Not done`.
 The snippet is one candidate, not the fold's wording. *Scope* item 1's
 bullet and S5 owe the same home, and the fold writes them.
 
+```seal
+verdict: fixed 9e2b4c5e2
+answer: The finding holds, and its home went to the framer's fold first, at `a8dab6c96`, which chose `gaps.md` `## Not done` and wrote the candidate row of *Judgments of the run* and the removal of the second case as rows 12 and 13 of `frame/plan.md` *Alternatives considered*, with *Scope* item 1 and S5 naming the home. `skills/implement/fix-pass.md` *The narrow set, then the read of the range* now adds, after the close-block mapping, "Where the pass appends no close block, because no finding names its fix, they go into `gaps.md` `## Not done`. What the pass did not finish goes to `gaps.md` `## Not done` too.", the fold's wording. `changelog.md`'s first bullet names the same home.
+```
+
 ### 5. The new `seal/follow-up.md` row says where the weighing begins by pointing at rows of this work item's `frame/plan.md`, which the settle deletes before the row is read
 
 ```seal
@@ -293,6 +313,11 @@ instruction a reader acts on.
 ```markdown
 <!-- seal/follow-up.md:48, the row's last sentence -->
 Where findings of that kind recur under the released text, the orchestrator weighs a mechanism for the read, beginning with the two #1623 rejected: `hooks/edit-leaves-copies.py` widened to search the item's records for the words any `Edit` replaced, and a `Stop` hook of type `prompt` or `agent` that asks, when a pass ends, whether the session read its records whole | the repository owner |
+```
+
+```seal
+verdict: fixed 9e2b4c5e2
+answer: The finding holds. The row's last sentence now names the two rejected mechanisms in words, the snippet's wording, and keeps the work item ids of the baseline as the finding judged. The account of this pass's reading, which `skills/implement/fix-pass.md` *The narrow set, then the read of the range* asks of the orchestrator's pass and places in the last close block where it concerns no one finding. Method: after the fix commit `9e2b4c5e2`, every hunk of `git diff 9f3bcd65f..HEAD -- skills` was read with the paragraph around it, and `routing.md`, `frame/design.md`, `frame/plan.md`, `frame/questions.md`, `gaps.md` and `changelog.md` were read whole against HEAD. The read found one frame sentence HEAD contradicts: `frame/design.md` *Data & interfaces* listed three files of procedure text, and the fix changed `skills/implement/SKILL.md` too. The orchestrator folded it at `c49e96507` by narrowing the sentence to "procedure text in `skills/`". It found `changelog.md`'s first bullet silent on the new home of finding 4 and named it there, in `9e2b4c5e2`. The tree-wide sample was `git grep -n -F` over `or a session's`, `speak of a crafter`, `orchestrator is the implementer` and `an implementer never` (executed). Outside this item's records it printed only the records of `1794352646-a-phase-spawn-preloads-the-fix-pass-procedure` and `1794362365-the-definitions-restate-the-contract`. Those are dated records of released items, which the settle removes, so they stand. The sample is on words, so a sentence that gives the crafter's part in other words escapes it. The sentences of `docs/` that describe the crafter's route stay for the settle, as `frame/design.md` *Scope*, Out, says. Narrow set: the test files that read a changed path, by `git grep -l -e 'fix-pass' -e 'orchestration.md' -e 'implement/SKILL.md' -e '"SKILL.md"' -e 'follow-up.md'` over the test files, with `tests/test_*.py`, as one `bin/test` command: 2384 passed (executed).
 ```
 
 ## Confirmations
