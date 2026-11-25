@@ -23,9 +23,12 @@ a reader should keep separate:
 - **The plugin's hooks** — the scripts that run without anybody
   asking: the stamp's `Stop` hook at the end of each turn, the
   `SessionStart` hook, which prints the core at a session's start where its
-  repository holds a `seal/` root, and the `PreToolUse` hook, which reads
+  repository holds a `seal/` root, the `PreToolUse` hook, which reads
   the work items open in the session's repository before each
-  `AskUserQuestion` call and may refuse that call. `hooks/hooks.json`
+  `AskUserQuestion` call and may refuse that call, and the `PostToolUse`
+  hook, which reads a work item's records after each `Edit` call of one of
+  them and names, in the session's context, the places that still hold the
+  words the edit replaced. `hooks/hooks.json`
   registers each of them. A defect in any of them is worth more than the
   same defect in a checker, because nobody chose to run it at that moment.
 

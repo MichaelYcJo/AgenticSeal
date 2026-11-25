@@ -351,11 +351,12 @@ reads it whole beside `pr.md`. Where the two keys name one language, no
 renders, the orchestrator rewrites each rendering that stood on it, and
 commits them before it spawns the next round.** A quote of `pr.md` whose
 sentence changed is rewritten where `seal pr-body` refuses it, or earlier
-where a hand-back names it. A round finding located in `pr.md` or
-`pr.<lang>.md` is the orchestrator's to repair, since no crafter writes
-either: the orchestrator commits the repair before the fix pass, and the
-pass's close block reads `fixed <that commit>`, as for a finding located
-in a frame file.
+where a hand-back names it or the plugin's `PostToolUse` hook,
+`hooks/edit-leaves-copies.py`, names it after the edit of its source. A
+round finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's
+to repair, since no crafter writes either: the orchestrator commits the
+repair before the fix pass, and the pass's close block reads
+`fixed <that commit>`, as for a finding located in a frame file.
 
 **A session that has compacted hands the next round to a fresh one, and the
 round record is the handoff.** A compacted context holds a summary of what

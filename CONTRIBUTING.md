@@ -487,13 +487,17 @@ question is not its difficulty, it is when it arrives.
   `skills/verify/scripts/seal_stamp.py --stop`, which draws the sealer's
   stamp at the end of the main session's turn, a `SessionStart` entry
   that runs `hooks/core-start.py`, which prints the core into a session
-  whose repository holds a `seal/` root, and a `PreToolUse` entry matched
+  whose repository holds a `seal/` root, a `PreToolUse` entry matched
   to `AskUserQuestion` that runs `hooks/ask-under-automation.py`, which
   refuses a question while an open work item reads `Automation` `yes` and
-  the question does not state why its default cannot be taken. The plugin
-  directory refuses a plugin that registers a command hook (#1376), and the
-  owner chose on 2026-11-08 to ship such hooks until a listing is possible
-  (#1430), and filed #1608 for the `PreToolUse` one. Each
+  the question does not state why its default cannot be taken, and a
+  `PostToolUse` entry matched to `Edit` that runs
+  `hooks/edit-leaves-copies.py`, which names the places in a work item's
+  other records that still hold the words an edit of one of them replaced.
+  The plugin directory refuses a plugin that registers a command hook
+  (#1376), and the owner chose on 2026-11-08 to ship such hooks until a
+  listing is possible (#1430), filed #1608 for the `PreToolUse` one, and
+  filed #1612, whose frame chose the `PostToolUse` one. Each
   command is `python3 <script> || py -3 <script> || exit 0`, with the
   script named under `${CLAUDE_PLUGIN_ROOT}`: shebangs and exec bits do not
   exist on Windows, and `python3` is the one name its official installer
