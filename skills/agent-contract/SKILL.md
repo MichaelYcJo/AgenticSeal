@@ -190,7 +190,7 @@ refusal in the hand-back, quoted; never bend the code to pass it. Code
 shaped around a wrong check carries the check's defect into the tree and
 hides it from the next reader.
 
-## 19 A change rewrites the text it amends in place, and writes no count a later change makes false
+## 19 A change rewrites the text it amends in place, and writes no count that can go stale
 
 `skills/core/SKILL.md` *The rule a mechanism is kept against* states the
 rule. What stood on the old fact, which the same commit removes or

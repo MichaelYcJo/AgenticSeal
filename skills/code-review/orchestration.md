@@ -178,8 +178,8 @@ record that names the shapes one by one gains one shape per fix pass, and
 each shape it names is a sentence the next round contradicts with the shape
 beside it. A shape that was measured is cited as an example of the rule and
 named as one, and a sentence about the examples writes no count and no
-universal contract rule 19 refuses. The signal shows at the first fix pass that adds a shape, and the
-weighing is owed there, not at the round after.
+universal contract rule 19 refuses. The signal shows at the first fix pass
+that adds a shape, and the weighing is owed there, not at the round after.
 Where deciding it is a rebuild the issue did not ask for, the mechanism leaves
 as its own issue and the branch keeps the release's reading of it, so the run
 reads no edge the release did not have. The row that decides either names the
