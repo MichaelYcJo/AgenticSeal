@@ -33,6 +33,11 @@ The snippet replaces the bullet's last sentence. The fact has two other statemen
 Counted on 2026-11-25 over this repository and one other that runs the chain, the two such rounds after #1507 that followed a regression found nothing, and the two that followed a `reopens:` finding found one finding between them; none followed a `must` after that row.
 ```
 
+```seal
+verdict: fixed bfbc40d96
+answer: The finding holds: the bullet's subject names three cases, and its count named the regression rounds alone. G18 and the first `## Removes` row of `frame/design.md` give the split, and the bullet's last sentence now carries it. The fix pass wrote the sentence's last clause in its own words: the snippet's "none followed a `must` after that row" claims a fact G18's probe did not read, since it read the `location:`, `verdict:`, `regression:` and `reopens:` lines and no stop row, so the clause reads "no such round after a `must` past that row was measured", as the `## Removes` row says. `frame/plan.md:36` counts the regression case alone and still holds, and the `## Removes` row already holds the split, so no other statement changed. The same commit corrects round 1's close of finding 5 to "35 lines", which the evidence command prints at `72b8642c1`, `fce5a7d1b` and `1399ce7fc` (executed, `git grep ... | wc -l` at each).
+```
+
 ### 2. *Scope* item 4 places the paragraph on a doubted close in a section it is not part of
 
 ```seal
@@ -55,6 +60,11 @@ and the paragraph opening **The orchestrator writes no close block of a finding 
 
 ```markdown
 The paragraph opening **On the hand-back that leaves no finding open for a fold** (line 91), in the section before this one,
+```
+
+```seal
+verdict: fixed 1399ce7fc
+answer: The framer's fold at `1399ce7fc` answers the finding (read against it). *Scope* item 4 now places the paragraph opening **The orchestrator writes no close block of a finding the fix pass answers** "in *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer*", and places the paragraph opening **On the hand-back that leaves no finding open for a fold** "in that same section". G4 now reads "The paragraph opening **On the hand-back that leaves no finding open for a fold** (line 91), in the section before this one, *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* (lines 23 to 107)", as the snippet gives it with the section named. `grep -n '^## ' skills/code-review/orchestration.md` at HEAD prints that section at line 23 and *Orchestrator: the run ends with a verifying round* at line 112 (executed), so both paragraphs lie in the section the fold names. The commit touched `frame/design.md` and `frame/plan.md` alone.
 ```
 
 ## Confirmations
