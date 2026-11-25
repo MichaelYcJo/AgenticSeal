@@ -46,7 +46,22 @@ file's earlier text is replaced whole. Both forms refuse at `config.json`
 where either key is absent, empty or refused, at the work item's directory
 where the keys differ and it holds no such file or more than one, at a
 file's line where it equals `HEADING`, and at `pr.md` where it is not
-there. Below the line `HEADING` holds, the changelog fragment stands
+there.
+
+Each line of `pr.md` in the quote form is read against the record it
+quotes, and `pr.<lang>.md` is not read for quotes. The form is the one
+spelling `skills/code-review/orchestration.md` *Orchestrator: the pull
+request opens once the sealer seals* gives: the line opens with `- "`, the
+quote runs to the line's last `" (` before a backtick, so a `"` inside it
+is itself, a backticked path under the work item's directory follows, then
+any text, and the line ends with `)`. Both forms refuse at `pr.md`'s line
+where the path names no file of the work item's directory, one outside it
+among them, and where the file's text, with each run of whitespace made
+one space, does not hold the quote read the same way. A line that holds
+`" (` before a backtick outside the form is named, on the line opening
+`seal pr-body:`, as a line not read, and decides nothing.
+
+Below the line `HEADING` holds, the changelog fragment stands
 first, whole and outside any fold, so the pull request's reader meets it
 before the fold, and the rest of the copy stands in one `<details>` fold,
 whose `<summary>` names the copy and is followed by a blank line so the
@@ -109,6 +124,11 @@ Limits, stated here and not guarded:
   as a line start, such as one in an indented code block, the line is
   refused too. Behind a list marker or a quote marker GitHub hides them, as
   the refusal assumes.
+- A quote is read as a substring of the file its path names, so one that
+  stands in the file under a heading or row other than the one its
+  coordinate names passes; what follows the path is not read, and that
+  reading stays the rounds' and the sealer's. Each line is read, inside a
+  fence too, and a quote with no words stands in any file.
 - Exit 2's line names `<item>` as it was given, or the module that would not
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
@@ -236,6 +256,25 @@ QUESTIONS = OPTIN.QUESTIONS
 # reads and no section copies.
 OWN_PART = OPTIN.PR
 NO_OWN_PART = "is not there; the orchestrator writes it before the first round"
+# A quote of `pr.md`, in the one spelling `skills/code-review/orchestration.md`
+# *Orchestrator: the pull request opens once the sealer seals* gives it: a
+# line opening with `QUOTE_OPEN`, the quote, `QUOTE_MARK`, the path under the
+# work item's directory and its closing backtick, any text, and `)` at the
+# line's end. The quote runs to the line's last `QUOTE_MARK`, so a `"` inside
+# it is itself; a line holding `QUOTE_MARK` outside the form is named as not
+# read (`UNREAD_QUOTES`).
+QUOTE_OPEN = '- "'
+QUOTE_MARK = '" (`'
+NO_SOURCE = "names `{path}`, which is not a file of the work item's directory"
+NOT_HELD = (
+    "quotes words `{path}` does not hold, with runs of whitespace collapsed; "
+    "the orchestrator rewrites the quote from the record as it stands"
+)
+UNREAD_QUOTES = (
+    f"not read as a quote: {{lines}} of `{OWN_PART}`, which {{hold}} "
+    f"`{QUOTE_MARK[:-1]}` before a backtick outside the form "
+    f"`{QUOTE_OPEN}<quote>{QUOTE_MARK}<path>` <coordinate>)`"
+)
 
 # The two keys `first_part` composes the first part from, read through
 # `lib/config.py#declared_value` as `MARK_KEY` is, and the translated file
@@ -472,6 +511,65 @@ def read_own(item, name=OWN_PART):
     return text
 
 
+def _collapsed(text):
+    """TEXT with each run of whitespace made one space and its ends trimmed."""
+    return " ".join(text.split())
+
+
+def quote_lines(text):
+    """`(quotes, unread)` of TEXT, a `pr.md`: QUOTES, `(line, quote, path)`
+    for each line in the form `QUOTE_OPEN` opens, 1-based; UNREAD, the
+    numbers of the lines that hold `QUOTE_MARK` outside it."""
+    quotes, unread = [], []
+    for i, line in enumerate(BLOCKS.gfm_lines(text)):
+        at = line.rfind(QUOTE_MARK)
+        if at < 0:
+            continue
+        path, tick, rest = line[at + len(QUOTE_MARK) :].partition("`")
+        if (
+            line.startswith(QUOTE_OPEN)
+            and at >= len(QUOTE_OPEN)
+            and path
+            and tick
+            and rest.endswith(")")
+        ):
+            quotes.append((i + 1, line[len(QUOTE_OPEN) : at], path))
+        else:
+            unread.append(i + 1)
+    return quotes, unread
+
+
+def _unstood(item, quotes):
+    """`Refused`'s causes at `pr.md`'s line for each of QUOTES, `quote_lines`'s,
+    whose path names no file of the work item's directory ITEM, or whose
+    file's text, collapsed, does not hold the quote, collapsed."""
+    causes, held = [], {}
+    for line, quote, path in quotes:
+        rel = posixpath.normpath(path)
+        source = os.path.join(item, *rel.split("/"))
+        if (
+            posixpath.isabs(rel)
+            or rel == ".."
+            or rel.startswith("../")
+            or not os.path.isfile(source)
+        ):
+            causes.append((OWN_PART, line, NO_SOURCE.format(path=path)))
+            continue
+        if rel not in held:
+            try:
+                with open(source, encoding="utf-8") as handle:
+                    held[rel] = (_collapsed(handle.read()), None)
+            except (OSError, UnicodeDecodeError) as exc:
+                held[rel] = (None, exc)
+        text, exc = held[rel]
+        if exc is not None:
+            why = f"names `{path}`, which cannot be read as UTF-8 text ({exc})"
+            causes.append((OWN_PART, line, why))
+        elif _collapsed(quote) not in text:
+            causes.append((OWN_PART, line, NOT_HELD.format(path=path)))
+    return causes
+
+
 def first_part(item, root):
     """`[(name, text)]`, the files of the body's part above `HEADING` for the
     work item's directory ITEM in the repository at ROOT, in their order,
@@ -484,8 +582,9 @@ def first_part(item, root):
     `pr.md`; where they name one language, `pr.md` comes first, then each
     such file in name order. Refused at the root's `config.json`, one cause
     per key, where a key is absent, empty or refused, a file no key can be
-    read from among them; and on the work item's directory where the keys
-    differ and it holds no such file, or more than one."""
+    read from among them; at `pr.md`'s line for each quote `_unstood`
+    refuses; and on the work item's directory where the keys differ and it
+    holds no such file, or more than one."""
     home = OPTIN.home_at(root)
     values, causes = [], []
     for key in (COMMIT_KEY, RECORD_KEY):
@@ -509,6 +608,9 @@ def first_part(item, root):
     if causes:
         raise Refused(causes)
     own = read_own(item)
+    causes = _unstood(item, quote_lines(own)[0])
+    if causes:
+        raise Refused(causes)
     found = sorted(
         name
         for name in os.listdir(item)
@@ -983,13 +1085,22 @@ def _folded(top, sections, parts=(), texts=None, room=0):
     return below, [sections[i][0] for i in sorted(chosen)]
 
 
-def _noted(note, headings):
-    """NOTE, `seal_mark`'s sentence, and `FOLD_NOTE` naming HEADINGS where
-    any section was folded, joined by `; `; None where neither stands."""
-    fold = None
+def _noted(note, headings, parts=()):
+    """NOTE, `seal_mark`'s sentence, `FOLD_NOTE` naming HEADINGS where any
+    section was folded, and `UNREAD_QUOTES` naming the lines of `pr.md`
+    among PARTS, `first_part`'s files, that `quote_lines` did not read,
+    joined by `; `; None where none stands."""
+    fold = unread = None
     if headings:
         fold = FOLD_NOTE.format(headings=_listed(f"`{h}`" for h in headings))
-    return "; ".join(said for said in (note, fold) if said) or None
+    lines = quote_lines(dict(parts).get(OWN_PART, ""))[1]
+    if lines:
+        unread = UNREAD_QUOTES.format(
+            lines=("line " if len(lines) == 1 else "lines ")
+            + _listed(str(n) for n in lines),
+            hold="holds" if len(lines) == 1 else "hold",
+        )
+    return "; ".join(said for said in (note, unread, fold) if said) or None
 
 
 def _joined(below):
@@ -1142,7 +1253,7 @@ def compared(item, body, root, manifest=None, base=None):
     body is read by one code path at the sealer and at the pull request."""
     mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
-    headings = []
+    headings, parts = [], []
     try:
         texts = read_item(item)
         top, sections = _unfolded(name, texts, mark, _in_tree(root))
@@ -1150,8 +1261,8 @@ def compared(item, body, root, manifest=None, base=None):
         below, headings = _folded(top, sections, parts, texts, _room(mark, manifest))
         _check(below, body, parts)
     except Refused as refused:
-        return _noted(note, headings), refused.causes
-    return _noted(note, headings), []
+        return _noted(note, headings, parts), refused.causes
+    return _noted(note, headings, parts), []
 
 
 def _place(where, line, item, body, home):
@@ -1236,7 +1347,7 @@ def main(argv=None):
         for where, line, why in refused.causes:
             print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         return 1
-    note = _noted(note, headings)
+    note = _noted(note, headings, parts)
     said = f"seal pr-body: {note}\n" if note else ""
     print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0
