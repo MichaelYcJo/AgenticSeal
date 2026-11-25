@@ -41,6 +41,36 @@ fix that writes a count or a universal contract rule 19 refuses fails that
 reading too. Where that reading fails, the fix pass writes the fix in its
 own words and says so in `answer:`.
 
+## A fix that needs a unit the frame does not name waits for the fold
+
+**A fix that needs a unit the frame does not name is built only once the
+framer's fold has designed the unit.** A unit the fix pass designs and
+builds in one act reaches the next round with no judge but its builder,
+and `skills/core/SKILL.md` *Each agent judges its own target, independently
+of the others* gives the framer what the work should be.
+
+A unit is a part of the tree with a name or a path of its own: a file or a
+directory; a function, a class, a type or a module-level name, private
+helpers among them; a hook or its entry; a `seal` subcommand or flag; a
+configuration key; a field or a line of a record's form; a section of a
+skill, a document or a template; and a rule a procedure gains that adds a
+mechanism `agents/framer.md` *A mark is not the answer to a blocked step*
+lists. A change to the body of a named unit is not a new unit, and neither
+is a new case in a test module. The frame names a unit where
+`frame/design.md` *Scope* or *Data & interfaces*, or the `frame/plan.md`
+row of the phase that built the code, states the unit by its name or by
+what it does.
+
+Where a finding's fix needs a unit the frame does not name, a paste-ready
+fix's among them, the fix pass builds no part of that fix and writes no
+close block for the finding, which stays open. It fixes the other
+findings. Its hand-back names the finding, the unit the fix needs, and why
+none of the sections the paragraph above lists names it. Once the
+orchestrator has committed the framer's fold, the fix pass that follows
+builds the unit to the fold's design and closes the finding, and its
+`answer:` names the *Scope* item the fold added.
+check: tests/text/test_the_rules_have_one_owner.py
+
 ## The narrow set, then the read of the range
 
 Once the fixes are committed, the fix pass runs the set the *Review rounds

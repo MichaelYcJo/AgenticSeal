@@ -59,13 +59,19 @@ lifetimes* states (contract rule 11).
    closes the ticket when the release reaches `main`.
 
 **A decision made after the frame is committed is folded, in place, into
-`frame/design.md` or `plan.md` before the next crafter spawns.** A crafter
-reads the frame and not the issue's comments, so the decision has to stand
-in the frame. A decision is anything that changes what the frame says the
-work is or why: a round finding whose route changes the frame, a round
-finding located in a frame file, an owner's remark, an issue comment, a
-prevention home, a scope a spawn gives beyond a plan row, or the version
-move. These are examples of the rule, not a closed list.
+`frame/design.md` or `plan.md` before the next crafter spawns or is
+resumed.** A crafter reads the frame and not the issue's comments, so the
+decision has to stand in the frame. A decision is anything that changes
+what the frame says the work is or why: a round finding whose route
+changes the frame, a round finding whose fix needs a unit the frame does
+not name (`skills/implement/fix-pass.md` *A fix that needs a unit the
+frame does not name waits for the fold*), a round finding located in a
+frame file, an owner's remark, an issue comment, a prevention home, a
+scope a spawn gives beyond a plan row, or the version move. These are
+examples of the rule, not a closed list. The orchestrator sends a finding
+whose fix needs such a unit to the framer with the round's other
+decisions, before the fix pass, where its paste-ready fix or its grounds
+show the unit, and when the fix pass's hand-back names it otherwise.
 
 **The framer writes a decision's fold, because the framer judges what the
 work should be.** `skills/implement/fold-and-reframe.md` states the fold,
@@ -74,7 +80,13 @@ of the others* the reason. A statement the framer's hand-back names in
 `routing.md` or `pr.md` is the orchestrator's to repair. A statement a
 crafter's hand-back names in a frame file or `routing.md` records what the
 build changed rather than what the work is, so the orchestrator folds it in
-a commit of its own and spawns no framer. A statement found in a file the
+a commit of its own and spawns no framer. A fold whose source is what a fix
+or a build changed removes the frame sentence HEAD contradicts, or narrows
+it to what HEAD still holds, and writes no new account of what was built,
+since the code, its docstring, the phase record and the finding's close
+block hold that. That fold is the orchestrator's, of a statement a
+crafter's hand-back names, and the framer's, of a round finding that says
+a frame sentence no longer holds. A statement found in a file the
 crafter writes, `gaps.md` or `changelog.md`, goes to a fix pass before the
 orchestrator spawns the next round or phase. The fix pass is the crafter
 that wrote the work item's last build or fix commit, resumed or spawned
@@ -94,8 +106,9 @@ its reading of a file it does not write, so the orchestrator reads each
 file that holds one whole against HEAD, not only the named line, and
 rewrites every statement HEAD contradicts. In a section the frame dates to
 the commit it read, a statement of the tree is not folded, and a sentence
-that says what the work does or concludes is folded with the fact it
-states; a section that states the tree with no date gets the date and keeps
+that says what the work does or concludes is rewritten with a decision's
+fact, or removed or narrowed where its source is what a fix changed; a
+section that states the tree with no date gets the date and keeps
 its text (`skills/implement/SKILL.md` *Document layout — two roots, three
 lifetimes*). After a fold commit of its own, the
 orchestrator reads that commit and each file of the work item's directory

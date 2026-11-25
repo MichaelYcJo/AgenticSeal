@@ -102,6 +102,15 @@ OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 THE_CORES_PLACES = "the opening paragraph of `skills/core/SKILL.md`"
 WHAT_THE_GATE_RUNS = "`docs/running/the-broad-gate.md` *What the gate runs*"
+UNIT_STOP = (
+    "`skills/implement/fix-pass.md` *A fix that needs a unit the frame does "
+    "not name waits for the fold*"
+)
+NARROWING = (
+    "the paragraph opening **The framer writes a decision's fold** of "
+    "`skills/implement/orchestration.md` *Orchestrator: the order inside a "
+    "ticket*"
+)
 
 
 # rule -> (owner, the facts the owner states, {link carrier: the citation it
@@ -365,6 +374,26 @@ RULES = {
                 "statement of the fact it repairs, or names where it stops*"
             ),
         },
+    ),
+    # #1614: a fix pass designed and built a unit no frame named, and a fix
+    # that adds one was followed by a later finding on what it closed about
+    # twice as often as one that adds none. The fix pass stops at such a
+    # unit and the framer's fold designs it first, and the three files that
+    # route or design that fold cite the stop.
+    "32 a fix that needs a unit the frame does not name waits for the fold": (
+        FIX_PASS_PROCEDURE,
+        (),
+        {ORCH_IMPL: UNIT_STOP, ORCH: UNIT_STOP, FOLD: UNIT_STOP},
+    ),
+    # #1614: a fold after a fix wrote down what the fix had built, and the
+    # copy was a finding in two rounds of #1612. A fold whose source is a
+    # fix removes or narrows, and the two files that said a fold rewrites a
+    # frame sentence with the fact cite the paragraph that holds the rule,
+    # not only its section, which they cited before it stood.
+    "33 a fold whose source is a fix removes or narrows": (
+        ORCH_IMPL,
+        (),
+        {FOLD: NARROWING, IMPLEMENT: NARROWING},
     ),
 }
 
