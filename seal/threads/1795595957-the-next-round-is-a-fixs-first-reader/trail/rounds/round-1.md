@@ -44,6 +44,11 @@ line of its output names that record, no round follows the pass, and the
 orchestrator opens `skills/code-review/gate-to-pull-request.md`.
 ```
 
+```seal
+verdict: fixed fce5a7d1b
+answer: The finding holds: the section states no stop after a committed pass whose fix the core's row gives to a round, and `#channel` prints no verifying-round words for a finding whose close block it cannot read. The paragraph now reads as the snippet does, except its middle sentence, which the fix pass wrote in its own words because "the party that wrote the line it names" read either as the line's or the record's writer: the orchestrator "has the party that wrote the named line repair it, the fix pass where the line is a close block and the proofer where it is the finding's own block, and runs the read again". The three phrases `test_the_orchestration_reads_whether_a_round_follows_off_the_check` pins stand, and the case passed (executed). `changelog.md:5` now names the repair branch and opens the gate "where no line of the output names that record". `frame/design.md` *Scope* item 4 still reads "spawns it or stops the run as the section already states" and "Where it names none"; that is the framer's fold, named in the hand-back.
+```
+
 ### 2. The sealer's diff read takes in the round record and the gate record, whose sentences state their own commit, and reads them against HEAD
 
 ```seal
@@ -71,6 +76,11 @@ The snippet replaces `agents/sealer.md:113-122`, from "and read against HEAD". I
    reason naming its coordinate.
 ```
 
+```seal
+verdict: fixed fce5a7d1b
+answer: The finding holds: the diff adds the last round record and `trail/gate.md`, which `agents/proofer.md` step 3 does not list among the records that state the present. Step 4 now reads the sentences the diff adds or rewrites "in the records" the proofer's rule names, and the other statements "in those records", as the snippet does, rewrapped. The two commands and the `withheld` phrase `test_step_4_reads_a_records_only_fix_over_its_diff` pins stand, and the case passed (executed). `changelog.md:4` now names the same scope. `frame/design.md` *Scope* item 2 still reads "each sentence the diff adds or rewrites" with no scope; that is the framer's fold, named in the hand-back.
+```
+
 ### 3. Two record rows list the other statements with `git grep`, which prints nothing over a records root in local mode
 
 ```seal
@@ -88,6 +98,11 @@ The snippet replaces the two rows. `frame/design.md:46-47` states the same comma
 ```markdown
 | Record against record | each fact a record states, against every other statement of it in the work item's records. List them with `grep -rn -F '<the fact's words>' seal/threads/<item>/` at the target, which reads the records root wherever it stands, local mode's untracked one among them, a sample under contract rule 12 and contract rule 19, as *A paste-ready fix reaches every statement of the fact it repairs, or names where it stops* says of a finding's search |
 | Record against another work item's frame | each rule, section or file the records cite that another work item of the release changes, against that item's frame: the unsettled designs' `## Rule changes`, which with the policy root make the policy in force (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*), and the rows of this item's `frame/plan.md` *Overlap with the release*. List them with `grep -n -F '<the section's heading>' seal/threads/*/frame/design.md` at the target, outside the work item's own directory |
+```
+
+```seal
+verdict: fixed fce5a7d1b
+answer: The finding holds: in local mode the records root lies under the git directory, which `git grep` does not read, and an empty listing reads as no other statement. Both rows now list with `grep`, as the snippet has it. `grep` is a command named in a row's sentence, not a name or path the frame lacks, so `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* does not stop it. No case pins a row (`tests/text/test_review_axes.py`'s docstring). Of the other `git grep` commands over records: `agents/sealer.md` step 4's stands, since in local mode no commit holds the records and no records-only `fixed` commit reaches it, as the finding says; `skills/code-review/SKILL.md` *A paste-ready fix reaches every statement of the fact it repairs, or names where it stops* takes any `<paths>`, code among them, predates this work and stands. `frame/design.md` *Scope* item 1's two sub-items still name `git grep`; that is the framer's fold, named in the hand-back.
 ```
 
 ### 4. A close the orchestrator doubts still goes to the verifying round's prompt where no round follows the pass
@@ -112,6 +127,11 @@ round weighs every close. Where the row *No fix that no round reads* of
 pass to the sealer and no round follows it, the doubt goes into the
 sealer's spawn prompt, since the sealer reads that close at step 4 of
 `agents/sealer.md`. The orchestrator does not rewrite the block.
+```
+
+```seal
+verdict: fixed fce5a7d1b
+answer: The finding holds: where the core's row gives a pass to the sealer no round follows it, and "the verifying round's spawn prompt" leads nowhere. `skills/code-review/orchestration.md` now sends the doubt to the sealer's spawn prompt in that case, as the snippet does, and `changelog.md:5` says so. The sentence of `docs/forms/the-round-record.md` *The round record* opening "It edits no line in that commit" is policy, reached through `frame/design.md` `## Rule changes`; extending the `change` at `4bfd026ee` to it is the framer's fold, named in the hand-back with a proposed `from:` and `to:`.
 ```
 
 ### 5. The section still owes a verifying round after a `must`'s and a `reopens:` finding's fix pass that the core's row gives to the sealer
@@ -139,6 +159,11 @@ core's row gives that pass to the sealer. Every
 *Earlier rounds* states. A finding of that round that carries a `reopens:`
 line gets its fix pass, and one more verifying round unless the core's row
 gives that pass to the sealer; a round carrying a
+```
+
+```seal
+verdict: fixed fce5a7d1b
+answer: The finding holds: the new paragraph sends a records-only pass to the sealer whatever the finding was, and the two sentences sent a `must` after the stop row and a `reopens:` finding to a round with no exception. Both now carry the core's exception, as the snippets have them, and `changelog.md:6` names the three cases. The evidence command, run again at `fce5a7d1b` (executed), prints 37 lines. Each line that owes a round after a fix now carries the exception, or speaks of a fix outside the records: `skills/code-review/orchestration.md:164`, `:175`, `:224`, `:227` and `:238` carry it, `skills/implement/orchestration.md:541` carries it, and `skills/code-review/gate-to-pull-request.md:51` and `:153`, `skills/implement/merge-order.md:30` and `skills/code-review/orchestration.md:291` speak of a fix outside the records. `docs/running/the-run.md:11` and `docs/forms/the-round-record.md:100` stand until the settle, which applies the design's two `change` operations to them. The rest name or define the verifying round and owe nothing after a fix. A rule stated without the searched words escapes the command, so this list is a sample.
 ```
 
 ## Confirmations
