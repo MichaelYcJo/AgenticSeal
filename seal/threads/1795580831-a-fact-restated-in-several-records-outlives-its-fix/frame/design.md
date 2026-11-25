@@ -129,7 +129,7 @@ Out:
 - add
   file: docs/running/what-a-script-gates.md
   section: The checks
-  to: | the `PostToolUse` hook on `Edit` (`hooks/hooks.json`) | each `Edit` call of a session or a subagent | the call's `file_path`, `old_string` and `new_string`; where the file is a work item's record outside `trail/` and `guarantee.md` under a root whose `README.md` opens with the marker, the words the edit replaced, looked for with whitespace collapsed in the item's other such records | prints nothing where the payload, the path, the root or a file cannot be read; reads no `Write` call and no file outside the item's directory; refuses nothing | whether a place it names states the fact the edit changed: the party that made the edit |
+  to: | the `PostToolUse` hook on `Edit` (`hooks/hooks.json`) | each `Edit` call of a session or a subagent | the call's `file_path`, `old_string` and `new_string`; where the file is a work item's record outside `trail/` and `guarantee.md` under a root whose `README.md` opens with the marker, the words the edit replaced, looked for with whitespace collapsed in the item's such records, the edited file among them | prints nothing where the payload, the path, the root or a file cannot be read; reads no `Write` call and no file outside the item's directory; refuses nothing | whether a place it names states the fact the edit changed: the party that made the edit |
 
 ## Removes
 
