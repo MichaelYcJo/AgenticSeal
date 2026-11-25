@@ -56,7 +56,7 @@ Out:
 
 ## Data & interfaces
 
-No code, schema or interface changes. The diff is procedure text in `skills/`, the cases of *Scope* item 5, the work item's records and `.claude-plugin/plugin.json`. No new heading, file, hook, command, configuration key or record field is added, so no unit of `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* is added. The new text keeps the repository's prose width, which `tests/behaviour/test_docs_line_wrap.py` holds for the files it lists.
+No code, schema or interface changes. No new heading, file, hook, command, configuration key or record field is added, so no unit of `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* is added. The new text keeps the repository's prose width, which `tests/behaviour/test_docs_line_wrap.py` holds for the files it lists.
 
 A wording for *Scope* item 1, which the build may refine without changing what it binds:
 
