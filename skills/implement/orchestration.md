@@ -94,9 +94,10 @@ fresh as `skills/code-review/orchestration.md` *Orchestrator: a phase is a
 fresh crafter, and a fix pass resumes the implementer* states.
 
 **One fold reaches every statement of the fact it changes.** Before the
-spawn or the resume that will read the decisions, the orchestrator sends every decision
-then pending to the framer in one message, each with its grounds and the
-coordinates it stands on: the finding, the comment or the owner's words.
+spawn or the resume that will read the decisions, the orchestrator sends
+every decision then pending to the framer in one message, each with its
+grounds and the coordinates it stands on: the finding, the comment or the
+owner's words.
 The fact a decision changes often stands in sections the decision does not
 name, such as *Scope*, *Removes*, *Alternatives considered*, *Judgments of
 the run*, *Grounding* and *Technical context*, so the message names the
@@ -116,12 +117,13 @@ that states the present whole against HEAD, the second method of contract
 rule 12; a decision's fold is read by the framer that writes it.
 
 **The orchestrator writes its row before it sends a decision, and commits
-the fold before the spawn or the resume.** Until a decision is folded, the orchestrator
-keeps one line of its own in `plan.md` naming the comments to fold, below
-the title, and deletes that line in the commit that folds them. Before it
-sends, the orchestrator writes each decision, its grounds and the document
-it judged against as one row of `frame/plan.md` *Judgments of the run* and
-leaves the row uncommitted, so the framer reads the row when it reads
+the fold before the spawn or the resume.** Until a decision is folded, the
+orchestrator keeps one line of its own in `plan.md` naming the comments to
+fold, below the title, and deletes that line in the commit that folds
+them. Before it sends, the orchestrator writes each decision, its grounds
+and the document it judged against as one row of `frame/plan.md`
+*Judgments of the run* and leaves the row uncommitted, so the framer reads
+the row when it reads
 `plan.md` whole: the rewritten sentence keeps no reason for itself, and the
 settle reads the row. The orchestrator resumes the work item's framer while
 that session still exists, as a fix pass resumes the implementer, and
