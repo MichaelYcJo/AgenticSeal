@@ -110,14 +110,14 @@ return.
    finding asked. Then run
    `git -C <root> diff <the last record's target>..HEAD -- seal/threads/<item>/`,
    `<the last record's target>` being the commit its `target:` line names,
-   and read against HEAD each sentence the diff adds or rewrites, and each
-   other statement in the work item's records of a fact the diff changed.
-   List those with
+   and read against HEAD each sentence the diff adds or rewrites in the
+   records `agents/proofer.md` *Every round reads the work item's records
+   that state the present, whole, against its target* names, and each other
+   statement in those records of a fact the diff changed. List those with
    `git -C <root> grep -n -F '<the fact's words>' -- seal/threads/<item>/`,
-   a sample under rule 12 and rule 19. How a frame section dated to the
-   framer's commit reads is `agents/proofer.md` *Every round reads the work
-   item's records that state the present, whole, against its target*'s. A
-   record that does not say what the finding asked, and a sentence HEAD
+   a sample under rule 12 and rule 19. That rule also says how a frame
+   section dated to the framer's commit reads. A record that does not say
+   what the finding asked, and a sentence HEAD
    contradicts, are each a disagreement like any other, and a `withheld`
    reason naming its coordinate.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
