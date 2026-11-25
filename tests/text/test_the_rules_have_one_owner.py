@@ -352,6 +352,20 @@ RULES = {
             ORCH: "contract rule 19",
         },
     ),
+    # #1612: a finding named one place stating a fact and its fix left the
+    # others, which the next round found as copies. The finding carries the
+    # command that lists the places on its `evidence:` line, and the fix
+    # pass runs it again before it writes the close block.
+    "31 a finding on a wrong sentence carries the command that lists the fact's places": (
+        SKILL,
+        (),
+        {
+            FIX_PASS_PROCEDURE: (
+                "`skills/code-review/SKILL.md` *A paste-ready fix reaches every "
+                "statement of the fact it repairs, or names where it stops*"
+            ),
+        },
+    ),
 }
 
 

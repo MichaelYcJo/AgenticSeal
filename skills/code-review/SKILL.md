@@ -243,7 +243,14 @@ a frame cell such as *Removes*, the name, docstring and comment of the case it
 changes, and every condition the sentence covers, such as a row that runs
 pytest once and one that runs it several times. Each of those returns as the
 next round's `regression:` or `reopens:` finding. Before writing the snippet,
-read the fact where it stands and list the statements it touches; where one
+read the fact where it stands and list the statements it touches. A finding
+that says a sentence states a fact wrongly lists them with a command run at
+the round's target, such as `git grep -n -F '<the fact's words>' -- <paths>`,
+and carries it on its `evidence:` line as `executed`, so the fix pass and
+the next round can run it again; its grounds name what the command printed.
+A search on the fact's words is a sample under contract rules 12 and 19,
+since a statement of the fact in other words escapes it, and the grounds
+say so. The snippet covers each place the command printed; where one
 snippet cannot cover them, say in the grounds which statements it leaves and
 that the fix pass owes them too.
 
