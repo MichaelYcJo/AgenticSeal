@@ -1360,24 +1360,40 @@ class Test_main:
             "a file of the work item's directory\n"
         )
 
+    def test_refuses_a_quote_of_a_file_that_is_not_utf_8(self, tmp_path, capsys):
+        """*Scope* item 1 of #1612. A quote whose file will not read as
+        UTF-8 text is refused at its line, naming the path and the error,
+        and the run does not end on the decode error."""
+        own = '- "English" (`frame/design.md`, line 1)\n\nCloses #1.\n'
+        item = item_of(tmp_path, RECORDS, own=own)
+        (item / "frame" / "design.md").write_bytes(b"\xff English\n")
+        body = tmp_path / "pr-body.md"
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body)]) == 1
+        assert capsys.readouterr().out.startswith(
+            f"refused: seal/threads/{NAME}/pr.md:1: names `frame/design.md`, "
+            "which cannot be read as UTF-8 text ("
+        )
+
     def test_names_a_line_that_looks_like_a_quote_and_decides_nothing(
         self, tmp_path, capsys
     ):
         """A4 of #1612. A line holding `" (` before a backtick outside the
-        quote form, here one with no list marker and one indented under a
-        list item, is named on the line opening `seal pr-body:` by both
+        quote form, here one with no list marker, one indented under a list
+        item and one whose `" (` is the opening quote's own mark, is named on the line opening `seal pr-body:` by both
         forms as a line not read, and decides nothing: neither quote stands
         in `changelog.md`, and both forms exit 0. Seen red against
         `first_part` as `aa32e8473` shipped it, which printed no note."""
         own = (
             '"words no record holds." (`changelog.md`, line 1)\n'
             '- a list item\n  - "nor these." (`changelog.md`, line 2)\n'
+            '- " (`changelog.md`, line 1)\n'
             "\nCloses #1.\n"
         )
         item = item_of(tmp_path, RECORDS, own=own)
         body = tmp_path / "pr-body.md"
         note = (
-            "seal pr-body: not read as a quote: lines 1 and 3 of `pr.md`, which "
+            "seal pr-body: not read as a quote: lines 1, 3 and 4 of `pr.md`, which "
             'hold `" (` before a backtick outside the form '
             '`- "<quote>" (`<path>` <coordinate>)`\n'
         )
