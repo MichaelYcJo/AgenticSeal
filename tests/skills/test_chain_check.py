@@ -4598,8 +4598,9 @@ class Test_main:
     ):
         """#1615, *Scope* item 8: a regression of the last record, located
         in the work item's own records alone and `fixed` by a commit that
-        touched them alone, owes no verifying round either. The
-        `regression:` line changes nothing of the sealer's read at HEAD."""
+        touched them alone, owes no verifying round either: the
+        `regression:` line changes nothing of what the arm gives the
+        sealer."""
         root, code_sha = branch
         write(root, f"{ITEM}/frame/plan.md", "# plan\n\nthe row, corrected\n")
         fix = commit(root, "a regression's fix to the records alone")

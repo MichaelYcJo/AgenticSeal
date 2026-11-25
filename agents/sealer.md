@@ -114,7 +114,7 @@ return.
    other statement in the work item's records of a fact the diff changed.
    List those with
    `git -C <root> grep -n -F '<the fact's words>' -- seal/threads/<item>/`,
-   a sample under rules 12 and 19. How a frame section dated to the
+   a sample under rule 12 and rule 19. How a frame section dated to the
    framer's commit reads is `agents/proofer.md` *Every round reads the work
    item's records that state the present, whole, against its target*'s. A
    record that does not say what the finding asked, and a sentence HEAD
