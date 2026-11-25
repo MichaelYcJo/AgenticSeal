@@ -307,10 +307,13 @@ quotes of the work item's records, and the attribution line. `pr.md` quotes
 no sentence of `changelog.md`, because `seal pr-body` writes the fragment
 whole under the line `skills/code-review/scripts/pr_body.py#HEADING` holds,
 above the fold, so the reader meets it there and a fix to a changelog
-sentence touches no `pr.md`. A quote stands
-on its own line, in a list item or in a
-table cell, and its coordinate follows it: the record's path, then the
-heading, row, finding or line that holds the sentence. The orchestrator
+sentence touches no `pr.md`. A quote is one line in one spelling,
+``- "<the sentence>" (`<path>` <coordinate>)``, where `<path>` is the
+record's path under the work item's directory and `<coordinate>` the
+heading, row, finding or line that holds the sentence, and `seal pr-body`
+refuses a quote whose words, with runs of whitespace collapsed, do not
+stand in the file its path names
+(`skills/code-review/scripts/pr_body.py#first_part`). The orchestrator
 opens that record when it writes the quote. `pr.md` holds no sentence of
 the orchestrator's own account: no sentence frames a quote or joins two,
 and no heading or bold lead-in of the orchestrator's stands in it. What
@@ -344,12 +347,15 @@ above `pr.md`, so the body opens in the team's language, and every round
 reads it whole beside `pr.md`. Where the two keys name one language, no
 `pr.<lang>.md` is written.
 
-**Where a fix pass or a fold changes a sentence that `pr.md` quotes or
-`pr.<lang>.md` renders, the orchestrator rewrites each quote and each
-rendering that stood on it, and commits them before it spawns the next
-round.** A round finding located in `pr.md` or `pr.<lang>.md` is the
-orchestrator's to repair, since no crafter writes either: the orchestrator
-commits the repair before the fix pass, and the pass's close block reads
+**Where a fix pass or a fold changes a sentence that `pr.<lang>.md`
+renders, the orchestrator rewrites each rendering that stood on it, and
+commits them before it spawns the next round.** A quote of `pr.md` whose
+sentence changed is rewritten where `seal pr-body` refuses it, or earlier
+where a hand-back names it or the plugin's `PostToolUse` hook,
+`hooks/edit-leaves-copies.py`, names it after the edit of its source. A
+round finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's
+to repair, since no crafter writes either: the orchestrator commits the
+repair before the fix pass, and the pass's close block reads
 `fixed <that commit>`, as for a finding located in a frame file.
 
 **A session that has compacted hands the next round to a fresh one, and the

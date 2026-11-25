@@ -1798,8 +1798,9 @@ def body(root, items, text, why, base=None):
     refused on the work item's directory, naming the body's line; a record
     `compared` refuses is refused at its line, by its path from the work
     item's directory, which names the root's `config.json` for a language
-    key; `compared`'s note, `seal_mark`'s sentence and the sentence naming
-    the sections `seal pr-body` folded, is a notice. Unreadable where
+    key; `compared`'s note, `seal_mark`'s sentence, the sentence naming the
+    lines of `pr.md` not read as a quote and the sentence naming the
+    sections `seal pr-body` folded, is a notice. Unreadable where
     `pr_body.py` will not load."""
     if text is None:
         return [], [("", 0, BODY_UNREAD.format(why=why))]

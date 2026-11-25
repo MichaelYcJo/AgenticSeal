@@ -3761,6 +3761,32 @@ class Test_body:
         )
         assert (f"{ITEM}/pr.md", 0, PR_BODY.NO_OWN_PART) in problems, problems
 
+    def test_refuses_a_quote_of_pr_md_its_source_does_not_hold(
+        self, bodied, monkeypatch
+    ):
+        """A5 of #1612. A ready pull request whose work item's `pr.md`
+        quotes words its `changelog.md` does not hold is refused at
+        `pr.md`'s line, with the cause `seal pr-body` gives, since the arm
+        reads the body through `compared`. Seen red against `first_part` as
+        0.38.8 shipped it, where the arm named the body's first line
+        and not the quote."""
+        root, _early, late = bodied
+        write(
+            root,
+            f"{ITEM}/pr.md",
+            '- "The body is anyone\'s." (`changelog.md`, line 1)\nCloses #1.\n',
+        )
+        problems, _notices = body_read(monkeypatch, root, late)
+        assert problems == [
+            (
+                f"{ITEM}/pr.md",
+                1,
+                "quotes words `changelog.md` does not hold, with runs of "
+                "whitespace collapsed; the orchestrator rewrites the quote from "
+                "the record as it stands",
+            )
+        ], problems
+
     def test_refuses_a_repository_without_a_language_row_at_its_config(
         self, bodied, monkeypatch
     ):

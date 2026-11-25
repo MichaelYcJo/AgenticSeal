@@ -61,7 +61,13 @@ finding's `verdict:` decides it, and severity is for people* gives the
 values its `verdict:` takes, and `docs/forms/the-round-record.md` *The fix
 pass appends one close block per finding and edits nothing else in the
 file* gives when the block carries a `location:` line of its own. Its
-`answer:` says what was done.
+`answer:` says what was done. Where a finding's `evidence:` line names the
+command that lists each place stating a fact, as
+`skills/code-review/SKILL.md` *A paste-ready fix reaches every statement of
+the fact it repairs, or names where it stops* asks, the fix pass runs it
+again after its last fix commit, and the close block's `answer:` names each
+place it still prints with why that place stands, or says that it prints
+none.
 The pass edits nothing else in the record: the finding's own block is the
 proofer's (`docs/forms/the-round-record.md` *The round record*). The
 build's phases keep their records.

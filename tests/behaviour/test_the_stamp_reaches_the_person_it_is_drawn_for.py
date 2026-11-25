@@ -206,6 +206,9 @@ README_FACTS = (
     # The harness event of the third hook and the script it runs.
     "`PreToolUse`",
     "`hooks/ask-under-automation.py`",
+    # The harness event of the fourth hook and the script it runs.
+    "`PostToolUse`",
+    "`hooks/edit-leaves-copies.py`",
     # The one command shape the hooks run, as `hooks/hooks.json` spells it.
     '`python3 "<script>" || py -3 "<script>" || exit 0`',
     # The command that writes the stamp's values, and the two directories
@@ -219,8 +222,9 @@ README_FACTS = (
 def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     """Round 1's yellow 4. The inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition. Since
-    #1430 the plugin ships hooks again, and since #1608 a `PreToolUse` one
-    too, so each edition names each of them, the files and commands they
+    #1430 the plugin ships hooks again, since #1608 a `PreToolUse` one
+    too, and since #1612 a `PostToolUse` one, so each edition names each of
+    them, the files and commands they
     run, and the directories the queue leaves. The editions move together,
     so both are read, each in its section alone, since *Install* names the
     hooks too. What each edition says of them
