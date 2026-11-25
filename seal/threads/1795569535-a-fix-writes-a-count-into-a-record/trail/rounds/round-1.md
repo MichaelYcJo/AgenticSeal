@@ -24,6 +24,11 @@ Why it matters: `templates/records/process.md:3` gives four columns: Date, Chang
 | 2026-11-25 | `skills/agent-contract/SKILL.md` rule 19: a change writes no count and no universal about the tree that a later change makes false, and names the members or cites the list instead; `skills/implement/fix-pass.md`, `skills/implement/fold-and-reframe.md`, `skills/implement/orchestration.md` step 1 and `skills/code-review/orchestration.md` cite it, and `agents/framer.md`'s count rule goes | In releases 0.0.2 to 0.0.4 of a repository that runs the chain, 14 of the 72 defects that commits after round 1 introduced were a count or a universal the next fix made false, and until 0.39.0 the rule against it bound the framer alone | https://github.com/MichaelYcJo/AgenticSeal/issues/1613 |
 ```
 
+```seal
+verdict: fixed 365e6a8b4
+answer: The fix pass restored the ` | ` before the Why cell, so the header and the row each hold four cells (executed: `awk -F'|'` over `changelog.md:12-14` prints 4 for each line). The Why cell's wording is the one the finding quotes, and no other cell changed.
+```
+
 ### 2. The `SubagentStop` agent-hook row rejects on the ground that the stop's input names nothing of what changed, and the hooks reference gives that input the subagent's own transcript
 
 ```seal
@@ -48,6 +53,11 @@ The fix rewrites the row's Failure scenario cell. It also rewrites its Verdict c
 - `hooks/hooks.json` hooks run inside subagents too (hooks.md: "Hooks from settings files, managed policy settings, and plugins also run inside subagents"), and the input carries `agent_type` and `agent_id`. SubagentStart and SubagentStop match by agent name, a plugin agent by its plugin-scoped name such as `^agentic:crafter$`. SubagentStop also receives `agent_transcript_path`, the subagent's own transcript, and `last_assistant_message`.
 ```
 
+```seal
+verdict: fixed 9ad6fb578
+answer: Answered by other parties, read by the fix pass at HEAD. The framer's fold at `9ad6fb578` rewrote the `SubagentStop` `agent` row of `frame/plan.md` *Alternatives considered*: it now gives the stop's input `agent_transcript_path` and the plugin-scoped matcher, weighs the hook again, and keeps it rejected here and named to #1615 on other grounds. The orchestrator's `5690aa090` corrected `trail/mechanism-inventory.md` with the reference's sentences on subagent hooks, the plugin-scoped name and `agent_transcript_path`. Its `8b7ef7b16` requoted `pr.md:2` from the cell as the fold left it, and `6cfaf525b` renamed that file's first coordinate.
+```
+
 ### 3. G21 says each row that cites the inventory names it as not probed, and three rows of *Alternatives considered* rest on its lines without saying so
 
 ```seal
@@ -67,6 +77,11 @@ The fix marks the three rows. In row 26, "(`frame/design.md` G21)" becomes:
 ```
 
 In row 32, "the rest `frame/design.md` G21 lists)" becomes "the rest `frame/design.md` G21 lists, not probed)". In row 34, the sentence on a monitor and an output style ends with "(`frame/design.md` G21, not probed)".
+
+```seal
+verdict: fixed 9ad6fb578
+answer: Answered by the framer's fold at `9ad6fb578`, read by the fix pass at HEAD. G21 now says each line of the inventory is a claim and none was probed here. The `PostToolUse` `agent` row reads "(`frame/design.md` G21, not probed; the hooks reference states each, read in round 1)", the agent-definition row reads "the rest `frame/design.md` G21 lists, not probed", and the row on an MCP tool, a monitor or an output style ends "(`frame/design.md` G21, not probed)".
+```
 
 ### 4. Two rows reject a hook because the writer's own read of its range already covers the defect, and the row beside them states that such self-reads did not prevent it
 
@@ -92,6 +107,11 @@ In row 29, "which its whole-range read already covers" becomes:
 at a cost the issue's count of fewer than one such sentence per work item does not repay
 ```
 
+```seal
+verdict: fixed 9ad6fb578
+answer: Answered by the framer's fold at `9ad6fb578`, read by the fix pass at HEAD. The `PostToolUse` `prompt` row ends with the round's first snippet in place of "Its catch record is none, and the crafter already reads its range whole before it hands back", and the `seal` subcommand row ends with the second snippet in place of "which its whole-range read already covers". Both rows keep the verdict `rejected` on the grounds left standing.
+```
+
 ### 5. The records send the issue's second *Done when* line to a `seal/follow-up.md` row that the target does not hold, while the pull request body closes the issue
 
 ```seal
@@ -104,6 +124,11 @@ Why it matters: `routing.md:22` says the second *Done when* line "goes to `seal/
 
 ```markdown
 | Whether the next release's classification of a repository that runs the chain counts fewer fix-made findings on a count or a universal than the 14 of 72 that #1613 measured in releases 0.0.2 to 0.0.4. As many or more sends contract rule 19's clauses on what a change writes to the weighing of `skills/core/SKILL.md` *The rule a mechanism is kept against* | the repository owner |
+```
+
+```seal
+verdict: fixed 4d3d6ad86
+answer: Answered by the orchestrator's `4d3d6ad86`, read by the fix pass at HEAD: `seal/follow-up.md:44` holds #1613's row on the issue's second *Done when* line, with the repository owner as its answerer. The fix pass's `0659cbb8a` has `gaps.md` name that row as it stands, in place of "the `seal/follow-up.md` row the orchestrator writes".
 ```
 
 ### 6. The `## Rule changes` passage writes the release's history into a policy section
@@ -126,6 +151,11 @@ Why it matters: the settle writes the `to:` text into `docs/running/the-agent-se
 
 Finding 7 changes the attribution in the line this snippet opens with. Where both are applied, the first snippet line follows finding 7's wording.
 
+```seal
+verdict: fixed 9ad6fb578
+answer: Answered by the framer's fold at `9ad6fb578`, read by the fix pass at HEAD. The `to:` of `frame/design.md` `## Rule changes` no longer holds the sentence on where the rule stood until 0.39.0; the sentence opening "The rule binds every agent through the contract" follows the measurement, which ends "were such a sentence (#1613)." as finding 7 asks.
+```
+
 ### 7. The fragment and the `## Rule changes` passage credit the 14 count sentences to three parties, and the issue gives that split for none of them
 
 ```seal
@@ -141,6 +171,11 @@ In releases 0.0.2 to 0.0.4 of a repository that runs the chain, 14 of the 72 def
 ```
 
 In `changelog.md:3` the "(#1613)" is left out, since the item's heading carries it. In `frame/design.md:104-107` the `to:` keeps its indented wrap, and its sentence then ends "were such a sentence (#1613)." with the clause "written by the crafter's fix pass, the framer's fold and the orchestrator's record edits" gone.
+
+```seal
+verdict: fixed 365e6a8b4
+answer: The fix pass ended `changelog.md:3`'s measurement at the count, "14 of the 72 defects a commit after round 1 introduced were such a sentence.", with the clause naming the crafter's fix pass, the framer's fold and the orchestrator's record edits gone and no "(#1613)", since the item's heading carries it. The framer's fold at `9ad6fb578` made the same cut in `frame/design.md` `## Rule changes`. A search of the work item's records outside `trail/rounds/` for the clause's words found no other copy.
+```
 
 ## Confirmations
 
