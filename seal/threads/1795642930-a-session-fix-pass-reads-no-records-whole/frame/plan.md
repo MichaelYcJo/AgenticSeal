@@ -36,7 +36,7 @@ What breaks in six months. An orchestrator under `Implementation` `the session` 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1 to 6 of `frame/design.md`, built by the orchestrator. Done when the text of items 1 to 4 stands, the cases of item 5 are committed after each was seen red with only the sentence it pins removed, `changelog.md` and the version move of item 6 are committed in one commit, and this cell holds the commit that closed the phase | The *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, as one command through `bin/test`. The set holds `tests/text/test_a_moved_rule_leaves_its_definition.py`, `tests/text/test_the_rules_have_one_owner.py`, each test file that reads a path the phase changed, and the tree-wide test files. Each red run of item 5 is written in the phase record | |
+| 1 | *Scope* items 1 to 6 of `frame/design.md`, built by the orchestrator. Done when the text of items 1 to 4 stands, the cases of item 5 are committed after each was seen red with only the sentence it pins removed, `changelog.md` and the version move of item 6 are committed in one commit, and this cell holds the commit that closed the phase | The *Phase boundary* set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, as one command through `bin/test`. The set holds `tests/text/test_a_moved_rule_leaves_its_definition.py`, `tests/text/test_the_rules_have_one_owner.py`, each test file that reads a path the phase changed, and the tree-wide test files. Each red run of item 5 is written in the phase record | `202d76813` |
 
 ## Overlap with the release
 
