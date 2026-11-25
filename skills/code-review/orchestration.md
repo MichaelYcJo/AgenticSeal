@@ -58,7 +58,11 @@ the work item's `routing.md` and asks nothing again before the spawn.
 **The orchestrator writes no close block of a finding the fix pass answers,
 and its fix-pass prompt leaves every such block to the crafter.** A close the
 orchestrator doubts goes into the verifying round's spawn prompt, since that
-round weighs every close, and the orchestrator does not rewrite the block.
+round weighs every close. Where the row *No fix that no round reads* of
+`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the
+pass to the sealer and no round follows it, the doubt goes into the
+sealer's spawn prompt, since the sealer reads that close at step 4 of
+`agents/sealer.md`. The orchestrator does not rewrite the block.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -82,10 +86,16 @@ ticket* states, in a commit of its own, before it spawns the verifying
 round, so the round and the next crafter read one rule. Last, the fix pass
 appends the close block of every finding it answered, after its fix
 commits and the corrections its read made, because a `fixed` verdict names
-a commit that already exists, and leaves the round record uncommitted. **On
-the hand-back the orchestrator commits the round record as the fix pass
-left it, in one commit for the whole pass, before it spawns the verifying
-round, and changes none of its lines.** That commit holds
+a commit that already exists, and leaves the round record uncommitted. A
+hand-back that leaves a finding open for the fold, as
+`skills/implement/fix-pass.md` *A fix that needs a unit the frame does not
+name waits for the fold* has it, ends no pass: the orchestrator sends the
+finding to the framer, commits the fold, or its row that records the
+framer's rejection, and resumes the fix pass, or spawns it fresh by the
+threshold above. **On the hand-back that leaves no
+finding open for a fold, the orchestrator commits the round record as the
+fix pass left it, in one commit for the whole pass, before it reads
+whether a round follows the pass, and changes none of its lines.** That commit holds
 `trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
@@ -117,6 +127,23 @@ So a run ends with a **verifying round**, and three things define it.
 | Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `agents/proofer.md` *Rules* states the bound, in the rule opening **A verifying round answers the closed findings**, and the read of the work item's records that stands beside the bound, in the rule opening **Every round reads the work item's records that state the present** |
 | Job | the answers, not new findings. The round answers each finding the previous round closed `fixed <commit>` or `rejected`, as `skills/code-review/SKILL.md` *Earlier rounds* states |
 
+**Whether a round follows a fix pass is read off the chain check, not
+judged by eye.** Once it has committed the pass's round record, the
+orchestrator runs the read the proofer runs before it hands back,
+`python3 skills/code-review/scripts/chain_check.py --baseline <base>
+--root <the branch worktree> --worktree`. Where its output names that
+record with the words `skills/code-review/scripts/chain_check.py#VERIFYING_ROUND`
+holds, "a verifying round is owed", a round reads the pass, and the
+orchestrator spawns it, since the run does not end on a fix that the row
+*No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not
+licence to skip a party* gives to a round. Where a line names that record
+with other words, the check could not read the record as the pass left
+it. The orchestrator has the party that wrote the named line repair it,
+the fix pass where the line is a close block and the proofer where it is
+the finding's own block, and runs the read again. Where no line of its
+output names that record, no round follows the pass, and the orchestrator
+opens `skills/code-review/gate-to-pull-request.md`.
+
 **You end the rounds when they stop paying.** Which rounds count, the
 three finding rounds at which the weighing is owed and which are no cap,
 and where the count starts again are `docs/running/the-run.md` *The run*'s.
@@ -136,14 +163,17 @@ round reads it. This weighs what a round costs and changes no invariant.
 
 The verifying round a regression's fix pass is owed whatever the count, and
 the row of `frame/plan.md` *Judgments of the run* that each decision to go
-on or to stop takes, are *The run*'s too. When you stop, every
+on or to stop takes, are *The run*'s too. That round is not owed where the
+row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not
+licence to skip a party* gives the pass to the sealer. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
 
 **A row that judges the run excessive binds every row after it.** Its
 grounds name what the next round could catch and what it would cost. From
-that row on, a `must` gets its fix pass and its verifying round. Every
+that row on, a `must` gets its fix pass, and its verifying round unless the
+core's row gives that pass to the sealer. Every
 other finding takes a home that costs no round. That home is rung 2, 3 or 4
 of the homes *The run* gives, where you append its close block reading
 `deferred <home>` and spawn no fix pass for it, or a fix that the row *No
@@ -177,9 +207,9 @@ list grows in prose as it does in code: a limits paragraph, a comment or a
 record that names the shapes one by one gains one shape per fix pass, and
 each shape it names is a sentence the next round contradicts with the shape
 beside it. A shape that was measured is cited as an example of the rule and
-named as one, and no sentence counts the examples or calls one of them the
-only one. The signal shows at the first fix pass that adds a shape, and the
-weighing is owed there, not at the round after.
+named as one, and a sentence about the examples writes no count and no
+universal contract rule 19 refuses. The signal shows at the first fix pass
+that adds a shape, and the weighing is owed there, not at the round after.
 Where deciding it is a rebuild the issue did not ask for, the mechanism leaves
 as its own issue and the branch keeps the release's reading of it, so the run
 reads no edge the release did not have. The row that decides either names the
@@ -194,7 +224,8 @@ round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a
 party* gives to a round, so one more verifying round
 reads that answer alone, and answers it as `skills/code-review/SKILL.md`
 *Earlier rounds* states. A finding of that round that carries a `reopens:`
-line gets its fix pass and one more verifying round; a round carrying a
+line gets its fix pass, and one more verifying round unless the core's row
+gives that pass to the sealer; a round carrying a
 `regression:` line is routed as the section below says, and where the work
 item returns to its framer the run goes on with the redesign. The run ends
 only on a round whose record holds no finding without a close block, no
@@ -220,7 +251,7 @@ judges the run excessive binds every row after it**:
 | The sentence says | The route |
 |---|---|
 | the fix built the phase's `plan.md` row and `frame/design.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
-| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the crafter told what the frame says |
+| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the crafter told what the frame says; where what the fix did is add a unit the frame does not hold, the framer's fold designs the unit before that fix pass, as `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* states |
 | the unit already had a regression routed to a fix pass in this run | the signal that the frame is wrong whatever the sentence reads: the framer, by the steps below, unless you can write, as the grounds of a row in `frame/plan.md` *Judgments of the run*, why the frame holds and the fix alone was wrong |
 
 Each route is a judgment, and you write it as one row of that table: the
@@ -307,10 +338,13 @@ quotes of the work item's records, and the attribution line. `pr.md` quotes
 no sentence of `changelog.md`, because `seal pr-body` writes the fragment
 whole under the line `skills/code-review/scripts/pr_body.py#HEADING` holds,
 above the fold, so the reader meets it there and a fix to a changelog
-sentence touches no `pr.md`. A quote stands
-on its own line, in a list item or in a
-table cell, and its coordinate follows it: the record's path, then the
-heading, row, finding or line that holds the sentence. The orchestrator
+sentence touches no `pr.md`. A quote is one line in one spelling,
+``- "<the sentence>" (`<path>` <coordinate>)``, where `<path>` is the
+record's path under the work item's directory and `<coordinate>` the
+heading, row, finding or line that holds the sentence, and `seal pr-body`
+refuses a quote whose words, with runs of whitespace collapsed, do not
+stand in the file its path names
+(`skills/code-review/scripts/pr_body.py#first_part`). The orchestrator
 opens that record when it writes the quote. `pr.md` holds no sentence of
 the orchestrator's own account: no sentence frames a quote or joins two,
 and no heading or bold lead-in of the orchestrator's stands in it. What
@@ -344,12 +378,15 @@ above `pr.md`, so the body opens in the team's language, and every round
 reads it whole beside `pr.md`. Where the two keys name one language, no
 `pr.<lang>.md` is written.
 
-**Where a fix pass or a fold changes a sentence that `pr.md` quotes or
-`pr.<lang>.md` renders, the orchestrator rewrites each quote and each
-rendering that stood on it, and commits them before it spawns the next
-round.** A round finding located in `pr.md` or `pr.<lang>.md` is the
-orchestrator's to repair, since no crafter writes either: the orchestrator
-commits the repair before the fix pass, and the pass's close block reads
+**Where a fix pass or a fold changes a sentence that `pr.<lang>.md`
+renders, the orchestrator rewrites each rendering that stood on it, and
+commits them before it spawns the next round.** A quote of `pr.md` whose
+sentence changed is rewritten where `seal pr-body` refuses it, or earlier
+where a hand-back names it or the plugin's `PostToolUse` hook,
+`hooks/edit-leaves-copies.py`, names it after the edit of its source. A
+round finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's
+to repair, since no crafter writes either: the orchestrator commits the
+repair before the fix pass, and the pass's close block reads
 `fixed <that commit>`, as for a finding located in a frame file.
 
 **A session that has compacted hands the next round to a fresh one, and the

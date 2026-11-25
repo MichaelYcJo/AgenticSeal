@@ -337,7 +337,7 @@ method.
 What runs on your machine is a `seal` command you or the session starts,
 and the plugin's hooks, which Claude Code runs at its own events.
 
-**The plugin ships three hooks, registered in `hooks/hooks.json`, and none
+**The plugin ships four hooks, registered in `hooks/hooks.json`, and none
 writes into your settings.**
 
 - **`SessionStart`**, at a session's start and again after `/clear` or a
@@ -357,6 +357,14 @@ writes into your settings.**
   the rule the run keeps (`docs/running/the-run.md` *The run*) and what lets
   the call through. It never ends a turn: the session reads the refusal and
   goes on. Anywhere else it prints nothing.
+- **`PostToolUse`**, after each `Edit` call of the session or a subagent,
+  runs `hooks/edit-leaves-copies.py`. Where the edited file is a work
+  item's record under a `seal/` root, outside its `trail/` and other than
+  its `guarantee.md`, it looks for the words the edit replaced in the work
+  item's such records, the edited one among them, and names each place
+  that still holds them, with its line, to whoever made the edit, who
+  decides whether that place states the same fact. It refuses nothing.
+  Anywhere else, and where it finds no such place, it prints nothing.
 
 Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
 the script under the plugin's own directory, so an update moves every hook
@@ -379,15 +387,16 @@ item's directory once the pull request is open, and again after each later
 repair of it.
 
 No hook sends your code, your paths or your prompts anywhere: what the
-`SessionStart` hook prints, and the reason the `PreToolUse` hook refuses a
-call with, go into the session's own context, as a file the session opens
-does. These side effects are worth stating outright: the sealer's
-`seal stamp --guarantee`, run once on a `guarantee.md` reading `sealed`,
-writes the stamp's values under `<git-common-dir>/agentic-stamp/`, which the
-stamp's hook renames once drawn and nothing prunes, and a `sealed` refused
-because its audited commit is not on the work item's branch leaves an empty
-file under `<git-common-dir>/agentic-stamp-refused/`, in either mode, which
-nothing prunes either.
+`SessionStart` hook prints, the reason the `PreToolUse` hook refuses a call
+with, and the places the `PostToolUse` hook names, go into the session's
+own context, as a file the session opens does. These side effects are
+worth stating outright: the sealer's `seal stamp --guarantee`, run once on
+a `guarantee.md` reading `sealed`, writes the stamp's values under
+`<git-common-dir>/agentic-stamp/`, which the stamp's hook renames once
+drawn and nothing prunes, and a `sealed` refused because its audited commit
+is not on the work item's branch leaves an empty file under
+`<git-common-dir>/agentic-stamp-refused/`, in either mode, which nothing
+prunes either.
 
 No hook reaches a network. The places below do: each is a command or a
 step of the AgenticSeal process, so it runs when you or the session starts

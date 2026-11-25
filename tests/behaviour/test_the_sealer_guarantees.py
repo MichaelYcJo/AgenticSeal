@@ -10,7 +10,8 @@ on good input and one on bad.
 The cases of the arm, which read no file of this repository, stand in
 `tests/skills/test_chain_check.py`, and the reader's, the unfilled template
 among them, in `tests/lib/test_fields.py`. What stays reads the template, the
-definition, the document, or every committed `guarantee.md`.
+definition, the document, the orchestration that hands the sealer its run,
+or every committed `guarantee.md`.
 """
 
 import pathlib
@@ -39,6 +40,12 @@ def between(path, start, end):
 
 
 reader = load(READER, "lines_reader_for_the_guarantee")
+# The chain check, whose line at a finding no round read the orchestration
+# names.
+chain = load(
+    ROOT / "skills" / "code-review" / "scripts" / "chain_check.py",
+    "chain_check_for_the_guarantee",
+)
 
 
 # --- the template ---------------------------------------------------------------
@@ -234,6 +241,58 @@ class TestDefinition:
         ]
         missing = [phrase for phrase in pinned if phrase not in step_4]
         assert missing == [], missing
+
+    def test_step_4_reads_a_records_only_fix_over_its_diff(self):
+        """#1615, *Scope* item 2. A `fixed` finding of the last record
+        located in the work item's records alone, whose commit touched them
+        alone, has the sealer as its only reader, so step 4 reads the
+        records' diff since the last record's target and the other
+        statements of each fact it changed, and withholds where HEAD
+        contradicts a sentence. Which sentences that reads, and how a dated
+        frame section reads, are the proofer's to read."""
+        step_4 = between(SEALER, "4. **", "5. **")
+        pinned = [
+            # The command the sealer runs to list what the pass wrote.
+            "`git -C <root> diff <the last record's target>..HEAD -- "
+            "seal/threads/<item>/`",
+            # The command the sealer runs to list a changed fact's other
+            # statements.
+            "`git -C <root> grep -n -F '<the fact's words>' -- seal/threads/<item>/`",
+            # The verdict word `lib/fields.py` reads, beside what it names.
+            "a sentence HEAD contradicts, are each a disagreement like any "
+            "other, and a `withheld` reason naming its coordinate",
+        ]
+        missing = [phrase for phrase in pinned if phrase not in step_4]
+        assert missing == [], missing
+
+    def test_the_orchestration_reads_whether_a_round_follows_off_the_check(self):
+        """#1615, *Scope* item 4. Whether the core's row gives a fix pass to
+        the sealer is what the chain check's `--worktree` read prints, so
+        the orchestrator runs it once the round record is committed and
+        spawns a round only where its output names the record with the
+        words a verifying round is owed. The words come from the module, so
+        a change to the check's line turns this red. When the orchestrator
+        stops instead is the proofer's to read."""
+        text = " ".join(
+            (ROOT / "skills" / "code-review" / "orchestration.md")
+            .read_text(encoding="utf-8")
+            .split()
+        )
+        start = text.index("**Whether a round follows a fix pass is read off")
+        paragraph = text[start : text.index("**You end the rounds", start)]
+        # The command the orchestrator runs, as the proofer runs it at its
+        # hand-back.
+        assert (
+            "`python3 skills/code-review/scripts/chain_check.py --baseline <base> "
+            "--root <the branch worktree> --worktree`"
+        ) in paragraph, paragraph
+        # The words the check prints at a finding no round read, which the
+        # orchestrator matches in that output, and the constant that holds
+        # them.
+        assert f'"{chain.VERIFYING_ROUND}"' in paragraph, paragraph
+        assert "`skills/code-review/scripts/chain_check.py#VERIFYING_ROUND`" in (
+            paragraph
+        ), paragraph
 
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only

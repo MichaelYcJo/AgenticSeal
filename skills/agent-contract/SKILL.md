@@ -190,7 +190,7 @@ refusal in the hand-back, quoted; never bend the code to pass it. Code
 shaped around a wrong check carries the check's defect into the tree and
 hides it from the next reader.
 
-## 19 A change rewrites the text it amends in place
+## 19 A change rewrites the text it amends in place, and writes no count that goes stale
 
 `skills/core/SKILL.md` *The rule a mechanism is kept against* states the
 rule. What stood on the old fact, which the same commit removes or
@@ -198,6 +198,23 @@ corrects, is every other sentence, case and citation stating it, found at
 least with `git grep` on its words; rule 12 calls that a sample. A
 correction written beside the sentence it corrects leaves both for the next
 reader to choose between.
+
+What a change writes states no count and no universal about the tree that
+a later change can make false without editing the sentence. A count is a
+number of files, rows, callers, places or rounds. A universal is a claim
+that every one, none or only one of them holds something. Such a sentence
+holds none of the words of the list it stands on, so the `git grep` this
+rule asks of the next change does not find it, and it stays false until a
+reader meets it. In its place the text names the members, or cites the
+list, the section or the command that lists them. A count stands only in
+the sentence that opens the list it counts, or beside the list, where a
+change to the list meets it. An item's own number, such as *Scope* item 3,
+is a coordinate and not a count. A universal that states a rule, what must
+hold, is the rule and stays. A count or a universal stated of a named
+commit, a release or a dated measurement is a claim about that moment and
+stays. The rule reaches every text a change writes: a record, a document,
+a comment, a docstring, and a paste-ready fix written for another party to
+apply.
 
 ## 21 Write each command so Claude Code's parser can read it
 

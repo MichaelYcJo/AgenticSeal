@@ -102,6 +102,15 @@ OUTSIDE_THE_REVIEW = ("skills", "writing-style", "outside-the-review.md")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 THE_CORES_PLACES = "the opening paragraph of `skills/core/SKILL.md`"
 WHAT_THE_GATE_RUNS = "`docs/running/the-broad-gate.md` *What the gate runs*"
+UNIT_STOP = (
+    "`skills/implement/fix-pass.md` *A fix that needs a unit the frame does "
+    "not name waits for the fold*"
+)
+NARROWING = (
+    "the paragraph opening **The framer writes a decision's fold** of "
+    "`skills/implement/orchestration.md` *Orchestrator: the order inside a "
+    "ticket*"
+)
 
 
 # rule -> (owner, the facts the owner states, {link carrier: the citation it
@@ -333,6 +342,59 @@ RULES = {
         ),
         {},
     ),
+    # #1613: a fix pass, a fold and the orchestrator's record edits wrote a
+    # count or a universal that the next fix made false, and the rule stood
+    # in `agents/framer.md` for the frame's counts alone. It went into
+    # contract rule 19 beside what a change does to the text it amends, and
+    # the file of each link below cites it at the step where its party
+    # writes after round 1.
+    "30 a change writes no count or universal a later change makes false": (
+        CONTRACT,
+        (
+            # The rule's number, which each link below names it by.
+            "## 19 ",
+        ),
+        {
+            FIX_PASS_PROCEDURE: "contract rule 19",
+            FOLD: "contract rule 19",
+            ORCH_IMPL: "contract rule 19",
+            ORCH: "contract rule 19",
+        },
+    ),
+    # #1612: a finding named one place stating a fact and its fix left the
+    # others, which the next round found as copies. The finding carries the
+    # command that lists the places on its `evidence:` line, and the fix
+    # pass runs it again before it writes the close block.
+    "31 a finding on a wrong sentence carries the command that lists the fact's places": (
+        SKILL,
+        (),
+        {
+            FIX_PASS_PROCEDURE: (
+                "`skills/code-review/SKILL.md` *A paste-ready fix reaches every "
+                "statement of the fact it repairs, or names where it stops*"
+            ),
+        },
+    ),
+    # #1614: a fix pass designed and built a unit no frame named, and a fix
+    # that adds one was followed by a later finding on what it closed about
+    # twice as often as one that adds none. The fix pass stops at such a
+    # unit and the framer's fold designs it first, and the three files that
+    # route or design that fold cite the stop.
+    "32 a fix that needs a unit the frame does not name waits for the fold": (
+        FIX_PASS_PROCEDURE,
+        (),
+        {ORCH_IMPL: UNIT_STOP, ORCH: UNIT_STOP, FOLD: UNIT_STOP},
+    ),
+    # #1614: a fold after a fix wrote down what the fix had built, and the
+    # copy was a finding in two rounds of #1612. A fold whose source is a
+    # fix or a build removes or narrows, and the two files that said a fold
+    # rewrites a frame sentence with the fact cite the paragraph that holds
+    # the rule, not only its section, which they cited before it stood.
+    "33 a fold whose source is a fix or a build removes or narrows": (
+        ORCH_IMPL,
+        (),
+        {FOLD: NARROWING, IMPLEMENT: NARROWING},
+    ),
 }
 
 
@@ -530,7 +592,8 @@ def the_order():
 def test_a_decision_after_the_frame_is_folded_into_it():
     """S9 of #945. A crafter reads the frame and not the issue's comments, so
     a decision made after the frame is committed is folded into it before
-    the next crafter spawns, and before framing into the issue body.
+    the next crafter spawns or is resumed, and before framing into the issue
+    body.
 
     #1477 rewrote the one paragraph of ordered acts as six paragraphs of
     judgment, numbered as rows of that work item's `frame/design.md` D1.
@@ -631,7 +694,8 @@ def test_a_handoff_file_is_written_only_to_move_the_work():
 
 def test_a_recurring_problem_gets_a_prevention_home():
     """S9 of #945. A problem met twice in one run gets the place that
-    prevents it before the next spawn, and the issue records where. Where
+    prevents it before the next spawn or resume, and the issue records
+    where. Where
     the home goes is the proofer's to read."""
     order = the_order()
     for said in (
