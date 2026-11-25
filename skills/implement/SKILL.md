@@ -19,8 +19,8 @@ each rule, and closing the loop with review. Opened by the `crafter` agent at
 its first step; usable directly.
 
 **If you are orchestrating a work item rather than building it, read
-`skills/implement/orchestration.md` before the first edit**; an implementer
-never opens it, and everything below is the implementer's and the
+`skills/implement/orchestration.md` before the first edit**; the crafter
+never opens it, and everything below is the crafter's and the
 orchestrator's alike.
 
 ## The language the records are written in
@@ -335,7 +335,7 @@ out unproven, and only a reader catches it.
 
 ### 5. Incorporate review — read the round records first
 
-A fix pass, the crafter's or a session's, opens
+A fix pass, the crafter's or the orchestrator's, opens
 `skills/implement/fix-pass.md` before it judges the first finding, and
 follows it: where the pass starts, how it reads a finding and a paste-ready
 fix, what it runs once the fixes are committed, and the close blocks it

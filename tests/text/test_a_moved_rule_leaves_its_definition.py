@@ -271,6 +271,44 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
     )
 
 
+NARROW_SET = "\n## The narrow set, then the read of the range\n"
+
+
+def test_whoever_makes_the_fix_pass_makes_the_reading_of_the_range():
+    """#1623, Scope item 1. A fix pass is the crafter's or the
+    orchestrator's, and the orchestrator makes every pass of a work item
+    whose `routing.md` answers `Implementation` with `the session`. Bound to
+    the crafter alone, the reading of the range and the records whole was
+    asked of nobody in such a pass, and one fact stated in several records
+    was fixed one sentence at a time (owlery#236). So the paragraph binds the
+    reading to whoever makes the pass, and says where the orchestrator
+    corrects, folds and names what the crafter's *Job* and hand-back give."""
+    text = read(FIX_PASS_FILE)
+    start = text.index(NARROW_SET)
+    section = flat(text[start : text.index("\n## ", start + len(NARROW_SET))])
+    for fact in (
+        # The routing row and its answer under which the orchestrator makes
+        # every pass.
+        "`Implementation`",
+        "`the session`",
+        # The section the orchestrator folds a frame or `routing.md`
+        # statement by, as it folds one a crafter's hand-back names.
+        "`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*",
+        # The field the orchestrator writes the read's account into, in
+        # place of the crafter's hand-back.
+        "`answer:`",
+        # The file and the heading what the pass did not finish goes under.
+        "`gaps.md` `## Not done`",
+        # The contract rule whose labels the account of the read carries, so
+        # that it claims only the reads the pass's commands made (round 3 of
+        # #1623).
+        "contract rule 4",
+    ):
+        assert fact in section, (
+            f"*The narrow set, then the read of the range* no longer says {fact!r}"
+        )
+
+
 def test_the_crafters_hand_back_names_the_follow_up_file():
     """Round 1 of #967: step 10 hands back what the crafter may not record
     itself, and names the file a leftover goes to, which the orchestrator
