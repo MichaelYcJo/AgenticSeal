@@ -694,7 +694,8 @@ def test_a_handoff_file_is_written_only_to_move_the_work():
 
 def test_a_recurring_problem_gets_a_prevention_home():
     """S9 of #945. A problem met twice in one run gets the place that
-    prevents it before the next spawn, and the issue records where. Where
+    prevents it before the next spawn or resume, and the issue records
+    where. Where
     the home goes is the proofer's to read."""
     order = the_order()
     for said in (
