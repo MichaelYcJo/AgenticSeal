@@ -39,6 +39,11 @@ its way up before it meets the link. The hook writes nothing, starts no
 process and reaches no network. Its command
 ```
 
+```seal
+verdict: fixed 10635995c
+answer: `10635995c` applies the snippet. The docstring at `hooks/edit-leaves-copies.py:61-70` now bounds the two marker reads "at the marker's length and the two characters a line end can take", as `lib/optin.py:238-239` and `:260-261` state it. The remaining lines of the paragraph are rewrapped so no line runs past the others. `uvx ruff check hooks` is clean. `bin/test -q -p no:xdist tests/hooks/test_edit_leaves_copies.py tests/behaviour/test_chain_hooks_hardening.py tests/test_censuses.py` exited 0. The listing command, run again at `10635995c` with `trail/` left out, prints the hook's `:62-63`, which now hold; `lib/optin.py:238` and `:260`; and `frame/design.md:91`, `:133` and `frame/plan.md:67`, which hold. It is a sample.
+```
+
 ### 2. `frame/questions.md` Q2 says a lower count leaves the three mechanisms as built, while the follow-up row `15fd04b81` rewrote sends a mechanism to the weighing even where the count fell
 
 ```seal
@@ -59,6 +64,11 @@ the Options & what each implies cell of Q2, in place of
 "Fewer: the quote check, the listing command and the hook hold as built. As many or more: the settle after that release weighs the quote check, the listing command and the hook against what they cost, under `skills/core/SKILL.md` *The rule a mechanism is kept against*, the hook by what it named against what was then rewritten"
 write
 "Fewer, or as many or more: `seal/follow-up.md`, the row #1612 sent there, says what the count and each mechanism's own record in that release send to the weighing of `skills/core/SKILL.md` *The rule a mechanism is kept against*"
+```
+
+```seal
+verdict: fixed 1dd2f85f2
+answer: The orchestrator's fold at `1dd2f85f2` rewrote Q2's *Options & what each implies* cell at `frame/questions.md:15`. It now reads "What each answer sends to the weighing of `skills/core/SKILL.md` *The rule a mechanism is kept against*, the count and each mechanism's own record together, is #1612's row of `seal/follow-up.md`". So the cell cites the home and no longer restates what a lower count does. The fix pass made no change for this finding. The listing command, run again at `10635995c` with `trail/` left out, prints `seal/follow-up.md:44`, #1613's row, which states another fact, and `seal/follow-up.md:45`, the home. It no longer prints `frame/questions.md:15`. It is a sample.
 ```
 
 ### 3. The older row of *Judgments of the run* still sends `lib/routing.py#read_declaration` to an issue of its own, while the row the fold added says it gets no issue in this release, and no issue holds either link case
@@ -83,6 +93,11 @@ write
 "The same class outside the diff, which round 1 named: `lib/routing.py#read_declaration` is decided in the row on the hook's handling of links, and `hooks/ask-under-automation.py#_paragraph` goes to HOME NOT IN TREE"
 where HOME NOT IN TREE is the issue the orchestrator opens for it, or the newer row's decision
 once the owner extends it to `_paragraph`, and the words stand in no tree until then.
+```
+
+```seal
+verdict: fixed 1dd2f85f2
+answer: The orchestrator's fold at `1dd2f85f2` rewrote the older row's last sentence at `frame/plan.md:68`. `lib/routing.py#read_declaration` is now decided in the row on the hook's handling of links, `:67`, so the plan gives it one home. The row places `hooks/ask-under-automation.py#_paragraph` outside the class, because it opens `docs/running/the-run.md` under `CLAUDE_PLUGIN_ROOT`, the plugin's own copy, and no file of the repository being checked. That needs no issue, so the snippet's placeholder home is not used. The fix pass made no change for this finding. The listing command, run again at `10635995c`, prints `frame/plan.md:67` and `:68` alone in this work item's records outside `trail/`, and they now agree. It also prints the other work items' records under `seal/threads/`, which state their own facts. It is a sample.
 ```
 
 ## Confirmations
