@@ -28,7 +28,8 @@ The tree as read at `b03b0e290`.
 | G18. The issue's comments (executed: `gh issue view 1613 --json body,comments --jq '.comments\|length'` printed 0 on 2026-11-25) | The body as the spawn prompt hands it is the request |
 | G19. `routing.md` (read) | `Planning` framer, `Implementation` crafter, `Review` through the review chain, `Automation` yes. The issue's second *Done when* line goes to `seal/follow-up.md` with the owner as answerer |
 | G20. The parse of this design's `## Rule changes` (executed: a probe `test_tmp_parse_rule_changes.py` calling `skills/settle/scripts/rule_changes.py#parse(text, "docs")` with `python3 -I`, from a `git clone --no-local` of `b03b0e290` under the framer's scratch directory, over a copy of this file) | The section parses as one `add` on `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each*, with `errors` and `unread` empty |
-| G21. The mechanisms a plugin can ship beside its text (read: `trail/mechanism-inventory.md`, committed by the orchestrator from its scratch copy, a claude-code-guide agent's reading of the Claude Code docs on 2026-11-25; each line a claim, none probed here; harness `claude --version` 2.1.331, executed) | The hook events, the `command`, `prompt` and `agent` hook types with their inputs, turns and timeouts, the agent-definition fields a plugin agent honours and ignores, and the other components. `frame/plan.md` *Alternatives considered* weighs each against rule 19, and no row's verdict rests on a line of it alone: where a verdict cites one, the row names it as not probed |
+| G21. The mechanisms a plugin can ship beside its text (read: `trail/mechanism-inventory.md`, committed by the orchestrator from its scratch copy, a claude-code-guide agent's reading of the Claude Code docs on 2026-11-25, its lines on hook inputs, plugin-scoped names and `SubagentStop` corrected at `5690aa090` with the docs' own sentences; each line a claim, none probed here; harness `claude --version` 2.1.331, executed) | The hook events, the `command`, `prompt` and `agent` hook types with their inputs, turns and timeouts, the `SubagentStop` input with `agent_transcript_path`, the plugin-scoped matcher, the agent-definition fields a plugin agent honours and ignores, and the other components. `frame/plan.md` *Alternatives considered* weighs each against rule 19 |
+| G23. The size of what a `SubagentStop` `agent` hook would read (executed on 2026-11-25: `wc -c` and `wc -l` over this session's subagent transcripts under `~/.claude/projects/`) | This run's framer transcript holds 3,412,304 bytes on 723 lines and phase 1's crafter transcript 2,469,727 bytes on 515 lines, measured after both had stopped |
 | G22. What this run's parties wrote, as the hook rows' cost basis (executed on 2026-11-25 at HEAD `a6feb7831`: a probe `test_tmp_count_edits.py` counting `Edit` and `Write` tool calls in the session's transcripts under the framer's scratch directory; `git diff cbaae0c59..7415cad73` added lines, counted with `wc -l` and with `grep -c -i -E` on a number or a word such as `every`, `none` or `only`) | Up to the fold, the session made 10 `Edit` or `Write` calls, 3 under `seal/threads/`; the framer 12, all under it; phase 1's crafter 37, 13 under it. Phase 1's range adds 96 lines, and 52 of them hold a number or such a word |
 
 ## Scope
@@ -48,7 +49,7 @@ Out:
 
 - Rewriting the counts and universals that stand in the tree today. They are true now, the class is open over every sentence of the tree, and rule 19 meets each one where a later change edits what it counts. A count found false is a finding where it stands.
 - A script that reads text for a count or a universal. Whether a sentence states what the tree holds or a rule that must hold is a meaning question, which `skills/core/SKILL.md` *The first value: efficient development through the AgenticSeal process* gives to the reader and never to a grammar rule.
-- A hook, a `seal` subcommand, a workflow, an agent-definition field or another component that reads text against rule 19. Each was weighed against its cost in `frame/plan.md` *Alternatives considered*, and none earns it in this item; the independent reader of a fix's records is #1615's subject.
+- A hook, a `seal` subcommand, a workflow, an agent-definition field or another component that reads text against rule 19. The rows of `frame/plan.md` *Alternatives considered* from the `PreToolUse` hook on weigh them against their cost and reject them here; the independent reader of a fix's records, the `SubagentStop` `agent` hook among the candidates, is #1615's subject.
 - `skills/code-review/SKILL.md`, the paragraph opening **A paste-ready fix reaches every statement of the fact it repairs**. The proofer preloads the contract, the fix pass's reading of Scope item 2 is the step where a snippet is applied, and #1612 and #1615 both change that file (`frame/plan.md` *Overlap with the release*).
 - The issue's second *Done when* line, a count in another repository's next release (`frame/questions.md` Q1).
 - An edit of the policy root. Its account of the rule is the `add` of `## Rule changes`, which the settle writes.
@@ -102,12 +103,9 @@ Where each party that writes after round 1 receives the rule, the parties being 
     words, so the `git grep` the same rule asks of the next change does not
     find it, and the sentence stands false until a round reads it. In
     releases 0.0.2 to 0.0.4 of a repository that runs the chain, 14 of the 72
-    defects that a commit after round 1 introduced were such a sentence,
-    written by the crafter's fix pass, the framer's fold and the
-    orchestrator's record edits (#1613). Until 0.39.0 the rule stood in
-    `agents/framer.md` for the frame's counts alone, so it bound the framer
-    and no other party that edits a record. In the contract it binds every
-    agent, and the orchestrator opens it at step 1 of
+    defects that a commit after round 1 introduced were such a sentence
+    (#1613). The rule binds every agent through the contract, and the
+    orchestrator opens it at step 1 of
     `skills/implement/orchestration.md` *Orchestrator: the order inside a
     ticket*. Whether a sentence states what the tree holds or a rule that
     must hold is the reader's judgment, so no script reads for one.
