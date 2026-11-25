@@ -61,6 +61,11 @@ is not read: a link can name a file or a directory outside the repository,
 or a device whose read never ends.
 ```
 
+```seal
+verdict: fixed fd984795f
+answer: The reads-on condition is the framer's fold at `f865cab26`, `frame/design.md:91`: no component of the path from `<root>` down to `<file>`, `<root>` itself among them, is a link. `fd984795f` builds it as one guard in `#main`, before the first open. The guard checks the root, its `threads/`, the item's directory and each component under it down to the edited file with `os.path.islink`, and returns where any is a link. The snippet started at `threads/` and so left the root out, which the fold names. The `#_records` skip stays for a link inside the item. Three cases were each seen red against the hook as it stood at `7fa4a1692`, which `git diff --stat 7fa4a1692 f865cab26 -- hooks lib tests` shows unchanged, and each printed a place where the case asserts nothing. `test_refuses_to_print_where_the_edited_file_is_a_link` is Probe D1. `test_refuses_to_print_where_the_work_items_directory_is_a_link` is Probe D2. `test_refuses_to_print_where_the_root_threads_or_a_directory_in_the_item_is_a_link` holds the other three components. After the commit, `seal mutate` gave 6 mutants, all red: the guard off, the root dropped, `threads/` dropped, the file dropped, the item's directory dropped, and the directories inside the item dropped. The docstring at `:57-61` and `changelog.md:3` now state the guard. On round 1's FIFO close, I rewrote the ground to its first one alone and added no `isfile` guard. Round 1's close gave two grounds. The first holds: git stores regular files, links and submodules and nothing else, so a checkout, the boundary `SECURITY.md:43-46` names, cannot hold a FIFO. The second, that no case could show the guard red without a read that never ends, is false, since Probe E2 shows a red that ends. I did not take the guard because a check against a file git cannot deliver has nothing to catch, and its case would need `os.mkfifo` and a writer thread, which Windows lacks (`skills/core/SKILL.md` *The rule a mechanism is kept against*). The listing command, run again at `fd984795f` with `trail/` left out, prints the hook's docstring at `:59`, its `#_records` docstring at `:130`, the guard's comment at `:258`, `changelog.md:3`, `frame/design.md:91` and `:133`, and the case docstrings at `tests/hooks/test_edit_leaves_copies.py:305`, `:316` and `:336`. Each holds at HEAD. It also prints `frame/design.md:27` and `frame/plan.md:67`, which are dated to the commits they record, and `CONTRIBUTING.md:485` and `docs/running/the-run.md:49` and `:64`, which state other facts. It is a sample.
+```
+
 ### 2. `frame/plan.md:26` says Q1 found the hook's own text in the main session, while Q1's Status cell at the target also records it inside a plugin's subagent
 
 ```seal
@@ -76,6 +81,11 @@ The listing command printed four places. `frame/questions.md:14` is the home. `g
 ```markdown
 frame/plan.md, the row at line 26, in place of the sentence opening "`frame/questions.md` Q1's measurement found":
 `frame/questions.md` Q1, its Status cell, records where the harness delivered a plugin hook's text and this hook's own text
+```
+
+```seal
+verdict: fixed f865cab26
+answer: The framer's fold at `f865cab26` replaced the sentence at `frame/plan.md:26` with the snippet's citation of Q1's Status cell, so the row no longer restates what Q1 measured. The fix pass made no change for this finding. The listing command, run again at `fd984795f`, prints `frame/plan.md:26`, which now cites the home; `frame/questions.md:14`, the home; and `gaps.md:10` and `:11`, which each cite it and agree with it.
 ```
 
 ## Confirmations
