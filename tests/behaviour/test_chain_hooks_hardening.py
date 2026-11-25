@@ -4,11 +4,12 @@ agent definitions, of `CONTRIBUTING.md` and of `docs/running/the-run.md`,
 and the work item directories under `seal/threads/`.
 
 The module is named for the plugin's hooks, which #1376 removed and #1430
-brought back; #1608 added the `PreToolUse` hook. What the stamp's `Stop`
-command draws is held in `tests/skills/test_seal_stamp.py`, what the
-`SessionStart` command prints in `tests/hooks/test_core_start.py`, and what
-the `PreToolUse` command refuses in
-`tests/hooks/test_ask_under_automation.py`.
+brought back; #1608 added the `PreToolUse` hook and #1612 the
+`PostToolUse` one. What the stamp's `Stop` command draws is held in
+`tests/skills/test_seal_stamp.py`, what the `SessionStart` command prints in
+`tests/hooks/test_core_start.py`, what the `PreToolUse` command refuses in
+`tests/hooks/test_ask_under_automation.py`, and what the `PostToolUse`
+command names in `tests/hooks/test_edit_leaves_copies.py`.
 """
 
 import json
@@ -31,37 +32,43 @@ HOOK_ENTRIES = {
     "Stop": None,
     "SessionStart": "startup|clear|compact",
     "PreToolUse": "AskUserQuestion",
+    "PostToolUse": "Edit",
 }
 HOOK_FILES = [
     "hooks/ask-under-automation.py",
     "hooks/core-start.py",
+    "hooks/edit-leaves-copies.py",
     "hooks/hooks.json",
 ]
 PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
 
 
 def test_the_plugin_registers_its_hooks_and_writes_none_into_git():
-    """#1430 *Scope* items 1 and 4, and #1608 S8. The plugin ships command
-    hooks and no dispatcher: a `Stop` entry with no matcher that runs
-    `seal_stamp.py --stop`, a `SessionStart` entry matched to
-    `startup|clear|compact` that runs `hooks/core-start.py`, and a
-    `PreToolUse` entry matched to `AskUserQuestion` that runs
-    `hooks/ask-under-automation.py`. Each holds one command hook, three
-    parts joined by ` || `: `python3` then `py -3`, naming one tracked
-    script under `${CLAUDE_PLUGIN_ROOT}` with the same arguments, then
-    `exit 0`, so the command exits 0 whatever its halves did. The harness
+    """#1430 *Scope* items 1 and 4, #1608 S8 and #1612 A12. The plugin ships
+    command hooks and no dispatcher: a `Stop` entry with no matcher that
+    runs `seal_stamp.py --stop`, a `SessionStart` entry matched to
+    `startup|clear|compact` that runs `hooks/core-start.py`, a `PreToolUse`
+    entry matched to `AskUserQuestion` that runs
+    `hooks/ask-under-automation.py`, and a `PostToolUse` entry matched to
+    `Edit` that runs `hooks/edit-leaves-copies.py`. Each holds one command
+    hook, three parts joined by ` || `: `python3` then `py -3`, naming one
+    tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same arguments,
+    then `exit 0`, so the command exits 0 whatever its halves did. The harness
     reads `hooks/hooks.json` at the plugin's root, and `hooks/` holds those
     files and nothing else. Nothing writes into a clone's git hooks
     (`docs/checks/the-routing-check.md`).
 
     The plugin directory refuses a plugin that registers a command hook
     (#1376), and the owner chose on 2026-11-08 to ship such hooks until a
-    listing is possible (#1430), and filed #1608 for the `PreToolUse` one.
-    When the directory lists the plugin with its hooks, or lists it on
-    condition they go, the removal undoes: `hooks/hooks.json`,
-    `hooks/core-start.py`, `hooks/ask-under-automation.py`, `lib/core.py`,
+    listing is possible (#1430), filed #1608 for the `PreToolUse` one, and
+    filed #1612, whose frame chose the `PostToolUse` one. When the
+    directory lists the plugin with its hooks, or lists it on condition
+    they go, the removal undoes: `hooks/hooks.json`, `hooks/core-start.py`,
+    `hooks/ask-under-automation.py`, `hooks/edit-leaves-copies.py`,
+    `lib/core.py`,
     `lib/routing.py#open_declarations`, `tests/hooks/test_core_start.py`,
-    `tests/hooks/test_ask_under_automation.py`, `tests/lib/test_core.py`,
+    `tests/hooks/test_ask_under_automation.py`,
+    `tests/hooks/test_edit_leaves_copies.py`, `tests/lib/test_core.py`,
     `Test_open_declarations` in `tests/lib/test_routing.py`, this case,
     `hooks` in the hygiene step's pattern and the roots sentence of
     `docs/releasing/branch-and-release.md` *Cutting a release*, `ruff.toml`'s
@@ -70,7 +77,7 @@ def test_the_plugin_registers_its_hooks_and_writes_none_into_git():
     derivation, `skills/verify/scripts/payload_meter.py#HOOK_ROW`, and the
     sentences this command lists:
 
-        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from\\|PreToolUse\\|ask-under-automation"
+        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from\\|PreToolUse\\|ask-under-automation\\|PostToolUse\\|edit-leaves-copies"
 
     and it gives the core and the stamp new carriers, which that work's frame
     decides."""
