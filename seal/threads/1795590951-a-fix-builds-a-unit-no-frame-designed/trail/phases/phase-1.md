@@ -14,7 +14,7 @@
 
 **Key `33`'s citation names the paragraph by its bold lead, in the form `the paragraph opening **<lead>** of <path> *<section>*`.** `skills/settle/scripts/passages.py#SECTION` reads an italic row name before `of` into the citation token and not a bold one, so the lead's words stay words. The two carriers share fewer than `WINDOW` words around it, and `tests/text/test_no_passage_is_pasted_into_a_second_file.py` passed with both in the tree.
 
-**Seen red, each link with its carrier's new citation removed.** Each run used `--tests "bin/test -q -p no:xdist tests/text/test_the_rules_have_one_owner.py -k test_every_link_names_the_owner"` at `eeeaff53a`. Each passed its baseline, and each failure's line named the carrier and the rule.
+**Seen red, each link with its carrier's new citation removed.** Each `seal mutate` run used `--tests "bin/test -q -p no:xdist tests/text/test_the_rules_have_one_owner.py -k test_every_link_names_the_owner"` at `eeeaff53a` and passed its baseline, and the last row ran the same command directly. Each failure's line named the carrier and the rule.
 
 | Carrier | Rule | Break | Verdict |
 |---|---|---|---|
