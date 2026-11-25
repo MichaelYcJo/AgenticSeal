@@ -126,8 +126,12 @@ holds it. So is a line of `pr.<lang>.md` that does not render, in `Commit
 and pull request language`, the sentence at the coordinate it carries. So
 is a list item of `changelog.md` whose opening sentence `pr.<lang>.md`
 leaves without a rendering, and so is a quote of `pr.md` that it leaves
-without a rendering. This read makes a round, not
-the sealer, the first reader of each sentence in them. The implementer's
+without a rendering. This read makes a round the first reader of each
+sentence they hold at its target. A sentence a fix pass writes after the
+last round, which the row *No fix that no round reads* of
+`skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to
+the sealer, has the sealer as its first reader (`agents/sealer.md` step 4).
+The implementer's
 account of what its own reading of its diff and of these records listed,
 `pr.md` and `pr.<lang>.md` aside, is a claim you verify on your own: a
 statement that reading held and the account missed, or a sample handed back

@@ -105,9 +105,21 @@ return.
    A finding of the last record that reads `fixed <commit>`, which the check
    passes only where the finding is located in `seal/threads/<item>/` alone
    and its commit touched nothing outside it, was read by no round: it is
-   the fix pass's claim with you as its reader, so read the record at HEAD
-   against what the finding asked, and a record that does not say it is a
-   disagreement like any other.
+   the fix pass's claim with you as its reader, so read it the way a
+   verifying round reads a fix. Read the record at HEAD against what the
+   finding asked. Then run
+   `git -C <root> diff <the last record's target>..HEAD -- seal/threads/<item>/`,
+   `<the last record's target>` being the commit its `target:` line names,
+   and read against HEAD each sentence the diff adds or rewrites, and each
+   other statement in the work item's records of a fact the diff changed.
+   List those with
+   `git -C <root> grep -n -F '<the fact's words>' -- seal/threads/<item>/`,
+   a sample under rules 12 and 19. How a frame section dated to the
+   framer's commit reads is `agents/proofer.md` *Every round reads the work
+   item's records that state the present, whole, against its target*'s. A
+   record that does not say what the finding asked, and a sentence HEAD
+   contradicts, are each a disagreement like any other, and a `withheld`
+   reason naming its coordinate.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
    its tables filled for this run, and append one verdict block below every
    block an earlier run left, each line spelt as `lib/fields.py`

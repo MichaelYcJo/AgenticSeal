@@ -81,10 +81,20 @@ Fix the axes before starting and cover all of them.
 | State transitions | against the state machine the policy or the design states, if one exists |
 | Concurrency & atomicity | what can change between the read that decides and the write that acts: state held across an external call or `await`, transaction boundary against lock scope, whether a retry executes twice |
 | Security | who can reach this path and as whom; the trust of every input that crosses an OS or process boundary; whether each failure fails open or closed; what a crafted name, path, or payload reaches |
+| Record against the code | each sentence of the work item's records that states what the code does or where it stands, against the code at the target. Open each coordinate the sentence names, a path, a `path#name` or a backticked path with an italic heading, and read whether it stands at the target and says what the sentence says |
+| Record against record | each fact a record states, against every other statement of it in the work item's records. List them with `git grep -n -F '<the fact's words>' -- seal/threads/<item>/` at the target, a sample under contract rules 12 and 19, as *A paste-ready fix reaches every statement of the fact it repairs, or names where it stops* says of a finding's search |
+| Record against another work item's frame | each rule, section or file the records cite that another work item of the release changes, against that item's frame: the unsettled designs' `## Rule changes`, which with the policy root make the policy in force (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*), and the rows of this item's `frame/plan.md` *Overlap with the release*. List them with `git grep -n -F '<the section's heading>' -- 'seal/threads/*/frame/design.md'` at the target, outside the work item's own directory |
+| Figure against its text | each image or drawing a record holds, a drawn screen among them, against the sentences that say what it shows, and against the code that renders it where the work builds that code. Open the image |
 
-The last two rows are not settled by following one request end to end: one
-asks what a second actor does while the first is mid-flight, the other what
-an input nobody sends in good faith does.
+The rows *Concurrency & atomicity* and *Security* are not settled by
+following one request end to end: one asks what a second actor does while
+the first is mid-flight, the other what an input nobody sends in good faith
+does.
+
+The four record rows are walked over the records `agents/proofer.md` *Every
+round reads the work item's records that state the present, whole, against
+its target* names, and that rule says which records they are and how a
+frame section dated to the framer's commit reads.
 
 The response-shape row is walked from the reference to the code. The
 reference is what stage 1 reads above the code: the policy documents and the

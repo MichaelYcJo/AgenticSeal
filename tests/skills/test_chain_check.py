@@ -4593,6 +4593,27 @@ class Test_main:
         assert records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1]) == []
 
     @pytest.mark.rule("run-ends-with-verifying-round")
+    def test_passes_a_last_records_regression_fixed_in_its_records_alone(
+        self, branch, monkeypatch
+    ):
+        """#1615, *Scope* item 8: a regression of the last record, located
+        in the work item's own records alone and `fixed` by a commit that
+        touched them alone, owes no verifying round either. The
+        `regression:` line changes nothing of the sealer's read at HEAD."""
+        root, code_sha = branch
+        write(root, f"{ITEM}/frame/plan.md", "# plan\n\nthe row, corrected\n")
+        fix = commit(root, "a regression's fix to the records alone")
+        located = f"`{ITEM}/frame/plan.md`"
+        first = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")])
+        last = record(
+            code_sha,
+            [finding(1, f"fixed {fix[:8]}", location=located, regression="round-1#1")],
+            n=2,
+        )
+        texts = {ROUND_1: first, ROUND_2: last}
+        assert records_read(monkeypatch, root, texts, [ROUND_1, ROUND_2]) == []
+
+    @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_last_records_fixed_finding_that_also_touched_code(
         self, branch, monkeypatch
