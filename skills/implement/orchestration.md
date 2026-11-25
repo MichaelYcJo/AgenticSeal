@@ -88,10 +88,10 @@ block hold that. That fold is the orchestrator's, of a statement a
 crafter's hand-back names, and the framer's, of a round finding that says
 a frame sentence no longer holds. A statement found in a file the
 crafter writes, `gaps.md` or `changelog.md`, goes to a fix pass before the
-orchestrator spawns the next round or phase. The fix pass is the crafter
-that wrote the work item's last build or fix commit, resumed or spawned
-fresh as `skills/code-review/orchestration.md` *Orchestrator: a phase is a
-fresh crafter, and a fix pass resumes the implementer* states.
+orchestrator spawns the next round or phase. That fix pass is the
+implementer's, and `skills/code-review/orchestration.md` *Orchestrator: a
+phase is a fresh crafter, and a fix pass resumes the implementer* defines
+the implementer.
 
 **One fold reaches every statement of the fact it changes.** Before the
 spawn or the resume that will read the decisions, the orchestrator sends
