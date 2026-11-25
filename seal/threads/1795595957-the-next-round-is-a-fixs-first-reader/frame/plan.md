@@ -55,4 +55,4 @@ No version move: `.claude-plugin/plugin.json` reads `0.39.0` (`frame/design.md` 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-25 | Phase 1's hand-back named `docs/forms/the-round-record.md`, the paragraph opening **Each finding's close block has one writer**, as a policy sentence the build contradicts that no `## Rule changes` operation reached. Adding an operation is a decision, so it went to the framer's fold, which added a `change` with G28; the orchestrator narrowed the two frame statements the same hand-back named at `5b4e2f26d` | `trail/phases/phase-1.md`; the phase 1 hand-back | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |
