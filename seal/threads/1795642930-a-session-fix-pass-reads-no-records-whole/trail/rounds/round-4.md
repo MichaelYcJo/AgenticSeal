@@ -134,6 +134,11 @@ reworded: <one phrase per rule>. It printed <every place>, each corrected
 or standing for <why>; a sentence in other words escapes it.
 ```
 
+```seal
+verdict: deferred #1624
+answer: The finding holds: round 3's account said each hunk was read with its paragraph, and the one diff printed after `143f205f1` carried five lines of context, so the four hunks named did not reach their paragraphs, `frame/design.md:1-19` was cut at 120 columns and named held rather than sent to `gaps.md` `## Not done`, and the sample's `changelog.md:3` and `:4` were not named. That close stands as appended. The run stops here by the row of `frame/plan.md` *Judgments of the run* that judges it excessive, and no fix pass runs for this finding. Its home is #1624, labelled `from-review`, which records this finding with round 2 finding 5 and round 3 finding 2 and asks whether a text rule can hold the account at all. Round 4's own whole read of the paragraphs, the docstring and `frame/design.md:1-19` found no statement contradicting HEAD, as the finding says, so no record is left false by the shortfall. No read is claimed in this close: this step made record edits and created the issue, and made no fix commit.
+```
+
 ### 2. The account sentence anchors its reads to the pass's last fix commit, and the read's own corrections land in fix commits after it
 
 ```seal
@@ -219,6 +224,11 @@ The account names the fix commit its read starts from and states only the reads 
 ```markdown
 <!-- changelog.md:3, the sentence on the account -->
 The account names the fix commit its read starts from and states only the reads the pass's commands made after it, labelled as contract rule 4 asks, and names as held and not read what the pass held from its own edit or a hand-back and did not print again, since this work's own passes twice claimed reads their commands had not made.
+```
+
+```seal
+verdict: deferred #1624
+answer: The finding holds: "after its last fix commit" reads two ways beside the same paragraph's corrections "in its fix commits", and `skills/implement/fix-pass.md` *The close blocks, last* and `skills/code-review/orchestration.md` take the second reading. The run stops here by the row of `frame/plan.md` *Judgments of the run* that judges it excessive. The finding is a `should`, so it takes a home that costs no round, and no fix pass or fold runs for it. Its home is #1624, labelled `from-review`, which carries the finding's paste-ready rewording and its frame lines. `gaps.md` `## Not done` names it, and `pr.md` quotes the stop row, so the pull request body shows the sentence ships with this ambiguity.
 ```
 
 ## Confirmations
