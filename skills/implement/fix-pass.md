@@ -115,7 +115,9 @@ method of the read, each statement across the tree the read leaves
 standing with why, and where the part a sample did not reach stands go
 into the `answer:` of the close block of the finding they concern, and
 otherwise into the `answer:` of the last close block the pass appends.
-What the pass did not finish goes to `gaps.md` `## Not done`.
+Where the pass appends no close block, because no finding names its fix,
+they go into `gaps.md` `## Not done`. What the pass did not finish goes to
+`gaps.md` `## Not done` too.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## The close blocks, last

@@ -33,8 +33,9 @@ every turn to hold what the record already holds.
 
 **A fix pass resumes the implementer only while the implementer's largest
 per-turn context is below 806,241 tokens, and is a fresh `crafter` spawn
-otherwise.** The implementer is the crafter that wrote the last commit the
-round reviewed. Before the fix pass, the orchestrator runs
+otherwise.** The implementer is the party that wrote the last commit the
+round reviewed: the crafter, or the orchestrator where `routing.md` answers
+`Implementation` with `the session`. Before the fix pass, the orchestrator runs
 `seal cost --segments <the implementer's agent-*.jsonl>` on the
 implementer's own transcript, the file the harness's task output named, and
 reads the largest value of its `context` column. Below the threshold, the
@@ -52,18 +53,18 @@ the same records. An orchestrator in a new session reads the routing from
 the work item's `routing.md` and asks nothing again before the spawn.
 
 **Where `routing.md` answers `Implementation` with `the session`, the
-orchestrator is the implementer and makes each fix pass itself, by
+orchestrator makes each fix pass itself, by
 `skills/implement/fix-pass.md`.** The resume threshold and the fresh spawn
-above do not apply, and the orchestrator appends the close blocks as the
-pass, so the paragraphs below that leave the close blocks and the
-hand-back to the crafter speak of a crafter's pass.
+above do not apply. The orchestrator appends the close blocks of its own
+pass, as `skills/implement/fix-pass.md` *The close blocks, last* states.
 
 **The crafter's fix pass appends one close block to each open finding of
 `trail/rounds/round-N.md`, and it edits nothing else in the record**
 (`docs/forms/the-round-record.md` *The round record*); it writes no
 `trail/phases/phase-N.md` and no `plan.md` row.
-**The orchestrator writes no close block of a finding the fix pass answers,
-and its fix-pass prompt leaves every such block to the crafter.** A close the
+**The orchestrator writes no close block of a finding the fix pass answers
+where a crafter makes the pass, and its fix-pass prompt leaves every such
+block to the crafter.** A close the
 orchestrator doubts goes into the verifying round's spawn prompt, since that
 round weighs every close. Where the row *No fix that no round reads* of
 `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the
@@ -83,7 +84,7 @@ range* binds, before the round or the sealer that reads the fix.
 **The fix pass then finds what the fixes left standing.** A fix repairs the
 coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
-a later round; that is contract rule 12. The fix pass's hand-back carries
+a later round; that is contract rule 12. A crafter's hand-back carries
 the method of its read of its range and the work item's records, each frame
 or `routing.md` statement that read names, and the sample of statements
 across the tree, as contract rule 12 asks of the party that fixes. The
@@ -102,9 +103,10 @@ name waits for the fold* has it, ends no pass: the orchestrator sends the
 finding to the framer, commits the fold, or its row that records the
 framer's rejection, and resumes the fix pass, or spawns it fresh by the
 threshold above. **On the hand-back that leaves no
-finding open for a fold, the orchestrator commits the round record as the
-fix pass left it, in one commit for the whole pass, before it reads
-whether a round follows the pass, and changes none of its lines.** That commit holds
+finding open for a fold, and at the end of its own pass where it leaves
+none open, the orchestrator commits the round record as the fix pass left
+it, in one commit for the whole pass, before it reads whether a round
+follows the pass, and changes none of its lines.** That commit holds
 `trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
