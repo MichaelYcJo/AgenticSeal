@@ -387,10 +387,10 @@ RULES = {
     ),
     # #1614: a fold after a fix wrote down what the fix had built, and the
     # copy was a finding in two rounds of #1612. A fold whose source is a
-    # fix removes or narrows, and the two files that said a fold rewrites a
-    # frame sentence with the fact cite the paragraph that holds the rule,
-    # not only its section, which they cited before it stood.
-    "33 a fold whose source is a fix removes or narrows": (
+    # fix or a build removes or narrows, and the two files that said a fold
+    # rewrites a frame sentence with the fact cite the paragraph that holds
+    # the rule, not only its section, which they cited before it stood.
+    "33 a fold whose source is a fix or a build removes or narrows": (
         ORCH_IMPL,
         (),
         {FOLD: NARROWING, IMPLEMENT: NARROWING},
