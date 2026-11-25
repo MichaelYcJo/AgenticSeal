@@ -151,9 +151,11 @@ def _widened(text, old, new):
 
     def wrapped(middle):
         head, tail = before.split(), after.split()
-        if head and not before[-1].isspace() and middle[:1].strip():
+        # A string that holds a space where it is joined splits there again
+        # in `_spans`, so only a cut word comes out joined.
+        if head and not before[-1].isspace():
             middle, head = head[-1] + middle, head[:-1]
-        if tail and not after[0].isspace() and middle[-1:].strip():
+        if tail and not after[0].isspace():
             middle, tail = middle + tail[0], tail[1:]
         return " ".join([*head[-AROUND:], middle, *tail[:AROUND]])
 

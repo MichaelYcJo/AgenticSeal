@@ -217,6 +217,22 @@ class Test_main:
             said = context(run(edited(directory / "frame" / "design.md", old, new)))
             assert f'- `gaps.md` line 3: "{around}"' in said, (old, said)
 
+    def test_accepts_and_names_a_deletion_by_the_words_of_old_string(self, tmp_path):
+        """A13's fallback. An edit whose `new_string` is empty leaves no
+        place in the file to read the words beside it from, so the span is
+        the words of `old_string` alone, and the copy in `gaps.md` that
+        holds them is named."""
+        old = "alpha bravo charlie delta echo foxtrot"
+        directory = item(
+            tmp_path,
+            {
+                "frame/plan.md": "# Plan\n\nkept words here\n",
+                "gaps.md": "# Gaps\n\n" + old + "\n",
+            },
+        )
+        said = context(run(edited(directory / "frame" / "plan.md", old, "")))
+        assert f'- `gaps.md` line 3: "{old}"' in said, said
+
     def test_accepts_a_span_of_six_words_and_thirty_characters(self, tmp_path):
         """A9, the floor. A span of `MIN_WORDS` words and `MIN_CHARS`
         characters is kept, so a copy of it is named."""
