@@ -51,3 +51,32 @@ That commit touches the work item's records alone, so the sealer reads it in the
 target: 41f7749e9 against fd89e2114
 Verdict: withheld reason: the orchestrator's records-only commit 122d7efd8, which no round read, marks the SubagentHandback line of trail/mechanism-inventory.md:47-52 unconfirmed on round 2's word that neither fetched page states it, and the hooks.md round 2 downloaded states it at line 2718 under SubagentStop input
 ```
+
+## Re-audit at 4a932c040
+
+Audited at `4a932c040` against `release/v0.39.0`, which still resolves to `fd89e2114`. The commits since the block above's `target:` are `907aeec80`, which touches `guarantee.md` alone, and `4a932c040`, which touches `trail/mechanism-inventory.md` alone (executed: `git log --no-merges --name-only 9a6d59111..HEAD ^fd89e2114`). So `trail/gate.md`'s run `9a6d59111` is followed only by paths under `seal/threads/1795569535-a-fix-writes-a-count-into-a-record/`, and the broad run stands for HEAD. `seal pr-body <item> --body <pr-body.md> --check` exited 0 at `4a932c040` with the installed plugin and with the tree's `bin/seal` (executed). No code, skill, test or other record changed since `41f7749e9`. So every claim of the block above except the inventory's is carried as it was re-run there.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The inventory's `SubagentHandback` sentences quote hooks.md *SubagentStop input* | `trail/mechanism-inventory.md:47-51`, written at `4a932c040` | `git show 4a932c040`; a `python3 -I` check of the quoted text, whitespace collapsed, against the sealer's fetch of `hooks.md` in scratch `sealer-docs/`, which `cmp` showed identical to round 2's copy | holds, executed: the quote stands word for word in the reference, under *SubagentStop input* at line 2718, and the version condition "v2.1.271 or later" is the reference's own. The "unconfirmed" mark and its ground are gone |
+| No other text of the work item still calls the `SubagentHandback` line unconfirmed | the work item's records outside `trail/rounds/` and `guarantee.md` | `git grep -n -i 'unconfirmed\|SubagentHandback'` over them at HEAD | holds, executed: the remaining "unconfirmed" lines, `trail/mechanism-inventory.md:75` and `:96`, are about other facts, and no commit since `41f7749e9` touched them |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as in the block above, unchanged since `41f7749e9` | the issue, the diff and `routing.md` *Why this way* | none |
+| the build | as in the block above, unchanged | the design and the claims re-run above | none |
+| the last round | as in the block above; its *Not judged* row 3 stays as round 2 wrote it, a dated record | the diff and the records at `34236295a` | its *Not judged* row 3, which the inventory no longer builds on |
+| the changelog | as in the block above, unchanged | the diff and the design | none |
+| the orchestrator's part of the pull request body | as in the block above, unchanged; the body file at `4a932c040` matches the records | the records it quotes and the issue | none |
+| the orchestrator's records-only fixes | `122d7efd8` answered round 2 finding 1, and `4a932c040` replaced the `SubagentHandback` sentences with the reference's text, as this file's *What the orchestrator fixes* asked | round 2 finding 1; hooks.md lines 255 and 2718; sub-agents.md line 788 | none |
+
+Read, not decisive: the inventory's closing paragraph, `trail/mechanism-inventory.md:60-62`, still says the lines on hook inputs, plugin-scoped names and `SubagentStop` were re-read by the claude-code-guide agent after round 1's finding 2. Two of the quotes now standing above it came from round 2 and from this audit's reading of the same pages. The paragraph is dated to that re-read and says that none of the lines was probed, which still holds. No reader acts differently on whose reading supplied a quote that the reference holds word for word.
+
+```seal
+target: 4a932c040 against fd89e2114
+Verdict: sealed
+```
