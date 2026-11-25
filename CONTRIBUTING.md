@@ -493,7 +493,7 @@ question is not its difficulty, it is when it arrives.
   the question does not state why its default cannot be taken, and a
   `PostToolUse` entry matched to `Edit` that runs
   `hooks/edit-leaves-copies.py`, which names the places in a work item's
-  other records that still hold the words an edit of one of them replaced.
+  records that still hold the words an edit of one of them replaced.
   The plugin directory refuses a plugin that registers a command hook
   (#1376), and the owner chose on 2026-11-08 to ship such hooks until a
   listing is possible (#1430), filed #1608 for the `PreToolUse` one, and

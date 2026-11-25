@@ -361,10 +361,10 @@ writes into your settings.**
   runs `hooks/edit-leaves-copies.py`. Where the edited file is a work
   item's record under a `seal/` root, outside its `trail/` and other than
   its `guarantee.md`, it looks for the words the edit replaced in the work
-  item's other such records, and names each place that still holds them,
-  with its line, to whoever made the edit, who decides whether that place
-  states the same fact. It refuses nothing. Anywhere else, and where it
-  finds no such place, it prints nothing.
+  item's such records, the edited one among them, and names each place
+  that still holds them, with its line, to whoever made the edit, who
+  decides whether that place states the same fact. It refuses nothing.
+  Anywhere else, and where it finds no such place, it prints nothing.
 
 Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
 the script under the plugin's own directory, so an update moves every hook

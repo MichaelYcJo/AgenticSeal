@@ -449,9 +449,10 @@ def network_passage(path, said):
 
 def test_the_places_that_reach_the_network_are_named():
     """#1055 S4 and #1382. Since #1430 the plugin ships hooks, the stamp's
-    `Stop` hook and the `SessionStart` hook that prints the core, and since
+    `Stop` hook and the `SessionStart` hook that prints the core, since
     #1608 the `PreToolUse` hook that reads the open work items before a
-    question, and none reaches a network. Each README edition's passage,
+    question, and since #1612 the `PostToolUse` hook that reads a work
+    item's records after an edit of one, and none reaches a network. Each README edition's passage,
     from the sentence that says so to the next heading, names every place
     in `NETWORK_PLACES`, and `CONTRIBUTING.md` points at the passage."""
     from conftest import flat

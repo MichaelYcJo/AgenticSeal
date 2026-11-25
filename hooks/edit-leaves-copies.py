@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PostToolUse on `Edit`: name to the party that edited a work item's
-record each place in the item's other records that still holds the words
-the edit replaced.
+record each place in the item's records, the edited one among them, that
+still holds the words the edit replaced.
 
 A work item's records restate one fact in several files, and a fix that
 changes the fact in one of them leaves the others for the next round to
@@ -24,13 +24,14 @@ The words the edit replaced are each span of `old_string` that differs from
 `new_string`, compared word by word, with `AROUND` words of `old_string` on
 each side; an insertion's span is the `AROUND` words on each side of the
 point. A span is kept where it holds `MIN_WORDS` words and `MIN_CHARS`
-characters or more, the floor #1612's frame measured its replay at, so a
-short edit, or an `old_string` that holds few words beyond the change,
+characters or more, the floor #1612 measured its replay of past edits at,
+so a short edit, or an `old_string` that holds few words beyond the change,
 prints nothing. A place is a record whose text, each run of whitespace
 made one space, holds a kept span, and its line is the one where the span
 opens. The text names each place by its path under the work item's
-directory and its line, with the words that stand there, and says what the
-writer does with it. It stays under `LIMIT` characters, the length past
+directory and its line, with the words that stand there, cut after `SHOWN`
+characters, and says what the writer does with it. It stays under `LIMIT`
+characters, the length past
 which the harness moves a hook's context to a file behind a preview: the
 places that do not fit are counted and not listed.
 
@@ -41,9 +42,9 @@ costs the writer one look.
 
 **It fails toward printing nothing.** A payload that is not a JSON object,
 a call of another tool, a field that is missing or not a string, a relative
-path, a path outside a marked root's work item, a `Write` call, which
-`hooks/hooks.json` does not match, and a record that cannot be read as
-UTF-8 text each print nothing, and so does anything that raises: the
+path, a path outside a marked root's work item, an edited file that is not
+there, a `Write` call, which `hooks/hooks.json` does not match, and a
+record that cannot be read as UTF-8 text each print nothing, and so does anything that raises: the
 `__main__` block turns every raise into exit 0. The hook writes nothing,
 starts no process and reaches no network. Its command in `hooks/hooks.json`
 ends with ` || exit 0`, so the command exits 0 whatever happens, a file its

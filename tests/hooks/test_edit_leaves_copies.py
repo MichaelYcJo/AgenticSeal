@@ -1,6 +1,6 @@
 """`hooks/edit-leaves-copies.py`: after an `Edit` of a work item's record,
-the places in the item's other records that still hold the words the edit
-replaced are named to the party that made it.
+the places in the item's records, the edited one among them, that still
+hold the words the edit replaced are named to the party that made it.
 
 The hook prints a `PostToolUse` object whose `additionalContext` names each
 place, or nothing, and exits 0 on every path (#1612). The cases run the
