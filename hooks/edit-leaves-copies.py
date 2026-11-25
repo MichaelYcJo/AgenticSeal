@@ -21,19 +21,27 @@ the edited file among them, as they stand after the edit: `trail/` and
 they read.
 
 The words the edit replaced are each span of `old_string` that differs from
-`new_string`, compared word by word, with `AROUND` words of `old_string` on
-each side; an insertion's span is the `AROUND` words on each side of the
-point. A span is kept where it holds `MIN_WORDS` words and `MIN_CHARS`
-characters or more, the floor #1612 measured its replay of past edits at,
-so a short edit, or an `old_string` that holds few words beyond the change,
-prints nothing. A place is a record whose text, each run of whitespace
-made one space, holds a kept span, and its line is the one where the span
-opens. The text names each place by its path under the work item's
-directory and its line, with the words that stand there, cut after `SHOWN`
-characters, and says what the writer does with it. It stays under `LIMIT`
-characters, the length past
-which the harness moves a hook's context to a file behind a preview: the
-places that do not fit are counted and not listed.
+`new_string`, compared word by word, with `AROUND` words on each side; an
+insertion's span is the `AROUND` words on each side of the point. The
+words on each side come from the edited file as it stands after the edit,
+around the first place `new_string` stands in it, which held `old_string`
+before the edit, so a change at an end of `old_string` keeps the words
+beside it. A word the edit's edge cuts is joined to the string it touches.
+Where `new_string` is empty or does not stand in the file, they come from
+`old_string` alone, so a deletion at an end of `old_string` can keep no
+span. Where `new_string` also stands earlier in the file, or a
+`replace_all` edit put it at several places, they come from its first
+place, and a span made of another place's words matches nothing or a
+place that holds those words. A span is kept where it holds `MIN_WORDS`
+words and `MIN_CHARS` characters or more, the floor #1612 measured its
+replay of past edits at. A place is a record whose text, each run of
+whitespace made one space, holds a kept span, and its line is the one
+where the span opens. The text names each place by its path under the
+work item's directory and its line, with the words that stand there, cut
+after `SHOWN` characters, and says what the writer does with it. It stays
+under `LIMIT` characters, the length past which the harness moves a hook's
+context to a file behind a preview: the places that do not fit are counted
+and not listed.
 
 It reads words, so a copy in other words is not found, and a place that
 holds the same words for another fact is named; the text says such a place
@@ -44,8 +52,11 @@ costs the writer one look.
 a call of another tool, a field that is missing or not a string, a relative
 path, a path outside a marked root's work item, an edited file that is not
 there, a `Write` call, which `hooks/hooks.json` does not match, and a
-record that cannot be read as UTF-8 text each print nothing, and so does anything that raises: the
-`__main__` block turns every raise into exit 0. The hook writes nothing,
+record that cannot be read as UTF-8 text each print nothing, and so does
+anything that raises: the `__main__` block turns every raise into exit 0.
+A `.md` name in the work item that is a link is no record and is not read,
+since it can name a file outside the repository, or a device whose read
+never ends. The hook writes nothing,
 starts no process and reaches no network. Its command in `hooks/hooks.json`
 ends with ` || exit 0`, so the command exits 0 whatever happens, a file its
 interpreter cannot load among them.
@@ -58,7 +69,8 @@ import sys
 
 LIB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib")
 
-# The words of `old_string` taken on each side of a changed span.
+# The words taken on each side of a changed span, from the edited file
+# around `new_string`, or from `old_string` where the file does not place it.
 AROUND = 3
 
 # The floor a span is kept at: this many words, and this many characters
@@ -113,15 +125,39 @@ def _read(rel):
 
 def _records(item):
     """The `/`-joined paths of the `.md` files under ITEM this hook
-    searches."""
+    searches. A link is no record: it can name a file outside the
+    repository, or a device whose read never ends."""
     found = []
     for at, _, files in os.walk(item):
         under = os.path.relpath(at, item)
         prefix = "" if under == os.curdir else "/".join(under.split(os.sep)) + "/"
         for name in files:
+            if os.path.islink(os.path.join(at, name)):
+                continue
             if name.endswith(".md") and _read(prefix + name):
                 found.append(prefix + name)
     return found
+
+
+def _widened(text, old, new):
+    """OLD and NEW, each with the `AROUND` words that stand before and
+    after NEW's first place in TEXT, the edited file as it stands after the
+    edit. A word the edit's edge cuts is joined to the string it touches.
+    OLD and NEW as given where NEW is empty or does not stand in TEXT."""
+    at = text.find(new) if new else -1
+    if at < 0:
+        return old, new
+    before, after = text[:at], text[at + len(new) :]
+
+    def wrapped(middle):
+        head, tail = before.split(), after.split()
+        if head and not before[-1].isspace() and middle[:1].strip():
+            middle, head = head[-1] + middle, head[:-1]
+        if tail and not after[0].isspace() and middle[-1:].strip():
+            middle, tail = middle + tail[0], tail[1:]
+        return " ".join([*head[-AROUND:], middle, *tail[:AROUND]])
+
+    return wrapped(old), wrapped(new)
 
 
 def _spans(old, new):
@@ -214,8 +250,10 @@ def main():
     if located is None:
         return
     item, rel = located
-    if not os.path.isfile(os.path.join(item, *rel.split("/"))):
-        return
+    # The open raises on an edited file that is not there or does not
+    # decode, and the raise prints nothing.
+    with open(os.path.join(item, *rel.split("/")), encoding="utf-8") as f:
+        old, new = _widened(f.read(), old, new)
     places = _places(item, _records(item), _spans(old, new))
     if not places:
         return

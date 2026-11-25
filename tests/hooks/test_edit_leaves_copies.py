@@ -176,6 +176,47 @@ class Test_main:
         around = "bravo charlie delta echo foxtrot golf"
         assert f'- `gaps.md` line 3: "{around}"' in said, said
 
+    def test_accepts_and_names_a_copy_where_old_string_ends_at_the_change(
+        self, tmp_path
+    ):
+        """A13. `old_string` holds one word before the change and none
+        after it, too few to make a span alone. The words beside it come
+        from the edited file after the edit, around the place `new_string`
+        stands, so the copy in `gaps.md` is named."""
+        sentence = (
+            "The settle reads each record and the next round finds {} copy it left."
+        )
+        old, new = "finds every", "finds each"
+        directory = item(
+            tmp_path,
+            {
+                "frame/design.md": design(sentence.format("each")),
+                "gaps.md": "# Gaps\n\n" + sentence.format("every") + "\n",
+            },
+        )
+        said = context(run(edited(directory / "frame" / "design.md", old, new)))
+        around = "next round finds every copy it left."
+        assert f'- `gaps.md` line 3: "{around}"' in said, said
+
+    def test_accepts_and_names_a_copy_where_a_word_is_cut_at_an_edge(self, tmp_path):
+        """A13. `old_string` opens inside a word, or ends inside one, beside
+        the change: the part of the word the file holds past the edge is
+        joined to the string it touches, so the word is compared whole."""
+        sentence = "The settle reads each record {} time and the next round finds it."
+        for old, new, around in (
+            ("cord every", "cord each", "reads each record every time and the"),
+            ("every ti", "each ti", "reads each record every time and the"),
+        ):
+            directory = item(
+                tmp_path / old.replace(" ", "-"),
+                {
+                    "frame/design.md": design(sentence.format("each")),
+                    "gaps.md": "# Gaps\n\n" + sentence.format("every") + "\n",
+                },
+            )
+            said = context(run(edited(directory / "frame" / "design.md", old, new)))
+            assert f'- `gaps.md` line 3: "{around}"' in said, (old, said)
+
     def test_accepts_a_span_of_six_words_and_thirty_characters(self, tmp_path):
         """A9, the floor. A span of `MIN_WORDS` words and `MIN_CHARS`
         characters is kept, so a copy of it is named."""
@@ -241,6 +282,17 @@ class Test_main:
                 "notes.txt": BEFORE + "\n",
             },
         )
+        out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
+        assert out == "", out
+
+    def test_refuses_to_print_where_the_words_stand_only_behind_a_link(self, tmp_path):
+        """A10. A `.md` name in the item that is a link to a file outside
+        the repository is no record, so the words that file holds are not
+        named, and the file is not read."""
+        outside = tmp_path / "outside.txt"
+        outside.write_text(BEFORE + "\n", encoding="utf-8")
+        directory = item(tmp_path / "repo", {"frame/design.md": design(AFTER)})
+        (directory / "leak.md").symlink_to(outside)
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", out
 
