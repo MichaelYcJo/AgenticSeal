@@ -389,13 +389,14 @@ repair of it.
 No hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints, the reason the `PreToolUse` hook refuses a call
 with, and the places the `PostToolUse` hook names, go into the session's
-own context, as a file the session opens does. These side effects are worth stating outright: the sealer's
-`seal stamp --guarantee`, run once on a `guarantee.md` reading `sealed`,
-writes the stamp's values under `<git-common-dir>/agentic-stamp/`, which the
-stamp's hook renames once drawn and nothing prunes, and a `sealed` refused
-because its audited commit is not on the work item's branch leaves an empty
-file under `<git-common-dir>/agentic-stamp-refused/`, in either mode, which
-nothing prunes either.
+own context, as a file the session opens does. These side effects are
+worth stating outright: the sealer's `seal stamp --guarantee`, run once on
+a `guarantee.md` reading `sealed`, writes the stamp's values under
+`<git-common-dir>/agentic-stamp/`, which the stamp's hook renames once
+drawn and nothing prunes, and a `sealed` refused because its audited commit
+is not on the work item's branch leaves an empty file under
+`<git-common-dir>/agentic-stamp-refused/`, in either mode, which nothing
+prunes either.
 
 No hook reaches a network. The places below do: each is a command or a
 step of the AgenticSeal process, so it runs when you or the session starts

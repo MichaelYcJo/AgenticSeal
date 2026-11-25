@@ -104,7 +104,9 @@ class Test_main:
     """The pairs differ by the records the fixture writes, the path the
     payload names, or the words it replaced."""
 
-    def test_names_a_quote_that_still_holds_the_replaced_words(self, tmp_path):
+    def test_accepts_and_names_a_quote_that_still_holds_the_replaced_words(
+        self, tmp_path
+    ):
         """A9. `frame/design.md` no longer holds the sentence its `pr.md`
         quotes on line 3. The context names `pr.md`, its line and the words
         that stand there, and says what the party does with each place."""
@@ -119,7 +121,9 @@ class Test_main:
         assert "skills/agent-contract/SKILL.md` rule 19" in said, said
         assert "A place that states another fact" in said, said
 
-    def test_names_each_place_in_every_record_it_reads_with_its_line(self, tmp_path):
+    def test_accepts_and_names_each_place_in_every_record_it_reads_with_its_line(
+        self, tmp_path
+    ):
         """A9. A copy in `gaps.md`, one in `frame/questions.md`, one in a
         `pr.<lang>.md` and one left in the edited file itself are each
         named, by the path under the item's directory and the line, in
@@ -144,7 +148,7 @@ class Test_main:
         at = [said.find(one) for one in named]
         assert -1 not in at and at == sorted(at), (at, said)
 
-    def test_names_a_quote_whose_words_cross_a_line_break(self, tmp_path):
+    def test_accepts_and_names_a_quote_whose_words_cross_a_line_break(self, tmp_path):
         """A9. The record holds the words with a line break where the edit
         held a space, and a run of spaces where it held one: whitespace is
         collapsed on both sides, and the line is where the words open."""
@@ -156,7 +160,7 @@ class Test_main:
         said = context(run(edited(directory / "frame" / "design.md", BEFORE, AFTER)))
         assert f'- `gaps.md` line 3: "{SPAN}"' in said, said
 
-    def test_names_the_words_around_an_insertion(self, tmp_path):
+    def test_accepts_and_names_the_words_around_an_insertion(self, tmp_path):
         """A9. An edit that only inserts words replaces the run they split:
         the three words on each side of the point."""
         old = "alpha bravo charlie delta echo foxtrot golf hotel india"
@@ -172,7 +176,7 @@ class Test_main:
         around = "bravo charlie delta echo foxtrot golf"
         assert f'- `gaps.md` line 3: "{around}"' in said, said
 
-    def test_names_a_span_of_six_words_and_thirty_characters(self, tmp_path):
+    def test_accepts_a_span_of_six_words_and_thirty_characters(self, tmp_path):
         """A9, the floor. A span of `MIN_WORDS` words and `MIN_CHARS`
         characters is kept, so a copy of it is named."""
         old = "alpha beta gamma CHANGED ep zz"
@@ -186,7 +190,7 @@ class Test_main:
         said = context(run(edited(directory / "frame" / "plan.md", old, new)))
         assert f'- `gaps.md` line 1: "{old}"' in said, said
 
-    def test_prints_nothing_for_a_span_under_six_words_or_thirty_characters(
+    def test_refuses_to_print_for_a_span_under_six_words_or_thirty_characters(
         self, tmp_path
     ):
         """A10. A span of five words, and one of six words under thirty
@@ -204,7 +208,7 @@ class Test_main:
             )
             assert run(edited(directory / "frame" / "plan.md", old, new)) == "", old
 
-    def test_prints_nothing_where_the_words_stand_nowhere_else(self, tmp_path):
+    def test_refuses_to_print_where_the_words_stand_nowhere_else(self, tmp_path):
         """A10. The replaced words stand in no record of the item."""
         directory = item(
             tmp_path, {"frame/design.md": design(AFTER), "pr.md": "# Body\n"}
@@ -212,7 +216,7 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", out
 
-    def test_prints_nothing_for_an_edit_that_changes_only_whitespace(self, tmp_path):
+    def test_refuses_to_print_for_an_edit_that_changes_only_whitespace(self, tmp_path):
         """A10. An edit that rewraps the sentence replaces no words, though
         the sentence stands in `pr.md` and in the edited file."""
         wrapped = BEFORE.replace("words no", "words\nno")
@@ -222,7 +226,7 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, wrapped))
         assert out == "", out
 
-    def test_prints_nothing_where_the_words_stand_only_in_trail_or_guarantee(
+    def test_refuses_to_print_where_the_words_stand_only_in_trail_or_guarantee(
         self, tmp_path
     ):
         """A10. A round record under `trail/` and `guarantee.md` quote what
@@ -240,7 +244,7 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", out
 
-    def test_prints_nothing_for_an_edit_of_a_file_it_does_not_read(self, tmp_path):
+    def test_refuses_to_print_for_an_edit_of_a_file_it_does_not_read(self, tmp_path):
         """A10. A copy stands in `pr.md` each time, and the edited file is
         under `trail/`, is `guarantee.md`, or is not a `.md` file."""
         for rel in ("trail/phases/phase-1.md", "guarantee.md", "frame/design.txt"):
@@ -249,7 +253,7 @@ class Test_main:
             path = directory.joinpath(*rel.split("/"))
             assert run(edited(path, BEFORE, AFTER)) == "", rel
 
-    def test_prints_nothing_outside_a_marked_roots_work_item(self, tmp_path):
+    def test_refuses_to_print_outside_a_marked_roots_work_item(self, tmp_path):
         """A10. A copy stands in `pr.md` each time, and the root's
         `README.md` does not open with the marker, the edited file stands
         directly under `threads/` or beside it, or the item's directory
@@ -272,7 +276,7 @@ class Test_main:
         out = run(edited(aside / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", "outside threads/"
 
-    def test_prints_nothing_where_a_record_does_not_read_as_utf8(self, tmp_path):
+    def test_refuses_to_print_where_a_record_does_not_read_as_utf8(self, tmp_path):
         """A10. A copy stands in `pr.md`, and `gaps.md` holds a byte that is
         not UTF-8: a file that cannot be read prints nothing."""
         directory = item(
@@ -286,7 +290,7 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", out
 
-    def test_prints_nothing_for_a_payload_of_another_shape(self, tmp_path):
+    def test_refuses_to_print_for_a_payload_of_another_shape(self, tmp_path):
         """A10. Under A9's records, a payload that is not JSON, not an
         object, of another tool, with no `tool_input`, with a field that is
         not a string, with a path relative to the directory the hook runs
@@ -318,7 +322,7 @@ class Test_main:
         # The payload the changes start from is A9's, which names `pr.md`.
         assert run(json.dumps(good), cwd=tmp_path) != ""
 
-    def test_keeps_the_text_under_the_limit_and_says_what_it_left(self, tmp_path):
+    def test_accepts_many_places_under_the_limit_and_says_what_it_left(self, tmp_path):
         """A9, G15's limit. Where the places would run past `LIMIT`
         characters, the text names as many as fit, says how many it left,
         and still ends with what the party does with each place."""
@@ -334,7 +338,7 @@ class Test_main:
         assert f"and {1000 - named} more places, not listed" in said, said
         assert said.rstrip().endswith("stays as it is."), said[-200:]
 
-    def test_cuts_a_long_span_where_it_names_the_place(self, tmp_path):
+    def test_accepts_a_long_span_and_cuts_it_where_it_names_the_place(self, tmp_path):
         """A9. A span longer than `SHOWN` characters is shown to its first
         `SHOWN` characters and ` ...`, and its place is still named."""
         old = " ".join(f"word{n}" for n in range(80))
