@@ -60,13 +60,14 @@ them, prints nothing, and a `.md` name in the work item that is a link is
 no record and is not read: a link can name a file or a directory outside
 the repository, or a device whose read never ends. Two reads stand outside
 that guard, each the marker read of `lib/optin.py#marked`, bounded at the
-marker's length and printed nowhere: the root's `README.md` where it is
-itself a link, as every hook and gated command reads it, and the
-`README.md` beside a directory named `threads` that stands below a link on
-the path, which `_located` reads on its way up before it meets the link.
-The hook writes nothing, starts no process and reaches no network. Its command
-in `hooks/hooks.json` ends with ` || exit 0`, so the command exits 0
-whatever happens, a file its interpreter cannot load among them.
+marker's length and the two characters a line end can take, and printed
+nowhere: the root's `README.md` where it is itself a link, as every hook
+and gated command reads it, and the `README.md` beside a directory named
+`threads` that stands below a link on the path, which `_located` reads on
+its way up before it meets the link. The hook writes nothing, starts no
+process and reaches no network. Its command in `hooks/hooks.json` ends
+with ` || exit 0`, so the command exits 0 whatever happens, a file its
+interpreter cannot load among them.
 """
 
 import difflib
