@@ -34,17 +34,22 @@ design rests on is probed before it is relied on.
   plugin-scoped identifier such as `my-plugin:reviewer`, not the bare
   frontmatter name", anchored as `^my-plugin:reviewer$`; so `^agentic:crafter$`
   here. A matcher naming agent types does not match an empty `agent_type`.
-- Plugin hooks inside a subagent: sub-agents.md, "Hooks on tool events from
-  settings files, managed policy settings, and plugins all apply inside
-  subagents." hooks.md names settings files alone for this, so a design that
-  rests on it probes it.
+- Plugin hooks inside a subagent: hooks.md, "Hooks from settings files,
+  managed policy settings, and plugins also run inside subagents. When a
+  subagent calls a tool, tool events such as `PreToolUse` and `PostToolUse`
+  fire the same configured hooks as in the main conversation"; sub-agents.md,
+  "Hooks on tool events from settings files, managed policy settings, and
+  plugins all apply inside subagents."
 - SubagentStop input (hooks.md *SubagentStop input*): "`stop_hook_active`,
   `agent_id`, `agent_type`, `agent_transcript_path`, and
   `last_assistant_message`", where `agent_transcript_path` "is the subagent's
   own transcript stored in a nested `subagents/` folder". No commit, diff or
-  file list. With SubagentHandback the report is that call's `message` input,
-  which a Pre/PostToolUse hook matched on `SubagentHandback` receives as
-  `tool_input.message`, and `last_assistant_message` is not the report.
+  file list. The claude-code-guide agent also read that, with
+  SubagentHandback, the report is that call's `message` input, which a
+  Pre/PostToolUse hook matched on `SubagentHandback` receives as
+  `tool_input.message`, and `last_assistant_message` is not the report; round 2
+  found no such sentence in the hooks.md and sub-agents.md it fetched, so this
+  line is unconfirmed.
 - On SubagentStop, `decision: "block"` with a `reason` from a `command` hook,
   or `{ok: false, reason}` from a `prompt` or `agent` hook, "is fed back to
   Claude as its next instruction and the turn continues": the stopping
