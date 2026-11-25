@@ -7,6 +7,7 @@ The judgments the issue left open that the tree answered, so nobody reopens them
 - Whether the framer's own count rule stays: the `frame/plan.md` row *Keep `agents/framer.md`'s paragraph*.
 - Whether a script reads for a count or a universal: the `frame/plan.md` row *A script that refuses*.
 - How the rule reaches the orchestrator, which preloads nothing: `frame/design.md` *Grounding* G5.
+- Whether a hook, a `seal` subcommand or another component reads text against rule 19: the `frame/plan.md` *Alternatives considered* rows from the `PreToolUse` hook on, with `frame/design.md` G21 and G22.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
