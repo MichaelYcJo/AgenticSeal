@@ -2,12 +2,12 @@
 
 The judgments the issue left open that the tree answered, so nobody reopens them:
 
-- What a unit is, private helpers included: `frame/design.md` *Scope* item 1, with G11, and the `frame/plan.md` row *Leave private helpers out of what a unit is*.
+- What a unit is, private helpers in, and body changes and test parts out: `frame/design.md` *Scope* item 1, with G11, and the `frame/plan.md` rows *Leave private helpers out of what a unit is*, *The frame names a unit by what it does as well as by its name*, *Count a new branch in a function, or a new sentence in a section, as a unit*, *Count a part only the tests read* and *Keep "a rule a procedure gains" in what a unit is*.
 - Who notices that a fix needs a unit, and at which step: the `frame/plan.md` rows *The orchestrator alone decides* and *The crafter alone decides*, with `frame/design.md` G5 and G16.
 - Whether the unit is built in the fix pass or in a new phase: the `frame/plan.md` row *Send a unit-needing finding down the framer's route*, with `frame/design.md` G8.
 - What a fold that designs a unit writes, given #1612's link chase: `frame/design.md` *Scope* item 3, with G13 and G14.
 - Which folds narrow, and who writes them: `frame/design.md` *Scope* item 2, and the `frame/plan.md` row *Send every statement a crafter's hand-back names in a frame file to the framer*.
-- Which mechanism beside the text holds the stop, and which were weighed and left: the `frame/plan.md` rows from *A `PreToolUse` or `PostToolUse` `command` hook* to *A workflow under `workflows/`*, with `frame/design.md` G15.
+- Which mechanism beside the text holds the crafter's stop and the orchestrator's two acts, and which were weighed and left: the `frame/plan.md` rows from *A `PreToolUse` or `PostToolUse` `command` hook* to *A `seal` subcommand the orchestrator runs before each verifying round*, with `frame/design.md` G15, and the chosen row's *Verdict* cell.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
