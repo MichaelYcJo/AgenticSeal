@@ -446,9 +446,13 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         # holds (#1041).
         "`trail/rounds/round-N.md`",
         # The routing row and its answer under which the orchestrator is the
-        # implementer and makes each fix pass itself (#1623).
+        # implementer (#1623).
         "`Implementation`",
         "`the session`",
+        # The section the orchestrator's own pass follows for its close
+        # blocks, cited only by the paragraph that has the orchestrator make
+        # each fix pass itself under that answer (round 2 of #1623).
+        "`skills/implement/fix-pass.md` *The close blocks, last*",
     ):
         assert fact in section, f"the fix-pass section no longer says {fact!r}"
 
