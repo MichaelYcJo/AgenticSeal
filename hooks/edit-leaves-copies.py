@@ -58,10 +58,13 @@ An edited path with a link anywhere from the root down to the file, the
 root itself, its `threads/`, the work item's directory and the file among
 them, prints nothing, and a `.md` name in the work item that is a link is
 no record and is not read: a link can name a file or a directory outside
-the repository, or a device whose read never ends. The root's
-`README.md`, where it is itself a link, stands outside that guard:
-`lib/optin.py#marked` reads it, as every hook and gated command does. The
-hook writes nothing, starts no process and reaches no network. Its command
+the repository, or a device whose read never ends. Two reads stand outside
+that guard, each the marker read of `lib/optin.py#marked`, bounded at the
+marker's length and printed nowhere: the root's `README.md` where it is
+itself a link, as every hook and gated command reads it, and the
+`README.md` beside a directory named `threads` that stands below a link on
+the path, which `_located` reads on its way up before it meets the link.
+The hook writes nothing, starts no process and reaches no network. Its command
 in `hooks/hooks.json` ends with ` || exit 0`, so the command exits 0
 whatever happens, a file its interpreter cannot load among them.
 """
@@ -267,7 +270,7 @@ def main():
     # directory or any component under it down to the edited file, before
     # the first record is opened: `open` follows such a link at the file
     # and at every directory over it, and `os.walk` follows the item's
-    # directory it starts at. So the hook reads nothing on such a path.
+    # directory it starts at. So the hook opens no record on such a path.
     parts = rel.split("/")
     on_path = [os.path.dirname(item)]
     on_path += [os.path.join(item, *parts[:n]) for n in range(len(parts) + 1)]
