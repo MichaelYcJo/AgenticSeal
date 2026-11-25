@@ -29,8 +29,33 @@ design rests on is probed before it is relied on.
   `file_path`, `content`; PostToolUse adds `tool_response`.
 - Common input fields: `agent_type` (the agent's name, inside a subagent or
   under `--agent`) and `agent_id`. SubagentStart/SubagentStop match by agent
-  name. Unconfirmed: that a plugin's `hooks/hooks.json` hook fires inside a
-  subagent with these fields set; probe before relying on it.
+  type. For a plugin's agent the type is the plugin-scoped name: hooks.md
+  *SubagentStart*, "For subagents shipped by a plugin, the agent type is the
+  plugin-scoped identifier such as `my-plugin:reviewer`, not the bare
+  frontmatter name", anchored as `^my-plugin:reviewer$`; so `^agentic:crafter$`
+  here. A matcher naming agent types does not match an empty `agent_type`.
+- Plugin hooks inside a subagent: sub-agents.md, "Hooks on tool events from
+  settings files, managed policy settings, and plugins all apply inside
+  subagents." hooks.md names settings files alone for this, so a design that
+  rests on it probes it.
+- SubagentStop input (hooks.md *SubagentStop input*): "`stop_hook_active`,
+  `agent_id`, `agent_type`, `agent_transcript_path`, and
+  `last_assistant_message`", where `agent_transcript_path` "is the subagent's
+  own transcript stored in a nested `subagents/` folder". No commit, diff or
+  file list. With SubagentHandback the report is that call's `message` input,
+  which a Pre/PostToolUse hook matched on `SubagentHandback` receives as
+  `tool_input.message`, and `last_assistant_message` is not the report.
+- On SubagentStop, `decision: "block"` with a `reason` from a `command` hook,
+  or `{ok: false, reason}` from a `prompt` or `agent` hook, "is fed back to
+  Claude as its next instruction and the turn continues": the stopping
+  subagent keeps working with the reason, unless a prompt hook also sets
+  `impossible: true`. An `agent` hook has no `continueOnBlock` and no
+  `impossible`. Context for the parent after a subagent returns goes through a
+  `PostToolUse` hook on the `Agent` tool.
+
+The lines on hook inputs, plugin-scoped names and SubagentStop were re-read by
+the claude-code-guide agent on 2026-11-25 after round 1's finding 2, with the
+docs' sentences quoted above. None has been probed in this harness.
 
 ## Hook types
 
