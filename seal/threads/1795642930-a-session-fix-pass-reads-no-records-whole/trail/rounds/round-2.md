@@ -89,6 +89,11 @@ answers `Implementation` with `the session`. Before the fix pass, the
 orchestrator runs
 ```
 
+```seal
+verdict: fixed 6cb87fd8f
+answer: The finding holds. `skills/code-review/orchestration.md` now defines the implementer as "the party that wrote the work item's last build or fix commit: the crafter, or the orchestrator where `routing.md` answers `Implementation` with `the session`", the snippet's wording and the criterion of `skills/implement/orchestration.md:91-93`. The paragraph's bold lead is unchanged. `git grep -n -F -e "last commit the" -e "wrote the work item's last" -e "the party that wrote"` outside released items' records prints the two definitions, which now agree, and `skills/code-review/orchestration.md:153`, which is about the party that wrote a named line and stands (executed).
+```
+
 ### 2. The case written for *Scope* item 3's paragraph no longer goes red when that paragraph is removed
 
 ```seal
@@ -129,6 +134,11 @@ paragraph removed (contract rule 15).
         "`skills/implement/fix-pass.md` *The close blocks, last*",
 ```
 
+```seal
+verdict: fixed 6cb87fd8f
+answer: The finding holds. `test_the_fix_pass_reads_the_implementers_context_before_it_resumes` now also pins "`skills/implement/fix-pass.md` *The close blocks, last*", which in the section only the paragraph opening **Where `routing.md` answers `Implementation` with `the session`** holds, and its comment no longer claims that the two routing facts pin that paragraph. With only that paragraph removed the case failed, and with it restored it passed (executed: `bin/test tests/text/test_the_rules_have_one_owner.py -q -k implementers_context`, `1 failed`, then `1 passed`). So `frame/design.md` S4's verification holds again.
+```
+
 ### 3. The `seal/follow-up.md` row reads the account of an orchestrator's pass in close blocks alone, after the fix of finding 4 gave it a second home in `gaps.md`
 
 ```seal
@@ -157,6 +167,11 @@ alone. It is a search on words, so it is a sample.
 ```markdown
 <!-- seal/follow-up.md:48, the sentence on the mechanism's own record -->
 Beside that count, the mechanism's own record is read: each close block `answer:` of such a pass, and its `gaps.md` `## Not done` where it appends no close block, for whether it names the method of the read and where a sample stopped, as `skills/implement/fix-pass.md` *The narrow set, then the read of the range* asks.
+```
+
+```seal
+verdict: fixed 6cb87fd8f
+answer: The finding holds. The row's sentence on the mechanism's own record now reads "each close block `answer:` of such a pass, and its `gaps.md` `## Not done` where it appends no close block, for whether it names the method of the read and where a sample stopped", the snippet's wording.
 ```
 
 ### 4. The folded *Data & interfaces* sentence still lists the diff without `seal/follow-up.md`, which the diff changes
@@ -188,6 +203,11 @@ removes it.
 ```markdown
 <!-- frame/design.md:59 -->
 No code, schema or interface changes. No new heading, file, hook, command, configuration key or record field is added, so no unit of `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* is added. The new text keeps the repository's prose width, which `tests/behaviour/test_docs_line_wrap.py` holds for the files it lists.
+```
+
+```seal
+verdict: fixed fa0693951
+answer: The finding holds, and it went to the framer's fold, at `fa0693951`, by the orchestrator's row of `frame/plan.md` *Judgments of the run*. The fold removes the sentence listing the diff from `frame/design.md` *Data & interfaces*, as the snippet gives it, and narrows `frame/plan.md` *Operational impact*'s list of changed files, which also missed files of the diff, to a citation of `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* with `skills/implement/fix-pass.md` among the files it lists (read). The framer named `skills/implement/SKILL.md` as a second file the removed sentence missed; it did not, since the sentence said "procedure text in `skills/`", so the orchestrator's row stands as written.
 ```
 
 ### 5. The pass's read did not reach its whole range, its sample skipped the rule finding 4's fix reworded, and its account gives an order the commits do not show
@@ -248,6 +268,11 @@ changelog.md were read whole against HEAD. Sample: `git grep -n -F` on the
 words of each rule the range reworded: <one phrase per rule>. It printed
 <places>, each corrected or standing for <why>; a sentence in other words
 escapes it.
+```
+
+```seal
+verdict: fixed 6cb87fd8f
+answer: The finding holds for round 1's pass, and this close is this pass's account, in the shape the finding gives. Round 1's account misstated one order: its correction of `changelog.md`'s first bullet was written before the fix commit `9e2b4c5e2`, in the same edit as the fixes, and not found by the read after it; the read after it found only the *Data & interfaces* sentence. That account stands in round 1's close block, which this pass does not edit. This pass: after the last fix commit `6cb87fd8f`, every hunk of `git diff 5f602858e..6cb87fd8f` was read with the paragraph around it, over every path it prints: `seal/follow-up.md`, `frame/design.md`, `frame/plan.md`, `skills/code-review/orchestration.md` and `tests/text/test_the_rules_have_one_owner.py`, the two frame files being the framer's fold `fa0693951`. Then `routing.md`, the three frame files, `gaps.md` and `changelog.md` were read whole against HEAD. The read found no statement HEAD contradicts: `changelog.md`'s "names it as the implementer where the session builds" holds under the definition's new criterion, and `frame/design.md` S4's red holds again by finding 2's case. Sample: `git grep -n -F` on the words of each rule the range reworded, with the released items' records left out: for the implementer's criterion "last commit the", "wrote the work item's last" and "the party that wrote"; for the account's homes "close block `answer:` of such" and "last close block"; for the frame's list of the diff "The diff changes" and "The diff is" (executed). Outside the round records it printed the two agreeing definitions, `skills/implement/fix-pass.md:117`, `seal/follow-up.md:48` as fixed, `skills/code-review/orchestration.md:153` and `tests/skills/test_chain_check.py:1974`, which speak of other things, and this item's frame sentences, each dated to `d399c049f` in *Grounding*, quoting the old text in *Removes*, or holding at HEAD. A sentence that states one of these rules in other words escapes the sample. Narrow set: the test files that read `skills/implement/fix-pass.md`, a `skills/*/orchestration.md` file or `seal/follow-up.md`, with `tests/test_*.py`, as one `bin/test` command: 2031 passed (executed).
 ```
 
 ## Confirmations
