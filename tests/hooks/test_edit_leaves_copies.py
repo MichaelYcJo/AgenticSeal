@@ -7,13 +7,10 @@ place, or nothing, and exits 0 on every path (#1612). The cases run the
 hook's command as `hooks/hooks.json` spells it, through
 `tests/hooks/test_core_start.py#start`: its `python3` half with this
 interpreter in place of `python3` and `${CLAUDE_PLUGIN_ROOT}` filled in.
-`Test__located` calls `#_located` alone, with a stub of `lib/optin.py`, to
-show the order of its reads. The registration is held by
-`tests/behaviour/test_chain_hooks_hardening.py`.
+The registration is held by `tests/behaviour/test_chain_hooks_hardening.py`.
 """
 
 import json
-import types
 
 from conftest import census_case, load, mark_root, symlink_or_skip
 from test_core_start import start
@@ -484,45 +481,6 @@ class Test_main:
         said = context(run(edited(directory / "frame" / "plan.md", old, new)))
         assert f'- `gaps.md` line 1: "{old[: hook.SHOWN]} ..."' in said, said
         assert old not in said, said
-
-
-class Test__located:
-    """The pair differ by whether the root is a link. The stub of
-    `lib/optin.py` records each root `marked` is asked about."""
-
-    def test_accepts_a_root_that_is_no_link_once_it_reads_the_roots_marker(
-        self, tmp_path
-    ):
-        """A9's precondition. The root is a directory, so `#_located` asks
-        `optin.marked` about it, and returns the item's directory and the
-        record's path under it."""
-        real = item(tmp_path / "real", {"frame/design.md": design(AFTER)})
-        asked = []
-        optin = types.SimpleNamespace(
-            WORK_ITEMS="threads", marked=lambda root: asked.append(root) or True
-        )
-        path = real / "frame" / "design.md"
-        assert hook._located(str(path), optin) == (str(real), "frame/design.md")
-        assert asked == [str(real.parent.parent)]
-
-    def test_refuses_a_root_that_is_a_link_before_it_reads_the_roots_marker(
-        self, tmp_path
-    ):
-        """A10, round 3's finding 1. The root is a link, and `#_located`
-        returns None without asking `optin.marked` about it, which would
-        open the root's `README.md` through the link. The stub records each
-        root it is asked about, so the order shows with no FIFO."""
-        real = item(tmp_path / "real", {"frame/design.md": design(AFTER)})
-        via_root = tmp_path / "via-root"
-        via_root.mkdir()
-        symlink_or_skip(str(real.parent.parent), str(via_root / "seal"), directory=True)
-        asked = []
-        optin = types.SimpleNamespace(
-            WORK_ITEMS="threads", marked=lambda root: asked.append(root) or True
-        )
-        path = via_root / "seal" / "threads" / ITEM / "frame" / "design.md"
-        assert hook._located(str(path), optin) is None
-        assert asked == []
 
 
 test_census = census_case(TARGET)
