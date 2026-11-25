@@ -212,17 +212,29 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
         assert out == "", out
 
+    def test_prints_nothing_for_an_edit_that_changes_only_whitespace(self, tmp_path):
+        """A10. An edit that rewraps the sentence replaces no words, though
+        the sentence stands in `pr.md` and in the edited file."""
+        wrapped = BEFORE.replace("words no", "words\nno")
+        directory = item(
+            tmp_path, {"frame/design.md": design(wrapped), "pr.md": quoted(BEFORE)}
+        )
+        out = run(edited(directory / "frame" / "design.md", BEFORE, wrapped))
+        assert out == "", out
+
     def test_prints_nothing_where_the_words_stand_only_in_trail_or_guarantee(
         self, tmp_path
     ):
         """A10. A round record under `trail/` and `guarantee.md` quote what
-        their party read, so a copy there is not named."""
+        their party read, so a copy there is not named, and neither is one
+        in a file that is not a `.md` record."""
         directory = item(
             tmp_path,
             {
                 "frame/design.md": design(AFTER),
                 "trail/rounds/round-1.md": "# Round 1\n\n" + BEFORE + "\n",
                 "guarantee.md": "# Guarantee\n\n" + BEFORE + "\n",
+                "notes.txt": BEFORE + "\n",
             },
         )
         out = run(edited(directory / "frame" / "design.md", BEFORE, AFTER))
@@ -239,8 +251,9 @@ class Test_main:
 
     def test_prints_nothing_outside_a_marked_roots_work_item(self, tmp_path):
         """A10. A copy stands in `pr.md` each time, and the root's
-        `README.md` does not open with the marker, or the edited file
-        stands directly under `threads/` or beside it."""
+        `README.md` does not open with the marker, the edited file stands
+        directly under `threads/` or beside it, or the item's directory
+        stands under the root outside `threads/`."""
         directory = item(
             tmp_path / "unmarked",
             {"frame/design.md": design(AFTER), "pr.md": quoted(BEFORE)},
@@ -252,6 +265,12 @@ class Test_main:
         for path in (directory.parent / "notes.md", directory.parent.parent / "x.md"):
             path.write_text(design(AFTER), encoding="utf-8")
             assert run(edited(path, BEFORE, AFTER)) == "", path
+        aside = directory.parent.parent / "archive" / ITEM
+        (aside / "frame").mkdir(parents=True)
+        (aside / "frame" / "design.md").write_text(design(AFTER), encoding="utf-8")
+        (aside / "pr.md").write_text(quoted(BEFORE), encoding="utf-8")
+        out = run(edited(aside / "frame" / "design.md", BEFORE, AFTER))
+        assert out == "", "outside threads/"
 
     def test_prints_nothing_where_a_record_does_not_read_as_utf8(self, tmp_path):
         """A10. A copy stands in `pr.md`, and `gaps.md` holds a byte that is
@@ -286,7 +305,12 @@ class Test_main:
             {"tool_input": {**good["tool_input"], "old_string": None}},
             {"tool_input": {**good["tool_input"], "new_string": 3}},
             {"tool_input": {**good["tool_input"], "file_path": relative}},
-            {"tool_input": {**good["tool_input"], "file_path": str(path) + ".gone"}},
+            {
+                "tool_input": {
+                    **good["tool_input"],
+                    "file_path": str(path.parent / "gone.md"),
+                }
+            },
         ):
             bodies.append(json.dumps({**good, **change}))
         for body in bodies:
@@ -309,6 +333,17 @@ class Test_main:
         named = said.count("- `gaps.md` line ")
         assert f"and {1000 - named} more places, not listed" in said, said
         assert said.rstrip().endswith("stays as it is."), said[-200:]
+
+    def test_cuts_a_long_span_where_it_names_the_place(self, tmp_path):
+        """A9. A span longer than `SHOWN` characters is shown to its first
+        `SHOWN` characters and ` ...`, and its place is still named."""
+        old = " ".join(f"word{n}" for n in range(80))
+        new = "another sentence"
+        assert len(old) > hook.SHOWN, len(old)
+        directory = item(tmp_path, {"frame/plan.md": new + "\n", "gaps.md": old + "\n"})
+        said = context(run(edited(directory / "frame" / "plan.md", old, new)))
+        assert f'- `gaps.md` line 1: "{old[: hook.SHOWN]} ..."' in said, said
+        assert old not in said, said
 
 
 test_census = census_case(TARGET)

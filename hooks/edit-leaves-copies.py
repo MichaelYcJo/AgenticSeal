@@ -93,10 +93,8 @@ def _located(path, optin):
         if parent == here:
             return None
         rel.insert(0, os.path.basename(here))
-        if (
-            len(rel) >= 2
-            and os.path.basename(parent) == optin.WORK_ITEMS
-            and optin.marked(os.path.dirname(parent))
+        if os.path.basename(parent) == optin.WORK_ITEMS and optin.marked(
+            os.path.dirname(parent)
         ):
             inner = "/".join(rel[1:])
             if inner.endswith(".md") and _read(inner):
@@ -114,7 +112,7 @@ def _read(rel):
 
 def _records(item):
     """The `/`-joined paths of the `.md` files under ITEM this hook
-    searches, in path order."""
+    searches."""
     found = []
     for at, dirs, files in os.walk(item):
         under = os.path.relpath(at, item)
@@ -123,14 +121,14 @@ def _records(item):
         for name in files:
             if name.endswith(".md") and _read(prefix + name):
                 found.append(prefix + name)
-    return sorted(found)
+    return found
 
 
 def _spans(old, new):
     """Each span of OLD's words that the edit to NEW replaced, with
     `AROUND` words on each side, as one space-joined string, where it holds
-    `MIN_WORDS` words and `MIN_CHARS` characters or more; each once, in
-    the order they stand in OLD."""
+    `MIN_WORDS` words and `MIN_CHARS` characters or more, in the order they
+    stand in OLD."""
     words = old.split()
     matcher = difflib.SequenceMatcher(None, words, new.split(), autojunk=False)
     kept = []
@@ -139,7 +137,7 @@ def _spans(old, new):
             continue
         span = words[max(0, start - AROUND) : end + AROUND]
         joined = " ".join(span)
-        if len(span) >= MIN_WORDS and len(joined) >= MIN_CHARS and joined not in kept:
+        if len(span) >= MIN_WORDS and len(joined) >= MIN_CHARS:
             kept.append(joined)
     return kept
 
@@ -147,7 +145,8 @@ def _spans(old, new):
 def _places(item, records, spans):
     """`(rel, line, span)` for each place in RECORDS under ITEM whose text,
     whitespace collapsed, holds one of SPANS, the line being the one where
-    the span opens. A record that cannot be read as UTF-8 raises."""
+    the span opens, each once and in path, line and span order. A record
+    that cannot be read as UTF-8 raises."""
     places = []
     for rel in records:
         with open(os.path.join(item, *rel.split("/")), encoding="utf-8") as f:
@@ -207,14 +206,10 @@ def main():
     payload = json.load(sys.stdin)
     if payload.get("tool_name") != "Edit":
         return
-    tool_input = payload.get("tool_input")
-    if not isinstance(tool_input, dict):
-        return
-    path, old, new = (
-        tool_input.get(k) for k in ("file_path", "old_string", "new_string")
-    )
-    if not all(isinstance(v, str) for v in (path, old, new)):
-        return
+    # A `tool_input` that is not an object, and a field that is missing or
+    # not a string, raise at the first use below.
+    tool_input = payload["tool_input"]
+    path, old, new = (tool_input[k] for k in ("file_path", "old_string", "new_string"))
     located = _located(path, optin)
     if located is None:
         return
