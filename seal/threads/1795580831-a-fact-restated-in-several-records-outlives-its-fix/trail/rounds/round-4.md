@@ -47,6 +47,11 @@ write
     # directory it starts at. So the hook opens no record on such a path.
 ```
 
+```seal
+verdict: fixed 49f795cc4
+answer: I took the snippet's wording with no code change. `changelog.md:3` now opens "Where a link stands anywhere from the root down to the edited file, it opens no record and prints nothing: it checks", and the rest of the sentence stands. The guard's comment, now at `hooks/edit-leaves-copies.py:273`, says the hook "opens no record on such a path". The orchestrator asked the docstring to name the read that stays, and the hook's one clause (`:61-66`) now names two marker reads of `lib/optin.py#marked` outside the guard, each bounded at the marker's length and printed nowhere. One is the root's `README.md` where it is itself a link. The other is the `README.md` beside a directory named `threads` that stands below a link on the path, which `_located` reads on its way up before it meets the link (Probe H). The listing command, run again at `7d11432d0` with `trail/` left out, prints `hooks/edit-leaves-copies.py:273` and `changelog.md:3`, which hold at HEAD, and `docs/checks/the-pull-request-check.md:137` and `docs/layout/the-pact.md:120`, which state other facts. It is a sample.
+```
+
 ### 2. No case holds the order of the root's link check against the marker read, and the close's reason for planting none rests on a cost that does not stand
 
 ```seal
@@ -99,6 +104,11 @@ class Test__located:
         assert asked == []
 ```
 
+```seal
+verdict: fixed 7d11432d0
+answer: I applied the snippet's class, imports and module docstring sentence, with one addition. `seal layout --check` refused a class with no `test_accepts_` case, so `Test__located` also holds `test_accepts_a_root_that_is_no_link_once_it_reads_the_roots_marker`. In that case the root is a directory, the stub is asked about it once, and `#_located` returns the item and the record's path. It is also the control that shows the stub is consulted at all. The class docstring says the pair differ by whether the root is a link. `seal layout --check` and `seal layout --pairs` pass on the module. Seen red: after the commit, `seal mutate` with `-k Test__located` was red for the order-swapped mutant (`if optin.marked(root) and os.path.islink(root):`) and for the check removed. Under the swap, the accepting case's path is the same as before, so the red is the refusing case's `asked == []`. The close of round 3 weighed only the cost of a FIFO case run through the hook's command. The in-process form has no such cost, so round 3's ground is withdrawn and the order is now pinned.
+```
+
 ### 3. The link cases call `symlink_to` bare, where every other test module uses `symlink_or_skip`, so a Windows machine without the link privilege turns them into errors for code nobody touched
 
 ```seal
@@ -128,6 +138,11 @@ from conftest import census_case, load, mark_root, symlink_or_skip
         symlink_or_skip(str(real.parent), str(via_threads / "threads"), directory=True)
 # :372
         symlink_or_skip(str(real / "frame"), str(via_frame / "frame"), directory=True)
+```
+
+```seal
+verdict: fixed 7d11432d0
+answer: I applied all six lines as the snippet gives them, with the import. The four directory links pass `directory=True`, and the new `Test__located` refusing case uses the helper the same way. The listing command `git grep -c -E "\.symlink_to\(|os\.symlink\(" -- tests ':!tests/conftest.py'`, run again at `7d11432d0`, prints nothing and exits 1, so no test module makes a link bare. No new case is owed. The six cases assert what they asserted before, and `bin/test -q -p no:xdist tests/hooks/test_edit_leaves_copies.py` passed 25 on POSIX. The skip path on Windows without the link privilege was not run here: that is the orchestrator's broad gate, or a Windows runner.
 ```
 
 ## Confirmations
