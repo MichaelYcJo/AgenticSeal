@@ -72,6 +72,11 @@ and the narrowing, as each fold commit after a fix pass or a build phase read fo
 
 `git grep -n -F '33 a fold'` prints only `:393`, so the key's new name breaks no other reference.
 
+```seal
+verdict: fixed 34887c899
+answer: Two commits close the four statements. `34887c899` applied the round's snippets to `gaps.md:9`, now "the narrowing of every other fold whose source is a fix or a build", and to `tests/text/test_the_rules_have_one_owner.py:388-393`, whose comment and key now read "a fix or a build". The orchestrator's `42e4c8fe2` applied the snippets to `frame/design.md:70` and `seal/follow-up.md:46`. `git grep -n -F '33 a fold'` outside the round records printed only `:393`, and `bin/test -q tests/text tests/behaviour tests/skills/test_passages.py tests/lib/test_gaps.py tests/skills/test_rules.py` exited 0, 1049 passed and 9 skipped, executed. The finding's own search, run again after `34887c899` over `agents`, `skills`, `docs`, `templates`, `tests`, `seal/follow-up.md` and the work item's frame, `gaps.md`, `changelog.md` and `pr.md`, prints three places that stand. `frame/design.md:16`, G6, states the tree at `d13c274e1`. The comment at `tests/text/test_the_rules_have_one_owner.py:388` says what a fold did in #1612, not the rule's scope. The two hits in `tests/github/test_publish_release_note.py:744` and `tests/skills/test_pr_body.py:1301` are on other facts. Every other line it prints already says "a fix or a build" or "a fix pass or a build phase". A statement of the scope in other words stands outside the search, so the list is a sample.
+```
+
 ### 2. *Scope* item 4's first bullet and A2 say the orchestrator commits the fold, where the target commits the rejection's row when the framer rejects
 
 ```seal
@@ -99,6 +104,11 @@ The orchestrator sends the finding to the framer, commits the fold where the fra
 then it sends the finding to the framer, commits the fold where the framer designs the unit, resumes the fix pass or spawns it fresh at the context threshold, and commits the round record after the hand-back that leaves no finding open for a fold
 ```
 
+```seal
+verdict: fixed 42e4c8fe2
+answer: The orchestrator's fold applied both snippets. At HEAD `frame/design.md` *Scope* item 4's first bullet and A2's Then each say the orchestrator "commits the fold where the framer designs the unit", read. No tree change was owed.
+```
+
 ### 3. The follow-up row's held-commit clause sends "#1614's rejected hook" to the weighing, and the frame row that describes the hook goes with the settle
 
 ```seal
@@ -116,6 +126,11 @@ The unit is the clause `0fd12e5ba` added to the row at `seal/follow-up.md:46`: "
 
 ```markdown
 the held commit, as each round spawned while an earlier record of the work item held a finding left open for a fold, one or more of which sends to the same weighing a `PreToolUse` hook on the orchestrator's `Agent` call that spawns `agentic:proofer` and denies the spawn while the work item's newest round record holds a finding with no close block, which #1614 weighed and rejected;
+```
+
+```seal
+verdict: fixed 42e4c8fe2
+answer: The orchestrator's commit applied the snippet. At HEAD `seal/follow-up.md:46` describes the hook in the row itself, a `PreToolUse` hook on the orchestrator's `Agent` call that spawns `agentic:proofer` and denies the spawn while the newest round record holds a finding with no close block, and no longer says "#1614's rejected hook", read. No tree change was owed.
 ```
 
 ## Confirmations
