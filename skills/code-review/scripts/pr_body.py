@@ -547,12 +547,7 @@ def _unstood(item, quotes):
     for line, quote, path in quotes:
         rel = posixpath.normpath(path)
         source = os.path.join(item, *rel.split("/"))
-        if (
-            posixpath.isabs(rel)
-            or rel == ".."
-            or rel.startswith("../")
-            or not os.path.isfile(source)
-        ):
+        if posixpath.isabs(rel) or rel.startswith("../") or not os.path.isfile(source):
             causes.append((OWN_PART, line, NO_SOURCE.format(path=path)))
             continue
         if rel not in held:

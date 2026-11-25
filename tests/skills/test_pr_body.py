@@ -1319,11 +1319,11 @@ class Test_main:
 
     def test_accepts_a_quote_that_stands_across_a_line_break(self, tmp_path, capsys):
         """A2 of #1612. A quote whose words stand in its source with a line
-        break and an indent where the quote has one space, and two spaces
-        where it has one, passes both forms, which print no note."""
-        design = "# Design\n\nThe body copies\n  the records,  and composes none.\n"
+        break and an indent where the quote has one space, and one space
+        where the quote has two, passes both forms, which print no note."""
+        design = "# Design\n\nThe body copies\n  the records, and composes none.\n"
         own = (
-            '- "copies the records, and composes none." '
+            '- "copies the records,  and composes none." '
             "(`frame/design.md` *Design*, line 3)\n\nCloses #1.\n"
         )
         item = item_of(tmp_path, {**RECORDS, "frame/design.md": design}, own=own)
@@ -1337,7 +1337,9 @@ class Test_main:
         assert capsys.readouterr().out.startswith(f"matches: {body} is `pr.md`")
 
     @pytest.mark.parametrize(
-        "path", ["frame/nothing.md", "../../config.json"], ids=["absent", "outside"]
+        "path",
+        ["frame/nothing.md", "../../config.json", "/frame/plan.md"],
+        ids=["absent", "outside", "absolute"],
     )
     @pytest.mark.parametrize("check", [False, True], ids=["write", "check"])
     def test_refuses_a_quote_of_a_file_the_item_does_not_hold(
@@ -1345,8 +1347,9 @@ class Test_main:
     ):
         """A3 of #1612. A quote whose path names no file of the work item's
         directory is refused by either form at its line, naming the path:
-        one that is not there, and the root's `config.json`, a file that
-        stands outside the directory. Seen red against `first_part` as
+        one that is not there, the root's `config.json`, a file that stands
+        outside the directory, and an absolute path, which names no file
+        under it whatever file the path ends in. Seen red against `first_part` as
         `aa32e8473` shipped it, where both forms exited 0."""
         own = f'- "English" (`{path}`, line 2)\n\nCloses #1.\n'
         item = item_of(tmp_path, RECORDS, own=own)
@@ -1375,26 +1378,43 @@ class Test_main:
             "which cannot be read as UTF-8 text ("
         )
 
+    @pytest.mark.parametrize(
+        "own, named",
+        [
+            (
+                '"words no record holds." (`changelog.md`, line 1)\n'
+                '- a list item\n  - "nor these." (`changelog.md`, line 2)\n'
+                '- " (`changelog.md`, line 1)\n'
+                '- "nor these." (`changelog.md, line 1)\n'
+                '- "nor these." (``, line 1)\n'
+                '- "nor these." (`changelog.md`, line 1\n'
+                "\nCloses #1.\n",
+                "lines 1, 3, 4, 5, 6 and 7 of `pr.md`, which hold",
+            ),
+            (
+                '"words no record holds." (`changelog.md`, line 1)\n\nCloses #1.\n',
+                "line 1 of `pr.md`, which holds",
+            ),
+        ],
+        ids=["six lines", "one line"],
+    )
     def test_names_a_line_that_looks_like_a_quote_and_decides_nothing(
-        self, tmp_path, capsys
+        self, tmp_path, capsys, own, named
     ):
         """A4 of #1612. A line holding `" (` before a backtick outside the
-        quote form, here one with no list marker, one indented under a list
-        item and one whose `" (` is the opening quote's own mark, is named on the line opening `seal pr-body:` by both
-        forms as a line not read, and decides nothing: neither quote stands
-        in `changelog.md`, and both forms exit 0. Seen red against
-        `first_part` as `aa32e8473` shipped it, which printed no note."""
-        own = (
-            '"words no record holds." (`changelog.md`, line 1)\n'
-            '- a list item\n  - "nor these." (`changelog.md`, line 2)\n'
-            '- " (`changelog.md`, line 1)\n'
-            "\nCloses #1.\n"
-        )
+        quote form is named on the line opening `seal pr-body:` by both
+        forms as a line not read, and decides nothing: no quote among them
+        stands in `changelog.md`, and both forms exit 0. The lines lack the
+        list marker, stand indented under a list item, hold a `" (` that is
+        the opening quote's own mark, lack the path's closing backtick,
+        name an empty path, and lack the `)` at the line's end. Seen red
+        against `first_part` as `aa32e8473` shipped it, which printed no
+        note."""
         item = item_of(tmp_path, RECORDS, own=own)
         body = tmp_path / "pr-body.md"
         note = (
-            "seal pr-body: not read as a quote: lines 1, 3 and 4 of `pr.md`, which "
-            'hold `" (` before a backtick outside the form '
+            f"seal pr-body: not read as a quote: {named} "
+            '`" (` before a backtick outside the form '
             '`- "<quote>" (`<path>` <coordinate>)`\n'
         )
         capsys.readouterr()
