@@ -124,10 +124,9 @@ does or concludes is read against the target (`skills/implement/SKILL.md`
 sentence the target contradicts is a finding located in the file that
 holds it. So is a line of `pr.<lang>.md` that does not render, in `Commit
 and pull request language`, the sentence at the coordinate it carries. So
-is a list item of
-`changelog.md` whose opening sentence `pr.<lang>.md` leaves without a
-rendering, and so is a quote of `pr.md` that it leaves without a
-rendering. This read makes a round, not
+is a list item of `changelog.md` whose opening sentence `pr.<lang>.md`
+leaves without a rendering, and so is a quote of `pr.md` that it leaves
+without a rendering. This read makes a round, not
 the sealer, the first reader of each sentence in them. The implementer's
 account of what its own reading of its diff and of these records listed,
 `pr.md` and `pr.<lang>.md` aside, is a claim you verify on your own: a

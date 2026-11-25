@@ -1240,8 +1240,9 @@ def compared(item, body, root, manifest=None, base=None):
     gives from MANIFEST or the plugin's own, read against BASE where it is
     given, and the records' copy, folded as `_folded` folds the body `main`
     writes, with the mark's room from MANIFEST or the plugin's own. NOTE is
-    `seal_mark`'s sentence and, where a section was folded, `FOLD_NOTE`,
-    joined by `; `, or None where neither stands; CAUSES are the `(where,
+    `_noted`'s: `seal_mark`'s sentence, `UNREAD_QUOTES` where a line of
+    `pr.md` was not read as a quote, and `FOLD_NOTE` where a section was
+    folded, joined by `; `, or None where none stands; CAUSES are the `(where,
     line, why)` of `Refused`, a record's, the root's `config.json`'s or the
     body's, empty where BODY is that composition. `main --check` and the
     pull request's check, `chain_check.py#body`, both call this, so the
