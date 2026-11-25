@@ -39,3 +39,23 @@ it routes a `regression:` to you, with that run's round records. The row
 you then rewrite, and the `Reframed` line you add under your mark is the
 run document's: `docs/running/the-run.md` *The run* owns that rule.
 check: tests/text/test_the_rules_have_one_owner.py
+
+**A fold sent for a unit a fix needs designs the unit before the build, as
+a first frame designs one.** The orchestrator sends it where a round
+finding's fix needs a unit the frame does not name, as
+`skills/implement/fix-pass.md` *A fix that needs a unit the frame does not
+name waits for the fold* defines a unit. You write a *Scope* item that names
+the finding and holds the unit's name or path; the unit's interface in
+*Data & interfaces*, where it has one; each input the unit takes and each
+place in the tree it applies, listed by the method of contract rule 12 that
+builds the list from what produces the defect; an acceptance row; and a
+`## Removes` row, or why nothing goes, as `agents/framer.md` *A mark is not
+the answer to a blocked step* asks. A row
+of *Alternatives considered* weighs the unit against not building it,
+against a stated limit, and against changing a unit the frame already
+names. You may reject the decision with grounds, where the frame names the
+unit already or the unit is not owed, as you reject any decision. Every
+other fold is written as the paragraph opening **The framer writes a
+decision's fold** of `skills/implement/orchestration.md` *Orchestrator: the
+order inside a ticket* states.
+check: tests/text/test_the_rules_have_one_owner.py

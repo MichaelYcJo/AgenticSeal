@@ -82,10 +82,16 @@ ticket* states, in a commit of its own, before it spawns the verifying
 round, so the round and the next crafter read one rule. Last, the fix pass
 appends the close block of every finding it answered, after its fix
 commits and the corrections its read made, because a `fixed` verdict names
-a commit that already exists, and leaves the round record uncommitted. **On
-the hand-back the orchestrator commits the round record as the fix pass
-left it, in one commit for the whole pass, before it spawns the verifying
-round, and changes none of its lines.** That commit holds
+a commit that already exists, and leaves the round record uncommitted. A
+hand-back that leaves a finding open for the fold, as
+`skills/implement/fix-pass.md` *A fix that needs a unit the frame does not
+name waits for the fold* has it, ends no pass: the orchestrator sends the
+finding to the framer, commits the fold, or its row that records the
+framer's rejection, and resumes the fix pass, or spawns it fresh by the
+threshold above. **On the hand-back that leaves no
+finding open for a fold, the orchestrator commits the round record as the
+fix pass left it, in one commit for the whole pass, before it spawns the
+verifying round, and changes none of its lines.** That commit holds
 `trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
@@ -220,7 +226,7 @@ judges the run excessive binds every row after it**:
 | The sentence says | The route |
 |---|---|
 | the fix built the phase's `plan.md` row and `frame/design.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
-| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the crafter told what the frame says |
+| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the crafter told what the frame says; where what the fix did is add a unit the frame does not hold, the framer's fold designs the unit before that fix pass, as `skills/implement/fix-pass.md` *A fix that needs a unit the frame does not name waits for the fold* states |
 | the unit already had a regression routed to a fix pass in this run | the signal that the frame is wrong whatever the sentence reads: the framer, by the steps below, unless you can write, as the grounds of a row in `frame/plan.md` *Judgments of the run*, why the frame holds and the fix alone was wrong |
 
 Each route is a judgment, and you write it as one row of that table: the
