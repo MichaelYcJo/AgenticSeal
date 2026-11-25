@@ -525,12 +525,12 @@ def quote_lines(text):
         at = line.rfind(QUOTE_MARK)
         if at < 0:
             continue
-        path, tick, rest = line[at + len(QUOTE_MARK) :].partition("`")
+        # Where the path's closing backtick is missing, REST is empty.
+        path, _tick, rest = line[at + len(QUOTE_MARK) :].partition("`")
         if (
             line.startswith(QUOTE_OPEN)
             and at >= len(QUOTE_OPEN)
             and path
-            and tick
             and rest.endswith(")")
         ):
             quotes.append((i + 1, line[len(QUOTE_OPEN) : at], path))
