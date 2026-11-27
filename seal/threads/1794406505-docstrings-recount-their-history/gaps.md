@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 6 | the orchestrator's broad gate |
+| closed the suite, the repository-wide lint and the format check beyond the boundary sets of phases 1 to 6 | answered: the work item's broad run, `trail/gate.md` at `376d674b2` against `810ef9018`, on which `guarantee.md` sealed |
 
 ## Not done
 

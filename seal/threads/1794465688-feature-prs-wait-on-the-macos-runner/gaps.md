@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond phase 1's boundary set | the orchestrator's broad gate |
-| whether GitHub reads the `&pytest-steps` alias, runs `pytest`'s legs and skips `pytest-wide` on this pull request's first `pull_request` run, and the name the skipped check shows (`frame/questions.md` Q1, S1) | the orchestrator, from this pull request's first run with `gh api …/runs/<id>/jobs` |
+| closed the suite, the repository-wide lint and the format check beyond phase 1's boundary set | answered: the work item's broad run, `trail/gate.md` at `e2289bcb2` against `79f815a74`, on which `guarantee.md` sealed |
+| closed whether GitHub reads the `&pytest-steps` alias, runs `pytest`'s legs and skips `pytest-wide` on this pull request's first `pull_request` run, and the name the skipped check shows (`frame/questions.md` Q1, S1) | answered: the checks of #1646 show the `pytest` legs passing and the skipped `pytest-wide` check named `pytest (${{ matrix.os }}, ${{ matrix.python }}, ${{ matrix.timeout }})` |
 | closed whether GitHub reads the `&pytest-steps` alias for `pytest-wide` and its legs report under the names G7 lists. On an entry with no `split` or `store`, the cache restore and the upload skip and the pytest line ends with two empty expansions, as jobs 130936327013 and 130936327217 of run 43143655875 showed (round 1). actionlint 1.7.12 reports the same two properties as undefined, and it is not a check of this repository | `workflow_dispatch` run 43175185653 of `tests` on this branch at 8b3438ae4, conclusion `success`, dispatched by the orchestrator. `pytest-wide` ran both legs from the aliased steps as `pytest (macos-latest, 3.12, 10)` (job 131037598073) and `pytest (ubuntu-latest, 3.14, 5)` (job 131037598437), the names G7 lists. Each passed, its cache restore and upload `skipped`, and its pytest step ran with the flags alone. The five `pytest` legs, `lint` and `durations` passed, and `release-report` was skipped (read by the crafter with `gh api …/runs/43175185653/jobs`) |
 
 ## Not done

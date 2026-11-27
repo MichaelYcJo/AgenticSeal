@@ -46,10 +46,10 @@ row of `frame/questions.md`, and quotes that row in the work item's
 `pr.<lang>.md` where the two language keys differ, where the owner can
 overturn it. The orchestrator keeps a blocking question for what only the
 owner can decide, and only where proceeding on a default would be costly to undo or
-would reach outside the repository. Each question of such a call states why
-its default cannot be taken, in its text, after the marker
-`hooks/ask-under-automation.py#MARKER` holds, followed on the same line by
-the reason. The plugin's `PreToolUse` hook refuses an `AskUserQuestion`
+would reach outside the repository. Each question of such a call holds,
+in its text, the marker `hooks/ask-under-automation.py#MARKER` holds,
+followed on the same line by the reason its default cannot be taken. The
+plugin's `PreToolUse` hook refuses an `AskUserQuestion`
 call whose questions do not, as `docs/running/what-a-script-gates.md`
 *The checks* states. A question or a remark the owner raises
 during the run is taken up when it arrives: the framer folds it into the
@@ -57,12 +57,9 @@ frame, or it goes into the code, and it is never deferred to the pull
 request body.
 check: tests/hooks/test_ask_under_automation.py
 
-**The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work
-items and, beside them, rows earlier settles removed, which the history
-still holds, as far back as `skills/settle/SKILL.md` *What the dry run
-shows* states. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
+**The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work items and, beside them, rows earlier settles removed, which the history still holds, as far back as `skills/settle/SKILL.md` *What the dry run shows* states. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
 
-**#1639 kept the orchestrator's rows of *Judgments of the run* as text.** What a row states of a change is `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*'s, in the paragraph opening **The orchestrator writes its row before it sends a decision**. #1639 weighed a check of the records arm, a `seal` subcommand, a hook and an agent field for these rows: the false rows that release 0.39.2's rounds and its sealer named restated what a fold commit changed or judged what a sentence meant, a script reads neither exactly, and a row that holds no inventory of a change has none to get wrong.
+**The orchestrator's rows of *Judgments of the run* are text, and no script reads them.** What a row states of a change is `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*'s, in the paragraph opening **The orchestrator writes its row before it sends a decision**. A check of the records arm, a `seal` subcommand, a hook and an agent field were weighed for these rows and set aside (#1639): the false rows that release 0.39.2's rounds and its sealer named restated what a fold commit changed or judged what a sentence meant, a script reads neither exactly, and a row that holds no inventory of a change has none to get wrong.
 
 ## The handoff
 

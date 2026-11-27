@@ -97,14 +97,15 @@ another order or another width is another table. A second exact header is refuse
 second anchor table.
 check: tests/skills/test_pact_check.py
 
-**`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade, and reads nothing outside the table as an anchor.** A row whose `Pact` cell is not
-one remote URL names no pact anybody can tell, and a row naming this pact
-whose `Clause` cell does not open with a heading, or whose `Hash` cell is not
-eight lowercase hex digits, grades nothing; each is refused at its line. A
-row whose `Pact` cell names a pact the signer's `Pact` key does not declare,
-such as a remote one letter off the pact's, is refused at its line, because
-no `seal pact` grades it: another pact's reports the signer `ONE-SIDED` and
-reads none of its frames.
+**`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade,
+and reads nothing outside the table as an anchor.** A row whose `Pact` cell
+is not one remote URL names no pact anybody can tell, and a row naming this
+pact whose `Clause` cell does not open with a heading, or whose `Hash` cell
+is not eight lowercase hex digits, grades nothing; each is refused at its
+line. A row whose `Pact` cell names a pact the signer's `Pact` key does not
+declare, such as a remote one letter off the pact's, is refused at its line,
+because no `seal pact` grades it: another pact's reports the signer
+`ONE-SIDED` and reads none of its frames.
 check: tests/skills/test_pact_check.py
 
 ## A signer's CI reads nothing of the pact

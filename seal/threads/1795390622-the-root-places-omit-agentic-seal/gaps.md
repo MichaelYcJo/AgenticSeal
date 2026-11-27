@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the work item's last commit, `frame/design.md` *User scenarios* S9 | the orchestrator, at the broad gate |
+| closed The full suite, the repository-wide lint and the format check at the work item's last commit, `frame/design.md` *User scenarios* S9 | answered: the work item's broad run, `trail/gate.md` at `ede9a12b6` against `c22d58982`, on which `guarantee.md` sealed |
 
 ## Not done
 

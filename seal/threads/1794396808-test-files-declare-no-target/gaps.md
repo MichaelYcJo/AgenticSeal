@@ -4,24 +4,24 @@
 
 | Item | Who must answer |
 |---|---|
-| Phase 1: the suite beyond the boundary set `trail/phases/phase-1.md` names | the orchestrator's broad gate |
-| Phase 1: whether `CONTRIBUTING.md` *The test layout* states design *The kinds* and *The reason line* with no reading of its own (S3's wording) | the proofer at review |
-| Phase 2: the suite beyond the boundary set `trail/phases/phase-2.md` names | the orchestrator's broad gate |
-| Phase 2: each kept and removed assert of `tests/text/` against #1488's *The criterion*, and each reason line's ground against design *The kinds* | the proofer at review |
-| Phase 3: the suite beyond the boundary set `trail/phases/phase-3.md` names | the orchestrator's broad gate |
-| Phase 3: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, and `20a9460fa`'s binding alignment with its one rewritten case | the proofer at review |
-| Phase 4: the suite beyond the boundary set `trail/phases/phase-4.md` names | the orchestrator's broad gate |
-| Phase 4: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, `6adfab9cc`'s binding alignment with its 11 rewritten cases, and whether the seven S3 cases belong under `Test_main`'s `routing-read-first` rule | the proofer at review |
-| Phase 5: the suite beyond the boundary set `trail/phases/phase-5.md` names | the orchestrator's broad gate |
-| Phase 5: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, the three moved cases that read a document to build a script's input ruled kind M among them, and `81ec9ed53`'s binding alignment with its one rewritten case | the proofer at review |
-| Phase 6: the suite beyond the boundary set `trail/phases/phase-6.md` names | the orchestrator's broad gate |
-| Phase 6: each kept and removed assert of the range against #1488's *The criterion*, and each reason line's ground and each of the three D files against design *The kinds* | the proofer at review |
-| Phase 7: the suite beyond the boundary set `trail/phases/phase-7.md` names | the orchestrator's broad gate |
-| Phase 7: each kept and removed assert of the range against #1488's *The criterion*, each reason line's ground and each of the three D files against design *The kinds*, the four moved M cases with `edc9ba6e0`'s binding alignment and its two rewritten cases, and the pair reason in `tests/test_commonmark_oracle.py::Test_module` | the proofer at review |
-| Phase 8: the suite beyond the boundary set `trail/phases/phase-8.md` names | the orchestrator's broad gate |
-| Phase 8: whether each of the 15 class docstrings `d215adfe9`, `77664dc10` and `a3aa9049e` wrote states the input its pairs' cases differ by, or for the session-cost pair the fact each case holds, and whether `CONTRIBUTING.md` *The test layout*'s kinds paragraph, pair sentence and threshold sentence, as `ff7d138c9` and `a3aa9049e` wrote them, state design *The kinds* and *Scope* item 11 with no reading of their own | the proofer at review |
-| Phase 8: whether every claim of `changelog.md` stands in the phase records and the tree | the proofer at review |
-| Round 1 fix pass: the suite beyond the set it ran, `tests/lib/test_blocks.py`, its importers, the files under `tests/` that name `CONTRIBUTING`, the 67 files that declare no `TARGET` and `tests/github/test_rules.py` | the orchestrator's broad gate |
+| closed Phase 1: the suite beyond the boundary set `trail/phases/phase-1.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 1: whether `CONTRIBUTING.md` *The test layout* states design *The kinds* and *The reason line* with no reading of its own (S3's wording) | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 2: the suite beyond the boundary set `trail/phases/phase-2.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 2: each kept and removed assert of `tests/text/` against #1488's *The criterion*, and each reason line's ground against design *The kinds* | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 3: the suite beyond the boundary set `trail/phases/phase-3.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 3: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, and `20a9460fa`'s binding alignment with its one rewritten case | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 4: the suite beyond the boundary set `trail/phases/phase-4.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 4: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, `6adfab9cc`'s binding alignment with its 11 rewritten cases, and whether the seven S3 cases belong under `Test_main`'s `routing-read-first` rule | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 5: the suite beyond the boundary set `trail/phases/phase-5.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 5: each ruling of a case that stays in `tests/behaviour/` against design *The kinds*, the three moved cases that read a document to build a script's input ruled kind M among them, and `81ec9ed53`'s binding alignment with its one rewritten case | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 6: the suite beyond the boundary set `trail/phases/phase-6.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 6: each kept and removed assert of the range against #1488's *The criterion*, and each reason line's ground and each of the three D files against design *The kinds* | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 7: the suite beyond the boundary set `trail/phases/phase-7.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 7: each kept and removed assert of the range against #1488's *The criterion*, each reason line's ground and each of the three D files against design *The kinds*, the four moved M cases with `edc9ba6e0`'s binding alignment and its two rewritten cases, and the pair reason in `tests/test_commonmark_oracle.py::Test_module` | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 8: the suite beyond the boundary set `trail/phases/phase-8.md` names | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
+| closed Phase 8: whether each of the 15 class docstrings `d215adfe9`, `77664dc10` and `a3aa9049e` wrote states the input its pairs' cases differ by, or for the session-cost pair the fact each case holds, and whether `CONTRIBUTING.md` *The test layout*'s kinds paragraph, pair sentence and threshold sentence, as `ff7d138c9` and `a3aa9049e` wrote them, state design *The kinds* and *Scope* item 11 with no reading of their own | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Phase 8: whether every claim of `changelog.md` stands in the phase records and the tree | answered: the review rounds `trail/rounds/round-1.md` to `round-2.md` read it, and `guarantee.md` sealed |
+| closed Round 1 fix pass: the suite beyond the set it ran, `tests/lib/test_blocks.py`, its importers, the files under `tests/` that name `CONTRIBUTING`, the 67 files that declare no `TARGET` and `tests/github/test_rules.py` | answered: the work item's broad run, `trail/gate.md` at `871c8e346` against `38123f839`, on which `guarantee.md` sealed |
 
 ## Not done
 

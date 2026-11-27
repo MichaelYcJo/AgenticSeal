@@ -8,7 +8,7 @@ Mark the `.svg` and `.ans` files under `assets/seals/`, `ruff.toml` and `.gitatt
 
 | Item | Who must answer |
 |---|---|
-| Whether the directory's next review of `dist` lists none of these paths under `LOCAL_CODE_FILE_TYPE`, and whether it refused `.gitattributes` at all | the owner, reading the directory's page after 0.37.5's `dist` commit; no script can reach the page |
+| closed Whether the directory's next review of `dist` lists none of these paths under `LOCAL_CODE_FILE_TYPE`, and whether it refused `.gitattributes` at all | a measurement no record asks for: it would have decided whether the directory's review of `dist` still lists a path under `LOCAL_CODE_FILE_TYPE`; no issue, failed run or other work item's rule rests on it |
 
 ## Not done
 

@@ -145,16 +145,17 @@ answers, and the workflow file is the record of the second.** `seal mode` moves 
 `templates/setup/hygiene.yml` where that path is absent, pinned to the installed
 release, and stages it. It refuses where `<repo>/seal/` is not a directory,
 because the checks read committed records. `seal pr-checks remove` takes out
-a workflow this plugin wrote and leaves any other file alone. No config key says whether the checks are installed: the file says it, and a second record
-would be a second answer. A workflow left behind in local mode and pinned to a release that has
-the no-root state reads nothing as declared: `chain_check.py`, the one
-record check it runs, finds no root in the tree, so nothing is declared,
-and judges the commit trailers alone. It passes the commits a local-mode
-session writes, which carry no `Seal-Routing` trailer, and fails a ready
-pull request where a commit made before the switch carries a trailer
-naming a work item. One pinned to an older release fails every pull request there until
-its `--branch` line moves or `seal pr-checks remove` takes it out, and
-`seal mode local` names the pin when it leaves such a file.
+a workflow this plugin wrote and leaves any other file alone. No config key
+says whether the checks are installed: the file says it, and a second record
+would be a second answer. A workflow left behind in local mode and pinned to
+a release that has the no-root state reads nothing as declared:
+`chain_check.py`, the one record check it runs, finds no root in the tree, so
+nothing is declared, and judges the commit trailers alone. It passes the
+commits a local-mode session writes, which carry no `Seal-Routing` trailer,
+and fails a ready pull request where a commit made before the switch carries
+a trailer naming a work item. One pinned to an older release fails every pull
+request there until its `--branch` line moves or `seal pr-checks remove`
+takes it out, and `seal mode local` names the pin when it leaves such a file.
 check: tests/skills/test_seal.py
 
 **Local mode lives under the git directory, not in a gitignored folder.** A

@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| the suite, the repository-wide lint and the format check beyond phase 1's boundary set | the orchestrator's broad gate |
-| the suite, the repository-wide lint and the format check beyond phase 2's boundary set, the module test files that reach `lib/optin.py`, `lib/routing.py`, `lib/lines.py` or `seal_stamp.py` only through a script that loads them among it | the orchestrator's broad gate |
+| closed the suite, the repository-wide lint and the format check beyond phase 1's boundary set | answered: the work item's broad run, `trail/gate.md` at `482bf293a` against `52f87b8d3`, on which `guarantee.md` sealed |
+| closed the suite, the repository-wide lint and the format check beyond phase 2's boundary set, the module test files that reach `lib/optin.py`, `lib/routing.py`, `lib/lines.py` or `seal_stamp.py` only through a script that loads them among it | answered: the work item's broad run, `trail/gate.md` at `482bf293a` against `52f87b8d3`, on which `guarantee.md` sealed |
 
 ## Not done
 

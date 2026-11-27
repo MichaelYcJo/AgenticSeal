@@ -112,21 +112,23 @@ nothing, and `git switch` exits 0 over an unstaged deletion while it restores ev
 deleted file that differs between the two branches, saying nothing about it. A
 comparison with another ref runs in a `git worktree` of that ref.
 
-**Before `seal settle --apply`, the settling session reads the dry
-run's *The judgments* and *The judgments earlier settles removed*, and
+**Before `seal settle --apply`, the settling session reads the dry run's
+*The judgments* and *The judgments earlier settles removed*, and
 rewrites a section where the same kind of judgment came back, within
 this release or over several, or cost rounds each time it was made.**
 *The judgments* holds the orchestrators' rows from every released
-`frame/plan.md`. *The judgments earlier settles removed* holds the rows of the plans
-the two newest removing commits deleted, read from the history with the
-release each shipped in, and `seal settle --all-earlier` reads the
-older ones (`skills/settle/SKILL.md` *What the dry run shows*). Both are grouped by the document each row stands
-on. The pull request body names each kind that recurred across releases
-with the releases it recurred in. The rows leave the tree with their
-directories at `--apply`, and the history keeps them for the next settle,
-so nothing is kept beside the tree to carry them; `skills/core/SKILL.md` *A judgment
-stands on a source document, and is written down with both* says the
-guidance improves from that record and not from memory.
+`frame/plan.md`. *The judgments earlier settles removed* holds the rows
+of the plans the two newest removing commits deleted, read from the
+history with the release each shipped in, and
+`seal settle --all-earlier` reads the older ones
+(`skills/settle/SKILL.md` *What the dry run shows*). Both are grouped by
+the document each row stands on. The pull request body names each kind
+that recurred across releases with the releases it recurred in. The rows
+leave the tree with their directories at `--apply`, and the history
+keeps them for the next settle, so nothing is kept beside the tree to
+carry them; `skills/core/SKILL.md` *A judgment stands on a source
+document, and is written down with both* says the guidance improves from
+that record and not from memory.
 
 ## The release pull request
 
@@ -146,13 +148,13 @@ merged into the branch after that test started, since `main` stays where
 the release branch was cut unless a hotfix moves it. Where something did,
 the run is the first to read the two together, and the one run after the
 last merge reads them together as well. Opened after the last merge, it
-runs `tests` once, on the tree the release ships, and what no pull
-request into `release/vX.Y.Z` runs answers once: the `tests` workflow's
-ubuntu 3.14 and macOS legs, `release-report`, and the `hygiene`
-workflow's version and milestone steps. A defect that only the ubuntu
-3.14 or the macOS leg meets is fixed by a pull request into
-`release/vX.Y.Z`, which the release pull request's next run reads. The orchestrator reads
-that moment from two commands after `git fetch origin`.
+runs `tests` once, on the tree the release ships, and what no pull request
+into `release/vX.Y.Z` runs answers once: the `tests` workflow's ubuntu
+3.14 and macOS legs, `release-report`, and the `hygiene` workflow's
+version and milestone steps. A defect that only the ubuntu 3.14 or the
+macOS leg meets is fixed by a pull request into `release/vX.Y.Z`, which
+the release pull request's next run reads. The orchestrator reads that
+moment from two commands after `git fetch origin`.
 `gh pr list --base release/vX.Y.Z --state open` lists no pull request; a
 settle's pull request closes no issue, so only this command sees it. And the
 release pull request's own milestone check exits 0 and prints its
@@ -198,8 +200,10 @@ for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
 
-**Before the owner merges the release pull request, the orchestrator posts the segment readings no run posted, one command per work item the release ships.** It lists the work items as the `routing.md` files the
-release branch adds after the newest tag `main` holds:
+**Before the owner merges the release pull request, the orchestrator posts
+the segment readings no run posted, one command per work item the release
+ships.** It lists the work items as the `routing.md` files the release
+branch adds after the newest tag `main` holds:
 
 ```bash
 git diff --name-only --diff-filter=A \
@@ -210,7 +214,9 @@ git diff --name-only --diff-filter=A \
 For each directory listed, it runs
 `seal cost --work-item <that directory> --post --says <file>`. The file
 holds its sentence on what that work item's readings say, read against the
-work item's records. The command leaves out each segment a comment on the open `flow-measurement` log already names, the run's own comment among them, posts the rest, and posts nothing where no segment is left. Where no
+work item's records. The command leaves out each segment a comment on the
+open `flow-measurement` log already names, the run's own comment among
+them, posts the rest, and posts nothing where no segment is left. Where no
 segment transcript on this machine names the work item, the comment says
 so. It runs before the merge because the merge's push rolls the log, and
 the roll says a log closed empty when it holds no comment (#198). It runs

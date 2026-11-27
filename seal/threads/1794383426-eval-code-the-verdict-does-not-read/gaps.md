@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check over phase 1's tree. Every module file runs `tests/censuses.py` through `census_case`, and phase 1 ran only the phase boundary set. | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check over phase 2's tree. Phase 2 changed `tests/censuses.py`, which every module file runs through `census_case`, and ran only the phase boundary set. | the orchestrator, at the broad gate |
+| closed The full suite, the repository-wide lint and the format check over phase 1's tree. Every module file runs `tests/censuses.py` through `census_case`, and phase 1 ran only the phase boundary set. | answered: the work item's broad run, `trail/gate.md` at `cf0a708c2` against `10e721f11`, on which `guarantee.md` sealed |
+| closed The full suite, the repository-wide lint and the format check over phase 2's tree. Phase 2 changed `tests/censuses.py`, which every module file runs through `census_case`, and ran only the phase boundary set. | answered: the work item's broad run, `trail/gate.md` at `cf0a708c2` against `10e721f11`, on which `guarantee.md` sealed |
 
 ## Not done
 

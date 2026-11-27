@@ -4,9 +4,9 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check, the broad gate, over phase 1's tree, whose runs covered the plan row's modules and the phase boundary set | the orchestrator, at the broad run after the review rounds settle |
-| The full suite, the repository-wide lint and the format check, the broad gate, over phase 2's tree, whose runs covered the plan row's modules and the 141 test files of its phase boundary set | the orchestrator, at the broad run after the review rounds settle |
-| The full suite, the repository-wide lint and the format check, the broad gate, over phase 3's tree, whose runs covered the plan row's modules and the 141 test files of its phase boundary set | the orchestrator, at the broad run after the review rounds settle |
+| closed The full suite, the repository-wide lint and the format check, the broad gate, over phase 1's tree, whose runs covered the plan row's modules and the phase boundary set | answered: the work item's broad run, `trail/gate.md` at `69e3217ac` against `74ba63423`, on which `guarantee.md` sealed |
+| closed The full suite, the repository-wide lint and the format check, the broad gate, over phase 2's tree, whose runs covered the plan row's modules and the 141 test files of its phase boundary set | answered: the work item's broad run, `trail/gate.md` at `69e3217ac` against `74ba63423`, on which `guarantee.md` sealed |
+| closed The full suite, the repository-wide lint and the format check, the broad gate, over phase 3's tree, whose runs covered the plan row's modules and the 141 test files of its phase boundary set | answered: the work item's broad run, `trail/gate.md` at `69e3217ac` against `74ba63423`, on which `guarantee.md` sealed |
 
 ## Not done
 

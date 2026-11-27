@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The broad gate, `uvx ruff check . && uvx ruff format --check . && bin/test -q`, at the build's last commit | the orchestrator, once the review rounds settle |
+| closed The broad gate, `uvx ruff check . && uvx ruff format --check . && bin/test -q`, at the build's last commit | answered: the work item's broad run, `trail/gate.md` at `daf926515` against `f8056edde`, on which `guarantee.md` sealed |
 
 ## Not done
 

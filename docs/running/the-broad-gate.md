@@ -106,7 +106,14 @@ the same scripts again. The row prints nowhere else, because over a tree
 whose gate the branch did not change it says nothing a reader acts on.
 check: tests/skills/test_broad_gate.py
 
-**Where the shell is `cmd.exe`, a command name that starts in a directory with `/` is refused, and the refusal names its `\` spelling.** The gate rewrites no part of the command. A value repaired on its way to the shell leaves the file still wrong, and a model of `cmd.exe`'s reading good enough to repair it is a second shell inside the gate. Why `cmd.exe` fails on such a name, which words the gate reads as command names, what it names as not read, and how a key that runs under both shells is spelt have one owner, `templates/setup/config.md` *Broad gate*.
+**Where the shell is `cmd.exe`, a command name that starts in a directory
+with `/` is refused, and the refusal names its `\` spelling.** The gate
+rewrites no part of the command. A value repaired on its way to the shell
+leaves the file still wrong, and a model of `cmd.exe`'s reading good
+enough to repair it is a second shell inside the gate. Why `cmd.exe` fails
+on such a name, which words the gate reads as command names, what it names
+as not read, and how a key that runs under both shells is spelt have one
+owner, `templates/setup/config.md` *Broad gate*.
 check: tests/skills/test_broad_gate.py
 
 ## What the runner owes the person who typed it

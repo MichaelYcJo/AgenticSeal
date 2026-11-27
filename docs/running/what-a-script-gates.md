@@ -27,19 +27,21 @@ command a script under `lib/`, `skills/`, `.github/scripts/` or
 it with `argv`, and a script that takes a path out of output git quotes
 under `core.quotePath` asks for it with `-z`.** A person's or a repository's
 git configuration can put text into the fields a script parses, take a
-commit's paths out, or follow a path into another one's history. `argv` sets each key measured to do that with `-c`, which outranks
-every configuration file. A setting measured to do it that no `-c` key
+commit's paths out, or follow a path into another one's history. `argv`
+sets each key measured to do that with `-c`, which outranks every
+configuration file. A setting measured to do it that no `-c` key
 reaches, such as one a file of the repository carries, is held by a flag
 `argv` puts on every command of each subcommand the setting reshapes, so
-no script passes it. `lib/gitcmd.py`'s docstring names each key, and each
-such setting with its flag, with what it changes and the subcommands it
-changes, and one found later is added there and nowhere else. Git quotes the paths its listings print, such as
-those of `ls-tree`, `ls-files` and `status --porcelain` and the
-`--name-only`, `--name-status` and `--raw` output of `log`, `diff` and
-`diff-tree`. `-z` ends each such path with a NUL and quotes none,
-whatever `core.quotePath` says. A reader that only asks whether git
-printed anything, prints git's line as it came, or compares the line
-with an ASCII path the script names takes no path out. `rev-parse` and
+no script passes it. `lib/gitcmd.py`'s docstring names each key, and
+each such setting with its flag, with what it changes and the
+subcommands it changes, and one found later is added there and nowhere
+else. Git quotes the paths its listings print, such as those of
+`ls-tree`, `ls-files` and `status --porcelain` and the `--name-only`,
+`--name-status` and `--raw` output of `log`, `diff` and `diff-tree`.
+`-z` ends each such path with a NUL and quotes none, whatever
+`core.quotePath` says. A reader that only asks whether git printed
+anything, prints git's line as it came, or compares the line with an
+ASCII path the script names takes no path out. `rev-parse` and
 `worktree list --porcelain` print a path unquoted, and a path that holds
 a newline breaks the second, a limit no flow of the plugin reaches. A
 key nobody has measured is a limit until a run shows it changes a
@@ -51,10 +53,12 @@ reading. Whether a call is one of these is read at review, and
 Each `gh` command a script starts is started by `lib/gitcmd.py#gh`
 under the same bound. Both runners raise `lib/gitcmd.py#Unrun`, whose
 one line names the command, and neither reads an exit code unless asked
-to, because for some commands, such as `merge-base --is-ancestor`,
-`diff --quiet` and `config --get`, exit 1 is an answer. `Unrun` is a
-`SystemExit`, as `lib/sibling.py#Absent` is, so a script that does not
-catch it ends with that line at exit 1 and never in a traceback. A
+to with `check=True`, which raises `lib/gitcmd.py#Exited` on a non-zero
+exit, because for some commands, such as `merge-base --is-ancestor`,
+`diff --quiet` and `config --get`, exit 1 is an answer. Both are a
+`lib/gitcmd.py#Failed`, a `SystemExit`, as `lib/sibling.py#Absent` is,
+so a script that does not catch one ends with its line at exit 1 and
+never in a traceback. A
 reader whose unanswered question has a documented default, such as the
 *not opted in* of `lib/optin.py#repo_root`, catches it at the call, and
 a command whose error code is not 1 catches it in `main` and returns
@@ -92,9 +96,7 @@ left to a party on the same text.
 | `seal rules --check`, through `tests/behaviour/test_this_repository_passes_its_own_checks.py`, and hygiene's step that prints the `check:` lines it did not read | the suite; each pull request | `check:` lines in the one shape | names a near line as not read; a target it cannot resolve is refused; a target wrapped onto the next line is not read | whether a target enforces its rule: review |
 | `seal layout --check` | the crafter; the suite | test files and modules through `ast` | refuses on the tree | none |
 | `seal unverified` | the settle; a session | `## Not verified` rows and the no-change block | fails on a section it cannot read, never on an open row; names a near heading and a near block | none |
-| `seal settle`, `skills/settle/scripts/rule_changes.py` | the owner | `## Rule changes`, open rows, `frame/plan.md` *Judgments of the run* of the released plans and, through `git log` and
-`git cat-file --batch`, of the plans the two newest removing commits
-deleted, or of every removed plan under `--all-earlier` | a section that does not parse is refused at its line at the pull request and read whole at the settle; a near heading outside the section is named and is another section, one inside it is a line of the section, and a design with a named line is read whole at the settle; a heading near *Judgments of the run* is named, a `trail/rounds` it cannot list is named, and a file in a work item's directory with the name of a record it reads, at another path, is named and removed with the directory | the settling session writes the latest decision |
+| `seal settle`, `skills/settle/scripts/rule_changes.py` | the owner | `## Rule changes`, open rows, `frame/plan.md` *Judgments of the run* of the released plans and, through `git log` and `git cat-file --batch`, of the plans the two newest removing commits deleted, or of every removed plan under `--all-earlier` | a section that does not parse is refused at its line at the pull request and read whole at the settle; a near heading outside the section is named and is another section, one inside it is a line of the section, and a design with a named line is read whole at the settle; a heading near *Judgments of the run* is named, a `trail/rounds` it cannot list is named, and a file in a work item's directory with the name of a record it reads, at another path, is named and removed with the directory | the settling session writes the latest decision |
 | `seal pact` | a person, at the pact's repository | the anchor table under the exact header, through `gfm_table` | refuses at exit 2 a row it cannot grade; names a table under a near header and grades none of it | the proofer: a line meant as an anchor that the tool did not read is a finding |
 | `seal deferrals` | a session, before it writes an `unverified` row | the command lines of workflows and hooks, against the runner words `skills/verify/scripts/deferral_check.py#RUNNERS` holds for a kind of check | names each workflow and hook holding a line those words match, for the reader to open, and exits 0 whatever it matched; refuses only a path or an argument it cannot use; reads no trigger | whether a file it named or left out runs the check, and whether that file runs on pull requests: the agent that opens it |
 | `seal pr-body` and `seal pr-body --check` | the orchestrator, writing the body; the sealer, before its verdict; the pull request's check, through the same function | `seal/config.json`'s two language keys; `pr.md`, and each quote of it, a line in the form `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* gives, against the file of the work item its path names; the one `pr.<lang>.md` where the keys differ; the body against them, the records and the mark the `Pull request seal mark` key and the guarantee at HEAD give; the composed body's length against GitHub's limit, which folds the longest sections of the copy and refuses a body that still passes it | refuses where a language key is absent, where the keys differ and the work item holds no `pr.<lang>.md` or more than one, and at each line of `pr.md` whose quote the file its path names does not hold; withholds at the sealer; refuses at the pull request | whether each line of `pr.<lang>.md` renders the sentence at its coordinate, and whether what a quote's coordinate names after its path holds the quote: the rounds and the sealer |

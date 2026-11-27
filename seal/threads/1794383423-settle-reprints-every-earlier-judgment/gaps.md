@@ -5,7 +5,7 @@
 | Item | Who must answer |
 |---|---|
 | closed Phase 1: `versions` reads the commit a nested annotated tag peels to through `for-each-ref`'s `%(*objecttype)` and `%(*objectname)`, which git 2.50.1 peels to the commit; whether an older git peels one level only, so that a nested version tag labels nothing where `git tag --contains` counted it, was not run | round 1, finding 1, ran it: git 2.39.3 peels one level. `0a354b5a7` peels each version tag with `^{}` through `git cat-file --batch-check`, and `Test_versions::test_accepts_a_version_tag_of_a_tag_at_the_commit_it_peels_to` failed with git 2.39.3 first on PATH before it and passes with it on 2.39.3 and 2.50.1 |
-| Phase 2: whether the settling session reads the bounded section and runs `seal settle --all-earlier` where a kind it reads may have come before the two newest removing commits, as step 5 of `skills/settle/SKILL.md` says (design S8); no case holds it | the owner, at the next settle |
+| closed Phase 2: whether the settling session reads the bounded section and runs `seal settle --all-earlier` where a kind it reads may have come before the two newest removing commits, as step 5 of `skills/settle/SKILL.md` says (design S8); no case holds it | answered: the settle of 0.39.3 read the bounded section and ran `seal settle --all-earlier`, since the fold kind it read recurs before the two newest removing commits |
 
 ## Not done
 

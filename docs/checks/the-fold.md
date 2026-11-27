@@ -115,7 +115,7 @@ that took it.**
   `lib/lines.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
   `lib/tables.py#hidden_lines`, which hides lines for the table readers
-of a record and a pact, keeps, wherever its walk is unsure, the fence-only
+  of a record and a pact, keeps, wherever its walk is unsure, the fence-only
   reading it gave before the walk: a row below a fence nobody closed
   declares nothing, and a row below a comment opener nobody closed is not
   hidden, because that reading never hid one, and the walk may miss no row

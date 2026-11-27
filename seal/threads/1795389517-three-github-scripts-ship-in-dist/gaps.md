@@ -4,11 +4,11 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's HEAD after phase 1, which no agent runs (contract rule 2) | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check at the branch's HEAD after phase 2, which no agent runs (contract rule 2) | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check at the branch's HEAD after phase 3, which no agent runs (contract rule 2) | the orchestrator, at the broad gate |
-| The `hygiene` step *a change to what ships must move the version* run with `docs` in its pattern. The suite reads the pattern out of the workflow and matches it with Python's `re`, and no run of the step's shell was made. The step runs only on a pull request whose base is `main` | the release pull request's CI run, read by the orchestrator |
-| `bin/test.cmd` run under cmd.exe at its new runner path, `%here%..\tests\run_tests.py`. The suite holds only its text, and no workflow runs `bin/test` or its twin | the repository owner, on a Windows machine |
+| closed The full suite, the repository-wide lint and the format check at the branch's HEAD after phase 1, which no agent runs (contract rule 2) | answered: the work item's broad run, `trail/gate.md` at `48d8aa347` against `641b6bfb5`, on which `guarantee.md` sealed |
+| closed The full suite, the repository-wide lint and the format check at the branch's HEAD after phase 2, which no agent runs (contract rule 2) | answered: the work item's broad run, `trail/gate.md` at `48d8aa347` against `641b6bfb5`, on which `guarantee.md` sealed |
+| closed The full suite, the repository-wide lint and the format check at the branch's HEAD after phase 3, which no agent runs (contract rule 2) | answered: the work item's broad run, `trail/gate.md` at `48d8aa347` against `641b6bfb5`, on which `guarantee.md` sealed |
+| closed The `hygiene` step *a change to what ships must move the version* run with `docs` in its pattern. The suite reads the pattern out of the workflow and matches it with Python's `re`, and no run of the step's shell was made. The step runs only on a pull request whose base is `main` | answered: the `release` job of the `hygiene` workflow passed on the 0.39.3 release pull request #1647, run 45961044479 |
+| closed `bin/test.cmd` run under cmd.exe at its new runner path, `%here%..\tests\run_tests.py`. The suite holds only its text, and no workflow runs `bin/test` or its twin | a measurement no record asks for: it would have decided whether `bin/test.cmd` runs under `cmd.exe` at its runner path; no issue, failed run or other work item's rule rests on it |
 
 ## Not done
 

@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The broad gate at the branch's HEAD: the full suite, `uvx ruff check .` and `uvx ruff format --check .` over the whole repository, which no agent runs (contract rule 2) | the orchestrator, by `seal gate --base <base> --record <item>` after the rounds settle |
+| closed The broad gate at the branch's HEAD: the full suite, `uvx ruff check .` and `uvx ruff format --check .` over the whole repository, which no agent runs (contract rule 2) | answered: the work item's broad run, `trail/gate.md` at `89abcaa29` against `e65830869`, on which `guarantee.md` sealed |
 
 ## Not done
 

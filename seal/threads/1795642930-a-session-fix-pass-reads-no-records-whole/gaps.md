@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| Whether an orchestrator that makes a fix pass under `Implementation` `the session` makes the bound reading, and whether its work items stop leaving `regression:` or `reopens:` findings located in their own records (`frame/questions.md` Q1). The text binds the pass, and only the conduct of sessions under the released text answers it | the repository owner, by the row of `seal/follow-up.md` this work item adds |
+| closed Whether an orchestrator that makes a fix pass under `Implementation` `the session` makes the bound reading, and whether its work items stop leaving `regression:` or `reopens:` findings located in their own records (`frame/questions.md` Q1). The text binds the pass, and only the conduct of sessions under the released text answers it | re-homed: the row of `seal/follow-up.md` *Schedulable items with nowhere else to go* that names #1623 |
 
 ## Not done
 

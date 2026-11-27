@@ -4,9 +4,9 @@
 
 | Item | Who must answer |
 |---|---|
-| Whether a fresh session in a repository that is no clone of the plugin opens the closing line's `skills/implement/orchestration.md` under the plugin's root and not under its own repository (`frame/questions.md` Q1). No case reads a session's behaviour | a measurement: a session started in such a repository, which the orchestrator or the repository owner runs |
-| Whether the closing line's two paths stay joined with `/` on Windows. `seal mutate` left the `os.path.join` mutant green on macOS, where both joins print `/` (`trail/phases/phase-1.md`) | CI's Windows run of `tests/lib/test_core.py` on the pull request |
-| The full suite, the repository-wide lint and format | the orchestrator, by the broad gate |
+| closed Whether a fresh session in a repository that is no clone of the plugin opens the closing line's `skills/implement/orchestration.md` under the plugin's root and not under its own repository (`frame/questions.md` Q1). No case reads a session's behaviour | a measurement no record asks for: it would have decided whether a fresh session in another repository opens the core's closing path under the plugin's root; no issue, failed run or other work item's rule rests on it |
+| closed Whether the closing line's two paths stay joined with `/` on Windows. `seal mutate` left the `os.path.join` mutant green on macOS, where both joins print `/` (`trail/phases/phase-1.md`) | answered: push run 45961118285 of `tests` at `7dda126fe` on `main`, whose ubuntu 3.12 and 3.14, macOS 3.12 and four windows-latest 3.12 legs passed, runs the cases this row names, which the tree still holds |
+| closed The full suite, the repository-wide lint and format | answered: the work item's broad run, `trail/gate.md` at `72b34e712` against `86f98018c`, on which `guarantee.md` sealed |
 
 ## Not done
 

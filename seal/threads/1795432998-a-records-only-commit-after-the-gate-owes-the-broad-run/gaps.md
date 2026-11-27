@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check, the broad gate, over the tree phase 1 built, whose run covered the phase's plan row and phase boundary set | the orchestrator, at the broad run after the review rounds settle |
-| That `README.ko.md`'s new clause reads as the rule `README.md:286` states, to a Korean reader | a round, reading `README.ko.md` beside `README.md` |
+| closed The full suite, the repository-wide lint and the format check, the broad gate, over the tree phase 1 built, whose run covered the phase's plan row and phase boundary set | answered: the work item's broad run, `trail/gate.md` at `73130fe53` against `2025561ae`, on which `guarantee.md` sealed |
+| closed That `README.ko.md`'s new clause reads as the rule `README.md:286` states, to a Korean reader | answered: the review rounds `trail/rounds/round-1.md` to `round-3.md` read it, and `guarantee.md` sealed |
 
 ## Not done
 

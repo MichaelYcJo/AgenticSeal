@@ -41,7 +41,13 @@ work item carries the move is the orchestrator's choice
 (`skills/implement/orchestration.md` *Orchestrator: how the work is
 routed*), and every later pull request into the branch leaves it. What
 holds a release whose first pull request did not move it is
-the `hygiene` workflow, which fails a release pull request, one whose base is `main`, that changes a file under a top-level directory `dist` holds and an installed copy reads, without moving the version. What `dist` holds is the paragraph on `dist` below, and a case holds the workflow's list of directories to it. What `dist` holds and nothing installed reads moves no version: a top-level file such as `README.md`, and the drawings under `assets/`, which stay in `dist` for the images the README shows.
+the `hygiene` workflow, which fails a release pull request, one whose base
+is `main`, that changes a file under a top-level directory `dist` holds and
+an installed copy reads, without moving the version. What `dist` holds is
+the paragraph on `dist` below, and a case holds the workflow's list of
+directories to it. What `dist` holds and nothing installed reads moves no
+version: a top-level file such as `README.md`, and the drawings under
+`assets/`, which stay in `dist` for the images the README shows.
 check: tests/behaviour/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 
 **Every act the release performs once it reaches `main` belongs to a machine or
@@ -69,7 +75,12 @@ hand fires the publish workflow too.
   the range that holds it, so a work item a settle removed before the tag
   still has its entry. It goes red on a tag whose range added no
   fragment the previous tag does not already hold, which is the release
-  shipping unexplained. The note opens with a header, one HTML paragraph holding the release's counts as text, one per line: the pull requests merged, the issues they closed, and the outside contributors where there are any. The paragraph's opening and closing tags keep the seal from matching a longer line of counts, so the seal finds only the whole header. The release's theme follows it, the first sentence
+  shipping unexplained. The note opens with a header, one HTML paragraph
+  holding the release's counts as text, one per line: the pull requests
+  merged, the issues they closed, and the outside contributors where there
+  are any. The paragraph's opening and closing tags keep the seal from
+  matching a longer line of counts, so the seal finds only the whole header.
+  The release's theme follows it, the first sentence
   of its milestone's description with a leading `Purpose:` left out; a
   milestone that cannot be read leaves the note without one and never fails
   the job. A summary read from the pull requests merged into
@@ -81,12 +92,31 @@ hand fires the publish workflow too.
   link to the pull request that added it. A pull request title is therefore
   a line of the release note: write it as one. **Then the release's seal is
   attached.** A second job in the same workflow runs only when this run
-  created the release. It runs the suite at the tag and replaces the note's header with a paragraph holding the results the stamp states, as badges, one or two to a line. They are the sealed version and commit, the pull requests merged, the issues closed, the outside contributors where there are any, the suite's counts, the work items and their review rounds, how many were capped, and the issues deferred. The header holds no table: GitHub draws a border around every table cell whatever the note's HTML asks, and in dark mode that border frames the seal in grey. A badge is a static image from the Shields badge service showing a label and a value in colours read by its label from one table, so that a passing result does not read like a failure. Every label is grey except `SEALED`'s, which keeps the seal's dark red beside the seal's bright red value. The suite's passed count is green, the skipped, capped and deferred counts are grey, and every other value is blue. A badge's alt text is that label and value in words. So a reader whose client draws no image, or who opens the note
+  created the release. It runs the suite at the tag and replaces the note's
+  header with a paragraph holding the results the stamp states, as badges,
+  one or two to a line. They are the sealed version and commit, the pull
+  requests merged, the issues closed, the outside contributors where there
+  are any, the suite's counts, the work items and their review rounds, how
+  many were capped, and the issues deferred. The header holds no table:
+  GitHub draws a border around every table cell whatever the note's HTML
+  asks, and in dark mode that border frames the seal in grey. A badge is a
+  static image from the Shields badge service showing a label and a value in
+  colours read by its label from one table, so that a passing result does
+  not read like a failure. Every label is grey except `SEALED`'s, which
+  keeps the seal's dark red beside the seal's bright red value. The suite's
+  passed count is green, the skipped, capped and deferred counts are grey,
+  and every other value is blue. A badge's alt text is that label and value
+  in words. So a reader whose client draws no image, or who opens the note
   while the service does not answer, still has every result. Where
   `seal/config.json`'s `Release note seal mark` key reads `yes` at the tag,
   the job first attaches the page form of the stamp's mark, the PNG that
-  `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the header opens with that image at its display width, floated left so that the badges stand beside it, and ends with a line break that clears the float. The image's alt text names the image alone, because the badges' alt text carries every number. Under any other value nothing is attached and the badges stand alone, with no float; `templates/setup/config.md` *The seal mark* states
-the key's values and who reads it. The PNG is drawn from
+  `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the
+  header opens with that image at its display width, floated left so that
+  the badges stand beside it, and ends with a line break that clears the
+  float. The image's alt text names the image alone, because the badges' alt
+  text carries every number. Under any other value nothing is attached and
+  the badges stand alone, with no float; `templates/setup/config.md` *The
+  seal mark* states the key's values and who reads it. The PNG is drawn from
   `assets/seals/owl.svg` by the command `assets/seals/README.md` gives, and
   the job installs no imaging library to attach it. That edit is the only
   change it makes to a note, and only to one whose header is still exactly
@@ -108,9 +138,9 @@ the key's values and who reads it. The PNG is drawn from
   it at the checklist's box. Submitting a plugin at the developer portal is a
   person's act.
 - **`size: now` is spent by a workflow and created by a person.** When
-the release reaches `main`, the close-issues workflow takes `size: now`
-off each issue it closes. No workflow creates the label: it stands on the
-tracker, and a person who deletes it recreates it with `gh label create`.
+  the release reaches `main`, the close-issues workflow takes `size: now`
+  off each issue it closes. No workflow creates the label: it stands on the
+  tracker, and a person who deletes it recreates it with `gh label create`.
   `docs/releasing/issues-and-milestones.md` owns what the label means; this says only who
   performs the acts. Whether the label exists is what `gh label list` says.
 
@@ -145,7 +175,15 @@ of the release's tag. So the list lives in that one file and the workflow
 holds none. It lists what leaves and not what stays: a path forgotten
 there reaches `dist` and costs size or a finding, where a path forgotten
 in a list of what stays would be missing from every listed copy with
-nothing here to see it. `.github/` leaves whole, by one line: it holds this repository's workflows and the release automation they run, and no file `dist` holds loads one of them. A module a shipped file loads stands under a directory `dist` holds, so a change to it alone moves the version: the closing-keyword readers are `lib/closing.py`, and `seal rules` runs `skills/settle/scripts/rules.py`. `bin/test` runs `tests/run_tests.py`, the runner of this repository's suite, which leaves with `tests/`, so the `bin/test` that `dist` holds answers with its sentence that no runner stands beside it (#1420). The workflow's `dist` job
+nothing here to see it. `.github/` leaves whole, by one line: it holds this
+repository's workflows and the release automation they run, and no file
+`dist` holds loads one of them. A module a shipped file loads stands under a
+directory `dist` holds, so a change to it alone moves the version: the
+closing-keyword readers are `lib/closing.py`, and `seal rules` runs
+`skills/settle/scripts/rules.py`. `bin/test` runs `tests/run_tests.py`, the
+runner of this repository's suite, which leaves with `tests/`, so the
+`bin/test` that `dist` holds answers with its sentence that no runner stands
+beside it (#1420). The workflow's `dist` job
 builds the commit with `.github/scripts/dist_branch.py` on the previous
 commit of `dist`, makes none where that commit's tree is already the
 tag's archive, and pushes without force, because the directory serves a scanned commit of the
@@ -247,11 +285,12 @@ branch, which is why the version moves in the release's first pull request.
 **Both rulesets require the `lint` job of `.github/workflows/test.yml` and
 the `release` job of `.github/workflows/hygiene.yml` to pass at the commit
 that merges.** A ruleset with no bypass actor still merges a pull request
-whose checks are red, unless the ruleset requires those checks. Neither `pytest` job, `pytest` nor `pytest-wide`, is required. Their
-check names carry the matrix values, so a required name is a copy of
-`test.yml` that stops matching when the matrix changes, and the chain check already refuses a
-work item's ready pull request where a commit that changes a path
-outside the work item's records follows its newest broad run. The
+whose checks are red, unless the ruleset requires those checks. Neither
+`pytest` job, `pytest` nor `pytest-wide`, is required. Their check names
+carry the matrix values, so a required name is a copy of `test.yml` that
+stops matching when the matrix changes, and the chain check already refuses
+a work item's ready pull request where a commit that changes a path outside
+the work item's records follows its newest broad run. The
 `release` ruleset does not hold the checks where a branch is created,
 because a release branch is cut at a commit of `main` that no pull
 request's `hygiene` run reported on. Neither ruleset requires a branch to

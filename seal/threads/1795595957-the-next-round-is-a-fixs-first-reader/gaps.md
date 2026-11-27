@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| Whether a test file outside phase 1's boundary run passes at its commit, and the repository-wide lint and format. The run took `tests/text`, `tests/behaviour` and `tests/skills/test_chain_check.py` (`trail/phases/phase-1.md`). | the orchestrator's broad gate |
-| Whether a proofer walks the record rows of `skills/code-review/SKILL.md` *Comparison axes*, *Record against the code* to *Figure against its text*, and a sealer runs the diff read of `agents/sealer.md` step 4, in a real run. No eval case measures either, as `frame/design.md` *Scope* Out says, and no case can: the cases this work adds read the text. | the repository owner, through #1615's row of `seal/follow-up.md` |
+| closed Whether a test file outside phase 1's boundary run passes at its commit, and the repository-wide lint and format. The run took `tests/text`, `tests/behaviour` and `tests/skills/test_chain_check.py` (`trail/phases/phase-1.md`). | answered: the work item's broad run, `trail/gate.md` at `a82488a7e` against `a9cc9cf93`, on which `guarantee.md` sealed |
+| closed Whether a proofer walks the record rows of `skills/code-review/SKILL.md` *Comparison axes*, *Record against the code* to *Figure against its text*, and a sealer runs the diff read of `agents/sealer.md` step 4, in a real run. No eval case measures either, as `frame/design.md` *Scope* Out says, and no case can: the cases this work adds read the text. | re-homed: the row of `seal/follow-up.md` *Schedulable items with nowhere else to go* that names #1615 |
 
 ## Not done
 

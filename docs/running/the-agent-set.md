@@ -170,14 +170,22 @@ stops being, and every sentence in it borrows the authority of the sentences
 still true. The rules that survive move into the documents that own their
 subjects, with the cases that pin them, because a case deleted with its
 document is coverage nobody decided to give up.
-
 **What an agent leaves in the scratchpad is named for the work item it
 serves, so two agents alive at once cannot pick the same name.** Every agent
 of one session shares one scratchpad, and a name any parallel agent would
 also pick is a file somebody else can overwrite. So the proofer's clone is
 `<scratchpad>/<work-item-id>/round-<n>/clone` with every probe of the round
 beside it, and the orchestrator's `seal gate` log carries the work item id.
-The rule stands in contract rule 17, which every agent receives, and each definition names its own directory under it. No agent removes its directory or a file in it. The name already keeps two agents' files apart, the one removal on record took the whole scratchpad with every other agent's files (#1445), and a removal written with a variable in its path is a command Claude Code holds for a person (#1503). An agent that finds its directory standing leaves it and takes the next free name. The removal is the orchestrator's, in `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, because nothing clears a session's scratch when the session ends.
+The rule stands in contract rule 17, which every agent receives, and each
+definition names its own directory under it. No agent removes its directory
+or a file in it. The name already keeps two agents' files apart, the one
+removal on record took the whole scratchpad with every other agent's files
+(#1445), and a removal written with a variable in its path is a command
+Claude Code holds for a person (#1503). An agent that finds its directory
+standing leaves it and takes the next free name. The removal is the
+orchestrator's, in `skills/implement/orchestration.md` *Orchestrator: the
+order inside a ticket*, because nothing clears a session's scratch when the
+session ends.
 check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **A judgment is written where its party writes, with its grounds and the document it
@@ -222,7 +230,10 @@ check: tests/behaviour/test_the_sealer_guarantees.py
 **A spawn's payload is measurable, and it is paid on every spawn.** An
 agent's definition, every skill its own list injects and the instruction
 files the harness adds are written into the context of every segment that
-agent runs, whether or not the segment has an act to apply them to. The meter resolves a definition's list to files and reports the composition per file and as a total, in bytes and characters, with tokens estimated from the bytes.
+agent runs, whether or not the segment has an act to apply them to. The meter
+resolves a definition's list to files and reports the composition per file
+and as a total, in bytes and characters, with tokens estimated from the
+bytes.
 
 **A section marked for one role reaches that role and no other.** An
 orchestrator's procedure preloaded into every implementer spawn is procedure

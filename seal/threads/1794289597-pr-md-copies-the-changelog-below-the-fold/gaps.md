@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the format check at this branch's HEAD | the orchestrator, through the broad gate |
-| the five sealer eval cases under `evals/behaviour/sealer/` run by an agent against the new body layout, whose `seal pr-body --check` refuses the new layout where the sandbox resolves `seal` to an installed 0.37.1 plugin (`frame/design.md` G11) | the repository owner, at the next run of the behaviour evals |
+| closed the full suite, the repository-wide lint and the format check at this branch's HEAD | answered: the work item's broad run, `trail/gate.md` at `0004bbd60` against `ce915f17e`, on which `guarantee.md` sealed |
+| closed the five sealer eval cases under `evals/behaviour/sealer/` run by an agent against the new body layout, whose `seal pr-body --check` refuses the new layout where the sandbox resolves `seal` to an installed 0.37.1 plugin (`frame/design.md` G11) | a measurement no record asks for: it would have decided whether the sealer's eval cases read the body layout `seal pr-body --check` composes; no issue, failed run or other work item's rule rests on it |
 
 ## Not done
 

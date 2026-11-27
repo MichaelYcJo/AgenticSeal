@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| Whether a fix pass opens `skills/implement/fix-pass.md` at step 9, a resumed implementer among them (`frame/design.md` S3). Phase 1 pinned the step's sentence and the file's clauses in `tests/text/test_a_moved_rule_leaves_its_definition.py`, and ran no fix pass: the crafter's behaviour suite holds no fix-pass case (`frame/design.md` G11). | the orchestrator, from the transcript of the first fix pass after the merge |
-| The broad gate at the work item's HEAD. Phase 1 ran its phase-boundary set, as `trail/phases/phase-1.md` says, and not the broad gate. | the orchestrator, by `seal gate --record` |
+| closed Whether a fix pass opens `skills/implement/fix-pass.md` at step 9, a resumed implementer among them (`frame/design.md` S3). Phase 1 pinned the step's sentence and the file's clauses in `tests/text/test_a_moved_rule_leaves_its_definition.py`, and ran no fix pass: the crafter's behaviour suite holds no fix-pass case (`frame/design.md` G11). | a measurement no record asks for: it would have decided whether a fix pass opens `skills/implement/fix-pass.md` at its step; no issue, failed run or other work item's rule rests on it |
+| closed The broad gate at the work item's HEAD. Phase 1 ran its phase-boundary set, as `trail/phases/phase-1.md` says, and not the broad gate. | answered: the work item's broad run, `trail/gate.md` at `10351c95b` against `af923302c`, on which `guarantee.md` sealed |
 
 ## Not done
 
