@@ -29,19 +29,17 @@ lifetimes* states (contract rule 11).
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
    once. The orchestrator opens `skills/agent-contract/SKILL.md` once,
-   beside the core. Contract rule 4, contract rule 5, contract rule 19 and
-   contract rule 21 bind the orchestrator in every route. The
-   orchestrator's own commands, its commits and the broad run among them,
-   follow contract rule 21. The text the orchestrator's commits write, its
-   record edits, its folds of what a crafter names, `pr.md`, the rows of
-   *Judgments of the run* and a merge's resolution among them, follows
-   contract rule 19. By contract rule 4 and contract rule 5, a fact that
-   text states of a commit, a run or the tree is one that a command the
-   orchestrator ran printed or a file it opened showed, and a fact it holds
-   from its memory of the run it opens again before it writes it. Where the
-   orchestrator builds or fixes itself, every rule of that file binds it as
-   the builder `skills/implement/SKILL.md` *The builder is the party that
-   builds a phase or makes a fix pass* names.
+   beside the core. In every route, the orchestrator's own commands, its
+   commits and the broad run among them, follow contract rule 21. The text
+   the orchestrator's commits write, its record edits, its folds of what a
+   crafter names, `pr.md`, the rows of *Judgments of the run* and a merge's
+   resolution among them, follows contract rule 19. By contract rule 4 and
+   contract rule 5, a fact that text states of a commit, a run or the tree
+   is one that a command the orchestrator ran printed or a file it opened
+   showed, and a fact it holds from its memory of the run it opens again
+   before it writes it. Where the orchestrator builds or fixes itself, every
+   rule of that file binds it as the builder `skills/implement/SKILL.md`
+   *The builder is the party that builds a phase or makes a fix pass* names.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter, or builds itself where `routing.md` answers

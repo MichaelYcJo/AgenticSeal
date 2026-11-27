@@ -129,10 +129,10 @@ file that names the builder binds both. So does each rule of
 `skills/agent-contract/SKILL.md`, and a rule there that withholds an act
 from every agent, such as the broad gate of contract rule 2 or the acts
 contract rule 6 withholds, withholds it from the crafter and leaves the
-orchestrator the acts its own procedure gives it. Where a rule has the crafter name
-something in its hand-back for the orchestrator, the orchestrator that
-builds acts on it at the point its build meets it, by the step of its own
-procedure that acts on that hand-back.
+orchestrator the acts its own procedure gives it. Where a rule has the
+crafter name something in its hand-back for the orchestrator, the
+orchestrator that builds acts on it at the point its build meets it, by the
+step of its own procedure that acts on that hand-back.
 
 ### 1. Read the documents that outrank the code first
 
