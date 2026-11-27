@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run mutations of one file, each alone, and say whether a case noticed it.
 
-`agents/crafter.md` asks the implementer to break every unit that adds
+`skills/implement/SKILL.md` asks the builder to break every unit that adds
 behaviour, one at a time, and watch a case go red. Typed by hand that is
 three acts per mutation -- an edit, a run, an edit back -- and each of them
 has been seen to go wrong:

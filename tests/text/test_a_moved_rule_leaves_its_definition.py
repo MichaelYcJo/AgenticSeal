@@ -337,7 +337,7 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
     """The fix pass's procedure stands in `skills/implement/fix-pass.md`,
     which the crafter opens at step 9 (#1471). The file cites the form's two
     paragraphs on the close block, the contract rule a procedure step is read
-    under, the field its answer goes in and the crafter's rule on reading the
+    under, the field its answer goes in and the builder's rule on reading the
     range whole; the form states the close block's `verdict:` values and its
     `location:` line. The block's grammar is `lib/fields.py`'s and is held
     there."""
