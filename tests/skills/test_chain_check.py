@@ -4638,20 +4638,48 @@ class Test_main:
 
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
-    def test_refuses_a_last_records_code_finding_fixed_in_its_records_alone(
+    def test_passes_a_last_records_code_finding_fixed_in_its_records_alone(
         self, branch, monkeypatch
     ):
-        """S4 of #1148: a finding that names a path outside the records owes
-        the round, even where its `fixed` commit touched only the records,
-        since no round would read its code half."""
+        """#1632, *Scope* item 4: a finding of the last record that names a
+        path outside the records beside the work item's `gaps.md`, `fixed` by
+        a commit that touched `gaps.md` alone, owes no verifying round. Its
+        own block names a place in the records, so the core's row gives the
+        fix to the sealer, which reads what the finding asked of the path
+        outside them (`agents/sealer.md` step 4)."""
         root, code_sha = branch
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
         fix = commit(root, "the record half alone")
         located = f"`f.txt:1`, `{ITEM}/gaps.md`"
         last = record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)])
+        assert records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1]) == []
+
+    @pytest.mark.rule("run-ends-with-verifying-round")
+    @pytest.mark.rule("last-record-at-head")
+    def test_refuses_a_last_records_code_finding_its_close_places_in_the_records(
+        self, branch, monkeypatch
+    ):
+        """#1632, *Scope* item 4: a finding whose own block names `f.txt:1`
+        alone owes the round where its close block's `location:` names the
+        work item's `gaps.md` and its `fixed` commit touched `gaps.md` alone.
+        The round placed the finding wholly outside the records, and the
+        close block the fix pass wrote does not make the sealer its reader.
+        It is refused at the close's `verdict:` line, the finding's line."""
+        root, code_sha = branch
+        write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
+        fix = commit(root, "a row in the records for a finding in code")
+        verdict = f"fixed {fix[:8]}"
+        section = (
+            finding(1, "open", location="`f.txt:1`")
+            + "\n"
+            + close(verdict, location=f"`{ITEM}/gaps.md`")
+        )
+        last = record(code_sha, [section])
         found = records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1])
-        line = next(why for rel, _n, why in found if rel == ROUND_1 and "### 1." in why)
-        assert chain.VERIFYING_ROUND in line, line
+        assert [(rel, n) for rel, n, _why in found] == [
+            (ROUND_1, line_at(last, f"verdict: {verdict}"))
+        ], found
+        assert "### 1." in found[0][2] and chain.VERIFYING_ROUND in found[0][2], found
 
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_code_commit_after_the_last_record(self, branch, monkeypatch):

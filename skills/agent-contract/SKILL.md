@@ -190,7 +190,7 @@ refusal in the hand-back, quoted; never bend the code to pass it. Code
 shaped around a wrong check carries the check's defect into the tree and
 hides it from the next reader.
 
-## 19 A change rewrites the text it amends in place, and writes no count that goes stale
+## 19 A change rewrites the text it amends in place, and writes nothing that goes stale
 
 `skills/core/SKILL.md` *The rule a mechanism is kept against* states the
 rule. What stood on the old fact, which the same commit removes or
@@ -210,11 +210,36 @@ list, the section or the command that lists them. A count stands only in
 the sentence that opens the list it counts, or beside the list, where a
 change to the list meets it. An item's own number, such as *Scope* item 3,
 is a coordinate and not a count. A universal that states a rule, what must
-hold, is the rule and stays. A count or a universal stated of a named
-commit, a release or a dated measurement is a claim about that moment and
-stays. The rule reaches every text a change writes: a record, a document,
-a comment, a docstring, and a paste-ready fix written for another party to
-apply.
+hold, is the rule and stays.
+
+Nor does what a change writes state the value of a state outside the work
+item's branch that a later act can make false with no commit on that
+branch. A branch's name or tip, the branch a pull request merges into, a
+tag, the version a release carries, and what another work item has
+branched, framed or been ordered to do are examples of such a state, not a
+list of it, and a sentence that predicts the state after a later act is
+held the same way. The acts that change it, a cut, a rename, another pull
+request's merge, a tag or a deleted branch, make no commit on the work
+item's branch, so no change searches for the sentence as this rule's first
+paragraph asks, and no round is owed that would read it. In its place the
+text states what the work item decided and names each thing by the role it
+plays, such as the release branch, the release's first pull request or the
+item that carries the version move, and where a reader needs the value, it
+names the file or the command that reads it at that time. A count, a
+universal or a value stated of a named commit, a published release, a
+dated measurement, or a date or a cut the sentence names is a claim about
+that moment and stays, and a release still open is no such moment. A line
+of the plugin's forms that a check reads by value keeps the value its form
+gives it: the `Branch` row of `routing.md`, and the `target:` line of a
+round record and of `guarantee.md`. A value whose source is a file the
+work item's own commit has written is a state of its branch, not one
+outside it, and a sentence that states it stays: the version that the work
+item carrying the move has written to the version file, and states in its
+`changelog.md`, is one. Before that commit, the number is a prediction of
+a state outside the branch, held as this paragraph holds every such
+prediction. The rule reaches every text a
+change writes: a record, a document, a comment, a docstring, and a
+paste-ready fix written for another party to apply.
 
 ## 21 Write each command so Claude Code's parser can read it
 
