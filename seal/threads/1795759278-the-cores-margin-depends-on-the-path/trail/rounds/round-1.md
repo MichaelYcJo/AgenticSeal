@@ -53,6 +53,12 @@ The search on the evidence line is a sample under contract rules 12 and 19. It p
 
 The `startswith` reads the module's own constant in its one spelling, the shape `skills/core/SKILL.md` *The rule a mechanism is kept against* lets a script hold a fact on. No precondition at an OS boundary: the row reads what `rendered` returned.
 
+```seal
+verdict: fixed 20f375340
+location: `seal/threads/1795759278-the-cores-margin-depends-on-the-path/changelog.md:4`
+answer: The finding holds, and the fix is built to the fold's *Scope* item 9 (`24e3b8af8`). `20f375340` applies the paste-ready fix as read against item 9 and the code: `#session_composition` sets `named`, true, where what `core.rendered` returned opens with `core.TOO_LONG` formatted for the core's path and `core.CAP` (`skills/verify/scripts/payload_meter.py:399-402`), and `#_session_lines` writes the new note for such a row (`:526-532`). The row's count is unchanged. The module docstring (`:16-20`) and the docstring of `#session_composition` (`:381-387`) gain the clause, without the "NAME NOT IN TREE" comment, since the fold puts the key in *Data & interfaces*. The new case `test_a_core_past_the_cap_is_a_hook_row_marked_as_naming_the_core` (`tests/skills/test_payload_meter.py:409`) was seen red against the meter as round 1 read it, failing on `KeyError: 'named'`, and the existing hook case now holds that a core printed whole carries no `named` and keeps its note (`:396-398`). `seal mutate` over `payload_meter.py`: red for the key's assignment removed, for the condition read as `True` against the existing case, and for the new note's branch removed. A change inside the note's middle sentence survived, so `be5df7b9a` pins that sentence whole, and the same mutant is then red. `changelog.md`'s second `### Fixed` entry follows, which this finding's `location:` does not name. Executed after `be5df7b9a`, the finding's search prints `payload_meter.py:16`, `:104`, `:504`, `:528` and `:535`, `tests/skills/test_payload_meter.py:9`, `:374`, `:395`, `:398` and `:440`, and `docs/layout/the-record-layout.md:181`. `:16` and `:528` are the fix's sentences. `:104` is the comment naming the row for what the hook prints, which holds in both branches. `:504`, the table's opening sentence, says a session reads the core the hook prints. The session reads the core in both branches, and the row's note says how, so it stands, and it is outside the places item 9 names. `:535` is the note for a whole core, which item 9 keeps. The test lines describe or assert the whole-core case, and `:440` asserts the old note is absent from a `named` row. `docs/layout/the-record-layout.md:181` names the hook and not the meter's row.
+```
+
 ### 2. `lib/core.py`'s docstring says the plugin's root stands once in the output, and the output past the cap names it twice
 
 ```seal
@@ -82,6 +88,11 @@ changelog.md:3, the bold title
 - **The core's closing line names its two files relative to the plugin's root, so an installed plugin's printed core holds that root once (#1641).**
 ```
 
+```seal
+verdict: fixed d72b9e4d6
+answer: The finding holds. `d72b9e4d6` applies the paste-ready fix as written to `lib/core.py:14-21`, so the docstring limits "the root once" to a printed core and says the closing line past the cap names the running plugin's root whichever core it is, and to the bold title of `changelog.md:3`. Executed after `be5df7b9a`, the finding's two searches print `lib/core.py:14`, now limited; `tests/lib/test_core.py:226`, a whole-output case that holds; `skills/code-review/scripts/chain_check.py:1291`, which is about rule documents read once per run and not this fact; `changelog.md:3`, now limited; this record's own lines; `trail/phases/phase-1.md:7` and `:14`, the phase's history; `frame/questions.md:6` and `frame/plan.md:21`, which go on to what a root past the cap receives, as the round said; and `frame/design.md:29`, `:31`, `:47` and `:67`, a dated *Grounding* probe and statements about a whole output, which stand. The search does not print `tests/lib/test_core.py:246`, which the round named. That docstring reads "the one place that root stands in the output", about a clone's whole output, and it holds.
+```
+
 ### 3. `gaps.md` *Not done* reports as undone a table that `frame/design.md` *Scope* item 8 no longer asks for, and an orchestrator's judgment that `frame/plan.md` records as made
 
 ```seal
@@ -96,6 +107,11 @@ Why it matters: the bullet opens with "The `### Process changes` table of `frame
 ## Not done
 
 - **No `### Process changes` table.** `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* asks for one where the diff changes the way-of-working files that section lists, and this diff changes none of them, so `frame/design.md` *Scope* item 8 asks for none. The weighing `CONTRIBUTING.md` gains stands there and in the fragment's third `### Fixed` entry. The orchestrator took this reading in `frame/plan.md` *Judgments of the run*, its row of 2026-11-27.
+```
+
+```seal
+verdict: fixed d72b9e4d6
+answer: The finding holds. `d72b9e4d6` rewrites the bullet at `gaps.md:13` in place from the paste-ready fix, in this pass's words in two places. The paste-ready fix's "this diff" becomes "this work item's diff", since the fix pass also changes `skills/verify/scripts/payload_meter.py`, which the section does not list either. "its row of 2026-11-27" becomes the row that opens "After phase 1 (`48f4fc57f`)", since three rows of *Judgments of the run* carry that date at HEAD.
 ```
 
 ## Confirmations
