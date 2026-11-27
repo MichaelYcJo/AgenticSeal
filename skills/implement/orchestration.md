@@ -132,16 +132,18 @@ and the document it judged against as one row of `frame/plan.md`
 *Judgments of the run* and leaves the row uncommitted, so the framer reads
 the row when it reads
 `plan.md` whole: the rewritten sentence keeps no reason for itself, and the
-settle reads the row. Where a row of *Judgments of the run*, this one or
-any other the orchestrator writes, names a commit, it names it as a
-coordinate and gives no inventory of what that commit changed: no number of
-lines, no list of the sentences or items a fold rewrote and no word for the
-kind of change a fold made, because `git show <commit>` is that account. A
-row whose judgment is about a change, such as a regression's route
+settle reads the row. A row of *Judgments of the run*, this one or any
+other the orchestrator writes, names any commit only as a coordinate, and
+gives no inventory of a change, whether a commit holds the change or the
+change is still to come, as a fold's is when its row is written: no number
+of lines, sentences or items, no list of what the change rewrote or will
+rewrite, and no word for the kind of change a fold made or will make.
+`git show <commit>` is that account once the commit exists. A row whose
+judgment is about a change, such as a regression's route
 (`skills/code-review/orchestration.md` *A regression is routed by comparing
 the fix with the frame*) or why the title takes its prefix, states as its
-grounds what the change means against the document it judges against. The
-orchestrator resumes the work item's framer while that session still
+grounds what the change means against the document it judges against, and
+no inventory of it. The orchestrator resumes the work item's framer while that session still
 exists, as a fix pass resumes the implementer, and otherwise spawns a
 fresh framer and hands it the decisions and the commit at which the frame
 was last written. The message that resumes the framer,
