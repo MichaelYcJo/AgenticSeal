@@ -65,10 +65,11 @@ Edge cases, stated here and held by no other text:
   (`ON_DISK`, `ABSENT_ON_DISK`); the range itself is still read from git.
 - Each git command is built by `lib/gitcmd.py#argv`, a pathspec is read
   literally, each path is taken from `-z` output, and an external diff, a
-  textconv filter, colour and git's joining of nearby hunks are switched
-  off, so a configuration cannot put text into what the command prints or
-  reads. It writes nothing but `--out`, reads no transcript and reaches no
-  network.
+  textconv filter, colour, git's joining of nearby hunks and an `ignore`
+  setting for submodules are switched off, so neither a configuration nor
+  a `.gitmodules` entry can put text into what the command prints or
+  reads, or take a path out of it. It writes nothing but `--out`, reads no
+  transcript and reaches no network.
 
 Exit: 0 the file is written. 2 nothing is written: an argument is missing,
 `<item>` is not a directory directly under the work items of a marked
