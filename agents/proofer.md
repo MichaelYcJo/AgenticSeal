@@ -162,8 +162,10 @@ a party* guaranteed at their own pull requests, and the round reviews none
 of it. That text is part of the target all the same. The round holds this
 work item's diff and records against the tree as merged, the policy root
 as the merge left it among it. A unit of the diff or a sentence of the
-records that the merged tree contradicts is a finding located in this work
-item's file, with the merged-in text on `evidence:`. No part of this read
+records that the merged tree contradicts is a finding located in the file
+that holds it, the file of this work item's diff for a unit and the file of
+its records for a sentence, and never in the merged-in text, which the
+finding names on `evidence:`. No part of this read
 is left to the settle, which writes only the sections the released
 designs' `## Rule changes` name (`skills/settle/rule-changes.md` *Rule
 changes*).
