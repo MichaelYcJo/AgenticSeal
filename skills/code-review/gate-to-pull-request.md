@@ -183,8 +183,13 @@ the pull request exists. The arms that read what is written after the gate,
 `trail/gate.md`, `guarantee.md` and the body, print and do not fail. Read
 its exit code directly and take the broad run only on 0. On 1 its
 `PREFLIGHT FAILED` lines name each failing arm with its first lines and the
-file holding the rest: correct the
-record, commit, and run it again. On 2 it refused before anything ran, and
+file holding the rest. Where a line names a round record with the words
+`skills/code-review/scripts/chain_check.py#VERIFYING_ROUND` holds, no edit
+of a record answers it: spawn the verifying round it owes, as
+`skills/code-review/orchestration.md` *Orchestrator: the run ends with a
+verifying round* states, commit its record, and run the preflight again.
+On any other refusal, correct the record, commit, and run it again. On 2
+it refused before anything ran, and
 a refusal about the key goes to a person, as
 *A refusal about the `Broad gate` key* below says. It writes no file and
 prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
