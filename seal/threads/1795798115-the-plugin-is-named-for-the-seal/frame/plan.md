@@ -79,4 +79,4 @@ The spawn names no other open work item of the release, so this work meets none.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-28 | From phase 7's commit on, the proofer and the inspector are spawned as the harness's general-purpose agent type, with a prompt that names the tree's `agents/<name>.md`, `skills/core/SKILL.md` and `skills/agent-contract/SKILL.md` as the files that bind them (questions row Q5) | The installed definitions are the last release's, and the final party's names `guarantee.md` as its only write. A party bound by the tree's definitions writes the forms the tree's checks read | `frame/plan.md` *Technical context*, and `skills/core/SKILL.md` *Each agent judges its own target, independently of the others* |
