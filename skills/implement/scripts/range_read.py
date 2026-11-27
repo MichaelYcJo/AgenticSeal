@@ -129,10 +129,7 @@ GITLINK = "160000"
 LITERAL = {"GIT_LITERAL_PATHSPECS": "1"}
 
 # The options of every `git diff` the command runs. `--ignore-submodules=none`
-# keeps a submodule's path in the listing where `diff.ignoreSubmodules` or a
-# `.gitmodules` entry's `ignore` would leave it out. It is a flag and not a
-# key of `lib/gitcmd.py#KEYS`, because `-c diff.ignoreSubmodules=none` does
-# not reach the `.gitmodules` entry.
+# is the flag `lib/gitcmd.py` names for a submodule's `ignore` setting.
 DIFF = (
     "diff",
     "--no-color",
@@ -417,8 +414,8 @@ def _uncommitted(root):
     """Each tracked path in ROOT with a change no commit holds, staged or
     not."""
     # `--ignore-submodules=none`, as in DIFF: a submodule whose checkout
-    # moved off the commit the index holds is named where a setting would
-    # leave it out.
+    # moved off the commit the index holds is named whatever its `ignore`
+    # setting (`lib/gitcmd.py`).
     out = _git(
         root,
         "status",

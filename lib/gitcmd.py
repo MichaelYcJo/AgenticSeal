@@ -51,6 +51,15 @@ a subcommand found later to change a reading is added here and nowhere
 else. `core.quotePath` is not set: a script that takes a path out of output
 git quotes under it asks for the path with `-z`, which quotes none.
 
+A setting that no `-c` key holds is named here with the flag that holds
+it. `diff.ignoreSubmodules` and the `ignore` of a submodule's entry in
+`.gitmodules` take a submodule's path out of `diff`, and out of `status`
+where the submodule's checkout moved off the commit the index holds.
+`-c diff.ignoreSubmodules=none` does not reach the `.gitmodules` entry,
+so a script that lists those paths passes `--ignore-submodules=none` on
+each such command, as `skills/implement/scripts/range_read.py#DIFF` and
+`#_uncommitted` do.
+
 Three helpers read a path: `git_path` turns a path built by `os.path`
 into git's `/`-joined form, `under_root` turns a `/`-joined
 repository-relative path into the disk's, and `inside` answers whether a
