@@ -313,7 +313,7 @@ SEALING_SAYS = (
 )
 # The first line of a `--sealing` run, printed in place of the state line:
 # the broad gate's run precedes the ready pull request CI judges, so it is
-# judged as one, and the payload and `gh` are not asked.
+# judged as one, and neither the payload nor `gh` is asked for the state.
 SEALING_JUDGED_SAYS = (
     f"`{SEALING}`: the broad gate's own run, judged as a ready pull request "
     "whatever the pull request's state, which it does not read"
