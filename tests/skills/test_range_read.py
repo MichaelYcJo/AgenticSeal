@@ -311,9 +311,10 @@ class Test_main:
     ):
         """In local mode the records stand under the git directory, where
         HEAD holds none, so the file reads them on disk and says so on the
-        line naming each, or names one that is not there. The record is
-        written as bytes: a file the script reads on disk prints as it stands
-        there, and a text-mode write would put CRLF there on Windows."""
+        line naming each, or names one that is not there. A record whose
+        lines end in CRLF on disk, as a text-mode write leaves them on
+        Windows, prints each line ended by LF alone, as a record git holds
+        prints."""
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
@@ -323,13 +324,14 @@ class Test_main:
         base = commit_everything(repo, "base")
         item = local_home(repo) / "threads" / "1700000000-a-work-item"
         item.mkdir(parents=True)
-        (item / "routing.md").write_bytes(b"# Routing, local\n")
+        (item / "routing.md").write_bytes(b"# Routing, local\r\nSecond line.\r\n")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, item, base, out)
         assert code == 0, said
         text = written(out)
         name = os.path.relpath(item / "routing.md", repo).replace(os.sep, "/")
-        assert RANGE.ON_DISK.format(path=name) + "\n# Routing, local\n" in text
+        record = "\n# Routing, local\nSecond line.\n"
+        assert RANGE.ON_DISK.format(path=name) + record in text
         gaps = os.path.relpath(item / "gaps.md", repo).replace(os.sep, "/")
         assert RANGE.ABSENT_ON_DISK.format(path=gaps) in text
         assert RANGE.NOT_PRINTED.format(path=gaps, why="absent") in said

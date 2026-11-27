@@ -63,6 +63,9 @@ Edge cases, stated here and held by no other text:
 - In local mode the records stand under the common git directory, which no
   commit holds, so they are read on disk and their line says so
   (`ON_DISK`, `ABSENT_ON_DISK`); the range itself is still read from git.
+  A record read on disk is decoded by `lib/gitcmd.py#decoded`, so its
+  lines end in LF alone where the disk holds CRLF, as a record read from
+  git does.
 - Each git command is built by `lib/gitcmd.py#argv`, a pathspec is read
   literally, each path is taken from `-z` output, and an external diff, a
   textconv filter, colour, git's joining of nearby hunks and an `ignore`
@@ -388,8 +391,8 @@ def _records(root, head, item, rel):
             path = os.path.join(item, *name.split("/"))
             shown = gitcmd.git_path(os.path.relpath(path, root))
             try:
-                with open(path, encoding="utf-8", errors="replace", newline="") as f:
-                    text = f.read()
+                with open(path, "rb") as f:
+                    text = gitcmd.decoded(f.read())
             except FileNotFoundError:
                 lines.append(ABSENT_ON_DISK.format(path=shown))
                 absent.append(shown)
