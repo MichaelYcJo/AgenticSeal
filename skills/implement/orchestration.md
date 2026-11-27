@@ -44,8 +44,8 @@ lifetimes* states (contract rule 11).
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter, or builds itself where `routing.md` answers
    `Implementation` with `the session` (*The frame is read against the
-   issue at the spawn* below). Once the build's last phase has closed, the orchestrator
-   writes and commits the work item's `pr.md`, the pull request body's
+   issue at the spawn* below). Once the build's last phase has closed, the
+   orchestrator writes and commits the work item's `pr.md`, the pull request body's
    first part, with its `pr.<lang>.md` where the two language keys differ,
    before the first round. The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
@@ -189,8 +189,9 @@ records the home in a comment on the issue of the work item in progress.
 `frame/design.md` and `frame/plan.md` against the issue's decisions and its
 *Done when* before the first crafter spawn, or before its own first edit
 of the build where it builds itself, and settles what it finds with the
-framer in one exchange.** It looks for where the frame is weaker than the issue asks,
-departs from the issue's direction, or would grow the review load. Each
+framer in one exchange.** It looks for where the frame is weaker than the
+issue asks, departs from the issue's direction, or would grow the review
+load. Each
 reading goes to the framer in one message, as a proposal with its grounds
 and coordinates and never as an instruction. The framer answers each with
 agree, agree with a change, or reject with grounds, folds what it agreed

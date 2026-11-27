@@ -3,8 +3,8 @@
 A party that proves condition 2 of `skills/verify/SKILL.md` *2. Able to
 fail* for one unit opens this file before it runs `seal mutate`: the
 builder, the crafter or the orchestrator that builds itself, at each unit
-that adds behaviour, and a round or the sealer re-running a claim. It holds the command, its verdicts with their exit codes, and its
-bound.
+that adds behaviour, and a round or the sealer re-running a claim. It
+holds the command, its verdicts with their exit codes, and its bound.
 
 ## `seal mutate` asks condition 2 of one unit, one break at a time
 
