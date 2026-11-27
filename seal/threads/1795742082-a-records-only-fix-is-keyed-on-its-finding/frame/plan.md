@@ -62,4 +62,5 @@ A user's sealers read the wider step 4, and proofers the new rule, at their next
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | After phase 1, the crafter's report that HEAD contradicts the *Overlap with the release* row for `1795742080-a-session-is-bound-by-the-crafters-rules` goes to the framer's fold, folded at `e33a593df` before round 1, and the framer also says whether a `RULES` row should hold step 4's citation of the core's row | The row stands in a frame file, and a statement of the frame that HEAD contradicts is folded by the framer before the next spawn | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** |
+| 2026-11-27 | Round 1's finding 1 is folded into `frame/design.md` *Scope* item 6 by the framer, before the fix pass, and the fix pass writes `agents/proofer.md` in the fold's words | The finding is located in the frame's bullet at `frame/design.md:52` as well as in the rule that bullet describes, and its grounds say the bullet's phrase has two readings, so the sentence that says what the work does changes | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** |
