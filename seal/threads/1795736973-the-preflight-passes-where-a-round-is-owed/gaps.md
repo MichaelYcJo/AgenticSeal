@@ -9,3 +9,5 @@
 ## Not done
 
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* still says that a run that observed no pull request prints and exits 0, with no clause for `--sealing`. The work item's subject is the code, so `frame/design.md` `## Rule changes` holds the new text and the settle after the release writes it (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*).
+
+Round 1 named, under *Not judged*, a defect that stood before this diff and that this work brings forward to the preflight: `skills/implement/orchestration.md` *Orchestrator: drain the rows before the broad run, and keep the records* moves rows to `seal/follow-up.md` after the last round and before the preflight, and the records arm refuses a commit outside the work item's directory after the last round's `target:`. This work added no such row. The orchestrator filed it as #1630, labelled `from-review`.
