@@ -11,11 +11,11 @@ first*, and makes every fix pass where `routing.md` answers
 implementer* holds the orchestrator's half: who runs the pass, what it is
 handed, and the commit of the round record after it. Where this file has a
 crafter's hand-back name something for the orchestrator, the orchestrator
-in its own pass acts on it at the point the pass meets it, by the step of
-its own procedure that acts on that hand-back. So where its pass meets the
-stop of *A fix that needs a unit the frame does not name waits for the
-fold*, the orchestrator sends the finding to the framer before the pass
-that builds the unit.
+in its own pass acts on it as `skills/implement/SKILL.md` *The builder is
+the party that builds a phase or makes a fix pass* states. So where its
+pass meets the stop of *A fix that needs a unit the frame does not name
+waits for the fold*, the orchestrator sends the finding to the framer
+before the pass that builds the unit.
 
 ## Read the round records first
 
@@ -96,31 +96,23 @@ Once the fixes are committed, the fix pass runs the set the *Review rounds
 1..n* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and
 once* names, as one command through the repository's runner.
 
-**Then whoever makes the pass, the crafter or the orchestrator, makes the
-reading `agents/crafter.md` *Before you hand back, your range and the work
-item's records are read whole against HEAD* asks for.** The orchestrator
-makes every fix pass where `routing.md` answers `Implementation` with
-`the session`, and in every route it makes the fix it writes after the
-last round, which `skills/code-review/orchestration.md` *Orchestrator: a
-phase is a fresh crafter, and a fix pass resumes the implementer* gives
-it. In the orchestrator's pass, that rule's *Job* stands for what the
-orchestrator writes in a fix pass. In its fix commits it corrects every
-statement HEAD contradicts in its range, in `gaps.md` and in
-`changelog.md`. A statement HEAD contradicts in `routing.md` or a frame
-file, it folds as it folds one a crafter's hand-back names, in a commit of
-its own before it appends the close blocks, as
+**Then the builder makes the reading `skills/implement/SKILL.md` *Before
+the builder closes a phase or a fix pass, its range and the work item's
+records are read whole against HEAD* asks for, over the range that starts
+after the commit the round record's `target:` line names, or after the
+commit the `target:` line of the newest `guarantee.md` block names where
+the pass makes the repair a sealer's `withheld` verdict asks for.** The
+orchestrator's pass folds a statement HEAD contradicts in `routing.md` or
+a frame file in a commit of its own before it appends the close blocks, as
 `skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket* states. That rule's hand-back stands for the close blocks. The
-method of the read, each statement across the tree the read leaves
-standing with why, and where the part a sample did not reach stands go
-into the `answer:` of the close block of the finding they concern, and
-otherwise into the `answer:` of the last close block the pass appends.
-Where the pass appends no close block, because no finding names its fix,
-they go into `gaps.md` `## Not done`. What the pass did not finish goes to
-`gaps.md` `## Not done` too. The account states only the reads the pass's
-commands made after its last fix commit, each labelled as contract rule 4
-asks. A part the pass held from its own edit or from a hand-back, and did
-not print again after that commit, it names as held and not read.
+ticket* states. The orchestrator writes the account
+`skills/implement/SKILL.md` *The account of that read quotes its commands
+and describes no read in other words* asks for into the `answer:` of the
+close block of the finding it concerns, and otherwise into the `answer:`
+of the last close block the pass appends. Where the pass appends no close
+block, because no finding names its fix, the account goes into `gaps.md`
+`## Not done`. What the pass did not finish goes to `gaps.md`
+`## Not done` too.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## The close blocks, last

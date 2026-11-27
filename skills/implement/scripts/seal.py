@@ -170,6 +170,10 @@ TOOLS = {
         "skills/code-review/scripts/pr_wait.py",
         "wait on a pull request's checks at HEAD, and answer with one exit code",
     ),
+    "range": (
+        "skills/implement/scripts/range_read.py",
+        "print a range's hunks with their paragraphs, and a work item's records whole",
+    ),
 }
 
 # `lib/sibling.py` loads every module this command reads from `lib/`. Where

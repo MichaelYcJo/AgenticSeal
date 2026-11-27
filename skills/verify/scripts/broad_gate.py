@@ -23,10 +23,11 @@ What it does, in order, from the repository root:
      naming a command that starts in a directory with `/`. No refusal
      names a command to write: the key is a person's, and the message says
      where they answer it
-  2. `chain_check.py --baseline <base> --sealing`   judged by the pull
-     request's state as the check reads it, with `trail/gate.md`, which this
-     run is about to write, and `guarantee.md`, which the sealer writes after
-     it, printed rather than judged
+  2. `chain_check.py --baseline <base> --sealing`   judged as at a ready
+     pull request whatever the pull request's state, which the check does
+     not read under the flag, with `trail/gate.md`, which this run is about
+     to write, and `guarantee.md`, which the sealer writes after it, printed
+     rather than judged
   3. `seal.py mode --check`            the `Mode` key and the folder agree
 
 **`<base>` above is a resolved commit, never the ref as typed.** `--base` is
@@ -2039,9 +2040,9 @@ def gate(args, ascii_marks=False):
         )
         head = read_record(records_dir(keep), head_key, root)
     # `--sealing`: this run writes `trail/gate.md` after it passes, so
-    # the check prints that one arm and does not fail on it. The pull request's state
-    # is the check's to read -- the payload, else `gh` -- and nothing is
-    # written into the environment for it.
+    # the check prints that one arm and does not fail on it. Under the flag
+    # the check judges as at a ready pull request and reads no pull
+    # request's state, so nothing is written into the environment for it.
     sealing = sibling.load(CHAIN_CHECK).SEALING
     checks[CHAIN_NAME] = run(
         CHAIN_NAME,

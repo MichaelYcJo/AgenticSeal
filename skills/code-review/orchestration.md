@@ -22,14 +22,19 @@ Every `##` heading here opens with `Orchestrator:`.
 
 ## Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer
 
-**Each phase of a work item is built by a fresh `crafter` spawn, and the
-orchestrator never resumes a crafter across a phase boundary.** The
+**Where a crafter builds, each phase of a work item is built by a fresh
+`crafter` spawn, and the orchestrator never resumes a crafter across a
+phase boundary.** The
 orchestrator hands the fresh crafter the phase records the earlier phases
 wrote, `trail/phases/phase-N.md`, and a brief in the shape of
 `docs/running/the-run.md` *The handoff*: coordinates rather than prose,
 each fact labelled. A phase record is written to carry what one phase found
 to the next, and a resumed crafter pays its whole earlier context again on
 every turn to hold what the record already holds.
+
+**Where `routing.md` answers `Implementation` with `the session`, the
+orchestrator builds each phase itself, as the builder of
+`skills/implement/SKILL.md` *Procedure*, and spawns no crafter for it.**
 
 **A fix pass resumes the implementer only while the implementer's largest
 per-turn context is below 806,241 tokens, and is a fresh `crafter` spawn
@@ -87,9 +92,11 @@ range* binds, before the round or the sealer that reads the fix.
 coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
 a later round; that is contract rule 12. A crafter's hand-back carries
-the method of its read of its range and the work item's records, each frame
-or `routing.md` statement that read names, and the sample of statements
-across the tree, as contract rule 12 asks of the party that fixes. The
+the account of its read of its range and the work item's records that
+`skills/implement/SKILL.md` *The account of that read quotes its commands
+and describes no read in other words* states, each frame or `routing.md`
+statement that read names, and the sample of statements across the tree,
+as contract rule 12 asks of the party that fixes. The
 round that follows reads that account as a claim. Where the hand-back names
 a frame or `routing.md` statement, which the fix pass does not edit, the
 orchestrator folds each file that holds such a statement, read whole, as
@@ -117,10 +124,9 @@ through the `skills:` list in its definition, and each agent's own half is in
 `agents/<name>.md`. So the prompt holds what is specific to this round and
 nothing else.
 
-**That contract binds you too, and reaches you only if you open it**: you
-open it once beside the core, at step 1 of
+**That contract binds you too**, by the rules step 1 of
 `skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket*.
+ticket* names, which is where you open it.
 
 ## Orchestrator: the run ends with a verifying round
 

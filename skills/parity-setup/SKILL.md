@@ -71,8 +71,9 @@ layout that predates the question, or an original that changes.
    (`skills/legacy-parity/SKILL.md` *Recording the comparison*). Under
    shared, records only, no workflow reads a round record, but `seal gate`
    runs the same check: say that the `original:` line is still written, that
-   the gate refuses a round record without it once a ready pull request is
-   open for the branch, and that before then it names the record and passes.
+   the gate's preflight and broad run refuse a round record without it
+   whatever the pull request's state, and that no workflow refuses it at the
+   pull request.
    In local mode git carries neither `seal/parity.json` nor a round record, so
    no check reads either: say that the line is still written, and that
    nothing refuses a record without it.
