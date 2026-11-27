@@ -35,6 +35,11 @@ The two `git grep` runs printed only these two lines. A statement of the same fa
 절의 `inspection` 이다.
 ```
 
+```iadd
+verdict: fixed 658d6777
+answer: Applied both paste-ready lines as written. Line 175 now gives `proofer` as the coined word a Korean text keeps in English, which `README.ko.md` keeps so, and line 273 names `inspection`, the row the owner section's table opens with. After the fix, `git grep -n -F '만들어 낸 말' -- . ':!iadd/threads'` prints only `skills/writing-style/SKILL.md:175`, the corrected line, and ``git grep -n -F '절의 `iadd`' -- skills/writing-style`` prints nothing. A sample of the class was added: every line the range added to `skills/writing-style/` and `*.ko.md` that holds a backticked `iadd`, from `git diff -U0 origin/release/v0.40.0...HEAD`. There are 10 of them, and apart from line 273 each one names the command, the root or the fence. `` git grep -n -F '`inspector`' -- '*.ko.md' skills/writing-style `` printed only line 175 before the fix.
+```
+
 ### 2. The settle's sentence on its own commits now points at the old trailer, and phase 7's record says it names the new one
 
 ```iadd
@@ -58,6 +63,11 @@ The `git grep` printed this one line. A statement of the same fact in other word
    not one.
 ```
 
+```iadd
+verdict: fixed 658d6777
+answer: Applied the paste-ready lines as written. Step 5 now names the trailer a settle's commit carries, `IADD-Routing: no work item`, as `skills/settle/SKILL.md:460` does, so the claim of `trail/phases/phase-7.md` line 55 holds and the phase record is not edited. After the fix, `git grep -n -F 'that trailer with no route chosen' -- . ':!iadd/threads'` prints nothing. A sample, `git grep -n -i -e "settle's commit" -e "settle commit" -- . ':!iadd/threads' ':!docs/experiments'`, found no other sentence that names a settle commit's trailer. `tests/text/test_settle_reads_before_it_removes.py` reads the spelling `chain_check.py#TRAILER` with `#NO_WORK_ITEM` in the skill, and it passed in the review-round set.
+```
+
 ### 3. The Korean README still forbids translating the product name as a seal
 
 ```iadd
@@ -79,6 +89,11 @@ The `git grep` printed this one line. A statement of the same fact in other word
 
 The fix pass rewraps the paragraph if `tests/behaviour/test_docs_line_wrap.py` asks for it.
 
+```iadd
+verdict: fixed 658d6777
+answer: Removed the clause that forbids the two Korean renderings, so the sentence says only that the name is a product name and is not translated, as `README.md:26-27` does. The test did not ask for a rewrap. The pass rewrapped the rest of the paragraph anyway, `README.ko.md:29-31`, so the short line the removal left joins the next one, and no line passes 78 display columns. After the fix, `git grep -n -F '도장 체인' -- . ':!iadd/threads'` prints nothing. A sample, `git grep -n -e '인장' -e '씰' -e '도장 체인' -e '봉인' -- . ':!iadd/threads' ':!docs/experiments'`, prints `README.ko.md` lines 3, 179 and 501. Each one describes the drawing, the red wax seal, which `frame/design.md` *Scope*, *Out of scope*, *The drawings*, keeps.
+```
+
 ### 4. A test docstring renamed the plain word *guarantee* of contract rule 13 to *inspection*
 
 ```iadd
@@ -97,6 +112,11 @@ Claimed: `trail/phases/phase-4.md` line 17 says that plain uses of *guarantee* s
         """Every file the module reads also draws, so the draw before the
         claim is faked to fail for one file's rows, to remove that guarantee
         (contract rule 13; #1017, round 3's s4). The file is the older one, so
+```
+
+```iadd
+verdict: fixed 658d6777
+answer: The docstring says *to remove that guarantee* again, the plain word of contract rule 13 that `frame/design.md` *The words* keeps. After the fix, `git grep -n -i 'guarant' HEAD -- . ':!iadd/threads' ':!docs/experiments'` prints 22 lines: the 21 plain uses this finding lists and `tests/skills/test_stamp.py:2034`. ``git grep -n -B2 'rule 13' -- . ':!iadd/threads' ':!docs/experiments'`` prints no *inspect* word near a citation of the rule. A sample, `git grep -n -i -e 'that inspection' -e "platform's inspection" -e 'remove the inspection'`, found two more sentences: `skills/code-review/scripts/chain_check.py:133` and `skills/verify/SKILL.md:114`. Each one names the inspector's record, as *that guarantee* and *that seal* did at the base, so each sense is right and both stand.
 ```
 
 ## Confirmations
