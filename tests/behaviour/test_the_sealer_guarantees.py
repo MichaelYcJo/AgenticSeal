@@ -276,8 +276,8 @@ class TestDefinition:
         asked for a change there that the fix did not make."""
         step_4 = between(SEALER, "4. **", "5. **")
         pinned = [
-            # The row that gives the fix to the sealer, in the words every
-            # file that names it uses.
+            # The row that gives the fix to the sealer, in the words of
+            # `THE_CORES_ROW` in `tests/text/test_the_rules_have_one_owner.py`.
             "the row *No fix that no round reads* of `skills/core/SKILL.md` "
             "*Judgment is not licence to skip a party* gives its fix to you",
             # The read of the path the fix left as the last round read it.
