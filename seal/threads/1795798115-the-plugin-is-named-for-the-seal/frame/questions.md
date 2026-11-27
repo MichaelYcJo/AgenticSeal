@@ -12,6 +12,7 @@
 - The names #1651's table does not give, for the stamp, the mark, the config keys, the release's mark, the variables and the files outside a repository: `frame/design.md` *Formats a script reads exactly*.
 - Whether the work edits `docs/` directly: `frame/design.md` G3.
 - How `templates/setup/hygiene.yml` and this repository's own workflows follow: `frame/design.md` G10 and G11.
+- Whether the routing answer `agentic` is renamed with the plugin: `frame/design.md` *The words*, its second row for `agentic`, and *Scope* item 5.
 - What stays under the old word: `frame/design.md` *Scope*, the items after *Out of scope*, and G17.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |

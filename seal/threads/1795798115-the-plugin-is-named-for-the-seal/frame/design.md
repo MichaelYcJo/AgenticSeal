@@ -29,6 +29,8 @@ Each row is labelled `executed` where a command gave the fact and `read` where a
 | G19. The note of release `v0.39.3`, its `### Process changes` table (`executed`: `gh release view v0.39.3 --json body`); `gh release view` on 2026-11-28 named `v0.39.4`, whose note holds no such heading | The last process changes concern the orchestrator's drain, its judgment rows and `agents/sealer.md` step 1's listing command. None decides a name |
 | G20. Searches A1 to A9 of *Data & interfaces*, run at `e904fbce` with the work item's directory excluded as `:!seal/threads/1795798115-the-plugin-is-named-for-the-seal` (`executed`) | A1 printed 606 lines in 111 files, A2 363 lines in 75 files, A3 1340 lines in 204 files, A4 1802 lines in 234 files, A5 4539 lines in 309 files, A6 306 lines in 79 files, A7 221 lines, A8 1137 lines in 154 files and A9 183 lines in 23 files. Each printed line is one that a Scope item from 1 to 7 renames or removes. The lines the design keeps are the ones each search excludes by pathspec or by its filter, named under the search |
 | G22. `git grep -n -e '^## Naming' -e '^## 이름' e904fbce -- docs/layout` printed `docs/layout/one-root-by-lifetime.md:190` and `docs/layout/one-root-by-lifetime.ko.md:181` (`executed`) | Both lines are the headings the *Naming* row of `## Removes` takes out, so phase 8's search prints nothing once that phase has closed |
+| G23. Search A3 with its filter for the routing answer, run at `18e7fa43` with the work item's directory excluded as `:!seal/threads/1795798115-the-plugin-is-named-for-the-seal` (`executed`) | It printed 20 lines, each the marker `# What AgenticSeal maintains in seal/`: `lib/optin.py#MARKER`, the first line of `seal/README.md` and of `templates/setup/seal-README.md`, and line 47 of 17 files named `scaffold.sh` under `evals/behaviour/`. Scope item 7 renames each. The filter left out 39 lines, each one naming the routing answer `agentic` |
+| G24. `git grep -n -e AGENTIC_INHERITED -e IADD_INHERITED -- . ':!seal/threads'` at `18e7fa43` printed lines 407 and 412 of `tests/lib/test_gitcmd.py` and no other line (`executed`) | The variable is a fixture's, and no script reads it |
 | G21. `seal/parity.json` is absent (`executed`: `ls seal/`) | No original stands between the ticket and the code |
 
 ## Scope
@@ -41,7 +43,7 @@ In scope, by number:
 2. **The final party is the inspector.** `agents/sealer.md` becomes `agents/inspector.md`, and the word `sealer` becomes `inspector` in every agent reference, identifier, file name and text, `evals/behaviour/sealer/` and the test files named for the sealer among them.
 3. **The final record is the inspection.** `guarantee.md` becomes `inspection.md`, with its template, its form document, the verdict line for `cleared`, the flags `--sealing` and `--guarantee`, and the named checks, each as *Data & interfaces* *Formats a script reads exactly* gives it.
 4. **The act, its states and its mark take the inspection's words.** Where a text or an identifier says *seal*, *sealed* or *guarantee* for the final party's act, record or verdict, it says *inspection*, *cleared* or *inspect*, as *The words* gives them. The three states of a work item's inspection, cleared, lapsed and not cleared, are stated once in the form document, and the messages of `chain_check.py`, `pr_body.py` and the stamp use those words where they describe one of the states. The stamp, the mark, the two config keys and the release's mark take the names *Formats a script reads exactly* gives.
-5. **The plugin is `iadd`.** The product name AgenticSeal becomes IADD, the plugin, the marketplace and every agent and skill prefix become `iadd`, and each identifier, environment variable, file and directory named `agentic` takes `iadd`. The `renames` entry of `.claude-plugin/marketplace.json` is removed. The description sentence becomes the one *Data & interfaces* gives.
+5. **The plugin is `iadd`.** The product name AgenticSeal becomes IADD, the plugin, the marketplace and every agent and skill prefix become `iadd`, and each identifier, environment variable, file and directory where `agentic` names the plugin takes `iadd`. The routing question's first answer is also spelt `agentic`. There the word names the answer that leaves each item's route to the orchestrator, and it keeps its word. The `renames` entry of `.claude-plugin/marketplace.json` is removed. The description sentence becomes the one *Data & interfaces* gives.
 6. **The command is `iadd`.** `bin/seal` and `bin/seal.cmd` become `bin/iadd` and `bin/iadd.cmd`, the dispatcher becomes `skills/implement/scripts/iadd.py`, and every `seal <subcommand>` a text or a message names becomes `iadd <subcommand>`.
 7. **The root is `iadd/`.** `lib/optin.py#HOME` and `#MARKER`, the root's README template, the local-mode root, the trailer, the block fence and `templates/setup/hygiene.yml` take the values *Formats a script reads exactly* gives. In the same commit this repository's own `seal/` moves to `iadd/`, the work item's directory with it, and `iadd/README.md` is written from the renamed template.
 8. **The IADD definition is written in `docs/method/iadd.md`**, as *The definition* gives its sections, from this repository's own sources. `docs/README.md` gains the group `docs/method/`. The *Naming* section of `docs/layout/one-root-by-lifetime.md` and its `.ko.md` edition moves into the definition's *The names*.
@@ -71,7 +73,7 @@ This frame was drawn without reading MichaelYcJo/owlery#322. The independence #1
 | This repository holds `iadd/` and no `seal/` | When the last phase has closed. Then `git ls-tree HEAD -- seal` prints nothing, `git ls-tree HEAD -- iadd` prints one tree, and `bin/iadd mode --check` exits 0 | those three commands at HEAD |
 | The party's old name is gone | When the last phase has closed | search A1 prints nothing |
 | The record's old forms are gone | When the last phase has closed | search A2 prints nothing |
-| The plugin's old identity is gone | When the last phase has closed | search A3 prints nothing. The lines it excludes are those holding `MichaelYcJo/AgenticSeal`, and `LICENSE`, which questions row Q1 holds |
+| The plugin's old identity is gone | When the last phase has closed | search A3 prints nothing. The lines it excludes are those holding `MichaelYcJo/AgenticSeal`, those its second filter matches, which name the routing answer `agentic`, and `LICENSE`, which questions row Q1 holds |
 | The old root, command, trailer and fence are gone | When the last phase has closed | search A4 prints the lines of `skills/settle/SKILL.md` that name `Seal-Routing:` as the trailer of commits before this release, and no other line |
 | The word for the artifact is gone | When the last phase has closed | searches A5, A6, A7, A8 and A9 print nothing, except that A5 prints the lines of `tests/skills/test_chain_check.py` that hold the old verdict word as a near miss the check refuses, the lines of `tests/text/test_the_record_is_written_in_words.py` that hold an old line its check refuses, and the lines of `evals/scripts/noninferiority.py` and `tests/evals/test_noninferiority.py` that name the eval harness's `sealed` directory. A5's filter leaves out the lines that hold *wax seal*, *seal maker*, *seal drawings*, `Seal-Routing` or `assets/seals` |
 | The definition is indexed and stands on this repository's sources | When phase 8 has closed. Then `docs/method/iadd.md` holds the four sections of *The definition*, `docs/README.md` names the group and the file, and each principle cites its source as a backticked path and an italic heading | `bin/iadd fold` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, which the broad run takes; the proofer reads each principle against the section it cites |
@@ -86,7 +88,7 @@ Each runs at HEAD after the last phase. `W` is `:!iadd/threads/1795798115-the-pl
 ```
 A1  git grep -n -i -e sealer -- . W X
 A2  git grep -n -e 'guarantee\.md' -e 'sdd-guarantee' -e 'the-guarantee' -e 'Verdict: sealed' -e '--sealing' -e '--guarantee' -- . W X
-A3  git grep -n -i -e agentic -- . W X ':!LICENSE' | grep -v -F 'MichaelYcJo/AgenticSeal'
+A3  git grep -n -i -e agentic -- . W X ':!LICENSE' | grep -v -F 'MichaelYcJo/AgenticSeal' | grep -v -E '`agentic`|\*\*agentic\*\*|"agentic"|Under agentic|:[0-9]+:agentic\*'
 A4  git grep -n -e 'seal/' -e 'Seal-Routing' -e '```seal' -e 'bin/seal' -e 'seal\.py' -e 'seal\.cmd' -- . W X R
 A5  git grep -n -i -w -e seal -e seals -e sealed -e sealing -e unsealed -- . W X R ':!assets/seals' | grep -v -i -E 'wax seal|seal maker|seal drawings|Seal-Routing|assets/seals'
 A6  git grep -n -e 'seal_' -e '_seal' -- . W X ':!assets/seals'
@@ -97,7 +99,7 @@ A9  git grep -n -F -e 'agentic-seal' -- . W X
 
 A7, A8 and A9 each print nothing once the phase that `frame/plan.md` names for it has closed. A8 also matches `unseal mutate`, a made-up word in one case of `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`, which follows the command's name.
 
-A3 hides a line that holds the repository's address and a second use of the old name, and A5 hides a line that holds a kept phrase and a second use of the word. The round that reads the diff reads those lines.
+A3's second filter leaves out the lines that name the routing answer: the word in backticks, in bold or in double quotes, the heading *Under agentic*, and a line that opens with the heading's second word where the citation wraps. A3 hides a line that holds the repository's address or the routing answer and a second use of the old name, and A5 hides a line that holds a kept phrase and a second use of the word. The round that reads the diff reads those lines.
 
 ### The words
 
@@ -107,6 +109,7 @@ One sense, one word. The builder reads each occurrence for its sense before it r
 |---|---|---|
 | AgenticSeal; the AgenticSeal process | the product; the method from the routing question to the final verdict | IADD; the IADD process |
 | `agentic` | the plugin's identifier | `iadd` |
+| `agentic` | the routing question's first answer, which leaves each item's route to the orchestrator | unchanged |
 | sealer | the final party | inspector, *the final inspector* where the text introduces it |
 | the seal; the guarantee | the final party's record and its act | the inspection |
 | to seal; to guarantee | what the final party does to a commit | to inspect, and to clear where the verdict is meant |
@@ -174,7 +177,7 @@ Each row is one spelling. No reader accepts the left column after this work.
 | the marketplace's name, its plugin entry and its `renames` map | `agenticseal`, `agentic`, `{"specseal": "agentic"}` | `iadd`, `iadd`, removed | `.claude-plugin/marketplace.json` |
 | the agent and skill prefix | `agentic:` | `iadd:` | the harness, from the plugin's name |
 | the first line the `SessionStart` hook prints | opens `AgenticSeal core from` | opens `IADD core from` | `lib/core.py`, and this repository's `CLAUDE.md` |
-| the gate's variable, the pytest recorder's two variables, and `AGENTIC_INHERITED` | `AGENTIC_GATE_INVOKED_AS`, `AGENTIC_RECORD_DIR`, `AGENTIC_RECORD_KEY` | the same names opening `IADD_` | `broad_gate.py#INVOKED_AS_VAR`, the recorder, `.github/workflows/publish-release.yml` |
+| the gate's variable and the pytest recorder's two variables | `AGENTIC_GATE_INVOKED_AS`, `AGENTIC_RECORD_DIR`, `AGENTIC_RECORD_KEY` | the same names opening `IADD_` | `broad_gate.py#INVOKED_AS_VAR`, the recorder, `.github/workflows/publish-release.yml` |
 | the pytest recorder's module | `skills/verify/scripts/pytest_record/agentic_pytest_record.py`, loaded with `-p agentic_pytest_record` | `iadd_pytest_record.py`, `-p iadd_pytest_record` | `PYTEST_ADDOPTS` in the workflows |
 | the export's state file and its archive stem | `agentic-last-export.json`, `seal-repo-` | `iadd-last-export.json`, `iadd-repo-` | the dispatcher's `#STATE` and `#zip_stem` |
 | the machine-local maps | `~/.claude/agentic/pact-paths.json`, `~/.claude/agentic/parity-paths.json` | the same files under `~/.claude/iadd/` | the pact check and the parity setup |
@@ -182,6 +185,8 @@ Each row is one spelling. No reader accepts the left column after this work.
 | the named checks | `ready-needs-sealed`, `refused-sealed-leaves-a-record`, `parity-in-the-guarantee` | `ready-needs-cleared`, `refused-cleared-leaves-a-record`, `parity-in-the-inspection` | the `check:` lines' reader, `skills/settle/scripts/rules.py` |
 | the heredoc delimiter of the eval scaffolds | `AGENTIC_EOF` | `IADD_EOF` | each `scaffold.sh` |
 | the verify skill's protocol name | *Seal Test* | *Inspection Test* | the texts that cite it |
+
+`AGENTIC_INHERITED` is no format: it stands in a fixture of `tests/lib/test_gitcmd.py`, no script reads it (G24), and it took `IADD_INHERITED` by *The words*.
 
 A file or an identifier named for the seal that this table does not name follows *The words*: `tests/skills/test_seal.py` becomes `tests/skills/test_iadd.py`, `skills/verify/seal-mutate.md` becomes `skills/verify/iadd-mutate.md`, and a test file named for the sealer or the guarantee takes *inspector* or *inspection*.
 
