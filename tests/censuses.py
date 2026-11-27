@@ -1125,9 +1125,12 @@ def real_identifiers(rel, root=None):
 # stands in `lib/` or `tests/lib/` and no file holds that path. `TEST_AREAS`
 # are the areas whose files once stood at the top of `tests/`, so
 # `tests/hooks/` and `tests/e2e/` are not among them, and `docs/experiments/`
-# is no group of the policy root.
+# is no group of the policy root. `POLICY_GROUPS` are the policy root's
+# groups, `method` among them though no move filled it, because
+# `tests/behaviour/test_every_shipped_agent_and_document_is_measured.py`
+# reads the same tuple for every document of the policy root.
 TEST_AREAS = ("lib", "skills", "github", "evals", "behaviour", "text")
-POLICY_GROUPS = ("forms", "running", "releasing", "checks", "layout")
+POLICY_GROUPS = ("method", "forms", "running", "releasing", "checks", "layout")
 VACATING = (
     ("lib/", "hooks/lib/"),
     ("lib/", "hooks/"),

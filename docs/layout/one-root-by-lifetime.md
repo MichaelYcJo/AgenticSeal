@@ -184,27 +184,6 @@ history. That is the one direction local mode exists to prevent, so
 which leaves the point of no return with the person.
 check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tests/skills/test_iadd.py
 
-## Naming
-
-**The product is IADD, and `iadd` is the name of each of its parts**:
-the root `iadd/`, the command line, the plugin's `name`, the prefix of
-every agent and skill, and the marketplace. The commit trailer is
-`IADD-Routing:`. Every identifier is lowercase with no separator, and `IADD` is
-written only where a person reads the brand.
-
-| Name | Its one sentence |
-|---|---|
-| IADD | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
-| `iadd/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
-| `iadd/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `inspection.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
-| framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
-
-A directory and an agent say what each is to whoever meets it first, so
-neither is named for a metaphor. Every shipped
-artifact is written in English, because the plugin is for others and every
-token is paid for. The language a repository's own records and pull requests
-are written in is that repository's answer, below.
-
 ## What the repository decides for itself, and how it is read
 
 `iadd/config.json` is the one file a repository writes about itself, one

@@ -217,6 +217,8 @@ COVERED = [
     "docs/running/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
     "docs/layout/the-pact.md",
+    # The IADD definition (#1651), written wrapped and in at birth.
+    "docs/method/iadd.md",
 ]
 
 

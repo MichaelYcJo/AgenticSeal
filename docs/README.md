@@ -9,6 +9,17 @@ subject is the policy root itself; which kind of work item edits a document
 directly and which states the correction is in `skills/implement/SKILL.md`
 *Document layout — two roots, three lifetimes*.
 
+## docs/method/
+
+A person who wants to know what IADD is opens this, and so does the owner
+when this plugin's definition is set beside another tool's. No agent acts
+on it: each principle it states names its source, and an agent reads the
+source.
+
+| File | The question it answers |
+|---|---|
+| `docs/method/iadd.md` | what IADD is, the principles it stands on and the source of each, the names of its parts, and which document owns the form of each record of a work item |
+
 ## docs/forms/
 
 Two parties that exchange a record open these: the one that writes it and the
