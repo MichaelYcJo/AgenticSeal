@@ -27,7 +27,7 @@ The first `seal mutate` round over that unit left six mutants alive. They were t
 
 Each path asserts its whole `git diff -W` print. The `break` was removed, since no fixture tells it apart: two `-W` hunks never hold one line. The no-op `wide or printed` was removed too. An emptied path prints the same hunk under `-W` and `-U0` (executed: both prints on a fixture). The second round read `red` for 11 of 11 mutants (executed).
 
-**Seen red.** Each case of *Scope* item 8, and each case a moved rule took with it, was run by `seal mutate` with only the sentence or span it pins removed. Each read `red` (executed):
+**Seen red.** Each case of *Scope* item 8, and each case a moved rule took with it, was run by `seal mutate` with only the sentence or span it pins removed, or, for a phrase a case keeps out of `agents/crafter.md`, with only that phrase pasted back. Each read `red` (executed):
 
 - each phrase of `MOVED_OUT_OF_CRAFTER` this phase added, pasted back into `agents/crafter.md`;
 - the facts of `BUILDERS_RULES`;
@@ -43,4 +43,4 @@ Each path asserts its whole `git diff -W` print. The `break` was removed, since 
 
 **The searches of `frame/design.md` G18, at `b6816d2b0`.** V1, V3 and V4 printed nothing. V2 printed `skills/implement/SKILL.md` alone, at lines 167, 192, 201, 244 and 249 (executed, with the commands G18 gives).
 
-**The phase boundary.** `bin/test tests/text tests/behaviour tests/skills/test_range_read.py tests/skills/test_seal.py tests/skills/test_mutation_check.py tests/test_censuses.py -q` exited 0 at `b6816d2b0`: 1602 passed, 10 skipped. Its 9 warnings name no path this phase changed (executed). `d48344a1f` rewraps three lines of prose after that run. The cases that read the two files, `tests/behaviour/test_docs_line_wrap.py` among them, passed again after it (executed).
+**The phase boundary.** `bin/test tests/text tests/behaviour tests/skills/test_range_read.py tests/skills/test_seal.py tests/skills/test_mutation_check.py tests/test_censuses.py -q` exited 0 at `b6816d2b0`: 1602 passed, 10 skipped. Its 9 warnings name no path this phase changed (executed). `d48344a1f` rewraps three lines of prose after that run. The cases that read the two files, `tests/behaviour/test_docs_line_wrap.py` among them, passed again after it (executed). `08967755e` corrects three docstrings that still named the crafter's rule after the move, and the cases of `tests/skills/test_mutation_check.py`, `tests/text/test_a_moved_rule_leaves_its_definition.py` and the files that read `mutation_check.py` passed after it (executed).
