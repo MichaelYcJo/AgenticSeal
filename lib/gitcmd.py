@@ -52,13 +52,19 @@ else. `core.quotePath` is not set: a script that takes a path out of output
 git quotes under it asks for the path with `-z`, which quotes none.
 
 A setting that no `-c` key holds is named here with the flag that holds
-it. `diff.ignoreSubmodules` and the `ignore` of a submodule's entry in
-`.gitmodules` take a submodule's path out of `diff`, and out of `status`
-where the submodule's checkout moved off the commit the index holds.
-`-c diff.ignoreSubmodules=none` does not reach the `.gitmodules` entry,
-so a script that lists those paths passes `--ignore-submodules=none` on
-each such command, as `skills/implement/scripts/range_read.py#DIFF` and
-`#_uncommitted` do.
+it, and `FLAGS` holds the flag for each subcommand the setting reshapes.
+`argv` puts a subcommand's flags directly after it, so each command `git`
+starts carries them and no script passes them. `diff.ignoreSubmodules`
+and the `ignore` of a submodule's entry in `.gitmodules` take a
+submodule's path out of `diff`, out of a `log` that lists paths, and out
+of `status` where the submodule's checkout moved off the commit the index
+holds; the `.gitmodules` entry takes it out of `diff-tree` too. `-c
+diff.ignoreSubmodules=none` does not reach the `.gitmodules` entry, so
+`FLAGS` holds `--ignore-submodules=none` for each of those subcommands. The
+subcommand is the first argument that opens with no `-`: `-C` and `-c`
+before it each take the next argument as their value, as git(1)'s synopsis
+spells them, and a caller writes any other option before it in one
+argument, as `--literal-pathspecs` or `--git-dir=<path>`.
 
 Three helpers read a path: `git_path` turns a path built by `os.path`
 into git's `/`-joined form, `under_root` turns a `/`-joined
@@ -96,12 +102,31 @@ KEYS = (
 TIMEOUT = 60
 
 
+# The options `argv` puts directly after each subcommand it names.
+FLAGS = {
+    "diff": ("--ignore-submodules=none",),
+    "diff-tree": ("--ignore-submodules=none",),
+    "log": ("--ignore-submodules=none",),
+    "status": ("--ignore-submodules=none",),
+}
+
+# The options before a subcommand that take the next argument as their
+# value, as git(1)'s synopsis spells them.
+VALUED = ("-C", "-c")
+
+
 def argv(*args):
     """`["git", "-c", "<key>=<value>", ..., *args]`, one `-c` for each of
-    `KEYS`."""
+    `KEYS`, with the options `FLAGS` holds for the subcommand put directly
+    after it."""
     held = []
     for key, value in KEYS:
         held += ["-c", f"{key}={value}"]
+    at = 0
+    while at < len(args) and args[at].startswith("-"):
+        at += 2 if args[at] in VALUED else 1
+    if at < len(args):
+        args = (*args[: at + 1], *FLAGS.get(args[at], ()), *args[at + 1 :])
     return ["git", *held, *args]
 
 
@@ -149,8 +174,8 @@ class Failed(SystemExit):
     """A git or `gh` command that gave no answer the caller can read. A
     `SystemExit` whose code is its one line, so an uncaught one ends the
     process with that line on stderr at exit 1. `command` is the program
-    and the arguments the caller passed, without `argv`'s `-c` pairs or
-    `-C <root>`."""
+    and the arguments the caller passed, without `argv`'s `-c` pairs, the
+    options of `FLAGS` or `-C <root>`."""
 
     def __init__(self, command, line):
         super().__init__(line)

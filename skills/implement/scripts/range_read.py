@@ -131,16 +131,8 @@ GITLINK = "160000"
 # Every pathspec is a path, never a pattern.
 LITERAL = {"GIT_LITERAL_PATHSPECS": "1"}
 
-# The options of every `git diff` the command runs. `--ignore-submodules=none`
-# is the flag `lib/gitcmd.py` names for a submodule's `ignore` setting.
-DIFF = (
-    "diff",
-    "--no-color",
-    "--no-ext-diff",
-    "--no-textconv",
-    "--no-renames",
-    "--ignore-submodules=none",
-)
+# The options of every `git diff` the command runs.
+DIFF = ("diff", "--no-color", "--no-ext-diff", "--no-textconv", "--no-renames")
 
 # A hunk header as `git diff` prints it, the function line after it unread.
 HUNK = re.compile(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
@@ -416,17 +408,8 @@ def _records(root, head, item, rel):
 def _uncommitted(root):
     """Each tracked path in ROOT with a change no commit holds, staged or
     not."""
-    # `--ignore-submodules=none`, as in DIFF: a submodule whose checkout
-    # moved off the commit the index holds is named whatever its `ignore`
-    # setting (`lib/gitcmd.py`).
     out = _git(
-        root,
-        "status",
-        "--porcelain=v1",
-        "-z",
-        "--no-renames",
-        "--untracked-files=no",
-        "--ignore-submodules=none",
+        root, "status", "--porcelain=v1", "-z", "--no-renames", "--untracked-files=no"
     )
     return [field[3:] for field in _fields(out)]
 
