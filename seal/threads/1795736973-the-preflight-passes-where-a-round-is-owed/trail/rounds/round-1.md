@@ -40,6 +40,12 @@ Why it matters: the README table under *What runs on your machine* lists each pl
     "chain_check.py",
 ```
 
+```seal
+verdict: fixed acf0a786f
+answer: The finding holds. `README.md:409` takes the paste-ready row as written. `README.ko.md:406` takes it with its third cell worded as "`seal gate` 는 이 검사를 `--sealing` 을 붙여 돌리므로". `tests/behaviour/test_chain_hooks_hardening.py#NETWORK_PLACES` now names `chain_check.py` in place of `seal gate`, and the comment above it names the same place. Seen red (executed): `seal mutate README.md` deleting the new row failed `test_the_places_that_reach_the_network_are_named` at `assert place in passage` with `('README.md', 'chain_check.py')`. One departure: `CONTRIBUTING.md:202` is changed too. It said `chain_check.py` asks `gh` "where no event payload exists", which a `--sealing` run with no payload no longer does, so it now adds "and `--sealing` is not given". `647361d95` adds the README change to `changelog.md:3`. The evidence's search, run again after `647361d95` (executed), prints `CONTRIBUTING.md:202`, `README.md:409` and `README.ko.md:406`, each now stating the flag, and `docs/releasing/branch-and-release.md:361`, which is about an issue's linked pull requests and not the gate. That search is a sample.
+location: `CONTRIBUTING.md:202-206`
+```
+
 ### 2. `skills/parity-setup/SKILL.md` tells the user the gate passes a round record without `original:` until a ready pull request is open
 
 ```seal
@@ -56,6 +62,11 @@ Why it matters: step 7 of the parity setup has the agent tell the user what chan
    the gate's preflight and broad run refuse a round record without it
    whatever the pull request's state, and that no workflow refuses it at the
    pull request.
+```
+
+```seal
+verdict: fixed 056c77b95
+answer: The finding holds: `chain_check.py#_checked` moves only the guarantee's `original:` line to the notices under `--sealing`, so a round record without the line fails the gate's run. The paste-ready lines were applied as written. `647361d95` adds the change to `changelog.md:3`. The evidence's search, run again after `647361d95` (executed), prints `skills/code-review/scripts/chain_check.py:335`, about a round record written before its template, and `skills/implement/bootstrap.md:137`, about the `Broad gate` key. Neither states when the gate refuses, so both stay. That search is a sample.
 ```
 
 ### 3. The preflight's exit-1 instruction does not answer the refusal the new sentence names as its example
@@ -81,6 +92,11 @@ it refused before anything ran, and
 ```
 
 The wrap of the lines after it follows whatever `test_prose_stays_within_the_wrap_limit` asks.
+
+```seal
+verdict: fixed d862d06d3
+answer: The finding holds, and the fix is in my own words. The line now says that no edit of a record answers a verifying round owed, and tells the orchestrator to "spawn the verifying round it owes", where the paste-ready fix said "on the last fixes' diff". The check prints the same words for a code commit after the last record's `target:`, and the round that answers that line reads those commits, not a fix pass's diff. The cited section of `skills/code-review/orchestration.md` states the round's target either way. Each other refusal keeps "correct the record, commit, and run it again". `647361d95` adds the instruction to the `### Process changes` row of `changelog.md`. `tests/behaviour/test_docs_line_wrap.py` passed over the file (executed).
+```
 
 ### 4. Four statements say the `--sealing` run reads no event payload, or that `pull_request_state` is the one reader of it, while the body arm still reads the payload
 
@@ -125,6 +141,11 @@ The `tests/skills/test_chain_check.py` case of *Scope* item 6, with a recorder o
 `pull_request_state` is the one caller of `pull_request_from_gh`, which starts `gh`, so a run that never calls it starts no `gh` and reads no state from the payload.
 ```
 
+```seal
+verdict: fixed 647361d95
+answer: The finding holds: `_checked` calls `pull_request_body` under `--sealing` too. `changelog.md:3` and the comment above `SEALING_JUDGED_SAYS` take the paste-ready text. `phase-1.md:7` takes the paste-ready sentence and a second sentence: "The body arm still reads the payload under the flag, through `pull_request_body`". The `frame/design.md:61` line was the framer's, folded in `adf2bf488`. The evidence's search, run again after `647361d95` and outside `trail/rounds/` (executed), prints `changelog.md:3` alone, whose words "nor `gh` for it" keep the bound to the state. That search is a sample.
+```
+
 ### 5. The build's search for statements of the old judgment was a sample handed back as the whole list
 
 ```seal
@@ -147,6 +168,11 @@ The class is every text that says what the gate's chain arm asks, or when it ref
 
 ```markdown
 - **The statements of the old judgment, enumerated by the texts that name the gate (executed).** `git grep -n -i -e 'seal gate' -e 'preflight' -e 'broad run' -e 'broad gate' -- ':!seal/threads'`, each hit read for a clause on the pull request's state, `gh`, a draft, or passing before a pull request, found `README.md:409`, `README.ko.md:406` and `skills/parity-setup/SKILL.md:72-75` beyond the frame's four lines. The list is a sample: a statement of the fact that names none of the four is not reached.
+```
+
+```seal
+verdict: fixed 647361d95
+answer: The finding holds: the build's search was a sample, and its pathspec missed the README editions. `phase-1.md:9` now says the search was a sample and names where its pathspec stopped: the README editions, `agents/`, `templates/` and `CONTRIBUTING.md`. It does not take the paste-ready bullet, because the enumeration it records was made by this fix pass, not by the phase. `skills/implement/fix-pass.md` *The narrow set, then the read of the range* puts a pass's method into its `answer:`, so it stands here. The `frame/design.md:62` line was the framer's, folded in `adf2bf488`. Method (executed): `git grep -n -i -e 'seal gate' -e 'preflight' -e 'broad run' -e 'broad gate' -- ':!seal/threads'`, run at `adf2bf488`, printed 614 lines. I read each hit outside `tests/` and `evals/` for a clause on the pull request's state, `gh`, a draft, or passing before a pull request, with the paragraph around it where the hit left that open. I read the hits in `tests/` and `evals/` by line. Beyond findings 1 and 2, the read found `CONTRIBUTING.md:202`, fixed under finding 1. It found nothing else that states the old judgment: each other clause about a draft or the state speaks of the check at the pull request. The same command, run again after `647361d95` (executed), printed 614 lines. A diff against the first list shows only the README rows, the `gate-to-pull-request.md` and `parity-setup` lines and the `NETWORK_PLACES` lines as changed. The list stays a sample: a statement of the gate's judgment that names neither the gate, the preflight nor a broad run is not reached, and no method lists such a statement whole. The narrow set (executed), run after `647361d95` as one `bin/test` command, exited 0 with 3627 passed and 10 skipped. It held the test files that name a path this pass changed, found with `git grep -l` over `tests/**.py`, with `tests/text`, `tests/behaviour` and `tests/test_censuses.py`. My records read after `647361d95` (executed): `routing.md`, the three frame files and `gaps.md` by search for this pass's facts, and `changelog.md` and `phase-1.md` by their diff. Each statement in them that HEAD now leaves incomplete is in the hand-back for the orchestrator to fold.
 ```
 
 ## Confirmations
