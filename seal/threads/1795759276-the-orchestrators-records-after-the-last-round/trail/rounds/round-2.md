@@ -35,6 +35,11 @@ The frame does give a ground that the tree stated before this change. Row 7 (`fr
 
 The quote at `pr.md:3`, "The title takes `fix:`", still stands in the row's first cell and needs no change while the prefix stays.
 
+```seal
+verdict: fixed cec86a832
+answer: The orchestrator rewrote the prefix row's grounds to the round's paste-ready text, committed with the framer's fold `ef2c72eaf`, and at `cec86a832` made its "a sentence" plural, since the work adds to that paragraph the fold row's sentence too, as the framer's hand-back named. The prefix stays `fix:`, on the core's rule that a fact has one source. `cec86a832` adds the quote of the row's grounds to `pr.md`; `seal pr-body` composed the body there (executed).
+```
+
 ### 2. The row rule now binds every row, and two rows the tree prescribes must say what a change did
 
 ```seal
@@ -136,6 +141,12 @@ In the fourth row, the clause ", beside the second row's grounds, which no round
 ```markdown
 | 2026-11-27 | At round 1's closes, the orchestrator judged that its spawn of the framer for the coordinate of the second row was not the procedure's; the fold of that coordinate, `471dc15b9`, stands | The paragraph opening **The framer writes a decision's fold** gives a frame statement a crafter's hand-back names to the orchestrator's own fold, with no framer spawned | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |
 ```
+
+```seal
+verdict: fixed cec86a832
+answer: The orchestrator returned the second row to its `471dc15b9` text, deleted the clause from the fourth row and added the round's row for the judgment at round 1's closes, all committed with the framer's fold `ef2c72eaf`. At `cec86a832` it replaced round 2's single routing row, which named no regression, with one row per regression and one for finding 3, as the framer's hand-back named.
+```
+
 
 ## Confirmations
 
