@@ -386,12 +386,14 @@ class Test_main:
         # git leaves out a submodule this entry ignores, whatever `-c` says.
         gitmodules = '[submodule "sub"]\n\tpath = sub\n\turl = ./sub\n\tignore = all\n'
         repo, start = built(tmp_path, {".gitmodules": gitmodules})
+        # git 2.39.3's `commit` reads the ignored gitlink as no change and
+        # refuses, so each commit writes the index as it stands.
         if before:
             put(before)
-            git(repo, "commit", "-qm", "before")
+            git(repo, "commit", "-q", "--allow-empty", "-m", "before")
             start = git_out(repo, "rev-parse", "HEAD").strip()
         put(after)
-        git(repo, "commit", "-qm", "after")
+        git(repo, "commit", "-q", "--allow-empty", "-m", "after")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, start, out)
         assert code == 0, said
