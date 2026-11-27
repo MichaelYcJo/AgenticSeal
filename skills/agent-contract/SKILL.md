@@ -231,7 +231,7 @@ dated measurement, or a date or a cut the sentence names is a claim about
 that moment and stays, and a release still open is no such moment. A line
 of the plugin's forms that a check reads by value keeps the value its form
 gives it: the `Branch` row of `routing.md`, and the `target:` line of a
-round record and of `guarantee.md`. A value whose source is a file the
+round record and of `inspection.md`. A value whose source is a file the
 work item's own commit has written is a state of its branch, not one
 outside it, and a sentence that states it stays: the version that the work
 item carrying the move has written to the version file, and states in its

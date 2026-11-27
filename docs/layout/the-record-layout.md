@@ -112,7 +112,7 @@ file answers.
 | `trail/rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
 | `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
-| `guarantee.md` | whether the inspector sealed the work, against the issue and the tree |
+| `inspection.md` | whether the inspector sealed the work, against the issue and the tree |
 | `pr.md` | what the pull request body opens with, after `pr.<lang>.md` where the two language keys of `seal/config.json` differ: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
 | `pr.<lang>.md` | the body's opening in `Commit and pull request language`, where that key and `Record language` name different languages; written and committed with `pr.md`, read by every round, and placed by `seal pr-body` as the body's first part |
 
@@ -120,7 +120,7 @@ file answers.
 leave together.** `routing.md`, the frame (`frame/design.md`,
 `frame/plan.md`, `frame/questions.md`), the trail (`trail/rounds/`,
 `trail/phases/`, `trail/gate.md`) and the files at the thread's top
-(`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and `pr.<lang>.md`
+(`gaps.md`, `changelog.md`, `inspection.md`, `pr.md`, and `pr.<lang>.md`
 where the two language keys differ) go with the directory, whole, when the
 settle removes it (`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*,
 and `docs/releasing/release-checklist.md` *Settle what earlier releases left
@@ -141,7 +141,7 @@ check: tests/skills/test_chain_check.py
 refuses at its line a line outside every fence that begins with `<!--`.** A
 record carries no comment, so a comment state in its reader models nothing
 the record holds. The refusal stands where the reader reads:
-`chain_check.py` in a round record, a `guarantee.md` and a `trail/gate.md`,
+`chain_check.py` in a round record, a `inspection.md` and a `trail/gate.md`,
 `lib/gaps.py` in a `gaps.md`, and `rule_changes.py` in a
 `frame/design.md`'s `## Rule changes`. A `routing.md` is
 the exception: its reader, `lib/routing.py`, runs at the pull request
@@ -150,12 +150,12 @@ pull request of a work item framed before its template lost its comments,
 so that reader keeps the comment walk of `lib/blocks.py`.
 check: record-comment-line-refused
 
-**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The inspector's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` and `pr.<lang>.md` are the one exception, because the pull request's reader meets them before the fold: what each holds is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the inspector seals*, and neither holds a fact of its own. `changelog.md` is no part of the exception, because `seal pr-body` writes it before the fold whole.
+**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The inspector's audit is `inspection.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` and `pr.<lang>.md` are the one exception, because the pull request's reader meets them before the fold: what each holds is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the inspector seals*, and neither holds a fact of its own. `changelog.md` is no part of the exception, because `seal pr-body` writes it before the fold whole.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
 **A cited commit is one that `main` or a release branch reaches: a
 `<commit>:<path>` citation anywhere except a work item's `trail/` and its
-`guarantee.md`, and a bare commit in a file outside `seal/`.** A feature
+`inspection.md`, and a bare commit in a file outside `seal/`.** A feature
 branch squashes into its release branch, and the squash discards every commit
 the branch wrote, so a citation of one opens in no clone after the merge, and
 a reader sent to it finds no source. The commit to cite is the squash that

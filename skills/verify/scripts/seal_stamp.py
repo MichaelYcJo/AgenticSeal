@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal stamp — the inspector's stamp, drawn from a `sealed` guarantee.
+"""seal stamp — the inspector's stamp, drawn from a `cleared` guarantee.
 
 Drawn once per work item from the inspector's verdict. Two things side by side
 on the terminal's own background, and nothing else: at the left a wax disc
@@ -47,9 +47,9 @@ owner's marks) and `sealed_names` for its head. So nothing here reads a
 file at import, and the sprite is read where the disc is drawn (`build`).
 
 **The stamp is drawn where a person sees it, once per work item.** The
-inspector runs `seal stamp --guarantee <path>` once after it
-writes `Verdict: sealed`, under either root; `queue_for_written_guarantee`
-reads the file, and where it reads `sealed` and no earlier run or commit
+inspector runs `seal stamp --inspection <path>` once after it
+writes `Verdict: cleared`, under either root; `queue_for_written_guarantee`
+reads the file, and where it reads `cleared` and no earlier run or commit
 stamped it, writes the stamp's rows to a values file under the git common
 dir of the path's clone. `seal stamp --stop` is the command of the
 plugin's `Stop` hook, which `hooks/hooks.json` registers: it draws
@@ -65,7 +65,7 @@ Usage:
   seal stamp                      the stamp over sample rows, for a person
   seal stamp --shape              the letter twin
   seal stamp --from <file>        a queued stamp's values file, drawn once
-  seal stamp --guarantee <file>   queue the stamp of a sealed guarantee.md
+  seal stamp --inspection <file>   queue the stamp of a sealed inspection.md
   seal stamp --stop               draw at a `Stop`, the payload on stdin
 
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
@@ -78,9 +78,9 @@ nothing drew can still be drawn by hand.
 
 Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
 file that is unreadable or drawn already, a guarantee that could not be
-read or a git command `--guarantee` asked that did not start or did not
+read or a git command `--inspection` asked that did not start or did not
 finish within `lib/gitcmd.py#TIMEOUT`, which queues nothing and records
-nothing, or, for every command but `--guarantee` and `--stop`, a disc's mark
+nothing, or, for every command but `--inspection` and `--stop`, a disc's mark
 sprite that is malformed (`SPRITE_MALFORMED`); nothing was written on 2. An
 interpreter below the floor never reaches this file through `seal stamp`:
 `lib/launch.py` refuses `seal` with 2 first. The `Stop` hook runs it with
@@ -790,8 +790,8 @@ def is_terminal(stream):
 # --- a stamp's values, drawn by somebody else ------------------------------
 #
 # A Bash call's stdout is a pipe into a tool result nobody sees unfolded,
-# so the stamp's rows are written here — by `seal stamp --guarantee`
-# over a `sealed` guarantee under either root (`queue_for_written_guarantee`)
+# so the stamp's rows are written here — by `seal stamp --inspection`
+# over a `cleared` guarantee under either root (`queue_for_written_guarantee`)
 # — and `--stop`, at the end of a main session's turn in the same clone, draws
 # them. The directory is under the git COMMON dir because the worktree the
 # guarantee was written in and that session's cwd can be different worktrees
@@ -943,11 +943,11 @@ def label(values):
 # --- the stamp, queued from a sealed guarantee ------------------------------
 #
 # The rule, and what holds it to once per work item with its limits, is
-# `docs/checks/the-stamp.md` *The stamp*. `seal stamp --guarantee` calls
+# `docs/checks/the-stamp.md` *The stamp*. `seal stamp --inspection` calls
 # `queue_for_written_guarantee` (below) once the inspector has written the
 # guarantee, under either root, and `--stop` draws what it queued. The values file's
 # name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
-# `sealed_before` reads HEAD's history, and `refused_here` names a `sealed`
+# `sealed_before` reads HEAD's history, and `refused_here` names a `cleared`
 # this clone recorded refusing.
 
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
@@ -958,7 +958,7 @@ sys.path.insert(
 )
 CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
 GITCMD = "lib/gitcmd.py"
-# The line `--guarantee` prints, which the inspector's hand-back carries to the
+# The line `--inspection` prints, which the inspector's hand-back carries to the
 # orchestrator. It names the way to draw the stamp by hand, because the
 # plugin's `Stop` hook draws nothing where it cannot: a
 # `python3` that cannot load this file, or a main session whose working
@@ -968,13 +968,13 @@ QUEUED = (
     "draws it at the end of the turn, and where none appears, "
     "`seal stamp --from {command}` draws it"
 )
-# The line `queue_for_written_guarantee` returns where its `guarantee.md` names a
+# The line `queue_for_written_guarantee` returns where its `inspection.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
 # a local guarantee, so in local mode this is the only place the wrong row is
 # seen; in shared mode the pull request's check refuses it as stale too. It
 # names no command: nothing was queued to draw.
 NOT_ON_BRANCH = (
-    "agentic: no stamp was queued for {id}: its guarantee.md names "
+    "agentic: no stamp was queued for {id}: its inspection.md names "
     "{target}, which {branch} does not hold; a new audit at the head of "
     "{branch} draws it"
 )
@@ -1006,7 +1006,7 @@ def _git(cwd, *args):
     """stdout of a git call in `cwd`, or None on a non-zero exit.
 
     A git that did not answer raises `lib/gitcmd.py#Failed`, which `main`
-    reads as `--guarantee`'s refusal, as it reads the one that
+    reads as `--inspection`'s refusal, as it reads the one that
     `queue_for_written_guarantee`'s reach read raises: read as None, a
     history git did not print would queue a work item stamped before, and a
     reach git did not answer would record a refusal of a commit the branch
@@ -1024,7 +1024,7 @@ def _gitcmd():
 
 def _chain_check():
     """`chain_check.py`, which loads `lib/fields.py`, the reader of
-    `guarantee.md` and `trail/gate.md` the pull request's check reads them
+    `inspection.md` and `trail/gate.md` the pull request's check reads them
     through, so a verdict block has one grammar."""
     import sibling
 
@@ -1070,21 +1070,21 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
 
 
 def _guarantee_read(chain, text):
-    """`(newest, earlier)`: the newest verdict block of the `guarantee.md`
+    """`(newest, earlier)`: the newest verdict block of the `inspection.md`
     TEXT and the blocks of its earlier runs, read through
     `lib/fields.py`, the reader the pull request's check reads it
     through; `(None, [])` where that reader refuses a line of TEXT, a fence
     nobody closed and a line that begins `<!--` among them, or TEXT holds no
     verdict block, as one whose fields stand outside any block does."""
-    found = chain.FIELDS.read(text, chain.FIELDS.GUARANTEE)
+    found = chain.FIELDS.read(text, chain.FIELDS.INSPECTION)
     if found.refusals or not found.blocks:
         return None, []
     return found.blocks[-1], found.blocks[:-1]
 
 
 def _sealed_by(chain, block):
-    """True where the verdict BLOCK reads `sealed`."""
-    return chain.FIELDS.verdict_word(block) == chain.FIELDS.SEALED
+    """True where the verdict BLOCK reads `cleared`."""
+    return chain.FIELDS.verdict_word(block) == chain.FIELDS.CLEARED
 
 
 def _target_of(chain, block):
@@ -1093,16 +1093,16 @@ def _target_of(chain, block):
 
 
 def sealed_before(chain, top, path, common=None, ident=None):
-    """True where `path`'s newest verdict block read `sealed` at a commit of
+    """True where `path`'s newest verdict block read `cleared` at a commit of
     HEAD's history, whatever commit it audited, unless this clone recorded
-    refusing that `sealed` (`refused_here` of COMMON and work item IDENT,
+    refusing that `cleared` (`refused_here` of COMMON and work item IDENT,
     where both are given). A version the reader refuses, or one holding no
     verdict block, counts nothing. It is asked at a write no commit carries
     yet, so HEAD itself counts.
-    A `sealed` in the history was stamped where it was made, in this clone or
+    A `cleared` in the history was stamped where it was made, in this clone or
     another, so what the history carries holds across clones, a rebase among
     them, and asks nothing of the row an agent writes. The history cannot
-    tell such a `sealed` from one committed where nobody refused it, over a
+    tell such a `cleared` from one committed where nobody refused it, over a
     commit the branch does not hold, so that one counts too, and its work
     item draws no stamp: a work item is never stamped twice, and a stamp
     missed is the failure accepted over one drawn twice. A row this clone
@@ -1121,17 +1121,17 @@ def sealed_before(chain, top, path, common=None, ident=None):
     return False
 
 
-# --- a `sealed` this clone refused ------------------------------------------
+# --- a `cleared` this clone refused ------------------------------------------
 #
 # The owner chose a record here over a limit stated in prose (#976). A
-# `sealed` over a commit the work item's branch does not hold draws nothing.
+# `cleared` over a commit the work item's branch does not hold draws nothing.
 # The inspector's new audit appends its block below that one, and without a
-# record of the refusal the earlier block reading `sealed` counts as the
+# record of the refusal the earlier block reading `cleared` counts as the
 # stamp, so the repair would draw nothing either. One writer leaves the
 # record, for a block that stands in its own clone and nowhere else:
 # `queue_for_written_guarantee`, under either root, for a block its branch
 # does not hold. Its read of the earlier blocks, and its read of the
-# history, skip a `sealed` the record names. Nothing infers a record after
+# history, skip a `cleared` the record names. Nothing infers a record after
 # the fact, so nothing asks ancestry at read time: an ancestry check at read
 # time has regressed in each of four review rounds.
 
@@ -1149,7 +1149,7 @@ def _same_commit(one, other):
     of the other once both are lower-cased. Asked by `refused_here` of a
     recorded target and by `ref_is_commit` of the base's ref. A shorter
     spelling matches nothing, because a false match costs more in both:
-    a refusal record that matches skips a `sealed` that drew, and a ref
+    a refusal record that matches skips a `cleared` that drew, and a ref
     that matches is not printed though it may be a branch named in hex."""
     one, other = (one or "").lower(), (other or "").lower()
     if not (SHA_SPELLING.fullmatch(one) and SHA_SPELLING.fullmatch(other)):
@@ -1158,7 +1158,7 @@ def _same_commit(one, other):
 
 
 def record_refusal(common, ident, target):
-    """Record that this clone refused work item `ident`'s `sealed` over
+    """Record that this clone refused work item `ident`'s `cleared` over
     `target` and drew nothing for it: an empty file
     `<common>/agentic-stamp-refused/<ident>-<target>`, written by
     `queue_for_written_guarantee` at its branch refusal. Beside `VALUES_DIR`
@@ -1176,10 +1176,10 @@ def record_refusal(common, ident, target):
 
 
 def refused_here(common, ident, sha):
-    """True where this clone recorded refusing work item `ident`'s `sealed`
+    """True where this clone recorded refusing work item `ident`'s `cleared`
     over a target `_same_commit` matches with `sha`. Asked by
     `queue_for_written_guarantee` of each earlier verdict block reading
-    `sealed`, and by its `sealed_before` of each `sealed` in the history."""
+    `cleared`, and by its `sealed_before` of each `cleared` in the history."""
     try:
         names = os.listdir(os.path.join(common, REFUSED_DIR))
     except OSError:
@@ -1267,23 +1267,23 @@ def written_root(routing, seal):
 
 
 def queue_for_written_guarantee(path, now=None):
-    """The lines `seal stamp --guarantee` says of the `guarantee.md` at
+    """The lines `seal stamp --inspection` says of the `inspection.md` at
     `path`, under either root: one where it queued the work item's stamp in
     the clone `path` is in, one where its audited commit is off the work
     item's branch, else none.
 
     It reads the file from disk once the inspector has written it, before it is
     committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
-    *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
+    *The stamp*). `path` must be `<root>/threads/<id>/inspection.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, and `<common>/seal/` in
     local mode. It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
     fence nobody closed and a line that begins with `<!--` among them,
-    its newest verdict block reads `sealed`, no earlier block reads
-    `sealed` but one this clone recorded refusing, the clone holds no values
+    its newest verdict block reads `cleared`, no earlier block reads
+    `cleared` but one this clone recorded refusing, the clone holds no values
     file for the work item, in shared
-    mode HEAD's history carries no `sealed` of the file (`sealed_before`
+    mode HEAD's history carries no `cleared` of the file (`sealed_before`
     from HEAD, since the file is not yet committed), and the audited commit
     is an ancestor of the branch the work item's `routing.md` names in its
     `Branch` row; why a local root needs no history, and what the branch
@@ -1300,7 +1300,7 @@ def queue_for_written_guarantee(path, now=None):
     # resolver whether SEAL is the root in force.
     optin = _optin()
     if (os.path.basename(real), os.path.basename(specs)) != (
-        optin.GUARANTEE,
+        optin.INSPECTION,
         optin.WORK_ITEMS,
     ):
         return []
@@ -1514,9 +1514,9 @@ def main(argv=None, console_wants_letters=None):
         help="draw a queued stamp's values file, once, instead of the sample",
     )
     entry.add_argument(
-        "--guarantee",
+        "--inspection",
         metavar="FILE",
-        help="queue the stamp of the sealed guarantee.md at FILE, as the inspector does",
+        help="queue the stamp of the sealed inspection.md at FILE, as the inspector does",
     )
     entry.add_argument(
         "--stop",
@@ -1533,18 +1533,18 @@ def main(argv=None, console_wants_letters=None):
             sys.stdout.write(json.dumps({"systemMessage": message}) + "\n")
         return 0
     try:
-        if args.guarantee is not None:
-            said = queue_for_written_guarantee(args.guarantee)
+        if args.inspection is not None:
+            said = queue_for_written_guarantee(args.inspection)
         else:
             said = None
     except ValueError as refused:
         sys.stderr.write(str(refused) + "\n")
         return 2
     except Exception as failed:
-        sys.stderr.write(f"seal stamp: {args.guarantee}: {failed}\n")
+        sys.stderr.write(f"seal stamp: {args.inspection}: {failed}\n")
         return 2
     except _gitcmd().Failed as unanswered:
-        sys.stderr.write(f"seal stamp: {args.guarantee}: {unanswered.line}\n")
+        sys.stderr.write(f"seal stamp: {args.inspection}: {unanswered.line}\n")
         return 2
     if said is not None:
         sys.stdout.write("".join(line + "\n" for line in said))

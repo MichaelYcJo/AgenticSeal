@@ -200,7 +200,7 @@ conftest also removes every variable whose name starts with `GITHUB_`, so a
 case sees under a pull request's CI run what it sees everywhere else, and a
 case that needs one sets it with `monkeypatch.setenv`. One question is
 stubbed for every case: `chain_check.py` asks `gh pr view --json isDraft`
-where no event payload exists and `--sealing` is not given, so the
+where no event payload exists and `--inspecting` is not given, so the
 conftest puts a `gh` first on PATH that finds no pull request, which the
 check reads as *unknown*, not as ready, and passes every other call to the
 `gh` behind it. A case that means

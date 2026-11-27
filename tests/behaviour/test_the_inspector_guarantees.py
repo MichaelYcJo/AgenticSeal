@@ -1,17 +1,17 @@
-"""The inspector's `guarantee.md`: its template, what `chain_check.py` reads of
+"""The inspector's `inspection.md`: its template, what `chain_check.py` reads of
 it, and the definition that writes it.
 
-`templates/records/sdd-guarantee.md` is the file the inspector fills, and
+`templates/records/sdd-inspection.md` is the file the inspector fills, and
 `chain_check.py#guarantee` is the arm that reads it at the pull request,
 through `lib/fields.py`: a ready pull request passes only where the
-newest verdict block names HEAD and reads `sealed`. Each group holds a case
+newest verdict block names HEAD and reads `cleared`. Each group holds a case
 on good input and one on bad.
 
 The cases of the arm, which read no file of this repository, stand in
 `tests/skills/test_chain_check.py`, and the reader's, the unfilled template
 among them, in `tests/lib/test_fields.py`. What stays reads the template, the
 definition, the document, the orchestration that hands the inspector its run,
-or every committed `guarantee.md`.
+or every committed `inspection.md`.
 """
 
 import pathlib
@@ -23,13 +23,13 @@ from conftest import (
 )
 from test_fields import TEMPLATE, fields
 
-# No TARGET: its cases walk every committed guarantee.md and every inspector eval grader, and hold the guarantee across its template, agents/inspector.md and docs/forms/the-guarantee.md.
+# No TARGET: its cases walk every committed inspection.md and every inspector eval grader, and hold the guarantee across its template, agents/inspector.md and docs/forms/the-inspection.md.
 
 
 ROOT = pathlib.Path(conftest.ROOT)
 READER = ROOT / "lib" / "lines.py"
 INSPECTOR = ROOT / "agents" / "inspector.md"
-DOCUMENT = ROOT / "docs" / "forms" / "the-guarantee.md"
+DOCUMENT = ROOT / "docs" / "forms" / "the-inspection.md"
 
 
 def between(path, start, end):
@@ -99,7 +99,7 @@ class TestTemplate:
         keys = [line.split(" ", 1)[0] for line in raw[opener + 1 : opener + 4]]
         assert keys == [fields.TARGET, fields.ORIGINAL, fields.INSPECTOR_VERDICT]
         assert raw[opener + 4] == fields.FENCE
-        # The two headings `docs/forms/the-guarantee.md` *It checks a claim
+        # The two headings `docs/forms/the-inspection.md` *It checks a claim
         # against the fact, and the parties against each other.* cites,
         # which the inspector writes each act's row under.
         assert reader.sections(lines, "## Claims re-run")
@@ -110,16 +110,16 @@ class TestTemplate:
 
 
 def test_every_committed_guarantee_in_blocks_reads_whole():
-    """Round 1 of #1000, finding 2, under #1198: each `guarantee.md` under
+    """Round 1 of #1000, finding 2, under #1198: each `inspection.md` under
     `seal/threads/` that holds a verdict block's opener reads through the
     reader with no refusal and at least one block. A guarantee of a work
     item released before #1198 holds none, and no check judges it again."""
     found = {}
-    for path in (ROOT / "seal" / "threads").glob("*/guarantee.md"):
+    for path in (ROOT / "seal" / "threads").glob("*/inspection.md"):
         text = path.read_text(encoding="utf-8")
         if fields.OPENER not in text.split("\n"):
             continue
-        read = fields.read(text, fields.GUARANTEE)
+        read = fields.read(text, fields.INSPECTION)
         found[path.parent.name] = (len(read.blocks), read.refusals)
     assert {k: v for k, v in found.items() if v[1] or not v[0]} == {}, found
 
@@ -140,8 +140,8 @@ class TestDefinition:
 
     def test_the_inspector_writes_the_guarantee_from_the_template(self):
         text = " ".join(INSPECTOR.read_text(encoding="utf-8").split())
-        # The path of the template the inspector opens to write `guarantee.md`.
-        assert "templates/records/sdd-guarantee.md" in text
+        # The path of the template the inspector opens to write `inspection.md`.
+        assert "templates/records/sdd-inspection.md" in text
 
     def test_step_1_reads_the_record_and_runs_nothing(self):
         """T2, S1 of #969. Step 1 reads `trail/gate.md` and the commits after
@@ -330,7 +330,7 @@ class TestDefinition:
 
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
-        `trail/gate.md` and `guarantee.md` follow the commit the guarantee
+        `trail/gate.md` and `inspection.md` follow the commit the guarantee
         names (`follows(..., only=CLOSING_RECORDS)`); an inspector told that any
         record of the work item may follow keeps an earlier verdict over a
         changelog or phase record it never read, and the check refuses it."""
@@ -342,7 +342,7 @@ class TestDefinition:
         # a new audit; the code spans are the fact.
         assert (
             "other than one touching only the closing records, `trail/gate.md` "
-            "and `guarantee.md`, owes a new audit"
+            "and `inspection.md`, owes a new audit"
         ) in rule, rule
 
     def test_the_orchestration_quotes_the_gates_outputs_line(self):
@@ -367,7 +367,7 @@ class TestDefinition:
 
 class TestDocument:
     def test_the_guarantee_section_points_at_steps_3_and_4(self):
-        """T23: `docs/forms/the-guarantee.md` *The guarantee* points at the
+        """T23: `docs/forms/the-inspection.md` *The guarantee* points at the
         definition's steps 3 and 4 for the acts. Whether it lists any of them
         is the proofer's to read."""
         text = " ".join(DOCUMENT.read_text(encoding="utf-8").split())

@@ -5,7 +5,7 @@ description: |
   request opens: after the review rounds settle, the changelog fragment is
   written, the orchestrator has run the broad gate, and `seal pr-body` has
   written the pull request body to a file. It audits every party's account
-  against the issue and the tree, and writes the work item's `guarantee.md`.
+  against the issue and the tree, and writes the work item's `inspection.md`.
 model: opus
 skills:
   - core
@@ -25,9 +25,9 @@ the issue body — and the tree, never an agent's word and never the summary in
 the prompt that spawned you. You take the last seal, the one over the whole
 work; `skills/verify/SKILL.md` *The hand-back's labels carry the claims,
 and the one seal is the inspector's* owns that rule, and
-`docs/forms/the-guarantee.md` *The guarantee* states what yours covers.
+`docs/forms/the-inspection.md` *The guarantee* states what yours covers.
 
-Under rule 6, your writes are `guarantee.md` and the stamp's values file
+Under rule 6, your writes are `inspection.md` and the stamp's values file
 step 6 queues, and a write not named here is a write you do not make;
 `trail/gate.md` is the orchestrator's run's, written through `seal gate
 --record` before you were spawned.
@@ -45,7 +45,7 @@ here or behind its remote, so resolve it once as `seal gate` does
 `origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet`
 answers, and every `<base>` below is the commit it prints, never the ref,
 since the at-base clone holds the commit and not the remote-tracking ref.
-Where none answers, write `guarantee.md` with
+Where none answers, write `inspection.md` with
 `Verdict: withheld reason: the base <name> resolves to no commit here` and
 return.
 
@@ -66,14 +66,14 @@ return.
    - **At HEAD, or followed only by paths under `seal/threads/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
-     or followed by any other path**: write `guarantee.md` with
+     or followed by any other path**: write `inspection.md` with
      `Verdict: withheld reason: no broad run at HEAD`, naming the commit and
      the path where one follows, and return. Nothing broad is run in its
      place (rule 2).
 2. **Check the body's copy of the records, then read, yourself.** Run
    `seal pr-body <item> --body <file> --check`, `<item>` being the work
    item's directory and `<file>` the body file the prompt names. On any exit
-   but 0, write `guarantee.md` with
+   but 0, write `inspection.md` with
    `Verdict: withheld reason: <the first line the command printed>` and
    return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
@@ -131,11 +131,11 @@ return.
    what the finding asked, and a sentence HEAD
    contradicts, are each a disagreement like any other, and a `withheld`
    reason naming its coordinate.
-5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
+5. **Write `inspection.md`** from `templates/records/sdd-inspection.md`, every row of
    its tables filled for this run, and append one verdict block below every
    block an earlier run left, each line spelt as `lib/fields.py`
    reads it: `target:` naming the audited commit as `<sha> against <base>`,
-   and one `Verdict:` line, exactly one of `Verdict: sealed`,
+   and one `Verdict:` line, exactly one of `Verdict: cleared`,
    `Verdict: withheld reason: <reason>` or
    `Verdict: undecided question: <question>`. Every `Verdict:` this file
    names, steps 1 and 2's among them, stands in that block. Edit no earlier
@@ -147,10 +147,10 @@ return.
    do: compare the audited commit with the original through
    `skills/legacy-parity/SKILL.md`, and record it as its *Recording the
    comparison* states.
-6. **Queue the stamp once, where you wrote `Verdict: sealed`.** Run
-   `seal stamp --guarantee <path>` once, `<path>` being the `guarantee.md`
+6. **Queue the stamp once, where you wrote `Verdict: cleared`.** Run
+   `seal stamp --inspection <path>` once, `<path>` being the `inspection.md`
    you wrote. The values file it writes under the clone's common git
-   directory is your one write beside `guarantee.md` (rule 6), and you draw
+   directory is your one write beside `inspection.md` (rule 6), and you draw
    nothing: the plugin's `Stop` hook draws it. Its one line goes into your
    report as it printed it; an exit of 2 goes in with what it printed, and
    the verdict stands.
@@ -159,7 +159,7 @@ return.
 
 ## Never
 
-- Change anything in the tree but `guarantee.md`, or edit code or a record to
+- Change anything in the tree but `inspection.md`, or edit code or a record to
   make a claim hold; the orchestrator commits your file. The values file
   step 6 queues stands outside the tree.
 - Re-judge the design or the code's quality. The design is the framer's and
@@ -169,7 +169,7 @@ return.
   `seen red`, a round's `fixed` and the orchestrator's part of the pull
   request body are claims.
 - Choose a `Broad gate` command, or draw a stamp: the key is a person's, and
-  you queue the stamp once from your `sealed` and draw nothing.
+  you queue the stamp once from your `cleared` and draw nothing.
 
 ## Rules
 
@@ -196,15 +196,15 @@ where it says it failed. Bind the result to a tree state: the file names the
 commit it audited, and a claim you could not re-run is `unverified`, never
 `executed`.
 
-**`sealed` is earned by the audit, not by the absence of a finding.** It is
+**`cleared` is earned by the audit, not by the absence of a finding.** It is
 written only after `trail/gate.md` was read at HEAD, the sample was re-run
-and every party was compared, each with its row in `guarantee.md`.
+and every party was compared, each with its row in `inspection.md`.
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
-after the one `guarantee.md` names, other than one touching only the closing
-records, `trail/gate.md` and `guarantee.md`, owes a new audit
-(`docs/forms/the-guarantee.md` *The guarantee*). Where an earlier
-`guarantee.md` stands, the new audit re-runs only the claims whose
+after the one `inspection.md` names, other than one touching only the closing
+records, `trail/gate.md` and `inspection.md`, owes a new audit
+(`docs/forms/the-inspection.md` *The guarantee*). Where an earlier
+`inspection.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its newest verdict block's `target:` touched,
 reads the parties again, and appends its own verdict block below the earlier
 ones, which stay as they were.

@@ -101,7 +101,7 @@ Reporting a `read` as passing is the lie this whole skill exists to prevent.
 ## The hand-back's labels carry the claims, and the one seal is the inspector's
 
 **The hand-back's labels carry the claims, and the one seal over the whole
-project is the inspector's `guarantee.md`.** An agent hands its claims back under
+project is the inspector's `inspection.md`.** An agent hands its claims back under
 condition 4's three labels, and a proofer's report says what its review looked
 at; neither is a seal and neither ends in a block.
 
@@ -114,9 +114,9 @@ run.
   (`skills/verify/orchestration.md` *The broad gate*) is one that seal rests
   on.
 - **Form.** The inspector's seal is the only mark drawn, and only over a verdict
-  that earned it: the stamp is drawn from the inspector's `guarantee.md` reading
-  `sealed`, once per work item, at the end of the turn in which that file is
-  written. The inspector's `seal stamp --guarantee` writes the values it is
+  that earned it: the stamp is drawn from the inspector's `inspection.md` reading
+  `cleared`, once per work item, at the end of the turn in which that file is
+  written. The inspector's `seal stamp --inspection` writes the values it is
   drawn from, under either root, and the plugin's `Stop` hook draws them in
   the orchestrator's session
   (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:

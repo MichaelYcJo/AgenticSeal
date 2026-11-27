@@ -23,10 +23,10 @@ What it does, in order, from the repository root:
      naming a command that starts in a directory with `/`. No refusal
      names a command to write: the key is a person's, and the message says
      where they answer it
-  2. `chain_check.py --baseline <base> --sealing`   judged as at a ready
+  2. `chain_check.py --baseline <base> --inspecting`   judged as at a ready
      pull request whatever the pull request's state, which the check does
      not read under the flag, with `trail/gate.md`, which this run is about
-     to write, and `guarantee.md`, which the inspector writes after it, printed
+     to write, and `inspection.md`, which the inspector writes after it, printed
      rather than judged
   3. `seal.py mode --check`            the `Mode` key and the folder agree
 
@@ -60,8 +60,8 @@ No line pytest printed decides a word, and no file is appended to
 any run. It decides nothing about any of the words: they go in the report
 and the reader acts.
 
-**It judges nothing and draws nothing.** The verdict word `sealed`
-is the inspector's, in `guarantee.md`, and the stamp is drawn from that
+**It judges nothing and draws nothing.** The verdict word `cleared`
+is the inspector's, in `inspection.md`, and the stamp is drawn from that
 verdict at its commit, never from this run. A run that passes prints one
 form on every stream: `BROAD GATE PASSED   <branch> @ <tree> against <ref>
 @ <base commit>`, the branch left out on a detached HEAD and the ref left
@@ -145,7 +145,7 @@ PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = "skills/verify/scripts/seal_stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 # The chain arm runs the check as a process, and passes the check's own
-# `SEALING`, read from the module `main` loads before any arm runs.
+# `INSPECTING`, read from the module `main` loads before any arm runs.
 CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
 CHAIN = os.path.join(PLUGIN, *CHAIN_CHECK.split("/"))
 CONFIG_READER = "lib/config.py"
@@ -196,7 +196,7 @@ NEW, ON_BASE = "new", "failing on base too"
 # How a panel value is cut, continued and marked — `PANEL_VALUE_WIDTH`,
 # `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW` and `TICK` —
 # is `seal_stamp.py`'s, which composes the stamp's rows
-# from a `sealed` guarantee; this gate's report reads them through
+# from a `cleared` guarantee; this gate's report reads them through
 # `stamp_module()`, so the two write a row by one set of rules.
 
 
@@ -1576,7 +1576,7 @@ def rounds_rows(item):
     records = sibling.load(ROUTING).rounds(item)
     rows = [("rounds", str(len(records)))]
     # `main` loaded the check before any arm ran and the chain arm read its
-    # `SEALING`, so this is the module the process already holds.
+    # `INSPECTING`, so this is the module the process already holds.
     chain = sibling.load(CHAIN_CHECK)
     stamp = stamp_module()
     count, homes = 0, []
@@ -1859,8 +1859,8 @@ NO_RECORD_HERE = (
 
 # --- the command -------------------------------------------------------------
 #
-# The first line of a run's stdout. The verdict word `sealed` is the
-# inspector's, in `guarantee.md`, and this run comes before the inspector is spawned
+# The first line of a run's stdout. The verdict word `cleared` is the
+# inspector's, in `inspection.md`, and this run comes before the inspector is spawned
 # and judges nothing, so its heads say what it did: the broad gate passed or
 # failed. `{names}` is `seal_stamp.sealed_names`'s `<branch> @ <tree> against
 # <ref> @ <base commit>`. Beside the preflight's heads below, so the two
@@ -2038,14 +2038,14 @@ def gate(args, ascii_marks=False):
             SUITE, command, root, keep, shell=True, env=recording_env(keep, head_key)
         )
         head = read_record(records_dir(keep), head_key, root)
-    # `--sealing`: this run writes `trail/gate.md` after it passes, so
+    # `--inspecting`: this run writes `trail/gate.md` after it passes, so
     # the check prints that one arm and does not fail on it. Under the flag
     # the check judges as at a ready pull request and reads no pull
     # request's state, so nothing is written into the environment for it.
-    sealing = sibling.load(CHAIN_CHECK).SEALING
+    inspecting = sibling.load(CHAIN_CHECK).INSPECTING
     checks[CHAIN_NAME] = run(
         CHAIN_NAME,
-        [py, CHAIN, "--baseline", base.commit, "--root", root, sealing],
+        [py, CHAIN, "--baseline", base.commit, "--root", root, inspecting],
         root,
         keep,
     )
@@ -2113,7 +2113,7 @@ def gate(args, ascii_marks=False):
     # and — the file being in the working tree while CI reads HEAD —
     # the line saying so, only where git still sees it uncommitted. Nothing
     # is drawn and no values file is written: the stamp is the inspector's,
-    # queued at the write of a `guarantee.md` reading `sealed`.
+    # queued at the write of a `inspection.md` reading `cleared`.
     names = stamp_module().sealed_names(tree, base.commit, branch, base.ref)
     lines = [GATE_PASSED.format(names=names)]
     lines += report_lines(rows, ascii_marks=args.shape or ascii_marks)
@@ -2230,7 +2230,7 @@ def main(argv=None, console_wants_ascii=False):
         args.invoked_as = os.environ.pop(INVOKED_AS_VAR, None) or None
         if root:
             sys.stderr.write(running_line(root) + "\n")
-        # The check whose `SEALING` the chain arm passes, loaded before any
+        # The check whose `INSPECTING` the chain arm passes, loaded before any
         # arm runs: a copy of the plugin without it is the loader's sentence
         # and exit 2, with no arm run, where the suite would otherwise run
         # first and the chain arm then fail.

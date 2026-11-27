@@ -1,4 +1,4 @@
-# Guarantee: <work-item-id>
+# Inspection: <work-item-id>
 
 ## Claims re-run
 

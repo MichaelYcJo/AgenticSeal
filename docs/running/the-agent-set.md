@@ -131,10 +131,10 @@ check: tests/text/test_the_rules_have_one_owner.py
 
 **A review round is one file the proofer writes, the fix pass writes two lines
 of each finding it answers, the orchestrator's broad run writes
-`trail/gate.md`, and the inspector's verdict is `guarantee.md` at the thread's
+`trail/gate.md`, and the inspector's verdict is `inspection.md` at the thread's
 top.**
 `docs/forms/the-round-record.md`, `docs/checks/the-pull-request-check.md`
-and `docs/forms/the-guarantee.md` hold what each of those files carries.
+and `docs/forms/the-inspection.md` hold what each of those files carries.
 check: tests/skills/test_chain_check.py
 
 No case runs the tracer. That a spawn opens `legacy-parity` first, returns
@@ -147,7 +147,7 @@ part of a pull request body, a phase record or a review verdict that says
 what the tree does not is caught by a party that wrote none of them. It
 re-judges neither the frame nor the code's quality, which stay the framer's
 and the proofer's, and it runs on Opus, the level of the agents it audits.
-`docs/forms/the-guarantee.md` *The guarantee* holds the rule.
+`docs/forms/the-inspection.md` *The guarantee* holds the rule.
 check: tests/behaviour/test_the_inspector_guarantees.py
 
 **A build phase leaves a record, the way a review round does.** What a phase discovers
@@ -193,9 +193,9 @@ stands on, and the orchestrator's go to `frame/plan.md` *Judgments of the run*.*
 framer's stand in `frame/design.md` *Grounding* and `frame/plan.md` *Alternatives
 considered*; the crafter's in the phase record's *What this phase found*, each decision
 with its grounds and the document; the proofer's as a finding's grounds and `evidence:`
-line; the inspector's in `guarantee.md` *The parties*. The orchestrator has no record of
-its own, and a judgment it makes in the run, to go on or stop, to route a regression, to
-file a leftover, to fold a decision into the frame, would reach the next session only
+line; the inspector's in `inspection.md` *The parties*. The orchestrator has no record
+of its own, and a judgment it makes in the run, to go on or stop, to route a regression,
+to file a leftover, to fold a decision into the frame, would reach the next session only
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
 which the settle reads (`docs/running/the-run.md` *The run*).
 

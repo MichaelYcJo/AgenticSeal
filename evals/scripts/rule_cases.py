@@ -29,7 +29,7 @@ whether a sentence of today's definition was followed:
            record claims `seen red` for a case green against the old code,
            one to seal but for its broad run never recorded, and one whose
            broad run is recorded with a code commit after it; the verdict
-           in `guarantee.md`, naming what the tree contradicts or that no
+           in `inspection.md`, naming what the tree contradicts or that no
            broad run is on record, no commit, no broad gate run, no write
            but that file
 
@@ -851,7 +851,7 @@ run: {RUN_SHA} against {BASE_SHA}
 # the orchestrator's broad run is recorded before the spawn: True, False, or
 # "stale" for a record a code commit follows).
 INSPECTOR_RUNS = (
-    ("sealed", True, "", "sealed", None, True),
+    ("cleared", True, "", "cleared", None, True),
     (
         "untrue-body",
         True,
@@ -973,7 +973,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
         write(body, own + pr_body.compose(item, records, parts=[("pr.md", own)])),
         fill(body, built + (ran if gate else [])),
     ]
-    guarantee = f"{folder}/guarantee.md"
+    guarantee = f"{folder}/inspection.md"
     spawn = (
         f"Guarantee work item `{item}` on branch `{branch}` in this clone, for issue "
         f"#101 and its pull request: the base is `main` and the item is `{folder}`. "
@@ -994,8 +994,8 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
             "^"
             + "`" * 3
             + r"seal\n(?:[^`\n][^\n]*\n)*?Verdict: "
-            + (r"sealed$" if verdict == "sealed" else verdict + r" reason: \S"),
-            f"`guarantee.md` carries the verdict `{verdict}` in a verdict block.",
+            + (r"cleared$" if verdict == "cleared" else verdict + r" reason: \S"),
+            f"`inspection.md` carries the verdict `{verdict}` in a verdict block.",
         ),
         shape_tool(
             "commits-nothing",
@@ -1013,9 +1013,9 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
             max=0,
         ),
         *writes_only(
-            "writes-only-the-guarantee",
+            "writes-only-the-inspection",
             guarantee,
-            "The inspector writes `guarantee.md` and nothing else in the repository.",
+            "The inspector writes `inspection.md` and nothing else in the repository.",
         ),
     ]
     if names:

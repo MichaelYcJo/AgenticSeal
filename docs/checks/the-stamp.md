@@ -5,17 +5,17 @@ that draws it, for a person who changes them; no agent acts on it.
 
 ## The stamp
 
-**The stamp is drawn once per work item, from the inspector's `sealed`, at the end
+**The stamp is drawn once per work item, from the inspector's `cleared`, at the end
 of the main session's turn after the inspector queued it, in either mode, by the
 plugin's `Stop` hook.** The stamp means every party
 verified the work item, the inspector last, and the work is done, so it is drawn
 from that verdict and never from the broad gate's run, which comes before the
 inspector has read anything and draws nothing (`docs/running/the-broad-gate.md`
 *One act, one owner*). The inspector runs
-`seal stamp --guarantee <path>` once, after it writes `guarantee.md` with
-`Verdict: sealed`, under either root. Where the reader the pull request's check
+`seal stamp --inspection <path>` once, after it writes `inspection.md` with
+`Verdict: cleared`, under either root. Where the reader the pull request's check
 reads it through refuses none of its lines and its newest verdict block reads
-`Verdict: sealed`, the command writes the stamp's values under
+`Verdict: cleared`, the command writes the stamp's values under
 `<git-common-dir>/agentic-stamp/` of the clone the path is in, and prints one
 line naming the file and `seal stamp --from <path>`, which the inspector's
 hand-back carries to the orchestrator. The queue is keyed by the clone and by
@@ -25,18 +25,18 @@ payload's `cwd` is in, once, after that turn's text, and a subagent's end draws
 nothing. `withheld` and `undecided` queue nothing. Once per work item is held
 by what the clone and the tree carry, with no count beside them: a values file
 already named for the work item, pending or drawn, in the clone's values
-directory is not written twice, whatever commit it named; a `sealed` whose
+directory is not written twice, whatever commit it named; a `cleared` whose
 audited commit is not an ancestor of the branch the work item's `routing.md`
-names queues nothing; and in shared mode a guarantee that read `sealed` at an
+names queues nothing; and in shared mode a guarantee that read `cleared` at an
 earlier commit of HEAD's history, or one of whose earlier verdict blocks reads
-`sealed`, counts as stamped then, which holds across clones; the earlier blocks
-alone skip a `sealed` this clone recorded refusing (the next rule). A guarantee
+`cleared`, counts as stamped then, which holds across clones; the earlier blocks
+alone skip a `cleared` this clone recorded refusing (the next rule). A guarantee
 in the history that holds no verdict block, written before the fields stood in
-blocks, counts nothing. It does not hold for a `sealed` committed over a
-history that carries no earlier `sealed` in a clone that holds no values file
+blocks, counts nothing. It does not hold for a `cleared` committed over a
+history that carries no earlier `cleared` in a clone that holds no values file
 for the work item, which draws the stamp again in that clone: the sealing
 commit amended or rewritten there over its own parent, or a second seal on a
-copy of the branch that had not fetched the first. A `sealed` that drew in
+copy of the branch that had not fetched the first. A `cleared` that drew in
 another clone, brought onto a copy of its declared branch that does not hold
 its audited commit, by hand or by `checkout`, `cherry-pick -n` or
 `merge --squash`, is refused when it is queued and recorded, and the new audit
@@ -49,7 +49,7 @@ dir, so a values file for the work item, pending or drawn, is a complete record
 of its stamp in that clone. There once is held by that, by the earlier verdict
 blocks, and by the audited commit being an ancestor of the branch the work
 item's `routing.md` names in its `Branch` row, a branch the clone must still
-hold. That last keeps a `sealed` written long ago quiet, since a local-mode
+hold. That last keeps a `cleared` written long ago quiet, since a local-mode
 work item stays under the root until the settle after its release removes it.
 The stamp carries what the records say: the audited commit and its branch, the
 base, the work item, the newest broad run and the count of round records.
@@ -60,27 +60,27 @@ earlier release wrote into a per-session directory under
 `seal stamp --from` draws it by hand.
 check: stamp-drawn-once
 
-**A `sealed` refused because its audited commit is not on the branch leaves a
+**A `cleared` refused because its audited commit is not on the branch leaves a
 refusal record in the clone that refused it, and an earlier verdict block
-reading `sealed` that this clone recorded refusing is skipped, so the inspector's
+reading `cleared` that this clone recorded refusing is skipped, so the inspector's
 new audit draws the work item's one stamp.** The new audit's block stands below
 the refused verdict's block, and without a record that earlier block would
 count as the stamp. The record is an empty file,
 `<git-common-dir>/agentic-stamp-refused/<id>-<target>`, beside the values
 directory and never listed with it. One writer leaves it, for a row that stands
-in its own clone and nowhere else: `seal stamp --guarantee`, in either mode,
+in its own clone and nowhere else: `seal stamp --inspection`, in either mode,
 where the `Branch` row's branch stands and does not hold the audited commit. It
 says one line naming the commit and the branch. In shared mode the pull
 request's check refuses the same row as stale; in local mode no check reads it.
 A recorded target matches a SHA when one is a prefix of the other and both are
 at least seven characters long; any other spelling finds no record, and the
-verdict counts as stamped. `sealed_before` skips a `sealed` this clone recorded
+verdict counts as stamped. `sealed_before` skips a `cleared` this clone recorded
 refusing, as the earlier-run chain does, because nothing stops a refused row
 from becoming history before the pull request's check refuses it; any other
-`sealed` in the history drew where it was made, and counts. So a `sealed` that
+`cleared` in the history drew where it was made, and counts. So a `cleared` that
 drew, went stale under a rebase and was refused when it was queued again still
 holds the work item's stamp, and its repair draws nothing.
-check: refused-sealed-leaves-a-record
+check: refused-cleared-leaves-a-record
 
 **The stamp's `Stop` hook is the plugin's, and it follows every update.**
 `hooks/hooks.json` registers one `Stop` entry with no matcher, whose command is
@@ -130,24 +130,24 @@ line reaches the person through the inspector's hand-back and the orchestrator's
 quote of it, and nobody has watched a stamp the plugin's `Stop` hook draws on
 a screen yet.
 **Nor is the drawer's silence where it cannot draw.** No stamp is queued, and
-nothing is said, for a `guarantee.md` the inspector wrote without running
-`seal stamp --guarantee`, as an inspector of an earlier release does, or one that
+nothing is said, for a `inspection.md` the inspector wrote without running
+`seal stamp --inspection`, as an inspector of an earlier release does, or one that
 arrived by a commit fetched from elsewhere or `seal import`; or for a verdict
 whose work item names no branch, or a branch the clone no longer holds. A
-`sealed` over a commit the branch does not hold still counts as the work item's
+`cleared` over a commit the branch does not hold still counts as the work item's
 stamp, so its repair draws none, where nothing queued it: by a person, or under
-an inspector that runs no `--guarantee`. The pull request's check still refuses
-that landed row as stale. `--guarantee` judges the file's newest verdict block
-alone, never the earlier blocks, so a `sealed` that drew and whose audited
+an inspector that runs no `--inspection`. The pull request's check still refuses
+that landed row as stale. `--inspection` judges the file's newest verdict block
+alone, never the earlier blocks, so a `cleared` that drew and whose audited
 commit a later rebase, amend or cherry-pick moved out of the history counts as
 stamped, which it is. In local mode the record is the clone's own: a values
 directory emptied by hand, or a guarantee brought by `seal import` from a clone
 that drew and re-sealed here, draws again. A wrong row that names, by
 coincidence, the very commit a copy of the item on another branch was sealed
-and drawn over draws a second time once `--guarantee` refuses and records it,
-a class this rule accepts as a second run of the item. So does a `sealed` that
+and drawn over draws a second time once `--inspection` refuses and records it,
+a class this rule accepts as a second run of the item. So does a `cleared` that
 drew in another clone and was brought onto a copy of its declared branch that
-does not hold its audited commit, whatever brought it: `--guarantee` refuses
+does not hold its audited commit, whatever brought it: `--inspection` refuses
 and records it, and the new audit it asks for draws again. No guard can tell
 that copy from a stale row the same clone wrote after a push and a rebase.
 Nothing draws, and nothing says so, where the main session's working
@@ -157,7 +157,7 @@ where the disc's mark sprite, `skills/verify/scripts/seal-mark.txt`, is
 malformed, and the command still exits 0. A values file the sprite kept
 from drawing stays pending, and `seal stamp --from` refuses it with a line
 naming the sprite's fault until the sprite is repaired. Where a file was written, the line
-`--guarantee` printed names `seal stamp --from <path>`, and a stamp that did
+`--inspection` printed names `seal stamp --from <path>`, and a stamp that did
 not appear is drawn by hand from it, once. Where none was, the pull request's
 check is what says the work item was sealed.
 No case, hook or workflow can observe a screen.

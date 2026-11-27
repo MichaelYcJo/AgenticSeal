@@ -171,7 +171,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 실행입니다. 마지막으로 보증을 맡는 검수자가 모든 참여자의 기록을 이슈와
 트리에 견주어 읽고, 그다음 pull request 가 열립니다.
 
-검수자의 판정이 `sealed` 이면 검수자가 도장을 쌓아 두고, 세션의 턴이 끝날
+검수자의 판정이 합격(`cleared`)이면 검수자가 도장을 쌓아 두고, 세션의 턴이 끝날
 때 플러그인의 `Stop` 훅이 그 도장을 터미널에 그립니다. 도장에는 커밋,
 브랜치, base, 작업 항목, broad gate 를 돌린 커밋, 리뷰 회차 수가 적힙니다.
 
@@ -264,7 +264,7 @@ pull request 의 검사로 돕니다.
 | **crafter** (서브에이전트) | `core`, `agent-contract` | 프레임에 맞춰 단계 하나를 만들거나, 리뷰 회차 하나를 놓고 fix pass 를 한 번 돈다 ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
-| **inspector** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/inspector.md`](agents/inspector.md)) |
+| **inspector** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `inspection.md` 를 쓴다 ([`agents/inspector.md`](agents/inspector.md)) |
 | 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
@@ -288,9 +288,9 @@ verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴
 다음 수정이 들어오면 쓸모가 없어지기 때문입니다(`docs/running/the-broad-gate.md`).
 검수자는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
 `seal pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지
-확인한 뒤 판정을 씁니다. 판정은 `sealed`, 트리와 어긋난 곳을 짚은
+확인한 뒤 판정을 씁니다. 판정은 `cleared`, 트리와 어긋난 곳을 짚은
 `withheld`, 사용자에게 묻는 질문을 단 `undecided` 가운데 하나입니다. pull
-request 는 작업 항목이 `sealed` 를 받은 뒤에 열리고, `Pull request seal mark`
+request 는 작업 항목이 `cleared` 를 받은 뒤에 열리고, `Pull request seal mark`
 키가 `yes` 이면 본문에 seal 표시가 붙습니다. 두 언어 키가 서로 다른 언어를
 가리키면 본문은 pull request 언어로 쓴 `pr.<lang>.md` 로 시작합니다. pull
 request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request
@@ -357,7 +357,7 @@ Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅입니�
   갑니다. 다른 곳에서는 아무것도 찍지 않습니다.
 - **`PostToolUse`** 는 세션이나 서브에이전트의 `Edit` 호출마다 그 뒤에
   `hooks/edit-leaves-copies.py` 를 돌립니다. 고친 파일이 `seal/` 루트 아래
-  작업 항목의 기록이고 그 `trail/` 밖에 있으며 `guarantee.md` 가 아니면,
+  작업 항목의 기록이고 그 `trail/` 밖에 있으며 `inspection.md` 가 아니면,
   편집이 바꾼 단어를 고친 파일을 포함한 그 작업 항목의 같은 종류 기록에서
   찾습니다. 그 단어가 아직 남아 있는 자리를 줄 번호와 함께 편집한 쪽에 알려
   주고, 그 자리가 같은 사실을 적고 있는지는 편집한 쪽이 판단합니다.
@@ -388,11 +388,11 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 `SessionStart` 훅이 찍는 것, `PreToolUse` 훅이 호출을 거절하며 내놓는 이유,
 `PostToolUse` 훅이 알려 주는 자리는 세션이 연 파일처럼 그 세션의 컨텍스트에
 들어갈 뿐입니다. 다음 부수 효과는
-밝혀 둡니다. 검수자가 `sealed` 로 읽히는 `guarantee.md` 에 한 번 돌리는
-`seal stamp --guarantee` 는 도장에 들어갈 값을
+밝혀 둡니다. 검수자가 `cleared` 로 읽히는 `inspection.md` 에 한 번 돌리는
+`seal stamp --inspection` 은 도장에 들어갈 값을
 `<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
-`sealed` 는 어느 모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
+`cleared` 는 어느 모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
 파일을 남깁니다. 이 파일도 지우는 것이 없습니다.
 
 훅은 모두 네트워크를 타지 않습니다. 아래 자리가 네트워크를 탑니다. 이것들은
@@ -403,7 +403,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 |---|---|---|---|
 | `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
-| `--sealing` 없이 돌리는 `chain_check.py`, 곧 orchestrator 와 proofer 가 `--worktree` 로 읽는 실행 ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `seal gate` 는 이 검사를 `--sealing` 을 붙여 돌리므로, pull request 의 상태를 읽지 않고 `gh` 에 아무것도 묻지 않는다 | 그런 실행이 GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
+| `--inspecting` 없이 돌리는 `chain_check.py`, 곧 orchestrator 와 proofer 가 `--worktree` 로 읽는 실행 ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `seal gate` 는 이 검사를 `--inspecting` 을 붙여 돌리므로, pull request 의 상태를 읽지 않고 `gh` 에 아무것도 묻지 않는다 | 그런 실행이 GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
 | AgenticSeal 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 | `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |

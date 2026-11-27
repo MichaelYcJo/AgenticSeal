@@ -63,16 +63,16 @@ judged (`carried_by`). The arms are nine:
                 and one `original:` line naming it stands in the round block
                 of every round record under `Review | through the review
                 chain`, and in
-                the newest verdict block of `guarantee.md` under `Review |
+                the newest verdict block of `inspection.md` under `Review |
                 straight to the PR` (`originals_of`, `guarantee_original`)
   broad gate    the last run block of `trail/gate.md`, the newest run, read
                 through `lib/fields.py`, is HEAD, or every commit after
                 it touches only the work item's own directory; a record with
                 no run block, or with a line the reader refuses, fails
-  guarantee     the last verdict block of `guarantee.md`, the newest run of
+  guarantee     the last verdict block of `inspection.md`, the newest run of
                 the inspector, read through `lib/fields.py`, names HEAD,
                 or every commit after it touches only the closing records,
-                and its `Verdict:` reads `sealed`; a guarantee with no
+                and its `Verdict:` reads `cleared`; a guarantee with no
                 verdict block, or with a line the reader refuses, fails
   body          where the event payload holds `pull_request.body`, that
                 body is what `seal pr-body` composes at HEAD for the one
@@ -91,14 +91,14 @@ judged (`carried_by`). The arms are nine:
                 which holds one, name the body as not read (`body`)
 
 A ready pull request fails on any of them. A draft, or a run that observed no
-pull request, prints the same lines and exits 0. A run under `--sealing`
+pull request, prints the same lines and exits 0. A run under `--inspecting`
 reads no pull request's state and judges as at a ready pull request, but for
 the arms *Usage* names.
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states the rules these arms hold,
 and `docs/forms/the-round-record.md` *The round record* and
-`docs/forms/the-guarantee.md` *The guarantee* the records they read.
+`docs/forms/the-inspection.md` *The guarantee* the records they read.
 
-In a round record, `guarantee.md` and `trail/gate.md` a field stands in a
+In a round record, `inspection.md` and `trail/gate.md` a field stands in a
 `seal` block, every line of which parses or is refused at its line, and a
 line outside every block is prose to every arm. A fence like the block's and
 not it, and a file under `trail/rounds/` that is no `round-N.md`, are not
@@ -123,12 +123,12 @@ named as notices at their lines in the design and refuse nothing
 proofer's judgment at review.
 
 Usage:
-  chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
+  chain_check.py --baseline <ref> [--root DIR] [--worktree] [--inspecting]
 
 `--worktree` reads the records from the working tree instead of HEAD, for a
-check before the commit; CI never passes it. `--sealing` is the broad gate's
+check before the commit; CI never passes it. `--inspecting` is the broad gate's
 own run, in the preflight and in the broad run, before it writes
-`trail/gate.md` and the inspector `guarantee.md`. Those two arms, the
+`trail/gate.md` and the inspector `inspection.md`. Those two arms, the
 guarantee's `original:` line, and the body arm, whose seal mark stands on
 that guarantee, print and do not fail. The run asks neither the event payload
 nor `gh` for the pull request's state, and judges every other arm as at a
@@ -232,7 +232,7 @@ MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
 REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(.+?)\.$")
 
 VERIFYING_ROUND = "a verifying round is owed"
-SEALING = "--sealing"
+INSPECTING = "--inspecting"
 UNSEEN_SAYS = (
     "the pull request's state is unknown, and it is not judged as a ready "
     "pull request; CI judges it from GitHub's payload"
@@ -304,21 +304,21 @@ except (OSError, SyntaxError, ImportError) as _exc:
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
     raise SystemExit(2) from None
 
-# The closing records, `lib/optin.py`'s `GATE` and `GUARANTEE`: the
+# The closing records, `lib/optin.py`'s `GATE` and `INSPECTION`: the
 # orchestrator's run writes the one, the inspector the other, and they are the
 # only files that may follow the commit the guarantee names, since the inspector
 # audited everything else on the branch.
-CLOSING_RECORDS = (OPTIN.GATE, OPTIN.GUARANTEE)
-SEALING_SAYS = (
-    f"{SEALING}: `{OPTIN.GATE}` is the file this run writes and "
-    f"`{OPTIN.GUARANTEE}` the one the inspector writes after it, so their arms "
+CLOSING_RECORDS = (OPTIN.GATE, OPTIN.INSPECTION)
+INSPECTING_SAYS = (
+    f"{INSPECTING}: `{OPTIN.GATE}` is the file this run writes and "
+    f"`{OPTIN.INSPECTION}` the one the inspector writes after it, so their arms "
     "print and do not fail"
 )
-# The first line of a `--sealing` run, printed in place of the state line:
+# The first line of a `--inspecting` run, printed in place of the state line:
 # the broad gate's run precedes the ready pull request CI judges, so it is
 # judged as one, and neither the payload nor `gh` is asked for the state.
-SEALING_JUDGED_SAYS = (
-    f"`{SEALING}`: the broad gate's own run, judged as a ready pull request "
+INSPECTING_JUDGED_SAYS = (
+    f"`{INSPECTING}`: the broad gate's own run, judged as a ready pull request "
     "whatever the pull request's state, which it does not read"
 )
 
@@ -558,7 +558,7 @@ def unread(routing, root, item, chained):
     under `chained`, each file under `trail/rounds/` that is no
     `round-N.md` (`UNREAD_FILE`) and each fence of a round record like a
     `seal` block and not one (`blocks_of`). `main` prints them as notices;
-    such a fence of `guarantee.md` or `trail/gate.md` is named by
+    such a fence of `inspection.md` or `trail/gate.md` is named by
     `guarantee` and `broad_gate`."""
     found = []
     if chained:
@@ -1595,7 +1595,7 @@ def guarantee_original(text, rel, sha, config):
     stands for no later run. A guarantee `lib/fields.py`
     refuses, or one holding no verdict block, is the guarantee arm's
     refusal, and none is added here."""
-    found = FIELDS.read(text, FIELDS.GUARANTEE)
+    found = FIELDS.read(text, FIELDS.INSPECTION)
     if found.refusals or not found.blocks:
         return []
     newest = found.blocks[-1]
@@ -1612,7 +1612,7 @@ def guarantee_original(text, rel, sha, config):
 
 def originals_of(routing, root, home, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
-    through the review chain, and the `guarantee.md` of DIRECT, each
+    through the review chain, and the `inspection.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
     HEAD under HOME, the root's name (`lib/optin.py#HOME`), and PATHS, this
     pull request's, reach outside the document roots, `docs/` and HOME;
@@ -1643,7 +1643,7 @@ def originals_of(routing, root, home, paths, items, direct=()):
         for rel in round_records(routing, root, item):
             found.extend(original_of(read_record(root, rel), rel, sha, config))
     for item in direct:
-        rel = f"{item}/{OPTIN.GUARANTEE}"
+        rel = f"{item}/{OPTIN.INSPECTION}"
         said = read_record(root, rel)
         if said is not None:
             found.extend(guarantee_original(said, rel, sha, config))
@@ -1702,20 +1702,20 @@ def broad_gate(root, item, base, notices=None):
 NO_VERDICT_BLOCK = (
     "no verdict block: since #1198 the inspector's verdict stands in a `seal` "
     "block holding `target: <sha> against <base>`, the `original:` line where "
-    "one is owed and `Verdict:`, as `templates/records/sdd-guarantee.md` "
+    "one is owed and `Verdict:`, as `templates/records/sdd-inspection.md` "
     "shows; the inspector runs again at HEAD and appends one below the text "
     "already there"
 )
 
 
 def guarantee(root, item, base, notices=None):
-    """[(path, line, problem)] for the work item's `guarantee.md`: absent, a
+    """[(path, line, problem)] for the work item's `inspection.md`: absent, a
     line `lib/fields.py` refuses, a fence nobody closed and a line that
     begins with `<!--` among them, no verdict block, or a newest block, the
     last, naming a commit with anything but the closing records after it or
-    a verdict other than `sealed`. A fence named as not read goes to
+    a verdict other than `cleared`. A fence named as not read goes to
     NOTICES."""
-    rel = f"{item}/{OPTIN.GUARANTEE}"
+    rel = f"{item}/{OPTIN.INSPECTION}"
     text = read_record(root, rel)
     if text is None:
         return [
@@ -1723,10 +1723,10 @@ def guarantee(root, item, base, notices=None):
                 rel,
                 0,
                 "git carries no guarantee file: the inspector writes it from "
-                "`templates/records/sdd-guarantee.md` after the orchestrator's broad run",
+                "`templates/records/sdd-inspection.md` after the orchestrator's broad run",
             )
         ]
-    verdicts, problems = blocks_of(rel, text, FIELDS.GUARANTEE, notices)
+    verdicts, problems = blocks_of(rel, text, FIELDS.INSPECTION, notices)
     if problems:
         return problems
     if not verdicts:
@@ -1744,14 +1744,14 @@ def guarantee(root, item, base, notices=None):
             )
         )
     said = newest.fields[FIELDS.INSPECTOR_VERDICT]
-    if FIELDS.verdict_word(newest) != FIELDS.SEALED:
+    if FIELDS.verdict_word(newest) != FIELDS.CLEARED:
         line = f"{FIELDS.INSPECTOR_VERDICT} {said.value}"
         problems.append(
             (
                 rel,
                 said.line,
                 f"the inspector's verdict reads `{line}`: a ready pull request needs "
-                f"`{FIELDS.SEALED}`: fix what it names, or answer its question "
+                f"`{FIELDS.CLEARED}`: fix what it names, or answer its question "
                 "below the newest block, and the inspector runs again at the new "
                 "HEAD and appends its block",
             )
@@ -1778,8 +1778,8 @@ BODY_NONE_HOLDS = (
     f"the pull request carries more than one judged work item and none holds "
     f"`{OPTIN.PR}`, and one body is one work item's"
 )
-BODY_SEALING_SAYS = (
-    f"{SEALING}: the guarantee the seal mark stands on is not written yet, so "
+BODY_INSPECTING_SAYS = (
+    f"{INSPECTING}: the guarantee the seal mark stands on is not written yet, so "
     "a difference in the body prints and does not fail"
 )
 
@@ -2138,7 +2138,7 @@ def main(argv=None):
     ap.add_argument("--baseline", metavar="REF", required=True)
     ap.add_argument("--root", default=".")
     ap.add_argument("--worktree", action="store_true")
-    ap.add_argument(SEALING, action="store_true")
+    ap.add_argument(INSPECTING, action="store_true")
     args = ap.parse_args(argv)
     global WORKTREE
     WORKTREE = args.worktree
@@ -2210,9 +2210,9 @@ def _checked(args):
         said = PRINTED_TRAILERS if local else JUDGED_TRAILERS
         declarations, why = [], ROOT_LEFT_SAYS.format(home=home, trailers=said)
 
-    if args.sealing:
+    if args.inspecting:
         strict = True
-        print(f"chain-check: {SEALING_JUDGED_SAYS}")
+        print(f"chain-check: {INSPECTING_JUDGED_SAYS}")
     else:
         state, where = pull_request_state(root)
         unseen = state == "unknown" and not event_payload_present()
@@ -2303,8 +2303,8 @@ def _checked(args):
         notices.extend(unread(routing, root, item, item in chained))
         gate = broad_gate(root, item, args.baseline, notices)
         gate += guarantee(root, item, args.baseline, notices)
-        if args.sealing:
-            notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
+        if args.inspecting:
+            notices.extend((p, n, f"{INSPECTING_SAYS}: {m}") for p, n, m in gate)
         else:
             problems.extend(gate)
     text, said = (None, BODY_WORKTREE) if WORKTREE else pull_request_body()
@@ -2314,8 +2314,8 @@ def _checked(args):
         print(f"chain-check: {exc}", file=sys.stderr)
         return 2
     notices.extend(unread_body)
-    if args.sealing:
-        notices.extend((p, n, f"{BODY_SEALING_SAYS}: {m}") for p, n, m in found)
+    if args.inspecting:
+        notices.extend((p, n, f"{BODY_INSPECTING_SAYS}: {m}") for p, n, m in found)
     else:
         problems.extend(found)
     found = rule_changes_of(root, edited, notices, sources)
@@ -2326,10 +2326,10 @@ def _checked(args):
     if found is None:
         return 2
     for rel, line, message in found:
-        # The guarantee's line is the inspector's to write, so `--sealing` reads
+        # The guarantee's line is the inspector's to write, so `--inspecting` reads
         # it as it reads every other guarantee check.
-        if args.sealing and rel.endswith(f"/{OPTIN.GUARANTEE}"):
-            notices.append((rel, line, f"{SEALING_SAYS}: {message}"))
+        if args.inspecting and rel.endswith(f"/{OPTIN.INSPECTION}"):
+            notices.append((rel, line, f"{INSPECTING_SAYS}: {message}"))
         else:
             problems.append((rel, line, message))
 

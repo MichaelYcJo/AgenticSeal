@@ -48,7 +48,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 다시 쓰고 디렉터리를 지우므로, 작업 항목 안의 경로나 위치에 묶인 것은
 무엇이든 같은 식으로 깨집니다. 남은 묶임은 당사자가 브랜치 자신의 커밋에서
 실행한 것의 기록입니다. 라운드 기록의 `target:` 줄, 그리고 작업 항목의
-`trail/` 이나 `guarantee.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
+`trail/` 이나 `inspection.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
 그것입니다. 둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그
 밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
 (`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*). 경로와
@@ -188,7 +188,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 |---|---|
 | AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
-| `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
+| `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `inspection.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
 | framer, crafter, proofer, inspector, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
 
 디렉터리와 에이전트는 처음 만나는 사람에게 자기가 무엇인지 말해야 하므로,

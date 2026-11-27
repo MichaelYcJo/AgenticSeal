@@ -19,7 +19,7 @@ and so does a `main` run whose records reach it through `reading`, since
 Each arm keeps the `main` runs over a real repository that show `main`
 reaches it, and the cases whose fact is which records `main` hands the arm
 or what `main` makes of the arm's answer: the exit code a draft and
-`--sealing` give, and where a not-read line is printed.
+`--inspecting` give, and where a not-read line is printed.
 
 Since #1581's phase 9 the module's three templates are written by `git
 fast-import` (`imported`), and a `main` run whose fact is what an arm makes
@@ -233,8 +233,8 @@ def gate_file(*runs):
     return f"# 1791999999-a-work-item — broad gate\n\n{blocks}"
 
 
-def verdict_block(sha, verdict="sealed", original=None):
-    """One verdict block of a `guarantee.md`, as the inspector appends it."""
+def verdict_block(sha, verdict="cleared", original=None):
+    """One verdict block of a `inspection.md`, as the inspector appends it."""
     lines = [f"target: {sha} against main"]
     if original is not None:
         lines.append(f"original: {original}")
@@ -242,7 +242,7 @@ def verdict_block(sha, verdict="sealed", original=None):
     return "```seal\n" + "\n".join(lines) + "\n```\n"
 
 
-def guarantee_file(sha, verdict="sealed"):
+def guarantee_file(sha, verdict="cleared"):
     return "# 1791999999-a-work-item — guarantee\n\n" + verdict_block(sha, verdict)
 
 
@@ -388,7 +388,7 @@ def _branch_template(tmp_path_factory):
             "the closing records",
             {
                 f"{ITEM}/trail/gate.md": gate_file("1" * 40, reviewed),
-                f"{ITEM}/guarantee.md": guarantee_file(reviewed),
+                f"{ITEM}/inspection.md": guarantee_file(reviewed),
             },
         ),
         at=1700000020,
@@ -411,7 +411,7 @@ def seal(d):
     once the inspector has audited what is on it."""
     head = git(d, "rev-parse", "HEAD")
     write(d, f"{ITEM}/trail/gate.md", gate_file(head))
-    write(d, f"{ITEM}/guarantee.md", guarantee_file(head))
+    write(d, f"{ITEM}/inspection.md", guarantee_file(head))
     commit(d, "the closing records, again")
 
 
@@ -1793,7 +1793,7 @@ class Test_rule_changes_read:
     ):
         """S5: in CI a draft annotates the same line as a notice and passes.
         S6: where no pull request is observed the check prints it and exits
-        0. `--sealing`, the broad gate's run, reads no state, so it leaves
+        0. `--inspecting`, the broad gate's run, reads no state, so it leaves
         the line a refusal on a ready payload and with none (#1620)."""
         root, _code = branch
         text = spec_with(CONTINUED)
@@ -1807,7 +1807,7 @@ class Test_rule_changes_read:
         assert f"::notice file={path},line={line}::{said}" in out.splitlines(), out
         monkeypatch.delenv("GITHUB_ACTIONS")
         draft.write_text(json.dumps({"pull_request": {"draft": False}}), "utf-8")
-        code, out = check(root, capsys, chain.SEALING)
+        code, out = check(root, capsys, chain.INSPECTING)
         assert code == 1, out
         assert spec_lines(out) == [refusal(root, text)], out
         monkeypatch.delenv("GITHUB_EVENT_PATH")
@@ -1815,7 +1815,7 @@ class Test_rule_changes_read:
         assert code == 0, out
         assert chain.UNSEEN_SAYS in out
         assert spec_lines(out) == [refusal(root, text)], out
-        code, out = check(root, capsys, chain.SEALING)
+        code, out = check(root, capsys, chain.INSPECTING)
         assert code == 1, out
         assert spec_lines(out) == [refusal(root, text)], out
 
@@ -2648,21 +2648,21 @@ class Test_originals_of:
         assert code == 2, err
         assert "the parity readers would not load (a planted failure)" in err
 
-    @pytest.mark.rule("parity-in-the-guarantee")
+    @pytest.mark.rule("parity-in-the-inspection")
     def test_refuses_a_direct_guarantee_with_no_original_line_and_accepts_one(
         self, _item_template, ready, capsys, monkeypatch
     ):
         """S12: under `straight to the PR` no round records a comparison, so
-        in a migration repository the inspector's `guarantee.md` carries the
+        in a migration repository the inspector's `inspection.md` carries the
         `original:` line, and a ready pull request changing code fails
         without it, names a guarantee naming another commit, and passes with
-        the baseline. `--sealing` reads the missing line as a notice, as it
+        the baseline. `--inspecting` reads the missing line as a notice, as it
         reads every other guarantee check. The config and the guarantee are
         handed over (`reading`), so `main` runs over the module's sealed
         branch as it stands."""
         root, audited = _item_template
         answered(monkeypatch)
-        rel = f"{ITEM}/guarantee.md"
+        rel = f"{ITEM}/inspection.md"
         says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
         for words in (
             f"no `original:` line in the newest verdict block: `{PARITY}` "
@@ -2673,15 +2673,15 @@ class Test_originals_of:
         ):
             assert words in says, says
         assert direct_originals(monkeypatch, root, audited, None) == [
-            (rel, guarantee(audited, "sealed").split("\n").index("```seal") + 1, says)
+            (rel, guarantee(audited, "cleared").split("\n").index("```seal") + 1, says)
         ]
         code, out = check(root, capsys)
         assert code == 1, out
-        opener = guarantee(audited, "sealed").split("\n").index("```seal")
+        opener = guarantee(audited, "cleared").split("\n").index("```seal")
         assert f"{rel}:{opener + 1}  {says}" in out.splitlines(), out
-        code, out = check(root, capsys, "--sealing")
+        code, out = check(root, capsys, "--inspecting")
         assert code == 0, out
-        other = guarantee(audited, "sealed", "fedcba9876543210")
+        other = guarantee(audited, "cleared", "fedcba9876543210")
         assert direct_originals(monkeypatch, root, audited, "fedcba9876543210") == [
             (
                 rel,
@@ -2691,7 +2691,7 @@ class Test_originals_of:
         ]
         assert direct_originals(monkeypatch, root, audited, BASELINE[:10]) == []
 
-    @pytest.mark.rule("parity-in-the-guarantee")
+    @pytest.mark.rule("parity-in-the-inspection")
     def test_refuses_a_direct_guarantee_whose_only_original_is_misspelt(
         self, _item_template, monkeypatch
     ):
@@ -2702,9 +2702,9 @@ class Test_originals_of:
         Seen red against the reader of #1167, which read the line as prose,
         named it as not read and refused the file for lacking the line."""
         root, audited = _item_template
-        rel = f"{ITEM}/guarantee.md"
+        rel = f"{ITEM}/inspection.md"
         assert direct_originals(monkeypatch, root, audited, BASELINE) == []
-        text = guarantee(audited, "sealed", BASELINE).replace("original:", "Original:")
+        text = guarantee(audited, "cleared", BASELINE).replace("original:", "Original:")
         assert direct_originals(monkeypatch, root, audited, text=text) == []
         number = text.splitlines().index(f"Original: {BASELINE}") + 1
         said = chain.FIELDS.NOT_A_FIELD.format(
@@ -2714,7 +2714,7 @@ class Test_originals_of:
         )
         assert chain.guarantee(str(root), ITEM, "main") == [(rel, number, said)]
 
-    @pytest.mark.rule("parity-in-the-guarantee")
+    @pytest.mark.rule("parity-in-the-inspection")
     def test_a_missing_guarantee_is_named_once(self, _item_template, monkeypatch):
         """A guarantee git does not carry is the guarantee arm's refusal, and
         no second one asks it for an `original:` line."""
@@ -2723,18 +2723,18 @@ class Test_originals_of:
         ((_path, _line, why),) = chain.guarantee(str(root), ITEM, "main")
         assert "git carries no guarantee file" in why, why
 
-    @pytest.mark.rule("parity-in-the-guarantee")
+    @pytest.mark.rule("parity-in-the-inspection")
     def test_a_direct_guarantee_owes_nothing_for_the_document_roots_alone(
         self, _item_template, monkeypatch
     ):
         """S12: a change confined to `docs/` and `seal/` has no original to
         compare with, and a repository declaring no migration owes nothing."""
         root, audited = _item_template
-        inside = ["docs/a.md", f"{ITEM}/routing.md", f"{ITEM}/guarantee.md"]
+        inside = ["docs/a.md", f"{ITEM}/routing.md", f"{ITEM}/inspection.md"]
         assert direct_originals(monkeypatch, root, audited, None, paths=inside) == []
         assert direct_originals(monkeypatch, root, audited, None, config=None) == []
 
-    @pytest.mark.rule("parity-in-the-guarantee")
+    @pytest.mark.rule("parity-in-the-inspection")
     def test_owes_no_original_line_where_none_is_owed(
         self, _item_template, monkeypatch
     ):
@@ -2744,12 +2744,12 @@ class Test_originals_of:
         block without one passes, and a block holding `Original: <sha>` is
         refused for its line alone, never for a missing `original:` line."""
         root, audited = _item_template
-        text = guarantee(audited, "sealed", BASELINE)
+        text = guarantee(audited, "cleared", BASELINE)
         assert text.count("original:") == 1, text
         respelt = text.replace("original:", "Original:")
-        inside = ["docs/a.md", f"{ITEM}/routing.md", f"{ITEM}/guarantee.md"]
+        inside = ["docs/a.md", f"{ITEM}/routing.md", f"{ITEM}/inspection.md"]
         for config, paths in ((None, ["f.txt"]), (parity_file(BASELINE), inside)):
-            for said in (guarantee(audited, "sealed"), respelt):
+            for said in (guarantee(audited, "cleared"), respelt):
                 owed = direct_originals(
                     monkeypatch, root, audited, text=said, config=config, paths=paths
                 )
@@ -2846,11 +2846,11 @@ class Test_parity_readers:
 
 # --- the inspector's guarantee (#969, #1000) ------------------------------------------
 
-GUARANTEE_TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
+INSPECTION_TEMPLATE = ROOT / "templates" / "records" / "sdd-inspection.md"
 
 
 def guarantee(sha, verdict, original=None, earlier=()):
-    """A `guarantee.md` from the template: its tables for people, then a
+    """A `inspection.md` from the template: its tables for people, then a
     verdict block per run of EARLIER, each `(sha, verdict)`, then the newest
     run's block for SHA, holding ORIGINAL where it is given."""
     runs = [verdict_block(s, v) for s, v in earlier]
@@ -2879,7 +2879,7 @@ SEALED_ROUTING = """# routing
 @pytest.fixture(scope="module")
 def _item_template(tmp_path_factory):
     """A branch that went straight to the pull request and was sealed: the
-    code, then `trail/gate.md` and `guarantee.md` naming that commit, built
+    code, then `trail/gate.md` and `inspection.md` naming that commit, built
     once for the module. Returns `(root, the audited commit)`."""
     d = tmp_path_factory.mktemp("chain-sealed") / "g"
     born(d, "feature/g")
@@ -2901,7 +2901,7 @@ def _item_template(tmp_path_factory):
             "the closing records",
             {
                 f"{ITEM}/trail/gate.md": gate_file(audited),
-                f"{ITEM}/guarantee.md": guarantee(audited, "sealed"),
+                f"{ITEM}/inspection.md": guarantee(audited, "cleared"),
             },
         ),
         at=1700000010,
@@ -2931,18 +2931,18 @@ def direct_originals(
     migration config CONFIG, by default one whose baseline is `BASELINE`,
     None for none; PATHS are the pull request's."""
     if text is ...:
-        text = guarantee(audited, "sealed", original)
+        text = guarantee(audited, "cleared", original)
     if config is ...:
         config = parity_file(BASELINE)
-    reading(monkeypatch, {PARITY: config, f"{ITEM}/guarantee.md": text})
+    reading(monkeypatch, {PARITY: config, f"{ITEM}/inspection.md": text})
     return chain.originals_of(
         routing_module, str(root), "seal", list(paths), [], [ITEM]
     )
 
 
 # S6 of #1000: lines that open with the key and are not one of its three
-# shapes, and a word the verdict used before #969. Each is refused at its
-# line naming the three, and none reads as `sealed`.
+# shapes, and the words the verdict used before #969 and before #1651. Each
+# is refused at its line naming the three, and none reads as `cleared`.
 NEAR_MISSES = (
     "Verdict: withheld — x",
     "Verdict: withheld - x",
@@ -2950,27 +2950,28 @@ NEAR_MISSES = (
     "Verdict: withheld reason:",
     "Verdict: withheld reason:x",
     "Verdict: withheld reason:  x",
-    "Verdict: Sealed",
-    "Verdict: **sealed**",
-    "Verdict: sealed reason: x",
+    "Verdict: Cleared",
+    "Verdict: **cleared**",
+    "Verdict: cleared reason: x",
     "Verdict: undecided reason: x",
     "Verdict: sound",
+    f"{chain.FIELDS.INSPECTOR_VERDICT} sealed",
 )
 # #1198: lines that open like the key and are not it. Inside a verdict block
 # each is no field of its kind, refused at its line with the keys the block
 # takes.
 OPENS_LIKE = (
-    "**Verdict:** sealed",
-    "verdict: sealed",
-    "    Verdict: sealed",
-    "\tVerdict: sealed",
+    "**Verdict:** cleared",
+    "verdict: cleared",
+    "    Verdict: cleared",
+    "\tVerdict: cleared",
 )
 
 
 def guarantee_read(monkeypatch, root, text, notices=None):
     """What the guarantee arm gives for ITEM in the sealed branch at ROOT,
-    its `guarantee.md` handed over as TEXT (`reading`)."""
-    reading(monkeypatch, {f"{ITEM}/guarantee.md": text})
+    its `inspection.md` handed over as TEXT (`reading`)."""
+    reading(monkeypatch, {f"{ITEM}/inspection.md": text})
     return chain.guarantee(str(root), ITEM, "main", notices)
 
 
@@ -2985,18 +2986,20 @@ class Test_blocks_of:
     def test_accepts_a_records_blocks_and_hands_its_notices_over(self):
         text = verdict_block("abc1234") + "\n```Seal\nx\n```\n"
         notices = []
-        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.GUARANTEE, notices)
+        found, problems = chain.blocks_of(
+            "g.md", text, chain.FIELDS.INSPECTION, notices
+        )
         assert problems == [] and len(found) == 1
         assert notices == [("g.md", 6, chain.FIELDS.NEAR.format(line="```Seal"))]
 
     def test_refuses_each_line_the_reader_refuses_at_its_line(self):
         text = verdict_block("abc1234").replace("Verdict:", "verdict:")
-        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.GUARANTEE)
+        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.INSPECTION)
         assert found == []
         assert [(path, line) for path, line, _why in problems] == [("g.md", 3)]
 
 
-@pytest.mark.rule("ready-needs-sealed")
+@pytest.mark.rule("ready-needs-cleared")
 class Test_guarantee:
     def test_accepts_a_sealed_verdict_at_head(self, _item_template):
         root, _sha = _item_template
@@ -3004,13 +3007,13 @@ class Test_guarantee:
 
     def test_accepts_the_newest_of_two_runs(self, _item_template, monkeypatch):
         """#1198's scenario *Two inspector runs*: the inspector appends a verdict
-        block per run, so a `withheld` at an older commit above a `sealed`
+        block per run, so a `withheld` at an older commit above a `cleared`
         at HEAD passes, and the same blocks the other way round read the
         newest as `withheld`. Seen red against the reader that read the
         first block."""
         root, sha = _item_template
         older = git(root, "rev-parse", "HEAD~2")
-        text = guarantee(sha, "sealed", earlier=[(older, "withheld reason: x")])
+        text = guarantee(sha, "cleared", earlier=[(older, "withheld reason: x")])
         assert guarantee_read(monkeypatch, root, text) == []
         swapped = verdict_block(sha) + "\n" + verdict_block(older, "withheld reason: x")
         problems = guarantee_read(monkeypatch, root, swapped)
@@ -3021,22 +3024,22 @@ class Test_guarantee:
         commit, read through git; the template unfilled, a verdict above
         the target and no guarantee at all are handed over (`reading`)."""
         root, _sha = item
-        rel = f"{ITEM}/guarantee.md"
+        rel = f"{ITEM}/inspection.md"
         write(root, f"{ITEM}/gaps.md", "# an edit the inspector never read\n")
         later = commit(root, "a record after the guarantee")
         [(path, _line, why)] = chain.guarantee(str(root), ITEM, "main")
         assert path == rel and later[:8] in why
-        template = GUARANTEE_TEMPLATE.read_text(encoding="utf-8")
+        template = INSPECTION_TEMPLATE.read_text(encoding="utf-8")
         [(path, line, why)] = guarantee_read(monkeypatch, root, template)
         placeholder = template.split("\n")[line - 1]
         assert path == rel and placeholder.startswith("target: <"), placeholder
         assert why.startswith(f"`{placeholder}` does not read whole"), why
-        two = guarantee(later, "sealed").replace(
-            "```seal\n", "```seal\nVerdict: sealed\n"
+        two = guarantee(later, "cleared").replace(
+            "```seal\n", "```seal\nVerdict: cleared\n"
         )
         [(_p, _n, why)] = guarantee_read(monkeypatch, root, two)
         assert why == chain.FIELDS.NO_KIND.format(
-            line="Verdict: sealed", openers="`target:`"
+            line="Verdict: cleared", openers="`target:`"
         )
         [(_p, _n, why)] = guarantee_read(monkeypatch, root, None)
         assert "git carries no guarantee file" in why
@@ -3050,27 +3053,27 @@ class Test_guarantee:
         and says the inspector appends a block. Seen red against the reader
         before #1198, which passed the record."""
         root, sha = _item_template
-        rel = f"{ITEM}/guarantee.md"
+        rel = f"{ITEM}/inspection.md"
         old = (
             "| Field | Value |\n|---|---|\n"
-            f"| Target SHA | {sha} against main |\n\nVerdict: sealed\n"
+            f"| Target SHA | {sha} against main |\n\nVerdict: cleared\n"
         )
         assert guarantee_read(monkeypatch, root, old) == [
             (rel, 0, chain.NO_VERDICT_BLOCK)
         ]
-        assert "`templates/records/sdd-guarantee.md`" in chain.NO_VERDICT_BLOCK
+        assert "`templates/records/sdd-inspection.md`" in chain.NO_VERDICT_BLOCK
         assert "appends one" in chain.NO_VERDICT_BLOCK
 
     def test_refuses_a_fence_nobody_closed_between_two_runs(
         self, _item_template, monkeypatch
     ):
-        """#1122, at the check: a `sealed` block, then a fence nobody closed,
+        """#1122, at the check: a `cleared` block, then a fence nobody closed,
         then a `withheld` block. A renderer hides everything below the
         fence, so the check refuses it at its opener."""
         root, sha = _item_template
-        rel = f"{ITEM}/guarantee.md"
+        rel = f"{ITEM}/inspection.md"
         newest = verdict_block(sha, "withheld reason: the gate failed")
-        text = guarantee(sha, "sealed") + "\n````\n\n" + newest
+        text = guarantee(sha, "cleared") + "\n````\n\n" + newest
         opener = text.split("\n").index("````") + 1
         assert guarantee_read(monkeypatch, root, text) == [
             (rel, opener, chain.FIELDS.UNCLOSED)
@@ -3083,7 +3086,7 @@ class Test_guarantee:
         opener in a code span, as two merged guarantees do, leaves the
         verdict block below it read."""
         root, sha = _item_template
-        text = guarantee(sha, "sealed").replace(
+        text = guarantee(sha, "cleared").replace(
             "|---|---|---|---|\n\n## The parties",
             "|---|---|---|---|\n| markers | `x.md:1` | `git grep '<!-- specs/'` "
             "| holds |\n\n## The parties",
@@ -3095,11 +3098,11 @@ class Test_guarantee:
         """S5 of #1012: a verdict quoted in a comment above the verdict block
         is refused at its line."""
         root, sha = _item_template
-        rel = f"{ITEM}/guarantee.md"
-        text = guarantee(sha, "sealed").replace(
-            "```seal\n", "<!-- Verdict: sealed -->\n```seal\n"
+        rel = f"{ITEM}/inspection.md"
+        text = guarantee(sha, "cleared").replace(
+            "```seal\n", "<!-- Verdict: cleared -->\n```seal\n"
         )
-        line = text.splitlines().index("<!-- Verdict: sealed -->") + 1
+        line = text.splitlines().index("<!-- Verdict: cleared -->") + 1
         assert guarantee_read(monkeypatch, root, text) == [
             (rel, line, chain.FIELDS.COMMENT_LINE)
         ]
@@ -3111,14 +3114,16 @@ class Test_guarantee:
         """S6 of #1000, inside a verdict block: the value is read whole
         against the three shapes and refused at its line naming them. A word
         the verdict used before #969 needs no list of its own (#1198,
-        `## Removes`)."""
+        `## Removes`), and nor does `sealed`, the word before #1651: it is
+        refused as one more near miss. Seen red against the reader before
+        #1651, which passed that word."""
         root, sha = _item_template
-        rel = f"{ITEM}/guarantee.md"
-        text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
+        rel = f"{ITEM}/inspection.md"
+        text = guarantee(sha, "cleared").replace("Verdict: cleared", line)
         [(path, number, why)] = guarantee_read(monkeypatch, root, text)
         assert (path, number) == (rel, text.splitlines().index(line) + 1), why
         for shape in (
-            "`Verdict: sealed`",
+            "`Verdict: cleared`",
             "`Verdict: withheld reason: <reason>`",
             "`Verdict: undecided question: <question>`",
         ):
@@ -3133,8 +3138,8 @@ class Test_guarantee:
         takes, where #1167 read it as prose. Seen red against that reader,
         which named it and refused the file for having no verdict line."""
         root, sha = _item_template
-        rel = f"{ITEM}/guarantee.md"
-        text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
+        rel = f"{ITEM}/inspection.md"
+        text = guarantee(sha, "cleared").replace("Verdict: cleared", line)
         number = text.splitlines().index(line) + 1
         said = chain.FIELDS.NOT_A_FIELD.format(
             line=line, kind="verdict", keys="`target:`, `original:` and `Verdict:`"
@@ -3149,8 +3154,8 @@ class Test_guarantee:
         its line as not read, which adds nothing to the exit code. `main`
         runs over the module's sealed branch, the guarantee handed over."""
         root, sha = _item_template
-        rel = f"{ITEM}/guarantee.md"
-        text = guarantee(sha, "sealed").replace("```seal", "```Seal")
+        rel = f"{ITEM}/inspection.md"
+        text = guarantee(sha, "cleared").replace("```seal", "```Seal")
         notices = []
         assert guarantee_read(monkeypatch, root, text, notices) == [
             (rel, 0, chain.NO_VERDICT_BLOCK)
@@ -3166,11 +3171,11 @@ class Test_guarantee:
     ):
         """T8, S8 of #969: `withheld` and `undecided` fail a ready pull request
         naming the file and the verdict; a draft prints the same line and
-        passes; `--sealing`, the broad gate's own run, prints it. `withheld`
+        passes; `--inspecting`, the broad gate's own run, prints it. `withheld`
         is committed and judged by `main`; `undecided` is read by the arm,
         handed over."""
         root, sha = item
-        rel = f"{ITEM}/guarantee.md"
+        rel = f"{ITEM}/inspection.md"
         verdict = "withheld reason: the body claims a README change"
         write(root, rel, guarantee(sha, verdict))
         commit(root, f"the inspector says {verdict}")
@@ -3178,9 +3183,9 @@ class Test_guarantee:
         code, out = check(root, capsys)
         assert code == 1, out
         line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
-        assert f"`Verdict: {verdict}`" in line and "needs `sealed`" in line, line
+        assert f"`Verdict: {verdict}`" in line and "needs `cleared`" in line, line
         assert "appends its block" in line, line
-        code, out = check(root, capsys, "--sealing")
+        code, out = check(root, capsys, "--inspecting")
         assert code == 0 and rel in out
         event = root.parent / "event.json"
         event.write_text(
@@ -3192,13 +3197,15 @@ class Test_guarantee:
             monkeypatch, root, guarantee(sha, "undecided question: Q?")
         )
         assert "`Verdict: undecided question: Q?`" in why, why
-        assert "needs `sealed`" in why and "appends its block" in why, why
+        assert "needs `cleared`" in why and "appends its block" in why, why
 
 
 class Test_guarantee_original:
     def test_accepts_the_newest_blocks_baseline_or_a_prefix_of_it(self):
         for said in (BASELINE, BASELINE[:10]):
-            text = guarantee("abc1234", "sealed", said, earlier=[("abc1234", "sealed")])
+            text = guarantee(
+                "abc1234", "cleared", said, earlier=[("abc1234", "cleared")]
+            )
             assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == []
 
     def test_refuses_a_newest_block_with_none_or_another(self):
@@ -3211,7 +3218,7 @@ class Test_guarantee_original:
         assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == [
             ("g.md", newest, says)
         ]
-        other = guarantee("abc1234", "sealed", "fedcba9876543210")
+        other = guarantee("abc1234", "cleared", "fedcba9876543210")
         line = other.split("\n").index("original: fedcba9876543210") + 1
         said = chain.OTHER_ORIGINAL.format(said="fedcba9876543210", sha=BASELINE)
         assert chain.guarantee_original(other, "g.md", BASELINE, PARITY) == [
@@ -3220,7 +3227,7 @@ class Test_guarantee_original:
 
     def test_refuses_nothing_of_a_guarantee_the_guarantee_arm_refuses(self):
         for text in (
-            "Verdict: sealed\n",
+            "Verdict: cleared\n",
             verdict_block("abc1234").replace("Verdict:", "verdict:"),
             verdict_block("abc1234") + "\n<!-- a note -->\n",
         ):
@@ -3258,7 +3265,7 @@ class Test_broad_gate:
         assert chain.broad_gate(str(root), ITEM, "main") == []
         assert chain.guarantee(str(root), ITEM, "main") == [
             (
-                f"{ITEM}/guarantee.md",
+                f"{ITEM}/inspection.md",
                 0,
                 chain.follows_reason(
                     ("after", records, f"{ITEM}/changelog.md"),
@@ -3423,7 +3430,7 @@ def _bodied_template(tmp_path_factory):
             "feature/g",
             "feature/g",
             "the seal",
-            {f"{ITEM}/guarantee.md": guarantee(audited, "sealed")},
+            {f"{ITEM}/inspection.md": guarantee(audited, "cleared")},
         ),
         at=1700000020,
     )
@@ -3502,8 +3509,10 @@ class Test_body:
         root, _early, _late = bodied
         fork = git(root, "rev-parse", "main")
         audited = git(root, "rev-parse", "HEAD~2")
-        sealed = guarantee(audited, "sealed").replace("against main", f"against {fork}")
-        write(root, f"{ITEM}/guarantee.md", sealed)
+        sealed = guarantee(audited, "cleared").replace(
+            "against main", f"against {fork}"
+        )
+        write(root, f"{ITEM}/inspection.md", sealed)
         commit(root, "the seal, its base a SHA")
         written = composed_body(root)
         assert MARK in written
@@ -3654,7 +3663,7 @@ class Test_body:
     def test_names_the_body_as_not_read_with_no_payload(
         self, _bodied_template, monkeypatch
     ):
-        """S5, a run outside CI, which `seal gate` under `--sealing` shares:
+        """S5, a run outside CI, which `seal gate` under `--inspecting` shares:
         `pull_request_body` reads no payload, the same under either flag.
         Seen red with the arm absent."""
         root, _early, _late = _bodied_template
@@ -3691,16 +3700,16 @@ class Test_body:
     def test_prints_a_difference_as_a_notice_under_sealing(
         self, _bodied_template, tmp_path, monkeypatch, capsys
     ):
-        """S5, `--sealing`: the guarantee the mark stands on is not written
+        """S5, `--inspecting`: the guarantee the mark stands on is not written
         yet, so a difference prints as a notice and fails nothing. Seen red
         with the arm absent."""
         root, early, _late = _bodied_template
         payload(tmp_path, monkeypatch, early)
         answered(monkeypatch)
-        code, out = check(root, capsys, "--sealing")
+        code, out = check(root, capsys, "--inspecting")
         assert code == 0, out
         [line] = body_lines(out)
-        assert line.startswith(f"{ITEM}:0  {chain.BODY_SEALING_SAYS}: ")
+        assert line.startswith(f"{ITEM}:0  {chain.BODY_INSPECTING_SAYS}: ")
         assert line.endswith(f"then `{MARK}`, a fixed line"), line
 
     def test_names_the_body_as_not_read_for_two_work_items_with_pr_md(
@@ -4684,13 +4693,13 @@ class Test_main:
     def test_refuses_a_verifying_round_owed_under_sealing_whatever_the_state(
         self, branch, tmp_path, capsys, monkeypatch, state
     ):
-        """#1620, S1, S3, S4 and S6: `--sealing`, the broad gate's run,
+        """#1620, S1, S3, S4 and S6: `--inspecting`, the broad gate's run,
         reads no pull request's state and judges as at a ready pull request.
         A last record owing a verifying round fails it with no payload and
         on a draft, and its first line says how the run is judged in place
         of `UNSEEN_SAYS`. The state is never asked, so no `gh` starts.
         Without the flag the same branch prints the same refusal and exits
-        0. Seen red against `chain_check.py` before #1620, where `--sealing`
+        0. Seen red against `chain_check.py` before #1620, where `--inspecting`
         read the state and exited 0 in both."""
         root, _code = branch
         git(root, "rm", "-q", ROUND_2)
@@ -4701,15 +4710,15 @@ class Test_main:
         monkeypatch.setattr(
             chain, "pull_request_state", lambda *a: asked.append(a) or real(*a)
         )
-        code, out = check(root, capsys, chain.SEALING)
+        code, out = check(root, capsys, chain.INSPECTING)
         assert code == 1, out
         lines = out.splitlines()
         assert chain.UNSEEN_SAYS not in out
-        assert chain.SEALING_JUDGED_SAYS == (
-            "`--sealing`: the broad gate's own run, judged as a ready pull "
+        assert chain.INSPECTING_JUDGED_SAYS == (
+            "`--inspecting`: the broad gate's own run, judged as a ready pull "
             "request whatever the pull request's state, which it does not read"
         )
-        assert lines[0] == f"chain-check: {chain.SEALING_JUDGED_SAYS}", out
+        assert lines[0] == f"chain-check: {chain.INSPECTING_JUDGED_SAYS}", out
         refused = [
             ln
             for ln in lines
@@ -4826,9 +4835,9 @@ class Test_main:
         self, _branch_template, ready, capsys, monkeypatch
     ):
         """S5 (T15): the newest run must be HEAD or have only records after
-        it; a stale run fails naming the file, and `--sealing` prints it.
+        it; a stale run fails naming the file, and `--inspecting` prints it.
         `main` reads the record, which shows that it hands the broad gate
-        arm its work item and reads its refusal by `--sealing`."""
+        arm its work item and reads its refusal by `--inspecting`."""
         root, _code = _branch_template
         rel = f"{ITEM}/trail/gate.md"
         answered(monkeypatch, real=("follows",))
@@ -4836,7 +4845,7 @@ class Test_main:
         code, out = check(root, capsys)
         assert code == 1
         assert any(ln.startswith(f"{rel}:") for ln in out.splitlines())
-        code, out = check(root, capsys, "--sealing")
+        code, out = check(root, capsys, "--inspecting")
         assert code == 0 and rel in out
 
     @pytest.mark.rule("two-review-answers")
@@ -4853,10 +4862,10 @@ class Test_main:
         code, out = check(root, capsys)
         assert code == 0, out
         reading(
-            monkeypatch, {f"{ITEM}/trail/gate.md": None, f"{ITEM}/guarantee.md": None}
+            monkeypatch, {f"{ITEM}/trail/gate.md": None, f"{ITEM}/inspection.md": None}
         )
         code, out = check(root, capsys)
-        assert code == 1 and "trail/gate.md" in out and "guarantee.md" in out
+        assert code == 1 and "trail/gate.md" in out and "inspection.md" in out
 
     def test_refuses_an_unreadable_declaration_and_accepts_none(
         self, _branch_template, branch, ready, capsys, monkeypatch
@@ -5128,7 +5137,7 @@ class Test_retired:
         answered(monkeypatch, real=("follows",))
         code, out = check(root, capsys, "--worktree")
         assert "so nothing is declared" not in out, out
-        assert code == 1 and f"{ITEM}/guarantee.md:0  the guarantee is behind" in out
+        assert code == 1 and f"{ITEM}/inspection.md:0  the guarantee is behind" in out
 
     def test_judges_the_declarations_where_the_working_tree_has_seal_as_a_file(
         self, branch, ready, capsys, monkeypatch

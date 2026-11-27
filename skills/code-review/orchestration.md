@@ -314,14 +314,14 @@ resolved a conflict in a file outside the work item's records, the
 orchestrator spawns a verifying round on that resolution, because the chain
 check lists the branch's commits with `--no-merges` and reads no merge commit
 (`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
-past `trail/gate.md` and `guarantee.md`, so after the merge, and after that
+past `trail/gate.md` and `inspection.md`, so after the merge, and after that
 verifying round's record is committed where one is owed, the orchestrator
 runs the broad gate again, commits its record, runs `seal pr-body` on the
 body file again and spawns the inspector again.
 
 **A commit after the newest broad run that changes only files under
 `seal/threads/<work-item-id>/` owes no broad run.** Where such a commit
-changes a record other than `trail/gate.md` and `guarantee.md` after the
+changes a record other than `trail/gate.md` and `inspection.md` after the
 inspector has written its verdict, it owes `seal pr-body` on the body file
 again and the inspector again, and the inspector reads every record at HEAD.
 Those two files may follow the verdict's commit, as the guarantee arm

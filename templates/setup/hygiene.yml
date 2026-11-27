@@ -35,7 +35,7 @@ on:
     # earned on the draft's terms: pressing Ready for review makes no commit,
     # so nothing re-runs. `chain_check.py` reads the draft state, and fails
     # an open finding, a record behind HEAD, or a missing `trail/gate.md` or
-    # `guarantee.md` only once the draft is over.
+    # `inspection.md` only once the draft is over.
     #
     # `edited` is here because `chain_check.py` reads the pull request's body
     # against what `seal pr-body` composes at HEAD. A body edit is no commit,

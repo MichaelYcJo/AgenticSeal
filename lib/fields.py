@@ -1,7 +1,7 @@
 """The one reader and the one spelling of the `seal` blocks a work item's
 records hold their fields in.
 
-A field a script reads in a round record, in `guarantee.md` or in
+A field a script reads in a round record, in `inspection.md` or in
 `trail/gate.md` stands inside a `seal` block and nowhere else. A block is a
 fenced code block, by `lib/blocks.py#walk`, outside every other fence
 and every HTML comment block, whose opener is a line of three backticks then
@@ -87,7 +87,7 @@ INSPECTOR_VERDICT = "Verdict:"
 RUN = "run:"
 
 # The inspector's three verdict words.
-SEALED = "sealed"
+CLEARED = "cleared"
 WITHHELD = "withheld"
 UNDECIDED = "undecided"
 
@@ -202,9 +202,9 @@ VERDICT_BLOCK = Kind(
         ),
         ORIGINAL: ORIGINAL_SPEC,
         INSPECTOR_VERDICT: Spec(
-            rf"{SEALED}|{WITHHELD} reason: \S.*|{UNDECIDED} question: \S.*",
+            rf"{CLEARED}|{WITHHELD} reason: \S.*|{UNDECIDED} question: \S.*",
             ONE,
-            f"the verdict reads `{INSPECTOR_VERDICT} {SEALED}`, `{INSPECTOR_VERDICT} "
+            f"the verdict reads `{INSPECTOR_VERDICT} {CLEARED}`, `{INSPECTOR_VERDICT} "
             f"{WITHHELD} reason: <reason>` or `{INSPECTOR_VERDICT} {UNDECIDED} "
             "question: <question>`, written exactly so",
         ),
@@ -223,7 +223,7 @@ RUN_BLOCK = Kind(
 
 # The kinds each record holds; within one record, a first key names one kind.
 ROUND_RECORD = (ROUND_BLOCK, FINDING_BLOCK, CLOSE_BLOCK, CONFIRMATION_BLOCK)
-GUARANTEE = (VERDICT_BLOCK,)
+INSPECTION = (VERDICT_BLOCK,)
 GATE = (RUN_BLOCK,)
 
 # What each refusal and notice says.
@@ -375,7 +375,7 @@ def assemble(pairs, kinds):
 
 
 def verdict_word(block):
-    """`sealed`, `withheld` or `undecided` for a verdict block, the first
+    """`cleared`, `withheld` or `undecided` for a verdict block, the first
     word of its `Verdict:` value; None for a block of another kind."""
     said = block.fields.get(INSPECTOR_VERDICT)
     return said.value.split(" ", 1)[0] if said else None

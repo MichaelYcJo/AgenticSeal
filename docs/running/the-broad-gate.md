@@ -18,7 +18,7 @@ reasons past.
 The run judges nothing. `seal gate` runs the repository's broad command,
 reports what the commands said, and writes the work item's `trail/gate.md`;
 the inspector's own verdict, which follows the run, is a separate file
-(`docs/forms/the-guarantee.md` *The guarantee*). A run that judges is a run
+(`docs/forms/the-inspection.md` *The guarantee*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
 check: tests/text/test_broad_gate_rule.py
 
@@ -26,7 +26,7 @@ check: tests/text/test_broad_gate_rule.py
 Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
 the tree and the base it measured; a passing run prints its panel's rows as
 text under that line, the same bytes on a terminal as on a pipe, and writes
-no values file and no drawing. The verdict word `sealed` is the inspector's,
+no values file and no drawing. The verdict word `cleared` is the inspector's,
 and the stamp is queued from that verdict by the inspector, in either mode
 (`docs/checks/the-stamp.md` *The stamp*), so a green suite is never read as
 a sealed work item.

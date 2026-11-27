@@ -17,11 +17,11 @@ the rule documents, and nothing else of a round record.** It judges the
 add or change. A ready pull request fails on any refusal, each named
 `path:line  why`; a draft, or a run that observed no pull request,
 prints the same lines and exits 0. The run of `seal gate` under
-`--sealing`, in the preflight and in the broad run alike, reads no
+`--inspecting`, in the preflight and in the broad run alike, reads no
 pull request's state and judges as at a ready pull request, so a
 refusal the pull request would meet arrives before it opens. The arms
 that read what is written after that run, `trail/gate.md`,
-`guarantee.md` with its `original:` line, and the body the seal mark
+`inspection.md` with its `original:` line, and the body the seal mark
 stands in, print there and do not fail.
 check: tests/skills/test_chain_check.py
 
@@ -62,7 +62,7 @@ records of the work items this pull request's own commits declare or change
 and no other, so a record a merged pull request left behind is never judged
 at a pull request again, whatever its shape. One reader outside the check still opens merged records: the release
 workflow's `seal` job reads every record of a release with the
-`chain_check` of the tree it runs from. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `guarantee.md` and `trail/gate.md` take a block below their old text when the inspector and `seal gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
+`chain_check` of the tree it runs from. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `inspection.md` and `trail/gate.md` take a block below their old text when the inspector and `seal gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
 it, and the lack is no finding for a later round.
 check: old-table-shape-refused
 
@@ -115,7 +115,7 @@ proofer's.
 check: parity-at-the-pull-request
 
 **Where `seal/parity.json` is declared and the change reaches outside
-`docs/` and `seal/`, the `guarantee.md` of a work item declaring
+`docs/` and `seal/`, the `inspection.md` of a work item declaring
 `straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The inspector writes it after comparing the audited
 commit with the original through `legacy-parity`, and the check reads it by
 the rule a round record's line is read by: a ready pull request fails while
@@ -123,7 +123,7 @@ the guarantee holds no such line, or one whose commit and the
 `Baseline commit` key's SHA are not one a prefix of the other. What the
 check cannot read is whether the comparison was a good one, which is the
 inspector's.
-check: parity-in-the-guarantee
+check: parity-in-the-inspection
 
 **On every pull request, the check reads the `Seal-Routing` trailer of
 each of its own commits, as `docs/checks/the-routing-check.md` *At the pull
@@ -194,8 +194,8 @@ differs on the mark's line alone, and the refusal names that line. The
 mark's address carries no version, so the installed plugin and the copy
 the check runs compose one line whatever release each is. Where the
 payload holds no body, as a run outside CI, `--worktree` and the run of
-`seal gate` under `--sealing` do, the body is named as not read and
-nothing is decided on it; under `--sealing` a difference is a notice.
+`seal gate` under `--inspecting` do, the body is named as not read and
+nothing is decided on it; under `--inspecting` a difference is a notice.
 Where the pull request carries more than one judged work item holding a
 `pr.md`, or several judged work items none of which holds one, the body
 is named as not read for each, since one body is one work item's. The

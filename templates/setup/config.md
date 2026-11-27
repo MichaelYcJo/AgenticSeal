@@ -134,7 +134,7 @@ every repository, whatever either key says:
   a URL.
 - **The field names, section headings and vocabulary a checker reads
   literally**: the info string `seal` that opens each block of a round
-  record, a `guarantee.md` and a `trail/gate.md`, and every key of those
+  record, a `inspection.md` and a `trail/gate.md`, and every key of those
   blocks and every fixed word of their values, whose one spelling is
   `lib/fields.py`, which `chain_check.py` and the stamp read them
   through; a round record's `## Findings` heading, which `chain_check.py`
@@ -481,9 +481,9 @@ request, as any other differing line does.
 one line, the plugin's icon at the default branch of the plugin's
 repository, between the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds and the fold,
-where the newest verdict block of the work item's `guarantee.md` reads
-`sealed` at a commit that only the closing records, `trail/gate.md` and
-`guarantee.md`, follow. A work item not sealed at HEAD gets no mark, and the
+where the newest verdict block of the work item's `inspection.md` reads
+`cleared` at a commit that only the closing records, `trail/gate.md` and
+`inspection.md`, follow. A work item not sealed at HEAD gets no mark, and the
 inspector and the pull request's check name why. The mark's address is the
 plugin's repository and names no version, so the installed plugin and the
 copy the pull request's check runs compose one line whatever release each

@@ -403,8 +403,8 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
     every assertion below is unchanged and only the name and the grounds are.
 
     Since the inspector became the guarantor (#923) its one write in the tree
-    is `guarantee.md`, and `trail/gate.md` is the gate's, through its
-    command. Since #1376 the stamp's values file its `seal stamp --guarantee`
+    is `inspection.md`, and `trail/gate.md` is the gate's, through its
+    command. Since #1376 the stamp's values file its `seal stamp --inspection`
     queues is named beside it. How the definition ends the list is the
     proofer's to read."""
     text = " ".join(inspector_text().split())
@@ -419,9 +419,9 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
         "the gate's file does not name the command that makes it, so the "
         "inspector cannot tell its own write from the gate's"
     )
-    # The path `guarantee.md`, the inspector's one write in the tree, which the
+    # The path `inspection.md`, the inspector's one write in the tree, which the
     # inspector reads for what it may write.
-    assert "`guarantee.md`" in text, (
+    assert "`inspection.md`" in text, (
         "the permission does not say WHICH files, and a permission without a "
         "boundary is a general one"
     )

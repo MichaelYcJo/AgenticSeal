@@ -1,7 +1,7 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000030-guarantee-stale-gate/guarantee.md'}
+target: {source: 'file', path: 'seal/threads/1790000030-guarantee-stale-gate/inspection.md'}
 pattern: '^```seal\n(?:[^`\n][^\n]*\n)*?Verdict: withheld reason: \S'
 flags: 'm'
 ---
-`guarantee.md` carries the verdict `withheld` in a verdict block.
+`inspection.md` carries the verdict `withheld` in a verdict block.

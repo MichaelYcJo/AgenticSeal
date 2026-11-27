@@ -32,7 +32,7 @@ EMOJI = re.compile("[\U0001f000-\U0001faff☀-➿⬀-⯿⌀-⏿️]")
 
 # A proof block's head line, `<mark> <skill> applied`, and a seal line's
 # `sealed @ <sha>`. The hand-back's labels carry the claims now, and the
-# inspector's `guarantee.md` is the one seal.
+# inspector's `inspection.md` is the one seal.
 PROOF_BLOCK = re.compile(
     r"^[^\w\n]*[a-z][\w-]* applied[ \t]*$|\bsealed @", re.MULTILINE
 )

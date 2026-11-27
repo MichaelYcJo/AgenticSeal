@@ -1867,7 +1867,7 @@ class Test_gate:
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
         # The chain arm passes the check's own flag, which `main` loads the
         # check for (#1575).
-        assert chain_kept.splitlines()[0].endswith(f" {chain.SEALING}")
+        assert chain_kept.splitlines()[0].endswith(f" {chain.INSPECTING}")
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "agentic-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
@@ -1957,7 +1957,7 @@ class Test_gate:
         preflight, and the chain arm's quoted lines name the record and the
         verifying round owed. The broad run builds the same arms and skips
         only the command, so this case holds its chain arm too. Seen red
-        against `chain_check.py` before #1620, whose `--sealing` run judged
+        against `chain_check.py` before #1620, whose `--inspecting` run judged
         no pull request and exited 0, so the preflight passed."""
         write(
             repo,
@@ -2280,7 +2280,7 @@ class Test_main:
     def test_refuses_a_copy_without_its_chain_check_before_any_arm(
         self, tmp_path, _sealable_template
     ):
-        """#1575 S6. The chain arm passes `chain_check.py#SEALING`, and the
+        """#1575 S6. The chain arm passes `chain_check.py#INSPECTING`, and the
         gate loads the check for it before the first arm runs. A copy of the
         plugin without the check, run over the fixture branch every arm
         passes, exits 2 with the loader's sentence naming it, and runs no

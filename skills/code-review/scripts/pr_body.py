@@ -20,8 +20,8 @@ not there is named by its own line of `FIXED`.
 One fixed line depends on a record's verdict: the seal mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
 between `HEADING` and the changelog's section where `seal/config.json`'s
-`Pull request seal mark` key reads `yes` and the work item's `guarantee.md`
-reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built
+`Pull request seal mark` key reads `yes` and the work item's `inspection.md`
+reads `cleared` at HEAD, as `seal_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
 version, so two releases of the plugin compose one line. It carries
 no record text, and `--check` composes it the same way, so the inspector's
@@ -629,10 +629,10 @@ def _names(parts):
 
 
 def _seal_at_head(item, root, base=None):
-    """`(sealed, note)`: whether `guarantee.md` in the work item's directory
+    """`(sealed, note)`: whether `inspection.md` in the work item's directory
     ITEM is sealed at HEAD of the repository at ROOT, the way
     `chain_check.py#guarantee` asks it. Its blocks are read through
-    `lib/fields.py` with no refusal, the newest reads `sealed`, and
+    `lib/fields.py` with no refusal, the newest reads `cleared`, and
     `chain_check.py#follows` finds the commit its `target:` names to be
     HEAD or followed only by the closing records. The base `follows` reads
     against is BASE where it is given, the base the pull request's check
@@ -646,15 +646,15 @@ def _seal_at_head(item, root, base=None):
     other than the work item's. Every other way of not being sealed is the
     inspector's and the pull request check's to name."""
     try:
-        with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
+        with open(os.path.join(item, OPTIN.INSPECTION), encoding="utf-8") as handle:
             text = handle.read()
     except (OSError, UnicodeDecodeError):
         return False, None
-    found = CHAIN.FIELDS.read(text, CHAIN.FIELDS.GUARANTEE)
+    found = CHAIN.FIELDS.read(text, CHAIN.FIELDS.INSPECTION)
     if found.refusals or not found.blocks:
         return False, None
     newest = found.blocks[-1]
-    if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.SEALED:
+    if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.CLEARED:
         return False, None
     target = newest.fields[CHAIN.FIELDS.TARGET].match
     base = base or target["base"]
@@ -1257,7 +1257,7 @@ def _place(where, line, item, body, home):
     by its name, and a record by its path under HOME, the root's name,
     `lib/optin.py#HOME`, whatever path the work item ITEM was given by,
     `ROOT_CONFIG` as the root's `config.json`. The inspector copies the first
-    `refused:` line into a `guarantee.md` that is committed."""
+    `refused:` line into a `inspection.md` that is committed."""
     if where is None:
         path = os.path.basename(body)
     else:

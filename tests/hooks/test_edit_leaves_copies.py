@@ -289,7 +289,7 @@ class Test_main:
     def test_refuses_to_print_where_the_words_stand_only_in_trail_or_guarantee(
         self, tmp_path
     ):
-        """A10. A round record under `trail/` and `guarantee.md` quote what
+        """A10. A round record under `trail/` and `inspection.md` quote what
         their party read, so a copy there is not named, and neither is one
         in a file that is not a `.md` record."""
         directory = item(
@@ -297,7 +297,7 @@ class Test_main:
             {
                 "frame/design.md": design(AFTER),
                 "trail/rounds/round-1.md": "# Round 1\n\n" + BEFORE + "\n",
-                "guarantee.md": "# Guarantee\n\n" + BEFORE + "\n",
+                "inspection.md": "# Inspection\n\n" + BEFORE + "\n",
                 "notes.txt": BEFORE + "\n",
             },
         )
@@ -382,8 +382,8 @@ class Test_main:
 
     def test_refuses_to_print_for_an_edit_of_a_file_it_does_not_read(self, tmp_path):
         """A10. A copy stands in `pr.md` each time, and the edited file is
-        under `trail/`, is `guarantee.md`, or is not a `.md` file."""
-        for rel in ("trail/phases/phase-1.md", "guarantee.md", "frame/design.txt"):
+        under `trail/`, is `inspection.md`, or is not a `.md` file."""
+        for rel in ("trail/phases/phase-1.md", "inspection.md", "frame/design.txt"):
             where = tmp_path / rel.replace("/", "-")
             directory = item(where, {rel: design(AFTER), "pr.md": quoted(BEFORE)})
             path = directory.joinpath(*rel.split("/"))

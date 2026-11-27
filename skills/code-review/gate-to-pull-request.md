@@ -9,11 +9,11 @@ takes.
 
 ## Orchestrator: from the preflight to the open pull request
 
-Once `guarantee.md` reading `sealed` is committed, run `seal pr-body` once
+Once `inspection.md` reading `cleared` is committed, run `seal pr-body` once
 more on the body file the inspector read, and open the pull request with it,
 `gh pr create --body-file <that file>`. That run changes no copied line and
 writes the seal mark where the repository turns it on
-(`docs/forms/the-guarantee.md` *The guarantee*). CI runs then, and again on
+(`docs/forms/the-inspection.md` *The guarantee*). CI runs then, and again on
 every push to it. The pull request's check reads the body against what
 `seal pr-body` composes at HEAD and refuses a ready pull request at each
 line where they differ (`skills/code-review/scripts/chain_check.py#body`).
@@ -56,7 +56,7 @@ file to the open pull request with
 `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
 `gh pr edit`: that command's GraphQL query has stopped on an error about
 Projects (classic), and the REST call sends the body alone. Whenever the
-inspector's next `sealed` verdict is committed while the pull request is open,
+inspector's next `cleared` verdict is committed while the pull request is open,
 after this repair, a merge from the base or any other repair, run
 `seal pr-body` on the file once more and send it the same way. The body
 sent before that verdict carries no seal mark, since the seal it stood on
@@ -68,7 +68,7 @@ the `Pull request seal mark` key asks for.
 `ready_for_review` event re-runs it when the draft is marked ready, so the
 record is still owed then. Nothing that can reach `main` is exempt.
 
-**`trail/gate.md` and `guarantee.md` are read at the pull request**, so four
+**`trail/gate.md` and `inspection.md` are read at the pull request**, so four
 more steps come before it opens: the preflight, the broad run, the pull
 request body, and then the inspector's spawn. You take them once the work
 item's `changelog.md` states what the work item ships and every row
@@ -89,7 +89,7 @@ directly. **On exit 0 commit `trail/gate.md`, then write the pull request
 body, then spawn `inspector` with the base and the work item's directory**, the
 issue and the file holding the pull request body. The
 inspector reads that record, audits the work against the issue and the tree,
-and writes `guarantee.md` (`docs/forms/the-guarantee.md` *The guarantee*); it
+and writes `inspection.md` (`docs/forms/the-inspection.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
@@ -100,7 +100,7 @@ because the body's copy of the records includes that record.** Run
 two language keys differ, then `pr.md`, then the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the changelog
 fragment, then the rest of the records' copy in one fold, as
-`docs/forms/the-guarantee.md` *The guarantee* states, and replaces
+`docs/forms/the-inspection.md` *The guarantee* states, and replaces
 whatever the file held. On exit 1 its `refused:` lines name a record's file
 and line, `pr.md` and `pr.<lang>.md` among the records, a language key
 `config.json` lacks, or the work item's directory with the files to repair
@@ -138,7 +138,7 @@ of the gate, and its `outputs kept under seal-gate-<random>/` line. Each is
 a fact a reader learns from nowhere else, and the gate prints it after the
 last round, so no record holds it and `pr.md` cannot quote it.
 
-**Commit `guarantee.md`; a verdict other than `sealed` opens no pull
+**Commit `inspection.md`; a verdict other than `cleared` opens no pull
 request.** `withheld` names the claim and the coordinate. Where the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
 to skip a party* gives the repair to the inspector, as it does a repair to a
@@ -167,7 +167,7 @@ resolves.
 Where the guarantee's newest verdict block names a commit the branch does
 not hold, which the pull request's check refuses as stale, spawn the inspector
 again at HEAD and commit what it writes; never edit a block by hand. The
-inspector's `seal stamp --guarantee` recorded the refusal, so the new audit,
+inspector's `seal stamp --inspection` recorded the refusal, so the new audit,
 whose block stands below the refused verdict's block, draws the work item's
 stamp (`docs/checks/the-stamp.md` *The stamp*).
 
@@ -180,7 +180,7 @@ return after that suite, arrives before it. The chain arm judges as at a
 ready pull request whatever the pull request's state, so a refusal on a
 record arm, a verifying round owed among them, fails the preflight before
 the pull request exists. The arms that read what is written after the gate,
-`trail/gate.md`, `guarantee.md` and the body, print and do not fail. Read
+`trail/gate.md`, `inspection.md` and the body, print and do not fail. Read
 its exit code directly and take the broad run only on 0. On 1 its
 `PREFLIGHT FAILED` lines name each failing arm with its first lines and the
 file holding the rest. Where a line names a round record with the words
@@ -207,8 +207,8 @@ draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
 which say whether the broad command passed and judge nothing. The stamp is
 drawn once per work item from the inspector's verdict
 (`docs/checks/the-stamp.md` *The stamp*): where the newest verdict block of
-`guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
-its lines, the inspector's `seal stamp --guarantee` queues the stamp's values,
+`inspection.md` reads `Verdict: cleared` and the block reader refuses none of
+its lines, the inspector's `seal stamp --inspection` queues the stamp's values,
 under either root, and the plugin's `Stop` hook draws them after your text.
 The line naming them arrives in the inspector's hand-back.
 So put the result text first in that turn:

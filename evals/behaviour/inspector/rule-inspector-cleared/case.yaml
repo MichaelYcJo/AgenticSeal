@@ -1,5 +1,5 @@
 schema_version: "1.1"
-name: "inspector rule-inspector-sealed"
+name: "inspector rule-inspector-cleared"
 tags: ["behaviour", "inspector", "fixture"]
 runs: 2
 context:

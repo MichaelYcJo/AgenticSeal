@@ -55,7 +55,7 @@ PHASES = f"{TRAIL}/phases"
 ROUNDS = f"{TRAIL}/rounds"
 GATE = f"{TRAIL}/gate.md"
 GAPS = "gaps.md"
-GUARANTEE = "guarantee.md"
+INSPECTION = "inspection.md"
 CHANGELOG = "changelog.md"
 # The work item's own file of the pull request body's first part, which
 # `seal pr-body` writes above the copy of the records, after the work item's

@@ -108,7 +108,7 @@ BROAD_RUN = "seal gate --base"
 def inspector_grade_gaps(root=EVALS):
     """Each inspector case that does not grade the verdict in a verdict block of
     the guarantor's file, or does not bound the broad run at zero calls. The
-    inspector's outcome is its verdict in `guarantee.md`, which stands in a
+    inspector's outcome is its verdict in `inspection.md`, which stands in a
     `seal` block since #1198; `trail/gate.md` is the script's (#923). A
     grader is judged by its parsed fields: the file its `target` names, the
     pattern it searches for, and the command its `input_match` finds."""
@@ -123,12 +123,12 @@ def inspector_grade_gaps(root=EVALS):
             for path in glob.glob(os.path.join(d, "graders", "*.md"))
         ]
         if not any(
-            (g.get("target") or {}).get("path", "").endswith("/guarantee.md")
+            (g.get("target") or {}).get("path", "").endswith("/inspection.md")
             and BLOCK_PATTERN in g.get("pattern", "")
             and "Verdict: " in g.get("pattern", "")
             for g in graders
         ):
-            gaps.append(f"{rel(d, root)}: no grader reads the verdict in guarantee.md")
+            gaps.append(f"{rel(d, root)}: no grader reads the verdict in inspection.md")
         if not any(
             g.get("tool") == "Bash"
             and re.search(g["input_match"], BROAD_RUN)
@@ -140,7 +140,7 @@ def inspector_grade_gaps(root=EVALS):
 
 
 def test_every_inspector_case_grades_the_guarantee():
-    """T18. An inspector case grades the verdict block of `guarantee.md`.
+    """T18. An inspector case grades the verdict block of `inspection.md`.
 
     #969 T6: every inspector case also bounds a Bash `seal gate --base` at zero
     calls. The gate is the orchestrator's run before the spawn, and an inspector
@@ -156,8 +156,8 @@ def test_every_inspector_case_grades_the_guarantee():
 # of the guarantor's file, and no Bash call of the broad run.
 VERDICT_GRADER = (
     "---\ntype: 'regex'\n"
-    "target: {source: 'file', path: 'seal/threads/i/guarantee.md'}\n"
-    f"pattern: '{BLOCK_PATTERN}Verdict: sealed$'\nflags: 'm'\n---\nv\n"
+    "target: {source: 'file', path: 'seal/threads/i/inspection.md'}\n"
+    f"pattern: '{BLOCK_PATTERN}Verdict: cleared$'\nflags: 'm'\n---\nv\n"
 )
 BOUND_GRADER = (
     "---\ntype: 'tool_used'\ntool: 'Bash'\n"
@@ -208,16 +208,16 @@ def test_a_bound_on_the_inspectors_run_in_another_spelling_is_no_gap(tmp_path):
 def test_a_verdict_grader_that_reads_no_block_of_the_guarantee_is_a_gap(tmp_path):
     """T18's reader under #1198, on a case the tree does not hold. Every
     committed inspector case reads its verdict in a verdict block of
-    `guarantee.md`, so a reader that stopped asking for the block, the file
+    `inspection.md`, so a reader that stopped asking for the block, the file
     or the verdict would still pass on the tree; a grader that reads a
     `Verdict:` line anywhere, reads another file, or reads another line of
     the block is named here."""
     verdict = inspector_case(tmp_path) / "shape-verdict.md"
-    gap = f"{os.path.join('behaviour', 'inspector', 'c')}: no grader reads the verdict in guarantee.md"
+    gap = f"{os.path.join('behaviour', 'inspector', 'c')}: no grader reads the verdict in inspection.md"
     for old, new in (
         (BLOCK_PATTERN, "^"),
-        ("/guarantee.md'", "/trail/gate.md'"),
-        ("Verdict: sealed", "target: abc1234"),
+        ("/inspection.md'", "/trail/gate.md'"),
+        ("Verdict: cleared", "target: abc1234"),
     ):
         verdict.write_text(VERDICT_GRADER.replace(old, new), encoding="utf-8")
         assert inspector_grade_gaps(str(tmp_path)) == [gap], old

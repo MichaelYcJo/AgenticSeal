@@ -50,7 +50,7 @@ a squash orphans it. A settle rewrites `docs/` and removes directories at
 every release it is called for, so anything coupled to a path or a position
 inside a work item breaks the same way. The coupling left is a record of
 what a party ran at the branch's own commits: a round record's `target:`
-line, and a `<commit>:<path>` that a work item's `trail/` or `guarantee.md`
+line, and a `<commit>:<path>` that a work item's `trail/` or `inspection.md`
 cites at such a commit. Both are read while the pull request is open and go
 with the record. Every other `<commit>:<path>` names a commit `main` or a
 release branch reaches (`docs/layout/the-record-layout.md`
@@ -197,7 +197,7 @@ written only where a person reads the brand.
 |---|---|
 | AgenticSeal | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
-| `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
+| `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `inspection.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
 | framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 
 A directory and an agent say what each is to whoever meets it first, so

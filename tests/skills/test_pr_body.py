@@ -382,7 +382,7 @@ MARK_LINE = (
     'alt="Sealed" width="128">'
 )
 ROW = [("Pull request seal mark", "yes")]
-SEALED = "Verdict: sealed"
+CLEARED = "Verdict: cleared"
 
 
 def manifest_of(tmp_path, fields):
@@ -402,10 +402,10 @@ def git_in(repo, *args):
     ).stdout.strip()
 
 
-def sealed_item(repo, row=ROW, verdict=SEALED, base="feature/x"):
+def sealed_item(repo, row=ROW, verdict=CLEARED, base="feature/x"):
     """The work item NAME in REPO's shared root, holding RECORDS, with
     `config.json` holding the two language keys and ROW, committed; then,
-    where VERDICT is given, a `guarantee.md` whose one block names that
+    where VERDICT is given, a `inspection.md` whose one block names that
     commit against BASE with VERDICT, committed after it, as the
     orchestrator commits the inspector's verdict."""
     home = mark_root(repo / "seal")
@@ -420,8 +420,8 @@ def sealed_item(repo, row=ROW, verdict=SEALED, base="feature/x"):
         sha = git_in(repo, "rev-parse", "HEAD")
         write(
             item,
-            "guarantee.md",
-            f"# Guarantee: {NAME}\n\n```seal\ntarget: {sha} against {base}\n"
+            "inspection.md",
+            f"# Inspection: {NAME}\n\n```seal\ntarget: {sha} against {base}\n"
             f"{verdict}\n```\n",
         )
         git_in(repo, "add", "-A")
@@ -880,7 +880,7 @@ class Test_seal_mark:
     `yes` and the work item is sealed at HEAD."""
 
     def test_accepts_a_seal_only_its_guarantee_follows(self, repo, tmp_path):
-        """S1. The row reads `yes`, the newest block reads `sealed` at a
+        """S1. The row reads `yes`, the newest block reads `cleared` at a
         commit only the guarantee's own commit follows, and the line is the
         manifest's `repository`, `/raw/HEAD/` and `icon` path."""
         item = sealed_item(repo)
@@ -927,7 +927,7 @@ class Test_seal_mark:
             "Verdict: withheld reason: a claim does not hold",
             "Verdict: undecided question: which one?",
             "Verdict: done",
-            f"{SEALED}\n```\n\n```seal\nVerdict: done",
+            f"{CLEARED}\n```\n\n```seal\nVerdict: done",
         ],
         ids=[
             "no guarantee",
@@ -984,7 +984,7 @@ class Test_seal_mark:
         and the checkout named. Seen red with the naming alone removed,
         where nothing was said."""
         item = sealed_item(repo)
-        guarantee = item / "guarantee.md"
+        guarantee = item / "inspection.md"
         if held == "off":
             text = guarantee.read_text(encoding="utf-8")
             sealed = re.search(r"target: (\S+)", text).group(1)
@@ -1137,9 +1137,9 @@ class Test_main:
         sha = git_in(repo, "rev-parse", "HEAD")
         write(
             item,
-            "guarantee.md",
-            f"# Guarantee: {NAME}\n\n```seal\ntarget: {sha} against feature/x\n"
-            f"{SEALED}\n```\n",
+            "inspection.md",
+            f"# Inspection: {NAME}\n\n```seal\ntarget: {sha} against feature/x\n"
+            f"{CLEARED}\n```\n",
         )
         monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
         monkeypatch.chdir(repo)
@@ -1480,7 +1480,7 @@ class Test_main:
         parse, and a key written twice, reach the command as a refusal at
         `config.json`, in `lib/config.py`'s sentence. The file is named once,
         by its path under the `seal/` root and not by the machine's, since
-        the inspector copies the line into a committed `guarantee.md`. Seen red
+        the inspector copies the line into a committed `inspection.md`. Seen red
         against `pr_body.py` as the merged base left it, where the command
         exited 0."""
         rows = [*LANGUAGES, ("Record language", "English")]
@@ -1723,7 +1723,7 @@ class Test_main:
 
     def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
         """The inspector copies the first `refused:` line into a committed
-        `guarantee.md`, so the line names the body file by its name and a
+        `inspection.md`, so the line names the body file by its name and a
         record by its path under the `seal/` root, whatever absolute paths
         the command was given."""
         item = item_of(

@@ -135,7 +135,7 @@ RULES = {
         (
             # The file the inspector writes its seal into, which the chain
             # check's guarantee arm reads.
-            "`guarantee.md`",
+            "`inspection.md`",
         ),
         {INSPECTOR: ONE_SEAL_IS_FINAL},
     ),

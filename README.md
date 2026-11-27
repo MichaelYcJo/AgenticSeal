@@ -167,7 +167,7 @@ session runs the broad gate, the full suite, lint and typecheck, once. The
 inspector then reads every party's account against the issue and the tree, and
 the pull request opens.
 
-When the inspector's verdict is `sealed`, the inspector queues the stamp, and the
+When the inspector's verdict is `cleared`, the inspector queues the stamp, and the
 plugin's `Stop` hook draws it in your terminal at the end of the session's
 turn. It names the commit, the branch, the base, the work
 item, the broad gate's commit and the number of review rounds:
@@ -261,7 +261,7 @@ cost of inference.
 | **crafter** (subagent) | `core`, `agent-contract` | Builds one phase against the frame, or runs one fix pass over a review round ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
-| **inspector** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/inspector.md`](agents/inspector.md)) |
+| **inspector** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `inspection.md` ([`agents/inspector.md`](agents/inspector.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
@@ -285,7 +285,7 @@ item's records follow. No agent runs it,
 because a full run taken mid-review is spent by the next fix
 (`docs/running/the-broad-gate.md`). The inspector reads the gate's record and
 every other party's, checks that the pull request body `seal pr-body` wrote
-is `pr.md` and the records' own text, and writes `sealed`, `withheld` with
+is `pr.md` and the records' own text, and writes `cleared`, `withheld` with
 what the tree contradicts, or `undecided` with a question for you. The pull
 request opens once the work item is sealed, and its body carries the seal
 mark where the `Pull request seal mark` key reads `yes`. Where the two
@@ -360,7 +360,7 @@ writes into your settings.**
 - **`PostToolUse`**, after each `Edit` call of the session or a subagent,
   runs `hooks/edit-leaves-copies.py`. Where the edited file is a work
   item's record under a `seal/` root, outside its `trail/` and other than
-  its `guarantee.md`, it looks for the words the edit replaced in the work
+  its `inspection.md`, it looks for the words the edit replaced in the work
   item's such records, the edited one among them, and names each place
   that still holds them, with its line, to whoever made the edit, who
   decides whether that place states the same fact. It refuses nothing.
@@ -390,10 +390,10 @@ No hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints, the reason the `PreToolUse` hook refuses a call
 with, and the places the `PostToolUse` hook names, go into the session's
 own context, as a file the session opens does. These side effects are
-worth stating outright: the inspector's `seal stamp --guarantee`, run once on
-a `guarantee.md` reading `sealed`, writes the stamp's values under
+worth stating outright: the inspector's `seal stamp --inspection`, run once on
+a `inspection.md` reading `cleared`, writes the stamp's values under
 `<git-common-dir>/agentic-stamp/`, which the stamp's hook renames once
-drawn and nothing prunes, and a `sealed` refused because its audited commit
+drawn and nothing prunes, and a `cleared` refused because its audited commit
 is not on the work item's branch leaves an empty file under
 `<git-common-dir>/agentic-stamp-refused/`, in either mode, which nothing
 prunes either.
@@ -406,7 +406,7 @@ it, or, in the last row, in your CI on a pull request.
 |---|---|---|---|
 | `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` pulls the marketplace's clone of this repository, and `claude plugin update` installs from that clone. Then one `curl`, with no token, reads the list of releases from GitHub's public API for the repository the clone came from | when you run the command |
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. With `--work-item`, it also names the work item's directory and branch, and the directory of each other work item a segment's spawn prompt also names, read from the records directory and from every local branch, pushed or not. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
-| `chain_check.py` run without `--sealing`, as the orchestrator's and the proofer's `--worktree` reads run it ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, to learn whether the branch's pull request is a draft. `seal gate` runs the check with `--sealing`, which reads no pull request's state and asks `gh` nothing | each such run outside GitHub Actions, where `gh` is on the PATH |
+| `chain_check.py` run without `--inspecting`, as the orchestrator's and the proofer's `--worktree` reads run it ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, to learn whether the branch's pull request is a draft. `seal gate` runs the check with `--inspecting`, which reads no pull request's state and asks `gh` nothing | each such run outside GitHub Actions, where `gh` is on the PATH |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
 | the AgenticSeal process's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a GitHub Actions workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |

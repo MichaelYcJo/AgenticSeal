@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000030-guarantee-no-gate/guarantee.md'}
+target: {source: 'file', path: 'seal/threads/1790000030-guarantee-no-gate/inspection.md'}
 pattern: '^Verdict:.*no broad run'
 flags: 'mi'
 ---

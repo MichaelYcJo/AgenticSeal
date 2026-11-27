@@ -14,10 +14,10 @@ The hook reads the call's `tool_name`, which is `Edit`, and of its
 reads on where `file_path` is absolute and stands at
 `<root>/threads/<id>/<file>`, where `<root>/README.md` opens with
 `lib/optin.py#MARKER`, and `<file>` ends in `.md`, stands outside `trail/`
-and is not `guarantee.md`. The records it then searches are the `.md` files
-of `<root>/threads/<id>/` outside `trail/` and other than `guarantee.md`,
+and is not `inspection.md`. The records it then searches are the `.md` files
+of `<root>/threads/<id>/` outside `trail/` and other than `inspection.md`,
 the edited file among them, as they stand after the edit: `trail/` and
-`guarantee.md` are records of what a party read and did, and quote what
+`inspection.md` are records of what a party read and did, and quote what
 they read.
 
 The words the edit replaced are each span of `old_string` that differs from
@@ -94,7 +94,7 @@ SHOWN = 240
 # The directory of a work item that holds what passed between the parties,
 # and the inspector's record: neither is read or searched.
 TRAIL = "trail"
-GUARANTEE = "guarantee.md"
+INSPECTION = "inspection.md"
 
 # The rule the text cites for what the writer does with a place.
 RULE = "`skills/agent-contract/SKILL.md` rule 19"
@@ -131,8 +131,8 @@ def _located(path, optin):
 def _read(rel):
     """True where the `/`-joined REL under a work item's directory is a
     record this hook reads and searches: outside `TRAIL` and not
-    `GUARANTEE`."""
-    return rel.split("/", 1)[0] != TRAIL and rel != GUARANTEE
+    `INSPECTION`."""
+    return rel.split("/", 1)[0] != TRAIL and rel != INSPECTION
 
 
 def _records(item):
@@ -223,7 +223,7 @@ def _context(item, rel, places):
         + rel
         + "` still stand in the records of work item "
         + os.path.basename(item)
-        + ", outside `trail/` and `guarantee.md`:"
+        + ", outside `trail/` and `inspection.md`:"
     )
     tail = (
         "A place that states the fact this edit changed is rewritten in place, "

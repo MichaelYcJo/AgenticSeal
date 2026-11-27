@@ -12,7 +12,7 @@ citation in their frame, each through a sealed chain.
 every tracked file that is on disk and decodes as UTF-8, read as
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py#corpus` reads its
 files. Three kinds of file are left out: anything under `evals/behaviour/`, a
-work item's `trail/` and its `guarantee.md`. Those record what a party ran at
+work item's `trail/` and its `inspection.md`. Those record what a party ran at
 the branch's own commits, which the squash orphans as it orphans a round's
 `target:` line, and they leave with the work item.
 
@@ -83,12 +83,12 @@ def git(root, *args):
 
 def read_here(rel):
     """Whether the check reads the tracked file REL: not under
-    `evals/behaviour/`, a work item's `trail/` or its `guarantee.md`."""
+    `evals/behaviour/`, a work item's `trail/` or its `inspection.md`."""
     if rel.startswith("evals/behaviour/"):
         return False
     parts = rel.split("/")
     if len(parts) > 3 and parts[:2] == ["seal", "threads"]:
-        return parts[3:] != ["guarantee.md"] and not (
+        return parts[3:] != ["inspection.md"] and not (
             parts[3] == "trail" and len(parts) > 4
         )
     return True
@@ -319,7 +319,7 @@ def test_a_citation_of_the_squash_is_accepted(tmp_path, ref):
 NOT_READ = (
     "seal/threads/1-x/trail/rounds/round-1.md",
     "seal/threads/1-x/trail/phases/phase-1.md",
-    "seal/threads/1-x/guarantee.md",
+    "seal/threads/1-x/inspection.md",
     "evals/behaviour/crafter/rule-x/x.md",
 )
 READ = (
@@ -330,7 +330,7 @@ READ = (
 
 
 def test_a_record_of_what_a_party_ran_is_not_read(tmp_path):
-    """S4: a dead citation in a work item's `trail/`, its `guarantee.md` or
+    """S4: a dead citation in a work item's `trail/`, its `inspection.md` or
     under `evals/behaviour/` is not read."""
     root, commit = planted(tmp_path)
     cite(root, dict.fromkeys(NOT_READ, citing(commit)))

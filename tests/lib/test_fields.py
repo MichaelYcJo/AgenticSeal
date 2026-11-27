@@ -19,14 +19,14 @@ TARGET = "lib/fields.py"
 fields = load_lib_module("fields.py", "agentic_fields_under_test")
 # The guarantee template, which the unfilled-template case reads and
 # `tests/behaviour/test_the_inspector_guarantees.py` imports from here.
-TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-guarantee.md")
+TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-inspection.md")
 
 FENCE = "`" * 3
 SHA = "abc1234"
 BASE = "def5678"
 
 
-def verdict(target=SHA, said="sealed", original=None):
+def verdict(target=SHA, said="cleared", original=None):
     lines = [f"target: {target} against main"]
     if original:
         lines.append(f"original: {original}")
@@ -62,14 +62,14 @@ class Test_read:
         newest; each field's value, line and named parts come back."""
         text = guarantee(
             verdict("aaa1111", "withheld reason: the gate failed"),
-            verdict(SHA, "sealed", original=BASE),
+            verdict(SHA, "cleared", original=BASE),
         )
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         assert (found.refusals, found.notices) == ([], [])
         first, newest = found.blocks
         assert (first.kind, newest.kind) == (fields.VERDICT_BLOCK,) * 2
         assert fields.verdict_word(first) == fields.WITHHELD
-        assert fields.verdict_word(newest) == fields.SEALED
+        assert fields.verdict_word(newest) == fields.CLEARED
         target = newest.fields[fields.TARGET]
         assert (target.match["commit"], target.match["base"]) == (SHA, "main")
         assert target.line == line_of(text, f"target: {SHA} against main")
@@ -162,9 +162,9 @@ class Test_read:
         not read, and nothing is refused for it."""
         closer = opener[: len(opener) - len(opener.lstrip(opener[0]))]
         text = guarantee(
-            f"{opener}\ntarget: {SHA} against main\nVerdict: sealed\n{closer}\n"
+            f"{opener}\ntarget: {SHA} against main\nVerdict: cleared\n{closer}\n"
         )
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         assert (found.blocks, found.refusals) == ([], [])
         assert found.notices == [
             (line_of(text, opener), fields.NEAR.format(line=opener))
@@ -173,7 +173,7 @@ class Test_read:
     @pytest.mark.parametrize("info", ["", "markdown", "sealed", "python seal"])
     def test_refuses_to_name_a_fence_whose_first_word_is_not_seal(self, info):
         found = fields.read(
-            guarantee(f"{FENCE}{info}\nVerdict: sealed\n{FENCE}\n"), fields.GUARANTEE
+            guarantee(f"{FENCE}{info}\nVerdict: cleared\n{FENCE}\n"), fields.INSPECTION
         )
         assert (found.blocks, found.refusals, found.notices) == ([], [], [])
 
@@ -185,27 +185,27 @@ class Test_read:
         text = guarantee(
             verdict(), FENCE + "`\n", verdict(said="withheld reason: the gate failed")
         )
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         assert found.refusals == [(line_of(text, FENCE + "`"), fields.UNCLOSED)]
         open_block = guarantee(f"{FENCE}seal\ntarget: {SHA} against main\n")
-        assert fields.read(open_block, fields.GUARANTEE).refusals == [
+        assert fields.read(open_block, fields.INSPECTION).refusals == [
             (line_of(open_block, FENCE + "seal"), fields.UNCLOSED)
         ]
-        assert fields.read(open_block, fields.GUARANTEE).blocks == []
+        assert fields.read(open_block, fields.INSPECTION).blocks == []
 
     def test_refuses_a_blank_line_inside_a_block_at_its_line(self):
-        text = guarantee(block(f"target: {SHA} against main", "", "Verdict: sealed"))
-        found = fields.read(text, fields.GUARANTEE)
+        text = guarantee(block(f"target: {SHA} against main", "", "Verdict: cleared"))
+        found = fields.read(text, fields.INSPECTION)
         blank = line_of(text, f"target: {SHA} against main") + 1
         assert (found.blocks, found.refusals) == ([], [(blank, fields.BLANK)])
 
     @pytest.mark.parametrize(
         "line",
         [
-            "verdict: sealed",
-            "Verdict : sealed",
-            "**Verdict:** sealed",
-            "Verdict:sealed",
+            "verdict: cleared",
+            "Verdict : cleared",
+            "**Verdict:** cleared",
+            "Verdict:cleared",
         ],
     )
     def test_refuses_a_line_that_is_no_field_of_its_kind(self, line):
@@ -213,7 +213,7 @@ class Test_read:
         of its kind is refused at its line with the keys the kind takes, and
         the block is read no further."""
         text = guarantee(block(f"target: {SHA} against main", line))
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         said = fields.NOT_A_FIELD.format(
             line=line,
             kind="verdict",
@@ -223,10 +223,10 @@ class Test_read:
 
     def test_refuses_a_key_over_its_count_and_a_second_of_one_of_two(self):
         text = guarantee(
-            block(f"target: {SHA} against main", "Verdict: sealed", "Verdict: sealed")
+            block(f"target: {SHA} against main", "Verdict: cleared", "Verdict: cleared")
         )
-        second = line_of(text, "Verdict: sealed") + 1
-        assert fields.read(text, fields.GUARANTEE).refusals == [
+        second = line_of(text, "Verdict: cleared") + 1
+        assert fields.read(text, fields.INSPECTION).refusals == [
             (second, fields.TWICE.format(key="Verdict:", kind="verdict"))
         ]
         finding = block(
@@ -243,9 +243,9 @@ class Test_read:
     @pytest.mark.parametrize(
         ("line", "says"),
         [
-            ("Verdict: Sealed", "Verdict:"),
+            ("Verdict: Cleared", "Verdict:"),
             ("Verdict: withheld", "Verdict:"),
-            ("Verdict: sealed ", "Verdict:"),
+            ("Verdict: cleared ", "Verdict:"),
             ("original: main", "original:"),
         ],
     )
@@ -255,7 +255,7 @@ class Test_read:
         said = fields.SHAPE.format(
             line=line, key=key, says=fields.VERDICT_BLOCK.keys[says].says
         )
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
 
     def test_accepts_each_shape_of_a_close_a_location_and_a_reference(self):
@@ -381,7 +381,7 @@ class Test_read:
     def test_the_verdict_shape_says_the_three_shapes(self):
         says = fields.VERDICT_BLOCK.keys[fields.INSPECTOR_VERDICT].says
         for shape in (
-            "`Verdict: sealed`",
+            "`Verdict: cleared`",
             "`Verdict: withheld reason: <reason>`",
             "`Verdict: undecided question: <question>`",
         ):
@@ -391,18 +391,18 @@ class Test_read:
         text = guarantee(block(f"target: {SHA} against main"))
         opener = line_of(text, FENCE + "seal")
         said = fields.MISSING.format(kind="verdict", key="Verdict:")
-        assert fields.read(text, fields.GUARANTEE).refusals == [(opener, said)]
+        assert fields.read(text, fields.INSPECTION).refusals == [(opener, said)]
 
     def test_refuses_an_empty_block_and_one_no_kind_of_the_record_opens(self):
         empty = guarantee(block())
-        assert fields.read(empty, fields.GUARANTEE).refusals == [
+        assert fields.read(empty, fields.INSPECTION).refusals == [
             (line_of(empty, FENCE + "seal"), fields.EMPTY.format(openers="`target:`"))
         ]
         other = guarantee(block(f"run: {SHA} against {BASE}"))
         said = fields.NO_KIND.format(
             line=f"run: {SHA} against {BASE}", openers="`target:`"
         )
-        assert fields.read(other, fields.GUARANTEE).refusals == [
+        assert fields.read(other, fields.INSPECTION).refusals == [
             (line_of(other, f"run: {SHA} against {BASE}"), said)
         ]
         openers = "`target:`, `severity:`, `verdict:` or `confirms:`"
@@ -421,7 +421,7 @@ class Test_read:
             verdict(),
             "   <!-- a note\n-->\n",
         )
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         assert found.refusals == [
             (line_of(text, "<!-- " + FENCE + "seal"), fields.COMMENT_LINE),
             (line_of(text, "   <!-- a note"), fields.COMMENT_LINE),
@@ -439,7 +439,7 @@ class Test_read:
         cannot place is refused at its line, so a later run's block is never
         silently dropped behind an earlier one."""
         text = guarantee(verdict(), above + "\n", verdict(said="withheld reason: x"))
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         assert len(found.blocks) == 1
         unsure = [n for n, why in found.refusals if why == fields.UNSURE]
         assert unsure and min(unsure) >= line_of(text, above), found.refusals
@@ -449,7 +449,7 @@ class Test_read:
     def test_refuses_to_read_a_block_quoted_inside_another_fence(self):
         """A `seal` block inside a fix's fence belongs to the fix."""
         text = guarantee(FENCE + "`markdown\n" + verdict() + FENCE + "`\n")
-        assert fields.read(text, fields.GUARANTEE) == fields.Read([], [], [])
+        assert fields.read(text, fields.INSPECTION) == fields.Read([], [], [])
 
     def test_reads_a_long_line_in_linear_time(self):
         """#941's round 3 met a pattern that backtracked exponentially; each
@@ -462,7 +462,7 @@ class Test_read:
             f"target: {SHA} against " + "x" * 100000 + " ",
         ):
             fields.read(
-                guarantee(block(f"target: {SHA} against main", line)), fields.GUARANTEE
+                guarantee(block(f"target: {SHA} against main", line)), fields.INSPECTION
             )
         for line in (
             "location: `" + "a:1" * 30000 + "`",
@@ -472,7 +472,7 @@ class Test_read:
         assert time.monotonic() - start < 5.0
 
     def test_the_unfilled_template_is_no_guarantee(self):
-        found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
+        found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.INSPECTION)
         assert found.blocks == [] and found.refusals, found
 
 
@@ -496,11 +496,11 @@ class Test_assemble:
 class Test_verdict_word:
     def test_accepts_each_of_the_three_shapes(self):
         for said, word in (
-            ("sealed", fields.SEALED),
+            ("cleared", fields.CLEARED),
             ("withheld reason: x", fields.WITHHELD),
             ("undecided question: y?", fields.UNDECIDED),
         ):
-            (found,) = fields.read(verdict(said=said), fields.GUARANTEE).blocks
+            (found,) = fields.read(verdict(said=said), fields.INSPECTION).blocks
             assert fields.verdict_word(found) == word
 
     def test_refuses_a_block_of_another_kind(self):
@@ -535,10 +535,10 @@ class Test_module:
         """#1198's scenario *The templates parse*, for the guarantee: every
         block of the template opens with its kind's key, and every line the
         reader refuses is a field whose value is a placeholder."""
-        path = os.path.join(ROOT, "templates", "records", "sdd-guarantee.md")
+        path = os.path.join(ROOT, "templates", "records", "sdd-inspection.md")
         with open(path, encoding="utf-8") as handle:
             text = handle.read()
-        found = fields.read(text, fields.GUARANTEE)
+        found = fields.read(text, fields.INSPECTION)
         lines = text.split("\n")
         assert found.notices == []
         assert found.refusals, "the unfilled template reads as a guarantee"

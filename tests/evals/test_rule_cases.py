@@ -251,8 +251,8 @@ class Test_inspector_case:
         assert len(inspector) == len(RC.INSPECTOR_RUNS)
         for name in inspector:
             found, match = case_graders(name)["shape-verdict"]
-            sealed = name.endswith("-sealed")
-            line = "Verdict: sealed" if sealed else "Verdict: withheld reason: x"
+            sealed = name.endswith("-cleared")
+            line = "Verdict: cleared" if sealed else "Verdict: withheld reason: x"
             block = f"{FENCE}seal\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
             yield name, found, match, sealed, line, block
 
@@ -262,7 +262,7 @@ class Test_inspector_case:
         Seen red against a grader whose opener read `Seal`."""
         for name, found, match, _sealed, _line, block in self.shapes():
             assert match == "contains"
-            assert found.search("# Guarantee: i\n\n" + block), name
+            assert found.search("# Inspection: i\n\n" + block), name
 
     def test_refuses_the_line_outside_a_block_or_another_verdict(self):
         """#1198 phase 3: each inspector case's `shape-verdict` finds none on
@@ -271,14 +271,14 @@ class Test_inspector_case:
         below a block that closed above it. Seen red against the grader that
         read a `Verdict:` line anywhere."""
         for name, found, _match, sealed, line, block in self.shapes():
-            assert not found.search(f"# Guarantee: i\n\n{line}\n"), name
-            other = "Verdict: withheld reason: x" if sealed else "Verdict: sealed"
+            assert not found.search(f"# Inspection: i\n\n{line}\n"), name
+            other = "Verdict: withheld reason: x" if sealed else "Verdict: cleared"
             assert not found.search(block.replace(line, other)), name
             # A word the block reader refuses is no verdict either.
             for near in (
                 "Verdict: withheld",
-                "Verdict: **sealed**",
-                "Verdict: sealed.",
+                "Verdict: **cleared**",
+                "Verdict: cleared.",
             ):
                 assert not found.search(block.replace(line, near)), (name, near)
             # Nor is the line below a block that closed above it.

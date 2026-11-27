@@ -34,8 +34,8 @@ reads anything else.**
 
 | The declaration says | At the pull request |
 |---|---|
-| through the review chain | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the inspector's `guarantee.md` beside it |
-| straight to the PR | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the inspector's `guarantee.md` reading `sealed` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
+| through the review chain | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the inspector's `inspection.md` beside it |
+| straight to the PR | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the inspector's `inspection.md` reading `cleared` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
 | nothing readable, or no file | each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 
 What the check reads of each round record under the first answer is
@@ -44,7 +44,7 @@ request*.
 check: routing-read-first
 
 **`straight to the PR` owes the broad run's `trail/gate.md` and the inspector's
-`guarantee.md` and turns off the reviewer alone, and `Review` has two
+`inspection.md` and turns off the reviewer alone, and `Review` has two
 answers, not three.** Two answers, and not three: a review's record is worth
 something only because somebody other than the author wrote it, and the
 contract names a review that certifies itself as what the routing check
@@ -120,7 +120,7 @@ original was consulted.
 | The declaration says | Where the comparison is recorded |
 |---|---|
 | through the review chain | each round record's `original:` line |
-| straight to the PR | one `original:` line in the inspector's `guarantee.md` |
+| straight to the PR | one `original:` line in the inspector's `inspection.md` |
 | none | nowhere, and no comparison is checked: each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
 | any, for a change confined to `docs/`, `seal/` | nothing is owed: nothing there can be compared against an original |
 
@@ -146,7 +146,7 @@ check reads is `docs/checks/the-pull-request-check.md` *What the check reads
 at the pull request*.
 Under `straight to the PR` no review round records a comparison, so the
 inspector compares the audited commit with the original through
-`legacy-parity` and writes the line in `guarantee.md`, where the check
+`legacy-parity` and writes the line in `inspection.md`, where the check
 reads it as it reads a round record's. A branch that declares the chain and
 never opens a pull request is checked by nothing, which is the cost the
 review arm's declaration already states. Three more shapes leave code
@@ -159,4 +159,4 @@ the pin's `v<version>` to the installed release. And a declaration
 rewritten from `through the review chain` to `straight to the PR` after
 code was committed leaves those commits compared by nobody, because the
 check reads the answer at HEAD.
-check: parity-at-the-pull-request parity-in-the-guarantee
+check: parity-at-the-pull-request parity-in-the-inspection
