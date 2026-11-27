@@ -728,7 +728,7 @@ class Test_older:
         first line is one `VERSION` reads. None alone would also stand for
         a line in another shape, so the line is matched here too."""
         assert gitcmd.older(str(tmp_path)) is None
-        done = subprocess.run(["git", "version"], capture_output=True, text=True)
+        done = subprocess.run(["git", "version"], capture_output=True, encoding="utf-8")
         assert gitcmd.VERSION.fullmatch(done.stdout.split("\n", 1)[0]), done.stdout
 
 
