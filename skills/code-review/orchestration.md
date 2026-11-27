@@ -92,9 +92,11 @@ range* binds, before the round or the sealer that reads the fix.
 coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
 a later round; that is contract rule 12. A crafter's hand-back carries
-the method of its read of its range and the work item's records, each frame
-or `routing.md` statement that read names, and the sample of statements
-across the tree, as contract rule 12 asks of the party that fixes. The
+the account of its read of its range and the work item's records that
+`skills/implement/SKILL.md` *The account of that read quotes its commands
+and describes no read in other words* states, each frame or `routing.md`
+statement that read names, and the sample of statements across the tree,
+as contract rule 12 asks of the party that fixes. The
 round that follows reads that account as a claim. Where the hand-back names
 a frame or `routing.md` statement, which the fix pass does not edit, the
 orchestrator folds each file that holds such a statement, read whole, as
