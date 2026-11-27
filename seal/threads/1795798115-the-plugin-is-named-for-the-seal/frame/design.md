@@ -58,7 +58,8 @@ Out of scope:
 - **The drawings.** `assets/seals/` keeps its path and its words for the drawings. A line of `assets/seals/README.md` that names a script, a command or a key this work renames follows the rename. The phrases *wax seal*, *seal drawings* and *seal maker* stay where they describe the picture or the proofer's etymology. They name a drawing and a craft, not the plugin's record.
 - **Paths inside replayed commits.** G17's paths stay as the named commits hold them.
 - **Publishing the release, and opening the issue that holds the comparison with Owlery's definition.** #1651 *Done when* names both. The release is the release pull request's act, and an agent posts nothing, so the issue is the orchestrator's or the owner's to open.
-- **Reading MichaelYcJo/owlery#322.** No party of this work item opens it, so that the comparison reads two independent accounts.
+
+This frame was drawn without reading MichaelYcJo/owlery#322. The independence #1651 asks of the definition is held by Scope item 8: each principle cites its source in this repository.
 
 ## User scenarios & acceptance *(mandatory)*
 
