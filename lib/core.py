@@ -11,13 +11,14 @@ relative to the plugin's root. The frontmatter stays out because its
 listing. `seal payload` counts `rendered`'s bytes, so the hook and the meter
 cannot disagree about what a session received.
 
-**The plugin's root stands once in the output.** Where the core printed is
-the plugin's own, the first line names it under that root and the closing
-line says its paths are relative to it. Where the core is a clone's, the
-closing line names the running plugin's root. **An output that would reach
-the harness's cap is not printed**: one line names the core's file for the
-session to open, above the closing line, because past the cap the harness
-keeps only a preview and the closing line would be lost.
+**Where the core is printed, the plugin's root stands once in the
+output.** Where the core printed is the plugin's own, the first line names
+it under that root and the closing line says its paths are relative to it.
+Where the core is a clone's, the closing line names the running plugin's
+root. **An output that would reach the harness's cap is not printed**: one
+line names the core's file for the session to open, above the closing line
+naming the running plugin's root whichever core it is, because past the
+cap the harness keeps only a preview and the closing line would be lost.
 
 **A session in a repository with no `seal/` root receives nothing**: the
 root is what says the repository runs the AgenticSeal process

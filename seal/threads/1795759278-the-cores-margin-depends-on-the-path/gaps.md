@@ -10,4 +10,4 @@
 
 ## Not done
 
-- **The `### Process changes` table of `frame/design.md` *Scope* item 8.** `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* asks for it where the diff changes the way-of-working files that section lists, and this diff changes none of them. `agents/crafter.md` *Job* lets the crafter write the table only where that section asks for one. Whether the weighing `CONTRIBUTING.md` gains belongs in the release note's process table is the orchestrator's judgment.
+- **No `### Process changes` table.** `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* asks for one where the diff changes the way-of-working files that section lists, and this work item's diff changes none of them, so `frame/design.md` *Scope* item 8 asks for none. The weighing `CONTRIBUTING.md` gains stands there and in the fragment's third `### Fixed` entry. The orchestrator took this reading in `frame/plan.md` *Judgments of the run*, in the row that opens "After phase 1 (`48f4fc57f`)".
