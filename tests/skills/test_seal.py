@@ -3829,6 +3829,7 @@ class Test_main:
             ("rules", "skills/settle/scripts/rules.py"),
             ("pr-body", "skills/code-review/scripts/pr_body.py"),
             ("pr-wait", "skills/code-review/scripts/pr_wait.py"),
+            ("range", "skills/implement/scripts/range_read.py"),
         ],
     )
     def test_accepts_each_tool_and_hands_its_script_every_argument(
