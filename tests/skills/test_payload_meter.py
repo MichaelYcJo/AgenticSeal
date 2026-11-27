@@ -434,7 +434,9 @@ class Test_measure:
         by_first = {cells[0]: cells for cells in rows_of(session_part)}
         note = by_first[f"`{HOOK_ROW}`"][4]
         assert "one line naming the core's file and the closing line" in note, note
-        assert "this row does not count it" in note, note
+        assert "The session opens the core itself, and this row does not count it" in (
+            note
+        ), note
         assert "the core below its frontmatter" not in note, note
 
     def test_the_json_carries_the_session_as_an_object_of_its_own(
