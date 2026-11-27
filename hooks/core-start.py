@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""SessionStart: print the core into a session whose repository holds a
-`seal/` root.
+"""SessionStart: print the core, or a line naming its file, into a session
+whose repository holds a `seal/` root.
 
 The core, `skills/core/SKILL.md`, is what every party of this plugin judges
 by. An agent receives it through its definition's `skills:` list; a session
-receives it here, as plain text under the first line `lib/core.py` defines,
-which names the file printed and the plugin's version, and above the
-closing line that names where work starts. In a clone of the plugin's own
+receives here what `core.rendered` returns. That is the core as plain text
+under the first line `lib/core.py` defines, which names the file printed
+and the plugin's version, and above the closing line that names where work
+starts. Where that whole output would reach `lib/core.py#CAP`, it is in its
+place the line `lib/core.py#TOO_LONG`, which names the core's file for the
+session to open, above the closing line, and where the core's file is not
+there it is the line `lib/core.py#MISSING`. In a clone of the plugin's own
 repository the file printed is the clone's (`core.origin`). A session in a
 repository with no root receives nothing.
 

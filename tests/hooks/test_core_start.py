@@ -114,14 +114,21 @@ class Test_main:
     ):
         """A session started in this repository, a clone of the plugin that
         holds a marked root, receives this tree's core whatever plugin root
-        runs."""
+        runs, and its closing line names the running plugin's root. Whether
+        the core is printed whole or named for the session to open depends on
+        where this checkout and the scratch root stand, and the first line
+        names the tree's core either way."""
+        core = load_lib_module("core.py", "core_for_the_clone")
         root = plugin(tmp_path / "plugin")
         body = {"hook_event_name": "SessionStart", "source": "startup", "cwd": ROOT}
-        first = start(json.dumps(body), root).split("\n", 1)[0]
-        path = first[len("AgenticSeal core from ") :].rsplit(", plugin ", 1)[0]
+        out = start(json.dumps(body), root)
+        assert out == printed(ROOT, root), out.split("\n", 1)[0]
+        path = core.origin(ROOT, root)
         assert os.path.samefile(
             path, os.path.join(ROOT, "skills", "core", "SKILL.md")
-        ), first
+        ), path
+        assert path in out.split("\n", 1)[0], out.split("\n", 1)[0]
+        assert out.endswith("\n" + core.closing(root) + "\n"), out[-400:]
 
     def test_refuses_to_print_into_a_repository_with_no_root(self, tmp_path):
         """#1430. A session in a repository with no marked `seal/` root, or

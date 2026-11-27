@@ -344,6 +344,9 @@ writes into your settings.**
   compaction, runs `hooks/core-start.py`. Where the session's repository
   holds a `seal/` root, it prints `skills/core/SKILL.md` into the session's
   context, under one line naming the plugin's version and above one line
+  naming where work starts. Where the plugin's root is long enough that the
+  output would pass the harness's limit on a hook's output, it prints one
+  line naming the core's file for the session to open, above the same line
   naming where work starts. Anywhere else it prints nothing.
 - **`Stop`**, at the end of each turn of the main session, runs
   `seal_stamp.py --stop`, which draws each stamp waiting in the clone the
