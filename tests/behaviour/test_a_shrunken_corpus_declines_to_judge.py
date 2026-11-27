@@ -64,7 +64,6 @@ APPLIES_THE_SHARED_GUARD = {
     # #942's sweep of every census over each tracked file no module file
     # declares. It judges what it finds, so it skips the missing half.
     "tests/behaviour/test_every_tracked_file_meets_every_census.py#test_every_file_no_module_file_declares_meets_every_census": 1,
-    "tests/behaviour/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/behaviour/test_release_hygiene.py#tracked": 1,
     "tests/behaviour/test_every_entry_point_runs_at_the_floor.py#floor_carriers": 1,
     # #929's census of what runs before any floor: it returns the missing

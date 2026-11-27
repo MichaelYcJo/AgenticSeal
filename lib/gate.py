@@ -6,7 +6,7 @@ confined to `docs/` and `seal/` owes no comparison with an original, because
 nothing there can be compared against one. `skills/code-review/scripts/
 chain_check.py#originals_of` loads this file through `lib/sibling.py` and
 asks `touches_code` of the paths the pull request changes, with the name of
-the root in force at HEAD, which a project's own `seal/` changes.
+the root, `lib/optin.py#HOME`.
 """
 
 
@@ -14,8 +14,8 @@ def touches_code(paths, home):
     """True when one of `paths` is outside the document roots, or when
     `paths` is None: a change git could not list is not a change confined to
     them, so the parity arm asks. The roots are `docs/` and `<home>/`,
-    HOME the root's repository-relative name as `lib/optin.py#home_name`
-    gives it, and `docs/` alone where HOME is "". PATHS are as `git diff`
+    HOME the root's repository-relative name, and `docs/` alone where HOME
+    is "". PATHS are as `git diff`
     prints them, repository-relative and `/`-joined."""
     if paths is None:
         return True

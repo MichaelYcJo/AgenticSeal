@@ -1952,8 +1952,7 @@ def gate(args, ascii_marks=False):
     home = seal_home(root)
     if home is None:
         # The two places as `optin.home_paths` gives them, as `seal mode`
-        # prints them: beside a project's own `seal/` the shared one takes
-        # the second name, which a literal `<repo>/seal/` would misname.
+        # prints them.
         shared, local = sibling.load(OPTIN).home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "

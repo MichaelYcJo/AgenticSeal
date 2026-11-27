@@ -136,12 +136,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def fragment_re():
-    """A work item's changelog fragment, its id captured, under the name
-    `lib/optin.py#home_name` gives the shared root at `ROOT`, or
-    `optin.HOME` where none is marked."""
-    name = optin.home_name(ROOT) or optin.HOME
+    """A work item's changelog fragment, its id captured, under the root's
+    name, `lib/optin.py#HOME`."""
     return re.compile(
-        rf"^{re.escape(name)}/{re.escape(optin.WORK_ITEMS)}/([^/]+)/changelog\.md$"
+        rf"^{re.escape(optin.HOME)}/{re.escape(optin.WORK_ITEMS)}/([^/]+)/changelog\.md$"
     )
 
 

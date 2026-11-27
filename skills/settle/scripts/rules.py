@@ -220,12 +220,11 @@ def rule_files(root):
 
 
 def records_root(root):
-    """The `seal/` root in the tree at `root`, under the name
-    `lib/optin.py#home_name` gives, or `optin.HOME` where no shared root is
-    marked: an unmarked `seal/` is read under the name `seal`, and
+    """The `seal/` root in the tree at `root`, under the root's name,
+    `lib/optin.py#HOME`: an unmarked `seal/` is read under that name, and
     a root in local mode is not in the tree a CI checkout holds."""
     optin = sibling("optin")
-    return os.path.join(root, optin.home_name(root) or optin.HOME)
+    return os.path.join(root, optin.HOME)
 
 
 def policy_documents(root):

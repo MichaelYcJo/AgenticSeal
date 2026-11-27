@@ -270,8 +270,7 @@ def show(root, ref, rel):
 def threads(home):
     """`<name>/threads`, `/`-joined: where the work items stand under the
     directory holding the `seal/` root HOME, NAME being the root's own,
-    `lib/optin.py#HOME` or `#SECOND_HOME` as `lib/optin.py#home_paths`
-    places it. Every work item path this command reads, removes or prints
+    `lib/optin.py#HOME`. Every work item path this command reads, removes or prints
     opens with it."""
     return f"{os.path.basename(home)}/{WORK_ITEMS}"
 

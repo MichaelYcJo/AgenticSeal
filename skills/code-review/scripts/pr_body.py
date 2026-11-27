@@ -308,7 +308,7 @@ TABLE = "|"
 
 # Every fixed line the generated part can hold, beside the seal mark,
 # `MARK`. `{name}` is the work item's directory name, `{path}` a record's
-# path under it, and `{home}` the root's name, `_in_tree`'s.
+# path under it, and `{home}` the root's name, `lib/optin.py#HOME`.
 SUMMARY = (
     f"<summary>Copied from the records in {{home}}/{OPTIN.WORK_ITEMS}/{{name}}/ "
     "by seal pr-body.</summary>"
@@ -628,15 +628,6 @@ def _names(parts):
     return " then ".join(f"`{name}`" for name, _text in parts)
 
 
-def _in_tree(root):
-    """The `/`-joined name the records stand under in the repository at
-    ROOT: the shared root's name in the tree, `lib/optin.py#home_name`'s,
-    which is `seal` or, beside a project's own `seal/`, the second name;
-    and `lib/optin.py#HOME` where the root is local or absent,
-    the name the text gives the root, since no path in the tree holds it."""
-    return OPTIN.home_name(root) or OPTIN.HOME
-
-
 def _seal_at_head(item, root, base=None):
     """`(sealed, note)`: whether `guarantee.md` in the work item's directory
     ITEM is sealed at HEAD of the repository at ROOT, the way
@@ -673,7 +664,7 @@ def _seal_at_head(item, root, base=None):
     ):
         return False, BASE_UNSEEN.format(base=base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
-    rel = f"{_in_tree(root)}/{OPTIN.WORK_ITEMS}/{name}"
+    rel = f"{OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{name}"
     behind = CHAIN.follows(
         root, target["commit"], base, rel, only=CHAIN.CLOSING_RECORDS
     )
@@ -950,7 +941,7 @@ def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
     blank line, the line MARK and a blank line where it is given, the
     changelog's section followed by a blank line, outside any fold so the
     reader meets it before the fold, `FOLD`, the summary naming the copy
-    under HOME, the root's name as `_in_tree` gives it, and a blank line.
+    under HOME, the root's name, `lib/optin.py#HOME`, and a blank line.
     SECTIONS holds one `(heading, whole, folded)` per row of `SECTIONS`, in
     body order: WHOLE its lines each block followed by a blank line, and
     FOLDED its heading and one `FOLDED` line per record its row names, laid
@@ -1252,7 +1243,7 @@ def compared(item, body, root, manifest=None, base=None):
     headings, parts = [], []
     try:
         texts = read_item(item)
-        top, sections = _unfolded(name, texts, mark, _in_tree(root))
+        top, sections = _unfolded(name, texts, mark, OPTIN.HOME)
         parts = first_part(item, root)
         below, headings = _folded(top, sections, parts, texts, _room(mark, manifest))
         _check(below, body, parts)
@@ -1263,8 +1254,8 @@ def compared(item, body, root, manifest=None, base=None):
 
 def _place(where, line, item, body, home):
     """Where a cause stands, with no machine path in it: the body file BODY
-    by its name, and a record by its path under HOME, the root's name as
-    `_in_tree` gives it, whatever path the work item ITEM was given by,
+    by its name, and a record by its path under HOME, the root's name,
+    `lib/optin.py#HOME`, whatever path the work item ITEM was given by,
     `ROOT_CONFIG` as the root's `config.json`. The sealer copies the first
     `refused:` line into a `guarantee.md` that is committed."""
     if where is None:
@@ -1304,7 +1295,7 @@ def main(argv=None):
     # where git finds no checkout and `repo_root` answers "", so its
     # checkout is the working directory's.
     root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
-    home = _in_tree(root)
+    home = OPTIN.HOME
     if args.check:
         try:
             note, causes = compared(args.item, _body(args.body), root)

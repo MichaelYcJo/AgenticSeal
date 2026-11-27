@@ -40,7 +40,7 @@ SEAL = load_module(
 # what it rests on, which its module's file holds under the root's own
 # directory: `settle.py#threads` in `tests/skills/test_settle.py`'s
 # `Test_threads`, a case of one module, which #942's round 9 fix pass moved
-# there from this file as a constant and #1059 made the root's own name. The checks that
+# there from this file as a constant. The checks that
 # walk work items are held off a team's `specs/` in their modules' files:
 # `tests/skills/test_unverified_check.py`'s walk from the root over a team's
 # unreadable overview, `tests/skills/test_settle.py`'s apply beside a team directory

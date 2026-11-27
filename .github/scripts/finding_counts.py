@@ -87,11 +87,9 @@ NO_DECLARATION = "it is no declaration `lib/routing.py#parse` reads"
 
 def threads_at(root):
     """`<name>/threads`, where the work items of the repository at ROOT
-    stand in its tree: NAME is `lib/optin.py#home_name`'s, or `optin.HOME`
-    where no shared root is marked, the name an unmarked `seal/` carries."""
+    stand in its tree: NAME is the root's name, `lib/optin.py#HOME`."""
     optin = sibling.load(OPTIN)
-    name = optin.home_name(root) or optin.HOME
-    return f"{name}/{optin.WORK_ITEMS}"
+    return f"{optin.HOME}/{optin.WORK_ITEMS}"
 
 
 def readers():

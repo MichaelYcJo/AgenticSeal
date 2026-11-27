@@ -165,14 +165,12 @@ class Test_reference_roots:
         assert roots == (), roots
         assert not config.under_reference_root("specs/x/design.md", roots, "seal")
 
-    @pytest.mark.parametrize("name", ["seal", "agentic-seal"])
-    def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path, name):
+    def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
         """A reference root is outside the root by definition; a prefix naming
         the root, by the name its caller reads from `lib/optin.py`, or
         anything under it is dropped, and the default never reaches its
-        `threads/` either. Beside a root named `agentic-seal`, the project's
-        own `seal/` is outside it, so a `specs/` under it is a reference
-        root."""
+        `threads/` either."""
+        name = "seal"
         home = str(tmp_path / name)
         write_config(home, table(("Reference specs", f"{name}/threads, {name}, specs")))
         roots = config.reference_roots(home, name)

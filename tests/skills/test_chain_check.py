@@ -30,12 +30,6 @@ a fixed commit's ancestry stay git's in every run. `Test_main`'s first case
 runs every reader real, and each reader the seam answers keeps cases of its
 own over a real history (`Test_follows`, the records arm's cases about what
 a later commit touched).
-
-The cases about the root beside a project's own `seal/` package (#1059)
-call the reader of the root's name, `root_name` or
-`declared_for_this_branch`, with its input given; the ones whose fact only
-`main` holds build `tests/conftest.py`'s `shared` repository, whose root
-stands at `agentic-seal/`.
 `Test_module` holds the copy run without its siblings, from
 `tests/test_a_script_copied_alone_exits_2.py`, and the framer's mark after
 a U+2028, `frame_foot`'s one case, from
@@ -3905,8 +3899,7 @@ def run_check(repo, capsys, monkeypatch):
 
 
 ADD_THE_FILE = "Add seal/threads/<work-item>/routing.md to declare"
-# The directory of the work items `main` passes, `root_name` resolving the
-# `repo` fixture's tree to `seal`.
+# The directory of the work items `main` passes, under `lib/optin.py#HOME`.
 WORK = "seal/threads"
 # A shared-mode declaration naming the `repo` fixture's branch.
 DECLARES_FEATURE = ROUTING.format(
@@ -4034,15 +4027,11 @@ class Test_declared_for_this_branch:
         assert "examined nothing" not in why, why
 
     def test_a_repository_with_no_root_is_told_to_add_the_file(self, repo, monkeypatch):
-        """With no root to name, the root's name is `seal`, and the file to
-        write under it is the answer. The working tree is read, as `main`
-        reads it under `--worktree`."""
+        """With no root to name, the file to write under `seal/threads/` is
+        the answer. The working tree is read, as `main` reads it under
+        `--worktree`."""
         monkeypatch.setattr(chain, "WORKTREE", True)
-        home = chain.root_name(routing_module, str(repo), None)
-        assert home == "seal", home
-        own, why = chain.declared_for_this_branch(
-            str(repo), routing_module, f"{home}/threads"
-        )
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert ADD_THE_FILE in why and "local mode" not in why, why
 
@@ -4303,45 +4292,6 @@ def unread_lines(out):
         for ln in out.splitlines()
         if "not read" in ln and "the pull request's body" not in ln
     ]
-
-
-DECLARED = "agentic-seal/threads/1794200001-a-declared-item"
-
-
-# A declaration naming `feature`, straight to the pull request, so the
-# check's guarantee arm names its missing `guarantee.md` once it is judged.
-DECLARATION = (
-    "| Axis | Answer |\n|---|---|\n| Review | straight to the PR |\n"
-    "| Destination | open the pull request |\n| Planning | the session |\n"
-    "| Branch | feature |\n"
-)
-
-
-NO_GUARANTEE = f"{DECLARED}/guarantee.md:0  git carries no guarantee file"
-# The package's own `seal/README.md`, which opens with no marker, and a
-# root's, which does.
-PACKAGE_README = conftest.PACKAGE["seal/README.md"]
-MARKED = conftest.ROOT_MARKER + "\n"
-
-
-@pytest.fixture
-def declared(shared, tmp_path, monkeypatch):
-    """SHARED with DECLARATION committed on `main` under `agentic-seal/`,
-    and `feature` checked out from it, which the check reads as a ready pull
-    request."""
-    write(shared, f"{DECLARED}/routing.md", DECLARATION)
-    commit_everything_as_e(shared, "the declaration")
-    git_out(shared, "switch", "-qc", "feature")
-    event = tmp_path / "event.json"
-    event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
-    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
-    return shared
-
-
-def checked(capsys, repo):
-    """(exit code, stdout) of `chain_check.py` run on REPO against `main`."""
-    code = chain.main(["--baseline", "main", "--root", str(repo)])
-    return code, capsys.readouterr().out
 
 
 ROUNDS = f"{ITEM}/trail/rounds"
@@ -4965,134 +4915,6 @@ class Test_main:
         code = chain.main(["--baseline", "no-such-ref", "--root", str(root)])
         assert code == 2
         assert "does not resolve" in capsys.readouterr().err
-
-    def test_s3_the_check_judges_the_declaration_under_agentic_seal(
-        self, declared, capsys
-    ):
-        """The declaration naming the branch under `agentic-seal/threads/` is
-        judged: `main` over `tests/conftest.py#shared` reads the root's name
-        at `agentic-seal/` and hands the arms the declaration under it."""
-        write(declared, "docs/a.md", "# a\n")
-        commit_everything_as_e(declared, "the change")
-        code, out = checked(capsys, declared)
-        assert code == 1, out
-        assert NO_GUARANTEE in out, out
-        assert "so nothing is declared" not in out, out
-
-    @pytest.mark.parametrize(
-        "head, fork",
-        [
-            ({"seal/README.md": PACKAGE_README}, {"agentic-seal/README.md": MARKED}),
-            (
-                {"seal/README.md": PACKAGE_README, "agentic-seal/README.md": MARKED},
-                {"seal/README.md": PACKAGE_README},
-            ),
-            ({"agentic-seal/README.md": MARKED}, {"seal/README.md": PACKAGE_README}),
-        ],
-        ids=["only-the-marker-deleted", "the-root-added", "added-the-package-gone"],
-    )
-    def test_s3_the_root_is_named_agentic_seal_beside_the_package(
-        self, monkeypatch, head, fork
-    ):
-        """The root's name beside the package's own `seal/` is
-        `agentic-seal`: where the pull request deletes only the marker, the
-        merge base's root names it, as an entry at HEAD still; where the
-        merge base has no root, the name HEAD gives, so the pull request that
-        adds `agentic-seal/` has its declaration judged under it, and so does
-        one that takes the package's `seal/` out of the tree. HEAD and the
-        merge base are handed to `root_name` as the texts each carries."""
-        monkeypatch.setattr(chain, "read_record", lambda _root, rel: head.get(rel))
-
-        def git_at(_root, *args):
-            assert args[0] == "show" and args[1].startswith("fork:"), args
-            return fork.get(args[1].split(":", 1)[1])
-
-        monkeypatch.setattr(chain, "git", git_at)
-        assert chain.root_name(routing_module, ".", "fork") == "agentic-seal"
-
-    @pytest.mark.parametrize("outside", [True, False], ids=["the package", "records"])
-    def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
-        self, monkeypatch, outside
-    ):
-        """With the migration config at `agentic-seal/parity.json`, a change to
-        the package's `seal/__init__.py` owes the comparison, so the config's
-        placeholder baseline is refused; a change confined to `agentic-seal/`
-        owes none. The config is handed over (`reading`)."""
-        config = "agentic-seal/parity.json"
-        reading(monkeypatch, {config: parity_file(None)})
-        paths = [config, "agentic-seal/follow-up.md"]
-        if outside:
-            paths.append("seal/__init__.py")
-        found = chain.originals_of(
-            routing_module, ".", "agentic-seal", paths, [], [DECLARED]
-        )
-        if outside:
-            ((path, line, why),) = found
-            assert (path, line) == (config, 0), found
-            assert "`Baseline commit`" in why, why
-        else:
-            assert found == [], found
-
-    def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
-        self, _branch_template, monkeypatch
-    ):
-        """Another work item's `frame/design.md` the pull request adds under
-        `agentic-seal/threads/` is one the rule-changes arm reads, which
-        refuses its section: a line continued past the field's one line. The
-        diff is handed over as `changed` gives it."""
-        monkeypatch.setattr(chain, "carried_by", lambda *_args: None)
-        other = "agentic-seal/threads/1794200002-another-item"
-        paths = [f"{other}/frame/design.md", "docs/a.md"]
-        edited = chain.edited_work_items(
-            ".", "main", paths, set(), "agentic-seal/threads"
-        )
-        assert edited == [other], edited
-        root, _code = _branch_template
-        text = spec_with(CONTINUED)
-        found, _notices = read_spec(monkeypatch, root, text, other)
-        assert found == [refused(root, text, other)], found
-
-    def test_s3_a_branch_nothing_declares_is_told_to_add_it_under_agentic_seal(
-        self, monkeypatch
-    ):
-        """With no declaration naming the branch, the check names the place it
-        searched and the file to add by the root's own name."""
-        monkeypatch.setenv("GITHUB_HEAD_REF", "feature")
-        monkeypatch.setattr(chain, "tracked_declarations", lambda *_args: [])
-        monkeypatch.setattr(chain, "local_root", lambda *_args: "")
-        own, why = chain.declared_for_this_branch(
-            ".", routing_module, "agentic-seal/threads"
-        )
-        assert own == [], own
-        assert (
-            "Nothing git carries under `agentic-seal/threads/` declares `feature`. "
-            "Add agentic-seal/threads/<work-item>/routing.md to declare."
-        ) in why, why
-
-    @pytest.mark.parametrize("worktree", [False, True], ids=["HEAD", "--worktree"])
-    def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(
-        self, declared, capsys, monkeypatch, worktree
-    ):
-        """The pull request that takes `agentic-seal/` out of the tree deletes
-        the declaration with it, and the package's `seal/` standing at HEAD is
-        not the root that stayed. Under `--worktree` the deletion, staged and
-        not committed, reads the same."""
-        git_out(declared, "rm", "-rq", "agentic-seal")
-        answered(monkeypatch)
-        if worktree:
-            code = chain.main(
-                ["--baseline", "main", "--root", str(declared), "--worktree"]
-            )
-            out = capsys.readouterr().out
-        else:
-            commit_everything_as_e(declared, "the root leaves the tree")
-            code, out = checked(capsys, declared)
-        assert code == 0, out
-        assert (
-            "the tree the check reads has no top-level `agentic-seal` entry, so "
-            "nothing is declared"
-        ) in out, out
-        assert NO_GUARANTEE not in out, out
 
 
 # --- retired ------------------------------------------------------------------------

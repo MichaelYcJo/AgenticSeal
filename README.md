@@ -199,10 +199,7 @@ such as a company repository or a contribution to someone else's project.
 trade-off.
 
 Where your repository already has a `seal/` of its own, such as a Python
-package, the plugin leaves it alone. Both shared answers then put the root
-at `<repo>/agentic-seal/`, and in shared mode every `seal/` this README
-names means that folder. Where that name is taken too, only local is
-offered.
+package, the plugin leaves it alone, and only local is offered.
 
 **Switching is one command.** It moves the root and stages the move, and you
 commit it.

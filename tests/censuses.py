@@ -1316,22 +1316,19 @@ def slash_in_join(rel, root=None):
 
 # --- root_name (#1059) -------------------------------------------------------
 #
-# The records root has two names: `lib/optin.py#HOME`, and `#SECOND_HOME`
-# beside a project's own `seal/`. `lib/optin.py` is the one module that says
-# which one a repository's root carries (`home_paths`, `home_name`). A reader
-# that spells either name reads nothing in a repository whose root has the
-# other, and no case fails, because each case builds a `seal/`: every reader
-# of the records that spelt `seal` had that defect (#1059). The census reads
-# each tracked `.py` outside `tests/` and `evals/`, whose fixtures build roots
-# by name, and outside `lib/optin.py`. It flags a string that is either name,
-# or that opens with either followed by `/`: a constant that is no
-# docstring, and an f-string's literal part, at the f-string's first line.
+# The records root's name is `lib/optin.py#HOME`, and `lib/optin.py` is the
+# one module that says it. A reader that spells the name itself keeps the
+# old one when the name moves, and no case fails, because each case builds a
+# root under the name it spells: every reader of the records that spelt
+# `seal` had that defect when the root took a second name (#1059). The
+# census reads each tracked `.py` outside `tests/` and `evals/`, whose
+# fixtures build roots by name, and outside `lib/optin.py`. It flags a
+# string that is the name, or that opens with it followed by `/`: a
+# constant that is no docstring, and an f-string's literal part, at the
+# f-string's first line.
 #
-# What the walk cannot see, and passes: a name built from other strings, a
-# name a pattern spells after another character, such as `^seal/`, and
-# `optin.HOME` joined under a repository where the root may have the second
-# name. A reader written that way is held by the cases built on the
-# `package` and `shared` fixtures of `tests/conftest.py`.
+# What the walk cannot see, and passes: a name built from other strings, and
+# a name a pattern spells after another character, such as `^seal/`.
 
 ROOT_NAME_HOME = "lib/optin.py"
 ROOT_NAME_SKIPPED = ("tests/", "evals/")
@@ -1339,16 +1336,16 @@ _names_read = []
 
 
 def _root_names():
-    """`(HOME, SECOND_HOME)` as `lib/optin.py` holds them, read once from the
-    repository this module stands in. The names are the plugin's own, and a
-    case may point `ROOT` at a fixture tree that holds no `lib/optin.py`."""
+    """`(HOME,)` as `lib/optin.py` holds it, read once from the repository
+    this module stands in. The name is the plugin's own, and a case may
+    point `ROOT` at a fixture tree that holds no `lib/optin.py`."""
     if not _names_read:
         here = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(here, *ROOT_NAME_HOME.split("/"))
         spec = importlib.util.spec_from_file_location("agentic_optin_for_census", path)
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)
-        _names_read.extend((optin.HOME, optin.SECOND_HOME))
+        _names_read.append(optin.HOME)
     return tuple(_names_read)
 
 
@@ -1377,9 +1374,8 @@ def _spells_a_root(value, names):
 
 def root_name(rel, root=None):
     """No tracked `.py` but `lib/optin.py` spells the records root's name:
-    each reads it from that module, which says which of its two names a
-    repository's root carries. `tests/` and `evals/` build roots by name and
-    are not read."""
+    each reads it from that module. `tests/` and `evals/` build roots by name
+    and are not read."""
     if rel == ROOT_NAME_HOME or rel.startswith(ROOT_NAME_SKIPPED):
         return []
     text = _python(rel, root)
@@ -1408,7 +1404,7 @@ def root_name(rel, root=None):
             flagged.setdefault(
                 line,
                 f'`"{value}"` spells the records root\'s name, which only '
-                "`lib/optin.py` says; read it from `optin.home_name` or "
+                "`lib/optin.py` says; read it from `optin.HOME` or "
                 "`optin.home_paths`, or put `# exempt from root_name: <why>` "
                 "on its own line above it",
             )

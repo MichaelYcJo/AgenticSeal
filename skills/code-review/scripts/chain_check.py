@@ -17,10 +17,10 @@ judged (`carried_by`). The arms are nine:
                 request removed is accepted where its work item's directory
                 stood at the merge base and is gone whole, which reads as a
                 settle (`retired`), and none is judged where the tree the
-                check reads has no top-level entry at the root's name, the
-                merge base's where that tree has no root (`root_name`), which
-                the pull request moving the root to local mode leaves; that
-                tree is HEAD, and the working tree under `--worktree`
+                check reads has no top-level entry at the root's name,
+                `lib/optin.py#HOME`, which the pull request moving the root
+                to local mode leaves; that tree is HEAD, and the working tree
+                under `--worktree`
   frame         `Planning | framer`: `frame/design.md` and `frame/plan.md`
                 are committed, `frame/design.md` ends with the framer's mark,
                 and every `Reframed` line under it names the framer
@@ -1614,7 +1614,7 @@ def originals_of(routing, root, home, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
-    HEAD under HOME, the root's name there (`root_name`), and PATHS, this
+    HEAD under HOME, the root's name (`lib/optin.py#HOME`), and PATHS, this
     pull request's, reach outside the document roots, `docs/` and HOME;
     `lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
@@ -1855,33 +1855,6 @@ def local_root(root, routing):
         return ""
     shared, _local = optin.home_paths(root, common)
     return "" if os.path.realpath(home) == os.path.realpath(shared) else home
-
-
-def root_name(routing, root, fork):
-    """The root's repository-relative name the check reads the declarations
-    under: the name `lib/optin.py#home_name_in` gives for the tree the check
-    reads, `seal`, or the second name beside a project's own `seal/`. That
-    tree is HEAD, and the working tree under `WORKTREE`, as
-    `read_record` reads it.
-
-    Where that tree has no marked root, the name is the one the merge base
-    FORK gives, so a pull request that deletes only the marker keeps its
-    declarations judged, and one that deletes the root is read under the
-    name the root had. Where neither has one, or FORK is None, it is
-    `lib/optin.py#HOME`: a committed `seal/` with no marker is still read
-    under that name, and a repository whose root is local has nothing
-    committed under any name.
-
-    A pull request that renames the root, the marker under one name at the
-    merge base and under the other at HEAD, is read under the new name, and
-    a declaration it deletes under the old name without moving it is not
-    judged. That is the limit `home_paths` states for a root renamed between
-    commits."""
-    optin = routing.optin
-    name = optin.home_name_in(lambda rel: read_record(root, rel))
-    if not name and fork:
-        name = optin.home_name_in(lambda rel: git(root, "show", f"{fork}:{rel}"))
-    return name or optin.HOME
 
 
 def tracked_declarations(root, routing, work_items):
@@ -2204,7 +2177,7 @@ def _checked(args):
         return 2
     paths, moved = diff
     fork = merge_base(root, args.baseline)
-    home = root_name(routing, root, fork)
+    home = routing.optin.HOME
     work_items = f"{home}/{routing.optin.WORK_ITEMS}"
     own, why = declared_for_this_branch(root, routing, work_items)
     # A declaration naming this branch is always this pull request's; any
@@ -2224,10 +2197,8 @@ def _checked(args):
     # `--worktree`, where `read_record` and `changed` read the declarations
     # from. An entry is anything at that name, a file or a link as much as a
     # directory, so a root that is not a directory, or one whose marker alone
-    # left, keeps the declarations judged. A root that left is named by the
-    # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
-    # root that stayed. Where git exits non-zero, `git()` is None and
-    # the declarations stay judged.
+    # left, keeps the declarations judged. Where git exits non-zero, `git()`
+    # is None and the declarations stay judged.
     if WORKTREE:
         gone = not os.path.lexists(os.path.join(root, home))
     else:

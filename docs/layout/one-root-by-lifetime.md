@@ -70,11 +70,8 @@ places in the core's order; the first that exists with the marker says both
 "on" and which mode. A `seal/` whose README does not open with the marker is a
 project's own directory,
 as a package named `seal` has one, and reads as not opted in. First
-setup that meets one writes nothing into it, and the shared root takes
-the second name `skills/core/SKILL.md` gives it, recognised by the same
-marker; `seal mode` prints that place before the root exists. Where a
-directory of the project's own stands at the second name too, the root
-goes under the git directory. Nothing else is read, and there is no config
+setup that meets one writes nothing into it, and the root goes under the
+git directory. Nothing else is read, and there is no config
 key: a git config key, a marker under `.git/` or a fetched ref would say
 twice what the folder already says.
 

@@ -965,6 +965,10 @@ def destination_root(repo, home, shared, local, into):
     clone holding two roots is a clone whose owner has not said which is the
     real one, and a copy landing in one of them is not the moment to decide
     it.
+
+    `--into shared` where something other than a root stands at the shared
+    place refuses: that place is the only one a shared root has, and what
+    stands there is the project's own, which the plugin never writes into.
     """
     if optin.marked(shared) and local and optin.marked(local):
         return "", (
@@ -981,6 +985,14 @@ def destination_root(repo, home, shared, local, into):
         wanted = shared if into == "shared" else local
         if not wanted:
             return "", "the common git directory could not be resolved"
+        if into == "shared" and os.path.lexists(shared) and not optin.marked(shared):
+            return "", (
+                f"{shared} is the project's own and not a root: it is no "
+                "directory whose README.md opens with the marker, and nothing "
+                "here writes into it. A repository that keeps a `seal/` of its "
+                "own keeps its root in local mode: run this again with "
+                "`--into local`."
+            )
         return wanted, ""
     if home:
         return home, ""
@@ -1190,8 +1202,7 @@ def import_(args, cwd):
             return 1
 
         # The root's own name in this clone, which a person finds the path
-        # under: `optin.SECOND_HOME` where the project's own `seal/` stands.
-        # The zip's members keep `optin.HOME`, the archive's own prefix.
+        # under, and the zip's members' prefix, `optin.HOME`, too.
         root_name = os.path.basename(into)
         linked = linked_path(into, archive)
         if linked:
@@ -1737,9 +1748,9 @@ def install_workflow(repo):
     """
     shared, _local = optin.home_paths(repo)
     if not shared or not optin.marked(shared):
-        # The shared place by its own name: beside a project's own `seal/`
-        # it is `optin.SECOND_HOME`, and the project's `seal/` stands in the
-        # tree, so "seal/ is not in this tree" would be false there.
+        # The shared place by its own name. A project's own `seal/` can
+        # stand there, so the line says no root stands at it, which is true
+        # there too, and not that nothing does.
         name = display(repo, shared) or optin.HOME
         return "no-root", (
             f"{WORKFLOW} was NOT written: no root stands at {name}/ in this "
@@ -2155,7 +2166,7 @@ def refusals(repo, home, shared, local, wanted):
     source = shared if wanted == LOCAL else local
     destination = local if wanted == LOCAL else shared
     # The shared root's name in the tree, which every pathspec here stages
-    # or reads: `optin.SECOND_HOME` where the project's own `seal/` stands.
+    # or reads.
     name = display(repo, shared)
     found = []
 

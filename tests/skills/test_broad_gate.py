@@ -21,10 +21,6 @@ built for the case; two cases of `run` run the machine's real shell, and only
 CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that
 run the command run it over a repository with a `feature` branch, built once
 (`_sealable_template`) and copied by the cases that write into it.
-
-The case that runs the command beside a project's own `seal/` package
-(#1059) builds `tests/conftest.py`'s `package` repository, whose root stands
-at `agentic-seal/`.
 """
 
 import argparse
@@ -47,12 +43,10 @@ from conftest import (
     git_out,
     load_module,
     mark_root,
-    records_at,
     symlink_or_skip,
     write,
 )
 from conftest import commit_everything_as_e as commit
-from test_seal import configured, tool
 from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/broad_gate.py"
@@ -2069,10 +2063,10 @@ class Test_gate:
 
         with pytest.raises(gate.Refused, match=said("seal")):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
-        # A `seal/` with no marker is the project's own, so the shared place
-        # the refusal names is the second one.
+        # A `seal/` with no marker is the project's own and no root, and the
+        # refusal names the same two places (#1651).
         write(tmp_path, "seal/config.json", config_of("bin/test -q"))
-        with pytest.raises(gate.Refused, match=said("agentic-seal")):
+        with pytest.raises(gate.Refused, match=said("seal")):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 
@@ -2430,26 +2424,6 @@ class Test_main:
         assert labels == HISTORICAL_ROWS, (
             f"the report of a run over a workflow is not the report it was: {labels}"
         )
-
-    def test_s5_gate_reads_its_key_from_agentic_seal_and_names_it_where_none_is(
-        self, package
-    ):
-        """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
-        the shared place a root would stand, not the package's `seal/`; with
-        the root there, the gate's root is `agentic-seal/` and its command the
-        `Broad gate` key of `agentic-seal/config.json`, read by `seal_home`
-        and `broad_command`, which `gate` asks before anything runs."""
-        top = os.path.realpath(package)
-        code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
-        assert code == 2, err
-        shared = os.path.join(top, "agentic-seal")
-        assert f"at either place a root lives (`{shared}`, `" in err, err
-        command = f"{sys.executable} -c pass"
-        root = records_at(package / "agentic-seal")
-        configured(root, ("Broad gate", command))
-        home = gate.seal_home(str(package))
-        assert home == str(root), home
-        assert gate.broad_command(home) == command
 
 
 test_census = census_case(TARGET)

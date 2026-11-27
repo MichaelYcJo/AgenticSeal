@@ -235,20 +235,18 @@ RULES = {
             OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
         },
     ),
-    # #1578: eleven files each spelt where the root is found with
-    # `<repo>/seal/` as the shared place, and none named the second name
-    # #1059 gave it. The core reaches every agent and every session where a
-    # root stands, and is the one file the second name may stand in, so its
-    # opening paragraph names the places and each of the eleven names that
-    # paragraph. The six links below each replace a case that pinned that
-    # file's copy of the places.
+    # #1578: eleven files each spelt where the root is found, and none of
+    # their copies held the place #1059 had added. The core reaches every
+    # agent and every session where a root stands, so its opening paragraph
+    # names the places and each of the eleven names that paragraph. The six
+    # links below each replace a case that pinned that file's copy of the
+    # places.
     "24 where the records root is found": (
         CORE,
         (
-            # The three places, in the order the gates read them, which an
+            # The two places, in the order the gates read them, which an
             # agent opens or runs.
             "`<repo>/seal/`",
-            "`agentic-seal/`",
             "`$(git rev-parse --git-common-dir)/seal/`",
             # The function that reads them, which a reader resolves for the
             # order.

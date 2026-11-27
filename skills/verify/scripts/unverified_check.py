@@ -201,23 +201,11 @@ def unique_by_target(paths):
     return sorted({os.path.realpath(p) for p in paths})
 
 
-def root_name(top):
-    """The name of the `seal/` root of the repository at TOP as the tree
-    spells it, `lib/optin.py#home_name`'s answer; `optin.HOME` where TOP is
-    empty or holds no shared root. That is the name a local root keeps, and
-    the one each fixture that commits a `seal/` with no marker is read
-    under."""
-    optin = sibling.load("lib/optin.py")
-    return (top and optin.home_name(top)) or optin.HOME
-
-
 def named_root(parent):
-    """Whether the directory PARENT carries the name `root_name` gives for
-    the repository holding it. Only the name is read: whether PARENT is
-    that root is not asked. PARENT is a directory on disk."""
-    return os.path.basename(parent) == root_name(
-        OPTIN.repo_root(os.path.dirname(parent))
-    )
+    """Whether the directory PARENT carries the root's name,
+    `lib/optin.py#HOME`. Only the name is read: whether PARENT is that root
+    is not asked. PARENT is a directory on disk."""
+    return os.path.basename(parent) == OPTIN.HOME
 
 
 def settled_root(path):

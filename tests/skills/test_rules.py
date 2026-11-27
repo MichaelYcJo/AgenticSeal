@@ -13,10 +13,7 @@ the tree, so the suite is where the fact is read.
 The case that reads the `rule` marker's registration stands in
 `tests/test_conftest.py`'s `Test_module`, and the case that reads the settle
 skill's grammar in
-`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`. The case
-that runs `seal rules --check` in a repository whose own `seal/` is a package
-builds `tests/conftest.py`'s `shared` repository, whose root stands at
-`agentic-seal/`.
+`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`.
 """
 
 import importlib.util
@@ -25,8 +22,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ITEM, ROOT, census_case, write
-from test_seal import configured
+from conftest import ROOT, census_case
 
 TARGET = "skills/settle/scripts/rules.py"
 
@@ -639,31 +635,6 @@ class Test_main:
         captured = capsys.readouterr()
         assert captured.out == "", captured.out
         assert "seal rules: name a document, or --check, and not both." in captured.err
-
-    def test_s5_rules_check_excuses_a_section_a_design_under_agentic_seal_removes(
-        self, shared, capsys
-    ):
-        """`seal rules --check` reads the designs under `agentic-seal/threads/`
-        and the `Policy root` key of `agentic-seal/config.json`: a refused `check:`
-        line in a section a design there removes is excused and named by its
-        path under the root."""
-        configured(shared / "agentic-seal", ("Policy root", "policy"))
-        write(shared, HELD, TESTS)
-        write(shared, "policy/a.md", doc(rule("check: tests/test_gone.py")))
-        write(
-            shared / "agentic-seal" / "threads" / ITEM,
-            "frame/design.md",
-            "# Design\n\n## Rule changes\n\n- remove\n  file: policy/a.md\n"
-            "  section: The heading\n",
-        )
-        code = rules.main(["--check", "--root", str(shared)])
-        out = capsys.readouterr().out
-        assert code == 0, out
-        assert (
-            "seal rules: excused: policy/a.md:6: The heading: tests/test_gone.py does "
-            f"not exist; agentic-seal/threads/{ITEM}/ removes this section at the "
-            "settle\n"
-        ) in out, out
 
 
 class Test_refused_lines:

@@ -671,9 +671,7 @@ def check(root, out=sys.stdout, home_dir=None):
             f"{after_path(config_file, refused)}"
         )
         return 2
-    # The pact's config as a person finds it, under the root's own name:
-    # `seal/`, or the second name `lib/optin.py#home_paths` gives beside a
-    # project's own.
+    # The pact's config as a person finds it, under the root's own name.
     config_here = f"{os.path.basename(home)}/{config.CONFIG}"
     signers, refusals = config.signer_declaration(pairs)
     for refusal in refusals:

@@ -1073,7 +1073,7 @@ def spelled(value):
     string VALUE."""
     return (
         f'`"{value}"` spells the records root\'s name, which only '
-        "`lib/optin.py` says; read it from `optin.home_name` or "
+        "`lib/optin.py` says; read it from `optin.HOME` or "
         "`optin.home_paths`, or put `# exempt from root_name: <why>` on its "
         "own line above it"
     )
@@ -1083,12 +1083,7 @@ def spelled(value):
 # reader of the records takes it.
 ROOT_SPELLED = {
     "the-name-as-a-path-part": ('import os\nos.path.join(r, "seal")\n', "seal"),
-    "the-second-name": ('X = 1\nNAME = "agentic-seal"\n', "agentic-seal"),
     "a-path-under-the-root": ('X = 1\nTHREADS = "seal/threads"\n', "seal/threads"),
-    "a-path-under-the-second-name": (
-        'X = 1\nPACT = "agentic-seal/pact.md"\n',
-        "agentic-seal/pact.md",
-    ),
     "an-f-strings-literal-part": ('X = 1\nshown = f"seal/{name}"\n', "seal/"),
     "a-basename-compared": (
         'import os\nif os.path.basename(p) == "seal":\n    pass\n',
@@ -1146,11 +1141,11 @@ class Test_root_name:
             ".github/scripts/x.py:3"
         ]
 
-    def test_accepts_the_names_lib_optin_holds(self):
-        """The names are read from `lib/optin.py`, so a rename there moves
-        the census with it."""
+    def test_accepts_the_name_lib_optin_holds(self):
+        """The name is read from `lib/optin.py`, so a rename there moves the
+        census with it."""
         optin = load_lib_module("optin.py", "optin_for_the_root_name_census")
-        assert censuses._root_names() == (optin.HOME, optin.SECOND_HOME)
+        assert censuses._root_names() == (optin.HOME,)
 
 
 class Test_module:

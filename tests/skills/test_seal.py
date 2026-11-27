@@ -34,14 +34,12 @@ import's world carries. A switch whose fact is a line it prints or a move it
 makes, and not what its guards read from the index, takes
 `guards_answered`, and starts git only to stage.
 
-The cases that run the commands beside a project's own `seal/` package
-(#1059) and need its history build `tests/conftest.py`'s `package` or
-`shared` repository for each case, whose root stands at `agentic-seal/`:
-`seal export` and `seal import` across a clone, first setup, a switch each
-way, the guards over the index under that root, and `seal pr-checks
-install`. A case whose fact is the root's name there writes the package's
-files into a copy of a world (`beside_the_package`), since `optin.home_at`
-reads that name from the disk.
+The cases that run the commands beside a project's own `seal/` package,
+whose root is then the local one (#1651), build `tests/conftest.py`'s
+`package` repository where they need its history: `seal export` and
+`seal import` across a clone, and first setup. A case that needs no history
+writes the package's files into a copy of a world (`beside_the_package`),
+since `optin.home_at` reads the disk.
 
 #942's phase 6 placed here the writer's cases of
 `tests/test_the_mode_question_is_asked_once.py`, and the two cases of
@@ -261,9 +259,9 @@ def beside_the_package(repo):
     """REPO with the files of `tests/conftest.py#PACKAGE` written and not
     committed: a project's own `seal/` package, which `optin`'s readers of
     the root in force pass over. Where `.git` is a directory those readers
-    read the disk alone, so a case whose fact is the root's name beside the
-    package reads it here with no history of its own; a case that needs the
-    package committed takes `tests/conftest.py#package` or `#shared`."""
+    read the disk alone, so a case whose fact is what a command does beside
+    the package reads it here with no history of its own; a case that needs
+    the package committed takes `tests/conftest.py#package`."""
     for rel, text in PACKAGE.items():
         write(repo, rel, text)
     return repo
@@ -1052,24 +1050,6 @@ class Test_export:
         assert code == 1
         assert out.startswith("no free name for seal-local-") and "pass --output" in out
 
-    def test_s6_export_in_shared_mode_names_agentic_seal_in_the_way_out(
-        self, take, at_top, capsys
-    ):
-        """`seal export` writes no zip in shared mode, and the commands it gives
-        for going local take `agentic-seal/` out of the tree, not the package.
-        The root in force is the one `optin.home_at` reads beside the
-        package."""
-        repo = at_top(beside_the_package(take("plain")))
-        records_at(repo / "agentic-seal")
-        assert home_of(repo) == os.path.join(str(repo), "agentic-seal")
-        code, out = said(capsys, repo, "export")
-        assert code == 1, out
-        assert (
-            '  git rm -r --cached "$(git rev-parse --show-toplevel)/agentic-seal"\n'
-            '  mv "$(git rev-parse --show-toplevel)/agentic-seal" '
-            '"$(git rev-parse --git-common-dir)/seal"\n'
-        ) in out
-
 
 class Test_display:
     def test_accepts_a_path_inside_as_slash_joined_and_relative(self, tmp_path):
@@ -1340,6 +1320,24 @@ class Test_destination_root:
         shared, local = self.dirs(tmp_path, "local")
         write(tmp_path, "shared/README.md", "# seal\n\nThis package's notes.\n")
         assert SEAL.destination_root("", local, shared, local, None) == (local, "")
+
+    @pytest.mark.parametrize("held", ["a package", "a file"])
+    def test_refuses_a_projects_own_seal_as_the_shared_root(self, tmp_path, held):
+        """#1651: `--into shared` where something of the project's own stands
+        at the shared place writes nothing, since that place is the only one a
+        shared root has; the line sends the copy to the local root."""
+        shared, local = self.dirs(tmp_path)
+        if held == "a package":
+            write(tmp_path, "shared/README.md", "# seal\n\nThis package's notes.\n")
+        else:
+            write(tmp_path, "shared", "a file\n")
+        assert SEAL.destination_root("", "", shared, local, "shared") == (
+            "",
+            f"{shared} is the project's own and not a root: it is no directory "
+            "whose README.md opens with the marker, and nothing here writes "
+            "into it. A repository that keeps a `seal/` of its own keeps its "
+            "root in local mode: run this again with `--into local`.",
+        )
 
     @pytest.mark.parametrize(
         "home, into, want",
@@ -1885,12 +1883,13 @@ class Test_import_:
         assert out.startswith("the copy stopped part-way: ")
         assert "run this again" in out
 
-    def test_s6_a_copy_travels_as_seal_and_lands_under_agentic_seal(
+    def test_s6_a_copy_travels_as_seal_and_lands_in_the_local_root_beside_the_package(
         self, package, capsys, tmp_path
     ):
         """`seal export` from the local root writes members named `seal/…`, the
-        archive's own name, and `seal import --into shared` in a fresh clone
-        writes them under `agentic-seal/`, leaving the package as it was."""
+        archive's own name. In a fresh clone `seal import --into shared` writes
+        nothing into the package's `seal/` (#1651), and `seal import` writes
+        them under the local root, leaving the package as it was."""
         # The bytes as `write` put them on disk, with this platform's line ends,
         # which the export and the import must carry unchanged.
         written = files_under(records_at(local_home(package)))
@@ -1914,36 +1913,15 @@ class Test_import_:
         git(clone, "remote", "set-url", "origin", REMOTE)
         before = files_under(clone / "seal")
         code, out = said(capsys, clone, "import", str(archive), "--into", "shared")
+        assert code == 1, out
+        assert "is the project's own and not a root" in out, out
+        assert files_under(clone / "seal") == before
+        code, out = said(capsys, clone, "import", str(archive))
         assert code == 0, out
-        landed = files_under(clone / "agentic-seal")
+        landed = files_under(clone / ".git" / "seal")
         for rel in ROOT_RECORDS:
             assert landed[rel] == written[rel], rel
         assert files_under(clone / "seal") == before
-
-    @pytest.mark.parametrize(
-        "held, said_of_it",
-        [("a link", "is a symbolic link"), ("a file", "is not a directory")],
-    )
-    def test_s6_an_import_names_what_blocks_it_in_the_root_by_the_roots_own_name(
-        self, take, at_top, exported, capsys, tmp_path, held, said_of_it
-    ):
-        """A symbolic link, or a file, where the zip needs `threads/` as a
-        directory is refused, and the line names the place in this clone,
-        `agentic-seal/threads`, not the archive's `seal/` prefix. The root in
-        force is the one `optin.home_at` reads beside the package."""
-        repo = at_top(beside_the_package(take("plain")), SSH)
-        root = mark_root(repo / "agentic-seal")
-        assert home_of(repo) == str(root)
-        outside = tmp_path / "outside"
-        outside.mkdir()
-        if held == "a link":
-            symlink_or_skip(str(outside), str(root / "threads"))
-        else:
-            write(root, "threads", "a file\n")
-        code, out = said(capsys, repo, "import", str(exported))
-        assert code == 1, out
-        assert out.startswith(f"agentic-seal/threads in this clone {said_of_it}"), out
-        assert list(outside.iterdir()) == []
 
 
 class Test_write_members:
@@ -2821,14 +2799,12 @@ class Test_refusals:
         ]
 
     def test_refuses_a_projects_own_seal_as_a_destination_not_as_two_roots(self, take):
-        """A `<repo>/seal/` and a `<repo>/agentic-seal/` whose READMEs do not
-        open with the marker are no second root, so switching to shared is
-        refused for the directory in the way, which nothing here overwrites.
-        With `seal/` alone the project's own, the shared place is
-        `agentic-seal/` (#1059)."""
+        """A `<repo>/seal/` whose README does not open with the marker is no
+        second root, so switching to shared is refused for the directory in
+        the way, which nothing here overwrites: the root of a repository
+        that keeps a `seal/` of its own stays local (#1651)."""
         repo = take("local")
-        for name in ("seal", "agentic-seal"):
-            write(repo, f"{name}/README.md", "# seal\n\nThis package's notes.\n")
+        write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
         found = refusals_of(repo, "shared")
         assert any("already exists, and nothing here overwrites" in f for f in found)
         assert not any("both roots exist" in f for f in found), found
@@ -3168,158 +3144,39 @@ class Test_mode:
             assert '  "Mode": "local"\n' in out
         assert tree(repo) == before
 
-    def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
+    def test_s1_first_setup_beside_the_package_keeps_the_root_local(
         self, package, at_top, capsys
     ):
-        """`seal mode` with no root prints `agentic-seal` as the shared place,
-        and a root made there from the template reads as shared mode, writes its
-        key there, and passes `--check`, with the package as it was. Switched to
-        local before anything is committed, it says nothing under it was
-        tracked."""
+        """`seal mode` with no root prints the package's `seal/` as the shared
+        place and the common directory's `seal/` as the local one. A root made
+        at the local place from the template reads as local mode, writes its
+        key there, and passes `--check`, and `seal mode shared` refuses to
+        move it over the package, which stays as it was (#1651)."""
         at_top(package)
         before = files_under(package / "seal")
         code, out = said(capsys, package, "mode")
         assert code == 1, out
         places = [line.split()[0] for line in out.splitlines() if "mode)" in line]
         assert places == [
-            os.path.join(str(package), "agentic-seal"),
+            os.path.join(str(package), "seal"),
             os.path.join(str(package), ".git", "seal"),
         ], out
 
-        os.makedirs(places[0])
+        os.makedirs(places[1])
         shutil.copyfile(
             os.path.join(ROOT, "templates", "setup", "seal-README.md"),
-            os.path.join(places[0], "README.md"),
+            os.path.join(places[1], "README.md"),
         )
         code, out = said(capsys, package, "mode")
         assert code == 0, out
-        with open(os.path.join(places[0], "config.json"), encoding="utf-8") as handle:
-            assert json.load(handle)["Mode"] == "shared"
+        with open(os.path.join(places[1], "config.json"), encoding="utf-8") as handle:
+            assert json.load(handle)["Mode"] == "local"
         code, out = said(capsys, package, "mode", "--check")
         assert code == 0, out
+        code, out = said(capsys, package, "mode", "shared")
+        assert code == 1, out
+        assert "already exists, and nothing here overwrites" in out, out
         assert files_under(package / "seal") == before
-        assert not any(line[3:].startswith("seal/") for line in status(package))
-        code, out = said(capsys, package, "mode", "local")
-        assert code == 0, out
-        assert "  nothing under agentic-seal/ was tracked\n" in out, out
-
-    def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(
-        self, shared, at_top, capsys
-    ):
-        """`seal mode local` moves `agentic-seal/` to the common directory's
-        `seal/` and stages its removal, and `seal mode shared` moves it back to
-        `agentic-seal/` and stages it, the package untouched both ways. The key
-        `seal mode` wrote into the committed `agentic-seal/config.json` and an
-        untracked file there do not stop the move, as they do not under `seal/`."""
-        at_top(shared)
-        write(shared / "agentic-seal", "config.json", MODELESS)
-        commit_as_e(shared, "the config")
-        assert said(capsys, shared, "mode")[0] == 0
-        write(shared / "agentic-seal", "notes.md", "# notes\n")
-        before = files_under(shared / "seal")
-        # The bytes as `write` put them on disk, with this platform's line ends,
-        # which the move must carry unchanged.
-        written = files_under(shared / "agentic-seal")
-        code, out = said(capsys, shared, "mode", "local")
-        assert code == 0, out
-        assert "note: agentic-seal/notes.md is untracked" in out
-        assert not (shared / "agentic-seal").exists()
-        local = files_under(shared / ".git" / "seal")
-        for rel in ROOT_RECORDS:
-            assert local[rel] == written[rel], rel
-        assert status(shared) and all(
-            line.startswith("D  agentic-seal/") for line in status(shared)
-        ), status(shared)
-        assert "staged the removal of agentic-seal/ from the tree" in out
-
-        commit_as_e(shared, "the switch to local")
-        code, out = said(capsys, shared, "mode", "shared")
-        assert code == 0, out
-        assert out.count("`git reset -- :/agentic-seal`") == 2, out
-        assert not (shared / ".git" / "seal").exists()
-        back = files_under(shared / "agentic-seal")
-        # The config is the one file `seal mode shared` rewrites, so it is
-        # compared by the key it wrote rather than by its bytes.
-        assert json.loads(back.pop("config.json"))["Mode"] == "shared"
-        local.pop("config.json")
-        assert back == local
-        assert status(shared) and all(
-            line.startswith("A  agentic-seal/") for line in status(shared)
-        ), status(shared)
-        assert "staged agentic-seal/" in out
-        assert files_under(shared / "seal") == before
-
-    @pytest.mark.parametrize("held", ["a staged edit", "a submodule"])
-    def test_s6_mode_refuses_to_move_agentic_seal_over_what_its_index_holds(
-        self, shared, at_top, capsys, held
-    ):
-        """The guards read the index under `agentic-seal/`, not under the
-        package: a staged edit there and a submodule there each refuse the
-        move and name the root by its own name."""
-        at_top(shared)
-        if held == "a staged edit":
-            write(shared / "agentic-seal", "follow-up.md", "# edited\n")
-            git(shared, "add", "agentic-seal/follow-up.md")
-        else:
-            gitlink = f"160000,{SHA},agentic-seal/vendor"
-            git(shared, "update-index", "--add", "--cacheinfo", gitlink)
-        code, out = said(capsys, shared, "mode", "local")
-        assert code == 1, out
-        assert out.rstrip().endswith("Nothing was moved."), out
-        if held == "a staged edit":
-            assert "\n  M  agentic-seal/follow-up.md\n" in out, out
-        else:
-            assert "there is a submodule under agentic-seal/:\n" in out, out
-            assert "`git rm -r --cached agentic-seal`" in out, out
-        assert (shared / "agentic-seal").is_dir()
-
-    def test_s6_mode_refuses_to_move_agentic_seal_over_an_index_git_cannot_list(
-        self, take, at_top, capsys, monkeypatch
-    ):
-        """An index git cannot list under `agentic-seal/` refuses the move and
-        names the root by its own name, the one `optin.home_at` reads beside
-        the package."""
-        repo = at_top(beside_the_package(take("plain")))
-        holding(repo / "agentic-seal")
-        assert home_of(repo) == os.path.join(str(repo), "agentic-seal")
-        tail = ["--stage", "--", "agentic-seal"]
-        unanswered(monkeypatch, tail, OSError("git is not here"))
-        code, out = said(capsys, repo, "mode", "local")
-        assert code == 1, out
-        assert out.rstrip().endswith("Nothing was moved."), out
-        assert "whether there is a submodule under agentic-seal/ could not" in out
-        assert (repo / "agentic-seal").is_dir()
-
-    def test_s6_a_switch_that_could_not_stage_names_agentic_seal_going_local(
-        self, shared, at_top, capsys
-    ):
-        """Where git refuses the staging step, the command the line hands the
-        person stages `agentic-seal`: a held `index.lock` going local."""
-        at_top(shared)
-        lock = shared / ".git" / "index.lock"
-        lock.write_text("", encoding="utf-8")
-        try:
-            code, out = said(capsys, shared, "mode", "local")
-        finally:
-            lock.unlink()
-        assert code == 1, out
-        assert "Now commit." not in out, out
-        assert "Run `git rm -r --cached :/agentic-seal` yourself" in out, out
-
-    def test_s6_a_switch_that_could_not_stage_names_agentic_seal_going_shared(
-        self, take, at_top, capsys
-    ):
-        """An ignore rule over the root going shared: `git add` refuses
-        `agentic-seal`, the place `optin.home_paths` gives beside the package,
-        and the command the line hands the person stages it."""
-        repo = at_top(beside_the_package(take("local")))
-        write(repo, ".gitignore", "agentic-seal/\n")
-        assert roots(repo)[0] == os.path.join(str(repo), "agentic-seal")
-        code, out = said(capsys, repo, "mode", "shared")
-        assert code == 1, out
-        assert "Now commit." not in out, out
-        assert "  agentic-seal/ could NOT be staged: " in out, out
-        assert "`git add -f :/agentic-seal` yourself" in out, out
 
 
 class Test_pr_checks:
@@ -3681,30 +3538,18 @@ class Test_pr_checks:
         assert said_line in out, out
         assert staged(repo) == before
 
-    def test_pr_checks_install_writes_the_workflow_beside_a_shared_agentic_seal(
-        self, shared, at_top, capsys
-    ):
-        """`seal pr-checks install` reads a marked `agentic-seal/` as the root in
-        the tree, so it writes the workflow and stages it, where a project's own
-        `seal/` alone would refuse it."""
-        at_top(shared)
-        code, out = said(capsys, shared, "pr-checks", "install")
-        assert code == 0, out
-        assert (shared / ".github" / "workflows" / "hygiene.yml").is_file()
-        assert "A  .github/workflows/hygiene.yml" in status(shared)
-
-    def test_pr_checks_install_names_agentic_seal_where_no_root_stands_beside_the_package(
+    def test_pr_checks_install_names_seal_where_no_root_stands_beside_the_package(
         self, take, at_top, capsys
     ):
         """With no root beside the package, `seal pr-checks install` writes
-        nothing and names the place it looked by its own name, `agentic-seal/`,
-        not the package's `seal/`, which stands in the tree. `optin.home_at`
-        reads no root there."""
+        nothing and says that no root stands at `seal/`, the package's own,
+        which stands in the tree (#1651). `optin.home_at` reads no root
+        there."""
         repo = at_top(beside_the_package(take("plain")))
         assert home_of(repo) == ""
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 1, out
-        assert "no root stands at agentic-seal/ in this tree" in out, out
+        assert "no root stands at seal/ in this tree" in out, out
         assert not (repo / ".github").exists()
 
 

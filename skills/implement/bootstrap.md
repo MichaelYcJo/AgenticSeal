@@ -37,14 +37,10 @@ A shared answer creates the root at the shared place it printed.
 **A `<repo>/seal/` whose `README.md` does not open with the marker is the
 project's own.** The marker is the first line of
 `templates/setup/seal-README.md`, and a package or a tool can keep a directory
-named `seal` for itself. The orchestrator writes nothing into it. Beside it,
-the shared place `seal mode` prints is the second name `skills/core/SKILL.md`
-gives the root, and the three options are offered with that place. Where a
-directory whose `README.md` does not open with the marker stands at that
-printed place too, it is the project's own as well. The orchestrator writes
-nothing into it either and offers neither shared option. The root goes under
-the git directory, at `$(git rev-parse --git-common-dir)/seal/`, as the
-local option below creates it, and the orchestrator says so in one line:
+named `seal` for itself. The orchestrator writes nothing into it and offers
+neither shared option. The root goes under the git directory, at
+`$(git rev-parse --git-common-dir)/seal/`, as the local option below
+creates it, and the orchestrator says so in one line:
 *"`<the shared place>` is this project's own, so the plugin keeps its root
 under the git directory, in local mode"*. The one call of step 1 then
 carries the `Broad gate` question and the two language questions.

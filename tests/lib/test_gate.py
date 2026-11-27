@@ -35,17 +35,14 @@ class Test_touches_code:
     @pytest.mark.parametrize(
         "home, paths, code",
         [
-            ("agentic-seal", ["agentic-seal/threads/x/routing.md", "docs/a.md"], False),
-            ("agentic-seal", ["seal/__init__.py"], True),
             ("", ["seal/threads/x/routing.md"], True),
             ("", ["docs/a.md"], False),
         ],
-        ids=["the second name", "a project's own seal", "no root", "no root, docs"],
+        ids=["no root", "no root, docs"],
     )
     def test_reads_the_root_by_the_name_it_is_given(self, home, paths, code):
-        """#1059: the records root is the name the caller resolved, so a
-        project's own `seal/` beside `agentic-seal/` is code, and with no
-        root in the tree `docs/` is the one document root."""
+        """The records root is the name the caller gives, so with no root in
+        the tree `docs/` is the one document root."""
         assert gate.touches_code(paths, home) is code
 
 

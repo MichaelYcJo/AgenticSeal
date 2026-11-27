@@ -12,10 +12,6 @@ not hold, and the signer beside it, which names the pact in its
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the cases of `lib/config.py` that run `check`
 over a signer's config are in `tests/lib/test_config.py` since #942's phase 6.
-
-The cases that run `check` beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
 """
 
 import io
@@ -32,7 +28,6 @@ from conftest import (
     MOBILE_URL,
     PACT,
     PACT_URL,
-    REMOTE,
     ROOT,
     SIGNER_URL,
     SPEC,
@@ -42,13 +37,11 @@ from conftest import (
     anchor_table,
     census_case,
     clause,
-    commit_everything_as_e,
     config_json,
     init,
     load_module,
     pact,
     pact_check_modules,
-    pact_config,
     signer_config,
     symlink_or_skip,
     write,
@@ -870,24 +863,14 @@ class Test_check:
         ), out
         assert "READ" not in out.replace("UNREADABLE", ""), out
 
-    @pytest.mark.parametrize(
-        "side", ["no seal root", "no Pact key", "no Pact key under agentic-seal"]
-    )
+    @pytest.mark.parametrize("side", ["no seal root", "no Pact key"])
     def test_refuses_a_relationship_recorded_on_one_side(self, world, side):
-        """The third side is #1059's: a signer whose own `seal/` is a package
-        keeps its root at `agentic-seal/`, and the line names its config
-        there, not under the pact's root's name."""
         if side == "no seal root":
             shutil.rmtree(world.web / "seal")
             where, said = posix(world.web), "it has no seal/ root to name this pact in"
         else:
-            home = "seal"
-            if side.endswith("agentic-seal"):
-                home = "agentic-seal"
-                shutil.move(str(world.web / "seal"), str(world.web / home))
-                write(world.web, "seal/__init__.py", "VERSION = 1\n")
-            write(world.web, f"{home}/config.json", signer_config())
-            where = f"{home}/config.json"
+            write(world.web, "seal/config.json", signer_config())
+            where = "seal/config.json"
             said = f"its config names no `Pact` key for {PACT_URL}"
         code, out = world.run()
         assert code == 2, out
@@ -1210,27 +1193,11 @@ class Test_check:
             "— set `origin` and run it again"
         ), out
 
-    def test_s5_pact_names_the_signers_key_under_agentic_seal(self, shared, tmp_path):
-        """`seal pact` reads `agentic-seal/pact.md` and the `Pact signers` key of
-        `agentic-seal/config.json`, and names the config by that path: a key
-        that lists the pact's own repository is refused at it."""
-        write(shared / "agentic-seal", "pact.md", pact(V2))
-        write(shared / "agentic-seal", "config.json", pact_config(REMOTE))
-        commit_everything_as_e(shared, "the pact")
-        out = io.StringIO()
-        code = pc.check(str(shared), out=out, home_dir=str(tmp_path))
-        assert code == 2, out.getvalue()
-        assert (
-            f"REFUSED {REMOTE} agentic-seal/config.json — the `Pact signers` key "
-            "lists the pact's own repository"
-        ) in out.getvalue(), out.getvalue()
-
 
 @pytest.fixture
 def printed(monkeypatch):
     """What `main` prints. `check` binds `sys.stdout` as it stood when the
     module loaded, under pytest's collection, so its default is replaced."""
-    import io
 
     out = io.StringIO()
     monkeypatch.setattr(pc.check, "__defaults__", (out, None))

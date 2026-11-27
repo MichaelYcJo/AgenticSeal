@@ -37,10 +37,6 @@ sheets. The copy's case came from `tests/test_a_script_copied_alone_exits_2.py`
 and the case `Test_threads` replaced from
 `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` in #942's
 round 9 fix pass, each a case of this module alone.
-
-The cases that run the command beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
 """
 
 import inspect
@@ -57,7 +53,6 @@ import pytest
 import test_unverified_check
 from conftest import (
     DOC,
-    ITEM,
     ROOT,
     as_called,
     census_case,
@@ -75,7 +70,6 @@ from conftest import (
     write,
 )
 from conftest import flattened as flat
-from test_seal import tool
 from test_unverified_check import CANONICAL, WORK, _committed, memo
 
 TARGET = "skills/settle/scripts/settle.py"
@@ -4066,15 +4060,6 @@ class Test_main:
         )
         assert sorted(p for p in (local_repo / ".git" / "seal").rglob("*")) == records
 
-    def test_s5_settle_shows_a_work_item_released_under_agentic_seal(self, shared):
-        """`seal settle`'s dry run reads the work items under
-        `agentic-seal/threads/` as the shared root's, released where `main`
-        holds them, and names each by its path there."""
-        code, out, err = tool(shared, "settle", "--released-at", "main")
-        assert code == 0, err
-        assert f"agentic-seal/threads/{ITEM}/" in out, out
-        assert "local mode" not in out, out
-
 
 class Test_adding_commit:
     def test_accepts_the_oldest_add_of_each_path(self, tmp_path):
@@ -4436,14 +4421,13 @@ class Test_module:
 
 
 class Test_threads:
-    @pytest.mark.parametrize("name", ["seal", "agentic-seal"])
-    def test_accepts_the_threads_under_the_roots_own_name(self, tmp_path, name):
-        """#688's D3, now under either name of the root (#1059): the walk of
-        work items reads under the root's own directory, `threads/` in it.
+    def test_accepts_the_threads_under_the_roots_own_name(self, tmp_path):
+        """#688's D3: the walk of work items reads under the root's own
+        directory, `threads/` in it.
         `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""
-        assert settle.threads(str(tmp_path / name)) == f"{name}/threads"
+        assert settle.threads(str(tmp_path / "seal")) == "seal/threads"
 
     def test_refuses_the_directory_holding_the_root_as_its_name(self, tmp_path):
         """A local root is named by its own directory, `seal`, and not by

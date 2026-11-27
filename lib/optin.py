@@ -4,14 +4,13 @@ Imported by the gates rather than copied into each, because where the answer
 moves, divergent copies are how half of them keep the old one.
 
 The signal is `seal/` — the root the plugin maintains, whose existence is the
-declaration — at the first of three places that has it with its `README.md`
+declaration — at the first of two places that has it with its `README.md`
 opening with `MARKER`: `<repo>/seal/`, which shared mode commits, then
-`<repo>/agentic-seal/`, the shared root's second name, then
 `<git-common-dir>/seal/`, where local mode keeps it. One root, read one
 way, and no config key (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
 keeps for itself, as a package named `seal` does, and declares nothing; the
-shared root then takes the second name, found by the same marker.
+root of such a repository is the local one.
 
 `<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
@@ -40,10 +39,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gitcmd
 
 HOME = "seal"
-# The shared root's second name, taken where the repository's own `seal/`
-# belongs to something else. The local root keeps `HOME`: nothing of
-# a project's own lives under its git directory.
-SECOND_HOME = "agentic-seal"
 # The sub-directory of the root that holds the work items.
 WORK_ITEMS = "threads"
 # Where each record sits in a thread, `/`-joined and relative to the thread's
@@ -149,18 +144,10 @@ def home_paths(root, common=None):
     """The two places `seal/` is read from at `root`, shared first then local.
 
     `("", "")` for no root, and the local entry is "" where the common git
-    directory could not be resolved. The local entry is `<common>/seal`. The
-    shared entry is `<root>/seal` where that directory carries the marker,
-    else `<root>/agentic-seal` where that one does, else `<root>/seal` where
-    nothing stands at that path, else `<root>/agentic-seal`. Neither
-    entry is tested for being the root: this answers *where would it be*,
-    and `home_at` below answers *where is it*.
-
-    Two limits. A repository whose `seal/` and `agentic-seal/` both carry
-    the marker reads `seal/` and never says the other exists. A reader that
-    reads at a commit other than the working tree reads under the name the
-    working tree resolves, so a repository that moved its root from one name
-    to the other reads its earlier history under the current name.
+    directory could not be resolved. The shared entry is `<root>/seal` and
+    the local entry `<common>/seal`. Neither entry is tested for being the
+    root: this answers *where would it be*, and `home_at` below answers
+    *where is it*.
 
     It exists because the second question is not the only one asked. `seal
     import` has to be able to create the root the user names — including the
@@ -185,53 +172,22 @@ def home_paths(root, common=None):
     # git, so the native spelling is the right one, and normalising at the
     # source closes it for every caller rather than at each of the four
     # places that print it.
-    shared = home_name_in(_on_disk(root))
-    if not shared:
-        shared = SECOND_HOME if os.path.lexists(os.path.join(root, HOME)) else HOME
     return (
-        os.path.join(root, shared),
+        os.path.join(root, HOME),
         os.path.normpath(os.path.join(common, HOME)) if common else "",
     )
 
 
-def home_name_in(read):
-    """The name of the shared root in a tree read through READ, or "".
-
-    READ takes a `/`-joined path relative to the repository's top and
-    returns that file's text, or None where there is none: the working tree
-    through `_on_disk` below, or a commit through a caller's own reader, as
-    `chain_check.py` reads one. The answer is the first of `HOME` and
-    `SECOND_HOME` whose `README.md` opens with `MARKER`, so the order and the
-    marker comparison have this one home for every reader.
-    """
-    for name in (HOME, SECOND_HOME):
-        if _opens_with_marker(read(f"{name}/{README}")):
-            return name
-    return ""
-
-
 def home_name(root, common=None):
-    """The `/`-joined repository-relative name of the root in force at
-    `root` where it is the shared one, `HOME` or `SECOND_HOME`; "" where the
-    root is local or there is none.
+    """`HOME`, the `/`-joined repository-relative name of the root in force
+    at `root`, where that root is the shared one; "" where the root is local
+    or there is none.
 
-    For a reader that classifies paths as git prints them, which needs the
-    root's name in the tree and not its path on this disk.
+    For a reader that has to tell a root in the tree from a root under the
+    git directory, which a path on this disk does not say by itself.
     """
-    if not home_at(root, common):
-        return ""
-    return home_name_in(_on_disk(root))
-
-
-def _on_disk(root):
-    """A reader of the working tree at `root` for `home_name_in`: the first
-    line of the file at a `/`-joined relative path, read as `marked` reads
-    it, or None where it cannot be read."""
-
-    def read(rel):
-        return _first_line(os.path.join(root, *rel.split("/")))
-
-    return read
+    found = home_at(root, common)
+    return HOME if found and found == os.path.join(root, HOME) else ""
 
 
 def _first_line(path):
@@ -277,13 +233,11 @@ def home_at(root, common=None):
     already resolved the root and should not pay for a second `git` call.
 
     The places are read in order, `<root>/seal/`, then
-    `<root>/agentic-seal/`, then `<git-common-dir>/seal/`, and the first that
-    is a directory whose `README.md` opens with `MARKER` is the answer;
-    nothing else is read. The first two are the shared entry of `home_paths`
-    above, which names the marked one of them. A `<root>/seal/` without the
-    marker is passed over, so a project that keeps a directory of that name
-    for itself keeps its shared root at `<root>/agentic-seal/`, or its local
-    root under the git directory. The opt-out is read once, here, so it
+    `<git-common-dir>/seal/`, the two entries of `home_paths` above, and the
+    first that is a directory whose `README.md` opens with `MARKER` is the
+    answer; nothing else is read. A `<root>/seal/` without the marker is
+    passed over, so a project that keeps a directory of that name for itself
+    keeps its root under the git directory, in local mode. The opt-out is read once, here, so it
     cannot be honoured by one arm of a gate and missed by the other — the
     migration config sits inside the root the opt-out takes back, and a
     repository nobody reviews has nothing to compare against an original

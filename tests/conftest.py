@@ -1192,10 +1192,8 @@ def parity_file(sha):
 
 # --- a repository whose own `seal/` is a package (#1059) ---------------------
 #
-# Each command's cases that keep its records under `agentic-seal/` beside a
-# project's own `seal/` package share this world: the module files of
-# `tests/skills/` that hold them, and the `seal rules` case of
-# `tests/skills/test_rules.py`.
+# The cases of a repository whose own `seal/` is a package, whose root is
+# then the local one (#1651), share this world.
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"
@@ -1230,14 +1228,6 @@ def package(tmp_path):
         write(repo, rel, text)
     commit_everything_as_e(repo, "the package")
     return repo
-
-
-@pytest.fixture
-def shared(package):
-    """PACKAGE's repository with its root committed at `agentic-seal/`."""
-    records_at(package / "agentic-seal")
-    commit_everything_as_e(package, "the root")
-    return package
 
 
 # --- the pact's world ---------------------------------------------------------

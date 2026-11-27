@@ -20,13 +20,12 @@ plugin does with one issue from the routing question to the sealer's
 guarantee; a session doing other work is not bound by it to start the
 process. Each path this file cites is relative to the plugin's root, the
 directory holding this file's `skills/`, never to the session's repository,
-except `seal/`, the records root. The root is looked for at three places,
-in the order `lib/optin.py#home_at` reads them: `<repo>/seal/`; then
-`agentic-seal/` beside it, the shared root's name where the repository's own
-`seal/` belongs to something else; then
-`$(git rev-parse --git-common-dir)/seal/`, where local mode keeps it. The
-first of them that is a directory whose `README.md` opens with the marker
-`lib/optin.py#MARKER` is the root. `skills/implement/SKILL.md` *Document
+except `seal/`, the records root. The root is looked for at two places,
+in the order `lib/optin.py#home_at` reads them: `<repo>/seal/`, then
+`$(git rev-parse --git-common-dir)/seal/`, where local mode keeps it and
+where a repository whose own `seal/` belongs to something else keeps it.
+The first of them that is a directory whose `README.md` opens with the
+marker `lib/optin.py#MARKER` is the root. `skills/implement/SKILL.md` *Document
 layout — two roots, three lifetimes* says how the root is laid out. `seal/`
 is that root's name in every text this plugin ships, except where a text
 says a `seal/` is the project's own or that its `README.md` does not open
