@@ -149,7 +149,8 @@ class Test_main:
         it whole, and the hunk of the last paragraph after it is numbered
         for the line the deletion took, each as `git diff -U2` prints them;
         two changes in one paragraph print it once, as one hunk, as
-        `git diff -U3` prints the pair."""
+        `git diff -U3` prints the pair; and a deletion that opens the file is
+        numbered from its first line, as `git diff -U2` prints it."""
         repo, base = built(tmp_path, {DOC: document()})
         last = [*LAST]
         last[2] = "Last paragraph, line 3, rewritten."
@@ -169,6 +170,11 @@ class Test_main:
         text = written(out)
         assert hunks(repo, head, again, DOC, 3) in text
         assert text.count("\n@@ ") == 1
+        write(repo, DOC, document(first=FIRST[2:], middle=pair, last=last))
+        opened = commit_everything(repo, "delete the first line")
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, again, out)
+        assert code == 0, said
+        assert hunks(repo, again, opened, DOC, 2) in written(out)
 
     def test_accepts_a_one_line_paragraph_an_added_and_an_emptied_file(
         self, tmp_path, monkeypatch, capsys
