@@ -19,6 +19,8 @@
 
 **What building found.** A `.md` path emptied at HEAD printed its deleted lines without the hunk header git gave them. The case on an emptied file went red on it, and `18c7a48f2` fixed it.
 
+**A limit of the frame's `-W` print, seen on this range.** *Data & interfaces* prints a path that is not `.md` as `git diff -W` prints it. With no diff driver set for the path, git takes as a function line any line that opens with a letter, `_` or `$`, so a hunk inside a Python docstring or comment prints from the nearest such line and not from the unit's start. `seal range ... --from bd4125e4b` printed the one docstring hunk of `2da1e1d8d` in `tests/skills/test_range_read.py` as `@@ -5,10 +5,9 @@`, from line 5 of a docstring that opens at line 1 (executed). The build keeps the frame's print, since the frame chose it and no phase-1 scenario asks otherwise. Whether a prose hunk inside code should take the paragraph bound too is the framer's to weigh.
+
 **Seen red.** Each case of `tests/skills/test_range_read.py` was first run against the tree without the script, where collection fails (executed). Then `seal mutate` ran 36 mutants over `skills/implement/scripts/range_read.py` in one call, at `7efa46e24`, each against `bin/test tests/skills/test_range_read.py -q -x -p no:xdist` (executed):
 
 - Mutant 1 put a print of `git diff -U3` in place of the paragraph print, as S4 asks, and read `red`.
