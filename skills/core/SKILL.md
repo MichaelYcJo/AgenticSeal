@@ -25,8 +25,9 @@ in the order `lib/optin.py#home_at` reads them: `<repo>/seal/`, then
 `$(git rev-parse --git-common-dir)/seal/`, where local mode keeps it and
 where a repository whose own `seal/` belongs to something else keeps it.
 The first of them that is a directory whose `README.md` opens with the
-marker `lib/optin.py#MARKER` is the root. `skills/implement/SKILL.md` *Document
-layout — two roots, three lifetimes* says how the root is laid out. `seal/`
+marker `lib/optin.py#MARKER` is the root. `skills/implement/SKILL.md`
+*Document layout — two roots, three lifetimes* says how the root is laid
+out. `seal/`
 is that root's name in every text this plugin ships, except where a text
 says a `seal/` is the project's own or that its `README.md` does not open
 with the marker: that is the directory named `seal`.

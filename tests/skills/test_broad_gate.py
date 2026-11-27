@@ -2050,23 +2050,21 @@ class Test_gate:
             gate.gate(namespace(tmp_path, tmp_path / "out"))
         git(tmp_path, "init", "-q")
 
-        def said(shared):
-            """The refusal naming the two places `optin.home_paths` gives:
-            SHARED under the repository git resolves, then the local one."""
-            top = os.path.realpath(str(tmp_path))
-            return re.escape(
-                "has no seal/ root at either place a root lives "
-                f"(`{os.path.join(top, shared)}`, "
-                f"`{os.path.join(top, '.git', 'seal')}`, its "
-                "README.md opening with the marker)"
-            )
-
-        with pytest.raises(gate.Refused, match=said("seal")):
+        # The refusal names the two places `optin.home_paths` gives under the
+        # repository git resolves, the shared one and then the local one.
+        top = os.path.realpath(str(tmp_path))
+        said = re.escape(
+            "has no seal/ root at either place a root lives "
+            f"(`{os.path.join(top, 'seal')}`, "
+            f"`{os.path.join(top, '.git', 'seal')}`, its "
+            "README.md opening with the marker)"
+        )
+        with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
         # A `seal/` with no marker is the project's own and no root, and the
         # refusal names the same two places (#1651).
         write(tmp_path, "seal/config.json", config_of("bin/test -q"))
-        with pytest.raises(gate.Refused, match=said("seal")):
+        with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 

@@ -15,8 +15,8 @@ def touches_code(paths, home):
     `paths` is None: a change git could not list is not a change confined to
     them, so the parity arm asks. The roots are `docs/` and `<home>/`,
     HOME the root's repository-relative name, and `docs/` alone where HOME
-    is "". PATHS are as `git diff`
-    prints them, repository-relative and `/`-joined."""
+    is "". PATHS are as `git diff` prints them, repository-relative and
+    `/`-joined."""
     if paths is None:
         return True
     roots = ("docs/", f"{home}/") if home else ("docs/",)

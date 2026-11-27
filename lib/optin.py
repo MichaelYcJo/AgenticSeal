@@ -237,8 +237,9 @@ def home_at(root, common=None):
     first that is a directory whose `README.md` opens with `MARKER` is the
     answer; nothing else is read. A `<root>/seal/` without the marker is
     passed over, so a project that keeps a directory of that name for itself
-    keeps its root under the git directory, in local mode. The opt-out is read once, here, so it
-    cannot be honoured by one arm of a gate and missed by the other — the
+    keeps its root under the git directory, in local mode. The opt-out is
+    read once, here, so it cannot be honoured by one arm of a gate and
+    missed by the other — the
     migration config sits inside the root the opt-out takes back, and a
     repository nobody reviews has nothing to compare against an original
     either.

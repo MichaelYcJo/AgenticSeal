@@ -1240,8 +1240,8 @@ def _read(path):
 def written_root(routing, seal):
     """`(common, top)` where SEAL, a real path, is the root in force of a
     repository, `optin.home_at`'s answer, else None. TOP is the worktree
-    whose root it is in shared mode, and "" in local mode, where SEAL sits under COMMON, the git
-    common dir, and no worktree holds it."""
+    whose root it is in shared mode, and "" in local mode, where SEAL sits
+    under COMMON, the git common dir, and no worktree holds it."""
     optin = routing.optin
     parent = os.path.dirname(seal)
     # Shared mode: the parent is a worktree's top, main or linked. Inside a
@@ -1297,8 +1297,7 @@ def queue_for_written_guarantee(path, now=None):
     specs = os.path.dirname(item)
     seal = os.path.dirname(specs)
     # The root's own name is not compared here: `written_root` asks the
-    # resolver whether SEAL is the root in force, under whichever name it
-    # has.
+    # resolver whether SEAL is the root in force.
     optin = _optin()
     if (os.path.basename(real), os.path.basename(specs)) != (
         optin.GUARANTEE,

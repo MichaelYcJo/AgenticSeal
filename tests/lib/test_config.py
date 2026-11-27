@@ -181,9 +181,7 @@ class Test_reference_roots:
         assert not config.under_reference_root(
             f"{name}/threads/1790000000-x/design.md", None, name
         )
-        assert config.under_reference_root("seal/vendor/specs/x.md", None, name) == (
-            name != "seal"
-        )
+        assert not config.under_reference_root("seal/vendor/specs/x.md", None, name)
 
     def test_local_mode_reads_the_key_under_the_git_directory(self, tmp_path):
         """In local mode the root sits under the common git directory and nothing

@@ -442,10 +442,6 @@ def template_text():
         return f.read()
 
 
-# A committed config with no `Mode` key, which `seal mode` fills in.
-MODELESS = config_json(("Record language", "English"))
-
-
 def files_under(path):
     """{`/`-joined path: bytes} of every file under PATH, {} where there is
     none."""
