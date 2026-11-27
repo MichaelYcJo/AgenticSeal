@@ -53,6 +53,11 @@ The row's third cell reads "The relative paths of *Scope* item 1. The root they 
 | The two absolute paths of the closing line, and the two joins that build them | `lib/core.py#rendered`, the `START.format(...)` call and the two `os.path.join(plugin_root, ...)` calls it holds | The relative paths of *Scope* item 1. Where the core is printed, the root they carried stands once, in the first line or in the closing line's sentence |
 ```
 
+```seal
+verdict: fixed 76a15fa3c
+answer: The framer folded the round's text into the third cell of `## Removes`, so the root stands once where the core is printed, and limited *Scope* item 1's bold title the same way, a line the finding did not name, at `76a15fa3c`.
+```
+
 ### 3. `pr.md` quotes that the title takes `fix:` and not why, nor the kind that came closest
 
 ```seal
@@ -67,6 +72,12 @@ Why it matters: `skills/commit-pr-convention/SKILL.md:256-258` reads "Why the ti
 - "The title takes `fix:`" (`frame/plan.md` *Judgments of the run*, the second row of 2026-11-27)
 - "The hook's output passed the harness's cap where the plugin was installed under a home directory longer than about 20 characters, so a session there received a cut core with no word of it, and the tree's case failed at a long checkout path for a reason that was not the core's size (`frame/design.md` *Grounding*); `perf:` came closest, for the shorter closing line" (`frame/plan.md` *Judgments of the run*, the second row of 2026-11-27, its grounds)
 ```
+
+```seal
+verdict: fixed de6976b4e
+answer: The orchestrator added to `pr.md` the round's quote of the prefix row's grounds cell, which names why the title takes `fix:` and that `perf:` came closest, at `de6976b4e`; `seal pr-body` composed the body there without refusing it (executed).
+```
+
 
 ## Confirmations
 
