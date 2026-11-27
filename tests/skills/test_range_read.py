@@ -1,9 +1,11 @@
 """`skills/implement/scripts/range_read.py`, `seal range`, one class per
 function.
 
-Each case builds a repository of its own under its `tmp_path`, with a
-marked records root and one work item, commits a base and a change, and
-runs the command's `main` in that repository. Where a case holds a print
+A case builds a repository of its own under its `tmp_path`, with a marked
+records root and one work item, commits a base and a change, and runs the
+command's `main` in that repository; the local-mode case keeps its root
+under the git directory, and the case of a missing argument builds none.
+Where a case holds a print
 against git's own, the oracle is `git diff` run in the same repository
 with a context that reaches the paragraph's edges exactly, so the case
 reads the bound and not a spelling this file chose.
@@ -45,9 +47,7 @@ HOSTILE = (
 PLAIN = ("--no-color", "--no-ext-diff", "--no-textconv", "--inter-hunk-context=0")
 
 # A document of three paragraphs: four lines from the file's start, eleven
-# in the middle, four to the file's end. Every line opens with a letter, so
-# git's own function context finds a function line on every line and
-# reaches no further than its default context.
+# in the middle, four to the file's end.
 FIRST = [f"First paragraph, line {n}." for n in range(1, 5)]
 MIDDLE = [f"Middle paragraph, line {n}." for n in range(1, 12)]
 LAST = [f"Last paragraph, line {n}." for n in range(1, 5)]

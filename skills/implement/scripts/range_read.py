@@ -55,8 +55,8 @@ Edge cases, stated here and held by no other text:
   literally, each path is taken from `-z` output, and an external diff, a
   textconv filter, colour and git's joining of nearby hunks are switched
   off, so a configuration cannot put text into what the command prints or
-  reads. It writes nothing but
-  `--out`, reads no transcript and reaches no network.
+  reads. It writes nothing but `--out`, reads no transcript and reaches no
+  network.
 
 Exit: 0 the file is written. 2 nothing is written: an argument is missing,
 `<item>` is not a directory directly under the work items of a marked
@@ -235,8 +235,8 @@ def _binary(root, start, head):
 
 def _hunks(lines):
     """`(header, hunks)` of LINES, what `git diff -U0` printed for one
-    path: the lines before the first hunk, and each hunk as `(old_start,
-    old_count, new_start, new_count, body)`."""
+    path: the lines before the first hunk, and each hunk as the list
+    `[old_start, old_count, new_start, new_count, body]`."""
     header, hunks = [], []
     for line in lines:
         found = HUNK.match(line)
@@ -360,10 +360,10 @@ def _uncommitted(root):
 
 
 def _read(item, start, cwd):
-    """`(text, summary)`: the file's text, and the lines after the first two
-    of the summary, for the range from START to HEAD and the work item
-    ITEM, read from CWD. `Refused` or `lib/gitcmd.py#Failed` where no file
-    can be written."""
+    """`(text, summary)`: the file's text, and the summary's lines but the
+    one `WROTE` gives, which `main` prints second once the file is written,
+    for the range from START to HEAD and the work item ITEM, read from CWD.
+    `Refused` or `lib/gitcmd.py#Failed` where no file can be written."""
     root, full, rel = _work_item(item, cwd)
     head = _commit(root, "HEAD")
     start = _commit(root, start)
