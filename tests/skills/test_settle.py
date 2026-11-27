@@ -59,6 +59,7 @@ from conftest import (
     DOC,
     ITEM,
     ROOT,
+    as_called,
     census_case,
     commit_everything,
     commit_everything_as_e,
@@ -204,18 +205,18 @@ def calls(monkeypatch, read):
 
 
 def unanswered(monkeypatch, *words):
-    """Each process run whose argv holds WORDS in a row raises
-    `subprocess.TimeoutExpired`, as a command past `lib/gitcmd.py#TIMEOUT`
-    does; every other run is real. Returns the argv of each run WORDS
-    matched."""
+    """Each process run whose argv, `as_called` reads it, holds WORDS in a
+    row raises `subprocess.TimeoutExpired`, as a command past
+    `lib/gitcmd.py#TIMEOUT` does; every other run is real. Returns the
+    argv of each run WORDS matched."""
     real, asked, n = subprocess.run, [], len(words)
 
     def run(argv, *args, **kwargs):
-        held = list(argv)
+        held = as_called(argv)
         if not any(held[i : i + n] == list(words) for i in range(len(held))):
             return real(argv, *args, **kwargs)
-        asked.append(held)
-        raise subprocess.TimeoutExpired(held, gitcmd.TIMEOUT)
+        asked.append(list(argv))
+        raise subprocess.TimeoutExpired(list(argv), gitcmd.TIMEOUT)
 
     monkeypatch.setattr(subprocess, "run", run)
     return asked
@@ -223,9 +224,10 @@ def unanswered(monkeypatch, *words):
 
 def past_the_bound(held):
     """The runner's line for the git or `gh` argv HELD that did not finish:
-    the program and the arguments after `-C <root>`, or after the path
-    `shutil.which` found for `gh`."""
+    the program and the arguments after `-C <root>`, as `as_called` reads
+    them, or after the path `shutil.which` found for `gh`."""
     git = "-C" in held
+    held = as_called(held)
     shown = ["git", *held[held.index("-C") + 2 :]] if git else ["gh", *held[1:]]
     return f"`{' '.join(shown)}` did not finish within {gitcmd.TIMEOUT} seconds"
 

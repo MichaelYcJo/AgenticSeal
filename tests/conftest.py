@@ -1071,6 +1071,23 @@ def git_out(repo, *args):
     return git(repo, *args).stdout.strip()
 
 
+# `lib/gitcmd.py#FLAGS`, which `as_called` reads.
+_FLAGS = load_lib_module("gitcmd.py", "agentic_gitcmd_for_fixtures").FLAGS
+
+
+def as_called(held):
+    """HELD, the argv of a process run, without the options
+    `lib/gitcmd.py#argv` put after its subcommand from `FLAGS`: the
+    command's words as the script wrote them, which the runner's line
+    names."""
+    held = list(held)
+    for at, word in enumerate(held):
+        flags = list(_FLAGS.get(word, ()))
+        if flags and held[at + 1 : at + 1 + len(flags)] == flags:
+            return held[: at + 1] + held[at + 1 + len(flags) :]
+    return held
+
+
 def commit_everything(repo, message):
     """Every change in REPO committed under MESSAGE; the new HEAD."""
     git_out(repo, "add", "-A")
