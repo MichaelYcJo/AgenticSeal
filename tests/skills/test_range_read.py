@@ -458,6 +458,21 @@ class Test_main:
             assert RANGE.NOT_READ.format(path=path) in said
         assert "untracked.txt" not in said
 
+    def test_accepts_an_uncommitted_submodule_named_as_not_read(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A submodule's pointer staged and not committed is named as not
+        read, where the configuration and a `.gitmodules` entry each tell
+        git to ignore the submodule."""
+        gitmodules = '[submodule "sub"]\n\tpath = sub\n\turl = ./sub\n\tignore = all\n'
+        repo, base = built(tmp_path, {".gitmodules": gitmodules})
+        entry = f"{RANGE.GITLINK},{'1' * 40},sub"
+        git(repo, "update-index", "--add", "--cacheinfo", entry)
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 0, said
+        assert RANGE.NOT_READ.format(path="sub") in said
+
     def test_accepts_the_range_line_first_and_counts_the_lines_written(
         self, tmp_path, monkeypatch, capsys
     ):

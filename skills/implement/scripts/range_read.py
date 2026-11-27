@@ -416,8 +416,16 @@ def _records(root, head, item, rel):
 def _uncommitted(root):
     """Each tracked path in ROOT with a change no commit holds, staged or
     not."""
+    # `--ignore-submodules=none`, as in DIFF: a submodule's staged pointer
+    # is named where a setting would leave it out.
     out = _git(
-        root, "status", "--porcelain=v1", "-z", "--no-renames", "--untracked-files=no"
+        root,
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--no-renames",
+        "--untracked-files=no",
+        "--ignore-submodules=none",
     )
     return [field[3:] for field in _fields(out)]
 
