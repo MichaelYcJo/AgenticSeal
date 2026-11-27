@@ -85,7 +85,7 @@ class Test_main:
             RC.main(["--out"])
         assert stopped.value.code == 2
 
-    def test_a_inspector_case_body_is_its_own_part_then_its_records(
+    def test_an_inspector_case_body_is_its_own_part_then_its_records(
         self, tmp_path, capsys
     ):
         """Guards #1044 S14 and #1148 S6: each inspector case's pull request
