@@ -53,9 +53,9 @@ MIDDLE = [f"Middle paragraph, line {n}." for n in range(1, 12)]
 LAST = [f"Last paragraph, line {n}." for n in range(1, 5)]
 
 
-def document(first=FIRST, middle=MIDDLE, last=LAST):
-    """The three paragraphs, a blank line between each two."""
-    return "\n".join([*first, "", *middle, "", *last]) + "\n"
+def document(first=FIRST, middle=MIDDLE, last=LAST, gap=""):
+    """The three paragraphs, the blank line GAP between each two."""
+    return "\n".join([*first, gap, *middle, gap, *last]) + "\n"
 
 
 def built(tmp_path, files):
@@ -107,11 +107,12 @@ class Test_main:
         paragraph prints the paragraph from the blank line before it to the
         blank line after it, as `git diff -U5` prints that one hunk, and no
         line of the paragraphs around it. A print of `git diff -U3` holds
-        three lines each side, and fails here."""
-        repo, base = built(tmp_path, {DOC: document()})
+        three lines each side, and fails here. The blank lines hold a space
+        and a tab, which is still blank."""
+        repo, base = built(tmp_path, {DOC: document(gap=" \t")})
         changed = [*MIDDLE]
         changed[5] = "Middle paragraph, line 6, rewritten."
-        write(repo, DOC, document(middle=changed))
+        write(repo, DOC, document(middle=changed, gap=" \t"))
         head = commit_everything(repo, "change")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
@@ -264,7 +265,7 @@ class Test_main:
     ):
         """In local mode the records stand under the git directory, where
         HEAD holds none, so the file reads them on disk and says so on the
-        line naming each."""
+        line naming each, or names one that is not there."""
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
@@ -280,6 +281,9 @@ class Test_main:
         text = written(out)
         name = os.path.relpath(item / "routing.md", repo).replace(os.sep, "/")
         assert RANGE.ON_DISK.format(path=name) + "\n# Routing, local\n" in text
+        gaps = os.path.relpath(item / "gaps.md", repo).replace(os.sep, "/")
+        assert RANGE.ABSENT_ON_DISK.format(path=gaps) in text
+        assert RANGE.NOT_PRINTED.format(path=gaps, why="absent") in said
 
     def test_accepts_a_binary_path_by_name_and_does_not_print_it(
         self, tmp_path, monkeypatch, capsys
@@ -296,6 +300,21 @@ class Test_main:
         assert RANGE.BINARY.format(path="image.bin") in text
         assert "Binary files" not in text
         assert RANGE.NOT_PRINTED.format(path="image.bin", why="binary") in said
+
+    def test_accepts_a_renamed_path_as_one_deleted_and_one_added(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A rename is the old path named as deleted and the new one printed
+        whole, as git reads a rename with `--no-renames`."""
+        repo, base = built(tmp_path, {"docs/old.md": "Moved.\n"})
+        git(repo, "mv", "docs/old.md", "docs/new.md")
+        head = commit_everything(repo, "rename")
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 0, said
+        text = written(out)
+        assert RANGE.DELETED.format(path="docs/old.md") in text
+        assert hunks(repo, base, head, "docs/new.md", 3) in text
 
     def test_accepts_a_deleted_path_by_name_and_does_not_print_it(
         self, tmp_path, monkeypatch, capsys
@@ -317,16 +336,22 @@ class Test_main:
         self, tmp_path, monkeypatch, capsys
     ):
         """S6: a tracked path with an uncommitted change is named as not
-        read in the summary, and the file holds HEAD's text of it."""
-        repo, base = built(tmp_path, {})
+        read in the summary, and the file holds HEAD's text of it. A rename
+        staged and not committed names both paths, and an untracked file
+        is not named."""
+        repo, base = built(tmp_path, {"docs/old.md": "Old.\n"})
         write(repo, f"{ITEM}/routing.md", "# Routing, edited and not committed\n")
+        git(repo, "mv", "docs/old.md", "docs/new.md")
+        write(repo, "untracked.txt", "untracked\n")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 0, said
         text = written(out)
         assert "not committed" not in text
         assert "# Routing\n" in text
-        assert RANGE.NOT_READ.format(path=f"{ITEM}/routing.md") in said
+        for path in (f"{ITEM}/routing.md", "docs/old.md", "docs/new.md"):
+            assert RANGE.NOT_READ.format(path=path) in said
+        assert "untracked.txt" not in said
 
     def test_accepts_the_range_line_first_and_counts_the_lines_written(
         self, tmp_path, monkeypatch, capsys
