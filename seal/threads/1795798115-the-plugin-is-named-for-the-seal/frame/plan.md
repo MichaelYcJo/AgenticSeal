@@ -52,7 +52,7 @@ Each phase renames in the Korean documents the words of its own family (Scope it
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope item 1 | the cases of `tests/lib/test_optin.py`, `tests/skills/test_chain_check.py` and `tests/skills/test_seal.py` that hold the root's discovery, the case for a marked `agentic-seal/` that is no root shown red first; search A9 prints nothing | e2e1ae63 |
+| 1 | Scope item 1 | the cases of `tests/lib/test_optin.py`, `tests/skills/test_chain_check.py` and `tests/skills/test_seal.py` that hold the root's discovery, the case for a marked `agentic-seal/` that is no root shown red first; search A9 prints nothing | 1d72f657 |
 | 2 | Scope item 2 | the cases of `tests/test_censuses.py` and of the test files the phase renames; search A1 prints nothing | |
 | 3 | Scope item 3 | the cases of `tests/lib/test_fields.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_pr_body.py` and `tests/skills/test_seal_stamp.py`, the case that refuses `Verdict: sealed` shown red first; search A2 prints nothing | |
 | 4 | Scope item 4 | the cases for the stamp, the mark and the two config keys in `tests/skills/`, `tests/lib/test_config.py` and `tests/github/`, each message for a state pinned by a case shown red first; search A7 prints nothing | |
