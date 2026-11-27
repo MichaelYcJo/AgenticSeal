@@ -33,6 +33,11 @@ Both new rows hold `` `--sealing` ``. The awk run above found no `--sealing` in 
 
 The comment above the tuple (`:422-425`) already names the place as "`chain_check.py` run without `--sealing`" and stays. The fix pass shows the case red with the two README rows put back to their text at `15e831a0e`, not with a row deleted.
 
+```seal
+verdict: fixed c8b561469
+answer: The finding holds: the rows `acf0a786f` replaced held `chain_check.py` too, so the entry pinned nothing of the fix. `NETWORK_PLACES` now holds `"--sealing"`, as the paste-ready line gives it. The comment above the tuple adds that the place is found by `--sealing`, which the row held before #1620 did not carry. Seen red after `c8b561469` (executed), one edition at a time, with `seal mutate` putting that edition's row back to its line at `15e831a0e`. `git diff --numstat 15e831a0e HEAD -- README.md README.ko.md` shows that row as each edition's only difference, so each mutant is that edition whole as it stood at `15e831a0e`. `test_the_places_that_reach_the_network_are_named` failed at `assert place in passage`, with `('README.md', '--sealing')` for one and `('README.ko.md', '--sealing')` for the other. Both files were restored. The narrow set, `bin/test tests/text tests/behaviour tests/test_censuses.py -q`, run after `c8b561469` (executed), exited 0 with 1112 passed and 9 skipped.
+```
+
 ### 2. The frame's *Removes* row still names its five coordinates as all the sentences of the old judgment, and the fix pass read the records by search
 
 ```seal
@@ -57,6 +62,11 @@ The fix pass's account is the other half of the finding, the one about its metho
 ```
 
 The cell is the framer's to fold, as finding 5's S7 line was (`frame/plan.md` *Judgments of the run*, the row of 2026-11-27). The fix pass that answers this finding reads `routing.md`, the three frame files, `gaps.md` and `changelog.md` whole after its last fix commit. Its `answer:` says it did, and names each statement HEAD contradicts that the read found, or says it found none.
+
+```seal
+verdict: fixed 246ac9e78
+answer: The finding holds on both halves. The frame half is the framer's fold `246ac9e78`, which narrowed the `## Removes` row at `frame/design.md:96`. The method half is this pass's: round 1's close of finding 5 read the records by search and diff, and its claim about each statement stood on that sample. After my last fix commit `c8b561469` I made the whole reading (executed): `cat` of `routing.md`, `gaps.md`, `changelog.md` and `frame/questions.md`, then `cat` of `frame/design.md`, then `cat` of `frame/plan.md`, each read whole against HEAD. Two checks were run for what those files state. `git diff --stat e65830869 HEAD -- ':!seal/threads'` lists the files the work changes, against `frame/plan.md` *Overlap with the release* and `gaps.md`'s sentence that this work added no `seal/follow-up.md` row. `gh issue view 1630` shows #1630 open and labelled `from-review`, as `gaps.md` says. The read found no statement HEAD contradicts. Each coordinate and statement of the tree in `## Grounding` and *Technical context* is dated to `a1cae2026`. `routing.md`'s statement of the check is dated to the same commit. *Scope*, the scenarios, *Data & interfaces*, the narrowed `## Removes` row, Q1's Status, *Overlap with the release*, *Operational impact*, `gaps.md` and `changelog.md` each hold at HEAD. Under `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, a fold writes no account of what a fix built, so *Scope* naming no README file is no contradiction. This pass changed no file under the work item's directory but this record.
+```
 
 ## Confirmations
 
