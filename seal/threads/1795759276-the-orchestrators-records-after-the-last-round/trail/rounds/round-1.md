@@ -53,6 +53,11 @@ sentences or items a fold rewrote and no word for the kind of change,
 because `git show <commit>` is that account. The orchestrator resumes the
 ```
 
+```seal
+verdict: fixed f0a46ad0c
+answer: The sentence now opens "A row of *Judgments of the run*, this one and every other the orchestrator writes, names a commit as a coordinate", the round's paste-ready text applied after reading it against `frame/design.md` *Scope* item 4, which states the fact of every row. `git grep -n -F -e 'names a commit as a coordinate' -e 'names a commit and gives no account' -- .` run again after `f0a46ad0c` prints, outside `seal/threads/`, `skills/implement/orchestration.md:136` alone, the fixed sentence; inside it, `changelog.md:4` and `:11`, `frame/design.md:52` and `frame/plan.md:25`, each of which states the fact of every row and stands, and this record's own quotes. `trail/phases/phase-1.md`'s bullet on where the fact went stands, as the finding says.
+```
+
 ### 3. The drain's third paragraph says "that document", and the nearest document it can mean is the wrong one
 
 ```seal
@@ -69,6 +74,11 @@ commit outside the work item's directory costs the verifying round
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull
 request* names, and a home that needs no such commit costs none. The homes
 are those `docs/running/the-run.md` *The run* gives.
+```
+
+```seal
+verdict: fixed f0a46ad0c
+answer: The third paragraph of the drain section now names `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* in place of "that document", the round's paste-ready text. `git grep -n -F -e 'that document names' -- skills docs agents` prints nothing after `f0a46ad0c` (exit 1).
 ```
 
 ### 4. The orchestrator's first row states what the fold commit and three earlier commits changed, and was written after the fold
@@ -105,6 +115,11 @@ Why it matters: `phase-1.md:5` opens "**The frame holds against the tree at `04e
 ```
 
 The rest of the bullet, from "`chain_check.py#follows` stood at line 1007" on, stays as it is.
+
+```seal
+verdict: fixed f0a46ad0c
+answer: The bullet's opening is now the round's paste-ready text, and the rest of it stands. `git show 04ef48112:skills/implement/orchestration.md | grep -n` on each passage's first and last words printed lines 121, 124, 126 and 144 (executed): at `04ef48112` the sentence opening "After a fold commit of its own" starts at line 121 of `skills/implement/orchestration.md` and runs to 124, and the paragraph opening **The orchestrator writes its row before it sends a decision** runs from line 126 to 144, where `frame/design.md` G16 and `frame/plan.md` *Technical context* gave 141 until the fold `471dc15b9`. The phase-1 hand-back had named row 14 alone; the other two coordinates were missed because the read checked only where the paragraph starts.
+```
 
 ### 6. The `## Rule changes` `to` restates the rule the skill now holds, so after the settle the rule has two sources
 
