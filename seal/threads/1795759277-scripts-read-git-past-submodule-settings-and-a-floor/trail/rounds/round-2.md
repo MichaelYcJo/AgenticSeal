@@ -55,6 +55,12 @@ since step 1 holds *No seal without the broad run* beside the chain check's broa
 No gate's branch is decided on the paths they list, which is what separates them from step 1 (G16), so neither changes here.
 ```
 
+```seal
+verdict: fixed 62ca128a2
+answer: The framer folded the round's snippets into `frame/plan.md` *Alternatives considered* row 12 and the `frame/design.md` *Out of scope* bullet at `62ca128a2`, and also dropped row 12's clause that #1640 asks every read judged, the same overstatement; the orchestrator rewrote its round-1 routing row to the round's snippet for `plan.md:73`, committed with that fold, and `c2b0448cf` corrected round 2's two route rows on the framer's hand-back.
+```
+
+
 ## Confirmations
 
 ```seal
