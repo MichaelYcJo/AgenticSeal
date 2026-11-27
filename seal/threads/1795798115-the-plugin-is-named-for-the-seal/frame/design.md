@@ -73,7 +73,7 @@ This frame was drawn without reading MichaelYcJo/owlery#322. The independence #1
 | The record's old forms are gone | When the last phase has closed | search A2 prints nothing |
 | The plugin's old identity is gone | When the last phase has closed | search A3 prints nothing. The lines it excludes are those holding `MichaelYcJo/AgenticSeal`, and `LICENSE`, which questions row Q1 holds |
 | The old root, command, trailer and fence are gone | When the last phase has closed | search A4 prints the lines of `skills/settle/SKILL.md` that name `Seal-Routing:` as the trailer of commits before this release, and no other line |
-| The word for the artifact is gone | When the last phase has closed | searches A5, A6, A7, A8 and A9 print nothing. A5's filter leaves out the lines that hold *wax seal*, *seal maker*, *seal drawings*, `Seal-Routing` or `assets/seals` |
+| The word for the artifact is gone | When the last phase has closed | searches A5, A6, A7, A8 and A9 print nothing, except that A5 prints the lines of `tests/skills/test_chain_check.py` that hold the old verdict word as a near miss the check refuses. A5's filter leaves out the lines that hold *wax seal*, *seal maker*, *seal drawings*, `Seal-Routing` or `assets/seals` |
 | The definition is indexed and stands on this repository's sources | When phase 8 has closed. Then `docs/method/iadd.md` holds the four sections of *The definition*, `docs/README.md` names the group and the file, and each principle cites its source as a backticked path and an italic heading | `bin/iadd fold` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, which the broad run takes; the proofer reads each principle against the section it cites |
 | The version is the release's | When the last phase has closed. Then `.claude-plugin/plugin.json`'s `version` is the version #1651's milestone names | `gh issue view 1651 --json milestone --jq .milestone.title` beside `python3 -c 'import json; print(json.load(open(".claude-plugin/plugin.json"))["version"])'` |
 
@@ -160,7 +160,7 @@ Each row is one spelling. No reader accepts the left column after this work.
 | the final record's template and its title line | `templates/records/sdd-guarantee.md`, `# Guarantee: <work-item-id>` | `templates/records/sdd-inspection.md`, `# Inspection: <work-item-id>` | the inspector, step 5 of its definition |
 | the first verdict word | `sealed` | `cleared` | `lib/fields.py#SEALED`, which becomes `CLEARED`, in `#VERDICT_BLOCK`'s pattern |
 | the key `Verdict:`, and the words `withheld` and `undecided` | as spelled | unchanged | `lib/fields.py#SEALER_VERDICT`, which becomes `INSPECTOR_VERDICT` |
-| the check's flag for the run before the verdict | `--sealing` | `--inspecting` | `chain_check.py#SEALING` |
+| the check's flag for the run before the verdict | `--sealing` | `--inspecting` | `chain_check.py#INSPECTING` |
 | the stamp's flag naming the record | `--guarantee <path>` | `--inspection <path>` | the stamp script |
 | the stamp script, its sprite and its title row | `skills/verify/scripts/seal_stamp.py`, `seal-mark.txt`, `SEALED` | `skills/verify/scripts/stamp.py`, `stamp-mark.txt`, `CLEARED` | `hooks/hooks.json`'s `Stop` command, `#SPRITE_PATH`, `#TITLE_ROW` |
 | the stamp's two directories under the common git directory | `agentic-stamp`, `agentic-stamp-refused` | `iadd-stamp`, `iadd-stamp-refused` | the stamp script's `#VALUES_DIR` and `#REFUSED_DIR` |
