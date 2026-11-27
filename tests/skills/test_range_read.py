@@ -554,7 +554,8 @@ class Test_main:
         """#1642, design S7. Where `git version` prints a version older than
         `lib/gitcmd.py#OLDEST`, the command prints `older`'s line, ends at
         exit 2, writes no file and starts no other git command, `rev-parse`
-        among them. Seen red with the ask taken out of `_read`."""
+        among them. Seen red with the ask taken out of `_read`, and with it
+        moved after `_work_item`, which starts `rev-parse`."""
         repo, base = built(tmp_path, {DOC: document()})
         real, started = subprocess.run, []
 
