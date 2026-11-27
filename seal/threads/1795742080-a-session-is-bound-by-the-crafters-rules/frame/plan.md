@@ -72,4 +72,4 @@ No migration, environment variable, dependency or compatibility break. The relea
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | After phase 1, the framer's fold at `53883c4e2` is taken, and it widens phase 2 by *Scope* item 10: a hunk of prose inside a non-Markdown file is widened to its blank-line bound where `git diff -W` stops short of it. The four other folded lines record what phase 1 built and change no phase-2 item | The crafter of phase 1 saw a docstring hunk printed from its second line on `2da1e1d8d`, and the framer re-ran the print and read the same; a print that stops short of a paragraph is the gap #1623's round 4 found, so leaving it would send a round to find it again. The widening falls before phase 2's spawn, so no built phase is reopened | `skills/implement/fold-and-reframe.md`; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
