@@ -142,8 +142,9 @@ row whose judgment is about a change, such as a regression's route
 the fix with the frame*) or why the title takes its prefix, states as its
 grounds what the change means against the document it judges against. The
 orchestrator resumes the work item's framer while that session still
-exists, as a fix pass resumes the implementer, and otherwise spawns a fresh framer and hands it the decisions and the commit
-at which the frame was last written. The message that resumes the framer,
+exists, as a fix pass resumes the implementer, and otherwise spawns a
+fresh framer and hands it the decisions and the commit at which the frame
+was last written. The message that resumes the framer,
 and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
 answers. The row for a fold states the decision as it was sent. After the
