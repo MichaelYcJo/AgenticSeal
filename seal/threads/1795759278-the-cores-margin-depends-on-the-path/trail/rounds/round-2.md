@@ -36,6 +36,11 @@ The commit `be5df7b9a` is titled "the named hook row's note is pinned whole". Th
 
 No precondition at an OS boundary: the case reads the rendered table.
 
+```seal
+verdict: fixed f59c6f113
+answer: The case now holds the `named` row's note whole with the round's `note.endswith(...)` assertion, which replaces the two phrase assertions, and the absence assertion stays (`f59c6f113`). Before the commit, `bin/seal mutate` replaced "would reach `lib/core.py#CAP`" with "stays under `lib/core.py#CAP`" in the note at `skills/verify/scripts/payload_meter.py:529` and ran `tests/skills/test_payload_meter.py`: red, 1 failed (this case), 45 passed, and the file was restored by its hash (executed). After the commit, `bin/test tests/skills/test_payload_meter.py tests/text tests/behaviour -q` passed 938 and skipped 10 (executed). The commit `be5df7b9a` keeps its title, since history is not rewritten; the claim it made holds from `f59c6f113` on.
+```
+
 ### 2. `frame/design.md` *Removes* still says the root the closing line's paths carried stands once, which the output past the cap contradicts
 
 ```seal
