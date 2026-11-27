@@ -32,6 +32,11 @@ The row is the orchestrator's to write (`skills/implement/SKILL.md:240`), so thi
 
 The row replaces the empty row at `frame/plan.md:65`.
 
+```seal
+verdict: fixed 4575154aa
+answer: The orchestrator wrote the row in the finding's words for `4358a3526`, and a row for `e33a593df`, which was a decision the orchestrator sent: after phase 1 it resumed the framer to fold the *Overlap with the release* row the crafter reported HEAD contradicted. Both rows replace the empty template row and stand at `frame/plan.md:65-66`. The evidence line's first command, run again at `4575154aa`, prints the framer's frame commits `0db259108`, `e33a593df` and `4358a3526`, the crafter's Status cell commit `bc491e5a8`, and `4575154aa`; each fold among them now has its row. Its second command, run again at `4575154aa`, prints both new rows of this work item, at lines 65 and 66. The commit touches `frame/plan.md` alone
+```
+
 ## Confirmations
 
 ```seal
