@@ -1257,7 +1257,7 @@ def _place(where, line, item, body, home):
     by its name, and a record by its path under HOME, the root's name,
     `lib/optin.py#HOME`, whatever path the work item ITEM was given by,
     `ROOT_CONFIG` as the root's `config.json`. The inspector copies the first
-    `refused:` line into a `inspection.md` that is committed."""
+    `refused:` line into an `inspection.md` that is committed."""
     if where is None:
         path = os.path.basename(body)
     else:

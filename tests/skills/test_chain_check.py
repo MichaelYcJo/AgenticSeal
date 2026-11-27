@@ -234,7 +234,7 @@ def gate_file(*runs):
 
 
 def verdict_block(sha, verdict="cleared", original=None):
-    """One verdict block of a `inspection.md`, as the inspector appends it."""
+    """One verdict block of an `inspection.md`, as the inspector appends it."""
     lines = [f"target: {sha} against main"]
     if original is not None:
         lines.append(f"original: {original}")
@@ -2850,7 +2850,7 @@ INSPECTION_TEMPLATE = ROOT / "templates" / "records" / "sdd-inspection.md"
 
 
 def guarantee(sha, verdict, original=None, earlier=()):
-    """A `inspection.md` from the template: its tables for people, then a
+    """An `inspection.md` from the template: its tables for people, then a
     verdict block per run of EARLIER, each `(sha, verdict)`, then the newest
     run's block for SHA, holding ORIGINAL where it is given."""
     runs = [verdict_block(s, v) for s, v in earlier]

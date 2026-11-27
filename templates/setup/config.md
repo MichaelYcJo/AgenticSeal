@@ -134,7 +134,7 @@ every repository, whatever either key says:
   a URL.
 - **The field names, section headings and vocabulary a checker reads
   literally**: the info string `seal` that opens each block of a round
-  record, a `inspection.md` and a `trail/gate.md`, and every key of those
+  record, an `inspection.md` and a `trail/gate.md`, and every key of those
   blocks and every fixed word of their values, whose one spelling is
   `lib/fields.py`, which `chain_check.py` and the stamp read them
   through; a round record's `## Findings` heading, which `chain_check.py`

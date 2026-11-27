@@ -391,7 +391,7 @@ No hook sends your code, your paths or your prompts anywhere: what the
 with, and the places the `PostToolUse` hook names, go into the session's
 own context, as a file the session opens does. These side effects are
 worth stating outright: the inspector's `seal stamp --inspection`, run once on
-a `inspection.md` reading `cleared`, writes the stamp's values under
+an `inspection.md` reading `cleared`, writes the stamp's values under
 `<git-common-dir>/agentic-stamp/`, which the stamp's hook renames once
 drawn and nothing prunes, and a `cleared` refused because its audited commit
 is not on the work item's branch leaves an empty file under

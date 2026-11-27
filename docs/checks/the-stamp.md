@@ -130,7 +130,7 @@ line reaches the person through the inspector's hand-back and the orchestrator's
 quote of it, and nobody has watched a stamp the plugin's `Stop` hook draws on
 a screen yet.
 **Nor is the drawer's silence where it cannot draw.** No stamp is queued, and
-nothing is said, for a `inspection.md` the inspector wrote without running
+nothing is said, for an `inspection.md` the inspector wrote without running
 `seal stamp --inspection`, as an inspector of an earlier release does, or one that
 arrived by a commit fetched from elsewhere or `seal import`; or for a verdict
 whose work item names no branch, or a branch the clone no longer holds. A

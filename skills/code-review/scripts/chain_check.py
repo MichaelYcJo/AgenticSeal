@@ -314,7 +314,7 @@ INSPECTING_SAYS = (
     f"`{OPTIN.INSPECTION}` the one the inspector writes after it, so their arms "
     "print and do not fail"
 )
-# The first line of a `--inspecting` run, printed in place of the state line:
+# The first line of an `--inspecting` run, printed in place of the state line:
 # the broad gate's run precedes the ready pull request CI judges, so it is
 # judged as one, and neither the payload nor `gh` is asked for the state.
 INSPECTING_JUDGED_SAYS = (

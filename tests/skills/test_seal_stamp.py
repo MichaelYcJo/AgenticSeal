@@ -1306,7 +1306,7 @@ def verdict_block(target, base, verdict="cleared"):
 
 
 def guarantee_text(target, base, verdict="cleared", earlier=()):
-    """A `inspection.md` in `templates/records/sdd-inspection.md`'s shape: a
+    """An `inspection.md` in `templates/records/sdd-inspection.md`'s shape: a
     table for people, then a block per earlier run, each `(sha, verdict)`,
     then the newest run's."""
     runs = [verdict_block(sha, base, said) for sha, said in earlier]
@@ -1845,7 +1845,7 @@ class Test_queue_for_written_guarantee:
     def test_refuses_a_root_not_in_force_and_a_file_that_is_not_the_guarantee(
         self, local
     ):
-        """1792363231 S5, the writer's half: a `inspection.md` under the common
+        """1792363231 S5, the writer's half: an `inspection.md` under the common
         dir of a repository that also has `<repo>/seal/` is under no root in
         force; the same text in another file of a local work item, or a work
         item's copy outside `seal/threads/`, is no guarantee."""

@@ -405,7 +405,7 @@ def git_in(repo, *args):
 def sealed_item(repo, row=ROW, verdict=CLEARED, base="feature/x"):
     """The work item NAME in REPO's shared root, holding RECORDS, with
     `config.json` holding the two language keys and ROW, committed; then,
-    where VERDICT is given, a `inspection.md` whose one block names that
+    where VERDICT is given, an `inspection.md` whose one block names that
     commit against BASE with VERDICT, committed after it, as the
     orchestrator commits the inspector's verdict."""
     home = mark_root(repo / "seal")

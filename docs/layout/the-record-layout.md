@@ -141,7 +141,7 @@ check: tests/skills/test_chain_check.py
 refuses at its line a line outside every fence that begins with `<!--`.** A
 record carries no comment, so a comment state in its reader models nothing
 the record holds. The refusal stands where the reader reads:
-`chain_check.py` in a round record, a `inspection.md` and a `trail/gate.md`,
+`chain_check.py` in a round record, an `inspection.md` and a `trail/gate.md`,
 `lib/gaps.py` in a `gaps.md`, and `rule_changes.py` in a
 `frame/design.md`'s `## Rule changes`. A `routing.md` is
 the exception: its reader, `lib/routing.py`, runs at the pull request
