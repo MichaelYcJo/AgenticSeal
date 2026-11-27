@@ -79,7 +79,7 @@ Not measured: whether the harness applies its cap to each `SessionStart` command
 - `lib/core.py#ROOT_ROOM`: new, 100. Three new string constants hold the two sentences of *Scope* item 1 and the line of item 2.
 - What a session's context holds: the closing line's two paths are relative, and one sentence follows it. A session whose plugin root is too long for the cap receives two lines in place of a cut output.
 - `skills/verify/scripts/payload_meter.py`: the session's hook row, in `#session_composition`'s return and in the JSON `seal payload` prints, gains the key `named`, present and true where the row counts the line of *Scope* item 2 and absent otherwise. The session table's note for such a row is a new text.
-- `hooks/core-start.py` and `hooks/hooks.json`: unchanged.
+- `hooks/core-start.py` and `hooks/hooks.json`: unchanged in code and interface; the hook's docstring says what `lib/core.py#rendered` returns past the cap.
 
 ## Rule changes
 
