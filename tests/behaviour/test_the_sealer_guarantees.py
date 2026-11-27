@@ -161,7 +161,13 @@ class TestDefinition:
         # The path of the gate's record, which the sealer opens first.
         assert "`trail/gate.md`" in step, step
         # The `git` arguments the sealer runs to list what followed the run.
-        assert "log --no-merges --name-only <named>..HEAD ^<base>" in step, step
+        # #1640: the flag keeps a submodule's path in the listing under
+        # `diff.ignoreSubmodules` and a `.gitmodules` entry's `ignore`, as
+        # `lib/gitcmd.py#FLAGS` does for the scripts.
+        assert (
+            "log --ignore-submodules=none --no-merges --name-only <named>..HEAD ^<base>"
+            in step
+        ), step
         # The citation of `follows`, the reader the sealer resolves to judge
         # those paths as the check does.
         assert "`skills/code-review/scripts/chain_check.py#follows`" in step, step

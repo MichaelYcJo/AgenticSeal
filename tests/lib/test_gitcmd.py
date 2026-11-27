@@ -8,14 +8,17 @@ prints, and names what the command prints under git's default. The scripts'
 own readers start git through `git`, which builds the argv with `argv`, and
 the proofer reads that in the diff (`docs/running/what-a-script-gates.md`
 *Which gate a script holds*); the cases here hold each key once, over the
-helper.
+helper. `FLAGGED` does the same for `gitcmd.FLAGS`: one parameter for each
+subcommand and each setting that takes a submodule's path out of what it
+prints (#1640).
 
 `Test_git`, `Test_gh` and `Test_is_ancestor` hold the runner (#1573): a
 command that did not start or did not finish within `TIMEOUT` raises
 `Unrun`, a non-zero exit is the caller's to read unless it passes
 `check=True`, and `Test_Failed` holds what an uncaught one does to a
 process. `Test_http_answer` holds the reader of what `gh api -i` printed,
-the HTTP status the release scripts decide on.
+the HTTP status the release scripts decide on. `Test_older` holds the read
+of git's version against `OLDEST` (#1642).
 """
 
 import os
@@ -129,6 +132,69 @@ def printed(command):
     return subprocess.run(command, check=True, capture_output=True).stdout
 
 
+# A submodule's entry in `.gitmodules`, and the line that ignores it.
+GITMODULES = '[submodule "sub"]\n\tpath = sub\n\turl = ./sub\n'
+IGNORED = "\tignore = all\n"
+
+
+def submoduled(tmp_path, setting):
+    """A repository whose last commit moves the commit `sub`, a submodule,
+    points to, and whose checkout of `sub` stands at a commit the index
+    does not hold; SETTING tells git to ignore the submodule by
+    `diff.ignoreSubmodules=all` in the repository's configuration
+    (`configuration`), by `ignore = all` in its `.gitmodules` entry
+    (`.gitmodules`), or not at all (None). The repository and its last
+    commit.
+
+    Each pointer is written into the index by `update-index`, since `add`
+    and `commit` read an ignored submodule as no change on some gits, and
+    each commit writes the index as it stands, with no `add` before it."""
+    repo = new_repo(tmp_path)
+    if setting == "configuration":
+        git(repo, "config", "diff.ignoreSubmodules", "all")
+    entry = GITMODULES + (IGNORED if setting == ".gitmodules" else "")
+    write(repo, ".gitmodules", entry)
+    commit(repo, "a submodule's entry")
+    sub = repo / "sub"
+    sub.mkdir()
+    git(sub, "init", "-q")
+    git(sub, "-c", "user.name=x", "-c", "user.email=x@example.com", "commit",
+        "-q", "--allow-empty", "-m", "the checkout")  # fmt: skip
+    for pointer in ("1" * 40, "2" * 40):
+        git(repo, "update-index", "--add", "--cacheinfo", f"160000,{pointer},sub")
+        git(repo, "commit", "-q", "--allow-empty", "-m", f"sub at {pointer[0]}")
+    return repo, git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+def submodule_read(subcommand, head):
+    """`(command, printed)`: the read of SUBCOMMAND that names `sub` in a
+    repository `submoduled` built, with HEAD its last commit, and what git
+    prints for it where nothing ignores the submodule."""
+    return {
+        "diff": (["diff", "--name-only", "HEAD~1", "HEAD"], "sub\n"),
+        "diff-tree": (
+            ["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+            "sub\n",
+        ),
+        "log": (["log", "-1", "--name-only", "--format=%H"], f"{head}\n\nsub\n"),
+        "status": (["status", "--porcelain"], " M sub\n"),
+    }[subcommand]
+
+
+# (subcommand, the setting that takes `sub` out of what it prints). The
+# configuration key leaves `diff-tree` as it is, so it has no parameter
+# there (design G3).
+FLAGGED = [
+    pytest.param("diff", "configuration", id="diff-configuration"),
+    pytest.param("diff", ".gitmodules", id="diff-gitmodules"),
+    pytest.param("diff-tree", ".gitmodules", id="diff-tree-gitmodules"),
+    pytest.param("log", "configuration", id="log-configuration"),
+    pytest.param("log", ".gitmodules", id="log-gitmodules"),
+    pytest.param("status", "configuration", id="status-configuration"),
+    pytest.param("status", ".gitmodules", id="status-gitmodules"),
+]
+
+
 class Test_argv:
     @pytest.mark.parametrize("key, value, build", CASES)
     def test_accepts_what_git_prints_under_its_own_defaults(
@@ -162,12 +228,62 @@ class Test_argv:
         assert bare != expected.encode(), f"{key}={value} changed nothing: {bare!r}"
         assert printed(gitcmd.argv("-C", str(repo), *command)) == expected.encode()
 
+    @pytest.mark.parametrize("subcommand", sorted({c.values[0] for c in FLAGGED}))
+    def test_accepts_a_submodule_named_as_git_names_it_under_its_own_defaults(
+        self, tmp_path, subcommand
+    ):
+        """#1640, design S2. Where nothing ignores the submodule, the
+        command `argv` builds prints what the bare command prints."""
+        repo, head = submoduled(tmp_path, None)
+        command, expected = submodule_read(subcommand, head)
+        assert printed(["git", "-C", str(repo), *command]) == expected.encode()
+        assert printed(gitcmd.argv("-C", str(repo), *command)) == expected.encode()
+
+    @pytest.mark.parametrize("subcommand, setting", FLAGGED)
+    def test_refuses_a_submodule_left_out_by_a_setting_no_key_reaches(
+        self, tmp_path, subcommand, setting
+    ):
+        """#1640, design S1. `diff.ignoreSubmodules` and a `.gitmodules`
+        entry's `ignore` take the submodule's path out of what the bare
+        command prints, and not out of what `argv`'s prints: `FLAGS` puts
+        `--ignore-submodules=none` after the subcommand. Each parameter was
+        seen red with its subcommand's entry taken out of `FLAGS`."""
+        repo, head = submoduled(tmp_path, setting)
+        command, expected = submodule_read(subcommand, head)
+        bare = printed(["git", "-C", str(repo), *command])
+        assert bare != expected.encode(), f"{setting} changed nothing: {bare!r}"
+        assert printed(gitcmd.argv("-C", str(repo), *command)) == expected.encode()
+
+    def test_accepts_the_flags_after_the_subcommand_past_the_options_before_it(
+        self,
+    ):
+        """#1640. The subcommand is the first argument that opens with no
+        `-`, after `-C` and `-c` with their values and any other option
+        before it, as `settle.py#git_run` passes `--literal-pathspecs`; a
+        subcommand `FLAGS` does not hold gets nothing."""
+        held = gitcmd.argv()[1:]
+        none = "--ignore-submodules=none"
+        assert gitcmd.argv("-C", "/r", "--literal-pathspecs", "log", "-z") == [
+            "git", *held, "-C", "/r", "--literal-pathspecs", "log", none, "-z",
+        ]  # fmt: skip
+        assert gitcmd.argv("-c", "a.b=c", "-C", "/r", "status") == [
+            "git", *held, "-c", "a.b=c", "-C", "/r", "status", none,
+        ]  # fmt: skip
+        assert gitcmd.argv("-C", "/r", "cat-file", "--batch") == [
+            "git", *held, "-C", "/r", "cat-file", "--batch",
+        ]  # fmt: skip
+
 
 class Test_module:
     def test_every_key_has_a_case(self):
         """A key added to `KEYS` gets a parameter here, which shows the
         reading it changes."""
         assert [key for key, _ in gitcmd.KEYS] == [c.values[0] for c in CASES]
+
+    def test_every_flag_has_a_case(self):
+        """#1640, design S3. A subcommand added to `FLAGS` gets a parameter
+        of `FLAGGED`, which shows the reading its flag changes."""
+        assert sorted(gitcmd.FLAGS) == sorted({c.values[0] for c in FLAGGED})
 
 
 class Test_git_path:
@@ -553,6 +669,68 @@ class Test_is_ancestor:
         starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
         with pytest.raises(gitcmd.Unrun):
             gitcmd.is_ancestor(str(repo), first, second)
+
+
+class Test_older:
+    """#1642, design S6. The cases supply what `git version` printed, so a
+    git older than `OLDEST` is read where none is installed."""
+
+    @pytest.mark.parametrize("version", ["2.29.3", "1.8.3.1"])
+    def test_refuses_a_git_older_than_the_floor_naming_both(self, monkeypatch, version):
+        """The line names the version git printed and `OLDEST`. 1.8.3.1
+        stands for the packaged git of a long-term-support distribution,
+        the user #1642 names. Seen red with the comparison against `OLDEST`
+        turned round."""
+        calls = starts(monkeypatch, (0, f"git version {version}\n", ""))
+        assert gitcmd.older("/r") == (
+            f"git {version} answers here, and the plugin's scripts need git "
+            "2.30 or newer"
+        )
+        [(command, _)] = calls
+        assert command == gitcmd.argv("-C", "/r", "version")
+
+    @pytest.mark.parametrize(
+        "printed",
+        [
+            "git version 2.30.0\n",
+            "git version 2.50.1 (Apple Git-155)\n",
+            "git version 2.39.2.windows.1\n",
+            "git version 3.0.0\n",
+        ],
+        ids=["the-floor", "apple", "windows", "a-higher-major"],
+    )
+    def test_accepts_a_git_at_the_floor_or_newer(self, monkeypatch, printed):
+        """A version at `OLDEST` or newer is no answer, whatever follows its
+        minor number. A major above `OLDEST`'s with a minor below it is
+        newer, so the two numbers are compared as one version."""
+        starts(monkeypatch, (0, printed, ""))
+        assert gitcmd.older("/r") is None
+
+    @pytest.mark.parametrize(
+        "code, printed",
+        [
+            (0, "fakegit version 2.29.3\n"),
+            (0, "git version v2.29.3\n"),
+            (0, ""),
+            (1, "git version 2.29.3\n"),
+        ],
+        ids=["another-program", "a-v-before-it", "nothing", "a-non-zero-exit"],
+    )
+    def test_refuses_to_read_a_line_in_another_shape(self, monkeypatch, code, printed):
+        """A first line that is not `git version <major>.<minor>` followed
+        by anything, or a git that exits non-zero, is not read, and refuses
+        nothing. Seen red with the whole-line match loosened to a search,
+        and with the exit code unread."""
+        starts(monkeypatch, (code, printed, ""))
+        assert gitcmd.older("/r") is None
+
+    def test_accepts_the_line_the_git_running_the_suite_prints(self, tmp_path):
+        """The git that runs the suite is no older than `OLDEST`, and its
+        first line is one `VERSION` reads. None alone would also stand for
+        a line in another shape, so the line is matched here too."""
+        assert gitcmd.older(str(tmp_path)) is None
+        done = subprocess.run(["git", "version"], capture_output=True, encoding="utf-8")
+        assert gitcmd.VERSION.fullmatch(done.stdout.split("\n", 1)[0]), done.stdout
 
 
 # A script that lets `Unrun` reach the interpreter, and an `except

@@ -193,11 +193,15 @@ and commit the close blocks of that step together.
 grounds name what the next round could catch and what it would cost. From
 that row on, a `must` gets its fix pass, and its verifying round unless the
 core's row gives that pass to the sealer. Every
-other finding takes a home that costs no round. That home is rung 2, 3 or 4
-of the homes *The run* gives, where you append its close block reading
+other finding takes a home that costs no round: rung 2, 3 or 4 of the homes
+*The run* gives, where you append its close block reading
 `deferred <home>` and spawn no fix pass for it, or a fix that the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
-to skip a party* gives to the sealer. A later row spends no round on
+to skip a party* gives to the sealer. Rung 3 is such a home as a new issue,
+and as a `seal/follow-up.md` row only where a round is still to come after
+the row's commit, because its commit after the last round costs a round
+(`skills/implement/orchestration.md` *Orchestrator: drain the rows before
+the broad run, and keep the records*). A later row spends no round on
 a finding that is not a `must`, whatever document it cites. The first row
 of `skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records* and rung 1 of *The run*'s homes are

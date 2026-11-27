@@ -528,4 +528,8 @@ stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
 added to the core, which every agent and every session in a repository
-with a `seal/` root loads.
+with a `seal/` root loads. The core also has a fixed room:
+`tests/lib/test_core.py#test_the_trees_core_stays_under_the_harness_cap`
+holds the hook's whole output under `lib/core.py#CAP` at a plugin root of
+`lib/core.py#ROOT_ROOM` characters. So a sentence added to the core fits in
+what that case leaves, or the change removes as many characters as it adds.

@@ -13,7 +13,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, build_tracked_tree, git_listing, on_disk
+from conftest import ROOT, build_tracked_tree, git_listing, load_lib_module, on_disk
 from workflows import load
 
 # No TARGET: its cases sweep every file the plugin loads for a version timer, and hold the release rules across the update skill, the workflows, the release documents and the records root.
@@ -1028,6 +1028,18 @@ def test_the_python_floor_is_the_same_number_everywhere():
         f"ruff.toml says {floor} and the lowest tested version is {lowest} — "
         "the floor is only real if CI stands on it"
     )
+
+
+def test_the_git_floor_is_the_same_number_everywhere():
+    """#1642, design S8. `lib/gitcmd.py#OLDEST` is the oldest git the
+    scripts are written for, and each README edition states it beside the
+    git it asks a person to install. Seen red with the number changed in
+    one edition."""
+    oldest = load_lib_module("gitcmd.py", "gitcmd_for_the_git_floor").OLDEST
+    floor = f"`git` {oldest[0]}.{oldest[1]}"
+    for name in ("README.md", "README.ko.md"):
+        with open(os.path.join(ROOT, name), encoding="utf-8") as f:
+            assert floor in f.read(), f"{name} does not state the {floor} floor"
 
 
 def test_update_reads_the_installed_copy_before_it_summarises():

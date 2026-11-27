@@ -132,14 +132,30 @@ and the document it judged against as one row of `frame/plan.md`
 *Judgments of the run* and leaves the row uncommitted, so the framer reads
 the row when it reads
 `plan.md` whole: the rewritten sentence keeps no reason for itself, and the
-settle reads the row. The orchestrator resumes the work item's framer while
+settle reads the row. A row of *Judgments of the run*, this one or any
+other the orchestrator writes, names any commit only as a coordinate, and
+gives no inventory of a change, whether a commit holds the change or the
+change is still to come, as a fold's is when its row is written: no number
+of lines, sentences or items, no list of what the change rewrote or will
+rewrite, and no word for the kind of change a fold made or will make.
+What a row sends, the findings and the files or sections a fold or a fix
+pass is given, is its decision and the decision's coordinates, and not
+that inventory. `git show <commit>` is that account once the commit exists.
+A row whose judgment is about a change, such as a regression's route
+(`skills/code-review/orchestration.md` *A regression is routed by comparing
+the fix with the frame*) or why the title takes its prefix, states as its
+grounds what the change means against the document it judges against, and
+no inventory of it. The orchestrator resumes the work item's framer while
 that session still exists, as a fix pass resumes the implementer, and
 otherwise spawns a fresh framer and hands it the decisions and the commit
 at which the frame was last written. The message that resumes the framer,
 and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
-answers. The orchestrator corrects its row where the framer's
-hand-back names a defect in it, then commits the frame files the framer
+answers. The row for a fold states the decision as it was sent. After the
+fold the orchestrator changes it only where the framer's hand-back, a
+round's finding or the sealer's verdict names a defect in it, which it
+corrects, or where the framer rejects the decision, as the next paragraph
+states. It then commits the frame files the framer
 changed and its own rows in one commit, before the spawn or the resume
 that reads them.
 
@@ -536,14 +552,31 @@ not something anyone can check, and it is not a way out.
 
 ## Orchestrator: drain the rows before the broad run, and keep the records
 
-**The orchestrator moves every unresolved row out once the last round record
-has no finding open, and before it runs `seal gate --preflight`**, whichever
-party `routing.md`'s `Implementation` row names: the orchestrator opens the
-pull request, and every commit after the broad run, a `seal/follow-up.md` row
-among them, leaves `trail/gate.md` stale for the sealer
-(`skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
-preflight to the open pull request*). A row is out when it stands at its
-destination below:
+**A row whose destination stands outside `seal/threads/<work-item-id>/` is
+committed before the round that reads it.** Such a row is a
+`seal/follow-up.md` row or a policy document written directly, and its
+commit is one that `docs/checks/the-pull-request-check.md` *What the check
+reads at the pull request* gives to a round. The orchestrator commits a
+leftover a crafter's hand-back names before it spawns the round after that
+phase or fix pass, and a finding it defers in a round record before the
+verifying round, where another finding of that round takes a fix pass.
+
+**Every other row moves out once the last round record has no finding
+open, and before the orchestrator runs `seal gate --preflight`**, whichever
+party `routing.md`'s `Implementation` row names: a row whose destination
+stands inside the work item's directory, and a row that makes no commit,
+such as an issue or a comment on one. The orchestrator opens the pull
+request, and every commit after the broad run leaves `trail/gate.md` stale
+for the sealer (`skills/code-review/gate-to-pull-request.md`
+*Orchestrator: from the preflight to the open pull request*).
+
+**A row that first arises once no round is to follow is weighed.** Its
+commit outside the work item's directory costs the verifying round
+`docs/checks/the-pull-request-check.md` *What the check reads at the pull
+request* names, and a home that needs no such commit costs none. The homes
+are those `docs/running/the-run.md` *The run* gives.
+
+A row is out when it stands at its destination below:
 
 | Remaining item | Destination |
 |---|---|
