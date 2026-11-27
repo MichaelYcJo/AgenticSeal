@@ -30,7 +30,7 @@ TARGET = "skills/settle/scripts/fold_check.py"
 
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 
-fold_check = load_module(SCRIPT, "agentic_fold_check")
+fold_check = load_module(SCRIPT, "iadd_fold_check")
 
 
 def command(*args):
@@ -317,12 +317,12 @@ class Test_main:
         Both of the states `home_at` answers "" for are pinned whole (contract rule 14)."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         git_init(root)
-        (tmp_path / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
+        (tmp_path / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
         code, out, err = command("--root", root)
         assert code == 0, (out, err)
         assert out == (
             f"seal fold: `Document token ceiling` is not declared in {root}, which "
-            "has opted out — `agentic-scratch` is under its git directory, so its "
+            "has opted out — `iadd-scratch` is under its git directory, so its "
             "seal/config.json is not read, and there is no docs/README.md, so nothing "
             "was checked\n"
         ), out

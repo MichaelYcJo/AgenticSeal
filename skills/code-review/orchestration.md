@@ -15,7 +15,7 @@ opens that one at its first step and never opens this one.
 
 A session orchestrating a review run holds the core once, from the plugin's
 `SessionStart` hook where its repository holds a `seal/` root, and opens
-`skills/core/SKILL.md` once where no output opening `AgenticSeal core from`
+`skills/core/SKILL.md` once where no output opening `IADD core from`
 stands in its context.
 
 Every `##` heading here opens with `Orchestrator:`.

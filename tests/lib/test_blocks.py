@@ -25,7 +25,7 @@ from conftest import SPLITLINES_ONLY, census_case, load_lib_module, texts
 
 TARGET = "lib/blocks.py"
 
-blocks = load_lib_module("blocks.py", "agentic_blocks_under_test")
+blocks = load_lib_module("blocks.py", "iadd_blocks_under_test")
 # The name the splitter's cases read it by, from when they read it through
 # the reader that handed this module's `gfm_lines` to its callers.
 reader = blocks

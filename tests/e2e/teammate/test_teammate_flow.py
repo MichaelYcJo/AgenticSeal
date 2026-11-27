@@ -9,7 +9,7 @@ template under `bash`, its text unchanged apart from GitHub's expression for
 the base branch. A second case runs the same steps on the pull request that
 moves the root to local mode with the checks kept. The plugin's clone is the
 one step not run: the tree under test stands where the clone puts it,
-`$RUNNER_TEMP/agentic`. The oracle is each step's exit code, never what a
+`$RUNNER_TEMP/iadd`. The oracle is each step's exit code, never what a
 step printed.
 """
 
@@ -182,11 +182,11 @@ def switching_repository(tmp_path):
 
 def runner_env(tmp_path, branch=BRANCH):
     """The variables GitHub sets for a pull request from BRANCH into BASE
-    that is not a draft, with `$RUNNER_TEMP/agentic` resolving to the tree
+    that is not a draft, with `$RUNNER_TEMP/iadd` resolving to the tree
     under test, and none of the variables of the run this suite is in."""
     runner = tmp_path / "runner"
     runner.mkdir()
-    symlink_or_skip(ROOT, runner / "agentic")
+    symlink_or_skip(ROOT, runner / "iadd")
     event = tmp_path / "event.json"
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
     env = without_this_run(os.environ)

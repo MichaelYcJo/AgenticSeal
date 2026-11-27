@@ -69,7 +69,7 @@ STAMP = str(ROOT / "skills" / "verify" / "scripts" / "stamp.py")
 
 def gate_module():
     """A fresh load of the gate, for the cases that load their own."""
-    return load_module(GATE, "agentic_broad_gate_for_cmd")
+    return load_module(GATE, "iadd_broad_gate_for_cmd")
 
 
 PASSING_TEST = "def test_one():\n    assert True\n"
@@ -569,7 +569,7 @@ def missing_row_text():
     import importlib.util
 
     path = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
-    spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
+    spec = importlib.util.spec_from_file_location("iadd_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return unquoted_flat(module.missing_row("/seal"))
@@ -604,7 +604,7 @@ class Test_missing_row:
         said = missing_row_text()
         assert "not this session's to do" in said
         assert "the key is a thing a person wrote" in said
-        assert "/agentic:config" in said
+        assert "/iadd:config" in said
         assert "it shows every key and adds this one —" in said
         assert "with its section" not in said
         assert (
@@ -733,7 +733,7 @@ class Test_not_as_written:
             "write, and a value quietly fixed here would leave the file still "
             "wrong. `templates/setup/config.md` *Broad gate* lists what is "
             "refused and what stays allowed, with the reason for each, and "
-            "`/agentic:config` is the door to the key."
+            "`/iadd:config` is the door to the key."
         )
 
     @pytest.mark.parametrize(
@@ -1500,7 +1500,7 @@ NO_RECORD_HERE = (
     "no pytest the command ran here left a record of the gate's recorder (the "
     "command started no pytest, because a part before its runner failed or it has none; "
     "none it started loaded the recorder; or the one that did could not write "
-    "its record and warned 'agentic_pytest_record: no record written' in "
+    "its record and warned 'iadd_pytest_record: no record written' in "
     "suite.txt), so this exit code is not a count of failing tests"
 )
 
@@ -1869,7 +1869,7 @@ class Test_gate:
         # check for (#1575).
         assert chain_kept.splitlines()[0].endswith(f" {chain.INSPECTING}")
         # The gate draws nothing and queues no stamp (#975).
-        assert not (repo / ".git" / "agentic-stamp").exists()
+        assert not (repo / ".git" / "iadd-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
         assert f"```seal\nrun: {tree} against {base}\n```\n" in record
         assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
@@ -2178,7 +2178,7 @@ def with_workflow(repo):
 # row's exit code from `row` to the row under `suite` — which this fixture's
 # empty output, carrying no pytest counts, does not have. No row here is
 # about a workflow: #1483 took the `CI also` row off with the gate's copy of
-# AgenticSeal's `release` steps, and the gate reads no workflow. #717 took
+# IADD's `release` steps, and the gate reads no workflow. #717 took
 # `chain` off, because a drawn panel is green by construction and its title
 # already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
 # put it back with a `✓`, and the base's ref beside its commit on one row.
@@ -2388,7 +2388,7 @@ class Test_main:
         gated as one with none: its report carries `HISTORICAL_ROWS` and its
         stderr names neither the workflow, nor the job, nor a step of it.
 
-        Seen red against the gate that kept a copy of AgenticSeal's `release`
+        Seen red against the gate that kept a copy of IADD's `release`
         steps, which printed a `CI also` row and a line counting the steps for
         this fixture. The searched names are the job as that line spelled it,
         the workflow's path and the fixture's step names, never a bare

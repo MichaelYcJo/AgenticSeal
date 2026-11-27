@@ -77,7 +77,7 @@ def test_the_plugin_registers_its_hooks_and_writes_none_into_git():
     derivation, `skills/verify/scripts/payload_meter.py#HOOK_ROW`, and the
     sentences this command lists:
 
-        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from\\|PreToolUse\\|ask-under-automation\\|PostToolUse\\|edit-leaves-copies"
+        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|IADD core from\\|PreToolUse\\|ask-under-automation\\|PostToolUse\\|edit-leaves-copies"
 
     and it gives the core and the stamp new carriers, which that work's frame
     decides."""
@@ -184,7 +184,7 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     in its plugin entry, and each copy must equal the source.
 
     #1102 S2: `README.md` carries it a third time, as the paragraph directly
-    under `# AgenticSeal`, because the page's first reader meets the plugin
+    under `# IADD`, because the page's first reader meets the plugin
     there and a link cannot stand in for the sentence. The paragraph is
     wrapped at the page's line limit, so it is read with its line breaks
     folded."""
@@ -204,7 +204,7 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     assert entries[0].get("description") == source, "marketplace.json, plugin entry"
     with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
         lines = f.read().splitlines()
-    under = lines[lines.index("# AgenticSeal") + 1 :]
+    under = lines[lines.index("# IADD") + 1 :]
     assert under[:1] == [""], "README.md: a line other than a blank follows the title"
     paragraph = under[1 : under.index("", 1)]
     assert " ".join(paragraph) == source, "README.md, the paragraph under the title"
@@ -326,7 +326,7 @@ def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
     text = text.split("## Orchestrator:", 1)[0]
     # The opening of the hook's output, which the session looks for in its
     # context, and the path of the core it opens where none stands.
-    assert "`AgenticSeal core from`" in text
+    assert "`IADD core from`" in text
     assert "`skills/core/SKILL.md`" in text
 
 
@@ -343,7 +343,7 @@ def test_the_orchestrator_holds_the_core_once_before_the_first_edit():
     step = step.split(" 2. ", 1)[0]
     # The opening of the hook's output, which the orchestrator looks for in
     # its context, and the path of the core it opens where none stands.
-    assert "`AgenticSeal core from`" in step, step
+    assert "`IADD core from`" in step, step
     assert "`skills/core/SKILL.md`" in step, step
 
 
@@ -419,13 +419,13 @@ def test_the_core_row_names_the_core_file():
 
 
 # The name each place that reaches the network carries in the READMEs' passage,
-# spelt alike in both editions: `/agentic:update`, `seal cost --post`,
+# spelt alike in both editions: `/iadd:update`, `seal cost --post`,
 # `chain_check.py` run without `--inspecting`, found by `--inspecting`, which the
-# row held before #1620 did not carry, `seal settle`, the AgenticSeal
+# row held before #1620 did not carry, `seal settle`, the IADD
 # process's own steps (which open the pull request with `gh pr create`), and
 # the checks `seal pr-checks install` writes.
 NETWORK_PLACES = (
-    "/agentic:update",
+    "/iadd:update",
     "--post",
     "--inspecting",
     "seal settle",
@@ -436,7 +436,7 @@ NETWORK_PLACES = (
 
 def network_passage(path, said):
     """PATH's text from the sentence SAID to the next heading, as one line.
-    The commands table elsewhere in each README names `/agentic:update` and
+    The commands table elsewhere in each README names `/iadd:update` and
     `seal settle` too, so a search over the whole file would pass with the
     passage's row gone."""
     from conftest import flattened, read
@@ -510,9 +510,9 @@ def test_every_shipped_skill_is_named_in_both_readmes():
                 )
                 continue
             if user_invoked:
-                # The command `/agentic:<name>` a person types: a skill nobody
+                # The command `/iadd:<name>` a person types: a skill nobody
                 # can trigger is reachable only as a typed command.
-                assert f"/agentic:{name}" in text, (
+                assert f"/iadd:{name}" in text, (
                     f"{edition} never shows `{name}` in the form a person types"
                 )
                 continue

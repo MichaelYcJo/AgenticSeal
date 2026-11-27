@@ -78,14 +78,14 @@ twice what the folder already says.
 | | Shared mode | Local mode |
 |---|---|---|
 | Who decides | whoever committed `seal/`, for every clone that installed the plugin | the developer of that clone |
-| A collaborator who set nothing up | in the AgenticSeal process, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
+| A collaborator who set nothing up | in the IADD process, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
 
 A collaborator who never installed the plugin runs nothing in either mode,
 because the hooks, the skills and the `seal` commands are the plugin's. The fail
 direction is that no folder at either place means not opted in, and a
 command that cannot tell reads the repository as not opted in.
 A throwaway repository reads as not opted in with an empty file,
-`.git/agentic-scratch`, under the common git directory, which no commit can
+`.git/iadd-scratch`, under the common git directory, which no commit can
 carry to another clone.
 check: tests/lib/test_optin.py
 
@@ -186,16 +186,16 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 ## Naming
 
-**The product is AgenticSeal, and bare `seal` names two of its parts**:
+**The product is IADD, and bare `seal` names two of its parts**:
 the root `seal/` and the `seal` command line.
-The plugin's `name` and the prefix of every agent and skill is `agentic`;
-the marketplace is `agenticseal`; the commit trailer is `Seal-Routing:`.
-Every identifier is lowercase with no separator, and `AgenticSeal` is
+The plugin's `name` and the prefix of every agent and skill is `iadd`;
+the marketplace is `iadd`; the commit trailer is `Seal-Routing:`.
+Every identifier is lowercase with no separator, and `IADD` is
 written only where a person reads the brand.
 
 | Name | Its one sentence |
 |---|---|
-| AgenticSeal | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
+| IADD | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
 | `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `inspection.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
 | framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |

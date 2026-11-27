@@ -2737,9 +2737,9 @@ def newest(directory):
     # `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects` encodes a cwd by replacing
     # every non-alphanumeric character, not just the separator. Replacing
     # `os.sep` alone is right on POSIX by coincidence and wrong on Windows,
-    # where a drive letter keeps its colon: `C:\GitHub\AgenticSeal` would
-    # become `C:-GitHub-AgenticSeal` where the real directory is
-    # `C--GitHub-AgenticSeal`, and `seal cost --latest .` would report "no
+    # where a drive letter keeps its colon: `C:\GitHub\project` would
+    # become `C:-GitHub-project` where the real directory is
+    # `C--GitHub-project`, and `seal cost --latest .` would report "no
     # transcript found" for a directory that is right there.
     slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
     root = os.path.join(projects_dir(), slug)

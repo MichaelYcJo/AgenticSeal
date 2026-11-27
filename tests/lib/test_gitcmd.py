@@ -399,17 +399,17 @@ class Test_git:
         assert done.stdout == f"{sha}\n".encode()
         held = {
             "GIT_CONFIG_COUNT": "1",
-            "GIT_CONFIG_KEY_0": "agentic.probe",
+            "GIT_CONFIG_KEY_0": "iadd.probe",
             "GIT_CONFIG_VALUE_0": "seen",
         }
-        done = gitcmd.git(str(repo), "config", "--get", "agentic.probe", env=held)
+        done = gitcmd.git(str(repo), "config", "--get", "iadd.probe", env=held)
         assert done.stdout == "seen\n"
-        monkeypatch.setenv("AGENTIC_INHERITED", "kept")
+        monkeypatch.setenv("IADD_INHERITED", "kept")
         calls = starts(monkeypatch, (0, b"", b""))
         gitcmd.git(str(repo), "status", binary=True, env={"A": "1"})
         [(_, kwargs)] = calls
         assert kwargs["env"]["A"] == "1"
-        assert kwargs["env"]["AGENTIC_INHERITED"] == "kept"
+        assert kwargs["env"]["IADD_INHERITED"] == "kept"
         assert (kwargs["encoding"], kwargs["errors"]) == (None, None)
 
     def test_accepts_a_non_zero_exit_as_the_callers_to_read(self, tmp_path):
@@ -417,7 +417,7 @@ class Test_git:
         and `rev-parse --verify --quiet`, exit 1 is an answer, so without
         `check` the exit code is returned and nothing is raised."""
         repo = new_repo(tmp_path)
-        done = gitcmd.git(str(repo), "config", "--get", "agentic.absent")
+        done = gitcmd.git(str(repo), "config", "--get", "iadd.absent")
         assert done.returncode == 1
         assert done.stdout == ""
 

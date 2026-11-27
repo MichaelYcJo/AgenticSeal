@@ -30,7 +30,7 @@ SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
 
 
 def _load():
-    spec = importlib.util.spec_from_file_location("agentic_rules", SCRIPT)
+    spec = importlib.util.spec_from_file_location("iadd_rules", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

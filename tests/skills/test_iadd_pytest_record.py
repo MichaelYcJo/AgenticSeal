@@ -1,10 +1,10 @@
-"""`skills/verify/scripts/pytest_record/agentic_pytest_record.py`, one class
+"""`skills/verify/scripts/pytest_record/iadd_pytest_record.py`, one class
 per function: the broad gate's recorder writes down what its own pytest
 process ran (#825).
 
 The recorder is loaded into every run the broad gate measures, through
 `PYTHONPATH` and a `-p` in `PYTEST_ADDOPTS`, and keyed by
-`AGENTIC_RECORD_KEY`. The gate's permissive word rests on one property: a
+`IADD_RECORD_KEY`. The gate's permissive word rests on one property: a
 line in a keyed record was written by the pytest process that collected the
 test it names, and by no other. These cases drive pytest as a subprocess over
 a scratch project, the way the gate does, and hold that property from both
@@ -37,7 +37,7 @@ import sys
 import pytest
 from conftest import ROOT, census_case, symlink_or_skip
 
-TARGET = "skills/verify/scripts/pytest_record/agentic_pytest_record.py"
+TARGET = "skills/verify/scripts/pytest_record/iadd_pytest_record.py"
 
 RECORDER_DIR = os.path.join(ROOT, "skills", "verify", "scripts", "pytest_record")
 KEY = "head-0123456789abcdef"
@@ -91,16 +91,16 @@ def recording_env(records, key=KEY, directory=True):
     built on this process's own with the recorder's variables cleared first,
     so an outer gate's run of this suite does not leak into the case."""
     env = dict(os.environ)
-    for name in ("AGENTIC_RECORD_KEY", "AGENTIC_RECORD_DIR", "PYTEST_ADDOPTS"):
+    for name in ("IADD_RECORD_KEY", "IADD_RECORD_DIR", "PYTEST_ADDOPTS"):
         env.pop(name, None)
     env["PYTHONPATH"] = os.pathsep.join(
         p for p in (RECORDER_DIR, env.get("PYTHONPATH")) if p
     )
-    env["PYTEST_ADDOPTS"] = "-p agentic_pytest_record"
+    env["PYTEST_ADDOPTS"] = "-p iadd_pytest_record"
     if key is not None:
-        env["AGENTIC_RECORD_KEY"] = key
+        env["IADD_RECORD_KEY"] = key
     if directory:
-        env["AGENTIC_RECORD_DIR"] = str(records)
+        env["IADD_RECORD_DIR"] = str(records)
     return env
 
 
@@ -473,7 +473,7 @@ class Test_pytest_configure:
 
     @pytest.mark.parametrize("missing", ["key", "directory"])
     def test_refuses_to_record_without_a_key_or_a_directory(self, tmp_path, missing):
-        """S5. With no `AGENTIC_RECORD_KEY`, or no `AGENTIC_RECORD_DIR`, the
+        """S5. With no `IADD_RECORD_KEY`, or no `IADD_RECORD_DIR`, the
         recorder registers nothing: no file anywhere under the scratch tree, and
         the run's exit is pytest's own."""
         root, records = project(tmp_path, {"test_mixed.py": PASSING_AND_FAILING})
@@ -509,8 +509,8 @@ class Test_Recorder:
         node, the same worker's report of another node, and the node's own
         teardown each leave it unplaced."""
         spec = importlib.util.spec_from_file_location(
-            "agentic_pytest_record_under_test",
-            os.path.join(RECORDER_DIR, "agentic_pytest_record.py"),
+            "iadd_pytest_record_under_test",
+            os.path.join(RECORDER_DIR, "iadd_pytest_record.py"),
         )
         recorder_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(recorder_module)
@@ -554,8 +554,8 @@ class Test_Recorder:
         very next, where an instance of a class of the case's own was measured
         not to reuse it within a thousand."""
         spec = importlib.util.spec_from_file_location(
-            "agentic_pytest_record_under_test",
-            os.path.join(RECORDER_DIR, "agentic_pytest_record.py"),
+            "iadd_pytest_record_under_test",
+            os.path.join(RECORDER_DIR, "iadd_pytest_record.py"),
         )
         recorder_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(recorder_module)
@@ -620,8 +620,8 @@ class Test_Recorder:
         gate counts under no category -- and nothing is raised out of the
         hook."""
         spec = importlib.util.spec_from_file_location(
-            "agentic_pytest_record_for_categories",
-            os.path.join(RECORDER_DIR, "agentic_pytest_record.py"),
+            "iadd_pytest_record_for_categories",
+            os.path.join(RECORDER_DIR, "iadd_pytest_record.py"),
         )
         recorder_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(recorder_module)
@@ -667,8 +667,8 @@ def _loaded_recorder():
     """The recorder loaded in this process, for the cases that call it
     directly."""
     spec = importlib.util.spec_from_file_location(
-        "agentic_pytest_record_called_directly",
-        os.path.join(RECORDER_DIR, "agentic_pytest_record.py"),
+        "iadd_pytest_record_called_directly",
+        os.path.join(RECORDER_DIR, "iadd_pytest_record.py"),
     )
     recorder_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(recorder_module)
@@ -716,7 +716,7 @@ class Test_module:
         recorder's own filter now, so the exit is the suite's own, 1."""
         root, records = project(tmp_path, {"test_mixed.py": PASSING_AND_FAILING})
         env = recording_env(records)
-        env["AGENTIC_RECORD_DIR"] = str(tmp_path / "absent")
+        env["IADD_RECORD_DIR"] = str(tmp_path / "absent")
         result = subprocess.run(
             [
                 sys.executable,
@@ -1096,7 +1096,7 @@ class Test_module:
         result = pytest_in(root, recording_env(records), "tests")
         output = result.stdout + result.stderr
         assert "PLANTED-IN-MAKEREPORT" in output, output
-        assert "agentic_pytest_record" not in output, output
+        assert "iadd_pytest_record" not in output, output
 
     def test_a_failed_collection_of_the_session_itself_is_left_out_and_counted(
         self,

@@ -1,4 +1,4 @@
-"""Shared opt-in: does this repository run the AgenticSeal process?
+"""Shared opt-in: does this repository run the IADD process?
 
 Imported by the gates rather than copied into each, because where the answer
 moves, divergent copies are how half of them keep the old one.
@@ -12,7 +12,7 @@ is the root itself"). A `seal/` without the marker is a directory the project
 keeps for itself, as a package named `seal` does, and declares nothing; the
 root of such a repository is the local one.
 
-`<git-common-dir>/agentic-scratch` takes that declaration back. A repository
+`<git-common-dir>/iadd-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
 decision, which is what developing these gates consists of — carries the same
 `seal/` as a repository under review, and the gates cannot tell them apart:
@@ -21,7 +21,7 @@ before the answer means anything. The opt-out file is written once, by a
 person, in the repository being thrown away. It lives under the git directory
 rather than inside the root because the root is committed: a file committed
 in the root would silence every gate in every clone with nothing in the diff
-that read as the AgenticSeal process being switched off. Nothing under
+that read as the IADD process being switched off. Nothing under
 `.git/` can be committed, and a linked worktree shares the common directory,
 so it shares the opt-out. `seal/README.md` says so too.
 
@@ -68,7 +68,7 @@ PARITY_CONFIG = "parity.json"
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory
 # test. A directory of this name is not the opt-out — see `opted_out()` below.
-SCRATCH = "agentic-scratch"
+SCRATCH = "iadd-scratch"
 # The first line of `templates/setup/seal-README.md`, which first setup writes
 # into every root: a `seal/` is the plugin's root only where its `README.md`
 # opens with this line. `tests/lib/test_optin.py` pins the template's first
@@ -272,7 +272,7 @@ def opted_out(common):
     A FILE, which is what this module and `seal/README.md` both say the
     signal is. `os.path.exists` would also accept a DIRECTORY of that name,
     so a directory created where the opt-out goes would turn every gate off
-    with nothing in the diff that reads as the AgenticSeal process being
+    with nothing in the diff that reads as the IADD process being
     switched off. An empty COMMON names no opt-out: joined, it would name a
     file wherever the process stands."""
     return bool(common) and os.path.isfile(os.path.join(common, SCRATCH))
@@ -290,11 +290,11 @@ def marked_home(root, common=None):
 
 
 def home(cwd):
-    """This repository's `seal/`, or "" when it does not run the AgenticSeal
+    """This repository's `seal/`, or "" when it does not run the IADD
     process."""
     return home_at(repo_root(cwd))
 
 
 def opted_in(cwd):
-    """True when this repository runs the AgenticSeal process."""
+    """True when this repository runs the IADD process."""
     return bool(home(cwd))

@@ -4,7 +4,7 @@ description: Show what this repository decided for itself and change any of it, 
 disable-model-invocation: true
 ---
 
-# /agentic:config, what this repository decided and how to decide otherwise
+# /iadd:config, what this repository decided and how to decide otherwise
 
 `seal/config.json` holds what a repository says about itself, one JSON
 object with one key per item. Four keys have no default, the two language

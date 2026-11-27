@@ -27,7 +27,7 @@ from test_core_start import start
 
 TARGET = "hooks/ask-under-automation.py"
 
-hook = load(TARGET, "agentic_ask_under_automation")
+hook = load(TARGET, "iadd_ask_under_automation")
 
 EVENT = "PreToolUse"
 ITEM = "1780000000-a-work-item"

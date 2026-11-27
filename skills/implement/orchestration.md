@@ -26,7 +26,7 @@ lifetimes* states (contract rule 11).
    where another session works in the same clone at the same time.
    Before the first edit the orchestrator holds the core once, which the
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
-   session started. Where no output opening `AgenticSeal core from` stands
+   session started. Where no output opening `IADD core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
    once. The orchestrator opens `skills/agent-contract/SKILL.md` once,
    beside the core. In every route, the orchestrator's own commands, its

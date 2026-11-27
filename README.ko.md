@@ -1,16 +1,17 @@
 <p align="center">
   <img src=".claude-plugin/icon.png" width="150"
-       alt="AgenticSeal 의 문장. 작은 올빼미가 붉은 밀랍 인장에 찍혀 있다">
+       alt="IADD 의 문장. 작은 올빼미가 붉은 밀랍 인장에 찍혀 있다">
 </p>
 
-# AgenticSeal
+# IADD
 
-AgenticSeal 프로세스: 에이전트들이 변경을 설계하고, 만들고, 검사한 뒤, 커밋
-하나에 묶인 seal 을 남깁니다.
+IADD(Independent AI-Driven Development): 에이전트들이 변경을 설계하고,
+만들고, 리뷰하고, 검수합니다. 어떤 에이전트도 자기 작업을 승인하지 않고,
+끝에는 커밋 하나에 묶인 검수가 남습니다.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · [English](./README.md) · **한국어**
 
-AgenticSeal 은 Claude Code 플러그인입니다. 세션에 이슈 하나를 맡기면, 세션은
+IADD 는 Claude Code 플러그인입니다. 세션에 이슈 하나를 맡기면, 세션은
 시작할 때 이 작업을 어떤 길로 보낼지 묻습니다. 이것이 라우팅 질문입니다.
 세션이 권하는 답은 `agentic` 입니다. 이 답을 고르면 세션이 작업
 항목마다 어떤 에이전트가 필요한지와 실행 도중 사용자에게 물어도 되는지를
@@ -23,7 +24,7 @@ AgenticSeal 은 Claude Code 플러그인입니다. 세션에 이슈 하나를 �
 pull request 에서 끝납니다. 머지는 하지 않습니다. 머지는 사용자가 합니다.
 
 라우팅 질문부터 최종 검수자(inspector)의 검수까지, 위에서 말한 일 전체를
-**AgenticSeal 프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른
+**IADD 프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른
 저장소에서 이 과정을 가리킬 때도 이 이름을 씁니다. 제품 이름이므로 번역하지
 않고, "도장 체인"이나 "인장 과정"처럼 옮기지 않습니다. 검수는 마지막 에이전트의
 판정 하나만 뜻하고, 이 문서가 뒤에서 말하는 도장은 그 검수를 터미널에 그린
@@ -47,7 +48,7 @@ flowchart LR
 ```bash
 claude
 > /plugin marketplace add MichaelYcJo/AgenticSeal
-> /plugin install agentic@agenticseal
+> /plugin install iadd@iadd
 ```
 
 `git` 2.30 이상과, PATH 에서 `python3` 으로 실행되는 Python 3.12 이상이
@@ -62,10 +63,10 @@ Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으�
 
 설치는 이것으로 끝입니다. `CLAUDE.md` 에도 사용자 설정에도 아무것도 쓰지 않고,
 플러그인의 훅은 플러그인과 함께 들어옵니다(*내 컴퓨터에서 도는 것*).
-지우려면 `/plugin uninstall agentic` 을 실행합니다. 그 전에 따로 되돌릴 것은
+지우려면 `/plugin uninstall iadd` 을 실행합니다. 그 전에 따로 되돌릴 것은
 없습니다.
 
-AgenticSeal 프로세스는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과
+IADD 프로세스는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과
 다릅니다. 방금 쓴 것을 리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그
 추론에 동의합니다. 여기서는 만드는 쪽이 리뷰하거나 검수하는 쪽이 되는 일이
 없습니다. 각 에이전트는 다른 에이전트가 쓴 것을 사실이 아니라 확인할 주장으로
@@ -80,7 +81,7 @@ independently of the others*).
 ### 업데이트
 
 ```
-/agentic:update
+/iadd:update
 ```
 
 이 명령은 갱신 명령 두 개를 맞는 순서로 돌린 뒤, 쓰던 버전과 새 버전 사이의
@@ -94,8 +95,8 @@ changelog 항목을 알려 줍니다. 동작이 바뀌는 항목과 사용자가
 손으로 하려면 같은 두 명령을 이 순서로 실행합니다.
 
 ```bash
-claude plugin marketplace update agenticseal
-claude plugin update agentic@agenticseal
+claude plugin marketplace update iadd
+claude plugin update iadd@iadd
 ```
 
 첫 명령이 마켓플레이스의 사본을 새로 받고, 둘째 명령이 그 사본에서
@@ -122,12 +123,12 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 `implement` 에 닿고, `implement` 는 세션을 `skills/implement/orchestration.md`
 로 보냅니다. 리뷰 요청은 `code-review` 에 닿습니다.
 `skills/implement/orchestration.md` 도 `code-review` 도 열지 않은 세션은 아무것도
-선언하지 않으며 AgenticSeal 프로세스 밖에 있습니다.
+선언하지 않으며 IADD 프로세스 밖에 있습니다.
 
 세션이 어떤 저장소에서 처음 일할 때는 질문 네 개를 한꺼번에 먼저 묻습니다.
 기록을 어디에 둘지(아래 *shared 인가 local 인가*), broad gate 가 돌릴 명령,
 커밋과 pull request 를 쓸 언어, 기록을 쓸 언어입니다. 답은
-`seal/config.json` 의 키가 되고, 나중에 `/agentic:config` 로 무엇이든 바꿀 수
+`seal/config.json` 의 키가 되고, 나중에 `/iadd:config` 로 무엇이든 바꿀 수
 있습니다. 요청 하나에는 이슈를 몇 개 담든 첫 편집 전에 질문을 한 번에 모아
 묻습니다. 언어 키 둘 가운데 하나라도 빠져 있으면 그 묶음에서 두 키를 모두
 묻습니다. 라우팅 질문도 그 묶음에 들어갑니다. 오타 하나를 고칠 때도 요청마다
@@ -325,8 +326,8 @@ tracer 가 가져옵니다. 프레임은 옮기는 진입점마다 원본이 내
 적고, 리뷰는 원본에서 출발해 새 코드 쪽으로 따라가며 읽습니다. 그래서 원본은
 내보내는데 새 코드가 빠뜨린 항목은 설계가 이름을 적지 않았어도 지적이
 됩니다. 세션이 저장소를 처음 설정할 때 한 번 물어보고, 나중에
-정하려면 `/agentic:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
-커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.json` 에
+정하려면 `/iadd:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
+커밋되는 파일에 들어가지 않고 `~/.claude/iadd/parity-paths.json` 에
 저장됩니다. 방법은 `skills/legacy-parity/SKILL.md` 에 있습니다.
 
 ## 내 컴퓨터에서 도는 것
@@ -391,27 +392,27 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 들어갈 뿐입니다. 다음 부수 효과는
 밝혀 둡니다. 검수자가 `cleared` 로 읽히는 `inspection.md` 에 한 번 돌리는
 `seal stamp --inspection` 은 도장에 들어갈 값을
-`<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
+`<git-common-dir>/iadd-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
-`cleared` 는 어느 모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
+`cleared` 는 어느 모드에서든 `<git-common-dir>/iadd-stamp-refused/` 아래에 빈
 파일을 남깁니다. 이 파일도 지우는 것이 없습니다.
 
 훅은 모두 네트워크를 타지 않습니다. 아래 자리가 네트워크를 탑니다. 이것들은
-명령이나 AgenticSeal 프로세스의 단계입니다. 그래서 사용자나 세션이 시작할 때
+명령이나 IADD 프로세스의 단계입니다. 그래서 사용자나 세션이 시작할 때
 돌고, 마지막 행만은 pull request 마다 사용자의 CI 에서 돕니다.
 
 | 무엇이 | 어디로 | 무엇을 보내나 | 언제 |
 |---|---|---|---|
-| `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
+| `/iadd:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
 | `--inspecting` 없이 돌리는 `chain_check.py`, 곧 orchestrator 와 proofer 가 `--worktree` 로 읽는 실행 ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `seal gate` 는 이 검사를 `--inspecting` 을 붙여 돌리므로, pull request 의 상태를 읽지 않고 `gh` 에 아무것도 묻지 않는다 | 그런 실행이 GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
-| AgenticSeal 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
+| IADD 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 | `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
 
 사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 플러그인의 훅뿐입니다. 위
 표에서 사용자 자신의 `gh` 로그인으로 닿는 행은 모두 사용자가 일하는 저장소에만
-닿습니다. AgenticSeal 프로세스의 단계는 그 저장소에 브랜치를 코드째 push 하고
+닿습니다. IADD 프로세스의 단계는 그 저장소에 브랜치를 코드째 push 하고
 pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니다.
 
 ## 명령
@@ -432,9 +433,9 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
 | `seal payload [--json] [--agent <name>] [--root <dir>]` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트로 재고, 토큰은 그 바이트에서 추정한다 (`skills/verify/scripts/payload_meter.py`) |
-| `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
-| `/agentic:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `seal/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
-| `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
+| `/iadd:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
+| `/iadd:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `seal/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
+| `/iadd:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
 
 ## 한계
 
@@ -480,7 +481,7 @@ request 나 실행을 진행시킬지 말지를 정하기 때문입니다. 고�
 전부는 [CONTRIBUTING.md](./CONTRIBUTING.md) 의 *What a change to a gate must
 carry* 절에 있고, 나머지는 *Opening a pull request* 절에 있습니다.
 거기에는 기여에 요구하지 않는 것도 적혀 있습니다. 이 저장소가 스스로에게
-적용하는 AgenticSeal 프로세스는 기여에 하나도 해당하지 않습니다.
+적용하는 IADD 프로세스는 기여에 하나도 해당하지 않습니다.
 
 ## 언어 정책
 
@@ -489,7 +490,7 @@ carry* 절에 있고, 나머지는 *Opening a pull request* 절에 있습니다.
 `README.ko.md` 처럼 사람이 읽는 문서에 씁니다. writing-style 스킬 하나는
 예외입니다. 언어마다 문장 규칙 절을 따로 담는데, 두 절은 서로의 번역이 아니라 각
 언어의 독립된 규범입니다. Claude 가 어느 언어로 답하는지는 사용자 자신의
-`CLAUDE.md` 를 따릅니다. AgenticSeal 프로세스가 사용자 저장소에 쓰는 커밋, pull
+`CLAUDE.md` 를 따릅니다. IADD 프로세스가 사용자 저장소에 쓰는 커밋, pull
 request, 기록의 언어는 그 저장소가 정하며, `seal/config.json` 의 두 언어 키가 그
 답입니다.
 
@@ -497,5 +498,5 @@ request, 기록의 언어는 그 저장소가 정하며, `seal/config.json` 의 
 
 MIT
 
-AgenticSeal 이라는 이름과 올빼미 문장, 그 인장 그림은 MIT 라이선스를 따르지
+IADD 라는 이름과 올빼미 문장, 그 인장 그림은 MIT 라이선스를 따르지
 않습니다. 어떤 조건을 따르는지는 [TRADEMARKS.md](TRADEMARKS.md) 에 있습니다.

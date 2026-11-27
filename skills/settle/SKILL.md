@@ -362,7 +362,7 @@ document, the second question, and how a promoted row is written.
     requests carry.
   - **Notes are read only where the repository builds them from the
     fragments.** The release workflow that builds a note from the fragments
-    is AgenticSeal's own (`.github/scripts/publish_release_note.py`), and
+    is IADD's own (`.github/scripts/publish_release_note.py`), and
     the plugin ships no copy, so a repository's notes may be written by
     hand or by another tool and say nothing of a fragment. The same list
     tells the two apart: where no published release holds a whole line
@@ -444,7 +444,7 @@ After the removals, `--apply` names each document past the `Document token
 ceiling` key in `seal/config.json`, as `seal fold` does, and neither refuses
 it. Such a document is recommended to be split by who opens each section
 and at which step, as `skills/core/SKILL.md` *The first value: efficient
-development through the AgenticSeal process* states, in that pull request
+development through the IADD process* states, in that pull request
 or a later one, and nothing is cut to fit.
 The plugin sets no ceiling; a repository states its own.
 

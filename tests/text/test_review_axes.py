@@ -17,7 +17,7 @@ from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS
 
 # The reader of `routing.md`, whose `REVIEW_ANSWERS` a comparison's record is
 # keyed by.
-routing = load_lib_module("routing.py", "agentic_routing_for_review_axes")
+routing = load_lib_module("routing.py", "iadd_routing_for_review_axes")
 
 PARITY = "skills/legacy-parity/SKILL.md"
 
@@ -159,7 +159,7 @@ def test_the_resolution_order_ends_with_the_caller_asking():
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for fact in (
         # The path of the file the declaration lives in, which a reader opens.
-        "`~/.claude/agentic/parity-paths.json`",
+        "`~/.claude/iadd/parity-paths.json`",
         # The words a reader that cannot ask returns, which its caller reads
         # as no original resolved.
         "`original not found`",

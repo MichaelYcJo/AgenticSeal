@@ -1,7 +1,7 @@
 ---
 name: core
 description: |
-  The values every AgenticSeal party judges by, and the rule a mechanism is
+  The values every IADD party judges by, and the rule a mechanism is
   kept against. Not a command to run: every agent receives it at startup
   through the `skills:` list in its definition, before `agent-contract`, and
   a session receives it from the plugin's `SessionStart` hook where its
@@ -15,7 +15,7 @@ user-invocable: false
 
 # The core
 
-This file governs work run through the AgenticSeal process, everything the
+This file governs work run through the IADD process, everything the
 plugin does with one issue from the routing question to the final
 inspector's verdict; a session doing other work is not bound by it to start the
 process. Each path this file cites is relative to the plugin's root, the
@@ -32,22 +32,22 @@ is that root's name in every text this plugin ships, except where a text
 says a `seal/` is the project's own or that its `README.md` does not open
 with the marker: that is the directory named `seal`.
 
-## The first value: efficient development through the AgenticSeal process
+## The first value: efficient development through the IADD process
 
-**AgenticSeal exists for efficient development through a process of agents,
+**IADD exists for efficient development through a process of agents,
 and two things make it: judgment where judgment is needed, and the source
 documents a judgment is made against.** Neither does it alone. An agent that
 judges everything spends more tokens than the work is worth and drifts from
 what the source documents decided; one that only runs scripts and sequences
-adds nothing a script would not. Verification through the AgenticSeal
+adds nothing a script would not. Verification through the IADD
 process serves this value by buying time and stability. The value decides
 between two designs that break no rule below.
 
 **Judgment is spent where meaning is the question, and a script answers the
 rest.** Whether two things mean the same or give the same result is the
-judgment the AgenticSeal process delegates, and the proofer's findings and
+judgment the IADD process delegates, and the proofer's findings and
 the inspector's verdict gate a pull request on it. A script that answers "these
-differ" where the meaning is the same is the worst result the AgenticSeal
+differ" where the meaning is the same is the worst result the IADD
 process can give, so a script does not re-encode that judgment as a grammar
 rule: it reads what a command wrote or what a real parser returns. What a
 script answers exactly, such as the suite, the lint, the broad gate and the

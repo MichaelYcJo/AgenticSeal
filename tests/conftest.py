@@ -259,7 +259,7 @@ LIB = os.path.join(os.path.dirname(__file__), "..", "lib")
 # each have to remember. An empty template still leaves a complete repository:
 # `config`, `HEAD`, `objects/` and `refs/` are `git init`'s own work, not the
 # template's.
-_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="agentic-empty-git-template-")
+_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="iadd-empty-git-template-")
 os.environ["GIT_TEMPLATE_DIR"] = _EMPTY_GIT_TEMPLATE
 atexit.register(shutil.rmtree, _EMPTY_GIT_TEMPLATE, True)
 
@@ -301,8 +301,8 @@ GH_CREDENTIALS = (
     "GITHUB_ENTERPRISE_TOKEN",
 )
 # Not a credential: what `gh` finds in place of one.
-NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
-_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="agentic-empty-gh-config-")
+NOT_A_GH_TOKEN = "iadd-suite-runs-with-gh-logged-out"
+_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="iadd-empty-gh-config-")
 os.environ["GH_CONFIG_DIR"] = _EMPTY_GH_CONFIG
 atexit.register(shutil.rmtree, _EMPTY_GH_CONFIG, True)
 for _name in GH_CREDENTIALS:
@@ -351,7 +351,7 @@ for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
 # A child that imports this file again -- an xdist worker, a probe that runs
 # it -- inherits a PATH that already holds a parent's stubs, so the real `gh`
 # is looked for past every one of them.
-GH_STUB_PREFIX = "agentic-gh-stubs-"
+GH_STUB_PREFIX = "iadd-gh-stubs-"
 REAL_GH = shutil.which(
     "gh",
     path=os.pathsep.join(
@@ -456,7 +456,7 @@ def load_lib_module(filename, name):
 # `lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_lib_module("optin.py", "agentic_optin_for_fixtures").MARKER
+ROOT_MARKER = load_lib_module("optin.py", "iadd_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -761,7 +761,7 @@ def rule_carriers(marker):
     so a case pinning a rule's check line reads its tests the one way."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     path = os.path.join(root, "skills", "settle", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("agentic_rules_carriers", path)
+    spec = importlib.util.spec_from_file_location("iadd_rules_carriers", path)
     rules = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rules)
     return {name for _path, name, _doc in rules.markers(root).get(marker, [])}
@@ -791,7 +791,7 @@ def texts():
 # test_no_collected_id_carries_the_interpreters_path` reads every id the suite
 # collected, and on a shard the items a case can see are only the shard's
 # own: `pytest-split` replaces the list with the group.
-COLLECTED_NODE_IDS = "agentic_collected_node_ids"
+COLLECTED_NODE_IDS = "iadd_collected_node_ids"
 
 
 def pytest_collection_modifyitems(session, items):
@@ -870,7 +870,7 @@ def flattened(text):
 
 # `lib/lines.py`, the one spelling of a markdown heading, which `section`
 # places headings by.
-_LINES = load_lib_module("lines.py", "agentic_lines_for_section")
+_LINES = load_lib_module("lines.py", "iadd_lines_for_section")
 
 
 def section(text, heading):
@@ -953,7 +953,7 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_lib_module("config.py", "agentic_config_for_tests")
+    return load_lib_module("config.py", "iadd_config_for_tests")
 
 
 # Earlier releases' `config.md` texts, which the table walker's two-cell
@@ -1072,7 +1072,7 @@ def git_out(repo, *args):
 
 
 # `lib/gitcmd.py#FLAGS`, which `as_called` reads.
-_FLAGS = load_lib_module("gitcmd.py", "agentic_gitcmd_for_fixtures").FLAGS
+_FLAGS = load_lib_module("gitcmd.py", "iadd_gitcmd_for_fixtures").FLAGS
 
 
 def as_called(held):
@@ -1367,7 +1367,7 @@ class World:
         """Write the machine-local map, one member per `(remote, path)`."""
         write(
             self.home,
-            ".claude/agentic/pact-paths.json",
+            ".claude/iadd/pact-paths.json",
             config_json(*((remote, str(path)) for remote, path in entries)),
         )
 
@@ -1439,7 +1439,7 @@ def legacy(repo):
 
 
 def scratch(repo):
-    (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
+    (repo / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
 
 
 # --- a console the gates cannot encode to --------------------------------------
@@ -1463,7 +1463,7 @@ def _console_repo_template():
     shape."""
     global _CONSOLE_REPO_TEMPLATE
     if _CONSOLE_REPO_TEMPLATE is None:
-        d = pathlib.Path(tempfile.mkdtemp(prefix="agentic-console-repo-template-"))
+        d = pathlib.Path(tempfile.mkdtemp(prefix="iadd-console-repo-template-"))
         d = d / "repo"
         d.mkdir(parents=True)
         git = lambda *a: subprocess.run(

@@ -1,6 +1,6 @@
 ---
 type: 'tool_used'
 tool: 'Agent'
-input_match: '"subagent_type"\s*:\s*"agentic:inspector"'
+input_match: '"subagent_type"\s*:\s*"iadd:inspector"'
 ---
-The session spawned agentic:inspector through the Agent tool.
+The session spawned iadd:inspector through the Agent tool.

@@ -304,8 +304,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
-      `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
-      `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
+      `PYTEST_ADDOPTS='-p iadd_pytest_record'`, and
+      `IADD_RECORD_DIR` and `IADD_RECORD_KEY` naming a directory
       that exists and a key you choose), then run
       `DRY_RUN=1 python3 .github/scripts/release_mark.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)
@@ -337,7 +337,7 @@ disk is not an update that is in force until the session reloads, and
 reloading is the expensive part, not the install. Every place this repository
 tells a user what to do after an update names the reload command, says what a
 reload was measured to do, and says what nobody has measured about it.
-`/agentic:update` runs inside the session it updates and cannot type into
+`/iadd:update` runs inside the session it updates and cannot type into
 it, so it prints the reload for the user to type, and a notice that leaves
 the cost out reads as though there were none.
 check: tests/behaviour/test_release_hygiene.py

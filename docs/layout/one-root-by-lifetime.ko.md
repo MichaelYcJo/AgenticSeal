@@ -73,13 +73,13 @@ git 디렉터리 아래에 둡니다. 그 밖에는 아무것도 읽지 않고, 
 | | shared 모드 | local 모드 |
 |---|---|---|
 | 누가 정하는가 | `seal/` 을 커밋한 사람이, 플러그인을 깐 모든 클론에 대해 | 그 클론의 개발자 |
-| 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 AgenticSeal 프로세스를 따른다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
+| 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 IADD 프로세스를 따른다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
 
 플러그인을 깔지 않은 협업자에게는 어느 모드에서도 아무것도 돌지 않습니다.
 훅과 스킬과 `seal` 명령이 플러그인의 것이기 때문입니다. 실패 방향은, 두
 자리 어디에도 폴더가 없으면 옵트인하지 않은 것이고, 판단하지 못하는 명령은
 저장소를 옵트인하지 않은 것으로 읽는다는 것입니다. 버릴 저장소는 공통 git
-디렉터리 아래의 빈 파일 `.git/agentic-scratch` 하나로 옵트인하지 않은
+디렉터리 아래의 빈 파일 `.git/iadd-scratch` 하나로 옵트인하지 않은
 저장소로 읽힙니다. 어떤 커밋도 이 파일을 다른 클론으로 옮기지 못합니다.
 check: tests/lib/test_optin.py
 
@@ -177,16 +177,16 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 ## 이름
 
-**제품 이름은 AgenticSeal 이고, 그 안에서 맨 `seal` 은 두 부분을 가리킵니다.**
+**제품 이름은 IADD 이고, 그 안에서 맨 `seal` 은 두 부분을 가리킵니다.**
 루트 `seal/` 와 `seal` 명령줄입니다.
-플러그인의 `name` 과 모든 에이전트·스킬의 접두어는 `agentic` 이고,
-마켓플레이스는 `agenticseal`, 커밋 트레일러는 `Seal-Routing:` 입니다. 모든
-식별자는 구분자 없는 소문자이고, `AgenticSeal` 은 사람이 브랜드를 읽는 자리에만
+플러그인의 `name` 과 모든 에이전트·스킬의 접두어는 `iadd` 이고,
+마켓플레이스는 `iadd`, 커밋 트레일러는 `Seal-Routing:` 입니다. 모든
+식별자는 구분자 없는 소문자이고, `IADD` 는 사람이 브랜드를 읽는 자리에만
 씁니다.
 
 | 이름 | 한 문장 |
 |---|---|
-| AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
+| IADD | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
 | `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `inspection.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
 | framer, crafter, proofer, inspector, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |

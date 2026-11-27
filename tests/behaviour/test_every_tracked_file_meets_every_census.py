@@ -18,7 +18,7 @@ from conftest import ROOT, git_listing, on_disk
 # No TARGET: its case runs every census over each tracked file no module file declares.
 
 _LAYOUT = importlib.util.spec_from_file_location(
-    "agentic_layout_for_censuses",
+    "iadd_layout_for_censuses",
     os.path.join(ROOT, "skills", "verify", "scripts", "test_layout.py"),
 )
 layout = importlib.util.module_from_spec(_LAYOUT)

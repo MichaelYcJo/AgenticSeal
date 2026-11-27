@@ -45,7 +45,7 @@ from test_tables import leaves_both
 
 TARGET = "lib/routing.py"
 
-routing = load_lib_module("routing.py", "agentic_routing")
+routing = load_lib_module("routing.py", "iadd_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
@@ -184,8 +184,8 @@ class Test_parse:
             assert routing.parse(text)["implementation"] == answer, answer
 
     def test_reads_the_answer_written_before_the_rename_as_unanswered(self):
-        """S2 of #1142: a declaration written before the plugin was renamed
-        AgenticSeal names the implementer by its old name, and that answer is
+        """S2 of #1142: a declaration written before #1051 renamed the plugin
+        and its agents names the implementer by its old name, and that answer is
         read as any other answer outside the vocabulary is: the declaration
         parses, and the axis is unanswered."""
         text = two_axis_text().replace(

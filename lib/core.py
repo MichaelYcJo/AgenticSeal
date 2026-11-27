@@ -21,7 +21,7 @@ naming the running plugin's root whichever core it is, because past the
 cap the harness keeps only a preview and the closing line would be lost.
 
 **A session in a repository with no `seal/` root receives nothing**: the
-root is what says the repository runs the AgenticSeal process
+root is what says the repository runs the IADD process
 (`optin.opted_in`), and a session doing other work pays for no core.
 
 **Where the session's repository is a clone of the running plugin, the file
@@ -60,13 +60,13 @@ CAP = 10_000
 # than this receives `TOO_LONG` once the output reaches `CAP`.
 ROOT_ROOM = 100
 
-HEADER = "AgenticSeal core from {path}, plugin {version}."
-MISSING = "AgenticSeal core: {path} is not a file, so no core was printed."
+HEADER = "IADD core from {path}, plugin {version}."
+MISSING = "IADD core: {path} is not a file, so no core was printed."
 # What the hook prints in place of a core whose whole output would reach
 # `CAP`. It opens as `MISSING` does and not as `HEADER` does, so a session
 # reads it as no core printed.
 TOO_LONG = (
-    "AgenticSeal core: printing {path} here would pass the harness's cap of "
+    "IADD core: printing {path} here would pass the harness's cap of "
     "{cap:,} characters on a hook's output, so no core was printed. Open that "
     "file whole before anything else."
 )

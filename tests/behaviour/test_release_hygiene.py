@@ -78,7 +78,7 @@ LOADED = (
 #
 # `\w` — a preceding word character makes the token part of a DIFFERENT
 # identifier rather than another spelling of this one. `py3.13.9` names
-# CPython, and no release of AgenticSeal makes that number wrong. That is the
+# CPython, and no release of IADD makes that number wrong. That is the
 # asymmetry with the trailing side, where `rc1` is a prerelease of the SAME
 # version and so is a timer: what precedes a version renames it, what follows
 # it qualifies it.
@@ -121,7 +121,7 @@ RECORDS_OF_A_MOMENT = (
 
 # A version that belongs to somebody else's product is above this plugin's
 # running version by accident of arithmetic, and it is not a timer: no release
-# of AgenticSeal makes it wrong. Pinned to the file it is written in, so the
+# of IADD makes it wrong. Pinned to the file it is written in, so the
 # exemption stays a fact about one comment rather than a hole the token can
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
@@ -132,12 +132,12 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/implement/scripts/seal.py", "4.4.17"): (
         "the zip specification's, APPNOTE's section number that `unsafe`'s "
         "docstring cites for a zip's `/`-separated names. It is no version, "
-        "and no release of AgenticSeal makes the number wrong"
+        "and no release of IADD makes the number wrong"
     ),
     ("skills/implement/scripts/seal.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
         "codes were measured. An exit code read off an unnamed git is not a "
-        "measurement, and no release of AgenticSeal makes the number wrong (#111)"
+        "measurement, and no release of IADD makes the number wrong (#111)"
     ),
     ("skills/verify/scripts/broad_gate.py", "2.54.0"): (
         "git's, named in `names_a_branch`'s docstring as the build on which "
@@ -154,7 +154,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "`pkg/cmd/pr/checks/aggregate.go` puts `CANCELLED` in the `cancel` "
         "bucket, the grounds for reading a cancelled check as not passed. The "
         "class is the `broad_gate.py` row's: a loaded file naming the tool "
-        "build a reading was taken on, and no release of AgenticSeal makes "
+        "build a reading was taken on, and no release of IADD makes "
         "the number wrong"
     ),
     # A pytest build and a pytest-xdist build had rows here, keyed on
@@ -166,7 +166,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/verify/scripts/payload_meter.py", "2.1.318"): (
         "Claude Code's, named in `imports_of`'s docstring as the build whose "
         "import reader was read for #1185, the source of each shape the meter "
-        "names as one it does not model. No release of AgenticSeal makes the "
+        "names as one it does not model. No release of IADD makes the "
         "number wrong"
     ),
     ("skills/verify/scripts/stamp.py", "2.1.287"): (
@@ -175,7 +175,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "(#717). The class is the git rows' above, a loaded file naming the "
         "tool build a measurement was taken on: the limit is the harness's to "
         "move, and the comment says the same probe at two sizes is the whole "
-        "re-measurement; no release of AgenticSeal makes the number wrong"
+        "re-measurement; no release of IADD makes the number wrong"
     ),
 }
 
@@ -1117,7 +1117,7 @@ def test_update_shows_what_changed_from_the_github_releases():
         # The git command the session runs for the repository.
         ("remote get-url origin", "where the repository is taken from"),
         # The path of the clone whose `origin` the command reads.
-        ("marketplaces/agenticseal", "the clone whose origin it is"),
+        ("marketplaces/iadd", "the clone whose origin it is"),
     ):
         assert needed in flat, f"step 3 does not carry {needed!r}: {why}"
     # `skills/update/SKILL.md` *3. Name what changed.* reads the releases

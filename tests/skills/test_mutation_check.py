@@ -172,7 +172,7 @@ SECONDS = r" \(\d+\.\ds\)$"
 
 def module():
     """The command, loaded afresh from its path, for a case that patches it."""
-    return load_module(ROOT / TARGET, "agentic_mutation_check")
+    return load_module(ROOT / TARGET, "iadd_mutation_check")
 
 
 def run(argv, capsys):
@@ -676,7 +676,7 @@ class Test_main:
         target.write_text("VALUE = 1\n", encoding="utf-8")
         other = tmp_path / "other"
         other.mkdir()
-        prefix = "agentic-prefix-703"
+        prefix = "iadd-prefix-703"
         monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
         planted = importlib.util.cache_from_source(str(target))
         # The prefix the clear reads is the environment's, as a session's would be.

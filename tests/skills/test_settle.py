@@ -82,7 +82,7 @@ settle = load_module(SCRIPT, "settle")
 plain = test_unverified_check.plain
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "agentic_rule_changes",
+    "iadd_rule_changes",
 )
 # The runner every git and `gh` command of `settle` starts through, the one
 # instance `lib/sibling.py#load` hands both scripts.
@@ -255,7 +255,7 @@ def configure(repo, *rows):
 # `main` in `Test_main`:
 #
 #   the dry run's merge order  `test_two_specs_on_one_sentence_are_one_group_in_merge_order`
-#   the release at a ref       `test_s5_settle_shows_a_work_item_released_under_agentic_seal`
+#   the release at a ref       `test_a_shared_run_from_a_subdirectory_reads_the_repositorys_top`
 #   the published note         `test_apply_keeps_a_directory_its_published_note_does_not_carry`
 #   the earlier settles        `test_the_judgments_earlier_settles_removed_are_read_from_the_history`
 #   `--from`                   `test_from_lists_every_document_of_a_named_directory_in_gits_order`
@@ -763,7 +763,7 @@ def answer_of(answers, args):
     return 0, json.dumps(answers.get("branches", {}).get(branch, [])) + "\n", ""
 
 
-GH_HOME = "AGENTIC_SETTLE_GH_STUB_HOME"
+GH_HOME = "IADD_SETTLE_GH_STUB_HOME"
 
 GH_STUB = (
     "import json, os, sys\n\n"
@@ -3460,7 +3460,7 @@ class Test_main:
         item = repo / "seal" / "threads" / "1700000001-alpha"
         (item / "frame").mkdir(parents=True)
         (item / "frame" / "design.md").write_text("# a\n", encoding="utf-8")
-        (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
+        (repo / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
@@ -3468,7 +3468,7 @@ class Test_main:
         )
         assert r.returncode == 2, r.stdout + r.stderr
         assert "has opted out" in r.stderr, r.stderr
-        assert "agentic-scratch" in r.stderr, r.stderr
+        assert "iadd-scratch" in r.stderr, r.stderr
         assert "has nothing to settle" not in r.stderr, (
             "a repository holding a work item is still being told it has none"
         )
@@ -3484,7 +3484,7 @@ class Test_main:
         repo = tmp_path / "repo"
         repo.mkdir()
         git_out(repo, "init", "-q")
-        (repo / ".git" / "agentic-scratch").mkdir()
+        (repo / ".git" / "iadd-scratch").mkdir()
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,

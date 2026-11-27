@@ -1,8 +1,8 @@
 {
-  "name": "agentic",
-  "displayName": "AgenticSeal",
+  "name": "iadd",
+  "displayName": "IADD",
   "version": "0.39.4",
-  "description": "The AgenticSeal process: agents frame, build, inspect and seal a change, and it ends in a seal bound to a commit.",
+  "description": "IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and it ends in an inspection bound to a commit.",
   "author": {
     "name": "MichaelYcJo"
   },

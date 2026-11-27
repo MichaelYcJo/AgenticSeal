@@ -42,7 +42,7 @@ FENCE = "`" * 3
 
 
 def counts():
-    return load(SCRIPT, "agentic_finding_counts_for_tests")
+    return load(SCRIPT, "iadd_finding_counts_for_tests")
 
 
 def finding(n, location, close_location=None, regression=None, prose="Why."):

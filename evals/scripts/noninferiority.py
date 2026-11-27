@@ -15,7 +15,7 @@ puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
 for is saved before anything reads it**: the eval's JSON, every run's trace
 and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
-additions under `agentic`: the preload's hashes and bytes, each run's cost
+additions under `iadd`: the preload's hashes and bytes, each run's cost
 (its trace's `result` event: `total_cost_usd`, `duration_ms`, `modelUsage`)
 and tool calls (every `tool_use` block in its trace), and whether the side
 was cut short. `run --from-raw` writes `--out` again from a saved side,
@@ -352,7 +352,7 @@ def save_side(raw, saved, meta):
 
 
 def annotate(saved):
-    """The side SAVED holds, with `agentic` added: the preload's hashes and
+    """The side SAVED holds, with `iadd` added: the preload's hashes and
     bytes, each run's cost and tool calls read from its saved trace, and
     whether the side was cut short. The round record a run's session
     printed stays in its trace and is not copied into the side.
@@ -367,13 +367,13 @@ def annotate(saved):
     for key, run in runs_of(result):
         rel = meta["traces"].get(key)
         trace = os.path.join(saved, rel) if rel else None
-        run["agentic"] = {
+        run["iadd"] = {
             "cost": run_cost(trace) if trace else None,
             "tool_calls": tool_calls(trace) if trace else None,
         }
         if run.get("error"):
             cut = True
-    result["agentic"] = {
+    result["iadd"] = {
         "agent": meta["agent"],
         "preload": meta["preload"],
         "preload_bytes": meta.get("preload_bytes"),
@@ -418,7 +418,7 @@ def run_side(a):
         return write_side(a.from_raw, a.out)
     if not a.agent:
         raise SystemExit("run needs --agent, or --from-raw")
-    work = tempfile.mkdtemp(prefix="agentic-")
+    work = tempfile.mkdtemp(prefix="iadd-")
     try:
         tree = os.path.join(work, "tree")
         if a.rev:
@@ -504,10 +504,10 @@ def side_numbers(result):
                 key = (name, g["name"])
                 if key in graders and g.get("passed"):
                     graders[key][1] += 1
-            costs.append((run.get("agentic") or {}).get("cost") or {})
-            calls.append((run.get("agentic") or {}).get("tool_calls"))
+            costs.append((run.get("iadd") or {}).get("cost") or {})
+            calls.append((run.get("iadd") or {}).get("tool_calls"))
     seconds = pooled(c.get("duration_ms") for c in costs)
-    meta = result.get("agentic") or {}
+    meta = result.get("iadd") or {}
     started = result.get("startedAt", "")
     digest = hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[
         :12

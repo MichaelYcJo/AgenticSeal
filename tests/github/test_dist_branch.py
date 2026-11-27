@@ -58,9 +58,7 @@ DIST = "refs/heads/dist"
 
 
 def brancher():
-    spec = importlib.util.spec_from_file_location(
-        "agentic_dist_branch_for_tests", SCRIPT
-    )
+    spec = importlib.util.spec_from_file_location("iadd_dist_branch_for_tests", SCRIPT)
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
     return loaded

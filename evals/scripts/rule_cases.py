@@ -2,7 +2,7 @@
 """Generate the fixture cases: a fixture repository per case, graded on
 outcome only.
 
-Each case is a small stdlib Python project opted into AgenticSeal (`seal/`
+Each case is a small stdlib Python project opted into IADD (`seal/`
 with its marker and a routing declaration), built by its scaffold, and a session that
 spawns one agent through the `Agent` tool the way production does. The
 graders read files and tool calls, never a judge, and each one asks
@@ -169,7 +169,7 @@ def routing(item, branch, planning, implementation):
 
 def write(path, text):
     """A scaffold line that writes TEXT to PATH, its directory made first."""
-    delimiter = "AGENTIC_EOF"
+    delimiter = "IADD_EOF"
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
     return f"mkdir -p \"$(dirname '{path}')\"\ncat > '{path}' <<'{delimiter}'\n{text.rstrip()}\n{delimiter}"
@@ -215,7 +215,7 @@ def base_project(item, branch, planning, implementation, extra_files=None):
 
 def orchestrate(agent, spawn, then):
     """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
-    return f"""You are the orchestrator of this repository. Spawn exactly one `agentic:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
+    return f"""You are the orchestrator of this repository. Spawn exactly one `iadd:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
 

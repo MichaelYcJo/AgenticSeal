@@ -246,7 +246,7 @@ def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):
 def load_rule_cases():
     """`evals/scripts/rule_cases.py` as a module, under a name of its own."""
     path = os.path.join(EVALS, "scripts", "rule_cases.py")
-    spec = importlib.util.spec_from_file_location("agentic_rule_cases_for_layout", path)
+    spec = importlib.util.spec_from_file_location("iadd_rule_cases_for_layout", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -365,7 +365,7 @@ def test_a_tool_used_grader_bounded_at_zero_can_pass():
 
 def test_a_behaviour_prompt_says_where_the_repository_is():
     """The plugin under test sits in a directory the session can see, and it
-    is itself an AgenticSeal repository: two of six inspector runs ran the gate
+    is itself an IADD repository: two of six inspector runs ran the gate
     there and one handed back that failure. Each prompt names the working
     directory as the repository."""
     gaps = []

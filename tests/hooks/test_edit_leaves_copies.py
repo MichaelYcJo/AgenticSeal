@@ -20,7 +20,7 @@ from test_core_start import start
 
 TARGET = "hooks/edit-leaves-copies.py"
 
-hook = load(TARGET, "agentic_edit_leaves_copies")
+hook = load(TARGET, "iadd_edit_leaves_copies")
 
 EVENT = "PostToolUse"
 ITEM = "1780000000-a-work-item"

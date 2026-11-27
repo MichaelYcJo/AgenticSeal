@@ -1,10 +1,10 @@
-# The AgenticSeal name and emblem
+# The IADD name and emblem
 
 The code in this repository is licensed under the MIT License, whose text
 is [`LICENSE`](LICENSE). That licence covers the code. It does not cover
-the AgenticSeal name, the owl emblem or its seal drawings.
+the IADD name, the owl emblem or its seal drawings.
 
-The AgenticSeal name, the owl emblem and its seal drawings are not licensed
+The IADD name, the owl emblem and its seal drawings are not licensed
 under the MIT License. All rights reserved. The drawings are:
 
 - every `.svg`, `.png` and `.ans` file under

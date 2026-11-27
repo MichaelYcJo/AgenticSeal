@@ -36,7 +36,7 @@ def module():
 
     Missing, this raises -- which is how every case below was seen red before
     the script existed (contract rule 15)."""
-    spec = importlib.util.spec_from_file_location("agentic_mutation_check", SCRIPT)
+    spec = importlib.util.spec_from_file_location("iadd_mutation_check", SCRIPT)
     loaded = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = loaded
     spec.loader.exec_module(loaded)

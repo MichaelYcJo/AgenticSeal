@@ -45,7 +45,7 @@ LIMIT = 88
 
 def _rules():
     path = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
+    spec = importlib.util.spec_from_file_location("iadd_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -71,7 +71,7 @@ POLICY_DOCUMENTS = set(rules.policy_documents(ROOT))
 
 def _fence_reader():
     path = os.path.join(ROOT, "lib", "blocks.py")
-    spec = importlib.util.spec_from_file_location("agentic_fence_rule_wrap", path)
+    spec = importlib.util.spec_from_file_location("iadd_fence_rule_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

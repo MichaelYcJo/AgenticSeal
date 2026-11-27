@@ -16,7 +16,7 @@ needs both, or the people already running the plugin are never told of it.
    what `claude plugin update` installs from the marketplace clone.
 2. **A `vX.Y.Z` git tag on the release commit**, which
    `.github/workflows/publish-release.yml` creates when the release reaches
-   `main`. `/agentic:update` reads the GitHub Releases, each published at
+   `main`. `/iadd:update` reads the GitHub Releases, each published at
    its tag (`skills/update/SKILL.md` step 3), so an untagged release carries
    no note there, and a user who updates is told nothing of what it brings.
 
@@ -131,7 +131,7 @@ hand fires the publish workflow too.
   outside plugins through the directory's submission and a nightly mirror of
   its review pipeline, and says per file whether the plugin has an entry, which
   commit it pins, and which of `main` and `dist` holds that commit. It exits 0
-  whatever it finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the AgenticSeal process* is against. The directory's own
+  whatever it finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the IADD process* is against. The directory's own
   state, whether the plugin is published there and at which version, is not
   among its answers, because no script can reach the directory; the command
   says so and prints the page a person opens. Nothing fires it; a person runs

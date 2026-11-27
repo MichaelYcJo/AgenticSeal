@@ -4,7 +4,7 @@ description: Declare that this repo ports behavior from another codebase. Finds 
 disable-model-invocation: true
 ---
 
-# /agentic:parity-setup, turn on parity mode
+# /iadd:parity-setup, turn on parity mode
 
 The user runs this command, and the session running it writes
 `seal/parity.json`, whose presence is the declaration that this repository ports
@@ -52,7 +52,7 @@ layout that predates the question, or an original that changes.
      root is `<repo>/seal/`, commit it. In local mode the root sits under the
      common git directory, where nothing is committed, so write it there and
      commit nothing. `Coordinate-trust exceptions` starts as an empty list.
-   - `~/.claude/agentic/parity-paths.json`: the machine-local checkout path,
+   - `~/.claude/iadd/parity-paths.json`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second
      checkouts resolve to one entry, as one more key of the object where the
      file already holds others. **This never goes in `seal/parity.json`**:

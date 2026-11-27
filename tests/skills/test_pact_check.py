@@ -66,8 +66,8 @@ SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
 # A second pact a signer's `Pact` key declares beside this one.
 BILLING = "git@example.com:org/billing.git"
-MAP = ".claude/agentic/pact-paths.json"
-MAP_REFUSED = "REFUSED ~/.claude/agentic/pact-paths.json — the map "
+MAP = ".claude/iadd/pact-paths.json"
+MAP_REFUSED = "REFUSED ~/.claude/iadd/pact-paths.json — the map "
 # Two remotes the map's cases name.
 MAP_A, MAP_B = "https://example.com/org/a", "https://example.com/org/b"
 # The sentence `seal pact` refuses a pact no `Pact signers` key signs in,
@@ -159,7 +159,7 @@ class Test_module:
             patched.setattr(os.path, "join", windows_join)
             windows = load_module(SCRIPT, "pact_check_with_windows_joins")
         _, why = windows.checkout(config, SIGNER, str(tmp_path / "nowhere"), {})
-        assert "~/.claude/agentic/pact-paths.json" in why, why
+        assert "~/.claude/iadd/pact-paths.json" in why, why
         assert "\\" not in why, why
 
     def test_the_wrapper_runs_the_script_from_any_directory(self, world):
@@ -191,10 +191,10 @@ class Test_shown:
                 "seal/config.json",
             ),
             (
-                r"C:\Users\x\.claude\agentic\pact-paths.json",
+                r"C:\Users\x\.claude\iadd\pact-paths.json",
                 None,
                 r"C:\Users\x",
-                "~/.claude/agentic/pact-paths.json",
+                "~/.claude/iadd/pact-paths.json",
             ),
             ("C:/Users/x/work/a\\b.md", r"C:\Users\x\work", None, "a/b.md"),
         ],
@@ -386,7 +386,7 @@ class Test_path_map:
     @pytest.mark.parametrize("shape", ["directory", "dangling link"])
     def test_refuses_a_map_that_is_there_and_will_not_read(self, world, shape):
         """Read as empty, every signer it names would be reported missing."""
-        where = world.home / ".claude" / "agentic" / "pact-paths.json"
+        where = world.home / ".claude" / "iadd" / "pact-paths.json"
         where.parent.mkdir(parents=True)
         if shape == "directory":
             where.mkdir()
@@ -434,7 +434,7 @@ class Test_checkout:
         assert why == (
             "no checkout of it was found on this machine: add "
             f'`"{PACT_URL}": "<the path of its checkout>"` to '
-            "~/.claude/agentic/pact-paths.json"
+            "~/.claude/iadd/pact-paths.json"
         )
 
 
@@ -782,7 +782,7 @@ class Test_check:
         assert (
             f"NOT FOUND {SIGNER_URL} — no checkout of it was found on this "
             f'machine: add `"{SIGNER_URL}": "<the path of its checkout>"` to '
-            "~/.claude/agentic/pact-paths.json"
+            "~/.claude/iadd/pact-paths.json"
         ) in out, out
         world.map(("git@example.com:org/orders-web.git", moved))
         world.web = moved
@@ -1145,7 +1145,7 @@ class Test_check:
     def test_refuses_a_map_that_will_not_read(self, world):
         """S4: the path is printed once, and the sentence reads after the
         words `the map` like every other refusal of the map."""
-        (world.home / ".claude" / "agentic" / "pact-paths.json").mkdir(parents=True)
+        (world.home / ".claude" / "iadd" / "pact-paths.json").mkdir(parents=True)
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out

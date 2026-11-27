@@ -19,7 +19,7 @@ TARGET = "skills/verify/scripts/coordinates.py"
 KERNEL = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 
 
-ec = load_module(KERNEL, "agentic_kernel_for_its_cases")
+ec = load_module(KERNEL, "iadd_kernel_for_its_cases")
 
 
 def regions(text, path):

@@ -63,7 +63,7 @@ exit 2, because a pact nobody signs is not a pact, and so is an entry that
 is not one remote URL. A checkout is found for each signer, in this order
 and with nothing guessed:
 
-  1. `~/.claude/agentic/pact-paths.json`, one JSON object from origin remote
+  1. `~/.claude/iadd/pact-paths.json`, one JSON object from origin remote
      URL to checkout path, kept per machine and never committed, keyed by
      remote URL compared normalised;
   2. every sibling directory of the pact's repository whose origin remote
@@ -73,7 +73,7 @@ A signer neither finds is reported with the map entry to add.
 
 The map is read by the standard library's JSON parser, and an entry it
 cannot use is refused at exit 2, printed as
-`REFUSED ~/.claude/agentic/pact-paths.json — the map <sentence>`: a map
+`REFUSED ~/.claude/iadd/pact-paths.json — the map <sentence>`: a map
 that is there and will not read or parse, one whose top level is not an
 object, an entry whose remote or path is empty or whose path is not a
 string, and a remote written as two keys, compared normalised, of which
@@ -149,10 +149,10 @@ except ImportError:
 console = sibling.load("lib/console.py")
 
 PACT_FILE = "pact.md"
-MAP_PARTS = (".claude", "agentic", "pact-paths.json")
+MAP_PARTS = (".claude", "iadd", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
-# `~/.claude\agentic\pact-paths.json`.
+# `~/.claude\iadd\pact-paths.json`.
 MAP = os.path.join(*MAP_PARTS)
 MAP_SHOWN = "~/" + "/".join(MAP_PARTS)
 

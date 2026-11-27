@@ -633,7 +633,7 @@ def missing_row(home):
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` *The Inspection Test*): a session that picks a "
         "command here checks its own choice.\n"
-        "Take it to whoever owns the repository. `/agentic:config` is where "
+        "Take it to whoever owns the repository. `/iadd:config` is where "
         "they answer it — it shows every key and adds this one — and "
         "`templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
@@ -901,7 +901,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
-        "`/agentic:config` is the door to the key."
+        "`/iadd:config` is the door to the key."
     ) + (f"\n{unread}" if unread else "")
 
 
@@ -965,13 +965,13 @@ def run(name, command, root, keep, shell=False, env=None):
 # `PYTHONPATH`. Beside this file, so a tree that ships its own gate ships its
 # own recorder with it (`gate_copy`).
 RECORDER_DIR = os.path.join(HERE, "pytest_record")
-RECORDER = "agentic_pytest_record"
+RECORDER = "iadd_pytest_record"
 # The four variables a measured run is handed, and the directory under the
 # kept output the records go in. The two the recorder reads are its own
 # module's names, written again here rather than imported, because the
 # recorder runs in the command's interpreter and this file is never loaded there.
-RECORD_KEY_VARIABLE = "AGENTIC_RECORD_KEY"
-RECORD_DIR_VARIABLE = "AGENTIC_RECORD_DIR"
+RECORD_KEY_VARIABLE = "IADD_RECORD_KEY"
+RECORD_DIR_VARIABLE = "IADD_RECORD_DIR"
 RECORDS = "records"
 # The kept name of the command's one run at the base.
 BASE_RUN = "suite-at-base"
@@ -995,7 +995,7 @@ def records_dir(keep):
 def recording_env(keep, key):
     """The environment a run the gate measures is handed: this
     process's own, with the recorder's directory first on `PYTHONPATH`,
-    ` -p agentic_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
+    ` -p iadd_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
     and the recorder's two variables set — the records directory, made here,
     and `key`.
 
@@ -1278,11 +1278,11 @@ EARNS_THE_WORD = (
 # pytest -- a part before its runner failed, the module's case A5, or a
 # command with no runner at all -- prints no pytest output; a pytest that
 # loaded no recorder prints its own; and the recorder's warning is
-# `agentic_pytest_record: no record written: <error>`.
+# `iadd_pytest_record: no record written: <error>`.
 NO_RECORD_CAUSES = (
     "the command started no pytest, because a part before its runner failed or "
     "it has none; none it started loaded the recorder; or the one that did "
-    "could not write its record and warned 'agentic_pytest_record: no record "
+    "could not write its record and warned 'iadd_pytest_record: no record "
     "written' in {kept}"
 )
 # Where the command's run at `HEAD` left no record carrying its key: the files
@@ -2130,7 +2130,7 @@ def gate(args, ascii_marks=False):
 # files' bytes to decide whether the panel's `gate` row says anything.
 # Absent, the running copy was invoked directly, or redirected by an installed
 # copy that sets no such variable.
-INVOKED_AS_VAR = "AGENTIC_GATE_INVOKED_AS"
+INVOKED_AS_VAR = "IADD_GATE_INVOKED_AS"
 
 # The last line of a recorded run that passed: the gate writes
 # `trail/gate.md` into the working tree and commits nothing, and CI reads HEAD.

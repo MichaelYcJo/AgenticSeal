@@ -114,7 +114,7 @@ def a_core(root):
     a frontmatter the hook leaves out and one accent so bytes ≠ chars."""
     write(
         str(root / ".claude-plugin" / "plugin.json"),
-        '{"name": "agentic", "version": "9.9.9"}\n',
+        '{"name": "iadd", "version": "9.9.9"}\n',
     )
     write(
         str(root / "skills" / "core" / "SKILL.md"),
@@ -379,7 +379,7 @@ class Test_measure:
         write(str(home / ".claude" / "CLAUDE.md"), "# my rules\n@rules/mine.md\n")
         write(str(home / ".claude" / "rules" / "mine.md"), f"mine {ACCENT}\n")
         printed = hook_output(root)
-        assert printed.startswith("AgenticSeal core from "), printed
+        assert printed.startswith("IADD core from "), printed
         raw, chars = len(printed.encode("utf-8")), len(printed)
         data = meter.measure(str(root), str(home))
         hooks = [f for f in data["session"]["files"] if f["share"] == "hook"]
@@ -421,7 +421,7 @@ class Test_measure:
             f"---\nname: core\n---\n\n# The core {ACCENT}\n\n" + "x" * 10_000 + "\n",
         )
         printed = hook_output(root)
-        assert printed.startswith("AgenticSeal core: printing "), printed[:200]
+        assert printed.startswith("IADD core: printing "), printed[:200]
         data = meter.measure(str(root), str(home))
         (hook,) = [f for f in data["session"]["files"] if f["share"] == "hook"]
         assert hook["named"] is True, hook

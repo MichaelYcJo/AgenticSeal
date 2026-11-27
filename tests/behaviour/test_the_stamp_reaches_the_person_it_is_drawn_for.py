@@ -27,7 +27,7 @@ GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 
 
 def stamp_module():
-    return load_module(STAMP, "agentic_stamp_for_its_values")
+    return load_module(STAMP, "iadd_stamp_for_its_values")
 
 
 def stamp(*args):
@@ -162,7 +162,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     )[1].split("**The stamp's `Stop` hook is the plugin's", 1)[0]
     for fact in (
         # The path of the refusal record, which a person opens or clears.
-        "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
+        "`<git-common-dir>/iadd-stamp-refused/<id>-<target>`",
         # The command that writes it, which the inspector runs.
         "`seal stamp --inspection`",
         # The matcher's floor, the number of characters a row's commit is
@@ -214,8 +214,8 @@ README_FACTS = (
     # The command that writes the stamp's values, and the two directories
     # the queue and a refusal leave under the git common dir.
     "`seal stamp --inspection`",
-    "`<git-common-dir>/agentic-stamp/`",
-    "`<git-common-dir>/agentic-stamp-refused/`",
+    "`<git-common-dir>/iadd-stamp/`",
+    "`<git-common-dir>/iadd-stamp-refused/`",
 )
 
 

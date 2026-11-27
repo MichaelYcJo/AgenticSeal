@@ -50,7 +50,7 @@ STAMP_VALUES = {
 
 @pytest.fixture
 def optin():
-    return load_lib_module("optin.py", "agentic_optin")
+    return load_lib_module("optin.py", "iadd_optin")
 
 
 class Test_repo_root:
@@ -574,7 +574,7 @@ class Test_opted_in:
         catching up with them.
         """
         home(repo)
-        (repo / ".git" / "agentic-scratch").mkdir()
+        (repo / ".git" / "iadd-scratch").mkdir()
         assert optin.opted_in(str(repo))
 
     def test_accepts_the_old_scratch_file_as_an_ordinary_file(self, optin, repo):
@@ -618,11 +618,11 @@ class Test_opted_in:
         for word in ('"config"', "'config'", "environ", "getenv"):
             assert word not in src, f"optin.py reads a key: {word}"
         subprocess.run(
-            ["git", "-C", str(repo), "config", "agentic.mode", "local"],
+            ["git", "-C", str(repo), "config", "iadd.mode", "local"],
             check=True,
             capture_output=True,
         )
-        monkeypatch.setenv("AGENTIC_MODE", "local")
+        monkeypatch.setenv("IADD_MODE", "local")
         assert not optin.opted_in(str(repo))
         assert optin.home(str(repo)) == ""
 
@@ -715,7 +715,7 @@ class Test_module:
         repo, _home = local
         stamp = load_module(STAMP, "stamp_for_the_scratch_marker")
         stamp.write_values(str(repo / ".git"), STAMP_VALUES)
-        marker = repo / ".git" / "agentic-scratch"
+        marker = repo / ".git" / "iadd-scratch"
         marker.write_text("", encoding="utf-8")
         stop = json.dumps({"hook_event_name": "Stop", "cwd": str(repo)})
 

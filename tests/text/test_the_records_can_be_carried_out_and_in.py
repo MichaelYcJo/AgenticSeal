@@ -43,6 +43,6 @@ def test_the_root_readme_and_its_template_say_it_too():
         assert "seal export" in text and "seal import" in text, "/".join(parts)
         # The file name of the state that must not travel, which a reader
         # leaves out of a copy.
-        assert "agentic-last-export.json" in text, (
+        assert "iadd-last-export.json" in text, (
             "/".join(parts) + " does not name the state that must not travel"
         )

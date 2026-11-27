@@ -7,11 +7,11 @@ or from what pytest printed.
 
 How it is loaded. The gate prepends this module's directory -- which holds
 nothing else, so the row's interpreter is shown nothing else of the plugin's
--- to `PYTHONPATH`, appends ` -p agentic_pytest_record` to `PYTEST_ADDOPTS`,
+-- to `PYTHONPATH`, appends ` -p iadd_pytest_record` to `PYTEST_ADDOPTS`,
 and sets two variables:
 
-  AGENTIC_RECORD_DIR   the absolute directory the record goes in
-  AGENTIC_RECORD_KEY   a token the gate makes fresh for each run it measures
+  IADD_RECORD_DIR   the absolute directory the record goes in
+  IADD_RECORD_KEY   a token the gate makes fresh for each run it measures
 
 With either variable absent no session records and nothing is written,
 which is why an input it cannot use passes rather than stops the run.
@@ -131,14 +131,14 @@ import warnings
 
 import pytest
 
-KEY_VARIABLE = "AGENTIC_RECORD_KEY"
-DIR_VARIABLE = "AGENTIC_RECORD_DIR"
+KEY_VARIABLE = "IADD_RECORD_KEY"
+DIR_VARIABLE = "IADD_RECORD_DIR"
 # The attribute the two hookwrappers set on a report: the node's own path.
 # The recorder's own name, so no field pytest or another plugin reads moves.
 # A plugin that writes a report whole writes it too: pytest-reportlog's
 # `--report-log` writes what `pytest_report_to_serializable` returns, so a
 # row's report log gains this key while the gate measures it.
-PATH_ATTRIBUTE = "agentic_path"
+PATH_ATTRIBUTE = "iadd_path"
 
 # Taken out at import, before any test of this process can read it, and
 # before any child process can inherit it.
@@ -262,7 +262,7 @@ class Recorder:
         with warnings.catch_warnings():
             warnings.simplefilter("always")
             warnings.warn(
-                f"agentic_pytest_record: no record written: {error}", stacklevel=2
+                f"iadd_pytest_record: no record written: {error}", stacklevel=2
             )
         stream, self.stream = self.stream, None
         if stream is not None:
@@ -398,5 +398,5 @@ def pytest_configure(config):
     if not key or not _directory:
         return
     config.pluginmanager.register(
-        Recorder(key, _directory, config), "agentic_pytest_record_session"
+        Recorder(key, _directory, config), "iadd_pytest_record_session"
     )

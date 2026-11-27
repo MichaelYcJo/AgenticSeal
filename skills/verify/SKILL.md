@@ -126,7 +126,7 @@ run.
 **A bare "the inspection" is ambiguous the moment more than one exists, so every
 reference to an INSTANCE names whose**: the inspector's inspection, the proofer's
 round record. The concept and its formats stay bare: the Inspection Test, a
-counterfeit mark, AgenticSeal itself. The shape to watch for is a sentence that
+counterfeit mark, IADD itself. The shape to watch for is a sentence that
 names one party and leaves the inspection anonymous: *the proofer's audit of
 the inspection* names an auditor and not what is audited.
 

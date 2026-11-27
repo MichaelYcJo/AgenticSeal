@@ -23,7 +23,7 @@ from conftest import flattened as flat
 # settle's commits carry.
 chain = load_module(
     os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
-    "agentic_chain_check_for_the_settle",
+    "iadd_chain_check_for_the_settle",
 )
 
 

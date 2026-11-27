@@ -1,7 +1,7 @@
 ---
 name: agent-contract
 description: |
-  The rules every AgenticSeal agent works under. Not a command to run: the
+  The rules every IADD agent works under. Not a command to run: the
   harness injects it into each agent at startup through the `skills:` list
   in the agent's definition, and an orchestrator session may load it to be
   bound by the same rules.

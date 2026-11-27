@@ -801,7 +801,7 @@ def is_terminal(stream):
 # and the one whose turn ends first draws what waits there
 # (`docs/checks/the-stamp.md` *The stamp*).
 
-VALUES_DIR = "agentic-stamp"
+VALUES_DIR = "iadd-stamp"
 PENDING = ".json"
 DRAWN = ".drawn.json"
 
@@ -964,7 +964,7 @@ GITCMD = "lib/gitcmd.py"
 # `python3` that cannot load this file, or a main session whose working
 # directory is outside this clone (`docs/checks/the-stamp.md` *The stamp*).
 QUEUED = (
-    "agentic: the stamp for {id} is queued in {path}; the plugin's `Stop` hook "
+    "iadd: the stamp for {id} is queued in {path}; the plugin's `Stop` hook "
     "draws it at the end of the turn, and where none appears, "
     "`seal stamp --from {command}` draws it"
 )
@@ -974,7 +974,7 @@ QUEUED = (
 # seen; in shared mode the pull request's check refuses it as stale too. It
 # names no command: nothing was queued to draw.
 NOT_ON_BRANCH = (
-    "agentic: no stamp was queued for {id}: the work item is not cleared on "
+    "iadd: no stamp was queued for {id}: the work item is not cleared on "
     "{branch}, since its inspection.md names {target}, which {branch} does "
     "not hold; a new inspection at the head of {branch} draws it"
 )
@@ -1135,7 +1135,7 @@ def cleared_before(chain, top, path, common=None, ident=None):
 # the fact, so nothing asks ancestry at read time: an ancestry check at read
 # time has regressed in each of four review rounds.
 
-REFUSED_DIR = "agentic-stamp-refused"
+REFUSED_DIR = "iadd-stamp-refused"
 # The shortest SHA two spellings are matched on (`_same_commit`); shorter
 # spellings match none.
 SHORTEST_SHA = 7
@@ -1160,7 +1160,7 @@ def _same_commit(one, other):
 def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `cleared` over
     `target` and drew nothing for it: an empty file
-    `<common>/agentic-stamp-refused/<ident>-<target>`, written by
+    `<common>/iadd-stamp-refused/<ident>-<target>`, written by
     `queue_for_written_inspection` at its branch refusal. Beside `VALUES_DIR`
     and not in it, so neither `pending`, `already_queued` nor `--stop` lists
     it. Per clone, because the refused row stands in this clone alone. A record

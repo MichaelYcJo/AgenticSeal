@@ -94,9 +94,9 @@ from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
 
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "agentic_rule_changes_for_citations",
+    "iadd_rule_changes_for_citations",
 )
-config = load_lib_module("config.py", "agentic_config_for_citations")
+config = load_lib_module("config.py", "iadd_config_for_citations")
 
 # `read` is how many citations of a repository file were read, `dangling` is
 # `[(citing file, line, cited file, cited text)]`, the cited text being the

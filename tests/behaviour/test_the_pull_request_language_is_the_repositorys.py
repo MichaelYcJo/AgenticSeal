@@ -259,7 +259,7 @@ def _config_reader():
     import importlib.util
 
     path = os.path.join(ROOT, *CONFIG_READER)
-    spec = importlib.util.spec_from_file_location("agentic_config_for_pr_lang", path)
+    spec = importlib.util.spec_from_file_location("iadd_config_for_pr_lang", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

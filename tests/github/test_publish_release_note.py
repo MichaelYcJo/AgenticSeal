@@ -88,7 +88,7 @@ def module(path, name):
 
 
 def publisher():
-    return module(SCRIPT, "agentic_publish_release_note_for_tests")
+    return module(SCRIPT, "iadd_publish_release_note_for_tests")
 
 
 class Done:
@@ -805,7 +805,7 @@ class Test_main:
             f"{LINK}\n{NOTES}\n\n- b\n\n</details>"
         ), fold
         assert body.index(mod.UPDATE_HEADING) < opens
-        assert "/agentic:update" in body
+        assert "/iadd:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
         self, monkeypatch, tmp_path

@@ -1,4 +1,4 @@
-# Contributing to AgenticSeal
+# Contributing to IADD
 
 ## Opening a pull request
 
@@ -55,7 +55,7 @@ a maintainer's run follows.
 
 ### What a contribution is not asked for
 
-This repository runs the AgenticSeal process on itself: work items under
+This repository runs the IADD process on itself: work items under
 `seal/threads/`, review rounds, a version that moves once per release. **A
 contribution is asked for none of it.** The version and milestone steps
 belong to a release and exit early on any base but `main`. The others run on
@@ -393,7 +393,7 @@ adds any mechanism by what it takes away:
   a question in front of a person, per session, and what each one costs when
   nobody is at the keyboard. Asking a person is the most expensive step
   `skills/core/SKILL.md` *The first value: efficient development through the
-  AgenticSeal process* names, so an interruption is a price paid against
+  IADD process* names, so an interruption is a price paid against
   that value rather than a neutral design choice. A change that adds one says why
   nothing cheaper reaches the same guarantee: a value read from a file, a
   default assumed in writing, a refusal the agent makes on its own. Where a

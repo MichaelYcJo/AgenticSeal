@@ -121,9 +121,9 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert env.get("PYTHONPATH") == (
         "${{ github.workspace }}/skills/verify/scripts/pytest_record"
     ), env
-    assert env.get("PYTEST_ADDOPTS") == "-p agentic_pytest_record", env
-    assert env.get("SUITE_RECORDS") == env.get("AGENTIC_RECORD_DIR"), env
-    assert env.get("SUITE_KEY") == env.get("AGENTIC_RECORD_KEY"), env
+    assert env.get("PYTEST_ADDOPTS") == "-p iadd_pytest_record", env
+    assert env.get("SUITE_RECORDS") == env.get("IADD_RECORD_DIR"), env
+    assert env.get("SUITE_KEY") == env.get("IADD_RECORD_KEY"), env
 
 
 def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():

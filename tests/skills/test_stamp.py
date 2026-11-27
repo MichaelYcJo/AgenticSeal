@@ -1060,7 +1060,7 @@ class Test_values_dir:
         """#1376: the queue is keyed by the clone and by nothing else, so the
         function takes the common dir alone and names no level below it."""
         common = str(tmp_path)
-        assert stamp.values_dir(common) == os.path.join(common, "agentic-stamp")
+        assert stamp.values_dir(common) == os.path.join(common, "iadd-stamp")
 
     def test_refuses_to_read_a_session_id_from_the_environment(self):
         """Nothing in the file reads an environment variable, the read the
@@ -1093,7 +1093,7 @@ class Test_drawn_path:
 class Test_write_values:
     def test_accepts_the_values_under_a_name_that_sorts_oldest_first(self, tmp_path):
         path = stamp.write_values(str(tmp_path), values(), now=7, key="9-abc")
-        assert path == str(tmp_path / "agentic-stamp" / "7-9-abc.json")
+        assert path == str(tmp_path / "iadd-stamp" / "7-9-abc.json")
         assert json.loads(pathlib.Path(path).read_text(encoding="utf-8")) == json.loads(
             json.dumps(values())
         )
@@ -1101,7 +1101,7 @@ class Test_write_values:
 
     def test_refuses_a_name_without_the_tree_where_no_key_is_given(self, tmp_path):
         path = stamp.write_values(str(tmp_path), values(tree="a/b"), now=3)
-        assert path == str(tmp_path / "agentic-stamp" / "3-b.json")
+        assert path == str(tmp_path / "iadd-stamp" / "3-b.json")
         later = os.path.basename(stamp.write_values(str(tmp_path), {}))
         moment, _, tail = later.partition("-")
         assert tail == "tree.json" and int(moment) > 10**18, later
@@ -1229,8 +1229,8 @@ class Test_already_queued:
         assert not stamp.already_queued(str(tmp_path), "7")
         stamp.write_values(str(tmp_path), {}, now=1, key="8-abc")
         stamp.write_values(str(tmp_path), {"tree": "7"}, now=2)
-        write(tmp_path / "agentic-stamp", "a-file", "")
-        write(tmp_path / "agentic-stamp" / "s-1", "3-7-abc.json", "{}")
+        write(tmp_path / "iadd-stamp", "a-file", "")
+        write(tmp_path / "iadd-stamp" / "s-1", "3-7-abc.json", "{}")
         assert not stamp.already_queued(str(tmp_path), "7")
 
 
@@ -1266,7 +1266,7 @@ class Test_inspection_rows:
 class Test_record_refusal:
     def test_accepts_an_empty_file_named_by_the_id_and_the_target(self, tmp_path):
         stamp.record_refusal(str(tmp_path), "1799", "deadbee")
-        recorded = tmp_path / "agentic-stamp-refused" / "1799-deadbee"
+        recorded = tmp_path / "iadd-stamp-refused" / "1799-deadbee"
         assert recorded.read_text(encoding="utf-8") == ""
 
     def test_refuses_to_raise_where_the_record_cannot_be_written(self, tmp_path):
@@ -1389,7 +1389,7 @@ def amended(item, text):
 def queued(common):
     """Every values file under COMMON, drawn or not."""
     found = []
-    for directory, _dirs, names in os.walk(pathlib.Path(common) / "agentic-stamp"):
+    for directory, _dirs, names in os.walk(pathlib.Path(common) / "iadd-stamp"):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
@@ -1589,9 +1589,9 @@ class Test_queue_for_written_inspection:
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_root_in_an_opted_out_repository_queues_nothing(self, shared):
         """`seal/` under a worktree is the root only while the repository
-        runs the AgenticSeal process; the throwaway marker takes it back."""
+        runs the IADD process; the throwaway marker takes it back."""
         uncommitted(shared)
-        write(shared.common, "agentic-scratch", "")
+        write(shared.common, "iadd-scratch", "")
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
@@ -1614,11 +1614,11 @@ class Test_queue_for_written_inspection:
         off = off_branch_commit(shared.repo)
         write(shared.repo, INSPECTION, inspection_text(off, shared.base))
         assert queue_written(shared) == [
-            f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
+            f"iadd: no stamp was queued for {ITEM_ID}: the work item is not "
             f"cleared on feat/x, since its inspection.md names {off}, which "
             "feat/x does not hold; a new inspection at the head of feat/x draws it"
         ]
-        refused = pathlib.Path(shared.common) / "agentic-stamp-refused"
+        refused = pathlib.Path(shared.common) / "iadd-stamp-refused"
         assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
         assert queued(shared.common) == []
         commit(shared.repo, "the stale row")
@@ -1796,10 +1796,10 @@ class Test_queue_for_written_inspection:
         named = given(local)
         said = queue_local(local)
         assert queued(local.common) == []
-        refused = pathlib.Path(local.common) / "agentic-stamp-refused"
+        refused = pathlib.Path(local.common) / "iadd-stamp-refused"
         if named:
             assert said == [
-                f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
+                f"iadd: no stamp was queued for {ITEM_ID}: the work item is not "
                 f"cleared on feat/x, since its inspection.md names {named}, which "
                 "feat/x does not hold; a new inspection at the head of feat/x "
                 "draws it"
@@ -2114,7 +2114,7 @@ class Test_drawn_at_stop:
     @pytest.mark.parametrize(
         "payload",
         [
-            {"agent_id": "a-1", "agent_type": "agentic:inspector"},
+            {"agent_id": "a-1", "agent_type": "iadd:inspector"},
             {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
             {"hook_event_name": "SubagentStop"},
         ],
@@ -2330,7 +2330,7 @@ class Test_main:
         (written,) = queued(item.common)
         real = os.path.realpath(written)
         line = (
-            f"agentic: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
+            f"iadd: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
             "`Stop` hook draws it at the end of the turn, and where none appears, "
             f"`seal stamp --from {stamp.quote(real)}` draws it"
         )
@@ -2380,7 +2380,7 @@ class Test_main:
         assert out == "", out
         assert err == f"seal stamp: {inspection}: {past_the_bound(asked[0])}\n", err
         assert queued(item.common) == []
-        assert not (pathlib.Path(item.common) / "agentic-stamp-refused").exists()
+        assert not (pathlib.Path(item.common) / "iadd-stamp-refused").exists()
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_stop_draws_the_payloads_clone_once_and_exits_0(

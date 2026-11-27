@@ -223,7 +223,7 @@ def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
     """Round 1's finding 4, and the premise #174 reversed. The broad gate's
     record holds one entry per full-suite run, so the count is read off it
     rather than remembered, and the row's source names that record's file:
-    `trail/gate.md` since the rename to AgenticSeal (#923, #1051). How the
+    `trail/gate.md` since the plugin was renamed in #1051 (#923, #1051). How the
     source describes the record's entries is the proofer's to read."""
     _label, source = labelled("Broad gate")
     # The path the orchestrator opens to read the count off.
