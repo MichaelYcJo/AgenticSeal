@@ -38,3 +38,36 @@ The sample took the seen-red claims of new behaviour (phase 1's import refusal, 
 target: 08e013bd against 35bef264
 Verdict: withheld reason: the orchestrator's part of the pull request body, `pr.md` line 8, reads `Closes #1651.`, and #1651 *Done when* also asks that CodeChallenge hold `iadd/` and pin 0.40.0 or later and that the comparison issue be opened, which `frame/design.md` *Scope* lines 55 and 62 leave outside this work item; `docs/releasing/branch-and-release.md` gives `Part of #1651` for a pull request that advances an issue without finishing it
 ```
+
+## The run at 3bd202e4
+
+Two commits follow `08e013bd`. `255cad8c` commits this file as the first run wrote it, and `3bd202e4` changes `pr.md` line 8 alone. Only `pr.md` is a coordinate of an earlier claim, so this run re-runs the claims on the gate and the body and reads the parties again. The other claims of the first run stand on files no commit since touched.
+
+### Claims re-run at 3bd202e4
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run's commit is followed only by the work item's records | `trail/gate.md:4`, `run: 551abeae against 35bef264` | `git -C <root> log --ignore-submodules=none --no-merges --name-only 551abeae..HEAD ^35bef264` | holds: `08e013bd`, `255cad8c` and `3bd202e4` follow, and they change `trail/gate.md`, `inspection.md` and `pr.md`, each under `iadd/threads/1795798115-the-plugin-is-named-for-the-seal/`. Executed |
+| The body file is `pr.md` above `## From the records` and the records' text below it | the spawn message's body file, composed by `bin/iadd pr-body` at `3bd202e4` | `bin/iadd pr-body iadd/threads/1795798115-the-plugin-is-named-for-the-seal --body <the body file> --check` | holds: exit 0, `matches`, and the body's line 8 reads `Part of #1651.`. Executed |
+| `255cad8c` commits this file unchanged | the spawn message | `git diff --stat 08e013bd 255cad8c`, and `git status --short` before this run's edit | holds: one file, 40 lines added, and the working tree was clean. Executed |
+| #1651's title opens with the pull request's prefix | the spawn message; `skills/commit-pr-convention/SKILL.md`, the paragraph opening **An issue's title takes the prefix** | `gh issue view 1651 --json title,state,comments` | holds: the title opens `feat:`, the issue is `OPEN`, and it has no comment. Executed |
+| The chain's arms hold before the verdict | the core's table, *Judgment is not licence to skip a party* | `python3 skills/code-review/scripts/chain_check.py --baseline 35bef264 --worktree --inspecting` | holds: run in the working tree once this block was written, it exited 0 and printed no arm, so it reads the block as `cleared` at a commit only records follow. Executed |
+
+### The parties at 3bd202e4
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the first run read it; no commit since touched `frame/` | the build, the last round, the changelog, the orchestrator's part | none |
+| the build | as the first run read it; no commit since touched code or a phase record | the design | none |
+| the last round | round 3 at `0509790d`, no finding; only records follow its target | the records diff since `0509790d`, which adds this file and changes `pr.md` line 8 to a line round 3 did not read. #1651 *Done when* and `frame/design.md` *Scope* lines 55 and 62 bear that line out | none |
+| the changelog | as the first run read it; unchanged | the tree | none |
+| the orchestrator's part of the pull request body | `pr.md` quotes the same six sentences and reads `Part of #1651.` on line 8 | #1651 *Done when*, whose CodeChallenge item and comparison issue come after this pull request; `frame/design.md` *Scope* lines 55 and 62; `docs/releasing/branch-and-release.md`, which gives `Part of #N` for a pull request that advances an issue without finishing it | none |
+
+The first run's `withheld` named `pr.md` line 8, and HEAD's line 8 is the repair it named. Nothing else changed since that run.
+
+One consequence lies outside this branch, and the verdict does not rest on it. #1651 stays open in the milestone `release: 0.40.0`, and no pull request of the release now carries a closing keyword for it. `.github/scripts/release_completeness_check.py` refuses the release pull request while the milestone claims an open issue the branch does not carry, and names each one. `docs/releasing/release-checklist.md` *Before starting* makes the milestone a planning act. So #1651's milestone, or a split of #1651, is the owner's or the orchestrator's to settle before the release pull request opens. Read.
+
+```iadd
+target: 3bd202e4 against 35bef264
+Verdict: cleared
+```
