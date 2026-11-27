@@ -679,7 +679,7 @@ class Test_older:
     def test_refuses_a_git_older_than_the_floor_naming_both(self, monkeypatch, version):
         """The line names the version git printed and `OLDEST`. 1.8.3.1 is
         the git of a long-term-support distribution that #1642 names as a
-        case. Seen red with the comparison against `OLDEST` removed."""
+        case. Seen red with the comparison against `OLDEST` turned round."""
         calls = starts(monkeypatch, (0, f"git version {version}\n", ""))
         assert gitcmd.older("/r") == (
             f"git {version} answers here, and the plugin's scripts need git "
