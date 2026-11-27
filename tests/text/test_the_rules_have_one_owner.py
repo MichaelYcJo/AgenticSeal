@@ -405,7 +405,7 @@ RULES = {
     # branch. Contract rule 19 holds the rule, and the two templates whose
     # placeholders the orchestrator and the framer fill with the release's
     # state cite it there.
-    "34 a change states a value outside its branch by role, or of a named moment": (
+    "34 a change names a state outside its branch by role, or of a named moment": (
         CONTRACT,
         (
             # The rule's number, which each link below names it by.
