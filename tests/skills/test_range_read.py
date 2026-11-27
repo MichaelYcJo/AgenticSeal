@@ -311,7 +311,9 @@ class Test_main:
     ):
         """In local mode the records stand under the git directory, where
         HEAD holds none, so the file reads them on disk and says so on the
-        line naming each, or names one that is not there."""
+        line naming each, or names one that is not there. The record is
+        written as bytes: a file the script reads on disk prints as it stands
+        there, and a text-mode write would put CRLF there on Windows."""
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
@@ -320,7 +322,8 @@ class Test_main:
         write(repo, "f.txt", "one\n")
         base = commit_everything(repo, "base")
         item = local_home(repo) / "threads" / "1700000000-a-work-item"
-        write(item, "routing.md", "# Routing, local\n")
+        item.mkdir(parents=True)
+        (item / "routing.md").write_bytes(b"# Routing, local\n")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, item, base, out)
         assert code == 0, said
