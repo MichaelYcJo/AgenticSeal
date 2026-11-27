@@ -3072,6 +3072,29 @@ class Test_inspection:
             "which this repository cannot resolve"
         ), why
 
+    def test_names_a_withheld_verdict_a_later_commit_follows_as_not_lapsed(
+        self, item, monkeypatch
+    ):
+        """*The three states*: only a `cleared` lapses. A `withheld` that a
+        later commit follows is refused twice, once for the commit, in words
+        that name no state, and once for the verdict as not cleared. Seen red
+        with the branch for a verdict other than `cleared` alone removed,
+        where the commit's refusal read as not cleared."""
+        root, sha = item
+        rel = f"{ITEM}/inspection.md"
+        write(root, rel, inspection_record(sha, "withheld reason: x"))
+        commit(root, "a withheld verdict")
+        write(root, "f.txt", "a repair\n")
+        repair = commit(root, "a repair after the verdict")
+        [(_p, _n, follows), (_q, _m, verdict)] = chain.inspection(
+            str(root), ITEM, "main"
+        )
+        assert follows == (
+            f"the inspection is behind HEAD: commit {repair[:8]} after it touches "
+            "`f.txt`, outside the closing records; the inspector runs again"
+        ), follows
+        assert verdict.startswith("the work item is not cleared: "), verdict
+
     def test_refuses_an_inspection_of_the_old_shape_naming_the_template(
         self, _item_template, monkeypatch
     ):
