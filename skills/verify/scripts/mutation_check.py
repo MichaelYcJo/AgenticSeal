@@ -106,8 +106,9 @@ virtualenv reads 3.13.
 
 **What it does not protect.** The original is held in this process's memory
 for the length of one run and nowhere else, so a `SIGKILL` delivered between
-the write and the restore leaves the mutation on disk. `agents/crafter.md`'s
-*Commit before you mutate* is what bounds that loss.
+the write and the restore leaves the mutation on disk.
+`skills/implement/SKILL.md` *Commit before you mutate, and restore from
+`seal mutate`'s copy* is what bounds that loss.
 
 Nothing is read from or written to git.
 """

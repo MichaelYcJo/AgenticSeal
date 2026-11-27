@@ -119,6 +119,21 @@ keep.
 
 ## Procedure
 
+**The builder is the party that builds a phase or makes a fix pass: the
+crafter or the orchestrator.** The orchestrator builds every phase and makes
+every fix pass where `routing.md` answers `Implementation` with
+`the session`, and in every route it makes the fix it writes after the last
+round (`skills/code-review/orchestration.md` *Orchestrator: a phase is a
+fresh crafter, and a fix pass resumes the implementer*). Each rule of this
+file that names the builder binds both. So does each rule of
+`skills/agent-contract/SKILL.md`, and a rule there that withholds an act
+from every agent, such as the broad gate of contract rule 2 or the acts
+contract rule 6 withholds, withholds it from the crafter and leaves the
+orchestrator the acts its own procedure gives it. Where a rule has the crafter name
+something in its hand-back for the orchestrator, the orchestrator that
+builds acts on it at the point its build meets it, by the step of its own
+procedure that acts on that hand-back.
+
 ### 1. Read the documents that outrank the code first
 
 Judgment precedence: **policy (`docs/`) > SDD (`seal/threads/`) > the ticket >
@@ -149,6 +164,15 @@ it or dropping it.
   executed, read, or unverified. What a fact with neither is, and why an
   aggregate is not a coordinate, is contract rule 5.
 
+**The frame is judged before it is built to.** A `frame/design.md` and a
+`frame/plan.md` another party drew are a drawing, and a drawing can be wrong
+about the tree: a path its row states, a list it hands the builder, a file
+it says exists. The builder checks them after the requirements read, before
+anything is spent. A *no* goes to `trail/phases/phase-N.md`'s
+`## What this phase found`, and the crafter also names it in its hand-back
+and never sends it back to the framer. The builder builds to the part that
+holds.
+
 ### 2. Implement test-first, and let each rule name its test
 
 **Each scenario that adds behaviour is built the same way: its case first,
@@ -164,6 +188,24 @@ under `docs/`, or in the *Verifiable how* cell of the design's scenario table â€
 so the case is the record that the rule holds, and CI running the suite is
 the check. A rule no case can hold carries no check line, and review reads
 it. The grammar is `skills/settle/rule-changes.md` *A rule has one shape*.
+
+**A new test starts from its group.** Before writing a case, the builder
+reads the tests of the function it covers and any pair a duplicate check in
+the repository names, and adds the case to that group; a case that covers
+nothing its group does not already cover is not added. In a repository
+whose test files declare `TARGET`, `seal layout --pairs` is that check.
+
+**The build holds to the request.** It adds no speculative feature, no
+drive-by refactor and no TODO stub in a core path.
+
+**Find the runner, and type the narrow form.** A wrapper in `bin/`, or
+whatever the contribution guide names first, is cheap on the second call.
+The builder types the one command the *Phase boundary* row or the *Review
+rounds 1..n* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad
+and once* names, never the whole suite (`docs/running/the-run.md` *The
+handoff*). Asking whether the suite catches something is a coverage probe,
+a different act: the builder runs it over the module that should catch it
+and reports it as a probe.
 
 **Commit at the smallest step that stands on its own.** No gate stops a
 commit: the routing is checked at the pull request
@@ -199,9 +241,75 @@ saved, so the party that commits runs them. The project's own package
 manager wins; where it names none, Python runs through `uv` and Node.js
 through `pnpm`.
 
+**Commit before you mutate, and restore from `seal mutate`'s copy.** A
+revert through `git checkout -- <file>` restores the committed state and
+takes every uncommitted fix in that file with it; `seal mutate` holds the
+bytes it read and compares the hash after the restore.
+
+**Mutation-test every unit that adds behaviour, one command each.** The
+builder breaks one unit, runs the cases that cover it, and watches one go
+red; a unit that stays green while broken has nothing behind it. A unit
+only renamed or moved adds nothing to break, and owes no run
+(`skills/verify/SKILL.md` *The narrow command still has to be able to
+fail*).
+
+```
+seal mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
+```
+
+Each run is bounded at 300 s unless `--timeout` says otherwise, and a
+timed-out run is a result to report. Where the runner starts pytest-xdist
+workers by default, the builder adds `-p no:xdist` for a handful of cases.
+`skills/verify/seal-mutate.md` carries the verdicts and their exit codes.
+
 **Three failed fixes stop the work.** The same bug through three failed
 fixes is the architecture talking: stop, and the next step is the
 architecture question, not a fourth fix.
+
+**Before the builder closes a phase or a fix pass, its range and the work
+item's records are read whole against HEAD.** After its last commit the
+builder runs `seal range <item> --from <commit> --out <file>`. `<item>` is
+the work item's directory, `--from` names the commit the range starts
+after, HEAD as the phase began or the commit
+`skills/implement/fix-pass.md` *The narrow set, then the read of the range*
+names for a pass, and `<file>` stands under the builder's scratch directory
+(contract rule 17). The builder reads that file to its last line. It holds
+every hunk of the range with the paragraph or unit around it, a case's
+name, docstring and comments among them, and then each file of
+`seal/threads/<work-item-id>/` that states the present, whole: `routing.md`,
+the three frame files, `gaps.md` and `changelog.md`. A coordinate or a
+statement of the tree in a frame section dated to the commit the framer
+read states that commit, not the present, and a sentence there that says
+what the work does or concludes states the present (*Document layout â€” two
+roots, three lifetimes* above). The builder fixes in its range every
+statement HEAD contradicts in a file it writes: the code and tests of the
+work, `gaps.md`, `changelog.md`, the phase record and the phase's Status
+cell in `frame/plan.md`. A statement HEAD contradicts in `routing.md`,
+or in a frame line the builder does not write, the crafter names in its
+hand-back with its coordinate and the fact HEAD gives, and the orchestrator
+folds it in a commit of its own, as `skills/implement/orchestration.md`
+*Orchestrator: the order inside a ticket* states; the orchestrator that
+builds folds it in such a commit itself. That set is closed, and reading it
+whole is contract rule 12's second method, so none of it is handed on as a
+sample. Then the builder finds the other places across the tree that state
+each rule its range reworded or removed, by `git grep` on its words and by
+its `check:` target, and corrects each or says in the account why it
+stands; that list is a sample, and the account calls it one and says where
+the part it did not reach stands. What the builder did not finish goes to
+`gaps.md` `## Not done` with why. Neither that nor the part a sample did not
+reach is the proofer's share.
+
+**The account of that read quotes its commands and describes no read in
+other words.** It names the commit the read ran at, which is HEAD after
+the builder's last build or fix commit. It quotes, as typed, the
+`seal range` line with the lines the command printed, each command that
+printed a correction's hunk after the commit that made the correction, and
+each `git grep` of the sample. Then it gives each statement the read leaves
+standing, with why, and where the part the sample did not reach stands.
+The crafter writes the account in its hand-back. The orchestrator writes it
+in `trail/phases/phase-N.md` `## What this phase found` for a phase, which
+it commits last, and for a fix pass where `skills/implement/fix-pass.md`
+*The narrow set, then the read of the range* puts it.
 
 ### 3. The SDD file set
 

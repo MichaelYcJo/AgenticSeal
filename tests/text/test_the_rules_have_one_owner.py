@@ -457,6 +457,50 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         assert fact in section, f"the fix-pass section no longer says {fact!r}"
 
 
+def test_the_orchestrator_builds_each_phase_where_the_session_builds():
+    """#1628. The section said each phase is built by a fresh crafter spawn
+    and said nothing of a phase where `routing.md` answers `Implementation`
+    with `the session`, so the orchestrator that built one held no rule of
+    the crafter's. One sentence names the routing row, its answer and the
+    builder's procedure the orchestrator then builds by; which acts that
+    procedure asks is the proofer's to read."""
+    text = flat(*ORCH)
+    section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
+    named = [
+        s
+        for s in sentences(section)
+        # The routing row and its answer, and the section the orchestrator
+        # builds a phase by, which its reader opens.
+        if "`Implementation`" in s
+        and "`the session`" in s
+        and "`skills/implement/SKILL.md` *Procedure*" in s
+    ]
+    assert named, (
+        "no sentence of the section sends the orchestrator to build a phase "
+        "itself where the session builds"
+    )
+
+
+def test_the_order_binds_the_contract_to_the_orchestrator():
+    """#1629 and #1620's withheld verdicts. Two sentences gave two readings
+    of which contract rules reach the orchestrator, and the orchestrator's
+    records stated facts of commits that no command it ran had printed.
+    Step 1 of the order names the contract, and the rules that bind the
+    orchestrator's records in every route; the rest of the step is the
+    proofer's to read."""
+    order = the_order()
+    step = order[order.index("1. ") : order.index(" 2. ")]
+    for fact in (
+        # The file the orchestrator opens beside the core.
+        "`skills/agent-contract/SKILL.md`",
+        # The two rules by which a fact the orchestrator writes is one a
+        # command printed or a file showed.
+        "contract rule 4",
+        "contract rule 5",
+    ):
+        assert fact in step, f"step 1 of the order no longer says {fact!r}"
+
+
 REGRESSION = "### A regression is routed by comparing the fix with the frame"
 
 
