@@ -30,6 +30,11 @@ and, in `pr.md`, above the `Closes` lines:
 - "The title takes `fix:`" (`frame/plan.md` *Judgments of the run*, the third row of 2026-11-27)
 ```
 
+```seal
+verdict: fixed 84522e154
+answer: The orchestrator wrote the round's paste-ready row as the third row of 2026-11-27 in `frame/plan.md` *Judgments of the run*, committed in the framer's fold `84522e154`, and `b3e04afcc` adds the round's quote of it to `pr.md` above the `Closes` lines. `seal pr-body` composed the body at `b3e04afcc` without refusing the quote (executed).
+```
+
 ### 2. The new rule on what a row states of a commit binds the fold's row alone, where the frame and the changelog state it of every row
 
 ```seal
@@ -80,6 +85,11 @@ Why it matters: the row reads "the orchestrator sent the framer the corrections 
 | 2026-11-27 | Before the build, the orchestrator sent the framer the corrections of #1641's and #1639's bodies and the commits `ecbbfa0a9`, `6a1347cc5` and `5c7781602` of 0.39.2's lane B, to fold; the fold is `dc13d16d7` | Frame sentences cited issue bodies the orchestrator had corrected the same day, and a reading the frame left unverified had commits to open | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** |
 ```
 
+```seal
+verdict: fixed 84522e154
+answer: The orchestrator rewrote the first row in place to the round's paste-ready text, which names `ecbbfa0a9`, `6a1347cc5`, `5c7781602` and `dc13d16d7` as coordinates and states nothing of what they changed, uncommitted, and the framer committed it with its fold `84522e154`. The order the round names, the row written after the fold it records, is not undone; the fourth row, for this round's decisions, was written before the framer's fold and committed with it. The orchestrator also rewrote the second row's grounds, which no finding named: they said a frame coordinate is the framer's to fold, where the paragraph opening **The framer writes a decision's fold** gives a statement a crafter's hand-back names to the orchestrator's own fold.
+```
+
 ### 5. The phase record says the frame holds against the tree at `04ef48112`, where three of its line coordinates did not
 
 ```seal
@@ -114,6 +124,12 @@ Why it matters: the `to` adds to `docs/running/the-run.md` *The run* this rule: 
 ```
 
 and the S5 row's *Then* cell: "then the section says that #1639 kept the rows as text and cites the skill for what a row states of a commit".
+
+```seal
+verdict: fixed 84522e154
+answer: The framer folded the round's paste-ready `to` into `frame/design.md` `## Rule changes`, with S5's *Then* cell, *Scope* item 5 and the paragraph under `## Removes`, at `84522e154`. The policy root then holds the decision and cites `skills/implement/orchestration.md`'s paragraph for the rule.
+```
+
 
 ## Confirmations
 
