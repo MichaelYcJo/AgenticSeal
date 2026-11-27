@@ -221,25 +221,38 @@ class Test_main:
         self, tmp_path, monkeypatch, capsys
     ):
         """A path that is not a `.md` file is printed as `git diff -W`
-        prints it, so a changed line deep in a function brings the whole
-        function, its `def` line among it, past the blank line the
-        function's body holds above the change."""
+        prints it, its hunk header's function line among it, so a changed
+        line deep in a function brings the whole function past the blank
+        lines its body holds on either side of the change. A change to a
+        function's first line and one to its last, where the file ends,
+        each bring the function whole as well."""
+
+        def unit(body):
+            return "import os\n\n\ndef unit():\n" + "\n".join(body) + "\n"
+
         body = [f"    step_{n} = {n}" for n in range(1, 12)]
-        body[3] = ""
-        code_text = "def unit():\n" + "\n".join(body) + "\n    return step_1\n"
-        repo, base = built(tmp_path, {"lib/unit.py": code_text})
-        body[6] = "    step_7 = 70"
-        write(
-            repo,
-            "lib/unit.py",
-            "def unit():\n" + "\n".join(body) + "\n    return step_1\n",
+        body[3] = body[8] = ""
+        renamed, tail = "lib/renamed.py", "lib/tail.py"
+        repo, base = built(
+            tmp_path,
+            {
+                "lib/unit.py": unit(body),
+                renamed: "def first():\n    one = 1\n\n    two = 2\n",
+                tail: "def last():\n    three = 3\n\n    four = 4\n",
+            },
         )
+        body[6] = "    step_7 = 70"
+        write(repo, "lib/unit.py", unit(body))
+        write(repo, renamed, "def first_renamed():\n    one = 1\n\n    two = 2\n")
+        write(repo, tail, "def last():\n    three = 3\n\n    four = 40\n")
         head = commit_everything(repo, "change")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 0, said
-        whole = git(repo, "diff", *PLAIN, "-W", base, head, "--", "lib/unit.py").stdout
-        assert whole in written(out)
+        text = written(out)
+        for path in ("lib/unit.py", renamed, tail):
+            whole = git(repo, "diff", *PLAIN, "-W", base, head, "--", path).stdout
+            assert whole in text
 
     def test_accepts_a_hunk_inside_a_docstring_widened_to_its_paragraph(
         self, tmp_path, monkeypatch, capsys

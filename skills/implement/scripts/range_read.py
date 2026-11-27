@@ -311,7 +311,6 @@ def _paragraphs(new, hunks, wide=()):
         for _o, _oc, start, length, _b, _line in wide:
             if start <= at <= start + length - 1:
                 first, last = min(first, start), max(last, start + length - 1)
-                break
         if spans and first <= spans[-1][1] + 1:
             spans[-1][1] = max(spans[-1][1], last)
             spans[-1][2].append(hunk)
