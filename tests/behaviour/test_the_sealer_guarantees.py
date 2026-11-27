@@ -243,9 +243,10 @@ class TestDefinition:
         assert missing == [], missing
 
     def test_step_4_reads_a_records_only_fix_over_its_diff(self):
-        """#1615, *Scope* item 2. A `fixed` finding of the last record
-        located in the work item's records alone, whose commit touched them
-        alone, has the sealer as its only reader, so step 4 reads the
+        """#1615, *Scope* item 2. A `fixed` finding of the last record whose
+        own `location:` names a place in the work item's records, and whose
+        commit touched them alone, has the sealer as its only reader by the
+        core's row *No fix that no round reads* (#1632), so step 4 reads the
         records' diff since the last record's target and the other
         statements of each fact it changed, and withholds where HEAD
         contradicts a sentence. Which sentences that reads, and how a dated
@@ -261,6 +262,33 @@ class TestDefinition:
             # The verdict word `lib/fields.py` reads, beside what it names.
             "a sentence HEAD contradicts, are each a disagreement like any "
             "other, and a `withheld` reason naming its coordinate",
+        ]
+        missing = [phrase for phrase in pinned if phrase not in step_4]
+        assert missing == [], missing
+
+    def test_step_4_reads_the_path_outside_the_records_a_records_only_fix_left(
+        self,
+    ):
+        """#1632, *Scope* items 3 and 5. The core's row gives the sealer a
+        records-only fix of a finding that names a record beside a path
+        outside the records, so step 4 names the row in place of restating
+        its condition, opens that path, and withholds where the finding
+        asked for a change there that the fix did not make."""
+        step_4 = between(SEALER, "4. **", "5. **")
+        pinned = [
+            # The row that gives the fix to the sealer, in the words every
+            # file that names it uses.
+            "the row *No fix that no round reads* of `skills/core/SKILL.md` "
+            "*Judgment is not licence to skip a party* gives its fix to you",
+            # The read of the path the fix left as the last round read it.
+            "Where the finding's `location:` names a path outside "
+            "`seal/threads/<item>/`, the fix left that path as the last round "
+            "read it: open it at HEAD and read whether the finding asked for a "
+            "change there.",
+            # The verdict word `lib/fields.py` reads, beside what it names.
+            "A change the finding asked for outside the records and did not "
+            "get is a disagreement like any other, and a `withheld` reason "
+            "naming the path.",
         ]
         missing = [phrase for phrase in pinned if phrase not in step_4]
         assert missing == [], missing

@@ -150,6 +150,24 @@ What you open outside it anyway you report like anything else, and a round
 told the run is capped still reports what it finds at the severity it finds
 it.
 
+**A round after a merge of the base reviews the branch's own commits and
+the merge's resolution, and holds the work item against the merged tree.**
+Where a verifying round's range `<a>..<b>` holds a merge of the base, the
+code the round reviews is what the branch's own commits changed, which
+`git log --no-merges -p <a>..<b> ^<base>` prints, and what the merge's
+resolution changed, which `git show <merge>` prints. What the merge brought
+in from the base is other work items' text, which the row *No pull request
+without a seal* of `skills/core/SKILL.md` *Judgment is not licence to skip
+a party* guaranteed at their own pull requests, and the round reviews none
+of it. That text is part of the target all the same. The round holds this
+work item's diff and records against the tree as merged, the policy root
+as the merge left it among it. A unit of the diff or a sentence of the
+records that the merged tree contradicts is a finding located in this work
+item's file, with the merged-in text on `evidence:`. No part of this read
+is left to the settle, which writes only the sections the released
+designs' `## Rule changes` name (`skills/settle/rule-changes.md` *Rule
+changes*).
+
 **Each new test is read against its group.** A test the diff adds is read
 against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
