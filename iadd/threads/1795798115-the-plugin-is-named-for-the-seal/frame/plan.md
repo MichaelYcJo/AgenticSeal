@@ -60,7 +60,7 @@ Each phase renames in the Korean documents the words of its own family (Scope it
 | 6 | Scope item 6 | the cases of the renamed `tests/skills/test_iadd.py` and of `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`; `bin/iadd --help` lists the subcommands; search A8 prints only `evals/behaviour/proofer/seeded-ea73e94f/prompt.md` line 5, a past title the seeded case quotes, and `seal/follow-up.md` line 48, a row about the records of earlier releases | 8abc77ab |
 | 7 | Scope item 7 | the cases of `tests/lib/test_optin.py`, `tests/skills/test_chain_check.py` and the files of `frame/design.md` G7; `git ls-tree HEAD -- seal` prints nothing; `bin/iadd mode --check` exits 0; search A3 prints nothing; search A4 prints the lines of `skills/settle/SKILL.md` that name `Seal-Routing:` as the trailer of commits before this release, and the lines that name the older plugin's root `.specseal/`, which the pattern `seal/` matches inside, and no other line | f1e62111 |
 | 8 | Scope item 8 | `bin/iadd fold` exits 0; the cases of `tests/behaviour/test_a_cited_section_stands_in_its_file.py`; `git grep -n -e '^## Naming' -e '^## 이름' -- docs/layout` prints nothing | a1175398 |
-| 9 | Scope item 10 | searches A1 to A9 give the results the acceptance table of `frame/design.md` states; `.claude-plugin/plugin.json`'s `version` is the one the command of *Operational impact* prints | |
+| 9 | Scope item 10 | searches A1 to A9 give the results the acceptance table of `frame/design.md` states; `.claude-plugin/plugin.json`'s `version` is the one the command of *Operational impact* prints | 82b5fe46 |
 
 ## Overlap with the release
 
