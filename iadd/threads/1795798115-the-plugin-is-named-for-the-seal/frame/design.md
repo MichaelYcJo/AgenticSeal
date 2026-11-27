@@ -199,13 +199,13 @@ A file or an identifier named for the seal that this table does not name follows
    - no party approves its own work: `skills/core/SKILL.md` *Each agent judges its own target, independently of the others*, and `docs/running/the-agent-set.md` *The party that draws a contract is not the party that executes it*;
    - judgment where meaning is the question, and a script for the rest: `skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a script answers the rest*;
    - a judgment stands on a source document and is written down with it: `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both*;
-   - the inspection is bound to one commit: `docs/forms/the-inspection.md`;
+   - the inspection is bound to one commit: `docs/forms/the-inspection.md` *The three states*;
    - a person is asked once, before the first edit: `skills/core/SKILL.md` *Asking a person is the most expensive step*;
-   - four invariants hold the chain: the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party*;
+   - invariants hold the chain: the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party*;
    - a mechanism stays only while what it caught outweighs its cost: `skills/core/SKILL.md` *The rule a mechanism is kept against*;
    - a document is cut by who opens it: `skills/core/SKILL.md` *A document is cut by who opens it and at which step, so a party opens only what its step needs*.
 3. **The names.** The table that *Naming* held, for IADD: the product, `iadd`, `iadd/`, `iadd/threads/<id>/`, the agents, the inspection and its three states, the thread, the settle and `IADD-Routing:`, each with its one sentence.
-4. **The record forms.** One row per record of a work item, with the document that owns its form: `docs/forms/the-round-record.md`, `docs/forms/the-inspection.md` and `docs/layout/the-record-layout.md`.
+4. **The record forms.** The records of a work item, each with the document that owns its form: `docs/forms/the-round-record.md`, `docs/forms/the-inspection.md` and `docs/layout/the-record-layout.md`.
 
 ## Rule changes
 
@@ -219,7 +219,7 @@ A file or an identifier named for the seal that this table does not name follows
 | the second shared root, its name and the second place of the root's discovery | `lib/optin.py#SECOND_HOME`, `lib/optin.py#home_paths`, `lib/optin.py#home_name_in`, `lib/optin.py#home_at` | nothing owns it. It existed because `seal` is a common directory name, and #1651 decides `iadd` is not |
 | the cases and the sentences that state the second root | `tests/lib/test_optin.py`, and each file search A3 prints for `agentic-seal` at `e904fbce` | they go with the unit they pin |
 | the `renames` map | `.claude-plugin/marketplace.json` | nothing owns it. #1651 *How the repositories move* keeps no rename entry |
-| the *Naming* section, in both editions | `docs/layout/one-root-by-lifetime.md` *Naming*, `docs/layout/one-root-by-lifetime.ko.md` *이름* | `docs/method/iadd.md` *The names*; the Korean names stand where `README.ko.md` introduces the process |
+| the *Naming* section, in both editions | `docs/layout/one-root-by-lifetime.md` *Naming*, `docs/layout/one-root-by-lifetime.ko.md` *이름* | `docs/method/iadd.md` *The names*, which holds the Korean names |
 | the old spelling of each form | each row of *Formats a script reads exactly* | the row's *After* cell. No reader keeps the old spelling, by G2 |
 | the files named for the sealer and the guarantee | `agents/sealer.md`, `docs/forms/the-guarantee.md`, `templates/records/sdd-guarantee.md`, `evals/behaviour/sealer/` | `agents/inspector.md`, `docs/forms/the-inspection.md`, `templates/records/sdd-inspection.md`, `evals/behaviour/inspector/` |
 | this repository's own `seal/` | `seal/` | `iadd/`, in the commit of Scope item 7 |
