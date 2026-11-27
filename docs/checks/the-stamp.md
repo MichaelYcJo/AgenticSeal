@@ -91,10 +91,7 @@ the person's settings. The command exits 0 whatever happens, through its
 closing ` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going;
 the `py -3` half runs where the `python3` half exits non-zero. The hook runs at the end of every turn in every
 repository; where nothing is pending in the clone of the payload's `cwd`, it
-returns before the opt-in is read. Where the launcher
-`skills/update/SKILL.md` *4b. The launcher an earlier release wrote* names
-still runs beside the plugin's hook, a file is drawn once, since drawing
-claims the file first.
+returns before the opt-in is read.
 check: tests/skills/test_seal_stamp.py
 
 **`--stop` holds its whole message under a limit named in the code, and steps
@@ -155,8 +152,11 @@ and records it, and the new audit it asks for draws again. No guard can tell
 that copy from a stale row the same clone wrote after a push and a rebase.
 Nothing draws, and nothing says so, where the main session's working
 directory is outside the clone the stamp was queued in. Nothing draws either
-where the `python3` the harness finds cannot load `seal_stamp.py`, and the
-command still exits 0. Where a file was written, the line
+where the `python3` the harness finds cannot load `seal_stamp.py`, or
+where the disc's mark sprite, `skills/verify/scripts/seal-mark.txt`, is
+malformed, and the command still exits 0. A values file the sprite kept
+from drawing stays pending, and `seal stamp --from` refuses it with a line
+naming the sprite's fault until the sprite is repaired. Where a file was written, the line
 `--guarantee` printed names `seal stamp --from <path>`, and a stamp that did
 not appear is drawn by hand from it, once. Where none was, the pull request's
 check is what says the work item was sealed.
