@@ -62,6 +62,11 @@ The orchestrator rewrites its row at `frame/plan.md:82` in place, since its grou
 
 The fix crosses no OS boundary and changes no code. `docs/running/what-a-script-gates.md` is the policy root, which this work item writes only through the settle, so the fix leaves that file as it stands.
 
+```seal
+verdict: fixed 35bc3d827
+answer: The framer folded the round's `change` of `docs/running/what-a-script-gates.md` *Which gate a script holds* into `frame/design.md` `## Rule changes`, at `:144-157`, its `from` checked to stand once in the policy file with whitespace folded, and the orchestrator's round-3 row at `frame/plan.md` is the round's paste-ready text, committed in the same commit beside the row for this fold. The commit touches `frame/design.md` and `frame/plan.md` alone. The evidence line's first search, run again at `35bc3d827`, prints `docs/running/what-a-script-gates.md:31` and `:43`, which the new `change` rewrites at the settle and whose second line names a key nobody has measured, which stands; `docs/releasing/release-checklist.md:340`, which is on a reload and stands; and `skills/implement/scripts/range_read.py:66`, `tests/github/test_publish_release_note.py:130` and `tests/skills/test_broad_gate.py:2254`, which name `argv` as the builder of a command and stand. Its second search prints the two operations of `1795397629-git-runs-through-thirty-hand-written-helpers`, which change the section's bold lead and add a paragraph and leave the sentence this `from` holds, and this work item's operation at `:146`
+```
+
 ## Confirmations
 
 ```seal
