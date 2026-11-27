@@ -34,7 +34,7 @@ The tree as read at `7f388fa1f`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 8 | The cases of *Scope* items 5 and 6, each seen red as `frame/design.md` S1, S2 and S5 state; `tests/lib/test_core.py`, `tests/hooks/test_core_start.py` and `tests/skills/test_payload_meter.py` narrow; `git grep -n -e 'spelled absolute' -- . ':!seal/threads'` prints nothing (`frame/design.md` S6 accounts for the one line it printed at `7f388fa1f`); `seal mutate` on the changed lines of `lib/core.py`; S7's two commands | |
+| 1 | `frame/design.md` *Scope* items 1 to 8 | The cases of *Scope* items 5 and 6, each seen red as `frame/design.md` S1, S2 and S5 state; `tests/lib/test_core.py`, `tests/hooks/test_core_start.py` and `tests/skills/test_payload_meter.py` narrow; `git grep -n -e 'spelled absolute' -- . ':!seal/threads'` prints nothing (`frame/design.md` S6 accounts for the one line it printed at `7f388fa1f`); `seal mutate` on the changed lines of `lib/core.py`; S7's two commands | `bb7168b57` |
 
 ## Overlap with the release
 
