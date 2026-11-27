@@ -43,7 +43,7 @@ this module does not read.
 Standard library only; it imports `blocks` beside it. `chain_check.py`
 and `broad_gate.py` load it through `lib/sibling.py`, as they load
 `lib/routing.py`; `lib/gaps.py` imports it beside it; `stamp.py`, which
-`seal stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
+`iadd stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
 import collections
@@ -123,7 +123,7 @@ class Kind:
 # The kinds. `verdict:` takes no `open`: a finding with no close block is
 # open. A finding's `severity:` and `evidence:` and a close's `answer:` take
 # any text, and the last two may be left out: no script decides on their
-# values, and `seal pr-body` copies each block whole.
+# values, and `iadd pr-body` copies each block whole.
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,

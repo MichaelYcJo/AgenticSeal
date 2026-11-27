@@ -1945,7 +1945,7 @@ class Test_report:
         the dry run prints the rows of the two newest commits' plans, none
         of the oldest's, and ends the section with the line counting the
         one older removing commit it did not read and naming
-        `seal settle --all-earlier`. Seen red with the bound alone
+        `iadd settle --all-earlier`. Seen red with the bound alone
         removed."""
         shared_repo, (newest, middle, _oldest) = removals
         code, text = at(shared_repo, "main")
@@ -1955,7 +1955,7 @@ class Test_report:
             + newest
             + middle
             + "\n1 older commit removed plans this section did not read; "
-            "`seal settle --all-earlier` reads them"
+            "`iadd settle --all-earlier` reads them"
         ), earlier_block(text)
 
     def test_a_removing_commit_that_deleted_two_plans_is_one_commit_of_the_window(
@@ -2002,7 +2002,7 @@ class Test_report:
         assert "  oldest\n" not in block, block
         assert block.endswith(
             "\n\n1 older commit removed plans this section did not read; "
-            "`seal settle --all-earlier` reads them"
+            "`iadd settle --all-earlier` reads them"
         ), block
 
     def test_prints_the_section_where_it_holds_only_the_line_of_older_commits(
@@ -2047,7 +2047,7 @@ class Test_report:
         assert code == 0, text
         assert earlier_block(text) == (
             "\n1 older commit removed plans this section did not read; "
-            "`seal settle --all-earlier` reads them"
+            "`iadd settle --all-earlier` reads them"
         ), text
 
     def test_a_batched_read_that_fails_keeps_the_line_of_older_commits(
@@ -2071,7 +2071,7 @@ class Test_report:
         assert code == 0, text
         assert earlier_block(text) == (
             "    not read: git said no\n\n1 older commit removed plans this "
-            "section did not read; `seal settle --all-earlier` reads them"
+            "section did not read; `iadd settle --all-earlier` reads them"
         ), earlier_block(text)
 
     def test_a_spec_no_commit_adds_is_marked_unordered(self, drawn, monkeypatch):
@@ -2263,7 +2263,7 @@ class Test_apply:
         assert specs_dir(drawn, "1700000001-a").exists(), text
         assert (
             "kept seal/threads/1700000001-a/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
+            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         overview.write_text(OVERVIEW_CLOSED, encoding="utf-8")
@@ -2348,7 +2348,7 @@ class Test_apply:
         assert path.exists(), text
         assert (
             f"kept seal/threads/{name}/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
+            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
             f"    not read: {not_read(name, 'frame/gaps.md', 'gaps.md')}\n"
         ) in text, text
@@ -2477,7 +2477,7 @@ class Test_apply:
             "kept seal/threads/1700000001-a/: v1.2.3 has no published GitHub "
             "Release, so no note carries its entry, a link to pull request #42; "
             f"publish one from `git show {tip}:seal/threads/1700000001-a/"
-            "changelog.md` and run `seal settle --apply` again\n"
+            "changelog.md` and run `iadd settle --apply` again\n"
         ) in text, text
 
     @pytest.mark.parametrize("listed", ["none", "a draft"])
@@ -2573,7 +2573,7 @@ class Test_apply:
         assert path.exists(), text
         assert (
             "kept seal/threads/1700000001-a/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
+            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         assert text.endswith(
@@ -2882,7 +2882,7 @@ class Test_main:
         assert "In local mode no commit holds these directories" in removes
         # The heading the local dry run prints, with the command the settling
         # session runs to keep a copy.
-        assert "`seal export` takes a copy for whoever wants one" in removes
+        assert "`iadd export` takes a copy for whoever wants one" in removes
         assert "no ancestry orders their pull requests' merge commits" in flat(
             settle.UNORDERED_LOCAL
         )
@@ -2976,7 +2976,7 @@ class Test_main:
         assert "removed seal/threads/1700000001-a/\n" in text, text
         assert (
             "kept seal/threads/1700000003-c/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
+            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
             "    open in gaps.md: a claim about `questions.md`\n"
         ) in text, text
         assert files(local_repo) == before, "the apply wrote or removed in the tree"
@@ -3297,7 +3297,7 @@ class Test_main:
             "kept seal/threads/1700000001-a/: the published note of v1.2.3 does "
             "not carry its entry, a link to pull request #42; repair the note "
             f"from `git show {at}:seal/threads/1700000001-a/changelog.md` and "
-            "run `seal settle --apply` again\n"
+            "run `iadd settle --apply` again\n"
         ) in text, text
         assert "removed seal/threads/1700000002-b/\n" in text, text
         assert text.endswith(
@@ -4326,8 +4326,8 @@ class Test_module:
         `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`'s;
         this is the instance, asked here so a missing twin
         names this work item rather than a parametrisation. Since #1051 the
-        name is `seal settle`, run here the way a person types it."""
-        wrapper = os.path.join(ROOT, "bin", "seal")
+        name is `iadd settle`, run here the way a person types it."""
+        wrapper = os.path.join(ROOT, "bin", "iadd")
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
             if os.name == "nt"
@@ -4341,7 +4341,7 @@ class Test_module:
             timeout=120,
         )
         assert done.returncode == 0, done.stderr
-        assert done.stdout.startswith("usage: seal settle"), done.stdout
+        assert done.stdout.startswith("usage: iadd settle"), done.stdout
 
     def test_surveys_docstring_does_not_invite_the_mutation_that_reopens_finding_4(
         self,

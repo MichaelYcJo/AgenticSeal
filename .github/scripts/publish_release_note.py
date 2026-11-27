@@ -22,7 +22,7 @@ removed before the tag still has its entry.
 Each opens with a link to the pull request that added it. The range's
 commit that adds a fragment is its pull request's squash commit, whose
 subject GitHub ends with `(#N)`, so the number is read here, once, from the
-history. The pull request's body holds the work item's records (`seal
+history. The pull request's body holds the work item's records (`iadd
 pr-body`), so one click leads from an entry to the reasons behind it. A
 fragment whose adding commit names no pull request is its text alone.
 
@@ -126,7 +126,7 @@ closing = sibling.load("lib/closing.py")
 SPAN, keywords_in = closing.SPAN, closing.keywords_in
 heading_level = sibling.load("lib/lines.py").heading_level
 
-# `seal settle`, for `adding_commit`: the one reader of the commit that adds
+# `iadd settle`, for `adding_commit`: the one reader of the commit that adds
 # a fragment and the pull request it names, kept in the settle so that the
 # note and the settle read one number.
 SETTLE = "skills/settle/scripts/settle.py"
@@ -154,7 +154,7 @@ PURPOSE_LABEL = "Purpose:"
 # this cannot name a version for, and it says so rather than guessing one.
 # `label_merged_on_release_branch.py#version_of` refuses a branch name the
 # same way and for the same reason. It is `settle.py#VERSION_RE`, so the
-# note is published at the version whose note `seal settle --apply` reads.
+# note is published at the version whose note `iadd settle --apply` reads.
 TAG_RE = settle.VERSION_RE
 
 
@@ -288,7 +288,7 @@ def process_shape():
 
 
 # An entry's first line: the pull request that added its fragment. It is
-# `settle.py#PULL_LINK`, whose `BUILT_RE` tells `seal settle --apply` that a
+# `settle.py#PULL_LINK`, whose `BUILT_RE` tells `iadd settle --apply` that a
 # note was built from the fragments.
 PULL_LINK = settle.PULL_LINK
 
@@ -771,7 +771,7 @@ def release_body(theme, rendered, pulls, owner):
     outside a code span written `&lt;` (`kind_and_text`), so a tag it quotes
     is text, inside a code span or out of one, and opens or closes no fold.
     A fragment is not escaped: it is the records' own text, and one holding
-    a bare `details` tag is refused at `seal pr-body` before its pull
+    a bare `details` tag is refused at `iadd pr-body` before its pull
     request opens.
 
     With no pull request to read -- the list failed, or a release was cut

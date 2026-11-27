@@ -13,7 +13,7 @@ a path outside the repository, the `seal/` root or a path under it, whose
 records the settle already reads, and `--from` beside `--apply`. `--apply`
 removes only under `seal/threads/`, and a flag it accepted would read as
 one it acted on. Each sentence about a path names it as it was read, from
-the directory `seal settle` runs in. A named directory holding no document
+the directory `iadd settle` runs in. A named directory holding no document
 is listed with 0 documents.
 
 **The listing is not a proposal.** Each of its lines is what git answers
@@ -77,7 +77,7 @@ by its repository path, as the paragraph on reference roots under
 writes.
 
 **A named directory is read and never written.** No step of the settle
-writes, moves or removes a file under it, and `seal settle --apply` removes
+writes, moves or removes a file under it, and `iadd settle --apply` removes
 only under `seal/threads/` and refuses `--from`. A promoted decision reaches
 the policy root in the settling session's words with the document's path,
 and the document stays where it was, as it was.

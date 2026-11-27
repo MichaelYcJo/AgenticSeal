@@ -16,7 +16,7 @@ The cases came from the modules that held each census whole:
 names every old case and where it went.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without `tests/censuses.py`, and `seal mutate` broke each
+against the tree without `tests/censuses.py`, and `iadd mutate` broke each
 census's refusal in turn and watched a case of its class fail.
 `vacated_paths` (#1060) failed its cases before the census existed, and was
 seen red over the tree after `templates/` moved and before its citations were
@@ -1096,7 +1096,7 @@ ROOT_NOT_SPELLED = {
     "a-docstring": '"""Reads `seal/threads/`."""\n\n\ndef f():\n    """seal"""\n',
     "a-comment": "# under seal/threads/\nX = 1\n",
     "a-message": 'X = "no seal/ root here"\nY = "the `seal/` root"\n',
-    "a-subcommand": 'X = "seal mode"\nY = "sealed"\nZ = "seals/x"\n',
+    "a-subcommand": 'X = "iadd mode"\nY = "sealed"\nZ = "seals/x"\n',
     "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no seal/threads/"\n',
 }
 

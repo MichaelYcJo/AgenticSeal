@@ -51,7 +51,7 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
     )
 
 
-RUN = "seal gate --base <base> --record <item>"
+RUN = "iadd gate --base <base> --record <item>"
 
 
 def test_the_orchestration_names_the_broad_run_command():
@@ -101,7 +101,7 @@ def test_the_broad_gate_state_survives_a_handoff():
 
 # --- 1790815611: the record arms run before the inspector is spawned (#638) -------
 
-PREFLIGHT = "seal gate --preflight"
+PREFLIGHT = "iadd gate --preflight"
 # The orchestrator's steps from the preflight to the inspector's spawn, cut from
 # `skills/code-review/orchestration.md` in #1579.
 SPAWN_FILE = ("skills", "code-review", "gate-to-pull-request.md")

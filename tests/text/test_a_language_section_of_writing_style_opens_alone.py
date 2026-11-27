@@ -161,7 +161,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     text = read(SKILL)
     body = [line.strip() for line in section(text, WRITING_RULES).split("\n")]
     checks = [line for line in body if line.startswith("check: ")]
-    # The one check line `seal rules --check` reads for the first rule. That
+    # The one check line `iadd rules --check` reads for the first rule. That
     # each target it names is a file is that command's, which
     # `tests/behaviour/test_this_repository_passes_its_own_checks.py` runs
     # over the tree; whether a target holds the rule is review's.

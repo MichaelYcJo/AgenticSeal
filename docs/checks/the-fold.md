@@ -1,6 +1,6 @@
 # The fold
 
-What `seal settle` and `seal fold` read to tell a settle from a deletion, for
+What `iadd settle` and `iadd fold` read to tell a settle from a deletion, for
 a person who changes them and for the settling session.
 
 ## The fold, and what tells it from a deletion
@@ -37,13 +37,13 @@ with no tracker. A row that fits more than one kind takes the first
 that fits, in this order, so only a measurement something on record
 needs opens an issue, since an issue no record waits on is read only to
 be closed. Each is closed in the record, `closed` with what closed it, and
-`seal settle --apply` removes a directory only once its record holds no open row
+`iadd settle --apply` removes a directory only once its record holds no open row
 in the working tree. The settle's pull request body carries every closure,
 an issue carries every re-homed row, and git keeps the record. A released
 work item that wrote no `frame/design.md` states no rule and goes the same way.
 A file in its directory with the name of a record the settle reads, a
 `gaps.md`, a `design.md` or a `plan.md`, at any path but that record's
-own, is named by the dry run and by `seal settle --apply` as a file the
+own, is named by the dry run and by `iadd settle --apply` as a file the
 settle did not read. The settling session opens it and decides each item
 in it that reads as an open row, as it decides a row. `--apply` decides
 nothing on it and removes it with the directory. Keeping the directory
@@ -146,9 +146,9 @@ fourth answer, and it is argued against these three.
 
 **A `seal/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
-directory, so the state is two: the tree that ran `seal settle --apply` holds an
+directory, so the state is two: the tree that ran `iadd settle --apply` holds an
 empty `seal/threads/`, and a fresh checkout of that commit holds none. Read as
-unusable, `settle` would exit 2 on its own finished work, and `seal unverified` would read the root's own `threads` path as a
+unusable, `settle` would exit 2 on its own finished work, and `iadd unverified` would read the root's own `threads` path as a
 typo when a person runs it after the fold, and refuse a finished settle. Only that one path is
 settled; any other missing path is still refused, which keeps a misspelt
 path from passing in silence.
@@ -161,7 +161,7 @@ request from the branch its `routing.md` names has merged and whether
 `--released-at` reaches that merge commit; `skills/settle/local-mode.md` *In
 local mode* gives the states that leave a work item unreleased. The settling
 session writes the committed policy root as in shared mode, and
-`seal settle --apply` removes each released local directory whose record holds no
+`iadd settle --apply` removes each released local directory whose record holds no
 open row, with no commit holding what it removed. The settle's pull request
 changes the policy root alone, so no check reads a removal there, and its
 commits carry no trailer, as no local-mode commit does.
@@ -173,7 +173,7 @@ policy root.** A repository's decisions also stand outside `seal/`, in
 architecture decision records, RFCs and another tool's spec files, and
 nothing gathers them into the policy root on its own. So the settling
 session asks the person, before its first edit, whether any directory
-besides `seal/` holds decisions to fold. `seal settle --from <dir>`
+besides `seal/` holds decisions to fold. `iadd settle --from <dir>`
 lists every document of each directory named, placed in the timeline by
 the commit that added it and the commit that last changed it. The
 session proposes each document as promote or skip, with the section it
@@ -182,7 +182,7 @@ the code, and the person marks each row in one more question. A
 promoted decision is written into its section as a released design's
 is, and the section cites the document by its path. The settle's pull
 request body states each row with its mark. No step writes, moves or
-removes a file under a named directory, and `seal settle --apply`
+removes a file under a named directory, and `iadd settle --apply`
 removes only under `seal/threads/`. A first answer of "none" runs the
 settle with no `--from`, and no configuration key names such a
 directory. `skills/settle/SKILL.md` *The settling session's procedure*

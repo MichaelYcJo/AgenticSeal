@@ -2,7 +2,7 @@
 fenced code block or an HTML comment block, and where can this module not say?
 
 Three readers decide from a markdown file what a person or a party declared:
-`lib/tables.py` (a record's table, through `seal pact` and `seal settle`),
+`lib/tables.py` (a record's table, through `iadd pact` and `iadd settle`),
 `lib/routing.py` (the routing declaration, on every commit and at the pull
 request) and
 `lib/fields.py` (the `seal` blocks of a work item's records). A row

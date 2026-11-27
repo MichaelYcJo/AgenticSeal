@@ -97,7 +97,7 @@ def test_the_mirror_is_named_for_its_own_language():
     a rule, and an example is what a session copies literally."""
     text = flat(*SKILL)
     # The mirror's file name, and its two instances, which a session writes
-    # and `seal pr-body` reads.
+    # and `iadd pr-body` reads.
     assert "pr.<lang>.md" in text, "the mirror's name is still fixed to one language"
     assert "pr.ko.md" in text and "pr.en.md" in text, (
         "only one direction is given, so the rule reads as an example"
@@ -558,8 +558,8 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it(tmp_path):
     the production reader right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
-    `tests/skills/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
-    already asserts it for `seal.py`: this file loads that module under a
+    `tests/skills/test_iadd.py#Test_module::test_the_command_and_the_gate_read_one_parser`
+    already asserts it for `iadd.py`: this file loads that module under a
     name of its own, so the two module objects differ while the
     implementation behind them must not. An `import` check alone would not
     see a copy return — a reimplementation loaded under the same name passes

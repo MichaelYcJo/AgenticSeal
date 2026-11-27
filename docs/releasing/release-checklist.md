@@ -38,9 +38,9 @@ running.
 whose owner has not called the settle skips this step.
 
 ```bash
-seal settle
-seal settle --apply
-seal fold
+iadd settle
+iadd settle --apply
+iadd fold
 ```
 
 The first prints each group of released designs whose rule changes name one
@@ -60,7 +60,7 @@ record holds no open row and whose version's published note carries its
 entry where the repository's notes are built from the fragments, and names
 any it keeps with why. The settle's pull request body names each directory
 kept for its note, and the owner repairs that note before a later `--apply`
-removes it. `seal fold` then reads the documents the settle wrote, and names
+removes it. `iadd fold` then reads the documents the settle wrote, and names
 each one past its ceiling as one to split (`skills/settle/SKILL.md` *A
 document past its ceiling is split, never trimmed*). The settle's pull
 request body states each decision with its grounds and lists the defaults
@@ -73,7 +73,7 @@ recorded form of the routing question's `direct` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
 in this repository carrying a population floor over `seal/threads/`.
 
-**Before `seal settle --apply`, the settling session counts, for each released work item
+**Before `iadd settle --apply`, the settling session counts, for each released work item
 routed through the review chain, the findings, the findings that carry a `regression:`
 or `reopens:` line, the findings whose finding block names only paths under
 `seal/threads/` on its `location:` line, and the rounds, and posts the four numbers as a
@@ -106,13 +106,13 @@ take it, because the reader of the four numbers is this repository's owner and m
 installed repositories keep no `flow-baseline` log.
 check: tests/github/test_finding_counts.py
 
-**What `seal settle --apply` removed is committed before anything switches that checkout
+**What `iadd settle --apply` removed is committed before anything switches that checkout
 to another branch.** `--apply` deletes each directory from the working tree and stages
 nothing, and `git switch` exits 0 over an unstaged deletion while it restores every
 deleted file that differs between the two branches, saying nothing about it. A
 comparison with another ref runs in a `git worktree` of that ref.
 
-**Before `seal settle --apply`, the settling session reads the dry run's
+**Before `iadd settle --apply`, the settling session reads the dry run's
 *The judgments* and *The judgments earlier settles removed*, and
 rewrites a section where the same kind of judgment came back, within
 this release or over several, or cost rounds each time it was made.**
@@ -120,7 +120,7 @@ this release or over several, or cost rounds each time it was made.**
 `frame/plan.md`. *The judgments earlier settles removed* holds the rows
 of the plans the two newest removing commits deleted, read from the
 history with the release each shipped in, and
-`seal settle --all-earlier` reads the older ones
+`iadd settle --all-earlier` reads the older ones
 (`skills/settle/SKILL.md` *What the dry run shows*). Both are grouped by
 the document each row stands on. The pull request body names each kind
 that recurred across releases with the releases it recurred in. The rows
@@ -195,7 +195,7 @@ check: tests/github/test_release_report.py tests/text/test_the_release_table_rea
 **Each release clears what grew.** The test file rows are a report and never
 a ceiling: a heavily exercised module needs the cases it needs. The owner
 reads the rows whose seconds or cases grew most since the tag and sweeps each
-such module with one `bin/seal mutate` call carrying a mutant per class,
+such module with one `bin/iadd mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
@@ -212,7 +212,7 @@ git diff --name-only --diff-filter=A \
 ```
 
 For each directory listed, it runs
-`seal cost --work-item <that directory> --post --says <file>`. The file
+`iadd cost --work-item <that directory> --post --says <file>`. The file
 holds its sentence on what that work item's readings say, read against the
 work item's records. The command leaves out each segment a comment on the
 open `flow-measurement` log already names, the run's own comment among

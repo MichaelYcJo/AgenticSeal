@@ -122,12 +122,12 @@ file pays for each line in it, and no agent acts on one. A rule there that a
 case holds is still held by it. A person changing such a rule finds most of
 its cases by `git grep` on the file's name, such as `crafter.md` or
 `agent-contract`, since a case often builds the path from its parts, and the
-eval cases among them under `evals/behaviour/`. `seal rules --check` reads
+eval cases among them under `evals/behaviour/`. `iadd rules --check` reads
 these files as it reads every rule file, and a suite case refuses a check
 line in any of them.
 check: tests/text/test_every_agent_reads_the_contract.py
 
-**What this plugin checks, and what it does not.** It ships `seal rules --check`
+**What this plugin checks, and what it does not.** It ships `iadd rules --check`
 (`skills/settle/scripts/rules.py`), which reads every check line in a rule
 file, refuses one the grammar refuses and names one it did not read. At the pull
 request, `chain-check` asks the same reader for each check line inside an
@@ -150,7 +150,7 @@ edition on its English edition's row. A framer picks each `file:` from it.
 A group of the policy root is a directory directly in it that a row names a
 document of, as `<policy root>/<group>/<name>.md`; a directory no row names a
 document of, and anything below a group, is not read. Where the index
-exists, `seal fold` refuses a document of the policy root or of one of its
+exists, `iadd fold` refuses a document of the policy root or of one of its
 groups that no row names, one named on two rows, and a row that names none.
 A settling session that creates the policy root writes the index with it,
 and after the removals `--apply` names the row each new document is owed.

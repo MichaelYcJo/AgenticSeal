@@ -268,7 +268,7 @@ class Test_git_common_dir:
 
 class Test_home_paths:
     def test_accepts_the_two_places_shared_first(self, optin, repo):
-        """#81. `seal import --into shared|local` has to be able to CREATE the
+        """#81. `iadd import --into shared|local` has to be able to CREATE the
         root the user named, which `home_at` cannot answer: it reports where the
         root is, and the other mode's root is exactly the one that is not there.
 
@@ -708,7 +708,7 @@ class Test_module:
     def test_a_scratch_marker_under_the_common_directory_keeps_the_stamp_silent(
         self, local
     ):
-        """The stamp's drawer, `seal stamp --stop`, asks `opted_in` before it
+        """The stamp's drawer, `iadd stamp --stop`, asks `opted_in` before it
         speaks. A stamp waits in the clone in local mode, and nothing is drawn
         while the scratch marker stands under the common directory; with the
         marker gone, the same `Stop` draws it."""

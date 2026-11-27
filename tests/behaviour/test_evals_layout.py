@@ -102,7 +102,7 @@ def scaffold_gaps(root=EVALS):
 # opener, as the regular expression of a grader's `pattern` spells it.
 BLOCK_PATTERN = "^" + "`" * 3 + "seal\\n"
 # The broad run an inspector case bounds at zero calls, as a Bash call spells it.
-BROAD_RUN = "seal gate --base"
+BROAD_RUN = "iadd gate --base"
 
 
 def inspector_grade_gaps(root=EVALS):
@@ -135,17 +135,17 @@ def inspector_grade_gaps(root=EVALS):
             and g.get("max") == "0"
             for g in graders
         ):
-            gaps.append(f"{rel(d, root)}: no grader bounds `seal gate --base` at zero")
+            gaps.append(f"{rel(d, root)}: no grader bounds `iadd gate --base` at zero")
     return gaps
 
 
 def test_every_inspector_case_grades_the_inspection():
     """T18. An inspector case grades the verdict block of `inspection.md`.
 
-    #969 T6: every inspector case also bounds a Bash `seal gate --base` at zero
+    #969 T6: every inspector case also bounds a Bash `iadd gate --base` at zero
     calls. The gate is the orchestrator's run before the spawn, and an inspector
     that runs it again passes every other grader the cases have: #957's
-    phase 3 measured the inspector's first act as `seal gate --record` in six
+    phase 3 measured the inspector's first act as `iadd gate --record` in six
     runs of six."""
     gaps = inspector_grade_gaps()
     assert not gaps, gaps
@@ -161,7 +161,7 @@ VERDICT_GRADER = (
 )
 BOUND_GRADER = (
     "---\ntype: 'tool_used'\ntool: 'Bash'\n"
-    "input_match: 'seal\\s+gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n"
+    "input_match: 'iadd\\s+gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n"
 )
 
 
@@ -183,7 +183,7 @@ def test_a_bound_on_the_inspectors_run_that_is_not_zero_is_a_gap(tmp_path):
     the tool, the command or the bound would still pass on the tree; each of
     the three is changed here alone and each must be named."""
     grader = inspector_case(tmp_path) / "shape-runs-no-broad-run.md"
-    gap = f"{os.path.join('behaviour', 'inspector', 'c')}: no grader bounds `seal gate --base` at zero"
+    gap = f"{os.path.join('behaviour', 'inspector', 'c')}: no grader bounds `iadd gate --base` at zero"
     for old, new in (
         ("max: 0\n", "max: 1\n"),
         ("tool: 'Bash'", "tool: 'Write'"),
@@ -195,12 +195,12 @@ def test_a_bound_on_the_inspectors_run_that_is_not_zero_is_a_gap(tmp_path):
 
 def test_a_bound_on_the_inspectors_run_in_another_spelling_is_no_gap(tmp_path):
     """A grader is read by what it bounds: its `input_match`, as the runner
-    reads it, finds the command `seal gate --base`. A pattern that finds the
+    reads it, finds the command `iadd gate --base`. A pattern that finds the
     same command in another spelling bounds the same run."""
     grader = inspector_case(tmp_path) / "shape-runs-no-broad-run.md"
-    for spelling in ("seal gate --base", "seal +gate +--base\\b"):
+    for spelling in ("iadd gate --base", "iadd +gate +--base\\b"):
         grader.write_text(
-            BOUND_GRADER.replace("seal\\s+gate\\s+--base", spelling), "utf-8"
+            BOUND_GRADER.replace("iadd\\s+gate\\s+--base", spelling), "utf-8"
         )
         assert inspector_grade_gaps(str(tmp_path)) == [], spelling
 

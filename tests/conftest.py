@@ -115,7 +115,7 @@ def build_tracked_tree(d, files, deleted=()):
     `files` is `{relative path: text}`; every one of them is committed, and
     each entry of `deleted` is then unlinked WITHOUT staging the removal, so
     it stays in the index and leaves the working tree. That is the state
-    `seal settle --apply` leaves, since it deletes each directory and stages
+    `iadd settle --apply` leaves, since it deletes each directory and stages
     nothing (`docs/releasing/release-checklist.md` *Settle what earlier
     releases left behind*), and the state `on_disk` below is about.
 
@@ -1165,7 +1165,7 @@ def imported_roots(path):
 
 def config_json(*pairs):
     """A `seal/config.json` holding one member per `(key, value)` in PAIRS,
-    in order, written as `seal mode` writes one; a key given twice is
+    in order, written as `iadd mode` writes one; a key given twice is
     written twice, which a dict could not hold."""
     members = ",\n".join(
         f"  {json.dumps(key, ensure_ascii=False)}: "

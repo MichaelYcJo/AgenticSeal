@@ -30,7 +30,7 @@ PR = load_module(os.path.join(ROOT, *TARGET.split("/")), "pr_body_under_test")
 NAME = "1799000000-a-body"
 
 CHANGELOG = """\
-- **The pull request body copies the records.** `seal pr-body` writes it (#1).
+- **The pull request body copies the records.** `iadd pr-body` writes it (#1).
 - 본문의 사실은 기록에서 옵니다.
 """
 
@@ -158,11 +158,11 @@ EXPECTED = """\
 
 From `changelog.md`.
 
-- **The pull request body copies the records.** `seal pr-body` writes it (#1).
+- **The pull request body copies the records.** `iadd pr-body` writes it (#1).
 - 본문의 사실은 기록에서 옵니다.
 
 <details>
-<summary>Copied from the records in seal/threads/1799000000-a-body/ by seal pr-body.</summary>
+<summary>Copied from the records in seal/threads/1799000000-a-body/ by iadd pr-body.</summary>
 
 ## How it was built
 
@@ -252,7 +252,7 @@ From `frame/questions.md`.
 # The work item's `pr.md`, the body's first part where the two language keys
 # name one language: a quote of a record in the form `first_part` reads, with
 # its coordinate, a CRLF line among them, and the `Closes` line.
-OWN = '- "`seal pr-body` writes it (#1)." (`changelog.md`, line 1)\r\n\nCloses #1.\n'
+OWN = '- "`iadd pr-body` writes it (#1)." (`changelog.md`, line 1)\r\n\nCloses #1.\n'
 # #1453: the two language keys the body's first part is composed from, as a
 # repository of one language writes them.
 LANGUAGES = [
@@ -266,7 +266,7 @@ DIFFERING = [
     ("Commit and pull request language", "Korean"),
     ("Record language", "English"),
 ]
-TRANSLATION = '"`seal pr-body` 가 본문을 쓴다 (#1)." (`changelog.md`, line 1)'
+TRANSLATION = '"`iadd pr-body` 가 본문을 쓴다 (#1)." (`changelog.md`, line 1)'
 
 
 def item_of(tmp_path, records, own=OWN, rows=LANGUAGES, translations=None):
@@ -274,7 +274,7 @@ def item_of(tmp_path, records, own=OWN, rows=LANGUAGES, translations=None):
     `tmp_path`, whose `config.json` holds ROWS as its keys, holding RECORDS
     by path, OWN as its `pr.md`'s bytes, or no `pr.md` where OWN is None, and
     TRANSLATIONS, `{name: text}`, beside it. The repository has no commit:
-    `seal pr-body` reads the keys of the root its work item stands in, so a
+    `iadd pr-body` reads the keys of the root its work item stands in, so a
     case reads its own keys and not the checkout the suite runs in."""
     home = mark_root(tmp_path / "seal")
     write(home, "config.json", config_json(*rows))
@@ -319,7 +319,7 @@ FOLDED = (
     "Not copied here, so the body stays within GitHub's 65,536 characters: "
     "`{path}` holds what this section copies."
 )
-# What `seal pr-body` says where the fold folded one section, `## Not
+# What `iadd pr-body` says where the fold folded one section, `## Not
 # verified`.
 FOLDED_NOT_VERIFIED = (
     "folded `## Not verified` so the body stays within GitHub's 65,536 "
@@ -370,7 +370,7 @@ def section_of(text, heading):
 
 
 # #1204: a manifest with the two fields the mark's address is built from and
-# a `version`, which the address does not read (#1452), and the line `seal
+# a `version`, which the address does not read (#1452), and the line `iadd
 # pr-body` writes from it.
 MANIFEST = {
     "repository": "https://github.com/owner/plugin",
@@ -774,7 +774,7 @@ class Test_compose:
         assert (where, line) == ("", 0)
         assert why.endswith(
             f"; `pr.md` holds {units(own):,}, so it is shortened before "
-            "`seal pr-body` runs again"
+            "`iadd pr-body` runs again"
         )
 
 
@@ -800,7 +800,7 @@ class Test_split:
                 PR.split(body)
             assert refused.value.causes[0][2] == (
                 f"no line reads `{PR.HEADING}`, so the body is not one this "
-                "command wrote: run `seal pr-body <item> --body <file>`, which "
+                "command wrote: run `iadd pr-body <item> --body <file>`, which "
                 "writes it whole, and check it again"
             ), refused.value.causes
 
@@ -1095,7 +1095,7 @@ class Test_main:
         )
         assert body.read_bytes() == (OWN + marked).encode("utf-8")
         assert PR.main([str(item), "--body", str(body), "--check"]) == 0
-        assert "seal pr-body:" not in capsys.readouterr().out
+        assert "iadd pr-body:" not in capsys.readouterr().out
 
     def test_accepts_a_cleared_work_item_run_from_another_checkout(
         self, repo, tmp_path, monkeypatch, capsys
@@ -1120,7 +1120,7 @@ class Test_main:
             "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
         )
         assert body.read_bytes() == (OWN + marked).encode("utf-8")
-        assert "seal pr-body:" not in capsys.readouterr().out
+        assert "iadd pr-body:" not in capsys.readouterr().out
 
     def test_accepts_a_local_mode_work_item_from_the_working_directorys_checkout(
         self, repo, tmp_path, monkeypatch, capsys
@@ -1151,7 +1151,7 @@ class Test_main:
             "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
         )
         assert body.read_bytes() == (OWN + marked).encode("utf-8")
-        assert "seal pr-body:" not in capsys.readouterr().out
+        assert "iadd pr-body:" not in capsys.readouterr().out
 
     def test_refuses_the_mark_on_a_row_other_than_yes_and_exits_0(
         self, repo, tmp_path, monkeypatch, capsys
@@ -1163,7 +1163,7 @@ class Test_main:
         body = tmp_path / "pr-body.md"
         assert PR.main([str(item), "--body", str(body)]) == 0
         out = capsys.readouterr().out.splitlines()
-        assert out[0] == "seal pr-body: " + NOT_YES.format(value="Yes")
+        assert out[0] == "iadd pr-body: " + NOT_YES.format(value="Yes")
         assert out[1].startswith("wrote: ")
         assert body.read_bytes() == (OWN + EXPECTED).encode("utf-8")
 
@@ -1398,7 +1398,7 @@ class Test_main:
         self, tmp_path, capsys, own, named
     ):
         """A4 of #1612. A line holding `" (` before a backtick outside the
-        quote form is named on the line opening `seal pr-body:` by both
+        quote form is named on the line opening `iadd pr-body:` by both
         forms as a line not read, and decides nothing: no quote among them
         stands in `changelog.md`, and both forms exit 0. The lines lack the
         list marker, stand indented under a list item, hold a `" (` that is
@@ -1409,7 +1409,7 @@ class Test_main:
         item = item_of(tmp_path, RECORDS, own=own)
         body = tmp_path / "pr-body.md"
         note = (
-            f"seal pr-body: not read as a quote: {named} "
+            f"iadd pr-body: not read as a quote: {named} "
             '`" (` before a backtick outside the form '
             '`- "<quote>" (`<path>` <coordinate>)`\n'
         )
@@ -1438,7 +1438,7 @@ class Test_main:
     def test_refuses_a_repository_without_a_language_row_naming_it(
         self, tmp_path, capsys, rows, missing, check
     ):
-        """#1453, *Scope* item 3, the scenario *`seal pr-body` refuses
+        """#1453, *Scope* item 3, the scenario *`iadd pr-body` refuses
         without a row*. Either form exits 1, leaves the body file as it
         stood, and prints one `refused:` line for each key that names no
         language, absent or empty, naming `config.json` by its path under the
@@ -1642,7 +1642,7 @@ class Test_main:
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         edited = EXPECTED.replace(
-            "`seal pr-body` writes it", "`seal pr-body` drafts it"
+            "`iadd pr-body` writes it", "`iadd pr-body` drafts it"
         )
         body.write_bytes((OWN + edited).encode("utf-8"))
         capsys.readouterr()
@@ -1797,7 +1797,7 @@ class Test_main:
             "`## What changed` folded that a fold shortens, past GitHub's "
             f"65,536; `pr.ko.md` holds {translation:,}, `pr.md` holds "
             f"{units(own):,} and `changelog.md` holds {units(changelog):,}, so "
-            "one of them is shortened before `seal pr-body` runs again\n"
+            "one of them is shortened before `iadd pr-body` runs again\n"
         )
         for extra in ([], ["--check"]):
             assert PR.main([str(item), "--body", str(body), *extra]) == 1
@@ -1818,7 +1818,7 @@ class Test_main:
             rows=[*LANGUAGES, ("Pull request inspection mark", "Yes")],
         )
         body = tmp_path / "pr-body.md"
-        note = f"seal pr-body: {NOT_YES.format(value='Yes')}; {FOLDED_NOT_VERIFIED}\n"
+        note = f"iadd pr-body: {NOT_YES.format(value='Yes')}; {FOLDED_NOT_VERIFIED}\n"
         assert PR.main([str(item), "--body", str(body)]) == 0
         assert capsys.readouterr().out == (
             f"{note}wrote: {body} from {item}'s `pr.md` and records\n"

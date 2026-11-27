@@ -591,14 +591,14 @@ class Test_main:
 class Test_module:
     def test_the_command_is_present_and_runs_the_script(self):
         """`bin/` lands on the Bash tool's PATH while the plugin is enabled,
-        so `bin/seal` resolves its script relative to itself, a .cmd sibling
+        so `bin/iadd` resolves its script relative to itself, a .cmd sibling
         ships for the platform that cannot run a POSIX shebang, and
-        `seal unverified` hands its arguments to this script."""
-        posix = os.path.join(ROOT, "bin", "seal")
-        windows = os.path.join(ROOT, "bin", "seal.cmd")
-        assert os.path.isfile(posix), "bin/seal missing"
-        assert os.path.isfile(windows), "bin/seal.cmd missing"
-        assert os.access(posix, os.X_OK), "bin/seal not executable"
+        `iadd unverified` hands its arguments to this script."""
+        posix = os.path.join(ROOT, "bin", "iadd")
+        windows = os.path.join(ROOT, "bin", "iadd.cmd")
+        assert os.path.isfile(posix), "bin/iadd missing"
+        assert os.path.isfile(windows), "bin/iadd.cmd missing"
+        assert os.access(posix, os.X_OK), "bin/iadd not executable"
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", windows]
             if os.name == "nt"
@@ -612,7 +612,7 @@ class Test_module:
             timeout=120,
         )
         assert done.returncode == 0, done.stderr
-        assert done.stdout.startswith("usage: seal unverified"), done.stdout
+        assert done.stdout.startswith("usage: iadd unverified"), done.stdout
 
 
 test_census = census_case(TARGET)

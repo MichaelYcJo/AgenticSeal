@@ -215,13 +215,13 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # wrapper must resolve the script relative to itself, never the caller's
     # working directory. Windows can't run a POSIX shebang script directly,
     # so a .cmd sibling ships alongside it -- PATHEXT resolves a bare
-    # `seal` to whichever one the platform can execute, and `seal fold`
+    # `iadd` to whichever one the platform can execute, and `iadd fold`
     # hands its arguments to the checker.
-    posix_wrapper = os.path.join(ROOT, "bin", "seal")
-    windows_wrapper = os.path.join(ROOT, "bin", "seal.cmd")
-    assert os.path.isfile(posix_wrapper), "bin/seal missing"
-    assert os.path.isfile(windows_wrapper), "bin/seal.cmd missing"
-    assert os.access(posix_wrapper, os.X_OK), "bin/seal not executable"
+    posix_wrapper = os.path.join(ROOT, "bin", "iadd")
+    windows_wrapper = os.path.join(ROOT, "bin", "iadd.cmd")
+    assert os.path.isfile(posix_wrapper), "bin/iadd missing"
+    assert os.path.isfile(windows_wrapper), "bin/iadd.cmd missing"
+    assert os.access(posix_wrapper, os.X_OK), "bin/iadd not executable"
     target = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
     assert os.path.isfile(target), "the subcommand points at a missing script"
     wrapper = windows_wrapper if sys.platform == "win32" else posix_wrapper
@@ -233,7 +233,7 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
         errors="replace",
     )
     assert r.returncode == 0, r.stderr
-    assert "usage: seal fold" in r.stdout
+    assert "usage: iadd fold" in r.stdout
 
 
 def test_parity_declaration_is_bootstrappable_not_hand_written():
@@ -419,25 +419,25 @@ def test_the_core_row_names_the_core_file():
 
 
 # The name each place that reaches the network carries in the READMEs' passage,
-# spelt alike in both editions: `/iadd:update`, `seal cost --post`,
+# spelt alike in both editions: `/iadd:update`, `iadd cost --post`,
 # `chain_check.py` run without `--inspecting`, found by `--inspecting`, which the
-# row held before #1620 did not carry, `seal settle`, the IADD
+# row held before #1620 did not carry, `iadd settle`, the IADD
 # process's own steps (which open the pull request with `gh pr create`), and
-# the checks `seal pr-checks install` writes.
+# the checks `iadd pr-checks install` writes.
 NETWORK_PLACES = (
     "/iadd:update",
     "--post",
     "--inspecting",
-    "seal settle",
+    "iadd settle",
     "gh pr create",
-    "seal pr-checks install",
+    "iadd pr-checks install",
 )
 
 
 def network_passage(path, said):
     """PATH's text from the sentence SAID to the next heading, as one line.
     The commands table elsewhere in each README names `/iadd:update` and
-    `seal settle` too, so a search over the whole file would pass with the
+    `iadd settle` too, so a search over the whole file would pass with the
     passage's row gone."""
     from conftest import flattened, read
 

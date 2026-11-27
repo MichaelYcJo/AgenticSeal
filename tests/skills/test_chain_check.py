@@ -226,7 +226,7 @@ GATE_BASE = "fedcba9"
 
 def gate_file(*runs):
     """A `trail/gate.md` holding one run block per commit of RUNS, in the
-    order `seal gate --record` appends them, the last the newest."""
+    order `iadd gate --record` appends them, the last the newest."""
     blocks = "\n".join(
         f"```seal\nrun: {sha} against {GATE_BASE}\n```\n" for sha in runs
     )
@@ -1991,7 +1991,7 @@ class Test_rule_changes_read:
 # The refusal's text around `rules.py`'s reason, pinned here so an edit to
 # `chain.CHECK_LINE_SAYS` meets a case.
 CHECK_LINE_SAYS = (
-    "`skills/settle/scripts/rules.py`, the reader `seal rules --check` uses, "
+    "`skills/settle/scripts/rules.py`, the reader `iadd rules --check` uses, "
     "refuses this check line, which the settle writes into `{file}` as it "
     "stands: {why}"
 )
@@ -3295,7 +3295,7 @@ class Test_broad_gate:
     def test_accepts_the_last_run_block_as_the_newest(
         self, _item_template, monkeypatch
     ):
-        """#1198, *Scope* item 2: `seal gate --record` appends a block per
+        """#1198, *Scope* item 2: `iadd gate --record` appends a block per
         run, so the last block is the newest run, and an earlier block naming
         a commit nobody can see decides nothing; the same blocks the other
         way round are a stale run. Seen red against the reader that took the
@@ -3358,7 +3358,7 @@ class Test_broad_gate:
         assert gate_read(monkeypatch, root, text) == [(rel, 0, chain.NO_RUN_BLOCK)]
         # The command the refusal names, which the orchestrator runs to append
         # a run block.
-        assert "`seal gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
+        assert "`iadd gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
         assert "since #1198" in chain.NO_RUN_BLOCK
 
     def test_refuses_a_run_block_that_does_not_parse_at_its_line(
@@ -3396,7 +3396,7 @@ PR_BODY = load(
     str(ROOT / "skills" / "code-review" / "scripts" / "pr_body.py"),
     "pr_body_for_chain_tests",
 )
-# The inspection mark both `seal pr-body` and the arm build from the plugin's
+# The inspection mark both `iadd pr-body` and the arm build from the plugin's
 # manifest, the one beside `pr_body.py`.
 MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
@@ -3411,7 +3411,7 @@ MARK_ON = ("Pull request inspection mark", "yes")
 
 
 def composed_body(root, item=ITEM):
-    """The body `seal pr-body` writes for ITEM in ROOT as it stands: the
+    """The body `iadd pr-body` writes for ITEM in ROOT as it stands: the
     first part the language keys ask for, the heading, the mark where the
     item is cleared at HEAD, and the copy."""
     path = str(root / item)
@@ -3444,7 +3444,7 @@ def _bodied_template(tmp_path_factory):
     """A branch that went straight to the pull request with a `pr.md` and a
     changelog, in a shared root whose two language keys read `English` and
     whose `Pull request inspection mark` key reads `yes`, cleared at HEAD, built
-    once for the module. Returns `(root, early, late)`: the body `seal
+    once for the module. Returns `(root, early, late)`: the body `iadd
     pr-body` wrote before the inspection was committed, and the one it wrote
     after."""
     d = tmp_path_factory.mktemp("chain-bodied") / "b"
@@ -3507,7 +3507,7 @@ def body_read(monkeypatch, root, text, why=None, items=(ITEM,), texts=None):
 
 
 # #1559: a `gaps.md` whose `## Not verified` table passes GitHub's limit on
-# a pull request body, so `seal pr-body` folds that section.
+# a pull request body, so `iadd pr-body` folds that section.
 LONG_GAPS = (
     "# Closing memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
     + "".join(f"| item {n} {'x' * 90} | the orchestrator |\n" for n in range(700))
@@ -3520,7 +3520,7 @@ class Test_body:
     def test_refuses_a_body_sent_before_the_inspection_at_the_mark(
         self, _bodied_template, tmp_path, monkeypatch, capsys
     ):
-        """S1. The body `seal pr-body` wrote before the inspection was
+        """S1. The body `iadd pr-body` wrote before the inspection was
         committed lacks the mark and the blank line under it, and a ready
         pull request fails on one refusal naming both at the body's line,
         on the work item's directory. Nothing else is refused. Seen red with
@@ -3552,7 +3552,7 @@ class Test_body:
         inspection's base as a SHA, and CI checks out the pull request's
         merge commit, which reaches a commit another pull request landed on
         the base after the inspection. The mark is read against the base the check
-        runs against, as the inspection arm reads it, so the body `seal
+        runs against, as the inspection arm reads it, so the body `iadd
         pr-body` wrote at the branch head passes. Seen red with `body`
         calling `compared` with no base, where the composition held no mark
         and the body's mark run was refused."""
@@ -3595,7 +3595,7 @@ class Test_body:
         """S6. Where the row is absent or reads other than `yes`, the
         composition holds no mark, so a body carrying one is refused at the
         mark's run as lines the records do not give, and a row other than
-        `yes` is named on a notice in `seal pr-body`'s words. The key is
+        `yes` is named on a notice in `iadd pr-body`'s words. The key is
         changed in the copy's working tree, which `compared` reads."""
         root, _early, _late = bodied
         write(root, "seal/config.json", config_json(*LANGUAGES, *row))
@@ -3614,7 +3614,7 @@ class Test_body:
         assert body_read(monkeypatch, root, plain) == ([], notice)
 
     def test_accepts_a_folded_body_naming_the_fold(self, bodied, monkeypatch):
-        """S7 of #1559. A body that is the composition `seal pr-body`
+        """S7 of #1559. A body that is the composition `iadd pr-body`
         folded, its `## Not verified` section past GitHub's limit, is
         refused nothing, and the arm names the fold's sentence as a notice;
         the same records composed with no fold are refused. The long
@@ -3713,7 +3713,7 @@ class Test_body:
     def test_names_the_body_as_not_read_with_no_payload(
         self, _bodied_template, monkeypatch
     ):
-        """S5, a run outside CI, which `seal gate` under `--inspecting` shares:
+        """S5, a run outside CI, which `iadd gate` under `--inspecting` shares:
         `pull_request_body` reads no payload, the same under either flag.
         Seen red with the arm absent."""
         root, _early, _late = _bodied_template
@@ -3823,7 +3823,7 @@ class Test_body:
     ):
         """A5 of #1612. A ready pull request whose work item's `pr.md`
         quotes words its `changelog.md` does not hold is refused at
-        `pr.md`'s line, with the cause `seal pr-body` gives, since the arm
+        `pr.md`'s line, with the cause `iadd pr-body` gives, since the arm
         reads the body through `compared`. Seen red against `first_part` as
         0.38.8 shipped it, where the arm named the body's first line
         and not the quote."""
@@ -3847,7 +3847,7 @@ class Test_body:
     def test_refuses_a_repository_without_a_language_row_at_its_config(
         self, bodied, monkeypatch
     ):
-        """#1453, *Scope* item 3: `seal pr-body` composes no body for a
+        """#1453, *Scope* item 3: `iadd pr-body` composes no body for a
         repository whose `config.json` lacks a language key, so the arm,
         which reads the body through the same function, refuses at the
         root's `config.json`, as it refuses a record `compared` places at a
@@ -3866,14 +3866,14 @@ class Test_body:
 
     def test_reads_the_translation_as_the_bodys_first_lines(self, bodied, monkeypatch):
         """#1453, *Scope* item 3, the scenario *The pull request's arm passes
-        the composed body*. Where the keys differ, the body `seal pr-body`
+        the composed body*. Where the keys differ, the body `iadd pr-body`
         composes opens with the work item's `pr.<lang>.md`, and the arm
         passes it; a body whose first part is `pr.md` alone is refused at its
         first line, naming the translation. Seen red with `compared` reading
         `pr.md` alone, where the composed body was refused at its first
         line. The lines are compared without their ends and the translation
         is taken out as the first line the body holds, because `write` ends
-        each line with CRLF on Windows and `seal pr-body` copies the files'
+        each line with CRLF on Windows and `iadd pr-body` copies the files'
         line ends as they stand."""
         root, _early, _late = bodied
         write(
@@ -4052,7 +4052,7 @@ class Test_declared_for_this_branch:
         assert ADD_THE_FILE not in out, out
         assert "local mode" in out, out
         assert os.path.normpath(os.path.join(common_dir(repo), "seal")) in out, out
-        assert "seal mode shared" in out, out
+        assert "iadd mode shared" in out, out
 
     def test_local_mode_says_the_check_judged_nothing(self, repo):
         """Naming the root does not turn an untracked declaration into a checked
@@ -4392,7 +4392,7 @@ class Test_main:
         """#1603, design S1. On a ready pull request, every reader real,
         a run starts no git command twice with the same input: over
         `branch`, whose round records the records arm and `unread` each
-        read, and over `bodied` with the body `seal pr-body` wrote after
+        read, and over `bodied` with the body `iadd pr-body` wrote after
         the inspection in its payload, whose inspection's target the inspection arm
         and the body arm each ask `follows` of. Seen red against
         `chain_check.py` before #1603, where the round records' `show` and
@@ -5135,7 +5135,7 @@ class Test_retired:
     def test_a_root_that_left_for_a_local_root_says_the_check_judged_nothing(
         self, branch, ready, capsys, monkeypatch
     ):
-        """The same pull request, read by the session that ran `seal mode
+        """The same pull request, read by the session that ran `iadd mode
         local`: the root now stands under the common git directory, where
         each trailer is printed, not judged, so the notice says the check
         judged nothing."""

@@ -215,7 +215,7 @@ class Test_measure:
         assert meter.measure(str(root), str(home))["agents"] == {}
         done = run(["--root", str(root)], home, cwd=str(tmp_path))
         assert done.returncode == 1, (done.returncode, done.stderr)
-        assert done.stderr == f"seal payload: no agents/*.md under {root}\n", (
+        assert done.stderr == f"iadd payload: no agents/*.md under {root}\n", (
             done.stderr
         )
         assert done.stdout == "", done.stdout
@@ -1099,9 +1099,9 @@ class Test_module:
 
     def test_the_command_a_person_types_runs_the_meter(self):
         """`bin/` is on the Bash tool's PATH while the plugin is enabled, and
-        cmd.exe resolves `bin/seal.cmd` through PATHEXT; `seal payload` hands
+        cmd.exe resolves `bin/iadd.cmd` through PATHEXT; `iadd payload` hands
         its arguments to THIS script, whose help names what it measures."""
-        wrapper = os.path.join(BIN, "seal")
+        wrapper = os.path.join(BIN, "iadd")
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
             if os.name == "nt"

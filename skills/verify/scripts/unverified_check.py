@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal unverified — read what a closing memo recorded as unverified, and fail
+"""iadd unverified — read what a closing memo recorded as unverified, and fail
 on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
@@ -13,7 +13,7 @@ So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Many are open at any time, and
 a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
-is what `seal unverified seal/threads/` is for; no number is repeated in prose here,
+is what `iadd unverified seal/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
 It fails for what the author can always fix: a section that cannot be read.
@@ -26,7 +26,7 @@ the proofer reads it in the closing memo's diff (`skills/implement/SKILL.md`
 *4. The closing memo*).
 
 The reader is `lib/gaps.py`, which states how a row closes and which
-`seal settle` reads a memo through as well; this command walks a tree for every `gaps.md`, reads each through it,
+`iadd settle` reads a memo through as well; this command walks a tree for every `gaps.md`, reads each through it,
 and prints what it found. Deliberately a text scan of markdown, not a parser
 library: the gates here are stdlib-only, and the format it accepts is one
 line long. That format is strict on purpose — see `lib/gaps.py#check_file`.
@@ -180,7 +180,7 @@ def display_path(path, start):
 
     `os.path.relpath` raises `ValueError` on Windows when the two are on
     different drives, and this is the reporting footing for every line the
-    tool prints. Running `seal unverified D:\repo\specs` from `C:\` is
+    tool prints. Running `iadd unverified D:\repo\specs` from `C:\` is
     an ordinary thing to do, and unguarded it dies with a traceback before
     printing a single row. The absolute path is a worse answer than a
     relative one and a far better one than no output at all.
@@ -213,9 +213,9 @@ def settled_root(path):
     item under it — empty on disk, or absent while the root is there.
 
     That is the state a complete settle reaches, and it is two states: the
-    tree that ran `seal settle --apply` holds an empty `seal/threads/`, and a
+    tree that ran `iadd settle --apply` holds an empty `seal/threads/`, and a
     fresh checkout of the commit holds none, because git keeps no empty
-    directory. A person who runs `seal unverified seal/threads/`
+    directory. A person who runs `iadd unverified seal/threads/`
     after the settle hands this tool that path, and reading it as a typo would
     refuse a finished settle. Only this one path is settled: any other path
     that is missing is still refused, which is what keeps `threads/ thraeds/`
@@ -233,14 +233,14 @@ def settled_root(path):
 
 
 SETTLED = (
-    "seal unverified: {path} holds no work item and its `seal/` root is "
+    "iadd unverified: {path} holds no work item and its `seal/` root is "
     "there — the state a complete settle ends in, so there is nothing to read"
 )
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="seal unverified",
+        prog="iadd unverified",
         description="Report open `## Not verified` items; fail on a record "
         "that cannot be read.",
     )
@@ -249,7 +249,7 @@ def main(argv=None):
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing:
-        print(f"seal unverified: no such path: {missing[0]}", file=sys.stderr)
+        print(f"iadd unverified: no such path: {missing[0]}", file=sys.stderr)
         return 2
 
     files = overviews(args.path)
@@ -273,7 +273,7 @@ def main(argv=None):
             print(SETTLED.format(path=", ".join(args.path)))
             return 0
         print(
-            f"seal unverified: no {OPTIN.GAPS} found under "
+            f"iadd unverified: no {OPTIN.GAPS} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )

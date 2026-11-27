@@ -213,7 +213,7 @@ RULES = {
         },
     ),
     # #1478: four findings and one withheld verdict of 0.37.0 named a
-    # changelog sentence a second time at its quote in `pr.md`. `seal
+    # changelog sentence a second time at its quote in `pr.md`. `iadd
     # pr-body` writes the fragment above the fold, so `pr.md` quotes none of
     # it, and the files that said what `pr.md` holds name the owner.
     "23 pr.md quotes no sentence of changelog.md": (
@@ -225,7 +225,7 @@ RULES = {
             "`changelog.md`",
             # The command that writes the fragment into the body, and the
             # constant that holds the line it writes it under.
-            "`seal pr-body`",
+            "`iadd pr-body`",
             "`skills/code-review/scripts/pr_body.py#HEADING`",
         ),
         {
@@ -278,7 +278,7 @@ RULES = {
     # key is absent or what an absent one does, and the commit skill's four
     # ways were the only complete list. The template's paragraph states
     # both, and each fact here is spelt as that paragraph alone spells it,
-    # since the file names `no such key` and `seal pr-body` in other
+    # since the file names `no such key` and `iadd pr-body` in other
     # sentences too.
     "26 what an absent language key is and does": (
         CONFIG_TEMPLATE,
@@ -292,7 +292,7 @@ RULES = {
             "for these two keys it counts as absent",
             # What absence does at the pull request body, and at a commit or
             # a record.
-            "`seal pr-body` refuses with nothing written",
+            "`iadd pr-body` refuses with nothing written",
             "commit or a record is written in English",
         ),
         {},
@@ -455,7 +455,7 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
     section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
     for fact in (
         # The command the orchestrator runs over the implementer's transcript.
-        "`seal cost --segments <the implementer's agent-*.jsonl>`",
+        "`iadd cost --segments <the implementer's agent-*.jsonl>`",
         # The column of its output the orchestrator reads.
         "`context`",
         # The section the orchestrator resolves for how it folds a file that
@@ -562,7 +562,7 @@ def test_the_orchestrator_writes_the_body_file_the_inspector_reads():
         "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`",
         # The command the orchestrator types to write the body's copy of the
         # records, with the scratchpad path the inspector's spawn names.
-        "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
+        "`iadd pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
         # The citation the orchestrator resolves to find the line its own
         # part goes above.
         "`skills/code-review/scripts/pr_body.py#HEADING`",
@@ -594,7 +594,7 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     round. #1222 adds a poll before the wait, because the wait run before a
     check has reported exits 1 without waiting, and counts the checks of
     `pull_request` runs alone. #1494 replaces the read, the poll and the wait
-    with `seal pr-wait`, which reads `gh`'s JSON and answers with an exit
+    with `iadd pr-wait`, which reads `gh`'s JSON and answers with an exit
     code: `gh pr checks --watch` exits 0 where the only bad check was
     cancelled, and ends before a job that waits on another has its check.
     The command's reads, its limit and their reasons stand in its docstring
@@ -630,8 +630,8 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     for said in (
         # The read the orchestrator types before each push, and the wait it
         # types when the pull request opens and after each push.
-        "`seal pr-wait <N> --once`",
-        "`seal pr-wait <N>`",
+        "`iadd pr-wait <N> --once`",
+        "`iadd pr-wait <N>`",
         # Each exit code the command answers with, as a row of the table that
         # gives the orchestrator's act at it.
         *(

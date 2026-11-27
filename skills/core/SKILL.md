@@ -112,10 +112,10 @@ one of those protections, is guidance.
 | No review without a build | a round reads a committed tree and its record names the commit | `skills/code-review/scripts/chain_check.py`'s records arm: every record carries one `target:` line, and HEAD descends from the last record's commit and from every `fixed` commit |
 | No fix that no round reads | every change after the last round is read by a round, or by the inspector where it touched the work item's records alone and each finding it closed names a place in those records on its own `location:` line | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
 | No inspection without the broad run | the inspector clears a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the inspector reads at HEAD itself | `agents/inspector.md` step 1 and the same check's broad gate arm |
-| No pull request without a cleared inspection | nothing reaches the base that the last independent party did not clear | the same check's inspection arm: a ready pull request fails without `Verdict: cleared` at HEAD or at a commit that only `trail/gate.md` and `inspection.md` follow; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the inspection mark among it |
+| No pull request without a cleared inspection | nothing reaches the base that the last independent party did not clear | the same check's inspection arm: a ready pull request fails without `Verdict: cleared` at HEAD or at a commit that only `trail/gate.md` and `inspection.md` follow; and its body arm: a ready pull request fails where its body is not what `iadd pr-body` composes at HEAD, the inspection mark among it |
 
 The check refuses at a ready pull request, where its GitHub Actions workflow
-is installed, and in `seal gate`'s preflight and broad run whatever the pull
+is installed, and in `iadd gate`'s preflight and broad run whatever the pull
 request's state. Before the pull request the gate's run holds the first two
 rows and prints the last two, which `agents/inspector.md` step 1 and the
 orchestrator keeping `skills/code-review/orchestration.md` *Orchestrator:

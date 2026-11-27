@@ -28,16 +28,16 @@ chain = load_module(
 
 
 def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
-    """Contract rule 14's half of D3. Each README edition's `seal settle`
+    """Contract rule 14's half of D3. Each README edition's `iadd settle`
     row names the file whose rule changes the settle reads. Whether a
     released work item with no design leaves like any other is the
     proofer's to read."""
     for edition in ("README.md", "README.ko.md"):
         with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
             # The row is one line of the table: the cell, then up to its end.
-            row = f.read().split("`seal settle [--apply]`")[1].split("\n", 1)[0]
+            row = f.read().split("`iadd settle [--apply]`")[1].split("\n", 1)[0]
         # The path `frame/design.md`, which the person running
-        # `seal settle` resolves to the file it reads.
+        # `iadd settle` resolves to the file it reads.
         assert "`frame/design.md`" in row, (
             f"{edition}'s cheat-sheet row does not name the rule arm"
         )
@@ -136,12 +136,12 @@ def test_both_cheat_sheets_carry_the_command(edition):
     #1033, finding 2); what the dry run prints is the proofer's to read."""
     text = document(edition)
     # The command the README's reader types.
-    assert "`seal settle [--apply]`" in text, (
+    assert "`iadd settle [--apply]`" in text, (
         f"{edition}'s cheat sheet has no row for the command"
     )
     # The raw file is read, so the row is the row.
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-        row = f.read().split("`seal settle [--apply]`")[1].split("\n")[0]
+        row = f.read().split("`iadd settle [--apply]`")[1].split("\n")[0]
     # The heading `skills/settle/scripts/rule_changes.py` parses in a design.
     assert "`## Rule changes`" in row, row
     # The citation the README's reader resolves for the procedure.
@@ -166,6 +166,6 @@ def test_the_local_mode_section_names_what_a_local_settle_reads():
         # The module that reads `routing.md` as a declaration.
         "`lib/routing.py`",
         # The command a person runs for a copy of the records.
-        "`seal export`",
+        "`iadd export`",
     ):
         assert fact in section, fact

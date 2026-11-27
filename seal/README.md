@@ -5,7 +5,7 @@ root laid out by lifetime: the rows that outlive a work item at the top, and
 each work item whole under `seal/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released designs' `## Rule changes` name, as their latest decision, and
-`seal settle --apply` removes each released directory whole whose record holds no
+`iadd settle --apply` removes each released directory whole whose record holds no
 open row, whether or not it wrote a `frame/design.md`, and keeps one whose
 version's published note, built from the fragments, does not carry its entry. A settle is not a work item and
 opens no directory here.
@@ -26,14 +26,14 @@ candidate, and no `.gitignore` line is needed. What local mode
 gives up is CI, because the pull-request checks read committed files, and
 any other machine, which starts empty.
 
-**`seal mode local` and `seal mode shared` switch between the two.** Each
+**`iadd mode local` and `iadd mode shared` switch between the two.** Each
 moves the root, stages the change and records the mode in `config.json`
 beside this file, and leaves `.github/` alone; whoever ran the command
 commits the change. Whether CI checks pull requests is a second answer:
-`seal pr-checks install` writes `.github/workflows/hygiene.yml` where this
-root is in the tree, `seal pr-checks remove` takes it out, and
-`seal pr-checks` says which is the case. `seal mode` alone says where the root is and what that key claims,
-and `seal mode --check`, which the pull-request checks run, exits non-zero
+`iadd pr-checks install` writes `.github/workflows/hygiene.yml` where this
+root is in the tree, `iadd pr-checks remove` takes it out, and
+`iadd pr-checks` says which is the case. `iadd mode` alone says where the root is and what that key claims,
+and `iadd mode --check`, which the pull-request checks run, exits non-zero
 when the two disagree. Nothing reads the key at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so
 the commands land the same from a subdirectory. From local to shared:
@@ -43,9 +43,9 @@ to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/seal"`,
 `mv "$(git rev-parse --show-toplevel)/seal" "$(git rev-parse --git-common-dir)/seal"`
 and a commit of the removal.
 
-**`seal export` and `seal import` are the way across between machines**, and
+**`iadd export` and `iadd import` are the way across between machines**, and
 the only one there is: local mode's records reach no other clone by
-themselves. `seal export` zips this root alone; `seal import` merges a zip
+themselves. `iadd export` zips this root alone; `iadd import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the

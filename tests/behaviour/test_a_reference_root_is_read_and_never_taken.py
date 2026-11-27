@@ -21,11 +21,11 @@ import os
 
 from conftest import ROOT, load_module
 
-# No TARGET: its cases list every command under bin/ and seal.py's subcommands, and hold one citation across the files that read a reference root.
+# No TARGET: its cases list every command under bin/ and iadd.py's subcommands, and hold one citation across the files that read a reference root.
 
-SEAL = load_module(
-    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
-    "seal_for_the_reference_root",
+IADD = load_module(
+    os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py"),
+    "iadd_for_the_reference_root",
 )
 
 
@@ -34,7 +34,7 @@ SEAL = load_module(
 # The failure this file's plan names for six months out: a check added later
 # walks the tree without asking the predicate, and the class reopens one
 # script at a time. So every command `bin/` ships, and every subcommand
-# `seal.py#TOOLS` hands to a script, is named here with what
+# `iadd.py#TOOLS` hands to a script, is named here with what
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
 # what it rests on, which its module's file holds under the root's own
@@ -55,35 +55,35 @@ NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
-    "seal unverified": (PREDICATE, "the walk, by one rule"),
-    "seal settle": (
+    "iadd unverified": (PREDICATE, "the walk, by one rule"),
+    "iadd settle": (
         PINNED,
         "settle.py#threads; its citation scan reads as a citer, and --from reads "
         "only a directory a person names and writes nothing there",
     ),
-    "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "seal gate": (NO_WALK, "runs the command, chain_check.py and seal.py mode"),
-    "seal fold": (
+    "iadd pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
+    "iadd gate": (NO_WALK, "runs the command, chain_check.py and iadd.py mode"),
+    "iadd fold": (
         NO_WALK,
         "reads the policy root, each group its index names, and seal/config.json",
     ),
-    "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
-    "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
-    "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
-    "seal deferrals": (NO_WALK, "reads the pull request body and round records"),
-    "seal pr-body": (NO_WALK, "reads the one work item it is named and a body file"),
-    "seal pr-wait": (NO_WALK, "reads a pull request through gh and HEAD through git"),
-    "seal range": (
+    "iadd rules": (NO_WALK, "reads the one document it is named and its targets"),
+    "iadd mutate": (NO_WALK, "breaks and restores the one file it is named"),
+    "iadd layout": (NO_WALK, "reads tests/ and the modules its files name"),
+    "iadd deferrals": (NO_WALK, "reads the pull request body and round records"),
+    "iadd pr-body": (NO_WALK, "reads the one work item it is named and a body file"),
+    "iadd pr-wait": (NO_WALK, "reads a pull request through gh and HEAD through git"),
+    "iadd range": (
         NO_WALK,
         "reads a range through git and the one work item it is named",
     ),
-    "seal": (NOT_A_CHECK, "the mode command, writing seal/config.json"),
-    "seal stamp": (
+    "iadd": (NOT_A_CHECK, "the mode command, writing seal/config.json"),
+    "iadd stamp": (
         NOT_A_CHECK,
         "draws the inspector's stamp from a cleared inspection",
     ),
-    "seal cost": (NOT_A_CHECK, "measures a transcript"),
-    "seal payload": (NOT_A_CHECK, "measures a spawn's payload"),
+    "iadd cost": (NOT_A_CHECK, "measures a transcript"),
+    "iadd payload": (NOT_A_CHECK, "measures a spawn's payload"),
     "test": (NOT_A_CHECK, "this repository's own suite runner"),
 }
 
@@ -93,9 +93,9 @@ def test_every_shipped_command_is_classified():
         name
         for name in os.listdir(os.path.join(ROOT, "bin"))
         if not name.endswith(".cmd")
-    } | {f"seal {name}" for name in SEAL.TOOLS}
+    } | {f"iadd {name}" for name in IADD.TOOLS}
     assert shipped == set(SHIPPED), (
-        "a command in bin/ or a `seal` subcommand is not classified here, or "
+        "a command in bin/ or an `iadd` subcommand is not classified here, or "
         "a classified one left: "
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
         "specs/ — the predicate, the root's own directory, or no walk at all"

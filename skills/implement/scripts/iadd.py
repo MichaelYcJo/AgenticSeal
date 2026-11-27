@@ -12,34 +12,34 @@ cannot run. That is the mode's whole trade-off
 carry a copy it reads as *lose it* rather than *take a copy*. This is that
 way:
 
-  seal export                 write the root to a zip beside the clone
-  seal export --check         the release reminder; writes nothing
-  seal import <zip>           merge a zip's records in, overwriting nothing
+  iadd export                 write the root to a zip beside the clone
+  iadd export --check         the release reminder; writes nothing
+  iadd import <zip>           merge a zip's records in, overwriting nothing
 
-`seal mode` makes the switch between the two modes one command, and the
+`iadd mode` makes the switch between the two modes one command, and the
 section on the mode below this one is its reasoning:
 
-  seal mode                   the folder, the `Mode` key, and whether they
+  iadd mode                   the folder, the `Mode` key, and whether they
                               agree
-  seal mode --check           the same, writing nothing; exit 1 when they
+  iadd mode --check           the same, writing nothing; exit 1 when they
                               disagree. This is what CI runs
-  seal mode local|shared      switch, and write the key
-  seal mode --apply           switch to whatever the key says
+  iadd mode local|shared      switch, and write the key
+  iadd mode --apply           switch to whatever the key says
 
 The switch moves the root and nothing else. Whether CI checks pull requests
 is a second answer, and its record is the workflow file itself, so no key
 says it:
 
-  seal pr-checks              whether .github/workflows/hygiene.yml is this
+  iadd pr-checks              whether .github/workflows/hygiene.yml is this
                               plugin's, and the release it pins; writes nothing
-  seal pr-checks install      write it pinned to this release, and stage it;
+  iadd pr-checks install      write it pinned to this release, and stage it;
                               refused unless seal/ is in the tree
-  seal pr-checks remove       take out the file this plugin wrote, from the
+  iadd pr-checks remove       take out the file this plugin wrote, from the
                               working tree and the index; where HEAD carries
                               it, the deletion is staged for you to commit
 
 Every other command of the plugin is a subcommand of this one, and `TOOLS`
-says which script each runs. `seal gate --base <base> --record <item>` hands
+says which script each runs. `iadd gate --base <base> --record <item>` hands
 `--base <base> --record <item>` to `broad_gate.py` untouched, `--help` among
 any arguments, so each script keeps its own parser and its own help, and a
 subcommand is a dispatch and not a copy.
@@ -111,7 +111,7 @@ PLUGIN = os.path.normpath(os.path.join(LIB, ".."))
 
 # The plugin's commands that are not about the root, one subcommand each: the
 # name a person types, the script it runs (from the plugin's root), and the
-# line `seal --help` prints for it.
+# line `iadd --help` prints for it.
 TOOLS = {
     "gate": (
         "skills/verify/scripts/broad_gate.py",
@@ -245,7 +245,7 @@ def git_asked(root, *args, answered=(0,)):
     is this function with the distinction thrown away — the right reading
     for a caller that has nothing to do with `why`, and the wrong one for a
     caller that reads "" as a FACT about the repository: a failure read as
-    *no remote* switches off `seal import`'s refusal.
+    *no remote* switches off `iadd import`'s refusal.
 
     `answered` is the return codes that count as an answer, because for one
     command a non-zero code IS one: `git config --get` exits 1 when the key is
@@ -286,7 +286,7 @@ def remote_url(root):
     """(`origin`'s fetch URL, "") — or (None, why) when git could not answer.
 
     `""` is a repository with no `origin`, and that is an ANSWER: it is the
-    case `seal import`'s other-repository check is allowed to be switched off
+    case `iadd import`'s other-repository check is allowed to be switched off
     by, so it has to be tellable from a failure.
 
     **`git config --get` exits 1 with nothing on either stream when the key is
@@ -360,7 +360,7 @@ def root_files(home):
     always produces the same zip and the same digest.
 
     **This is the only walk.** The zip's members and the digests the manifest
-    records come from this one list. `tests/skills/test_seal.py::Test_export`
+    records come from this one list. `tests/skills/test_iadd.py::Test_export`
     asserts the zip's namelist equal to `MEMBERS`, the manifest and then the
     sorted paths this walk gives for the case's root, and
     `Test_root_files` holds the walk's order. Two enumerations would
@@ -517,9 +517,9 @@ def unused(directory, stem, suffix):
 
 
 def zip_stem(repo, when):
-    """`seal-<repo>-<date>` — the name a person recognises on a USB stick."""
+    """`iadd-<repo>-<date>` — the name a person recognises on a USB stick."""
     base = UNSAFE_IN_A_NAME.sub("-", os.path.basename(repo.rstrip(os.sep))) or "repo"
-    return f"seal-{base}-{when}"
+    return f"iadd-{base}-{when}"
 
 
 def write_zip(path, home, files, manifest):
@@ -529,7 +529,7 @@ def write_zip(path, home, files, manifest):
     discover on the machine that has nothing else.
 
     `lexists` and then `O_EXCL`, in that order and for two different reasons.
-    This name is predictable — `seal-<repo>-<date>.zip.partial`, beside the
+    This name is predictable — `iadd-<repo>-<date>.zip.partial`, beside the
     clone, which is where the default export writes — and with no check, a
     broken link planted there puts the manifest and every record outside the
     clone at exit 0, printing `wrote <path>` for a path that is the link.
@@ -646,7 +646,7 @@ def export(args, cwd):
     for line in unread.values():
         print(f"  {line}")
     if "remote" in unread:
-        # Named here because this is the machine that can fix it. `seal
+        # Named here because this is the machine that can fix it. `iadd
         # import` refuses a zip recording no remote, and re-running the
         # import there cannot change what these bytes say — so an export that
         # exits 0 in silence leaves the diagnosis with the person who has no
@@ -661,7 +661,7 @@ def export(args, cwd):
             "machine takes in without a flag."
         )
     print(
-        f"\nTake it in on the other machine with:\n  seal import {os.path.basename(target)}"
+        f"\nTake it in on the other machine with:\n  iadd import {os.path.basename(target)}"
     )
     return 0
 
@@ -681,7 +681,7 @@ def display(repo, path):
 
 def no_root(repo, shared, local):
     if not repo:
-        print("not inside a git repository — seal works on a clone")
+        print("not inside a git repository — iadd works on a clone")
         return 1
     if optin.opted_out(optin.git_common_dir(repo)):
         print(
@@ -691,7 +691,7 @@ def no_root(repo, shared, local):
             "with its records."
         )
         return 1
-    # Not "nothing to carry": `seal mode` reaches this too, and it carries
+    # Not "nothing to carry": `iadd mode` reaches this too, and it carries
     # nothing anywhere. What all three subcommands share is that the root is
     # what they work on, and the two places printed are the ones
     # `optin.home_paths` gives: the shared place and the local place.
@@ -894,7 +894,7 @@ def read_manifest(archive, path):
         raw = archive.read(MANIFEST)
     except KeyError:
         return None, (
-            f"{path} holds no {MANIFEST} — it was not written by `seal export`"
+            f"{path} holds no {MANIFEST} — it was not written by `iadd export`"
         )
     try:
         manifest = json.loads(raw.decode("utf-8"))
@@ -960,7 +960,7 @@ def destination_root(repo, home, shared, local, into):
     harm local mode exists to prevent, so the safe guess is the one made.
 
     Both roots present refuses whatever `--into` says, including nothing:
-    inside the `--into` branch, the refusal would leave `seal import` with no
+    inside the `--into` branch, the refusal would leave `iadd import` with no
     flag writing into whichever root the gates happen to read first. A
     clone holding two roots is a clone whose owner has not said which is the
     real one, and a copy landing in one of them is not the moment to decide
@@ -978,7 +978,7 @@ def destination_root(repo, home, shared, local, into):
             "Importing into one would leave the other where nothing reads "
             "it. Move or remove one first: keep the root that holds the "
             "records you want, copy across by hand what only the other "
-            "holds, and delete the other. `seal mode` refuses while both "
+            "holds, and delete the other. `iadd mode` refuses while both "
             "exist, too."
         )
     if into:
@@ -1005,7 +1005,7 @@ def import_(args, cwd):
     """Write a carried root's records into this clone's, overwriting nothing."""
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
-        print("not inside a git repository — seal works on a clone")
+        print("not inside a git repository — iadd works on a clone")
         return 1
 
     path = os.path.abspath(args.zip)
@@ -1140,7 +1140,7 @@ def import_(args, cwd):
             # off.
             # An older build always wrote a string here, so a zip carrying
             # anything else either comes from a build that could not look or
-            # was not written by `seal export` at all, and neither answers the
+            # was not written by `iadd export` at all, and neither answers the
             # question.
             unreadable.append(
                 "the zip records no remote this command can read, so the "
@@ -1347,7 +1347,7 @@ def write_members(archive, into):
 # runs them, plus the three things a `mv` cannot do: refuse when the other
 # root is already there, refuse when the tree is dirty under what it is about
 # to stage, and write the key so the file and the folder agree afterwards.
-# The workflow file is not among them: `.github/` is `seal pr-checks`'s.
+# The workflow file is not among them: `.github/` is `iadd pr-checks`'s.
 #
 # **Nothing at runtime reads the key.** Every script resolves the root through
 # `lib/optin.py#home_at`, which reads the places `home_paths` gives in
@@ -1368,7 +1368,7 @@ MODE_KEY = repo_config.MODE_KEY
 LOCAL, SHARED = repo_config.LOCAL, repo_config.SHARED
 MODES = repo_config.MODES
 
-# The workflow `seal pr-checks install` writes, as GIT spells a pathspec: forward
+# The workflow `iadd pr-checks install` writes, as GIT spells a pathspec: forward
 # slashes on every platform. `lib/gitcmd.py#under_root` turns it into a
 # path for this filesystem, splitting it at `/` rather than handing it to
 # `os.path.join` whole. The two dialects live as separate strings rather
@@ -1380,11 +1380,11 @@ WORKFLOW = ".github/workflows/hygiene.yml"
 
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
-# else's with our name, and `seal pr-checks` neither overwrites nor removes
-# it. `tests/skills/test_seal.py::Test_module` asserts the template still contains
+# else's with our name, and `iadd pr-checks` neither overwrites nor removes
+# it. `tests/skills/test_iadd.py::Test_module` asserts the template still contains
 # this, so the marker cannot drift away from what it identifies.
 PLUGIN_CLONE = "https://github.com/MichaelYcJo/AgenticSeal.git"
-# The release a workflow's clone line pins, which `seal pr-checks` reports.
+# The release a workflow's clone line pins, which `iadd pr-checks` reports.
 PIN = re.compile(r"--branch\s+(\S+)")
 
 # The version placeholder in `templates/setup/hygiene.yml`. A workflow written with
@@ -1492,7 +1492,7 @@ def porcelain(repo, *paths):
     could not answer.
 
     **PATHS are every path the switch stages**, which is the root alone,
-    since `.github/` is `seal pr-checks`'s. A guard watching fewer paths
+    since `.github/` is `iadd pr-checks`'s. A guard watching fewer paths
     than the switch stages would leave a path's uncommitted work to be taken
     by `git rm`.
 
@@ -1521,7 +1521,7 @@ def indexed(line, name, moved=False):
     the folder in both directions — moved out with the root going to local,
     staged by `git add` going to shared. Refusing over one would not be a
     stricter version of the same rule but a different rule with no grounds,
-    and it would make the ordinary first run refuse: `seal mode` writes an
+    and it would make the ordinary first run refuse: `iadd mode` writes an
     absent key, and the switch a person runs next meets the file it has just
     written.
 
@@ -1534,12 +1534,12 @@ def indexed(line, name, moved=False):
     else — `MD` and `AD` still refuse, because a staged edit is precisely
     what `git rm -r --cached` drops without a word.
 
-    **The key this command wrote itself is not, either.** `seal mode` fills
+    **The key this command wrote itself is not, either.** `iadd mode` fills
     an absent key in from the folder, so the switch a person runs next meets
     a worktree-only modification of the one file the switch rewrites anyway.
     The `??` exception above reaches half of it: an untracked config passes,
     and without this one a TRACKED config, which every shared root that
-    commits its config has, would still refuse, so `seal mode` then `seal
+    commits its config has, would still refuse, so `iadd mode` then `iadd
     mode local` would exit 1.
 
     A STAGED edit to it still refuses, for the reason every staged edit does:
@@ -1676,7 +1676,7 @@ def workflow_at(repo):
     `plugin`, a regular file that reads and carries PLUGIN_CLONE, with its
     text; `absent`, with ""; or, with the clause that says why the file is
     not this plugin's, `link`, `unreadable` or `other`. The one reader the
-    three forms of `seal pr-checks` share, so the report, the install and the
+    three forms of `iadd pr-checks` share, so the report, the install and the
     removal tell this plugin's file from somebody else's by one rule.
     """
     path = gitcmd.under_root(repo, WORKFLOW)
@@ -1701,7 +1701,7 @@ def pinned(text):
 
 
 def left_workflow_line(text):
-    """What `seal mode local` says of this plugin's workflow, `text`, which
+    """What `iadd mode local` says of this plugin's workflow, `text`, which
     the switch leaves in the tree.
 
     Pinned to the installed release, the steps read a tree with no root as
@@ -1720,7 +1720,7 @@ def left_workflow_line(text):
             "declared and pass the commits a local-mode session writes, which "
             "carry no `Seal-Routing` trailer. A commit made before the switch "
             "whose trailer names a work item still fails a ready pull request, "
-            "and `seal pr-checks remove` takes the checks out"
+            "and `iadd pr-checks remove` takes the checks out"
         )
     named = pin or "no release its clone line names"
     here = (
@@ -1732,7 +1732,7 @@ def left_workflow_line(text):
     return (
         f"{WORKFLOW} stays, {here}: a release before this one fails every pull "
         f"request with no {optin.HOME}/ in the tree. Move its `--branch` line "
-        f"to {to}, or run `seal pr-checks remove`"
+        f"to {to}, or run `iadd pr-checks remove`"
     )
 
 
@@ -1755,7 +1755,7 @@ def install_workflow(repo):
         return "no-root", (
             f"{WORKFLOW} was NOT written: no root stands at {name}/ in this "
             "tree, and the checks read committed records, which only a root in "
-            f"the tree has. `seal mode {SHARED}` puts it in the tree."
+            f"the tree has. `iadd mode {SHARED}` puts it in the tree."
         )
     kind, found = workflow_at(repo)
     if kind == "plugin":
@@ -1928,7 +1928,7 @@ def remove_workflow(repo):
     if not tracked(repo, WORKFLOW):
         # git holds no copy, so removing it would take the only one — unless
         # this plugin can write it back byte for byte, which is the state
-        # `seal pr-checks install` followed by a `git reset` leaves. A guard
+        # `iadd pr-checks install` followed by a `git reset` leaves. A guard
         # reasoned about SOMEBODY ELSE'S file would otherwise refuse one this
         # command wrote a moment earlier.
         if text != plugin_workflow():
@@ -1946,7 +1946,7 @@ def remove_workflow(repo):
             return "failed", f"{WORKFLOW} could not be removed: {exc}"
         return "removed", (
             f"removed {WORKFLOW} — untracked, and byte for byte this "
-            "plugin's, so `seal pr-checks install` writes it back"
+            "plugin's, so `iadd pr-checks install` writes it back"
         )
     force = []
     if not committed(repo, WORKFLOW):
@@ -1975,14 +1975,14 @@ def remove_workflow(repo):
     if force:
         return "removed", (
             f"removed {WORKFLOW} and took it out of the index — staged, never "
-            "committed, and byte for byte this plugin's, so `seal pr-checks "
+            "committed, and byte for byte this plugin's, so `iadd pr-checks "
             "install` writes it back"
         )
     return "removed", f"removed {WORKFLOW} and staged the removal"
 
 
 def pr_checks(args, cwd):
-    """`seal pr-checks [install|remove]`: report, write or remove the
+    """`iadd pr-checks [install|remove]`: report, write or remove the
     workflow. Exit 0 for a report, a file written or already this plugin's,
     and a file removed or nothing there; 1 for every refusal, which writes
     and removes nothing, and for a file written that git would not stage.
@@ -1992,7 +1992,7 @@ def pr_checks(args, cwd):
     The repository is asked as `resolve` asks it."""
     repo = optin.toplevel(cwd)
     if not repo:
-        print("not inside a git repository — seal works on a clone")
+        print("not inside a git repository — iadd works on a clone")
         return 1
     if args.action == "install":
         kind, line = install_workflow(repo)
@@ -2007,11 +2007,11 @@ def pr_checks(args, cwd):
         print(
             f"installed: {WORKFLOW} is this plugin's pull-request checks, "
             f"pinned to {pinned(found) or 'no release its clone line names'}. "
-            "`seal pr-checks remove` takes them out."
+            "`iadd pr-checks remove` takes them out."
         )
     elif kind == "absent":
         print(
-            f"not installed: there is no {WORKFLOW}. `seal pr-checks install` "
+            f"not installed: there is no {WORKFLOW}. `iadd pr-checks install` "
             f"writes it where {optin.HOME}/ is in the tree."
         )
     else:
@@ -2023,7 +2023,7 @@ def pr_checks(args, cwd):
 
 
 def say_report(repo, home, shared, local, current, kind, value):
-    """The report both `seal mode` and `seal mode --check` print."""
+    """The report both `iadd mode` and `iadd mode --check` print."""
     print(f"  folder: {current:<7}{display(repo, home)}/")
     if kind == "mode":
         print(f"  key:    {value:<7}{display(repo, config_path(home))}")
@@ -2039,7 +2039,7 @@ def say_report(repo, home, shared, local, current, kind, value):
 
 
 def mode_refusal(home):
-    """The sentence `seal mode` refuses the root's `config.json` in, or "":
+    """The sentence `iadd mode` refuses the root's `config.json` in, or "":
     `lib/config.py#config_pairs`' own sentence for a file it refuses, and
     for a key written twice the writer's (`doubled_keys`) -- the two things
     `write_mode` would refuse, so a switch is refused before anything
@@ -2052,7 +2052,7 @@ def mode_refusal(home):
 
 
 def mode_report(args, repo, home, shared, local, current):
-    """`seal mode` and `seal mode --check`: the folder, the key, and whether
+    """`iadd mode` and `iadd mode --check`: the folder, the key, and whether
     they agree. The folder is never moved here.
 
     An absent key is written from the folder. The value is an observation
@@ -2091,8 +2091,8 @@ def mode_report(args, repo, home, shared, local, current):
     if kind == "unknown":
         print(
             f"\nThe key names no mode, so nothing can be applied from it. "
-            f"`seal mode {current}` writes what the folder says; editing the "
-            f"key to `{LOCAL}` or `{SHARED}` and running `seal mode --apply` "
+            f"`iadd mode {current}` writes what the folder says; editing the "
+            f"key to `{LOCAL}` or `{SHARED}` and running `iadd mode --apply` "
             "moves the folder."
         )
         return 1 if args.check else 0
@@ -2105,8 +2105,8 @@ def mode_report(args, repo, home, shared, local, current):
         f"\nThey disagree: the key says `{value}` and the folder is "
         f"{current}. Two commands end it —"
     )
-    print(f"  seal mode --apply     move the folder to {value}, as the key says")
-    print(f"  seal mode {current:<11}correct the key to {current}, as the folder is")
+    print(f"  iadd mode --apply     move the folder to {value}, as the key says")
+    print(f"  iadd mode {current:<11}correct the key to {current}, as the folder is")
     return 1 if args.check else 0
 
 
@@ -2237,11 +2237,11 @@ def refusals(repo, home, shared, local, wanted):
 
 def switch(args, repo, home, shared, local, current, wanted):
     """Move the root, write the key, and stage the index; `.github/` is left
-    alone, and the pull-request checks are `seal pr-checks`'s.
+    alone, and the pull-request checks are `iadd pr-checks`'s.
 
     The rename first, because it is the step that can fail for reasons outside
     this command and until it succeeds nothing has happened. Every step after
-    it is idempotent, so `seal mode <the same mode>` finishes a stopped run —
+    it is idempotent, so `iadd mode <the same mode>` finishes a stopped run —
     and so does a person who already ran the README's `mv` by hand.
     """
     source = shared if wanted == LOCAL else local
@@ -2261,7 +2261,7 @@ def switch(args, repo, home, shared, local, current, wanted):
         print(
             "Going to shared mode puts the records in the tree. Until you "
             f"commit, `git reset -- :/{name}` and then "
-            "`seal mode local` walk the whole thing back — the switch stages, "
+            "`iadd mode local` walk the whole thing back — the switch stages, "
             "and the guard refuses a switch over a staged change. The "
             "pathspec is there because a bare `git reset` unstages the whole "
             "index, and this guard has never looked outside that path. "
@@ -2276,8 +2276,8 @@ def switch(args, repo, home, shared, local, current, wanted):
     else:
         print(
             "Going to local mode takes the records out of the tree. Every "
-            "other clone loses them at the next pull — `seal export` here "
-            "and `seal import` there is how a teammate gets a copy."
+            "other clone loses them at the next pull — `iadd export` here "
+            "and `iadd import` there is how a teammate gets a copy."
         )
     for line in porcelain(repo, name):
         # `??` itself, not `indexed`. That function has three exceptions and
@@ -2372,7 +2372,7 @@ def switch(args, repo, home, shared, local, current, wanted):
             print(f"  staged {name}/")
         if workflow_at(repo)[0] == "absent":
             print(
-                "  no pull-request checks are installed: `seal pr-checks "
+                "  no pull-request checks are installed: `iadd pr-checks "
                 f"install` writes {WORKFLOW}"
             )
     if why is not None:
@@ -2382,7 +2382,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     if moved and wanted == SHARED:
         print(
             f"Until then, `git reset -- :/{name}` and then "
-            "`seal mode local` puts it back — the switch stages, and the "
+            "`iadd mode local` puts it back — the switch stages, and the "
             "guard refuses a switch over a staged change. The pathspec is "
             "there because a bare `git reset` unstages the whole index."
         )
@@ -2437,7 +2437,7 @@ def mode(args, cwd):
             print(
                 f"Write one in {display(repo, config_path(home))} —\n"
                 f'  "{MODE_KEY}": "{LOCAL}"\n'
-                f"or run `seal mode {LOCAL}` / `seal mode {SHARED}` to switch "
+                f"or run `iadd mode {LOCAL}` / `iadd mode {SHARED}` to switch "
                 "and write the key in one step."
             )
             return 1
@@ -2467,7 +2467,7 @@ def check(cwd):
     if not last or not isinstance(last.get("items"), dict):
         print(
             f"{len(now)} work items here and no export yet — "
-            "`seal export` writes the first copy."
+            "`iadd export` writes the first copy."
         )
         return 0
 
@@ -2498,10 +2498,10 @@ def tool_command(name, argv):
 def hand_over(command):
     """Run `command` in place of this one and answer its exit code.
 
-    On POSIX the process is replaced, as the `exec` in `bin/seal` replaces
+    On POSIX the process is replaced, as the `exec` in `bin/iadd` replaces
     the shell, so the script's signals and exit code are the command's.
     Windows has no replacement that keeps the exit code, so the script runs
-    as a child and its code is returned, as `bin/seal.cmd` returns its
+    as a child and its code is returned, as `bin/iadd.cmd` returns its
     child's."""
     if os.name == "nt":
         return subprocess.call(command)
@@ -2521,8 +2521,7 @@ def main(argv=None, cwd=None):
     if argv and argv[0] in TOOLS:
         return hand_over(tool_command(argv[0], argv[1:]))
     parser = argparse.ArgumentParser(
-        # exempt from root_name: the command's own name, which names no directory
-        prog="seal",
+        prog="iadd",
         description="the plugin's commands: where this repository's seal/ "
         "root lives, how a copy of it travels between clones, and one "
         "subcommand for each tool",
@@ -2541,7 +2540,7 @@ def main(argv=None, cwd=None):
     )
 
     im = sub.add_parser("import", help="merge a zip's records in")
-    im.add_argument("zip", help="the zip `seal export` wrote")
+    im.add_argument("zip", help="the zip `iadd export` wrote")
     im.add_argument(
         "--into",
         choices=("shared", "local"),

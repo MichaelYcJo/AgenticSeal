@@ -1,19 +1,19 @@
-# verify, `seal mutate`
+# verify, `iadd mutate`
 
 A party that proves condition 2 of `skills/verify/SKILL.md` *2. Able to
-fail* for one unit opens this file before it runs `seal mutate`. Who runs
-it, and at which step, is the row of `seal mutate` in
+fail* for one unit opens this file before it runs `iadd mutate`. Who runs
+it, and at which step, is the row of `iadd mutate` in
 `docs/running/what-a-script-gates.md` *The checks*. This file holds the
 command, its verdicts with their exit codes, and its bound.
 
-## `seal mutate` asks condition 2 of one unit, one break at a time
+## `iadd mutate` asks condition 2 of one unit, one break at a time
 
 The unit an implementer has just added can be a constant, a flipped
 comparison or a sentence a case pins. The break is whatever makes that unit
 wrong, so the loop is one command per break:
 
 ```
-seal mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>.py -q -k <cases> -p no:xdist"
+iadd mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>.py -q -k <cases> -p no:xdist"
 ```
 
 `<old>` is literal text and must occur exactly once in the file, or nothing
@@ -26,7 +26,7 @@ unit does, and that red would read as a case noticing the break. For a target
 whose name ends in `.py`, the command compiles each mutant with the builtin
 `compile` over the bytes the write would put on disk, and refuses at the
 first `SyntaxError`, naming its line. The file as it is is compiled first.
-Where it does not compile under the interpreter running `seal`, no mutant is
+Where it does not compile under the interpreter running `iadd`, no mutant is
 compiled, the verdict comes from the cases' exit code alone, and the first
 line printed says the mutants were not compiled, with that interpreter's
 version and the error's line: the cases may run under another interpreter
@@ -34,7 +34,7 @@ that reads the file. No other kind of file is compiled or parsed, a `.md`,
 a `.yml`, a JSON or TOML file and a script with no `.py` suffix among them,
 so a mutant its loader cannot parse can still read `red`. Two limits stay
 beside that one. The compile uses the grammar of the interpreter running
-`seal`, not the cases', so a construct only one of the two accepts is read
+`iadd`, not the cases', so a construct only one of the two accepts is read
 wrongly in one direction or the other. And a mutant that compiles and then fails at import, a misspelt
 module-level name for one, is not refused: whether its red watches the unit
 is for the reader of the run, and running that one pair alone shows the
@@ -62,7 +62,7 @@ The first line printed is the verdict, then the command's own output:
   cases wrote; restore it from the commit made before the run), and
   `interrupted`.
 
-So `seal mutate … && seal mutate …` stops at the first unit nothing
+So `iadd mutate … && iadd mutate …` stops at the first unit nothing
 watches, or at the first run that could not say.
 
 **Several mutants of one file go in one call.** Give `--replace OLD NEW` once

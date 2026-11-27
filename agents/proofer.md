@@ -106,7 +106,7 @@ stands deferred: say where, and do not write it up again.
 
 | Carried, and re-derived only when its check fails | Re-derived every round |
 |---|---|
-| A rule's `check:` target, which `seal rules --check` fails when it is gone | Whether the new code satisfies the clause |
+| A rule's `check:` target, which `iadd rules --check` fails when it is gone | Whether the new code satisfies the clause |
 | What the original does, which `seal/parity.json` pins to a baseline SHA | Whether the new code matches it |
 | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
@@ -176,7 +176,7 @@ duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. A case that holds no
 fact the frame states is the exception, and `skills/code-review/SKILL.md`
 *The record* weighs it. Where the test files
-declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
+declare `TARGET`, the pairs are the ones `iadd layout --pairs` prints.
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that

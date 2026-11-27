@@ -402,7 +402,7 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
 
     Since the inspector became the final party (#923) its one write in the tree
     is `inspection.md`, and `trail/gate.md` is the gate's, through its
-    command. Since #1376 the stamp's values file its `seal stamp --inspection`
+    command. Since #1376 the stamp's values file its `iadd stamp --inspection`
     queues is named beside it. How the definition ends the list is the
     proofer's to read."""
     text = " ".join(inspector_text().split())
@@ -411,9 +411,9 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
     assert "rule 6" in text, (
         "the inspector cannot reach the rule that names its one write"
     )
-    # The command `seal gate --record`, which writes `trail/gate.md` and which
+    # The command `iadd gate --record`, which writes `trail/gate.md` and which
     # the inspector reads to tell that file from its own write.
-    assert "through `seal gate --record`" in text, (
+    assert "through `iadd gate --record`" in text, (
         "the gate's file does not name the command that makes it, so the "
         "inspector cannot tell its own write from the gate's"
     )

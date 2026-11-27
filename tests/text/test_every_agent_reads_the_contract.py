@@ -19,7 +19,7 @@ contract and nothing else.
 definition and each skill a `skills:` list names, because every spawn paid
 for them and no agent acts on one. The preload case reads each such file
 through `skills/settle/scripts/rules.py#check_lines`, the grammar's one
-reader, so a line written back into one is red here, while `seal rules
+reader, so a line written back into one is red here, while `iadd rules
 --check` would resolve it and pass.
 """
 
@@ -156,7 +156,7 @@ def test_every_file_a_step_names_exists(path):
     names is a file or directory in the tree (S2).
 
     A step opens a skill by its path, so a renamed skill leaves an
-    instruction an agent meets as *file not found* mid-run; `seal rules --check`
+    instruction an agent meets as *file not found* mid-run; `iadd rules --check`
     reads only `check:` targets, and no other case reads the paths a
     step names."""
     assert missing_paths(read(path)) == [], name(path)
@@ -195,7 +195,7 @@ def test_a_file_every_spawn_preloads_carries_no_check_line(path):
     without an edit to this case."""
     found = rules.check_lines(read(path))
     # `skills/settle/rule-changes.md` *A rule has one shape*: a `check:`
-    # line, which `seal rules` reads and every spawn that preloads the file
+    # line, which `iadd rules` reads and every spawn that preloads the file
     # pays for.
     assert found == [], (
         f"{name(path)} carries a check line at "

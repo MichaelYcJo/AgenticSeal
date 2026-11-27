@@ -2,8 +2,8 @@
 tree, refuses nothing.
 
 The cases here run a shipped command over the tree itself rather than over a
-fixture: `seal rules --check`, `seal layout --check`, `seal fold`,
-`seal unverified` and `lib/routing.py`'s reader of the routing declarations.
+fixture: `iadd rules --check`, `iadd layout --check`, `iadd fold`,
+`iadd unverified` and `lib/routing.py`'s reader of the routing declarations.
 Each reads files beyond its script, so it stands in a file that declares no
 `TARGET` (`CONTRIBUTING.md` *The test layout*). Each script's own file
 keeps the cases over fixtures and the helpers these cases call.
@@ -36,9 +36,9 @@ def declared():
     return fold_check.declared(fold_check.seal_home(ROOT))
 
 
-class Test_seal_rules:
+class Test_iadd_rules:
     def test_every_check_line_in_the_tree_holds(self, tmp_path, capsys):
-        """The fact read on every pull request: `seal rules --check` over this tree is
+        """The fact read on every pull request: `iadd rules --check` over this tree is
         exit 0. On a scratch copy of what the check reads (the rule files, the
         files their targets name and the tests carrying their markers) one target
         renamed is exit 1 naming its line, and so is a check line naming a gone
@@ -105,17 +105,17 @@ class Test_seal_rules:
         assert rules.main(["--check", "--root", str(tmp_path)]) == 1
         out = capsys.readouterr().out
         assert re.search(
-            rf"^seal rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
+            rf"^iadd rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
         )
         for rel in named.values():
-            assert re.search(rf"^seal rules: {re.escape(rel)}:\d+: ", out, re.M), (
+            assert re.search(rf"^iadd rules: {re.escape(rel)}:\d+: ", out, re.M), (
                 rel,
                 out,
             )
-        assert f"seal rules: {len(named)} refused in " in out, out
+        assert f"iadd rules: {len(named)} refused in " in out, out
 
 
-class Test_seal_layout:
+class Test_iadd_layout:
     def test_accepts_this_repositorys_tests(self, capsys):
         assert layout.main(["--check", os.path.join(ROOT, "tests")]) == 0
         out = capsys.readouterr().out
@@ -124,7 +124,7 @@ class Test_seal_layout:
         assert "declare no TARGET" in out.splitlines()[-1]
 
 
-class Test_seal_fold:
+class Test_iadd_fold:
     def test_accepts_this_repository_with_no_flags(self):
         """S1 and S13: the values come from `seal/config.json`, every check runs,
         and a document past the ceiling is named and does not fail the run."""
@@ -134,10 +134,10 @@ class Test_seal_fold:
         assert f" under {policy}/ to {ceiling} estimated tokens" in out, out
         for rel, tokens in fold_check.past_ceiling(ROOT, policy, ceiling):
             assert f"{rel} is about {tokens} tokens, past the ceiling" in out, out
-        assert f"seal fold: the index {policy}/README.md names every document" in out
+        assert f"iadd fold: the index {policy}/README.md names every document" in out
 
 
-class Test_seal_unverified:
+class Test_iadd_unverified:
     def test_this_repositorys_own_overviews_are_all_readable(self):
         """The corpus is the real test, and it states the rule for new work:
         a work item that writes an overview writes this section in it."""

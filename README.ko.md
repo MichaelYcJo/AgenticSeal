@@ -52,13 +52,13 @@ claude
 ```
 
 `git` 2.30 이상과, PATH 에서 `python3` 으로 실행되는 Python 3.12 이상이
-필요합니다. `seal` 명령이 `git` 을 부르는 파이썬 스크립트이고, 그 스크립트를
+필요합니다. `iadd` 명령이 `git` 을 부르는 파이썬 스크립트이고, 그 스크립트를
 `python3` 명령으로 돌리기 때문입니다.
 설치하기 전에 `python3 -V` 를 한 번 돌려 보세요. macOS 의 `/usr/bin/python3`
 은 3.9 이고, pyenv 나 asdf 같은 파이썬 버전 관리자를 쓰면 마지막으로 지정한
 버전이 나옵니다.
 Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으므로, 그곳에서는
-`seal.cmd` 가 `py -3` 을 쓰고, 플러그인의 훅도 `py -3` 으로 한 번 더
+`iadd.cmd` 가 `py -3` 을 쓰고, 플러그인의 훅도 `py -3` 으로 한 번 더
 시도합니다.
 
 설치는 이것으로 끝입니다. `CLAUDE.md` 에도 사용자 설정에도 아무것도 쓰지 않고,
@@ -104,9 +104,9 @@ claude plugin update iadd@iadd
 최신이라고 답합니다. 릴리스는 `plugin.json` 의 버전이 바뀔 때만 사용자에게
 닿습니다.
 
-`seal pr-checks install` 이 쓴 pull request 검사는 그 파일을 쓸 때의 릴리스를
+`iadd pr-checks install` 이 쓴 pull request 검사는 그 파일을 쓸 때의 릴리스를
 받아 돌고, 업데이트해도 그 고정은 그대로입니다. 지금 쓰는 릴리스로 고정을
-옮기려면 `seal pr-checks remove` 를 실행한 뒤 `seal pr-checks install` 을
+옮기려면 `iadd pr-checks remove` 를 실행한 뒤 `iadd pr-checks install` 을
 실행합니다.
 
 ## 첫 작업 항목
@@ -178,7 +178,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 
 ![합격한 작업 항목이 그리는 도장. 올빼미의 붉은 밀랍 인장 옆에 SEALED 와 tree, base, item, gate, rounds 를 적은 판이 있다](assets/seals/owl.png)
 
-훅이 그리지 못했으면 검수자의 보고가 `seal stamp --from <path>` 를 알려
+훅이 그리지 못했으면 검수자의 보고가 `iadd stamp --from <path>` 를 알려
 주고, 그 명령으로 손으로 그립니다. 도장을 언제 그리고 언제 그리지 않는지는
 `docs/checks/the-stamp.md` 에 있습니다.
 
@@ -209,10 +209,10 @@ local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저
 하며, 커밋은 사용자가 합니다.
 
 ```bash
-seal mode            # 루트가 어디 있는지, seal/config.json 과 맞는지
-seal mode local      # 루트를 트리 밖으로 옮긴다
-seal mode shared     # 루트를 트리 안으로 옮긴다
-seal mode --check    # 아무것도 쓰지 않고, 둘이 어긋나면 0 이 아닌 값으로 끝난다
+iadd mode            # 루트가 어디 있는지, seal/config.json 과 맞는지
+iadd mode local      # 루트를 트리 밖으로 옮긴다
+iadd mode shared     # 루트를 트리 안으로 옮긴다
+iadd mode --check    # 아무것도 쓰지 않고, 둘이 어긋나면 0 이 아닌 값으로 끝난다
 ```
 
 shared 로 옮겨 커밋하면 기록은 히스토리에 영영 남습니다. 그 커밋 전에
@@ -224,9 +224,9 @@ cannot be undone* 에 있습니다. 손으로 옮기는 두 명령은 루트 안
 pull request 검사는 따로 있는 명령입니다.
 
 ```bash
-seal pr-checks           # .github/workflows/hygiene.yml 이 이 플러그인의 것인지
-seal pr-checks install   # 지금 쓰는 릴리스로 고정해 쓰고 스테이지한다
-seal pr-checks remove    # 이 플러그인이 쓴 파일을 뺀다
+iadd pr-checks           # .github/workflows/hygiene.yml 이 이 플러그인의 것인지
+iadd pr-checks install   # 지금 쓰는 릴리스로 고정해 쓰고 스테이지한다
+iadd pr-checks remove    # 이 플러그인이 쓴 파일을 뺀다
 ```
 
 local 로 옮긴 뒤에도 워크플로 파일은 트리에 남습니다. 어느 릴리스에 고정된
@@ -236,14 +236,14 @@ local 로 옮긴 뒤에도 워크플로 파일은 트리에 남습니다. 어느
 local 의 기록은 사용자가 직접 옮기는 사본으로만 다른 기계에 갑니다.
 
 ```bash
-seal export              # 루트를 클론 옆의 seal-<repo>-<date>.zip 으로 쓴다
-seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰지 않는다
+iadd export              # 루트를 클론 옆의 iadd-<repo>-<date>.zip 으로 쓴다
+iadd import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰지 않는다
 ```
 
 같은 이름의 파일이 이미 있는데 바이트가 다르면, 받은 사본은 그 옆에 놓입니다.
 `follow-up.md` 옆의 `follow-up.incoming.md` 가 그 예이고, import 가 그런
 파일을 알려 줍니다. zip 이 이 저장소에서 나왔는지 알 수 없으면 import 는
-아무것도 쓰지 않고 멈춥니다. 경우마다 쓰는 플래그는 `seal import --help` 가
+아무것도 쓰지 않고 멈춥니다. 경우마다 쓰는 플래그는 `iadd import --help` 가
 알려 줍니다. 사본이 동기화가 아닌 이유는
 `docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 에 있습니다.
 
@@ -252,7 +252,7 @@ seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 모든 에이전트와, `seal/` 루트가 있는 저장소의 모든 세션은 코어
 `skills/core/SKILL.md` 를 가지고 시작합니다.
 코어는 모든 참여자가 판단의 기준으로 삼는 가치를 담은 파일입니다. 나머지는
-필요한 단계에서 스킬로 불러오거나, 모델의 컨텍스트 밖에서 `seal` 명령이나
+필요한 단계에서 스킬로 불러오거나, 모델의 컨텍스트 밖에서 `iadd` 명령이나
 pull request 의 검사로 돕니다.
 [컨텍스트 파일에 관한 연구](https://arxiv.org/abs/2602.11988)에 따르면 컨텍스트 파일은
 대체로 작업 성공률을 높이지 못하면서 추론 비용을 20% 넘게 늘립니다.
@@ -288,7 +288,7 @@ verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴
 돌리지 않습니다. 리뷰 도중에 돌린 전체 실행은
 다음 수정이 들어오면 쓸모가 없어지기 때문입니다(`docs/running/the-broad-gate.md`).
 검수자는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
-`seal pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지
+`iadd pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지
 확인한 뒤 판정을 씁니다. 판정은 `cleared`, 트리와 어긋난 곳을 짚은
 `withheld`, 사용자에게 묻는 질문을 단 `undecided` 가운데 하나입니다. pull
 request 는 작업 항목이 `cleared` 를 받은 뒤에 열리고,
@@ -297,7 +297,7 @@ request 는 작업 항목이 `cleared` 를 받은 뒤에 열리고,
 가리키면 본문은 pull request 언어로 쓴 `pr.<lang>.md` 로 시작합니다. pull
 request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request 라도 맨 위
 커밋에서 합격한 검수가 없거나, 마지막 수정을 어느 회차도 읽지 않았거나,
-본문이 그 커밋에서 `seal pr-body` 가 만드는 본문과 다르면 검사가 실패합니다
+본문이 그 커밋에서 `iadd pr-body` 가 만드는 본문과 다르면 검사가 실패합니다
 (`skills/core/SKILL.md` *Judgment is not licence to skip a party*). **체인은
 pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 
@@ -314,7 +314,7 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 있습니다.
 
 정책서가 적은 규칙은 그 규칙을 지키는 테스트를 가리키는 `check:` 줄로
-끝납니다. `seal rules --check` 는 없는 대상을 가리키는 줄이 있으면 0 이 아닌
+끝납니다. `iadd rules --check` 는 없는 대상을 가리키는 줄이 있으면 0 이 아닌
 값으로 끝납니다.
 
 ### 마이그레이션
@@ -332,7 +332,7 @@ tracer 가 가져옵니다. 프레임은 옮기는 진입점마다 원본이 내
 
 ## 내 컴퓨터에서 도는 것
 
-사용자 컴퓨터에서 도는 것은 사용자나 세션이 시작하는 `seal` 명령, 그리고
+사용자 컴퓨터에서 도는 것은 사용자나 세션이 시작하는 `iadd` 명령, 그리고
 Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅입니다.
 
 **플러그인은 훅 네 개를 `hooks/hooks.json` 에 등록해 함께 내보내고, 그중
@@ -391,7 +391,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 `PostToolUse` 훅이 알려 주는 자리는 세션이 연 파일처럼 그 세션의 컨텍스트에
 들어갈 뿐입니다. 다음 부수 효과는
 밝혀 둡니다. 검수자가 `cleared` 로 읽히는 `inspection.md` 에 한 번 돌리는
-`seal stamp --inspection` 은 도장에 들어갈 값을
+`iadd stamp --inspection` 은 도장에 들어갈 값을
 `<git-common-dir>/iadd-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
 `cleared` 는 어느 모드에서든 `<git-common-dir>/iadd-stamp-refused/` 아래에 빈
@@ -404,11 +404,11 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 | 무엇이 | 어디로 | 무엇을 보내나 | 언제 |
 |---|---|---|---|
 | `/iadd:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
-| `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
-| `--inspecting` 없이 돌리는 `chain_check.py`, 곧 orchestrator 와 proofer 가 `--worktree` 로 읽는 실행 ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `seal gate` 는 이 검사를 `--inspecting` 을 붙여 돌리므로, pull request 의 상태를 읽지 않고 `gh` 에 아무것도 묻지 않는다 | 그런 실행이 GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
-| `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
+| `iadd cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
+| `--inspecting` 없이 돌리는 `chain_check.py`, 곧 orchestrator 와 proofer 가 `--worktree` 로 읽는 실행 ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `iadd gate` 는 이 검사를 `--inspecting` 을 붙여 돌리므로, pull request 의 상태를 읽지 않고 `gh` 에 아무것도 묻지 않는다 | 그런 실행이 GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
+| `iadd settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
 | IADD 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
-| `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
+| `iadd pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
 
 사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 플러그인의 훅뿐입니다. 위
 표에서 사용자 자신의 `gh` 로그인으로 닿는 행은 모두 사용자가 일하는 저장소에만
@@ -417,22 +417,22 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
 
 ## 명령
 
-아래는 사용자가 직접 돌리는 것입니다. `seal` 명령은
+아래는 사용자가 직접 돌리는 것입니다. `iadd` 명령은
 플러그인이 켜져 있는 동안 Claude Code 의 Bash 도구가 쓰는 PATH 에 있으므로,
 세션에서 `!` 뒤에 치거나 세션에게 돌려 달라고 하면 됩니다.
 
 | 명령 | 하는 일 |
 |---|---|
-| `seal deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사의 실행기 단어에 맞는 CI 파일과 훅의 줄을 하나씩 짚고, 무엇이 맞든 0 으로 끝난다. 그 검사를 실제로 돌리는지는 CI 파일을 직접 열어 읽는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
-| `seal unverified .` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
-| `seal cost --latest` | 세션의 시간이 어디에 쓰였는지 트랜스크립트에서 읽어 알려 준다 (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
-| `seal cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |
-| `seal cost --work-item <디렉터리>` | 작업 항목의 세그먼트 가운데 열린 측정 기록 이슈의 어느 댓글도 이름을 적지 않은 것마다 행을 하나씩 찍는다. 세그먼트는 그 에이전트를 띄운 프롬프트가 작업 항목의 디렉터리나 브랜치를 적었는지로 찾는다. `--post --says <파일>` 을 붙이면 그 행들을 올린다 (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
-| `seal settle [--apply]` | 릴리스된 작업 항목의 `frame/design.md` 가 적은 `## Rule changes` 를 절마다 보여 주고, `--apply` 를 주면 정리가 끝난 디렉터리를 지운다 (`skills/settle/SKILL.md` *The settling session's procedure*) |
-| `seal fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `seal/config.json` 의 `Document token ceiling` 키와 `Policy root` 키에 견주어 확인한다 (`templates/setup/config.md` *The fold's values*) |
-| `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
-| `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
-| `seal payload [--json] [--agent <name>] [--root <dir>]` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트로 재고, 토큰은 그 바이트에서 추정한다 (`skills/verify/scripts/payload_meter.py`) |
+| `iadd deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사의 실행기 단어에 맞는 CI 파일과 훅의 줄을 하나씩 짚고, 무엇이 맞든 0 으로 끝난다. 그 검사를 실제로 돌리는지는 CI 파일을 직접 열어 읽는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
+| `iadd unverified .` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
+| `iadd cost --latest` | 세션의 시간이 어디에 쓰였는지 트랜스크립트에서 읽어 알려 준다 (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
+| `iadd cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |
+| `iadd cost --work-item <디렉터리>` | 작업 항목의 세그먼트 가운데 열린 측정 기록 이슈의 어느 댓글도 이름을 적지 않은 것마다 행을 하나씩 찍는다. 세그먼트는 그 에이전트를 띄운 프롬프트가 작업 항목의 디렉터리나 브랜치를 적었는지로 찾는다. `--post --says <파일>` 을 붙이면 그 행들을 올린다 (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
+| `iadd settle [--apply]` | 릴리스된 작업 항목의 `frame/design.md` 가 적은 `## Rule changes` 를 절마다 보여 주고, `--apply` 를 주면 정리가 끝난 디렉터리를 지운다 (`skills/settle/SKILL.md` *The settling session's procedure*) |
+| `iadd fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `seal/config.json` 의 `Document token ceiling` 키와 `Policy root` 키에 견주어 확인한다 (`templates/setup/config.md` *The fold's values*) |
+| `iadd rules <doc>` · `iadd rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
+| `iadd pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
+| `iadd payload [--json] [--agent <name>] [--root <dir>]` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트로 재고, 토큰은 그 바이트에서 추정한다 (`skills/verify/scripts/payload_meter.py`) |
 | `/iadd:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
 | `/iadd:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `seal/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
 | `/iadd:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
@@ -444,7 +444,7 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
   때처럼 편집하고 커밋하며, 사용자가 터미널에서 직접 한 커밋은 이 플러그인의
   코드를 하나도 돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
-- **`seal rules --check` 는 적어 둔 테스트가 있다는 것만 증명합니다.** 그
+- **`iadd rules --check` 는 적어 둔 테스트가 있다는 것만 증명합니다.** 그
   테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 읽지
   않습니다. 정책 문서에서 그런 규칙은 리뷰만 지킵니다. 에이전트 정의와
   계약에는 `check:` 줄이 하나도 없어서, 이 명령은 그 규칙을 하나도 읽지

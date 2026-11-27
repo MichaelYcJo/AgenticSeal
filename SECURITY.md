@@ -18,7 +18,7 @@ IADD is a Claude Code plugin. What ships is Python that runs in two places
 a reader should keep separate:
 
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
-  (`seal fold`, `seal unverified`, `seal pact` and the rest), which read a
+  (`iadd fold`, `iadd unverified`, `iadd pact` and the rest), which read a
   repository's records and the files those records name.
 - **The plugin's hooks** — the scripts that run without anybody
   asking: the stamp's `Stop` hook at the end of each turn, the

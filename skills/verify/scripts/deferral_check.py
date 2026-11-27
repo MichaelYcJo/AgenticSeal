@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal deferrals — resolve the answerer named in an `unverified` row.
+"""iadd deferrals — resolve the answerer named in an `unverified` row.
 
 Condition 4 lets a claim go out unproven as long as it says *who or what
 answers it*, and the answerer it names may not exist. A session narrows its
@@ -216,7 +216,7 @@ def headline(kind, in_ci, lines):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="seal deferrals",
+        prog="iadd deferrals",
         description="Resolve the answerer named in an `unverified` row.",
     )
     ap.add_argument("path", nargs="?", default=".")
@@ -230,7 +230,7 @@ def main(argv=None):
 
     root = os.path.abspath(args.path)
     if not os.path.isdir(root):
-        print(f"seal deferrals: no such path: {args.path}", file=sys.stderr)
+        print(f"iadd deferrals: no such path: {args.path}", file=sys.stderr)
         return 2
 
     kinds = KINDS if args.kind == "all" else (args.kind,)

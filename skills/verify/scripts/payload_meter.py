@@ -46,7 +46,7 @@ code span stands, is not in the plugin around it where a `CLAUDE.md` the
 meter reads exists, `lib/core.py`, which says what the core hook prints, is
 not in the plugin around it, or the arguments were unusable (argparse's
 usage error). An interpreter below the floor never reaches this file through
-`seal payload`: `lib/launch.py` refuses `seal` with 2 first.
+`iadd payload`: `lib/launch.py` refuses `iadd` with 2 first.
 """
 
 import argparse
@@ -452,7 +452,7 @@ def _n(value):
 
 
 def render(data):
-    lines = [f"# seal payload — {data['root']} ({data['measured_at']})", ""]
+    lines = [f"# iadd payload — {data['root']} ({data['measured_at']})", ""]
     session = data.get("session")
     if session:
         lines += _session_lines(session)
@@ -579,7 +579,7 @@ def main():
         config=os.environ.get("CLAUDE_CONFIG_DIR"),
     )
     if not data["agents"]:
-        print(f"seal payload: no agents/*.md under {args.root}", file=sys.stderr)
+        print(f"iadd payload: no agents/*.md under {args.root}", file=sys.stderr)
         return 1
     if args.json:
         print(json.dumps(data, indent=2, ensure_ascii=False))

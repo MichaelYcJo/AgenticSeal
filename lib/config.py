@@ -4,24 +4,24 @@
 one key per item, each value a string in the grammar
 `templates/setup/config.md` gives that key. Every absent key but four has a
 default, which is what every repository got before that key existed. An
-absent `Broad gate` is one exception: `seal gate` names the key and exits 2
+absent `Broad gate` is one exception: `iadd gate` names the key and exits 2
 with nothing run. `Commit and pull request language` and `Record language`
-are two more: `seal pr-body` refuses to compose a pull request body without
+are two more: `iadd pr-body` refuses to compose a pull request body without
 either, and a commit is never refused for them.
 
 `Mode` is the fourth, and it is why this module exists. What every
 repository got before that key was *the folder decides*, which is not a
 value, so an absent one has no default at all -- it is filled in from where
-the folder actually is, by `seal mode`. Until somebody runs that command, a
+the folder actually is, by `iadd mode`. Until somebody runs that command, a
 root exists that nobody chose a mode for, and that is what it costs: a
 monorepo can be opted into shared mode, with its review records committed,
 without the question ever being put to anyone.
 
 The writer and every reader of the file need the SAME answer.
-`skills/implement/scripts/seal.py` writes it and `seal mode --check` reads it
-back, and `seal gate` and the other commands read the file's other keys. The
-READER lives here and the writer in `seal.py`, so a script that only reads
-imports this module and not the two-thousand-line command, and `seal.py`
+`skills/implement/scripts/iadd.py` writes it and `iadd mode --check` reads it
+back, and `iadd gate` and the other commands read the file's other keys. The
+READER lives here and the writer in `iadd.py`, so a script that only reads
+imports this module and not the two-thousand-line command, and `iadd.py`
 re-exports these names rather than keeping a second copy. The file is read
 by the standard library's JSON parser (`config_pairs`) and written by its
 serializer, so the two cannot disagree about which key is which.
@@ -37,7 +37,7 @@ Everything here fails toward "nothing is declared" -- except where a written
 answer would be read as absent. A file that is there and will not read or
 parse, and a key written twice or holding no string, are refused by
 `config_pairs` and `config_value` rather than read as nothing, and a
-command prints the refusal and stops: exit 2, or exit 1 for `seal pr-body`,
+command prints the refusal and stops: exit 2, or exit 1 for `iadd pr-body`,
 which exits 1 on every refusal.
 
 The GFM table walker, which reads the tables of records, is
@@ -110,7 +110,7 @@ def config_pairs(home):
     declares nothing, everywhere. A file that is there and will not read is
     one whose answer nobody can read, and a command a person runs prints the
     sentence and stops with nothing judged (exit 2, or exit 1 for
-    `seal pr-body`), because a command that reads a
+    `iadd pr-body`), because a command that reads a
     written answer as absent acts as if the person had written none.
 
     The text is decoded as `utf-8-sig`, so a byte order mark an editor wrote
@@ -220,11 +220,11 @@ def declared_mode(home):
     **There is no default.** A key with a default falls back to what
     every repository got before the key existed; for the mode that is
     *the folder decides*, so an absent key is filled in from the folder by
-    `seal mode` rather than assumed here. A default of `shared` would report
+    `iadd mode` rather than assumed here. A default of `shared` would report
     every undeclared local-mode repository as lying.
 
     **`refused` is not `none`.** The reader tells them apart once:
-    `seal mode` prints a refusal and writes nothing, because writing a key
+    `iadd mode` prints a refusal and writes nothing, because writing a key
     into a file nobody can read, or one whose answers disagree, cannot make
     it agree.
     """
@@ -239,7 +239,7 @@ def declared_mode(home):
 
 # --- a key that turns a picture on -------------------------------------------
 #
-# `Pull request inspection mark`, read by `seal pr-body`, and `Release note inspection
+# `Pull request inspection mark`, read by `iadd pr-body`, and `Release note inspection
 # mark`, read by the release mark, each turn a picture on where they read
 # SWITCH_ON exactly. What each says of a key that is written and does not
 # turn it on is one of the two sentences below, closed by the caller's own
@@ -327,7 +327,7 @@ def reference_roots(home, name):
 
     **A refusal reads as the default**: a file that will not read,
     and a `Reference specs` key written twice or holding no string, which
-    `config_value` gives no value. Its caller, `seal unverified`, does not
+    `config_value` gives no value. Its caller, `iadd unverified`, does not
     refuse on it: what a refusal costs it is the reading every repository
     had before the key existed, and no record is written or lost on it."""
     if not home:
@@ -431,7 +431,7 @@ def policy_group(path, policy):
 # the grammar of `Pact`.
 #
 # One command asks the two keys, through THESE readers:
-# `skills/verify/scripts/pact_check.py`, run as `seal pact`, which reads
+# `skills/verify/scripts/pact_check.py`, run as `iadd pact`, which reads
 # every signer from the pact's repository and refuses what will not parse. A
 # signer's CI reads nothing of the pact (`docs/layout/the-pact.md`).
 
@@ -470,10 +470,10 @@ def normalise_remote(url):
     other field is whatever the zip says, and a list here would otherwise
     reach the console as an `AttributeError`.
 
-    **It lives here and `skills/implement/scripts/seal.py` re-exports it**,
+    **It lives here and `skills/implement/scripts/iadd.py` re-exports it**,
     the arrangement this module's docstring records for the `Mode`
     reader. The `Pact` reader below needs it, and this module cannot import
-    `seal.py`: that file imports this one, and a reader must not load a
+    `iadd.py`: that file imports this one, and a reader must not load a
     two-thousand-line command to read a key. One normaliser, reached by the
     name each caller already spells.
     """
@@ -537,7 +537,7 @@ def pact_declaration(pairs):
                 no key names a pact
       refusals  one sentence per thing that would not parse, naming it
 
-    **It refuses in sentences and stops nothing.** Its caller, `seal pact`,
+    **It refuses in sentences and stops nothing.** Its caller, `iadd pact`,
     run at the pact's repository, exits 2 on a refusal.
 
     No file, no key and an empty value are one state, *no pact is held
@@ -570,7 +570,7 @@ def signer_declaration(pairs):
       refusals  one sentence per thing that would not parse, naming it
 
     **An absent or empty key is a refusal**, `NO_SIGNER`, unlike an absent
-    `Pact` key: its one reader, `seal pact`, reads it only in the repository
+    `Pact` key: its one reader, `iadd pact`, reads it only in the repository
     that holds `seal/pact.md`, and a pact nobody signs is not a pact. A key
     written twice or holding no string has no value, by `config_value`'s
     rule and in its sentence, so it lists no signer. Each entry is
@@ -600,10 +600,10 @@ def declared_pacts(home):
     **Not the rule the other readers here keep**, and on purpose.
     `reference_roots` and `policy_root` answer a refused file
     as no key, because a gate that refuses wrongly stops a session with
-    nobody able to get past it. This reader's caller is `seal pact`, run by
+    nobody able to get past it. This reader's caller is `iadd pact`, run by
     a person at the pact's repository, and a signer whose written keys read
     as absent is the silence `pact_declaration` exists to end. So no file is
-    no key, and a refused file is None, which `seal pact` refuses as
+    no key, and a refused file is None, which `iadd pact` refuses as
     `UNREADABLE` with `config_pairs`' sentence."""
     pairs, refusal = config_pairs(home)
     if refusal is not None:

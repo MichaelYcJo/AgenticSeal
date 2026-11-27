@@ -58,7 +58,7 @@ GAPS = "gaps.md"
 INSPECTION = "inspection.md"
 CHANGELOG = "changelog.md"
 # The work item's own file of the pull request body's first part, which
-# `seal pr-body` writes above the copy of the records, after the work item's
+# `iadd pr-body` writes above the copy of the records, after the work item's
 # `pr.<lang>.md` where the two language keys differ.
 PR = "pr.md"
 # The migration config, directly under the root: `chain_check.py` reads it at
@@ -149,7 +149,7 @@ def home_paths(root, common=None):
     root: this answers *where would it be*, and `home_at` below answers
     *where is it*.
 
-    It exists because the second question is not the only one asked. `seal
+    It exists because the second question is not the only one asked. `iadd
     import` has to be able to create the root the user names — including the
     mode this repository is not in — and a caller that spelled
     `os.path.join(root, "seal")` for itself would hold a second answer to the

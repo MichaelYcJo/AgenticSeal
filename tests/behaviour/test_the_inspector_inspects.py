@@ -202,7 +202,7 @@ class TestDefinition:
         self,
     ):
         """S13 of #1044. The part of the body below `pr_body.py#HEADING` is
-        the records' own text, so step 2 checks it with `seal pr-body
+        the records' own text, so step 2 checks it with `iadd pr-body
         --check` and withholds on any exit but 0, naming what the command
         printed. Step 2 names the command, the exit code it waits on, the
         verdict line and the constant that holds the line; that steps 2 and 4
@@ -211,7 +211,7 @@ class TestDefinition:
         step_2 = between(INSPECTOR, "2. **", "3. **")
         pinned = [
             # The command the inspector runs on the body file.
-            "`seal pr-body <item> --body <file> --check`",
+            "`iadd pr-body <item> --body <file> --check`",
             # The exit code the inspector waits on before it reads on.
             "exit 0",
             # The verdict line `lib/fields.py` parses, as the inspector writes it.
@@ -359,7 +359,7 @@ class TestDefinition:
         # The line `broad_gate.py` prints to stderr when it keeps its
         # outputs, which the orchestrator matches in the gate's output and
         # quotes.
-        assert "`outputs kept under seal-gate-<random>/`" in text
+        assert "`outputs kept under iadd-gate-<random>/`" in text
 
 
 # --- the document that states the inspection ------------------------------------

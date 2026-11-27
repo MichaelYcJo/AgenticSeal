@@ -50,7 +50,7 @@ repository's code would be wrong if it changed. Where both hold:
   `templates/setup/config.md` *Pact* documents both keys;
 - each signer cites the clauses it was built against as pact anchors, one
   row each of a `| Pact | Clause | Hash |` table in its `frame/design.md`,
-  the `Pact` cell holding the pact's origin URL; `seal pact`, run at the
+  the `Pact` cell holding the pact's origin URL; `iadd pact`, run at the
   pact's repository, reads every signer and says where they disagree.
 
 Where only the first condition holds, the repositories get their

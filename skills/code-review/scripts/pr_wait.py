@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""seal pr-wait: wait on a pull request's checks at this checkout's HEAD,
+"""iadd pr-wait: wait on a pull request's checks at this checkout's HEAD,
 and answer with one exit code per outcome.
 
-  seal pr-wait <N>          wait on pull request N's checks at HEAD
-  seal pr-wait <N> --once   read pull request N's state once, wait on nothing
+  iadd pr-wait <N>          wait on pull request N's checks at HEAD
+  iadd pr-wait <N> --once   read pull request N's state once, wait on nothing
 
 The orchestrator runs `--once` before each push to the pull request's
 branch, and the wait when the pull request opens and after each push. It
@@ -101,7 +101,7 @@ Why each read is there:
 table of states. A `gh` release that renames a field or a bucket ends at
 exit 2 naming the value, or at exit 3, and never at a pass.
 
-Every exit prints one line on stdout that opens `seal pr-wait:` and names
+Every exit prints one line on stdout that opens `iadd pr-wait:` and names
 the pull request, the commit where one was read, and the outcome; exits 1
 and 2 add indented lines below it. An unusable argument is argparse's
 usage error on stderr, at exit 2.
@@ -360,7 +360,7 @@ def _number(text):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="seal pr-wait",
+        prog="iadd pr-wait",
         description="Wait on a pull request's checks at HEAD, and answer with "
         "one exit code per outcome: 0 passed, 1 failed or cancelled, 2 could "
         "not ask, 3 the wait never reached HEAD's checks within two minutes "
@@ -383,7 +383,7 @@ def main(argv=None):
     except Unanswered as exc:
         code, lines = UNANSWERED, exc.lines()
     at = f" at {sha}" if sha else ""
-    print(f"seal pr-wait: pull request #{args.number}{at}: {lines[0]}")
+    print(f"iadd pr-wait: pull request #{args.number}{at}: {lines[0]}")
     for line in lines[1:]:
         print(line)
     return code

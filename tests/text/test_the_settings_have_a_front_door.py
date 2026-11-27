@@ -10,7 +10,7 @@ core's opening paragraph's since #1578, and
 it. Whether its sentences say the rest is the proofer's to read.
 
 **The skill routes rather than reimplements.** A key that moves files is
-`seal mode`'s work, and a second implementation inside a skill is one
+`iadd mode`'s work, and a second implementation inside a skill is one
 nothing can mutation-test.
 """
 
@@ -30,15 +30,15 @@ ROWS = (
     "Record language",
     "Mode",
     "Broad gate",
-    # The fold's values, read by `seal fold` (#566, #953).
+    # The fold's values, read by `iadd fold` (#566, #953).
     "Document token ceiling",
     "Policy root",
     # The reference roots (#688), missing from the skill until #647 counted
     # the table, and the row a signer declares its pact in (#647).
     "Reference specs",
     "Pact",
-    # The inspection mark on a pull request body, read by `seal pr-body`, and on
-    # the release note, read by this repository's `seal` job (#1204).
+    # The inspection mark on a pull request body, read by `iadd pr-body`, and on
+    # the release note, read by this repository's `mark` job (#1204).
     "Pull request inspection mark",
     "Release note inspection mark",
 )
@@ -55,20 +55,20 @@ def test_the_skill_names_every_row_the_template_ships(row):
     assert row in flat(*TEMPLATE), f"the template no longer ships `{row}`"
 
 
-def test_the_mode_row_is_routed_to_seal_mode():
-    """S2 and S3. `seal mode` is what the pull-request checks run, so the
+def test_the_mode_row_is_routed_to_iadd_mode():
+    """S2 and S3. `iadd mode` is what the pull-request checks run, so the
     skill hands the move to it."""
     text = flat(*SKILL)
     # The two commands the session runs to move the root, the code spans of
     # the sentence.
-    assert "Run `seal mode local` or `seal mode shared`" in text, (
+    assert "Run `iadd mode local` or `iadd mode shared`" in text, (
         "the skill does not hand the move to the command that owns it"
     )
 
 
 def test_the_way_back_from_shared_is_spelled():
     """S5. Until the commit, a switch to shared is walked back by unstaging
-    the root before `seal mode local`, so the skill spells that command."""
+    the root before `iadd mode local`, so the skill spells that command."""
     text = flat(*SKILL)
     # The command a person types first to walk a switch to shared back.
     assert "git reset -- :/seal" in text, "the way back is not spelled"

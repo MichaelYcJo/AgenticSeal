@@ -59,7 +59,7 @@ of the others* gives the framer what the work should be.
 
 A unit is a new name or path that the frame holds nowhere: a file or a
 directory; a function, a class, a type or a module-level name, private
-helpers among them; a hook's entry; a `seal` subcommand or flag; a
+helpers among them; a hook's entry; an `iadd` subcommand or flag; a
 configuration key; a field of a record's form; or a heading of a skill, a
 document or a template. A name or path is new where the tree at the
 round's `target:` holds no part by it. The frame holds a unit where

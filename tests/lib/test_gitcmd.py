@@ -315,12 +315,12 @@ class Test_under_root:
 
 
 class Test_inside:
-    """`inside` came here from `seal.py`, `settle.py` and `broad_gate.py`
+    """`inside` came here from `iadd.py`, `settle.py` and `broad_gate.py`
     (#1575), each of which answered it by `commonpath`."""
 
     def test_accepts_the_top_itself_and_a_path_under_it(self, tmp_path, monkeypatch):
         """A relative path is read from the directory this runs in, as
-        `seal.py`'s `display` hands one over."""
+        `iadd.py`'s `display` hands one over."""
         top = tmp_path / "repo"
         top.mkdir()
         assert gitcmd.inside(str(top), str(top))

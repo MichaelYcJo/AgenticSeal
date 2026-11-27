@@ -1,7 +1,7 @@
 """Where the streams get fixed, and why it is at every entry point.
 
 A script that raises while reading or printing dies with **stdout empty**, and
-empty stdout is exactly how the stamp's `seal stamp --stop` says "nothing to
+empty stdout is exactly how the stamp's `iadd stamp --stop` says "nothing to
 draw". So the failure mode of every gate in this repository, under a console it
 cannot encode to, is a silent pass — the exact condition the gates exist to
 end. The same shape costs the `bin/`-wrapped checks their output, and
@@ -22,7 +22,7 @@ this is a no-op, and branching on the platform would leave the Windows path
 proven by nothing while Linux CI runs the other one.
 
 **`stdin` is in the loop.** A payload is where the non-ASCII actually is — the
-`Stop` payload `seal stamp --stop` reads carries the session's own paths, and
+`Stop` payload `iadd stamp --stop` reads carries the session's own paths, and
 one Korean path is enough. That is the only stdin read production takes, and a
 raise there draws no stamp.
 
@@ -46,7 +46,7 @@ carries its reason in an exemption above the line
 point that reaches `lib/` at import, by importing `lib/sibling.py` and
 loading the modules it reads through `sibling.load`, loads this module the
 same way, binds it as `console`, and opens the block with
-`console.to_utf8()`. `skills/implement/scripts/seal.py` and
+`console.to_utf8()`. `skills/implement/scripts/iadd.py` and
 `tests/run_tests.py`, the suite's runner, are two of them. Two kinds of
 script spell the loop inline instead, and only these.
 
@@ -70,7 +70,7 @@ this file among them:
 What must not diverge is the ANSWER, which is written down here.
 
 `annotate` is the one spelling of a line a check prints about a file: a
-GitHub annotation in CI, a plain line anywhere else. `seal unverified` and
+GitHub annotation in CI, a plain line anywhere else. `iadd unverified` and
 `chain-check` print through it. It names the file as git spells it,
 `lib/gitcmd.py#git_path`, which it imports when it is called in CI rather
 than at the top of this file. A load of this module then reads nothing
@@ -117,7 +117,7 @@ def annotate(kind, path, line, message):
     """A GitHub annotation in CI, a plain line anywhere else."""
     if os.environ.get("GITHUB_ACTIONS"):
         # An annotation is matched against the diff by path, and GitHub spells
-        # those the way git does. `seal unverified` passes
+        # those the way git does. `iadd unverified` passes
         # `unverified_check.py#display_path` output, which is `os.sep`-spelled
         # on purpose -- right for a line a person reads, wrong for this. Live
         # wherever that command runs on a Windows runner.

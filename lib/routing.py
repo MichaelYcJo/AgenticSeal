@@ -461,7 +461,7 @@ def rounds(item):
     states that hold records nothing can list.
 
     What stays different between the two readers is deliberate, and it is not
-    the order: this one reads the working tree, because its callers, `seal
+    the order: this one reads the working tree, because its callers, `iadd
     settle` and the release scripts, read the checkout they run in. The
     pull-request check reads what git carries, because CI sees nothing
     else -- an untracked file there is evidence nobody can open.

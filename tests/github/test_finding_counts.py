@@ -291,7 +291,7 @@ class Test_main:
         whether it went through the review chain is not known, and the line
         under the table names its `routing.md` and why. One routed straight
         to the pull request is no row and no line, and one released and
-        since removed from the tree is neither, as `seal settle` lists it
+        since removed from the tree is neither, as `iadd settle` lists it
         nowhere. Seen red against the loop that skipped all of them alike
         (round 1, finding 2)."""
         root = git_repo(tmp_path / "repo")

@@ -35,7 +35,7 @@ prints to the job's summary.
                       too, as `<leg>` leg
   `<document>`        the bytes of the core (`skills/core/SKILL.md`),
                       `CLAUDE.md`, `CONTRIBUTING.md` and each document of
-                      the policy root that `seal fold` reads
+                      the policy root that `iadd fold` reads
                       (`skills/settle/scripts/fold_check.py#documents`),
                       each CRLF counted as the LF git stores
 

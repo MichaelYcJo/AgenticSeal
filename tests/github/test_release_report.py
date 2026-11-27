@@ -10,7 +10,7 @@ the script's other cases from
 keeps the cases that read the tests workflow's job.
 
 Seen red before they were committed (contract rule 15): three cases failed
-against the script that printed no test-file rows, and `seal mutate`
+against the script that printed no test-file rows, and `iadd mutate`
 turned the fourth, the exit on an unreadable tree, red by letting `main` go
 on past the tree it could not read.
 """

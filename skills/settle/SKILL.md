@@ -7,7 +7,7 @@ description: |
   another) as its group's latest decision, checked against the code, decide
   every open row of their records, then remove their directories.
   Use when: preparing a release and the work items have accumulated; a
-  session asks what `seal/threads/` is still holding, or runs `seal settle`.
+  session asks what `seal/threads/` is still holding, or runs `iadd settle`.
   NOT for: the release notes, which the tag's workflow builds from the
   fragments; anything in a work item that has not shipped.
 ---
@@ -40,27 +40,27 @@ from the tree: it takes a default where the tree does not decide and writes
 it down, and the owner reviews its pull request.
 
 ```
-seal settle                  the dry run: each group of released designs that
+iadd settle                  the dry run: each group of released designs that
                              name one section, the designs to read whole, every
                              open row, the files named like a record and not
                              read, and what --apply removes
-seal settle --from DIR       the dry run, and every document of DIR, a
+iadd settle --from DIR       the dry run, and every document of DIR, a
                              directory a person names, with the commits that
                              added and last changed each; repeatable
-seal settle --draft          write every released operation into the policy
+iadd settle --draft          write every released operation into the policy
                              root in merge order, and name each one not
                              placed; it decides nothing
-seal settle --all-earlier    the dry run, with the judgments of the plans
+iadd settle --all-earlier    the dry run, with the judgments of the plans
                              every earlier settle removed, not only those of
                              the two newest removing commits
-seal settle --apply          remove each released directory whose record
+iadd settle --apply          remove each released directory whose record
                              holds no open row and whose version's published
                              note, where one is read, carries its entry
-seal settle --released-at REF  what counts as released (default origin/main)
+iadd settle --released-at REF  what counts as released (default origin/main)
 ```
 
-The script is `skills/settle/scripts/settle.py`, and `seal settle` runs it;
-`bin/seal` is on the Bash tool's PATH while the plugin is enabled. It needs
+The script is `skills/settle/scripts/settle.py`, and `iadd settle` runs it;
+`bin/iadd` is on the Bash tool's PATH while the plugin is enabled. It needs
 python 3.12 or newer.
 Where the `seal/` root is under the common git directory,
 `skills/settle/local-mode.md` *In local mode* says what changes, and the
@@ -74,7 +74,7 @@ gate refuses a branch over an unsettled work item.
 
 ## What the dry run shows
 
-`seal settle` reads the work items released at `--released-at`, each `frame/design.md`
+`iadd settle` reads the work items released at `--released-at`, each `frame/design.md`
 as that ref holds it, or in local mode as its directory holds it, and writes
 nothing:
 
@@ -126,7 +126,7 @@ nothing:
   commit at which a plan is read that way, so a commit whose every deleted
   plan was deleted again later, or belongs to a directory that stands, is
   none. Where older removing commits stand, the section ends with a line
-  counting them, never their rows, and naming `seal settle --all-earlier`,
+  counting them, never their rows, and naming `iadd settle --all-earlier`,
   which reads the plans of every removing commit and prints no such line.
   The plans' texts are read in one `git cat-file --batch`, their adding
   commits in one `git log` of the ref, and the tags that hold those in one
@@ -185,7 +185,7 @@ does not parse, an unordered pair and an open row are all shown.
 1. Put the first question of *Directories a person names* to the person:
    which directories besides `seal/` hold decisions to fold. A session that
    cannot put it takes the answer "none".
-2. Run `seal settle`, the dry run, on the settle's branch, with
+2. Run `iadd settle`, the dry run, on the settle's branch, with
    `--from <dir>` for each directory the answer named.
 3. Where the dry run lists a document of a named directory, read each
    document whole with the code it bears on, write its proposal row, and
@@ -194,7 +194,7 @@ does not parse, an unordered pair and an open row are all shown.
    listing is git's facts about each file, and the row
    is yours to write. Where it lists none, ask nothing more. Both questions
    come before the first edit, and no step after this one asks anything.
-4. Optionally, first run `seal settle --draft`, after opening
+4. Optionally, first run `iadd settle --draft`, after opening
    `skills/settle/draft.md` *What `--draft` writes*,
    and commit what it wrote as one commit before any other edit, so the
    pull request shows the literal pass and the settling session's judgment
@@ -222,7 +222,7 @@ does not parse, an unordered pair and an open row are all shown.
    and not from its cell's spelling: the dry run groups by the cell as
    written and decides no kind. *The judgments earlier settles removed*
    holds the plans the two newest removing commits deleted. Where a kind
-   you read may have come before them, run `seal settle --all-earlier` and
+   you read may have come before them, run `iadd settle --all-earlier` and
    read the older rows its section adds; a kind standing on a section an
    older settle rewrote is such a kind. The released routes are judgments
    too: each released `routing.md` whose *Why this way* says the orchestrator
@@ -281,7 +281,7 @@ does not parse, an unordered pair and an open row are all shown.
    corpus: a search of the tests' text finds a module only by how it
    spells a path, so no such search lists them all, and step 10 runs every
    one.
-9. Run `seal settle --apply`, with no `--from`, which it refuses.
+9. Run `iadd settle --apply`, with no `--from`, which it refuses.
 10. Run the repository's `Broad gate` command. It is the one run that reads
     every check. Where a case fails because a pin under `tests/` or a copy
     such as a README row still states the old fact, change that pin or
@@ -321,7 +321,7 @@ asks. Every other judgment of the settle stays the settling session's.
 to fold.** The settling session puts it before its first edit. Its answers
 are "none", which runs the settle as it runs without `--from`, or one or
 more paths, each passed to the dry run as `--from <dir>`, relative to the
-directory `seal settle` runs in or absolute. The question states the one
+directory `iadd settle` runs in or absolute. The question states the one
 limit no guard covers, in this sentence: a directory that holds the `seal/`
 root, such as the repository's top, lists the root's own files too, and the
 settling session proposes each of them `skip`, because the settle already
@@ -391,7 +391,7 @@ document, the second question, and how a promoted row is written.
 - **It prints, for each directory it removed, the rows its record closed
   with what closed each**, so the pull request body can copy them.
 - **It writes no policy document.** The settling session has written them
-  by then, and `--apply` prints `seal fold`'s lines over the policy root
+  by then, and `--apply` prints `iadd fold`'s lines over the policy root
   after the removals.
 
 It exits 0 when it kept nothing, 1 when it kept a directory, and 2 when the
@@ -407,7 +407,7 @@ says, is read where the work touches what it describes, and cited in the
 `frame/design.md` whose rule changes it informed or in the section a settle
 writes from it. It reaches a settle only as a directory the person names at
 the first question of *Directories a person names*, and the settle does not
-read the row. `seal settle` never writes there, and neither does the
+read the row. `iadd settle` never writes there, and neither does the
 settling session: `--apply` removes only under `seal/threads/`.
 
 ## A released work item with no `frame/design.md`
@@ -441,7 +441,7 @@ into a comment.
 ## A document past its ceiling is split, never trimmed
 
 After the removals, `--apply` names each document past the `Document token
-ceiling` key in `seal/config.json`, as `seal fold` does, and neither refuses
+ceiling` key in `seal/config.json`, as `iadd fold` does, and neither refuses
 it. Such a document is recommended to be split by who opens each section
 and at which step, as `skills/core/SKILL.md` *The first value: efficient
 development through the IADD process* states, in that pull request
@@ -458,7 +458,7 @@ Where the root is shared, its commits carry
 its pull request. It keeps no log: what
 changed is the diff. Where the root is shared the removed designs are in git
 history; in local mode no commit holds them, and the dry run names
-`seal export` for whoever wants a copy. A settle that
+`iadd export` for whoever wants a copy. A settle that
 opened a work item would leave a directory for the next settle to remove, and
 settling would never end.
 

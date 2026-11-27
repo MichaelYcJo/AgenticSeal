@@ -229,7 +229,7 @@ From `changelog.md`.
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
 
 <details>
-<summary>Copied from the records in seal/threads/1790000030-inspection-untrue-body/ by seal pr-body.</summary>
+<summary>Copied from the records in seal/threads/1790000030-inspection-untrue-body/ by iadd pr-body.</summary>
 
 ## How it was built
 
