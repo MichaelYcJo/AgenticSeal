@@ -4132,7 +4132,7 @@ class Test_main:
 
     def test_a_clean_run_prints_no_such_line(self, run_with_segments):
         """The negative half, planted in the same commit. A breach line nobody
-        has seen fail is a counterfeit seal: these two segments made no `Agent`
+        has seen fail is a counterfeit mark: these two segments made no `Agent`
         call, and the section is not mentioned at all."""
         out = segment_report(run_with_segments)
         assert "rule 6" not in out, out

@@ -6,7 +6,7 @@ script which raises while reading or printing dies with **stdout empty**, and
 empty stdout is how a script run for its output says "nothing to see here".
 The case of the stamp's drawer on such a console, the script the plugin's
 `Stop` hook runs, is
-`tests/skills/test_seal_stamp.py#Test_main.test_the_plugins_stop_command_draws_on_a_console_it_cannot_encode_to`.
+`tests/skills/test_stamp.py#Test_main.test_the_plugins_stop_command_draws_on_a_console_it_cannot_encode_to`.
 """
 
 import io

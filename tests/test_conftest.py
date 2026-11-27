@@ -2,7 +2,7 @@
 
 A case whose call runs past `SLOW_CASE_S` is named in the run's terminal
 summary with its seconds, and nothing fails for it: a time reading is noisy,
-and on 2026-10-16 a loaded machine failed a guarantor's run on time alone.
+and on 2026-10-16 a loaded machine failed an inspector's run on time alone.
 The summary hook is driven through one inner pytest run, built once for the
 module, that loads this repository's `conftest.py` with the value lowered
 so the run takes a second.

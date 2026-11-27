@@ -84,11 +84,11 @@ tag is not.
 
 **It says whether it created the release.** `created=true` or
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
-`seal` job in the same workflow runs only on `true`: the seal edits the note,
+`mark` job in the same workflow runs only on `true`: the mark edits the note,
 so it is held to the line above and never touches a release this run did
-not write. The header is built by `header`, and the seal's replacement for
-it by `sealed_header`, with the seal's image or without it, so every
-shape lives in the file that owns the counts and the seal finds the header
+not write. The header is built by `header`, and the mark's replacement for
+it by `marked_header`, with the mark's image or without it, so every
+shape lives in the file that owns the counts and the mark finds the header
 by the function that wrote it.
 
 `DRY_RUN=1` prints the note it would create and writes nothing, for the reason
@@ -496,8 +496,8 @@ def merged_pulls(repo, version):
             "--limit",
             "500",
             "--json",
-            # `labels` and `headRefName` are read by the seal, not here
-            # (`.github/scripts/release_seal.py#chain_counts`): one call
+            # `labels` and `headRefName` are read by the mark, not here
+            # (`.github/scripts/release_mark.py#chain_counts`): one call
             # serves both, so the two cannot disagree about the set.
             "number,title,author,body,labels,headRefName",
         )
@@ -618,7 +618,7 @@ def counts(work, closed, people):
     """The release's counts in words, one line each: the pull requests
     merged, the issues they closed, and the outside contributors only where
     there are some. `header` states them in these words, and
-    `sealed_header` states the same counts as badges (`count_badges`)."""
+    `marked_header` states the same counts as badges (`count_badges`)."""
     lines = [
         console.plural(len(work), "pull request") + " merged",
         console.plural(len(closed), "issue") + " closed",
@@ -642,31 +642,31 @@ def paragraph(lines, before="", after=""):
 
 def header(work, closed, people):
     """The header the note opens with, exactly as the note carries it: a
-    paragraph holding `counts`. `release_seal.py` finds the header in a
+    paragraph holding `counts`. `release_mark.py` finds the header in a
     published note by this text, so a note edited by hand afterwards, or one
-    whose header a run of the seal already replaced, is left alone. The
-    paragraph's `<p>` and `</p>` bound the text, so the header the seal
+    whose header a run of the mark already replaced, is left alone. The
+    paragraph's `<p>` and `</p>` bound the text, so the header the mark
     computes never matches inside a longer header line, such as one that
-    holds an outside contributors line the seal's header lacks, or one whose
+    holds an outside contributors line the mark's header lacks, or one whose
     count has one more leading digit."""
     return paragraph([html.escape(line) for line in counts(work, closed, people)])
 
 
-# The sealed header's badges, drawn by the Shields badge service from their
+# The marked header's badges, drawn by the Shields badge service from their
 # address alone. A badge's two colours, the value's and then the label's, are
 # read by its label from `BADGE_COLOURS`, so that a passing result does not
-# read like a failure (#1496). Every label is grey except `SEALED`'s. The
+# read like a failure (#1496). Every label is grey except `CLEARED`'s. The
 # suite's passed count is green, and the skipped, capped and deferred counts
 # are grey. Every other label has no entry, so its value takes
 # `BADGE_DEFAULT_COLOURS`, which is blue.
 BADGE_LABEL_GREY = "555555"
 BADGE_COLOURS = {
-    # The seal's reds, read from `assets/seals/owl.svg`: the label's is the
+    # The wax seal's reds, read from `assets/seals/owl.svg`: the label's is the
     # wax's dark outer edge, the gradient's outer stop, and the value's is
     # the raised relief of the owl and its border. The owner chose the
-    # stamp's reds for every colour of the seal (#857), so a seal redrawn in
+    # stamp's reds for every colour of the wax seal (#857), so a wax seal redrawn in
     # other colours is a new icon, and the redraw edits this entry with it.
-    "SEALED": ("d42420", "8e0c12"),
+    "CLEARED": ("d42420", "8e0c12"),
     "suite": ("2ea44f", BADGE_LABEL_GREY),
     "skipped": ("6e7781", BADGE_LABEL_GREY),
     "capped": ("6e7781", BADGE_LABEL_GREY),
@@ -719,15 +719,15 @@ def count_badges(work, closed, people):
     return lines
 
 
-def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
-    """What replaces `header`'s paragraph once the release seal has run: a
+def marked_header(image_url, alt, width, cleared, results, work, closed, people):
+    """What replaces `header`'s paragraph once the release mark has run: a
     paragraph of the same shape holding the stamp's results as badges.
-    `sealed` and `results` are badge lines, each a list of `(label, value)`
-    pairs, as `release_seal.py#results` hands them: `sealed` the sealed
+    `cleared` and `results` are badge lines, each a list of `(label, value)`
+    pairs, as `release_mark.py#results` hands them: `cleared` the cleared
     version, then the commit and its branch; then the counts `count_badges`
     states; then `results`, the stamp's other rows. The badges of one line
     are parted by a space, and the lines by `<br>`. Given an `image_url`,
-    the paragraph opens with the seal as an `<img>` `width` CSS pixels wide
+    the paragraph opens with the mark as an `<img>` `width` CSS pixels wide
     with `alt` as its text (the PNG is drawn at twice that for a
     high-density screen), floated left by `align="left"` so the badges stand
     beside it, and ends with a `<br clear="left">` that clears the float
@@ -739,7 +739,7 @@ def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
     cannot end an attribute and a `<` opens no tag."""
     lines = [
         " ".join(badge(label, value) for label, value in line)
-        for line in [*sealed, *count_badges(work, closed, people), *results]
+        for line in [*cleared, *count_badges(work, closed, people), *results]
     ]
     if image_url is None:
         return paragraph(lines)
@@ -755,7 +755,7 @@ def release_body(theme, rendered, pulls, owner):
     scans, and the fragments they can open.
 
     Read top to bottom it answers, in order, how big the release is -- the
-    header `header` writes, which the seal later replaces -- what it is for,
+    header `header` writes, which the mark later replaces -- what it is for,
     what changed -- one fold per type, its summary the type's
     name and the number of pull requests in it, holding one line per pull
     request with the issues it closed -- who outside the project

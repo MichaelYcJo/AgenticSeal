@@ -173,7 +173,7 @@ writes it above `pr.md`. It is named for **its own** language, the commit
 key's: a repository whose records are English and whose commits are Korean
 keeps `pr.ko.md`. What `pr.md` and `pr.<lang>.md` hold is stated in
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the inspector seals*. A record has no
+once the work item is cleared*. A record has no
 mirror: there is one file and a checker reads it, so its prose is whatever
 `Record language` says and nothing else.
 
@@ -242,9 +242,9 @@ a session that may have nobody at the keyboard. It does **not** name a
 command to write, because the party reading it is the one party that may not
 choose one.
 
-**There is no default, and the reason is the Seal Test.** `verify` names the
-counterfeit: a check that cannot fail. A default of `pytest` seals a
-repository that runs `npm test`; a default of `true` seals everything. The
+**There is no default, and the reason is the Inspection Test.** `verify` names the
+counterfeit: a check that cannot fail. A default of `pytest` passes a
+repository that runs `npm test`; a default of `true` passes everything. The
 orchestrator that runs the gate does not pick a command either: a key is a
 thing a person wrote, and what the broad run covers is exactly that. What the
 command does is the repository's own claim: a command that exits 0
@@ -330,7 +330,7 @@ one more piece of a model of `cmd.exe`, and the gate carries none.
 
 **A commit after the run that changes only the work item's records does not
 run the command again** (`skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the inspector seals*). So a part of
+*Orchestrator: the pull request opens once the work item is cleared*). So a part of
 the command that reads those records, such as a Markdown lint over every
 `.md` file or a suite case over `seal/threads/`, reads them as they stood at
 the run. Where the repository runs the same command in its pull request's
@@ -457,17 +457,17 @@ nothing of the pact. A signer whose config holds no `Pact` key naming the
 pact is read as naming no pact, and `seal pact` exits 2 on a relationship
 recorded on one side only.
 
-## The seal mark
+## The inspection mark
 
-A key per surface the seal mark is shown on beside the terminal stamp. Each
+A key per surface the inspection mark is shown on beside the terminal stamp. Each
 is off unless its key turns it on, and no key stops anything by itself. The
 pull request's check reads the body against what `seal pr-body` composes, so
 there a body whose mark line differs from the composition fails a ready pull
 request, as any other differing line does.
 
 ```json
-"Pull request seal mark": "yes",
-"Release note seal mark": "yes"
+"Pull request inspection mark": "yes",
+"Release note inspection mark": "yes"
 ```
 
 | Value | Means |
@@ -476,23 +476,23 @@ request, as any other differing line does.
 | absent or empty | no mark, and nothing is said |
 | any other value, such as `Yes`, `on` or `true` | no mark, and the command that writes the surface names the key and its value as not read |
 
-**`Pull request seal mark`** is read by `seal pr-body`
-(`skills/code-review/scripts/pr_body.py#seal_mark`). Under `yes` it writes
+**`Pull request inspection mark`** is read by `seal pr-body`
+(`skills/code-review/scripts/pr_body.py#inspection_mark`). Under `yes` it writes
 one line, the plugin's icon at the default branch of the plugin's
 repository, between the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds and the fold,
 where the newest verdict block of the work item's `inspection.md` reads
 `cleared` at a commit that only the closing records, `trail/gate.md` and
-`inspection.md`, follow. A work item not sealed at HEAD gets no mark, and the
+`inspection.md`, follow. A work item not cleared at HEAD gets no mark, and the
 inspector and the pull request's check name why. The mark's address is the
 plugin's repository and names no version, so the installed plugin and the
 copy the pull request's check runs compose one line whatever release each
 is. A body carrying it shows the image while that repository stays public
 and the icon stays at its path on the default branch.
 
-**`Release note seal mark`** is read by the `seal` job of this plugin's own
+**`Release note inspection mark`** is read by the `mark` job of this plugin's own
 release workflow, at the release's tag. Under `yes` the job attaches the
-plugin's icon to the release as `seal.png` and the note's header shows it
+plugin's icon to the release as `mark.png` and the note's header shows it
 beside the results the stamp states; under any other value it attaches
 nothing and the header holds the results alone. The plugin ships no release
 workflow, so in any other repository nothing reads this key.

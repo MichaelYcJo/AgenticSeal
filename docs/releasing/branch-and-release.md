@@ -78,8 +78,8 @@ hand fires the publish workflow too.
   shipping unexplained. The note opens with a header, one HTML paragraph
   holding the release's counts as text, one per line: the pull requests
   merged, the issues they closed, and the outside contributors where there
-  are any. The paragraph's opening and closing tags keep the seal from
-  matching a longer line of counts, so the seal finds only the whole header.
+  are any. The paragraph's opening and closing tags keep the mark from
+  matching a longer line of counts, so the mark finds only the whole header.
   The release's theme follows it, the first sentence
   of its milestone's description with a leading `Purpose:` left out; a
   milestone that cannot be read leaves the note without one and never fails
@@ -90,40 +90,40 @@ hand fires the publish workflow too.
   `### 🙌 Thanks to` line for every author other than the repository owner
   and bots, and how to update. The fragments follow, folded, each under a
   link to the pull request that added it. A pull request title is therefore
-  a line of the release note: write it as one. **Then the release's seal is
+  a line of the release note: write it as one. **Then the release's mark is
   attached.** A second job in the same workflow runs only when this run
   created the release. It runs the suite at the tag and replaces the note's
   header with a paragraph holding the results the stamp states, as badges,
-  one or two to a line. They are the sealed version and commit, the pull
+  one or two to a line. They are the cleared version and commit, the pull
   requests merged, the issues closed, the outside contributors where there
   are any, the suite's counts, the work items and their review rounds, how
   many were capped, and the issues deferred. The header holds no table:
   GitHub draws a border around every table cell whatever the note's HTML
-  asks, and in dark mode that border frames the seal in grey. A badge is a
+  asks, and in dark mode that border frames the mark in grey. A badge is a
   static image from the Shields badge service showing a label and a value in
   colours read by its label from one table, so that a passing result does
-  not read like a failure. Every label is grey except `SEALED`'s, which
-  keeps the seal's dark red beside the seal's bright red value. The suite's
+  not read like a failure. Every label is grey except `CLEARED`'s, which
+  keeps the wax seal's dark red beside the wax seal's bright red value. The suite's
   passed count is green, the skipped, capped and deferred counts are grey,
   and every other value is blue. A badge's alt text is that label and value
   in words. So a reader whose client draws no image, or who opens the note
   while the service does not answer, still has every result. Where
-  `seal/config.json`'s `Release note seal mark` key reads `yes` at the tag,
+  `seal/config.json`'s `Release note inspection mark` key reads `yes` at the tag,
   the job first attaches the page form of the stamp's mark, the PNG that
-  `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the
+  `.claude-plugin/plugin.json` names as its `icon`, as `mark.png`, and the
   header opens with that image at its display width, floated left so that
   the badges stand beside it, and ends with a line break that clears the
   float. The image's alt text names the image alone, because the badges' alt
   text carries every number. Under any other value nothing is attached and
   the badges stand alone, with no float; `templates/setup/config.md` *The
-  seal mark* states the key's values and who reads it. The PNG is drawn from
+  inspection mark* states the key's values and who reads it. The PNG is drawn from
   `assets/seals/owl.svg` by the command `assets/seals/README.md` gives, and
   the job installs no imaging library to attach it. That edit is the only
   change it makes to a note, and only to one whose header is still exactly
   as it was generated, so a run of the job after the first finds no such
   header and uploads and edits nothing. Any
   failure is a `::warning::` in the job log and leaves the note as it was
-  published, so the seal can never turn the release red. How a browser shows
+  published, so the mark can never turn the release red. How a browser shows
   the image on the release page is seen by a person; the job reads no page.
 - **The marketplace files are read by a command that never fails a release, and
   the plugin directory by a person.** `.github/scripts/plugin_directory_check.py`
@@ -147,7 +147,7 @@ hand fires the publish workflow too.
 `docs/releasing/release-checklist.md` *After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
-check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/github/test_tag_release.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
+check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/github/test_tag_release.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_mark_is_drawn.py tests/github/test_release_mark.py
 
 Which workflows GitHub starts on which event, and which run a newer push
 cancels, is GitHub's behaviour. No case here can start a run, so
@@ -297,11 +297,11 @@ request's `hygiene` run reported on. Neither ruleset requires a branch to
 be up to date with its base before it merges. Requiring it would make the
 second of two work items running side by side merge the release branch in
 once the first lands, which is often after the second's broad run and
-seal. The chain check reads no merge commit, so it passes that merge
+inspection. The chain check reads no merge commit, so it passes that merge
 (`skills/code-review/scripts/chain_check.py#follows`). The merge still
-moves HEAD past the work item's broad run and seal, and the orchestrator
+moves HEAD past the work item's broad run and inspection, and the orchestrator
 then runs both again (`skills/code-review/orchestration.md` *Orchestrator:
-the pull request opens once the inspector seals*). There are no bypass actors
+the pull request opens once the work item is cleared*). There are no bypass actors
 and no override, so the rule applies to the owner too. A required check
 that is red is answered by the commit that turns it green. Where the check
 refused correct work, it is answered by fixing the check, never by passing

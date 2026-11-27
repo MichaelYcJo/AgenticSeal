@@ -142,7 +142,7 @@ import tempfile
 # loaded are named as `lib/sibling.py#load` names them.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
-STAMP = "skills/verify/scripts/seal_stamp.py"
+STAMP = "skills/verify/scripts/stamp.py"
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 # The chain arm runs the check as a process, and passes the check's own
 # `INSPECTING`, read from the module `main` loads before any arm runs.
@@ -195,8 +195,8 @@ NEW, ON_BASE = "new", "failing on base too"
 
 # How a panel value is cut, continued and marked — `PANEL_VALUE_WIDTH`,
 # `ELISION`, `fit`, `wrapped` and the owner's `SEP`, `ARROW` and `TICK` —
-# is `seal_stamp.py`'s, which composes the stamp's rows
-# from a `cleared` guarantee; this gate's report reads them through
+# is `stamp.py`'s, which composes the stamp's rows
+# from a `cleared` inspection; this gate's report reads them through
 # `stamp_module()`, so the two write a row by one set of rules.
 
 
@@ -212,7 +212,7 @@ class Refused(Exception):
 
 
 def stamp_module():
-    """`seal_stamp.py`, loaded once per process: `panel` asks it the one
+    """`stamp.py`, loaded once per process: `panel` asks it the one
     question both of them answer (`ref_is_commit`), and a case drives
     `panel` without a gate around it to have loaded it."""
     return sibling.load(STAMP)
@@ -631,7 +631,7 @@ def missing_row(home):
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
-        "(`skills/verify/SKILL.md` *The Seal Test*): a session that picks a "
+        "(`skills/verify/SKILL.md` *The Inspection Test*): a session that picks a "
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/agentic:config` is where "
         "they answer it — it shows every key and adds this one — and "
@@ -699,7 +699,7 @@ def cmd_exe_reads(windows=None, comspec=None):
     (`tests/conftest.py#posix_row_shell_or_skip` exists for that machine),
     and a POSIX shell runs `bin/test` as written. `windows` and `comspec`
     default to this machine's, and are arguments so that both branches can
-    be driven from either platform; `seal_stamp.py#quote`'s docstring says
+    be driven from either platform; `stamp.py#quote`'s docstring says
     what reading `os.name` in the body costs.
     """
     if windows is None:
@@ -1646,7 +1646,7 @@ def panel(
     than a rule there.
 
     **The values are the owner's characters** — ` · ` (`SEP`), `→`
-    (`ARROW`) and `✓ ` (`TICK`), `seal_stamp`'s. A console that is not
+    (`ARROW`) and `✓ ` (`TICK`), `stamp`'s. A console that is not
     UTF-8 prints `·` and `→` as `?`, and that console is served where the
     report is printed:
     `report_lines` maps the three to ASCII there, and the values stay what
@@ -1862,7 +1862,7 @@ NO_RECORD_HERE = (
 # The first line of a run's stdout. The verdict word `cleared` is the
 # inspector's, in `inspection.md`, and this run comes before the inspector is spawned
 # and judges nothing, so its heads say what it did: the broad gate passed or
-# failed. `{names}` is `seal_stamp.sealed_names`'s `<branch> @ <tree> against
+# failed. `{names}` is `stamp.cleared_names`'s `<branch> @ <tree> against
 # <ref> @ <base commit>`. Beside the preflight's heads below, so the two
 # kinds of run are told apart by their first word.
 GATE_PASSED = "BROAD GATE PASSED   {names}"
@@ -1878,7 +1878,7 @@ def failed_form(tree, base, failures, branch=None, ref=None):
     first lines of what it printed, as the gate kept them. `branch` and `ref`
     None leave their half out, which is the line a caller that names neither
     gets."""
-    names = stamp_module().sealed_names(tree, base, branch, ref)
+    names = stamp_module().cleared_names(tree, base, branch, ref)
     out = [GATE_FAILED.format(names=names), ""]
     # The widest name present, not a literal 8, so a name longer than the
     # pad does not set that one check's first line a column out from every
@@ -2114,7 +2114,7 @@ def gate(args, ascii_marks=False):
     # the line saying so, only where git still sees it uncommitted. Nothing
     # is drawn and no values file is written: the stamp is the inspector's,
     # queued at the write of an `inspection.md` reading `cleared`.
-    names = stamp_module().sealed_names(tree, base.commit, branch, base.ref)
+    names = stamp_module().cleared_names(tree, base.commit, branch, base.ref)
     lines = [GATE_PASSED.format(names=names)]
     lines += report_lines(rows, ascii_marks=args.shape or ascii_marks)
     uncommitted = uncommitted_line(root, written)
@@ -2247,7 +2247,7 @@ def main(argv=None, console_wants_ascii=False):
 if __name__ == "__main__":
     # Whether the report's marks go out in ASCII, asked of stdout as the
     # process found it — before `console.to_utf8()` moves every stream to
-    # UTF-8 (`skills/verify/scripts/seal_stamp.py#pick_shape` says why).
+    # UTF-8 (`skills/verify/scripts/stamp.py#pick_shape` says why).
     # exempt from entry_point: stdout is asked how the process found it before console.to_utf8() moves it to UTF-8
     _ascii = not sibling.load(STAMP).is_utf8(sys.stdout)
     console.to_utf8()

@@ -4,6 +4,6 @@
   "Mode": "shared",
   "Broad gate": "uvx ruff check . && uvx ruff format --check . && uv run --no-project tests/run_tests.py -q",
   "Document token ceiling": "25000",
-  "Pull request seal mark": "yes",
-  "Release note seal mark": "yes"
+  "Pull request inspection mark": "yes",
+  "Release note inspection mark": "yes"
 }

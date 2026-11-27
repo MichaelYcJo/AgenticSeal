@@ -43,18 +43,18 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     the note step runs only on a tag passed on and reads `TAG` from it, since
     `github.ref_name` is `main` on the push to `main`. Under
     `contents: write` it writes five things now -- one tag and one release
-    (`publish`), one asset on it and one edit of its note (`seal`), one
+    (`publish`), one asset on it and one edit of its note (`mark`), one
     commit on `dist` (`dist`, the next case) -- and still declares no other
     scope. `publish` has no `needs` and says which
-    tag it published for and whether it created the release; `seal` needs
+    tag it published for and whether it created the release; `mark` needs
     it, runs only on `created == 'true'`, checks out that tag and reads `TAG`
     from it, and every one of its steps is `continue-on-error`, so nothing
-    the seal meets can turn the workflow red. A hung suite ends at the step's `timeout-minutes`, and
+    the mark meets can turn the workflow red. A hung suite ends at the step's `timeout-minutes`, and
     the job's own timeout sits under a job-level `continue-on-error` (round
     1's finding 4). The token is on the drawing step alone, and the checkout
     does not persist it in `.git/config`, so the suite at the tag runs with
     none (round 1's finding 5). Since #1009 (S7) the job has five steps.
-    Seen red against the workflow with no `seal` job, the two round-1 halves
+    Seen red against the workflow with no `mark` job, the two round-1 halves
     against the workflow without them, and #1117's against the workflow that
     fired on the tag alone."""
     workflow = load(WORKFLOW)
@@ -88,12 +88,12 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert "publish_release_note.py" in note.get("run", ""), note
     assert note.get("if") == "steps.tag.outputs.tag != ''", note
     assert note.get("env", {}).get("TAG") == "${{ steps.tag.outputs.tag }}", note
-    seal = jobs["seal"]
-    assert seal.get("needs") == "publish", seal
-    assert seal.get("if") == "needs.publish.outputs.created == 'true'", seal
-    assert seal.get("timeout-minutes") == "60", seal
-    assert seal.get("continue-on-error") == "true", seal
-    held = seal["steps"]
+    mark = jobs["mark"]
+    assert mark.get("needs") == "publish", mark
+    assert mark.get("if") == "needs.publish.outputs.created == 'true'", mark
+    assert mark.get("timeout-minutes") == "60", mark
+    assert mark.get("continue-on-error") == "true", mark
+    held = mark["steps"]
     assert len(held) == 5, held
     assert any(
         step.get("with", {}).get("ref") == "${{ needs.publish.outputs.tag }}"
@@ -103,7 +103,7 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     for step in held:
         assert step.get("continue-on-error") == "true", step
     tokened = [step for step in held if "GH_TOKEN" in step.get("env", {})]
-    assert len(tokened) == 1 and "release_seal.py" in tokened[0].get("run", "")
+    assert len(tokened) == 1 and "release_mark.py" in tokened[0].get("run", "")
     assert any(
         step.get("env", {}).get("TAG") == "${{ needs.publish.outputs.tag }}"
         for step in held

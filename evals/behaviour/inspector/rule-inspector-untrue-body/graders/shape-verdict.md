@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000030-guarantee-untrue-body/inspection.md'}
+target: {source: 'file', path: 'seal/threads/1790000030-inspection-untrue-body/inspection.md'}
 pattern: '^```seal\n(?:[^`\n][^\n]*\n)*?Verdict: withheld reason: \S'
 flags: 'm'
 ---

@@ -6,7 +6,7 @@ and the work item directories under `seal/threads/`.
 The module is named for the plugin's hooks, which #1376 removed and #1430
 brought back; #1608 added the `PreToolUse` hook and #1612 the
 `PostToolUse` one. What the stamp's `Stop` command draws is held in
-`tests/skills/test_seal_stamp.py`, what the `SessionStart` command prints in
+`tests/skills/test_stamp.py`, what the `SessionStart` command prints in
 `tests/hooks/test_core_start.py`, what the `PreToolUse` command refuses in
 `tests/hooks/test_ask_under_automation.py`, and what the `PostToolUse`
 command names in `tests/hooks/test_edit_leaves_copies.py`.
@@ -46,7 +46,7 @@ PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
 def test_the_plugin_registers_its_hooks_and_writes_none_into_git():
     """#1430 *Scope* items 1 and 4, #1608 S8 and #1612 A12. The plugin ships
     command hooks and no dispatcher: a `Stop` entry with no matcher that
-    runs `seal_stamp.py --stop`, a `SessionStart` entry matched to
+    runs `stamp.py --stop`, a `SessionStart` entry matched to
     `startup|clear|compact` that runs `hooks/core-start.py`, a `PreToolUse`
     entry matched to `AskUserQuestion` that runs
     `hooks/ask-under-automation.py`, and a `PostToolUse` entry matched to

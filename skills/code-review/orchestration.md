@@ -289,9 +289,9 @@ The framer's route:
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds the `Reframed` line under the `Framed` line, spelt as `docs/running/the-run.md` *The run* spells it. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the count again |
 
-## Orchestrator: the pull request opens once the inspector seals
+## Orchestrator: the pull request opens once the work item is cleared
 
-**The pull request opens ready, once the inspector has sealed, and CI runs
+**The pull request opens ready, once the work item is cleared, and CI runs
 then.** Where `Destination` reads `open the pull request`, push the branch as
 often as you like while the work is built and reviewed: a branch with no
 pull request runs nothing. Under `stop before the pull request` nothing is
@@ -324,7 +324,7 @@ body file again and spawns the inspector again.
 changes a record other than `trail/gate.md` and `inspection.md` after the
 inspector has written its verdict, it owes `seal pr-body` on the body file
 again and the inspector again, and the inspector reads every record at HEAD.
-Those two files may follow the verdict's commit, as the guarantee arm
+Those two files may follow the verdict's commit, as the inspection arm
 reads it (`skills/code-review/scripts/chain_check.py#CLOSING_RECORDS`), so
 their commits owe neither another broad run nor another inspector. A commit
 that changes any other path owes the broad run again, after the round that

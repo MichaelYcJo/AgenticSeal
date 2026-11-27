@@ -33,8 +33,8 @@ check: tests/text/test_every_agent_reads_the_contract.py tests/text/test_the_age
 
 **The agents are the framer, the crafter, the proofer, the inspector and the
 tracer, and each name says its part of one order.** The framer designs the
-work, the crafter builds it, the proofer finds its defects, the inspector gives
-the final guarantee and seals it, and the tracer, outside that order, traces
+work, the crafter builds it, the proofer finds its defects, the inspector inspects
+the work and gives the final verdict, and the tracer, outside that order, traces
 what an original codebase does for a migration. The crafter is named for the
 Software Craftsmanship movement, and the proofer for the proof impression a
 seal maker strikes to find a defect before the seal is used. An agent's name
@@ -147,8 +147,8 @@ part of a pull request body, a phase record or a review verdict that says
 what the tree does not is caught by a party that wrote none of them. It
 re-judges neither the frame nor the code's quality, which stay the framer's
 and the proofer's, and it runs on Opus, the level of the agents it audits.
-`docs/forms/the-inspection.md` *The guarantee* holds the rule.
-check: tests/behaviour/test_the_inspector_guarantees.py
+`docs/forms/the-inspection.md` *The inspection* holds the rule.
+check: tests/behaviour/test_the_inspector_inspects.py
 
 **A build phase leaves a record, the way a review round does.** What a phase discovers
 reaches the next phase only if somebody retypes it into the next spawn prompt. So a
@@ -223,7 +223,7 @@ row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is
 not licence to skip a party*, which the orchestrator reads through the
 chain check's `--worktree` run, as `skills/code-review/orchestration.md`
 *Orchestrator: the run ends with a verifying round* states.
-check: tests/behaviour/test_the_inspector_guarantees.py
+check: tests/behaviour/test_the_inspector_inspects.py
 
 ## What a spawn costs
 

@@ -151,7 +151,7 @@ TOOLS = {
         "cost in tokens",
     ),
     "stamp": (
-        "skills/verify/scripts/seal_stamp.py",
+        "skills/verify/scripts/stamp.py",
         "draw the inspector's stamp",
     ),
     "layout": (

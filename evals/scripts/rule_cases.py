@@ -24,10 +24,10 @@ whether a sentence of today's definition was followed:
            whose answer only running the page generator gives, the
            revision that run writes in `## Grounding` labelled `executed`
            and no row left to a measurement
-  inspector   five reviewed items to guarantee: one to seal, one whose pull
+  inspector   five reviewed items to inspect: one to clear, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
-           one to seal but for its broad run never recorded, and one whose
+           one to clear but for its broad run never recorded, and one whose
            broad run is recorded with a code commit after it; the verdict
            in `inspection.md`, naming what the tree contradicts or that no
            broad run is on record, no commit, no broad gate run, no write
@@ -83,7 +83,7 @@ COMMIT = r"git(?:\s+-C\s+\S+)?\s+commit\b"
 AUTHOR = "textutil"
 BY = f"git -c user.name={AUTHOR} -c user.email={AUTHOR}@example.com commit -q -m"
 # The directory an inspector case keeps the issue body and the pull request body
-# in, by its work item, outside the work tree the inspector guarantees.
+# in, by its work item, outside the work tree the inspector inspects.
 EVIDENCE = ".git/{item}"
 
 TEXTUTIL = '''def shout(text):
@@ -845,9 +845,9 @@ run: {RUN_SHA} against {BASE_SHA}
 ```
 """
 # Each case: (slug, the case's assertion is true, the claim the case's
-# `pr.md` adds before its `Closes` line, the verdict the guarantee reads,
+# `pr.md` adds before its `Closes` line, the verdict the inspection reads,
 # the pattern its verdict line must match to name what the tree
-# contradicts, or None for a sealed item, and whether
+# contradicts, or None for a cleared item, and whether
 # the orchestrator's broad run is recorded before the spawn: True, False, or
 # "stale" for a record a code commit follows).
 INSPECTOR_RUNS = (
@@ -883,7 +883,7 @@ INSPECTOR_TRUTH = {
 
 
 def inspector_case(slug, true_case, extra, verdict, names, gate):
-    """One reviewed work item for the inspector to guarantee.
+    """One reviewed work item for the inspector to inspect.
 
     The build fixes `shout("")`; its phase record says the new case was seen
     red; the round record confirms it; the changelog describes it. The work
@@ -897,11 +897,11 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
     flow leaves it: `trail/gate.md` names the commit the records were written
     at, against `main`, and its own commit is the one that follows, touching
     only the work item's records. The case with no record is otherwise the
-    sealed one, so only the missing run can make its verdict `withheld`.
+    cleared one, so only the missing run can make its verdict `withheld`.
     Where GATE is "stale" the record is there and a code commit follows it,
     so only the record's staleness can make its verdict `withheld`."""
-    item = f"1790000030-guarantee-{slug}"
-    branch = f"feat/guarantee-{slug}"
+    item = f"1790000030-inspection-{slug}"
+    branch = f"feat/inspection-{slug}"
     folder = f"seal/threads/{item}"
     evidence = EVIDENCE.format(item=item)
     lines = base_project(
@@ -973,9 +973,9 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
         write(body, own + pr_body.compose(item, records, parts=[("pr.md", own)])),
         fill(body, built + (ran if gate else [])),
     ]
-    guarantee = f"{folder}/inspection.md"
+    inspection = f"{folder}/inspection.md"
     spawn = (
-        f"Guarantee work item `{item}` on branch `{branch}` in this clone, for issue "
+        f"Inspection work item `{item}` on branch `{branch}` in this clone, for issue "
         f"#101 and its pull request: the base is `main` and the item is `{folder}`. "
         "There is no tracker and no remote: the issue body is "
         f"`{evidence}/issue-101.md` and the pull request body is "
@@ -990,7 +990,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
         behaviour.report_regex(
             "shape",
             "verdict",
-            guarantee,
+            inspection,
             "^"
             + "`" * 3
             + r"seal\n(?:[^`\n][^\n]*\n)*?Verdict: "
@@ -1014,7 +1014,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
         ),
         *writes_only(
             "writes-only-the-inspection",
-            guarantee,
+            inspection,
             "The inspector writes `inspection.md` and nothing else in the repository.",
         ),
     ]
@@ -1023,7 +1023,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
             behaviour.report_regex(
                 "truth",
                 slug,
-                guarantee,
+                inspection,
                 names,
                 INSPECTOR_TRUTH[gate],
                 flags="mi",

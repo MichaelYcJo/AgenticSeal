@@ -10,7 +10,7 @@ The cases about what the recorder writes for a session an act ended run a
 real pytest with the recorder in a directory with no git, and read the
 record back through `read_record`. The gate's own runs are one per kind of
 answer it gives a run; where a case's fact is one arm, the other arms are
-answered for it (`arms_answered`), and `a_recorded_run`, `a_sealed_run`, the
+answered for it (`arms_answered`), and `a_recorded_run`, `a_cleared_run`, the
 preflight and the runs of a copied plugin keep every arm real. Each copy is
 the reset.
 
@@ -20,7 +20,7 @@ drive the Windows half with the platform passed in as an argument and a root
 built for the case; two cases of `run` run the machine's real shell, and only
 CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that
 run the command run it over a repository with a `feature` branch, built once
-(`_sealable_template`) and copied by the cases that write into it.
+(`_clearable_template`) and copied by the cases that write into it.
 """
 
 import argparse
@@ -64,7 +64,7 @@ gate = load_module(ROOT / TARGET, "broad_gate_under_test")
 chain = load_module(CHAIN, "chain_check_beside_broad_gate")
 stamp = gate.stamp_module()
 GATE = str(ROOT / TARGET)
-STAMP = str(ROOT / "skills" / "verify" / "scripts" / "seal_stamp.py")
+STAMP = str(ROOT / "skills" / "verify" / "scripts" / "stamp.py")
 
 
 def gate_module():
@@ -611,7 +611,7 @@ class Test_missing_row:
             "`templates/setup/config.md` *The criterion for choosing a value* is what "
             "they choose against"
         ) in said
-        assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said
+        assert "(`skills/verify/SKILL.md` *The Inspection Test*)" in said
         assert "Nothing ran" in said
 
 
@@ -1708,7 +1708,7 @@ def failing_here(repo):
 def arms_answered(monkeypatch, *names):
     """The arms NAMES answered as passed for the case, and every other run
     the gate starts real, the row again at the base among them. For a case
-    whose fact is another arm: `a_recorded_run`, `a_sealed_run`, the
+    whose fact is another arm: `a_recorded_run`, `a_cleared_run`, the
     preflight and the runs of a copied plugin keep every arm real."""
     real = gate.run
 
@@ -2072,12 +2072,12 @@ CONFIG = config_json(("Mode", "shared"), ("Broad gate", f"{sys.executable} -c pa
 
 
 @pytest.fixture(scope="module")
-def _sealable_template(tmp_path_factory):
+def _clearable_template(tmp_path_factory):
     """A repository on `feature`, one commit ahead of `base`, on which every
     arm passes; built once. A run of the gate with no `--record` writes
     nothing into it, so a case that only runs the gate reads it as it
-    stands, and `sealable` copies it for a case that writes."""
-    repo = tmp_path_factory.mktemp("sealable") / "repo"
+    stands, and `clearable` copies it for a case that writes."""
+    repo = tmp_path_factory.mktemp("clearable") / "repo"
     history(
         repo,
         (
@@ -2097,10 +2097,10 @@ def _sealable_template(tmp_path_factory):
 
 
 @pytest.fixture
-def sealable(tmp_path, _sealable_template):
-    """A copy of `_sealable_template` for the case to write into."""
+def clearable(tmp_path, _clearable_template):
+    """A copy of `_clearable_template` for the case to write into."""
     repo = tmp_path / "repo"
-    shutil.copytree(_sealable_template, repo)
+    shutil.copytree(_clearable_template, repo)
     return repo
 
 
@@ -2126,10 +2126,10 @@ def run_gate(repo, keep, base="base", script=GATE):
 
 
 @pytest.fixture(scope="module")
-def a_sealed_run(tmp_path_factory, _sealable_template):
-    """One run of the shipped gate over `_sealable_template`, started as a
+def a_cleared_run(tmp_path_factory, _clearable_template):
+    """One run of the shipped gate over `_clearable_template`, started as a
     person starts it, read by the cases that only read what it printed."""
-    return run_gate(_sealable_template, tmp_path_factory.mktemp("sealed") / "out")
+    return run_gate(_clearable_template, tmp_path_factory.mktemp("cleared") / "out")
 
 
 def gated(repo, keep, capsys):
@@ -2244,7 +2244,7 @@ class Test_main:
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
         """#1283, round 1's finding 1. The gate builds every git command with
         `lib/gitcmd.py#argv`, and `main` asks git for the root before
-        anything runs. A copy whose `seal_stamp.py` loads and whose plugin
+        anything runs. A copy whose `stamp.py` loads and whose plugin
         holds no helper exits 2 with the loader's sentence, not 1 in a
         traceback, which reads as a gate that ran and failed. The copy holds
         `lib/console.py`, which the gate loads at import since #1575, and
@@ -2255,7 +2255,7 @@ class Test_main:
         (tmp_path / "plugin" / "lib").mkdir()
         for name in ("sibling.py", "console.py"):
             shutil.copy(ROOT / "lib" / name, tmp_path / "plugin" / "lib")
-        write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
+        write(scripts, "stamp.py", "def is_utf8(stream):\n    return True\n")
         keep = tmp_path / "out"
         out = subprocess.run(
             [
@@ -2278,7 +2278,7 @@ class Test_main:
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_refuses_a_copy_without_its_chain_check_before_any_arm(
-        self, tmp_path, _sealable_template
+        self, tmp_path, _clearable_template
     ):
         """#1575 S6. The chain arm passes `chain_check.py#INSPECTING`, and the
         gate loads the check for it before the first arm runs. A copy of the
@@ -2296,7 +2296,7 @@ class Test_main:
         check = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
         check.unlink()
         keep = tmp_path / "out"
-        out = run_gate(_sealable_template, keep, script=plugin / TARGET)
+        out = run_gate(_clearable_template, keep, script=plugin / TARGET)
         assert out.returncode == 2, out.stdout + out.stderr
         assert gate.sibling.MISSING.format(path=str(check)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
@@ -2324,21 +2324,21 @@ class Test_main:
         assert out.returncode == 0, out.stderr
         assert out.stdout.startswith("usage: seal gate")
 
-    def test_the_fixture_branch_passes(self, a_sealed_run):
+    def test_the_fixture_branch_passes(self, a_cleared_run):
         """The other cases' starting point: every arm passes on the fixture, so a
         refusal below is the one thing each case changed."""
-        result = a_sealed_run
+        result = a_cleared_run
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
 
     def test_a_malformed_sprite_leaves_the_verdict_and_the_report_as_they_were(
-        self, tmp_path, _sealable_template, a_sealed_run
+        self, tmp_path, _clearable_template, a_cleared_run
     ):
         """#1582 S1. The gate draws nothing, so the disc's mark sprite is no
-        input of its verdict: a copy of the plugin whose `seal-mark.txt` is
+        input of its verdict: a copy of the plugin whose `stamp-mark.txt` is
         cut to one line passes the fixture branch and prints the report the
-        shipped gate prints over it in `a_sealed_run`. It exited 2 before,
-        because loading `seal_stamp.py` read the sprite and refused it."""
+        shipped gate prints over it in `a_cleared_run`. It exited 2 before,
+        because loading `stamp.py` read the sprite and refused it."""
         plugin = tmp_path / "plugin"
         for part in ("lib", "skills", ".claude-plugin"):
             shutil.copytree(
@@ -2347,17 +2347,17 @@ class Test_main:
                 ignore=shutil.ignore_patterns("__pycache__"),
             )
         copy = plugin / TARGET
-        sprite = copy.parent / "seal-mark.txt"
+        sprite = copy.parent / "stamp-mark.txt"
         first = sprite.read_text(encoding="utf-8").split("\n")[0]
         sprite.write_text(first + "\n", encoding="utf-8")
-        cut = run_gate(_sealable_template, tmp_path / "cut", script=copy)
-        shipped = a_sealed_run
+        cut = run_gate(_clearable_template, tmp_path / "cut", script=copy)
+        shipped = a_cleared_run
         assert shipped.returncode == 0, shipped.stdout + shipped.stderr
         assert cut.returncode == 0, cut.stdout + cut.stderr
         assert cut.stdout == shipped.stdout
 
     def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(
-        self, sealable, tmp_path, monkeypatch, capsys
+        self, clearable, tmp_path, monkeypatch, capsys
     ):
         """A3's behavioural half for the other arm #468 added. `seal/config.json`
         says the root lives under the git directory and the root is committed in
@@ -2366,14 +2366,14 @@ class Test_main:
         key is written in the working tree, which the mode arm reads, and the
         chain arm is answered for the case.
 
-        Red against the gate as it stood: this fixture sealed green."""
+        Red against the gate as it stood: this fixture passed green."""
         arms_answered(monkeypatch, gate.CHAIN_NAME)
         write(
-            sealable,
+            clearable,
             "seal/config.json",
             CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
-        code, out, err = gated(sealable, tmp_path / "out", capsys)
+        code, out, err = gated(clearable, tmp_path / "out", capsys)
         assert code == 1, out + err
         assert out.startswith("BROAD GATE FAILED   "), out
         assert gate.MODE_NAME in out, (
@@ -2381,7 +2381,7 @@ class Test_main:
         )
 
     def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(
-        self, sealable, tmp_path, monkeypatch, capsys
+        self, clearable, tmp_path, monkeypatch, capsys
     ):
         """#1483's S3, the issue's third *Done when*. The gate reads no
         workflow, so a repository whose `hygiene.yml` holds a `release` job is
@@ -2397,7 +2397,7 @@ class Test_main:
         arm prints goes to its kept file, so stderr and the report are the
         gate's own, and the copy #1483 removed was the gate's."""
         arms_answered(monkeypatch, gate.CHAIN_NAME, gate.MODE_NAME)
-        code, out, err = gated(with_workflow(sealable), tmp_path / "out", capsys)
+        code, out, err = gated(with_workflow(clearable), tmp_path / "out", capsys)
         assert code == 0, out + err
         steps = re.findall(r"^\s*- name: (.+)$", FIXTURE_WORKFLOW, re.M)
         assert steps, "the fixture names no step"

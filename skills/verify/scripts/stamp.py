@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""seal stamp — the inspector's stamp, drawn from a `cleared` guarantee.
+"""seal stamp — the inspector's stamp, drawn from a `cleared` inspection.
 
 Drawn once per work item from the inspector's verdict. Two things side by side
 on the terminal's own background, and nothing else: at the left a wax disc
 with the disc's mark pressed into it, and three columns right of it the
-panel's text — a bold red `SEALED` and a dim rule, then what the records at
-the guarantee's commit say: the audited commit and its branch, the base,
-the work item, the newest broad run and the round count (`guarantee_rows`
+panel's text — a bold red `CLEARED` and a dim rule, then what the records at
+the inspection's commit say: the audited commit and its branch, the base,
+the work item, the newest broad run and the round count (`inspection_rows`
 owns the list). The disc is COMPUTED — `hypot` and `atan2` for its edge,
 its lip and its step ring — and only the disc's mark is authored: a 16 x 16
-sprite in `seal-mark.txt` beside this file, read as data (`read_sprite`).
+sprite in `stamp-mark.txt` beside this file, read as data (`read_sprite`).
 Four hand-typed discs were each lopsided; a circle that is calculated
 cannot be off centre. The owner chose the grid, 28 cells across and 14
 lines, and no sheet behind the text (#832), so nothing outside the disc is
@@ -24,7 +24,7 @@ Two forms, one drawing (`compose`). The block form is half-block characters,
 the disc in truecolour and the text in the terminal's own colours and
 styles, and it writes a code only where the colour or the style changes:
 one SGR per change and no reset inside a line (a code per cell was 282 KB
-for one seal). The letter twin is the same footprint as letters — `KEY`
+for one stamp). The letter twin is the same footprint as letters — `KEY`
 for the disc, `e` its outer edge's dark and `w` its wax, `h d g` its lip
 lit, dark and its gloss, `s t` its step ring dark and lit, `.` its field and
 `y` the drop shadow, and the owl by the sprite's own letters, `K` its
@@ -43,19 +43,19 @@ its disc alone is drawn as the text block with no disc.
 
 The broad gate draws nothing: its report is text on every stream,
 and it imports the panel's text rules from here (`fit`, `wrapped`, the
-owner's marks) and `sealed_names` for its head. So nothing here reads a
+owner's marks) and `cleared_names` for its head. So nothing here reads a
 file at import, and the sprite is read where the disc is drawn (`build`).
 
 **The stamp is drawn where a person sees it, once per work item.** The
 inspector runs `seal stamp --inspection <path>` once after it
-writes `Verdict: cleared`, under either root; `queue_for_written_guarantee`
+writes `Verdict: cleared`, under either root; `queue_for_written_inspection`
 reads the file, and where it reads `cleared` and no earlier run or commit
 stamped it, writes the stamp's rows to a values file under the git common
 dir of the path's clone. `seal stamp --stop` is the command of the
 plugin's `Stop` hook, which `hooks/hooks.json` registers: it draws
 each undrawn file of the clone the payload's `cwd` is in, once, at the end
 of the main session's turn. This module owns the file:
-`queue_for_written_guarantee` and `write_values`, `read_values`, `pending`
+`queue_for_written_inspection` and `write_values`, `read_values`, `pending`
 and `claim`. Drawing claims the file first, by renaming it to `.drawn.json`,
 so a file is drawn once whoever draws it. `docs/checks/the-stamp.md` *The
 stamp* states the rule and its limits. Nothing here reads an environment
@@ -65,19 +65,19 @@ Usage:
   seal stamp                      the stamp over sample rows, for a person
   seal stamp --shape              the letter twin
   seal stamp --from <file>        a queued stamp's values file, drawn once
-  seal stamp --inspection <file>   queue the stamp of a sealed inspection.md
+  seal stamp --inspection <file>   queue the stamp of a cleared inspection.md
   seal stamp --stop               draw at a `Stop`, the payload on stdin
 
-The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
+The gate imports `cleared_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules.
-`.github/scripts/release_seal.py` attaches a release's seal from the page
+`.github/scripts/release_mark.py` attaches a release's mark from the page
 form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`,
 and reads nothing of this file. The sample exists so a person can
-see the drawing without a guarantee committed, and `--from` so a values file
+see the drawing without an inspection committed, and `--from` so a values file
 nothing drew can still be drawn by hand.
 
 Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
-file that is unreadable or drawn already, a guarantee that could not be
+file that is unreadable or drawn already, an inspection that could not be
 read or a git command `--inspection` asked that did not start or did not
 finish within `lib/gitcmd.py#TIMEOUT`, which queues nothing and records
 nothing, or, for every command but `--inspection` and `--stop`, a disc's mark
@@ -126,7 +126,7 @@ BREAST = (186, 38, 42)
 EYE = (222, 86, 78)
 BEAK = (208, 68, 64)
 
-# `SEALED` is bold and in this red, the owner's (#832). The rest of the text
+# `CLEARED` is bold and in this red, the owner's (#832). The rest of the text
 # is in the terminal's own colours (`STYLE_CODES`): nothing outside the disc
 # is painted.
 TITLE_RED = (196, 40, 44)
@@ -135,7 +135,7 @@ TITLE_RED = (196, 40, 44)
 # the edge's dark and `w` the wax, `h` and `d` the lip lit and dark and `g`
 # its gloss, `s` and `t` the step ring dark and lit — the field `.`, the drop
 # shadow `y`, and the owl in the sprite's own letters, so the twin's owl
-# reads as `seal-mark.txt` does. No decision of the owner's names these
+# reads as `stamp-mark.txt` does. No decision of the owner's names these
 # letters: the twin is for a console that cannot draw half-blocks. Every
 # disc cell is exactly one of these colours, so a cell's letter is a lookup
 # (`letter_row`).
@@ -233,7 +233,7 @@ SPRITE_COLOURS = {
     "W": EYE,  # an eye's ring or a leaf
     "Y": BEAK,  # the beak or the branch
 }
-SPRITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
+SPRITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stamp-mark.txt")
 SPRITE_MALFORMED = (
     "seal stamp: the disc's mark sprite {path} is not {n} lines of {n} "
     "characters over `{letters}` with every drawn cell and its shadow inside "
@@ -473,7 +473,7 @@ def letter_row(cells):
 # --- the panel's text rules ------------------------------------------------
 #
 # How a row's value is cut, continued and marked. The stamp's writer
-# (`queue_for_written_guarantee`) composes rows, and the gate's plain report
+# (`queue_for_written_inspection`) composes rows, and the gate's plain report
 # imports them from here, so both write a row by one set of rules.
 
 # How many columns a panel value is given: the widest that keeps the stamp's
@@ -485,7 +485,7 @@ def letter_row(cells):
 # before it does: a cut ref would read as a whole ref.
 #
 # Stated here and measured over there, and neither may move without the other
-# going red: `tests/skills/test_seal_stamp.py`'s
+# going red: `tests/skills/test_stamp.py`'s
 # `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns`
 # draws a value of this width and measures the stamp's widest line.
 PANEL_VALUE_WIDTH = 41
@@ -562,7 +562,7 @@ LABEL_WIDTH = 7
 # The dim `─` rule after the title: the owner's reference's thirty.
 RULE_WIDTH = 30
 # The panel's first row, which is drawn as the title rather than as a row.
-TITLE_ROW = ("SEALED", "")
+TITLE_ROW = ("CLEARED", "")
 # The mark that leads a value and the style it is drawn in: a result row
 # that passed, green, and a row that is not a pass, dim.
 VALUE_MARKS = {"✓": "green", "·": "dim"}
@@ -585,20 +585,20 @@ def text_cells(text, style=None, fg=None):
 def text_lines(rows):
     """The text block of `rows`, as lines of cells.
 
-    Where the first row is the panel's title row, `("SEALED", "")`, the
-    first line is `SEALED ` bold in `TITLE_RED` and a dim rule of
+    Where the first row is the panel's title row, `("CLEARED", "")`, the
+    first line is `CLEARED ` bold in `TITLE_RED` and a dim rule of
     `RULE_WIDTH` `─`, and the second is blank; rows without it draw no
     title. Then one line per row: the label padded to `LABEL_WIDTH` and a
     space, dim, and the value in the terminal's own foreground — a leading
     `✓ ` with the `✓` green, a leading `· ` with the `·` dim. A `None` row
     is a blank line; a `""` label is seven spaces and one, so its value
     stands under the value above it. The rows are drawn as given:
-    `guarantee_rows` owns the stamp's shape, `broad_gate.panel` the gate's
+    `inspection_rows` owns the stamp's shape, `broad_gate.panel` the gate's
     report's, and a values file an older gate wrote draws its older rows in
     this layout."""
     rows, lines = list(rows), []
     if rows and rows[0] is not None and tuple(rows[0]) == TITLE_ROW:
-        title = text_cells("SEALED ", "bold", TITLE_RED)
+        title = text_cells("CLEARED ", "bold", TITLE_RED)
         lines += [title + text_cells("─" * RULE_WIDTH, "dim"), []]
         rows = rows[1:]
     for row in rows:
@@ -667,7 +667,7 @@ def admitted(blocks, budget=MESSAGE_LIMIT):
     first. `blocks` is `(label, rows)` per values file, oldest first; a
     drawn block is its label and then its block form.
 
-    The owner's rule (#717): a seal keeps its disc rather than share a
+    The owner's rule (#717): a stamp keeps its disc rather than share a
     message without it. So the message carries as many of the oldest blocks
     as fit together WITH the disc. A block has two rungs: with its disc, and
     the text block alone, because the disc has one size. The blocks past
@@ -712,10 +712,10 @@ def fitted(blocks, budget=MESSAGE_LIMIT):
     return "\n\n".join(admitted(blocks, budget))
 
 
-def sealed_names(tree, base, branch=None, ref=None):
+def cleared_names(tree, base, branch=None, ref=None):
     """`<branch> @ <tree> against <ref> @ <base>` — what the broad gate's
     `BROAD GATE PASSED` and `BROAD GATE FAILED` lines say they measured, and
-    what a drawn stamp's label says was sealed.
+    what a drawn stamp's label says was cleared.
 
     A head naming two commits alone names neither the branch nor the base's
     ref, and leaves a reader matching a line to its work by hash. One
@@ -743,7 +743,7 @@ def sealed_names(tree, base, branch=None, ref=None):
 def ref_is_commit(ref, base):
     """True where `ref` names nothing the commit `base` does not: no ref at
     all, or a ref `_same_commit` reads as `base`'s commit. The one reading
-    of *the ref is the commit*, asked by `sealed_names` for the lines and by
+    of *the ref is the commit*, asked by `cleared_names` for the lines and by
     `broad_gate.panel` for the row under `base`, so the two cannot disagree
     about when a ref is worth printing."""
     if ref is None or ref == "":
@@ -791,10 +791,10 @@ def is_terminal(stream):
 #
 # A Bash call's stdout is a pipe into a tool result nobody sees unfolded,
 # so the stamp's rows are written here — by `seal stamp --inspection`
-# over a `cleared` guarantee under either root (`queue_for_written_guarantee`)
+# over a `cleared` inspection under either root (`queue_for_written_inspection`)
 # — and `--stop`, at the end of a main session's turn in the same clone, draws
 # them. The directory is under the git COMMON dir because the worktree the
-# guarantee was written in and that session's cwd can be different worktrees
+# inspection was written in and that session's cwd can be different worktrees
 # of one clone, and the common dir is the one place both resolve alike; a
 # local root sits in the same directory. It is keyed by the clone and by
 # nothing else, so no session id is read: two sessions in one clone share it,
@@ -833,7 +833,7 @@ def write_values(common, values, now=None, key=None):
     Written to a hidden temporary name and renamed into place, so a drawer
     listing the directory never reads half a file. The name leads with the
     time in nanoseconds, so a name sort is oldest first, and ends with `key`
-    — `<id>-<target sha>` for a guarantee's stamp (`queue_for_written_guarantee`) —
+    — `<id>-<target sha>` for an inspection's stamp (`queue_for_written_inspection`) —
     or the tree's name where no key is given. Raises `OSError` where the
     directory cannot be made or the file cannot be written."""
     directory = values_dir(common)
@@ -920,34 +920,34 @@ def claim(path):
 
 
 def label(values):
-    """The line said above a drawn stamp: what was sealed, and for which
+    """The line said above a drawn stamp: what was cleared, and for which
     work item. The harness shows a hook message's first line as a dim label,
     so this is the line that must not be blank.
 
     A file carrying `branch` — `null` on a detached HEAD — gets
-    `sealed_names`'s names and then ` · #<pr>` where the file names a pull
+    `cleared_names`'s names and then ` · #<pr>` where the file names a pull
     request. **A file without the key draws the older label**,
-    `SEALED <tree> against <base> · <item>`: a file an older gate wrote may
+    `CLEARED <tree> against <base> · <item>`: a file an older gate wrote may
     still be pending when a newer copy draws it."""
     item = values.get("item")
     where = f" · {os.path.basename(os.path.normpath(item))}" if item else ""
     if "branch" not in values:
-        return f"SEALED {values.get('tree')} against {values.get('base')}{where}"
+        return f"CLEARED {values.get('tree')} against {values.get('base')}{where}"
     pr = values.get("pr")
-    names = sealed_names(
+    names = cleared_names(
         values.get("tree"), values.get("base"), values.get("branch"), values.get("from")
     )
-    return f"SEALED {names}{f' · {pr}' if pr else ''}{where}"
+    return f"CLEARED {names}{f' · {pr}' if pr else ''}{where}"
 
 
-# --- the stamp, queued from a sealed guarantee ------------------------------
+# --- the stamp, queued from a cleared inspection ------------------------------
 #
 # The rule, and what holds it to once per work item with its limits, is
 # `docs/checks/the-stamp.md` *The stamp*. `seal stamp --inspection` calls
-# `queue_for_written_guarantee` (below) once the inspector has written the
-# guarantee, under either root, and `--stop` draws what it queued. The values file's
+# `queue_for_written_inspection` (below) once the inspector has written the
+# inspection, under either root, and `--stop` draws what it queued. The values file's
 # name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
-# `sealed_before` reads HEAD's history, and `refused_here` names a `cleared`
+# `cleared_before` reads HEAD's history, and `refused_here` names a `cleared`
 # this clone recorded refusing.
 
 # `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
@@ -968,15 +968,15 @@ QUEUED = (
     "draws it at the end of the turn, and where none appears, "
     "`seal stamp --from {command}` draws it"
 )
-# The line `queue_for_written_guarantee` returns where its `inspection.md` names a
+# The line `queue_for_written_inspection` returns where its `inspection.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
-# a local guarantee, so in local mode this is the only place the wrong row is
+# a local inspection, so in local mode this is the only place the wrong row is
 # seen; in shared mode the pull request's check refuses it as stale too. It
 # names no command: nothing was queued to draw.
 NOT_ON_BRANCH = (
-    "agentic: no stamp was queued for {id}: its inspection.md names "
-    "{target}, which {branch} does not hold; a new audit at the head of "
-    "{branch} draws it"
+    "agentic: no stamp was queued for {id}: the work item is not cleared on "
+    "{branch}, since its inspection.md names {target}, which {branch} does "
+    "not hold; a new inspection at the head of {branch} draws it"
 )
 
 
@@ -1007,7 +1007,7 @@ def _git(cwd, *args):
 
     A git that did not answer raises `lib/gitcmd.py#Failed`, which `main`
     reads as `--inspection`'s refusal, as it reads the one that
-    `queue_for_written_guarantee`'s reach read raises: read as None, a
+    `queue_for_written_inspection`'s reach read raises: read as None, a
     history git did not print would queue a work item stamped before, and a
     reach git did not answer would record a refusal of a commit the branch
     may hold. `--stop` asks nothing of this function."""
@@ -1034,7 +1034,7 @@ def _chain_check():
 def already_queued(common, ident):
     """True where a values file for work item `ident` stands in the clone's
     values directory, pending or drawn. A work item is stamped once,
-    whatever commit its guarantee audited, so the audited commit is not part
+    whatever commit its inspection audited, so the audited commit is not part
     of the question. A name is `<ns>-<ident>-<target>.json`; a file an older
     gate wrote is `<ns>-<tree>.json` and has no middle part to match. A
     directory an earlier release made per session under it is not read
@@ -1050,8 +1050,8 @@ def already_queued(common, ident):
     return False
 
 
-def guarantee_rows(target, branch, base, ident, run, rounds):
-    """The stamp's rows for a sealed guarantee: what the records at the
+def inspection_rows(target, branch, base, ident, run, rounds):
+    """The stamp's rows for a cleared inspection: what the records at the
     commit say and nothing measured again — the title, the audited commit
     with the branch under it, the base, the work item's id, a blank, then
     the newest run `trail/gate.md` names and the count of round records. A
@@ -1069,7 +1069,7 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
     return rows
 
 
-def _guarantee_read(chain, text):
+def _inspection_read(chain, text):
     """`(newest, earlier)`: the newest verdict block of the `inspection.md`
     TEXT and the blocks of its earlier runs, read through
     `lib/fields.py`, the reader the pull request's check reads it
@@ -1082,7 +1082,7 @@ def _guarantee_read(chain, text):
     return found.blocks[-1], found.blocks[:-1]
 
 
-def _sealed_by(chain, block):
+def _cleared_by(chain, block):
     """True where the verdict BLOCK reads `cleared`."""
     return chain.FIELDS.verdict_word(block) == chain.FIELDS.CLEARED
 
@@ -1092,7 +1092,7 @@ def _target_of(chain, block):
     return block.fields[chain.FIELDS.TARGET].match["commit"]
 
 
-def sealed_before(chain, top, path, common=None, ident=None):
+def cleared_before(chain, top, path, common=None, ident=None):
     """True where `path`'s newest verdict block read `cleared` at a commit of
     HEAD's history, whatever commit it audited, unless this clone recorded
     refusing that `cleared` (`refused_here` of COMMON and work item IDENT,
@@ -1111,8 +1111,8 @@ def sealed_before(chain, top, path, common=None, ident=None):
     has no parent: `git log` exits 128 and the history is empty."""
     for sha in (_git(top, "log", "--format=%H", "HEAD", "--", path) or "").split():
         text = _git(top, "show", f"{sha}:{path}")
-        newest, _earlier = _guarantee_read(chain, text or "")
-        if newest is None or not _sealed_by(chain, newest):
+        newest, _earlier = _inspection_read(chain, text or "")
+        if newest is None or not _cleared_by(chain, newest):
             continue
         target = _target_of(chain, newest)
         if common and ident and refused_here(common, ident, target):
@@ -1129,7 +1129,7 @@ def sealed_before(chain, top, path, common=None, ident=None):
 # record of the refusal the earlier block reading `cleared` counts as the
 # stamp, so the repair would draw nothing either. One writer leaves the
 # record, for a block that stands in its own clone and nowhere else:
-# `queue_for_written_guarantee`, under either root, for a block its branch
+# `queue_for_written_inspection`, under either root, for a block its branch
 # does not hold. Its read of the earlier blocks, and its read of the
 # history, skip a `cleared` the record names. Nothing infers a record after
 # the fact, so nothing asks ancestry at read time: an ancestry check at read
@@ -1161,7 +1161,7 @@ def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `cleared` over
     `target` and drew nothing for it: an empty file
     `<common>/agentic-stamp-refused/<ident>-<target>`, written by
-    `queue_for_written_guarantee` at its branch refusal. Beside `VALUES_DIR`
+    `queue_for_written_inspection` at its branch refusal. Beside `VALUES_DIR`
     and not in it, so neither `pending`, `already_queued` nor `--stop` lists
     it. Per clone, because the refused row stands in this clone alone. A record
     that cannot be written is skipped, and that verdict then counts as
@@ -1178,8 +1178,8 @@ def record_refusal(common, ident, target):
 def refused_here(common, ident, sha):
     """True where this clone recorded refusing work item `ident`'s `cleared`
     over a target `_same_commit` matches with `sha`. Asked by
-    `queue_for_written_guarantee` of each earlier verdict block reading
-    `cleared`, and by its `sealed_before` of each `cleared` in the history."""
+    `queue_for_written_inspection` of each earlier verdict block reading
+    `cleared`, and by its `cleared_before` of each `cleared` in the history."""
     try:
         names = os.listdir(os.path.join(common, REFUSED_DIR))
     except OSError:
@@ -1205,10 +1205,10 @@ def _queue_values(
     chain, common, now, *, ident, target, base, gate_text, rounds, branch, item
 ):
     """Write one work item's stamp under `common` and return
-    the line that names it, once `queue_for_written_guarantee` has read the
-    records from disk and the guarantee passed its refusals. `base` is the
+    the line that names it, once `queue_for_written_inspection` has read the
+    records from disk and the inspection passed its refusals. `base` is the
     base the newest verdict block names, `gate_text` the `trail/gate.md`
-    beside the guarantee or None, `rounds` the round records its
+    beside the inspection or None, `rounds` the round records its
     `trail/rounds/` holds, as `lib/routing.py#rounds` lists them, and
     `branch` the branch the audited commit stands on, or "" where none is
     named."""
@@ -1222,7 +1222,7 @@ def _queue_values(
         "branch": branch or None,
         "pr": None,
         "item": item,
-        "rows": guarantee_rows(target, branch, base, ident, run, count),
+        "rows": inspection_rows(target, branch, base, ident, run, count),
     }
     path = write_values(common, values, now=now, key=key)
     return QUEUED.format(id=ident, path=path, command=quote(path))
@@ -1266,7 +1266,7 @@ def written_root(routing, seal):
     return parent, ""
 
 
-def queue_for_written_guarantee(path, now=None):
+def queue_for_written_inspection(path, now=None):
     """The lines `seal stamp --inspection` says of the `inspection.md` at
     `path`, under either root: one where it queued the work item's stamp in
     the clone `path` is in, one where its audited commit is off the work
@@ -1283,7 +1283,7 @@ def queue_for_written_guarantee(path, now=None):
     its newest verdict block reads `cleared`, no earlier block reads
     `cleared` but one this clone recorded refusing, the clone holds no values
     file for the work item, in shared
-    mode HEAD's history carries no `cleared` of the file (`sealed_before`
+    mode HEAD's history carries no `cleared` of the file (`cleared_before`
     from HEAD, since the file is not yet committed), and the audited commit
     is an ancestor of the branch the work item's `routing.md` names in its
     `Branch` row; why a local root needs no history, and what the branch
@@ -1314,13 +1314,13 @@ def queue_for_written_guarantee(path, now=None):
     common, top = found
     with open(real, encoding="utf-8") as handle:
         text = handle.read()
-    newest, earlier = _guarantee_read(chain, text)
-    if newest is None or not _sealed_by(chain, newest):
+    newest, earlier = _inspection_read(chain, text)
+    if newest is None or not _cleared_by(chain, newest):
         return []
     target = _target_of(chain, newest)
     ident = item_value(item)
     if any(
-        _sealed_by(chain, block)
+        _cleared_by(chain, block)
         and not refused_here(common, ident, _target_of(chain, block))
         for block in earlier
     ):
@@ -1330,7 +1330,7 @@ def queue_for_written_guarantee(path, now=None):
     rel = (
         _gitcmd().git_path(os.path.relpath(real, os.path.realpath(top))) if top else ""
     )
-    if rel and sealed_before(chain, top, rel, common, ident):
+    if rel and cleared_before(chain, top, rel, common, ident):
         return []
     declared = routing.parse(_read(os.path.join(item, routing.FILENAME)) or "")
     branch = (declared or {}).get("branch")
@@ -1369,7 +1369,7 @@ def queue_for_written_guarantee(path, now=None):
 # file with `--stop`. The harness shows a `Stop` hook's `systemMessage`
 # unfolded, in truecolour, after the turn's final text, and shows its first
 # line as a dim `Stop says: <line>`, so line 1 is a label naming what was
-# sealed and the drawing starts on line 2.
+# cleared and the drawing starts on line 2.
 #
 # **Only the main session's `Stop`.** `SubagentStop` carries the parent's
 # `session_id` and differs by `agent_id` alone, so a payload carrying
@@ -1387,7 +1387,7 @@ def queue_for_written_guarantee(path, now=None):
 # loses a drawing rather than repeating one. Every failure is silent: the
 # stamp is a thing shown to a person and never a reason to hold a turn. A
 # values file somebody wrote by hand would be drawn, because this shows a
-# person what a session sealed and does not stop an adversary.
+# person what a session cleared and does not stop an adversary.
 
 STOP = "Stop"
 OPTIN = "lib/optin.py"
@@ -1474,14 +1474,14 @@ def drawn_at_stop(text):
 # --- a person's command --------------------------------------------------
 
 # Neutral values in the stamp's shape, so `seal stamp` shows a person what a
-# sealed guarantee's commit draws without one having been committed — every
-# row `guarantee_rows` can return, the conditional ones included, in its
-# order; a case in `tests/skills/test_seal_stamp.py`'s `Test_module` holds the
-# labels against `guarantee_rows`'. The stamp carries
+# cleared inspection's commit draws without one having been committed — every
+# row `inspection_rows` can return, the conditional ones included, in its
+# order; a case in `tests/skills/test_stamp.py`'s `Test_module` holds the
+# labels against `inspection_rows`'. The stamp carries
 # what the records say and no suite counts: those are the broad gate's
 # report's, which the gate prints as text.
 SAMPLE_ROWS = [
-    ("SEALED", ""),
+    ("CLEARED", ""),
     ("tree", "c46fd2d"),
     ("", "feat/12-a-branch"),
     ("base", "1e2bed9"),
@@ -1499,8 +1499,8 @@ def main(argv=None, console_wants_letters=None):
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
         prog="seal stamp",
-        description="Print the inspector's stamp — what the commit of a sealed "
-        "guarantee draws.",
+        description="Print the inspector's stamp — what the commit of a cleared "
+        "inspection draws.",
     )
     parser.add_argument(
         "--shape", action="store_true", help="the letter twin, whatever the console"
@@ -1516,7 +1516,7 @@ def main(argv=None, console_wants_letters=None):
     entry.add_argument(
         "--inspection",
         metavar="FILE",
-        help="queue the stamp of the sealed inspection.md at FILE, as the inspector does",
+        help="queue the stamp of the cleared inspection.md at FILE, as the inspector does",
     )
     entry.add_argument(
         "--stop",
@@ -1534,7 +1534,7 @@ def main(argv=None, console_wants_letters=None):
         return 0
     try:
         if args.inspection is not None:
-            said = queue_for_written_guarantee(args.inspection)
+            said = queue_for_written_inspection(args.inspection)
         else:
             said = None
     except ValueError as refused:

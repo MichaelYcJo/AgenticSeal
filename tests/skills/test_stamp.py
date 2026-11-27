@@ -1,4 +1,4 @@
-"""`skills/verify/scripts/seal_stamp.py`, one class per function.
+"""`skills/verify/scripts/stamp.py`, one class per function.
 
 Rebuilt from the code by #942's phase 5. The drawing's units are driven with
 rows and cells in the process, and the command with its own `main`, so no
@@ -36,7 +36,7 @@ from conftest import (
 from conftest import commit_everything_as_e as commit
 from test_settle import past_the_bound, unanswered
 
-TARGET = "skills/verify/scripts/seal_stamp.py"
+TARGET = "skills/verify/scripts/stamp.py"
 
 ROOT = pathlib.Path(conftest.ROOT)
 INSPECTION_TEMPLATE = ROOT / "templates" / "records" / "sdd-inspection.md"
@@ -45,7 +45,7 @@ ITEM_ID = "1799000000"
 INSPECTION = f"seal/threads/{ITEM_NAME}/inspection.md"
 SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
 
-stamp = load_module(ROOT / TARGET, "seal_stamp_under_test")
+stamp = load_module(ROOT / TARGET, "stamp_under_test")
 chain = stamp._chain_check()
 
 SGR = re.compile(r"\x1b\[[0-9;]*m")
@@ -123,7 +123,7 @@ LETTERS = {
 
 # A panel in the gate's shape, with the result rows a real run carries.
 ROWS = [
-    ("SEALED", ""),
+    ("CLEARED", ""),
     ("tree", "c46fd2d"),
     ("", "feat/12-a-branch"),
     ("base", "1e2bed9  origin/base"),
@@ -135,9 +135,9 @@ ROWS = [
 ]
 # A panel whose text the disc outgrows, and one that outgrows the disc: the
 # shape the gate wrote from #666 to #717, which a pending file may still carry.
-SMALL_ROWS = [("SEALED", ""), ("tree", "aaa1111"), ("", "feat/x"), ("rounds", "2")]
+SMALL_ROWS = [("CLEARED", ""), ("tree", "aaa1111"), ("", "feat/x"), ("rounds", "2")]
 TALL_ROWS = [
-    ("SEALED", ""),
+    ("CLEARED", ""),
     None,
     ("tree", "aaa1111a"),
     ("", "feat/12-the-branch-n..."),
@@ -160,13 +160,13 @@ TALL_ROWS = [
 # The rows the owner's chosen reference was drawn over (`frames.py`'s `ROWS`
 # behind the title row), and the reference itself: the little owl on the red
 # wax seal the owner approved on 2026-10-31 (#1174), transcribed from its SGR
-# stream by a script that read no line of `seal_stamp.py`. That stream drew
+# stream by a script that read no line of `stamp.py`. That stream drew
 # the disc alone, so the twin's text half is the one #832's reference gave.
 # The twin's lines, and the disc's twenty-eight half-rows, each half its
 # colour's letter and a space off the disc. The edge wobbles, so column 0 and
 # the last half-row stay empty.
 REFERENCE_ROWS = [
-    ("SEALED", ""),
+    ("CLEARED", ""),
     ("tree", "aaa1111a"),
     ("", "feat/12-the-branch-names-the-work-item"),
     ("base", "bbb2222b  origin/release/v1.2.3"),
@@ -180,7 +180,7 @@ REFERENCE_ROWS = [
     ("rounds", "2"),
 ]
 REFERENCE_TWIN = (
-    "         wwwwwwwwww            SEALED ------------------------------",
+    "         wwwwwwwwww            CLEARED ------------------------------",
     "     wwwwghhhhhhhhhwwe",
     "    wwghhsss....ssswweee       tree    aaa1111a",
     "  wwghhs...KKKKKK...swwee              feat/12-the-branch-names-the-work-item",
@@ -412,18 +412,18 @@ class Test_module:
             assert default == stamp.MESSAGE_LIMIT, function.__name__
         assert not hasattr(stamp, "MESSAGE_BUDGET")
 
-    def test_the_sample_carries_every_row_a_sealed_guarantee_draws(self):
+    def test_the_sample_carries_every_row_a_cleared_inspection_draws(self):
         """`seal stamp` with no arguments shows what a stamp draws, so its
-        labels are `guarantee_rows`' with every conditional row present, in
+        labels are `inspection_rows`' with every conditional row present, in
         order, and each value in the shape that function writes it."""
-        rows = stamp.guarantee_rows("c46fd2db", "feature", "1e2bed90", "1", "c46", 3)
+        rows = stamp.inspection_rows("c46fd2db", "feature", "1e2bed90", "1", "c46", 3)
         labels = [None if row is None else row[0] for row in rows]
         sample = [None if row is None else row[0] for row in stamp.SAMPLE_ROWS]
         assert (
             sample
             == labels
             == [
-                "SEALED",
+                "CLEARED",
                 "tree",
                 "",
                 "base",
@@ -468,7 +468,7 @@ class Test_read_sprite:
     ):
         """#857 S3 and #1174 S3: the little owl's sixteen lines of sixteen,
         centred on the disc."""
-        path = ROOT / "skills" / "verify" / "scripts" / "seal-mark.txt"
+        path = ROOT / "skills" / "verify" / "scripts" / "stamp-mark.txt"
         lines = tuple(path.read_text(encoding="utf-8").split("\n")[:16])
         assert stamp.read_sprite(stamp.SPRITE_PATH) == lines
         assert stamp.read_sprite(str(path)) == lines
@@ -640,7 +640,7 @@ class Test_colour_row:
         """A `""` label is spaces, which keep the disc's colour set, so the
         mark is the first cell to change it: `32` with no `39` after it, and
         a dim `·` (round 1's 2 of #832)."""
-        rows = [("SEALED", ""), ("tree", "a"), None, ("x", "y"), ("", f"{mark} 3")]
+        rows = [("CLEARED", ""), ("tree", "a"), None, ("x", "y"), ("", f"{mark} 3")]
         seen = 0
         for cells in stamp.compose(rows).cells:
             shown = what_a_terminal_shows(stamp.colour_row(cells))
@@ -674,7 +674,7 @@ class Test_letter_row:
     def test_refuses_to_read_a_half_block_in_a_value_as_the_disc(self, value):
         """A branch may carry `▀`; it is text, written as itself (round 1's
         5 of #832, where the lookup raised `KeyError`)."""
-        twin = stamp.stamp([("SEALED", ""), ("tree", value)], shape=True)
+        twin = stamp.stamp([("CLEARED", ""), ("tree", value)], shape=True)
         assert any(line.endswith(f"tree    {value}") for line in twin), twin
 
 
@@ -719,7 +719,10 @@ class Test_wrapped:
 
 class Test_item_value:
     def test_accepts_the_digits_before_the_first_dash(self, tmp_path):
-        assert stamp.item_value(str(tmp_path / "1790815615-the-seal")) == "1790815615"
+        assert (
+            stamp.item_value(str(tmp_path / "1790815615-the-inspection"))
+            == "1790815615"
+        )
         assert stamp.item_value("seal/threads/1-a-b/") == "1"
 
     def test_refuses_to_cut_a_name_with_no_dash(self):
@@ -743,12 +746,12 @@ class Test_text_cells:
 
 class Test_text_lines:
     def test_accepts_a_red_title_a_rule_and_one_line_per_row(self):
-        """#832 S3a: `SEALED ` bold in the seal's red and thirty dim `─`, a
+        """#832 S3a: `CLEARED ` bold in the wax seal's red and thirty dim `─`, a
         blank line, then each label padded to seven and a space, dim, and
         each value in the terminal's own colours, a leading `✓ ` green and
         `· ` dim; a `""` label stands its value under the one above."""
         lines = stamp.text_lines(ROWS)
-        title = [(ch, TITLE_RED, None, "bold") for ch in "SEALED "]
+        title = [(ch, TITLE_RED, None, "bold") for ch in "CLEARED "]
         assert lines[0] == title + [("─", None, None, "dim")] * 30
         assert lines[1] == [] and len(lines) == 1 + len(ROWS)
         text = ["".join(c[0] for c in line) for line in lines]
@@ -762,11 +765,11 @@ class Test_text_lines:
         assert stamp.text_lines([("x", "· a")])[0][8][3] == "dim"
 
     def test_refuses_a_title_a_mark_or_a_line_the_rows_do_not_ask_for(self):
-        """Only the first row `("SEALED", "")` is the title, whatever a value
+        """Only the first row `("CLEARED", "")` is the title, whatever a value
         says; a mark is a mark only before a space; a `None` row is a blank
         line (round 1's 5 of #832)."""
-        valued = stamp.text_lines([("SEALED", "v1.2.3"), ("tree", "SEALED")])
-        assert "".join(c[0] for c in valued[0]) == "SEALED  v1.2.3"
+        valued = stamp.text_lines([("CLEARED", "v1.2.3"), ("tree", "CLEARED")])
+        assert "".join(c[0] for c in valued[0]) == "CLEARED v1.2.3"
         assert not any(c[1] or c[3] == "bold" for line in valued for c in line)
         for value in ("·x", "✓", "✓x"):
             (line,) = stamp.text_lines([("x", value)])
@@ -840,7 +843,7 @@ class Test_compose:
         assert bare.disc is None and bare.height == len(stamp.text_lines(SMALL_ROWS))
         assert bare.cells == [trimmed(line) for line in stamp.text_lines(SMALL_ROWS)]
         assert bare.cells[1] == [] and bare.cells[0][0] == (
-            "S",
+            "C",
             TITLE_RED,
             None,
             "bold",
@@ -850,13 +853,13 @@ class Test_compose:
 
 class Test_stamp:
     def test_accepts_the_widest_reference_panel_with_its_label_in_one_message(self):
-        """#1174 S4: #30 found a code per cell 282 KB for one seal; the wax
-        seal's block over the widest reference panel, with its label, is
+        """#1174 S4: #30 found a code per cell 282 KB for one stamp; the
+        wax seal's block over the widest reference panel, with its label, is
         5,725 UTF-16 units, measured 2026-10-31 where the relief disc's was
         5,959, and it fits the message limit."""
         name = "the-branch-names-the-work-item-it-carries"
         label = (
-            f"SEALED feat/12-{name} @ aaa1111a against origin/release/v1.2.3 @ "
+            f"CLEARED feat/12-{name} @ aaa1111a against origin/release/v1.2.3 @ "
             f"bbb2222b · #12 · 1799000000-{name}"
         )
         size = len(drawn(label, REFERENCE_ROWS).encode("utf-16-le")) // 2
@@ -868,7 +871,7 @@ class Test_stamp:
         both forms: the width is measured by drawing, not restated. One
         column more would run past an 80-column terminal."""
         width = stamp.PANEL_VALUE_WIDTH
-        rows = [("SEALED", ""), ("CI also", "x" * width)]
+        rows = [("CLEARED", ""), ("CI also", "x" * width)]
         for shape in (False, True):
             lines = [strip_ansi(line) for line in stamp.stamp(rows, shape)]
             widest = max(len(line) for line in lines)
@@ -890,7 +893,7 @@ class Test_stamp:
 # --- one hook message --------------------------------------------------------------
 
 
-LABEL = "SEALED feat/x @ aaa1111 against origin/base @ bbb2222 · #12 · 1799000000"
+LABEL = "CLEARED feat/x @ aaa1111 against origin/base @ bbb2222 · #12 · 1799000000"
 
 
 class Test_admitted:
@@ -951,7 +954,7 @@ class Test_fitted:
 # --- the names a line says ------------------------------------------------------
 
 
-class Test_sealed_names:
+class Test_cleared_names:
     @pytest.mark.parametrize(
         ("branch", "ref", "said"),
         [
@@ -962,7 +965,7 @@ class Test_sealed_names:
     def test_accepts_the_branch_and_the_ref_beside_their_commits(
         self, branch, ref, said
     ):
-        assert stamp.sealed_names("aaa1111", "bbb2222", branch, ref) == said
+        assert stamp.cleared_names("aaa1111", "bbb2222", branch, ref) == said
 
     @pytest.mark.parametrize(
         ("branch", "ref", "said"),
@@ -974,7 +977,7 @@ class Test_sealed_names:
         ids=["detached", "no-ref", "the-ref-is-the-commit"],
     )
     def test_refuses_to_print_a_part_twice_or_a_stray_at(self, branch, ref, said):
-        names = stamp.sealed_names("aaa1111", "bbb2222", branch, ref)
+        names = stamp.cleared_names("aaa1111", "bbb2222", branch, ref)
         assert names == said and "None" not in names
         assert names.count("bbb2222") == 1
 
@@ -1122,7 +1125,7 @@ class Test_read_values:
         [
             ("not json", "it is not JSON"),
             ("[1]", "it is not an object"),
-            (json.dumps({"rows": "SEALED"}), "`rows` is not a list"),
+            (json.dumps({"rows": "CLEARED"}), "`rows` is not a list"),
             (json.dumps({"rows": [["a", "b", "c"]]}), "`rows` is not a list"),
             (json.dumps({"rows": [["a", 1]]}), "`rows` is not a list"),
         ],
@@ -1180,18 +1183,18 @@ class Test_claim:
 
 
 class Test_label:
-    def test_accepts_the_sealed_names_the_pull_request_and_the_work_item(self):
+    def test_accepts_the_cleared_names_the_pull_request_and_the_work_item(self):
         assert stamp.label(values()) == (
-            f"SEALED feat/x @ aaa1111 against origin/base @ bbb2222 · #12 · {ITEM_NAME}"
+            f"CLEARED feat/x @ aaa1111 against origin/base @ bbb2222 · #12 · {ITEM_NAME}"
         )
 
     def test_refuses_a_newer_label_to_a_file_an_older_gate_wrote(self):
         """A15: a file with no `branch` key, from before #666, keeps the label
         it always drew; `branch` present and null is a detached HEAD."""
         old = {k: v for k, v in values().items() if k not in ("branch", "pr")}
-        assert stamp.label(old) == f"SEALED aaa1111 against bbb2222 · {ITEM_NAME}"
+        assert stamp.label(old) == f"CLEARED aaa1111 against bbb2222 · {ITEM_NAME}"
         assert stamp.label(values(branch=None, pr=None, item=None)) == (
-            "SEALED aaa1111 against origin/base @ bbb2222"
+            "CLEARED aaa1111 against origin/base @ bbb2222"
         )
 
 
@@ -1231,10 +1234,10 @@ class Test_already_queued:
         assert not stamp.already_queued(str(tmp_path), "7")
 
 
-class Test_guarantee_rows:
+class Test_inspection_rows:
     def test_accepts_every_row_the_records_carry(self):
-        assert stamp.guarantee_rows("c46", "feat/x", "1e2", "1799", "c46", 2) == [
-            ("SEALED", ""),
+        assert stamp.inspection_rows("c46", "feat/x", "1e2", "1799", "c46", 2) == [
+            ("CLEARED", ""),
             ("tree", "c46"),
             ("", "feat/x"),
             ("base", "1e2"),
@@ -1245,16 +1248,16 @@ class Test_guarantee_rows:
         ]
 
     def test_refuses_a_row_whose_record_is_absent(self):
-        rows = stamp.guarantee_rows("c46", "", None, "1799", None, 0)
+        rows = stamp.inspection_rows("c46", "", None, "1799", None, 0)
         assert rows == [
-            ("SEALED", ""),
+            ("CLEARED", ""),
             ("tree", "c46"),
             ("item", "1799"),
             None,
             ("rounds", "0"),
         ]
         base = "origin/" + "r" * 50
-        assert stamp.guarantee_rows("c", "", base, "1", None, 0)[2] == (
+        assert stamp.inspection_rows("c", "", base, "1", None, 0)[2] == (
             "base",
             "..." + base[-38:],
         )
@@ -1295,7 +1298,7 @@ class Test_refused_here:
         assert not stamp.refused_here(str(tmp_path), ITEM_ID, sha)
 
 
-# --- the stamp queued at a sealed guarantee's commit, over real git -----------------
+# --- the stamp queued at a cleared inspection's commit, over real git -----------------
 
 Item = collections.namedtuple("Item", "repo common target base")
 
@@ -1305,14 +1308,14 @@ def verdict_block(target, base, verdict="cleared"):
     return f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
 
 
-def guarantee_text(target, base, verdict="cleared", earlier=()):
+def inspection_text(target, base, verdict="cleared", earlier=()):
     """An `inspection.md` in `templates/records/sdd-inspection.md`'s shape: a
     table for people, then a block per earlier run, each `(sha, verdict)`,
     then the newest run's."""
     runs = [verdict_block(sha, base, said) for sha, said in earlier]
     runs.append(verdict_block(target, base, verdict))
     return (
-        "# an item — guarantee\n\n## Claims re-run\n\n"
+        "# an item — inspection\n\n## Claims re-run\n\n"
         "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n" + "\n".join(runs)
     )
 
@@ -1333,7 +1336,7 @@ def closing_records(item, target, base):
     write(item, "trail/rounds/round-2.md", "x\n")
     write(item, "trail/rounds/notes.md", "x\n")
     write(item, "trail/gate.md", f"```seal\nrun: {target} against {base}\n```\n")
-    write(item, "inspection.md", guarantee_text(target, base))
+    write(item, "inspection.md", inspection_text(target, base))
 
 
 @pytest.fixture(scope="module")
@@ -1369,7 +1372,7 @@ def shared(tmp_path, _shared):
     return Item(repo, str(repo / ".git"), target, base)
 
 
-def sealed_again(item, text, message="the guarantee again"):
+def cleared_again(item, text, message="the inspection again"):
     """The work item's `inspection.md` rewritten to TEXT and committed."""
     write(item.repo, INSPECTION, text)
     commit(item.repo, message)
@@ -1377,7 +1380,7 @@ def sealed_again(item, text, message="the guarantee again"):
 
 def amended(item, text):
     """The closing records' commit amended so its `inspection.md` reads TEXT,
-    and so no commit before HEAD carries a guarantee."""
+    and so no commit before HEAD carries an inspection."""
     write(item.repo, INSPECTION, text)
     git(item.repo, "add", "-A")
     git(item.repo, *SIGNED, "commit", "--amend", "-qm", "the closing records")
@@ -1391,53 +1394,53 @@ def queued(common):
     return sorted(found)
 
 
-class Test_sealed_before:
-    def test_accepts_a_sealed_at_an_earlier_commit_whatever_it_named(self, shared):
+class Test_cleared_before:
+    def test_accepts_a_cleared_at_an_earlier_commit_whatever_it_named(self, shared):
         """#975 round 5: the history counts a `cleared` whatever its target,
         resolvable or not, so a rewritten one counts in any clone."""
-        amended(shared, guarantee_text("deadbee", shared.base))
+        amended(shared, inspection_text("deadbee", shared.base))
         write(shared.repo, "x.txt", "later\n")
         commit(shared.repo, "later")
-        assert stamp.sealed_before(chain, str(shared.repo), INSPECTION) is True
+        assert stamp.cleared_before(chain, str(shared.repo), INSPECTION) is True
 
     def test_counts_the_head_commits_own_verdict_and_refuses_two_verdicts(self, shared):
         """It is asked at a write no commit carries yet, so HEAD's own
         `cleared` counts; a commit whose block holds two verdicts, or whose
         newest block does not read `cleared`, does not."""
-        assert stamp.sealed_before(chain, str(shared.repo), INSPECTION) is True
+        assert stamp.cleared_before(chain, str(shared.repo), INSPECTION) is True
         two = "cleared\nVerdict: withheld reason: x"
-        amended(shared, guarantee_text(shared.target, shared.base, two))
-        sealed_again(
-            shared, guarantee_text(shared.target, shared.base, "withheld reason: x")
+        amended(shared, inspection_text(shared.target, shared.base, two))
+        cleared_again(
+            shared, inspection_text(shared.target, shared.base, "withheld reason: x")
         )
         write(shared.repo, "x.txt", "later\n")
         commit(shared.repo, "later")
-        assert stamp.sealed_before(chain, str(shared.repo), INSPECTION) is False
+        assert stamp.cleared_before(chain, str(shared.repo), INSPECTION) is False
 
     @pytest.mark.rule("refused-cleared-leaves-a-record")
-    def test_skips_a_sealed_this_clone_recorded_refusing(self, shared):
+    def test_skips_a_cleared_this_clone_recorded_refusing(self, shared):
         """#1027 S14: no gate stops a refused row from becoming history, so
         the history skips a `cleared` this clone recorded refusing, as the
         earlier blocks do; another clone's history still counts it."""
         write(shared.repo, "x.txt", "later\n")
         commit(shared.repo, "later")
         before = (chain, str(shared.repo), INSPECTION)
-        assert stamp.sealed_before(*before, common=shared.common, ident=ITEM_ID)
+        assert stamp.cleared_before(*before, common=shared.common, ident=ITEM_ID)
         stamp.record_refusal(shared.common, ITEM_ID, shared.target)
-        assert not stamp.sealed_before(*before, common=shared.common, ident=ITEM_ID)
-        assert stamp.sealed_before(*before)
+        assert not stamp.cleared_before(*before, common=shared.common, ident=ITEM_ID)
+        assert stamp.cleared_before(*before)
 
     def test_refuses_a_repository_with_no_commit_and_counts_a_root_one(self, tmp_path):
         """An unborn branch has no history: `git log HEAD` exits 128 and the
         answer is no. A root commit carrying the verdict is history."""
-        write(tmp_path, INSPECTION, guarantee_text("deadbee", "main"))
+        write(tmp_path, INSPECTION, inspection_text("deadbee", "main"))
         git(tmp_path, "init", "-q", "-b", "main")
-        assert stamp.sealed_before(chain, str(tmp_path), INSPECTION) is False
+        assert stamp.cleared_before(chain, str(tmp_path), INSPECTION) is False
         commit(tmp_path, "the root")
-        assert stamp.sealed_before(chain, str(tmp_path), INSPECTION) is True
+        assert stamp.cleared_before(chain, str(tmp_path), INSPECTION) is True
 
 
-# --- the stamp queued at a local-mode guarantee's write ---------------------------
+# --- the stamp queued at a local-mode inspection's write ---------------------------
 
 
 @pytest.fixture(scope="module")
@@ -1472,19 +1475,19 @@ def item_dir(item):
 
 
 def queue_local(item, name="inspection.md"):
-    return stamp.queue_for_written_guarantee(str(item_dir(item) / name))
+    return stamp.queue_for_written_inspection(str(item_dir(item) / name))
 
 
 def queue_written(item):
     """The writer over the shared root's `inspection.md`, as `--inspection`
     calls it."""
-    return stamp.queue_for_written_guarantee(str(item.repo / INSPECTION))
+    return stamp.queue_for_written_inspection(str(item.repo / INSPECTION))
 
 
 def uncommitted(item):
     """The shared repository with its closing records' commit undone and the
     records left on disk, the work item's `routing.md` naming `feat/x` beside
-    them: the moment the inspector has written the guarantee and runs
+    them: the moment the inspector has written the inspection and runs
     `seal stamp --inspection`, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
     write(item.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
@@ -1502,13 +1505,13 @@ def _no_target(item):
 
 
 def _unresolved(item):
-    write(item_dir(item), "inspection.md", guarantee_text("dead0000", item.base))
+    write(item_dir(item), "inspection.md", inspection_text("dead0000", item.base))
     return "dead0000"
 
 
 def _off_the_branch(item):
     off = off_branch_commit(item.repo)
-    write(item_dir(item), "inspection.md", guarantee_text(off, item.base))
+    write(item_dir(item), "inspection.md", inspection_text(off, item.base))
     return off
 
 
@@ -1524,23 +1527,23 @@ def _a_branch_gone(item):
     write(item_dir(item), "routing.md", routing_text("feat/merged"))
 
 
-class Test__guarantee_read:
+class Test__inspection_read:
     def test_accepts_the_newest_block_and_the_earlier_ones(self):
-        text = guarantee_text("ccc3333", "base1", earlier=[("aaa1111", "cleared")])
-        newest, earlier = stamp._guarantee_read(chain, text)
+        text = inspection_text("ccc3333", "base1", earlier=[("aaa1111", "cleared")])
+        newest, earlier = stamp._inspection_read(chain, text)
         assert stamp._target_of(chain, newest) == "ccc3333"
         assert [stamp._target_of(chain, b) for b in earlier] == ["aaa1111"]
-        assert stamp._sealed_by(chain, newest) and stamp._sealed_by(chain, earlier[0])
+        assert stamp._cleared_by(chain, newest) and stamp._cleared_by(chain, earlier[0])
 
     def test_refuses_a_text_the_reader_refuses_or_holding_no_block(self):
         """#1122: a line the pull request's reader refuses reads as no
-        guarantee, though a block above it reads."""
+        inspection, though a block above it reads."""
         for text in (
-            guarantee_text("ccc3333", "base1") + "\n````\n",
-            guarantee_text("ccc3333", "base1") + "\n<!-- a note -->\n",
+            inspection_text("ccc3333", "base1") + "\n````\n",
+            inspection_text("ccc3333", "base1") + "\n<!-- a note -->\n",
             "| Target SHA | ccc3333 against base1 |\n\nVerdict: cleared\n",
         ):
-            assert stamp._guarantee_read(chain, text) == (None, [])
+            assert stamp._inspection_read(chain, text) == (None, [])
 
 
 class Test__newest_run:
@@ -1556,10 +1559,12 @@ class Test__newest_run:
         assert stamp._newest_run(chain, block + "<!-- a note -->\n") is None
 
 
-class Test_queue_for_written_guarantee:
+class Test_queue_for_written_inspection:
     @pytest.mark.rule("stamp-drawn-once")
-    def test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write(self, shared):
-        """#1027 S13: the inspector's guarantee under the shared root queues the
+    def test_a_shared_mode_cleared_inspection_queues_one_stamp_at_its_write(
+        self, shared
+    ):
+        """#1027 S13: the inspector's inspection under the shared root queues the
         work item's one values file, as local mode's does, in the clone's one
         values directory (#1376). A second run over the same verdict queues
         nothing, before the commit that carries it and after."""
@@ -1571,7 +1576,7 @@ class Test_queue_for_written_guarantee:
             stamp.QUEUED.format(id=ITEM_ID, path=real, command=stamp.quote(real))
         ]
         assert stamp.read_values(written)["rows"][:3] == [
-            ("SEALED", ""),
+            ("CLEARED", ""),
             ("tree", shared.target),
             ("", "feat/x"),
         ]
@@ -1590,15 +1595,15 @@ class Test_queue_for_written_guarantee:
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
-    def test_a_shared_mode_sealed_already_in_the_history_queues_nothing(self, shared):
+    def test_a_shared_mode_cleared_already_in_the_history_queues_nothing(self, shared):
         """#1027 S13: a `cleared` HEAD's history carries was stamped where it
-        was made, so a write of the guarantee over it queues nothing, even in
+        was made, so a write of the inspection over it queues nothing, even in
         a clone holding no values file."""
         write(shared.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("refused-cleared-leaves-a-record")
-    def test_a_shared_mode_seal_refused_then_committed_then_resealed_draws_once(
+    def test_a_shared_mode_cleared_refused_then_committed_then_cleared_again_draws_once(
         self, shared
     ):
         """#1027 S14: a `cleared` over a commit `feat/x` does not hold queues
@@ -1607,11 +1612,11 @@ class Test_queue_for_written_guarantee:
         it draws the stamp once."""
         uncommitted(shared)
         off = off_branch_commit(shared.repo)
-        write(shared.repo, INSPECTION, guarantee_text(off, shared.base))
+        write(shared.repo, INSPECTION, inspection_text(off, shared.base))
         assert queue_written(shared) == [
-            f"agentic: no stamp was queued for {ITEM_ID}: its inspection.md names "
-            f"{off}, which feat/x does not hold; a new audit at the head of "
-            "feat/x draws it"
+            f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
+            f"cleared on feat/x, since its inspection.md names {off}, which "
+            "feat/x does not hold; a new inspection at the head of feat/x draws it"
         ]
         refused = pathlib.Path(shared.common) / "agentic-stamp-refused"
         assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
@@ -1620,14 +1625,14 @@ class Test_queue_for_written_guarantee:
         write(
             shared.repo,
             INSPECTION,
-            guarantee_text(shared.target, shared.base, earlier=[(off, "cleared")]),
+            inspection_text(shared.target, shared.base, earlier=[(off, "cleared")]),
         )
         assert queue_written(shared)
         assert len(queued(shared.common)) == 1
 
     @pytest.mark.rule("stamp-drawn-once")
     @pytest.mark.parametrize("linked", [False, True], ids=["main checkout", "linked"])
-    def test_a_local_mode_sealed_guarantee_queues_one_stamp(
+    def test_a_local_mode_cleared_inspection_queues_one_stamp(
         self, local, tmp_path, linked
     ):
         """1792363231 S1: one values file under the common dir, the rows the
@@ -1645,7 +1650,7 @@ class Test_queue_for_written_guarantee:
         ]
         read = stamp.read_values(written)
         assert read["rows"] == [
-            ("SEALED", ""),
+            ("CLEARED", ""),
             ("tree", local.target),
             ("", "feat/x"),
             ("base", local.base),
@@ -1659,7 +1664,7 @@ class Test_queue_for_written_guarantee:
         assert "session" not in read, "the queue names no session since #1376"
 
     @pytest.mark.rule("stamp-drawn-once")
-    def test_accepts_a_reseal_after_withheld_with_no_rounds_and_an_unreadable_gate(
+    def test_accepts_a_new_inspection_after_withheld_with_no_rounds_and_an_unreadable_gate(
         self, local
     ):
         """1792363231 S3: an earlier `withheld` does not count; a work item
@@ -1669,7 +1674,7 @@ class Test_queue_for_written_guarantee:
         write(
             item_dir(local),
             "inspection.md",
-            guarantee_text(local.target, local.base, earlier=earlier),
+            inspection_text(local.target, local.base, earlier=earlier),
         )
         shutil.rmtree(item_dir(local) / "trail" / "rounds")
         (item_dir(local) / "trail" / "gate.md").write_bytes(b"\xff\xfe")
@@ -1687,19 +1692,19 @@ class Test_queue_for_written_guarantee:
         ],
         ids=["withheld", "two verdicts"],
     )
-    def test_refuses_a_guarantee_that_does_not_read_one_sealed(self, local, verdict):
+    def test_refuses_an_inspection_that_does_not_read_one_cleared(self, local, verdict):
         """1792363231 S2."""
         write(
             item_dir(local),
             "inspection.md",
-            guarantee_text(local.target, local.base, verdict),
+            inspection_text(local.target, local.base, verdict),
         )
         assert queue_local(local) == [] and queued(local.common) == []
 
     @pytest.mark.rule("record-comment-line-refused")
-    def test_a_local_mode_guarantee_holding_a_comment_line_queues_nothing(self, local):
-        """S8 of #1012, for the guarantee read from disk."""
-        text = guarantee_text(local.target, local.base)
+    def test_a_local_mode_inspection_holding_a_comment_line_queues_nothing(self, local):
+        """S8 of #1012, for the inspection read from disk."""
+        text = inspection_text(local.target, local.base)
         write(
             item_dir(local),
             "inspection.md",
@@ -1709,13 +1714,13 @@ class Test_queue_for_written_guarantee:
 
     @pytest.mark.rule("stamp-drawn-once")
     @pytest.mark.parametrize("shape", ["as filed", "in blocks", "under the newest"])
-    def test_a_guarantee_holding_a_fence_nobody_closed_queues_nothing(
+    def test_an_inspection_holding_a_fence_nobody_closed_queues_nothing(
         self, local, shape
     ):
         """#1122, and #1198's scenario of that name: a `cleared` verdict, then
         a fence nobody closed, then a `withheld` one. A renderer hides all
         below the fence and the pull request's check refuses it, so the
-        stamp queues nothing. The `as filed` shape is the guarantee's shape
+        stamp queues nothing. The `as filed` shape is the inspection's shape
         before #1198. In blocks, the
         `withheld` block below is the newest and queues nothing on its own;
         so the third shape puts the fence under the newest block, `cleared`,
@@ -1723,24 +1728,24 @@ class Test_queue_for_written_guarantee:
         queueing, and that one is red against a reader without the
         refusal."""
         withheld = "withheld reason: the gate failed"
-        sealed = guarantee_text(local.target, local.base)
+        cleared = inspection_text(local.target, local.base)
         text = {
             "as filed": (
-                "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
+                "# an item — inspection\n\n| Field | Value |\n|---|---|\n"
                 f"| Target SHA | {local.target} against {local.base} |\n\n"
                 "Verdict: cleared\n\n```\n\n"
                 f"Verdict: {withheld}\n"
             ),
-            "in blocks": sealed
+            "in blocks": cleared
             + "\n````\n\n"
             + verdict_block(local.target, local.base, withheld),
-            "under the newest": sealed + "\n````\n\n" + f"Verdict: {withheld}\n",
+            "under the newest": cleared + "\n````\n\n" + f"Verdict: {withheld}\n",
         }[shape]
         write(item_dir(local), "inspection.md", text)
         assert queue_local(local) == [] and queued(local.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
-    def test_a_local_mode_second_sealed_queues_nothing(self, local):
+    def test_a_local_mode_second_cleared_queues_nothing(self, local):
         """1792363231 S3, once per work item, and #1198's scenario *Drawn
         once*: an earlier block reading `cleared` was stamped at it, and a
         values file for the id, pending or drawn, in the clone's values
@@ -1749,11 +1754,11 @@ class Test_queue_for_written_guarantee:
         write(
             item_dir(local),
             "inspection.md",
-            guarantee_text(local.target, local.base, earlier=earlier),
+            inspection_text(local.target, local.base, earlier=earlier),
         )
         assert queue_local(local) == []
         write(
-            item_dir(local), "inspection.md", guarantee_text(local.target, local.base)
+            item_dir(local), "inspection.md", inspection_text(local.target, local.base)
         )
         assert queue_local(local)
         assert queue_local(local) == []
@@ -1783,7 +1788,7 @@ class Test_queue_for_written_guarantee:
             "a branch the clone no longer holds",
         ],
     )
-    def test_a_local_mode_guarantee_off_its_branch_queues_nothing(self, local, given):
+    def test_a_local_mode_inspection_off_its_branch_queues_nothing(self, local, given):
         """1792363231 S4 and S14: a verdict over a commit the work item's
         branch does not hold queues nothing; where the branch stands, the
         line says so and the refusal is recorded, and where no branch can be
@@ -1794,19 +1799,20 @@ class Test_queue_for_written_guarantee:
         refused = pathlib.Path(local.common) / "agentic-stamp-refused"
         if named:
             assert said == [
-                f"agentic: no stamp was queued for {ITEM_ID}: its inspection.md "
-                f"names {named}, which feat/x does not hold; a new audit at the "
-                "head of feat/x draws it"
+                f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
+                f"cleared on feat/x, since its inspection.md names {named}, which "
+                "feat/x does not hold; a new inspection at the head of feat/x "
+                "draws it"
             ]
             assert os.listdir(refused) == [f"{ITEM_ID}-{named}"]
         else:
             assert said == [] and not refused.exists()
 
     @pytest.mark.rule("refused-cleared-leaves-a-record")
-    def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(
+    def test_a_local_mode_cleared_refused_off_its_branch_then_cleared_again_draws_once(
         self, local
     ):
-        """1792363231 S14: the re-seal appended below the refused run's
+        """1792363231 S14: the new inspection appended below the refused run's
         `cleared` block queues one file, because this clone recorded refusing
         it."""
         off = _off_the_branch(local)
@@ -1814,7 +1820,7 @@ class Test_queue_for_written_guarantee:
         write(
             item_dir(local),
             "inspection.md",
-            guarantee_text(local.target, local.base, earlier=[(off, "cleared")]),
+            inspection_text(local.target, local.base, earlier=[(off, "cleared")]),
         )
         assert queue_local(local)
         assert len(queued(local.common)) == 1
@@ -1836,19 +1842,19 @@ class Test_queue_for_written_guarantee:
         write(
             item_dir(local),
             "inspection.md",
-            guarantee_text(local.target, local.base, earlier=[(earlier, "cleared")]),
+            inspection_text(local.target, local.base, earlier=[(earlier, "cleared")]),
         )
         stamp.record_refusal(local.common, *recorded)
         assert queue_local(local) == [] and queued(local.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
-    def test_refuses_a_root_not_in_force_and_a_file_that_is_not_the_guarantee(
+    def test_refuses_a_root_not_in_force_and_a_file_that_is_not_the_inspection(
         self, local
     ):
         """1792363231 S5, the writer's half: an `inspection.md` under the common
         dir of a repository that also has `<repo>/seal/` is under no root in
         force; the same text in another file of a local work item, or a work
-        item's copy outside `seal/threads/`, is no guarantee."""
+        item's copy outside `seal/threads/`, is no inspection."""
         notes = item_dir(local) / "notes.md"
         notes.write_text(
             (item_dir(local) / "inspection.md").read_text(encoding="utf-8"),
@@ -1857,8 +1863,8 @@ class Test_queue_for_written_guarantee:
         assert queue_local(local, name="notes.md") == []
         elsewhere = pathlib.Path(local.common) / "seal" / "notes" / ITEM_NAME
         shutil.copytree(item_dir(local), elsewhere)
-        guarantee = str(elsewhere / "inspection.md")
-        assert stamp.queue_for_written_guarantee(guarantee) == []
+        inspection = str(elsewhere / "inspection.md")
+        assert stamp.queue_for_written_inspection(inspection) == []
         mark_root(local.repo / "seal")
         assert queue_local(local) == []
         assert queued(local.common) == []
@@ -1874,7 +1880,7 @@ class Test_queue_for_written_guarantee:
 # A panel as long as a real run's (#717), and one in the shape a gate wrote
 # from #666 to #717, which a pending file may still carry.
 FULL_ROWS = [
-    ("SEALED", ""),
+    ("CLEARED", ""),
     ("tree", "aaa1111a"),
     ("", "feat/12-the-branch-names-the-work-item..."),
     ("base", "bbb2222b  origin/release/v1.2.3"),
@@ -1888,7 +1894,7 @@ FULL_ROWS = [
     ("rounds", "2"),
 ]
 OLD_ROWS = [
-    ("SEALED", ""),
+    ("CLEARED", ""),
     None,
     ("tree", "aaa1111a"),
     ("", "feat/12-the-branch-n..."),
@@ -1958,8 +1964,8 @@ def message(stdout):
 def a_malformed_sprite(directory, monkeypatch):
     """`SPRITE_PATH` pointed at the shipped sprite cut to its first line,
     under DIRECTORY; the sentence `read_sprite` refuses it with."""
-    broken = directory / "seal-mark.txt"
-    first = (ROOT / "skills" / "verify" / "scripts" / "seal-mark.txt").read_text(
+    broken = directory / "stamp-mark.txt"
+    first = (ROOT / "skills" / "verify" / "scripts" / "stamp-mark.txt").read_text(
         encoding="utf-8"
     )
     broken.write_text(first.split("\n")[0] + "\n", encoding="utf-8")
@@ -2004,7 +2010,7 @@ class Test_drawings:
 
     @pytest.mark.parametrize(
         "bad",
-        ["not json", {"item": 5}, {"rows": [["SEALED"]]}],
+        ["not json", {"item": 5}, {"rows": [["CLEARED"]]}],
         ids=["not-json", "an-item-that-is-no-string", "a-row-that-does-not-draw"],
     )
     def test_refuses_to_claim_a_file_that_is_no_stamps_values(self, opted, bad):
@@ -2025,9 +2031,9 @@ class Test_drawings:
         self, opted, monkeypatch
     ):
         """Every file the module reads also draws, so the draw before the
-        claim is faked to fail for one file's rows, to remove that guarantee
+        claim is faked to fail for one file's rows, to remove that inspection
         (contract rule 13; #1017, round 3's s4). The file is the older one, so
-        a message carrying one seal would carry it. It is left pending, and
+        a message carrying one stamp would carry it. It is left pending, and
         the good one after it is drawn."""
         undrawable = [("tree", "does not draw")]
         real = stamp.stamp
@@ -2178,7 +2184,7 @@ class Test_drawn_at_stop:
         monkeypatch.setattr(stamp, "_optin", Unread)
         assert stamp.drawn_at_stop(stop_payload(opted)) is None
 
-    def test_accepts_one_seal_too_large_for_its_disc_drawn_alone_without_it(
+    def test_accepts_one_stamp_too_large_for_its_disc_drawn_alone_without_it(
         self, opted
     ):
         """A4's last rung of #717: a stamp that does not fit the limit with
@@ -2251,7 +2257,7 @@ class Test_drawn_from:
 
     def test_refuses_a_file_out_of_shape_before_claiming_it(self, tmp_path):
         path = tmp_path / "1-a.json"
-        path.write_text(json.dumps({"rows": "SEALED"}), encoding="utf-8")
+        path.write_text(json.dumps({"rows": "CLEARED"}), encoding="utf-8")
         with pytest.raises(ValueError):
             stamp.drawn_from(str(path), True)
         assert path.exists() and not os.path.exists(stamp.drawn_path(str(path)))
@@ -2303,7 +2309,7 @@ class Test_main:
 
     @pytest.mark.rule("stamp-drawn-once")
     @pytest.mark.parametrize("root", ["local", "shared"])
-    def test_guarantee_queues_the_stamp_and_prints_the_line_naming_it(
+    def test_inspection_queues_the_stamp_and_prints_the_line_naming_it(
         self, request, root, tmp_path, monkeypatch, capsys
     ):
         """#1376: the inspector's one run after it writes `Verdict: cleared` queues
@@ -2313,14 +2319,14 @@ class Test_main:
         #1430: the line names the plugin's `Stop` hook as the drawer, spelt
         out here so a change to what the person reads changes this case."""
         item = request.getfixturevalue(root)
-        guarantee = item_dir(item) / "inspection.md"
+        inspection = item_dir(item) / "inspection.md"
         if root == "shared":
-            guarantee = item.repo / INSPECTION
+            inspection = item.repo / INSPECTION
             uncommitted(item)
         elsewhere = tmp_path / "elsewhere"
         elsewhere.mkdir()
         monkeypatch.chdir(elsewhere)
-        assert stamp.main(["--inspection", str(guarantee)]) == 0
+        assert stamp.main(["--inspection", str(inspection)]) == 0
         (written,) = queued(item.common)
         real = os.path.realpath(written)
         line = (
@@ -2330,19 +2336,19 @@ class Test_main:
         )
         assert capsys.readouterr().out == line + "\n"
         assert os.path.dirname(real) == os.path.realpath(stamp.values_dir(item.common))
-        assert stamp.main(["--inspection", str(guarantee)]) == 0
+        assert stamp.main(["--inspection", str(inspection)]) == 0
         assert capsys.readouterr().out == ""
         assert queued(item.common) == [written]
 
-    def test_guarantee_refuses_a_file_it_cannot_read_naming_it(self, local, capsys):
+    def test_inspection_refuses_a_file_it_cannot_read_naming_it(self, local, capsys):
         """The hook was silent on every failure; the inspector runs the command
-        and reads what it says, so a guarantee that cannot be read is named
+        and reads what it says, so an inspection that cannot be read is named
         with exit 2."""
-        guarantee = item_dir(local) / "inspection.md"
-        guarantee.unlink()
-        assert stamp.main(["--inspection", str(guarantee)]) == 2
+        inspection = item_dir(local) / "inspection.md"
+        inspection.unlink()
+        assert stamp.main(["--inspection", str(inspection)]) == 2
         out, err = capsys.readouterr()
-        assert out == "" and err.startswith(f"seal stamp: {guarantee}: "), err
+        assert out == "" and err.startswith(f"seal stamp: {inspection}: "), err
         assert queued(local.common) == []
 
     @pytest.mark.parametrize(
@@ -2354,25 +2360,25 @@ class Test_main:
         ],
         ids=["history", "reach", "local root"],
     )
-    def test_guarantee_refuses_a_git_that_did_not_answer_naming_it(
+    def test_inspection_refuses_a_git_that_did_not_answer_naming_it(
         self, request, root, words, monkeypatch, capsys
     ):
         """#1573: a git command past `lib/gitcmd.py#TIMEOUT` while the stamp
         is queued is exit 2 in the runner's one line, and nothing is queued
         or recorded: a history git did not print is not a work item never
         stamped, and a reach git did not answer is not a commit the branch
-        lacks. Seen red against `seal_stamp.py` before #1573, whose line
+        lacks. Seen red against `stamp.py` before #1573, whose line
         was the exception's own."""
         item = request.getfixturevalue(root)
-        guarantee = item_dir(item) / "inspection.md"
+        inspection = item_dir(item) / "inspection.md"
         if root == "shared":
-            guarantee = item.repo / INSPECTION
+            inspection = item.repo / INSPECTION
             uncommitted(item)
         asked = unanswered(monkeypatch, *words)
-        assert stamp.main(["--inspection", str(guarantee)]) == 2
+        assert stamp.main(["--inspection", str(inspection)]) == 2
         out, err = capsys.readouterr()
         assert out == "", out
-        assert err == f"seal stamp: {guarantee}: {past_the_bound(asked[0])}\n", err
+        assert err == f"seal stamp: {inspection}: {past_the_bound(asked[0])}\n", err
         assert queued(item.common) == []
         assert not (pathlib.Path(item.common) / "agentic-stamp-refused").exists()
 
@@ -2462,7 +2468,7 @@ class Test_main:
         done = run_stop(body, env={"PYTHONIOENCODING": encoding, "PYTHONUTF8": "0"})
         out = done.stdout.decode("utf-8")
         assert out.strip(), done.stderr.decode("utf-8", "replace")[-300:]
-        assert message(out).startswith("SEALED feat/x @ aaa1111"), out
+        assert message(out).startswith("CLEARED feat/x @ aaa1111"), out
 
 
 test_census = census_case(TARGET)

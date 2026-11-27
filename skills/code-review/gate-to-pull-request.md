@@ -2,7 +2,7 @@
 
 This file is the orchestrator's, opened at the step
 `skills/code-review/SKILL.md` names. `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the inspector seals* states when
+*Orchestrator: the pull request opens once the work item is cleared* states when
 the pull request opens and what the body's first part holds. This file
 holds the steps that get it there and the repairs an open pull request
 takes.
@@ -12,8 +12,8 @@ takes.
 Once `inspection.md` reading `cleared` is committed, run `seal pr-body` once
 more on the body file the inspector read, and open the pull request with it,
 `gh pr create --body-file <that file>`. That run changes no copied line and
-writes the seal mark where the repository turns it on
-(`docs/forms/the-inspection.md` *The guarantee*). CI runs then, and again on
+writes the inspection mark where the repository turns it on
+(`docs/forms/the-inspection.md` *The inspection*). CI runs then, and again on
 every push to it. The pull request's check reads the body against what
 `seal pr-body` composes at HEAD and refuses a ready pull request at each
 line where they differ (`skills/code-review/scripts/chain_check.py#body`).
@@ -43,7 +43,7 @@ reads the pull request's state alone, waits on nothing, and exits 0, 4 or
 | 3 | within the limit on the start, the pull request's head never became HEAD, GitHub never said whether the pull request is mergeable, or no check of a `pull_request` run was listed on HEAD; or, after the start, the head left HEAD. The output names the one cause that held and the commits it concerns | says in its report the cause the output names about those commits, waits no longer, and does not treat the pull request as checked |
 | 4 | `state` is `MERGED` | pushes nothing more to the branch, and puts the repair on a new branch cut from the base, which holds the work |
 | 5 | `state` is `CLOSED` | pushes nothing, and says in its report that the pull request was closed with a repair pending |
-| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the inspector seals* states for a conflict with the base |
+| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* states for a conflict with the base |
 
 **The stated limit: a defect that only one platform shows, in work nobody
 expected to be platform-specific, is found when the pull request opens,
@@ -59,9 +59,9 @@ Projects (classic), and the REST call sends the body alone. Whenever the
 inspector's next `cleared` verdict is committed while the pull request is open,
 after this repair, a merge from the base or any other repair, run
 `seal pr-body` on the file once more and send it the same way. The body
-sent before that verdict carries no seal mark, since the seal it stood on
-no longer held at HEAD, and only a run after the verdict can write the mark
-the `Pull request seal mark` key asks for.
+sent before that verdict carries no inspection mark, since the inspection it stood
+on had lapsed, and only a run after the verdict can write the mark
+the `Pull request inspection mark` key asks for.
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s
@@ -89,7 +89,7 @@ directly. **On exit 0 commit `trail/gate.md`, then write the pull request
 body, then spawn `inspector` with the base and the work item's directory**, the
 issue and the file holding the pull request body. The
 inspector reads that record, audits the work against the issue and the tree,
-and writes `inspection.md` (`docs/forms/the-inspection.md` *The guarantee*); it
+and writes `inspection.md` (`docs/forms/the-inspection.md` *The inspection*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
@@ -100,7 +100,7 @@ because the body's copy of the records includes that record.** Run
 two language keys differ, then `pr.md`, then the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the changelog
 fragment, then the rest of the records' copy in one fold, as
-`docs/forms/the-inspection.md` *The guarantee* states, and replaces
+`docs/forms/the-inspection.md` *The inspection* states, and replaces
 whatever the file held. On exit 1 its `refused:` lines name a record's file
 and line, `pr.md` and `pr.<lang>.md` among the records, a language key
 `config.json` lacks, or the work item's directory with the files to repair
@@ -147,7 +147,7 @@ changed in the records, run `seal pr-body` on the body file again, and spawn
 the inspector again at the new HEAD, giving a repaired body to a pull request
 already open as the stated limit above says. Whether the broad run is owed
 again for that commit is `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the inspector seals*'s.
+*Orchestrator: the pull request opens once the work item is cleared*'s.
 Where the core's row gives it to a round it is a fix nobody reviewed: commit
 it, spawn
 a verifying round on its diff, and once that round's record is committed run
@@ -164,7 +164,7 @@ commit: a `git clone` of the branch worktree copies its branches and none
 of its `origin/` refs, so spawn the inspector again with the branch worktree
 itself as its clone, where `origin/<base>` or, with no remote, `<base>`
 resolves.
-Where the guarantee's newest verdict block names a commit the branch does
+Where the inspection's newest verdict block names a commit the branch does
 not hold, which the pull request's check refuses as stale, spawn the inspector
 again at HEAD and commit what it writes; never edit a block by hand. The
 inspector's `seal stamp --inspection` recorded the refusal, so the new audit,
@@ -212,7 +212,7 @@ its lines, the inspector's `seal stamp --inspection` queues the stamp's values,
 under either root, and the plugin's `Stop` hook draws them after your text.
 The line naming them arrives in the inspector's hand-back.
 So put the result text first in that turn:
-what was sealed, the lines worth quoting, and what happens next. Then end
+what was cleared, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
 yourself, neither with `seal stamp` nor by relaying a log: a relayed log
 shows the person the stamp twice, the copy without its colour and cut. The
@@ -225,10 +225,10 @@ FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 inspector's hand-back carries that line; quote it in the turn's text. The line
 names the command because the plugin's `Stop` hook draws nothing where it
-cannot: a `python3` that cannot load `seal_stamp.py`, or a working
+cannot: a `python3` that cannot load `stamp.py`, or a working
 directory outside the clone. Where the hand-back carries no such line,
 no stamp was queued and none is drawn, and the pull request's check is what
-says the work item was sealed.
+says the work item was cleared.
 
 **A refusal about the `Broad gate` key goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are

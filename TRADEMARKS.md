@@ -12,9 +12,9 @@ under the MIT License. All rights reserved. The drawings are:
   carried, and the owl drawn for the social preview and for the plugin
   directory's icon;
 - the plugin's icon, `.claude-plugin/icon.png`;
-- the drawing in `skills/verify/scripts/seal-mark.txt`, the sprite the
+- the drawing in `skills/verify/scripts/stamp-mark.txt`, the sprite the
   stamp presses into its disc;
-- the release seal image, `seal.png`, that a release note attaches.
+- the release mark image, `mark.png`, that a release note attaches.
 
 `assets/seals/README.md`, with the commands it gives, is not one of the
 drawings, and nothing here reserves it or any other code.

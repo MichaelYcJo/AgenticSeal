@@ -84,8 +84,8 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
     # `templates/records/sdd-round.md`, which the proofer writes the
     # declined instruction into.
     assert "goes in as a row of `## Not judged` with the caller" in proofer, (
-        "the reviewer asks a question with no field to ask it in, and a seal "
-        "gets taken over an axis nobody decided"
+        "the reviewer asks a question with no field to ask it in, and an "
+        "inspection clears an axis nobody decided"
     )
 
 

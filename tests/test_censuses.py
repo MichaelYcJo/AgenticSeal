@@ -775,7 +775,7 @@ class Test_newer_than:
 class Test_matches:
     def test_accepts_a_star_across_a_slash_and_a_bare_name(self):
         assert censuses.matches("hooks/*.py", "hooks/git/pre-commit.py")
-        assert censuses.matches("seal_stamp.py", "skills/verify/scripts/seal_stamp.py")
+        assert censuses.matches("stamp.py", "skills/verify/scripts/stamp.py")
 
     def test_refuses_another_directory(self):
         assert not censuses.matches("hooks/*.py", "skills/verify/scripts/broad_gate.py")

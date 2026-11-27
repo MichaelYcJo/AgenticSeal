@@ -10,7 +10,7 @@ name: publish the release note
 #
 # So the release's merge into `main` tags it and publishes it, in one run
 # (#1117). A tag this workflow creates with its own token starts no workflow
-# of its own, so the tag, the note and the seal cannot be three runs. The
+# of its own, so the tag, the note and the mark cannot be three runs. The
 # first step, `.github/scripts/tag_release.py`, creates the `vX.Y.Z` tag on
 # the pushed commit where the push moved `plugin.json`'s version, and passes
 # it on; every other push to `main` passes on no tag, and nothing after it
@@ -20,18 +20,18 @@ name: publish the release note
 # history at the tag (`.github/scripts/publish_release_note.py`'s docstring
 # says how).
 #
-# Then the seal (#718). A second job, `seal`, runs only when `publish` created
+# Then the mark (#718). A second job, `mark`, runs only when `publish` created
 # the release in this run (`created` is its output; a re-pushed tag or a full
 # re-run finds a release already there and writes `false`, and a re-run of
-# `seal` alone keeps `true` and meets the header guard instead: the first
+# `mark` alone keeps `true` and meets the header guard instead: the first
 # run replaced the header, so the second finds none to replace). It runs the
 # suite at the tag and rewrites the note's header with
-# `.github/scripts/release_seal.py`; what the header holds, and what
-# `seal/config.json`'s `Release note seal mark` key decides about the image,
+# `.github/scripts/release_mark.py`; what the header holds, and what
+# `seal/config.json`'s `Release note inspection mark` key decides about the image,
 # is `docs/releasing/branch-and-release.md` *Cutting a release*. Every
 # step of it is `continue-on-error`, and every failure the script meets is a
 # log line and a `::warning::` with an exit of 0: the note is already out,
-# and a seal that cannot be drawn costs the image and never the counts. So
+# and a mark that cannot be drawn costs the image and never the counts. So
 # nothing in that job can turn the workflow red or touch a note this run did
 # not write.
 #
@@ -54,7 +54,7 @@ on:
 # The first write of this scope in the repository, and the minimum
 # `gh release create` and a tag created through the API need. The workflow
 # writes five things under it: one tag and one release (`publish`), one asset
-# on that release and one edit of its note (`seal`), and one commit pushed to
+# on that release and one edit of its note (`mark`), and one commit pushed to
 # `dist` (`dist`). `gh pr list` reads the pull requests' labels and head branches
 # under the same block, which is a read.
 permissions:
@@ -64,7 +64,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     # Whether this run created the release, which is the only release the
-    # `seal` job may edit (`lib/console.py#write_output`), and the
+    # `mark` job may edit (`lib/console.py#write_output`), and the
     # tag it was published for: the ref's name is `main` on the push to
     # `main`, so the tag is read from the tag step alone.
     outputs:
@@ -102,7 +102,7 @@ jobs:
         shell: bash
         run: python3 .github/scripts/publish_release_note.py
 
-  seal:
+  mark:
     needs: publish
     if: needs.publish.outputs.created == 'true'
     runs-on: ubuntu-latest
@@ -149,23 +149,23 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/skills/verify/scripts/pytest_record
           PYTEST_ADDOPTS: -p agentic_pytest_record
           AGENTIC_RECORD_DIR: ${{ runner.temp }}/records
-          AGENTIC_RECORD_KEY: seal-${{ github.run_id }}
+          AGENTIC_RECORD_KEY: mark-${{ github.run_id }}
         run: |
           git config --global user.email ci@ci
           git config --global user.name ci
           mkdir -p "$AGENTIC_RECORD_DIR"
           pytest tests/ -q -n auto
-      - name: draw the seal and put it in the note
+      - name: draw the mark and put it in the note
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.publish.outputs.tag }}
           REPO: ${{ github.repository }}
           SUITE_RECORDS: ${{ runner.temp }}/records
-          SUITE_KEY: seal-${{ github.run_id }}
+          SUITE_KEY: mark-${{ github.run_id }}
           SUITE_OUTCOME: ${{ steps.suite.outcome }}
         shell: bash
-        run: python3 .github/scripts/release_seal.py
+        run: python3 .github/scripts/release_mark.py
 
   dist:
     needs: publish

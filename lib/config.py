@@ -239,8 +239,8 @@ def declared_mode(home):
 
 # --- a key that turns a picture on -------------------------------------------
 #
-# `Pull request seal mark`, read by `seal pr-body`, and `Release note seal
-# mark`, read by the release seal, each turn a picture on where they read
+# `Pull request inspection mark`, read by `seal pr-body`, and `Release note inspection
+# mark`, read by the release mark, each turn a picture on where they read
 # SWITCH_ON exactly. What each says of a key that is written and does not
 # turn it on is one of the two sentences below, closed by the caller's own
 # words for what stays off.

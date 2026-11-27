@@ -1,21 +1,21 @@
-"""`.github/scripts/release_seal.py`, one class per function.
+"""`.github/scripts/release_mark.py`, one class per function.
 
-The release seal is drawn and attached at publish time (#718). The push to
+The release mark is drawn and attached at publish time (#718). The push to
 `main` that ships a release, or a tag pushed by hand, tags it and publishes
 the note (#1117); a second job then runs the suite at the tag, draws one
-seal for the release, attaches it, and replaces the note's header with the
+mark for the release, attaches it, and replaces the note's header with the
 image beside the stamp's results (#1153). Any failure leaves the note as it
 was.
 
-Since #857 (work item 1793152332) the seal is the page form of the stamp's
-mark: `release_seal.py#draw` copies the PNG `.claude-plugin/plugin.json`
+Since #857 (work item 1793152332) the mark is the page form of the stamp's
+mark: `release_mark.py#draw` copies the PNG `.claude-plugin/plugin.json`
 names as its `icon`. The draw's cases build that manifest and a PNG in a
 fixture tree with the standard library, so no case here imports an imaging
 library. The publishing cases run a stand-in for `draw`, and the draw's
 refusals run the real one.
 
 #942's phase 6 placed these cases from
-`tests/behaviour/test_the_release_seal_is_drawn.py`, which keeps the cases that read
+`tests/behaviour/test_the_release_mark_is_drawn.py`, which keeps the cases that read
 the publishing workflow and the documents.
 """
 
@@ -30,16 +30,16 @@ from conftest import ROOT, census_case, config_json, mark_root, symlink_or_skip
 from conftest import load_module as load
 from test_settle import unanswered
 
-TARGET = ".github/scripts/release_seal.py"
+TARGET = ".github/scripts/release_mark.py"
 
-SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_seal.py")
-STAMP_SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_mark.py")
+STAMP_SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "stamp.py")
 
 # A release's rows in the shape `release_rows` returns. The version is the
 # illustrative one `tests/behaviour/test_release_hygiene.py` exempts; the rest are
 # neutral numbers in the widths a real release has.
 ROWS = [
-    ("SEALED", "v1.2.3"),
+    ("CLEARED", "v1.2.3"),
     ("tag", "aaa11111"),
     ("", "main"),
     ("PRs", "10 merged"),
@@ -51,8 +51,8 @@ ROWS = [
 ]
 
 
-def seal():
-    return load(SCRIPT, "agentic_release_seal_for_tests")
+def release_mark():
+    return load(SCRIPT, "agentic_release_mark_for_tests")
 
 
 def png_bytes(width, height):
@@ -95,8 +95,8 @@ def page_image(root, icon=FIXTURE_ICON, data=None):
         target.write_bytes(data)
 
 
-SUITE_KEY = "seal-1234567890"
-# The suite `wired` records for the seal to read: ten `test` lines, whose two
+SUITE_KEY = "mark-1234567890"
+# The suite `wired` records for the mark to read: ten `test` lines, whose two
 # counts differ from each other and from every other count the header
 # holds, so a count put in another badge shows. The broad gate's reader
 # resolves the path each line names, which costs seconds on the Windows leg
@@ -227,7 +227,7 @@ PULLS = [
 
 
 class GitHub:
-    """`gh` and `git` as the seal calls them: every call recorded in order,
+    """`gh` and `git` as the mark calls them: every call recorded in order,
     the note served from `body`, and any verb in `fails` answered with the
     refusal `main` turns into today's note."""
 
@@ -251,26 +251,26 @@ class GitHub:
 
 def note(pulls=PULLS, theme=""):
     """The note `publish_release_note.release_body` publishes for `pulls`."""
-    publisher = load(PUBLISHER, "publish_release_note_for_the_seal")
+    publisher = load(PUBLISHER, "publish_release_note_for_the_mark")
     return publisher.release_body(theme, SECTION, pulls, OWNER)
 
 
-# The header `publish` writes for `PULLS`, which the seal finds and replaces.
+# The header `publish` writes for `PULLS`, which the mark finds and replaces.
 HEADER = "<p>2 pull requests merged<br>2 issues closed<br>1 outside contributor</p>"
 
 
-# A badge's two colours by its label, as `(value, label)` (#1496): the seal's
-# reds for `SEALED`, green for the suite's passed count, grey for the
+# A badge's two colours by its label, as `(value, label)` (#1496): the mark's
+# reds for `CLEARED`, green for the suite's passed count, grey for the
 # skipped, capped and deferred counts, and a blue value beside a grey label
 # for every other.
-SEAL_RED = ("d42420", "8e0c12")
+MARK_RED = ("d42420", "8e0c12")
 GREEN = ("2ea44f", "555555")
 GREY = ("6e7781", "555555")
 BLUE = ("0969da", "555555")
 
 
 def badge(path, alt, colours=BLUE):
-    """One badge exactly as the sealed header carries it (#1299): `path` is
+    """One badge exactly as the cleared header carries it (#1299): `path` is
     the label and the value as the badge service's address spells them, and
     `colours` the value's colour and the label's."""
     colour, edge = colours
@@ -280,12 +280,12 @@ def badge(path, alt, colours=BLUE):
     )
 
 
-# The badge lines the seal writes for `PULLS` and the fixture tree, one or
+# The badge lines the mark writes for `PULLS` and the fixture tree, one or
 # two badges to a line and the lines parted by `<br>`, in the header with the
 # image and in the header without it alike (#1299, #1496).
 BADGE_LINES = "<br>".join(
     [
-        badge("SEALED-v1.2.3", "SEALED: v1.2.3", SEAL_RED),
+        badge("CLEARED-v1.2.3", "CLEARED: v1.2.3", MARK_RED),
         badge("commit-aaa11111", "commit: aaa11111")
         + " "
         + badge("on-main", "on: main"),
@@ -303,7 +303,7 @@ BADGE_LINES = "<br>".join(
         + badge("deferred-1", "deferred: 1", GREY),
     ]
 )
-# Why the seal leaves a note whose header is not `publish`'s.
+# Why the mark leaves a note whose header is not `publish`'s.
 NOT_THERE = (
     "the header is not in the note exactly once as `header` writes it for "
     "this release -- the note was edited after publication, a run of this "
@@ -325,9 +325,9 @@ def drawn(png):
     return DRAWN_WIDTH
 
 
-# #1204: the key that turns the release note's seal image on, which this
+# #1204: the key that turns the release note's mark image on, which this
 # repository's `seal/config.json` writes reading `yes`.
-MARK_ROW = "Release note seal mark"
+MARK_ROW = "Release note inspection mark"
 
 
 def configured(home, value):
@@ -352,10 +352,10 @@ def wired(
     mark="yes",
     **env,
 ):
-    """The seal with a fixture suite, a fixture tree whose `MARK_ROW` reads
+    """The mark with a fixture suite, a fixture tree whose `MARK_ROW` reads
     `mark` (`configured`), no route to GitHub, and `drawn` standing in for
     `draw`, or the real `draw` where `stand_in` is False."""
-    mod = seal()
+    mod = release_mark()
     hub = GitHub(mod, note(pulls) if body is None else body, fails)
     if stand_in:
         monkeypatch.setattr(mod, "draw", drawn)
@@ -374,7 +374,7 @@ def wired(
     if "SUITE_RECORDS" not in defaults:
         defaults["SUITE_RECORDS"] = recorded(tmp_path, SUITE)
     defaults.setdefault("SUITE_KEY", SUITE_KEY)
-    for key in ("DRY_RUN", "SEAL_PNG"):
+    for key in ("DRY_RUN", "MARK_PNG"):
         monkeypatch.delenv(key, raising=False)
     for key, value in defaults.items():
         monkeypatch.setenv(key, value)
@@ -402,7 +402,7 @@ REASONS = {
         f"the icon {FIXTURE_ICON} is not a PNG: it does not open with the PNG "
         "signature and an IHDR chunk"
     ),
-    "the PNG cannot be written": "the seal could not be written at",
+    "the PNG cannot be written": "the mark could not be written at",
     "gh pr list fails": "gh pr list could not list",
     "gh release view fails": "gh release view failed",
     "gh release upload fails": "gh release upload failed",
@@ -436,15 +436,15 @@ class Test_release_rows:
         The two widths were one number until #832: `broad_gate`'s became 41 for
         the open layout's 80 columns (S5a), and the release's rows are out of
         that work item's scope, so the release keeps 23 and no longer follows
-        the gate's. The gate's width is `seal_stamp.py`'s since #975."""
-        mod = seal()
+        the gate's. The gate's width is `stamp.py`'s since #975."""
+        mod = release_mark()
         rows = mod.release_rows(
             "1.2.3", "aaa11111bbbb", 10, 0, (7003, 66), (10, 27, 6, 13)
         )
         assert rows == [*ROWS[:4], ("issues", "0 closed"), *ROWS[5:]], rows
         assert all(len(label) <= 8 for label in mod.LABELS), mod.LABELS
         assert [label for label, _ in rows if label] == list(mod.LABELS)
-        width = load(STAMP_SCRIPT, "seal_stamp_for_the_release_rows").PANEL_VALUE_WIDTH
+        width = load(STAMP_SCRIPT, "stamp_for_the_release_rows").PANEL_VALUE_WIDTH
         assert mod.PANEL_VALUE_WIDTH == 23 < width, (mod.PANEL_VALUE_WIDTH, width)
         assert all(len(value) <= mod.PANEL_VALUE_WIDTH for _, value in rows), rows
 
@@ -453,7 +453,7 @@ class Test_release_rows:
         five-digit suite is 25, so `S skipped` moves under `P passed` on a
         continuation row rather than being cut at the frame. Seen red against
         the rows that wrote the value whole."""
-        mod = seal()
+        mod = release_mark()
         rows = mod.release_rows("1.2.3", "aaa11111", 1, 1, (10003, 166), (1, 1, 0, 0))
         at = [label for label, _ in rows].index("suite")
         assert rows[at : at + 2] == [("suite", "10003 passed"), ("", "166 skipped")]
@@ -465,7 +465,7 @@ class Test_release_rows:
         """S8, S10, `questions.md` Q8. A chain count that is None was not read:
         its row stays and says `not read`, never dropped and never 0. One issue
         and one round are singular."""
-        mod = seal()
+        mod = release_mark()
         rows = dict(
             (label, value)
             for label, value in mod.release_rows(
@@ -497,7 +497,7 @@ class Test_suite_counts:
         broad gate's own reader and counter give over the sessions carrying the
         key, summed; xfails and xpasses are counted and neither passed nor
         skipped, as on pytest's line."""
-        mod = seal()
+        mod = release_mark()
         directory = recorded(
             tmp_path,
             {"passed": 7, "skipped": 4, "xfailed": 2},
@@ -520,7 +520,7 @@ class Test_suite_counts:
     )
     def test_refuses_a_record_that_cannot_vouch_for_the_counts(self, tmp_path, case):
         """S9 and S12. A record nobody can read for the whole suite raises, so
-        the seal falls back (S2) rather than drawing a count."""
+        the mark falls back (S2) rather than drawing a count."""
         directory, key = recorded(tmp_path, {"passed": 10}), SUITE_KEY
         if case == "no directory named":
             directory = ""
@@ -529,7 +529,7 @@ class Test_suite_counts:
         elif case == "a directory that is not there":
             directory = str(tmp_path / "absent")
         elif case == "no session carries the key":
-            key = "seal-0000000000"
+            key = "mark-0000000000"
         elif case == "a line that did not parse":
             directory = recorded(tmp_path, {"passed": 10}, extra="{cut off\n")
         elif case == "a session that stopped part-way":
@@ -560,15 +560,15 @@ class Test_suite_counts:
             "a report with no file of its own": "counted under no category",
         }[case]
         with pytest.raises(ValueError, match=said):
-            seal().suite_counts(directory, key)
+            release_mark().suite_counts(directory, key)
 
     @pytest.mark.parametrize("category", ["failed", "error"])
-    def test_a_suite_that_did_not_pass_is_not_sealed(self, tmp_path, category):
-        """S9. A failure or an error in the record raises: a `SEALED` above a red
+    def test_a_suite_that_did_not_pass_is_not_cleared(self, tmp_path, category):
+        """S9. A failure or an error in the record raises: a `CLEARED` above a red
         suite would say something false."""
         directory = recorded(tmp_path, {"passed": 10, category: 1})
         with pytest.raises(ValueError, match="did not pass"):
-            seal().suite_counts(directory, SUITE_KEY)
+            release_mark().suite_counts(directory, SUITE_KEY)
 
 
 class Test_chain_counts:
@@ -605,9 +605,9 @@ class Test_chain_counts:
             pr(20, "feat/12-an-item", "chain: capped"),
             pr(21, "fix/nobody-declared-this"),
         ]
-        assert seal().chain_counts(root, pulls) == (1, 3, 1, 3)
+        assert release_mark().chain_counts(root, pulls) == (1, 3, 1, 3)
 
-    def test_the_seal_counts_the_issue_a_deferral_went_to_not_every_mention(
+    def test_the_mark_counts_the_issue_a_deferral_went_to_not_every_mention(
         self, tmp_path
     ):
         """#866 S3. A home is the whole of what follows `deferred`, and it names
@@ -622,7 +622,12 @@ class Test_chain_counts:
                 ["deferred to #700"],
             ],
         )
-        assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (1, 2, 0, 1)
+        assert release_mark().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
+            1,
+            2,
+            0,
+            1,
+        )
 
     def test_refuses_to_count_a_tree_whose_records_are_not_there(
         self, tmp_path, capsys
@@ -631,13 +636,13 @@ class Test_chain_counts:
         declaration -- the records moved by #715, or retired before the tag --
         leaves the three tree rows None, and the log says why; capped is read
         from the labels alone."""
-        counts = seal().chain_counts(
+        counts = release_mark().chain_counts(
             str(tmp_path), [pr(20, "feat/12-an-item", "chain: capped")]
         )
         assert counts == (None, None, 1, None), counts
         assert "not read" in capsys.readouterr().out
         # With no capped pull request to miss, the empty tree alone is the reason.
-        counts = seal().chain_counts(str(tmp_path), [pr(20, "feat/12-an-item")])
+        counts = release_mark().chain_counts(str(tmp_path), [pr(20, "feat/12-an-item")])
         assert counts == (None, None, 0, None), counts
         assert "no routing.md" in capsys.readouterr().out
 
@@ -649,7 +654,7 @@ class Test_chain_counts:
         count incomplete, and the log names it."""
         root = tree(tmp_path, verdicts=[["deferred #12"]])
         pulls = [pr(20, "feat/12-an-item"), pr(21, "feat/99-retired", "chain: capped")]
-        assert seal().chain_counts(root, pulls) == (None, None, 1, None)
+        assert release_mark().chain_counts(root, pulls) == (None, None, 1, None)
         assert "#21" in capsys.readouterr().out
 
     def test_an_unlistable_rounds_leaves_rounds_unread_not_zero(self, tmp_path, capsys):
@@ -663,7 +668,7 @@ class Test_chain_counts:
             "# round 1\n", encoding="utf-8"
         )
         symlink_or_skip("held", item / "trail" / "rounds", directory=True)
-        assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
+        assert release_mark().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
             1,
             None,
             0,
@@ -679,7 +684,12 @@ class Test_chain_counts:
         here a `deferred` with no home — is a count nobody made, so deferred is
         not read and the log names the record."""
         root = tree(tmp_path, verdicts=[["deferred #12", "deferred"]])
-        assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (1, 1, 0, None)
+        assert release_mark().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
+            1,
+            1,
+            0,
+            None,
+        )
         assert "round-1.md" in capsys.readouterr().out
 
     def test_a_deferred_count_nobody_could_read_is_none_and_the_log_says_why(
@@ -694,7 +704,7 @@ class Test_chain_counts:
             tmp_path / "seal" / "threads" / "1700000000-an-item" / "trail" / "rounds"
         )
         (record / "round-2.md").write_text(OLD_ROUND.format(n=2), encoding="utf-8")
-        counts = seal().chain_counts(root, [pr(20, "feat/12-an-item")])
+        counts = release_mark().chain_counts(root, [pr(20, "feat/12-an-item")])
         assert counts == (1, 2, 0, None), counts
         out = capsys.readouterr().out
         assert "round-2.md" in out and "deferred" in out, out
@@ -704,7 +714,7 @@ class Test_chain_counts:
     ):
         """S10. Where the shared readers cannot be loaded, the three tree rows are
         None and the log says why; capped is read from the labels alone."""
-        mod = seal()
+        mod = release_mark()
 
         def broken(*_):
             raise ImportError("no reader")
@@ -716,15 +726,15 @@ class Test_chain_counts:
         assert counts == (None, None, 1, None), counts
         assert "no reader" in capsys.readouterr().out
 
-    def test_refuses_to_end_the_seal_where_a_reader_is_absent(
+    def test_refuses_to_end_the_mark_where_a_reader_is_absent(
         self, tmp_path, monkeypatch, capsys
     ):
         """#1482. An absent reader is `lib/sibling.py#Absent`, a `SystemExit(2)`,
         which is no `Exception`. It leaves the three tree rows unread as S10's
-        failed load does, and the seal goes on, so the loader's sentence,
+        failed load does, and the mark goes on, so the loader's sentence,
         which says nothing was read, is kept back and the line here names
         the absent file (round 1, finding 1)."""
-        mod = seal()
+        mod = release_mark()
         import sibling
 
         plugin = tmp_path / "no-plugin"
@@ -746,11 +756,11 @@ class Test_main:
     def test_names_an_absent_module_in_its_own_line_and_exits_0(
         self, monkeypatch, tmp_path, capsys
     ):
-        """#1482. The seal exits 0 whatever fails, so an absent module is
-        named in the `no seal` line and the warning, and the loader's
+        """#1482. The mark exits 0 whatever fails, so an absent module is
+        named in the `no mark` line and the warning, and the loader's
         sentence, whose "Nothing was read." pairs with exit 2, is kept back
         (round 2, finding 1)."""
-        mod = seal()
+        mod = release_mark()
         import sibling
 
         plugin = tmp_path / "no-plugin"
@@ -763,16 +773,16 @@ class Test_main:
         assert said.err == ""
         absent = plugin / ".github" / "scripts" / "publish_release_note.py"
         assert said.out.splitlines() == [
-            f"no seal: {absent} is absent -- the note stays as it was published",
-            f"::warning::release seal skipped: {absent} is absent",
+            f"no mark: {absent} is absent -- the note stays as it was published",
+            f"::warning::release mark skipped: {absent} is absent",
         ]
 
     def test_accepts_a_published_note_and_replaces_its_header(
         self, monkeypatch, tmp_path
     ):
         """S1, S7, #1009 S3, #1153 S3, and #1496 S5. The PNG is uploaded as
-        `seal.png` before the edit, and the edited note is the published one
-        with its header paragraph replaced by the sealed one: the image at
+        `mark.png` before the edit, and the edited note is the published one
+        with its header paragraph replaced by the cleared one: the image at
         the release-download URL with alt text naming it and the display
         width `draw` answered, floated left, then the stamp's results as
         badges (#1299 S6), then the break that clears the float -- every
@@ -780,29 +790,29 @@ class Test_main:
         PNG is `DENSITY` times that width (#1009 S1), so the width is what
         keeps it from showing twice its size. Seen red before `main`
         existed, before the image carried a width, by a width the note
-        computed apart from `draw`, against the seal that replaced the
+        computed apart from `draw`, against the mark that replaced the
         glance table with a heading, the image and one line of the counts,
-        against the seal that wrote the results as text, and against the
+        against the mark that wrote the results as text, and against the
         header that was a table of two cells."""
         published = note(theme="A theme.")
         mod, hub = wired(monkeypatch, tmp_path, body=published)
         assert mod.main() == 0
         (upload,) = hub.writes("upload")
         assert upload[:3] == ("release", "upload", TAG)
-        assert os.path.basename(upload[3]) == "seal.png" and os.path.isfile(upload[3])
+        assert os.path.basename(upload[3]) == "mark.png" and os.path.isfile(upload[3])
         assert upload[4:] == ("--repo", REPO)
         (edit,) = hub.writes("edit")
         assert edit[:5] == ("release", "edit", TAG, "--repo", REPO)
         body = edit[edit.index("--notes") + 1]
-        image = f"https://github.com/{REPO}/releases/download/{TAG}/seal.png"
-        sealed = (
-            f'<p><img src="{image}" alt="The 1.2.3 release seal" '
+        image = f"https://github.com/{REPO}/releases/download/{TAG}/mark.png"
+        cleared = (
+            f'<p><img src="{image}" alt="The 1.2.3 release mark" '
             f'width="{DRAWN_WIDTH}" align="left">{BADGE_LINES}<br clear="left"></p>'
         )
         assert published.count(HEADER) == 1, published[:400]
-        assert body == published.replace(HEADER, sealed), body[:800]
+        assert body == published.replace(HEADER, cleared), body[:800]
         assert body.startswith(
-            f"{sealed}\n\nA theme.\n\n<details>\n<summary>✨ Features (1)</summary>"
+            f"{cleared}\n\nA theme.\n\n<details>\n<summary>✨ Features (1)</summary>"
         ), body[:800]
         assert hub.calls.index(upload) < hub.calls.index(edit)
 
@@ -814,25 +824,25 @@ class Test_main:
             pytest.param(
                 "Yes",
                 f"`{MARK_ROW}` reads `Yes`, not `yes`, so the key is not read "
-                "and the note's header holds the results without the seal's image",
+                "and the note's header holds the results without the mark's image",
                 id="Yes",
             ),
             pytest.param(
                 "on",
                 f"`{MARK_ROW}` reads `on`, not `yes`, so the key is not read "
-                "and the note's header holds the results without the seal's image",
+                "and the note's header holds the results without the mark's image",
                 id="on",
             ),
             pytest.param(
                 "true",
                 f"`{MARK_ROW}` reads `true`, not `yes`, so the key is not read "
-                "and the note's header holds the results without the seal's image",
+                "and the note's header holds the results without the mark's image",
                 id="true",
             ),
             pytest.param(
                 ("yes", "yes"),
                 f"`{MARK_ROW}` is not read: `{MARK_ROW}` appears 2 times — one "
-                "value; the note's header holds the results without the seal's "
+                "value; the note's header holds the results without the mark's "
                 "image",
                 id="written twice",
             ),
@@ -842,13 +852,13 @@ class Test_main:
         self, monkeypatch, tmp_path, capsys, mark, warned
     ):
         """#1204 S6, #1299 S6, and #1496 S5. Where the tree's `Release note
-        seal mark` row is absent, empty, any value but `yes`, or refused, the
-        seal draws and uploads nothing, and replaces `publish`'s header with
+        inspection mark` row is absent, empty, any value but `yes`, or refused, the
+        mark draws and uploads nothing, and replaces `publish`'s header with
         a paragraph of the badges the header with the image holds, with no
         float to clear, every other byte of the note unchanged. Absent and
         empty say nothing; any other value, and a refusal, are named on one
         `::warning::` line, and the exit stays 0. Seen red with the row's
-        read alone removed: the upload then runs; against the seal that
+        read alone removed: the upload then runs; against the mark that
         wrote the results as text; and against the header that was a table
         of one cell."""
         published = note(theme="A theme.")
@@ -863,7 +873,7 @@ class Test_main:
         assert not any(line.startswith("copied the icon") for line in out), out
         warnings = [line for line in out if line.startswith("::warning::")]
         expected = (
-            [] if warned is None else [f"::warning::release seal image: {warned}"]
+            [] if warned is None else [f"::warning::release mark image: {warned}"]
         )
         assert warnings == expected, out
 
@@ -872,11 +882,11 @@ class Test_main:
         self, monkeypatch, tmp_path, capsys, mark
     ):
         """#1153 S4, and #1204 S8 under either answer of the row. After the
-        first run the note holds the sealed header, with the image or
+        first run the note holds the cleared header, with the image or
         without, so a second run of the job finds no header as `publish`
         writes it, uploads nothing and edits nothing, and its `::warning::`
         line names a run that already replaced it among the reasons. Seen
-        red with the exact-header guard in `seal_release` alone removed: the
+        red with the exact-header guard in `mark_release` alone removed: the
         second run then uploaded the image again and edited the note, and
         under the absent row edited it again."""
         mod, hub = wired(monkeypatch, tmp_path, mark=mark)
@@ -889,7 +899,7 @@ class Test_main:
         assert mod.main() == 0
         assert hub.writes("upload") == [] and hub.writes("edit") == [], hub.calls
         out = capsys.readouterr().out
-        assert f"::warning::release seal skipped: {NOT_THERE}" in out, out
+        assert f"::warning::release mark skipped: {NOT_THERE}" in out, out
 
     @pytest.mark.parametrize(
         "case",
@@ -930,10 +940,10 @@ class Test_main:
         copy has no directory to land in. The first four were seen red
         against the draw that painted the stamp's cells, which read no
         manifest; the fifth is that draw's own refusal, kept. The two cases
-        of #1496 S6 give the seal a header the note holds inside a longer
-        line: the note counts an outside contributor the seal's list does
-        not, or 12 pull requests where the seal counts 2. The paragraph's
-        `<p>` and `</p>` are what keep the seal's header from matching
+        of #1496 S6 give the mark a header the note holds inside a longer
+        line: the note counts an outside contributor the mark's list does
+        not, or 12 pull requests where the mark counts 2. The paragraph's
+        `<p>` and `</p>` are what keep the mark's header from matching
         there, so both were seen red against a `header` that wrote the count
         lines with no `<p>` and `</p>` around them."""
         env, fails, body, pulls = {}, (), None, PULLS
@@ -941,7 +951,7 @@ class Test_main:
         if case == "the suite step failed":
             env["SUITE_OUTCOME"] = "failure"
         elif case == "no record carries the key":
-            env["SUITE_KEY"] = "seal-0000000000"
+            env["SUITE_KEY"] = "mark-0000000000"
         elif case == "a line of the record did not parse":
             env["SUITE_RECORDS"] = recorded(
                 tmp_path, {"passed": 10}, extra="{cut off\n"
@@ -1013,9 +1023,9 @@ class Test_main:
         out = capsys.readouterr().out.splitlines()
         warnings = [line for line in out if line.startswith("::warning::")]
         assert len(warnings) == 1, out
-        reason = warnings[0].removeprefix("::warning::release seal skipped: ")
-        assert reason and [line for line in out if line.startswith("no seal: ")] == [
-            f"no seal: {reason} -- the note stays as it was published"
+        reason = warnings[0].removeprefix("::warning::release mark skipped: ")
+        assert reason and [line for line in out if line.startswith("no mark: ")] == [
+            f"no mark: {reason} -- the note stays as it was published"
         ], out
         assert REASONS[case] in reason, (case, reason)
         edits = hub.writes("edit")
@@ -1045,25 +1055,25 @@ class Test_main:
     def test_a_dry_run_draws_and_prints_and_writes_nothing(
         self, monkeypatch, tmp_path, capsys
     ):
-        """S12. `DRY_RUN=1` writes the PNG where `SEAL_PNG` says, prints the rows
+        """S12. `DRY_RUN=1` writes the PNG where `MARK_PNG` says, prints the rows
         and the edited note, and calls neither `gh release upload` nor
         `gh release edit`."""
-        target = tmp_path / "out" / "seal.png"
+        target = tmp_path / "out" / "mark.png"
         target.parent.mkdir()
         mod, hub = wired(
             monkeypatch,
             tmp_path,
             fails=("upload", "edit"),
             DRY_RUN="1",
-            SEAL_PNG=str(target),
+            MARK_PNG=str(target),
         )
         assert mod.main() == 0
         assert target.is_file()
         assert hub.writes("upload") == [] and hub.writes("edit") == []
         out = capsys.readouterr().out
         assert "deferred 1 issue" in out and "suite    7 passed, 3 skipped" in out, out
-        assert 'alt="The 1.2.3 release seal"' in out, out
-        assert 'alt="SEALED: v1.2.3">' in out and 'alt="on: main">' in out, out
+        assert 'alt="The 1.2.3 release mark"' in out, out
+        assert 'alt="CLEARED: v1.2.3">' in out and 'alt="on: main">' in out, out
         assert "::warning::" not in out, out
 
 
@@ -1078,10 +1088,10 @@ class Test_draw:
         `.claude-plugin/icon.png` and answers 256, the note's width for
         the 512-pixel icon (`questions.md` Q2). Seen red against the draw
         that painted the stamp's cells."""
-        mod = seal()
+        mod = release_mark()
         data = png_bytes(10, 6)
         page_image(tmp_path, data=data)
-        out = tmp_path / "out" / "seal.png"
+        out = tmp_path / "out" / "mark.png"
         out.parent.mkdir()
         monkeypatch.setattr(mod, "ROOT", str(tmp_path))
         assert mod.DENSITY == 2
@@ -1100,9 +1110,9 @@ class Test_draw:
         names does not open with the PNG signature, and leaves no file at the
         path it was handed. `Test_main` holds the same refusal as the job's
         `::warning::` line; this holds it at `draw` itself."""
-        mod = seal()
+        mod = release_mark()
         page_image(tmp_path, data=b"GIF89a" + bytes(30))
-        out = tmp_path / "seal.png"
+        out = tmp_path / "mark.png"
         monkeypatch.setattr(mod, "ROOT", str(tmp_path))
         with pytest.raises(mod.Refused, match="is not a PNG"):
             mod.draw(str(out))
@@ -1113,27 +1123,27 @@ class Test_module:
     def test_the_results_are_the_stamps_rows_as_labelled_values(self):
         """S11, #1153 S3, and #1299 S5. `results` turns the rows into the
         header's badge lines, each a list of `(label, value)` pairs: the
-        sealed version, then the tagged commit and its branch; then the
+        cleared version, then the tagged commit and its branch; then the
         suite and its skips, the review rounds and the work items, and how
         many were capped and the issues deferred. A suite split over two
         rows is one line, and a row not read says `not read` on each badge
         it feeds. Seen red against the alt sentence that carried every
         value in one string, and against the `results` that wrote the
         phrases of 0.17.0's hand-written alt text."""
-        sealed, lines = seal().results(ROWS)
-        assert sealed == [
-            [("SEALED", "v1.2.3")],
+        cleared, lines = release_mark().results(ROWS)
+        assert cleared == [
+            [("CLEARED", "v1.2.3")],
             [("commit", "aaa11111"), ("on", "main")],
-        ], sealed
+        ], cleared
         assert lines == [
             [("suite", "7003 passed"), ("skipped", "66")],
             [("review", "27 rounds"), ("work items", "10")],
             [("capped", "6"), ("deferred", "13")],
         ], lines
-        unread = seal().release_rows(
+        unread = release_mark().release_rows(
             "1.2.3", "aaa11111", 1, 1, (10003, 166), (None,) * 4
         )
-        assert seal().results(unread)[1] == [
+        assert release_mark().results(unread)[1] == [
             [("suite", "10003 passed"), ("skipped", "166")],
             [("review", "not read"), ("work items", "not read")],
             [("capped", "not read"), ("deferred", "not read")],
@@ -1145,7 +1155,7 @@ class Test_module:
         same for the commit a tag names. Both are what the failure cases above
         stand in for."""
 
-        mod = seal()
+        mod = release_mark()
         seen = []
 
         def run(args, **_):
@@ -1173,7 +1183,7 @@ class Test_module:
         """#1573. A `gh` or git past `lib/gitcmd.py#TIMEOUT` is `Refused`
         with the runner's line, so `main` says it and exits 0, as for a
         refusal."""
-        mod = seal()
+        mod = release_mark()
         unanswered(monkeypatch, "release", "view")
         with pytest.raises(mod.Refused) as refused:
             mod.gh("release", "view", TAG)

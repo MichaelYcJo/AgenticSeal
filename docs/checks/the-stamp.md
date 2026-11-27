@@ -1,6 +1,6 @@
-# The seal stamp
+# The inspector's stamp
 
-What `skills/verify/scripts/seal_stamp.py` draws, and the plugin's `Stop` hook
+What `skills/verify/scripts/stamp.py` draws, and the plugin's `Stop` hook
 that draws it, for a person who changes them; no agent acts on it.
 
 ## The stamp
@@ -27,15 +27,15 @@ by what the clone and the tree carry, with no count beside them: a values file
 already named for the work item, pending or drawn, in the clone's values
 directory is not written twice, whatever commit it named; a `cleared` whose
 audited commit is not an ancestor of the branch the work item's `routing.md`
-names queues nothing; and in shared mode a guarantee that read `cleared` at an
+names queues nothing; and in shared mode an inspection that read `cleared` at an
 earlier commit of HEAD's history, or one of whose earlier verdict blocks reads
 `cleared`, counts as stamped then, which holds across clones; the earlier blocks
-alone skip a `cleared` this clone recorded refusing (the next rule). A guarantee
+alone skip a `cleared` this clone recorded refusing (the next rule). An inspection
 in the history that holds no verdict block, written before the fields stood in
 blocks, counts nothing. It does not hold for a `cleared` committed over a
 history that carries no earlier `cleared` in a clone that holds no values file
-for the work item, which draws the stamp again in that clone: the sealing
-commit amended or rewritten there over its own parent, or a second seal on a
+for the work item, which draws the stamp again in that clone: the inspected
+commit amended or rewritten there over its own parent, or a second inspection on a
 copy of the branch that had not fetched the first. A `cleared` that drew in
 another clone, brought onto a copy of its declared branch that does not hold
 its audited commit, by hand or by `checkout`, `cherry-pick -n` or
@@ -74,7 +74,7 @@ says one line naming the commit and the branch. In shared mode the pull
 request's check refuses the same row as stale; in local mode no check reads it.
 A recorded target matches a SHA when one is a prefix of the other and both are
 at least seven characters long; any other spelling finds no record, and the
-verdict counts as stamped. `sealed_before` skips a `cleared` this clone recorded
+verdict counts as stamped. `cleared_before` skips a `cleared` this clone recorded
 refusing, as the earlier-run chain does, because nothing stops a refused row
 from becoming history before the pull request's check refuses it; any other
 `cleared` in the history drew where it was made, and counts. So a `cleared` that
@@ -84,7 +84,7 @@ check: refused-cleared-leaves-a-record
 
 **The stamp's `Stop` hook is the plugin's, and it follows every update.**
 `hooks/hooks.json` registers one `Stop` entry with no matcher, whose command is
-`python3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || py -3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || exit 0`.
+`python3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/stamp.py" --stop || py -3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/stamp.py" --stop || exit 0`.
 The harness substitutes `${CLAUDE_PLUGIN_ROOT}` with the root of the copy it
 loaded, so an update moves the command with it and nothing is written into
 the person's settings. The command exits 0 whatever happens, through its
@@ -92,27 +92,27 @@ closing ` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going;
 the `py -3` half runs where the `python3` half exits non-zero. The hook runs at the end of every turn in every
 repository; where nothing is pending in the clone of the payload's `cwd`, it
 returns before the opt-in is read.
-check: tests/skills/test_seal_stamp.py
+check: tests/skills/test_stamp.py
 
 **`--stop` holds its whole message under a limit named in the code, and steps
 the drawing down rather than letting the harness persist it.** The harness
 writes a `Stop` hook's `systemMessage` longer than 10,000 characters to a file
 and shows the person a 2 KB preview, so a stamp past that size is not seen.
-`seal_stamp.MESSAGE_LIMIT` is that number, measured with a scratch hook, and
+`stamp.MESSAGE_LIMIT` is that number, measured with a scratch hook, and
 nothing else shares the message. The harness counts UTF-16 units, so a
 character outside the BMP is two, and so does `--stop`. One message carries as
 many of the oldest pending stamps as fit together with their disc. A stamp has
 two rungs, with its disc and then without it: the owner's disc is drawn 28
 cells across and has one size, so there is no smaller disc to step to, and no
 scale either. That disc is most of a stamp's size, so one stamp of a real work
-item's size goes out per message and a second waits for the next turn. A seal
+item's size goes out per message and a second waits for the next turn. A stamp
 past what one message can carry stays pending and is drawn at the next turn's
 end, and a single stamp that does not fit with its disc by itself is the only
 one drawn as the text block with no disc. A stamp can come out without its disc
 or a turn later, and a session that ends first leaves it for
 `seal stamp --from`. `seal stamp` is not limited, because it is no hook's
 message.
-check: tests/skills/test_seal_stamp.py
+check: tests/skills/test_stamp.py
 
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that `--stop` emits the right bytes for
@@ -141,9 +141,9 @@ that landed row as stale. `--inspection` judges the file's newest verdict block
 alone, never the earlier blocks, so a `cleared` that drew and whose audited
 commit a later rebase, amend or cherry-pick moved out of the history counts as
 stamped, which it is. In local mode the record is the clone's own: a values
-directory emptied by hand, or a guarantee brought by `seal import` from a clone
-that drew and re-sealed here, draws again. A wrong row that names, by
-coincidence, the very commit a copy of the item on another branch was sealed
+directory emptied by hand, or an inspection brought by `seal import` from a clone
+that drew and cleared again here, draws again. A wrong row that names, by
+coincidence, the very commit a copy of the item on another branch was cleared
 and drawn over draws a second time once `--inspection` refuses and records it,
 a class this rule accepts as a second run of the item. So does a `cleared` that
 drew in another clone and was brought onto a copy of its declared branch that
@@ -152,12 +152,12 @@ and records it, and the new audit it asks for draws again. No guard can tell
 that copy from a stale row the same clone wrote after a push and a rebase.
 Nothing draws, and nothing says so, where the main session's working
 directory is outside the clone the stamp was queued in. Nothing draws either
-where the `python3` the harness finds cannot load `seal_stamp.py`, or
-where the disc's mark sprite, `skills/verify/scripts/seal-mark.txt`, is
+where the `python3` the harness finds cannot load `stamp.py`, or
+where the disc's mark sprite, `skills/verify/scripts/stamp-mark.txt`, is
 malformed, and the command still exits 0. A values file the sprite kept
 from drawing stays pending, and `seal stamp --from` refuses it with a line
 naming the sprite's fault until the sprite is repaired. Where a file was written, the line
 `--inspection` printed names `seal stamp --from <path>`, and a stamp that did
 not appear is drawn by hand from it, once. Where none was, the pull request's
-check is what says the work item was sealed.
+check is what says the work item was cleared.
 No case, hook or workflow can observe a screen.

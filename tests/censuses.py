@@ -954,7 +954,7 @@ def matches(pattern, rel):
     """Whether ruff's glob `pattern` names `rel`. Its `*` crosses a `/`, as
     ruff's does: `"skills/*.py"` lints `skills/verify/scripts/broad_gate.py`
     too. Ruff also matches the pattern against the file's name, so one with
-    no `/`, `"seal_stamp.py"`, names that file in any directory; a name holds
+    no `/`, `"stamp.py"`, names that file in any directory; a name holds
     no `/` for a pattern's `/` to match."""
     return any(fnmatch.fnmatchcase(p, pattern) for p in (rel, posixpath.basename(rel)))
 

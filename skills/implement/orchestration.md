@@ -53,7 +53,7 @@ lifetimes* states (contract rule 11).
    the pull request body from `pr.md` and the records, then the inspector,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
-   opens once the inspector seals* owns when). Once the pull request is open,
+   opens once the work item is cleared* owns when). Once the pull request is open,
    the orchestrator removes the work item's scratch directory,
    `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
    out in full, with no variable in it, and removes nothing else of the
@@ -489,7 +489,7 @@ the answer writes* above:
 
 | Combination | Why it does not stand |
 |---|---|
-| a work item whose pull request opens without the broad run or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
+| a work item whose pull request opens without the broad run or without a cleared inspection | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
 | `crafter` building with no frame | the crafter builds a phase of `frame/plan.md` and fills its Status cell (`agents/crafter.md` *Order of work*) |
 | `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it |
 

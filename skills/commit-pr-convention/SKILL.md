@@ -240,7 +240,7 @@ the orchestrator's comes first.** The first part is the work item's
 under that line from the work item's other records: the changelog fragment
 first, and the rest inside one `<details>` fold. What `pr.md` and
 `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the inspector seals*. The
+*Orchestrator: the pull request opens once the work item is cleared*. The
 `Closes`, `Part of` and attribution lines of `pr.md` are in the language
 `Commit and pull request language` names. A quote is its record's sentence
 as it stands, so it is in `Record language`, and so is the second part, the
@@ -261,7 +261,7 @@ quotes.** The orchestrator writes that row before it writes `pr.md`.
 team's language.** The orchestrator writes a translated file, the mirror,
 beside `pr.md`, written in the commit language, in the shape
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the inspector seals* gives it.
+once the work item is cleared* gives it.
 `seal pr-body` writes the mirror above `pr.md`, so the body's first part is
 the mirror and then `pr.md`. Where the two keys name one language, no
 mirror is written.

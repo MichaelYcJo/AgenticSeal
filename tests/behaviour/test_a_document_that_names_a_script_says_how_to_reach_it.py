@@ -416,7 +416,7 @@ def test_a_subcommand_in_prose_or_inside_a_longer_word_does_not_count():
     """`seal stamp` in a sentence is two words of prose, and `seal mutate`
     inside `seal mutate-length` is a different name; a substring test would
     let either satisfy the rule."""
-    stamp = "skills/x/scripts/seal_stamp.py"
+    stamp = "skills/x/scripts/stamp.py"
     assert not reachable("A seal stamp is drawn once.", stamp)
     mutate = "skills/x/scripts/mutation_check.py"
     assert not reachable("`seal mutate-length` is not a command", mutate)

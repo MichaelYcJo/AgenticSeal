@@ -81,13 +81,13 @@ AGENT_SET = ("docs", "running", "the-agent-set.md")
 
 # Each link is the owner's path and section, the citation a reader of the
 # linking carrier resolves; the sentence around it is the proofer's to read.
-ONE_SEAL_IS_FINAL = (
+ONE_INSPECTION_IS_FINAL = (
     "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
-    "the one seal is the inspector's*"
+    "the one inspection is the inspector's*"
 )
-AFTER_THE_SEAL = (
+AFTER_THE_INSPECTION = (
     "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the inspector seals*"
+    "opens once the work item is cleared*"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value*"
@@ -123,21 +123,21 @@ NARROWING = (
 RULES = {
     # #943: a pull request opened before round 1 ran the suite on three
     # platforms at every push of every round, and its Ready press once more.
-    "6 the pull request opens once the inspector has sealed": (
+    "6 the pull request opens once the work item is cleared": (
         ORCH,
         (),
-        {ORCH_IMPL: AFTER_THE_SEAL, CONTRIBUTING: AFTER_THE_SEAL},
+        {ORCH_IMPL: AFTER_THE_INSPECTION, CONTRIBUTING: AFTER_THE_INSPECTION},
     ),
     # Since #967 an agent's hand-back carries its claims under the three
-    # labels and no agent but the inspector takes a seal.
-    "10 the hand-back's labels carry the claims, and one seal is the inspector's": (
+    # labels and no agent but the inspector makes an inspection.
+    "10 the hand-back's labels carry the claims, and one inspection is the inspector's": (
         VERIFY,
         (
-            # The file the inspector writes its seal into, which the chain
-            # check's guarantee arm reads.
+            # The file the inspector writes its inspection into, which the chain
+            # check's inspection arm reads.
             "`inspection.md`",
         ),
-        {INSPECTOR: ONE_SEAL_IS_FINAL},
+        {INSPECTOR: ONE_INSPECTION_IS_FINAL},
     ),
     # From #401: the `Broad gate` key is the one value only a person can
     # write, and the criterion for it is folded into one owner.
@@ -229,10 +229,10 @@ RULES = {
             "`skills/code-review/scripts/pr_body.py#HEADING`",
         ),
         {
-            CONVENTION: AFTER_THE_SEAL,
-            IMPLEMENT: AFTER_THE_SEAL,
-            CONFIG_TEMPLATE: AFTER_THE_SEAL,
-            OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
+            CONVENTION: AFTER_THE_INSPECTION,
+            IMPLEMENT: AFTER_THE_INSPECTION,
+            CONFIG_TEMPLATE: AFTER_THE_INSPECTION,
+            OUTSIDE_THE_REVIEW: AFTER_THE_INSPECTION,
         },
     ),
     # #1578: eleven files each spelt where the root is found, and none of
@@ -323,7 +323,7 @@ RULES = {
         BROAD_GATE,
         (
             # The two refs `broad_gate.py#resolve_base` tries before the ref
-            # as given, which a person doubting a seal checks the printed
+            # as given, which a person doubting an inspection checks the printed
             # base against.
             "`<base>@{upstream}`",
             "`origin/<base>`",
@@ -608,7 +608,7 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     text = flat(*ORCH)
     owner = text[
         text.index(
-            "## Orchestrator: the pull request opens once the inspector seals"
+            "## Orchestrator: the pull request opens once the work item is cleared"
         ) : (text.index("## Orchestrator: verify before posting"))
     ]
     steps = flat(*GATE_TO_PR).split(

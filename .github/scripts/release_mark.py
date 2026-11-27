@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Put the release's seal in the note: the stamp's results, and the seal's
+"""Put the release's mark in the note: the stamp's results, and the mark's
 PNG beside them where the repository turns the image on.
 
 **The image is one key's to turn on.** `MARK_KEY` in the
@@ -13,9 +13,9 @@ refuses, are named on a `::warning::` line, and the results still go in.
 The plugin ships no release workflow, so the key is read in this repository
 alone.
 
-**The seal is the page form of the stamp's mark.** The mark has two
+**The mark is the page form of the stamp's mark.** The mark has two
 forms: a sprite the terminal stamp draws
-(`skills/verify/scripts/seal_stamp.py`), and a vector drawn once to the PNG
+(`skills/verify/scripts/stamp.py`), and a vector drawn once to the PNG
 that `.claude-plugin/plugin.json` names as its `icon`. `draw` copies that PNG
 byte for byte to the release asset and answers its width divided by
 `DENSITY`, the width the note shows it at, so a high-density screen draws it
@@ -23,7 +23,7 @@ sharp. Nothing here reads the terminal stamp, so a change to the sprite
 leaves the release image as it is, and a new page image is a new icon.
 
 **Standard library only.** This file imports no package beyond Python's
-own, so attaching the seal needs no imaging library. Nothing under `lib/`
+own, so attaching the mark needs no imaging library. Nothing under `lib/`
 or `skills/` imports this file, and the gates stay stdlib-only
 (`CONTRIBUTING.md`, *Running the checks*).
 
@@ -37,29 +37,29 @@ own gates use (`chain_counts`). A source that cannot be read says `not read`
 in its row.
 
 **Any failure leaves the note as it was published.** `.github/workflows/
-publish-release.yml` runs this in its `seal` job, after `publish` created
-the release in the same run. The note is already out by then, so a seal that
+publish-release.yml` runs this in its `mark` job, after `publish` created
+the release in the same run. The note is already out by then, so a mark that
 cannot be drawn costs the image and never the counts -- the rule
 `publish_release_note.py`'s docstring states for its summary. Every failure
 here is one log line and one `::warning::` with an exit of 0, and nothing is
 edited unless the note's header is still in it exactly once as
 `publish_release_note.py#header` wrote it. A note somebody edited
 after publication is left alone, and so is its asset list; so is a note a
-run of this job already sealed, whose header is the sealed one by then, with
+run of this job already marked, whose header is the marked one by then, with
 the image or without it, so a re-run uploads and edits nothing. The upload
 comes before the edit, so an edit that fails leaves an attached image the
 note does not show, which the warning names.
 
-`DRY_RUN=1` draws the PNG at `SEAL_PNG` (by default `seal.png` in a
+`DRY_RUN=1` draws the PNG at `MARK_PNG` (by default `mark.png` in a
 temporary directory) where the row turns the image on, prints the rows and
-the note it would write, and uploads and edits nothing, so the seal of a
+the note it would write, and uploads and edits nothing, so the mark of a
 release whose job did not run can be drawn by hand from a checkout at the
 tag, attached with `gh release upload` and shown with
 `gh release edit --notes-file`.
 
 Environment: `TAG`, `REPO`, `GH_TOKEN`, `SUITE_RECORDS` (the directory the
 recorder wrote in) and `SUITE_KEY` (the key the run at the tag was handed),
-`SUITE_OUTCOME` (the suite step's outcome), `DRY_RUN`, `SEAL_PNG`.
+`SUITE_OUTCOME` (the suite step's outcome), `DRY_RUN`, `MARK_PNG`.
 
 Exit code: 0, always.
 """
@@ -71,7 +71,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Where this file's own repository is, which the modules below are loaded
-# from; and the tree the seal reads its data from: the round records the
+# from; and the tree the mark reads its data from: the round records the
 # chain rows count and the manifest that names the page image. They are the
 # same checkout at the tag, and two names so a case can point the second at
 # a fixture without moving the first.
@@ -83,7 +83,7 @@ sys.path.insert(0, os.path.join(CODE, "lib"))
 
 
 # The tree's own modules are loaded when first asked for, not at import: a
-# module that will not load is one more way for the seal to fail, and every
+# module that will not load is one more way for the mark to fail, and every
 # way it fails has to end in today's note and an exit of 0 (`main`), which an
 # import at the top of this file would end before `main` ran.
 def module(rel):
@@ -109,13 +109,13 @@ DENSITY = 2
 # --- the rows ------------------------------------------------------------
 #
 # A release's panel is a fixed set of rows, held here as one constant: the
-# owner's 0.17.0 seal is the drawing, and a label the code composed from free
+# owner's 0.17.0 wax seal is the drawing, and a label the code composed from free
 # text could grow past the eight-wide label column the panel was drawn in, and
 # a dry run still prints the rows in. That column is `{label:<8}`, not the
 # longest label: `deferred` is exactly eight, which is the only reason the
 # column looks set by it. The image carries no rows: they reach the note as
 # the badges in its header (`results`).
-LABELS = ("SEALED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
+LABELS = ("CLEARED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
 # The widest value a release's panel carries before the frame would cut it.
 # The gate's panel value is 41 wide, for the open layout's 80 columns, and a
 # release's rows are outside that layout, so this one is 23, and a case holds
@@ -143,7 +143,7 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
     items, rounds, capped, deferred = chain
     passed, skipped = suite
     rows = [
-        ("SEALED", f"v{version}"),
+        ("CLEARED", f"v{version}"),
         ("tag", sha[:8]),
         ("", "main"),
         ("PRs", f"{pulls_n} merged"),
@@ -176,9 +176,9 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
 
 
 def results(rows):
-    """`(sealed, lines)`: the stamp's results as badge lines, each a list of
+    """`(cleared, lines)`: the stamp's results as badge lines, each a list of
     `(label, value)` pairs, which the note's header shows as badges.
-    `sealed` is the sealed version, then the tagged commit with each branch
+    `cleared` is the cleared version, then the tagged commit with each branch
     it is on. `lines` are the suite and its skips, the review rounds and the
     work items, and how many were capped and the issues deferred, two to a
     line; a row not read gives `not read` on each badge it feeds. The pull
@@ -193,8 +193,8 @@ def results(rows):
         else:
             by[last].append(value)
     tag = by["tag"]
-    sealed = [
-        [("SEALED", by["SEALED"][0])],
+    cleared = [
+        [("CLEARED", by["CLEARED"][0])],
         [("commit", tag[0]), *(("on", branch) for branch in tag[1:])],
     ]
     passed, skipped = [
@@ -213,7 +213,7 @@ def results(rows):
             ("deferred", deferred if deferred == NOT_READ else deferred.split()[0]),
         ]
     )
-    return sealed, lines
+    return cleared, lines
 
 
 # --- the sources ---------------------------------------------------------
@@ -237,7 +237,7 @@ def suite_counts(directory, key):
     where no session carries the key, where a line of a keyed record did not
     parse, where a session stopped part-way, where a test or a collection
     had no file of its own and so counts under no category (`unplaced`),
-    or where the counts hold a failure or an error -- a `SEALED` above a red
+    or where the counts hold a failure or an error -- a `CLEARED` above a red
     or a short suite would be false, and a record nobody can read is never a
     zero."""
     if not directory:
@@ -317,7 +317,7 @@ def chain_counts(root, pulls):
     try:
         import sibling
 
-        # The seal goes on without these rows, so an absent reader raises
+        # The mark goes on without these rows, so an absent reader raises
         # `lib/sibling.py#Absent` with no sentence of the loader's, and the
         # line below names it.
         with sibling.going_on():
@@ -393,15 +393,15 @@ def chain_counts(root, pulls):
 # --- publishing ----------------------------------------------------------
 
 # The asset's name on the release, and so the last part of its URL.
-ASSET = "seal.png"
+ASSET = "mark.png"
 
 # The key of the tree's `seal/config.json` that turns the image on, read
 # by `lib/config.py#switch`. What `mark_on` says where a key is written and
 # does not turn it on is the switch's sentence, closed by `NO_IMAGE` and
 # printed after `IMAGE_WARNING`.
-MARK_KEY = "Release note seal mark"
-IMAGE_WARNING = "::warning::release seal image: "
-NO_IMAGE = "the note's header holds the results without the seal's image"
+MARK_KEY = "Release note inspection mark"
+IMAGE_WARNING = "::warning::release mark image: "
+NO_IMAGE = "the note's header holds the results without the mark's image"
 
 
 def mark_on(root):
@@ -420,7 +420,7 @@ def mark_on(root):
 
 
 class Refused(Exception):
-    """A reason the seal is not attached; `main` says it and exits 0."""
+    """A reason the mark is not attached; `main` says it and exits 0."""
 
 
 def gh(*args):
@@ -482,7 +482,7 @@ def draw(png):
     if not isinstance(icon, str) or not icon:
         raise Refused(
             "the plugin's manifest .claude-plugin/plugin.json names no icon, "
-            "the page image the seal is"
+            "the page image the mark is"
         )
     # The manifest spells the path with `/`, so it is split before it is
     # joined, and its `.` segments are dropped.
@@ -505,12 +505,12 @@ def draw(png):
         with open(png, "wb") as handle:
             handle.write(data)
     except OSError as problem:
-        raise Refused(f"the seal could not be written at {png}: {problem}") from problem
+        raise Refused(f"the mark could not be written at {png}: {problem}") from problem
     return int.from_bytes(data[16:20], "big") // DENSITY
 
 
-def seal_release(tag, repo, dry):
-    """Put the seal for `tag` in its note, drawing and attaching its image
+def mark_release(tag, repo, dry):
+    """Put the mark for `tag` in its note, drawing and attaching its image
     where `mark_on` reads the row on, or raise `Refused` at the first thing
     that stops it -- before any write, apart from the edit."""
     note = publisher()
@@ -519,7 +519,7 @@ def seal_release(tag, repo, dry):
         raise Refused(f"{tag!r} is not a vX.Y.Z tag")
     outcome = os.environ.get("SUITE_OUTCOME", "").strip()
     if outcome and outcome != "success":
-        raise Refused(f"the suite at {tag} ended {outcome}, and a seal says it passed")
+        raise Refused(f"the suite at {tag} ended {outcome}, and a mark says it passed")
     try:
         suite = suite_counts(
             os.environ.get("SUITE_RECORDS", "").strip(),
@@ -542,9 +542,9 @@ def seal_release(tag, repo, dry):
         print(IMAGE_WARNING + unread)
     if on:
         # The upload names the asset after the file, so a run that uploads
-        # writes `ASSET` in a directory of its own; `SEAL_PNG` is a dry run's.
-        path = os.environ.get("SEAL_PNG") if dry else ""
-        path = path or os.path.join(tempfile.mkdtemp(prefix="release-seal-"), ASSET)
+        # writes `ASSET` in a directory of its own; `MARK_PNG` is a dry run's.
+        path = os.environ.get("MARK_PNG") if dry else ""
+        path = path or os.path.join(tempfile.mkdtemp(prefix="release-mark-"), ASSET)
         width = draw(path)
         print(f"copied the icon the plugin's manifest names to {path}")
     try:
@@ -564,26 +564,26 @@ def seal_release(tag, repo, dry):
     said, lines = results(rows)
     if on:
         image = f"https://github.com/{repo}/releases/download/{tag}/{ASSET}"
-        alt = f"The {version} release seal"
-        replacement = note.sealed_header(
+        alt = f"The {version} release mark"
+        replacement = note.marked_header(
             image, alt, width, said, lines, work, closed, people
         )
     else:
-        replacement = note.sealed_header(
+        replacement = note.marked_header(
             None, None, None, said, lines, work, closed, people
         )
-    sealed = body.replace(header, replacement)
+    marked = body.replace(header, replacement)
     if dry:
         print("DRY_RUN -- nothing uploaded and nothing edited; the note would read:")
-        print(sealed)
+        print(marked)
         return
     if not on:
-        gh("release", "edit", tag, "--repo", repo, "--notes", sealed)
-        print(f"put the seal's results in {tag}'s note, with no image")
+        gh("release", "edit", tag, "--repo", repo, "--notes", marked)
+        print(f"put the mark's results in {tag}'s note, with no image")
         return
     gh("release", "upload", tag, path, "--repo", repo)
     try:
-        gh("release", "edit", tag, "--repo", repo, "--notes", sealed)
+        gh("release", "edit", tag, "--repo", repo, "--notes", marked)
     except Refused as problem:
         raise Refused(
             f"{problem}; {ASSET} was uploaded and the note does not show it"
@@ -605,7 +605,7 @@ def main():
         # `lib/sibling.py#Absent` with no sentence and the line below names
         # it.
         with sibling.going_on():
-            seal_release(tag, repo, dry)
+            mark_release(tag, repo, dry)
     except (Exception, SystemExit) as problem:
         if isinstance(problem, Refused):
             reason = str(problem)
@@ -615,8 +615,8 @@ def main():
         else:
             reason = f"{type(problem).__name__}: {problem}"
         reason = " ".join(reason.split())
-        print(f"no seal: {reason} -- the note stays as it was published")
-        print(f"::warning::release seal skipped: {reason}")
+        print(f"no mark: {reason} -- the note stays as it was published")
+        print(f"::warning::release mark skipped: {reason}")
     return 0
 
 

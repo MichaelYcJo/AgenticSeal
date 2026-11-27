@@ -286,7 +286,7 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, wrapped))
         assert out == "", out
 
-    def test_refuses_to_print_where_the_words_stand_only_in_trail_or_guarantee(
+    def test_refuses_to_print_where_the_words_stand_only_in_trail_or_inspection(
         self, tmp_path
     ):
         """A10. A round record under `trail/` and `inspection.md` quote what

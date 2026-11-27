@@ -28,7 +28,7 @@ the commit the tag names.
 **A tag pushed by hand is passed on as it is**, so pushing one still
 publishes a release the push to `main` did not.
 
-Every other push to `main` passes on no tag, and the note step and the seal
+Every other push to `main` passes on no tag, and the note step and the mark
 job are skipped.
 
 Where a tag is to be created, `DRY_RUN=1` prints the tag and the commit,

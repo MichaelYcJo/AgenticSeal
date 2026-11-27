@@ -55,9 +55,9 @@ cat > 'seal/config.json' <<'AGENTIC_EOF'
   "Record language": "English"
 }
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/routing.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/routing.md' <<'AGENTIC_EOF'
-# Routing: 1790000030-guarantee-false-red
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/routing.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/routing.md' <<'AGENTIC_EOF'
+# Routing: 1790000030-inspection-false-red
 
 | Axis | Answer |
 |---|---|
@@ -66,13 +66,13 @@ cat > 'seal/threads/1790000030-guarantee-false-red/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Branch | feat/guarantee-false-red |
+| Branch | feat/inspection-false-red |
 AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
-git checkout -q -b feat/guarantee-false-red
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/frame/design.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/frame/design.md' <<'AGENTIC_EOF'
+git checkout -q -b feat/inspection-false-red
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/frame/design.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/frame/design.md' <<'AGENTIC_EOF'
 # Design: shout keeps empty text empty
 
 ## Scope
@@ -92,8 +92,8 @@ none
 
 Framed 2026-10-14 by framer, before the build.
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/frame/plan.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/frame/plan.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/frame/plan.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: shout keeps empty text empty
 
 ## Phases
@@ -134,9 +134,9 @@ AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'fix: shout keeps empty text empty'
 build=$(git rev-parse HEAD)
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/trail/phases/phase-1.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/trail/phases/phase-1.md' <<'AGENTIC_EOF'
-# Phase 1: 1790000030-guarantee-false-red
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/trail/phases/phase-1.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/trail/phases/phase-1.md' <<'AGENTIC_EOF'
+# Phase 1: 1790000030-inspection-false-red
 
 ## What this phase found
 
@@ -145,9 +145,9 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md' <<'AGENTIC_EOF'
-# Review round 1: 1790000030-guarantee-false-red
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/trail/rounds/round-1.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/trail/rounds/round-1.md' <<'AGENTIC_EOF'
+# Review round 1: 1790000030-inspection-false-red
 
 ```seal
 target: b0b0b0b against main
@@ -171,13 +171,13 @@ read against S1.
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/changelog.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/changelog.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/changelog.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/changelog.md' <<'AGENTIC_EOF'
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/gaps.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/gaps.md' <<'AGENTIC_EOF'
-# Closing memo: 1790000030-guarantee-false-red
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/gaps.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/gaps.md' <<'AGENTIC_EOF'
+# Closing memo: 1790000030-inspection-false-red
 
 ## Not verified
 
@@ -188,33 +188,33 @@ cat > 'seal/threads/1790000030-guarantee-false-red/gaps.md' <<'AGENTIC_EOF'
 
 nothing
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/pr.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/pr.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/pr.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/pr.md' <<'AGENTIC_EOF'
 Closes #101.
 AGENTIC_EOF
-sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md'
+sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-inspection-false-red/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-inspection-false-red/trail/rounds/round-1.md'
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, pr.md, round 1 and the changelog'
 run=$(git rev-parse HEAD)
-mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/trail/gate.md')"
-cat > 'seal/threads/1790000030-guarantee-false-red/trail/gate.md' <<'AGENTIC_EOF'
-# 1790000030-guarantee-false-red — broad gate
+mkdir -p "$(dirname 'seal/threads/1790000030-inspection-false-red/trail/gate.md')"
+cat > 'seal/threads/1790000030-inspection-false-red/trail/gate.md' <<'AGENTIC_EOF'
+# 1790000030-inspection-false-red — broad gate
 
 ```seal
 run: a0a0a0a against c0c0c0c
 ```
 AGENTIC_EOF
-sed "s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" 'seal/threads/1790000030-guarantee-false-red/trail/gate.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-false-red/trail/gate.md'
+sed "s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" 'seal/threads/1790000030-inspection-false-red/trail/gate.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-inspection-false-red/trail/gate.md'
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the broad run on record'
-mkdir -p "$(dirname '.git/1790000030-guarantee-false-red/issue-101.md')"
-cat > '.git/1790000030-guarantee-false-red/issue-101.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname '.git/1790000030-inspection-false-red/issue-101.md')"
+cat > '.git/1790000030-inspection-false-red/issue-101.md' <<'AGENTIC_EOF'
 # #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
 AGENTIC_EOF
-mkdir -p "$(dirname '.git/1790000030-guarantee-false-red/pr-body.md')"
-cat > '.git/1790000030-guarantee-false-red/pr-body.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname '.git/1790000030-inspection-false-red/pr-body.md')"
+cat > '.git/1790000030-inspection-false-red/pr-body.md' <<'AGENTIC_EOF'
 Closes #101.
 ## From the records
 
@@ -225,7 +225,7 @@ From `changelog.md`.
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
 
 <details>
-<summary>Copied from the records in seal/threads/1790000030-guarantee-false-red/ by seal pr-body.</summary>
+<summary>Copied from the records in seal/threads/1790000030-inspection-false-red/ by seal pr-body.</summary>
 
 ## How it was built
 
@@ -274,4 +274,4 @@ nothing
 
 </details>
 AGENTIC_EOF
-sed "s/b0b0b0b/$build/; s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" '.git/1790000030-guarantee-false-red/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-guarantee-false-red/pr-body.md'
+sed "s/b0b0b0b/$build/; s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" '.git/1790000030-inspection-false-red/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-inspection-false-red/pr-body.md'

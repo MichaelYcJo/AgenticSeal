@@ -1,7 +1,7 @@
-"""The seal is taken once, by the inspector, and what the documents say of it.
+"""The inspection is made once, by the inspector, and what the documents say of it.
 
-Issue #30. The stamp's own cases, `skills/verify/scripts/seal_stamp.py` one
-class per function, are `tests/skills/test_seal_stamp.py`, and the gate's,
+Issue #30. The stamp's own cases, `skills/verify/scripts/stamp.py` one
+class per function, are `tests/skills/test_stamp.py`, and the gate's,
 `skills/verify/scripts/broad_gate.py`, are `tests/skills/test_broad_gate.py`, since
 #942.
 
@@ -16,7 +16,7 @@ import re
 import pytest
 from conftest import ROOT, load_module
 
-# No TARGET: its cases hold the broad gate row and the seal across broad_gate.py, the policy, templates/setup/config.md, skills/verify/orchestration.md and the agent definitions.
+# No TARGET: its cases hold the broad gate row and the inspection across broad_gate.py, the policy, templates/setup/config.md, skills/verify/orchestration.md and the agent definitions.
 
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
@@ -90,13 +90,11 @@ def test_the_stamp_docstring_names_the_file_its_mark_is_drawn_from():
     docstring names the file; how it describes the letter, the twin's
     characters and the panel's rows is the proofer's to read."""
     stamp = " ".join(
-        read_document(
-            os.path.join("skills", "verify", "scripts", "seal_stamp.py")
-        ).split()
+        read_document(os.path.join("skills", "verify", "scripts", "stamp.py")).split()
     )
-    # The path `seal-mark.txt`, which a person opens to change the disc's
+    # The path `stamp-mark.txt`, which a person opens to change the disc's
     # mark.
-    assert "`seal-mark.txt`" in stamp
+    assert "`stamp-mark.txt`" in stamp
 
 
 def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
@@ -331,14 +329,14 @@ def inspector_text():
 
 
 @pytest.mark.parametrize("definition", sorted(PROBE))
-def test_the_definition_separates_a_coverage_probe_from_a_seal(definition):
+def test_the_definition_separates_a_coverage_probe_from_a_proof(definition):
     """The near miss a rule against the full suite creates. *Does anything in
     the suite catch this* is answered by running the suite, and an agent that
     reads only *the full suite is not yours* either does not ask it or reports
-    the answer as a seal. It is a probe: run it, and label it one."""
+    the answer as a proof. It is a probe: run it, and label it one."""
     assert PROBE[definition] in agent(definition), (
-        f"agents/{definition} does not separate a coverage probe from a seal, "
-        "so the one run that is not a seal has no name"
+        f"agents/{definition} does not separate a coverage probe from a proof, "
+        "so the one run that is not a proof has no name"
     )
 
 
@@ -402,7 +400,7 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
     did not move -- it stopped being the exception and became the rule -- so
     every assertion below is unchanged and only the name and the grounds are.
 
-    Since the inspector became the guarantor (#923) its one write in the tree
+    Since the inspector became the final party (#923) its one write in the tree
     is `inspection.md`, and `trail/gate.md` is the gate's, through its
     command. Since #1376 the stamp's values file its `seal stamp --inspection`
     queues is named beside it. How the definition ends the list is the

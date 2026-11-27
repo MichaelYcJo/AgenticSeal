@@ -6,7 +6,7 @@ every commit the branch wrote (`docs/releasing/branch-and-release.md` *Work accu
 on a release branch*). A citation of one of those commits opens in no clone
 after the merge, and a reader sent to it finds no source. Before #1270 no
 check read the form, and three work items reached a release with such a
-citation in their frame, each through a sealed chain.
+citation in their frame, each through a cleared chain.
 
 `cited(root)` reads each token `tests/censuses.py#COMMIT_PATH` matches, in
 every tracked file that is on disk and decodes as UTF-8, read as

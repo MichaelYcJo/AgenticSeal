@@ -2,15 +2,15 @@
 
 Work item 1790562543. An inspector's stdout was a pipe into a report that arrived
 folded behind `ctrl+o`, so a stamp drawn there was never seen. The stamp is
-drawn from the inspector's `cleared` guarantee: the inspector's
+drawn from the inspector's `cleared` inspection: the inspector's
 `seal stamp --inspection` queues its values under the git common dir (#1376),
 and the plugin's `Stop` hook draws each undrawn file once, after the
 orchestrator's turn's text (#1430).
 
 This module holds the cases that read the documents, and the case that
 holds both commands' `--help` to one fact.
-`skills/verify/scripts/seal_stamp.py`'s own cases, the queue and the draw
-among them, are `tests/skills/test_seal_stamp.py`.
+`skills/verify/scripts/stamp.py`'s own cases, the queue and the draw
+among them, are `tests/skills/test_stamp.py`.
 """
 
 import os
@@ -19,19 +19,19 @@ import sys
 
 from conftest import ROOT, flat, flattened, load_module, read, section
 
-# No TARGET: its cases hold the stamp across docs/checks/the-stamp.md, two skills, agents/inspector.md and both READMEs, and hold seal_stamp.py's and broad_gate.py's --help to one fact.
+# No TARGET: its cases hold the stamp across docs/checks/the-stamp.md, two skills, agents/inspector.md and both READMEs, and hold stamp.py's and broad_gate.py's --help to one fact.
 
 
-STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "stamp.py")
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 
 
 def stamp_module():
-    return load_module(STAMP, "agentic_seal_stamp_for_its_values")
+    return load_module(STAMP, "agentic_stamp_for_its_values")
 
 
-def seal_stamp(*args):
-    """`seal_stamp.py` as a person types it, stdout a pipe."""
+def stamp(*args):
+    """`stamp.py` as a person types it, stdout a pipe."""
     return subprocess.run(
         [sys.executable, STAMP, *args],
         capture_output=True,
@@ -80,7 +80,7 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
 
 def test_the_verify_skill_names_what_queues_the_stamp_and_what_draws_it():
     """S16, `verify`'s half, and #975 S13. The stamp is the inspector's, drawn
-    once per work item from its `cleared` guarantee, and the gate draws
+    once per work item from its `cleared` inspection, and the gate draws
     nothing. #1376: queued by the inspector's `seal stamp --inspection` under
     either root; #1430: drawn by the plugin's `Stop` hook. The skill names
     the command and the hook; its sentences are the proofer's to read."""
@@ -118,14 +118,14 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     from conftest import rule_carriers
 
     held = rule_carriers("stamp-drawn-once")
-    local = "Test_queue_for_written_guarantee."
+    local = "Test_queue_for_written_inspection."
     for case in (
-        local + "test_a_local_mode_sealed_guarantee_queues_one_stamp",
-        local + "test_a_local_mode_second_sealed_queues_nothing",
-        local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
-        local + "test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write",
-        local + "test_a_shared_mode_sealed_already_in_the_history_queues_nothing",
-        "Test_main.test_guarantee_queues_the_stamp_and_prints_the_line_naming_it",
+        local + "test_a_local_mode_cleared_inspection_queues_one_stamp",
+        local + "test_a_local_mode_second_cleared_queues_nothing",
+        local + "test_a_local_mode_inspection_off_its_branch_queues_nothing",
+        local + "test_a_shared_mode_cleared_inspection_queues_one_stamp_at_its_write",
+        local + "test_a_shared_mode_cleared_already_in_the_history_queues_nothing",
+        "Test_main.test_inspection_queues_the_stamp_and_prints_the_line_naming_it",
         "Test_main.test_stop_draws_the_payloads_clone_once_and_exits_0",
         "Test_drawn_at_stop.test_accepts_the_main_sessions_stop_and_draws_once",
         "Test_drawn_at_stop.test_refuses_a_cwd_outside_the_clone_the_stamp_waits_in",
@@ -151,7 +151,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     refused it, and the earlier-run chain skips it, so the inspector's new
     audit draws the work item's one stamp. #1027 and #1376: it names the
     record's path, the one writer, `seal stamp --inspection`, the matcher's
-    floor, and `sealed_before`, which skips a recorded refusal as the chain
+    floor, and `cleared_before`, which skips a recorded refusal as the chain
     does; and its `check:` line names the marker the cases that hold each
     carry. Its sentences are the proofer's to read."""
     text = flattened(section(read(*STAMP_DOC), STAMP_HEADING))
@@ -169,8 +169,8 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         # written in at least.
         "seven",
         # The function that skips a recorded refusal, which a reader resolves
-        # in `seal_stamp.py`.
-        "`sealed_before`",
+        # in `stamp.py`.
+        "`cleared_before`",
     ):
         assert fact in rule, fact
     # The marker `skills/settle/scripts/rules.py#markers` reads on the rule's
@@ -179,15 +179,15 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     from conftest import rule_carriers
 
     held = rule_carriers("refused-cleared-leaves-a-record")
-    local = "Test_queue_for_written_guarantee."
+    local = "Test_queue_for_written_inspection."
     for case in (
         local + "test_a_refusal_record_skips_only_its_own_verdict",
         local
-        + "test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
-        local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        + "test_a_local_mode_cleared_refused_off_its_branch_then_cleared_again_draws_once",
+        local + "test_a_local_mode_inspection_off_its_branch_queues_nothing",
         local
-        + "test_a_shared_mode_seal_refused_then_committed_then_resealed_draws_once",
-        "Test_sealed_before.test_skips_a_sealed_this_clone_recorded_refusing",
+        + "test_a_shared_mode_cleared_refused_then_committed_then_cleared_again_draws_once",
+        "Test_cleared_before.test_skips_a_cleared_this_clone_recorded_refusing",
     ):
         assert case in held, case
 
@@ -202,7 +202,7 @@ README_FACTS = (
     "`hooks/core-start.py`",
     # The harness event of the second hook and the command it runs.
     "`Stop`",
-    "`seal_stamp.py --stop`",
+    "`stamp.py --stop`",
     # The harness event of the third hook and the script it runs.
     "`PreToolUse`",
     "`hooks/ask-under-automation.py`",
@@ -248,7 +248,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
 def test_the_inspector_queues_the_stamp_once_and_draws_none():
     """S16, the inspector's half (contract rule 14). `agents/inspector.md` said the
     drawing arrives as letters and to pass it through, which the 0.15.6 run
-    did — every seal behind `ctrl+o`. Since #969 the inspector runs no gate, so
+    did — every stamp behind `ctrl+o`. Since #969 the inspector runs no gate, so
     there is no line of the gate's for it to pass on. Since #975 the stamp is
     drawn in the orchestrator's session from the inspector's own `cleared`
     verdict, once per work item, and never from the orchestrator's run. Since
@@ -279,7 +279,7 @@ def test_the_stamp_draws_its_sample_and_neither_command_offers_a_scale():
     names a scale. What the comment where the scale stood says is the
     proofer's to read."""
     mod = stamp_module()
-    out = seal_stamp("--shape")
+    out = stamp("--shape")
     assert out.returncode == 0, out.stderr
     assert out.stdout == "\n" + "\n".join(mod.stamp(mod.SAMPLE_ROWS, True)) + "\n\n"
     for command in ([sys.executable, STAMP], [sys.executable, GATE]):

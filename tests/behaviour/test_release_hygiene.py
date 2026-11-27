@@ -169,7 +169,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "names as one it does not model. No release of AgenticSeal makes the "
         "number wrong"
     ),
-    ("skills/verify/scripts/seal_stamp.py", "2.1.287"): (
+    ("skills/verify/scripts/stamp.py", "2.1.287"): (
         "Claude Code's, named above `MESSAGE_LIMIT` as the build on which the "
         "harness's 10,000-unit limit on a hook's `systemMessage` was measured "
         "(#717). The class is the git rows' above, a loaded file naming the "

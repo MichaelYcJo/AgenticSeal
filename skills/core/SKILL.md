@@ -17,7 +17,7 @@ user-invocable: false
 
 This file governs work run through the AgenticSeal process, everything the
 plugin does with one issue from the routing question to the final
-inspector's guarantee; a session doing other work is not bound by it to start the
+inspector's verdict; a session doing other work is not bound by it to start the
 process. Each path this file cites is relative to the plugin's root, the
 directory holding this file's `skills/`, never to the session's repository,
 except `seal/`, the records root. The root is looked for at two places,
@@ -111,15 +111,15 @@ one of those protections, is guidance.
 |---|---|---|
 | No review without a build | a round reads a committed tree and its record names the commit | `skills/code-review/scripts/chain_check.py`'s records arm: every record carries one `target:` line, and HEAD descends from the last record's commit and from every `fixed` commit |
 | No fix that no round reads | every change after the last round is read by a round, or by the inspector where it touched the work item's records alone and each finding it closed names a place in those records on its own `location:` line | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
-| No seal without the broad run | the inspector guarantees a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the inspector reads at HEAD itself | `agents/inspector.md` step 1 and the same check's broad gate arm |
-| No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: cleared` at HEAD or at a commit that only `trail/gate.md` and `inspection.md` follow; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the seal mark among it |
+| No inspection without the broad run | the inspector clears a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the inspector reads at HEAD itself | `agents/inspector.md` step 1 and the same check's broad gate arm |
+| No pull request without a cleared inspection | nothing reaches the base that the last independent party did not clear | the same check's inspection arm: a ready pull request fails without `Verdict: cleared` at HEAD or at a commit that only `trail/gate.md` and `inspection.md` follow; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the inspection mark among it |
 
 The check refuses at a ready pull request, where its GitHub Actions workflow
 is installed, and in `seal gate`'s preflight and broad run whatever the pull
 request's state. Before the pull request the gate's run holds the first two
 rows and prints the last two, which `agents/inspector.md` step 1 and the
 orchestrator keeping `skills/code-review/orchestration.md` *Orchestrator:
-the pull request opens once the inspector seals* hold then. In local mode,
+the pull request opens once the work item is cleared* hold then. In local mode,
 where the check judges no work item, those two hold all four.
 
 ## The rule a mechanism is kept against

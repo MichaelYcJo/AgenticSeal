@@ -42,7 +42,7 @@ this module does not read.
 
 Standard library only; it imports `blocks` beside it. `chain_check.py`
 and `broad_gate.py` load it through `lib/sibling.py`, as they load
-`lib/routing.py`; `lib/gaps.py` imports it beside it; `seal_stamp.py`, which
+`lib/routing.py`; `lib/gaps.py` imports it beside it; `stamp.py`, which
 `seal stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 

@@ -177,8 +177,8 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 ## 이름
 
-**제품 이름은 AgenticSeal 이고, 그 안에서 맨 `seal` 은 결과를 가리킵니다.**
-루트 `seal/`, `seal` 명령줄, 기록을 가리키는 "the seal" 입니다.
+**제품 이름은 AgenticSeal 이고, 그 안에서 맨 `seal` 은 두 부분을 가리킵니다.**
+루트 `seal/` 와 `seal` 명령줄입니다.
 플러그인의 `name` 과 모든 에이전트·스킬의 접두어는 `agentic` 이고,
 마켓플레이스는 `agenticseal`, 커밋 트레일러는 `Seal-Routing:` 입니다. 모든
 식별자는 구분자 없는 소문자이고, `AgenticSeal` 은 사람이 브랜드를 읽는 자리에만

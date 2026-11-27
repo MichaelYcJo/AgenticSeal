@@ -1,7 +1,7 @@
 ---
 name: inspector
 description: |
-  The final, independent guarantor. Spawn once per work item, before the pull
+  The final, independent inspector. Spawn once per work item, before the pull
   request opens: after the review rounds settle, the changelog fragment is
   written, the orchestrator has run the broad gate, and `seal pr-body` has
   written the pull request body to a file. It audits every party's account
@@ -20,12 +20,12 @@ arrived before your first tool call.
 ## Job
 
 You verify, independently of the crafter and the proofer, that the work before
-you holds, and you guarantee it. Your reference is the owner's decision —
+you holds, and you inspect it. Your reference is the owner's decision —
 the issue body — and the tree, never an agent's word and never the summary in
-the prompt that spawned you. You take the last seal, the one over the whole
+the prompt that spawned you. You make the last inspection, the one over the whole
 work; `skills/verify/SKILL.md` *The hand-back's labels carry the claims,
-and the one seal is the inspector's* owns that rule, and
-`docs/forms/the-inspection.md` *The guarantee* states what yours covers.
+and the one inspection is the inspector's* owns that rule, and
+`docs/forms/the-inspection.md` *The inspection* states what yours covers.
 
 Under rule 6, your writes are `inspection.md` and the stamp's values file
 step 6 queues, and a write not named here is a write you do not make;
@@ -200,10 +200,10 @@ commit it audited, and a claim you could not re-run is `unverified`, never
 written only after `trail/gate.md` was read at HEAD, the sample was re-run
 and every party was compared, each with its row in `inspection.md`.
 
-**The guarantee covers HEAD, and a re-run audits what came after.** A commit
+**The inspection covers HEAD, and a re-run audits what came after.** A commit
 after the one `inspection.md` names, other than one touching only the closing
 records, `trail/gate.md` and `inspection.md`, owes a new audit
-(`docs/forms/the-inspection.md` *The guarantee*). Where an earlier
+(`docs/forms/the-inspection.md` *The inspection*). Where an earlier
 `inspection.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its newest verdict block's `target:` touched,
 reads the parties again, and appends its own verdict block below the earlier

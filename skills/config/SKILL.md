@@ -47,8 +47,8 @@ present hides exactly those.
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
 | `Pact signers` | *none: in a repository holding `seal/pact.md`, `seal pact` refuses the pact without it* | in the pact's repository, the origin remote URL of every other signer, separated by `;` |
-| `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
-| `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a key in any other repository changes nothing |
+| `Pull request inspection mark` | *off: no mark* | whether `seal pr-body` writes the plugin's inspection mark under the pull request body's `## From the records` heading once the work item is cleared at HEAD; `yes` turns it on |
+| `Release note inspection mark` | *off: no image* | whether the release's `mark` job attaches the mark image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a key in any other repository changes nothing |
 
 **The two language keys are required.** The ways a key is absent, and what
 an absent one does, are `templates/setup/config.md` *An absent language key

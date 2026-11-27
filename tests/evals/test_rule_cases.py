@@ -244,23 +244,23 @@ class Test_proofer_case:
 
 class Test_inspector_case:
     def shapes(self):
-        """`(name, pattern, match, sealed, line, block)` for each inspector
+        """`(name, pattern, match, cleared, line, block)` for each inspector
         case: its `shape-verdict` grader read back, and the verdict line
         the case expects inside a verdict block."""
         inspector = [n for n, c in RC.cases() if c["agent"] == "inspector"]
         assert len(inspector) == len(RC.INSPECTOR_RUNS)
         for name in inspector:
             found, match = case_graders(name)["shape-verdict"]
-            sealed = name.endswith("-cleared")
-            line = "Verdict: cleared" if sealed else "Verdict: withheld reason: x"
+            cleared = name.endswith("-cleared")
+            line = "Verdict: cleared" if cleared else "Verdict: withheld reason: x"
             block = f"{FENCE}seal\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
-            yield name, found, match, sealed, line, block
+            yield name, found, match, cleared, line, block
 
     def test_accepts_the_verdict_in_its_block(self):
         """#1198 phase 3: each inspector case's `shape-verdict` finds the
         verdict the case expects on the `Verdict:` line of a verdict block.
         Seen red against a grader whose opener read `Seal`."""
-        for name, found, match, _sealed, _line, block in self.shapes():
+        for name, found, match, _cleared, _line, block in self.shapes():
             assert match == "contains"
             assert found.search("# Inspection: i\n\n" + block), name
 
@@ -270,9 +270,9 @@ class Test_inspector_case:
         none on another verdict or a word the block reader refuses, and none
         below a block that closed above it. Seen red against the grader that
         read a `Verdict:` line anywhere."""
-        for name, found, _match, sealed, line, block in self.shapes():
+        for name, found, _match, cleared, line, block in self.shapes():
             assert not found.search(f"# Inspection: i\n\n{line}\n"), name
-            other = "Verdict: withheld reason: x" if sealed else "Verdict: cleared"
+            other = "Verdict: withheld reason: x" if cleared else "Verdict: cleared"
             assert not found.search(block.replace(line, other)), name
             # A word the block reader refuses is no verdict either.
             for near in (

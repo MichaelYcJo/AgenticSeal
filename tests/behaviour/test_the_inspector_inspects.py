@@ -2,7 +2,7 @@
 it, and the definition that writes it.
 
 `templates/records/sdd-inspection.md` is the file the inspector fills, and
-`chain_check.py#guarantee` is the arm that reads it at the pull request,
+`chain_check.py#inspection` is the arm that reads it at the pull request,
 through `lib/fields.py`: a ready pull request passes only where the
 newest verdict block names HEAD and reads `cleared`. Each group holds a case
 on good input and one on bad.
@@ -23,7 +23,7 @@ from conftest import (
 )
 from test_fields import TEMPLATE, fields
 
-# No TARGET: its cases walk every committed inspection.md and every inspector eval grader, and hold the guarantee across its template, agents/inspector.md and docs/forms/the-inspection.md.
+# No TARGET: its cases walk every committed inspection.md and every inspector eval grader, and hold the inspection across its template, agents/inspector.md and docs/forms/the-inspection.md.
 
 
 ROOT = pathlib.Path(conftest.ROOT)
@@ -39,12 +39,12 @@ def between(path, start, end):
     return text[head : text.index(end, head)]
 
 
-reader = load(READER, "lines_reader_for_the_guarantee")
+reader = load(READER, "lines_reader_for_the_inspection")
 # The chain check, whose line at a finding no round read the orchestration
 # names.
 chain = load(
     ROOT / "skills" / "code-review" / "scripts" / "chain_check.py",
-    "chain_check_for_the_guarantee",
+    "chain_check_for_the_inspection",
 )
 
 
@@ -94,7 +94,7 @@ class TestTemplate:
         raw = text.split("\n")
         opener = raw.index(fields.OPENER)
         # The block's opener, its three keys in order and its closing fence,
-        # which `chain_check.py#guarantee` reads through `lib/fields.py`.
+        # which `chain_check.py#inspection` reads through `lib/fields.py`.
         assert raw.count(fields.OPENER) == 1
         keys = [line.split(" ", 1)[0] for line in raw[opener + 1 : opener + 4]]
         assert keys == [fields.TARGET, fields.ORIGINAL, fields.INSPECTOR_VERDICT]
@@ -106,13 +106,13 @@ class TestTemplate:
         assert reader.sections(lines, "## The parties")
 
 
-# --- every committed guarantee ---------------------------------------------------
+# --- every committed inspection ---------------------------------------------------
 
 
-def test_every_committed_guarantee_in_blocks_reads_whole():
+def test_every_committed_inspection_in_blocks_reads_whole():
     """Round 1 of #1000, finding 2, under #1198: each `inspection.md` under
     `seal/threads/` that holds a verdict block's opener reads through the
-    reader with no refusal and at least one block. A guarantee of a work
+    reader with no refusal and at least one block. An inspection of a work
     item released before #1198 holds none, and no check judges it again."""
     found = {}
     for path in (ROOT / "seal" / "threads").glob("*/inspection.md"):
@@ -138,7 +138,7 @@ class TestDefinition:
         assert "skills:\n  - core\n  - agent-contract\n" in head
         assert head.count("\n  - ") == 2
 
-    def test_the_inspector_writes_the_guarantee_from_the_template(self):
+    def test_the_inspector_writes_the_inspection_from_the_template(self):
         text = " ".join(INSPECTOR.read_text(encoding="utf-8").split())
         # The path of the template the inspector opens to write `inspection.md`.
         assert "templates/records/sdd-inspection.md" in text
@@ -328,14 +328,14 @@ class TestDefinition:
             paragraph
         ), paragraph
 
-    def test_the_guarantee_rule_exempts_only_the_closing_records(self):
-        """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
-        `trail/gate.md` and `inspection.md` follow the commit the guarantee
+    def test_the_inspection_rule_exempts_only_the_closing_records(self):
+        """Round 1 of #969, finding 1. `chain_check.py#inspection` lets only
+        `trail/gate.md` and `inspection.md` follow the commit the inspection
         names (`follows(..., only=CLOSING_RECORDS)`); an inspector told that any
         record of the work item may follow keeps an earlier verdict over a
         changelog or phase record it never read, and the check refuses it."""
         text = INSPECTOR.read_text(encoding="utf-8")
-        start = text.index("**The guarantee covers HEAD")
+        start = text.index("**The inspection covers HEAD")
         rule = " ".join(text[start:].split("\n\n", 1)[0].split())
         # The two paths `chain_check.py#CLOSING_RECORDS` lets follow the
         # audited commit, which the inspector resolves to tell a commit that owes
@@ -362,16 +362,16 @@ class TestDefinition:
         assert "`outputs kept under seal-gate-<random>/`" in text
 
 
-# --- the document that states the guarantee ------------------------------------
+# --- the document that states the inspection ------------------------------------
 
 
 class TestDocument:
-    def test_the_guarantee_section_points_at_steps_3_and_4(self):
-        """T23: `docs/forms/the-inspection.md` *The guarantee* points at the
+    def test_the_inspection_section_points_at_steps_3_and_4(self):
+        """T23: `docs/forms/the-inspection.md` *The inspection* points at the
         definition's steps 3 and 4 for the acts. Whether it lists any of them
         is the proofer's to read."""
         text = " ".join(DOCUMENT.read_text(encoding="utf-8").split())
-        section = text.split("## The guarantee", 1)[1]
+        section = text.split("## The inspection", 1)[1]
         # The citation of `agents/inspector.md`'s steps 3 and 4, which a reader
         # resolves to the inspector's acts.
         assert "`agents/inspector.md` step 3" in section

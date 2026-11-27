@@ -7,7 +7,7 @@ a person who changes it; the inspector cites its code.
 
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
 section of each `frame/design.md` it parses, the records, the broad gate's
-file, the inspector's guarantee, the pull request's body where the run's event
+file, the inspector's inspection, the pull request's body where the run's event
 payload holds it, the `Seal-Routing` trailers of the pull request's own
 commits and, where `seal/parity.json` is declared, the
 migration config's `Baseline commit`, and, against a design's
@@ -21,7 +21,7 @@ prints the same lines and exits 0. The run of `seal gate` under
 pull request's state and judges as at a ready pull request, so a
 refusal the pull request would meet arrives before it opens. The arms
 that read what is written after that run, `trail/gate.md`,
-`inspection.md` with its `original:` line, and the body the seal mark
+`inspection.md` with its `original:` line, and the body the inspection mark
 stands in, print there and do not fail.
 check: tests/skills/test_chain_check.py
 
@@ -119,7 +119,7 @@ check: parity-at-the-pull-request
 `straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The inspector writes it after comparing the audited
 commit with the original through `legacy-parity`, and the check reads it by
 the rule a round record's line is read by: a ready pull request fails while
-the guarantee holds no such line, or one whose commit and the
+the inspection holds no such line, or one whose commit and the
 `Baseline commit` key's SHA are not one a prefix of the other. What the
 check cannot read is whether the comparison was a good one, which is the
 inspector's.
@@ -176,8 +176,8 @@ check: a-rule-change-names-the-pins-and-copies-it-breaks
 **Where the run's event payload holds the pull request's body, a ready
 pull request passes only where that body is what `seal pr-body` composes
 at HEAD for the one judged work item the pull request carries: its
-`pr.md`, the heading, the seal mark where the `Pull request seal mark`
-key reads `yes` and the work item is sealed at HEAD, and the records'
+`pr.md`, the heading, the inspection mark where the `Pull request inspection mark`
+key reads `yes` and the work item is cleared at HEAD, and the records'
 copy.** Where `seal/config.json`'s two language keys differ, the body
 the check compares opens with the work item's `pr.<lang>.md` and then
 `pr.md`, as `seal pr-body` composes it, and where either key is absent
@@ -206,5 +206,5 @@ body the run began with, and an `edited` event on a merged pull request
 runs the check against a tree the branch's commits are not in, where the
 red gates nothing. In local mode nothing is declared, and the body is
 held by the inspector's `seal pr-body --check` and by the orchestrator's run
-after the seal.
+after the inspection.
 check: body-is-what-pr-body-composes

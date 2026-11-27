@@ -91,7 +91,7 @@ git printed as `git` reads its text, and `batch_texts` reads what `git
 cat-file --batch` printed by the size each header gives.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
-`seal_stamp.py`, and every hook that reads `lib/optin.py`, reach it on
+`stamp.py`, and every hook that reads `lib/optin.py`, reach it on
 whatever `python3` starts them.
 """
 

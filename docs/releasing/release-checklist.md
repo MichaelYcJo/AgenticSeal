@@ -23,7 +23,7 @@ running.
       the merge commit either way.
       **Never rebase a work item's branch, for any reason.**
       `skills/code-review/orchestration.md` *Orchestrator: the pull request
-      opens once the inspector seals* states the rule and its reason.
+      opens once the work item is cleared* states the rule and its reason.
 - [ ] **The milestone `release: X.Y.Z` holds what this release is actually
       carrying, and nothing else.** Every open issue in it that is not
       shipping moves to another milestone now, a planning act that needs no
@@ -289,25 +289,25 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       shape it expected and the line it found. Where the job log says the
       pull requests could not be listed, the note went out as the theme line
       and the fragments alone, which one `gh release edit` repairs. After
-      the note, the same workflow's `seal` job attaches `seal.png` and
+      the note, the same workflow's `mark` job attaches `mark.png` and
       rewrites the header, as `docs/releasing/branch-and-release.md`
       *Cutting a release* says. Where the header still
-      shows the counts as text, the `seal` job's log says why on a
+      shows the counts as text, the `mark` job's log says why on a
       `::warning::` line: the suite at the tag did not pass or its counts
       could not be read, the icon could not be copied, a `gh` call failed,
       or the header was not in the note as generated: edited before the job
       reached it, already replaced by an earlier run of the job, published
       without one, or the pull requests moved between the two lists. A
-      value of `seal/config.json`'s `Release note seal mark` key other than
+      value of `seal/config.json`'s `Release note inspection mark` key other than
       `yes` is named on a `::warning::` line of its own, and the results go
-      in without the image. That job never fails the release. To seal one
+      in without the image. That job never fails the release. To mark one
       by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
       `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
       that exists and a key you choose), then run
-      `DRY_RUN=1 python3 .github/scripts/release_seal.py` with `TAG`,
+      `DRY_RUN=1 python3 .github/scripts/release_mark.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)
       set; attach the PNG it names, where it names one, with
       `gh release upload`, then apply the note it prints with

@@ -90,7 +90,7 @@ write, and a write not named here is a write you do not make.
    meets the content another item adds. For each item your work meets,
    `frame/plan.md` *Overlap with the release* states which merges first and
    why. Weigh which order puts the integration inside rounds the later item
-   spends anyway: the item likelier to be sealed first, often the smaller
+   spends anyway: the item likelier to be cleared first, often the smaller
    diff, merges first, and an item that adds a check reading the whole
    tree merges after the items whose content that check reads.
 5. Judge: answer everything the tree can answer, by reading it, and by a

@@ -18,7 +18,7 @@ reasons past.
 The run judges nothing. `seal gate` runs the repository's broad command,
 reports what the commands said, and writes the work item's `trail/gate.md`;
 the inspector's own verdict, which follows the run, is a separate file
-(`docs/forms/the-inspection.md` *The guarantee*). A run that judges is a run
+(`docs/forms/the-inspection.md` *The inspection*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
 check: tests/text/test_broad_gate_rule.py
 
@@ -29,7 +29,7 @@ text under that line, the same bytes on a terminal as on a pipe, and writes
 no values file and no drawing. The verdict word `cleared` is the inspector's,
 and the stamp is queued from that verdict by the inspector, in either mode
 (`docs/checks/the-stamp.md` *The stamp*), so a green suite is never read as
-a sealed work item.
+a cleared work item.
 check: tests/skills/test_broad_gate.py
 
 Where a rule every agent is bound by lives, and where one agent's own rule
@@ -47,7 +47,7 @@ failed. Where a stop chose that code, as a test that calls
 `pytest.exit()` with a return code of 0 or `os._exit(0)` does, it does
 not say that the session ran every test it collected either. A run
 passed on that exit would write `trail/gate.md`, and the inspector would
-guarantee a suite that failed or that nobody finished. So the gate
+clear a suite that failed or that nobody finished. So the gate
 reads the pass off its own recorder's record. It counts a session as
 stopped part-way where its record holds no `end` line, where that
 line's `stopped` is not an empty list, or where its exit is not 0, 1

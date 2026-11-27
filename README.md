@@ -14,17 +14,17 @@ AgenticSeal is a Claude Code plugin. You hand the session an issue, and at
 the start it asks you how the work should be routed. Answer
 `agentic`, the answer it marks, and the session decides for each item which
 agents it needs and whether the run may stop to ask you. Where an item needs
-them all, agents frame the change, build it, review it and seal it. Unless
+them all, agents frame the change, build it, review it and inspect it. Unless
 the session made the change itself, as under `direct`, or you asked for the
-branch back, the run ends at a pull request whose records carry a seal: the
-last agent's written guarantee that the work agrees with the issue and the
+branch back, the run ends at a pull request whose records carry an inspection: the
+last agent's written verdict that the work agrees with the issue and the
 tree at one commit. It never merges. Merging is yours.
 
 Everything above, from the routing question to the final inspector's
-guarantee, is **the AgenticSeal process**, and the diagram below draws it.
+verdict, is **the AgenticSeal process**, and the diagram below draws it.
 Point at it by that name from another repository. It is a product name and
-is not translated. *Seal* keeps one meaning, the last agent's guarantee, and the
-stamp further down is a drawing of it. *The review chain* names only the
+is not translated. *Inspection* keeps one meaning, the last agent's verdict on the
+work, and the stamp further down is a drawing of it. *The review chain* names only the
 review rounds inside the process.
 
 ```mermaid
@@ -36,7 +36,7 @@ flowchart LR
     proofer -- findings --> fix[crafter: fix pass]
     fix --> proofer
     proofer -- rounds settle --> gate[broad gate: full suite, once]
-    gate --> inspector[inspector: guarantee]
+    gate --> inspector[inspector: inspection]
     inspector --> pr([Pull request])
 ```
 
@@ -63,7 +63,7 @@ undoing first.
 The AgenticSeal process differs from asking one agent to review its own
 work. An agent reviewing what it just wrote reads its own reasoning back and
 tends to agree with it. Here the party that builds is never the party that
-reviews or seals, and each agent reads what the others wrote as claims to
+reviews or inspects, and each agent reads what the others wrote as claims to
 check, not as facts (`skills/core/SKILL.md` *Each agent judges its own
 target, independently of the others*).
 
@@ -141,7 +141,7 @@ The question has four answers, and `agentic` is the one marked:
   the crafter builds, whether the proofer reviews, and whether a pull request
   opens.
 - **direct**: the session makes the change itself, with no agent, no frame,
-  no review and no seal.
+  no review and no inspection.
 
 `skills/implement/routing-question.md` gives each answer, and
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
@@ -172,7 +172,7 @@ plugin's `Stop` hook draws it in your terminal at the end of the session's
 turn. It names the commit, the branch, the base, the work
 item, the broad gate's commit and the number of review rounds:
 
-![The stamp a sealed work item draws: the owl's red wax seal beside a panel reading SEALED, with the tree, base, item, gate and rounds](assets/seals/owl.png)
+![The stamp a cleared work item draws: the owl's red wax seal beside a panel reading SEALED, with the tree, base, item, gate and rounds](assets/seals/owl.png)
 
 Where the hook could not draw it, the inspector's hand-back names
 `seal stamp --from <path>`, which draws it by hand.
@@ -287,11 +287,11 @@ because a full run taken mid-review is spent by the next fix
 every other party's, checks that the pull request body `seal pr-body` wrote
 is `pr.md` and the records' own text, and writes `cleared`, `withheld` with
 what the tree contradicts, or `undecided` with a question for you. The pull
-request opens once the work item is sealed, and its body carries the seal
-mark where the `Pull request seal mark` key reads `yes`. Where the two
+request opens once the work item is cleared, and its body carries the inspection
+mark where the `Pull request inspection mark` key reads `yes`. Where the two
 language keys name different languages, the body opens with `pr.<lang>.md`,
 written in the pull request language. Where the pull-request checks are
-installed, they fail a ready pull request that lacks the seal at
+installed, they fail a ready pull request that lacks a cleared inspection at
 its head commit, whose last fixes no round read, or whose body is not what
 `seal pr-body` composes at that commit (`skills/core/SKILL.md` *Judgment is
 not licence to skip a party*). **The chain ends at a pull request, never at
@@ -304,7 +304,7 @@ starts from them. `seal/`, the folder *Shared or local* above places, holds
 what outlives a work item, such as `seal/config.json`, and each work item
 whole under `seal/threads/<id>/`: its
 routing answer, its frame, the trail of its phases and rounds, its closing
-memo and its guarantee. `docs/layout/the-record-layout.md` *seal/* and
+memo and its inspection. `docs/layout/the-record-layout.md` *seal/* and
 *seal/threads/<work-item-id>/* name every file. How a work item's design
 relates to the policy documents your repository keeps under `docs/` is
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*.
@@ -346,7 +346,7 @@ writes into your settings.**
   line naming the core's file for the session to open, above the same line
   naming where work starts. Anywhere else it prints nothing.
 - **`Stop`**, at the end of each turn of the main session, runs
-  `seal_stamp.py --stop`, which draws each stamp waiting in the clone the
+  `stamp.py --stop`, which draws each stamp waiting in the clone the
   session works in, once, and says nothing where none waits.
 - **`PreToolUse`**, before each `AskUserQuestion` call, runs
   `hooks/ask-under-automation.py`. It reads the `routing.md` of each work

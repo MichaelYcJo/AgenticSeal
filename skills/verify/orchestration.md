@@ -34,8 +34,8 @@ types, with nothing else running, and
 `skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
 preflight to the open pull request* owns when, before the inspector is
 spawned. The run judges no failure and fixes none; the
-inspector reads its record, and what it guarantees after it
-is `docs/forms/the-inspection.md` *The guarantee*. `seal gate --preflight`,
+inspector reads its record, and what it inspects after it
+is `docs/forms/the-inspection.md` *The inspection*. `seal gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
 

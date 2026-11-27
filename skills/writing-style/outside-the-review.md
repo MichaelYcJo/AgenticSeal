@@ -23,7 +23,7 @@ proofer 는 이 파일을 열지 않는다. proofer 가 쓰는 글은 리뷰 코
 이고, `config.json` 의 두 언어 키가 서로 다른 언어를 가리키면 그 앞에
 `pr.<lang>.md` 가 온다. `pr.md` 와 `pr.<lang>.md` 가 무엇을 담는지는
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the inspector seals* 가 정한다. 뒷부분은 `seal pr-body` 가 작업 항목의
+once the work item is cleared* 가 정한다. 뒷부분은 `seal pr-body` 가 작업 항목의
 기록을 그대로 옮겨 쓴 글이고,
 `skills/code-review/scripts/pr_body.py#HEADING` 이 담은 줄 아래에 놓인다.
 그중 `changelog.md` 조각은 접히지 않은 채 먼저 오고, 나머지 기록은 그 뒤에
@@ -66,7 +66,7 @@ once the inspector seals* 가 정한다. 뒷부분은 `seal pr-body` 가 작업 
 
 무엇을 어떻게 확인했는지 적는다. **테스트가 실제로 결함을 잡는지 확인했다면 그것도 적는다.** 통과 숫자만으로는 그 테스트가 아무것도 검증하지 않아도 알 수 없다.
 
-리뷰 체인을 거친 본문에는 이 표를 쓰지 않는다. 앞부분의 `pr.md` 와 `pr.<lang>.md` 에는 오케스트레이터 자신의 문장이 들지 않기 때문이다. 광역 실행이 출력한 숫자와 회차가 끝난 뒤에 돌린 CI 결과는 어느 기록에도 없으므로 본문에 들지 않는다. 뒷부분에는 `frame/plan.md` 의 `## Phases` 절과 phase 기록의 경로가 옮겨져 있다. 회차 기록마다 `seal` 블록 전부와 각 지적의 제목도 옮겨져 있고, `trail/gate.md` 의 `seal` 블록과 `gaps.md` 의 `## Not verified` 절도 옮겨져 있다. phase 기록의 본문은 옮겨지지 않는다. 기록에 적힌 검증을 `pr.md` 에 인용할 때 그것을 어떻게 적는지는 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the inspector seals* 가 정한다.
+리뷰 체인을 거친 본문에는 이 표를 쓰지 않는다. 앞부분의 `pr.md` 와 `pr.<lang>.md` 에는 오케스트레이터 자신의 문장이 들지 않기 때문이다. 광역 실행이 출력한 숫자와 회차가 끝난 뒤에 돌린 CI 결과는 어느 기록에도 없으므로 본문에 들지 않는다. 뒷부분에는 `frame/plan.md` 의 `## Phases` 절과 phase 기록의 경로가 옮겨져 있다. 회차 기록마다 `seal` 블록 전부와 각 지적의 제목도 옮겨져 있고, `trail/gate.md` 의 `seal` 블록과 `gaps.md` 의 `## Not verified` 절도 옮겨져 있다. phase 기록의 본문은 옮겨지지 않는다. 기록에 적힌 검증을 `pr.md` 에 인용할 때 그것을 어떻게 적는지는 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* 가 정한다.
 
 ## 다른 팀에 답할 때
 

@@ -37,14 +37,14 @@ from conftest import (
 
 TARGET = "lib/optin.py"
 
-STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "stamp.py")
 STAMP_VALUES = {
     "tree": "aaa1111",
     "base": "bbb2222",
     "from": "origin/base",
     "item": "/x/seal/threads/1799000000-an-item",
     "scale": 0.9,
-    "rows": [("SEALED", ""), None, ("tree", "aaa1111")],
+    "rows": [("CLEARED", ""), None, ("tree", "aaa1111")],
 }
 
 
@@ -713,7 +713,7 @@ class Test_module:
         while the scratch marker stands under the common directory; with the
         marker gone, the same `Stop` draws it."""
         repo, _home = local
-        stamp = load_module(STAMP, "seal_stamp_for_the_scratch_marker")
+        stamp = load_module(STAMP, "stamp_for_the_scratch_marker")
         stamp.write_values(str(repo / ".git"), STAMP_VALUES)
         marker = repo / ".git" / "agentic-scratch"
         marker.write_text("", encoding="utf-8")
@@ -721,7 +721,7 @@ class Test_module:
 
         assert stamp.drawn_at_stop(stop) is None
         marker.unlink()
-        assert stamp.drawn_at_stop(stop).startswith("SEALED aaa1111")
+        assert stamp.drawn_at_stop(stop).startswith("CLEARED aaa1111")
 
 
 test_census = census_case(TARGET)

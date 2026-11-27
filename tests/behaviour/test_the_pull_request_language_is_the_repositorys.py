@@ -1002,7 +1002,7 @@ BLOCK_GRAMMAR = "`lib/fields.py`"
 
 
 def test_the_exclusion_list_points_at_the_block_grammar():
-    """S4, under #1198. The keys of a round record's, a guarantee's and a
+    """S4, under #1198. The keys of a round record's, an inspection's and a
     gate record's `seal` blocks have one statement, `lib/fields.py`,
     which `chain_check.py` and the stamp read them through, so the list names
     the module. Whether a key of it is copied beside the citation is the

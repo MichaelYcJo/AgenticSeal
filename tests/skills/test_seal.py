@@ -3667,7 +3667,7 @@ class Test_main:
             ("fold", "skills/settle/scripts/fold_check.py"),
             ("pact", "skills/verify/scripts/pact_check.py"),
             ("payload", "skills/verify/scripts/payload_meter.py"),
-            ("stamp", "skills/verify/scripts/seal_stamp.py"),
+            ("stamp", "skills/verify/scripts/stamp.py"),
             ("layout", "skills/verify/scripts/test_layout.py"),
             ("rules", "skills/settle/scripts/rules.py"),
             ("pr-body", "skills/code-review/scripts/pr_body.py"),

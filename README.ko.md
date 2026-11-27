@@ -16,17 +16,17 @@ AgenticSeal 은 Claude Code 플러그인입니다. 세션에 이슈 하나를 �
 항목마다 어떤 에이전트가 필요한지와 실행 도중 사용자에게 물어도 되는지를
 정합니다.
 모든 에이전트가 필요한 항목이라면 에이전트들이 변경을 설계하고, 만들고,
-리뷰하고, 마지막에 seal 을 남깁니다.
-seal 은 마지막 에이전트가 쓰는 보증서입니다. 커밋 하나를 기준으로, 작업이
+리뷰하고, 마지막에 검수(inspection)합니다.
+검수는 마지막 에이전트가 쓰는 판정입니다. 커밋 하나를 기준으로, 작업이
 이슈와 트리에 맞는다고 적습니다. 세션이 `direct` 처럼 직접 고친 변경이거나
-사용자가 브랜치를 돌려 달라고 한 경우가 아니면, 실행은 그 seal 을 기록에 담은
+사용자가 브랜치를 돌려 달라고 한 경우가 아니면, 실행은 그 검수를 기록에 담은
 pull request 에서 끝납니다. 머지는 하지 않습니다. 머지는 사용자가 합니다.
 
-라우팅 질문부터 최종 검수자(inspector)의 보증까지, 위에서 말한 일 전체를
+라우팅 질문부터 최종 검수자(inspector)의 검수까지, 위에서 말한 일 전체를
 **AgenticSeal 프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른
 저장소에서 이 과정을 가리킬 때도 이 이름을 씁니다. 제품 이름이므로 번역하지
-않고, "도장 체인"이나 "인장 과정"처럼 옮기지 않습니다. seal 은 마지막 에이전트의
-보증서 하나만 뜻하고, 이 문서가 뒤에서 말하는 도장은 그 seal 을 터미널에 그린
+않고, "도장 체인"이나 "인장 과정"처럼 옮기지 않습니다. 검수는 마지막 에이전트의
+판정 하나만 뜻하고, 이 문서가 뒤에서 말하는 도장은 그 검수를 터미널에 그린
 그림입니다. 리뷰 체인은 이 프로세스 안의 리뷰 회차만 가리킵니다.
 
 ```mermaid
@@ -38,7 +38,7 @@ flowchart LR
     proofer -- 지적 --> fix[crafter: fix pass]
     fix --> proofer
     proofer -- 회차 종료 --> gate[broad gate: 전체 스위트를 한 번]
-    gate --> inspector[검수자: 보증]
+    gate --> inspector[검수자: 검수]
     inspector --> pr([Pull request])
 ```
 
@@ -67,7 +67,7 @@ Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으�
 
 AgenticSeal 프로세스는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과
 다릅니다. 방금 쓴 것을 리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그
-추론에 동의합니다. 여기서는 만드는 쪽이 리뷰하거나 seal 을 남기는 쪽이 되는 일이
+추론에 동의합니다. 여기서는 만드는 쪽이 리뷰하거나 검수하는 쪽이 되는 일이
 없습니다. 각 에이전트는 다른 에이전트가 쓴 것을 사실이 아니라 확인할 주장으로
 읽습니다 (`skills/core/SKILL.md` *Each agent judges its own target,
 independently of the others*).
@@ -143,7 +143,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 - **manual** 은 네 칸을 하나씩 고르는 길입니다. 실행 도중 사용자에게 물어도
   되는지, crafter 가 만드는지, proofer 가 리뷰하는지, pull request 를 여는지를
   각각 정합니다.
-- **direct** 는 세션이 에이전트도 프레임도 리뷰도 seal 도 없이 직접 고치는
+- **direct** 는 세션이 에이전트도 프레임도 리뷰도 검수도 없이 직접 고치는
   길입니다.
 
 답마다 무엇이 정해지는지는 `skills/implement/routing-question.md` 에 있고,
@@ -168,14 +168,14 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 커밋된 diff 를 읽고 지적을 회차 기록에 적습니다. crafter 는 fix pass, 곧
 지적을 고치는 회차에서 지적마다 답합니다. 회차가 끝나면 세션이 broad gate 를
 한 번 돌립니다. broad gate 는 전체 스위트, lint, 타입 검사를 한꺼번에 돌리는
-실행입니다. 마지막으로 보증을 맡는 검수자가 모든 참여자의 기록을 이슈와
+실행입니다. 마지막으로 검수를 맡는 검수자가 모든 참여자의 기록을 이슈와
 트리에 견주어 읽고, 그다음 pull request 가 열립니다.
 
 검수자의 판정이 합격(`cleared`)이면 검수자가 도장을 쌓아 두고, 세션의 턴이 끝날
 때 플러그인의 `Stop` 훅이 그 도장을 터미널에 그립니다. 도장에는 커밋,
 브랜치, base, 작업 항목, broad gate 를 돌린 커밋, 리뷰 회차 수가 적힙니다.
 
-![seal 을 받은 작업 항목이 그리는 도장. 올빼미의 붉은 밀랍 인장 옆에 SEALED 와 tree, base, item, gate, rounds 를 적은 판이 있다](assets/seals/owl.png)
+![합격한 작업 항목이 그리는 도장. 올빼미의 붉은 밀랍 인장 옆에 SEALED 와 tree, base, item, gate, rounds 를 적은 판이 있다](assets/seals/owl.png)
 
 훅이 그리지 못했으면 검수자의 보고가 `seal stamp --from <path>` 를 알려
 주고, 그 명령으로 손으로 그립니다. 도장을 언제 그리고 언제 그리지 않는지는
@@ -290,11 +290,12 @@ verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴
 `seal pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지
 확인한 뒤 판정을 씁니다. 판정은 `cleared`, 트리와 어긋난 곳을 짚은
 `withheld`, 사용자에게 묻는 질문을 단 `undecided` 가운데 하나입니다. pull
-request 는 작업 항목이 `cleared` 를 받은 뒤에 열리고, `Pull request seal mark`
-키가 `yes` 이면 본문에 seal 표시가 붙습니다. 두 언어 키가 서로 다른 언어를
+request 는 작업 항목이 `cleared` 를 받은 뒤에 열리고,
+`Pull request inspection mark` 키가 `yes` 이면 본문에
+검수 표시(inspection mark)가 붙습니다. 두 언어 키가 서로 다른 언어를
 가리키면 본문은 pull request 언어로 쓴 `pr.<lang>.md` 로 시작합니다. pull
-request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request
-라도 맨 위 커밋에 seal 이 없거나, 마지막 수정을 어느 회차도 읽지 않았거나,
+request 검사를 설치한 곳에서는, 리뷰 준비가 된 pull request 라도 맨 위
+커밋에서 합격한 검수가 없거나, 마지막 수정을 어느 회차도 읽지 않았거나,
 본문이 그 커밋에서 `seal pr-body` 가 만드는 본문과 다르면 검사가 실패합니다
 (`skills/core/SKILL.md` *Judgment is not licence to skip a party*). **체인은
 pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
@@ -305,7 +306,7 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 `seal/`(위의 *shared 인가 local 인가* 가 자리를 정하는 폴더)에는
 `seal/config.json` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
 항목마다 그 전부가 `seal/threads/<id>/` 아래에 있습니다. 라우팅 답, 프레임,
-단계와 회차의 기록, 마무리 메모, 보증서입니다. 파일 하나하나는
+단계와 회차의 기록, 마무리 메모, 검수입니다. 파일 하나하나는
 `docs/layout/the-record-layout.md` *seal/* 와 *seal/threads/<work-item-id>/* 에
 있습니다. 작업 항목의 설계가 저장소의 `docs/` 정책서와 어떤 관계인지는
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* 에
@@ -344,7 +345,7 @@ Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅입니�
   넘게 되면, 세션이 열어 볼 코어 파일을 적은 한 줄을 대신 찍고 그 아래에 일을
   어디서 시작하는지 적은 같은 줄을 붙입니다. 다른 곳에서는 아무것도 찍지
   않습니다.
-- **`Stop`** 은 메인 세션의 턴이 끝날 때마다 `seal_stamp.py --stop` 을
+- **`Stop`** 은 메인 세션의 턴이 끝날 때마다 `stamp.py --stop` 을
   돌립니다. 세션이 일하는 클론에 쌓인 도장을 하나씩 한 번 그리고, 쌓인 것이
   없으면 아무 말도 하지 않습니다.
 - **`PreToolUse`** 는 `AskUserQuestion` 호출마다 그 앞에서

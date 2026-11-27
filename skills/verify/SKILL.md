@@ -1,7 +1,7 @@
 ---
 name: verify
 description: |
-  Evidence protocol for completion claims (the Seal Test): name the proving
+  Evidence protocol for completion claims (the Inspection Test): name the proving
   command before running it, show the check can fail, bind the result to a
   tree state, and label every claim executed, read or unverified.
   Use when: about to say done, fixed, passes, or complete; before a commit;
@@ -10,7 +10,7 @@ description: |
   else's diff (`code-review`).
 ---
 
-# The Seal Test
+# The Inspection Test
 
 This file is the crafter's and the inspector's: the crafter opens it before it hands
 work back, and the inspector opens it for the conditions, the labels and the
@@ -43,7 +43,7 @@ change (or fails when the change is reverted). For a new test: it was
 observed failing against the pre-change code, except that a new test
 asserting that something is not named, counted, read or let through, where
 it passes there, is shown red the way contract rule 15 states. A check that
-has never been seen red is a counterfeit seal. This is the condition
+has never been seen red is a counterfeit mark. This is the condition
 generic gates skip, and the one that catches assertion-free tests,
 mocked-away behavior, and wrong-file test runs.
 
@@ -98,22 +98,22 @@ Reporting a `read` as passing is the lie this whole skill exists to prevent.
 4. Where any claim is red or unproven, report the actual state. The claim is
    withheld, not negotiated.
 
-## The hand-back's labels carry the claims, and the one seal is the inspector's
+## The hand-back's labels carry the claims, and the one inspection is the inspector's
 
-**The hand-back's labels carry the claims, and the one seal over the whole
-project is the inspector's `inspection.md`.** An agent hands its claims back under
+**The hand-back's labels carry the claims, and the one inspection over the
+whole project is the inspector's `inspection.md`.** An agent hands its claims back under
 condition 4's three labels, and a proofer's report says what its review looked
-at; neither is a seal and neither ends in a block.
+at; neither is an inspection and neither ends in a block.
 
-Two properties tell the inspector's seal apart from every other account of a
+Two properties tell the inspector's inspection apart from every other account of a
 run.
 
 - **Scope.** An agent's hand-back covers what that agent touched. The
-  inspector's seal covers a tree nobody is still editing, which is why the rule
+  inspector's inspection covers a tree nobody is still editing, which is why the rule
   that nothing edits between the broad run and the pull request
-  (`skills/verify/orchestration.md` *The broad gate*) is one that seal rests
-  on.
-- **Form.** The inspector's seal is the only mark drawn, and only over a verdict
+  (`skills/verify/orchestration.md` *The broad gate*) is one that inspection
+  rests on.
+- **Form.** The inspector's inspection is the only one drawn, and only over a verdict
   that earned it: the stamp is drawn from the inspector's `inspection.md` reading
   `cleared`, once per work item, at the end of the turn in which that file is
   written. The inspector's `seal stamp --inspection` writes the values it is
@@ -121,14 +121,14 @@ run.
   the orchestrator's session
   (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
-  nothing. So seeing the drawing means the last seal was earned.
+  nothing. So seeing the drawing means the last inspection cleared the work.
 
-**A bare "the seal" is ambiguous the moment more than one exists, so every
-reference to an INSTANCE names whose**: the inspector's seal, the proofer's
-round record. The concept and its formats stay bare: the Seal Test, a
-counterfeit seal, AgenticSeal itself. The shape to watch for is a sentence that
-names one party and leaves the seal anonymous: *the proofer's audit of the
-seal* names an auditor and not what is audited.
+**A bare "the inspection" is ambiguous the moment more than one exists, so every
+reference to an INSTANCE names whose**: the inspector's inspection, the proofer's
+round record. The concept and its formats stay bare: the Inspection Test, a
+counterfeit mark, AgenticSeal itself. The shape to watch for is a sentence that
+names one party and leaves the inspection anonymous: *the proofer's audit of
+the inspection* names an auditor and not what is audited.
 
 ## Scope: cheap and often, broad and once
 
@@ -191,7 +191,7 @@ command from:
 
 | What changed | What can fail |
 |---|---|
-| Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no seal to earn here. |
+| Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no proof to earn here. |
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
 | Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the search for the old spelling and its empty result in the phase record. It owes no case written new and no `seal mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |

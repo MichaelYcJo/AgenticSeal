@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Write'
-input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/threads\/1790000030-guarantee-cleared\/inspection\.md)'
+input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/threads\/1790000030-inspection-cleared\/inspection\.md)'
 max: 0
 min: 0
 ---

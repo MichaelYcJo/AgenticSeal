@@ -34,7 +34,7 @@ suite on Linux and Windows, and a branch with no pull request runs nothing.
 macOS and Python 3.14 run on the release pull request into `main`. So the
 branch is pushed as often as the contributor likes, and the pull request
 opens once nothing is left to push. `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the inspector seals* owns the order
+*Orchestrator: the pull request opens once the work item is cleared* owns the order
 a maintainer's run follows.
 
 ### What a contribution is asked for
@@ -195,7 +195,7 @@ directory, removes `GITHUB_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`, and sets
 without a token variable, `gh` reads the login it keeps in the OS keyring. A
 case that falls through its stubs onto a live `gh` then fails where it runs,
 instead of passing on a machine that happens to be logged in and failing
-only on CI after the branch was sealed. A case that needs `gh` stubs it. The
+only on CI after the branch was cleared. A case that needs `gh` stubs it. The
 conftest also removes every variable whose name starts with `GITHUB_`, so a
 case sees under a pull request's CI run what it sees everywhere else, and a
 case that needs one sets it with `monkeypatch.setenv`. One question is
@@ -382,7 +382,7 @@ adds any mechanism by what it takes away:
 - **A test seen red.** The contributor writes the test against the unfixed
   code and watches it fail before fixing anything. A test that has never
   failed proves nothing (this repository's own `verify` skill calls that a
-  counterfeit seal).
+  counterfeit mark).
 - **A stated failure direction.** The pull request says whether the change
   makes the gate block more or allow more, and why that direction is the
   cheaper mistake here. A wrong deny stops a correct pull request or run
@@ -485,7 +485,7 @@ question is not its difficulty, it is when it arrives.
   them, and requires the same sequence of heading levels.
 - **The plugin's hooks write nothing outside the repository.**
   `hooks/hooks.json` registers a `Stop` entry that runs
-  `skills/verify/scripts/seal_stamp.py --stop`, which draws the inspector's
+  `skills/verify/scripts/stamp.py --stop`, which draws the inspector's
   stamp at the end of the main session's turn, a `SessionStart` entry
   that runs `hooks/core-start.py`, which prints the core into a session
   whose repository holds a `seal/` root, a `PreToolUse` entry matched

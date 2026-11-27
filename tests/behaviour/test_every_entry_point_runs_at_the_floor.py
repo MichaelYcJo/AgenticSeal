@@ -87,7 +87,7 @@ def test_what_runs_before_any_floor_is_linted_at_the_floor():
     unfloored, missing = before_any_floor()
     targets = ruff_targets(RUFF)
     assert {
-        "skills/verify/scripts/seal_stamp.py",
+        "skills/verify/scripts/stamp.py",
         "hooks/core-start.py",
         "lib/core.py",
         "lib/launch.py",

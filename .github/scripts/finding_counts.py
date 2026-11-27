@@ -23,7 +23,7 @@ parses with `Review` `through the review chain` (`lib/routing.py#parse`).
 The rounds are `lib/routing.py#rounds`.
 
 **An incomplete count is a wrong number**, the stance
-`.github/scripts/release_seal.py#chain_counts` takes. A work item one of
+`.github/scripts/release_mark.py#chain_counts` takes. A work item one of
 whose records the reader refuses a line of, or that cannot be opened, reads
 `not read` in its three finding cells, and its rounds cell holds the count.
 A work item whose `trail/rounds/` cannot be listed reads `not read` in all

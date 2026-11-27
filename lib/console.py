@@ -52,11 +52,11 @@ script spell the loop inline instead, and only these.
 
 - A script that loads nothing from `lib/` at import, because a load of this
   module would be one more load that can fail before the answer.
-  `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
+  `.github/scripts/release_report.py`, `.github/scripts/release_mark.py` and
   `skills/settle/scripts/rules.py` are of this kind: they load the tree's
   modules only when first asked, after the arguments are read, so an absent
   module ends the first and the last in `lib/sibling.py`'s sentence at exit
-  2 and `release_seal.py` in its note at exit 0, rather than in a traceback.
+  2 and `release_mark.py` in its note at exit 0, rather than in a traceback.
 - `skills/code-review/scripts/chain_check.py` and
   `skills/code-review/scripts/pr_body.py`, which run their loops before they
   load any module, so that the refusal each prints when one will not load

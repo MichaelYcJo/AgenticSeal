@@ -17,8 +17,8 @@ from conftest import seal_block as block
 TARGET = "lib/fields.py"
 
 fields = load_lib_module("fields.py", "agentic_fields_under_test")
-# The guarantee template, which the unfilled-template case reads and
-# `tests/behaviour/test_the_inspector_guarantees.py` imports from here.
+# The inspection template, which the unfilled-template case reads and
+# `tests/behaviour/test_the_inspector_inspects.py` imports from here.
 TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-inspection.md")
 
 FENCE = "`" * 3
@@ -33,9 +33,9 @@ def verdict(target=SHA, said="cleared", original=None):
     return block(*lines, f"Verdict: {said}")
 
 
-def guarantee(*blocks_):
-    """A guarantee: a heading, a table for people, then BLOCKS_."""
-    head = "# an item -- guarantee\n\n| Claim | Result |\n|---|---|\n| x | holds |\n\n"
+def inspection_record(*blocks_):
+    """An inspection: a heading, a table for people, then BLOCKS_."""
+    head = "# an item -- inspection\n\n| Claim | Result |\n|---|---|\n| x | holds |\n\n"
     return head + "\n".join(blocks_)
 
 
@@ -60,7 +60,7 @@ class Test_read:
     def test_accepts_stacked_verdict_blocks_in_order(self):
         """Table F, `verdict`: a block per run of the inspector, the last the
         newest; each field's value, line and named parts come back."""
-        text = guarantee(
+        text = inspection_record(
             verdict("aaa1111", "withheld reason: the gate failed"),
             verdict(SHA, "cleared", original=BASE),
         )
@@ -161,7 +161,7 @@ class Test_read:
         three backticks and `seal`, is no block; it is named at its line as
         not read, and nothing is refused for it."""
         closer = opener[: len(opener) - len(opener.lstrip(opener[0]))]
-        text = guarantee(
+        text = inspection_record(
             f"{opener}\ntarget: {SHA} against main\nVerdict: cleared\n{closer}\n"
         )
         found = fields.read(text, fields.INSPECTION)
@@ -173,7 +173,8 @@ class Test_read:
     @pytest.mark.parametrize("info", ["", "markdown", "sealed", "python seal"])
     def test_refuses_to_name_a_fence_whose_first_word_is_not_seal(self, info):
         found = fields.read(
-            guarantee(f"{FENCE}{info}\nVerdict: cleared\n{FENCE}\n"), fields.INSPECTION
+            inspection_record(f"{FENCE}{info}\nVerdict: cleared\n{FENCE}\n"),
+            fields.INSPECTION,
         )
         assert (found.blocks, found.refusals, found.notices) == ([], [], [])
 
@@ -182,19 +183,21 @@ class Test_read:
         renderer, so it is refused at its opener, and a block above it is
         still read; a `seal` block that never closes is refused the same
         way."""
-        text = guarantee(
+        text = inspection_record(
             verdict(), FENCE + "`\n", verdict(said="withheld reason: the gate failed")
         )
         found = fields.read(text, fields.INSPECTION)
         assert found.refusals == [(line_of(text, FENCE + "`"), fields.UNCLOSED)]
-        open_block = guarantee(f"{FENCE}seal\ntarget: {SHA} against main\n")
+        open_block = inspection_record(f"{FENCE}seal\ntarget: {SHA} against main\n")
         assert fields.read(open_block, fields.INSPECTION).refusals == [
             (line_of(open_block, FENCE + "seal"), fields.UNCLOSED)
         ]
         assert fields.read(open_block, fields.INSPECTION).blocks == []
 
     def test_refuses_a_blank_line_inside_a_block_at_its_line(self):
-        text = guarantee(block(f"target: {SHA} against main", "", "Verdict: cleared"))
+        text = inspection_record(
+            block(f"target: {SHA} against main", "", "Verdict: cleared")
+        )
         found = fields.read(text, fields.INSPECTION)
         blank = line_of(text, f"target: {SHA} against main") + 1
         assert (found.blocks, found.refusals) == ([], [(blank, fields.BLANK)])
@@ -212,7 +215,7 @@ class Test_read:
         """A key is spelt as the module spells it; a line that is not a field
         of its kind is refused at its line with the keys the kind takes, and
         the block is read no further."""
-        text = guarantee(block(f"target: {SHA} against main", line))
+        text = inspection_record(block(f"target: {SHA} against main", line))
         found = fields.read(text, fields.INSPECTION)
         said = fields.NOT_A_FIELD.format(
             line=line,
@@ -222,7 +225,7 @@ class Test_read:
         assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
 
     def test_refuses_a_key_over_its_count_and_a_second_of_one_of_two(self):
-        text = guarantee(
+        text = inspection_record(
             block(f"target: {SHA} against main", "Verdict: cleared", "Verdict: cleared")
         )
         second = line_of(text, "Verdict: cleared") + 1
@@ -250,7 +253,7 @@ class Test_read:
         ],
     )
     def test_refuses_a_value_outside_its_shape_with_the_shape(self, line, says):
-        text = guarantee(block(f"target: {SHA} against main", line))
+        text = inspection_record(block(f"target: {SHA} against main", line))
         key = line.split(" ", 1)[0]
         said = fields.SHAPE.format(
             line=line, key=key, says=fields.VERDICT_BLOCK.keys[says].says
@@ -388,17 +391,17 @@ class Test_read:
             assert shape in says, says
 
     def test_refuses_a_block_lacking_a_key_it_holds_one_of_at_its_opener(self):
-        text = guarantee(block(f"target: {SHA} against main"))
+        text = inspection_record(block(f"target: {SHA} against main"))
         opener = line_of(text, FENCE + "seal")
         said = fields.MISSING.format(kind="verdict", key="Verdict:")
         assert fields.read(text, fields.INSPECTION).refusals == [(opener, said)]
 
     def test_refuses_an_empty_block_and_one_no_kind_of_the_record_opens(self):
-        empty = guarantee(block())
+        empty = inspection_record(block())
         assert fields.read(empty, fields.INSPECTION).refusals == [
             (line_of(empty, FENCE + "seal"), fields.EMPTY.format(openers="`target:`"))
         ]
-        other = guarantee(block(f"run: {SHA} against {BASE}"))
+        other = inspection_record(block(f"run: {SHA} against {BASE}"))
         said = fields.NO_KIND.format(
             line=f"run: {SHA} against {BASE}", openers="`target:`"
         )
@@ -415,7 +418,7 @@ class Test_read:
         one is refused at its line; one quoted inside a fence is the
         fence's. An indented one is refused too, and the walk claims
         nothing after it."""
-        text = guarantee(
+        text = inspection_record(
             "<!-- " + verdict().rstrip("\n") + " -->\n",
             block(f"run: {SHA}", "<!-- quoted", opener=FENCE + "text"),
             verdict(),
@@ -438,7 +441,9 @@ class Test_read:
         an HTML block, a `seal` block below is not read: each fence line it
         cannot place is refused at its line, so a later run's block is never
         silently dropped behind an earlier one."""
-        text = guarantee(verdict(), above + "\n", verdict(said="withheld reason: x"))
+        text = inspection_record(
+            verdict(), above + "\n", verdict(said="withheld reason: x")
+        )
         found = fields.read(text, fields.INSPECTION)
         assert len(found.blocks) == 1
         unsure = [n for n, why in found.refusals if why == fields.UNSURE]
@@ -448,7 +453,7 @@ class Test_read:
 
     def test_refuses_to_read_a_block_quoted_inside_another_fence(self):
         """A `seal` block inside a fix's fence belongs to the fix."""
-        text = guarantee(FENCE + "`markdown\n" + verdict() + FENCE + "`\n")
+        text = inspection_record(FENCE + "`markdown\n" + verdict() + FENCE + "`\n")
         assert fields.read(text, fields.INSPECTION) == fields.Read([], [], [])
 
     def test_reads_a_long_line_in_linear_time(self):
@@ -462,7 +467,8 @@ class Test_read:
             f"target: {SHA} against " + "x" * 100000 + " ",
         ):
             fields.read(
-                guarantee(block(f"target: {SHA} against main", line)), fields.INSPECTION
+                inspection_record(block(f"target: {SHA} against main", line)),
+                fields.INSPECTION,
             )
         for line in (
             "location: `" + "a:1" * 30000 + "`",
@@ -471,7 +477,7 @@ class Test_read:
             fields.read(block("severity: must", line), fields.ROUND_RECORD)
         assert time.monotonic() - start < 5.0
 
-    def test_the_unfilled_template_is_no_guarantee(self):
+    def test_the_unfilled_template_is_no_inspection(self):
         found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.INSPECTION)
         assert found.blocks == [] and found.refusals, found
 
@@ -531,8 +537,8 @@ class Test_module:
         for b in found.blocks:
             assert lines[b.line].startswith(b.kind.opener + " "), lines[b.line]
 
-    def test_the_guarantee_template_refuses_only_its_placeholders(self):
-        """#1198's scenario *The templates parse*, for the guarantee: every
+    def test_the_inspection_template_refuses_only_its_placeholders(self):
+        """#1198's scenario *The templates parse*, for the inspection: every
         block of the template opens with its kind's key, and every line the
         reader refuses is a field whose value is a placeholder."""
         path = os.path.join(ROOT, "templates", "records", "sdd-inspection.md")
@@ -541,7 +547,7 @@ class Test_module:
         found = fields.read(text, fields.INSPECTION)
         lines = text.split("\n")
         assert found.notices == []
-        assert found.refusals, "the unfilled template reads as a guarantee"
+        assert found.refusals, "the unfilled template reads as an inspection"
         for number, why in found.refusals:
             line = lines[number - 1]
             _key, _, value = line.partition(" ")

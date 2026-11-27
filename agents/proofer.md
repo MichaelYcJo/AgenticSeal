@@ -157,8 +157,8 @@ code the round reviews is what the branch's own commits changed, which
 `git log --no-merges -p <a>..<b> ^<base>` prints, and what the merge's
 resolution changed, which `git show <merge>` prints. What the merge brought
 in from the base is other work items' text, which the row *No pull request
-without a seal* of `skills/core/SKILL.md` *Judgment is not licence to skip
-a party* guaranteed at their own pull requests, and the round reviews none
+without a cleared inspection* of `skills/core/SKILL.md` *Judgment is not licence to skip
+a party* held at their own pull requests, and the round reviews none
 of it. That text is part of the target all the same. The round holds this
 work item's diff and records against the tree as merged, the policy root
 as the merge left it among it. A unit of the diff or a sentence of the
@@ -193,7 +193,7 @@ narrow form, one module (`docs/running/the-run.md` *The handoff*). Where
 the repository ships none, make a `uv` venv inside the clone, since `pytest`
 is not installed for the system interpreter. A claim of absence, such
 as nothing in the suite catching this, is a probe: run it over the module that
-should catch it, report it as a probe, never as a seal, and name it on the
+should catch it, report it as a probe, never as a proof, and name it on the
 finding's `evidence: executed` line.
 
 **A probe runs in the clone, and its files are edits.** A probe follows the

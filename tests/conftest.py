@@ -281,7 +281,7 @@ os.environ["GIT_CONFIG_VALUE_0"] = "false"
 # has no token, so a case that falls through its stubs onto a live `gh` fails
 # there -- and passed on every developer's machine and under the broad gate,
 # because `gh` is logged in on both. Nothing local could see that class; CI
-# found it after the branch was sealed.
+# found it after the branch was cleared.
 #
 # `gh` looks for its login in three places, in this order: a token variable,
 # `hosts.yml` under its config directory, and the OS keyring. It reads the

@@ -161,13 +161,13 @@ it, so the commands of the placeholder S and of both owls write the tag's
   tufts, and the little owl of Athena's coin (*Athene noctua*) has none. On
   2026-10-31 the owner chose this round-headed owl for both forms, and a
   red wax seal for the terminal's disc in place of the rim and the groove.
-- **The terminal's form:** `skills/verify/scripts/seal-mark.txt`, a 16 ×
+- **The terminal's form:** `skills/verify/scripts/stamp-mark.txt`, a 16 ×
   16 sprite drawn one cell at a time, one letter per cell, standing six
-  cells in from the disc's left and top edges. `seal_stamp.py#SPRITE_COLOURS`
+  cells in from the disc's left and top edges. `stamp.py#SPRITE_COLOURS`
   gives each letter's colour; `.` is the field, and a field cell whose
   upper-left neighbour is drawn takes the drop shadow, `DROP`. No cell is
   shaded by its neighbours, because shading breaks a mark this small. The
-  wax is computed (`seal_stamp.py#build`): an edge that wobbles, a lip lit
+  wax is computed (`stamp.py#build`): an edge that wobbles, a lip lit
   from the upper left with a gloss streak, a step ring lit the other way,
   and the pressed field, every cell one of fifteen colours. The wobble
   leaves the grid's first column and last half-row empty.
@@ -183,8 +183,8 @@ it, so the commands of the placeholder S and of both owls write the tag's
   into the wax, the owl's ringed eyes and scalloped breast, and the olive
   branch it perches on. It is painted in gradients of red of its own, not in the
   stamp's fifteen colours. The plugin's icon, `.claude-plugin/icon.png`, is
-  drawn from it, and the release note's `seal.png` is a copy of that icon,
-  which the release workflow's `seal` job attaches. Draw the icon again
+  drawn from it, and the release note's `mark.png` is a copy of that icon,
+  which the release workflow's `mark` job attaches. Draw the icon again
   from the repository's top directory with `resvg_py`, the Python binding of the
   resvg renderer, installed in a throwaway environment (`resvg_py` 0.5.0
   drew the committed file):
