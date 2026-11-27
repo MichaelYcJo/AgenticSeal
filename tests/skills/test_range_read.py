@@ -461,13 +461,42 @@ class Test_main:
     def test_accepts_an_uncommitted_submodule_named_as_not_read(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A submodule's pointer staged and not committed is named as not
-        read, where the configuration and a `.gitmodules` entry each tell
-        git to ignore the submodule."""
+        """A submodule whose checkout moved to a commit the index does not
+        hold is named as not read, where the configuration and a
+        `.gitmodules` entry each tell git to ignore the submodule."""
         gitmodules = '[submodule "sub"]\n\tpath = sub\n\turl = ./sub\n\tignore = all\n'
         repo, base = built(tmp_path, {".gitmodules": gitmodules})
-        entry = f"{RANGE.GITLINK},{'1' * 40},sub"
-        git(repo, "update-index", "--add", "--cacheinfo", entry)
+        sub = repo / "sub"
+        sub.mkdir()
+        git(sub, "init", "-q")
+        git(
+            sub,
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t.example",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "first",
+        )
+        git(repo, "add", "sub")
+        # git 2.39.3's `commit` reads the ignored gitlink as no change and
+        # refuses, so the commit writes the index as it stands.
+        git(repo, "commit", "-q", "--allow-empty", "-m", "a submodule")
+        git(
+            sub,
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t.example",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "second",
+        )
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 0, said
