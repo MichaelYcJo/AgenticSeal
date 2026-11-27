@@ -1,9 +1,9 @@
 # The IADD definition
 
-A person who wants to know what IADD is opens this document, and so does
-the owner when this plugin's definition is set beside another tool's. No
-agent acts on it: each principle names the source that states it, and an
-agent reads that source.
+This document defines IADD: what it is, the principles it stands on, the
+names of its parts, and the document that owns the form of each record.
+It governs nothing itself. Each principle names the file that states it,
+and that file is the rule.
 
 ## What IADD is
 
@@ -35,10 +35,10 @@ merges it.
   target, independently of the others*, and
   `docs/running/the-agent-set.md` *The party that draws a contract is not
   the party that executes it*).
-- Judgment is spent where meaning is the question, and a script answers
-  what it can answer exactly, such as the suite, the lint and the merge
-  check (`skills/core/SKILL.md` *Judgment is spent where meaning is the
-  question, and a script answers the rest*).
+- An agent judges where the question is what something means, and a
+  script answers what it can answer exactly, such as the suite, the lint
+  and the merge check (`skills/core/SKILL.md` *Judgment is spent where
+  meaning is the question, and a script answers the rest*).
 - A judgment stands on a source document and is written into the work
   item's records with its grounds and that document (`skills/core/SKILL.md`
   *A judgment stands on a source document, and is written down with both*).
@@ -49,16 +49,18 @@ merges it.
 - What the work needs from a person is asked once, together, before the
   first edit, because asking a person costs more than any other step
   (`skills/core/SKILL.md` *Asking a person is the most expensive step*).
-- A few invariants hold the chain and are not open to judgment, each held
-  by a mechanism, no review without a build and no pull request without a
-  cleared inspection among them (the table of `skills/core/SKILL.md`
-  *Judgment is not licence to skip a party*).
-- A mechanism stays only while its record of what it caught outweighs what
-  it costs, and a fact has one source that every other place links to
-  (`skills/core/SKILL.md` *The rule a mechanism is kept against*).
-- A document is cut by who opens it and at which step, so a party opens
-  only what its step needs (`skills/core/SKILL.md` *A document is cut by who
-  opens it and at which step, so a party opens only what its step needs*).
+- Some links of the chain no party may skip on its own judgment, and a
+  mechanism holds each of them. No review without a build, and no pull
+  request without a cleared inspection, are among them (the table of
+  `skills/core/SKILL.md` *Judgment is not licence to skip a party*).
+- A mechanism, such as a gate, a check or a rule, is kept only while what
+  it has caught is worth more than its cost, and each fact is stated in one
+  place that the others link to (`skills/core/SKILL.md` *The rule a
+  mechanism is kept against*).
+- Each party pays for every byte of each file it opens, so a document holds
+  what one kind of reader needs at one step (`skills/core/SKILL.md` *A
+  document is cut by who opens it and at which step, so a party opens only
+  what its step needs*).
 
 ## The names
 
