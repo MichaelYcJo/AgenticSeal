@@ -188,9 +188,10 @@ CRAFTERS_RULES = {
     ),
 }
 
-# The other rule decision 1 of #967 names, which #1628 and #1629 moved to
-# `skills/implement/SKILL.md` *2.* so that an orchestrator that builds reads
-# it too, with the facts it held in the definition.
+# The builder's rules #1628 and #1629 moved to `skills/implement/SKILL.md`
+# *2.*, so that an orchestrator that builds reads them too, each with the
+# facts its paragraph holds: the other rule decision 1 of #967 names, and
+# the rule on a new case's group.
 BUILDERS_RULES = {
     # The lead `skills/verify/scripts/mutation_check.py` and step 6 of
     # `agents/crafter.md` cite in italics.
@@ -199,6 +200,13 @@ BUILDERS_RULES = {
         # copy restores the file.
         "`git checkout -- <file>`",
         "`seal mutate`",
+    ),
+    # #1629 listed it among the rules that bound no orchestrator that
+    # builds, and it had no case in the definition (round 1 finding 2).
+    "A new test starts from its group.": (
+        # The command a builder runs for a new case's group where the test
+        # files declare `TARGET`.
+        "`seal layout --pairs`",
     ),
 }
 
