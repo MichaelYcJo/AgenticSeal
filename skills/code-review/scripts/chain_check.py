@@ -91,7 +91,8 @@ judged (`carried_by`). The arms are nine:
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0. A run under `--sealing`
-reads no pull request's state and fails as a ready pull request does.
+reads no pull request's state and judges as at a ready pull request, but for
+the arms *Usage* names.
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states the rules these arms hold,
 and `docs/forms/the-round-record.md` *The round record* and
 `docs/forms/the-guarantee.md` *The guarantee* the records they read.
@@ -126,11 +127,11 @@ Usage:
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
 own run, in the preflight and in the broad run, before it writes
-`trail/gate.md` and the sealer `guarantee.md`. It asks neither the event
-payload nor `gh` for the pull request's state, and judges as at a ready pull
-request, so a refusal the pull request's check would give fails the gate's
-run. Those two arms, the guarantee's `original:` line, and the body arm, whose
-seal mark stands on that guarantee, print and do not fail.
+`trail/gate.md` and the sealer `guarantee.md`. Those two arms, the
+guarantee's `original:` line, and the body arm, whose seal mark stands on
+that guarantee, print and do not fail. The run asks neither the event payload
+nor `gh` for the pull request's state, and judges every other arm as at a
+ready pull request.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a reader that will not
