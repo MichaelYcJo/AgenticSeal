@@ -68,6 +68,10 @@ CORE = ("skills", "core", "SKILL.md")
 PR_CHECK = ("docs", "checks", "the-pull-request-check.md")
 RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
+# The record templates whose placeholders the orchestrator and the framer
+# fill with the release's state (#1633).
+ROUTING_TEMPLATE = ("templates", "records", "sdd-routing.md")
+PLAN_TEMPLATE = ("templates", "records", "sdd-plan.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 # The orchestrator's half of the verify skill, which holds the broad gate's
 # reading.
@@ -394,6 +398,23 @@ RULES = {
         ORCH_IMPL,
         (),
         {FOLD: NARROWING, IMPLEMENT: NARROWING},
+    ),
+    # #1633: records stated the base, the version and what other work items
+    # had done as present values, which a cut, a rename, another pull
+    # request's merge or a tag made false with no commit on the work item's
+    # branch. Contract rule 19 holds the rule, and the two templates whose
+    # placeholders the orchestrator and the framer fill with the release's
+    # state cite it there.
+    "34 a change states a value outside its branch by role, or of a named moment": (
+        CONTRACT,
+        (
+            # The rule's number, which each link below names it by.
+            "## 19 ",
+        ),
+        {
+            ROUTING_TEMPLATE: "contract rule 19",
+            PLAN_TEMPLATE: "contract rule 19",
+        },
     ),
 }
 

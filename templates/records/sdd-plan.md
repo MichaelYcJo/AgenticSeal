@@ -20,7 +20,7 @@ The tree as read at `<commit>`.
 
 ## Overlap with the release
 
-<each other open work item of the release that this work meets, as the spawn names them and as their frames stand where committed. When two items meet is defined once, in `agents/framer.md` *Order of work* step 4. A row names the file and the section both change, or the rule or check and what of the other's change it reads; the item that merges first, by its issue number; and why that order costs less. Where none meets, one sentence naming the items read and saying none meets this work; where the spawn names none, one sentence saying so>
+<each other open work item of the release that this work meets, as the spawn names them and as their frames stand where committed. What another item has branched, framed or merged is stated with the date or the commit it was read at, as contract rule 19 states; the *Merges first* cell is this work's conclusion and carries no date. When two items meet is defined once, in `agents/framer.md` *Order of work* step 4. A row names the file and the section both change, or the rule or check and what of the other's change it reads; the item that merges first, by its issue number; and why that order costs less. Where none meets, one sentence naming the items read and saying none meets this work; where the spawn names none, one sentence saying so>
 
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
@@ -28,7 +28,7 @@ The tree as read at `<commit>`.
 
 ## Operational impact
 
-<migrations, new environment variables, new dependencies and compatibility breaks a deployer must not miss; where this pull request moves the version, the move and the phase whose commit adding `changelog.md` carries it>
+<migrations, new environment variables, new dependencies and compatibility breaks a deployer must not miss; where this pull request carries the release's version move, that it does, the phase whose commit adding `changelog.md` carries it, and the file or the command that phase reads the version from, with a version number stated only of a named moment, as contract rule 19 states>
 
 ## Judgments of the run
 
