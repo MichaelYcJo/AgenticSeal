@@ -50,6 +50,11 @@ So does a value whose source is a file the work item's own commit has written, s
 while a value of a published release, or one whose source is a file its own commits have written, stays;
 ```
 
+```seal
+verdict: fixed bfa001321
+answer: The finding holds. `bfa001321` rewrites the sentence at `skills/agent-contract/SKILL.md:234-237` as the paste-ready fix and the fold's R6 (`df70a0369`, `frame/design.md:82`) state it: a value whose source is a file the work item's own commit has written stays, with the version the item carrying the move has written to the version file as the example. It also adds the fold's sentence that before that commit the number is a prediction. The paste-ready fix was read against the fold and applied with that added sentence. `8a341c1c0` rewords the added sentence: it first cited "this paragraph's first sentence", but the paragraph's prediction clause stands in its second sentence, so it now says the number is "a prediction of a state outside the branch, held as this paragraph holds every such prediction". `changelog.md:3` and `:12` take the paste-ready wording, and `:3` adds that before that commit the number is a prediction the paragraph refuses. `frame/design.md:82` and `:120-123` are the fold's lines. `gaps.md:9` now names the proofer in round 3 as its answerer, since R6 changed after round 2 read it. Executed after `8a341c1c0`: the finding's search prints `skills/agent-contract/SKILL.md:235`, `frame/design.md:54`, `:82` and `:121`, `changelog.md:3` and `:12`, `frame/plan.md:53` and `:54`, and the round records' lines, each now stating the written-file reading or a dated row of what was judged, and lines about other facts across `docs/`, `skills/`, `tests/`, `.github/`, `evals/` and other work items' records, which stand. `bin/test -q tests/text tests/behaviour`: 887 passed, 9 skipped, exit 0. `chain_check.py --worktree` prints no notice of a copy or a test pin.
+```
+
 ### 2. Grounding G7 says the routing lines "cut from `<ref>` at `<commit>`" name no moment, but clause R4 at the target keeps them, and so do the plan's own lines
 
 ```seal
@@ -77,6 +82,11 @@ Each sentence names the cut and the commit it was made at, so it states the ref 
 so it misses the writes where `frame/design.md` G4 and G6 stand, or it is matched on `Write` too
 <!-- and, later in the same cell -->
 Its note falls on the `Branch` row and on each sentence that states a ref of a named moment, the lines of `frame/design.md` G7 among them.
+```
+
+```seal
+verdict: fixed df70a0369
+answer: The finding holds, and each sentence it names stands in the frame, which the framer's fold `df70a0369` rewrote as the paste-ready fix asks; this pass made no edit for it. Read at HEAD: `frame/design.md:17` says each G7 line names the cut and its commit, so R4 keeps it; `frame/design.md:48` says those records are other work items' and the settle removes each directory after the release that ships it; `frame/plan.md:23` drops G7 from the writes the hook misses and adds its lines to the sentences the hook's note falls on. Executed after `8a341c1c0`: the finding's `G7` search prints `frame/design.md:17`, `:18`, `:48` and `:138`, and `frame/plan.md:22`, `:23` and `:54`; `:18` and `:138` say G7's bullets follow no form, and `:54` is the orchestrator's dated row, so each stands. Not re-run: the finding's routing-line search and `git ls-remote --tags origin 'v0.39*'`, which the fold stands on. The read of the range and the records after `8a341c1c0`, the pass's last fix commit: executed `git diff --stat df70a0369 HEAD`, which names `skills/agent-contract/SKILL.md`, `changelog.md` and `gaps.md`, and printed rule 19's lines 228 to 242, `gaps.md`'s `## Not verified` rows and the end of `changelog.md:3`. Held from this pass's earlier prints and not printed again after `8a341c1c0`: `changelog.md:12`, the start of `changelog.md:3`, `routing.md` and the three frame files, which no commit of this pass touched and whose change `df70a0369` this pass read as a diff. HEAD contradicts none of them. Round 2's *Not judged* row on whether owlery release 0.1.0 is still open leaves `changelog.md:3` and `seal/follow-up.md:49` true either way, since each states the count as #1632's comment made it on 2026-11-27. The other places across the tree that state R6 were listed by the finding 1 search `git grep -n -F 'own commit'`, a sample under contract rules 12 and 19, and a statement of R6 in other words stands outside it.
 ```
 
 ## Confirmations
