@@ -270,7 +270,7 @@ BLUE = ("0969da", "555555")
 
 
 def badge(path, alt, colours=BLUE):
-    """One badge exactly as the cleared header carries it (#1299): `path` is
+    """One badge exactly as the marked header carries it (#1299): `path` is
     the label and the value as the badge service's address spells them, and
     `colours` the value's colour and the label's."""
     colour, edge = colours
@@ -782,7 +782,7 @@ class Test_main:
     ):
         """S1, S7, #1009 S3, #1153 S3, and #1496 S5. The PNG is uploaded as
         `mark.png` before the edit, and the edited note is the published one
-        with its header paragraph replaced by the cleared one: the image at
+        with its header paragraph replaced by the marked one: the image at
         the release-download URL with alt text naming it and the display
         width `draw` answered, floated left, then the stamp's results as
         badges (#1299 S6), then the break that clears the float -- every
@@ -882,7 +882,7 @@ class Test_main:
         self, monkeypatch, tmp_path, capsys, mark
     ):
         """#1153 S4, and #1204 S8 under either answer of the row. After the
-        first run the note holds the cleared header, with the image or
+        first run the note holds the marked header, with the image or
         without, so a second run of the job finds no header as `publish`
         writes it, uploads nothing and edits nothing, and its `::warning::`
         line names a run that already replaced it among the reasons. Seen

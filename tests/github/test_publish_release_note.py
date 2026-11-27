@@ -284,7 +284,7 @@ def header(*lines):
 # however many pull requests they made.
 HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contributors")
 
-# The address the cleared header's badges are drawn from (#1299).
+# The address the marked header's badges are drawn from (#1299).
 BADGES = "https://img.shields.io/badge/"
 # A badge's two colours by its label, as `(value, label)` (#1496): the wax seal's
 # reds for `CLEARED`, green for the suite's passed count, grey for the
@@ -297,7 +297,7 @@ BLUE = ("0969da", "555555")
 
 
 def badge(path, alt, colours=BLUE):
-    """One badge exactly as the cleared header carries it: `path` is the
+    """One badge exactly as the marked header carries it: `path` is the
     label and the value as the address spells them, `alt` the escaped text
     a reader whose client draws no image reads in its place, and `colours`
     the value's colour and the label's."""
@@ -1145,7 +1145,7 @@ class Test_module:
         `CLEARED` keeps the wax seal's dark red label beside its bright red value,
         and every other label is grey. The suite's passed count is green, the
         skipped, capped and deferred counts are grey, and every other value
-        of the cleared header is blue. The value is `not read`, the one a
+        of the marked header is blue. The value is `not read`, the one a
         source that could not be read gives, and the label alone still
         decides the colours; a label with no colours of its own is the case
         above. Seen red against the `badge` that coloured every label with
