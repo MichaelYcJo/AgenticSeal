@@ -102,12 +102,17 @@ return.
    not describe, such as grounds naming one sentence over a diff that
    changes a hook, is a disagreement, and a `withheld` reason naming the
    row and what the diff changed.
-   A finding of the last record that reads `fixed <commit>`, which the check
-   passes only where the finding is located in `seal/threads/<item>/` alone
-   and its commit touched nothing outside it, was read by no round: it is
-   the fix pass's claim with you as its reader, so read it the way a
+   A finding of the last record that reads `fixed <commit>`, where the row
+   *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not
+   licence to skip a party* gives its fix to you, was read by no round: it
+   is the fix pass's claim with you as its reader, so read it the way a
    verifying round reads a fix. Read the record at HEAD against what the
-   finding asked. Then run
+   finding asked. Where the finding's `location:` names a path outside
+   `seal/threads/<item>/`, the fix left that path as the last round read
+   it: open it at HEAD and read whether the finding asked for a change
+   there. A change the finding asked for outside the records and did not
+   get is a disagreement like any other, and a `withheld` reason naming the
+   path. Then run
    `git -C <root> diff <the last record's target>..HEAD -- seal/threads/<item>/`,
    `<the last record's target>` being the commit its `target:` line names,
    and read against HEAD each sentence the diff adds or rewrites in the
