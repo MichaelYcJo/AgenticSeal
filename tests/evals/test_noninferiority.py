@@ -940,7 +940,7 @@ class Test_kind:
     def test_accepts_the_three_prefixes(self, name, k):
         assert NI.kind(name) == k
 
-    @pytest.mark.parametrize("name", ["truthy-1", "seal-x", "x"])
+    @pytest.mark.parametrize("name", ["truthy-1", "inspect-x", "x"])
     def test_refuses_any_other_name(self, name):
         assert NI.kind(name) is None
 
@@ -956,7 +956,7 @@ RECORD_TRUTH = {
     "type": "regex",
     "weight": 1,
     "config": {
-        "target": {"source": "file", "path": "seal/threads/i/trail/rounds/round-1.md"},
+        "target": {"source": "file", "path": "iadd/threads/i/trail/rounds/round-1.md"},
         "pattern": TRUTH,
         "flags": "m",
         "match": "contains",

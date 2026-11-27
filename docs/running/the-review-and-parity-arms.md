@@ -12,8 +12,8 @@ spec and code together.
 **No arm runs at the commit.** The review arm is the routing check, which
 runs at the pull request (`docs/checks/the-routing-check.md`), and the
 parity arm is checked at the pull request too, as *Parity arm* below
-states. The migration config lives at `seal/parity.json`, so declaring it
-creates `seal/`, which opts the repository into the routing check too.
+states. The migration config lives at `iadd/parity.json`, so declaring it
+creates `iadd/`, which opts the repository into the routing check too.
 check: tests/skills/test_chain_check.py
 
 ### Review arm
@@ -29,14 +29,14 @@ touches.
 
 #### The declaration, and where the check went
 
-**The routing check reads `seal/threads/<work-item-id>/routing.md` before it
+**The routing check reads `iadd/threads/<work-item-id>/routing.md` before it
 reads anything else.**
 
 | The declaration says | At the pull request |
 |---|---|
 | through the review chain | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the inspector's `inspection.md` beside it |
 | straight to the PR | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the inspector's `inspection.md` reading `cleared` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
-| nothing readable, or no file | each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
+| nothing readable, or no file | each commit's `IADD-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 
 What the check reads of each round record under the first answer is
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull
@@ -88,7 +88,7 @@ is gone is asked `chain_check.py#settled` at the merge base, the
 predicate `docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion* states. Where it holds, the check prints `retired: a settle`;
 where it does not, the refusal stands, except where the tree the check reads
-has no top-level `seal` entry (`docs/checks/the-pull-request-check.md` *What
+has no top-level `iadd` entry (`docs/checks/the-pull-request-check.md` *What
 the check reads at the pull request*).
 
 Every record is read as git carries it at `HEAD`, never as the working tree
@@ -113,7 +113,7 @@ check: tests/lib/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
 
 ### Parity arm
 
-Opt-in: `seal/parity.json`. Ported behaviour follows the original where policy
+Opt-in: `iadd/parity.json`. Ported behaviour follows the original where policy
 is silent, so a change to code carries a record, in the tree, that the
 original was consulted.
 
@@ -121,8 +121,8 @@ original was consulted.
 |---|---|
 | through the review chain | each round record's `original:` line |
 | straight to the PR | one `original:` line in the inspector's `inspection.md` |
-| none | nowhere, and no comparison is checked: each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
-| any, for a change confined to `docs/`, `seal/` | nothing is owed: nothing there can be compared against an original |
+| none | nowhere, and no comparison is checked: each commit's `IADD-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
+| any, for a change confined to `docs/`, `iadd/` | nothing is owed: nothing there can be compared against an original |
 
 "The change" is every path the pull request changes against its base.
 

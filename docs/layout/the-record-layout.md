@@ -14,11 +14,11 @@ is found, the copy is the defect.
 
 | Kind | Home | Size target | Index |
 |---|---|---|---|
-| The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; the GitHub Release at the `vX.Y.Z` tag once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
-| A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/threads/<work-item-id>/* below |
+| The changelog | `iadd/threads/<work-item-id>/changelog.md` while a work item is open; the GitHub Release at the `vX.Y.Z` tag once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
+| A work item's files | `iadd/threads/<work-item-id>/` | each file under target | the table under *iadd/threads/<work-item-id>/* below |
 | The repository's rules | `skills/core/SKILL.md` for the core every party reads, `CLAUDE.md` for how a session in this repository reaches it, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
-| The configuration | `seal/config.json`, one key per item; `templates/setup/config.md` documents every key | under target | its keys |
-| The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
+| The configuration | `iadd/config.json`, one key per item; `templates/setup/config.md` documents every key | under target | its keys |
+| The follow-up list | `iadd/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
 | The process rows | a `### Process changes` table at the end of a work item's `changelog.md` while its work item is open; the release note's table of the same name once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
 
 ## The size a reader takes whole
@@ -33,7 +33,7 @@ check: tests/skills/test_fold_check.py
 
 A file every branch appends to costs a conflict at the worst moment — after
 the broad gate has run, which forces it to run again. So a change writes its
-changelog entry into a file of its own, `seal/threads/<work-item-id>/changelog.md`,
+changelog entry into a file of its own, `iadd/threads/<work-item-id>/changelog.md`,
 never under a heading of a file every branch shares. No two work items
 share an id, so no two branches share a file.
 
@@ -79,22 +79,22 @@ the fragment nothing.
 
 The standing policy. Its index is `docs/README.md`.
 
-## seal/
+## iadd/
 
-What the plugin maintains, read and written by machines. Every `seal/…` path
+What the plugin maintains, read and written by machines. Every `iadd/…` path
 means the records root, found where the opening paragraph of
 `skills/core/SKILL.md` says.
 
 | File | The question it answers |
 |---|---|
-| `seal/README.md` | what the root holds, where it lives in each mode, and which file states the export rules |
-| `seal/config.json` | what this repository says about itself, one key per item |
-| `seal/parity.json` | which codebase this repository ports behaviour from, and at which baseline commit; present only where a migration is declared |
-| `seal/pact.md` | what two or more repositories keep together; present only in the repository that holds the pact |
-| `seal/follow-up.md` | which items wait on a named party, and who |
-| `seal/threads/<work-item-id>/` | one work item's records, the table below |
+| `iadd/README.md` | what the root holds, where it lives in each mode, and which file states the export rules |
+| `iadd/config.json` | what this repository says about itself, one key per item |
+| `iadd/parity.json` | which codebase this repository ports behaviour from, and at which baseline commit; present only where a migration is declared |
+| `iadd/pact.md` | what two or more repositories keep together; present only in the repository that holds the pact |
+| `iadd/follow-up.md` | which items wait on a named party, and who |
+| `iadd/threads/<work-item-id>/` | one work item's records, the table below |
 
-## seal/threads/<work-item-id>/
+## iadd/threads/<work-item-id>/
 
 One work item's records, from its first commit to the `settle` fold that
 retires the directory. Which file each agent writes is
@@ -113,7 +113,7 @@ file answers.
 | `changelog.md` | this work item's entry in the next release's notes |
 | `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
 | `inspection.md` | whether the inspector cleared the work, against the issue and the tree |
-| `pr.md` | what the pull request body opens with, after `pr.<lang>.md` where the two language keys of `seal/config.json` differ: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
+| `pr.md` | what the pull request body opens with, after `pr.<lang>.md` where the two language keys of `iadd/config.json` differ: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
 | `pr.<lang>.md` | the body's opening in `Commit and pull request language`, where that key and `Record language` name different languages; written and committed with `pr.md`, read by every round, and placed by `iadd pr-body` as the body's first part |
 
 **The files keep these paths until the settle after their release, and
@@ -128,13 +128,13 @@ behind*). A document that still cites a record of it writes the path a
 commit holds, as `<commit>:<path>`, which `git show` opens as written.
 check: tests/skills/test_settle.py
 
-**A record a template starts carries no HTML comment.** Its template holds headings, table headers, placeholders, the `seal` blocks the record's grammar asks for and the foot line, and nothing else. The guidance for
+**A record a template starts carries no HTML comment.** Its template holds headings, table headers, placeholders, the `iadd` blocks the record's grammar asks for and the foot line, and nothing else. The guidance for
 writing the record is in the skill or agent definition its writer reads,
 stated there once. A comment copied into every record is a second copy of
 that guidance, and every reader of the record has to model it.
 check: tests/text/test_a_record_carries_no_comment.py
 
-**A record holds a fence around a finding's paste-ready fix and around each of its `seal` blocks, and a field a check reads stands inside a `seal` block and nowhere else.** The readers keep one fence state, by the fence rule of `lib/blocks.py`, so a `seal` block quoted inside a fix belongs to the fix and is not read, and `lib/fields.py` is the one reader of the blocks.
+**A record holds a fence around a finding's paste-ready fix and around each of its `iadd` blocks, and a field a check reads stands inside an `iadd` block and nowhere else.** The readers keep one fence state, by the fence rule of `lib/blocks.py`, so an `iadd` block quoted inside a fix belongs to the fix and is not read, and `lib/fields.py` is the one reader of the blocks.
 check: tests/skills/test_chain_check.py
 
 **A reader of a record keeps no comment state: it reads `<!--` as text, and
@@ -155,7 +155,7 @@ check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behavio
 
 **A cited commit is one that `main` or a release branch reaches: a
 `<commit>:<path>` citation anywhere except a work item's `trail/` and its
-`inspection.md`, and a bare commit in a file outside `seal/`.** A feature
+`inspection.md`, and a bare commit in a file outside `iadd/`.** A feature
 branch squashes into its release branch, and the squash discards every commit
 the branch wrote, so a citation of one opens in no clone after the merge, and
 a reader sent to it finds no source. The commit to cite is the squash that
@@ -163,9 +163,9 @@ holds the same file, or the path at HEAD where the file is the branch's own. A
 round record, a phase record and an inspection cite what a party ran at the
 branch's own commits, which the squash orphans as it orphans the round's
 `target:` line, and they leave with the work item; a file under
-`evals/behaviour/` is not read either. Outside `seal/` no file has a reason to
+`evals/behaviour/` is not read either. Outside `iadd/` no file has a reason to
 name a commit that no clone will hold, so a bare hex token that resolves as a
-commit is read there, and one that resolves to no commit is not. Under `seal/`
+commit is read there, and one that resolves to no commit is not. Under `iadd/`
 a bare commit is not read: a plan's Status cell and a round's `fixed` line
 name the branch's own commits by rule, and whether a sentence there cites a
 bare commit as where a file was read is the reviewer's reading. Where the

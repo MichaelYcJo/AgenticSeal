@@ -90,7 +90,7 @@ class Test_main:
         body, its placeholders filled as its scaffold fills its records, is
         what `iadd pr-body --check` accepts over the records that scaffold
         writes, its `pr.md` among them, in a repository holding the
-        scaffold's `seal/` root, whose `config.json` gives the language keys
+        scaffold's `iadd/` root, whose `config.json` gives the language keys
         the first part is composed from (#1453); the part above `HEADING`
         ends with `Closes #101.` and holds the README sentence the tree
         lacks in the untrue-body case alone."""
@@ -98,14 +98,14 @@ class Test_main:
         assert inspector
         for name, case in inspector:
             files = scaffold_files(case["scaffold"])
-            folder = next(p for p in files if p.startswith("seal/threads/"))
+            folder = next(p for p in files if p.startswith("iadd/threads/"))
             folder = "/".join(folder.split("/")[:3])
             work_item = folder.split("/")[-1]
             body = files[RC.EVIDENCE.format(item=work_item) + "/pr-body.md"]
             subprocess.run(["git", "init", "-q", str(tmp_path / name)], check=True)
             item = tmp_path / name / folder
             for path, text in files.items():
-                if path.startswith("seal/"):
+                if path.startswith("iadd/"):
                     record = tmp_path / name / path
                     record.parent.mkdir(parents=True, exist_ok=True)
                     record.write_text(text, encoding="utf-8")
@@ -199,7 +199,7 @@ FENCE = "`" * 3
 # appends.
 OPEN_FINDING = (
     "## Findings\n\n### 1. `shout_twice` joins with no space\n\n"
-    f"{FENCE}seal\nseverity: should\nlocation: `src/textutil.py:9`\n"
+    f"{FENCE}iadd\nseverity: should\nlocation: `src/textutil.py:9`\n"
     f"evidence: read `src/textutil.py:9`\n{FENCE}\n\nWhy it matters: S2.\n\n"
     "## Confirmations\n"
 )
@@ -251,13 +251,13 @@ class Test_inspector_case:
             found, match = case_graders(name)["shape-verdict"]
             cleared = name.endswith("-cleared")
             line = "Verdict: cleared" if cleared else "Verdict: withheld reason: x"
-            block = f"{FENCE}seal\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
+            block = f"{FENCE}iadd\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
             yield name, found, match, cleared, line, block
 
     def test_accepts_the_verdict_in_its_block(self):
         """#1198 phase 3: each inspector case's `shape-verdict` finds the
         verdict the case expects on the `Verdict:` line of a verdict block.
-        Seen red against a grader whose opener read `Seal`."""
+        Seen red against a grader whose opener read `Iadd`."""
         for name, found, match, _cleared, _line, block in self.shapes():
             assert match == "contains"
             assert found.search("# Inspection: i\n\n" + block), name

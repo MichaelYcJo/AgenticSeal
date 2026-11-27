@@ -1,4 +1,4 @@
-"""`lib/config.py`, the shared reader of `seal/config.json`, one class per
+"""`lib/config.py`, the shared reader of `iadd/config.json`, one class per
 function its cases reach.
 
 #1454 moved the settings out of a markdown table, so the cases that pinned
@@ -90,14 +90,14 @@ def iadd():
 class Test_reference_roots:
     def test_accepts_a_row_naming_its_prefixes_with_or_without_a_slash(self, tmp_path):
         """Present: the prefixes it names, normalised, and nothing else."""
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(
             home,
             table(
                 ("Reference specs", "specs/, docs/adr ,./design/, specs, tools\\notes")
             ),
         )
-        roots = config.reference_roots(home, "seal")
+        roots = config.reference_roots(home, "iadd")
         assert roots == ("specs", "docs/adr", "design", "tools/notes"), roots
         for rel in (
             "specs/x/design.md",
@@ -107,19 +107,19 @@ class Test_reference_roots:
             "./specs/x.md",
             "tools/notes/n.md",
         ):
-            assert config.under_reference_root(rel, roots, "seal"), rel
+            assert config.under_reference_root(rel, roots, "iadd"), rel
         for rel in ("docs/adrs/0001.md", "docs/specs/x.md", "src/specs.py", "spec/x"):
-            assert not config.under_reference_root(rel, roots, "seal"), rel
+            assert not config.under_reference_root(rel, roots, "iadd"), rel
 
     def test_no_row_means_every_specs_directory_outside_the_root(
         self, tmp_path, monkeypatch
     ):
         """Absent, empty or unreadable: the ticket's default, at any depth."""
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         for body in (None, table(("Mode", "shared")), table(("Reference specs", ""))):
             if body is not None:
                 write_config(home, body)
-            roots = config.reference_roots(home, "seal")
+            roots = config.reference_roots(home, "iadd")
             assert roots is None, (body, roots)
             for rel in (
                 "specs/x/design.md",
@@ -127,13 +127,13 @@ class Test_reference_roots:
                 "a/b/specs/c/d.md",
                 "specs\\x\\design.md",
             ):
-                assert config.under_reference_root(rel, roots, "seal"), rel
+                assert config.under_reference_root(rel, roots, "iadd"), rel
             for rel in (
-                "seal/threads/1790000000-x/design.md",
+                "iadd/threads/1790000000-x/design.md",
                 "docs/design.md",
                 "specsheet/a",
             ):
-                assert not config.under_reference_root(rel, roots, "seal"), rel
+                assert not config.under_reference_root(rel, roots, "iadd"), rel
         # No root at either place is the default too (#1576, design S12), and
         # never a `config.json` found relative to wherever the process happens
         # to stand.
@@ -149,28 +149,28 @@ class Test_reference_roots:
         first. A file that is there and will not read is the default too, as it
         was, and the reader no longer opens the file itself to find out. Seen red
         against the first-wins reader: `('docs/adr',)`."""
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(
             home, table(("Reference specs", "docs/adr"), ("Reference specs", "none"))
         )
-        assert config.reference_roots(home, "seal") is None
+        assert config.reference_roots(home, "iadd") is None
         os.remove(os.path.join(home, "config.json"))
         os.mkdir(os.path.join(home, "config.json"))
-        assert config.reference_roots(home, "seal") is None
+        assert config.reference_roots(home, "iadd") is None
 
     def test_none_declares_no_reference_root(self, tmp_path):
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(home, table(("Reference specs", "None")))
-        roots = config.reference_roots(home, "seal")
+        roots = config.reference_roots(home, "iadd")
         assert roots == (), roots
-        assert not config.under_reference_root("specs/x/design.md", roots, "seal")
+        assert not config.under_reference_root("specs/x/design.md", roots, "iadd")
 
     def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
         """A reference root is outside the root by definition; a prefix naming
         the root, by the name its caller reads from `lib/optin.py`, or
         anything under it is dropped, and the default never reaches its
         `threads/` either."""
-        name = "seal"
+        name = "iadd"
         home = str(tmp_path / name)
         write_config(home, table(("Reference specs", f"{name}/threads, {name}, specs")))
         roots = config.reference_roots(home, name)
@@ -181,33 +181,33 @@ class Test_reference_roots:
         assert not config.under_reference_root(
             f"{name}/threads/1790000000-x/design.md", None, name
         )
-        assert not config.under_reference_root("seal/vendor/specs/x.md", None, name)
+        assert not config.under_reference_root("iadd/vendor/specs/x.md", None, name)
 
     def test_local_mode_reads_the_key_under_the_git_directory(self, tmp_path):
         """In local mode the root sits under the common git directory and nothing
         of it is in the tree, so its name in the tree is "", with no key every
-        tree `specs` is a reference root, a `seal/vendor/specs/` among them,
+        tree `specs` is a reference root, an `iadd/vendor/specs/` among them,
         and a key there is read like any other."""
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
         optin = load_lib_module("optin.py", "optin_for_reference_roots")
         common = optin.git_common_dir(str(repo))
-        home = os.path.join(common, "seal")
+        home = os.path.join(common, "iadd")
         mark_root(home)
         assert optin.home_at(str(repo), common) == home, "the fixture is not local mode"
         assert config.reference_roots(home, "") is None
         assert config.under_reference_root("specs/x/design.md", None, "")
-        assert config.under_reference_root("seal/vendor/specs/x.md", None, "")
-        write_config(home, table(("Reference specs", "docs/adr, seal/vendor/specs")))
-        assert config.reference_roots(home, "") == ("docs/adr", "seal/vendor/specs")
+        assert config.under_reference_root("iadd/vendor/specs/x.md", None, "")
+        write_config(home, table(("Reference specs", "docs/adr, iadd/vendor/specs")))
+        assert config.reference_roots(home, "") == ("docs/adr", "iadd/vendor/specs")
 
 
 class Test_declared_policy_root:
     def test_accepts_the_value_normalised_with_no_refusal(self, tmp_path):
         """Whitespace, `\\`, a leading `./` and a trailing `/` are taken off
         the way `Reference specs` takes them off; no root is `docs`."""
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(home, table(("Policy root", " .\\policy\\ ")))
         assert config.declared_policy_root(home) == ("policy", None)
         assert config.declared_policy_root("") == ("docs", None)
@@ -216,7 +216,7 @@ class Test_declared_policy_root:
         """The refusal comes back beside `docs`, so `iadd fold`, which stops
         on it, and `policy_root`, which reads it as the default, read one
         answer."""
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(home, table(("Policy root", "a"), ("Policy root", "b")))
         assert config.declared_policy_root(home) == (
             "docs",
@@ -261,7 +261,7 @@ class Test_policy_group:
 
 class Test_switch:
     def test_accepts_yes_exactly_as_on_and_says_nothing(self, tmp_path):
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(home, table(("A switch", "yes")))
         assert config.switch(home, "A switch", "nothing is drawn") == (True, None)
 
@@ -271,7 +271,7 @@ class Test_switch:
         ids=["no file", "no key", "empty"],
     )
     def test_refuses_no_root_no_key_and_an_empty_key_in_silence(self, tmp_path, text):
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         if text is not None:
             write_config(home, text)
         assert config.switch(home, "A switch", "nothing is drawn") == (False, None)
@@ -303,7 +303,7 @@ class Test_switch:
     ):
         """OFF, the caller's words for what stays off, closes each
         sentence."""
-        home = str(tmp_path / "seal")
+        home = str(tmp_path / "iadd")
         write_config(home, text)
         assert config.switch(home, "A switch", "nothing is drawn") == (False, said)
 
@@ -415,13 +415,13 @@ class Test_config_pairs:
 class Test_unreadable_config:
     def test_accepts_a_decode_error_in_its_own_words(self, config):
         exc = UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
-        said = config.unreadable_config(os.path.join("seal", "config.json"), exc)
+        said = config.unreadable_config(os.path.join("iadd", "config.json"), exc)
         assert f"({exc})" in said, said
 
     def test_refuses_the_error_numbers_wording_and_names_the_reason_alone(self, config):
         """An `OSError` is named by its reason, `Permission denied`, and not by
         the `[Errno 13] …: path` its own text wraps the reason in."""
-        path = os.path.join("seal", "config.json")
+        path = os.path.join("iadd", "config.json")
         said = config.unreadable_config(path, OSError(13, "Permission denied", path))
         assert "(Permission denied)" in said, said
         assert "Errno" not in said, said
@@ -640,7 +640,7 @@ class Test_declared_pacts:
         None, which the caller refuses, because a written key read as absent is
         the silence the reader exists to end."""
         assert config.declared_pacts(str(tmp_path / "missing")) == ([], [])
-        home = tmp_path / "seal"
+        home = tmp_path / "iadd"
         (home / "config.json").mkdir(parents=True)
         assert config.declared_pacts(str(home)) is None
         (home / "config.json").rmdir()
@@ -653,12 +653,12 @@ class Test_declared_pacts:
         as `UNREADABLE`, in the reader's sentence after the path the command
         shows, and the run exits 2. Seen red against the sentence the command
         printed before #1454, `could not be read`, which named no cause."""
-        write(world.web, "seal/config.json", '{"Pact": "x",}\n')
+        write(world.web, "iadd/config.json", '{"Pact": "x",}\n')
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
         assert f"UNREADABLE {SIGNER_URL} " in out, out
-        assert "seal/config.json — does not parse as JSON" in out, out
+        assert "iadd/config.json — does not parse as JSON" in out, out
 
     @pytest.mark.parametrize(
         "rows",
@@ -673,7 +673,7 @@ class Test_declared_pacts:
     ):
         """`lib/config.py#pact_declaration`: a `Pact notify` key left in a
         signer's config is read by nobody."""
-        write(world.web, "seal/config.json", signer_config(("Pact", PACT_URL), *rows))
+        write(world.web, "iadd/config.json", signer_config(("Pact", PACT_URL), *rows))
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 0, out
@@ -841,7 +841,7 @@ class Test_baseline_commit:
         no SHA and a why naming it, which reads after the file's name."""
         sha, said = config.baseline_commit(text)
         assert sha is None and why in said, (said, text)
-        assert not said.startswith(("seal/", "parity")), said
+        assert not said.startswith(("iadd/", "parity")), said
 
 
 class Test_module:

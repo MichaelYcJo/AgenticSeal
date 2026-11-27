@@ -1,7 +1,7 @@
 """Hardening cases over what the plugin ships and the records it keeps: its
 packaging, the READMEs' account of it, the wording of its skills, of its
 agent definitions, of `CONTRIBUTING.md` and of `docs/running/the-run.md`,
-and the work item directories under `seal/threads/`.
+and the work item directories under `iadd/threads/`.
 
 The module is named for the plugin's hooks, which #1376 removed and #1430
 brought back; #1608 added the `PreToolUse` hook and #1612 the
@@ -246,7 +246,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         members = json.load(handle, object_pairs_hook=list)
     # The keys of the declaration, which the person declaring parity fills
     # in, `chain_check.py` reads `Baseline commit` of, and agents read the
-    # rest of, in `seal/parity.json`. Where the original's local path goes
+    # rest of, in `iadd/parity.json`. Where the original's local path goes
     # is `skills/legacy-parity/SKILL.md` *The migration config*'s, held by
     # `tests/text/test_review_axes.py`.
     assert [key for key, _value in members] == [
@@ -275,7 +275,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         "the bootstrap's yes never reaches the parity-setup procedure"
     )
     # The path of the root's README, which the orchestrator writes there.
-    assert "seal/README.md" in bootstrap
+    assert "iadd/README.md" in bootstrap
 
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")
     assert os.path.isfile(setup), "no command for declaring parity later"
@@ -622,7 +622,7 @@ def test_the_frame_rule_names_the_phase_record_section_a_no_goes_to():
 
 def test_spec_directories_carry_the_timestamp_prefix():
     # implement/SKILL.md: "A work item's directory is
-    # seal/threads/<unix-epoch-seconds>-<slug>/ ... keeps directories in
+    # iadd/threads/<unix-epoch-seconds>-<slug>/ ... keeps directories in
     # creation order and collision-free without a registry". Two were written
     # without
     # it and nothing noticed — the drift this plugin exists to catch, in its
@@ -630,7 +630,7 @@ def test_spec_directories_carry_the_timestamp_prefix():
     # commit that introduced each, so a plain listing now reads in order.
     import re
 
-    specs = os.path.join(ROOT, "seal", "threads")
+    specs = os.path.join(ROOT, "iadd", "threads")
     # Absent after a complete fold (#517); an absent directory holds no
     # offender, and the rule is the same at any size.
     offenders = [
@@ -664,7 +664,7 @@ def test_every_spec_directory_that_reached_the_ladder_has_an_overview():
     one a plan row asked for was written by no phase of five 0.24.0 work
     items whose rows did not ask.
     """
-    specs = os.path.join(ROOT, "seal", "threads")
+    specs = os.path.join(ROOT, "iadd", "threads")
     missing = []
     # Absent after a complete fold (#517), which is no directory missing a memo.
     for n in sorted(os.listdir(specs) if os.path.isdir(specs) else []):

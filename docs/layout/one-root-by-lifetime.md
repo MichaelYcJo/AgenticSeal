@@ -3,7 +3,7 @@
 *English · [한국어](./one-root-by-lifetime.ko.md)*
 
 Everything this plugin keeps in a repository sits under one root it owns,
-`seal/`, and what sits there is sorted by how long it lives. This document
+`iadd/`, and what sits there is sorted by how long it lives. This document
 says where that root is, what opts a repository in, what first setup asks,
 and what a repository's config key decides.
 
@@ -14,10 +14,10 @@ long each file lives.** "Owns" means the plugin creates, moves and removes it
 and its checkers define the formats, the way `.github/` is GitHub's. Three
 lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
-`seal/threads/<id>/`, lives until the settle writes its design's sections
-and removes it; everything else under `seal/`, with `docs/`, is permanent.
-The layout, file by file, is `docs/layout/the-record-layout.md` *seal/* and
-*seal/threads/<work-item-id>/*.
+`iadd/threads/<id>/`, lives until the settle writes its design's sections
+and removes it; everything else under `iadd/`, with `docs/`, is permanent.
+The layout, file by file, is `docs/layout/the-record-layout.md` *iadd/* and
+*iadd/threads/<work-item-id>/*.
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
@@ -30,7 +30,7 @@ check: tests/lib/test_optin.py
 
 ## The dependency rule
 
-**Anything that must outlive a release may not read `seal/threads/<id>/` after
+**Anything that must outlive a release may not read `iadd/threads/<id>/` after
 the merge.** `settle` removes the directory, so every permanent purpose
 treats it as already gone. A round record's `target:` line is read only while
 its pull request is open. A comment naming a work item, above a released
@@ -40,7 +40,7 @@ local mode no history holds the folder, so the pointer names a work item
 that has left. Every check in a repository
 that reads the corpus owes an answer when a settle removes part of it
 (`skills/settle/SKILL.md` *Answer every check that reads the corpus*). A new
-reader of `seal/threads/<id>/` after the merge is a finding for the review
+reader of `iadd/threads/<id>/` after the merge is a finding for the review
 that meets it.
 
 **Behind it is a wider rule: nothing may need to be found and updated when
@@ -54,22 +54,22 @@ line, and a `<commit>:<path>` that a work item's `trail/` or `inspection.md`
 cites at such a commit. Both are read while the pull request is open and go
 with the record. Every other `<commit>:<path>` names a commit `main` or a
 release branch reaches (`docs/layout/the-record-layout.md`
-*seal/threads/<work-item-id>/*). A citation that names its unit by path and
+*iadd/threads/<work-item-id>/*). A citation that names its unit by path and
 heading, or by `path#name`, outlives the edits that move a line, and every
 cited heading and name stands in its file.
 check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 ## The opt-in signal is the root itself
 
-**A repository is opted in when `seal/` exists at one of the places the
+**A repository is opted in when `iadd/` exists at one of the places the
 opening paragraph of `skills/core/SKILL.md` names and its `README.md` opens
 with the plugin's marker.** The marker is the first line of
-`templates/setup/seal-README.md`, written at first setup. The `iadd`
+`templates/setup/iadd-README.md`, written at first setup. The `iadd`
 commands, the pull request's check and the stamp's `--stop` look at those
 places in the core's order; the first that exists with the marker says both
-"on" and which mode. A `seal/` whose README does not open with the marker is a
+"on" and which mode. An `iadd/` whose README does not open with the marker is a
 project's own directory,
-as a package named `seal` has one, and reads as not opted in. First
+as a package named `iadd` has one, and reads as not opted in. First
 setup that meets one writes nothing into it, and the root goes under the
 git directory. Nothing else is read, and there is no config
 key: a git config key, a marker under `.git/` or a fetched ref would say
@@ -77,7 +77,7 @@ twice what the folder already says.
 
 | | Shared mode | Local mode |
 |---|---|---|
-| Who decides | whoever committed `seal/`, for every clone that installed the plugin | the developer of that clone |
+| Who decides | whoever committed `iadd/`, for every clone that installed the plugin | the developer of that clone |
 | A collaborator who set nothing up | in the IADD process, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
 
 A collaborator who never installed the plugin runs nothing in either mode,
@@ -95,17 +95,17 @@ check: tests/lib/test_optin.py
 setup, and it asks one.** One `AskUserQuestion` with three options, in this
 order, the first the default, each saying what it does:
 
-- **shared, records only** creates `<repo>/seal/`, which the routing commit
+- **shared, records only** creates `<repo>/iadd/`, which the routing commit
   carries, and writes nothing under `.github/`.
 - **shared, with pull-request checks** does the same, then runs
   `iadd pr-checks install`, which writes `.github/workflows/hygiene.yml`
   from `templates/setup/hygiene.yml` where that path is absent: a clone of the
   plugin at the release installed at setup, and the pull-request checks.
-- **local** creates `$(git rev-parse --git-common-dir)/seal/`, touches nothing
+- **local** creates `$(git rev-parse --git-common-dir)/iadd/`, touches nothing
   in the tree, and installs nothing, because the checks read committed files
   and local mode commits none.
 
-A repository with `seal/` at either place has been through this and is never
+A repository with `iadd/` at either place has been through this and is never
 asked again; the mode is read from where the folder is.
 check: tests/behaviour/test_first_setup_asks_once.py
 
@@ -117,15 +117,15 @@ it is.
 
 | | Local mode | Shared mode |
 |---|---|---|
-| Fits | a repository with its own conventions where this plugin's files must not appear in the tree: a company repository, a contribution to someone else's project. Also a solo repository that wants nothing extra committed | your own repository, or any repository where a committed `seal/` bothers nobody |
-| Where `seal/` lives | `.git/seal/`, inside the common git dir | `<repo>/seal/`, in the tree |
+| Fits | a repository with its own conventions where this plugin's files must not appear in the tree: a company repository, a contribution to someone else's project. Also a solo repository that wants nothing extra committed | your own repository, or any repository where a committed `iadd/` bothers nobody |
+| Where `iadd/` lives | `.git/iadd/`, inside the common git dir | `<repo>/iadd/`, in the tree |
 | Committed | never; nothing to gitignore either | yes |
 | Linked worktrees and parallel sessions | read each other's records, because the git dir is common to every worktree of the clone | read each other's records, because the files are committed |
 | Other machines and a re-clone | start empty; `iadd export` / `iadd import` carry a copy by hand | have everything |
 | CI (the pull-request checks) | cannot run; `iadd pr-checks install` refuses here | runs where first setup's answer or `iadd pr-checks install` put the workflow in the tree |
-| Switching later | `iadd mode shared` moves `.git/seal/` to `<repo>/seal/` and stages it; you commit | `iadd mode local` moves `<repo>/seal/` back and stages the removal; you commit |
+| Switching later | `iadd mode shared` moves `.git/iadd/` to `<repo>/iadd/` and stages it; you commit | `iadd mode local` moves `<repo>/iadd/` back and stages the removal; you commit |
 
-**`seal/config.json`'s `Mode` key is not the opt-in, and the difference is
+**`iadd/config.json`'s `Mode` key is not the opt-in, and the difference is
 what reads it.** The key says where the root *should* be; the folder's
 location says where it *is*, and no hook, gate or check resolves the root
 through the key: `lib/optin.py#home_at` is the only reader of the question.
@@ -140,7 +140,7 @@ value that cannot be wrong.
 answers, and the workflow file is the record of the second.** `iadd mode` moves the root and writes the `Mode` key, and leaves `.github/` alone.
 `iadd pr-checks install` writes `.github/workflows/hygiene.yml` from
 `templates/setup/hygiene.yml` where that path is absent, pinned to the installed
-release, and stages it. It refuses where `<repo>/seal/` is not a directory,
+release, and stages it. It refuses where `<repo>/iadd/` is not a directory,
 because the checks read committed records. `iadd pr-checks remove` takes out
 a workflow this plugin wrote and leaves any other file alone. No config key
 says whether the checks are installed: the file says it, and a second record
@@ -148,7 +148,7 @@ would be a second answer. A workflow left behind in local mode and pinned to
 a release that has the no-root state reads nothing as declared:
 `chain_check.py`, the one record check it runs, finds no root in the tree, so
 nothing is declared, and judges the commit trailers alone. It passes the
-commits a local-mode session writes, which carry no `Seal-Routing` trailer,
+commits a local-mode session writes, which carry no `IADD-Routing` trailer,
 and fails a ready pull request where a commit made before the switch carries
 a trailer naming a work item. One pinned to an older release fails every pull
 request there until its `--branch` line moves or `iadd pr-checks remove`
@@ -157,7 +157,7 @@ check: tests/skills/test_iadd.py
 
 **Local mode lives under the git directory, not in a gitignored folder.** A
 linked worktree checks out committed files only, so an ignored
-`<repo>/seal/` would be absent from every worktree, and parallel sessions
+`<repo>/iadd/` would be absent from every worktree, and parallel sessions
 could not read each other's records. Under the common git directory the root
 is shared by every worktree of that clone, never a commit candidate, and
 needs no `.gitignore` line. Local mode has no per-branch isolation of
@@ -186,18 +186,17 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 ## Naming
 
-**The product is IADD, and bare `seal` names one of its parts**:
-the root `seal/`. The command line is `iadd`.
-The plugin's `name` and the prefix of every agent and skill is `iadd`;
-the marketplace is `iadd`; the commit trailer is `Seal-Routing:`.
-Every identifier is lowercase with no separator, and `IADD` is
+**The product is IADD, and `iadd` is the name of each of its parts**:
+the root `iadd/`, the command line, the plugin's `name`, the prefix of
+every agent and skill, and the marketplace. The commit trailer is
+`IADD-Routing:`. Every identifier is lowercase with no separator, and `IADD` is
 written only where a person reads the brand.
 
 | Name | Its one sentence |
 |---|---|
 | IADD | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
-| `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
-| `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `inspection.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
+| `iadd/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
+| `iadd/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `inspection.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
 | framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 
 A directory and an agent say what each is to whoever meets it first, so
@@ -208,7 +207,7 @@ are written in is that repository's answer, below.
 
 ## What the repository decides for itself, and how it is read
 
-`seal/config.json` is the one file a repository writes about itself, one
+`iadd/config.json` is the one file a repository writes about itself, one
 JSON object with one key per item, read by the checkers and editable by
 hand. The keys that exist are documented in `templates/setup/config.md`,
 which also states what an absent key means, rather than leaving it to
@@ -230,7 +229,7 @@ plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 key, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language. The two language keys of
-`seal/config.json` are required: first setup and the batch before a work
+`iadd/config.json` are required: first setup and the batch before a work
 item's first edit ask for them, with the language of the recent pull request
 titles shown beside the question, and `iadd pr-body` refuses to compose a body
 without them. Where nobody is there to answer, the orchestrator writes them as

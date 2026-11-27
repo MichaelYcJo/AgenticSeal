@@ -427,10 +427,10 @@ class Test_git:
         the bound, and none of `argv`'s `-c` pairs or the `-C <root>`."""
         starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
         with pytest.raises(gitcmd.Unrun) as raised:
-            gitcmd.git("/r", "rm", "-r", "--cached", ":/seal")
-        assert raised.value.command == ["git", "rm", "-r", "--cached", ":/seal"]
+            gitcmd.git("/r", "rm", "-r", "--cached", ":/iadd")
+        assert raised.value.command == ["git", "rm", "-r", "--cached", ":/iadd"]
         assert str(raised.value) == (
-            f"`git rm -r --cached :/seal` did not finish within "
+            f"`git rm -r --cached :/iadd` did not finish within "
             f"{gitcmd.TIMEOUT} seconds"
         )
         assert raised.value.code == str(raised.value)

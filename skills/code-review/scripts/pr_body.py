@@ -10,8 +10,8 @@ A body written by hand restates the records, and most of the inspector's
 withheld verdicts are over a sentence of it that restates one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
-phase records' paths, each round record's `seal` blocks and its findings'
-headings, the broad run's `seal` blocks, `gaps.md`'s `## Not verified` and
+phase records' paths, each round record's `iadd` blocks and its findings'
+headings, the broad run's `iadd` blocks, `gaps.md`'s `## Not verified` and
 `## Not done` sections, and every table line of `frame/questions.md`. It
 copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
@@ -19,7 +19,7 @@ not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict: the inspection mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
-between `HEADING` and the changelog's section where `seal/config.json`'s
+between `HEADING` and the changelog's section where `iadd/config.json`'s
 `Pull request inspection mark` key reads `yes` and the work item's `inspection.md`
 reads `cleared` at HEAD, as `inspection_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
@@ -34,7 +34,7 @@ a manifest the address cannot be built from are named on one line opening
 
 The body opens with the orchestrator's part, its files written as their
 bytes stand, and `HEADING` follows it on its own line. The part is
-composed from `seal/config.json`'s `Commit and pull request language` and
+composed from `iadd/config.json`'s `Commit and pull request language` and
 `Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
 one file matching `pr.*.md` beside `pr.md`, its renderings in the commit
@@ -98,7 +98,7 @@ does not hang on the length of the other records.
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `lib/fields.py` reads by the record's headings, and
 `trail/gate.md` through `lib/fields.py`, the one reader of a record's
-`seal` blocks; a record either refuses is refused here with its sentence.
+`iadd` blocks; a record either refuses is refused here with its sentence.
 The other records' headings are read through `lib/lines.py`'s `readable`
 and `sections`, so a heading inside a fence is no heading, and every
 record's lines through `lib/blocks.py#gfm_lines`. No record is parsed any
@@ -137,7 +137,7 @@ Exit: 0 written, or under `--check` the part above the heading is the lines
 of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
 opens with `refused:` naming the body file by its name, or a record, the
-work item's directory or `config.json` by its path under the `seal/`
+work item's directory or `config.json` by its path under the `iadd/`
 root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
@@ -190,7 +190,7 @@ except ImportError:
 # whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `lib/config.py`, the one reader of a `seal/config.json` key, and
+# `lib/config.py`, the one reader of an `iadd/config.json` key, and
 # `lib/closing.py`, whose `keywords_in` is the one reader of a closing
 # keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
 # a command, a module that raises while it loads ends the run at exit 2;
@@ -355,7 +355,7 @@ TOO_LONG = (
 )
 
 # The inspection mark, one fixed line between `HEADING`'s blank line and
-# `FOLD`, written where `seal/config.json`'s `MARK_KEY` turns it on
+# `FOLD`, written where `iadd/config.json`'s `MARK_KEY` turns it on
 # (`lib/config.py#switch`) and the work item is cleared at HEAD
 # (`inspection_mark`). Its address is built from the plugin's manifest, which
 # stands three levels above HERE, at the plugin's root, and which this reads
@@ -793,7 +793,7 @@ def _built(texts):
 
 def _round(rel, number, text):
     """The blocks of one round record, read through `chain_check.py`, in the
-    record's order: each `seal` block outside every finding, the prose under
+    record's order: each `iadd` block outside every finding, the prose under
     `## Findings` before its first finding, and each finding's heading one
     level down followed by its finding block and its close block, each
     block copied whole."""

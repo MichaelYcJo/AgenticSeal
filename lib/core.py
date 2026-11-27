@@ -1,7 +1,7 @@
 """What the core hook prints into a session.
 
 **This module is the one definition of the core hook's output.** The core is
-`skills/core/SKILL.md`. A session in a repository that holds a `seal/` root
+`skills/core/SKILL.md`. A session in a repository that holds an `iadd/` root
 receives it from the plugin's `SessionStart` hook, `hooks/core-start.py`,
 which prints `output`: the file's text below its frontmatter, under one
 first line naming the file printed and the running plugin's version, and
@@ -20,7 +20,7 @@ line names the core's file for the session to open, above the closing line
 naming the running plugin's root whichever core it is, because past the
 cap the harness keeps only a preview and the closing line would be lost.
 
-**A session in a repository with no `seal/` root receives nothing**: the
+**A session in a repository with no `iadd/` root receives nothing**: the
 root is what says the repository runs the IADD process
 (`optin.opted_in`), and a session doing other work pays for no core.
 
@@ -177,7 +177,7 @@ def rendered(path, plugin_root):
 
 def output(cwd, plugin_root):
     """What the hook prints for a session in CWD: `rendered` for the core
-    `origin` names, where CWD's repository holds a `seal/` root, and ""
+    `origin` names, where CWD's repository holds an `iadd/` root, and ""
     where it holds none."""
     if not optin.opted_in(cwd):
         return ""

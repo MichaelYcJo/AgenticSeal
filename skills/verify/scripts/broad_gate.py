@@ -12,7 +12,7 @@ one context a release cannot replace.
 What it does, in order, from the repository root:
 
   1. the repository's own broad command — the `Broad gate` key of
-     `seal/config.json`, one shell command line the repository wrote for
+     `iadd/config.json`, one shell command line the repository wrote for
      itself. **The key is refused three ways, and all three are exit 2 with
      nothing run**: no key at all, because a run over a command nobody
      chose is the counterfeit `verify` names; a config that will not read,
@@ -83,7 +83,7 @@ checks with their first lines (`failed_form`). No run writes a values file
 or a drawing.
 
 `--record <item>` writes `<item>/trail/gate.md` on success, on either routing
-answer: it appends one `seal` block holding `run: <tree> against <base
+answer: it appends one `iadd` block holding `run: <tree> against <base
 commit>` below the blocks of earlier runs, assembled and read by
 `lib/fields.py`, and appends nothing where the last block names the
 same commit against the same base (`write_gate_file`). It is the
@@ -137,7 +137,7 @@ import tempfile
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
 # loaded through `lib/sibling.py` the way `chain_check.py` loads
-# `lib/routing.py`: it is the one reader of `seal/config.json`, and a second
+# `lib/routing.py`: it is the one reader of `iadd/config.json`, and a second
 # reader would answer a different question about the same file. The modules
 # loaded are named as `lib/sibling.py#load` names them.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -582,11 +582,11 @@ def resolve_base(root, given):
     return Base(given, given_commit, given, given_commit)
 
 
-def seal_home(root):
+def iadd_home(root):
     """The shared place `optin.home_paths` gives where it is the root, else
-    `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
+    `<git-common-dir>/iadd/`, else None — the places every `iadd/…` path in
     this plugin resolves to (contract rule 11), read in that order. Each is
-    the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
+    the root only where `lib/optin.py#marked` finds the marker, so an `iadd/`
     the project keeps for itself is never read for a command. The answer is
     `lib/optin.py#marked_home`'s; the scratch opt-out is not read here,
     because a throwaway repository still runs its broad command when
@@ -1949,13 +1949,13 @@ def gate(args, ascii_marks=False):
             f"iadd gate: {args.root or os.getcwd()} is not in a git repository — "
             "nothing ran"
         )
-    home = seal_home(root)
+    home = iadd_home(root)
     if home is None:
         # The two places as `optin.home_paths` gives them, as `iadd mode`
         # prints them.
         shared, local = sibling.load(OPTIN).home_paths(root)
         raise Refused(
-            f"iadd gate: {root} has no seal/ root at either place a root lives "
+            f"iadd gate: {root} has no iadd/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
             "this repository is not opted in, and there is no config to read a "
             "command from. Nothing ran"

@@ -141,9 +141,9 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 **① 줄표 삽입구가 목적어와 조사를 갈라놓는다.** 영어는 동격구를 `—` 로 끼워 넣어도 어순이 유지되지만, 한국어는 조사가 뒤에 붙으므로 삽입구가 길면 조사를 만나기 전에 문장이 끊긴다.
 
 ```
-나쁨   `seal/parity.json` 을 선언한 레포는 3자 판정 — 정책서 ↔ 원본 ↔ 신규,
+나쁨   `iadd/parity.json` 을 선언한 레포는 3자 판정 — 정책서 ↔ 원본 ↔ 신규,
        기본값은 원본 보존 — 을 얻고, tracer 가 사실을 가져옵니다.
-좋음   `seal/parity.json` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
+좋음   `iadd/parity.json` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
        있습니다. 정책서와 원본, 신규 코드를 나란히 놓고 판정하며, 판단이 갈리면
        원본을 보존하는 쪽이 기본값입니다.
 ```
@@ -261,7 +261,7 @@ inspection* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않�
 `rule <N>` 으로 하나씩 인용하고, 다른 파일의 절은 백틱으로 감싼 경로 뒤에
 그 파일의 제목이나 규칙을 여는 굵은 문장을 기울인 글자로 옮겨 인용한다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
 골라야 한다. 회차 기록, `inspection.md`, `trail/gate.md` 에서 검사가 읽는
-필드는 `seal` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
+필드는 `iadd` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
 그 줄을 짚어 거절한다. 블록 밖의 줄은 필드처럼 보여도 산문이고, 검사는 그
 줄을 필드로 읽지 않는다.
 check: tests/skills/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
@@ -270,7 +270,7 @@ check: tests/skills/test_rules.py tests/skills/test_chain_check.py tests/skills/
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한
 낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
 것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
-절의 `seal` 이다.
+절의 `iadd` 다.
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,

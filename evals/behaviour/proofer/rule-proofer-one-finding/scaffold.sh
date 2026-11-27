@@ -42,19 +42,19 @@ cat > 'CONTRIBUTING.md' <<'IADD_EOF'
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 IADD_EOF
-mkdir -p "$(dirname 'seal/README.md')"
-cat > 'seal/README.md' <<'IADD_EOF'
-# What AgenticSeal maintains in seal/
+mkdir -p "$(dirname 'iadd/README.md')"
+cat > 'iadd/README.md' <<'IADD_EOF'
+# What IADD keeps in iadd/
 IADD_EOF
-mkdir -p "$(dirname 'seal/config.json')"
-cat > 'seal/config.json' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/config.json')"
+cat > 'iadd/config.json' <<'IADD_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 IADD_EOF
-mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md')"
-cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md')"
+cat > 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' <<'IADD_EOF'
 # Routing: 1790000001-shout-ends-with-one-exclamation-mark
 
 | Axis | Answer |
@@ -69,8 +69,8 @@ IADD_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/shout-exclaims
-mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md')"
-cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md')"
+cat > 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md' <<'IADD_EOF'
 # Design: shout ends with one exclamation mark
 
 ## Scope
@@ -87,8 +87,8 @@ cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design
 
 Framed 2026-10-14 by framer, before the build.
 IADD_EOF
-mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md')"
-cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md')"
+cat > 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md' <<'IADD_EOF'
 # Implementation Plan: shout_twice
 
 ## Phases

@@ -42,19 +42,19 @@ cat > 'CONTRIBUTING.md' <<'IADD_EOF'
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 IADD_EOF
-mkdir -p "$(dirname 'seal/README.md')"
-cat > 'seal/README.md' <<'IADD_EOF'
-# What AgenticSeal maintains in seal/
+mkdir -p "$(dirname 'iadd/README.md')"
+cat > 'iadd/README.md' <<'IADD_EOF'
+# What IADD keeps in iadd/
 IADD_EOF
-mkdir -p "$(dirname 'seal/config.json')"
-cat > 'seal/config.json' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/config.json')"
+cat > 'iadd/config.json' <<'IADD_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 IADD_EOF
-mkdir -p "$(dirname 'seal/threads/1790000015-rename/routing.md')"
-cat > 'seal/threads/1790000015-rename/routing.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000015-rename/routing.md')"
+cat > 'iadd/threads/1790000015-rename/routing.md' <<'IADD_EOF'
 # Routing: 1790000015-rename
 
 | Axis | Answer |
@@ -77,8 +77,8 @@ Small text helpers.
 
 - `shout(text)` returns TEXT upper-cased, followed by one `!`.
 IADD_EOF
-mkdir -p "$(dirname 'seal/threads/1790000015-rename/frame/design.md')"
-cat > 'seal/threads/1790000015-rename/frame/design.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000015-rename/frame/design.md')"
+cat > 'iadd/threads/1790000015-rename/frame/design.md' <<'IADD_EOF'
 # Design: shout is renamed exclaim
 
 ## Scope
@@ -95,8 +95,8 @@ What it returns does not change.
 
 Framed 2026-10-14 by framer, before the build.
 IADD_EOF
-mkdir -p "$(dirname 'seal/threads/1790000015-rename/frame/plan.md')"
-cat > 'seal/threads/1790000015-rename/frame/plan.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000015-rename/frame/plan.md')"
+cat > 'iadd/threads/1790000015-rename/frame/plan.md' <<'IADD_EOF'
 # Implementation Plan: exclaim
 
 ## Phases

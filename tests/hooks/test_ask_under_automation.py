@@ -53,7 +53,7 @@ def declared(where, answer="yes", branch=BRANCH):
     `routing.md` naming BRANCH, its `Automation` row reading ANSWER."""
     repo = git_repo(where)
     git(repo, "checkout", "-q", "-b", BRANCH)
-    declare_automation(repo / "seal", answer, branch, ITEM)
+    declare_automation(repo / "iadd", answer, branch, ITEM)
     return repo
 
 

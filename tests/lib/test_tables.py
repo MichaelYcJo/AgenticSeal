@@ -99,7 +99,7 @@ HEADERS = {
     # A one-cell table; the header's word is the corpus's, and no reader
     # asks for it.
     "signer": ("Signer",),
-    # A two-cell table, an earlier release's `seal/config.md` header, which
+    # A two-cell table, an earlier release's `iadd/config.md` header, which
     # the cases of `_Old_config_table` and `_Old_config_shapes` walk. No
     # reader asks for it: the pass holds the walk over a header of more than
     # one cell, which `pact_check.py#ANCHOR_TABLE` and
@@ -572,7 +572,7 @@ class _Old_config_table:
         )
 
     def test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive(self):
-        """A1. `seal/config.md` is markdown and `\\|` is markdown's own answer for
+        """A1. `iadd/config.md` is markdown and `\\|` is markdown's own answer for
         a pipe inside a cell (`questions.md` Q1, answered by the repository owner
         on 2026-09-17).
 

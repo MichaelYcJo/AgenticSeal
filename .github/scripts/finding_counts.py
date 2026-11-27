@@ -11,7 +11,7 @@ the reader the pull-request check holds a record to, and nothing here reads
 the record's text by a pattern of its own. A finding is a `### <n>.
 <symptom>` section that holds a finding block; its regression is that
 block's `regression:` or `reopens:` line; and it is in records alone where
-every path that block's `location:` names lies under `seal/threads/`
+every path that block's `location:` names lies under `iadd/threads/`
 (`Finding.located`). A close block's `location:` names where the fix went,
 not where the defect shows, so the count does not read it.
 
@@ -131,7 +131,7 @@ def item_counts(root, where, routing, chain, records_at):
     """`(cells, unread)` for the work item at `where`: its four cells, each a
     number or `NOT_READ`, and one line per record or directory not read. A
     finding is in records alone where every path its finding block's
-    `location:` names lies under `records_at`, `seal/threads` under the
+    `location:` names lies under `records_at`, `iadd/threads` under the
     root's own name (`threads_at`)."""
 
     def rel(path):

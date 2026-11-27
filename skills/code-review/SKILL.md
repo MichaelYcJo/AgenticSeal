@@ -23,7 +23,7 @@ last round record has no finding open.
 
 1. **Compliance**: the code against the ratified documents above it, the
    `docs/` policies first and then the work item's SDD set under
-   `seal/threads/`. Look for behaviour that is missing and for behaviour
+   `iadd/threads/`. Look for behaviour that is missing and for behaviour
    nobody asked for. Read the code, not the implementer's report of it.
 2. **Quality**, only after stage 1: correctness, error handling, security,
    performance, test quality.
@@ -50,7 +50,7 @@ removal as a settle, so outside a settle only this reading sees one. In
 local mode the records are never committed, so no diff holds them, and
 nothing reads a row taken out there.
 
-Where `seal/config.json` has a `Pact` key, the proofer reads the work item's
+Where `iadd/config.json` has a `Pact` key, the proofer reads the work item's
 `frame/design.md` at stage 1 against the shape
 `skills/verify/scripts/pact_check.py` states under *What each frame is read
 for*, which is all `iadd pact` reads. A line written as a pact anchor and
@@ -82,8 +82,8 @@ Fix the axes before starting and cover all of them.
 | Concurrency & atomicity | what can change between the read that decides and the write that acts: state held across an external call or `await`, transaction boundary against lock scope, whether a retry executes twice |
 | Security | who can reach this path and as whom; the trust of every input that crosses an OS or process boundary; whether each failure fails open or closed; what a crafted name, path, or payload reaches |
 | Record against the code | each sentence of the work item's records that states what the code does or where it stands, against the code at the target. Open each coordinate the sentence names, a path, a `path#name` or a backticked path with an italic heading, and read whether it stands at the target and says what the sentence says |
-| Record against record | each fact a record states, against every other statement of it in the work item's records. List them with `grep -rn -F '<the fact's words>' seal/threads/<item>/` at the target, which reads the records root wherever it stands, local mode's untracked one among them, a sample under contract rule 12 and contract rule 19, as *A paste-ready fix reaches every statement of the fact it repairs, or names where it stops* says of a finding's search |
-| Record against another work item's frame | each rule, section or file the records cite that another work item of the release changes, against that item's frame: the unsettled designs' `## Rule changes`, which with the policy root make the policy in force (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*), and the rows of this item's `frame/plan.md` *Overlap with the release*. List them with `grep -n -F '<the section's heading>' seal/threads/*/frame/design.md` at the target, outside the work item's own directory |
+| Record against record | each fact a record states, against every other statement of it in the work item's records. List them with `grep -rn -F '<the fact's words>' iadd/threads/<item>/` at the target, which reads the records root wherever it stands, local mode's untracked one among them, a sample under contract rule 12 and contract rule 19, as *A paste-ready fix reaches every statement of the fact it repairs, or names where it stops* says of a finding's search |
+| Record against another work item's frame | each rule, section or file the records cite that another work item of the release changes, against that item's frame: the unsettled designs' `## Rule changes`, which with the policy root make the policy in force (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*), and the rows of this item's `frame/plan.md` *Overlap with the release*. List them with `grep -n -F '<the section's heading>' iadd/threads/*/frame/design.md` at the target, outside the work item's own directory |
 | Figure against its text | each image or drawing a record holds, a drawn screen among them, against the sentences that say what it shows, and against the code that renders it where the work builds that code. Open the image |
 
 The rows *Concurrency & atomicity* and *Security* are not settled by
@@ -171,14 +171,14 @@ check: tests/text/test_review_axes.py tests/text/test_the_rules_have_one_owner.p
 
 ## The record
 
-A round writes `seal/threads/<work-item-id>/trail/rounds/round-N.md` from
+A round writes `iadd/threads/<work-item-id>/trail/rounds/round-N.md` from
 `templates/records/sdd-round.md`. Every field the check reads stands inside a
-`seal` block, a fenced block opened by a line of three backticks and `seal`
+`iadd` block, a fenced block opened by a line of three backticks and `iadd`
 alone, and `lib/fields.py` is the one statement of each block's lines
 and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows
-`Record language` in the `seal/` root's `config.json`
+`Record language` in the `iadd/` root's `config.json`
 (`templates/setup/config.md` *Record language*), and what an absent key
 does is `templates/setup/config.md` *An absent language key is a refusal
 at the pull request body, and never at a commit*. The field names, headings

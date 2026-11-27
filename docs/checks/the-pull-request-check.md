@@ -8,8 +8,8 @@ a person who changes it; the inspector cites its code.
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
 section of each `frame/design.md` it parses, the records, the broad gate's
 file, the inspector's inspection, the pull request's body where the run's event
-payload holds it, the `Seal-Routing` trailers of the pull request's own
-commits and, where `seal/parity.json` is declared, the
+payload holds it, the `IADD-Routing` trailers of the pull request's own
+commits and, where `iadd/parity.json` is declared, the
 migration config's `Baseline commit`, and, against a design's
 operations, the string constants of the test files under `tests/` and
 the rule documents, and nothing else of a round record.** It judges the
@@ -38,7 +38,7 @@ lost its number, reads as the branch's own and is refused loudly, and a
 commit someone makes under GitHub's identity with a number reads as carried.
 check: judged-where-carried
 
-**Of a round record the check reads its `seal` blocks and its finding headings, and refuses what it cannot read.** It reads every block `docs/forms/the-round-record.md` *The round record* describes, and a ready pull request fails for any line that grammar refuses. It names each file under `trail/rounds/` whose name is no `round-N.md` as one it did not read, so a record under another name is a line of the check's output and never a silent pass, and it names each fence whose info string's first word, case folded, is `seal` and whose opener is not the block's, which changes no exit code. It fails, too, while a finding has no close block; for a `fixed` naming a commit HEAD does not descend from, or one that changed no path the finding's or its close's `location:` names; for a reference naming no earlier record, or a finding that record does not hold, and any reference in round 1; and for a `fixed` or `rejected` finding the next record names on no `confirms:`, `reopens:` or `regression:` line. A `seal` block inside another fence is part of that fence, so a finding whose block stands inside its fix block lacks its finding block and is refused for it, and a whole finding written inside a closed fence is no finding: the orchestrator's read of the record before its commit, against the template, is what catches it. A record written before the fields stood in blocks holds no round block, and is refused with one message naming the template. A fence that never closes, which would hide every block after it, is refused at the line that opened it. A line
+**Of a round record the check reads its `iadd` blocks and its finding headings, and refuses what it cannot read.** It reads every block `docs/forms/the-round-record.md` *The round record* describes, and a ready pull request fails for any line that grammar refuses. It names each file under `trail/rounds/` whose name is no `round-N.md` as one it did not read, so a record under another name is a line of the check's output and never a silent pass, and it names each fence whose info string's first word, case folded, is `iadd` and whose opener is not the block's, which changes no exit code. It fails, too, while a finding has no close block; for a `fixed` naming a commit HEAD does not descend from, or one that changed no path the finding's or its close's `location:` names; for a reference naming no earlier record, or a finding that record does not hold, and any reference in round 1; and for a `fixed` or `rejected` finding the next record names on no `confirms:`, `reopens:` or `regression:` line. An `iadd` block inside another fence is part of that fence, so a finding whose block stands inside its fix block lacks its finding block and is refused for it, and a whole finding written inside a closed fence is no finding: the orchestrator's read of the record before its commit, against the template, is what catches it. A record written before the fields stood in blocks holds no round block, and is refused with one message naming the template. A fence that never closes, which would hide every block after it, is refused at the line that opened it. A line
 outside every fence that begins with `<!--` is refused at its line, because
 the check reads a comment as text. Each refusal names the record, the line and the
 finding's heading. No emoji is read, and neither severity nor answer
@@ -50,11 +50,11 @@ against the template and the next round's reading of the earlier records
 are there to catch.
 check: round-record-read-by-label
 
-**The last record is at HEAD, or only the work item's own records follow it, and none of its findings is `rejected`, nor `fixed` by a commit that touched a path beyond the work item's records, nor `fixed` where the finding's own `location:` names no path in them.** A commit after the last record's `target:` commit that touches a file outside `seal/threads/<id>/` is a fix nobody reviewed, and the refusal names it and says a verifying round is owed. So is a `rejected` finding of the last record, a `fixed <commit>` whose commit touched any path outside `seal/threads/<id>/`, and a `fixed` finding whose own block's `location:` names no path under `seal/threads/<id>/`, whatever its commit touched and whatever its close block's `location:` names, since no round after it read the fix or the rejection, and a change to the records does not answer, unread by a round, a finding the round placed wholly outside them. A path outside `seal/threads/<id>/` that the finding names beside a record owes no round: the inspector reads what the finding asked of that path (`agents/inspector.md` step 4). In this repository's round records up to 2026-11-27, 19 findings that named such a path were fixed by a commit that touched the records alone, and no round after one found a change that path was owed and did not get (#1632). A `fixed <commit>` finding passes where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives its fix to the inspector, which reads every record at HEAD (`agents/inspector.md` step 2). A last record whose findings all read `deferred <home>` or such a `fixed`, or that holds none, passes.
+**The last record is at HEAD, or only the work item's own records follow it, and none of its findings is `rejected`, nor `fixed` by a commit that touched a path beyond the work item's records, nor `fixed` where the finding's own `location:` names no path in them.** A commit after the last record's `target:` commit that touches a file outside `iadd/threads/<id>/` is a fix nobody reviewed, and the refusal names it and says a verifying round is owed. So is a `rejected` finding of the last record, a `fixed <commit>` whose commit touched any path outside `iadd/threads/<id>/`, and a `fixed` finding whose own block's `location:` names no path under `iadd/threads/<id>/`, whatever its commit touched and whatever its close block's `location:` names, since no round after it read the fix or the rejection, and a change to the records does not answer, unread by a round, a finding the round placed wholly outside them. A path outside `iadd/threads/<id>/` that the finding names beside a record owes no round: the inspector reads what the finding asked of that path (`agents/inspector.md` step 4). In this repository's round records up to 2026-11-27, 19 findings that named such a path were fixed by a commit that touched the records alone, and no round after one found a change that path was owed and did not get (#1632). A `fixed <commit>` finding passes where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives its fix to the inspector, which reads every record at HEAD (`agents/inspector.md` step 2). A last record whose findings all read `deferred <home>` or such a `fixed`, or that holds none, passes.
 check: last-record-at-head
 
 **The broad run has one home, `trail/gate.md`, on either routing answer.**
-`iadd gate --record <item>` appends there, on a green run, a `seal` block holding `run: <tree> against <base>`, below the block of every earlier run, and appends nothing where the last block names the same run. At a ready pull request its newest run, the last block, is HEAD, or only the work item's records follow it.
+`iadd gate --record <item>` appends there, on a green run, an `iadd` block holding `run: <tree> against <base>`, below the block of every earlier run, and appends nothing where the last block names the same run. At a ready pull request its newest run, the last block, is HEAD, or only the work item's records follow it.
 check: tests/skills/test_broad_gate.py tests/skills/test_chain_check.py
 
 **The check reads no record of the old table's shape.** It opens the
@@ -69,7 +69,7 @@ check: old-table-shape-refused
 **The check reads the diff as declarations, not as file identity.** It diffs
 without rename detection, so a deleted declaration beside a similar added one
 is two declarations and the deletion is judged, except where the tree the
-check reads has no top-level `seal` entry. A deletion whose work item's
+check reads has no top-level `iadd` entry. A deletion whose work item's
 directory stood at the merge base and is gone whole reads as a settle and
 is accepted (`docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion*). A declaration moved with its
@@ -97,8 +97,8 @@ is left alone here, and the settle reads such a design whole. The refusal
 reads a fact from the file and puts no question to a person.
 check: rule-changes-read-at-the-pull-request
 
-**Where `seal/parity.json` is declared and the change reaches outside
-`docs/` and `seal/`, every round record of a work item declaring `through the review chain` carries one `original:` line in its round block naming the migration config's baseline.** The check reads `seal/parity.json` at HEAD
+**Where `iadd/parity.json` is declared and the change reaches outside
+`docs/` and `iadd/`, every round record of a work item declaring `through the review chain` carries one `original:` line in its round block naming the migration config's baseline.** The check reads `iadd/parity.json` at HEAD
 and the paths the pull request changes against its base, through the
 parity arm's own rule for a change confined to the document roots. A
 diff it cannot read ends the check with exit 2 before any record is
@@ -114,8 +114,8 @@ cannot read is whether the comparison was a good one, which is the
 proofer's.
 check: parity-at-the-pull-request
 
-**Where `seal/parity.json` is declared and the change reaches outside
-`docs/` and `seal/`, the `inspection.md` of a work item declaring
+**Where `iadd/parity.json` is declared and the change reaches outside
+`docs/` and `iadd/`, the `inspection.md` of a work item declaring
 `straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The inspector writes it after comparing the audited
 commit with the original through `legacy-parity`, and the check reads it by
 the rule a round record's line is read by: a ready pull request fails while
@@ -125,16 +125,16 @@ check cannot read is whether the comparison was a good one, which is the
 inspector's.
 check: parity-in-the-inspection
 
-**On every pull request, the check reads the `Seal-Routing` trailer of
+**On every pull request, the check reads the `IADD-Routing` trailer of
 each of its own commits, as `docs/checks/the-routing-check.md` *At the pull
 request* states.**
 check: routing-trailer-at-the-pull-request
 
-**Where the tree the check reads has no top-level `seal` entry, the
+**Where the tree the check reads has no top-level `iadd` entry, the
 check reads nothing as declared.** The tree is HEAD, and the working
 tree under `--worktree`. The pull request that moves a root to local
 mode deletes every `routing.md` with the root, and a deleted declaration
-is otherwise judged. With no `seal` entry there is nothing to declare,
+is otherwise judged. With no `iadd` entry there is nothing to declare,
 so the check judges the trailers as for any pull request that declares
 nothing. Where git cannot say whether HEAD has the entry, the
 declarations stay judged.
@@ -178,10 +178,10 @@ pull request passes only where that body is what `iadd pr-body` composes
 at HEAD for the one judged work item the pull request carries: its
 `pr.md`, the heading, the inspection mark where the `Pull request inspection mark`
 key reads `yes` and the work item is cleared at HEAD, and the records'
-copy.** Where `seal/config.json`'s two language keys differ, the body
+copy.** Where `iadd/config.json`'s two language keys differ, the body
 the check compares opens with the work item's `pr.<lang>.md` and then
 `pr.md`, as `iadd pr-body` composes it, and where either key is absent
-the check refuses on `seal/config.json`, as `iadd pr-body` does. The
+the check refuses on `iadd/config.json`, as `iadd pr-body` does. The
 check reads the body from the file `GITHUB_EVENT_PATH` names, the file it reads the draft state from, and compares it through
 the function `iadd pr-body --check` compares with, so the inspector and the
 pull request read the body by one code path. Each differing line is

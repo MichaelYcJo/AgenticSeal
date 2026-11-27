@@ -3,7 +3,7 @@
 PNG beside them where the repository turns the image on.
 
 **The image is one key's to turn on.** `MARK_KEY` in the
-`config.json` of the tree's `seal/` root turns it on where
+`config.json` of the tree's `iadd/` root turns it on where
 `lib/config.py#switch` reads the key as on (`mark_on`). Then the PNG is
 attached as `ASSET` and the note's header becomes a paragraph holding the
 image floated beside the results. Under any other answer nothing is drawn
@@ -302,7 +302,7 @@ def chain_counts(root, pulls):
     with no close block is open and counts none. A round record the check's
     reader refuses anything of -- one in an older shape, a table or
     labelled lines, which holds no round block; a line of a
-    `seal` block that does not parse; a block out of its place; a finding
+    `iadd` block that does not parse; a block out of its place; a finding
     with no finding block -- leaves
     `deferred` None -- an incomplete count is a wrong number -- a `rounds`
     that cannot be listed
@@ -395,7 +395,7 @@ def chain_counts(root, pulls):
 # The asset's name on the release, and so the last part of its URL.
 ASSET = "mark.png"
 
-# The key of the tree's `seal/config.json` that turns the image on, read
+# The key of the tree's `iadd/config.json` that turns the image on, read
 # by `lib/config.py#switch`. What `mark_on` says where a key is written and
 # does not turn it on is the switch's sentence, closed by `NO_IMAGE` and
 # printed after `IMAGE_WARNING`.
@@ -405,7 +405,7 @@ NO_IMAGE = "the note's header holds the results without the mark's image"
 
 
 def mark_on(root):
-    """`(on, note)`: whether `MARK_KEY` in the `config.json` of the `seal/`
+    """`(on, note)`: whether `MARK_KEY` in the `config.json` of the `iadd/`
     root of the tree at ROOT turns the image on, and the sentence naming a
     key that is written and does not, or None.
 

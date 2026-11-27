@@ -3,7 +3,7 @@
 *[English](./one-root-by-lifetime.md) · 한국어*
 
 이 플러그인이 저장소에 두는 것은 모두 플러그인이 관리하는 루트 하나,
-`seal/` 아래에 있고, 그 안은 각 파일이 얼마나 오래 사는가로 나뉩니다. 이
+`iadd/` 아래에 있고, 그 안은 각 파일이 얼마나 오래 사는가로 나뉩니다. 이
 문서는 그 루트가 어디 있는지, 무엇이 저장소를 옵트인시키는지, 처음 설정이
 무엇을 묻는지, 저장소의 설정 키가 무엇을 정하는지를 적습니다.
 
@@ -14,10 +14,10 @@
 만들고 옮기고 지우며, 그 형식을 플러그인의 검사기가 정한다는 뜻입니다.
 `.github/` 가 GitHub 의 것인 것과 같습니다. 수명은 셋이고 각각 집이 하나입니다.
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
-항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 설계의 절을 쓰고
-디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/` 와 함께
-영구적입니다. 파일 하나하나의 배치는 `docs/layout/the-record-layout.md` *seal/* 와
-*seal/threads/<work-item-id>/* 에 있습니다.
+항목의 디렉터리 `iadd/threads/<id>/` 는 settle 이 그 설계의 절을 쓰고
+디렉터리를 지울 때까지 삽니다. 그 밖의 `iadd/` 아래 파일은 `docs/` 와 함께
+영구적입니다. 파일 하나하나의 배치는 `docs/layout/the-record-layout.md` *iadd/* 와
+*iadd/threads/<work-item-id>/* 에 있습니다.
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
@@ -30,7 +30,7 @@ check: tests/lib/test_optin.py
 
 ## 종속 규칙
 
-**릴리스보다 오래 살아야 하는 것은 병합 뒤에 `seal/threads/<id>/` 를 읽어서는
+**릴리스보다 오래 살아야 하는 것은 병합 뒤에 `iadd/threads/<id>/` 를 읽어서는
 안 됩니다.** `settle` 이 이 디렉터리를 지우므로, 영구적인 용도에서는 이미
 없는 것으로 취급합니다. 라운드 기록의 `target:` 줄은 그 PR 이 열려 있는
 동안만 읽힙니다. 릴리스된 changelog 항목 위에서 작업 항목의 이름을 적은
@@ -38,7 +38,7 @@ check: tests/lib/test_optin.py
 이력에서 찾을 수 있습니다. local 모드에서는 그 폴더를 담은 이력이 없으므로,
 그 주석은 이미 떠난 작업 항목의 이름만 가리킵니다. 저장소에서 이 묶음을 읽는 검사는 모두, settle 이 그 일부를 지울 때
 답을 내야 합니다(`skills/settle/SKILL.md` *Answer every check that reads the
-corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
+corpus*). 병합 뒤에 `iadd/threads/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
 지적할 일입니다.
 
 **그 뒤에 있는 더 넓은 규칙은, 무엇이 움직일 때 다른 것을 찾아서 고쳐야 하는
@@ -51,7 +51,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 `trail/` 이나 `inspection.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
 그것입니다. 둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그
 밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
-(`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*). 경로와
+(`docs/layout/the-record-layout.md` *iadd/threads/<work-item-id>/*). 경로와
 제목으로, 또는 `path#name` 으로 단위를 가리키는 인용은 줄을 옮기는 편집에도
 살아남고, 인용된 제목과 이름은 모두 그 파일에 있습니다.
 check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
@@ -59,12 +59,12 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 ## 옵트인 신호는 루트 자체다
 
 **저장소가 옵트인한 것은 `skills/core/SKILL.md` 의 첫 문단이 정한 자리 가운데
-하나에 `seal/` 이 있고 그 `README.md` 가 플러그인의 표식으로 시작할
-때입니다.** 표식은 `templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정이
+하나에 `iadd/` 가 있고 그 `README.md` 가 플러그인의 표식으로 시작할
+때입니다.** 표식은 `templates/setup/iadd-README.md` 의 첫 줄이고, 처음 설정이
 이것을 씁니다. `iadd` 명령과 pull request 검사, 도장의 `--stop` 은 그 자리들을
 코어가 정한 순서로 보고, 표식과 함께 있는 첫 자리가 "켜졌다" 와 "어느
 모드인가" 를 함께 말해 줍니다. README 가 표식으로
-시작하지 않는 `seal/` 은 `seal` 이라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
+시작하지 않는 `iadd/` 는 `iadd` 라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
 옵트인하지 않은 것으로 읽습니다. 그런 디렉터리를 만난 처음 설정은 그 안에 아무것도 쓰지 않고, 루트를
 git 디렉터리 아래에 둡니다. 그 밖에는 아무것도 읽지 않고, 설정 키도 없습니다. git
 설정 키도, `.git/` 아래의 표시 파일도, 가져온 ref 도 폴더가 이미 하는 말을
@@ -72,7 +72,7 @@ git 디렉터리 아래에 둡니다. 그 밖에는 아무것도 읽지 않고, 
 
 | | shared 모드 | local 모드 |
 |---|---|---|
-| 누가 정하는가 | `seal/` 을 커밋한 사람이, 플러그인을 깐 모든 클론에 대해 | 그 클론의 개발자 |
+| 누가 정하는가 | `iadd/` 를 커밋한 사람이, 플러그인을 깐 모든 클론에 대해 | 그 클론의 개발자 |
 | 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 IADD 프로세스를 따른다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
 
 플러그인을 깔지 않은 협업자에게는 어느 모드에서도 아무것도 돌지 않습니다.
@@ -89,17 +89,17 @@ check: tests/lib/test_optin.py
 `AskUserQuestion` 한 번에 선택지 셋을 이 순서로 두고, 첫째를 기본값으로
 하며, 각 선택지가 무엇을 하는지 말합니다.
 
-- **shared, records only** 는 `<repo>/seal/` 을 만들고, 라우팅 커밋이
+- **shared, records only** 는 `<repo>/iadd/` 를 만들고, 라우팅 커밋이
   그것을 싣습니다. `.github/` 아래에는 아무것도 쓰지 않습니다.
 - **shared, with pull-request checks** 는 같은 일을 한 뒤
   `iadd pr-checks install` 을 실행합니다. 이 명령은
   `.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
   씁니다. 설정할 때 깔린 릴리스의 플러그인 클론과 PR 검사입니다.
-- **local** 은 `$(git rev-parse --git-common-dir)/seal/` 을 만들고, 트리에는
+- **local** 은 `$(git rev-parse --git-common-dir)/iadd/` 를 만들고, 트리에는
   아무것도 건드리지 않으며, 아무것도 설치하지 않습니다. 검사는 커밋된 파일을
   읽는데 local 모드는 아무것도 커밋하지 않기 때문입니다.
 
-두 자리 중 어디든 `seal/` 이 있는 저장소는 이미 이 과정을 거쳤으므로 다시
+두 자리 중 어디든 `iadd/` 가 있는 저장소는 이미 이 과정을 거쳤으므로 다시
 묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다.
 check: tests/behaviour/test_first_setup_asks_once.py
 
@@ -110,15 +110,15 @@ check: tests/behaviour/test_first_setup_asks_once.py
 
 | | local 모드 | shared 모드 |
 |---|---|---|
-| 맞는 곳 | 이 플러그인의 파일이 트리에 나타나면 안 되는, 자기 규칙이 있는 저장소. 회사 저장소, 남의 프로젝트에 하는 기여. 커밋에 아무것도 더하고 싶지 않은 혼자 쓰는 저장소도 | 자기 저장소, 또는 커밋된 `seal/` 이 아무도 거슬리게 하지 않는 저장소 |
-| `seal/` 이 사는 곳 | `.git/seal/`, 공통 git 디렉터리 안 | `<repo>/seal/`, 트리 안 |
+| 맞는 곳 | 이 플러그인의 파일이 트리에 나타나면 안 되는, 자기 규칙이 있는 저장소. 회사 저장소, 남의 프로젝트에 하는 기여. 커밋에 아무것도 더하고 싶지 않은 혼자 쓰는 저장소도 | 자기 저장소, 또는 커밋된 `iadd/` 가 아무도 거슬리게 하지 않는 저장소 |
+| `iadd/` 가 사는 곳 | `.git/iadd/`, 공통 git 디렉터리 안 | `<repo>/iadd/`, 트리 안 |
 | 커밋 | 하지 않는다. gitignore 할 것도 없다 | 한다 |
 | 연결된 워크트리와 병렬 세션 | 서로의 기록을 읽는다. git 디렉터리가 클론의 모든 워크트리에 공통이기 때문이다 | 서로의 기록을 읽는다. 파일이 커밋되기 때문이다 |
 | 다른 기기와 다시 클론한 경우 | 빈 상태로 시작한다. `iadd export` / `iadd import` 로 사본을 손으로 옮긴다 | 모두 가지고 있다 |
 | CI (PR 검사) | 돌 수 없다. `iadd pr-checks install` 이 여기서는 거절한다 | 처음 설정의 답이나 `iadd pr-checks install` 이 워크플로를 트리에 넣은 곳에서 돈다 |
-| 나중에 바꾸기 | `iadd mode shared` 가 `.git/seal/` 을 `<repo>/seal/` 로 옮기고 스테이지한다. 커밋은 사람이 한다 | `iadd mode local` 이 `<repo>/seal/` 을 되돌리고 삭제를 스테이지한다. 커밋은 사람이 한다 |
+| 나중에 바꾸기 | `iadd mode shared` 가 `.git/iadd/` 를 `<repo>/iadd/` 로 옮기고 스테이지한다. 커밋은 사람이 한다 | `iadd mode local` 이 `<repo>/iadd/` 를 되돌리고 삭제를 스테이지한다. 커밋은 사람이 한다 |
 
-**`seal/config.json` 의 `Mode` 키는 옵트인이 아니고, 차이는 무엇이 그것을
+**`iadd/config.json` 의 `Mode` 키는 옵트인이 아니고, 차이는 무엇이 그것을
 읽느냐에 있습니다.** 그 키는 루트가 *있어야 할* 자리를 말하고, 폴더의 자리는
 루트가 *있는* 자리를 말합니다. 어떤 훅, 게이트, 검사도 그 키로 루트를 찾지
 않습니다. 이 질문을 읽는 것은 `lib/optin.py#home_at` 하나뿐입니다. 손으로
@@ -132,7 +132,7 @@ check: tests/behaviour/test_first_setup_asks_once.py
 기록은 워크플로 파일 자체입니다.** `iadd mode` 는 루트를 옮기고 `Mode`
 키를 쓰며, `.github/` 에는 손대지 않습니다. `iadd pr-checks install` 은
 `.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
-설치된 릴리스로 고정해 쓰고 스테이지합니다. `<repo>/seal/` 이 디렉터리가
+설치된 릴리스로 고정해 쓰고 스테이지합니다. `<repo>/iadd/` 가 디렉터리가
 아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
 `iadd pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
 그대로 둡니다. 검사가 설치되었는지를 말하는 설정 키는 없습니다. 파일이
@@ -140,7 +140,7 @@ check: tests/behaviour/test_first_setup_asks_once.py
 아는 릴리스로 고정된 워크플로는 local 모드에 남으면 선언된 것이 없는 것으로
 읽습니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py` 하나뿐이고,
 트리에서 루트를 찾지 못하니 커밋 트레일러만 판단합니다. local 모드 세션이 쓴
-커밋에는 `Seal-Routing` 트레일러가 없으니 통과하고, 전환 전에 만든 커밋의
+커밋에는 `IADD-Routing` 트레일러가 없으니 통과하고, 전환 전에 만든 커밋의
 트레일러가 작업 항목을 가리키면 준비된 PR 을 실패시킵니다.
 그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
 `iadd pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
@@ -148,7 +148,7 @@ check: tests/behaviour/test_first_setup_asks_once.py
 check: tests/skills/test_iadd.py
 
 **local 모드는 gitignore 한 폴더가 아니라 git 디렉터리 아래에 삽니다.** 연결된
-워크트리는 커밋된 파일만 체크아웃하므로, 무시된 `<repo>/seal/` 은 모든
+워크트리는 커밋된 파일만 체크아웃하므로, 무시된 `<repo>/iadd/` 는 모든
 워크트리에서 없는 셈이 되고 병렬 세션이 서로의 기록을 읽지 못합니다. 공통 git
 디렉터리 아래에 두면 루트는 그 클론의 모든 워크트리가 함께 쓰고, 커밋 후보가
 되지 않으며, `.gitignore` 줄도 필요 없습니다. local 모드에는 커밋하지 않은
@@ -177,18 +177,17 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 ## 이름
 
-**제품 이름은 IADD 이고, 그 안에서 맨 `seal` 은 한 부분을 가리킵니다.**
-루트 `seal/` 입니다. 명령줄은 `iadd` 입니다.
-플러그인의 `name` 과 모든 에이전트·스킬의 접두어는 `iadd` 이고,
-마켓플레이스는 `iadd`, 커밋 트레일러는 `Seal-Routing:` 입니다. 모든
+**제품 이름은 IADD 이고, 그 각 부분의 이름은 `iadd` 입니다.**
+루트 `iadd/`, 명령줄, 플러그인의 `name`, 모든 에이전트·스킬의 접두어,
+마켓플레이스가 그렇습니다. 커밋 트레일러는 `IADD-Routing:` 입니다. 모든
 식별자는 구분자 없는 소문자이고, `IADD` 는 사람이 브랜드를 읽는 자리에만
 씁니다.
 
 | 이름 | 한 문장 |
 |---|---|
 | IADD | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
-| `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
-| `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `inspection.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
+| `iadd/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
+| `iadd/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `inspection.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
 | framer, crafter, proofer, inspector, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
 
 디렉터리와 에이전트는 처음 만나는 사람에게 자기가 무엇인지 말해야 하므로,
@@ -198,7 +197,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 ## 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
 
-`seal/config.json` 은 저장소가 자기에 대해 적는 유일한 파일입니다. JSON
+`iadd/config.json` 은 저장소가 자기에 대해 적는 유일한 파일입니다. JSON
 객체 하나에 항목마다 키 하나이고, 검사기가 읽으며, 손으로 고칠 수 있습니다.
 있는 키는 `templates/setup/config.md` 에 적혀 있고, 키가 없을 때 무엇을
 뜻하는지도
@@ -217,7 +216,7 @@ check: tests/text/test_the_settings_have_a_front_door.py
 모두에게 영어를 요구하는 스킬은, 그 결정에 동의하지 않는 사람이 고칠 수 없는
 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 키에 두고, 번역한 PR 본문을
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
-붙입니다. `seal/config.json` 의 두 언어 키는 반드시 있어야 합니다. 처음 설정할
+붙입니다. `iadd/config.json` 의 두 언어 키는 반드시 있어야 합니다. 처음 설정할
 때와, 작업 항목의 첫 편집 전에 질문을 한꺼번에 물을 때 두 키를 함께 묻고, 질문
 옆에 최근 PR 제목들이 쓰인 언어를 보여 줍니다. `iadd pr-body` 는 두 키가
 없으면 PR 본문을 만들지 않고 거절합니다. 답할 사람이 없으면 orchestrator 가 두

@@ -367,10 +367,10 @@ class Test_module:
         that is the one direction a checker of claims must not fail in. The
         reader needs the paths in order to judge them by hand."""
         reason = shrunken_corpus(
-            ["seal/ledger/two.md", "docs/one.md"], "the KEEP allowlist's liveness check"
+            ["iadd/ledger/two.md", "docs/one.md"], "the KEEP allowlist's liveness check"
         )
         assert "docs/one.md" in reason
-        assert "seal/ledger/two.md" in reason
+        assert "iadd/ledger/two.md" in reason
         assert "2 tracked path(s)" in reason
         assert "the KEEP allowlist's liveness check" in reason
         assert "not judging" in reason

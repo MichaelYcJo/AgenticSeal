@@ -98,9 +98,9 @@ def scaffold_gaps(root=EVALS):
     return gaps
 
 
-# A grader pattern that reads a line of a `seal` block starts at the block's
+# A grader pattern that reads a line of an `iadd` block starts at the block's
 # opener, as the regular expression of a grader's `pattern` spells it.
-BLOCK_PATTERN = "^" + "`" * 3 + "seal\\n"
+BLOCK_PATTERN = "^" + "`" * 3 + "iadd\\n"
 # The broad run an inspector case bounds at zero calls, as a Bash call spells it.
 BROAD_RUN = "iadd gate --base"
 
@@ -109,7 +109,7 @@ def inspector_grade_gaps(root=EVALS):
     """Each inspector case that does not grade the verdict in a verdict block of
     the inspector's file, or does not bound the broad run at zero calls. The
     inspector's outcome is its verdict in `inspection.md`, which stands in a
-    `seal` block since #1198; `trail/gate.md` is the script's (#923). A
+    `iadd` block since #1198; `trail/gate.md` is the script's (#923). A
     grader is judged by its parsed fields: the file its `target` names, the
     pattern it searches for, and the command its `input_match` finds."""
     gaps = []
@@ -156,7 +156,7 @@ def test_every_inspector_case_grades_the_inspection():
 # of the inspector's file, and no Bash call of the broad run.
 VERDICT_GRADER = (
     "---\ntype: 'regex'\n"
-    "target: {source: 'file', path: 'seal/threads/i/inspection.md'}\n"
+    "target: {source: 'file', path: 'iadd/threads/i/inspection.md'}\n"
     f"pattern: '{BLOCK_PATTERN}Verdict: cleared$'\nflags: 'm'\n---\nv\n"
 )
 BOUND_GRADER = (

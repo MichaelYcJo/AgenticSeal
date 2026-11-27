@@ -1,12 +1,12 @@
 ---
 name: config
-description: Show what this repository decided for itself and change any of it, such as the languages it writes in, where its records live, and the command its broad gate runs. Reads seal/config.json, and routes a change to whatever owns that key.
+description: Show what this repository decided for itself and change any of it, such as the languages it writes in, where its records live, and the command its broad gate runs. Reads iadd/config.json, and routes a change to whatever owns that key.
 disable-model-invocation: true
 ---
 
 # /iadd:config, what this repository decided and how to decide otherwise
 
-`seal/config.json` holds what a repository says about itself, one JSON
+`iadd/config.json` holds what a repository says about itself, one JSON
 object with one key per item. Four keys have no default, the two language
 keys, `Mode` and `Broad gate`, and the table below says what each absent key
 means. A person runs this command to see every key and to change one; the
@@ -24,8 +24,8 @@ stopping.
 **No root at any of those places** means this repository has not been set
 up. Say so, name the `implement` skill's bootstrap as what does it, and
 stop. Do not create the file: the root at one of those places, with the
-README first setup copies from `templates/setup/seal-README.md`, is what
-opts a repository in, so a root is the bootstrap's to create, and a `seal/`
+README first setup copies from `templates/setup/iadd-README.md`, is what
+opts a repository in, so a root is the bootstrap's to create, and an `iadd/`
 made here without that README would read as the project's own directory.
 
 ## Procedure
@@ -46,7 +46,7 @@ present hides exactly those.
 | `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
-| `Pact signers` | *none: in a repository holding `seal/pact.md`, `iadd pact` refuses the pact without it* | in the pact's repository, the origin remote URL of every other signer, separated by `;` |
+| `Pact signers` | *none: in a repository holding `iadd/pact.md`, `iadd pact` refuses the pact without it* | in the pact's repository, the origin remote URL of every other signer, separated by `;` |
 | `Pull request inspection mark` | *off: no mark* | whether `iadd pr-body` writes the plugin's inspection mark under the pull request body's `## From the records` heading once the work item is cleared at HEAD; `yes` turns it on |
 | `Release note inspection mark` | *off: no image* | whether the release's `mark` job attaches the mark image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a key in any other repository changes nothing |
 
@@ -142,7 +142,7 @@ The person needs to see that list rather than *done*.
 Going to shared puts the records in the tree. **The commit is the point of no
 return, not the move**: once it lands, the records stay in the history
 whatever later leaves the tree. `docs/layout/one-root-by-lifetime.md` *Shared or
-local* holds that rule. Until that commit, `git reset -- :/seal` and then
+local* holds that rule. Until that commit, `git reset -- :/iadd` and then
 `iadd mode local` walk the whole thing back. The reset comes first because
 the switch stages the move, and `iadd mode` refuses a switch over a staged
 change under the root. The pathspec is there because a bare `git reset`

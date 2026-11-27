@@ -802,12 +802,12 @@ class Test_floor_syntax:
 
 class Test_section_sign:
     def test_accepts_a_record_a_clean_file_and_one_that_is_not_text(self, tmp_path):
-        plant(tmp_path, "seal/threads/1-x/frame/design.md", f"see {SIGN}3\n")
+        plant(tmp_path, "iadd/threads/1-x/frame/design.md", f"see {SIGN}3\n")
         plant(tmp_path, "evals/behaviour/c.md", f"see {SIGN}3\n")
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff")
         root = plant(tmp_path, "hooks/b.py", "# clean\n")
         for rel in (
-            "seal/threads/1-x/frame/design.md",
+            "iadd/threads/1-x/frame/design.md",
             "evals/behaviour/c.md",
             "x.png",
             "hooks/b.py",
@@ -815,9 +815,9 @@ class Test_section_sign:
             assert censuses.section_sign(rel, root) == [], rel
 
     def test_refuses_the_sign_at_its_line(self, tmp_path):
-        root = plant(tmp_path, "seal/follow-up.md", f"clean\nsee {SIGN}3\n")
-        assert censuses.section_sign("seal/follow-up.md", root) == [
-            "seal/follow-up.md:2: section_sign: a living file writes the section "
+        root = plant(tmp_path, "iadd/follow-up.md", f"clean\nsee {SIGN}3\n")
+        assert censuses.section_sign("iadd/follow-up.md", root) == [
+            "iadd/follow-up.md:2: section_sign: a living file writes the section "
             "sign. Cite a contract rule as `contract rule <N>`, and another "
             "file's section by its path and its heading text in italics"
         ]
@@ -958,7 +958,7 @@ class Test_vacated_paths:
     def test_accepts_the_records_and_a_recorded_case(self, tmp_path):
         root = plant_moved(tmp_path)
         records = (
-            "seal/threads/1-x/frame/design.md",
+            "iadd/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
         )
         for rel in records:
@@ -1082,22 +1082,22 @@ def spelled(value):
 # Each source spells a name of the root on its second line, in a shape a
 # reader of the records takes it.
 ROOT_SPELLED = {
-    "the-name-as-a-path-part": ('import os\nos.path.join(r, "seal")\n', "seal"),
-    "a-path-under-the-root": ('X = 1\nTHREADS = "seal/threads"\n', "seal/threads"),
-    "an-f-strings-literal-part": ('X = 1\nshown = f"seal/{name}"\n', "seal/"),
+    "the-name-as-a-path-part": ('import os\nos.path.join(r, "iadd")\n', "iadd"),
+    "a-path-under-the-root": ('X = 1\nTHREADS = "iadd/threads"\n', "iadd/threads"),
+    "an-f-strings-literal-part": ('X = 1\nshown = f"iadd/{name}"\n', "iadd/"),
     "a-basename-compared": (
-        'import os\nif os.path.basename(p) == "seal":\n    pass\n',
-        "seal",
+        'import os\nif os.path.basename(p) == "iadd":\n    pass\n',
+        "iadd",
     ),
 }
 # Each source names the root only in text a person reads, or spells
 # something else that opens with the same letters.
 ROOT_NOT_SPELLED = {
-    "a-docstring": '"""Reads `seal/threads/`."""\n\n\ndef f():\n    """seal"""\n',
-    "a-comment": "# under seal/threads/\nX = 1\n",
-    "a-message": 'X = "no seal/ root here"\nY = "the `seal/` root"\n',
-    "a-subcommand": 'X = "iadd mode"\nY = "sealed"\nZ = "seals/x"\n',
-    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no seal/threads/"\n',
+    "a-docstring": '"""Reads `iadd/threads/`."""\n\n\ndef f():\n    """iadd"""\n',
+    "a-comment": "# under iadd/threads/\nX = 1\n",
+    "a-message": 'X = "no iadd/ root here"\nY = "the `iadd/` root"\n',
+    "a-subcommand": 'X = "iadd mode"\nY = "iadd-scratch"\nZ = "iadds/x"\n',
+    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no iadd/threads/"\n',
 }
 
 
@@ -1124,7 +1124,7 @@ class Test_root_name:
     ):
         """`lib/optin.py` is where the names live, `tests/` and `evals/`
         build roots by name, and a document names the root in text."""
-        root = plant(tmp_path, rel, 'HOME = "seal"\n')
+        root = plant(tmp_path, rel, 'HOME = "iadd"\n')
         assert censuses.root_name(rel, root) == []
 
     def test_accepts_a_line_an_exemption_excuses_and_refuses_one_that_excuses_nothing(
@@ -1132,9 +1132,9 @@ class Test_root_name:
     ):
         source = (
             "# exempt from root_name: a fenced block's info string\n"
-            'INFO = "seal"\n'
+            'INFO = "iadd"\n'
             "# exempt from root_name: nothing here\n"
-            'OTHER = "sealed"\n'
+            'OTHER = "iadd-scratch"\n'
         )
         root = plant(tmp_path, ".github/scripts/x.py", source)
         assert lines_of(censuses.root_name(".github/scripts/x.py", root)) == [

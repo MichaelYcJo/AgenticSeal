@@ -79,7 +79,7 @@ is refused or held in the dry run.
 
 **`--from` reads a directory a person names, and writes nothing there.**
 Each `--from DIR` is read from the directory this runs in, and names a
-directory of the working tree outside the `seal/` root. A document is every
+directory of the working tree outside the `iadd/` root. A document is every
 file `git ls-files --cached --others --exclude-standard` lists under it, at
 any depth and of any extension. Each is printed with the commit that added it
 and the commit that last changed it, read from one `git log` per directory.
@@ -145,9 +145,9 @@ line says why. The list is asked once, before the first removal, and only
 where some directory reaches a version tag; the dry run never asks it.
 
 **In local mode the work items are read and removed under the git
-directory.** Every `seal/threads/<id>/` path is read under the directory that
+directory.** Every `iadd/threads/<id>/` path is read under the directory that
 holds the resolved root, the repository's top where the root is shared and
-the common git directory in local mode, and is printed as `seal/threads/<id>/`
+the common git directory in local mode, and is printed as `iadd/threads/<id>/`
 under the root's own name, which `lib/optin.py#home_paths` gives (`threads`).
 The policy root, the tracked files the citations are read from, and `tests/`
 are read from the repository's top in both. The dry run's first line names a
@@ -176,8 +176,8 @@ bound or whose query fails, under `--apply` a release
 list `gh` cannot give or a `git` that cannot read what a note is checked
 by, each before anything is removed, a sibling script that is
 not beside it, a `--from` that names no directory of the working tree, one
-outside the repository, the `seal/` root or a path under it, `--from`
-beside `--apply`, which removes only under `seal/threads/`, `--draft`
+outside the repository, the `iadd/` root or a path under it, `--from`
+beside `--apply`, which removes only under `iadd/threads/`, `--draft`
 beside `--apply` or `--from`, and `--all-earlier` beside `--apply` or
 `--draft`, which print none of what it widens. An interpreter below
 the floor never reaches this file through `iadd settle`: `lib/launch.py`
@@ -252,7 +252,7 @@ TESTS = "tests/"
 
 def policy_root(root):
     """The policy root of the repository at ROOT: `lib/config.py#policy_root`
-    of the `seal/` root `lib/optin.py#home_at` resolves there."""
+    of the `iadd/` root `lib/optin.py#home_at` resolves there."""
     optin = sibling.load(OPTIN)
     return sibling.load(CONFIG).policy_root(
         optin.home_at(root, optin.git_common_dir(root))
@@ -269,7 +269,7 @@ def show(root, ref, rel):
 
 def threads(home):
     """`<name>/threads`, `/`-joined: where the work items stand under the
-    directory holding the `seal/` root HOME, NAME being the root's own,
+    directory holding the `iadd/` root HOME, NAME being the root's own,
     `lib/optin.py#HOME`. Every work item path this command reads, removes or
     prints opens with it."""
     return f"{os.path.basename(home)}/{WORK_ITEMS}"
@@ -277,7 +277,7 @@ def threads(home):
 
 def work_items(records, specs):
     """Every work item id with a directory under SPECS (`threads`) in
-    RECORDS, the directory holding the `seal/` root, in id order."""
+    RECORDS, the directory holding the `iadd/` root, in id order."""
     top = gitcmd.under_root(records, specs)
     if not os.path.isdir(top):
         return []
@@ -807,7 +807,7 @@ SETTLED = (
 )
 # A checkout carries no local root, so the fresh checkout goes unsaid there.
 SETTLED_LOCAL = (
-    "settle: {home} is the seal/ root, in local mode, and its threads/ holds no "
+    "settle: {home} is the iadd/ root, in local mode, and its threads/ holds no "
     "work item — nothing to show and nothing to remove. A complete settle "
     "ends here.\n"
 )
@@ -834,7 +834,7 @@ NOTE_UNREAD = (
 )
 
 # The dry run's local lines, each pinned by `tests/skills/test_settle.py`.
-LOCAL_LINE = "local mode: the seal/ root is {home}, under the git directory\n"
+LOCAL_LINE = "local mode: the iadd/ root is {home}, under the git directory\n"
 MERGED_HEADING = (
     "released in local mode, each with the pull request that merged it and "
     "its\nmerge commit, for the settle's pull request body to cite:"
@@ -931,7 +931,7 @@ REMOVES_HEADING_LOCAL = (
     "`iadd export` takes a copy for\nwhoever wants one:"
 )
 READERS_HEADING = (
-    "checks that read `seal/threads` — each owes an answer "
+    "checks that read `iadd/threads` — each owes an answer "
     "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
 )
@@ -950,7 +950,7 @@ CHANGED = "changed in the working tree"
 # top, so each sentence names the path as it was read.
 FROM_WITH_APPLY = (
     "settle: --from and --apply cannot be given together: --apply removes only "
-    "under seal/threads/ and reads no named directory, so nothing was read and "
+    "under iadd/threads/ and reads no named directory, so nothing was read and "
     "nothing was removed.\n"
 )
 FROM_NOT_A_DIRECTORY = (
@@ -962,7 +962,7 @@ FROM_OUTSIDE = (
     "{path} from the directory this runs in, so nothing was read.\n"
 )
 FROM_UNDER_ROOT = (
-    "settle: --from {given} is the seal/ root or under it, at {home}, whose "
+    "settle: --from {given} is the iadd/ root or under it, at {home}, whose "
     "records the settle already reads: it reads as {path} from the directory "
     "this runs in, so nothing was read.\n"
 )
@@ -1210,7 +1210,7 @@ def earlier_judgments(root, ref, present, specs, every=False):
               (`adding_commits`, `versions`), or the sentence saying none
               does. `removed` is `(short hash, pull request number or
               None)`, the number read by `PULL_REQUEST_RE`. A coordinate is
-              `<short>^:seal/threads/<id>/frame/plan.md:<line>`
+              `<short>^:iadd/threads/<id>/frame/plan.md:<line>`
       unread  `[(where, why)]`: what `plan_rows` names for a plan, a plan
               git holds no text for, with what `git cat-file` answered, and
               a plan whose path holds a newline, which the batch cannot
@@ -1222,7 +1222,7 @@ def earlier_judgments(root, ref, present, specs, every=False):
               deletions it counts were listed
 
     One `git log -z --no-renames --full-history --diff-filter=D` of REF over
-    `seal/threads` lists the deletions: `-z` so that no path is quoted,
+    `iadd/threads` lists the deletions: `-z` so that no path is quoted,
     and `--no-renames` so that a deletion beside a similar added path, such
     as another work item's plan, is not paired with it as a rename. A merge shows no diff in it, so a
     deletion is listed at the commit that made it, and a plan only a
@@ -1441,9 +1441,9 @@ def op_line(work_item_id, op, found, specs):
 
 
 def records_of(root, home):
-    """`(local, records)` for the repository at ROOT whose resolved `seal/`
+    """`(local, records)` for the repository at ROOT whose resolved `iadd/`
     root is HOME: whether it is in local mode, and the directory every
-    `seal/threads/<id>/` path is read and removed under. That is ROOT where the
+    `iadd/threads/<id>/` path is read and removed under. That is ROOT where the
     root is shared, directly under it by either of its names, and the common
     git directory that holds it in local mode; every other read stays on
     ROOT."""
@@ -1454,7 +1454,7 @@ def records_of(root, home):
 def survey(root, ref, home=None, every=False):
     """What the dry run prints, and where `--apply` gets *released*.
 
-    HOME is the resolved `seal/` root, `<root>/seal` when it is None, the
+    HOME is the resolved `iadd/` root, `<root>/iadd` when it is None, the
     name `lib/optin.py#HOME` gives. Where it is anywhere but directly under
     ROOT the root is in local mode: the work items are read under the
     directory holding it, and released is asked of `gh` and git
@@ -1511,7 +1511,7 @@ def survey(root, ref, home=None, every=False):
 
 def named_directory(root, home, given):
     """`(rel, None)` for a `--from` GIVEN naming a directory of the working
-    tree at ROOT outside the `seal/` root HOME, REL its path from ROOT
+    tree at ROOT outside the `iadd/` root HOME, REL its path from ROOT
     written with `/`, or `(None, refusal)`. GIVEN is read from the directory
     this runs in, and every path is compared resolved; a refusal names it as
     it was read, before links are resolved."""
@@ -1677,9 +1677,9 @@ def tracked_text(root, specs):
 
 
 def citations(root, work_item_ids, specs):
-    """`({id: ["path:line", ...]}, [tests/ files naming seal/threads])`.
+    """`({id: ["path:line", ...]}, [tests/ files naming iadd/threads])`.
 
-    A path outside `seal/threads/`, SPECS (`WORK_ITEMS`), that cites into a
+    A path outside `iadd/threads/`, SPECS (`WORK_ITEMS`), that cites into a
     directory `--apply` removes stops resolving when it goes, and every
     `tests/` file that reads SPECS is a check the skill says has to be
     answered first. One scan of the tracked tree answers both."""
@@ -1894,7 +1894,7 @@ def write_after(root, policy, out):
     after the removals."""
     fold = sibling.load(FOLD_CHECK)
     try:
-        ceiling = fold.declared(fold.seal_home(root))[0]
+        ceiling = fold.declared(fold.iadd_home(root))[0]
         lines = list(fold.index_problems(root, policy) or [])
         if ceiling is not None:
             lines += fold.past_ceiling_lines(
@@ -2020,7 +2020,7 @@ def main(argv=None):
         action="append",
         default=[],
         metavar="DIR",
-        help="a directory outside seal/ that a person names as holding decisions "
+        help="a directory outside iadd/ that a person names as holding decisions "
         "to fold, read from the directory this runs in: the dry run lists every "
         "document git lists under it, with the commit that added it and the "
         "commit that last changed it, and writes nothing there. Repeatable, and "
@@ -2094,7 +2094,7 @@ def _settled(args):
             )
             return 2
         sys.stderr.write(
-            f"settle: {root} has no seal/threads/ at either place — nothing was "
+            f"settle: {root} has no iadd/threads/ at either place — nothing was "
             "read. This command settles work items, and a repository with "
             "none has nothing to settle.\n"
         )
@@ -2108,7 +2108,7 @@ def _settled(args):
         named.append(rel)
     listed = documents(root, named) if named else None
     local, records = records_of(root, home)
-    # A settled root is not an unusable one: an empty `seal/threads/`, or
+    # A settled root is not an unusable one: an empty `iadd/threads/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
     if not work_items(records, threads(home)):
         if listed is not None:

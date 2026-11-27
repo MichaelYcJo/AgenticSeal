@@ -1,11 +1,11 @@
-"""The one reader and the one spelling of the `seal` blocks a work item's
+"""The one reader and the one spelling of the `iadd` blocks a work item's
 records hold their fields in.
 
 A field a script reads in a round record, in `inspection.md` or in
-`trail/gate.md` stands inside a `seal` block and nowhere else. A block is a
+`trail/gate.md` stands inside an `iadd` block and nowhere else. A block is a
 fenced code block, by `lib/blocks.py#walk`, outside every other fence
 and every HTML comment block, whose opener is a line of three backticks then
-`seal`, with nothing before it and nothing after it. It closes where
+`iadd`, with nothing before it and nothing after it. It closes where
 CommonMark closes it. Each line inside it is `<key>: <value>`, or `<key>:`
 where the value's shape takes nothing, with the key spelt as `Kind` below
 spells it; the first line's key names the block's kind among the kinds the
@@ -27,7 +27,7 @@ notice, each refusal and notice at its 1-based line:
             above it opens an HTML block or a fence stands in a list item, a
             block quote or an indent, so no block from there on is read
   named     a fence outside every fence whose info string's first word,
-            case folded, is `seal`, and whose line is not exactly the
+            case folded, is `iadd`, and whose line is not exactly the
             opener: no block, and its lines are no fields. A notice changes
             no exit code
 
@@ -66,7 +66,7 @@ except ImportError as missing:
 
 # The info string, and the one line that opens a block.
 # exempt from root_name: a fenced block's info string, which names no directory
-INFO = "seal"
+INFO = "iadd"
 FENCE = "`" * 3
 OPENER = FENCE + INFO
 
@@ -239,16 +239,16 @@ COMMENT_LINE = (
 UNSURE = (
     "the walk cannot place this fence line: a line above it opens an HTML "
     "block, or a fence stands in a list item, a block quote or an indent, so "
-    "no `seal` block from there on is read; write each fence at the start of "
+    "no `iadd` block from there on is read; write each fence at the start of "
     "its line"
 )
-EMPTY = "an empty `seal` block: its first line opens with {openers}"
+EMPTY = "an empty `iadd` block: its first line opens with {openers}"
 NO_KIND = (
-    "`{line}` opens no `seal` block this record holds: a block's first line "
+    "`{line}` opens no `iadd` block this record holds: a block's first line "
     "opens with {openers}"
 )
 BLANK = (
-    "a blank line inside a `seal` block: its lines are fields, one after "
+    "a blank line inside an `iadd` block: its lines are fields, one after "
     "another, and the block is not read past it"
 )
 NOT_A_FIELD = (
@@ -260,9 +260,9 @@ ONE_OF = "`{key}` beside `{other}`: a {kind} block holds one of the two"
 SHAPE = "`{line}` does not read whole as `{key} <value>`: {says}"
 MISSING = "the {kind} block holds no `{key}` line, and it holds one"
 NEAR = (
-    "not read: `{line}` opens a fence like a `seal` block and is not one, so "
-    "its lines are no fields; a `seal` block opens with three backticks and "
-    "`seal` alone on the line"
+    "not read: `{line}` opens a fence like an `iadd` block and is not one, so "
+    "its lines are no fields; an `iadd` block opens with three backticks and "
+    "`iadd` alone on the line"
 )
 
 Field = collections.namedtuple("Field", "value line match")

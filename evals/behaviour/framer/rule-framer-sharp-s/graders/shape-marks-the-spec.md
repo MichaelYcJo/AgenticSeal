@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000025-sharp-s/frame/design.md'}
+target: {source: 'file', path: 'iadd/threads/1790000025-sharp-s/frame/design.md'}
 pattern: '^Framed \d{4}-\d{2}-\d{2} by framer'
 flags: 'm'
 ---

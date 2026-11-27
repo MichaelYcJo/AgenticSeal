@@ -66,7 +66,7 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     """Item 9: a release's commit that belongs to no work item, a settle's
     among them, declares its class — the routing question's `direct` answer
     (`no work item` until #1459), whose recorded form is the
-    `Seal-Routing: no work item` trailer on each commit — rather than
+    `IADD-Routing: no work item` trailer on each commit — rather than
     stepping around a gate. The step is read as the policy in force: the
     section as the root holds it with each pending `## Rule changes` item
     applied, because #1459's rule change renames the answer there at the

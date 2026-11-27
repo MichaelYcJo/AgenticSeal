@@ -7,7 +7,7 @@ description: |
   another) as its group's latest decision, checked against the code, decide
   every open row of their records, then remove their directories.
   Use when: preparing a release and the work items have accumulated; a
-  session asks what `seal/threads/` is still holding, or runs `iadd settle`.
+  session asks what `iadd/threads/` is still holding, or runs `iadd settle`.
   NOT for: the release notes, which the tag's workflow builds from the
   fragments; anything in a work item that has not shipped.
 ---
@@ -33,7 +33,7 @@ as a starting text; it judges nothing.**
 
 The settling session is the session the owner runs the settle in. **It puts
 the person at most two questions, both before its first edit, and none after
-them**: which directories besides `seal/` hold decisions to fold, and, where
+them**: which directories besides `iadd/` hold decisions to fold, and, where
 the dry run lists a document of one, which of the documents listed the
 settle promotes (*Directories a person names*). Everything else it decides
 from the tree: it takes a default where the tree does not decide and writes
@@ -62,7 +62,7 @@ iadd settle --released-at REF  what counts as released (default origin/main)
 The script is `skills/settle/scripts/settle.py`, and `iadd settle` runs it;
 `bin/iadd` is on the Bash tool's PATH while the plugin is enabled. It needs
 python 3.12 or newer.
-Where the `seal/` root is under the common git directory,
+Where the `iadd/` root is under the common git directory,
 `skills/settle/local-mode.md` *In local mode* says what changes, and the
 settling session opens it before step 2 of the procedure.
 
@@ -115,10 +115,10 @@ nothing:
   that is a link, or a directory the dry run cannot list, is named in place
   of a count.
 - **The judgments earlier settles removed**: every row of the
-  `seal/threads/<id>/frame/plan.md` files that the two newest removing
+  `iadd/threads/<id>/frame/plan.md` files that the two newest removing
   commits on `--released-at` deleted, where no directory `<id>` stands in
   the working tree. One `git log -z --no-renames --full-history
-  --diff-filter=D` of the ref over `seal/threads` lists the deletions.
+  --diff-filter=D` of the ref over `iadd/threads` lists the deletions.
   `-z` keeps a path holding a character past ASCII unquoted, and
   `--no-renames` keeps a deletion a deletion where the same commit adds a
   similar plan, such as another work item's. Each plan is read once, at
@@ -175,7 +175,7 @@ nothing:
   of it is a proposal (`skills/settle/named-directories.md` *Directories a
   person names*).
 - **What `--apply` removes**, the citations into it from outside
-  `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
+  `iadd/threads/`, and the checks under `tests/` that read `iadd/threads`.
 
 Nothing is refused or held in the dry run: a stale `from`, a section that
 does not parse, an unordered pair and an open row are all shown.
@@ -183,7 +183,7 @@ does not parse, an unordered pair and an open row are all shown.
 ## The settling session's procedure
 
 1. Put the first question of *Directories a person names* to the person:
-   which directories besides `seal/` hold decisions to fold. A session that
+   which directories besides `iadd/` hold decisions to fold. A session that
    cannot put it takes the answer "none".
 2. Run `iadd settle`, the dry run, on the settle's branch, with
    `--from <dir>` for each directory the answer named.
@@ -227,9 +227,12 @@ does not parse, an unordered pair and an open row are all shown.
    older settle rewrote is such a kind. The released routes are judgments
    too: each released `routing.md` whose *Why this way* says the orchestrator
    chose its rows, and each released commit whose trailer reads
-   `Seal-Routing: no work item`, which `git log --grep` lists, with the
-   grounds its body gives. A settle's commit carries that trailer with no
-   route chosen and is not one. `git log --grep` on a
+   `IADD-Routing: no work item`, which `git log --grep` lists, with the
+   grounds its body gives. A commit of a release before the one that
+   renamed the plugin IADD carries the trailer as `Seal-Routing: no work
+   item`, and `git log --grep` on that spelling lists those. A settle's
+   commit carries that trailer with no route chosen and is not one.
+   `git log --grep` on a
    commit's short hash lists the later commits that name it, which is where
    a defect such a route let through shows. Where one kind of route keeps
    letting defects through, the section to rewrite is
@@ -262,7 +265,7 @@ does not parse, an unordered pair and an open row are all shown.
    distinct measurement (`gh issue create`), its body listing each row it
    would answer with the row's work item, its text, its answerer and the
    record that needs its answer. A repository with no tracker re-homes it
-   as a `seal/follow-up.md` row.
+   as an `iadd/follow-up.md` row.
 
    Open each file the dry run names as not read, and decide each item in it
    that reads as an open row by the same table. Write nothing into the
@@ -308,7 +311,7 @@ does not parse, an unordered pair and an open row are all shown.
 
 ## Directories a person names
 
-**A directory besides `seal/` that holds decisions, such as architecture
+**A directory besides `iadd/` that holds decisions, such as architecture
 decision records, RFCs or another tool's spec files, reaches the policy
 root only through a settle, only where a person names it, and only in the
 documents the person marks `promote`.** Nothing in the plugin finds or opens
@@ -317,12 +320,12 @@ directories hold decisions, and which of their decisions becomes policy,
 are the person's to decide, and the tree answers neither, so the settle
 asks. Every other judgment of the settle stays the settling session's.
 
-**The first question asks which directories besides `seal/` hold decisions
+**The first question asks which directories besides `iadd/` hold decisions
 to fold.** The settling session puts it before its first edit. Its answers
 are "none", which runs the settle as it runs without `--from`, or one or
 more paths, each passed to the dry run as `--from <dir>`, relative to the
 directory `iadd settle` runs in or absolute. The question states the one
-limit no guard covers, in this sentence: a directory that holds the `seal/`
+limit no guard covers, in this sentence: a directory that holds the `iadd/`
 root, such as the repository's top, lists the root's own files too, and the
 settling session proposes each of them `skip`, because the settle already
 reads those records. A session that cannot put the question takes "none",
@@ -408,7 +411,7 @@ says, is read where the work touches what it describes, and cited in the
 writes from it. It reaches a settle only as a directory the person names at
 the first question of *Directories a person names*, and the settle does not
 read the row. `iadd settle` never writes there, and neither does the
-settling session: `--apply` removes only under `seal/threads/`.
+settling session: `--apply` removes only under `iadd/threads/`.
 
 ## A released work item with no `frame/design.md`
 
@@ -420,12 +423,12 @@ run lists it as stating no rule, and its open rows with every other record's.
 ## Answer every check that reads the corpus
 
 **A settle is not finished until every check in your repository that carries
-a population floor over `seal/threads/` has been answered.** A floor is an
-assertion like `len(records) > 200` over a walk of `seal/threads/`, and a
+a population floor over `iadd/threads/` has been answered.** A floor is an
+assertion like `len(records) > 200` over a walk of `iadd/threads/`, and a
 settle shrinks the corpus by design (`docs/layout/one-root-by-lifetime.md` *The
 dependency rule*), and a list of readers written in any document is not the
 whole list.
-The dry run lists every `tests/` file that reads `seal/threads`, and every path
+The dry run lists every `tests/` file that reads `iadd/threads`, and every path
 outside it that cites into what `--apply` removes. Each check gets one answer,
 written down:
 
@@ -441,7 +444,7 @@ into a comment.
 ## A document past its ceiling is split, never trimmed
 
 After the removals, `--apply` names each document past the `Document token
-ceiling` key in `seal/config.json`, as `iadd fold` does, and neither refuses
+ceiling` key in `iadd/config.json`, as `iadd fold` does, and neither refuses
 it. Such a document is recommended to be split by who opens each section
 and at which step, as `skills/core/SKILL.md` *The first value: efficient
 development through the IADD process* states, in that pull request
@@ -450,10 +453,10 @@ The plugin sets no ceiling; a repository states its own.
 
 ## A settle is not a work item
 
-**A settle opens no directory under `seal/threads/`**: no `routing.md`, no
+**A settle opens no directory under `iadd/threads/`**: no `routing.md`, no
 frame, no round records, and the routing question is not asked for it.
 Where the root is shared, its commits carry
-`Seal-Routing: no work item` as their trailer
+`IADD-Routing: no work item` as their trailer
 (`skills/commit-pr-convention/SKILL.md`). What it wrote is reviewed at
 its pull request. It keeps no log: what
 changed is the diff. Where the root is shared the removed designs are in git

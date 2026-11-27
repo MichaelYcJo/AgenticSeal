@@ -27,7 +27,7 @@ name: publish the release note
 # run replaced the header, so the second finds none to replace). It runs the
 # suite at the tag and rewrites the note's header with
 # `.github/scripts/release_mark.py`; what the header holds, and what
-# `seal/config.json`'s `Release note inspection mark` key decides about the image,
+# `iadd/config.json`'s `Release note inspection mark` key decides about the image,
 # is `docs/releasing/branch-and-release.md` *Cutting a release*. Every
 # step of it is `continue-on-error`, and every failure the script meets is a
 # log line and a `::warning::` with an exit of 0: the note is already out,

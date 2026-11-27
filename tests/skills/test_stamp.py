@@ -42,7 +42,7 @@ ROOT = pathlib.Path(conftest.ROOT)
 INSPECTION_TEMPLATE = ROOT / "templates" / "records" / "sdd-inspection.md"
 ITEM_NAME = "1799000000-an-item"
 ITEM_ID = "1799000000"
-INSPECTION = f"seal/threads/{ITEM_NAME}/inspection.md"
+INSPECTION = f"iadd/threads/{ITEM_NAME}/inspection.md"
 SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
 
 stamp = load_module(ROOT / TARGET, "stamp_under_test")
@@ -357,7 +357,7 @@ def values(**changed):
         "from": "origin/base",
         "branch": "feat/x",
         "pr": "#12",
-        "item": f"/x/seal/threads/{ITEM_NAME}",
+        "item": f"/x/iadd/threads/{ITEM_NAME}",
         "rows": SMALL_ROWS,
     }
     return {**written, **changed}
@@ -723,7 +723,7 @@ class Test_item_value:
             stamp.item_value(str(tmp_path / "1790815615-the-inspection"))
             == "1790815615"
         )
-        assert stamp.item_value("seal/threads/1-a-b/") == "1"
+        assert stamp.item_value("iadd/threads/1-a-b/") == "1"
 
     def test_refuses_to_cut_a_name_with_no_dash(self):
         assert stamp.item_value("plain") == "plain"
@@ -1305,7 +1305,7 @@ Item = collections.namedtuple("Item", "repo common target base")
 
 def verdict_block(target, base, verdict="cleared"):
     """One verdict block, as the inspector appends it."""
-    return f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
+    return f"```iadd\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
 
 
 def inspection_text(target, base, verdict="cleared", earlier=()):
@@ -1335,7 +1335,7 @@ def closing_records(item, target, base):
     write(item, "trail/rounds/round-1.md", "x\n")
     write(item, "trail/rounds/round-2.md", "x\n")
     write(item, "trail/rounds/notes.md", "x\n")
-    write(item, "trail/gate.md", f"```seal\nrun: {target} against {base}\n```\n")
+    write(item, "trail/gate.md", f"```iadd\nrun: {target} against {base}\n```\n")
     write(item, "inspection.md", inspection_text(target, base))
 
 
@@ -1347,8 +1347,8 @@ def _shared(tmp_path_factory):
     d = tmp_path_factory.mktemp("shared") / "repo"
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
-    write(d, "seal/config.json", "{}\n")
-    mark_root(d / "seal")
+    write(d, "iadd/config.json", "{}\n")
+    mark_root(d / "iadd")
     commit(d, "x")
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
@@ -1357,7 +1357,7 @@ def _shared(tmp_path_factory):
         git_out(d, "rev-parse", "--short", "HEAD"),
         git_out(d, "rev-parse", "--short", "main"),
     )
-    closing_records(d / "seal" / "threads" / ITEM_NAME, target, base)
+    closing_records(d / "iadd" / "threads" / ITEM_NAME, target, base)
     commit(d, "the closing records")
     return d, target, base
 
@@ -1456,7 +1456,7 @@ def _local(tmp_path_factory):
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
     target, base = commit(d, "the work")[:7], git_out(d, "rev-parse", "--short", "main")
-    item = mark_root(d / ".git" / "seal") / "threads" / ITEM_NAME
+    item = mark_root(d / ".git" / "iadd") / "threads" / ITEM_NAME
     closing_records(item, target, base)
     write(item, "routing.md", routing_text())
     return d, target, base
@@ -1471,7 +1471,7 @@ def local(tmp_path, _local):
 
 
 def item_dir(item):
-    return pathlib.Path(item.common) / "seal" / "threads" / ITEM_NAME
+    return pathlib.Path(item.common) / "iadd" / "threads" / ITEM_NAME
 
 
 def queue_local(item, name="inspection.md"):
@@ -1490,7 +1490,7 @@ def uncommitted(item):
     them: the moment the inspector has written the inspection and runs
     `iadd stamp --inspection`, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
-    write(item.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
+    write(item.repo, f"iadd/threads/{ITEM_NAME}/routing.md", routing_text())
     return item
 
 
@@ -1548,12 +1548,12 @@ class Test__inspection_read:
 
 class Test__newest_run:
     def test_accepts_the_last_run_block(self):
-        text = "```seal\nrun: aaa1111 against bbb2222\n```\n\n"
-        text += "```seal\nrun: ccc3333 against bbb2222\n```\n"
+        text = "```iadd\nrun: aaa1111 against bbb2222\n```\n\n"
+        text += "```iadd\nrun: ccc3333 against bbb2222\n```\n"
         assert stamp._newest_run(chain, text) == "ccc3333"
 
     def test_refuses_no_text_no_block_and_a_text_the_reader_refuses(self):
-        block = "```seal\nrun: ccc3333 against bbb2222\n```\n"
+        block = "```iadd\nrun: ccc3333 against bbb2222\n```\n"
         for text in (None, "", "| Broad gate | ccc3333 against bbb2222 |\n"):
             assert stamp._newest_run(chain, text) is None
         assert stamp._newest_run(chain, block + "<!-- a note -->\n") is None
@@ -1588,7 +1588,7 @@ class Test_queue_for_written_inspection:
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_root_in_an_opted_out_repository_queues_nothing(self, shared):
-        """`seal/` under a worktree is the root only while the repository
+        """`iadd/` under a worktree is the root only while the repository
         runs the IADD process; the throwaway marker takes it back."""
         uncommitted(shared)
         write(shared.common, "iadd-scratch", "")
@@ -1599,7 +1599,7 @@ class Test_queue_for_written_inspection:
         """#1027 S13: a `cleared` HEAD's history carries was stamped where it
         was made, so a write of the inspection over it queues nothing, even in
         a clone holding no values file."""
-        write(shared.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
+        write(shared.repo, f"iadd/threads/{ITEM_NAME}/routing.md", routing_text())
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("refused-cleared-leaves-a-record")
@@ -1708,7 +1708,7 @@ class Test_queue_for_written_inspection:
         write(
             item_dir(local),
             "inspection.md",
-            text.replace("```seal", "<!-- a note -->\n\n```seal"),
+            text.replace("```iadd", "<!-- a note -->\n\n```iadd"),
         )
         assert queue_local(local) == [] and queued(local.common) == []
 
@@ -1852,20 +1852,20 @@ class Test_queue_for_written_inspection:
         self, local
     ):
         """1792363231 S5, the writer's half: an `inspection.md` under the common
-        dir of a repository that also has `<repo>/seal/` is under no root in
+        dir of a repository that also has `<repo>/iadd/` is under no root in
         force; the same text in another file of a local work item, or a work
-        item's copy outside `seal/threads/`, is no inspection."""
+        item's copy outside `iadd/threads/`, is no inspection."""
         notes = item_dir(local) / "notes.md"
         notes.write_text(
             (item_dir(local) / "inspection.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         assert queue_local(local, name="notes.md") == []
-        elsewhere = pathlib.Path(local.common) / "seal" / "notes" / ITEM_NAME
+        elsewhere = pathlib.Path(local.common) / "iadd" / "notes" / ITEM_NAME
         shutil.copytree(item_dir(local), elsewhere)
         inspection = str(elsewhere / "inspection.md")
         assert stamp.queue_for_written_inspection(inspection) == []
-        mark_root(local.repo / "seal")
+        mark_root(local.repo / "iadd")
         assert queue_local(local) == []
         assert queued(local.common) == []
 
@@ -1918,7 +1918,7 @@ def full_values(tree="aaa1111a"):
         rows=FULL_ROWS,
         tree=tree,
         base="bbb2222b",
-        item=f"/x/seal/threads/1799000000-{name}",
+        item=f"/x/iadd/threads/1799000000-{name}",
         branch=f"feat/12-{name}",
         **{"from": "origin/release/v1.2.3"},
     )
@@ -1926,12 +1926,12 @@ def full_values(tree="aaa1111a"):
 
 @pytest.fixture(scope="module")
 def _opted_in(tmp_path_factory):
-    """A repository with `seal/` at its root and one commit, built once."""
+    """A repository with `iadd/` at its root and one commit, built once."""
     repo = tmp_path_factory.mktemp("stop-world") / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    write(repo, "seal/config.json", "{}\n")
-    mark_root(repo / "seal")
+    write(repo, "iadd/config.json", "{}\n")
+    mark_root(repo / "iadd")
     commit(repo, "x")
     return repo
 
@@ -1989,7 +1989,7 @@ class Test_toplevel:
 
 class Test_drawings:
     def test_accepts_the_oldest_file_first_and_claims_what_it_draws(self, opted):
-        second = waiting(opted, now=2, item="/x/seal/threads/1799000001-another")
+        second = waiting(opted, now=2, item="/x/iadd/threads/1799000001-another")
         first = waiting(opted, now=1)
         directory = os.path.dirname(first)
         labels = []
@@ -2091,7 +2091,7 @@ class Test_drawn_at_stop:
         assert said.startswith(WAITING)
         tree = tmp_path / "tree"
         git(opted, "worktree", "add", "-q", str(tree))
-        waiting(opted, item="/x/seal/threads/1799000001-another")
+        waiting(opted, item="/x/iadd/threads/1799000001-another")
         said = stamp.drawn_at_stop(stop_payload(tree))
         assert said.split("\n", 1)[0].endswith("1799000001-another")
 
@@ -2150,7 +2150,7 @@ class Test_drawn_at_stop:
         assert stamp.pending(os.path.dirname(path)) == [path]
 
     def test_refuses_a_repository_that_never_opted_in(self, opted):
-        shutil.rmtree(opted / "seal")
+        shutil.rmtree(opted / "iadd")
         path = waiting(opted)
         assert stamp.drawn_at_stop(stop_payload(opted)) is None
         assert os.path.exists(path), "a file was taken in a repository not opted in"

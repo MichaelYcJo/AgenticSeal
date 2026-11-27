@@ -45,7 +45,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     """A11. The file this work item is about is in this repository, and every
     sentence above is a sentence about somebody else's file.
 
-    `seal/config.json` here carries a `Mode` key and a `Broad gate` key and
+    `iadd/config.json` here carries a `Mode` key and a `Broad gate` key and
     nothing the reader will not take, so all three answers are the ones it
     had before: the mode, the command as the key wrote it, and no refusal.
     The refusal is asked of this machine's shell and of `cmd.exe`, so the
@@ -54,7 +54,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     """
     module = gate_module()
     config = module.sibling.load(module.CONFIG_READER)
-    home = os.path.join(ROOT, "seal")
+    home = os.path.join(ROOT, "iadd")
 
     assert config.declared_mode(home) == ("mode", "shared"), config.declared_mode(home)
     pairs, refusal = config.config_pairs(home)

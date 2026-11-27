@@ -1,6 +1,6 @@
 """`skills/code-review/scripts/chain_check.py`, one class per function.
 
-Rebuilt by #942's phase 5. The readers of a round record's `seal` blocks
+Rebuilt by #942's phase 5. The readers of a round record's `iadd` blocks
 and the reference channel run in the process on text. `main` runs in the
 process over a repository built once for the module and copied for each
 case that judges it: a branch with a routing declaration, a code commit, two
@@ -69,8 +69,8 @@ from conftest import (
 )
 from conftest import commit_everything as commit
 from conftest import git_out as git
+from conftest import iadd_block as block
 from conftest import load_module as load
-from conftest import seal_block as block
 from test_settle import asks, past_the_bound, repeated, unanswered
 from test_unverified_check import (
     CANONICAL,
@@ -91,7 +91,7 @@ ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / TARGET
 READER = ROOT / "lib" / "lines.py"
 TABLES = ROOT / "lib" / "tables.py"
-ITEM = "seal/threads/1791999999-a-work-item"
+ITEM = "iadd/threads/1791999999-a-work-item"
 # The pictographs and symbols a mark is drawn from: the colour circles and
 # squares, the check and cross marks, the question mark ornament and the
 # variation selector that follows them.
@@ -191,7 +191,7 @@ def opener_at(text, first, k=0):
     return [
         i + 1
         for i, said in enumerate(lines[:-1])
-        if said == FENCE + "seal" and lines[i + 1] == first
+        if said == FENCE + "iadd" and lines[i + 1] == first
     ][k]
 
 
@@ -217,7 +217,7 @@ OLD_RECORD = (
     "|---|---|---|---|---|\n"
     "| 🔴 1 | wrong | `f.txt:1` | open | g |\n"
 )
-MERGED_ITEM = "seal/threads/1788999999-a-merged-item"
+MERGED_ITEM = "iadd/threads/1788999999-a-merged-item"
 
 
 # The base commit a fixture's run names; no arm reads it.
@@ -228,7 +228,7 @@ def gate_file(*runs):
     """A `trail/gate.md` holding one run block per commit of RUNS, in the
     order `iadd gate --record` appends them, the last the newest."""
     blocks = "\n".join(
-        f"```seal\nrun: {sha} against {GATE_BASE}\n```\n" for sha in runs
+        f"```iadd\nrun: {sha} against {GATE_BASE}\n```\n" for sha in runs
     )
     return f"# 1791999999-a-work-item — broad gate\n\n{blocks}"
 
@@ -239,7 +239,7 @@ def verdict_block(sha, verdict="cleared", original=None):
     if original is not None:
         lines.append(f"original: {original}")
     lines.append(f"Verdict: {verdict}")
-    return "```seal\n" + "\n".join(lines) + "\n```\n"
+    return "```iadd\n" + "\n".join(lines) + "\n```\n"
 
 
 def inspection_file(sha, verdict="cleared"):
@@ -337,7 +337,7 @@ def _branch_template(tmp_path_factory):
             "base",
             {
                 "f.txt": "one\n",
-                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                "iadd/README.md": conftest.ROOT_MARKER + "\n",
                 f"{MERGED_ITEM}/routing.md": merged,
                 f"{MERGED_ITEM}/trail/rounds/round-1.md": OLD_RECORD,
             },
@@ -491,7 +491,7 @@ def _two_declarations(tmp_path_factory):
     d = tmp_path_factory.mktemp("chain-two") / "c"
     init(d)
     old = ROUTING.format(review="straight to the PR", planning="the session")
-    write(d, "seal/threads/1788000000-old/routing.md", old)
+    write(d, "iadd/threads/1788000000-old/routing.md", old)
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/y")
     return d, old
@@ -514,11 +514,11 @@ class Test_changed:
         it."""
         d, _old = two_declarations
         moved = {
-            "seal/threads/1788000000-old/routing.md",
-            "seal/threads/1788000000-moved/routing.md",
+            "iadd/threads/1788000000-old/routing.md",
+            "iadd/threads/1788000000-moved/routing.md",
         }
         os.rename(
-            d / "seal/threads/1788000000-old", d / "seal/threads/1788000000-moved"
+            d / "iadd/threads/1788000000-old", d / "iadd/threads/1788000000-moved"
         )
         monkeypatch.setattr(chain, "WORKTREE", True)
         assert chain.changed(str(d), "main")[1] == moved
@@ -531,37 +531,37 @@ class Test_changed:
         git's rename detection pairs. The check reads declarations, not file
         identity, so the deletion is seen."""
         d, old = two_declarations
-        git(d, "rm", "-q", "seal/threads/1788000000-old/routing.md")
+        git(d, "rm", "-q", "iadd/threads/1788000000-old/routing.md")
         write(
             d,
-            "seal/threads/1791999999-new/routing.md",
+            "iadd/threads/1791999999-new/routing.md",
             old.replace("feature/x", "feature/y"),
         )
         commit(d, "one leaves, one arrives")
         paths, renamed = chain.changed(str(d), "main")
         assert renamed == set()
         assert sorted(paths) == [
-            "seal/threads/1788000000-old/routing.md",
-            "seal/threads/1791999999-new/routing.md",
+            "iadd/threads/1788000000-old/routing.md",
+            "iadd/threads/1791999999-new/routing.md",
         ]
 
 
 class Test_changed_routing:
     def test_accepts_every_declaration_added_changed_or_deleted(self):
         paths = [
-            "seal/threads/1/routing.md",
-            "seal/threads/2/routing.md",
-            "seal/threads/2/frame/design.md",
+            "iadd/threads/1/routing.md",
+            "iadd/threads/2/routing.md",
+            "iadd/threads/2/frame/design.md",
             "docs/routing.md",
         ]
-        assert chain.changed_routing(paths, set(), "seal/threads") == [
-            "seal/threads/1/routing.md",
-            "seal/threads/2/routing.md",
+        assert chain.changed_routing(paths, set(), "iadd/threads") == [
+            "iadd/threads/1/routing.md",
+            "iadd/threads/2/routing.md",
         ]
 
     def test_refuses_a_declaration_the_pull_request_only_moved(self):
-        moved = {"seal/threads/1/routing.md", "seal/threads/3/routing.md"}
-        assert chain.changed_routing(sorted(moved), moved, "seal/threads") == []
+        moved = {"iadd/threads/1/routing.md", "iadd/threads/3/routing.md"}
+        assert chain.changed_routing(sorted(moved), moved, "iadd/threads") == []
 
 
 # --- carried_by -------------------------------------------------------------------
@@ -628,7 +628,7 @@ class Test_carried_by:
         squash(root, "feature/x", "feat: a work item (#7), edited")
         assert chain.carried_by(str(root), "main", rel) is None
         assert (
-            chain.carried_by(str(root), "main", "seal/threads/none/routing.md") is None
+            chain.carried_by(str(root), "main", "iadd/threads/none/routing.md") is None
         )
 
 
@@ -761,7 +761,7 @@ class Test_round_of:
             assert (read.findings, read.confirms, read.target) == ([], [], None)
         for words in (
             "no round block",
-            "`seal` blocks",
+            "`iadd` blocks",
             "`templates/records/sdd-round.md`",
             "rewritten into blocks with its verdicts unchanged",
         ):
@@ -908,17 +908,17 @@ class Test_record_findings:
         text = record(
             "abc1234",
             [
-                finding(1, "open", location="`seal/threads/1-x/frame/design.md:3`")
+                finding(1, "open", location="`iadd/threads/1-x/frame/design.md:3`")
                 + "\n"
-                + close("fixed abc1234", location="`seal/threads/1-x/frame/plan.md`")
+                + close("fixed abc1234", location="`iadd/threads/1-x/frame/plan.md`")
             ],
         )
         found, errors = chain.record_findings(text, "r.md")
         assert errors == []
         assert [(f.located, f.paths) for f in found] == [
             (
-                ["seal/threads/1-x/frame/design.md"],
-                ["seal/threads/1-x/frame/design.md", "seal/threads/1-x/frame/plan.md"],
+                ["iadd/threads/1-x/frame/design.md"],
+                ["iadd/threads/1-x/frame/design.md", "iadd/threads/1-x/frame/plan.md"],
             )
         ]
 
@@ -1064,10 +1064,10 @@ class Test_record_findings:
 
     def test_a_near_opener_is_no_block_and_is_named(self):
         """#1198's scenario *A near opener*: a finding block opened by three
-        backticks and `Seal` is no block, so the finding is refused for
+        backticks and `Iadd` is no block, so the finding is refused for
         lacking its finding block, and the opener is named at its line as
         not read."""
-        near = FENCE + "Seal"
+        near = FENCE + "Iadd"
         text = record(
             "abc1234",
             [
@@ -1111,17 +1111,17 @@ class Test_record_findings:
 
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_a_block_that_never_closes_at_its_opener(self):
-        """#1198's scenario *A block that never closes*: a `seal` block with
+        """#1198's scenario *A block that never closes*: an `iadd` block with
         no closing fence is refused at its opener, every line after it is
         hidden and no field, and what the reader saw before it is read."""
         text = record(
             "abc1234",
             [
                 finding(1, "rejected"),
-                "### 2. the parser drops a row\n\n" + FENCE + "seal\nseverity: must\n",
+                "### 2. the parser drops a row\n\n" + FENCE + "iadd\nseverity: must\n",
             ],
         )
-        opener = line_at(text, FENCE + "seal", 3)
+        opener = line_at(text, FENCE + "iadd", 3)
         found, errors = chain.record_findings(text, "r.md")
         assert errors == [("r.md", opener, chain.FIELDS.UNCLOSED)], errors
         assert [f.number for f in found] == [1]
@@ -1531,7 +1531,7 @@ class Test_follows:
 
     def test_refuses_another_items_records_and_a_commit_off_the_branch(self, branch):
         root, code = branch
-        write(root, "seal/threads/1791999998-another-item/routing.md", "x\n")
+        write(root, "iadd/threads/1791999998-another-item/routing.md", "x\n")
         later = commit(root, "another work item's file")
         assert chain.follows(str(root), code, "main", ITEM)[:2] == ("after", later)
         git(root, "switch", "-q", "main")
@@ -1855,7 +1855,7 @@ class Test_rule_changes_read:
         code, out = check(root, capsys)
         assert code == 0, out
         assert spec_lines(out) == [] and spec_lines(out, MERGED_ITEM) == [], out
-        own = "seal/threads/1792000000-the-release"
+        own = "iadd/threads/1792000000-the-release"
         write(
             root,
             f"{own}/routing.md",
@@ -1974,7 +1974,7 @@ class Test_rule_changes_read:
         (`Test_changed` holds that reading of git); the one design the
         branch edits is the one the arm reads."""
         monkeypatch.setattr(chain, "carried_by", lambda *_args: None)
-        old, new = "seal/threads/1788000001-old", "seal/threads/1788000001-moved"
+        old, new = "iadd/threads/1788000001-old", "iadd/threads/1788000001-moved"
         moved = {f"{old}/frame/design.md", f"{new}/frame/design.md"}
         paths = [
             *sorted(moved),
@@ -1982,7 +1982,7 @@ class Test_rule_changes_read:
             f"{MERGED_ITEM}/notes/frame/design.md",
             f"{ITEM}/frame/design.md",
         ]
-        edited = chain.edited_work_items(".", "main", paths, moved, "seal/threads")
+        edited = chain.edited_work_items(".", "main", paths, moved, "iadd/threads")
         assert edited == [ITEM], edited
 
 
@@ -2505,7 +2505,7 @@ class Test_pins_and_copies_in:
 
 # --- the parity arm at the pull request (#988) -------------------------------------
 
-PARITY = "seal/parity.json"
+PARITY = "iadd/parity.json"
 routing_module = load(chain.ROUTING, "iadd_routing_for_chain_tests")
 
 
@@ -2536,7 +2536,7 @@ def originals_read(monkeypatch, root, originals, sha=BASELINE, paths=("f.txt",))
     found = chain.originals_of(
         routing_module,
         str(root),
-        "seal",
+        "iadd",
         None if paths is None else list(paths),
         [ITEM],
     )
@@ -2548,7 +2548,7 @@ class Test_originals_of:
     def test_refuses_a_record_with_no_original_line_on_a_ready_pull_request(
         self, branch, ready, capsys, monkeypatch
     ):
-        """S4: in a repository declaring `seal/parity.json`, a chain-declared
+        """S4: in a repository declaring `iadd/parity.json`, a chain-declared
         pull request changing code fails while a round record holds no
         `original:` line, each record named with the baseline it owes, and a
         draft prints the same lines and exits 0. The branch commits the
@@ -2606,7 +2606,7 @@ class Test_originals_of:
         self, _branch_template, monkeypatch
     ):
         """S10: the template's placeholder is refused naming
-        `seal/parity.json`, and no record is compared with nothing."""
+        `iadd/parity.json`, and no record is compared with nothing."""
         root, _code = _branch_template
         found, _texts = originals_read(monkeypatch, root, (BASELINE, BASELINE), None)
         ((path, line, why),) = found
@@ -2616,7 +2616,7 @@ class Test_originals_of:
     def test_accepts_a_change_confined_to_the_document_roots(
         self, _branch_template, monkeypatch
     ):
-        """S7 and S11: a change confined to `docs/` and `seal/` owes no line,
+        """S7 and S11: a change confined to `docs/` and `iadd/` owes no line,
         one path outside them owes it, and paths git could not list owe it
         too, as `lib/gate.py#touches_code` reads them."""
         root, _code = _branch_template
@@ -2675,13 +2675,13 @@ class Test_originals_of:
         assert direct_originals(monkeypatch, root, audited, None) == [
             (
                 rel,
-                inspection_record(audited, "cleared").split("\n").index("```seal") + 1,
+                inspection_record(audited, "cleared").split("\n").index("```iadd") + 1,
                 says,
             )
         ]
         code, out = check(root, capsys)
         assert code == 1, out
-        opener = inspection_record(audited, "cleared").split("\n").index("```seal")
+        opener = inspection_record(audited, "cleared").split("\n").index("```iadd")
         assert f"{rel}:{opener + 1}  {says}" in out.splitlines(), out
         code, out = check(root, capsys, "--inspecting")
         assert code == 0, out
@@ -2733,7 +2733,7 @@ class Test_originals_of:
     def test_a_direct_inspection_owes_nothing_for_the_document_roots_alone(
         self, _item_template, monkeypatch
     ):
-        """S12: a change confined to `docs/` and `seal/` has no original to
+        """S12: a change confined to `docs/` and `iadd/` has no original to
         compare with, and a repository declaring no migration owes nothing."""
         root, audited = _item_template
         inside = ["docs/a.md", f"{ITEM}/routing.md", f"{ITEM}/inspection.md"]
@@ -2823,7 +2823,7 @@ class Test_parity_readers:
             "m = importlib.util.module_from_spec(s)\n"
             "s.loader.exec_module(m)\n"
             "config, gate = m.parity_readers()\n"
-            "print(gate.touches_code(['f.txt'], 'seal'), config.BASELINE_KEY)\n"
+            "print(gate.touches_code(['f.txt'], 'iadd'), config.BASELINE_KEY)\n"
         )
         done = subprocess.run(
             [sys.executable, "-I", "-c", code],
@@ -2942,7 +2942,7 @@ def direct_originals(
         config = parity_file(BASELINE)
     reading(monkeypatch, {PARITY: config, f"{ITEM}/inspection.md": text})
     return chain.originals_of(
-        routing_module, str(root), "seal", list(paths), [], [ITEM]
+        routing_module, str(root), "iadd", list(paths), [], [ITEM]
     )
 
 
@@ -2990,13 +2990,13 @@ def gate_read(monkeypatch, root, text, notices=None):
 
 class Test_blocks_of:
     def test_accepts_a_records_blocks_and_hands_its_notices_over(self):
-        text = verdict_block("abc1234") + "\n```Seal\nx\n```\n"
+        text = verdict_block("abc1234") + "\n```Iadd\nx\n```\n"
         notices = []
         found, problems = chain.blocks_of(
             "g.md", text, chain.FIELDS.INSPECTION, notices
         )
         assert problems == [] and len(found) == 1
-        assert notices == [("g.md", 6, chain.FIELDS.NEAR.format(line="```Seal"))]
+        assert notices == [("g.md", 6, chain.FIELDS.NEAR.format(line="```Iadd"))]
 
     def test_refuses_each_line_the_reader_refuses_at_its_line(self):
         text = verdict_block("abc1234").replace("Verdict:", "verdict:")
@@ -3044,7 +3044,7 @@ class Test_inspection:
         assert path == rel and placeholder.startswith("target: <"), placeholder
         assert why.startswith(f"`{placeholder}` does not read whole"), why
         two = inspection_record(later, "cleared").replace(
-            "```seal\n", "```seal\nVerdict: cleared\n"
+            "```iadd\n", "```iadd\nVerdict: cleared\n"
         )
         [(_p, _n, why)] = inspection_read(monkeypatch, root, two)
         assert why == chain.FIELDS.NO_KIND.format(
@@ -3151,7 +3151,7 @@ class Test_inspection:
         root, sha = _item_template
         rel = f"{ITEM}/inspection.md"
         text = inspection_record(sha, "cleared").replace(
-            "```seal\n", "<!-- Verdict: cleared -->\n```seal\n"
+            "```iadd\n", "<!-- Verdict: cleared -->\n```iadd\n"
         )
         line = text.splitlines().index("<!-- Verdict: cleared -->") + 1
         assert inspection_read(monkeypatch, root, text) == [
@@ -3206,13 +3206,13 @@ class Test_inspection:
         runs over the module's cleared branch, the inspection handed over."""
         root, sha = _item_template
         rel = f"{ITEM}/inspection.md"
-        text = inspection_record(sha, "cleared").replace("```seal", "```Seal")
+        text = inspection_record(sha, "cleared").replace("```iadd", "```Iadd")
         notices = []
         assert inspection_read(monkeypatch, root, text, notices) == [
             (rel, 0, chain.NO_VERDICT_BLOCK)
         ]
-        number = text.splitlines().index("```Seal") + 1
-        said = chain.FIELDS.NEAR.format(line="```Seal")
+        number = text.splitlines().index("```Iadd") + 1
+        said = chain.FIELDS.NEAR.format(line="```Iadd")
         assert notices == [(rel, number, said)]
         code, out = check(root, capsys)
         assert code == 1 and f"{rel}:{number}  {said}" in out.splitlines(), out
@@ -3266,7 +3266,7 @@ class Test_inspection_original:
         one in an earlier block does not stand for it."""
         earlier = verdict_block("abc1234", "withheld reason: x", BASELINE)
         text = earlier + "\n" + verdict_block("abc1234")
-        newest = text.split("\n").index("```seal", 2) + 1
+        newest = text.split("\n").index("```iadd", 2) + 1
         says = chain.NO_INSPECTION_ORIGINAL.format(config=PARITY, sha=BASELINE)
         assert chain.inspection_original(text, "g.md", BASELINE, PARITY) == [
             ("g.md", newest, says)
@@ -3381,13 +3381,13 @@ class Test_broad_gate:
         run is no run: the record then holds none."""
         root, sha = _item_template
         rel = f"{ITEM}/trail/gate.md"
-        text = gate_file(sha).replace("```seal", "```Seal")
+        text = gate_file(sha).replace("```iadd", "```Iadd")
         notices = []
         assert gate_read(monkeypatch, root, text, notices) == [
             (rel, 0, chain.NO_RUN_BLOCK)
         ]
-        line = text.splitlines().index("```Seal") + 1
-        assert notices == [(rel, line, chain.FIELDS.NEAR.format(line="```Seal"))]
+        line = text.splitlines().index("```Iadd") + 1
+        assert notices == [(rel, line, chain.FIELDS.NEAR.format(line="```Iadd"))]
 
 
 # --- the pull request's body (#1452) ------------------------------------------------
@@ -3400,7 +3400,7 @@ PR_BODY = load(
 # manifest, the one beside `pr_body.py`.
 MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
-SECOND_ITEM = "seal/threads/1791999998-another-work-item"
+SECOND_ITEM = "iadd/threads/1791999998-another-work-item"
 # #1453: the two language keys of `config.json` the body's first part is
 # composed from; a case adds the mark key after them.
 LANGUAGES = [
@@ -3450,8 +3450,8 @@ def _bodied_template(tmp_path_factory):
     d = tmp_path_factory.mktemp("chain-bodied") / "b"
     born(d, "feature/g")
     work = {
-        "seal/README.md": conftest.ROOT_MARKER + "\n",
-        "seal/config.json": config_json(*LANGUAGES, MARK_ON),
+        "iadd/README.md": conftest.ROOT_MARKER + "\n",
+        "iadd/config.json": config_json(*LANGUAGES, MARK_ON),
         f"{ITEM}/routing.md": CLEARED_ROUTING,
         f"{ITEM}/pr.md": "Closes #1.\n",
         f"{ITEM}/changelog.md": CHANGED_LINE + "\n",
@@ -3598,7 +3598,7 @@ class Test_body:
         `yes` is named on a notice in `iadd pr-body`'s words. The key is
         changed in the copy's working tree, which `compared` reads."""
         root, _early, _late = bodied
-        write(root, "seal/config.json", config_json(*LANGUAGES, *row))
+        write(root, "iadd/config.json", config_json(*LANGUAGES, *row))
         plain = composed_body(root)
         heading = f"{PR_BODY.HEADING}\n\n"
         assert MARK not in plain
@@ -3854,10 +3854,10 @@ class Test_body:
         path. Seen red with `compared` reading `pr.md` alone, where no line
         named the config."""
         root, _early, late = bodied
-        write(root, "seal/config.json", config_json(LANGUAGES[0], MARK_ON))
+        write(root, "iadd/config.json", config_json(LANGUAGES[0], MARK_ON))
         problems, _notices = body_read(monkeypatch, root, late)
         assert (
-            "seal/config.json",
+            "iadd/config.json",
             0,
             "names no language in a `Record language` key; "
             "`templates/setup/config.md` *Record language* says what the key "
@@ -3878,7 +3878,7 @@ class Test_body:
         root, _early, _late = bodied
         write(
             root,
-            "seal/config.json",
+            "iadd/config.json",
             config_json((LANGUAGES[0][0], "Korean"), *LANGUAGES[1:], MARK_ON),
         )
         write(root, f"{ITEM}/pr.ko.md", "닫는다 #1.\n")
@@ -3934,7 +3934,7 @@ def common_dir(where):
 
 def local_item(repo, item=ITEM_ID, branch="feature"):
     """A work item under the LOCAL root, with a declaration naming `branch`."""
-    d = os.path.join(mark_root(os.path.join(common_dir(repo), "seal")), "threads", item)
+    d = os.path.join(mark_root(os.path.join(common_dir(repo), "iadd")), "threads", item)
     os.makedirs(os.path.join(d, "trail", "rounds"), exist_ok=True)
     with open(os.path.join(d, "routing.md"), "w", encoding="utf-8") as f:
         f.write(
@@ -3957,9 +3957,9 @@ def run_check(repo, capsys, monkeypatch):
     return code, out + err
 
 
-ADD_THE_FILE = "Add seal/threads/<work-item>/routing.md to declare"
+ADD_THE_FILE = "Add iadd/threads/<work-item>/routing.md to declare"
 # The directory of the work items `main` passes, under `lib/optin.py#HOME`.
-WORK = "seal/threads"
+WORK = "iadd/threads"
 # A shared-mode declaration naming the `repo` fixture's branch.
 DECLARES_FEATURE = ROUTING.format(
     review="through the review chain", planning="the session"
@@ -4051,7 +4051,7 @@ class Test_declared_for_this_branch:
         assert code == 0, out
         assert ADD_THE_FILE not in out, out
         assert "local mode" in out, out
-        assert os.path.normpath(os.path.join(common_dir(repo), "seal")) in out, out
+        assert os.path.normpath(os.path.join(common_dir(repo), "iadd")) in out, out
         assert "iadd mode shared" in out, out
 
     def test_local_mode_says_the_check_judged_nothing(self, repo):
@@ -4065,7 +4065,7 @@ class Test_declared_for_this_branch:
         assert own == [], own
         assert (
             "the review-chain check judged nothing: at a local root each "
-            "commit's `Seal-Routing` trailer is printed, not judged"
+            "commit's `IADD-Routing` trailer is printed, not judged"
         ) in why, why
         assert "judged the commit trailers" not in why, why
         assert "examined nothing" not in why, why
@@ -4076,17 +4076,17 @@ class Test_declared_for_this_branch:
         The prefix and the branch are what make the sentence checkable, and
         the trailers are what the check judged where nothing declares the
         branch."""
-        (repo / "seal" / "threads").mkdir(parents=True)
+        (repo / "iadd" / "threads").mkdir(parents=True)
         own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert ADD_THE_FILE in why and "local mode" not in why, why
-        assert "under `seal/threads/`" in why, why
+        assert "under `iadd/threads/`" in why, why
         assert "declares `feature`" in why, why
         assert "judged the commit trailers and nothing else" in why, why
         assert "examined nothing" not in why, why
 
     def test_a_repository_with_no_root_is_told_to_add_the_file(self, repo, monkeypatch):
-        """With no root to name, the file to write under `seal/threads/` is
+        """With no root to name, the file to write under `iadd/threads/` is
         the answer. The working tree is read, as `main` reads it under
         `--worktree`."""
         monkeypatch.setattr(chain, "WORKTREE", True)
@@ -4098,18 +4098,18 @@ class Test_declared_for_this_branch:
         "decoy",
         [
             "specs/1799000002-a-team-item/routing.md",
-            "seal/threads/1799000001-an-item/notes.md",
+            "iadd/threads/1799000001-an-item/notes.md",
         ],
         ids=["a-routing-md-outside-the-work-items", "another-file-of-a-work-item"],
     )
     def test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy(
         self, repo, decoy
     ):
-        """Guards c3 and c4 of #1017: only a `routing.md` under `seal/threads/`
+        """Guards c3 and c4 of #1017: only a `routing.md` under `iadd/threads/`
         is a declaration. A team's own `specs/` holding one, or a work item's
         other file holding a declaration's text, leaves the branch one
         declaration, which is taken."""
-        declared = "seal/threads/1799000001-an-item/routing.md"
+        declared = "iadd/threads/1799000001-an-item/routing.md"
         write(repo, declared, DECLARES_FEATURE)
         write(repo, decoy, DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration and a decoy")
@@ -4123,7 +4123,7 @@ class Test_declared_for_this_branch:
         are not one answer, so neither is taken."""
         for n in (1, 2):
             write(
-                repo, f"seal/threads/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
+                repo, f"iadd/threads/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
             )
         commit_everything_as_e(repo, "two declarations")
         own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
@@ -4135,7 +4135,7 @@ class Test_declared_for_this_branch:
         names no branch, so no declaration is matched, even at a commit that
         declares the branch it left, and the why says the branch could not be
         read rather than that nothing declared it."""
-        write(repo, "seal/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
+        write(repo, "iadd/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration")
         git(repo, "switch", "-q", "--detach")
         own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
@@ -4189,16 +4189,16 @@ class Test_routing_trailers:
     def test_refuses_a_commit_naming_a_work_item_no_declaration_names(
         self, undeclared, tmp_path, monkeypatch, capsys
     ):
-        """S10: a commit whose `Seal-Routing` trailer names a work item no
+        """S10: a commit whose `IADD-Routing` trailer names a work item no
         declaration names fails a ready pull request, naming the commit and
         the item; one reading `no work item` is printed as a notice; one with
         no such trailer is not named. A draft prints the same lines and
         passes."""
         root = undeclared
         write(root, "a.txt", "a\n")
-        named = commit_saying(root, "feat: a", f"Seal-Routing: {ROUTED}")
+        named = commit_saying(root, "feat: a", f"IADD-Routing: {ROUTED}")
         write(root, "b.txt", "b\n")
-        none = commit_saying(root, "chore: b", "Seal-Routing: no work item")
+        none = commit_saying(root, "chore: b", "IADD-Routing: no work item")
         write(root, "c.txt", "c\n")
         bare = commit_saying(root, "chore: c")
         answered(monkeypatch)
@@ -4209,12 +4209,12 @@ class Test_routing_trailers:
         assert chain.NO_WORK_ITEM_TRAILER.format(sha=none[:8]) in lines
         assert bare[:8] not in out, out
         assert chain.UNDECLARED_TRAILER.format(sha="x", item="y") == (
-            "commit x carries `Seal-Routing: y`, and no routing declaration "
+            "commit x carries `IADD-Routing: y`, and no routing declaration "
             "this pull request judges names that work item: commit its "
             "`routing.md`, naming this branch, or correct the trailer"
         )
         assert chain.NO_WORK_ITEM_TRAILER.format(sha="x") == (
-            "commit x carries `Seal-Routing: no work item`: its session "
+            "commit x carries `IADD-Routing: no work item`: its session "
             "recorded that the change belongs to no work item, and nothing "
             "here checks it further"
         )
@@ -4227,26 +4227,26 @@ class Test_routing_trailers:
         self, undeclared
     ):
         """S1 of #1142: the key a commit made before the rename carries,
-        `SpecSeal-Routing:`, is read as any other trailer key is: not judged.
+        `SpecIADD-Routing:`, is read as any other trailer key is: not judged.
         Neither the work item no declaration names nor `no work item` is
         read as a routing trailer, so neither reaches the arm that judges
         them."""
         root = undeclared
         write(root, "a.txt", "a\n")
-        commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        commit_saying(root, "feat: a", f"SpecIADD-Routing: {ROUTED}")
         write(root, "b.txt", "b\n")
-        commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
+        commit_saying(root, "chore: b", "SpecIADD-Routing: no work item")
         assert chain.routing_trailers(str(root), "main") == []
 
     def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
         self, branch, ready, capsys, monkeypatch
     ):
         root, _code = branch
-        commit_saying(root, "chore: e", "Seal-Routing: 1791999999-a-work-item")
+        commit_saying(root, "chore: e", "IADD-Routing: 1791999999-a-work-item")
         answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
-        assert "Seal-Routing" not in out, out
+        assert "IADD-Routing" not in out, out
 
     def test_a_teammates_commit_is_never_judged(self, undeclared):
         """S11: the harness's co-author trailer, which any Claude Code
@@ -4277,12 +4277,12 @@ class Test_routing_trailers:
             "-m",
             "merge side",
             "-m",
-            f"Seal-Routing: {ROUTED}",
+            f"IADD-Routing: {ROUTED}",
             "side",
         )
         write(root, "q.txt", "q\n")
         commit_saying(
-            root, "feat: elsewhere (#7)", f"Seal-Routing: {ROUTED}", env=GITHUB
+            root, "feat: elsewhere (#7)", f"IADD-Routing: {ROUTED}", env=GITHUB
         )
         assert chain.routing_trailers(str(root), "main") == []
 
@@ -4295,16 +4295,16 @@ class Test_routing_trailers:
         root = undeclared
         os.makedirs(
             os.path.join(
-                mark_root(os.path.join(root, ".git", "seal")), "threads", ROUTED
+                mark_root(os.path.join(root, ".git", "iadd")), "threads", ROUTED
             )
         )
         write(root, "a.txt", "a\n")
-        named = commit_saying(root, "feat: a", f"Seal-Routing: {ROUTED}")
+        named = commit_saying(root, "feat: a", f"IADD-Routing: {ROUTED}")
         code, out = check(root, capsys)
         assert code == 0, out
         assert chain.LOCAL_TRAILER.format(sha=named[:8], item=ROUTED) in out, out
         assert chain.LOCAL_TRAILER.format(sha="x", item="y") == (
-            "commit x carries `Seal-Routing: y` in a repository whose root "
+            "commit x carries `IADD-Routing: y` in a repository whose root "
             "is local, where no routing declaration is committed for it to "
             "name: printed, not judged"
         )
@@ -4319,7 +4319,7 @@ class Test_routing_trailers:
         root = undeclared
         git(root, "switch", "-q", "-c", "session", "main")
         write(root, "s.txt", "s\n")
-        picked = commit_saying(root, "feat: s", f"Seal-Routing: {ROUTED}")
+        picked = commit_saying(root, "feat: s", f"IADD-Routing: {ROUTED}")
         git(root, "switch", "-q", "feature/t")
         subprocess.run(
             ["git", "-C", str(root), "cherry-pick", "-x", picked],
@@ -4709,19 +4709,19 @@ class Test_main:
 
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_follow_up_row_after_the_last_record(self, branch, monkeypatch):
-        """#1630, *Scope* item 3: `seal/follow-up.md` stands outside the work
+        """#1630, *Scope* item 3: `iadd/follow-up.md` stands outside the work
         item's records, so a commit after the last record that adds a row to
         it alone is refused, naming the commit, the path and the verifying
         round owed. The drain commits such a row before the round that reads
         it (`skills/implement/orchestration.md` *Orchestrator: drain the rows
         before the broad run, and keep the records*)."""
         root, _code = branch
-        write(root, "seal/follow-up.md", "# Follow-up\n\n| a row | a person |\n")
+        write(root, "iadd/follow-up.md", "# Follow-up\n\n| a row | a person |\n")
         later = commit(root, "a follow-up row after the last round")
         said = [why for _rel, _line, why in records_read(monkeypatch, root)]
         assert any(
             later[:8] in why
-            and "`seal/follow-up.md`" in why
+            and "`iadd/follow-up.md`" in why
             and chain.VERIFYING_ROUND in why
             for why in said
         ), said
@@ -4785,14 +4785,14 @@ class Test_main:
         self, _branch_template, ready, capsys, monkeypatch
     ):
         """#1198's scenario *A near opener*: a fence opened by three
-        backticks and `Seal` is printed `path:line  not read: <why>`, and in
+        backticks and `Iadd` is printed `path:line  not read: <why>`, and in
         CI as a notice annotation, never an error, and the exit code is the
         one the record's blocks give: 0 where the near fence stands in a
         finding's prose, 1 where it was the finding's only block, refused at
         the heading. The first two are `main` reading the record; the third
         is the two arms that read it, the records arm and `unread`."""
         root, code_sha = _branch_template
-        near = FENCE + "Seal"
+        near = FENCE + "Iadd"
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
             "\nWhy it matters.", f"\n{near}\nverdict: fixed\n{FENCE}\n\nWhy it matters."
         )
@@ -4812,7 +4812,7 @@ class Test_main:
         ], out
         monkeypatch.delenv("GITHUB_ACTIONS")
         only = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
-            f"{FENCE}seal\nseverity:", f"{near}\nseverity:"
+            f"{FENCE}iadd\nseverity:", f"{near}\nseverity:"
         )
         heading = "### 1. the parser drops a row"
         assert (
@@ -4832,7 +4832,7 @@ class Test_main:
         root, code_sha = _branch_template
         answered(monkeypatch)
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")])
-        quoted = f"{FENCE}`markdown\n{FENCE}Seal\nverdict: open\n{FENCE}\n{FENCE}`"
+        quoted = f"{FENCE}`markdown\n{FENCE}Iadd\nverdict: open\n{FENCE}\n{FENCE}`"
         texts = {ROUND_1: text.replace(f"{FENCE}python\nx = 1\n{FENCE}", quoted)}
         assert records_read(monkeypatch, root, texts) == []
         assert chain.unread(routing_module, str(root), ITEM, True) == []
@@ -4978,7 +4978,7 @@ class Test_main:
 
 # --- retired ------------------------------------------------------------------------
 
-OLD_ITEM = "seal/threads/1788000000-an-earlier-item"
+OLD_ITEM = "iadd/threads/1788000000-an-earlier-item"
 
 
 def remove_an_earlier_item(root, applied, whole=True, open_row=False):
@@ -5103,28 +5103,28 @@ class Test_retired:
     def test_accepts_every_declaration_leaving_with_the_root(
         self, branch, ready, capsys, monkeypatch
     ):
-        """Round 1 of #952, finding 1: the pull request that takes `seal/`
+        """Round 1 of #952, finding 1: the pull request that takes `iadd/`
         out of the tree deletes every declaration with it, and with no
-        `seal` at HEAD nothing is declared. Where git cannot say whether HEAD
+        `iadd` at HEAD nothing is declared. Where git cannot say whether HEAD
         has it, the declarations stay judged, and since #1033 each one whose
         directory stood at the merge base and is gone whole reads as a
         settle."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
-        git(root, "rm", "-rq", "seal")
+        git(root, "rm", "-rq", "iadd")
         commit(root, "the root leaves the tree")
         answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         assert (
-            "the tree the check reads has no top-level `seal` entry, so nothing "
+            "the tree the check reads has no top-level `iadd` entry, so nothing "
             "is declared: the routing declarations this pull request deletes "
             "left the tree with the root, and the review-chain check judged the "
             "commit trailers and nothing else"
         ) in out
         assert "does not carry this file at HEAD" not in out
         real = chain.git
-        unanswered = ("ls-tree", "HEAD", "--", "seal")
+        unanswered = ("ls-tree", "HEAD", "--", "iadd")
         monkeypatch.setattr(
             chain, "git", lambda r, *a: None if a == unanswered else real(r, *a)
         )
@@ -5141,17 +5141,17 @@ class Test_retired:
         judged nothing."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
-        git(root, "rm", "-rq", "seal")
+        git(root, "rm", "-rq", "iadd")
         commit(root, "the root leaves the tree")
-        mark_root(os.path.join(common_dir(root), "seal"))
+        mark_root(os.path.join(common_dir(root), "iadd"))
         answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
         assert (
-            "the tree the check reads has no top-level `seal` entry, so nothing "
+            "the tree the check reads has no top-level `iadd` entry, so nothing "
             "is declared: the routing declarations this pull request deletes "
             "left the tree with the root, and the review-chain check judged "
-            "nothing: at a local root each commit's `Seal-Routing` trailer is "
+            "nothing: at a local root each commit's `IADD-Routing` trailer is "
             "printed, not judged"
         ) in out, out
         assert "judged the commit trailers" not in out, out
@@ -5161,12 +5161,12 @@ class Test_retired:
         self, branch, ready, capsys, tmp_path, monkeypatch
     ):
         """Round 3 of #952, finding 2: a switch to local mode, run and not
-        committed, leaves no `seal` in the working tree, so under `--worktree`
+        committed, leaves no `iadd` in the working tree, so under `--worktree`
         nothing is declared, as CI reads the same change once it is committed."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
-        shutil.move(str(root / "seal"), str(tmp_path / "moved-seal"))
-        git(root, "add", "-A", "seal")
+        shutil.move(str(root / "iadd"), str(tmp_path / "moved-iadd"))
+        git(root, "add", "-A", "iadd")
         answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
@@ -5182,7 +5182,7 @@ class Test_retired:
         reads is the working tree, so a root it holds and HEAD does not is a
         root, and the declaration naming the branch in it is judged."""
         root, _code = branch
-        git(root, "rm", "-rq", "--cached", "seal")
+        git(root, "rm", "-rq", "--cached", "iadd")
         git(root, "commit", "-qm", "the root leaves HEAD and stays on disk")
         answered(monkeypatch, real=("follows",))
         code, out = check(root, capsys, "--worktree")
@@ -5191,15 +5191,15 @@ class Test_retired:
             code == 1 and f"{ITEM}/inspection.md:0  the inspection has lapsed: " in out
         )
 
-    def test_judges_the_declarations_where_the_working_tree_has_seal_as_a_file(
+    def test_judges_the_declarations_where_the_working_tree_has_iadd_as_a_file(
         self, branch, ready, capsys, monkeypatch
     ):
-        """Round 2 of #952, finding 3: a `seal` that is not a directory is
+        """Round 2 of #952, finding 3: an `iadd` that is not a directory is
         still an entry, so under `--worktree` the declarations it replaced
         stay judged."""
         root, _code = branch
-        shutil.rmtree(root / "seal")
-        write(root, "seal", "not a root\n")
+        shutil.rmtree(root / "iadd")
+        write(root, "iadd", "not a root\n")
         answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert "so nothing is declared" not in out, out
@@ -5345,7 +5345,7 @@ def test_the_template_is_the_record_the_check_reads():
     head = text.split(chain.FINDINGS_HEADING)[0]
     assert all(tables.table_cells(line) is None for line in reader.readable(head))
     assert read.target == "1a2b3c4"
-    start = text.index(FENCE + "seal\nverdict: ")
+    start = text.index(FENCE + "iadd\nverdict: ")
     end = text.index(FENCE + "\n", start + len(FENCE)) + len(FENCE) + 1
     without = text[:start] + text[end:]
     fix = without.index(FENCE + "<lang>\n") + len(FENCE + "<lang>\n")
@@ -5363,7 +5363,7 @@ class Test_policy_root:
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "seal/config.json",
+            "iadd/config.json",
             config_json(("Policy root", "rules")),
         )
         assert chain.policy_root(str(d)) == "rules"

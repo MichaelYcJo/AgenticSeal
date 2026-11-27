@@ -54,7 +54,7 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "lib" / "lines.py"
-ITEM = "seal/threads/1799000001-a-gated-work-item"
+ITEM = "iadd/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
 RECORD_REL = os.path.join(*ITEM.split("/"), "trail", "gate.md")
@@ -86,7 +86,7 @@ AMBIENT = ("CLAUDE_CODE_SESSION_ID",)
 
 
 def config_of(row=SUITE_ROW, *more):
-    """A `seal/config.json` with the `Broad gate` key ROW, or none where ROW
+    """An `iadd/config.json` with the `Broad gate` key ROW, or none where ROW
     is None, after `Mode` and before each pair of MORE."""
     pairs = [("Mode", "shared")]
     if row is not None:
@@ -95,9 +95,9 @@ def config_of(row=SUITE_ROW, *more):
 
 
 def home_with(tmp_path, text, name="config.json"):
-    """A `seal/` root holding TEXT as its config NAME; its path."""
-    write(tmp_path, f"seal/{name}", text)
-    return str(mark_root(tmp_path / "seal"))
+    """An `iadd/` root holding TEXT as its config NAME; its path."""
+    write(tmp_path, f"iadd/{name}", text)
+    return str(mark_root(tmp_path / "iadd"))
 
 
 def a_record(**fields):
@@ -478,29 +478,29 @@ class Test_resolve_base:
 # --- the row ------------------------------------------------------------------------
 
 
-class Test_seal_home:
+class Test_iadd_home:
     def test_accepts_the_shared_root_and_then_the_local_one(self, tmp_path):
-        mark_root(tmp_path / "shared" / "seal")
-        assert gate.seal_home(str(tmp_path / "shared")) == str(
-            tmp_path / "shared" / "seal"
+        mark_root(tmp_path / "shared" / "iadd")
+        assert gate.iadd_home(str(tmp_path / "shared")) == str(
+            tmp_path / "shared" / "iadd"
         )
         local = tmp_path / "local"
         local.mkdir()
         git(local, "init", "-q")
-        (local / "seal").mkdir()
-        mark_root(local / ".git" / "seal")
-        assert gate.seal_home(str(local)) == os.path.normpath(
-            str(local / ".git" / "seal")
+        (local / "iadd").mkdir()
+        mark_root(local / ".git" / "iadd")
+        assert gate.iadd_home(str(local)) == os.path.normpath(
+            str(local / ".git" / "iadd")
         )
 
     def test_refuses_a_repository_with_neither(self, tmp_path):
-        """No `seal/` at all, and a `seal/` the project keeps for itself,
+        """No `iadd/` at all, and an `iadd/` the project keeps for itself,
         whose README does not open with the marker, are no root to read a
         command from."""
         git(tmp_path, "init", "-q")
-        assert gate.seal_home(str(tmp_path)) is None
-        write(tmp_path, "seal/config.json", config_of("bin/test -q"))
-        assert gate.seal_home(str(tmp_path)) is None
+        assert gate.iadd_home(str(tmp_path)) is None
+        write(tmp_path, "iadd/config.json", config_of("bin/test -q"))
+        assert gate.iadd_home(str(tmp_path)) is None
 
 
 class Test_broad_command:
@@ -543,11 +543,11 @@ class Test_broad_command:
         """S2. A file the reader refuses is refused for the gate, in the
         reader's sentence opening with the `config.json` path, so the gate
         exits 2 with nothing run."""
-        mark_root(tmp_path / "seal")
-        (tmp_path / "seal" / name).write_bytes(data)
-        path = os.path.join(str(tmp_path / "seal"), "config.json")
+        mark_root(tmp_path / "iadd")
+        (tmp_path / "iadd" / name).write_bytes(data)
+        path = os.path.join(str(tmp_path / "iadd"), "config.json")
         with pytest.raises(gate.Refused, match=r"Nothing ran$") as refused:
-            gate.broad_command(str(tmp_path / "seal"))
+            gate.broad_command(str(tmp_path / "iadd"))
         assert str(refused.value).startswith(f"iadd gate: {path} "), refused.value
         assert said in str(refused.value), refused.value
 
@@ -572,7 +572,7 @@ def missing_row_text():
     spec = importlib.util.spec_from_file_location("iadd_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return unquoted_flat(module.missing_row("/seal"))
+    return unquoted_flat(module.missing_row("/iadd"))
 
 
 class Test_missing_row:
@@ -631,7 +631,7 @@ class Test_wholly_substituted:
 CMD = r"C:\Windows\System32\cmd.exe"
 # The key as #448 measured it, with its suite command after a separator.
 OLD_KEY = "uvx ruff check . && bin/test -q"
-# The `seal/` root a refusal names, which no case opens.
+# The `iadd/` root a refusal names, which no case opens.
 HOME = "home"
 CONFIG_PATH = os.path.join(HOME, "config.json")
 
@@ -1269,25 +1269,25 @@ def a_round(*verdicts):
     is `open`."""
     fence = "`" * 3
     found = "".join(
-        f"### {n}. x\n\n{fence}seal\nseverity: should\nlocation: `a:{n}`\n"
+        f"### {n}. x\n\n{fence}iadd\nseverity: should\nlocation: `a:{n}`\n"
         f"evidence: read `a:{n}`\n{fence}\n\nwhy\n\n"
         + (
             ""
             if verdict == "open"
-            else f"{fence}seal\nverdict: {verdict}\nanswer:\n{fence}\n\n"
+            else f"{fence}iadd\nverdict: {verdict}\nanswer:\n{fence}\n\n"
         )
         for n, verdict in enumerate(verdicts, 1)
     )
     return (
         "# r — review round 1\n\n"
-        f"{fence}seal\ntarget: abc1234 against base\n{fence}\n\n## Findings\n\n{found}"
+        f"{fence}iadd\ntarget: abc1234 against base\n{fence}\n\n## Findings\n\n{found}"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
     )
 
 
 # A run block naming the run `write_gate_file(..., "aaa1111", "bbb2222")`
 # writes, held as the last block of a gate record.
-SAME_RUN = "`" * 3 + "seal\nrun: aaa1111 against bbb2222\n" + "`" * 3 + "\n"
+SAME_RUN = "`" * 3 + "iadd\nrun: aaa1111 against bbb2222\n" + "`" * 3 + "\n"
 
 
 class Test_write_gate_file:
@@ -1316,7 +1316,7 @@ class Test_write_gate_file:
         path = gate.write_gate_file(str(item), "aaa1111", "bbb2222")
         assert pathlib.Path(path).read_text(encoding="utf-8") == (
             "# 1799000000-an-item \u2014 broad gate\n\n"
-            "```seal\nrun: aaa1111 against bbb2222\n```\n"
+            "```iadd\nrun: aaa1111 against bbb2222\n```\n"
         )
 
     def test_refuses_to_record_one_run_twice(self, tmp_path):
@@ -1683,8 +1683,8 @@ def _repo_template(tmp_path_factory):
             None,
             {
                 "tests/test_one.py": PASSING_TEST,
-                "seal/config.json": config_of(),
-                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                "iadd/config.json": config_of(),
+                "iadd/README.md": conftest.ROOT_MARKER + "\n",
                 f"{ITEM}/gaps.md": OVERVIEW,
             },
         ),
@@ -1871,7 +1871,7 @@ class Test_gate:
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "iadd-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
-        assert f"```seal\nrun: {tree} against {base}\n```\n" in record
+        assert f"```iadd\nrun: {tree} against {base}\n```\n" in record
         assert f"iadd gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
     def test_refuses_a_failing_test_the_base_lacks_as_new(
@@ -1923,7 +1923,7 @@ class Test_gate:
         `Test_read_record::test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0`."""
         suite_alone(monkeypatch)
         failing_here(repo)
-        write(repo, "seal/config.json", config_of(ROW_OR_INTERPRETER))
+        write(repo, "iadd/config.json", config_of(ROW_OR_INTERPRETER))
         keep = tmp_path / "out"
         ran = namespace(repo, keep, base="red-base", record=str(repo / ITEM))
         assert gate.gate(ran) == 1
@@ -2023,7 +2023,7 @@ class Test_gate:
             monkeypatch.setattr(gate, "cmd_exe_reads", lambda *_: True)
             (repo / "bin").mkdir(exist_ok=True)
             monkeypatch.chdir(tmp_path)
-        write(repo, "seal/config.json", config)
+        write(repo, "iadd/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(repo, keep))
@@ -2054,16 +2054,16 @@ class Test_gate:
         # repository git resolves, the shared one and then the local one.
         top = os.path.realpath(str(tmp_path))
         said = re.escape(
-            "has no seal/ root at either place a root lives "
-            f"(`{os.path.join(top, 'seal')}`, "
-            f"`{os.path.join(top, '.git', 'seal')}`, its "
+            "has no iadd/ root at either place a root lives "
+            f"(`{os.path.join(top, 'iadd')}`, "
+            f"`{os.path.join(top, '.git', 'iadd')}`, its "
             "README.md opening with the marker)"
         )
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
-        # A `seal/` with no marker is the project's own and no root, and the
+        # An `iadd/` with no marker is the project's own and no root, and the
         # refusal names the same two places (#1651).
-        write(tmp_path, "seal/config.json", config_of("bin/test -q"))
+        write(tmp_path, "iadd/config.json", config_of("bin/test -q"))
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
@@ -2085,8 +2085,8 @@ def _clearable_template(tmp_path_factory):
             None,
             {
                 "src/service.py": "def handler(x):\n    return x + 1\n",
-                "seal/config.json": CONFIG,
-                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                "iadd/config.json": CONFIG,
+                "iadd/README.md": conftest.ROOT_MARKER + "\n",
                 f"{ITEM}/gaps.md": OVERVIEW,
             },
         ),
@@ -2359,7 +2359,7 @@ class Test_main:
     def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(
         self, clearable, tmp_path, monkeypatch, capsys
     ):
-        """A3's behavioural half for the other arm #468 added. `seal/config.json`
+        """A3's behavioural half for the other arm #468 added. `iadd/config.json`
         says the root lives under the git directory and the root is committed in
         the tree, which is the one direction of that disagreement CI can ever
         reach — and the gate said nothing about it until this arm existed. The
@@ -2370,7 +2370,7 @@ class Test_main:
         arms_answered(monkeypatch, gate.CHAIN_NAME)
         write(
             clearable,
-            "seal/config.json",
+            "iadd/config.json",
             CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
         code, out, err = gated(clearable, tmp_path / "out", capsys)

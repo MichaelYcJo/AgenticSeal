@@ -422,11 +422,11 @@ def policy_group(path, policy):
 #
 # A work item can commit in more than one repository, and where those
 # repositories keep one contract together, the one copy of it is the PACT:
-# `seal/pact.md` in the repository that holds it. Every repository of such a
+# `iadd/pact.md` in the repository that holds it. Every repository of such a
 # work item is a SIGNER, the pact's repository included. A signer other
 # than the pact's repository names the pact here, by the origin remote URL of
 # the repository that holds it, and the pact's repository needs no `Pact`
-# key: it is identified by holding `seal/pact.md` (`docs/layout/the-pact.md`).
+# key: it is identified by holding `iadd/pact.md` (`docs/layout/the-pact.md`).
 # The pact's repository lists every other signer in a `Pact signers` key, in
 # the grammar of `Pact`.
 #
@@ -571,7 +571,7 @@ def signer_declaration(pairs):
 
     **An absent or empty key is a refusal**, `NO_SIGNER`, unlike an absent
     `Pact` key: its one reader, `iadd pact`, reads it only in the repository
-    that holds `seal/pact.md`, and a pact nobody signs is not a pact. A key
+    that holds `iadd/pact.md`, and a pact nobody signs is not a pact. A key
     written twice or holding no string has no value, by `config_value`'s
     rule and in its sentence, so it lists no signer. Each entry is
     read as `Pact`'s are."""
@@ -613,7 +613,7 @@ def declared_pacts(home):
 
 # --- the migration config's baseline -----------------------------------------
 #
-# `seal/parity.json` is written from `templates/setup/parity.json`, one JSON
+# `iadd/parity.json` is written from `templates/setup/parity.json`, one JSON
 # object whose `Baseline commit` key holds the SHA the original's
 # coordinates refer to, and nothing else. `chain_check.py` compares each
 # round record's `original:` line with it, and reads it through this one

@@ -2,7 +2,7 @@
 
 The settling session opens this file before the dry run, step 2 of
 `skills/settle/SKILL.md` *The settling session's procedure*, where the
-`seal/` root is under the common git directory.
+`iadd/` root is under the common git directory.
 
 ## In local mode
 
@@ -13,10 +13,10 @@ branch its `routing.md` names has merged, its merge commit reachable from
 at a ref cannot say that it shipped. What reaches the ref is its pull
 request's merge commit, whatever the merge method was.
 
-- **Where it reads.** Every `seal/threads/<id>/` path is read and removed
+- **Where it reads.** Every `iadd/threads/<id>/` path is read and removed
   under `$(git rev-parse --git-common-dir)`, so a work item's directory is
-  `<git-common-dir>/seal/threads/<id>/`, and it is printed as
-  `seal/threads/<id>/`. The policy root, the tracked files the citations are
+  `<git-common-dir>/iadd/threads/<id>/`, and it is printed as
+  `iadd/threads/<id>/`. The policy root, the tracked files the citations are
   read from, and `tests/` are read from the repository's top.
 - **What released means.** `iadd settle` reads the `Branch` row of each work
   item's `routing.md` and asks
@@ -42,7 +42,7 @@ request's merge commit, whatever the merge method was.
 - **The judgments earlier settles removed.** `--apply` removes a local
   directory from the git directory, and no commit holds it, so the history
   holds an earlier plan only where the repository once committed its
-  `seal/` root. Where none did, the section is not printed.
+  `iadd/` root. Where none did, the section is not printed.
 - **What the dry run adds.** Its first line names the root's path and says
   it is local mode. Each released work item is listed with its pull
   request's number and its merge commit, for the settle's pull request body

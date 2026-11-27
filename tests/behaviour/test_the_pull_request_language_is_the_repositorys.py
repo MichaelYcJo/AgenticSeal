@@ -1,4 +1,4 @@
-"""The pull request language is the repository's, stated in `seal/config.json`.
+"""The pull request language is the repository's, stated in `iadd/config.json`.
 
 `skills/commit-pr-convention/SKILL.md` required English at five places, and a
 repository whose team writes another language had nowhere to say otherwise.
@@ -108,7 +108,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
     """The twelve committed files, checked against the rule rather than
     assumed to match it.
 
-    Round 1 🟡 5: this used to assert `seal/config.md` does not EXIST, so a
+    Round 1 🟡 5: this used to assert `iadd/config.md` does not EXIST, so a
     repository that legitimately created one — holding the template's own
     default row, even — turned it red. Existence was never the question. The
     row is, and it is read the same way a session reads it.
@@ -119,7 +119,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
 
     mirrors = sorted(
         os.path.basename(p)
-        for p in glob.glob(os.path.join(ROOT, "seal", "threads", "*", "pr.*.md"))
+        for p in glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "pr.*.md"))
     )
     # `assert mirrors, "... this case is blind"` stood here, and every mirror
     # lives in a directory the next fold retires (#517). Blindness is asked
@@ -128,7 +128,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
     # `test_a_mirror_named_for_a_country_is_refused_by_the_same_rule`.
     # `pr.md` is a file of the body's first part, not a mirror, and the glob
     # does not match it, so the listing leaves it out too (#1415).
-    threads = os.path.join(ROOT, "seal", "threads")
+    threads = os.path.join(ROOT, "iadd", "threads")
     listed = sorted(
         name
         for d in (os.listdir(threads) if os.path.isdir(threads) else [])
@@ -199,7 +199,7 @@ def test_a_config_holding_the_templates_default_row_reads_as_english(tmp_path):
     must not be the file that breaks the check. Its two language keys both
     read English, so they name one language and no mirror is asked for. The
     template's example object is written as the file."""
-    home = tmp_path / "seal"
+    home = tmp_path / "iadd"
     home.mkdir()
     (home / "config.json").write_text(
         config_json(*items(read(*TEMPLATE))), encoding="utf-8"
@@ -229,7 +229,7 @@ def test_rows_that_differ_name_the_mirror_for_the_commit_language(
     not the file's presence. Where they differ, the mirror is written in the
     commit language, so it is named for that language, and a file named for
     the records' language is no mirror."""
-    home = tmp_path / "seal"
+    home = tmp_path / "iadd"
     home.mkdir()
     (home / "config.json").write_text(
         config_json((COMMIT_ROW, commit), (RECORD_ROW, record)), encoding="utf-8"
@@ -340,18 +340,18 @@ def the_mirror(commit, record):
 def config_homes(root):
     """The two places the root can be, in the order the skill reads them.
 
-    `<repo>/seal/` first, then `$(git rev-parse --git-common-dir)/seal/`,
+    `<repo>/iadd/` first, then `$(git rev-parse --git-common-dir)/iadd/`,
     which is where local mode keeps it (#80). Round 2 🟡 2: this reader
     joined the first and stopped, which is the very defect round 1 fixed in
-    the prose — a Korean row under `.git/seal/` read back as English.
+    the prose — a Korean row under `.git/iadd/` read back as English.
 
-    git is asked rather than `.git/seal` spelled, because in a linked
+    git is asked rather than `.git/iadd` spelled, because in a linked
     worktree `.git` is a FILE and the root belongs to the main tree's common
     directory. A path that is not a repository answers nothing and leaves
     the one home, which is what a `tmp_path` fixture is.
     """
     base = str(root or ROOT)
-    homes = [os.path.join(base, "seal")]
+    homes = [os.path.join(base, "iadd")]
     try:
         common = subprocess.run(
             ["git", "-C", base, "rev-parse", "--git-common-dir"],
@@ -364,7 +364,7 @@ def config_homes(root):
         common = ""
     common = (common or "").strip()
     if common:
-        homes.append(os.path.join(base, common, "seal"))
+        homes.append(os.path.join(base, common, "iadd"))
     return homes
 
 
@@ -416,7 +416,7 @@ def test_every_way_of_not_naming_a_language_lands_on_english(what, body, tmp_pat
     """🟡 3, run rather than only asserted in prose. A session that meets one
     of these and stops, asks, or guesses is the failure; all five answer the
     same."""
-    home = tmp_path / "seal"
+    home = tmp_path / "iadd"
     home.mkdir()
     if body is not None:
         (home / "config.json").write_text(body, encoding="utf-8")
@@ -477,7 +477,7 @@ def test_the_reader_finds_a_config_under_the_git_directory(repo):
     """tests-todo row 6, from round 2 🟡 2.
 
     The prose was fixed in round 1 and the reader shipped in the same commit
-    joined `<root>/seal/` and stopped, so a local-mode repository's config
+    joined `<root>/iadd/` and stopped, so a local-mode repository's config
     was invisible to the one executable model of a session's reading this
     branch ships. `local_home` asks git for the common directory, the way
     the scripts do.
@@ -501,7 +501,7 @@ def test_the_tree_root_still_wins_over_the_git_directory(repo):
     (local / "config.json").write_text(
         config_json((COMMIT_ROW, "Korean")), encoding="utf-8"
     )
-    shared = repo / "seal"
+    shared = repo / "iadd"
     shared.mkdir(parents=True, exist_ok=True)
     (shared / "config.json").write_text(
         config_json((COMMIT_ROW, "Japanese")), encoding="utf-8"
@@ -532,7 +532,7 @@ def test_an_unreadable_config_lands_on_english_too(tmp_path):
     """The fifth way, which needs a filesystem rather than a string: a
     `config.json` that is a DIRECTORY, which the reader refuses as a file
     that will not read, so a permission error lands the same way."""
-    (tmp_path / "seal" / "config.json").mkdir(parents=True)
+    (tmp_path / "iadd" / "config.json").mkdir(parents=True)
     assert configured_language(tmp_path) == "English"
 
 
@@ -570,7 +570,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it(tmp_path):
     assert where.endswith(owner), f"`declared_value` is compiled from {where}"
     # And it is the reader that sees a key written twice, not something that
     # merely lives at that path: `json.loads` alone would take the last.
-    home = tmp_path / "seal"
+    home = tmp_path / "iadd"
     home.mkdir()
     (home / "config.json").write_text(
         config_json((COMMIT_ROW, "Korean"), (COMMIT_ROW, "English")),
@@ -676,7 +676,7 @@ def test_every_template_is_named_by_a_document_that_ships():
     """tests-todo row 4, from round 1 🟡 1.
 
     The finding was that `templates/setup/config.md` was named by nothing except a
-    line-width list, so a session told to write `seal/config.md` had no
+    line-width list, so a session told to write `iadd/config.md` had no
     source for it. That is a property of the DIRECTORY rather than of the one
     file it was found on: any template no document names is a file a session
     cannot find, and it writes one from scratch instead.
@@ -717,7 +717,7 @@ def test_every_template_is_named_by_a_document_that_ships():
             "README.ko.md",
             "CONTRIBUTING.md",
             "CLAUDE.md",
-            "seal/README.md",
+            "iadd/README.md",
         ],
         cwd=ROOT,
         capture_output=True,
@@ -830,7 +830,7 @@ def _chain():
 
 
 def _round_record_grammar():
-    """Every key of the `seal` blocks of a round record, read from
+    """Every key of the `iadd` blocks of a round record, read from
     `lib/fields.py` rather than copied, and the `## Findings` section
     `chain_check.py` reads."""
     chain = _chain()
@@ -841,7 +841,7 @@ def _round_record_grammar():
 def _round_record_fields():
     """What a round record carries: its grammar. Two lines are owed only
     where their condition holds, `original:` in a repository that declares
-    `seal/parity.json` and `reopens:` on a finding that raises an earlier
+    `iadd/parity.json` and `reopens:` on a finding that raises an earlier
     close, so the template's one finding shows the other relation,
     `regression:`, and neither of these. The headings only the parties read
     are the proofer's to read (#1319)."""
@@ -932,15 +932,15 @@ def test_the_template_names_the_rows_an_absent_one_is_refused_for():
 @pytest.mark.parametrize(
     "parts",
     [
-        ("templates", "setup", "seal-README.md"),
-        ("seal", "README.md"),
+        ("templates", "setup", "iadd-README.md"),
+        ("iadd", "README.md"),
         ("README.md",),
         ("README.ko.md",),
     ],
 )
 def test_the_layout_lists_the_config(parts):
     """S9. Four documents draw the root's contents and a file in none of them
-    is a file nobody finds. `seal/README.md` is written from the template, so
+    is a file nobody finds. `iadd/README.md` is written from the template, so
     the two move as one edit."""
     # The file name of the config, which a reader of the root's layout opens.
     assert "config.json" in read(*parts), (
@@ -959,7 +959,7 @@ def _literal_strings():
     list's own grounds are *what a checker reads*, so a second source of it
     is a second source of the truth it claims to state.
 
-    The keys of the `seal` blocks are not among them: the list names the
+    The keys of the `iadd` blocks are not among them: the list names the
     module that spells them (`test_the_exclusion_list_points_at_the_block_
     grammar`), so a checker's constant here is one
     outside that module. The info string and the `## Findings` heading are,
@@ -1003,7 +1003,7 @@ BLOCK_GRAMMAR = "`lib/fields.py`"
 
 def test_the_exclusion_list_points_at_the_block_grammar():
     """S4, under #1198. The keys of a round record's, an inspection's and a
-    gate record's `seal` blocks have one statement, `lib/fields.py`,
+    gate record's `iadd` blocks have one statement, `lib/fields.py`,
     which `chain_check.py` and the stamp read them through, so the list names
     the module. Whether a key of it is copied beside the citation is the
     proofer's to read."""
@@ -1012,7 +1012,7 @@ def test_the_exclusion_list_points_at_the_block_grammar():
     # translating the records resolves to the keys that stay English.
     assert BLOCK_GRAMMAR in said, (
         "the exclusion list no longer names the module that spells the keys "
-        "of a record's `seal` blocks"
+        "of a record's `iadd` blocks"
     )
 
 

@@ -986,7 +986,7 @@ def floor_syntax(rel, root=None):
 SIGN = "\N{SECTION SIGN}"
 # The records of a moment keep what they said when they were written, and
 # `evals/behaviour/`'s cases are generated from records.
-RECORDS = ("seal/threads/", "evals/behaviour/")
+RECORDS = ("iadd/threads/", "evals/behaviour/")
 
 
 def section_sign(rel, root=None):
@@ -1144,7 +1144,7 @@ COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
 # The records of a moment, which keep the paths they were written under. A
 # thread is read against the commits it names until the settle after its
 # release removes it.
-THREAD_RECORDS = ("seal/threads/",)
+THREAD_RECORDS = ("iadd/threads/",)
 # A replayed or seeded eval case holds a run at a recorded commit, so its
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
@@ -1320,7 +1320,7 @@ def slash_in_join(rel, root=None):
 # one module that says it. A reader that spells the name itself keeps the
 # old one when the name moves, and no case fails, because each case builds a
 # root under the name it spells: every reader of the records that spelt
-# `seal` had that defect when the root took a second name (#1059). The
+# `iadd` had that defect when the root took a second name (#1059). The
 # census reads each tracked `.py` outside `tests/` and `evals/`, whose
 # fixtures build roots by name, and outside `lib/optin.py`. It flags a
 # string that is the name, or that opens with it followed by `/`: a
@@ -1328,7 +1328,7 @@ def slash_in_join(rel, root=None):
 # f-string's first line.
 #
 # What the walk cannot see, and passes: a name built from other strings, and
-# a name a pattern spells after another character, such as `^seal/`.
+# a name a pattern spells after another character, such as `^iadd/`.
 
 ROOT_NAME_HOME = "lib/optin.py"
 ROOT_NAME_SKIPPED = ("tests/", "evals/")

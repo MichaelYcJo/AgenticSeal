@@ -193,11 +193,11 @@ it refused before anything ran, and
 a refusal about the key goes to a person, as
 *A refusal about the `Broad gate` key* below says. It writes no file and
 prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
-A line the check names as not read, a fence near the opener of a `seal`
+A line the check names as not read, a fence near the opener of an `iadd`
 block, changes no exit code, and its lines are fields of nothing. Where the
 preflight's output or the proofer's hand-back names one, read it against the
 record's template: where it meant a block, correct its opener to three
-backticks and `seal` alone, commit, and run the preflight again.
+backticks and `iadd` alone, commit, and run the preflight again.
 An orchestrator that skips the preflight loses only time: the broad run asks
 the same arms, and refuses the same way after its suite.
 

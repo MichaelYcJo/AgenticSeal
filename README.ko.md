@@ -115,9 +115,9 @@ claude plugin update iadd@iadd
 요청합니다. 그러면 그 세션이 orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다.
 orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이전트를 하나씩
 띄우고, 실행의 기록을 관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업
-하나마다 `seal/threads/` 아래에 디렉터리가 하나 생깁니다. 라우팅 질문에 답하는
+하나마다 `iadd/threads/` 아래에 디렉터리가 하나 생깁니다. 라우팅 질문에 답하는
 것이, 실행이 띄우는 에이전트와 그 에이전트가 쓰는 토큰에 대한 사용자의
-동의입니다. `seal/` 루트가 있는 저장소에서는 플러그인의 `SessionStart` 훅이
+동의입니다. `iadd/` 루트가 있는 저장소에서는 플러그인의 `SessionStart` 훅이
 세션마다 코어를 출력하고, 코드를 바꿔 달라는 요청과 리뷰 요청이 각각 어디서
 시작하는지 적은 한 줄을 덧붙입니다. 코드를 바꿔 달라는 평범한 요청은
 `implement` 에 닿고, `implement` 는 세션을 `skills/implement/orchestration.md`
@@ -128,7 +128,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 세션이 어떤 저장소에서 처음 일할 때는 질문 네 개를 한꺼번에 먼저 묻습니다.
 기록을 어디에 둘지(아래 *shared 인가 local 인가*), broad gate 가 돌릴 명령,
 커밋과 pull request 를 쓸 언어, 기록을 쓸 언어입니다. 답은
-`seal/config.json` 의 키가 되고, 나중에 `/iadd:config` 로 무엇이든 바꿀 수
+`iadd/config.json` 의 키가 되고, 나중에 `/iadd:config` 로 무엇이든 바꿀 수
 있습니다. 요청 하나에는 이슈를 몇 개 담든 첫 편집 전에 질문을 한 번에 모아
 묻습니다. 언어 키 둘 가운데 하나라도 빠져 있으면 그 묶음에서 두 키를 모두
 묻습니다. 라우팅 질문도 그 묶음에 들어갑니다. 오타 하나를 고칠 때도 요청마다
@@ -148,7 +148,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
   길입니다.
 
 답마다 무엇이 정해지는지는 `skills/implement/routing-question.md` 에 있고,
-그 답이 `seal/threads/<id>/routing.md` 에 쓰는 행은
+그 답이 `iadd/threads/<id>/routing.md` 에 쓰는 행은
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 에 있습니다. pull request 의 검사는 이 파일을 읽고 브랜치가 어떤 길로
 보내졌는지 압니다. `complete` 는 이 파일의 `Automation` 행을 늘 `yes` 로 쓰고,
@@ -186,11 +186,11 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 
 처음 설정에서 기록을 어디에 둘지 묻는 질문의 답은 셋입니다.
 
-| 답 | `seal/` 이 있는 자리 | 포기하는 것 |
+| 답 | `iadd/` 가 있는 자리 | 포기하는 것 |
 |---|---|---|
-| shared, records only (기본값) | `<repo>/seal/`. 커밋한다 | pull request 검사. 따로 더할 때까지 |
-| shared, with pull-request checks | `<repo>/seal/` 에 커밋하고, `.github/workflows/hygiene.yml` 도 둔다 | 없다 |
-| local | `$(git rev-parse --git-common-dir)/seal/`. git 디렉터리 아래다 | CI, 그리고 빈 채로 시작하는 다른 기계와 다시 받은 클론 |
+| shared, records only (기본값) | `<repo>/iadd/`. 커밋한다 | pull request 검사. 따로 더할 때까지 |
+| shared, with pull-request checks | `<repo>/iadd/` 에 커밋하고, `.github/workflows/hygiene.yml` 도 둔다 | 없다 |
+| local | `$(git rev-parse --git-common-dir)/iadd/`. git 디렉터리 아래다 | CI, 그리고 빈 채로 시작하는 다른 기계와 다시 받은 클론 |
 
 local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 기록이
 없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not licence to skip a
@@ -202,14 +202,14 @@ local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저
 잃는지는 `docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 에
 다 있습니다.
 
-저장소에 이미 자기 `seal/` 이 있으면(Python 패키지가 그 예입니다) 플러그인은
+저장소에 이미 자기 `iadd/` 가 있으면(Python 패키지가 그 예입니다) 플러그인은
 그 디렉터리를 건드리지 않고, local 만 고를 수 있습니다.
 
 **바꾸는 것은 명령 하나입니다.** 명령은 루트를 옮기고 그 이동을 스테이지까지
 하며, 커밋은 사용자가 합니다.
 
 ```bash
-iadd mode            # 루트가 어디 있는지, seal/config.json 과 맞는지
+iadd mode            # 루트가 어디 있는지, iadd/config.json 과 맞는지
 iadd mode local      # 루트를 트리 밖으로 옮긴다
 iadd mode shared     # 루트를 트리 안으로 옮긴다
 iadd mode --check    # 아무것도 쓰지 않고, 둘이 어긋나면 0 이 아닌 값으로 끝난다
@@ -218,7 +218,7 @@ iadd mode --check    # 아무것도 쓰지 않고, 둘이 어긋나면 0 이 아
 shared 로 옮겨 커밋하면 기록은 히스토리에 영영 남습니다. 그 커밋 전에
 되돌리는 길은 `skills/config/SKILL.md` *Before switching to shared, say what
 cannot be undone* 에 있습니다. 손으로 옮기는 두 명령은 루트 안의
-`seal/README.md` 에 있고, 처음 설정이 `templates/setup/seal-README.md` 에서 그
+`iadd/README.md` 에 있고, 처음 설정이 `templates/setup/iadd-README.md` 에서 그
 파일을 만듭니다.
 
 pull request 검사는 따로 있는 명령입니다.
@@ -249,7 +249,7 @@ iadd import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 
 ## 동작 방식
 
-모든 에이전트와, `seal/` 루트가 있는 저장소의 모든 세션은 코어
+모든 에이전트와, `iadd/` 루트가 있는 저장소의 모든 세션은 코어
 `skills/core/SKILL.md` 를 가지고 시작합니다.
 코어는 모든 참여자가 판단의 기준으로 삼는 가치를 담은 파일입니다. 나머지는
 필요한 단계에서 스킬로 불러오거나, 모델의 컨텍스트 밖에서 `iadd` 명령이나
@@ -264,10 +264,10 @@ pull request 의 검사로 돕니다.
 | **framer** (서브에이전트) | `core`, `agent-contract` | 아무도 만들기 전에 작업 항목의 설계, 계획, 질문을 쓰고, 코드는 쓰지 않는다 ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (서브에이전트) | `core`, `agent-contract` | 프레임에 맞춰 단계 하나를 만들거나, 리뷰 회차 하나를 놓고 fix pass 를 한 번 돈다 ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (서브에이전트) | `core`, `agent-contract` | `iadd/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
 | **inspector** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `inspection.md` 를 쓴다 ([`agents/inspector.md`](agents/inspector.md)) |
 | 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
-| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
+| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `iadd/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
 ### 리뷰 체인
 
@@ -304,11 +304,11 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 ### 기록이 남는 곳
 
 기록은 세션이 아니라 저장소에 남으므로, 다음 세션은 그 기록에서 시작합니다.
-`seal/`(위의 *shared 인가 local 인가* 가 자리를 정하는 폴더)에는
-`seal/config.json` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
-항목마다 그 전부가 `seal/threads/<id>/` 아래에 있습니다. 라우팅 답, 프레임,
+`iadd/`(위의 *shared 인가 local 인가* 가 자리를 정하는 폴더)에는
+`iadd/config.json` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
+항목마다 그 전부가 `iadd/threads/<id>/` 아래에 있습니다. 라우팅 답, 프레임,
 단계와 회차의 기록, 마무리 메모, 검수입니다. 파일 하나하나는
-`docs/layout/the-record-layout.md` *seal/* 와 *seal/threads/<work-item-id>/* 에
+`docs/layout/the-record-layout.md` *iadd/* 와 *iadd/threads/<work-item-id>/* 에
 있습니다. 작업 항목의 설계가 저장소의 `docs/` 정책서와 어떤 관계인지는
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* 에
 있습니다.
@@ -319,7 +319,7 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 
 ### 마이그레이션
 
-기존 코드베이스의 동작을 옮겨 오는 저장소는 `seal/parity.json` 에 원본과 기준
+기존 코드베이스의 동작을 옮겨 오는 저장소는 `iadd/parity.json` 에 원본과 기준
 커밋을 적어 선언합니다. 그러면 판단할 때마다 정책서와 원본, 새 코드를 나란히
 놓고 보며, 정책서가 말하지 않는 곳에서는 원본의 동작을 지킵니다. 원본의 사실은
 tracer 가 가져옵니다. 프레임은 옮기는 진입점마다 원본이 내보내는 것을 하나씩
@@ -339,7 +339,7 @@ Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅입니�
 사용자 설정에 쓰는 훅은 없습니다.**
 
 - **`SessionStart`** 는 세션이 시작할 때, 그리고 `/clear` 나 압축(compaction)
-  뒤에 다시 `hooks/core-start.py` 를 돌립니다. 세션의 저장소에 `seal/` 루트가
+  뒤에 다시 `hooks/core-start.py` 를 돌립니다. 세션의 저장소에 `iadd/` 루트가
   있으면 `skills/core/SKILL.md` 를 세션의 컨텍스트에 찍습니다. 그 위에는
   플러그인 버전을 적은 줄이, 아래에는 일을 어디서 시작하는지 적은 줄이 하나씩
   붙습니다. 플러그인 루트의 경로가 길어서 출력이 하네스가 훅 출력에 두는 한도를
@@ -358,7 +358,7 @@ Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅입니�
   세션에 알려 줍니다. 턴을 끝내지는 않습니다. 세션은 거절을 읽고 이어서
   갑니다. 다른 곳에서는 아무것도 찍지 않습니다.
 - **`PostToolUse`** 는 세션이나 서브에이전트의 `Edit` 호출마다 그 뒤에
-  `hooks/edit-leaves-copies.py` 를 돌립니다. 고친 파일이 `seal/` 루트 아래
+  `hooks/edit-leaves-copies.py` 를 돌립니다. 고친 파일이 `iadd/` 루트 아래
   작업 항목의 기록이고 그 `trail/` 밖에 있으며 `inspection.md` 가 아니면,
   편집이 바꾼 단어를 고친 파일을 포함한 그 작업 항목의 같은 종류 기록에서
   찾습니다. 그 단어가 아직 남아 있는 자리를 줄 번호와 함께 편집한 쪽에 알려
@@ -429,12 +429,12 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
 | `iadd cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |
 | `iadd cost --work-item <디렉터리>` | 작업 항목의 세그먼트 가운데 열린 측정 기록 이슈의 어느 댓글도 이름을 적지 않은 것마다 행을 하나씩 찍는다. 세그먼트는 그 에이전트를 띄운 프롬프트가 작업 항목의 디렉터리나 브랜치를 적었는지로 찾는다. `--post --says <파일>` 을 붙이면 그 행들을 올린다 (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
 | `iadd settle [--apply]` | 릴리스된 작업 항목의 `frame/design.md` 가 적은 `## Rule changes` 를 절마다 보여 주고, `--apply` 를 주면 정리가 끝난 디렉터리를 지운다 (`skills/settle/SKILL.md` *The settling session's procedure*) |
-| `iadd fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `seal/config.json` 의 `Document token ceiling` 키와 `Policy root` 키에 견주어 확인한다 (`templates/setup/config.md` *The fold's values*) |
+| `iadd fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `iadd/config.json` 의 `Document token ceiling` 키와 `Policy root` 키에 견주어 확인한다 (`templates/setup/config.md` *The fold's values*) |
 | `iadd rules <doc>` · `iadd rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `iadd pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
 | `iadd payload [--json] [--agent <name>] [--root <dir>]` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트로 재고, 토큰은 그 바이트에서 추정한다 (`skills/verify/scripts/payload_meter.py`) |
 | `/iadd:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
-| `/iadd:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `seal/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
+| `/iadd:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `iadd/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
 | `/iadd:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
 
 ## 한계
@@ -491,7 +491,7 @@ carry* 절에 있고, 나머지는 *Opening a pull request* 절에 있습니다.
 예외입니다. 언어마다 문장 규칙 절을 따로 담는데, 두 절은 서로의 번역이 아니라 각
 언어의 독립된 규범입니다. Claude 가 어느 언어로 답하는지는 사용자 자신의
 `CLAUDE.md` 를 따릅니다. IADD 프로세스가 사용자 저장소에 쓰는 커밋, pull
-request, 기록의 언어는 그 저장소가 정하며, `seal/config.json` 의 두 언어 키가 그
+request, 기록의 언어는 그 저장소가 정하며, `iadd/config.json` 의 두 언어 키가 그
 답입니다.
 
 ## 라이선스

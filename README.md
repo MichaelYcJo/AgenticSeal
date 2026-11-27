@@ -109,10 +109,10 @@ release you run.
 Open Claude Code in your repository and ask for a change in your own words,
 such as "fix #42". The session becomes the orchestrator: it reads the core,
 asks what needs a person, spawns each agent, and keeps the run's records.
-Those records make up the work item, one directory under `seal/threads/` for
+Those records make up the work item, one directory under `iadd/threads/` for
 each piece of work. Answering the routing question is your consent to the
 agents the run spawns and the tokens they spend. In a repository with a
-`seal/` root, the plugin's `SessionStart` hook prints the core into every
+`iadd/` root, the plugin's `SessionStart` hook prints the core into every
 session, with a line naming where a request to change code and a request to
 review each start. A plain request to change code reaches `implement`, which
 sends the session to `skills/implement/orchestration.md`, and a request to
@@ -123,7 +123,7 @@ is outside the IADD process.
 The first time a session works in a repository, it asks four questions in
 one go: where the records should live (*Shared or local*, below), the
 command the broad gate runs, the language of commits and pull requests, and
-the language of the records. The answers become keys of `seal/config.json`,
+the language of the records. The answers become keys of `iadd/config.json`,
 and `/iadd:config` changes any of them later. For each request you make,
 whatever number of issues it names, the session asks one batch of questions
 before the first edit. Where either language key is missing, the batch asks
@@ -147,7 +147,7 @@ The question has four answers, and `agentic` is the one marked:
 `skills/implement/routing-question.md` gives each answer, and
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 gives the rows an answer writes into
-`seal/threads/<id>/routing.md`, the file the pull request's check reads to
+`iadd/threads/<id>/routing.md`, the file the pull request's check reads to
 learn how the branch was routed. Where that file's `Automation` row reads
 `yes`, as `complete` always writes it and `agentic` may choose it, the
 session does not stop to ask what the repository or the framer can answer:
@@ -183,11 +183,11 @@ Where the hook could not draw it, the inspector's hand-back names
 
 The first-setup question on where the records live has three answers:
 
-| Answer | Where `seal/` lives | What it gives up |
+| Answer | Where `iadd/` lives | What it gives up |
 |---|---|---|
-| shared, records only (the default) | `<repo>/seal/`, committed | the pull-request checks, until you add them |
-| shared, with pull-request checks | `<repo>/seal/`, committed, and `.github/workflows/hygiene.yml` | nothing |
-| local | `$(git rev-parse --git-common-dir)/seal/`, under the git directory | CI, and every other machine and re-clone, which starts empty |
+| shared, records only (the default) | `<repo>/iadd/`, committed | the pull-request checks, until you add them |
+| shared, with pull-request checks | `<repo>/iadd/`, committed, and `.github/workflows/hygiene.yml` | nothing |
+| local | `$(git rev-parse --git-common-dir)/iadd/`, under the git directory | CI, and every other machine and re-clone, which starts empty |
 
 In local mode no pull-request check reads the records, so
 `agents/inspector.md` step 1 and the orchestrator's guidance alone hold the
@@ -199,14 +199,14 @@ such as a company repository or a contribution to someone else's project.
 `docs/layout/one-root-by-lifetime.md` *Shared or local* gives the whole
 trade-off.
 
-Where your repository already has a `seal/` of its own, such as a Python
+Where your repository already has an `iadd/` of its own, such as a Python
 package, the plugin leaves it alone, and only local is offered.
 
 **Switching is one command.** It moves the root and stages the move, and you
 commit it.
 
 ```bash
-iadd mode            # where the root is, and whether seal/config.json agrees
+iadd mode            # where the root is, and whether iadd/config.json agrees
 iadd mode local      # move the root out of the tree
 iadd mode shared     # move the root into the tree
 iadd mode --check    # write nothing; exit non-zero when the two disagree
@@ -215,8 +215,8 @@ iadd mode --check    # write nothing; exit non-zero when the two disagree
 Going to shared puts the records into the history for good. The way back
 before that commit is `skills/config/SKILL.md` *Before switching to shared,
 say what cannot be undone*. The two moves by hand are in your root's own
-`seal/README.md`, which first setup writes from
-`templates/setup/seal-README.md`.
+`iadd/README.md`, which first setup writes from
+`templates/setup/iadd-README.md`.
 
 The pull-request checks are a command of their own:
 
@@ -246,7 +246,7 @@ copy is not a sync.
 
 ## How it works
 
-Every agent, and every session in a repository with a `seal/` root, opens
+Every agent, and every session in a repository with an `iadd/` root, opens
 with the core, `skills/core/SKILL.md`, the values every party judges by. The rest
 loads at the step that needs it, as a skill, or runs outside the model's
 context, as an `iadd` command or a pull request's check.
@@ -261,10 +261,10 @@ cost of inference.
 | **framer** (subagent) | `core`, `agent-contract` | Writes the work item's design, plan and questions before anybody builds, and writes no code ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (subagent) | `core`, `agent-contract` | Builds one phase against the frame, or runs one fix pass over a review round ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `iadd/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
 | **inspector** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `inspection.md` ([`agents/inspector.md`](agents/inspector.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
-| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
+| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with an `iadd/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
 ### The review chain
 
@@ -301,12 +301,12 @@ a merge.**
 ### Where the records live
 
 The records live in the repository, not in the session, so the next session
-starts from them. `seal/`, the folder *Shared or local* above places, holds
-what outlives a work item, such as `seal/config.json`, and each work item
-whole under `seal/threads/<id>/`: its
+starts from them. `iadd/`, the folder *Shared or local* above places, holds
+what outlives a work item, such as `iadd/config.json`, and each work item
+whole under `iadd/threads/<id>/`: its
 routing answer, its frame, the trail of its phases and rounds, its closing
-memo and its inspection. `docs/layout/the-record-layout.md` *seal/* and
-*seal/threads/<work-item-id>/* name every file. How a work item's design
+memo and its inspection. `docs/layout/the-record-layout.md` *iadd/* and
+*iadd/threads/<work-item-id>/* name every file. How a work item's design
 relates to the policy documents your repository keeps under `docs/` is
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*.
 
@@ -317,7 +317,7 @@ not exist.
 ### Migrations
 
 A repository that ports behaviour from an existing codebase declares
-`seal/parity.json`, naming the original and its baseline commit. Each
+`iadd/parity.json`, naming the original and its baseline commit. Each
 judgment then weighs the policy, the original and the new code, and the
 original's behaviour is kept where the policy says nothing. The tracer
 fetches the original's facts. The frame lists what the original sends from
@@ -340,7 +340,7 @@ writes into your settings.**
 
 - **`SessionStart`**, at a session's start and again after `/clear` or a
   compaction, runs `hooks/core-start.py`. Where the session's repository
-  holds a `seal/` root, it prints `skills/core/SKILL.md` into the session's
+  holds an `iadd/` root, it prints `skills/core/SKILL.md` into the session's
   context, under one line naming the plugin's version and above one line
   naming where work starts. Where the plugin's root is long enough that the
   output would pass the harness's limit on a hook's output, it prints one
@@ -360,7 +360,7 @@ writes into your settings.**
   goes on. Anywhere else it prints nothing.
 - **`PostToolUse`**, after each `Edit` call of the session or a subagent,
   runs `hooks/edit-leaves-copies.py`. Where the edited file is a work
-  item's record under a `seal/` root, outside its `trail/` and other than
+  item's record under an `iadd/` root, outside its `trail/` and other than
   its `inspection.md`, it looks for the words the edit replaced in the work
   item's such records, the edited one among them, and names each place
   that still holds them, with its line, to whoever made the edit, who
@@ -432,12 +432,12 @@ after `!` in a session, or ask the session to run it.
 | `iadd cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |
 | `iadd cost --work-item <dir>` | gives one row per segment of a work item that no comment on the open measurement log names, found by its spawn prompt naming the work item's directory or branch; with `--post --says <file>` it posts them (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
 | `iadd settle [--apply]` | shows the `## Rule changes` the released work items' `frame/design.md` files state, by section, and with `--apply` removes the settled directories (`skills/settle/SKILL.md` *The settling session's procedure*) |
-| `iadd fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `seal/config.json` (`templates/setup/config.md` *The fold's values*) |
+| `iadd fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `iadd/config.json` (`templates/setup/config.md` *The fold's values*) |
 | `iadd rules <doc>` · `iadd rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `iadd pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `iadd payload [--json] [--agent <name>] [--root <dir>]` | measures what a session's and each agent's startup context is made of, in bytes, with the tokens estimated from the bytes (`skills/verify/scripts/payload_meter.py`) |
 | `/iadd:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
-| `/iadd:config` | shows every key of `seal/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
+| `/iadd:config` | shows every key of `iadd/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
 | `/iadd:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
 
 ## Limits
@@ -495,7 +495,7 @@ is the one exception: it carries a section of prose rules for each language,
 and the two are independent norms, not translations. The language Claude
 answers you in follows your own `CLAUDE.md`. The language of the commits,
 pull requests and records the IADD process writes in your repository
-is that repository's own: the two language keys of `seal/config.json`.
+is that repository's own: the two language keys of `iadd/config.json`.
 
 ## License
 

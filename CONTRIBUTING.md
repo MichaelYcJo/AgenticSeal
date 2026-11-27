@@ -56,7 +56,7 @@ a maintainer's run follows.
 ### What a contribution is not asked for
 
 This repository runs the IADD process on itself: work items under
-`seal/threads/`, review rounds, a version that moves once per release. **A
+`iadd/threads/`, review rounds, a version that moves once per release. **A
 contribution is asked for none of it.** The version and milestone steps
 belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason: they ask nothing
@@ -69,7 +69,7 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 
 | A contribution does not write | Why no check asks for it |
 |---|---|
-| a `routing.md`, `frame/design.md` or `frame/plan.md` under `seal/threads/` | Nothing in CI reads them. They route a maintainer's own session |
+| a `routing.md`, `frame/design.md` or `frame/plan.md` under `iadd/threads/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names the branch |
 | a `changelog.md` fragment | No CI step reads it. The release note is built from a maintainer's fragments when the release is tagged |
 | a `gaps.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |
@@ -488,7 +488,7 @@ question is not its difficulty, it is when it arrives.
   `skills/verify/scripts/stamp.py --stop`, which draws the inspector's
   stamp at the end of the main session's turn, a `SessionStart` entry
   that runs `hooks/core-start.py`, which prints the core into a session
-  whose repository holds a `seal/` root, a `PreToolUse` entry matched
+  whose repository holds an `iadd/` root, a `PreToolUse` entry matched
   to `AskUserQuestion` that runs `hooks/ask-under-automation.py`, which
   refuses a question while an open work item reads `Automation` `yes` and
   the question does not state why its default cannot be taken, and a
@@ -528,7 +528,7 @@ stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
 added to the core, which every agent and every session in a repository
-with a `seal/` root loads. The core also has a fixed room:
+with an `iadd/` root loads. The core also has a fixed room:
 `tests/lib/test_core.py#test_the_trees_core_stays_under_the_harness_cap`
 holds the hook's whole output under `lib/core.py#CAP` at a plugin root of
 `lib/core.py#ROOT_ROOM` characters. So a sentence added to the core fits in

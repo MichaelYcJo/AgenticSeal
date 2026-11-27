@@ -1,8 +1,8 @@
-# What AgenticSeal maintains in seal/
+# What IADD keeps in iadd/
 
 This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
-each work item whole under `seal/threads/<work-item-id>/`, where it stays until
+each work item whole under `iadd/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released designs' `## Rule changes` name, as their latest decision, and
 `iadd settle --apply` removes each released directory whole whose record holds no
@@ -37,10 +37,10 @@ and `iadd mode --check`, which the pull-request checks run, exits non-zero
 when the two disagree. Nothing reads the key at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so
 the commands land the same from a subdirectory. From local to shared:
-`mv "$(git rev-parse --git-common-dir)/seal" "$(git rev-parse --show-toplevel)/seal"`,
-`git add "$(git rev-parse --show-toplevel)/seal"` and a commit. From shared
-to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/seal"`,
-`mv "$(git rev-parse --show-toplevel)/seal" "$(git rev-parse --git-common-dir)/seal"`
+`mv "$(git rev-parse --git-common-dir)/iadd" "$(git rev-parse --show-toplevel)/iadd"`,
+`git add "$(git rev-parse --show-toplevel)/iadd"` and a commit. From shared
+to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/iadd"`,
+`mv "$(git rev-parse --show-toplevel)/iadd" "$(git rev-parse --git-common-dir)/iadd"`
 and a commit of the removal.
 
 **`iadd export` and `iadd import` are the way across between machines**, and
@@ -54,8 +54,8 @@ the last export's manifest at `iadd-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
 **The first line of this file is the marker.** `lib/optin.py#MARKER` holds
-the same line, and every gate passes over a `seal/` whose `README.md` does not
-open with it: such a directory is the project's own, as a package named `seal`
+the same line, and every gate passes over an `iadd/` whose `README.md` does not
+open with it: such a directory is the project's own, as a package named `iadd`
 has one. First setup that meets such a directory leaves it alone, and the
 root goes under the git directory. The line is compared whole, with only its
 line end taken off, so a space after it, a byte order mark before it or a
@@ -80,7 +80,7 @@ work item's directory out of it, when, and where each one goes.
 ## Layout
 
 ```
-seal/
+iadd/
 ├── README.md            this file
 ├── config.json          what this repository says about itself, one key per
 │                        item. `templates/setup/config.md` in the plugin

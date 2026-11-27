@@ -9,7 +9,7 @@ contract lives, how each repository knows about it, and what checks it.
 
 **The pact is the one copy of what two or more repositories keep together,
 and every repository of such a work item is a signer, the one holding the
-pact included.** The pact is `seal/pact.md` in one of them. That repository
+pact included.** The pact is `iadd/pact.md` in one of them. That repository
 has no noun of its own: it is the pact's repository, identified by holding
 the file, and where more than one pact can be meant, a text says which by
 naming where it is held. `iadd pact` is the command that reads every signer
@@ -30,7 +30,7 @@ question, and a script answers the rest*).
 changed, and a pact exists only where a work item commits in more than one
 repository and those repositories share contract.** The rule is the owner's,
 and it decides two things: whether the structure exists, and which sentences
-go in `seal/pact.md`. A work item that only commits in several repositories
+go in `iadd/pact.md`. A work item that only commits in several repositories
 gets a routing declaration in each and nothing else. A sentence only one
 repository's code depends on stays in that repository's own documents,
 because a pact that collects those sends every signer to re-read changes
@@ -40,8 +40,8 @@ begun.
 ## One routing answer, one id, every gated repository
 
 **The routing question is asked once, the work-item id is minted once, and a declaration
-goes into every repository the work item commits in that already has a `seal/` root, and
-into no other.** The id names the directory in every repository, so each share's
+goes into every repository the work item commits in that already has an `iadd/` root,
+and into no other.** The id names the directory in every repository, so each share's
 changelog fragment and changelog marker are keyed alike, and a directory named
 differently in each would have to be renamed later, moving both. A repository with no
 root is named in the handback and left alone, because writing into it would create its
@@ -54,7 +54,7 @@ check: tests/behaviour/test_a_signer_declares_its_pact.py
 ## How a signer names the pact
 
 **Every signer but the pact's repository names the pact in a `Pact` key
-of its `seal/config.json`, and one reader answers that key for every
+of its `iadd/config.json`, and one reader answers that key for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised, and a pact anchor names the pact by
 that same URL.
@@ -73,7 +73,7 @@ a work item's `frame/design.md`, and `iadd pact` reads the table with
 what the work was built against. `Pact` is the origin remote URL of the
 pact's repository, as the signer's `Pact` key writes it, compared
 normalised. `Clause` is the clause's heading path, such as
-`## Order response shape / ### Fields`: every `##` heading of `seal/pact.md`
+`## Order response shape / ### Fields`: every `##` heading of `iadd/pact.md`
 is a clause, and a `###` narrows inside one.
 `Hash` is the eight lowercase hex digits `coordinates.py#content_hash` gives
 the clause's region, `00000000` until the first report names the real one.
@@ -119,7 +119,7 @@ pact's repository is where the reconciliation runs.
 ## `iadd pact` reconciles, locally
 
 **`iadd pact`, run at the pact's repository, reads every signer the
-`Pact signers` key of that repository's `seal/config.json` lists and says
+`Pact signers` key of that repository's `iadd/config.json` lists and says
 which way each mismatch points.** It finds each checkout through
 `~/.claude/iadd/pact-paths.json`, a JSON object from remote URL to
 checkout path, or the one sibling directory with that origin, guessing

@@ -1,4 +1,4 @@
-"""`/iadd:config` — the door to `seal/config.json`.
+"""`/iadd:config` — the door to `iadd/config.json`.
 
 Issue #105. Three settings existed when this module was written (#113), and
 the only way to see them was to open a file nobody had a reason to open. The
@@ -71,7 +71,7 @@ def test_the_way_back_from_shared_is_spelled():
     the root before `iadd mode local`, so the skill spells that command."""
     text = flat(*SKILL)
     # The command a person types first to walk a switch to shared back.
-    assert "git reset -- :/seal" in text, "the way back is not spelled"
+    assert "git reset -- :/iadd" in text, "the way back is not spelled"
 
 
 def test_the_bootstrap_names_the_way_back_to_its_own_questions():

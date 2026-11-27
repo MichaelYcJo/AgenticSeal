@@ -14,7 +14,7 @@ a `v*` tag pushed by hand passes that tag on.
 
 **The body is built from the release's changelog fragments, read from the
 history at the tag.** A change writes its note once, in
-`seal/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
+`iadd/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
 in the tree. The fragments are the ones the commits after the previous
 `vX.Y.Z` tag added and that tag does not already hold, each read at the
 newest commit of that range whose tree holds it, so a work item a settle
@@ -869,7 +869,7 @@ def main(argv=None):
         held = f" that {previous} does not already hold" if previous else ""
         print(
             f"{tag} was pushed and no commit {span} added a changelog fragment"
-            f"{held}, seal/threads/<work-item-id>/changelog.md, so this release "
+            f"{held}, iadd/threads/<work-item-id>/changelog.md, so this release "
             "would be published with no notes at all."
         )
         return 1

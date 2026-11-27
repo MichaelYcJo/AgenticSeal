@@ -42,19 +42,19 @@ cat > 'CONTRIBUTING.md' <<'IADD_EOF'
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 IADD_EOF
-mkdir -p "$(dirname 'seal/README.md')"
-cat > 'seal/README.md' <<'IADD_EOF'
-# What AgenticSeal maintains in seal/
+mkdir -p "$(dirname 'iadd/README.md')"
+cat > 'iadd/README.md' <<'IADD_EOF'
+# What IADD keeps in iadd/
 IADD_EOF
-mkdir -p "$(dirname 'seal/config.json')"
-cat > 'seal/config.json' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/config.json')"
+cat > 'iadd/config.json' <<'IADD_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 IADD_EOF
-mkdir -p "$(dirname 'seal/threads/1790000021-loud-flag/routing.md')"
-cat > 'seal/threads/1790000021-loud-flag/routing.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'iadd/threads/1790000021-loud-flag/routing.md')"
+cat > 'iadd/threads/1790000021-loud-flag/routing.md' <<'IADD_EOF'
 # Routing: 1790000021-loud-flag
 
 | Axis | Answer |

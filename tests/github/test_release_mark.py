@@ -146,7 +146,7 @@ ROUTING = """| Axis | Answer |
 FENCE = "`" * 3
 ROUND = """# round {n}
 
-```seal
+```iadd
 target: abc1234 against base
 ```
 
@@ -170,9 +170,9 @@ OLD_ROUND = """# round {n}
 def finding(i, verdict):
     """One finding of `templates/records/sdd-round.md`'s shape: its finding
     block, and a close block reading `verdict`, none where it is `open`."""
-    closed = f"{FENCE}seal\nverdict: {verdict}\nanswer:\n{FENCE}\n\n"
+    closed = f"{FENCE}iadd\nverdict: {verdict}\nanswer:\n{FENCE}\n\n"
     return (
-        f"### {i}. a finding\n\n{FENCE}seal\nseverity: should\nlocation: `f.py:{i}`\n"
+        f"### {i}. a finding\n\n{FENCE}iadd\nseverity: should\nlocation: `f.py:{i}`\n"
         f"evidence: read `f.py:{i}`\n{FENCE}\n\nwhy\n\n"
         + ("" if verdict == "open" else closed)
     )
@@ -182,7 +182,7 @@ def tree(tmp_path, branch="feat/12-an-item", verdicts=()):
     """A repository root holding one work item that declares `branch`, with
     one round record per entry of `verdicts`, each a list of `verdict:`
     values, one finding each."""
-    item = mark_root(tmp_path / "seal") / "threads" / "1700000000-an-item"
+    item = mark_root(tmp_path / "iadd") / "threads" / "1700000000-an-item"
     (item / "trail" / "rounds").mkdir(parents=True)
     (item / "routing.md").write_text(ROUTING.format(branch=branch), encoding="utf-8")
     for n, values in enumerate(verdicts, 1):
@@ -326,12 +326,12 @@ def drawn(png):
 
 
 # #1204: the key that turns the release note's mark image on, which this
-# repository's `seal/config.json` writes reading `yes`.
+# repository's `iadd/config.json` writes reading `yes`.
 MARK_ROW = "Release note inspection mark"
 
 
 def configured(home, value):
-    """`config.json` under the `seal/` root `home`, holding `MARK_ROW`
+    """`config.json` under the `iadd/` root `home`, holding `MARK_ROW`
     reading `value`, written once per entry where `value` is a tuple; no
     file where `value` is None."""
     if value is None:
@@ -362,7 +362,7 @@ def wired(
     monkeypatch.setattr(mod, "gh", hub.gh)
     monkeypatch.setattr(mod, "tagged", lambda tag: SHA)
     monkeypatch.setattr(mod, "ROOT", tree(tmp_path, verdicts=[["deferred #12"]]))
-    configured(tmp_path / "seal", mark)
+    configured(tmp_path / "iadd", mark)
     publisher = mod.publisher()
     monkeypatch.setattr(
         publisher,
@@ -583,12 +583,12 @@ class Test_chain_counts:
             verdicts=[
                 ["fixed abc1234", "deferred #12"],
                 ["deferred #13", "deferred #14", "rejected"],
-                ["deferred seal/follow-up.md", "deferred #12"],
+                ["deferred iadd/follow-up.md", "deferred #12"],
             ],
         )
         record = (
             tmp_path
-            / "seal"
+            / "iadd"
             / "threads"
             / "1700000000-an-item"
             / "trail"
@@ -661,7 +661,7 @@ class Test_chain_counts:
         """S10 (round 1's finding 2). A `rounds` that is a link holds records
         nobody can count: the rounds row is not read, and the log names it."""
         root = tree(tmp_path)
-        item = tmp_path / "seal" / "threads" / "1700000000-an-item"
+        item = tmp_path / "iadd" / "threads" / "1700000000-an-item"
         (item / "trail" / "rounds").rmdir()
         (item / "trail" / "held").mkdir()
         (item / "trail" / "held" / "round-1.md").write_text(
@@ -701,7 +701,7 @@ class Test_chain_counts:
         and rounds it could count stand."""
         root = tree(tmp_path, verdicts=[["deferred #12"]])
         record = (
-            tmp_path / "seal" / "threads" / "1700000000-an-item" / "trail" / "rounds"
+            tmp_path / "iadd" / "threads" / "1700000000-an-item" / "trail" / "rounds"
         )
         (record / "round-2.md").write_text(OLD_ROUND.format(n=2), encoding="utf-8")
         counts = release_mark().chain_counts(root, [pr(20, "feat/12-an-item")])

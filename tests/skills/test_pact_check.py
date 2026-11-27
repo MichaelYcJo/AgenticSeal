@@ -4,11 +4,11 @@ Rebuilt by #942's phase 5. The printed paths, a clause's hash and an
 anchor's grade run in the process on text, a grade against a stand-in
 history. The checkout search, the history
 and `check` read a world built once for the module and copied for each case
-that writes into it: the pact's repository, whose `seal/config.json` lists
-the signer in its `Pact signers` key and whose `seal/pact.md` carries one
+that writes into it: the pact's repository, whose `iadd/config.json` lists
+the signer in its `Pact signers` key and whose `iadd/pact.md` carries one
 clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD does
 not hold, and the signer beside it, which names the pact in its
-`seal/config.json`. `HOME` is the world's own directory, so the machine-local
+`iadd/config.json`. `HOME` is the world's own directory, so the machine-local
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the cases of `lib/config.py` that run `check`
 over a signer's config are in `tests/lib/test_config.py` since #942's phase 6.
@@ -63,7 +63,7 @@ pc, checker = pact_check_modules()
 config = pc.sibling.load("lib/config.py")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
-SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
+SPEC_Y = "iadd/threads/1790000001-y/frame/design.md"
 # A second pact a signer's `Pact` key declares beside this one.
 BILLING = "git@example.com:org/billing.git"
 MAP = ".claude/iadd/pact-paths.json"
@@ -93,7 +93,7 @@ NOT_A_HASH = (
     "until the first report names the real one"
 )
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
+    "the `Pact` cell names `{cell}`, a pact this signer's `iadd/config.json` "
     "does not declare in its `Pact` key, so no `iadd pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
@@ -185,10 +185,10 @@ class Test_shown:
         "path, repo, home, want",
         [
             (
-                r"C:\Users\x\work\orders-web\seal\config.json",
+                r"C:\Users\x\work\orders-web\iadd\config.json",
                 r"C:\Users\x\work\orders-web",
                 r"C:\Users\x",
-                "seal/config.json",
+                "iadd/config.json",
             ),
             (
                 r"C:\Users\x\.claude\iadd\pact-paths.json",
@@ -495,7 +495,7 @@ class Test_History:
     def test_refuses_a_path_git_never_tracked_and_names_an_unheld_commit_by_sha(
         self, world
     ):
-        history = pc.History(str(world.api), "seal/nothing.md")
+        history = pc.History(str(world.api), "iadd/nothing.md")
         assert history.head() == [] and history.other() == []
         git(world.api, "switch", "-qc", "gone")
         write(world.api, "f.txt", "x\n")
@@ -619,7 +619,7 @@ class Test_check:
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
-            "seal/config.json",
+            "iadd/config.json",
             signer_config(("Pact", f"{PACT_URL}; {BILLING}; {legacy}")),
         )
         world.cite(clause(V2))
@@ -654,7 +654,7 @@ class Test_check:
         )
         write(
             world.web,
-            "seal/threads/1790000002-z/frame/design.md",
+            "iadd/threads/1790000002-z/frame/design.md",
             "# Z\n\n"
             + "".join(
                 f"## Table {n}\n\n{header}\n|---|---|---|\n{row}\n"
@@ -757,11 +757,11 @@ class Test_check:
 
     def test_refuses_a_mismatch_under_local_mode_as_unmatched_and_says_why(self, world):
         common = git(world.api, "rev-parse", "--git-common-dir")
-        local = os.path.join(str(world.api), common, "seal")
+        local = os.path.join(str(world.api), common, "iadd")
         os.makedirs(local)
         for name in ("pact.md", "config.json", "README.md"):
-            os.replace(str(world.api / "seal" / name), os.path.join(local, name))
-        os.rmdir(str(world.api / "seal"))
+            os.replace(str(world.api / "iadd" / name), os.path.join(local, name))
+        os.rmdir(str(world.api / "iadd"))
         world.cite(clause(V1))
         code, out = world.run()
         assert code == 1, out
@@ -809,7 +809,7 @@ class Test_check:
         code, out = world.run()
         assert code == 2, out
         assert (
-            f"REFUSED {PACT_URL} seal/config.json — the `Pact signers` key lists "
+            f"REFUSED {PACT_URL} iadd/config.json — the `Pact signers` key lists "
             "the pact's own repository, and that key lists every OTHER signer — "
             "take this entry out"
         ) in out, out
@@ -824,14 +824,14 @@ class Test_check:
         """S7: a pact whose repository lists no signer in a `Pact signers`
         key is refused at exit 2 in a sentence naming the key, and no signer
         is read."""
-        cfg = world.api / "seal" / "config.json"
+        cfg = world.api / "iadd" / "config.json"
         cfg.unlink()
         if config_text is not None:
             cfg.write_text(config_text, encoding="utf-8")
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
-        assert f"REFUSED seal/config.json — {NO_SIGNER}" in out, out
+        assert f"REFUSED iadd/config.json — {NO_SIGNER}" in out, out
         assert f"the pact at {PACT_URL} — 0 of 0 signers read" in out, out
 
     def test_refuses_each_signer_entry_that_will_not_read_and_reads_the_rest(
@@ -845,7 +845,7 @@ class Test_check:
         code, out = world.run()
         assert code == 2, out
         assert (
-            "REFUSED seal/config.json — `orders-mobile` is not a remote URL — it "
+            "REFUSED iadd/config.json — `orders-mobile` is not a remote URL — it "
             "reduces to no host and path, so no repository can be found by it"
         ) in out, out
         assert f"READ {SIGNER_URL} " in out and " 1 ok " in out, out
@@ -854,23 +854,23 @@ class Test_check:
         """The pact's repository's config refused by
         `lib/config.py#config_pairs` is `UNREADABLE` at exit 2, in the
         reader's sentence after the path, and nothing else is read."""
-        write(world.api, "seal/config.json", '{"Pact signers": "x",}\n')
+        write(world.api, "iadd/config.json", '{"Pact signers": "x",}\n')
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
         assert out.startswith(
-            "UNREADABLE seal/config.json — does not parse as JSON ("
+            "UNREADABLE iadd/config.json — does not parse as JSON ("
         ), out
         assert "READ" not in out.replace("UNREADABLE", ""), out
 
-    @pytest.mark.parametrize("side", ["no seal root", "no Pact key"])
+    @pytest.mark.parametrize("side", ["no iadd root", "no Pact key"])
     def test_refuses_a_relationship_recorded_on_one_side(self, world, side):
-        if side == "no seal root":
-            shutil.rmtree(world.web / "seal")
-            where, said = posix(world.web), "it has no seal/ root to name this pact in"
+        if side == "no iadd root":
+            shutil.rmtree(world.web / "iadd")
+            where, said = posix(world.web), "it has no iadd/ root to name this pact in"
         else:
-            write(world.web, "seal/config.json", signer_config())
-            where = "seal/config.json"
+            write(world.web, "iadd/config.json", signer_config())
+            where = "iadd/config.json"
             said = f"its config names no `Pact` key for {PACT_URL}"
         code, out = world.run()
         assert code == 2, out
@@ -1117,7 +1117,7 @@ class Test_check:
         """Both unreadable shapes reach it as `UNREADABLE` at exit 2 through
         `lib/config.py#config_pairs`, named relative to the signer's
         checkout and in POSIX form, and said in the reader's sentence."""
-        cfg = world.web / "seal" / "config.json"
+        cfg = world.web / "iadd" / "config.json"
         text = cfg.read_bytes()
         cfg.unlink()
         if shape == "directory":
@@ -1127,7 +1127,7 @@ class Test_check:
         code, out = world.run()
         assert code == 2, out
         assert (
-            f"UNREADABLE {SIGNER_URL} seal/config.json — is there and cannot be "
+            f"UNREADABLE {SIGNER_URL} iadd/config.json — is there and cannot be "
             "read as UTF-8 text"
         ) in out, out
 
@@ -1140,7 +1140,7 @@ class Test_check:
         (world.api / PACT).mkdir()
         code, out = world.run()
         assert code == 2, out
-        assert out == "UNREADABLE seal/pact.md — the pact could not be read", out
+        assert out == "UNREADABLE iadd/pact.md — the pact could not be read", out
 
     def test_refuses_a_map_that_will_not_read(self, world):
         """S4: the path is printed once, and the sentence reads after the
@@ -1184,7 +1184,7 @@ class Test_check:
             "is not in a git repository — nothing was read"
         ), out
         code, out = world.run(root=world.web)
-        assert code == 2 and "holds no seal/pact.md, so there is no pact" in out, out
+        assert code == 2 and "holds no iadd/pact.md, so there is no pact" in out, out
         git(world.api, "remote", "remove", "origin")
         code, out = world.run()
         assert code == 2, out
@@ -1250,7 +1250,7 @@ def test_no_line_formats_a_path_without_the_helper():
     with open(SCRIPT, encoding="utf-8") as handle:
         tree = ast.parse(handle.read())
     # `where` is not among them: every value it holds is built by `shown`
-    # or is a literal `seal/...` label.
+    # or is a literal `iadd/...` label.
     paths = {
         "path",
         "repo",

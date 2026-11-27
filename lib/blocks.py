@@ -5,7 +5,7 @@ Three readers decide from a markdown file what a person or a party declared:
 `lib/tables.py` (a record's table, through `iadd pact` and `iadd settle`),
 `lib/routing.py` (the routing declaration, on every commit and at the pull
 request) and
-`lib/fields.py` (the `seal` blocks of a work item's records). A row
+`lib/fields.py` (the `iadd` blocks of a work item's records). A row
 quoted in a fenced example, or parked in an HTML comment, is not a row
 anybody gave, and this is the one walk all three read to tell it apart.
 
@@ -252,7 +252,7 @@ class Walk:
     opens      {index: info} for every fence the walk paired, keyed by its
                opener's line, the info string being the text after the
                opener's run as written; `lib/fields.py` reads a
-               `seal` block by it. A fence's lines run from its
+               `iadd` block by it. A fence's lines run from its
                opener to the line before the next FENCED run's start or
                the first line that is not FENCED
     """

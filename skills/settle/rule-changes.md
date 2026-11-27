@@ -29,7 +29,7 @@ comes first, then one field per line, indented two spaces:
 | `remove` | `file`, `section`; `from` optional | the text `from` quotes goes, or with no `from` the whole section, up to the next heading of its level or higher |
 | `nothing` | `why` optional | changes no rule, and stands alone in the section |
 
-- `file` is a `.md` file of the policy root, `seal/config.json`'s
+- `file` is a `.md` file of the policy root, `iadd/config.json`'s
   `Policy root` key (`docs` when absent), or of one of its groups:
   `<policy root>/<name>.md` or `<policy root>/<group>/<name>.md`, one group
   directory deep and no deeper, joined with `/` and holding no `\` or `:`,
@@ -136,7 +136,7 @@ at that line of the design. A refused
 line inside a section that a
 pending `remove` with no `from` takes out at the settle is printed as
 excused, with the work item that removes it, and is no refusal. A pending
-`change`, or a `remove` with a `from`, excuses nothing, and where the `seal/`
+`change`, or a `remove` with a `from`, excuses nothing, and where the `iadd/`
 root is local no line is excused. Whether
 a target really enforces its rule, whether a rule with no check line has a
 case it should name, and whether two rules contradict each other, it cannot

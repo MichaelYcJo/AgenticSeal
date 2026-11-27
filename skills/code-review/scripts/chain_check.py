@@ -3,13 +3,13 @@
 are in the tree and agree with HEAD.
 
 Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
-the `seal/threads/<id>/routing.md` naming the pull request's branch and every
+the `iadd/threads/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
 judged (`carried_by`). The arms are nine:
 
   trailer       on every pull request, a declaration or none: each
-                `Seal-Routing` trailer of the pull request's own commits
+                `IADD-Routing` trailer of the pull request's own commits
                 names a work item a judged declaration names, or reads
                 `no work item`, which is printed (`routing_trailers`); a
                 commit with no such trailer is not judged
@@ -56,7 +56,7 @@ judged (`carried_by`). The arms are nine:
                 inspector reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      where git carries `seal/parity.json` at HEAD and the pull
+  original      where git carries `iadd/parity.json` at HEAD and the pull
                 request changes a path outside the document roots
                 `lib/gate.py#touches_code` reads: the config's `Baseline
                 commit` key names a SHA (`lib/config.py#baseline_commit`),
@@ -99,7 +99,7 @@ and `docs/forms/the-round-record.md` *The round record* and
 `docs/forms/the-inspection.md` *The inspection* the records they read.
 
 In a round record, `inspection.md` and `trail/gate.md` a field stands in a
-`seal` block, every line of which parses or is refused at its line, and a
+`iadd` block, every line of which parses or is refused at its line, and a
 line outside every block is prose to every arm. A fence like the block's and
 not it, and a file under `trail/rounds/` that is no `round-N.md`, are not
 read; the check names each (`blocks_of`, `unread`) and decides nothing on
@@ -179,7 +179,7 @@ RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
 CHECK_LINES_READER = "skills/settle/scripts/rules.py"
 
-# A round record's fields stand in `seal` blocks, and `lib/fields.py`
+# A round record's fields stand in `iadd` blocks, and `lib/fields.py`
 # is the one spelling of their grammar. What this file holds is where
 # a block stands, which turns on headings that module does not read: the one
 # `## Findings` section, and a finding's `### <n>. <symptom>` heading in it,
@@ -286,12 +286,12 @@ try:
     SHARED_READER = sibling.load(READER)
     # `lib/blocks.py`, the one split of a text into GFM lines.
     BLOCKS = sibling.load("lib/blocks.py")
-    # `lib/fields.py`, the one reader of a record's `seal` blocks.
+    # `lib/fields.py`, the one reader of a record's `iadd` blocks.
     FIELDS = sibling.load(FIELDS_READER)
     # `lib/gitcmd.py`, which starts every git and `gh` command this check
     # runs and spells a path as git does.
     GITCMD = sibling.load("lib/gitcmd.py")
-    # `lib/optin.py`, which finds the repository and its `seal/` root.
+    # `lib/optin.py`, which finds the repository and its `iadd/` root.
     OPTIN = sibling.load("lib/optin.py")
     # `lib/console.py`, whose `annotate` prints a line about a file.
     CONSOLE = sibling.load("lib/console.py")
@@ -324,7 +324,7 @@ INSPECTING_JUDGED_SAYS = (
 
 # What the check prints of a file it did not read. `main` prints it as a
 # notice, `path:line  not read: <why>` and a notice annotation in CI, and it
-# changes no exit code; a fence like a `seal` block and not one is named in
+# changes no exit code; a fence like an `iadd` block and not one is named in
 # `lib/fields.py`'s words (`blocks_of`).
 UNREAD_FILE = (
     "not read: `{name}` is no `round-N.md`, so the check read nothing of it "
@@ -333,7 +333,7 @@ UNREAD_FILE = (
 # What the records arm refuses of where a round record's blocks stand. A
 # refusal in a finding is led by its heading.
 NO_ROUND_BLOCK = (
-    "no round block: since #1198 a round record's fields stand in `seal` "
+    "no round block: since #1198 a round record's fields stand in `iadd` "
     "blocks, its `target:` line in the round block outside every finding, as "
     f"`{ROUND_TEMPLATE}` shows; a record written before then is rewritten "
     "into blocks with its verdicts unchanged"
@@ -353,7 +353,7 @@ SECOND_NUMBER = (
     "would name both"
 )
 NO_FINDING_BLOCK = (
-    "no finding block: under its heading a finding holds one `seal` block "
+    "no finding block: under its heading a finding holds one `iadd` block "
     f"opening with `severity:`, as `{ROUND_TEMPLATE}` shows"
 )
 SECOND_BLOCK = "a second {kind} block: a finding holds one"
@@ -557,7 +557,7 @@ def unread(routing, root, item, chained):
     """[(path, line, why)] for what the check did not read of a work item:
     under `chained`, each file under `trail/rounds/` that is no
     `round-N.md` (`UNREAD_FILE`) and each fence of a round record like a
-    `seal` block and not one (`blocks_of`). `main` prints them as notices;
+    `iadd` block and not one (`blocks_of`). `main` prints them as notices;
     such a fence of `inspection.md` or `trail/gate.md` is named by
     `inspection` and `broad_gate`."""
     found = []
@@ -718,7 +718,7 @@ NOT_A_BLOCK_LINE = (FIELDS.COMMENT_LINE, *HIDING)
 
 
 def round_read(text, rel):
-    """`Parsed` for one round record: its `seal` blocks read through
+    """`Parsed` for one round record: its `iadd` blocks read through
     `lib/fields.py`, placed by its headings, read once.
 
     Every line that module refuses is an error at its line, led by the
@@ -1351,7 +1351,7 @@ def rule_changes_reader():
 
 def policy_root(root):
     """The policy root of the repository at ROOT: `lib/config.py#policy_root`
-    of the `seal/` root `lib/optin.py#home_at` resolves there."""
+    of the `iadd/` root `lib/optin.py#home_at` resolves there."""
     config = sibling.load("lib/config.py")
     return config.policy_root(OPTIN.home_at(root, OPTIN.git_common_dir(root)))
 
@@ -1653,7 +1653,7 @@ def originals_of(routing, root, home, paths, items, direct=()):
 # A gate record with no run block: one of the older shape, its run written
 # outside any block, or one nobody wrote a run into.
 NO_RUN_BLOCK = (
-    "no run block: since #1198 the run stands in a `seal` block holding "
+    "no run block: since #1198 the run stands in an `iadd` block holding "
     "`run: <tree> against <base commit>`, which `iadd gate --base <base> "
     "--record <item>` appends below the text already there on a green run"
 )
@@ -1707,7 +1707,7 @@ NOT_CLEARED = "the work item is not cleared"
 # An inspection with no verdict block: one of the older shape, its verdict
 # written outside any block, or one the inspector never filled.
 NO_VERDICT_BLOCK = (
-    "no verdict block: since #1198 the inspector's verdict stands in a `seal` "
+    "no verdict block: since #1198 the inspector's verdict stands in an `iadd` "
     "block holding `target: <sha> against <base>`, the `original:` line where "
     "one is owed and `Verdict:`, as `templates/records/sdd-inspection.md` "
     "shows; the inspector runs again at HEAD and appends one below the text "
@@ -1994,7 +1994,7 @@ ROOT_LEFT_SAYS = (
 
 # The trailer a session's commit ends with (`docs/checks/the-routing-check.md` *At
 # the pull request*), and its one value that names no work item.
-TRAILER = "Seal-Routing"
+TRAILER = "IADD-Routing"
 NO_WORK_ITEM = "no work item"
 UNDECLARED_TRAILER = (
     f"commit {{sha}} carries `{TRAILER}: {{item}}`, and no routing declaration "
@@ -2022,7 +2022,7 @@ PRINTED_TRAILERS = (
 
 
 def routing_trailers(root, base):
-    """`[(commit, value)]` for each `Seal-Routing` trailer of this pull
+    """`[(commit, value)]` for each `IADD-Routing` trailer of this pull
     request's own commits, oldest first, or None where git cannot list them.
 
     The commits are `base..HEAD` with merges left out, read by git's own

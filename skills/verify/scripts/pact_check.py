@@ -3,7 +3,7 @@
 
 A work item that commits in more than one repository, where those
 repositories keep a contract together, keeps the one copy of that contract in
-`seal/pact.md` in one of them -- the pact's repository -- and every repository
+`iadd/pact.md` in one of them -- the pact's repository -- and every repository
 of the work item is a signer (`docs/layout/the-pact.md`). A signer cites each
 clause it was built against as a pact anchor, one row of the anchor table
 in a work item's `frame/design.md`:
@@ -56,7 +56,7 @@ the near header is named.
 
 ## Where the signers are
 
-The `Pact signers` key of the pact's repository's `seal/config.json` lists
+The `Pact signers` key of the pact's repository's `iadd/config.json` lists
 them by origin remote URL, separated by `;`, and is read through
 `lib/config.py#signer_declaration`. An absent or empty key is refused at
 exit 2, because a pact nobody signs is not a pact, and so is an entry that
@@ -149,6 +149,8 @@ except ImportError:
 console = sibling.load("lib/console.py")
 
 PACT_FILE = "pact.md"
+# exempt from root_name: the plugin's own directory under `~/.claude`, which no
+# records root is
 MAP_PARTS = (".claude", "iadd", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
@@ -165,7 +167,7 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
 
     **Every path this command prints goes through here.** A sentence that
     joins a native absolute path with `/` prints
-    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, and a path line
+    `C:\\Users\\x\\orders-web\\iadd/config.json` on Windows, and a path line
     printed without this function carries whatever separators the platform
     gave it. One function, so the class is closed by construction rather
     than one sentence at a time.
@@ -250,7 +252,7 @@ NOT_A_HASH = (
 # `{cell}` is the `Pact` cell as written, bare: `one_remote` refuses one
 # holding a backtick before this sentence is reached.
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
+    "the `Pact` cell names `{cell}`, a pact this signer's `iadd/config.json` "
     "does not declare in its `Pact` key, so no `iadd pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
@@ -625,7 +627,7 @@ def check(root, out=sys.stdout, home_dir=None):
     if not home or not os.path.lexists(pact_path):
         say(
             f"iadd pact: {shown(repo, home_dir=home_dir)} holds no "
-            f"seal/{PACT_FILE}, so there is no pact "
+            f"iadd/{PACT_FILE}, so there is no pact "
             "to reconcile here — run it in the repository that holds the pact"
         )
         return 2
@@ -708,7 +710,7 @@ def check(root, out=sys.stdout, home_dir=None):
                 ONE_SIDED,
                 written,
                 shown(path, home_dir=home_dir),
-                "the pact lists it, and it has no seal/ root to name this pact "
+                "the pact lists it, and it has no iadd/ root to name this pact "
                 "in: the relationship is recorded on one side only",
             )
             continue

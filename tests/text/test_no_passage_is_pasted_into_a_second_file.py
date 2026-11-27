@@ -12,7 +12,7 @@ its home had not.
 **What is read.** Every tracked `*.md` under `docs/`, `skills/`, `agents/` and
 `templates/`, with `CLAUDE.md`, `CONTRIBUTING.md` and `README.md`. Left out:
 every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
-words; and everything under `seal/`, which is records.
+words; and everything under `iadd/`, which is records.
 
 **How a file is normalised.** Each file is read whole, and no region of
 one is sanctioned. Fenced code blocks and heading lines are dropped. A quoted

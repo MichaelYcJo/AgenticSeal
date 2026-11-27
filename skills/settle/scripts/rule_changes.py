@@ -599,7 +599,7 @@ def copies(op, texts, gone=None):
 def pending(home, policy_root):
     """`[(Op, work item directory)]` for every item of a pending `## Rule
     changes`: each `frame/design.md` under `<home>/threads/`, HOME the
-    `seal/` root, read through `parse` against POLICY_ROOT. The directory
+    `iadd/` root, read through `parse` against POLICY_ROOT. The directory
     is named `<name>/threads/<id>/`, NAME being HOME's own. A design that
     cannot be read as UTF-8, or a section `parse` refuses, gives no item."""
     found = []

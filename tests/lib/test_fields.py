@@ -1,6 +1,6 @@
 """`lib/fields.py`, one class per public function (#1198).
 
-The reader of a work item's `seal` blocks: `frame/design.md` *Data &
+The reader of a work item's `iadd` blocks: `frame/design.md` *Data &
 interfaces* Table F of work item 1793437163 is the grammar these cases hold
 it to. Each refusal path has a case that names its line and its sentence.
 """
@@ -12,7 +12,7 @@ import time
 import conftest
 import pytest
 from conftest import ROOT, census_case, load_lib_module
-from conftest import seal_block as block
+from conftest import iadd_block as block
 
 TARGET = "lib/fields.py"
 
@@ -146,19 +146,19 @@ class Test_read:
     @pytest.mark.parametrize(
         "opener",
         [
-            FENCE + "Seal",
-            FENCE + "SEAL",
-            "~~~seal",
-            FENCE + "`seal",
-            FENCE + " seal",
-            FENCE + "seal finding",
-            FENCE + "seal ",
+            FENCE + "Iadd",
+            FENCE + "IADD",
+            "~~~iadd",
+            FENCE + "`iadd",
+            FENCE + " iadd",
+            FENCE + "iadd finding",
+            FENCE + "iadd ",
         ],
     )
     def test_refuses_a_near_opener_and_names_it_as_not_read(self, opener):
         """*Scope* item 1: a fence outside every fence whose info string's
-        first word, case folded, is `seal`, and whose line is not exactly
-        three backticks and `seal`, is no block; it is named at its line as
+        first word, case folded, is `iadd`, and whose line is not exactly
+        three backticks and `iadd`, is no block; it is named at its line as
         not read, and nothing is refused for it."""
         closer = opener[: len(opener) - len(opener.lstrip(opener[0]))]
         text = inspection_record(
@@ -170,8 +170,8 @@ class Test_read:
             (line_of(text, opener), fields.NEAR.format(line=opener))
         ]
 
-    @pytest.mark.parametrize("info", ["", "markdown", "sealed", "python seal"])
-    def test_refuses_to_name_a_fence_whose_first_word_is_not_seal(self, info):
+    @pytest.mark.parametrize("info", ["", "markdown", "iadds", "python iadd"])
+    def test_refuses_to_name_a_fence_whose_first_word_is_not_iadd(self, info):
         found = fields.read(
             inspection_record(f"{FENCE}{info}\nVerdict: cleared\n{FENCE}\n"),
             fields.INSPECTION,
@@ -181,16 +181,16 @@ class Test_read:
     def test_refuses_a_fence_that_never_closes_at_its_opener(self):
         """#1122: a fence nobody closed hides every line after it from a
         renderer, so it is refused at its opener, and a block above it is
-        still read; a `seal` block that never closes is refused the same
+        still read; an `iadd` block that never closes is refused the same
         way."""
         text = inspection_record(
             verdict(), FENCE + "`\n", verdict(said="withheld reason: the gate failed")
         )
         found = fields.read(text, fields.INSPECTION)
         assert found.refusals == [(line_of(text, FENCE + "`"), fields.UNCLOSED)]
-        open_block = inspection_record(f"{FENCE}seal\ntarget: {SHA} against main\n")
+        open_block = inspection_record(f"{FENCE}iadd\ntarget: {SHA} against main\n")
         assert fields.read(open_block, fields.INSPECTION).refusals == [
-            (line_of(open_block, FENCE + "seal"), fields.UNCLOSED)
+            (line_of(open_block, FENCE + "iadd"), fields.UNCLOSED)
         ]
         assert fields.read(open_block, fields.INSPECTION).blocks == []
 
@@ -392,14 +392,14 @@ class Test_read:
 
     def test_refuses_a_block_lacking_a_key_it_holds_one_of_at_its_opener(self):
         text = inspection_record(block(f"target: {SHA} against main"))
-        opener = line_of(text, FENCE + "seal")
+        opener = line_of(text, FENCE + "iadd")
         said = fields.MISSING.format(kind="verdict", key="Verdict:")
         assert fields.read(text, fields.INSPECTION).refusals == [(opener, said)]
 
     def test_refuses_an_empty_block_and_one_no_kind_of_the_record_opens(self):
         empty = inspection_record(block())
         assert fields.read(empty, fields.INSPECTION).refusals == [
-            (line_of(empty, FENCE + "seal"), fields.EMPTY.format(openers="`target:`"))
+            (line_of(empty, FENCE + "iadd"), fields.EMPTY.format(openers="`target:`"))
         ]
         other = inspection_record(block(f"run: {SHA} against {BASE}"))
         said = fields.NO_KIND.format(
@@ -426,19 +426,19 @@ class Test_read:
         )
         found = fields.read(text, fields.INSPECTION)
         assert found.refusals == [
-            (line_of(text, "<!-- " + FENCE + "seal"), fields.COMMENT_LINE),
+            (line_of(text, "<!-- " + FENCE + "iadd"), fields.COMMENT_LINE),
             (line_of(text, "   <!-- a note"), fields.COMMENT_LINE),
         ]
         assert len(found.blocks) == 1
 
     @pytest.mark.parametrize(
         "above",
-        ["- " + FENCE + "seal", "> " + FENCE, "  " + FENCE + "seal", "<div>"],
+        ["- " + FENCE + "iadd", "> " + FENCE, "  " + FENCE + "iadd", "<div>"],
         ids=["list item", "block quote", "indent", "an HTML block"],
     )
     def test_refuses_a_fence_the_walk_cannot_place(self, above):
         """Where `blocks.walk` stops claiming, at a fence in a container or
-        an HTML block, a `seal` block below is not read: each fence line it
+        an HTML block, an `iadd` block below is not read: each fence line it
         cannot place is refused at its line, so a later run's block is never
         silently dropped behind an earlier one."""
         text = inspection_record(
@@ -448,11 +448,11 @@ class Test_read:
         assert len(found.blocks) == 1
         unsure = [n for n, why in found.refusals if why == fields.UNSURE]
         assert unsure and min(unsure) >= line_of(text, above), found.refusals
-        last = text.split("\n").index(FENCE + "seal", line_of(text, above)) + 1
+        last = text.split("\n").index(FENCE + "iadd", line_of(text, above)) + 1
         assert last in unsure, found.refusals
 
     def test_refuses_to_read_a_block_quoted_inside_another_fence(self):
-        """A `seal` block inside a fix's fence belongs to the fix."""
+        """An `iadd` block inside a fix's fence belongs to the fix."""
         text = inspection_record(FENCE + "`markdown\n" + verdict() + FENCE + "`\n")
         assert fields.read(text, fields.INSPECTION) == fields.Read([], [], [])
 
@@ -485,7 +485,7 @@ class Test_read:
 class Test_assemble:
     def test_accepts_pairs_and_writes_the_block_the_reader_reads(self):
         text = fields.assemble([(fields.RUN, f"{SHA} against {BASE}")], fields.GATE)
-        assert text == f"{FENCE}seal\nrun: {SHA} against {BASE}\n{FENCE}\n"
+        assert text == f"{FENCE}iadd\nrun: {SHA} against {BASE}\n{FENCE}\n"
         (found,) = fields.read(text, fields.GATE).blocks
         assert found.fields[fields.RUN].value == f"{SHA} against {BASE}"
 

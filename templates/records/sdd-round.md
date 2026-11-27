@@ -1,6 +1,6 @@
 # Review round <N>: <work-item-id>
 
-```seal
+```iadd
 target: 1a2b3c4 against main
 ```
 
@@ -8,7 +8,7 @@ target: 1a2b3c4 against main
 
 ### 1. <what is wrong, as a symptom, in one line>
 
-```seal
+```iadd
 severity: must
 location: `path:12`
 evidence: read `path:12`
@@ -21,14 +21,14 @@ Why it matters: <the grounds, each at its coordinate>
 <the paste-ready fix: the artefact, not a description of it>
 ```
 
-```seal
+```iadd
 verdict: fixed 1a2b3c4
 answer: <the fix pass: what was done, why the finding does not hold, or where it went>
 ```
 
 ## Confirmations
 
-```seal
+```iadd
 confirms: round-1#2
 ```
 What holds: <what, at `path:line`, and how this round confirmed it, executed or read>

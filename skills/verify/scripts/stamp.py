@@ -1237,20 +1237,20 @@ def _read(path):
         return None
 
 
-def written_root(routing, seal):
-    """`(common, top)` where SEAL, a real path, is the root in force of a
+def written_root(routing, records_root):
+    """`(common, top)` where RECORDS_ROOT, a real path, is the root in force of a
     repository, `optin.home_at`'s answer, else None. TOP is the worktree
-    whose root it is in shared mode, and "" in local mode, where SEAL sits
+    whose root it is in shared mode, and "" in local mode, where RECORDS_ROOT sits
     under COMMON, the git common dir, and no worktree holds it."""
     optin = routing.optin
-    parent = os.path.dirname(seal)
+    parent = os.path.dirname(records_root)
     # Shared mode: the parent is a worktree's top, main or linked. Inside a
     # git directory `repo_root` finds no top, so a local root never matches.
     top = optin.repo_root(parent)
     if top and os.path.realpath(top) == parent:
         common = optin.git_common_dir(top)
         home = optin.home_at(top, common)
-        if common and home and os.path.realpath(home) == seal:
+        if common and home and os.path.realpath(home) == records_root:
             return os.path.realpath(common), top
     # Local mode: the parent is the common dir, and the main worktree, which
     # `git worktree list` names first, resolves to it; "" where the parent is
@@ -1261,7 +1261,7 @@ def written_root(routing, seal):
     if not found or os.path.realpath(found) != parent:
         return None
     home = optin.home_at(root, found)
-    if not home or os.path.realpath(home) != seal:
+    if not home or os.path.realpath(home) != records_root:
         return None
     return parent, ""
 
@@ -1276,7 +1276,7 @@ def queue_for_written_inspection(path, now=None):
     committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/inspection.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
-    `written_root`): `<repo>/seal/` in shared mode, and `<common>/seal/` in
+    `written_root`): `<repo>/iadd/` in shared mode, and `<common>/iadd/` in
     local mode. It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
     fence nobody closed and a line that begins with `<!--` among them,
@@ -1295,9 +1295,9 @@ def queue_for_written_inspection(path, now=None):
     real = os.path.realpath(path)
     item = os.path.dirname(real)
     specs = os.path.dirname(item)
-    seal = os.path.dirname(specs)
+    records_root = os.path.dirname(specs)
     # The root's own name is not compared here: `written_root` asks the
-    # resolver whether SEAL is the root in force.
+    # resolver whether RECORDS_ROOT is the root in force.
     optin = _optin()
     if (os.path.basename(real), os.path.basename(specs)) != (
         optin.INSPECTION,
@@ -1308,7 +1308,7 @@ def queue_for_written_inspection(path, now=None):
 
     chain = _chain_check()
     routing = sibling.load("lib/routing.py")
-    found = written_root(routing, seal)
+    found = written_root(routing, records_root)
     if found is None:
         return []
     common, top = found

@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000026-generated-page/frame/design.md'}
+target: {source: 'file', path: 'iadd/threads/1790000026-generated-page/frame/design.md'}
 pattern: '^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*d8cac16f).*'
 flags: 'm'
 ---

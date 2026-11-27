@@ -108,7 +108,7 @@ hand fires the publish workflow too.
   and every other value is blue. A badge's alt text is that label and value
   in words. So a reader whose client draws no image, or who opens the note
   while the service does not answer, still has every result. Where
-  `seal/config.json`'s `Release note inspection mark` key reads `yes` at the tag,
+  `iadd/config.json`'s `Release note inspection mark` key reads `yes` at the tag,
   the job first attaches the page form of the stamp's mark, the PNG that
   `.claude-plugin/plugin.json` names as its `icon`, as `mark.png`, and the
   header opens with that image at its display width, floated left so that
@@ -335,7 +335,7 @@ them.
   rather than by anybody's hand; the paragraphs below say how, and what a
   feature pull request writes so it has something to read.
 - Feature pull requests write their entry to
-  `seal/threads/<work-item-id>/changelog.md` and leave `plugin.json` alone,
+  `iadd/threads/<work-item-id>/changelog.md` and leave `plugin.json` alone,
   except the release's first, which moves it. The hygiene workflow asks for
   the moved version only when the base is `main`, where it holds a release
   whose first pull request did not move it.

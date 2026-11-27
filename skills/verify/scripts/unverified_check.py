@@ -13,7 +13,7 @@ So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Many are open at any time, and
 a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
-is what `iadd unverified seal/threads/` is for; no number is repeated in prose here,
+is what `iadd unverified iadd/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
 It fails for what the author can always fix: a section that cannot be read.
@@ -33,7 +33,7 @@ line long. That format is strict on purpose — see `lib/gaps.py#check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read · 2 the path or arguments were unusable, which
-includes a scan that found no closing memo at all. One state of a `seal/`
+includes a scan that found no closing memo at all. One state of an `iadd/`
 root's own `threads` path is exit 0 instead, and says so: the path holding no
 work item, empty or absent, which is the state a complete settle ends in
 (`settled_root`).
@@ -56,7 +56,7 @@ import sibling  # noqa: E402
 GAPS = sibling.load("lib/gaps.py")
 console = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
-# `lib/optin.py`, whose `WORK_ITEMS` names the directory under a `seal/`
+# `lib/optin.py`, whose `WORK_ITEMS` names the directory under an `iadd/`
 # root that holds the threads, and whose `GAPS` names a thread's closing
 # memo.
 OPTIN = sibling.load("lib/optin.py")
@@ -102,7 +102,7 @@ def overviews(paths):
 
 
 def config_at(top):
-    """`(lib/config.py, the seal/ root, its name in the tree)` for the
+    """`(lib/config.py, the iadd/ root, its name in the tree)` for the
     repository at `top`: the root as `lib/optin.py#home_at` resolves it, and
     the name `lib/optin.py#home_name` gives, "" where the root is local or
     absent."""
@@ -209,13 +209,13 @@ def named_root(parent):
 
 
 def settled_root(path):
-    """Whether `path` is a `seal/` root's own `threads` directory with no work
+    """Whether `path` is an `iadd/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
     That is the state a complete settle reaches, and it is two states: the
-    tree that ran `iadd settle --apply` holds an empty `seal/threads/`, and a
+    tree that ran `iadd settle --apply` holds an empty `iadd/threads/`, and a
     fresh checkout of the commit holds none, because git keeps no empty
-    directory. A person who runs `iadd unverified seal/threads/`
+    directory. A person who runs `iadd unverified iadd/threads/`
     after the settle hands this tool that path, and reading it as a typo would
     refuse a finished settle. Only this one path is settled: any other path
     that is missing is still refused, which is what keeps `threads/ thraeds/`
@@ -233,7 +233,7 @@ def settled_root(path):
 
 
 SETTLED = (
-    "iadd unverified: {path} holds no work item and its `seal/` root is "
+    "iadd unverified: {path} holds no work item and its `iadd/` root is "
     "there — the state a complete settle ends in, so there is nothing to read"
 )
 

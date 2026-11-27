@@ -35,7 +35,7 @@ here is a write you do not make.
    coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
-5. Where `seal/parity.json` is declared, open `skills/legacy-parity/SKILL.md`
+5. Where `iadd/parity.json` is declared, open `skills/legacy-parity/SKILL.md`
    and compare the behaviour with the original, recording it as that
    skill's *Recording the comparison* states.
 6. Before writing the record, open the writing-style section rule 11 names
@@ -44,7 +44,7 @@ here is a write you do not make.
    with the `target:` line, and under each finding's heading one finding
    block holding its `severity:`, `location:` and `evidence:` lines, each
    line spelt as `lib/fields.py` reads it. Write no close block: the
-   fix pass appends it. A field stands inside a `seal` block and nowhere
+   fix pass appends it. A field stands inside an `iadd` block and nowhere
    else. A prose line that opens with `<` and a letter, such as a
    placeholder left in place, starts an HTML block for the reader, which
    then refuses every fence below it, so replace each placeholder whole.
@@ -77,7 +77,7 @@ here is a write you do not make.
 ## Rules
 
 **The record goes to the branch worktree.** It is
-`seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
+`iadd/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
 
@@ -107,10 +107,10 @@ stands deferred: say where, and do not write it up again.
 | Carried, and re-derived only when its check fails | Re-derived every round |
 |---|---|
 | A rule's `check:` target, which `iadd rules --check` fails when it is gone | Whether the new code satisfies the clause |
-| What the original does, which `seal/parity.json` pins to a baseline SHA | Whether the new code matches it |
+| What the original does, which `iadd/parity.json` pins to a baseline SHA | Whether the new code matches it |
 | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
-A carried fact is re-derived when its check fails, or where `seal/parity.json`
+A carried fact is re-derived when its check fails, or where `iadd/parity.json`
 lists its path under `Coordinate-trust exceptions`.
 
 **Every round reads the work item's records that state the present, whole,
