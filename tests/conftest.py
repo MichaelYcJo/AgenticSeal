@@ -340,9 +340,8 @@ for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
     del os.environ[_name]
 
 # `chain_check.py` asks `gh pr view --json isDraft` where no event payload
-# exists (#866), and every run of it in this suite with no payload is such a
-# run, except a run under `--sealing`, the broad gate's, which asks no state
-# (#1620). A stub named `gh`, first on PATH from import,
+# exists (#866), except under `--sealing`, the broad gate's run, which asks
+# no state (#1620). A stub named `gh`, first on PATH from import,
 # answers that one question and passes every other call to the `gh` that was
 # on PATH, so `gh auth token` and the `PR` cell's question reach it as they
 # did. Its default is the answer a branch with no pull request gets — exit 1,
