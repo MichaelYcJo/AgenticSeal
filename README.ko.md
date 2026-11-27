@@ -50,9 +50,9 @@ claude
 > /plugin install agentic@agenticseal
 ```
 
-`git` 과, PATH 에서 `python3` 으로 실행되는 Python 3.12 이상이 필요합니다.
-`seal` 명령이 파이썬 스크립트이고, 그 스크립트를 `python3` 명령으로 돌리기
-때문입니다.
+`git` 2.30 이상과, PATH 에서 `python3` 으로 실행되는 Python 3.12 이상이
+필요합니다. `seal` 명령이 `git` 을 부르는 파이썬 스크립트이고, 그 스크립트를
+`python3` 명령으로 돌리기 때문입니다.
 설치하기 전에 `python3 -V` 를 한 번 돌려 보세요. macOS 의 `/usr/bin/python3`
 은 3.9 이고, pyenv 나 asdf 같은 파이썬 버전 관리자를 쓰면 마지막으로 지정한
 버전이 나옵니다.

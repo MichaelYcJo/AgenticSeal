@@ -71,6 +71,7 @@ from conftest import (
     ROOT,
     ROOT_MARKER,
     ROOT_RECORDS,
+    as_called,
     census_case,
     config_json,
     fifo_or_skip,
@@ -387,14 +388,15 @@ def declare(path, member, size):
 
 
 def unanswered(monkeypatch, tail, outcome, after=0):
-    """Each git run whose arguments end with TAIL, past the first AFTER,
-    answers OUTCOME: an exception raised, or a (code, stdout, stderr)
-    triple. Every other run is real. Returns the runs TAIL matched."""
+    """Each git run whose arguments, `as_called` reads them, end with TAIL,
+    past the first AFTER, answers OUTCOME: an exception raised, or a (code,
+    stdout, stderr) triple. Every other run is real. Returns the runs TAIL
+    matched."""
     real = subprocess.run
     asks = []
 
     def run(argv, *args, **kwargs):
-        if list(argv)[-len(tail) :] != list(tail):
+        if as_called(argv)[-len(tail) :] != list(tail):
             return real(argv, *args, **kwargs)
         asks.append(list(argv))
         if len(asks) <= after:
