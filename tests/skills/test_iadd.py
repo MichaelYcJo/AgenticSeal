@@ -3716,5 +3716,13 @@ class Test_main:
         if len(argv) == 3:
             assert "cannot be given together" in capsys.readouterr().err
 
+    def test_names_itself_iadd_in_its_usage_line(self, capsys, tmp_path):
+        """#1651 phase 6: the command a person types is `iadd`, and the usage
+        line its help and its refusals open with says so (contract rule 14)."""
+        with pytest.raises(SystemExit) as stopped:
+            IADD.main(["--help"], cwd=str(tmp_path))
+        assert stopped.value.code == 0
+        assert capsys.readouterr().out.startswith("usage: iadd [-h]\n")
+
 
 test_census = census_case(TARGET)
