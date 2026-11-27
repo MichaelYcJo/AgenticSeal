@@ -5,6 +5,6 @@
 - "The routing answer `agentic` keeps its name." (`frame/plan.md` *Judgments of the run*, the second row of 2026-11-28)
 - "Phase 4 left the drawings as they are." (`gaps.md` line 35)
 
-Closes #1651.
+Part of #1651.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
