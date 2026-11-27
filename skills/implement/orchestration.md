@@ -138,8 +138,10 @@ gives no inventory of a change, whether a commit holds the change or the
 change is still to come, as a fold's is when its row is written: no number
 of lines, sentences or items, no list of what the change rewrote or will
 rewrite, and no word for the kind of change a fold made or will make.
-`git show <commit>` is that account once the commit exists. A row whose
-judgment is about a change, such as a regression's route
+What a row sends, the findings and the files or sections a fold or a fix
+pass is given, is its decision and the decision's coordinates, and not
+that inventory. `git show <commit>` is that account once the commit exists.
+A row whose judgment is about a change, such as a regression's route
 (`skills/code-review/orchestration.md` *A regression is routed by comparing
 the fix with the frame*) or why the title takes its prefix, states as its
 grounds what the change means against the document it judges against, and
