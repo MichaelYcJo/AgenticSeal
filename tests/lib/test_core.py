@@ -40,13 +40,14 @@ def plugin(where, name="agentic", version="0.25.0", core="# plugin core\n"):
     return str(where)
 
 
-def start_line(core, root):
-    """The closing line `rendered` writes for the plugin at ROOT."""
-    root = os.path.abspath(root)
-    return core.START.format(
-        orchestration=os.path.join(root, *core.ORCHESTRATION),
-        review=os.path.join(root, *core.REVIEW),
-    )
+def sized_core(where, core, length):
+    """A scratch plugin root at WHERE whose own core, a text with no
+    frontmatter, makes a whole output of LENGTH characters; the path of that
+    core."""
+    path = os.path.join(str(where), *CORE)
+    room = length - len(core.whole("", path, "0.25.0"))
+    plugin(where, core="x" * room)
+    return path
 
 
 class Test_manifest:
@@ -160,27 +161,123 @@ class Test_without_frontmatter:
             assert core.without_frontmatter(text) == text, text
 
 
+class Test_closing:
+    """The two cases differ by the plugin root given: none, for the plugin's
+    own core, and one, for a core at another path."""
+
+    def test_accepts_a_root_and_names_it_once_after_the_relative_paths(self):
+        """A core at another path is closed by the two files named relative
+        to the plugin's root, then one sentence naming that root, absolute."""
+        core = core_module()
+        root = "/Users/x/plugins/agentic/0.25.0"
+        closing = core.closing(root)
+        assert closing == (
+            core.START
+            + " Both paths are relative to the running plugin's root, "
+            + f"`{root}`."
+        ), closing
+        assert closing.count(root) == 1, closing
+        assert "`skills/implement/orchestration.md`" in closing, closing
+        assert "*Orchestrator: the order inside a ticket*" in closing, closing
+        assert "`skills/code-review/SKILL.md`" in closing, closing
+
+    def test_refuses_to_name_a_root_where_none_is_given(self):
+        """The plugin's own core is closed by the same two relative paths
+        and a sentence that names no root, since the first line already
+        names the core's file under it."""
+        core = core_module()
+        closing = core.closing()
+        assert closing == (
+            core.START + " Both paths are relative to the plugin's root."
+        ), closing
+        assert "running plugin" not in closing, closing
+        assert "`/" not in closing, closing
+
+
+class Test_whole:
+    """The two cases differ by the plugin root given, which decides only the
+    closing line's last sentence."""
+
+    def test_accepts_the_header_the_text_and_the_closing_line(self):
+        """The whole output is the header naming PATH and VERSION, a newline,
+        the text, a newline and `closing()`, and no file is read: PATH names
+        none."""
+        core = core_module()
+        path = "/Users/x/gone/skills/core/SKILL.md"
+        assert core.whole("# The core\n\nOne.\n", path, "1.2.3") == (
+            core.header(path, "1.2.3") + "\n# The core\n\nOne.\n\n" + core.closing()
+        )
+
+    def test_refuses_the_plugins_own_sentence_where_a_root_is_given(self):
+        core = core_module()
+        path = "/Users/x/tree/skills/core/SKILL.md"
+        root = "/Users/x/plugins/agentic/0.25.0"
+        out = core.whole("# The core\n", path, "1.2.3", root)
+        assert out == core.header(path, "1.2.3") + "\n# The core\n\n" + core.closing(
+            root
+        ), out
+
+
 class Test_rendered:
     def test_accepts_the_header_the_body_and_the_closing_line(self, tmp_path):
         """The output is the header, a newline, the file's text below its
-        frontmatter, a newline, then `START`, which names the orchestrator's
-        section and the review skill under the plugin root, spelled
-        absolute."""
+        frontmatter, a newline, then the closing line, which names the
+        orchestrator's section and the review skill relative to the plugin's
+        root. The plugin's own core names that root once, in the first
+        line."""
         core = core_module()
         text = "---\nname: core\n---\n\n# The core\n\nOne — value.\n"
         root = plugin(tmp_path / "plugin", core=text)
         path = os.path.join(root, *CORE)
-        assert core.rendered(path, root) == (
+        out = core.rendered(path, root)
+        assert out == (
             core.header(path, "0.25.0")
             + "\n# The core\n\nOne — value.\n\n"
-            + start_line(core, root)
+            + core.closing()
         )
-        closing = core.rendered(path, root).rsplit("\n", 1)[1]
-        orchestration = os.path.join(root, "skills", "implement", "orchestration.md")
-        review = os.path.join(root, "skills", "code-review", "SKILL.md")
-        assert f"`{orchestration}`" in closing, closing
-        assert "*Orchestrator: the order inside a ticket*" in closing, closing
-        assert f"`{review}`" in closing, closing
+        assert out.count(root) == 1, out
+        assert root in out.split("\n", 1)[0], out
+
+    def test_accepts_a_core_at_another_path_with_the_running_plugins_root_once(
+        self, tmp_path
+    ):
+        """A clone's core is printed under the running plugin's version, and
+        its closing line names the running plugin's root, the one place that
+        root stands in the output."""
+        core = core_module()
+        root = plugin(tmp_path / "plugin")
+        tree = plugin(tmp_path / "tree", version="0.26.0", core="# tree core\n")
+        path = os.path.join(tree, *CORE)
+        out = core.rendered(path, root)
+        assert out == (
+            core.header(path, "0.25.0") + "\n# tree core\n\n" + core.closing(root)
+        ), out
+        assert out.count(root) == 1, out
+
+    def test_refuses_to_print_a_core_whose_whole_output_reaches_the_cap(self, tmp_path):
+        """An output the harness would cut to a preview is not printed: one
+        line names the core's file and says to open it, and the closing line
+        names the running plugin's root. It does not open as a printed core
+        does, so a session reads it as no core."""
+        core = core_module()
+        path = sized_core(tmp_path / "plugin", core, core.CAP)
+        root = str(tmp_path / "plugin")
+        out = core.rendered(path, root)
+        assert out == (
+            f"AgenticSeal core: printing {path} here would pass the harness's "
+            "cap of 10,000 characters on a hook's output, so no core was "
+            "printed. Open that file whole before anything else.\n" + core.closing(root)
+        ), out
+        assert not out.startswith("AgenticSeal core from"), out
+        assert len(out) < core.CAP, len(out)
+
+    def test_accepts_a_core_one_character_under_the_cap_whole(self, tmp_path):
+        core = core_module()
+        path = sized_core(tmp_path / "plugin", core, core.CAP - 1)
+        out = core.rendered(path, str(tmp_path / "plugin"))
+        assert len(out) == core.CAP - 1, len(out)
+        assert out.startswith(core.header(path, "0.25.0") + "\nxxx"), out[:200]
+        assert out.endswith("x\n" + core.closing()), out[-400:]
 
     def test_refuses_to_print_a_core_that_is_not_a_file(self, tmp_path):
         """A missing core is said in one line, which is not a header and
@@ -232,18 +329,25 @@ class Test_output:
 class Test_module:
     def test_the_trees_core_stays_under_the_harness_cap(self):
         """Past about 10,000 characters a hook's output reaches the model
-        only as a preview, so the whole output this tree's core makes, the
-        closing line included, stays under `CAP`, and a core grown past it
-        fails here before it ships."""
+        only as a preview, so the whole output this tree's core makes as an
+        installed plugin's own, the closing line included, stays under `CAP`
+        at a plugin root of `ROOT_ROOM` characters, and a core grown past it
+        fails here before it ships. The root is a string that names no
+        directory, so where this checkout stands decides nothing."""
         core = core_module()
         assert core.CAP == 10_000
-        path = core.origin(ROOT, ROOT)
-        assert os.path.samefile(path, os.path.join(ROOT, *CORE)), path
-        out = core.rendered(path, ROOT)
-        assert len(out) < core.CAP, len(out)
+        with open(os.path.join(ROOT, *CORE), encoding="utf-8") as f:
+            text = core.without_frontmatter(f.read())
         # The tree's frontmatter stays out of what a session receives.
-        assert out.split("\n", 1)[1].startswith("# The core\n"), out[:200]
-        assert out.endswith(start_line(core, ROOT)), out[-400:]
+        assert text.startswith("# The core\n"), text[:200]
+        root = "/" + "r" * (core.ROOT_ROOM - 1)
+        version = core.manifest(ROOT)["version"]
+        out = core.whole(text, os.path.join(root, *CORE), version)
+        assert len(out) < core.CAP, (
+            f"the hook's whole output is {len(out):,} characters at a plugin "
+            f"root of {core.ROOT_ROOM} characters (lib/core.py#ROOT_ROOM), "
+            f"against a cap of {core.CAP:,} (lib/core.py#CAP)"
+        )
 
 
 test_census = census_case(TARGET)

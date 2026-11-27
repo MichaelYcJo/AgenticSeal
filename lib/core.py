@@ -5,10 +5,19 @@
 receives it from the plugin's `SessionStart` hook, `hooks/core-start.py`,
 which prints `output`: the file's text below its frontmatter, under one
 first line naming the file printed and the running plugin's version, and
-above one closing line, `START`, naming where work starts. The frontmatter
-stays out because its `description:` already reaches every session in the
-harness's skill listing. `seal payload` counts `rendered`'s bytes, so the
-hook and the meter cannot disagree about what a session received.
+above one closing line, `closing`, naming where work starts by two paths
+relative to the plugin's root. The frontmatter stays out because its
+`description:` already reaches every session in the harness's skill
+listing. `seal payload` counts `rendered`'s bytes, so the hook and the meter
+cannot disagree about what a session received.
+
+**The plugin's root stands once in the output.** Where the core printed is
+the plugin's own, the first line names it under that root and the closing
+line says its paths are relative to it. Where the core is a clone's, the
+closing line names the running plugin's root. **An output that would reach
+the harness's cap is not printed**: one line names the core's file for the
+session to open, above the closing line, because past the cap the harness
+keeps only a preview and the closing line would be lost.
 
 **A session in a repository with no `seal/` root receives nothing**: the
 root is what says the repository runs the AgenticSeal process
@@ -42,22 +51,42 @@ REVIEW = ("skills", "code-review", "SKILL.md")
 # The harness's cap on one hook's output, in characters: past it the context
 # holds a preview naming a file rather than the output. Measured between
 # 9,990 and 10,010 on Claude Code 2.1.312, and a case holds the tree's whole
-# output under it.
+# output under it at a plugin root of `ROOT_ROOM` characters.
 CAP = 10_000
+# The length of plugin root at which the tree's whole output is held under
+# `CAP`. The default plugin root is the home directory followed by
+# `.claude/plugins/cache/<marketplace>/<plugin>/<version>`, and a longer root
+# than this receives `TOO_LONG` once the output reaches `CAP`.
+ROOT_ROOM = 100
 
 HEADER = "AgenticSeal core from {path}, plugin {version}."
 MISSING = "AgenticSeal core: {path} is not a file, so no core was printed."
+# What the hook prints in place of a core whose whole output would reach
+# `CAP`. It opens as `MISSING` does and not as `HEADER` does, so a session
+# reads it as no core printed.
+TOO_LONG = (
+    "AgenticSeal core: printing {path} here would pass the harness's cap of "
+    "{cap:,} characters on a hook's output, so no core was printed. Open that "
+    "file whole before anything else."
+)
 # The output's last line: where work starts in this session. It stands here
 # and not in the core's text, because every agent receives the core through
 # `skills:` and none starts work (`skills/core/SKILL.md` *A document is cut
-# by who opens it and at which step*).
+# by who opens it and at which step*). Its two paths are relative to the
+# plugin's root, joined with `/` on every platform, and one of the two
+# sentences below follows it.
 START = (
     "Where a request to change code or to work an issue arrives in this "
     "session, this session is the orchestrator and opens `{orchestration}` "
     "*Orchestrator: the order inside a ticket* before its first edit. Where a "
     "request to review a pull request, a diff or a branch arrives, it opens "
     "`{review}`."
-)
+).format(orchestration="/".join(ORCHESTRATION), review="/".join(REVIEW))
+# Where the core printed is the plugin's own, whose path the first line
+# names under the plugin's root.
+OWN_ROOT = "Both paths are relative to the plugin's root."
+# Where the core printed is another file, a clone's.
+RUNNING_ROOT = "Both paths are relative to the running plugin's root, `{root}`."
 # A frontmatter: an opening `---` line, then everything up to the first
 # closing `---` line, and the blank lines after it.
 FRONTMATTER = re.compile(r"---\r?\n(?:.*?\n)??---\r?(?:\n|\Z)[\r\n]*", re.S)
@@ -103,11 +132,28 @@ def without_frontmatter(text):
     return text[found.end() :] if found else text
 
 
+def closing(plugin_root=None):
+    """The output's last line: `START`, one space, and `OWN_ROOT` where
+    PLUGIN_ROOT is None, or `RUNNING_ROOT` naming PLUGIN_ROOT otherwise."""
+    if plugin_root is None:
+        return START + " " + OWN_ROOT
+    return START + " " + RUNNING_ROOT.format(root=plugin_root)
+
+
+def whole(text, path, version, plugin_root=None):
+    """The whole output for a core whose TEXT stands below its frontmatter:
+    the header for PATH and VERSION, a newline, TEXT, a newline, then
+    `closing(PLUGIN_ROOT)`. It reads no file."""
+    return header(path, version) + "\n" + text + "\n" + closing(plugin_root)
+
+
 def rendered(path, plugin_root):
-    """The core at PATH as the hook prints it: the header, a newline, the
-    file's text below its frontmatter, a newline, then `START` naming the
-    two files under PLUGIN_ROOT, spelled absolute. Where PATH is not a file,
-    the one line `MISSING` says so."""
+    """The core at PATH as the hook prints it: `whole`, whose closing line
+    names its two files relative to the plugin's root and names
+    PLUGIN_ROOT only where PATH is not the plugin's own core. Where that
+    output would reach `CAP`, the line `TOO_LONG` naming PATH, a newline and
+    the closing line naming PLUGIN_ROOT. Where PATH is not a file, the one
+    line `MISSING` says so."""
     try:
         with open(path, "rb") as f:
             data = f.read()
@@ -116,11 +162,16 @@ def rendered(path, plugin_root):
     plugin_root = os.path.abspath(plugin_root)
     version = manifest(plugin_root).get("version") or UNKNOWN
     text = without_frontmatter(data.decode("utf-8", "replace"))
-    start = START.format(
-        orchestration=os.path.join(plugin_root, *ORCHESTRATION),
-        review=os.path.join(plugin_root, *REVIEW),
-    )
-    return header(path, version) + "\n" + text + "\n" + start
+    # The plugin's own core is the file under PLUGIN_ROOT, and a path that
+    # cannot be compared with it is another file.
+    try:
+        own = os.path.samefile(path, os.path.join(plugin_root, *CORE))
+    except OSError:
+        own = False
+    out = whole(text, path, version, None if own else plugin_root)
+    if len(out) < CAP:
+        return out
+    return TOO_LONG.format(path=path, cap=CAP) + "\n" + closing(plugin_root)
 
 
 def output(cwd, plugin_root):
