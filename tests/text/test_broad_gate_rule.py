@@ -55,7 +55,7 @@ RUN = "seal gate --base <base> --record <item>"
 
 
 def test_the_orchestration_names_the_broad_run_command():
-    """S2 of #969. The orchestration that spawns the sealer names the
+    """S2 of #969. The orchestration that spawns the inspector names the
     preflight, the run and the run's log. Each is what the orchestrator
     types or opens, so each is held by its spelling; who may run the gate
     and in what order the steps come are the proofer's to read. Contract
@@ -99,10 +99,10 @@ def test_the_broad_gate_state_survives_a_handoff():
     )
 
 
-# --- 1790815611: the record arms run before the sealer is spawned (#638) -------
+# --- 1790815611: the record arms run before the inspector is spawned (#638) -------
 
 PREFLIGHT = "seal gate --preflight"
-# The orchestrator's steps from the preflight to the sealer's spawn, cut from
+# The orchestrator's steps from the preflight to the inspector's spawn, cut from
 # `skills/code-review/orchestration.md` in #1579.
 SPAWN_FILE = ("skills", "code-review", "gate-to-pull-request.md")
 SPAWN_SECTION = "Orchestrator: from the preflight to the open pull request"
@@ -113,7 +113,7 @@ def joined(lines):
 
 
 def test_the_order_inside_a_ticket_names_the_preflight():
-    """The order section sequences the sealer's spawn, so the step before it
+    """The order section sequences the inspector's spawn, so the step before it
     is written in where the spawn is. Where it stands in the order is the
     proofer's to read."""
     text = joined(
@@ -122,7 +122,7 @@ def test_the_order_inside_a_ticket_names_the_preflight():
             "## Orchestrator: the order inside a ticket",
         ).split("\n")
     )
-    # The command the orchestrator runs before it spawns the sealer.
+    # The command the orchestrator runs before it spawns the inspector.
     assert PREFLIGHT in text, "the order does not name the preflight"
 
 
@@ -153,5 +153,5 @@ def test_the_broad_gate_section_names_the_preflight():
             read("skills", "verify", "orchestration.md"), "## The broad gate"
         ).split("\n")
     )
-    # The command the orchestrator runs before the sealer is spawned.
+    # The command the orchestrator runs before the inspector is spawned.
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"

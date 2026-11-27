@@ -83,10 +83,10 @@ REOPENS = "reopens:"
 VERDICT = "verdict:"
 ANSWER = "answer:"
 CONFIRMS = "confirms:"
-SEALER_VERDICT = "Verdict:"
+INSPECTOR_VERDICT = "Verdict:"
 RUN = "run:"
 
-# The sealer's three verdict words.
+# The inspector's three verdict words.
 SEALED = "sealed"
 WITHHELD = "withheld"
 UNDECIDED = "undecided"
@@ -201,11 +201,11 @@ VERDICT_BLOCK = Kind(
             "it names the audited commit as `<sha> against <base>`, each one word",
         ),
         ORIGINAL: ORIGINAL_SPEC,
-        SEALER_VERDICT: Spec(
+        INSPECTOR_VERDICT: Spec(
             rf"{SEALED}|{WITHHELD} reason: \S.*|{UNDECIDED} question: \S.*",
             ONE,
-            f"the verdict reads `{SEALER_VERDICT} {SEALED}`, `{SEALER_VERDICT} "
-            f"{WITHHELD} reason: <reason>` or `{SEALER_VERDICT} {UNDECIDED} "
+            f"the verdict reads `{INSPECTOR_VERDICT} {SEALED}`, `{INSPECTOR_VERDICT} "
+            f"{WITHHELD} reason: <reason>` or `{INSPECTOR_VERDICT} {UNDECIDED} "
             "question: <question>`, written exactly so",
         ),
     },
@@ -377,5 +377,5 @@ def assemble(pairs, kinds):
 def verdict_word(block):
     """`sealed`, `withheld` or `undecided` for a verdict block, the first
     word of its `Verdict:` value; None for a block of another kind."""
-    said = block.fields.get(SEALER_VERDICT)
+    said = block.fields.get(INSPECTOR_VERDICT)
     return said.value.split(" ", 1)[0] if said else None

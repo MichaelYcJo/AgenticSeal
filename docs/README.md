@@ -17,7 +17,7 @@ one that reads it.
 | File | The question it answers |
 |---|---|
 | `docs/forms/the-round-record.md` | what a review round leaves in the tree: the proofer writes it, the crafter closes its findings, and `chain_check.py` reads it at the pull request |
-| `docs/forms/the-guarantee.md` | what the sealer's verdict holds: the sealer writes it, and the orchestrator and the pull request check read it |
+| `docs/forms/the-guarantee.md` | what the inspector's verdict holds: the inspector writes it, and the orchestrator and the pull request check read it |
 
 ## docs/running/
 

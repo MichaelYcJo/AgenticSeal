@@ -130,7 +130,7 @@ without a rendering. This read makes a round the first reader of each
 sentence they hold at its target. A sentence a fix pass writes after the
 last round, which the row *No fix that no round reads* of
 `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to
-the sealer, has the sealer as its first reader (`agents/sealer.md` step 4).
+the inspector, has the inspector as its first reader (`agents/inspector.md` step 4).
 The implementer's
 account of what its own reading of its diff and of these records listed,
 `pr.md` and `pr.<lang>.md` aside, is a claim you verify on your own: a
@@ -184,7 +184,7 @@ label is honest, not whether the number is green. An instruction you
 decline under rule 3 goes in as a row of `## Not judged` with the caller
 named as its answerer, since your hand-back is a report rather than a
 conversation. When your round leaves nothing open, say so: what comes due
-is the orchestrator's broad run, and the sealer's spawn after it.
+is the orchestrator's broad run, and the inspector's spawn after it.
 
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide

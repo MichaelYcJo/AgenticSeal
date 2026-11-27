@@ -22,12 +22,12 @@ seal 은 마지막 에이전트가 쓰는 보증서입니다. 커밋 하나를 �
 사용자가 브랜치를 돌려 달라고 한 경우가 아니면, 실행은 그 seal 을 기록에 담은
 pull request 에서 끝납니다. 머지는 하지 않습니다. 머지는 사용자가 합니다.
 
-라우팅 질문부터 sealer 의 보증까지, 위에서 말한 일 전체를 **AgenticSeal
-프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른 저장소에서 이 과정을
-가리킬 때도 이 이름을 씁니다. 제품 이름이므로 번역하지 않고, "도장 체인"이나
-"인장 과정"처럼 옮기지 않습니다. seal 은 마지막 에이전트의 보증서 하나만 뜻하고,
-이 문서가 뒤에서 말하는 도장은 그 seal 을 터미널에 그린 그림입니다. 리뷰 체인은
-이 프로세스 안의 리뷰 회차만 가리킵니다.
+라우팅 질문부터 최종 검수자(inspector)의 보증까지, 위에서 말한 일 전체를
+**AgenticSeal 프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른
+저장소에서 이 과정을 가리킬 때도 이 이름을 씁니다. 제품 이름이므로 번역하지
+않고, "도장 체인"이나 "인장 과정"처럼 옮기지 않습니다. seal 은 마지막 에이전트의
+보증서 하나만 뜻하고, 이 문서가 뒤에서 말하는 도장은 그 seal 을 터미널에 그린
+그림입니다. 리뷰 체인은 이 프로세스 안의 리뷰 회차만 가리킵니다.
 
 ```mermaid
 flowchart LR
@@ -38,8 +38,8 @@ flowchart LR
     proofer -- 지적 --> fix[crafter: fix pass]
     fix --> proofer
     proofer -- 회차 종료 --> gate[broad gate: 전체 스위트를 한 번]
-    gate --> sealer[sealer: 보증]
-    sealer --> pr([Pull request])
+    gate --> inspector[검수자: 보증]
+    inspector --> pr([Pull request])
 ```
 
 ## 설치
@@ -168,16 +168,16 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 커밋된 diff 를 읽고 지적을 회차 기록에 적습니다. crafter 는 fix pass, 곧
 지적을 고치는 회차에서 지적마다 답합니다. 회차가 끝나면 세션이 broad gate 를
 한 번 돌립니다. broad gate 는 전체 스위트, lint, 타입 검사를 한꺼번에 돌리는
-실행입니다. 마지막으로 보증을 맡는 sealer 가 모든 참여자의 기록을 이슈와
+실행입니다. 마지막으로 보증을 맡는 검수자가 모든 참여자의 기록을 이슈와
 트리에 견주어 읽고, 그다음 pull request 가 열립니다.
 
-sealer 의 판정이 `sealed` 이면 sealer 가 도장을 쌓아 두고, 세션의 턴이 끝날
+검수자의 판정이 `sealed` 이면 검수자가 도장을 쌓아 두고, 세션의 턴이 끝날
 때 플러그인의 `Stop` 훅이 그 도장을 터미널에 그립니다. 도장에는 커밋,
 브랜치, base, 작업 항목, broad gate 를 돌린 커밋, 리뷰 회차 수가 적힙니다.
 
 ![seal 을 받은 작업 항목이 그리는 도장. 올빼미의 붉은 밀랍 인장 옆에 SEALED 와 tree, base, item, gate, rounds 를 적은 판이 있다](assets/seals/owl.png)
 
-훅이 그리지 못했으면 sealer 의 보고가 `seal stamp --from <path>` 를 알려
+훅이 그리지 못했으면 검수자의 보고가 `seal stamp --from <path>` 를 알려
 주고, 그 명령으로 손으로 그립니다. 도장을 언제 그리고 언제 그리지 않는지는
 `docs/checks/the-stamp.md` 에 있습니다.
 
@@ -193,7 +193,7 @@ sealer 의 판정이 `sealed` 이면 sealer 가 도장을 쌓아 두고, 세션�
 
 local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 기록이
 없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not licence to skip a
-party* 표의 네 행은 sealer 의 1단계(`agents/sealer.md`)와 작업을
+party* 표의 네 행은 검수자의 1단계(`agents/inspector.md`)와 작업을
 이끄는 세션이 따르는 지침만이 지키며, 이것이 local 모드의 한계입니다.
 
 local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저장소에 맞습니다.
@@ -264,7 +264,7 @@ pull request 의 검사로 돕니다.
 | **crafter** (서브에이전트) | `core`, `agent-contract` | 프레임에 맞춰 단계 하나를 만들거나, 리뷰 회차 하나를 놓고 fix pass 를 한 번 돈다 ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
-| **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
+| **inspector** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/inspector.md`](agents/inspector.md)) |
 | 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
@@ -286,7 +286,7 @@ verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴
 기록만 이어지는 커밋에서 broad gate 를 한 번 돌립니다. 에이전트는 이것을
 돌리지 않습니다. 리뷰 도중에 돌린 전체 실행은
 다음 수정이 들어오면 쓸모가 없어지기 때문입니다(`docs/running/the-broad-gate.md`).
-sealer 는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
+검수자는 broad gate 의 기록과 다른 참여자의 기록을 모두 읽고,
 `seal pr-body` 가 쓴 pull request 본문이 `pr.md` 와 기록의 원문 그대로인지
 확인한 뒤 판정을 씁니다. 판정은 `sealed`, 트리와 어긋난 곳을 짚은
 `withheld`, 사용자에게 묻는 질문을 단 `undecided` 가운데 하나입니다. pull
@@ -388,7 +388,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 `SessionStart` 훅이 찍는 것, `PreToolUse` 훅이 호출을 거절하며 내놓는 이유,
 `PostToolUse` 훅이 알려 주는 자리는 세션이 연 파일처럼 그 세션의 컨텍스트에
 들어갈 뿐입니다. 다음 부수 효과는
-밝혀 둡니다. sealer 가 `sealed` 로 읽히는 `guarantee.md` 에 한 번 돌리는
+밝혀 둡니다. 검수자가 `sealed` 로 읽히는 `guarantee.md` 에 한 번 돌리는
 `seal stamp --guarantee` 는 도장에 들어갈 값을
 `<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된

@@ -407,7 +407,7 @@ def test_the_bare_command_is_not_a_locator():
     that script, which is the one thing Q1's general form was chosen to
     prevent."""
     seal = "skills/implement/scripts/seal.py"
-    assert not reachable("The sealer takes the seal after the rounds.", seal)
+    assert not reachable("The inspector takes the seal after the rounds.", seal)
     assert not reachable("Run `seal mode` first.", seal)
     assert reachable("It lives at `skills/implement/scripts/seal.py`.", seal)
 

@@ -18,7 +18,7 @@ TARGET = "lib/fields.py"
 
 fields = load_lib_module("fields.py", "agentic_fields_under_test")
 # The guarantee template, which the unfilled-template case reads and
-# `tests/behaviour/test_the_sealer_guarantees.py` imports from here.
+# `tests/behaviour/test_the_inspector_guarantees.py` imports from here.
 TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-guarantee.md")
 
 FENCE = "`" * 3
@@ -58,7 +58,7 @@ def line_of(text, line, after=0):
 
 class Test_read:
     def test_accepts_stacked_verdict_blocks_in_order(self):
-        """Table F, `verdict`: a block per run of the sealer, the last the
+        """Table F, `verdict`: a block per run of the inspector, the last the
         newest; each field's value, line and named parts come back."""
         text = guarantee(
             verdict("aaa1111", "withheld reason: the gate failed"),
@@ -379,7 +379,7 @@ class Test_read:
         assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
 
     def test_the_verdict_shape_says_the_three_shapes(self):
-        says = fields.VERDICT_BLOCK.keys[fields.SEALER_VERDICT].says
+        says = fields.VERDICT_BLOCK.keys[fields.INSPECTOR_VERDICT].says
         for shape in (
             "`Verdict: sealed`",
             "`Verdict: withheld reason: <reason>`",

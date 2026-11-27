@@ -39,7 +39,7 @@ argument is read relative to the root from whichever directory the command
 was typed in.
 
 The full suite is the orchestrator's, run once after the review rounds
-settle and before the sealer is spawned: `skills/agent-contract/SKILL.md`
+settle and before the inspector is spawned: `skills/agent-contract/SKILL.md`
 forbids it to every agent, which is why naming one module is the ordinary
 use.
 

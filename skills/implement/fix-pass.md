@@ -101,7 +101,7 @@ the builder closes a phase or a fix pass, its range and the work item's
 records are read whole against HEAD* asks for, over the range that starts
 after the commit the round record's `target:` line names, or after the
 commit the `target:` line of the newest `guarantee.md` block names where
-the pass makes the repair a sealer's `withheld` verdict asks for.** The
+the pass makes the repair an inspector's `withheld` verdict asks for.** The
 orchestrator's pass folds a statement HEAD contradicts in `routing.md` or
 a frame file in a commit of its own before it appends the close blocks, as
 `skills/implement/orchestration.md` *Orchestrator: the order inside a

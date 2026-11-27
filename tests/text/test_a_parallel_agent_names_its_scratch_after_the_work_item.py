@@ -3,11 +3,11 @@
 Issue #544. Every agent of one session shares one scratchpad, and four work
 items ran their review chains in parallel from one session in the 0.15.0 run.
 `agents/proofer.md` named the clone's shape (`git clone --no-local` at the
-target SHA) and no directory; `agents/sealer.md` named no capture file;
+target SHA) and no directory; `agents/inspector.md` named no capture file;
 `skills/verify/SKILL.md`'s capture example redirected to `/tmp/run.txt`,
 which every session on the machine shares. Measured three times in that run:
 two wardens cloned to the same `r2clone`, a third's clone had its HEAD moved
-by a foreign checkout for fifty-five seconds, and two sealers wrote
+by a foreign checkout for fifty-five seconds, and two inspectors wrote
 one gate output file over each other.
 
 The class (contract rule 12) is *an instruction that names a scratch
@@ -46,7 +46,7 @@ from conftest import ROOT, flattened, read, section
 # No TARGET: its cases hold the scratch directory's name across the four agent definitions, the agent contract and the skills that name it.
 
 PROOFER = os.path.join(ROOT, "agents", "proofer.md")
-SEALER = os.path.join(ROOT, "agents", "sealer.md")
+INSPECTOR = os.path.join(ROOT, "agents", "inspector.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")
 CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
@@ -134,7 +134,7 @@ def test_rule_17_names_the_scratch_directory_for_the_work_item():
     rule, which every agent receives: the directory's shape, with the leaf
     each definition names, and what an agent does where an earlier spawn
     left its directory standing. No agent removes a scratch directory, so a
-    second sealer or proofer of one work item that cloned into the standing
+    second inspector or proofer of one work item that cloned into the standing
     directory would fail, and the rule gives it the next free leaf."""
     where = flattened(section(read(CONTRACT), RULE_17))
     # The path an agent puts the leaf its definition names in.
@@ -175,7 +175,7 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     the gate's own `outputs kept under seal-gate-<random>/` line is quoted,
     so a capture that was overwritten can still be told apart — which is how
     the 0.15.0 runs were not misread. Two work items run in parallel by one
-    session would otherwise write one log over each other. The sealer keeps
+    session would otherwise write one log over each other. The inspector keeps
     its own scratch: the clone a `seen red` is re-run in."""
     command = flattened(
         section(
@@ -195,9 +195,9 @@ def test_the_gates_capture_file_carries_the_work_item_id():
         "`outputs kept under` line, which is the one name per run the gate "
         "itself makes"
     )
-    sealer = flattened(section(read(SEALER), "## Rules"))
-    # The path the sealer re-runs a `seen red` in.
-    assert "<scratchpad>/<work-item-id>/at-base/" in sealer, (
+    inspector = flattened(section(read(INSPECTOR), "## Rules"))
+    # The path the inspector re-runs a `seen red` in.
+    assert "<scratchpad>/<work-item-id>/at-base/" in inspector, (
         "the clone a `seen red` is re-run in is not named for the work item"
     )
 

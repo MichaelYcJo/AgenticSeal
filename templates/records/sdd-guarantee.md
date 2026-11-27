@@ -14,6 +14,6 @@
 
 ```seal
 target: <the commit audited, `<sha> against <base>`, each one word>
-original: <only where `agents/sealer.md` step 5 owes it, the migration config's `Baseline commit`; otherwise delete this line>
-Verdict: <one of the three shapes `agents/sealer.md` step 5 names>
+original: <only where `agents/inspector.md` step 5 owes it, the migration config's `Baseline commit`; otherwise delete this line>
+Verdict: <one of the three shapes `agents/inspector.md` step 5 names>
 ```

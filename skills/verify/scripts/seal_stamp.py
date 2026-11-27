@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""seal stamp — the sealer's stamp, drawn from a `sealed` guarantee.
+"""seal stamp — the inspector's stamp, drawn from a `sealed` guarantee.
 
-Drawn once per work item from the sealer's verdict. Two things side by side
+Drawn once per work item from the inspector's verdict. Two things side by side
 on the terminal's own background, and nothing else: at the left a wax disc
 with the disc's mark pressed into it, and three columns right of it the
 panel's text — a bold red `SEALED` and a dim rule, then what the records at
@@ -47,7 +47,7 @@ owner's marks) and `sealed_names` for its head. So nothing here reads a
 file at import, and the sprite is read where the disc is drawn (`build`).
 
 **The stamp is drawn where a person sees it, once per work item.** The
-sealer runs `seal stamp --guarantee <path>` once after it
+inspector runs `seal stamp --guarantee <path>` once after it
 writes `Verdict: sealed`, under either root; `queue_for_written_guarantee`
 reads the file, and where it reads `sealed` and no earlier run or commit
 stamped it, writes the stamp's rows to a values file under the git common
@@ -944,7 +944,7 @@ def label(values):
 #
 # The rule, and what holds it to once per work item with its limits, is
 # `docs/checks/the-stamp.md` *The stamp*. `seal stamp --guarantee` calls
-# `queue_for_written_guarantee` (below) once the sealer has written the
+# `queue_for_written_guarantee` (below) once the inspector has written the
 # guarantee, under either root, and `--stop` draws what it queued. The values file's
 # name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
 # `sealed_before` reads HEAD's history, and `refused_here` names a `sealed`
@@ -958,7 +958,7 @@ sys.path.insert(
 )
 CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
 GITCMD = "lib/gitcmd.py"
-# The line `--guarantee` prints, which the sealer's hand-back carries to the
+# The line `--guarantee` prints, which the inspector's hand-back carries to the
 # orchestrator. It names the way to draw the stamp by hand, because the
 # plugin's `Stop` hook draws nothing where it cannot: a
 # `python3` that cannot load this file, or a main session whose working
@@ -1125,7 +1125,7 @@ def sealed_before(chain, top, path, common=None, ident=None):
 #
 # The owner chose a record here over a limit stated in prose (#976). A
 # `sealed` over a commit the work item's branch does not hold draws nothing.
-# The sealer's new audit appends its block below that one, and without a
+# The inspector's new audit appends its block below that one, and without a
 # record of the refusal the earlier block reading `sealed` counts as the
 # stamp, so the repair would draw nothing either. One writer leaves the
 # record, for a block that stands in its own clone and nowhere else:
@@ -1272,7 +1272,7 @@ def queue_for_written_guarantee(path, now=None):
     the clone `path` is in, one where its audited commit is off the work
     item's branch, else none.
 
-    It reads the file from disk once the sealer has written it, before it is
+    It reads the file from disk once the inspector has written it, before it is
     committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
@@ -1499,7 +1499,7 @@ def main(argv=None, console_wants_letters=None):
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
         prog="seal stamp",
-        description="Print the sealer's stamp — what the commit of a sealed "
+        description="Print the inspector's stamp — what the commit of a sealed "
         "guarantee draws.",
     )
     parser.add_argument(
@@ -1516,7 +1516,7 @@ def main(argv=None, console_wants_letters=None):
     entry.add_argument(
         "--guarantee",
         metavar="FILE",
-        help="queue the stamp of the sealed guarantee.md at FILE, as the sealer does",
+        help="queue the stamp of the sealed guarantee.md at FILE, as the inspector does",
     )
     entry.add_argument(
         "--stop",

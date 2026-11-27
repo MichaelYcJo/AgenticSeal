@@ -187,8 +187,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 ## Naming
 
 **The product is AgenticSeal, and bare `seal` names the result inside it**:
-the root `seal/`, the `seal` command line, the sealer, "the seal" for the
-record. The plugin's `name` and the prefix of every agent and skill is
+the root `seal/`, the `seal` command line, and "the seal" for the record. The plugin's `name` and the prefix of every agent and skill is
 `agentic`; the marketplace is `agenticseal`; the commit trailer is
 `Seal-Routing:`. Every identifier is lowercase with no separator, and
 `AgenticSeal` is written only where a person reads the brand.
@@ -198,7 +197,7 @@ record. The plugin's `name` and the prefix of every agent and skill is
 | AgenticSeal | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
 | `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md` and `pr.md` at its top, each record placed by what it is and never by which agent wrote it |
-| framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
+| framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 
 A directory and an agent say what each is to whoever meets it first, so
 neither is named for a metaphor. Every shipped

@@ -92,7 +92,7 @@ LIMIT = 10_000
 SHOWN = 240
 
 # The directory of a work item that holds what passed between the parties,
-# and the sealer's record: neither is read or searched.
+# and the inspector's record: neither is read or searched.
 TRAIL = "trail"
 GUARANTEE = "guarantee.md"
 

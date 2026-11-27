@@ -232,7 +232,7 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 | 나쁨 | 좋음 |
 |---|---|
-| the seal | the sealer's seal · the proofer's round record · the crafter's labels |
+| the seal | the inspector's seal · the proofer's round record · the crafter's labels |
 | 회차 기록 | proofer 가 쓰는 회차 기록 |
 
 판단 기준은 **그 문장에서 주인이 둘 이상일 수 있는가**다. 찾아야 할 모양은 한
@@ -274,7 +274,7 @@ check: tests/skills/test_rules.py tests/skills/test_chain_check.py tests/skills/
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,
-crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
+crafter, proofer, inspector 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
 "you" 나 "the session" 이라고 쓰지 않는다. 그 파일에서 "the session" 은 둘 중
 누구로도 읽힌다. 줄이다가 하는 쪽이나 조건이 빠진 문장은 절약이 아니라 결함이다.
 

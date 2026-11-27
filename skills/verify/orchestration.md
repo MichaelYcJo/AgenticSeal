@@ -1,13 +1,13 @@
 # verify, the orchestrator's half
 
 This file is the orchestrator's: the session that spawns the crafter, the
-proofer and the sealer and takes the one broad run between the last of them.
+proofer and the inspector and takes the one broad run between the last of them.
 It holds the two acts of the verify protocol that no agent takes: the broad
 gate, and the measurement of each run posted to the flow log.
 
 `skills/verify/SKILL.md` is the other half: the four conditions every claim
 meets, the hand-back's labels, the scope rule and the counterfeits. The
-orchestrator reads both. The crafter and the sealer open that one and never
+orchestrator reads both. The crafter and the inspector open that one and never
 this one, because contract rule 2 gives the broad gate to the orchestrator and
 contract rule 6 withholds posting from every agent.
 
@@ -32,9 +32,9 @@ has to guess, and one who reaches for the record does not.
 `seal gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and
 `skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
-preflight to the open pull request* owns when, before the sealer is
+preflight to the open pull request* owns when, before the inspector is
 spawned. The run judges no failure and fixes none; the
-sealer reads its record, and what it guarantees after it
+inspector reads its record, and what it guarantees after it
 is `docs/forms/the-guarantee.md` *The guarantee*. `seal gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
@@ -145,7 +145,7 @@ repository has no durable log, and a cross-version reading stays in the
 record that would have cited it.
 
 **The run ends when the work item's last segment has handed back**, the
-sealer's where one runs. The orchestrator first reads the run, and the read
+inspector's where one runs. The orchestrator first reads the run, and the read
 posts nothing:
 
 ```

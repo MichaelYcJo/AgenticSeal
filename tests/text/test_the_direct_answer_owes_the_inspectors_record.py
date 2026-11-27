@@ -1,0 +1,84 @@
+"""`straight to the PR` owes the broad run's `trail/gate.md`, and every document
+that describes the answer says so (#241).
+
+`chain_check.py#broad_gate` requires that file at a ready pull request: the
+one broad run, at a SHA, against the base, which the orchestrator takes
+before it spawns the inspector (#969). Seven places went on saying `straight to the PR` requires nothing — the
+specification's declaration table, the checker's own inventory, the
+orchestration skill's four-combinations table and its closing paragraph, the
+commit gate's first option, that option's own test, and the routing template's
+comment. A session that had written a change and checked it itself read any
+of them and concluded the vocabulary had no honest answer for it, and asked
+for a third one whose record it would write about itself.
+
+The answer is two answers and not three. What each carrier holds is the
+record it owes, by its path; whether a sentence there says it owes nothing
+is the proofer's to read.
+
+The commit gate's option and its test left with the gate (#1027).
+"""
+
+import pytest
+from conftest import flat
+from test_waiver_decided_at_start import in_force
+
+# No TARGET: its cases hold what straight to the PR owes across docs/running/the-review-and-parity-arms.md, skills/implement/orchestration.md and the release checklist.
+
+# The carrier, and the path of the record `straight to the PR` owes at a
+# ready pull request, which the orchestrator writes and the inspector reads.
+DIRECT_REQUIRES = {
+    ("docs", "running", "the-review-and-parity-arms.md"): "`trail/gate.md`",
+}
+# The orchestration skill's four-combinations table and its closing paragraph
+# left for the policy root in #1148, which holds both; the skill keeps one
+# sentence on `straight to the PR` and cites the section that holds the rest.
+# The file and function names say "the direct answer", the name that answer
+# had until #1459, because CI's durations union keys the cases by name.
+WAIVER_SECTION = (
+    "`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*"
+)
+
+
+@pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
+def test_each_carrier_says_what_the_direct_answer_requires(parts):
+    """A8. A reader opening any of these places finds the record `straight
+    to the PR` requires at a ready pull request."""
+    # The path of the record the answer owes, which the orchestrator writes
+    # and the inspector reads.
+    assert DIRECT_REQUIRES[parts] in flat(*parts), (
+        f"{'/'.join(parts)} does not name the record `straight to the PR` owes"
+    )
+
+
+def test_the_routing_section_cites_what_checks_the_direct_answer():
+    """What checks `straight to the PR` is the inspector's record at the pull
+    request, and the orchestration skill's sentence on that answer cites the
+    policy section that says so."""
+    text = flat("skills", "implement", "orchestration.md")
+    # The section an orchestrator resolves to learn what checks
+    # `straight to the PR`.
+    assert WAIVER_SECTION in text, (
+        "the skill does not cite the section that says what checks `straight to the PR`"
+    )
+
+
+def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
+    """Item 9: a release's commit that belongs to no work item, a settle's
+    among them, declares its class — the routing question's `direct` answer
+    (`no work item` until #1459), whose recorded form is the
+    `Seal-Routing: no work item` trailer on each commit — rather than
+    stepping around a gate. The step is read as the policy in force: the
+    section as the root holds it with each pending `## Rule changes` item
+    applied, because #1459's rule change renames the answer there at the
+    settle, and the case reads `direct` before the settle and after it."""
+    text = in_force(
+        "docs/releasing/release-checklist.md",
+        "Settle what earlier releases left behind",
+    )
+    # The routing answer `direct`, the code span, which a session gives the
+    # routing question for such a commit.
+    assert "`direct` answer" in text, (
+        "`docs/releasing/release-checklist.md` *Settle what earlier releases "
+        "left behind*, as in force, does not name the waiver as the routing "
+        "question's `direct` answer"
+    )

@@ -145,7 +145,7 @@ that fix adds the item to both. Each item walked stands in the round
 record, as a finding or as a line of its `## Confirmations` naming the item
 and both coordinates. The next round opens the list and those lines
 (`skills/code-review/SKILL.md` *Earlier rounds*), and re-derives the verdict,
-not the enumeration. Under `straight to the PR` the sealer walks the
+not the enumeration. Under `straight to the PR` the inspector walks the
 original's surface the same way, and its record stays the `original:` line
 *Recording the comparison* gives it.
 check: tests/text/test_review_axes.py
@@ -161,12 +161,12 @@ and `seal/`, the record is an `original:` line naming the migration config's
 | The declaration says | Who writes the `original:` line, and where |
 |---|---|
 | through the review chain | the proofer, in the round block of each round record |
-| straight to the PR | the sealer, in the verdict block each of its runs appends to `guarantee.md` |
+| straight to the PR | the inspector, in the verdict block each of its runs appends to `guarantee.md` |
 
 The pull-request check reads that line (`docs/forms/the-round-record.md` *The
 round record*). A proofer that could not resolve the original writes no line
-and raises an `unread` finding, and a sealer that could not compare writes a
-`withheld` verdict naming it (`agents/sealer.md`). A line for work nobody
+and raises an `unread` finding, and an inspector that could not compare writes a
+`withheld` verdict naming it (`agents/inspector.md`). A line for work nobody
 compared turns
 *nobody checked* into *someone checked and it was fine*.
 check: tests/text/test_review_axes.py

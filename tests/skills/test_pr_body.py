@@ -407,7 +407,7 @@ def sealed_item(repo, row=ROW, verdict=SEALED, base="feature/x"):
     `config.json` holding the two language keys and ROW, committed; then,
     where VERDICT is given, a `guarantee.md` whose one block names that
     commit against BASE with VERDICT, committed after it, as the
-    orchestrator commits the sealer's verdict."""
+    orchestrator commits the inspector's verdict."""
     home = mark_root(repo / "seal")
     write(home, "config.json", config_json(*LANGUAGES, *(row or [])))
     item = home / "threads" / NAME
@@ -942,7 +942,7 @@ class Test_seal_mark:
     ):
         """S2. No guarantee, a newest block reading `withheld` or
         `undecided`, and a file `lib/fields.py` refuses a line of,
-        after a sealed block too: no mark, and no line, since the sealer and
+        after a sealed block too: no mark, and no line, since the inspector and
         the pull request's check name those. The last seen red with the
         refusal's read alone removed, where the mark stood."""
         item = sealed_item(repo, verdict=verdict)
@@ -1480,7 +1480,7 @@ class Test_main:
         parse, and a key written twice, reach the command as a refusal at
         `config.json`, in `lib/config.py`'s sentence. The file is named once,
         by its path under the `seal/` root and not by the machine's, since
-        the sealer copies the line into a committed `guarantee.md`. Seen red
+        the inspector copies the line into a committed `guarantee.md`. Seen red
         against `pr_body.py` as the merged base left it, where the command
         exited 0."""
         rows = [*LANGUAGES, ("Record language", "English")]
@@ -1722,7 +1722,7 @@ class Test_main:
         assert capsys.readouterr().out == said
 
     def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
-        """The sealer copies the first `refused:` line into a committed
+        """The inspector copies the first `refused:` line into a committed
         `guarantee.md`, so the line names the body file by its name and a
         record by its path under the `seal/` root, whatever absolute paths
         the command was given."""

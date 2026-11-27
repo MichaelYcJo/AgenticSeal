@@ -1,13 +1,13 @@
 # The pull request check
 
 What `skills/code-review/scripts/chain_check.py` reads at a pull request, for
-a person who changes it; the sealer cites its code.
+a person who changes it; the inspector cites its code.
 
 ## What the check reads at the pull request
 
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
 section of each `frame/design.md` it parses, the records, the broad gate's
-file, the sealer's guarantee, the pull request's body where the run's event
+file, the inspector's guarantee, the pull request's body where the run's event
 payload holds it, the `Seal-Routing` trailers of the pull request's own
 commits and, where `seal/parity.json` is declared, the
 migration config's `Baseline commit`, and, against a design's
@@ -43,14 +43,14 @@ outside every fence that begins with `<!--` is refused at its line, because
 the check reads a comment as text. Each refusal names the record, the line and the
 finding's heading. No emoji is read, and neither severity nor answer
 decides anything. It errs two ways where the
-shape holds and the fact does not: a `fixed` commit that touches a named path and fixes nothing passes, and who reads the fix is the verifying round's proofer, whose `confirms:` line the check then requires, or the sealer where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the fix to it; and a fence
+shape holds and the fact does not: a `fixed` commit that touches a named path and fixes nothing passes, and who reads the fix is the verifying round's proofer, whose `confirms:` line the check then requires, or the inspector where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the fix to it; and a fence
 closed on the wrong line hides the lines between it and its false closer
 without being unclosed, which the orchestrator's reading of each record
 against the template and the next round's reading of the earlier records
 are there to catch.
 check: round-record-read-by-label
 
-**The last record is at HEAD, or only the work item's own records follow it, and none of its findings is `rejected`, nor `fixed` by a commit that touched a path beyond the work item's records, nor `fixed` where the finding's own `location:` names no path in them.** A commit after the last record's `target:` commit that touches a file outside `seal/threads/<id>/` is a fix nobody reviewed, and the refusal names it and says a verifying round is owed. So is a `rejected` finding of the last record, a `fixed <commit>` whose commit touched any path outside `seal/threads/<id>/`, and a `fixed` finding whose own block's `location:` names no path under `seal/threads/<id>/`, whatever its commit touched and whatever its close block's `location:` names, since no round after it read the fix or the rejection, and a change to the records does not answer, unread by a round, a finding the round placed wholly outside them. A path outside `seal/threads/<id>/` that the finding names beside a record owes no round: the sealer reads what the finding asked of that path (`agents/sealer.md` step 4). In this repository's round records up to 2026-11-27, 19 findings that named such a path were fixed by a commit that touched the records alone, and no round after one found a change that path was owed and did not get (#1632). A `fixed <commit>` finding passes where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives its fix to the sealer, which reads every record at HEAD (`agents/sealer.md` step 2). A last record whose findings all read `deferred <home>` or such a `fixed`, or that holds none, passes.
+**The last record is at HEAD, or only the work item's own records follow it, and none of its findings is `rejected`, nor `fixed` by a commit that touched a path beyond the work item's records, nor `fixed` where the finding's own `location:` names no path in them.** A commit after the last record's `target:` commit that touches a file outside `seal/threads/<id>/` is a fix nobody reviewed, and the refusal names it and says a verifying round is owed. So is a `rejected` finding of the last record, a `fixed <commit>` whose commit touched any path outside `seal/threads/<id>/`, and a `fixed` finding whose own block's `location:` names no path under `seal/threads/<id>/`, whatever its commit touched and whatever its close block's `location:` names, since no round after it read the fix or the rejection, and a change to the records does not answer, unread by a round, a finding the round placed wholly outside them. A path outside `seal/threads/<id>/` that the finding names beside a record owes no round: the inspector reads what the finding asked of that path (`agents/inspector.md` step 4). In this repository's round records up to 2026-11-27, 19 findings that named such a path were fixed by a commit that touched the records alone, and no round after one found a change that path was owed and did not get (#1632). A `fixed <commit>` finding passes where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives its fix to the inspector, which reads every record at HEAD (`agents/inspector.md` step 2). A last record whose findings all read `deferred <home>` or such a `fixed`, or that holds none, passes.
 check: last-record-at-head
 
 **The broad run has one home, `trail/gate.md`, on either routing answer.**
@@ -62,7 +62,7 @@ records of the work items this pull request's own commits declare or change
 and no other, so a record a merged pull request left behind is never judged
 at a pull request again, whatever its shape. One reader outside the check still opens merged records: the release
 workflow's `seal` job reads every record of a release with the
-`chain_check` of the tree it runs from. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `guarantee.md` and `trail/gate.md` take a block below their old text when the sealer and `seal gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
+`chain_check` of the tree it runs from. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `guarantee.md` and `trail/gate.md` take a block below their old text when the inspector and `seal gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
 it, and the lack is no finding for a later round.
 check: old-table-shape-refused
 
@@ -116,13 +116,13 @@ check: parity-at-the-pull-request
 
 **Where `seal/parity.json` is declared and the change reaches outside
 `docs/` and `seal/`, the `guarantee.md` of a work item declaring
-`straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The sealer writes it after comparing the audited
+`straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The inspector writes it after comparing the audited
 commit with the original through `legacy-parity`, and the check reads it by
 the rule a round record's line is read by: a ready pull request fails while
 the guarantee holds no such line, or one whose commit and the
 `Baseline commit` key's SHA are not one a prefix of the other. What the
 check cannot read is whether the comparison was a good one, which is the
-sealer's.
+inspector's.
 check: parity-in-the-guarantee
 
 **On every pull request, the check reads the `Seal-Routing` trailer of
@@ -183,13 +183,13 @@ the check compares opens with the work item's `pr.<lang>.md` and then
 `pr.md`, as `seal pr-body` composes it, and where either key is absent
 the check refuses on `seal/config.json`, as `seal pr-body` does. The
 check reads the body from the file `GITHUB_EVENT_PATH` names, the file it reads the draft state from, and compares it through
-the function `seal pr-body --check` compares with, so the sealer and the
+the function `seal pr-body --check` compares with, so the inspector and the
 pull request read the body by one code path. Each differing line is
 refused on the work item's directory at line 0, since the body is no
 file of the checkout, and the refusal names the body's line and the
 record's line or the fixed line the composition gives there; a cause
 placed at a record, such as a missing `pr.md`, is refused at that
-record's path and line. A body written before the sealer's verdict
+record's path and line. A body written before the inspector's verdict
 differs on the mark's line alone, and the refusal names that line. The
 mark's address carries no version, so the installed plugin and the copy
 the check runs compose one line whatever release each is. Where the
@@ -205,6 +205,6 @@ payload is not the body GitHub shows: a re-run of an old run replays the
 body the run began with, and an `edited` event on a merged pull request
 runs the check against a tree the branch's commits are not in, where the
 red gates nothing. In local mode nothing is declared, and the body is
-held by the sealer's `seal pr-body --check` and by the orchestrator's run
+held by the inspector's `seal pr-body --check` and by the orchestrator's run
 after the seal.
 check: body-is-what-pr-body-composes

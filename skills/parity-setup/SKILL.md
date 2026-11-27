@@ -67,7 +67,7 @@ layout that predates the question, or an original that changes.
    ready pull request that changes anything outside the document roots fails
    its check until the comparison with the original is recorded as an
    `original:` line, in each round record under `through the review chain`
-   and in the sealer's `guarantee.md` under `straight to the PR`
+   and in the inspector's `guarantee.md` under `straight to the PR`
    (`skills/legacy-parity/SKILL.md` *Recording the comparison*). Under
    shared, records only, no workflow reads a round record, but `seal gate`
    runs the same check: say that the `original:` line is still written, that

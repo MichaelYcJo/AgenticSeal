@@ -1301,7 +1301,7 @@ Item = collections.namedtuple("Item", "repo common target base")
 
 
 def verdict_block(target, base, verdict="sealed"):
-    """One verdict block, as the sealer appends it."""
+    """One verdict block, as the inspector appends it."""
     return f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
 
 
@@ -1484,7 +1484,7 @@ def queue_written(item):
 def uncommitted(item):
     """The shared repository with its closing records' commit undone and the
     records left on disk, the work item's `routing.md` naming `feat/x` beside
-    them: the moment the sealer has written the guarantee and runs
+    them: the moment the inspector has written the guarantee and runs
     `seal stamp --guarantee`, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
     write(item.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
@@ -1559,7 +1559,7 @@ class Test__newest_run:
 class Test_queue_for_written_guarantee:
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write(self, shared):
-        """#1027 S13: the sealer's guarantee under the shared root queues the
+        """#1027 S13: the inspector's guarantee under the shared root queues the
         work item's one values file, as local mode's does, in the clone's one
         values directory (#1376). A second run over the same verdict queues
         nothing, before the commit that carries it and after."""
@@ -2103,7 +2103,7 @@ class Test_drawn_at_stop:
     @pytest.mark.parametrize(
         "payload",
         [
-            {"agent_id": "a-1", "agent_type": "agentic:sealer"},
+            {"agent_id": "a-1", "agent_type": "agentic:inspector"},
             {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
             {"hook_event_name": "SubagentStop"},
         ],
@@ -2301,7 +2301,7 @@ class Test_main:
     def test_guarantee_queues_the_stamp_and_prints_the_line_naming_it(
         self, request, root, tmp_path, monkeypatch, capsys
     ):
-        """#1376: the sealer's one run after it writes `Verdict: sealed` queues
+        """#1376: the inspector's one run after it writes `Verdict: sealed` queues
         the work item's values file and prints the line its hand-back
         carries. The clone is the path's, never the shell's working
         directory, which is outside it here; a second run prints nothing.
@@ -2330,7 +2330,7 @@ class Test_main:
         assert queued(item.common) == [written]
 
     def test_guarantee_refuses_a_file_it_cannot_read_naming_it(self, local, capsys):
-        """The hook was silent on every failure; the sealer runs the command
+        """The hook was silent on every failure; the inspector runs the command
         and reads what it says, so a guarantee that cannot be read is named
         with exit 2."""
         guarantee = item_dir(local) / "guarantee.md"

@@ -5,7 +5,7 @@ Contract rule 2 and `docs/running/the-broad-gate.md` say the full suite,
 the repository-wide lint and the typecheck run once, after the review rounds
 settle, and contract rule 2 forbids that run to every agent. This command is
 the run, as a thing the orchestrator types once, with nothing else running,
-before it spawns the sealer. Each check's output goes to a file, so the
+before it spawns the inspector. Each check's output goes to a file, so the
 hundreds of lines a suite prints stay out of the orchestrator's context, the
 one context a release cannot replace.
 
@@ -26,7 +26,7 @@ What it does, in order, from the repository root:
   2. `chain_check.py --baseline <base> --sealing`   judged as at a ready
      pull request whatever the pull request's state, which the check does
      not read under the flag, with `trail/gate.md`, which this run is about
-     to write, and `guarantee.md`, which the sealer writes after it, printed
+     to write, and `guarantee.md`, which the inspector writes after it, printed
      rather than judged
   3. `seal.py mode --check`            the `Mode` key and the folder agree
 
@@ -61,7 +61,7 @@ any run. It decides nothing about any of the words: they go in the report
 and the reader acts.
 
 **It judges nothing and draws nothing.** The verdict word `sealed`
-is the sealer's, in `guarantee.md`, and the stamp is drawn from that
+is the inspector's, in `guarantee.md`, and the stamp is drawn from that
 verdict at its commit, never from this run. A run that passes prints one
 form on every stream: `BROAD GATE PASSED   <branch> @ <tree> against <ref>
 @ <base commit>`, the branch left out on a detached HEAD and the ref left
@@ -91,7 +91,7 @@ run's one record; `chain_check.py` reads its last block at the pull
 request.
 
 **`--preflight` runs arms 2 and 3 alone, and writes nothing.** It is the
-orchestrator's step before it spawns the sealer: the same base resolved the
+orchestrator's step before it spawns the inspector: the same base resolved the
 same way, every refusal of the `Broad gate` key applied, and then every arm
 above except the key's command, in the same order, with the same arguments,
 each output kept the same way. The key is read and its command never run, so
@@ -1860,7 +1860,7 @@ NO_RECORD_HERE = (
 # --- the command -------------------------------------------------------------
 #
 # The first line of a run's stdout. The verdict word `sealed` is the
-# sealer's, in `guarantee.md`, and this run comes before the sealer is spawned
+# inspector's, in `guarantee.md`, and this run comes before the inspector is spawned
 # and judges nothing, so its heads say what it did: the broad gate passed or
 # failed. `{names}` is `seal_stamp.sealed_names`'s `<branch> @ <tree> against
 # <ref> @ <base commit>`. Beside the preflight's heads below, so the two
@@ -1910,7 +1910,7 @@ def report_lines(rows, ascii_marks=False):
 
 # --- the preflight ------------------------------------------------------------
 #
-# The record arms, typed by the orchestrator before it spawns the sealer.
+# The record arms, typed by the orchestrator before it spawns the inspector.
 # Its heads say `PREFLIGHT`, not `BROAD GATE`: a preflight runs no command,
 # and a reader who took it for the broad run would take a suite nobody ran for
 # a suite that passed.
@@ -2112,7 +2112,7 @@ def gate(args, ascii_marks=False):
     # One form on every stream: the head, the panel's rows as text,
     # and — the file being in the working tree while CI reads HEAD —
     # the line saying so, only where git still sees it uncommitted. Nothing
-    # is drawn and no values file is written: the stamp is the sealer's,
+    # is drawn and no values file is written: the stamp is the inspector's,
     # queued at the write of a `guarantee.md` reading `sealed`.
     names = stamp_module().sealed_names(tree, base.commit, branch, base.ref)
     lines = [GATE_PASSED.format(names=names)]
@@ -2191,7 +2191,7 @@ def main(argv=None, console_wants_ascii=False):
     parser.add_argument(
         "--preflight",
         action="store_true",
-        help="the record arms, before the sealer is spawned: the key is read "
+        help="the record arms, before the inspector is spawned: the key is read "
         "and its command not run, and nothing is written (#638)",
     )
     # The redirect is decided from `parse_known_args`, before this copy's

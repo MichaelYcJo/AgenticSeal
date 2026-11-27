@@ -20,10 +20,10 @@ branch back, the run ends at a pull request whose records carry a seal: the
 last agent's written guarantee that the work agrees with the issue and the
 tree at one commit. It never merges. Merging is yours.
 
-Everything above, from the routing question to the sealer's guarantee, is
-**the AgenticSeal process**, and the diagram below draws it. Point at it
-by that name from another repository. It is a product name and is not
-translated. *Seal* keeps one meaning, the last agent's guarantee, and the
+Everything above, from the routing question to the final inspector's
+guarantee, is **the AgenticSeal process**, and the diagram below draws it.
+Point at it by that name from another repository. It is a product name and
+is not translated. *Seal* keeps one meaning, the last agent's guarantee, and the
 stamp further down is a drawing of it. *The review chain* names only the
 review rounds inside the process.
 
@@ -36,8 +36,8 @@ flowchart LR
     proofer -- findings --> fix[crafter: fix pass]
     fix --> proofer
     proofer -- rounds settle --> gate[broad gate: full suite, once]
-    gate --> sealer[sealer: guarantee]
-    sealer --> pr([Pull request])
+    gate --> inspector[inspector: guarantee]
+    inspector --> pr([Pull request])
 ```
 
 ## Install
@@ -164,17 +164,17 @@ commits it, and hands back what it ran and what it did not. The proofer
 reviews the committed diff and writes its findings into a round record, and
 the crafter answers each finding in a fix pass. Once the rounds settle, the
 session runs the broad gate, the full suite, lint and typecheck, once. The
-sealer then reads every party's account against the issue and the tree, and
+inspector then reads every party's account against the issue and the tree, and
 the pull request opens.
 
-When the sealer's verdict is `sealed`, the sealer queues the stamp, and the
+When the inspector's verdict is `sealed`, the inspector queues the stamp, and the
 plugin's `Stop` hook draws it in your terminal at the end of the session's
 turn. It names the commit, the branch, the base, the work
 item, the broad gate's commit and the number of review rounds:
 
 ![The stamp a sealed work item draws: the owl's red wax seal beside a panel reading SEALED, with the tree, base, item, gate and rounds](assets/seals/owl.png)
 
-Where the hook could not draw it, the sealer's hand-back names
+Where the hook could not draw it, the inspector's hand-back names
 `seal stamp --from <path>`, which draws it by hand.
 `docs/checks/the-stamp.md` says when the stamp is drawn and when it is not.
 
@@ -189,7 +189,7 @@ The first-setup question on where the records live has three answers:
 | local | `$(git rev-parse --git-common-dir)/seal/`, under the git directory | CI, and every other machine and re-clone, which starts empty |
 
 In local mode no pull-request check reads the records, so
-`agents/sealer.md` step 1 and the orchestrator's guidance alone hold the
+`agents/inspector.md` step 1 and the orchestrator's guidance alone hold the
 four rows of `skills/core/SKILL.md` *Judgment is not licence to skip a
 party*, and that is a limit.
 
@@ -261,7 +261,7 @@ cost of inference.
 | **crafter** (subagent) | `core`, `agent-contract` | Builds one phase against the frame, or runs one fix pass over a review round ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
-| **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
+| **inspector** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/inspector.md`](agents/inspector.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
@@ -283,7 +283,7 @@ After the rounds, the session runs the broad gate once: the full suite, lint
 and typecheck, at the pull request's head commit or at one that only the work
 item's records follow. No agent runs it,
 because a full run taken mid-review is spent by the next fix
-(`docs/running/the-broad-gate.md`). The sealer reads the gate's record and
+(`docs/running/the-broad-gate.md`). The inspector reads the gate's record and
 every other party's, checks that the pull request body `seal pr-body` wrote
 is `pr.md` and the records' own text, and writes `sealed`, `withheld` with
 what the tree contradicts, or `undecided` with a question for you. The pull
@@ -390,7 +390,7 @@ No hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints, the reason the `PreToolUse` hook refuses a call
 with, and the places the `PostToolUse` hook names, go into the session's
 own context, as a file the session opens does. These side effects are
-worth stating outright: the sealer's `seal stamp --guarantee`, run once on
+worth stating outright: the inspector's `seal stamp --guarantee`, run once on
 a `guarantee.md` reading `sealed`, writes the stamp's values under
 `<git-common-dir>/agentic-stamp/`, which the stamp's hook renames once
 drawn and nothing prunes, and a `sealed` refused because its audited commit

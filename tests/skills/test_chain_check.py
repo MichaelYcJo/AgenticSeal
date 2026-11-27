@@ -234,7 +234,7 @@ def gate_file(*runs):
 
 
 def verdict_block(sha, verdict="sealed", original=None):
-    """One verdict block of a `guarantee.md`, as the sealer appends it."""
+    """One verdict block of a `guarantee.md`, as the inspector appends it."""
     lines = [f"target: {sha} against main"]
     if original is not None:
         lines.append(f"original: {original}")
@@ -408,7 +408,7 @@ def branch(tmp_path, _branch_template):
 
 def seal(d):
     """The closing records naming HEAD, committed: what a branch carries
-    once the sealer has audited what is on it."""
+    once the inspector has audited what is on it."""
     head = git(d, "rev-parse", "HEAD")
     write(d, f"{ITEM}/trail/gate.md", gate_file(head))
     write(d, f"{ITEM}/guarantee.md", guarantee_file(head))
@@ -2653,7 +2653,7 @@ class Test_originals_of:
         self, _item_template, ready, capsys, monkeypatch
     ):
         """S12: under `straight to the PR` no round records a comparison, so
-        in a migration repository the sealer's `guarantee.md` carries the
+        in a migration repository the inspector's `guarantee.md` carries the
         `original:` line, and a ready pull request changing code fails
         without it, names a guarantee naming another commit, and passes with
         the baseline. `--sealing` reads the missing line as a notice, as it
@@ -2667,7 +2667,7 @@ class Test_originals_of:
         for words in (
             f"no `original:` line in the newest verdict block: `{PARITY}` "
             "declares a migration, this work item answers `straight to the PR`",
-            f"the sealer's guarantee carries `original: {BASELINE}`",
+            f"the inspector's guarantee carries `original: {BASELINE}`",
             "once it compared the audited commit with the original through "
             "`legacy-parity`",
         ):
@@ -2844,7 +2844,7 @@ class Test_parity_readers:
             chain.parity_readers()
 
 
-# --- the sealer's guarantee (#969, #1000) ------------------------------------------
+# --- the inspector's guarantee (#969, #1000) ------------------------------------------
 
 GUARANTEE_TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 
@@ -3003,7 +3003,7 @@ class Test_guarantee:
         assert chain.guarantee(str(root), ITEM, "main") == []
 
     def test_accepts_the_newest_of_two_runs(self, _item_template, monkeypatch):
-        """#1198's scenario *Two sealer runs*: the sealer appends a verdict
+        """#1198's scenario *Two inspector runs*: the inspector appends a verdict
         block per run, so a `withheld` at an older commit above a `sealed`
         at HEAD passes, and the same blocks the other way round read the
         newest as `withheld`. Seen red against the reader that read the
@@ -3022,7 +3022,7 @@ class Test_guarantee:
         the target and no guarantee at all are handed over (`reading`)."""
         root, _sha = item
         rel = f"{ITEM}/guarantee.md"
-        write(root, f"{ITEM}/gaps.md", "# an edit the sealer never read\n")
+        write(root, f"{ITEM}/gaps.md", "# an edit the inspector never read\n")
         later = commit(root, "a record after the guarantee")
         [(path, _line, why)] = chain.guarantee(str(root), ITEM, "main")
         assert path == rel and later[:8] in why
@@ -3047,7 +3047,7 @@ class Test_guarantee:
         """#1198's scenario *A record from before the change*, for the
         guarantee, and *Scope* item 9: a `Target SHA` row and a `Verdict:`
         line hold no verdict block, and the one refusal names the template
-        and says the sealer appends a block. Seen red against the reader
+        and says the inspector appends a block. Seen red against the reader
         before #1198, which passed the record."""
         root, sha = _item_template
         rel = f"{ITEM}/guarantee.md"
@@ -3173,7 +3173,7 @@ class Test_guarantee:
         rel = f"{ITEM}/guarantee.md"
         verdict = "withheld reason: the body claims a README change"
         write(root, rel, guarantee(sha, verdict))
-        commit(root, f"the sealer says {verdict}")
+        commit(root, f"the inspector says {verdict}")
         answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 1, out
@@ -3249,7 +3249,7 @@ class Test_broad_gate:
     def test_lets_the_records_follow_the_run_and_refuses_any_other_path(self, item):
         """#1596: a commit after the newest run that changes only the work
         item's records owes no broad run, while the guarantee, which only
-        the closing records may follow, asks for the sealer again; a later
+        the closing records may follow, asks for the inspector again; a later
         commit of a path outside the records is refused, naming it."""
         root, _sha = item
         write(root, f"{ITEM}/pr.md", "Closes #1\n")
@@ -3265,7 +3265,7 @@ class Test_broad_gate:
                     "the guarantee",
                     "the closing records",
                 )
-                + "; the sealer runs again",
+                + "; the inspector runs again",
             )
         ]
         write(root, "f.txt", "three\n")
@@ -3491,7 +3491,7 @@ class Test_body:
     def test_accepts_the_body_at_a_merge_past_a_later_base_commit(
         self, bodied, tmp_path, monkeypatch, capsys
     ):
-        """S2 at the checkout CI makes (round-1#1). The sealer writes the
+        """S2 at the checkout CI makes (round-1#1). The inspector writes the
         guarantee's base as a SHA, and CI checks out the pull request's
         merge commit, which reaches a commit another pull request landed on
         the base after the seal. The mark is read against the base the check
@@ -4537,7 +4537,7 @@ class Test_main:
     ):
         """S4 of #1148: a `fixed <commit>` of the last record located in the
         work item's own records alone, whose commit touched them alone, owes
-        no verifying round; the sealer, which reads every record at HEAD, is
+        no verifying round; the inspector, which reads every record at HEAD, is
         its reader."""
         root, code_sha = branch
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
@@ -4554,7 +4554,7 @@ class Test_main:
         in the work item's own records alone and `fixed` by a commit that
         touched them alone, owes no verifying round either: the
         `regression:` line changes nothing of what the arm gives the
-        sealer."""
+        inspector."""
         root, code_sha = branch
         write(root, f"{ITEM}/frame/plan.md", "# plan\n\nthe row, corrected\n")
         fix = commit(root, "a regression's fix to the records alone")
@@ -4595,8 +4595,8 @@ class Test_main:
         path outside the records beside the work item's `gaps.md`, `fixed` by
         a commit that touched `gaps.md` alone, owes no verifying round. Its
         own block names a place in the records, so the core's row gives the
-        fix to the sealer, which reads what the finding asked of the path
-        outside them (`agents/sealer.md` step 4)."""
+        fix to the inspector, which reads what the finding asked of the path
+        outside them (`agents/inspector.md` step 4)."""
         root, code_sha = branch
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
         fix = commit(root, "the record half alone")
@@ -4613,7 +4613,7 @@ class Test_main:
         alone owes the round where its close block's `location:` names the
         work item's `gaps.md` and its `fixed` commit touched `gaps.md` alone.
         The round placed the finding wholly outside the records, and the
-        close block the fix pass wrote does not make the sealer its reader.
+        close block the fix pass wrote does not make the inspector its reader.
         It is refused at the close's `verdict:` line, the finding's line."""
         root, code_sha = branch
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
@@ -4840,11 +4840,11 @@ class Test_main:
         assert code == 0 and rel in out
 
     @pytest.mark.rule("two-review-answers")
-    def test_refuses_a_straight_to_the_pr_item_without_the_sealers_two_files(
+    def test_refuses_a_straight_to_the_pr_item_without_the_inspectors_two_files(
         self, _branch_template, ready, capsys, monkeypatch
     ):
         """`main` reading a declaration straight to the pull request judges
-        the sealer's two files and no round record: with the two files at
+        the inspector's two files and no round record: with the two files at
         HEAD it passes, and with neither it fails naming both."""
         root, _code = _branch_template
         direct = ROUTING.format(review="straight to the PR", planning="the session")

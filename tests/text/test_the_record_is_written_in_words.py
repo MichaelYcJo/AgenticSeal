@@ -32,7 +32,7 @@ EMOJI = re.compile("[\U0001f000-\U0001faff☀-➿⬀-⯿⌀-⏿️]")
 
 # A proof block's head line, `<mark> <skill> applied`, and a seal line's
 # `sealed @ <sha>`. The hand-back's labels carry the claims now, and the
-# sealer's `guarantee.md` is the one seal.
+# inspector's `guarantee.md` is the one seal.
 PROOF_BLOCK = re.compile(
     r"^[^\w\n]*[a-z][\w-]* applied[ \t]*$|\bsealed @", re.MULTILINE
 )
@@ -64,7 +64,7 @@ def test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block():
     # `docs/forms/the-round-record.md` *A round is one file the proofer
     # writes.*, the *Never* of `agents/crafter.md`, `agents/proofer.md` and
     # `agents/tracer.md`, and `skills/verify/SKILL.md` *The hand-back's
-    # labels carry the claims, and the one seal is the sealer's*: a mark, or
+    # labels carry the claims, and the one seal is the inspector's*: a mark, or
     # a proof block's `applied` or `sealed @` line, which an agent reading
     # this file would copy into a record or a hand-back.
     assert not found, (

@@ -1,11 +1,11 @@
 # assets/seals/ — the emblems the stamp has carried
 
-The stamp is the sealer's. It is drawn once per work item, at the commit of
+The stamp is the inspector's. It is drawn once per work item, at the commit of
 a `guarantee.md` reading `sealed` (`docs/checks/the-stamp.md` *The
 stamp*): the panel of what the records at that commit say, and a wax disc
 with an emblem pressed into it. Before #975 the broad gate's run drew it
 when the run passed. It drew the gold lily, the red lily and, from 0.20.0
-through 0.22.0, the placeholder S below, which the sealer's stamp carried
+through 0.22.0, the placeholder S below, which the inspector's stamp carried
 through 0.23.0. From 0.23.1 through 0.25.0 the stamp carried the horned
 owl. From 0.25.1 it carries the little owl on a red wax seal. The emblem has
 changed since #30 first drew it. This directory keeps each version as the
@@ -100,7 +100,7 @@ it, so the commands of the placeholder S and of both owls write the tag's
 
 - **Releases:** 0.20.0 through 0.23.0. The disc is the same at every tag
   from v0.20.0 to v0.23.0. The sample panel beside it lost its `ledger` row
-  in 0.22.0 (#944) and became the sealer's shorter panel in 0.22.1 (#975).
+  in 0.22.0 (#944) and became the inspector's shorter panel in 0.22.1 (#975).
   The file is v0.22.1's, the last tag when this entry was written.
 - **Issue:** #832, through pull request #859. #832 settled the 28-cell
   frame and left the mark a placeholder: Georgia Bold's S, held as a chart

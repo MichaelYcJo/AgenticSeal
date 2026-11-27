@@ -24,7 +24,7 @@ whether a sentence of today's definition was followed:
            whose answer only running the page generator gives, the
            revision that run writes in `## Grounding` labelled `executed`
            and no row left to a measurement
-  sealer   five reviewed items to guarantee: one to seal, one whose pull
+  inspector   five reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
            one to seal but for its broad run never recorded, and one whose
@@ -61,7 +61,7 @@ optin = sibling.load("lib/optin.py")
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
 
-# `seal pr-body`'s module: its `compose` writes the part of a sealer case's
+# `seal pr-body`'s module: its `compose` writes the part of an inspector case's
 # pull request body that the case's records hold.
 pr_body = sibling.load("skills/code-review/scripts/pr_body.py")
 
@@ -69,9 +69,9 @@ MODELS = {
     "proofer": "claude-opus-5-5",
     "crafter": "claude-opus-5-5",
     "framer": "claude-fable-5-1",
-    "sealer": "claude-sonnet-5-5",
+    "inspector": "claude-sonnet-5-5",
 }
-TIMEOUT = {"proofer": 1800, "crafter": 1200, "framer": 1200, "sealer": 1800}
+TIMEOUT = {"proofer": 1800, "crafter": 1200, "framer": 1200, "inspector": 1800}
 HERE = (
     "The repository is the current working directory, the one "
     "`git rev-parse --show-toplevel` names where you start; run every command there."
@@ -82,8 +82,8 @@ COMMIT = r"git(?:\s+-C\s+\S+)?\s+commit\b"
 # measurement (`tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`).
 AUTHOR = "textutil"
 BY = f"git -c user.name={AUTHOR} -c user.email={AUTHOR}@example.com commit -q -m"
-# The directory a sealer case keeps the issue body and the pull request body
-# in, by its work item, outside the work tree the sealer guarantees.
+# The directory an inspector case keeps the issue body and the pull request body
+# in, by its work item, outside the work tree the inspector guarantees.
 EVIDENCE = ".git/{item}"
 
 TEXTUTIL = '''def shout(text):
@@ -108,10 +108,10 @@ CONFIG = """{
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 """
-# A sealer case's config: the two language keys `seal pr-body` refuses a
+# An inspector case's config: the two language keys `seal pr-body` refuses a
 # body without (#1453), naming one language, so the body's first part is
 # the case's `pr.md` alone.
-SEALER_CONFIG = """{
+INSPECTOR_CONFIG = """{
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q",
   "Commit and pull request language": "English",
@@ -748,7 +748,7 @@ def framer_case(index, slug, issue, extra=None, files=None):
     }
 
 
-# --- sealer --------------------------------------------------------------------
+# --- inspector --------------------------------------------------------------------
 
 SHOUT_FIXED = '''def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark; empty text
@@ -768,7 +768,7 @@ ISSUE = """# #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
 """
-SEALER_SPEC = """# Design: shout keeps empty text empty
+INSPECTOR_SPEC = """# Design: shout keeps empty text empty
 
 ## Scope
 
@@ -790,7 +790,7 @@ none
 # a round block's `target:` reads only where it names a commit, and
 # `pr_body.compose` reads the round record through `chain_check.py` first.
 BUILD_SHA = "b0b0b0b"
-SEALER_PHASE = """# Phase 1: {item}
+INSPECTOR_PHASE = """# Phase 1: {item}
 
 ## What this phase found
 
@@ -799,7 +799,7 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
 """
-SEALER_ROUND = """# Review round 1: {item}
+INSPECTOR_ROUND = """# Review round 1: {item}
 
 ```seal
 target: {build} against main
@@ -823,7 +823,7 @@ read against S1.
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 """
-SEALER_CHANGELOG = (
+INSPECTOR_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
 # Each case's `pr.md`, the orchestrator's part of the pull request body,
@@ -850,7 +850,7 @@ run: {RUN_SHA} against {BASE_SHA}
 # contradicts, or None for a sealed item, and whether
 # the orchestrator's broad run is recorded before the spawn: True, False, or
 # "stale" for a record a code commit follows).
-SEALER_RUNS = (
+INSPECTOR_RUNS = (
     ("sealed", True, "", "sealed", None, True),
     (
         "untrue-body",
@@ -873,7 +873,7 @@ SEALER_RUNS = (
 )
 # What the truth grader says it holds, by GATE: the record stands, is absent,
 # or is followed by a code commit.
-SEALER_TRUTH = {
+INSPECTOR_TRUTH = {
     True: "The verdict names the party and the claim the tree contradicts.",
     False: "The verdict says no broad run is on record at HEAD: "
     "`trail/gate.md` is absent, so nothing broad ran.",
@@ -882,8 +882,8 @@ SEALER_TRUTH = {
 }
 
 
-def sealer_case(slug, true_case, extra, verdict, names, gate):
-    """One reviewed work item for the sealer to guarantee.
+def inspector_case(slug, true_case, extra, verdict, names, gate):
+    """One reviewed work item for the inspector to guarantee.
 
     The build fixes `shout("")`; its phase record says the new case was seen
     red; the round record confirms it; the changelog describes it. The work
@@ -905,7 +905,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     folder = f"seal/threads/{item}"
     evidence = EVIDENCE.format(item=item)
     lines = base_project(
-        item, branch, "framer", "crafter", {"seal/config.json": SEALER_CONFIG}
+        item, branch, "framer", "crafter", {"seal/config.json": INSPECTOR_CONFIG}
     )
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
@@ -919,15 +919,15 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "frame/plan.md": one_phase_plan(
             "shout keeps empty text empty", '`shout("")` and its case'
         ),
-        "trail/phases/phase-1.md": SEALER_PHASE.format(item=item, test=EMPTY_TEST),
-        "trail/rounds/round-1.md": SEALER_ROUND.format(item=item, build=BUILD_SHA),
-        "changelog.md": SEALER_CHANGELOG,
+        "trail/phases/phase-1.md": INSPECTOR_PHASE.format(item=item, test=EMPTY_TEST),
+        "trail/rounds/round-1.md": INSPECTOR_ROUND.format(item=item, build=BUILD_SHA),
+        "changelog.md": INSPECTOR_CHANGELOG,
         "gaps.md": OVERVIEW.format(item=item),
     }
     built = [(BUILD_SHA, "$build")]
     ran = [(RUN_SHA, "$run"), (BASE_SHA, "$(git rev-parse main)")]
     lines += [
-        write(f"{folder}/frame/design.md", SEALER_SPEC + MARK),
+        write(f"{folder}/frame/design.md", INSPECTOR_SPEC + MARK),
         write(f"{folder}/frame/plan.md", records["frame/plan.md"]),
         "git add -A",
         f"{BY} 'frame: shout keeps empty text empty'",
@@ -982,7 +982,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         f"`{evidence}/pr-body.md`. {HERE}"
     )
     graders = [
-        behaviour.reach("sealer"),
+        behaviour.reach("inspector"),
         # The verdict on the `Verdict:` line of a verdict block, written as
         # `lib/fields.py` reads it: the block's opener, then lines that
         # open no fence, then the line. A `Verdict:` line outside a block is
@@ -1000,14 +1000,14 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         shape_tool(
             "commits-nothing",
             "Bash",
-            "The sealer commits nothing.",
+            "The inspector commits nothing.",
             input_match=COMMIT,
             max=0,
         ),
         shape_tool(
             "runs-no-broad-run",
             "Bash",
-            "The sealer runs no broad gate: the run is the orchestrator's, "
+            "The inspector runs no broad gate: the run is the orchestrator's, "
             "before the spawn, and `trail/gate.md` is its record.",
             input_match=r"seal\s+gate\s+--base",
             max=0,
@@ -1015,7 +1015,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         *writes_only(
             "writes-only-the-guarantee",
             guarantee,
-            "The sealer writes `guarantee.md` and nothing else in the repository.",
+            "The inspector writes `guarantee.md` and nothing else in the repository.",
         ),
     ]
     if names:
@@ -1025,14 +1025,14 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
                 slug,
                 guarantee,
                 names,
-                SEALER_TRUTH[gate],
+                INSPECTOR_TRUTH[gate],
                 flags="mi",
             )
         )
-    return f"rule-sealer-{slug}", {
-        "agent": "sealer",
+    return f"rule-inspector-{slug}", {
+        "agent": "inspector",
         "prompt": orchestrate(
-            "sealer", spawn, "When it returns, reply with the word DONE."
+            "inspector", spawn, "When it returns, reply with the word DONE."
         ),
         "scaffold": "\n".join(lines),
         "graders": graders,
@@ -1045,7 +1045,7 @@ def cases():
     out += [crafter_case(i, *build) for i, build in enumerate(CRAFTER_BUILDS, 1)]
     out.append(crafter_rename_case())
     out += [framer_case(i, *issue) for i, issue in enumerate(FRAMER_ISSUES, 1)]
-    out += [sealer_case(*run) for run in SEALER_RUNS]
+    out += [inspector_case(*run) for run in INSPECTOR_RUNS]
     return out
 
 

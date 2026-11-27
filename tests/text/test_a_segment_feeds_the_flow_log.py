@@ -50,7 +50,7 @@ from conftest import ROOT, flattened, read, section
 # No TARGET: its cases hold the flow log's measurement across skills/verify/orchestration.md and skills/verify/SKILL.md.
 
 # Since #940 the section is the orchestrator's, in the verify skill's
-# orchestration file; the crafter's and the sealer's `SKILL.md` no longer
+# orchestration file; the crafter's and the inspector's `SKILL.md` no longer
 # carries it.
 SKILL = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 CRAFTERS_SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
@@ -82,7 +82,7 @@ def test_the_section_is_the_orchestrators_and_the_crafters_skill_names_it():
     """#940 split the verify skill along its headings: posting is withheld
     from every agent (contract rule 6), so the section is in the
     orchestrator's file, and the opening of the file the crafter and the
-    sealer open names the orchestrator's file. Which file carries which
+    inspector open names the orchestrator's file. Which file carries which
     section is the proofer's to read."""
     crafters = read(CRAFTERS_SKILL)
     # The path a reader of `skills/verify/SKILL.md` resolves to the

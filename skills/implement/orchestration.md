@@ -50,10 +50,10 @@ lifetimes* states (contract rule 11).
    before the first round. The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
    orchestrator, then `seal pr-body`, which the orchestrator runs to write
-   the pull request body from `pr.md` and the records, then the sealer,
+   the pull request body from `pr.md` and the records, then the inspector,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
-   opens once the sealer seals* owns when). Once the pull request is open,
+   opens once the inspector seals* owns when). Once the pull request is open,
    the orchestrator removes the work item's scratch directory,
    `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
    out in full, with no variable in it, and removes nothing else of the
@@ -153,7 +153,7 @@ and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
 answers. The row for a fold states the decision as it was sent. After the
 fold the orchestrator changes it only where the framer's hand-back, a
-round's finding or the sealer's verdict names a defect in it, which it
+round's finding or the inspector's verdict names a defect in it, which it
 corrects, or where the framer rejects the decision, as the next paragraph
 states. It then commits the frame files the framer
 changed and its own rows in one commit, before the spawn or the resume
@@ -342,8 +342,8 @@ reads the facts back and writes the code still answers `the session`;
 orchestrator still has to hold (`docs/running/the-agent-set.md` *What a spawn
 costs*). The file ends with `## Why this way`: one or two sentences where
 the person chose the rows, and where the orchestrator chose them under
-`agentic`, the grounds *Under agentic* asks for, which the sealer reads
-against the diff (`agents/sealer.md` step 4).
+`agentic`, the grounds *Under agentic* asks for, which the inspector reads
+against the diff (`agents/inspector.md` step 4).
 
 **While the `Automation` row reads `yes`, the plugin's `PreToolUse` hook puts
 the rule for the run in front of the orchestrator at each `AskUserQuestion`
@@ -476,7 +476,7 @@ the answer writes* above:
   needs no frame.
 - **Implementation**: by the criterion *What the answer writes* states.
 - **Review**: `through the review chain` where a reader independent of the
-  build is worth its rounds; `straight to the PR` where the sealer's single
+  build is worth its rounds; `straight to the PR` where the inspector's single
   reading of the diff against the issue is enough.
 - **Automation**: `yes` where every question the orchestrator foresees has
   a default the tree or the framer can give; `no` where the item reaches
@@ -510,7 +510,7 @@ holds one sentence of grounds, above the trailer.
 trailer, and the pull request's check prints them rather than refusing
 them (`docs/checks/the-routing-check.md` *At the pull request*). A work
 item routed `straight to the PR` takes the review chain where its diff
-reaches what its grounds did not name, or where its sealer withholds on
+reaches what its grounds did not name, or where its inspector withholds on
 that. Each raise is a row of `frame/plan.md` *Judgments of the run* where a
 plan stands, and otherwise a sentence added under *Why this way*. A route
 is not lowered when the build turns out smaller, because the orchestrator
@@ -567,7 +567,7 @@ party `routing.md`'s `Implementation` row names: a row whose destination
 stands inside the work item's directory, and a row that makes no commit,
 such as an issue or a comment on one. The orchestrator opens the pull
 request, and every commit after the broad run leaves `trail/gate.md` stale
-for the sealer (`skills/code-review/gate-to-pull-request.md`
+for the inspector (`skills/code-review/gate-to-pull-request.md`
 *Orchestrator: from the preflight to the open pull request*).
 
 **A row that first arises once no round is to follow is weighed.** Its
@@ -580,7 +580,7 @@ A row is out when it stands at its destination below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless the sealer reads its fix, by the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*. Once a row of `frame/plan.md` *Judgments of the run* judges the run excessive, only a `must`, or an item whose fix the sealer reads by that row of the core, is done now, and every other item takes a home that costs no round, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless the inspector reads its fix, by the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*. Once a row of `frame/plan.md` *Judgments of the run* judges the run excessive, only a `must`, or an item whose fix the inspector reads by that row of the core, is done now, and every other item takes a home that costs no round, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states |
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | the policy document's open-questions section: written there directly where the work item's subject is the policy root, and otherwise an `add` in `frame/design.md`'s `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 

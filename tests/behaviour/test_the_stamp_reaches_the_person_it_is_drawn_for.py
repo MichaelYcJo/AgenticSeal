@@ -1,8 +1,8 @@
 """The broad gate's stamp reaches the person it is drawn for (#400).
 
-Work item 1790562543. A sealer's stdout was a pipe into a report that arrived
+Work item 1790562543. An inspector's stdout was a pipe into a report that arrived
 folded behind `ctrl+o`, so a stamp drawn there was never seen. The stamp is
-drawn from the sealer's `sealed` guarantee: the sealer's
+drawn from the inspector's `sealed` guarantee: the inspector's
 `seal stamp --guarantee` queues its values under the git common dir (#1376),
 and the plugin's `Stop` hook draws each undrawn file once, after the
 orchestrator's turn's text (#1430).
@@ -19,7 +19,7 @@ import sys
 
 from conftest import ROOT, flat, flattened, load_module, read, section
 
-# No TARGET: its cases hold the stamp across docs/checks/the-stamp.md, two skills, agents/sealer.md and both READMEs, and hold seal_stamp.py's and broad_gate.py's --help to one fact.
+# No TARGET: its cases hold the stamp across docs/checks/the-stamp.md, two skills, agents/inspector.md and both READMEs, and hold seal_stamp.py's and broad_gate.py's --help to one fact.
 
 
 STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
@@ -52,11 +52,11 @@ STAMP_HEADING = "## The stamp"
 
 def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
     """S16, the orchestrator's half (contract rule 14), and #975 S13. The rule
-    sits in the section that spawns the sealer and names the facts the
-    orchestrator acts on: the command the sealer queues the stamp with, the
+    sits in the section that spawns the inspector and names the facts the
+    orchestrator acts on: the command the inspector queues the stamp with, the
     lines the broad run opens with, which the orchestrator relays, and the
     command that stays the person's to type. When the stamp is drawn, that
-    the orchestrator draws none, and what it does with the sealer's line are
+    the orchestrator draws none, and what it does with the inspector's line are
     the proofer's to read. Since #1579 that section stands in the file the
     orchestrator opens once the last round has no finding open."""
     text = flat("skills", "code-review", "gate-to-pull-request.md")
@@ -64,8 +64,8 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
         "## Orchestrator: from the preflight to the open pull request", 1
     )[1]
     for fact in (
-        # The command the sealer queues the stamp with, whose line the
-        # orchestrator meets in the sealer's hand-back.
+        # The command the inspector queues the stamp with, whose line the
+        # orchestrator meets in the inspector's hand-back.
         "`seal stamp --guarantee`",
         # The lines the broad run's stdout opens with, which the orchestrator
         # relays.
@@ -79,14 +79,14 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
 
 
 def test_the_verify_skill_names_what_queues_the_stamp_and_what_draws_it():
-    """S16, `verify`'s half, and #975 S13. The stamp is the sealer's, drawn
+    """S16, `verify`'s half, and #975 S13. The stamp is the inspector's, drawn
     once per work item from its `sealed` guarantee, and the gate draws
-    nothing. #1376: queued by the sealer's `seal stamp --guarantee` under
+    nothing. #1376: queued by the inspector's `seal stamp --guarantee` under
     either root; #1430: drawn by the plugin's `Stop` hook. The skill names
     the command and the hook; its sentences are the proofer's to read."""
     text = flat("skills", "verify", "SKILL.md")
     for fact in (
-        # The command the sealer queues the stamp's values with.
+        # The command the inspector queues the stamp's values with.
         "`seal stamp --guarantee`",
         # The harness event whose hook draws the stamp, which a reader
         # resolves in `hooks/hooks.json`.
@@ -148,7 +148,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     """1792363231 S8. *The stamp* carries the refusal record as a rule of
     its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
-    refused it, and the earlier-run chain skips it, so the sealer's new
+    refused it, and the earlier-run chain skips it, so the inspector's new
     audit draws the work item's one stamp. #1027 and #1376: it names the
     record's path, the one writer, `seal stamp --guarantee`, the matcher's
     floor, and `sealed_before`, which skips a recorded refusal as the chain
@@ -163,7 +163,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     for fact in (
         # The path of the refusal record, which a person opens or clears.
         "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
-        # The command that writes it, which the sealer runs.
+        # The command that writes it, which the inspector runs.
         "`seal stamp --guarantee`",
         # The matcher's floor, the number of characters a row's commit is
         # written in at least.
@@ -242,31 +242,31 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
             assert fact in text, (edition, fact)
 
 
-# --- S16: the sealer is told it draws nothing --------------------------------
+# --- S16: the inspector is told it draws nothing --------------------------------
 
 
-def test_the_sealer_queues_the_stamp_once_and_draws_none():
-    """S16, the sealer's half (contract rule 14). `agents/sealer.md` said the
+def test_the_inspector_queues_the_stamp_once_and_draws_none():
+    """S16, the inspector's half (contract rule 14). `agents/inspector.md` said the
     drawing arrives as letters and to pass it through, which the 0.15.6 run
-    did — every seal behind `ctrl+o`. Since #969 the sealer runs no gate, so
+    did — every seal behind `ctrl+o`. Since #969 the inspector runs no gate, so
     there is no line of the gate's for it to pass on. Since #975 the stamp is
-    drawn in the orchestrator's session from the sealer's own `sealed`
+    drawn in the orchestrator's session from the inspector's own `sealed`
     verdict, once per work item, and never from the orchestrator's run. Since
-    #1376 the sealer queues it itself, with `seal stamp --guarantee`, names
+    #1376 the inspector queues it itself, with `seal stamp --guarantee`, names
     that write as its own, and carries the line it prints into its report.
     Since #1430 the plugin's `Stop` hook draws it. The definition names the
-    command the sealer runs and not the one that draws by hand; how it says
+    command the inspector runs and not the one that draws by hand; how it says
     the rest is the proofer's to read."""
-    text = flat("agents", "sealer.md")
-    # The command the sealer runs once on the `guarantee.md` it wrote.
+    text = flat("agents", "inspector.md")
+    # The command the inspector runs once on the `guarantee.md` it wrote.
     assert "`seal stamp --guarantee <path>`" in text
-    # The command that draws a stamp by hand, which the sealer would run were
-    # it written here: the sealer draws no stamp (`agents/sealer.md` *Never*,
+    # The command that draws a stamp by hand, which the inspector would run were
+    # it written here: the inspector draws no stamp (`agents/inspector.md` *Never*,
     # its bullet on a stamp, and `docs/checks/the-stamp.md` *The stamp*, its
-    # bold lead **The stamp is drawn once per work item, from the sealer's
+    # bold lead **The stamp is drawn once per work item, from the inspector's
     # `sealed`**).
     assert "seal stamp --from" not in text, (
-        "the sealer is told a command that draws a stamp, which it never does"
+        "the inspector is told a command that draws a stamp, which it never does"
     )
 
 

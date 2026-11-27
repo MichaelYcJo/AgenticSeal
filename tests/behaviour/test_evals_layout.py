@@ -101,22 +101,22 @@ def scaffold_gaps(root=EVALS):
 # A grader pattern that reads a line of a `seal` block starts at the block's
 # opener, as the regular expression of a grader's `pattern` spells it.
 BLOCK_PATTERN = "^" + "`" * 3 + "seal\\n"
-# The broad run a sealer case bounds at zero calls, as a Bash call spells it.
+# The broad run an inspector case bounds at zero calls, as a Bash call spells it.
 BROAD_RUN = "seal gate --base"
 
 
-def sealer_grade_gaps(root=EVALS):
-    """Each sealer case that does not grade the verdict in a verdict block of
+def inspector_grade_gaps(root=EVALS):
+    """Each inspector case that does not grade the verdict in a verdict block of
     the guarantor's file, or does not bound the broad run at zero calls. The
-    sealer's outcome is its verdict in `guarantee.md`, which stands in a
+    inspector's outcome is its verdict in `guarantee.md`, which stands in a
     `seal` block since #1198; `trail/gate.md` is the script's (#923). A
     grader is judged by its parsed fields: the file its `target` names, the
     pattern it searches for, and the command its `input_match` finds."""
     gaps = []
-    top = os.path.normpath(os.path.join(root, "behaviour", "sealer"))
+    top = os.path.normpath(os.path.join(root, "behaviour", "inspector"))
     cases = [d for d in case_dirs(root) if os.path.normpath(d).startswith(top + os.sep)]
     if not cases:
-        return ["behaviour/sealer: no case"]
+        return ["behaviour/inspector: no case"]
     for d in cases:
         graders = [
             front_matter(read(path))
@@ -139,19 +139,19 @@ def sealer_grade_gaps(root=EVALS):
     return gaps
 
 
-def test_every_sealer_case_grades_the_guarantee():
-    """T18. A sealer case grades the verdict block of `guarantee.md`.
+def test_every_inspector_case_grades_the_guarantee():
+    """T18. An inspector case grades the verdict block of `guarantee.md`.
 
-    #969 T6: every sealer case also bounds a Bash `seal gate --base` at zero
-    calls. The gate is the orchestrator's run before the spawn, and a sealer
+    #969 T6: every inspector case also bounds a Bash `seal gate --base` at zero
+    calls. The gate is the orchestrator's run before the spawn, and an inspector
     that runs it again passes every other grader the cases have: #957's
-    phase 3 measured the sealer's first act as `seal gate --record` in six
+    phase 3 measured the inspector's first act as `seal gate --record` in six
     runs of six."""
-    gaps = sealer_grade_gaps()
+    gaps = inspector_grade_gaps()
     assert not gaps, gaps
 
 
-# A sealer case's two graders that `sealer_grade_gaps` asks for, as
+# An inspector case's two graders that `inspector_grade_gaps` asks for, as
 # `evals/scripts/rule_cases.py` writes them: the verdict in a verdict block
 # of the guarantor's file, and no Bash call of the broad run.
 VERDICT_GRADER = (
@@ -165,62 +165,62 @@ BOUND_GRADER = (
 )
 
 
-def sealer_case(tmp_path):
-    """The graders directory of a sealer case under TMP_PATH, holding the
-    two graders above, which `sealer_grade_gaps` names no gap in."""
-    case = tmp_path / "behaviour" / "sealer" / "c"
+def inspector_case(tmp_path):
+    """The graders directory of an inspector case under TMP_PATH, holding the
+    two graders above, which `inspector_grade_gaps` names no gap in."""
+    case = tmp_path / "behaviour" / "inspector" / "c"
     (case / "graders").mkdir(parents=True)
     (case / "prompt.md").write_text("x\n", encoding="utf-8")
     (case / "graders" / "shape-verdict.md").write_text(VERDICT_GRADER, "utf-8")
     (case / "graders" / "shape-runs-no-broad-run.md").write_text(BOUND_GRADER, "utf-8")
-    assert sealer_grade_gaps(str(tmp_path)) == []
+    assert inspector_grade_gaps(str(tmp_path)) == []
     return case / "graders"
 
 
-def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
+def test_a_bound_on_the_inspectors_run_that_is_not_zero_is_a_gap(tmp_path):
     """#969 T6's reader, on a case the tree does not hold. Every committed
-    sealer case bounds the gate at zero, so a reader that stopped checking
+    inspector case bounds the gate at zero, so a reader that stopped checking
     the tool, the command or the bound would still pass on the tree; each of
     the three is changed here alone and each must be named."""
-    grader = sealer_case(tmp_path) / "shape-runs-no-broad-run.md"
-    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader bounds `seal gate --base` at zero"
+    grader = inspector_case(tmp_path) / "shape-runs-no-broad-run.md"
+    gap = f"{os.path.join('behaviour', 'inspector', 'c')}: no grader bounds `seal gate --base` at zero"
     for old, new in (
         ("max: 0\n", "max: 1\n"),
         ("tool: 'Bash'", "tool: 'Write'"),
         ("\\s+--base", "\\s+--preflight"),
     ):
         grader.write_text(BOUND_GRADER.replace(old, new), encoding="utf-8")
-        assert sealer_grade_gaps(str(tmp_path)) == [gap], old
+        assert inspector_grade_gaps(str(tmp_path)) == [gap], old
 
 
-def test_a_bound_on_the_sealers_run_in_another_spelling_is_no_gap(tmp_path):
+def test_a_bound_on_the_inspectors_run_in_another_spelling_is_no_gap(tmp_path):
     """A grader is read by what it bounds: its `input_match`, as the runner
     reads it, finds the command `seal gate --base`. A pattern that finds the
     same command in another spelling bounds the same run."""
-    grader = sealer_case(tmp_path) / "shape-runs-no-broad-run.md"
+    grader = inspector_case(tmp_path) / "shape-runs-no-broad-run.md"
     for spelling in ("seal gate --base", "seal +gate +--base\\b"):
         grader.write_text(
             BOUND_GRADER.replace("seal\\s+gate\\s+--base", spelling), "utf-8"
         )
-        assert sealer_grade_gaps(str(tmp_path)) == [], spelling
+        assert inspector_grade_gaps(str(tmp_path)) == [], spelling
 
 
 def test_a_verdict_grader_that_reads_no_block_of_the_guarantee_is_a_gap(tmp_path):
     """T18's reader under #1198, on a case the tree does not hold. Every
-    committed sealer case reads its verdict in a verdict block of
+    committed inspector case reads its verdict in a verdict block of
     `guarantee.md`, so a reader that stopped asking for the block, the file
     or the verdict would still pass on the tree; a grader that reads a
     `Verdict:` line anywhere, reads another file, or reads another line of
     the block is named here."""
-    verdict = sealer_case(tmp_path) / "shape-verdict.md"
-    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader reads the verdict in guarantee.md"
+    verdict = inspector_case(tmp_path) / "shape-verdict.md"
+    gap = f"{os.path.join('behaviour', 'inspector', 'c')}: no grader reads the verdict in guarantee.md"
     for old, new in (
         (BLOCK_PATTERN, "^"),
         ("/guarantee.md'", "/trail/gate.md'"),
         ("Verdict: sealed", "target: abc1234"),
     ):
         verdict.write_text(VERDICT_GRADER.replace(old, new), encoding="utf-8")
-        assert sealer_grade_gaps(str(tmp_path)) == [gap], old
+        assert inspector_grade_gaps(str(tmp_path)) == [gap], old
 
 
 def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):
@@ -273,8 +273,8 @@ def case_differences(generated, committed):
     return out
 
 
-def test_the_sealer_cases_are_the_generators_output(tmp_path, capsys):
-    """#969 S11. `evals/behaviour/sealer/` is byte for byte what
+def test_the_inspector_cases_are_the_generators_output(tmp_path, capsys):
+    """#969 S11. `evals/behaviour/inspector/` is byte for byte what
     `rule_cases.py` writes. A grader edited by hand is overwritten at the
     next regeneration, so the baseline and a later side run different suites
     while `--suite-rev` names one commit for both; nothing else compares the
@@ -282,7 +282,7 @@ def test_the_sealer_cases_are_the_generators_output(tmp_path, capsys):
     load_rule_cases().main(["--out", str(tmp_path)])
     capsys.readouterr()
     differences = case_differences(
-        tmp_path / "sealer", os.path.join(EVALS, "behaviour", "sealer")
+        tmp_path / "inspector", os.path.join(EVALS, "behaviour", "inspector")
     )
     assert not differences, differences
 
@@ -365,7 +365,7 @@ def test_a_tool_used_grader_bounded_at_zero_can_pass():
 
 def test_a_behaviour_prompt_says_where_the_repository_is():
     """The plugin under test sits in a directory the session can see, and it
-    is itself an AgenticSeal repository: two of six sealer runs ran the gate
+    is itself an AgenticSeal repository: two of six inspector runs ran the gate
     there and one handed back that failure. Each prompt names the working
     directory as the repository."""
     gaps = []

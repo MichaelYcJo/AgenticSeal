@@ -56,7 +56,7 @@ A single-select question, put alone:
 | Order | Label | Description |
 |---|---|---|
 | 1 | **agentic** | The orchestrator reads each work item's issue and the tree and chooses that item's route: which of the framer, `crafter` and `proofer` run, and whether the run may stop to ask you. Where it judges a change small enough, such as a two-line fix, it takes `direct` for it. It writes each choice down with its grounds, and you are not asked the route again. |
-| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
+| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the inspector audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
 | 3 | **manual** | You set each part: the four boxes below are the answer. |
 | 4 | **direct** | This session writes the change itself: no agent, no work item, no frame, no review, no seal and no `routing.md`. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
 

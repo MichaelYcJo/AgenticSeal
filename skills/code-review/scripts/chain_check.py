@@ -53,7 +53,7 @@ judged (`carried_by`). The arms are nine:
                 a `fixed` finding whose own `location:` names a place in the
                 work item's own records (`located_in_records`) and whose
                 commit touched them alone (`records_only`), which the
-                sealer reads; the
+                inspector reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
   original      where git carries `seal/parity.json` at HEAD and the pull
@@ -70,7 +70,7 @@ judged (`carried_by`). The arms are nine:
                 it touches only the work item's own directory; a record with
                 no run block, or with a line the reader refuses, fails
   guarantee     the last verdict block of `guarantee.md`, the newest run of
-                the sealer, read through `lib/fields.py`, names HEAD,
+                the inspector, read through `lib/fields.py`, names HEAD,
                 or every commit after it touches only the closing records,
                 and its `Verdict:` reads `sealed`; a guarantee with no
                 verdict block, or with a line the reader refuses, fails
@@ -128,7 +128,7 @@ Usage:
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
 own run, in the preflight and in the broad run, before it writes
-`trail/gate.md` and the sealer `guarantee.md`. Those two arms, the
+`trail/gate.md` and the inspector `guarantee.md`. Those two arms, the
 guarantee's `original:` line, and the body arm, whose seal mark stands on
 that guarantee, print and do not fail. The run asks neither the event payload
 nor `gh` for the pull request's state, and judges every other arm as at a
@@ -197,7 +197,7 @@ ROUND_TEMPLATE = "templates/records/sdd-round.md"
 # defect shows and where the fix went, which the pull-request check reads;
 # `located` is where the defect shows, which a count of findings by place
 # reads (`.github/scripts/finding_counts.py`), and which the records arm
-# reads for whether the sealer is a last `fixed`'s reader
+# reads for whether the inspector is a last `fixed`'s reader
 # (`located_in_records`).
 Finding = collections.namedtuple(
     "Finding",
@@ -305,13 +305,13 @@ except (OSError, SyntaxError, ImportError) as _exc:
     raise SystemExit(2) from None
 
 # The closing records, `lib/optin.py`'s `GATE` and `GUARANTEE`: the
-# orchestrator's run writes the one, the sealer the other, and they are the
-# only files that may follow the commit the guarantee names, since the sealer
+# orchestrator's run writes the one, the inspector the other, and they are the
+# only files that may follow the commit the guarantee names, since the inspector
 # audited everything else on the branch.
 CLOSING_RECORDS = (OPTIN.GATE, OPTIN.GUARANTEE)
 SEALING_SAYS = (
     f"{SEALING}: `{OPTIN.GATE}` is the file this run writes and "
-    f"`{OPTIN.GUARANTEE}` the one the sealer writes after it, so their arms "
+    f"`{OPTIN.GUARANTEE}` the one the inspector writes after it, so their arms "
     "print and do not fail"
 )
 # The first line of a `--sealing` run, printed in place of the state line:
@@ -907,7 +907,7 @@ def channel(rounds, read_at_head=lambda finding: False):
     verifying round, since nothing after it read the fix or the rejection.
     `records` passes it a `fixed` finding whose own `location:` names a
     place in the work item's own records and whose commit touched them
-    alone, which the sealer reads at HEAD. A `deferred` finding owes
+    alone, which the inspector reads at HEAD. A `deferred` finding owes
     nothing."""
     problems = []
     by_number = {r.number: r for r in rounds}
@@ -1477,7 +1477,7 @@ def records(routing, root, item, rel, base):
     or lies under; what `channel` names between the rounds, a `fixed` of the
     last record whose own `location:` names a place in the work item's own
     records, and whose commit touched them alone, passing as read at HEAD by
-    the sealer; a last record
+    the inspector; a last record
     behind HEAD. A finding is named by its line and its heading."""
     found = round_records(routing, root, item)
     if not found:
@@ -1558,7 +1558,7 @@ NO_GUARANTEE_ORIGINAL = (
     "declares a migration, this work "
     "item answers `straight to the PR`, and this pull request changes a path "
     "outside the document roots, so no round record compares it and the "
-    f"sealer's guarantee carries `{FIELDS.ORIGINAL} {{sha}}`, the migration "
+    f"inspector's guarantee carries `{FIELDS.ORIGINAL} {{sha}}`, the migration "
     "config's baseline, written once it compared the audited commit with the "
     "original through `legacy-parity`"
 )
@@ -1682,7 +1682,7 @@ def broad_gate(root, item, base, notices=None):
                 0,
                 "git carries no gate record: the orchestrator runs "
                 "`seal gate --base <base> --record <item>` before it spawns "
-                "the sealer, and the run writes it on a green run",
+                "the inspector, and the run writes it on a green run",
             )
         ]
     runs, problems = blocks_of(rel, text, FIELDS.GATE, notices)
@@ -1698,12 +1698,12 @@ def broad_gate(root, item, base, notices=None):
 
 
 # A guarantee with no verdict block: one of the older shape, its verdict
-# written outside any block, or one the sealer never filled.
+# written outside any block, or one the inspector never filled.
 NO_VERDICT_BLOCK = (
-    "no verdict block: since #1198 the sealer's verdict stands in a `seal` "
+    "no verdict block: since #1198 the inspector's verdict stands in a `seal` "
     "block holding `target: <sha> against <base>`, the `original:` line where "
     "one is owed and `Verdict:`, as `templates/records/sdd-guarantee.md` "
-    "shows; the sealer runs again at HEAD and appends one below the text "
+    "shows; the inspector runs again at HEAD and appends one below the text "
     "already there"
 )
 
@@ -1722,7 +1722,7 @@ def guarantee(root, item, base, notices=None):
             (
                 rel,
                 0,
-                "git carries no guarantee file: the sealer writes it from "
+                "git carries no guarantee file: the inspector writes it from "
                 "`templates/records/sdd-guarantee.md` after the orchestrator's broad run",
             )
         ]
@@ -1740,19 +1740,19 @@ def guarantee(root, item, base, notices=None):
                 rel,
                 0,
                 follows_reason(behind, "the guarantee", "the closing records")
-                + ("; the sealer runs again" if behind[0] == "after" else ""),
+                + ("; the inspector runs again" if behind[0] == "after" else ""),
             )
         )
-    said = newest.fields[FIELDS.SEALER_VERDICT]
+    said = newest.fields[FIELDS.INSPECTOR_VERDICT]
     if FIELDS.verdict_word(newest) != FIELDS.SEALED:
-        line = f"{FIELDS.SEALER_VERDICT} {said.value}"
+        line = f"{FIELDS.INSPECTOR_VERDICT} {said.value}"
         problems.append(
             (
                 rel,
                 said.line,
-                f"the sealer's verdict reads `{line}`: a ready pull request needs "
+                f"the inspector's verdict reads `{line}`: a ready pull request needs "
                 f"`{FIELDS.SEALED}`: fix what it names, or answer its question "
-                "below the newest block, and the sealer runs again at the new "
+                "below the newest block, and the inspector runs again at the new "
                 "HEAD and appends its block",
             )
         )
@@ -2326,7 +2326,7 @@ def _checked(args):
     if found is None:
         return 2
     for rel, line, message in found:
-        # The guarantee's line is the sealer's to write, so `--sealing` reads
+        # The guarantee's line is the inspector's to write, so `--sealing` reads
         # it as it reads every other guarantee check.
         if args.sealing and rel.endswith(f"/{OPTIN.GUARANTEE}"):
             notices.append((rel, line, f"{SEALING_SAYS}: {message}"))

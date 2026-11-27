@@ -34,7 +34,7 @@ suite on Linux and Windows, and a branch with no pull request runs nothing.
 macOS and Python 3.14 run on the release pull request into `main`. So the
 branch is pushed as often as the contributor likes, and the pull request
 opens once nothing is left to push. `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals* owns the order
+*Orchestrator: the pull request opens once the inspector seals* owns the order
 a maintainer's run follows.
 
 ### What a contribution is asked for
@@ -108,7 +108,7 @@ version. What the whole run costs is a figure with a
 date and a machine, recorded in the work item that measured it, not here.
 
 **A contributor names a module.** The full suite is the orchestrator's, run
-once after the review rounds settle and before the sealer is spawned, and
+once after the review rounds settle and before the inspector is spawned, and
 contract rule 2 in `skills/agent-contract/SKILL.md` forbids it to every
 agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
@@ -485,7 +485,7 @@ question is not its difficulty, it is when it arrives.
   them, and requires the same sequence of heading levels.
 - **The plugin's hooks write nothing outside the repository.**
   `hooks/hooks.json` registers a `Stop` entry that runs
-  `skills/verify/scripts/seal_stamp.py --stop`, which draws the sealer's
+  `skills/verify/scripts/seal_stamp.py --stop`, which draws the inspector's
   stamp at the end of the main session's turn, a `SessionStart` entry
   that runs `hooks/core-start.py`, which prints the core into a session
   whose repository holds a `seal/` root, a `PreToolUse` entry matched

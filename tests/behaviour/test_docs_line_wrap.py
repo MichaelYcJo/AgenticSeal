@@ -128,8 +128,8 @@ COVERED = [
     # for the sweep that would otherwise be needed to bring it under. It was
     # the first `agents/*.md` file to arrive that way; `framer.md` below is
     # the second.
-    "agents/sealer.md",
-    # The fifth definition (#84), on the sealer's terms exactly: a file
+    "agents/inspector.md",
+    # The fifth definition (#84), on the inspector's terms exactly: a file
     # written wrapped has no sweep to owe, so it goes in at birth.
     "agents/framer.md",
     # Written anew and wrapped in #967.

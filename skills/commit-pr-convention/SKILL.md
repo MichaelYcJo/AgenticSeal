@@ -162,9 +162,9 @@ section it rewrites that no released work item decided is that rewrite's
 kind.
 
 **The orchestrator states the grounds for a pull request's title** in its
-part of the body, as *Pull request bodies* says, and `agents/sealer.md` step
+part of the body, as *Pull request bodies* says, and `agents/inspector.md` step
 4 reads that part against the design and the diff, so a prefix the change
-does not bear out is a disagreement the sealer names.
+does not bear out is a disagreement the inspector names.
 
 **An issue's title takes the prefix the pull request that closes it will
 take**, chosen by this table, so no issue is filed `chore:` by default, and
@@ -240,7 +240,7 @@ the orchestrator's comes first.** The first part is the work item's
 under that line from the work item's other records: the changelog fragment
 first, and the rest inside one `<details>` fold. What `pr.md` and
 `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*. The
+*Orchestrator: the pull request opens once the inspector seals*. The
 `Closes`, `Part of` and attribution lines of `pr.md` are in the language
 `Commit and pull request language` names. A quote is its record's sentence
 as it stands, so it is in `Record language`, and so is the second part, the
@@ -261,7 +261,7 @@ quotes.** The orchestrator writes that row before it writes `pr.md`.
 team's language.** The orchestrator writes a translated file, the mirror,
 beside `pr.md`, written in the commit language, in the shape
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals* gives it.
+once the inspector seals* gives it.
 `seal pr-body` writes the mirror above `pr.md`, so the body's first part is
 the mirror and then `pr.md`. Where the two keys name one language, no
 mirror is written.

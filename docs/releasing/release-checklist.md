@@ -23,7 +23,7 @@ running.
       the merge commit either way.
       **Never rebase a work item's branch, for any reason.**
       `skills/code-review/orchestration.md` *Orchestrator: the pull request
-      opens once the sealer seals* states the rule and its reason.
+      opens once the inspector seals* states the rule and its reason.
 - [ ] **The milestone `release: X.Y.Z` holds what this release is actually
       carrying, and nothing else.** Every open issue in it that is not
       shipping moves to another milestone now, a planning act that needs no

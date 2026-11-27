@@ -21,7 +21,7 @@
 # shell builtin above, not the path.
 #
 # The full suite is the orchestrator's, run once after the review rounds
-# settle and before the sealer is spawned -- skills/agent-contract/SKILL.md
+# settle and before the inspector is spawned -- skills/agent-contract/SKILL.md
 # forbids it to every agent. Name a module to run one.
 # Either form runs in parallel (`-n auto`) unless you pass your own `-n`,
 # `-p no:xdist` or `--pdb`; the runner installs pytest-xdist where the

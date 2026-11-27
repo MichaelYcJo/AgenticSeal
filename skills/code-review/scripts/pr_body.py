@@ -6,7 +6,7 @@ the part its other records hold, copied from them.
   seal pr-body <item> --body <file>           write the body
   seal pr-body <item> --body <file> --check   say whether it is still theirs
 
-A body written by hand restates the records, and most of the sealer's
+A body written by hand restates the records, and most of the inspector's
 withheld verdicts are over a sentence of it that restates one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
@@ -24,7 +24,7 @@ between `HEADING` and the changelog's section where `seal/config.json`'s
 reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
 version, so two releases of the plugin compose one line. It carries
-no record text, and `--check` composes it the same way, so the sealer's
+no record text, and `--check` composes it the same way, so the inspector's
 check, run before its own verdict exists, reads a part with no mark from
 that run. The key and HEAD are read in the work item's own checkout, and in
 the working directory's where the item sits under the common git directory.
@@ -51,7 +51,7 @@ there.
 Each line of `pr.md` in the quote form is read against the record it
 quotes, and `pr.<lang>.md` is not read for quotes. The form is the one
 spelling `skills/code-review/orchestration.md` *Orchestrator: the pull
-request opens once the sealer seals* gives: the line opens with `- "`, the
+request opens once the inspector seals* gives: the line opens with `- "`, the
 quote runs to the line's last `" (` before a backtick, so a `"` inside it
 is itself, a backticked path under the work item's directory follows, then
 any text, and the line ends with `)`. Both forms refuse at `pr.md`'s line
@@ -87,7 +87,7 @@ until the body fits. A folded section keeps its heading, and a line of
 `FIXED`, `FOLDED`, stands in place of its text for each record `SECTIONS`
 names for it, a directory named once. The changelog's section never folds.
 The body is measured with room for the seal mark's line whether or not the
-mark is written, so the run after the seal folds what the sealer's check
+mark is written, so the run after the seal folds what the inspector's check
 folded. Both forms name the folded sections on one line opening
 `seal pr-body:`, and both refuse on the work item's directory where the
 body passes `LIMIT` with every section folded that a fold shortens,
@@ -127,10 +127,10 @@ Limits, stated here and not guarded:
 - A quote is read as a substring of the file its path names, so one that
   stands in the file under a heading or row other than the one its
   coordinate names passes; what follows the path is not read, and that
-  reading stays the rounds' and the sealer's. Each line is read, inside a
+  reading stays the rounds' and the inspector's. Each line is read, inside a
   fence too, and a quote with no words stands in any file.
 - Exit 2's line names `<item>` as it was given, or the module that would not
-  load by its installed path. The normal flow gives neither: the sealer is
+  load by its installed path. The normal flow gives neither: the inspector is
   handed a work item's directory that exists, from an installed plugin.
 
 Exit: 0 written, or under `--check` the part above the heading is the lines
@@ -257,7 +257,7 @@ QUESTIONS = OPTIN.QUESTIONS
 OWN_PART = OPTIN.PR
 NO_OWN_PART = "is not there; the orchestrator writes it before the first round"
 # A quote of `pr.md`, in the one spelling `skills/code-review/orchestration.md`
-# *Orchestrator: the pull request opens once the sealer seals* gives it: a
+# *Orchestrator: the pull request opens once the inspector seals* gives it: a
 # line opening with `QUOTE_OPEN`, the quote, `QUOTE_MARK`, the path under the
 # work item's directory and its closing backtick, any text, and `)` at the
 # line's end. The quote runs to the line's last `QUOTE_MARK`, so a `"` inside
@@ -644,7 +644,7 @@ def _seal_at_head(item, root, base=None):
     against: a base it cannot resolve, where `follows` would list no later
     commit, and a sealed commit its HEAD does not hold, as in a checkout
     other than the work item's. Every other way of not being sealed is the
-    sealer's and the pull request check's to name."""
+    inspector's and the pull request check's to name."""
     try:
         with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
             text = handle.read()
@@ -1237,7 +1237,7 @@ def compared(item, body, root, manifest=None, base=None):
     line, why)` of `Refused`, a record's, the root's `config.json`'s or the
     body's, empty where BODY is that composition. `main --check` and the
     pull request's check, `chain_check.py#body`, both call this, so the
-    body is read by one code path at the sealer and at the pull request."""
+    body is read by one code path at the inspector and at the pull request."""
     mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     headings, parts = [], []
@@ -1256,7 +1256,7 @@ def _place(where, line, item, body, home):
     """Where a cause stands, with no machine path in it: the body file BODY
     by its name, and a record by its path under HOME, the root's name,
     `lib/optin.py#HOME`, whatever path the work item ITEM was given by,
-    `ROOT_CONFIG` as the root's `config.json`. The sealer copies the first
+    `ROOT_CONFIG` as the root's `config.json`. The inspector copies the first
     `refused:` line into a `guarantee.md` that is committed."""
     if where is None:
         path = os.path.basename(body)

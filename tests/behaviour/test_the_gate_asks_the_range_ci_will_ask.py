@@ -172,8 +172,8 @@ def test_the_gate_reaches_for_the_spelling_the_workflow_uses(tmp_path):
 
 # --- the documents say which base, and go red if they stop ---------------------
 
-# #969 moved the base rule with the run, from the sealer's step 1 to the
-# orchestration that runs the gate before the sealer is spawned. #1578 gave
+# #969 moved the base rule with the run, from the inspector's step 1 to the
+# orchestration that runs the gate before the inspector is spawned. #1578 gave
 # the order one statement, in the policy's *What the gate runs*, and the two
 # orchestration files cite it, which `RULES` row 28 of
 # `tests/text/test_the_rules_have_one_owner.py` holds.
@@ -208,7 +208,7 @@ def test_the_block_reader_can_fail():
 
 
 def test_no_document_leaves_the_base_reading_as_the_ref_you_typed():
-    """Contract rule 14. The resolution is a change to what a person reads — the sealer
+    """Contract rule 14. The resolution is a change to what a person reads — the inspector
     passes the base, and the panel and the printed line are read by whoever
     doubts a seal. A document that still describes the base as the ref as
     typed is a false sentence, and this is what makes that red rather than

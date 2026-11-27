@@ -348,10 +348,10 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
 
 
 # What holds the core's four rows in local mode, cited once under each
-# edition's table of the three answers (#1376): the sealer's definition and
+# edition's table of the three answers (#1376): the inspector's definition and
 # the core's table, which a reader resolves.
 LOCAL_LIMIT = (
-    "`agents/sealer.md`",
+    "`agents/inspector.md`",
     "`skills/core/SKILL.md` *Judgment is not licence to skip a party*",
 )
 

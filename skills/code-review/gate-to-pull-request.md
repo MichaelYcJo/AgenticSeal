@@ -2,7 +2,7 @@
 
 This file is the orchestrator's, opened at the step
 `skills/code-review/SKILL.md` names. `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals* states when
+*Orchestrator: the pull request opens once the inspector seals* states when
 the pull request opens and what the body's first part holds. This file
 holds the steps that get it there and the repairs an open pull request
 takes.
@@ -10,7 +10,7 @@ takes.
 ## Orchestrator: from the preflight to the open pull request
 
 Once `guarantee.md` reading `sealed` is committed, run `seal pr-body` once
-more on the body file the sealer read, and open the pull request with it,
+more on the body file the inspector read, and open the pull request with it,
 `gh pr create --body-file <that file>`. That run changes no copied line and
 writes the seal mark where the repository turns it on
 (`docs/forms/the-guarantee.md` *The guarantee*). CI runs then, and again on
@@ -19,7 +19,7 @@ every push to it. The pull request's check reads the body against what
 line where they differ (`skills/code-review/scripts/chain_check.py#body`).
 Such a refusal asks for `seal pr-body` once more on the body file, and the
 file sent to the open pull request with the `gh api -X PATCH` call below.
-No sealer runs for it, since the body is not a record.
+No inspector runs for it, since the body is not a record.
 
 **The orchestrator runs `seal pr-wait <N> --once` before each push to the
 pull request's branch, and `seal pr-wait <N>` when the pull request opens
@@ -43,20 +43,20 @@ reads the pull request's state alone, waits on nothing, and exits 0, 4 or
 | 3 | within the limit on the start, the pull request's head never became HEAD, GitHub never said whether the pull request is mergeable, or no check of a `pull_request` run was listed on HEAD; or, after the start, the head left HEAD. The output names the one cause that held and the commits it concerns | says in its report the cause the output names about those commits, waits no longer, and does not treat the pull request as checked |
 | 4 | `state` is `MERGED` | pushes nothing more to the branch, and puts the repair on a new branch cut from the base, which holds the work |
 | 5 | `state` is `CLOSED` | pushes nothing, and says in its report that the pull request was closed with a repair pending |
-| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* states for a conflict with the base |
+| 6 | `state` is `OPEN` and `mergeable` is `CONFLICTING` | merges the base into the branch, as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the inspector seals* states for a conflict with the base |
 
 **The stated limit: a defect that only one platform shows, in work nobody
 expected to be platform-specific, is found when the pull request opens,
-after the sealer.** Its fix is a commit outside the work item's records, so
+after the inspector.** Its fix is a commit outside the work item's records, so
 it takes the repair path below: a verifying round on its diff, the broad run
-again, and the sealer again. Nothing else is built for it. The pull request
+again, and the inspector again. Nothing else is built for it. The pull request
 stays open through that repair. Once the repair's broad run is committed,
 the orchestrator runs `seal pr-body` on the body file again and gives the
 file to the open pull request with
 `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
 `gh pr edit`: that command's GraphQL query has stopped on an error about
 Projects (classic), and the REST call sends the body alone. Whenever the
-sealer's next `sealed` verdict is committed while the pull request is open,
+inspector's next `sealed` verdict is committed while the pull request is open,
 after this repair, a merge from the base or any other repair, run
 `seal pr-body` on the file once more and send it the same way. The body
 sent before that verdict carries no seal mark, since the seal it stood on
@@ -70,7 +70,7 @@ record is still owed then. Nothing that can reach `main` is exempt.
 
 **`trail/gate.md` and `guarantee.md` are read at the pull request**, so four
 more steps come before it opens: the preflight, the broad run, the pull
-request body, and then the sealer's spawn. You take them once the work
+request body, and then the inspector's spawn. You take them once the work
 item's `changelog.md` states what the work item ships and every row
 `skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records* names has reached its destination.
@@ -86,9 +86,9 @@ the run covers and what each word beside a failing file means. Send its
 output to `<scratchpad>/<work-item-id>/gate.log`, making the directory
 first, and read the whole log and the exit code
 directly. **On exit 0 commit `trail/gate.md`, then write the pull request
-body, then spawn `sealer` with the base and the work item's directory**, the
+body, then spawn `inspector` with the base and the work item's directory**, the
 issue and the file holding the pull request body. The
-sealer reads that record, audits the work against the issue and the tree,
+inspector reads that record, audits the work against the issue and the tree,
 and writes `guarantee.md` (`docs/forms/the-guarantee.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
@@ -105,12 +105,12 @@ whatever the file held. On exit 1 its `refused:` lines name a record's file
 and line, `pr.md` and `pr.<lang>.md` among the records, a language key
 `config.json` lacks, or the work item's directory with the files to repair
 named in the line: repair that record or file or write that key, commit it,
-and run the command again. Edit nothing in the file; the sealer's
+and run the command again. Edit nothing in the file; the inspector's
 `seal pr-body --check` withholds on a part above the line that is not
 `pr.<lang>.md` and `pr.md` as the keys ask for them, and on a part below it
 that is not the records' text at HEAD, and the pull request's check refuses
 the body sent from it on the same lines.
-**Run the command again before every later spawn of the sealer and before
+**Run the command again before every later spawn of the inspector and before
 every `gh api -X PATCH` of the body**, so the body holds `pr.md`, its
 `pr.<lang>.md` where one stands, and the records as the repair left them.
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
@@ -141,33 +141,33 @@ last round, so no record holds it and `pr.md` cannot quote it.
 **Commit `guarantee.md`; a verdict other than `sealed` opens no pull
 request.** `withheld` names the claim and the coordinate. Where the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
-to skip a party* gives the repair to the sealer, as it does a repair to a
+to skip a party* gives the repair to the inspector, as it does a repair to a
 phase record, the changelog fragment or `pr.md`, make it, commit what it
 changed in the records, run `seal pr-body` on the body file again, and spawn
-the sealer again at the new HEAD, giving a repaired body to a pull request
+the inspector again at the new HEAD, giving a repaired body to a pull request
 already open as the stated limit above says. Whether the broad run is owed
 again for that commit is `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*'s.
+*Orchestrator: the pull request opens once the inspector seals*'s.
 Where the core's row gives it to a round it is a fix nobody reviewed: commit
 it, spawn
 a verifying round on its diff, and once that round's record is committed run
 the broad gate again, commit its record, run `seal pr-body` on the body file
-again, and spawn the sealer. Your broad run
+again, and spawn the inspector. Your broad run
 asks the records arm after its suite, and that arm refuses a commit outside
 the work item after the last round's `target:` commit, so a run taken
 straight after the fix returns the same refusal. `undecided` is a question
 for the owner, put after the run rather than during it; write the answer
 below the newest verdict block as `Answered <date> by <who>: <answer>`,
-commit, and spawn the sealer again.
+commit, and spawn the inspector again.
 `withheld reason: the base <name> resolves to no commit here` needs no
 commit: a `git clone` of the branch worktree copies its branches and none
-of its `origin/` refs, so spawn the sealer again with the branch worktree
+of its `origin/` refs, so spawn the inspector again with the branch worktree
 itself as its clone, where `origin/<base>` or, with no remote, `<base>`
 resolves.
 Where the guarantee's newest verdict block names a commit the branch does
-not hold, which the pull request's check refuses as stale, spawn the sealer
+not hold, which the pull request's check refuses as stale, spawn the inspector
 again at HEAD and commit what it writes; never edit a block by hand. The
-sealer's `seal stamp --guarantee` recorded the refusal, so the new audit,
+inspector's `seal stamp --guarantee` recorded the refusal, so the new audit,
 whose block stands below the refused verdict's block, draws the work item's
 stamp (`docs/checks/the-stamp.md` *The stamp*).
 
@@ -201,16 +201,16 @@ backticks and `seal` alone, commit, and run the preflight again.
 An orchestrator that skips the preflight loses only time: the broad run asks
 the same arms, and refuses the same way after its suite.
 
-**The stamp is drawn for you at the end of the turn in which the sealer's
+**The stamp is drawn for you at the end of the turn in which the inspector's
 report arrives, and you never draw one.** The broad run
 draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
 which say whether the broad command passed and judge nothing. The stamp is
-drawn once per work item from the sealer's verdict
+drawn once per work item from the inspector's verdict
 (`docs/checks/the-stamp.md` *The stamp*): where the newest verdict block of
 `guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
-its lines, the sealer's `seal stamp --guarantee` queues the stamp's values,
+its lines, the inspector's `seal stamp --guarantee` queues the stamp's values,
 under either root, and the plugin's `Stop` hook draws them after your text.
-The line naming them arrives in the sealer's hand-back.
+The line naming them arrives in the inspector's hand-back.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
@@ -223,7 +223,7 @@ committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
 FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
-sealer's hand-back carries that line; quote it in the turn's text. The line
+inspector's hand-back carries that line; quote it in the turn's text. The line
 names the command because the plugin's `Stop` hook draws nothing where it
 cannot: a `python3` that cannot load `seal_stamp.py`, or a working
 directory outside the clone. Where the hand-back carries no such line,

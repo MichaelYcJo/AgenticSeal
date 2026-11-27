@@ -78,7 +78,7 @@ SHIPPED = {
         "reads a range through git and the one work item it is named",
     ),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.json"),
-    "seal stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
+    "seal stamp": (NOT_A_CHECK, "draws the inspector's stamp from a sealed guarantee"),
     "seal cost": (NOT_A_CHECK, "measures a transcript"),
     "seal payload": (NOT_A_CHECK, "measures a spawn's payload"),
     "test": (NOT_A_CHECK, "this repository's own suite runner"),

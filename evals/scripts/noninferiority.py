@@ -66,7 +66,7 @@ gitcmd = sibling.load("lib/gitcmd.py")
 console = sibling.load("lib/console.py")
 meter = sibling.load("skills/verify/scripts/payload_meter.py")
 SUITE = "evals/behaviour"
-AGENTS = ("proofer", "crafter", "framer", "sealer", "tracer")
+AGENTS = ("proofer", "crafter", "framer", "inspector", "tracer")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 # The three counts of a model's `modelUsage` entry a run read.
 READ_COUNTS = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens")
@@ -915,7 +915,7 @@ def check(a):
 
 
 def model(a):
-    """`model`: print the sealer's model a record decides, then its reason.
+    """`model`: print the inspector's model a record decides, then its reason.
 
     A record that cannot be read, does not parse, or is unsound exits 2."""
     try:

@@ -16,8 +16,8 @@ user-invocable: false
 # The core
 
 This file governs work run through the AgenticSeal process, everything the
-plugin does with one issue from the routing question to the sealer's
-guarantee; a session doing other work is not bound by it to start the
+plugin does with one issue from the routing question to the final
+inspector's guarantee; a session doing other work is not bound by it to start the
 process. Each path this file cites is relative to the plugin's root, the
 directory holding this file's `skills/`, never to the session's repository,
 except `seal/`, the records root. The root is looked for at two places,
@@ -46,7 +46,7 @@ between two designs that break no rule below.
 **Judgment is spent where meaning is the question, and a script answers the
 rest.** Whether two things mean the same or give the same result is the
 judgment the AgenticSeal process delegates, and the proofer's findings and
-the sealer's verdict gate a pull request on it. A script that answers "these
+the inspector's verdict gate a pull request on it. A script that answers "these
 differ" where the meaning is the same is the worst result the AgenticSeal
 process can give, so a script does not re-encode that judgment as a grammar
 rule: it reads what a command wrote or what a real parser returns. What a
@@ -56,7 +56,7 @@ than reasoning about what it would print.
 
 **Each agent judges its own target, independently of the others.** The
 framer judges what the work should be, the crafter whether the build holds
-to the frame, the proofer whether the diff holds, and the sealer whether
+to the frame, the proofer whether the diff holds, and the inspector whether
 every party's account agrees with the issue and the tree. Each reaches its
 result without leaning on another's verdict, so one agent's mistake does
 not pass through the next unread. Each reads the records the others hand
@@ -110,16 +110,16 @@ one of those protections, is guidance.
 | Invariant | What it protects | Held by |
 |---|---|---|
 | No review without a build | a round reads a committed tree and its record names the commit | `skills/code-review/scripts/chain_check.py`'s records arm: every record carries one `target:` line, and HEAD descends from the last record's commit and from every `fixed` commit |
-| No fix that no round reads | every change after the last round is read by a round, or by the sealer where it touched the work item's records alone and each finding it closed names a place in those records on its own `location:` line | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
-| No seal without the broad run | the sealer guarantees a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the sealer reads at HEAD itself | `agents/sealer.md` step 1 and the same check's broad gate arm |
+| No fix that no round reads | every change after the last round is read by a round, or by the inspector where it touched the work item's records alone and each finding it closed names a place in those records on its own `location:` line | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
+| No seal without the broad run | the inspector guarantees a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the inspector reads at HEAD itself | `agents/inspector.md` step 1 and the same check's broad gate arm |
 | No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD or at a commit that only `trail/gate.md` and `guarantee.md` follow; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the seal mark among it |
 
 The check refuses at a ready pull request, where its GitHub Actions workflow
 is installed, and in `seal gate`'s preflight and broad run whatever the pull
 request's state. Before the pull request the gate's run holds the first two
-rows and prints the last two, which `agents/sealer.md` step 1 and the
+rows and prints the last two, which `agents/inspector.md` step 1 and the
 orchestrator keeping `skills/code-review/orchestration.md` *Orchestrator:
-the pull request opens once the sealer seals* hold then. In local mode,
+the pull request opens once the inspector seals* hold then. In local mode,
 where the check judges no work item, those two hold all four.
 
 ## The rule a mechanism is kept against

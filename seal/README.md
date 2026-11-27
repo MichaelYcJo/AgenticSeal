@@ -101,7 +101,7 @@ seal/
     │                      read by every round
     ├── pr.<lang>.md       the first part's opening in the commit language,
     │                      where the two language keys differ
-    └── guarantee.md       the sealer's verdict on the work, at a SHA
+    └── guarantee.md       the inspector's verdict on the work, at a SHA
 ```
 
 There is no task list here and no directory for one. `plan.md`'s Phases table

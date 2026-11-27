@@ -301,7 +301,7 @@ seal. The chain check reads no merge commit, so it passes that merge
 (`skills/code-review/scripts/chain_check.py#follows`). The merge still
 moves HEAD past the work item's broad run and seal, and the orchestrator
 then runs both again (`skills/code-review/orchestration.md` *Orchestrator:
-the pull request opens once the sealer seals*). There are no bypass actors
+the pull request opens once the inspector seals*). There are no bypass actors
 and no override, so the rule applies to the owner too. A required check
 that is red is answered by the commit that turns it green. Where the check
 refused correct work, it is answered by fixing the check, never by passing

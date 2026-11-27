@@ -5,19 +5,19 @@ that draws it, for a person who changes them; no agent acts on it.
 
 ## The stamp
 
-**The stamp is drawn once per work item, from the sealer's `sealed`, at the end
-of the main session's turn after the sealer queued it, in either mode, by the
+**The stamp is drawn once per work item, from the inspector's `sealed`, at the end
+of the main session's turn after the inspector queued it, in either mode, by the
 plugin's `Stop` hook.** The stamp means every party
-verified the work item, the sealer last, and the work is done, so it is drawn
+verified the work item, the inspector last, and the work is done, so it is drawn
 from that verdict and never from the broad gate's run, which comes before the
-sealer has read anything and draws nothing (`docs/running/the-broad-gate.md`
-*One act, one owner*). The sealer runs
+inspector has read anything and draws nothing (`docs/running/the-broad-gate.md`
+*One act, one owner*). The inspector runs
 `seal stamp --guarantee <path>` once, after it writes `guarantee.md` with
 `Verdict: sealed`, under either root. Where the reader the pull request's check
 reads it through refuses none of its lines and its newest verdict block reads
 `Verdict: sealed`, the command writes the stamp's values under
 `<git-common-dir>/agentic-stamp/` of the clone the path is in, and prints one
-line naming the file and `seal stamp --from <path>`, which the sealer's
+line naming the file and `seal stamp --from <path>`, which the inspector's
 hand-back carries to the orchestrator. The queue is keyed by the clone and by
 nothing else, so the stamp script reads no environment variable. The `Stop`
 hook runs `seal stamp --stop`, which draws each undrawn file of the clone the
@@ -62,7 +62,7 @@ check: stamp-drawn-once
 
 **A `sealed` refused because its audited commit is not on the branch leaves a
 refusal record in the clone that refused it, and an earlier verdict block
-reading `sealed` that this clone recorded refusing is skipped, so the sealer's
+reading `sealed` that this clone recorded refusing is skipped, so the inspector's
 new audit draws the work item's one stamp.** The new audit's block stands below
 the refused verdict's block, and without a record that earlier block would
 count as the stamp. The record is an empty file,
@@ -126,17 +126,17 @@ read by the person and by nobody else. So is how the stamp reads on a light
 background as well as a dark one. Nothing outside the disc is painted, so its text is in the
 terminal's own colours and theme — dim labels, a green `✓`, the title in the
 stamp's red — and the owner reads the first real stamp on each background. The
-line reaches the person through the sealer's hand-back and the orchestrator's
+line reaches the person through the inspector's hand-back and the orchestrator's
 quote of it, and nobody has watched a stamp the plugin's `Stop` hook draws on
 a screen yet.
 **Nor is the drawer's silence where it cannot draw.** No stamp is queued, and
-nothing is said, for a `guarantee.md` the sealer wrote without running
-`seal stamp --guarantee`, as a sealer of an earlier release does, or one that
+nothing is said, for a `guarantee.md` the inspector wrote without running
+`seal stamp --guarantee`, as an inspector of an earlier release does, or one that
 arrived by a commit fetched from elsewhere or `seal import`; or for a verdict
 whose work item names no branch, or a branch the clone no longer holds. A
 `sealed` over a commit the branch does not hold still counts as the work item's
 stamp, so its repair draws none, where nothing queued it: by a person, or under
-a sealer that runs no `--guarantee`. The pull request's check still refuses
+an inspector that runs no `--guarantee`. The pull request's check still refuses
 that landed row as stale. `--guarantee` judges the file's newest verdict block
 alone, never the earlier blocks, so a `sealed` that drew and whose audited
 commit a later rebase, amend or cherry-pick moved out of the history counts as

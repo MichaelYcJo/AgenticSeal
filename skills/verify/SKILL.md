@@ -12,11 +12,11 @@ description: |
 
 # The Seal Test
 
-This file is the crafter's and the sealer's: the crafter opens it before it hands
-work back, and the sealer opens it for the conditions, the labels and the
+This file is the crafter's and the inspector's: the crafter opens it before it hands
+work back, and the inspector opens it for the conditions, the labels and the
 verdicts it audits against. The orchestrator reads it too. The orchestrator's
 own two acts, the broad gate and the measurement of each run, are
-`skills/verify/orchestration.md`, which the crafter and the sealer do not open.
+`skills/verify/orchestration.md`, which the crafter and the inspector do not open.
 Each instruction below binds the party making a claim, whichever of the three
 it is.
 
@@ -98,25 +98,25 @@ Reporting a `read` as passing is the lie this whole skill exists to prevent.
 4. Where any claim is red or unproven, report the actual state. The claim is
    withheld, not negotiated.
 
-## The hand-back's labels carry the claims, and the one seal is the sealer's
+## The hand-back's labels carry the claims, and the one seal is the inspector's
 
 **The hand-back's labels carry the claims, and the one seal over the whole
-project is the sealer's `guarantee.md`.** An agent hands its claims back under
+project is the inspector's `guarantee.md`.** An agent hands its claims back under
 condition 4's three labels, and a proofer's report says what its review looked
 at; neither is a seal and neither ends in a block.
 
-Two properties tell the sealer's seal apart from every other account of a
+Two properties tell the inspector's seal apart from every other account of a
 run.
 
 - **Scope.** An agent's hand-back covers what that agent touched. The
-  sealer's seal covers a tree nobody is still editing, which is why the rule
+  inspector's seal covers a tree nobody is still editing, which is why the rule
   that nothing edits between the broad run and the pull request
   (`skills/verify/orchestration.md` *The broad gate*) is one that seal rests
   on.
-- **Form.** The sealer's seal is the only mark drawn, and only over a verdict
-  that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
+- **Form.** The inspector's seal is the only mark drawn, and only over a verdict
+  that earned it: the stamp is drawn from the inspector's `guarantee.md` reading
   `sealed`, once per work item, at the end of the turn in which that file is
-  written. The sealer's `seal stamp --guarantee` writes the values it is
+  written. The inspector's `seal stamp --guarantee` writes the values it is
   drawn from, under either root, and the plugin's `Stop` hook draws them in
   the orchestrator's session
   (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:
@@ -124,7 +124,7 @@ run.
   nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
-reference to an INSTANCE names whose**: the sealer's seal, the proofer's
+reference to an INSTANCE names whose**: the inspector's seal, the proofer's
 round record. The concept and its formats stay bare: the Seal Test, a
 counterfeit seal, AgenticSeal itself. The shape to watch for is a sentence that
 names one party and leaves the seal anonymous: *the proofer's audit of the

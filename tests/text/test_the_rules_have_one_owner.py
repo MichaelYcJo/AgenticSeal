@@ -58,7 +58,7 @@ ORCH_IMPL = ("skills", "implement", "orchestration.md")
 # #1046.
 BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 VERIFY = ("skills", "verify", "SKILL.md")
-SEALER = ("agents", "sealer.md")
+INSPECTOR = ("agents", "inspector.md")
 FRAMER = ("agents", "framer.md")
 # The framer's fold and reframe, cut from `agents/framer.md` in #1473 so a
 # first frame does not preload it; the definition names it in one sentence.
@@ -83,11 +83,11 @@ AGENT_SET = ("docs", "running", "the-agent-set.md")
 # linking carrier resolves; the sentence around it is the proofer's to read.
 ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
-    "the one seal is the sealer's*"
+    "the one seal is the inspector's*"
 )
 AFTER_THE_SEAL = (
     "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the sealer seals*"
+    "opens once the inspector seals*"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value*"
@@ -123,21 +123,21 @@ NARROWING = (
 RULES = {
     # #943: a pull request opened before round 1 ran the suite on three
     # platforms at every push of every round, and its Ready press once more.
-    "6 the pull request opens once the sealer has sealed": (
+    "6 the pull request opens once the inspector has sealed": (
         ORCH,
         (),
         {ORCH_IMPL: AFTER_THE_SEAL, CONTRIBUTING: AFTER_THE_SEAL},
     ),
     # Since #967 an agent's hand-back carries its claims under the three
-    # labels and no agent but the sealer takes a seal.
-    "10 the hand-back's labels carry the claims, and one seal is the sealer's": (
+    # labels and no agent but the inspector takes a seal.
+    "10 the hand-back's labels carry the claims, and one seal is the inspector's": (
         VERIFY,
         (
-            # The file the sealer writes its seal into, which the chain
+            # The file the inspector writes its seal into, which the chain
             # check's guarantee arm reads.
             "`guarantee.md`",
         ),
-        {SEALER: ONE_SEAL_IS_FINAL},
+        {INSPECTOR: ONE_SEAL_IS_FINAL},
     ),
     # From #401: the `Broad gate` key is the one value only a person can
     # write, and the criterion for it is folded into one owner.
@@ -202,7 +202,7 @@ RULES = {
     # verifying round, and the core's row gave one half of it. The row
     # states both halves, as the check holds them, and each other file names
     # the row.
-    "22 a change after the last round is read by a round, or by the sealer": (
+    "22 a change after the last round is read by a round, or by the inspector": (
         CORE,
         (),
         {
@@ -315,7 +315,7 @@ RULES = {
     ),
     # #1578: four files each gave the order the gate resolves its base in,
     # and one left out the ref as given. The policy spells the refs, the
-    # sealer keeps the steps it types itself, and
+    # inspector keeps the steps it types itself, and
     # each link replaces `DESCRIBES_THE_BASE` of
     # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py`, which
     # held both orchestration files to their copies.
@@ -545,7 +545,7 @@ def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit(
         )
 
 
-def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
+def test_the_orchestrator_writes_the_body_file_the_inspector_reads():
     """S8 of #943 and S12 of #1044, the orchestrator's half. The steps from
     the preflight to the open pull request name the commands that write the
     pull request body's file and send it, and the constant that marks where
@@ -561,7 +561,7 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
         # repaired body.
         "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`",
         # The command the orchestrator types to write the body's copy of the
-        # records, with the scratchpad path the sealer's spawn names.
+        # records, with the scratchpad path the inspector's spawn names.
         "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
         # The citation the orchestrator resolves to find the line its own
         # part goes above.
@@ -607,9 +607,9 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     preflight to the open pull request, so the case reads both."""
     text = flat(*ORCH)
     owner = text[
-        text.index("## Orchestrator: the pull request opens once the sealer seals") : (
-            text.index("## Orchestrator: verify before posting")
-        )
+        text.index(
+            "## Orchestrator: the pull request opens once the inspector seals"
+        ) : (text.index("## Orchestrator: verify before posting"))
     ]
     steps = flat(*GATE_TO_PR).split(
         "## Orchestrator: from the preflight to the open pull request", 1

@@ -173,7 +173,7 @@ writes it above `pr.md`. It is named for **its own** language, the commit
 key's: a repository whose records are English and whose commits are Korean
 keeps `pr.ko.md`. What `pr.md` and `pr.<lang>.md` hold is stated in
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*. A record has no
+once the inspector seals*. A record has no
 mirror: there is one file and a checker reads it, so its prose is whatever
 `Record language` says and nothing else.
 
@@ -227,7 +227,7 @@ follow it and are not part of the key; the module docstring of
 `skills/verify/scripts/broad_gate.py` lists them, in the order they run.
 `seal gate --preflight` runs those checks alone, reading the key and not
 running its command, and writes nothing; the orchestrator runs it before
-the sealer is spawned.
+the inspector is spawned.
 
 ```json
 "Broad gate": "uvx ruff check . && uvx ruff format --check . && bin/test -q"
@@ -330,7 +330,7 @@ one more piece of a model of `cmd.exe`, and the gate carries none.
 
 **A commit after the run that changes only the work item's records does not
 run the command again** (`skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*). So a part of
+*Orchestrator: the pull request opens once the inspector seals*). So a part of
 the command that reads those records, such as a Markdown lint over every
 `.md` file or a suite case over `seal/threads/`, reads them as they stood at
 the run. Where the repository runs the same command in its pull request's
@@ -484,7 +484,7 @@ repository, between the line
 where the newest verdict block of the work item's `guarantee.md` reads
 `sealed` at a commit that only the closing records, `trail/gate.md` and
 `guarantee.md`, follow. A work item not sealed at HEAD gets no mark, and the
-sealer and the pull request's check name why. The mark's address is the
+inspector and the pull request's check name why. The mark's address is the
 plugin's repository and names no version, so the installed plugin and the
 copy the pull request's check runs compose one line whatever release each
 is. A body carrying it shows the image while that repository stays public

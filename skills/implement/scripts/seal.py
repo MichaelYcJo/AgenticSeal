@@ -152,7 +152,7 @@ TOOLS = {
     ),
     "stamp": (
         "skills/verify/scripts/seal_stamp.py",
-        "draw the sealer's stamp",
+        "draw the inspector's stamp",
     ),
     "layout": (
         "skills/verify/scripts/test_layout.py",

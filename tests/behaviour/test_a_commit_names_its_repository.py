@@ -55,7 +55,7 @@ def test_it_points_at_the_edit_rule():
 
 def test_the_contract_points_every_agents_commit_at_the_rule():
     """The framer commits where a spawn prompt asks, and a proofer's,
-    sealer's or tracer's probe may commit in its clone. No step of theirs
+    inspector's or tracer's probe may commit in its clone. No step of theirs
     opens implement's *2.*, so the contract every agent preloads carries the form
     and the citation."""
     text = " ".join(read(*CONTRACT).split())

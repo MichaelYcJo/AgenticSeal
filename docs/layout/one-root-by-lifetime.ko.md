@@ -178,7 +178,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 ## 이름
 
 **제품 이름은 AgenticSeal 이고, 그 안에서 맨 `seal` 은 결과를 가리킵니다.**
-루트 `seal/`, `seal` 명령줄, sealer, 기록을 가리키는 "the seal" 입니다.
+루트 `seal/`, `seal` 명령줄, 기록을 가리키는 "the seal" 입니다.
 플러그인의 `name` 과 모든 에이전트·스킬의 접두어는 `agentic` 이고,
 마켓플레이스는 `agenticseal`, 커밋 트레일러는 `Seal-Routing:` 입니다. 모든
 식별자는 구분자 없는 소문자이고, `AgenticSeal` 은 사람이 브랜드를 읽는 자리에만
@@ -189,7 +189,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 | AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
 | `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
-| framer, crafter, proofer, sealer, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
+| framer, crafter, proofer, inspector, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
 
 디렉터리와 에이전트는 처음 만나는 사람에게 자기가 무엇인지 말해야 하므로,
 어느 쪽도 비유로 이름 붙이지 않습니다. 배포되는 산출물은 모두 영어로 씁니다. 플러그인은 남을 위한 것이고 토큰마다
