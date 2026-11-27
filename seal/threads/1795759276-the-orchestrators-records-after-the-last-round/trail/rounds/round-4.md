@@ -57,6 +57,11 @@ What a row sends, the findings and the files or sections a fold or a fix pass is
 
 `changelog.md:4` takes no new clause. It states the rule's edge, and the added sentence states what stands outside it.
 
+```seal
+verdict: fixed 28b7ffc12
+answer: Read against *Scope* item 4's first bullet as the framer folded it at `2dfbfe6fc`, the round's paste-ready sentence is the fold's, so it went in as given, after "no word for the kind of change a fold made or will make." in `skills/implement/orchestration.md`. The coordinator's spawn also asked for it in `changelog.md:4`, where the entry states the rule's facts, so the entry states the sentence after the same clause. `bin/test -q tests/text tests/behaviour` passes after the fix (executed).
+```
+
 ### 2. The fragment and *Alternatives considered* row 15 forbid a word for the kind of any change, where the rule forbids it of a fold's
 
 ```seal
@@ -84,6 +89,11 @@ For `frame/plan.md:33`, row 15's verdict cell, the sentence "The edge is drawn b
 
 ```markdown
 The edge is drawn by what a row says: no number or list of a change, made or still to come, no word for the kind of a fold's, and a row about a change states what it means.
+```
+
+```seal
+verdict: fixed 28b7ffc12
+answer: `changelog.md:4` takes the round's clause: "no word for the kind of change a fold made or will make", as *Scope* item 4 and the skill read. Row 15 of *Alternatives considered* is the framer's, and the fold `2dfbfe6fc` limits its kind word to a fold's. `git grep -n -F -e 'word for its kind' -- skills docs seal/threads/1795759276-the-orchestrators-records-after-the-last-round ':!*/trail/rounds/*'` prints nothing after `28b7ffc12` (exit 1, executed).
 ```
 
 ## Confirmations
