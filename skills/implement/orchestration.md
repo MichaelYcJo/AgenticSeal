@@ -132,21 +132,25 @@ and the document it judged against as one row of `frame/plan.md`
 *Judgments of the run* and leaves the row uncommitted, so the framer reads
 the row when it reads
 `plan.md` whole: the rewritten sentence keeps no reason for itself, and the
-settle reads the row. A row of *Judgments of the run*, this one and every
-other the orchestrator writes, names a commit as a coordinate and states
-nothing of what the commit changed: no number of lines, no list of the
-sentences or items a fold rewrote and no word for the kind of change,
-because `git show <commit>` is that account. The orchestrator resumes the
-work item's framer while that session still exists, as a fix pass resumes
-the implementer, and
-otherwise spawns a fresh framer and hands it the decisions and the commit
+settle reads the row. Where a row of *Judgments of the run*, this one or
+any other the orchestrator writes, names a commit, it names it as a
+coordinate and gives no inventory of what that commit changed: no number of
+lines, no list of the sentences or items a fold rewrote and no word for the
+kind of change a fold made, because `git show <commit>` is that account. A
+row whose judgment is about a change, such as a regression's route
+(`skills/code-review/orchestration.md` *A regression is routed by comparing
+the fix with the frame*) or why the title takes its prefix, states as its
+grounds what the change means against the document it judges against. The
+orchestrator resumes the work item's framer while that session still
+exists, as a fix pass resumes the implementer, and otherwise spawns a fresh framer and hands it the decisions and the commit
 at which the frame was last written. The message that resumes the framer,
 and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
 answers. The row for a fold states the decision as it was sent. After the
-fold the orchestrator changes it only where the framer's hand-back names a
-defect in it, which it corrects, or where the framer rejects the decision,
-as the next paragraph states. It then commits the frame files the framer
+fold the orchestrator changes it only where the framer's hand-back, a
+round's finding or the sealer's verdict names a defect in it, which it
+corrects, or where the framer rejects the decision, as the next paragraph
+states. It then commits the frame files the framer
 changed and its own rows in one commit, before the spawn or the resume
 that reads them.
 
