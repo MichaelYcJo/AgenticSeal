@@ -1,0 +1,58 @@
+# Implementation Plan: 1795759278-the-cores-margin-depends-on-the-path
+
+## Technical context
+
+The tree as read at `7f388fa1f`.
+
+- `lib/core.py:46` sets `CAP = 10_000`, the harness's cap on one hook's output. `lib/core.py:54-60` holds `START` with the slots `{orchestration}` and `{review}`, and `lib/core.py:106-123`, `#rendered`, fills both with paths joined under `os.path.abspath(plugin_root)`. `lib/core.py:79-91`, `#origin`, returns the plugin's own core for every repository that is no clone of the plugin. The plugin root therefore stands three times in an installed plugin's output.
+- `tests/lib/test_core.py:233-246`, `test_the_trees_core_stays_under_the_harness_cap`, measures `core.rendered(path, ROOT)` at the checkout. `tests/lib/test_core.py:43-49`, `#start_line`, formats `START` with absolute paths for the cases of `Test_rendered`.
+- `skills/verify/scripts/payload_meter.py:388-390`, `tests/hooks/test_core_start.py:81-84` and `tests/skills/test_payload_meter.py:125-134` call `core.rendered` and hold no copy of the closing line.
+- `hooks/core-start.py` prints `core.output(cwd, root)` and a newline. `hooks/hooks.json` registers one `SessionStart` command.
+- The measurements of `frame/design.md` `## Grounding`: 9,790 characters of the output are decided by no path, of which the core is 9,398. An installed plugin's output passes the cap at a plugin root longer than 69 characters, and the default root under a 14-character home is 63.
+
+**The constraint.** The core takes 9,398 of the 10,000 characters. No wording of the header and the closing line makes room for more than a few sentences. The design can make the measure exact, cut the root to one occurrence, and say what a longer root receives. It cannot make the core's budget large.
+
+**The failure scenario of the chosen approach.** Six months on, a session in a user's repository reads the closing line's `skills/implement/orchestration.md` against its working directory and not against the plugin's root. A repository that holds no such file returns an error, and the session reads the closing line's last sentence again. A repository that holds its own `skills/implement/orchestration.md` gives the session the wrong file. The guard is the core's opening paragraph, which stands at the top of the same output and says that each path is relative to the plugin's root "never to the session's repository", and which every other path the core cites already depends on. Whether a session takes the first hop as written is `frame/questions.md` Q1. The second scenario: the core grows to the room again, and the case fails at a pull request that adds a sentence. That is the case doing what *Scope* item 7 says it does, and the pull request removes as many characters as it adds.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1. The closing line names its files relative to the plugin's root, the case measures at a root of `ROOT_ROOM` characters, and an output that would reach `CAP` becomes one line naming the core's file (*Scope* items 1 to 6) | A session resolves the relative path against its repository (*Technical context*) | **Chosen.** It meets both of the issue's *Done when* lines: the case reads no checkout path, and the root stands once in an installed plugin's output. By the draft's arithmetic in `frame/design.md` `## Grounding`, the default root of 63 characters leaves 102 characters under the cap where the tree leaves 20, and a root up to 165 prints whole where the tree's limit is 69. Past that, the session is told what to open |
+| A2. Change the case alone: measure `rendered` at a fixed root, and keep the three absolute paths | The case passes or fails for the core's size alone, and an installed plugin still passes the cap at a home directory longer than 20 characters. The room would have to be 69 or less to pass at all | Rejected: it answers the issue's first *Done when* line and leaves the second, the defect a user meets, as it is |
+| A3. One closing sentence for every case, naming the root: ``Both paths are relative to the plugin's root, `<root>`.`` | The root stands twice in an installed plugin's output. By the same arithmetic the output is 9,846 plus two roots: 9,972 at 63, and over the cap past a root of 76 | Rejected. The branch A1 adds is one condition, held by a case on each side, and it buys the difference between a limit of 76 and one of 165. A3 is what Q1 falls back to where a session does not take the relative path |
+| A4. A clone's session is sent to the clone's own `skills/implement/orchestration.md`, so the closing line never names a root and needs no branch | It changes which file a session in this repository opens before its first edit, for a reason that is the output's length. A clone ahead of the installed plugin would run a procedure whose agents, preloaded from the installed plugin, hold the older rules | Rejected: #1430 decided that the closing line names the running plugin's files, and `lib/core.py`'s comment above `ORCHESTRATION` states it. The decision is not argued again here |
+| A5. A second `SessionStart` command prints the closing line, so the core's output holds one root and the closing line has its own cap | Whether the harness caps each command's output or all of them joined is not measured, and a subagent starts no session to measure it. If the cap is on the joined output, the change buys nothing and adds a hook entry. The order in which two outputs reach the context is the harness's | Rejected for this work. It is the one alternative that would free the closing line's whole length for the core, so the work item that next needs room measures it first, with the probe `skills/verify/scripts/seal_stamp.py`'s comment on `MESSAGE_LIMIT` describes |
+| A6. No line for a root past the cap: state the supported length in `README.md` and let the harness cut a longer output | A user whose root is longer receives a preview, with no closing line and no sign in the output of what was lost. This repository's own worktrees under a session's scratchpad stand at such paths: the clone of `frame/design.md` `## Grounding` is 175 characters deep | Rejected: the hook knows the length and the cap exactly, and one comparison turns a cut output into an instruction. `skills/implement/orchestration.md` step 1 already tells a session with no core to open it |
+| A7. Print the closing line first, under the header, so a preview keeps it | The core is still cut, and what a preview holds is not measured for a `SessionStart` output. Every text that calls it the closing line changes | Rejected: A1's line of *Scope* item 2 leaves nothing to a preview |
+| A8. Remove sentences from the core until the margin is comfortable | Each sentence of the core is a rule every party reads. Which one leaves is a judgment about that rule, and the issue asks for a measure, not for a cut | Out of scope. The case of *Scope* item 5 gives the number such a cut is weighed against |
+| A9. Replace the structure: drop `CAP`'s case and keep only the line of *Scope* item 2, which holds the output under the cap at any size | A release grows the core past the cap at the default root. Every user's session then receives the instruction and no core, the hook's purpose is gone, and no pull request showed it | Rejected. The premise that keeps the case is that the cap exists where `CAP` puts it, and it was checked: the transcripts of 2026-11-27 hold an output of 9,959 characters recorded whole (`frame/design.md` `## Grounding`), and `lib/core.py`'s comment brackets the cap between 9,990 and 10,010. The case is what makes a longer core a decision at its pull request |
+| A10. A `ROOT_ROOM` of 63, 80 or 120 in place of 100 | 63 holds the default root under a 14-character home and no longer one. 80 holds a home of 31 characters. 120 holds a home of 71 and leaves 45 characters for the core where 100 leaves 65 | 100 chosen: the default root is the home directory plus 49 characters at a six-character version, so 100 holds a home of 51 characters. A longer root loses nothing but the inline copy, by *Scope* item 2, so the room is weighed against the core's budget and not against a failure |
+| A11. A document states the margin as a number | The number is false at the next sentence added to the core, and no change to the core searches for it | Rejected by `skills/core/SKILL.md` *The rule a mechanism is kept against*: nothing is kept beside the tree to stay in step with it. The case's failure message prints the length, `CAP` and `ROOT_ROOM`, and `changelog.md` states the measurement of its date |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1 to 8 | The cases of *Scope* items 5 and 6, each seen red as `frame/design.md` S1, S2 and S5 state; `tests/lib/test_core.py`, `tests/hooks/test_core_start.py` and `tests/skills/test_payload_meter.py` narrow; `git grep -n -e 'spelled absolute' -- . ':!seal/threads'` prints nothing (`frame/design.md` S6 accounts for the one line it printed at `7f388fa1f`); `seal mutate` on the changed lines of `lib/core.py`; S7's two commands | |
+
+## Overlap with the release
+
+The release's other open items are #1630 with #1639, and #1640 with #1642, as the spawn names them. On 2026-11-27 each one's branch held its routing commit and no frame: `fix/1630-1639-the-orchestrators-records-after-the-last-round` stood at `e503c6961` and `fix/1640-1642-scripts-read-git-past-submodule-settings-and-a-floor` at `f7d315f01` (executed). Each was read from its issue's title and from the spawn's line on what it changes: the records arm of `chain_check.py` and `skills/implement/orchestration.md` for the first, the git reads and `lib/gitcmd.py`'s docstring for the second. By that line neither changes `lib/core.py` or `tests/lib/test_core.py`. They meet this work on one check: the case of *Scope* item 5 reads the whole of `skills/core/SKILL.md`, so a sentence either item adds to the core spends the room that case measures.
+
+| Work item | Where both change | Merges first | Grounds |
+|---|---|---|---|
+| #1630, #1639 | No file. The case of *Scope* item 5 reads `skills/core/SKILL.md`, whose table under *Judgment is not licence to skip a party* names the records arm that item changes | #1641 | It carries the version move, so it is the release's first pull request. Its case replaces one that already reads the same file: at a 55-character worktree path the case of `7f388fa1f` leaves 44 characters, and the new one leaves 65 at any path by the draft's arithmetic. Merged first, it gives the later item more room and a number that does not move with its worktree. A sentence the later item adds to the core then meets the case inside the rounds it runs anyway, and fits in what the case's message prints as left or removes as many characters |
+| #1640, #1642 | No file. The same case, where that item adds a sentence to the core | #1641 | The same grounds |
+
+## Operational impact
+
+- A session's context holds the closing line's two paths relative to the plugin's root, with one sentence saying so. A session whose plugin root is too long for the harness's cap receives one line naming the core's file and the closing line, in place of an output the harness cut.
+- No migration, environment variable or dependency. `hooks/hooks.json` is unchanged.
+- This pull request carries the release's version move. Phase 1's commit that adds `changelog.md` carries it, and reads the version from the issue's milestone, `gh issue view 1641 --json milestone`.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
