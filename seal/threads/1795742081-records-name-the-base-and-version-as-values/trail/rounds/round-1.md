@@ -35,6 +35,12 @@ value
 and may state a value of a named commit, a published release, a dated measurement, a date or a cut.
 ```
 
+```seal
+verdict: fixed 535a2a33e
+location: `seal/follow-up.md:49`
+answer: The finding holds. `535a2a33e` narrows the moment in rule 19's third paragraph to "a published release" and adds that a release still open is no such moment, as the fold `665fcf9f2` states R4 at `frame/design.md:80`, which is the fold's line. The paste-ready fix was read against that fold and applied with the fold's added clause on an open release, in this pass's words. `changelog.md:3` and its process row follow. Holding this work item's own records to the narrowed moment found a count of an open release: `changelog.md` and the `seal/follow-up.md` row stated 12 of 120 findings of owlery releases 0.0.5 and 0.1.0, and #1632's comment counts them "so far", the day #1633's evidence says `release/v0.1.0` was cut (executed: `gh issue view 1632 --json comments` prints the comment created 2026-11-27T00:59:34Z). `7991077ec` states each as the count #1632's comment made on 2026-11-27. `frame/questions.md:16` and `frame/design.md:15` state it as the comment's count, in a question and a dated *Grounding* row, and stand. Executed after `7991077ec`: the finding's search prints `frame/design.md:12` and `:134`, which quote the old sentence in a dated *Grounding* row and in *Removes* and stand, and this record's lines 16 and 19, and nothing else.
+```
+
 ### 2. R1's example "the version a release carries" refuses the `changelog.md` line that states the version move, which the frame keeps
 
 ```seal
@@ -50,6 +56,12 @@ Why it matters: the work item that carries the version move writes the number in
 A value the work item's own commit writes is a state of its branch, not
 outside it, and stays: the version that the work item carrying the move
 writes to the version file and states in its `changelog.md`.
+```
+
+```seal
+verdict: fixed 535a2a33e
+location: `seal/threads/1795742081-records-name-the-base-and-version-as-values/changelog.md:3`
+answer: The finding holds. `535a2a33e` adds clause R6 of the fold `665fcf9f2` (`frame/design.md:82`) to rule 19's third paragraph, after the form lines and before the sentence on the rule's reach: a value the work item's own commit writes is a state of its branch, not one outside it, and stays, with the version the work item carrying the move writes to the version file and states in its `changelog.md` as its example. The paste-ready fix was read against R6 and applied in like words. `frame/design.md:54` is the fold's line. `changelog.md:3` and its process row now state the clause, which the finding's `location:` does not name. Executed after `7991077ec`: the finding's search prints the line "The version moves to" a number in the `changelog.md` of ten work items, from `1794465688-feature-prs-wait-on-the-macos-runner` to `1795736973-the-preflight-passes-where-a-round-is-owed`; each states a value its own work item's commit wrote, which R6 keeps, so each stands. No case pins a sentence of rule 19, as the docstring of `tests/text/test_the_agent_contract_holds_the_universal_rules.py` says, and R6 adds no citation a `RULES` row reads, so no case was added.
 ```
 
 ### 3. The work item's frame says, naming no moment, which files another work item changes, and one of the three it names is in neither that item's issues nor its frame
@@ -73,6 +85,11 @@ The three citations above name "a count or a universal contract rule 19 refuses"
 
 <!-- frame/plan.md:27, the second cell's last sentence -->
 The template's placeholder is what the orchestrator fills, and the frame of the work item for #1624, #1628 and #1629 changes that file at `762f284f7`, in its *Scope* item 6
+```
+
+```seal
+verdict: fixed 665fcf9f2
+answer: The finding holds, and each sentence it names stands in the frame, which the framer's fold `665fcf9f2` rewrote as the paste-ready fix asks; this pass made no edit for it. Read at HEAD: `frame/design.md:50` cites the other work item's frame at `762f284f7`, its *Scope* items 4 and 5, and says it does not name `skills/implement/fold-and-reframe.md`; `frame/plan.md:16` says two of the files at `762f284f7`; `frame/plan.md:27` names `762f284f7` and *Scope* item 6. Not re-run: the evidence line's `gh issue view` and `git show 762f284f7` reads, which the fold stands on. Executed after `7991077ec`: the finding's search prints `frame/plan.md:27`, now dated, and this record's lines, and nothing else. The read of the range and the records after `7991077ec`, the pass's last fix commit: executed `git diff --stat 941e217a4 HEAD`, which names `skills/agent-contract/SKILL.md`, `changelog.md`, `gaps.md` and `seal/follow-up.md`, and printed the end of rule 19's third paragraph, lines 226 to 239, `changelog.md`'s `### Fixed` section, and `frame/design.md` *Scope* item 1, the line on the fragment's version line, A4, A8, R4 and R6. Held from this pass's earlier prints and not printed again after `7991077ec`: the start of rule 19's third paragraph, `changelog.md`'s process row, `gaps.md`, `seal/follow-up.md:49`, `routing.md` and the rest of the three frame files, which no commit of this pass touched and which the fold's diff `4a16d6e24..941e217a4` shows. HEAD contradicts none of them. `trail/phases/phase-1.md:9` says the paragraph holds R1 to R5; it is the record of the phase closed at `a96ec2237` and stands, since a fix pass writes no phase record (`skills/implement/fix-pass.md` *The close blocks, last*). The other places that state the reworded exemption were listed by `git grep -n -i -E 'published release|still open|own commit writes' -- ':!seal/threads'`, executed after `535a2a33e`, a sample under contract rules 12 and 19: it prints rule 19's two new lines and lines about other facts in `docs/`, `lib/`, `skills/`, `templates/setup/seal-README.md`, `seal/README.md` and `tests/`, and a statement of the exemption in other words stands outside it.
 ```
 
 ## Confirmations
