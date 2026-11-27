@@ -67,4 +67,5 @@ Neither other work item had a frame committed when this one was written: `fix/16
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | After phase 2 (`845c5fad7`), the orchestrator folds two `frame/design.md` sentences the crafter's hand-back names, the `FLAGS` bullet of *Data & interfaces* and S6's *Verifiable how*, narrowing each to what HEAD holds, in a commit of its own | A statement a crafter's hand-back names in a frame file is the orchestrator's to fold, and the fold narrows it | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |
+| 2026-11-27 | The title takes `fix:` | Under a `.gitmodules` `ignore` setting the chain check's records arm read no submodule path, so a commit that moved only a submodule's pointer after the last round passed it (`frame/design.md` *Grounding*), and nothing stated the oldest git `seal range` runs on; `feat:` came closest, for the stated floor and the refusal that names it | `skills/commit-pr-convention/SKILL.md` *Commit messages* |
