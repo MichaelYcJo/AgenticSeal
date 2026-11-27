@@ -391,6 +391,8 @@ class Test_main:
         assert code == 0, said
         text = written(out)
         assert header.format(path="sub") in text
+        # A submodule is not called binary, a word its reader acts on.
+        assert RANGE.BINARY.format(path="sub") not in text
         assert "Subproject commit" not in text
         assert "A file." not in text
         assert RANGE.RECORD.format(path=f"{ITEM}/routing.md") in text
