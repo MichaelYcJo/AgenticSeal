@@ -37,6 +37,11 @@ The `git grep` on *no route chosen* printed `skills/settle/SKILL.md:234` and no 
    no route chosen, and is not one.
 ```
 
+```iadd
+verdict: fixed e6359a4d
+answer: The sentence now names both spellings, each for its commits: *A settle's commit carries `IADD-Routing: no work item`, or `Seal-Routing: no work item` in a release before that one, with no route chosen, and is not one.* *That one* is the release the sentence before it names, the one that renamed the plugin IADD. The pass wrote this in its own words. The paste-ready text's *its release's spelling ... before that release* leaves *that release* to be resolved through *its release*, which can be read as the commit's own release. The backticked `IADD-Routing: no work item` that `tests/text/test_settle_reads_before_it_removes.py` reads stands on one line, and the review-round set passed. After the fix, `git grep -n -F 'no route chosen' -- . ':!iadd/threads'` prints only `skills/settle/SKILL.md:235`, the fixed sentence. The other lines that state a settle commit's trailer, from `git grep -n -i 'no work item' -- . ':!iadd/threads' ':!docs/experiments' ':!evals/behaviour'`, are `skills/settle/SKILL.md:460`, `docs/checks/the-fold.md:74` and `docs/releasing/release-checklist.md:71`. Each one tells a settle what its commits carry from this release on, and none reads the commits of earlier releases, so each stands.
+```
+
 The test reads the skill through `tests/conftest.py#flattened`, which makes each run of whitespace one space, so the trailer wrapped across two lines still reads whole.
 
 ## Confirmations
