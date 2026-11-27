@@ -83,6 +83,11 @@ For `frame/design.md` *Scope* item 4, its first bullet:
 
 For `changelog.md:4`, the clause "now says that a row names a commit as a coordinate and states nothing of what the commit changed" becomes "now says that a row names a commit only as a coordinate and gives no inventory of what that commit changed". For `changelog.md:11`, "a row of *Judgments of the run* names a commit as a coordinate and states nothing of what it changed" becomes "a row of *Judgments of the run* names a commit only as a coordinate and gives no inventory of what it changed".
 
+```seal
+verdict: fixed 9833b5b51
+answer: Read against *Scope* item 4's first bullet as the framer folded it at `ef2c72eaf`, the round's paste-ready sentence states the same facts, so it went in as given. The sentence binds a row where it names a commit, and gives a row about a change its grounds. `changelog.md:4` and `:11` take the round's clauses. `changelog.md:4` also gains the sentence on a row about a change. `553a8ee9d` rewraps the line the fix left at 124 columns, which `tests/behaviour/test_docs_line_wrap.py` refused. `9edade97d` changes the entry's lead from "no account" to "no inventory", as the fold's item 4 title reads. `git grep -n -F -e 'names a commit as a coordinate' -- .` run again after `9edade97d` prints no line outside `seal/threads/` (exit 1). Inside it, it prints only this record's quotes and round 1's.
+```
+
 ### 3. The rule on a fold's row lets no round or sealer correct it, and this run's own correction of the first row is the act it forbids
 
 ```seal
@@ -112,6 +117,11 @@ For `frame/design.md` *Scope* item 4, its second bullet:
 ```
 
 For `changelog.md:4`, "only where the framer's hand-back names a defect in it or the framer rejects the decision" becomes "only where the framer's hand-back, a round's finding or the sealer's verdict names a defect in it, or the framer rejects the decision".
+
+```seal
+verdict: fixed 9833b5b51
+answer: The sentence on a fold's row now names the framer's hand-back, a round's finding or the sealer's verdict as what names a defect in it, the round's paste-ready text. That text matches *Scope* item 4's second bullet as folded at `ef2c72eaf`. `changelog.md:4` takes the round's clause. `git grep -n -F -e 'changes it only where' -e "only where the framer's hand-back names a defect" -- .` run again after `9edade97d` prints, outside `seal/threads/`, `skills/implement/orchestration.md:151`, the fixed sentence. Inside it, it prints `frame/design.md:53`, the fold, and this record's quotes.
+```
 
 ### 4. The second row was rewritten after its fold on no finding, and now names a document its decision was not judged against
 
