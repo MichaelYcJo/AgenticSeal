@@ -12,10 +12,12 @@ exactly, so the case reads the bound and not a spelling this file chose.
 
 import os
 import re
+import subprocess
 
 import pytest
 from conftest import (
     ROOT,
+    as_called,
     census_case,
     commit_everything,
     git,
@@ -545,6 +547,34 @@ class Test_main:
         assert code == 2
         assert "is not a work item's directory" in err
         assert not out.exists()
+
+    def test_refuses_a_git_older_than_the_floor_before_its_first_read(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1642, design S7. Where `git version` prints a version older than
+        `lib/gitcmd.py#OLDEST`, the command prints `older`'s line, ends at
+        exit 2, writes no file and starts no other git command, `rev-parse`
+        among them. Seen red with the ask taken out of `_read`."""
+        repo, base = built(tmp_path, {DOC: document()})
+        real, started = subprocess.run, []
+
+        def run(argv, *args, **kwargs):
+            started.append(as_called(argv))
+            if started[-1][-1:] == ["version"]:
+                return subprocess.CompletedProcess(argv, 0, "git version 2.29.3\n", "")
+            return real(argv, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", run)
+        out = tmp_path / "read.txt"
+        code, said, err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 2, said
+        assert err == (
+            "seal range: git 2.29.3 answers here, and the plugin's scripts need "
+            "git 2.30 or newer\n"
+        )
+        assert said == ""
+        assert not out.exists()
+        assert [argv[-1] for argv in started] == ["version"], started
 
     def test_refuses_a_missing_argument_at_exit_2(self, tmp_path, monkeypatch):
         """An argument left out ends at exit 2 before anything is read."""

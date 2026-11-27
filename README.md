@@ -48,12 +48,12 @@ claude
 > /plugin install agentic@agenticseal
 ```
 
-You need `git`, and Python 3.12 or newer answering to `python3` on your PATH.
-The `seal` commands are Python scripts, and `python3` is the command they run
-with. Run `python3 -V` before you install: macOS ships 3.9 as
-`/usr/bin/python3`, and a version manager answers with whatever it was last
-told. On Windows, where the official installer creates no `python3`,
-`seal.cmd` runs `py -3`, and the plugin's hooks fall back to it.
+You need `git` 2.30 or newer, and Python 3.12 or newer answering to `python3`
+on your PATH. The `seal` commands are Python scripts that start `git`, and
+`python3` is the command they run with. Run `python3 -V` before you install:
+macOS ships 3.9 as `/usr/bin/python3`, and a version manager answers with
+whatever it was last told. On Windows, where the official installer creates
+no `python3`, `seal.cmd` runs `py -3`, and the plugin's hooks fall back to it.
 
 That is the whole install. Nothing is written into your `CLAUDE.md` or your
 settings, and the plugin's hooks come with it (*What runs on your

@@ -17,7 +17,8 @@ command that did not start or did not finish within `TIMEOUT` raises
 `Unrun`, a non-zero exit is the caller's to read unless it passes
 `check=True`, and `Test_Failed` holds what an uncaught one does to a
 process. `Test_http_answer` holds the reader of what `gh api -i` printed,
-the HTTP status the release scripts decide on.
+the HTTP status the release scripts decide on. `Test_older` holds the read
+of git's version against `OLDEST` (#1642).
 """
 
 import os
@@ -668,6 +669,67 @@ class Test_is_ancestor:
         starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
         with pytest.raises(gitcmd.Unrun):
             gitcmd.is_ancestor(str(repo), first, second)
+
+
+class Test_older:
+    """#1642, design S6. The cases supply what `git version` printed, so a
+    git older than `OLDEST` is read where none is installed."""
+
+    @pytest.mark.parametrize("version", ["2.29.3", "1.8.3.1"])
+    def test_refuses_a_git_older_than_the_floor_naming_both(self, monkeypatch, version):
+        """The line names the version git printed and `OLDEST`. 1.8.3.1 is
+        the git of a long-term-support distribution that #1642 names as a
+        case. Seen red with the comparison against `OLDEST` removed."""
+        calls = starts(monkeypatch, (0, f"git version {version}\n", ""))
+        assert gitcmd.older("/r") == (
+            f"git {version} answers here, and the plugin's scripts need git "
+            "2.30 or newer"
+        )
+        [(command, _)] = calls
+        assert command == gitcmd.argv("-C", "/r", "version")
+
+    @pytest.mark.parametrize(
+        "printed",
+        [
+            "git version 2.30.0\n",
+            "git version 2.50.1 (Apple Git-155)\n",
+            "git version 2.39.2.windows.1\n",
+            "git version 3.0.0\n",
+        ],
+        ids=["the-floor", "apple", "windows", "a-higher-major"],
+    )
+    def test_accepts_a_git_at_the_floor_or_newer(self, monkeypatch, printed):
+        """A version at `OLDEST` or newer is no answer, whatever follows its
+        minor number. A major above `OLDEST`'s with a minor below it is
+        newer, so the two numbers are compared as one version."""
+        starts(monkeypatch, (0, printed, ""))
+        assert gitcmd.older("/r") is None
+
+    @pytest.mark.parametrize(
+        "code, printed",
+        [
+            (0, "fakegit version 2.29.3\n"),
+            (0, "git version v2.29.3\n"),
+            (0, ""),
+            (1, "git version 2.29.3\n"),
+        ],
+        ids=["another-program", "a-v-before-it", "nothing", "a-non-zero-exit"],
+    )
+    def test_refuses_to_read_a_line_in_another_shape(self, monkeypatch, code, printed):
+        """A first line that is not `git version <major>.<minor>` followed
+        by anything, or a git that exits non-zero, is not read, and refuses
+        nothing. Seen red with the whole-line match loosened to a search,
+        and with the exit code unread."""
+        starts(monkeypatch, (code, printed, ""))
+        assert gitcmd.older("/r") is None
+
+    def test_accepts_the_line_the_git_running_the_suite_prints(self, tmp_path):
+        """The git that runs the suite is no older than `OLDEST`, and its
+        first line is one `VERSION` reads. None alone would also stand for
+        a line in another shape, so the line is matched here too."""
+        assert gitcmd.older(str(tmp_path)) is None
+        done = subprocess.run(["git", "version"], capture_output=True, text=True)
+        assert gitcmd.VERSION.fullmatch(done.stdout.split("\n", 1)[0]), done.stdout
 
 
 # A script that lets `Unrun` reach the interpreter, and an `except

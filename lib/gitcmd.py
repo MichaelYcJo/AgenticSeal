@@ -66,6 +66,21 @@ before it each take the next argument as their value, as git(1)'s synopsis
 spells them, and a caller writes any other option before it in one
 argument, as `--literal-pathspecs` or `--git-dir=<path>`.
 
+**`OLDEST` is the oldest git the scripts under `lib/`, `skills/` and
+`hooks/` are written for.** A person's machine runs them on the git it
+has. `OLDEST` is the version git's release notes give for the newest
+option those scripts pass: `rev-parse` learned `--end-of-options` in 2.30
+(`Documentation/RelNotes/2.30.0.txt`), and
+`skills/implement/scripts/range_read.py#_commit` passes it. The script
+whose command set that version asks `older` before its first command, so
+a person on an older git reads the cause, and not git's own refusal of
+the option mid-run. A change that adds a command only a newer git reads
+raises `OLDEST` in the same commit, names the option here, and moves the
+ask to its script. `older` reads the one line `git version` prints, and a
+line in another shape refuses nothing. The floor is not stated of
+`.github/scripts/` and `evals/scripts/`, which run on GitHub's runners or
+at the owner's machine.
+
 Three helpers read a path: `git_path` turns a path built by `os.path`
 into git's `/`-joined form, `under_root` turns a `/`-joined
 repository-relative path into the disk's, and `inside` answers whether a
@@ -366,3 +381,30 @@ def is_ancestor(root, commit, ref):
     """Whether COMMIT is REF or reachable from it: `merge-base
     --is-ancestor`'s exit 0. `Unrun` as `git` raises it."""
     return git(root, "merge-base", "--is-ancestor", commit, ref).returncode == 0
+
+
+# The oldest git the scripts under `lib/`, `skills/` and `hooks/` are
+# written for, as its major and minor numbers. The module docstring gives
+# the option it comes from.
+OLDEST = (2, 30)
+
+# The first line `git version` prints: the version, its major and minor
+# numbers first, then anything after a space.
+VERSION = re.compile(r"git version ((\d+)\.(\d+)\S*)(?: .*)?")
+
+
+def older(root):
+    """The line that says the git answering in ROOT is older than
+    `OLDEST`, naming the version it printed, or None. None also where git
+    exits non-zero or its first line is not one `VERSION` reads: that
+    line is not read, and refuses nothing. `Unrun` as `git` raises it."""
+    done = git(root, "version")
+    found = VERSION.fullmatch(done.stdout.split("\n", 1)[0])
+    if done.returncode or not found:
+        return None
+    if (int(found.group(2)), int(found.group(3))) >= OLDEST:
+        return None
+    return (
+        f"git {found.group(1)} answers here, and the plugin's scripts need git "
+        f"{OLDEST[0]}.{OLDEST[1]} or newer"
+    )
