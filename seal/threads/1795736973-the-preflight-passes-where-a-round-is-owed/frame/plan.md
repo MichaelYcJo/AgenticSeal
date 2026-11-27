@@ -29,7 +29,7 @@ The tree as read at `a1cae2026`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 7 | The cases of *Scope* item 6, each seen red against `a1cae2026`; `tests/skills/test_chain_check.py` and `tests/skills/test_broad_gate.py` narrow; `git grep -n -e 'refuses only a ready' -e 'state as the check reads it' -e "is the check's to read" -e 'asks the records arm first' -- ':!seal/threads'` prints nothing (`frame/design.md` S7 accounts for the four lines it printed at `a1cae2026`); `seal mutate` on `#_checked`'s changed lines | |
+| 1 | `frame/design.md` *Scope* items 1 to 7 | The cases of *Scope* item 6, each seen red against `a1cae2026`; `tests/skills/test_chain_check.py` and `tests/skills/test_broad_gate.py` narrow; `git grep -n -e 'refuses only a ready' -e 'state as the check reads it' -e "is the check's to read" -e 'asks the records arm first' -- ':!seal/threads'` prints nothing (`frame/design.md` S7 accounts for the four lines it printed at `a1cae2026`); `seal mutate` on `#_checked`'s changed lines | `cf9731275` |
 
 ## Overlap with the release
 
