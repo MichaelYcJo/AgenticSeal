@@ -48,6 +48,11 @@ A fold whose source is a fix removes or narrows what HEAD contradicts and writes
 
 This finding is located in the work item's records alone. Its fix is the orchestrator's row, which the sealer reads by the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*.
 
+```seal
+verdict: fixed 596b456cf
+answer: The finding holds. The orchestrator made this fix pass itself, by `skills/implement/fix-pass.md`. `596b456cf` replaces the row's judgment clause with the paste-ready sentence, and its grounds with the orchestrator's own words, which name both cells the fold `246ac9e78` narrowed, the `## Removes` row and the *Scope* Out item, in place of the paste-ready "The `## Removes` row named its coordinates", which names one. The reading: after `596b456cf`, the orchestrator printed `routing.md`, `gaps.md`, `changelog.md`, `pr.md` and the three frame files whole into one file with `cat` and read that file whole, 225 lines, none cut. It found one more statement HEAD contradicts, the first row of `frame/plan.md` *Judgments of the run*, which said the framer folds "the two frame lines" while `246ac9e78`'s fold narrowed a third, *Scope* item 3's opening sentence. `c3ab1d1d9` narrows it to "their frame lines", and its hunk was printed with `git show -U0 --word-diff=plain` after that commit. It also checked the one present-tense statement of the tree the read met outside a dated section, `frame/plan.md` *Overlap with the release*: after `git fetch`, `origin/release/v0.39.2` is `e65830869` and no branch names #1624, #1628 or #1629 (executed). The statements of `## Grounding`, *Technical context* and `routing.md` *Why this way* are dated to `a1cae2026` and stand as dated. Run again after `c3ab1d1d9`, the finding's search, `git grep -n -F -e 'one frame cell' -e 'the one cell' -e 'one test line'` over the work item outside `trail/rounds`, prints nothing (executed). Held and not read again after `c3ab1d1d9`: the six files other than `frame/plan.md`, which neither fix commit changed (`git log --oneline 901bb5c96..HEAD` names the two commits, both on that file alone), and `frame/plan.md` apart from that hunk. The fix touched the records alone, so the sealer reads it in place of a round.
+```
+
 ## Confirmations
 
 ```seal
