@@ -108,7 +108,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
     """The twelve committed files, checked against the rule rather than
     assumed to match it.
 
-    Round 1 🟡 5: this used to assert `iadd/config.md` does not EXIST, so a
+    Round 1 🟡 5: this used to assert the root's `config.md` does not EXIST, so a
     repository that legitimately created one — holding the template's own
     default row, even — turned it red. Existence was never the question. The
     row is, and it is read the same way a session reads it.

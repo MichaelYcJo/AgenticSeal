@@ -1,8 +1,8 @@
 """A project's own `specs/` is read as history and never taken (#688).
 
 A person joining a project that kept its own `specs/` before the plugin
-arrived used to have it read as the plugin's: moved into `iadd/` at session
-start, and searched as a record by the checks. The plugin writes only to its
+arrived used to have it read as the plugin's: moved into the plugin's root at
+session start, and searched as a record by the checks. The plugin writes only to its
 own root. Every other directory named `specs` is a REFERENCE ROOT — read when
 a change touches what it describes, cited where it was read, and never moved,
 edited, absorbed or deleted.

@@ -1312,10 +1312,11 @@ def test_the_chain_check_loads_the_one_reader():
     )
 
 
-# The places the evidence ledger lived under the `iadd/` root until #944
+# The places the evidence ledger lived under the root until #944
 # took it out of the tree. Git keeps the files at `v0.21.1`. The guard stays
-# while a branch cut before #944 can still add `iadd/ledger/<id>.md`: a merge
-# brings a new file back without a conflict, and this is what names it.
+# while a branch cut before #944 can still add `ledger/<id>.md` under the
+# root: a merge brings a new file back without a conflict, and this is what
+# names it.
 LEDGER_PATHS = ("ledger.md", "ledger", "releases")
 
 
@@ -1346,7 +1347,7 @@ def test_a_planted_ledger_file_is_named(tmp_path):
 
 
 def test_this_repository_has_one_root_laid_out_by_lifetime():
-    """S1 of the root move to `iadd/`. It holds the whole tree — the rows
+    """S1 of the root move that 0.4.0 carried. It holds the whole tree — the rows
     that outlive a work item at its top, every work item whole under
     `specs/` — and neither of the two old roots exists. A `.specseal/` here
     would opt nothing in and be read by nothing, which is the silence every

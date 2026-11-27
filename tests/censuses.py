@@ -1320,7 +1320,7 @@ def slash_in_join(rel, root=None):
 # one module that says it. A reader that spells the name itself keeps the
 # old one when the name moves, and no case fails, because each case builds a
 # root under the name it spells: every reader of the records that spelt
-# `iadd` had that defect when the root took a second name (#1059). The
+# the root's name had that defect when the root took a second name (#1059). The
 # census reads each tracked `.py` outside `tests/` and `evals/`, whose
 # fixtures build roots by name, and outside `lib/optin.py`. It flags a
 # string that is the name, or that opens with it followed by `/`: a

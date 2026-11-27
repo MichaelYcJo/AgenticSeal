@@ -2847,7 +2847,8 @@ class Test_main:
         """Round 2 finding 1 of #955: `main` resolves the root to the
         repository's top in both modes, so a shared run from a subdirectory
         prints what a run from the top prints. It used to refuse, saying the
-        repository had no iadd/threads/ at either place, which was false there."""
+        repository had no `threads/` under the root at either place, which was
+        false there."""
         item(shared_repo, "1700000001-a", op("add", "S", new="Rule."))
         answered(monkeypatch, shared_repo)
         top = dry_run(shared_repo, capfd)

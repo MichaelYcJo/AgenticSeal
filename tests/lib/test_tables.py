@@ -99,8 +99,8 @@ HEADERS = {
     # A one-cell table; the header's word is the corpus's, and no reader
     # asks for it.
     "signer": ("Signer",),
-    # A two-cell table, an earlier release's `iadd/config.md` header, which
-    # the cases of `_Old_config_table` and `_Old_config_shapes` walk. No
+    # A two-cell table, the header of an earlier release's `config.md` under
+    # the root, which the cases of `_Old_config_table` and `_Old_config_shapes` walk. No
     # reader asks for it: the pass holds the walk over a header of more than
     # one cell, which `pact_check.py#ANCHOR_TABLE` and
     # `settle.py#JUDGMENTS_HEADER` hand it.
