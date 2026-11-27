@@ -43,6 +43,21 @@ MOVED_OUT_OF_CRAFTER = {
     # routing batch in, which a crafter would act on were it written in its
     # definition.
     "the routing batch": ("`multiSelect`",),
+    # #1628 and #1629 moved the builder's rules to `skills/implement/SKILL.md`
+    # *1.* and *2.*, where an orchestrator that builds reads them too, and
+    # the definition cites each by its lead. Each is named by a code span
+    # only its paragraph held. The frame rule's paragraph held none of its
+    # own, so its lead with the bold marks stands for it, which a citation
+    # in italics does not hold.
+    "the frame rule": ("**The frame is judged before it is built to.**",),
+    "the rule on a new test's group": ("`seal layout --pairs`",),
+    "the rule on committing before a mutation": ("`git checkout -- <file>`",),
+    "the mutation rule": ("`--timeout`", "`-p no:xdist`"),
+    "the runner rule": ("`bin/`",),
+    "the rule on reading the range whole": ("`git grep`",),
+    # The *Never* line the builder's rule **The build holds to the request**
+    # took, by its words, since it held no code span.
+    "the request's bound": ("no TODO stub in a core path",),
 }
 
 
@@ -51,17 +66,18 @@ def test_the_crafter_claims_no_act_another_definition_owns():
 
     Pasting the act back is an edit that only ADDS, which a presence-only
     suite cannot catch. Whether a sentence of the crafter's definition hands
-    it another act its *Never* forbids is the proofer's to read.
+    it another act its *Never* forbids is the proofer's to read. A builder's
+    rule pasted back is a second copy of the rule in
+    `skills/implement/SKILL.md`, and the two drift (#1628, #1629).
     """
     crafter = flat(read(CRAFTER))
     for act, phrases in MOVED_OUT_OF_CRAFTER.items():
         for phrase in phrases:
-            # `agents/crafter.md` *Never*: "Ask a person anything".
             assert flat(phrase) not in crafter, (
-                f"`agents/crafter.md` carries {act} again: {phrase!r}. Its "
-                "*Never* forbids the act, and a definition that keeps the "
-                "words of an act it does not perform is an instruction to "
-                "perform it"
+                f"`agents/crafter.md` carries {act} again: {phrase!r}. The act "
+                "stands in another file, and a definition that keeps its words "
+                "is a second statement of it, or an instruction to perform an "
+                "act its *Never* forbids"
             )
 
 
@@ -128,27 +144,41 @@ def test_the_proofer_keeps_its_rule_on_the_records_a_round_reads_whole():
 # --- the crafter's own rules from its rewrite (#967) ---------------------------
 
 
-def crafter_rule(lead):
-    """The `## Rules` paragraph of `agents/crafter.md` that opens with **LEAD**,
-    as written, or "" where none does."""
-    for paragraph in section(read(CRAFTER), "## Rules").split("\n\n"):
+IMPLEMENT = os.path.join(ROOT, "skills", "implement", "SKILL.md")
+
+
+def lead_paragraph(text, lead):
+    """The paragraph of TEXT that opens with **LEAD**, as written, or ""
+    where none does."""
+    for paragraph in text.split("\n\n"):
         # A lead may wrap across lines, as #1318's does.
         if " ".join(paragraph.split()).startswith(f"**{lead}**"):
             return paragraph
     return ""
 
 
-# Two of the rules decision 1 of #967 names, each by its lead and what its
-# paragraph names that a reader acts on. The rules' words are the proofer's to
-# read.
+def crafter_rule(lead):
+    """The `## Rules` paragraph of `agents/crafter.md` that opens with **LEAD**,
+    as written, or "" where none does."""
+    return lead_paragraph(section(read(CRAFTER), "## Rules"), lead)
+
+
+def builder_rule(lead):
+    """The `## Procedure` paragraph of `skills/implement/SKILL.md` that opens
+    with **LEAD**, as written, or "" where none does."""
+    return lead_paragraph(section(read(IMPLEMENT), "## Procedure"), lead)
+
+
+def order_of_work():
+    """`agents/crafter.md` *Order of work*, flattened."""
+    text = read(CRAFTER)
+    return flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
+
+
+# One of the rules decision 1 of #967 names, by its lead and what its
+# paragraph names that a reader acts on. The rule's words are the proofer's
+# to read.
 CRAFTERS_RULES = {
-    # The lead `skills/verify/scripts/mutation_check.py` cites in italics.
-    "Commit before you mutate, and restore from `seal mutate`'s copy.": (
-        # The command whose revert the rule warns of, and the command whose
-        # copy restores the file.
-        "`git checkout -- <file>`",
-        "`seal mutate`",
-    ),
     # #1148 moved the rule to `skills/implement/SKILL.md` *2.*, where a
     # session that builds reads it too; the definition keeps its application.
     "A stop at three failed fixes is handed back.": (
@@ -158,68 +188,153 @@ CRAFTERS_RULES = {
     ),
 }
 
+# The builder's rules #1628 and #1629 moved to `skills/implement/SKILL.md`
+# *2.*, so that an orchestrator that builds reads them too, each with the
+# facts its paragraph holds: the other rule decision 1 of #967 names, and
+# the rule on a new case's group.
+BUILDERS_RULES = {
+    # The lead `skills/verify/scripts/mutation_check.py` and step 6 of
+    # `agents/crafter.md` cite in italics.
+    "Commit before you mutate, and restore from `seal mutate`'s copy.": (
+        # The command whose revert the rule warns of, and the command whose
+        # copy restores the file.
+        "`git checkout -- <file>`",
+        "`seal mutate`",
+    ),
+    # #1629 listed it among the rules that bound no orchestrator that
+    # builds, and it had no case in the definition (round 1 finding 2).
+    "A new test starts from its group.": (
+        # The command a builder runs for a new case's group where the test
+        # files declare `TARGET`.
+        "`seal layout --pairs`",
+    ),
+}
+
 
 def test_the_crafters_rules_name_what_their_readers_resolve():
-    """T3 of #967: two of S4's rules each keep their paragraph and what it
-    names that a reader acts on.
+    """T3 of #967: S4's rules each keep their paragraph and what it names
+    that a reader acts on, the crafter's own in its definition and the
+    builder's in `skills/implement/SKILL.md`.
 
     These have no eval case that plants their breach, so a later trim could
     drop either with every grader green — #107's failure, a rule that left
     the repository while the suite passed."""
-    for lead, facts in CRAFTERS_RULES.items():
-        paragraph = crafter_rule(lead)
-        assert paragraph, f"`agents/crafter.md` lost the rule {lead!r}"
-        said = flat(paragraph)
-        for fact in facts:
-            assert fact in said, f"{lead!r} lost {fact!r}"
+    for rules, find, where in (
+        (CRAFTERS_RULES, crafter_rule, "`agents/crafter.md`"),
+        (BUILDERS_RULES, builder_rule, "`skills/implement/SKILL.md`"),
+    ):
+        for lead, facts in rules.items():
+            paragraph = find(lead)
+            assert paragraph, f"{where} lost the rule {lead!r}"
+            said = flat(paragraph)
+            for fact in facts:
+                assert fact in said, f"{lead!r} lost {fact!r}"
 
 
 READ_WHOLE = (
-    "Before you hand back, your range and the work item's records are read "
-    "whole against HEAD."
+    "Before the builder closes a phase or a fix pass, its range and the work "
+    "item's records are read whole against HEAD."
+)
+ACCOUNT = (
+    "The account of that read quotes its commands and describes no read in other words."
 )
 
 
-def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back():
+def test_the_builder_reads_its_range_and_the_records_whole_before_it_closes():
     """#1318, Scope item 2. 35 of the 37 `regression:` findings of 0.27.0 to
     0.30.1 stood in the fixing party's own diff or in its work item's
     records (`frame/design.md` G9), a set closed enough to read whole. So
-    after its last commit, in a phase and in a fix pass, the crafter reads
+    after its last commit, in a phase and in a fix pass, the builder reads
     its range hunk by hunk and the six files that state the present, fixes
-    what it writes, names the frame's statements for the orchestrator, and
-    calls only the tree-wide search a sample. Step 10 carries that account
-    by citing the rule, not by restating it.
+    what it writes, has the frame's statements folded, and calls only the
+    tree-wide search a sample.
 
     #1472 moved the closed set's reason and the proofer's share out of
-    contract rule 12, which every agent preloads, into this rule, which the
-    one party that reads the set holds: reading it whole is rule 12's second method,
-    and neither a sample's unreached part nor what is not finished is left
-    to the proofer."""
-    paragraph = crafter_rule(READ_WHOLE)
+    contract rule 12, which every agent preloads, into this rule: reading it
+    whole is rule 12's second method, and neither a sample's unreached part
+    nor what is not finished is left to the proofer. #1628 and #1629 moved
+    the rule to `skills/implement/SKILL.md`, said of the builder, so that an
+    orchestrator that builds a phase reads it too, and gave it `seal range`,
+    the command that prints what it asks to be read (#1624). Step 10 of
+    `agents/crafter.md` cites it, not restating it."""
+    paragraph = builder_rule(READ_WHOLE)
     # The rule's bold lead, which step 10 and `skills/implement/fix-pass.md`
     # cite in italics and a reader of either resolves here.
-    assert paragraph, "`agents/crafter.md` lost its rule on reading the range whole"
+    assert paragraph, (
+        "`skills/implement/SKILL.md` lost its rule on reading the range whole"
+    )
     said = flat(paragraph)
     for fact in (
-        # The directory whose files the crafter reads whole.
+        # The command the builder runs to print the read, as it types it.
+        "seal range <item> --from <commit> --out <file>",
+        # The directory whose files the builder reads whole.
         "`seal/threads/<work-item-id>/`",
-        # The command the crafter runs for the other statements of a rule.
+        # The command the builder runs for the other statements of a rule.
         "`git grep`",
-        # The file and the heading the crafter writes what it did not finish
+        # The file and the heading the builder writes what it did not finish
         # under.
         "`gaps.md` `## Not done`",
-        # The contract rule whose second method the closed set is read by,
-        # which the crafter opens.
-        "rule 12",
+        # The contract rule whose second method the closed set is read by.
+        "contract rule 12",
     ):
         assert fact in said, f"the rule lost {fact!r}"
-    text = read(CRAFTER)
-    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
     # The citation of the rule in italics, which step 10's reader resolves to
     # the paragraph above.
-    assert f"*{READ_WHOLE[:-1]}*" in order, (
+    assert f"`skills/implement/SKILL.md` *{READ_WHOLE[:-1]}*" in order_of_work(), (
         "step 10 no longer cites the rule on reading the range whole"
     )
+
+
+def test_the_account_of_the_read_quotes_its_commands_where_each_builder_writes_it():
+    """#1624. The account of the read was asked for as a description, which
+    a writer fills with the rule's words, and three accounts of #1623's run
+    described more than their commands printed. The account quotes the
+    commands, and the rule names where the crafter and the orchestrator each
+    write it; whether an account says more than its commands is the next
+    round's reading."""
+    said = flat(builder_rule(ACCOUNT))
+    for fact in (
+        # The command whose line the account quotes as typed.
+        "`seal range`",
+        # The command of the sample the account quotes.
+        "`git grep`",
+        # Where the orchestrator writes the account for a phase.
+        "`trail/phases/phase-N.md` `## What this phase found`",
+        # The section that says where the orchestrator writes it for a pass.
+        "`skills/implement/fix-pass.md` *The narrow set, then the read of the range*",
+    ):
+        assert fact in said, f"the account's rule lost {fact!r}"
+    # The citation of the account's rule in italics, which step 10's reader
+    # resolves for what the hand-back's account holds.
+    assert f"`skills/implement/SKILL.md` *{ACCOUNT[:-1]}*" in order_of_work(), (
+        "step 10 no longer cites the account's rule"
+    )
+
+
+BUILDER = (
+    "The builder is the party that builds a phase or makes a fix pass: the "
+    "crafter or the orchestrator."
+)
+
+
+def test_the_builder_is_the_orchestrator_where_the_session_builds():
+    """#1628 and #1629. A rule bound to the crafter alone bound no
+    orchestrator that built a phase where `routing.md` answers
+    `Implementation` with `the session`, nor its fix after the last round,
+    so its mutation runs and its whole read were asked of nobody. The
+    paragraph names the builder, the routing answer under which the
+    orchestrator builds, and the contract that binds it as the builder."""
+    said = flat(builder_rule(BUILDER))
+    for fact in (
+        # The routing row and its answer under which the orchestrator builds
+        # every phase.
+        "`Implementation`",
+        "`the session`",
+        # The contract whose rules bind the builder, which the orchestrator
+        # opens.
+        "`skills/agent-contract/SKILL.md`",
+    ):
+        assert fact in said, f"the builder paragraph no longer says {fact!r}"
 
 
 FIX_PASS_FILE = os.path.join(ROOT, "skills", "implement", "fix-pass.md")
@@ -230,7 +345,7 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
     """The fix pass's procedure stands in `skills/implement/fix-pass.md`,
     which the crafter opens at step 9 (#1471). The file cites the form's two
     paragraphs on the close block, the contract rule a procedure step is read
-    under, the field its answer goes in and the crafter's rule on reading the
+    under, the field its answer goes in and the builder's rule on reading the
     range whole; the form states the close block's `verdict:` values and its
     `location:` line. The block's grammar is `lib/fields.py`'s and is held
     there."""
@@ -247,9 +362,10 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
         "contract rule 11",
         # The field the fix pass writes its own wording of a fix into.
         "`answer:`",
-        # The crafter's rule a fix pass resolves for the reading it makes
-        # after its last fix (#1318).
-        f"`agents/crafter.md` *{READ_WHOLE[:-1]}*",
+        # The builder's rule a fix pass resolves for the reading it makes
+        # after its last fix (#1318), in `skills/implement/SKILL.md` since
+        # #1628 and #1629.
+        f"`skills/implement/SKILL.md` *{READ_WHOLE[:-1]}*",
     ):
         assert fact in said, f"`skills/implement/fix-pass.md` lost {fact!r}"
     form = flat(read(ROUND_RECORD_FORM))
@@ -263,10 +379,8 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
         "`location:`",
     ):
         assert fact in form, f"`docs/forms/the-round-record.md` lost {fact!r}"
-    text = read(CRAFTER)
-    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
     # The path the crafter opens at step 9 in a fix pass.
-    assert "`skills/implement/fix-pass.md`" in order, (
+    assert "`skills/implement/fix-pass.md`" in order_of_work(), (
         "step 9 no longer sends a fix pass to `skills/implement/fix-pass.md`"
     )
 
@@ -276,21 +390,24 @@ NARROW_SET = "\n## The narrow set, then the read of the range\n"
 
 def test_whoever_makes_the_fix_pass_makes_the_reading_of_the_range():
     """#1623, Scope item 1. A fix pass is the crafter's or the
-    orchestrator's, and the orchestrator makes every pass of a work item
-    whose `routing.md` answers `Implementation` with `the session`. Bound to
-    the crafter alone, the reading of the range and the records whole was
-    asked of nobody in such a pass, and one fact stated in several records
-    was fixed one sentence at a time (owlery#236). So the paragraph binds the
-    reading to whoever makes the pass, and says where the orchestrator
-    corrects, folds and names what the crafter's *Job* and hand-back give."""
+    orchestrator's. Bound to the crafter alone, the reading of the range and
+    the records whole was asked of nobody in the orchestrator's pass, and
+    one fact stated in several records was fixed one sentence at a time
+    (owlery#236). Since #1628 and #1629 the rule names the builder and
+    stands in `skills/implement/SKILL.md`, so the paragraph cites it and
+    keeps what is the pass's own: the commit its range starts after, the
+    fold before the close blocks, and where the orchestrator writes the
+    account."""
     text = read(FIX_PASS_FILE)
     start = text.index(NARROW_SET)
     section = flat(text[start : text.index("\n## ", start + len(NARROW_SET))])
     for fact in (
-        # The routing row and its answer under which the orchestrator makes
-        # every pass.
-        "`Implementation`",
-        "`the session`",
+        # The builder's rules the pass resolves for the reading and for its
+        # account.
+        f"`skills/implement/SKILL.md` *{READ_WHOLE[:-1]}*",
+        f"`skills/implement/SKILL.md` *{ACCOUNT[:-1]}*",
+        # The line of the round record whose commit the range starts after.
+        "`target:`",
         # The section the orchestrator folds a frame or `routing.md`
         # statement by, as it folds one a crafter's hand-back names.
         "`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*",
@@ -299,10 +416,6 @@ def test_whoever_makes_the_fix_pass_makes_the_reading_of_the_range():
         "`answer:`",
         # The file and the heading what the pass did not finish goes under.
         "`gaps.md` `## Not done`",
-        # The contract rule whose labels the account of the read carries, so
-        # that it claims only the reads the pass's commands made (round 3 of
-        # #1623).
-        "contract rule 4",
     ):
         assert fact in section, (
             f"*The narrow set, then the read of the range* no longer says {fact!r}"

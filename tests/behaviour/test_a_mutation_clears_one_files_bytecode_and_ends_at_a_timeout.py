@@ -1,4 +1,4 @@
-"""`seal mutate`: what the crafter's definition and the verify skill say of it.
+"""`seal mutate`: what the builder's rule and the verify skill say of it.
 
 #641, with #129 as its twin. `agents/crafter.md` told the implementer to "clear
 `tests/__pycache__` between mutations", which aims at the wrong cache. It
@@ -11,8 +11,8 @@ in #326). Nothing bounded a mutated run either, and one hung for 32 minutes
 
 The cases that run the command stand in `tests/skills/test_mutation_check.py`.
 What stays here reads the sentences a session acts on: the
-crafter's definition, `skills/verify/seal-mutate.md`, and the bound both of
-them state.
+builder's rule in `skills/implement/SKILL.md`, `skills/verify/seal-mutate.md`,
+and the bound both of them state.
 
 **How the script is loaded here.** By path, with an `importlib` spec,
 registered in `sys.modules` before it executes, so nothing has to be put on
@@ -26,7 +26,7 @@ import sys
 
 from conftest import ROOT, flat
 
-# No TARGET: its cases hold seal mutate's command and bound across agents/crafter.md, skills/verify/seal-mutate.md and the script's constant.
+# No TARGET: its cases hold seal mutate's command and bound across skills/implement/SKILL.md, skills/verify/seal-mutate.md and the script's constant.
 
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
 
@@ -46,24 +46,26 @@ def module():
 # --- S9 · the definition names the command ----------------------------------
 
 
-def test_the_crafters_definition_names_the_command_and_its_flag():
-    """Contract rule 14: the sentence the crafter acts on changed, so the
+def test_the_builders_rule_names_the_command_and_its_flag():
+    """Contract rule 14: the sentence the builder acts on changed, so the
     command it now copies is pinned. *Clear `tests/__pycache__`* cleared the
     importers, whose bytecode is never stale, and missed the mutated file's,
     which is (#129); the command restores and clears for itself. The rule's
-    sentences around the command are the proofer's to read."""
-    crafter = flat("agents", "crafter.md")
+    sentences around the command are the proofer's to read. #1628 and #1629
+    moved the rule from `agents/crafter.md` to `skills/implement/SKILL.md`,
+    where an orchestrator that builds reads it too."""
+    builder = flat("skills", "implement", "SKILL.md")
     # The `seal mutate` command line with its `--replace` and `--tests`
-    # arguments, which the crafter copies for each unit it mutates.
-    # Any runner: the definition ships to repositories with no `bin/test`,
-    # so the pattern names none.
-    assert re.search(r"seal mutate \S+ --replace .+? --tests \"", crafter), (
-        "`agents/crafter.md` does not show the mutation loop as one command, "
-        "with its replacement and the cases it runs"
+    # arguments, which the builder copies for each unit it mutates.
+    # Any runner: the skill ships to repositories with no `bin/test`, so the
+    # pattern names none.
+    assert re.search(r"seal mutate \S+ --replace .+? --tests \"", builder), (
+        "`skills/implement/SKILL.md` does not show the mutation loop as one "
+        "command, with its replacement and the cases it runs"
     )
-    # The flag `-p no:xdist`, which the crafter adds to the runner where
+    # The flag `-p no:xdist`, which the builder adds to the runner where
     # pytest-xdist starts workers by default.
-    assert "-p no:xdist" in crafter, (
+    assert "-p no:xdist" in builder, (
         "the example dropped `-p no:xdist`, which `questions.md` Q1's "
         "measurement put there for a handful of cases"
     )
@@ -98,7 +100,7 @@ def test_the_verify_skill_says_what_each_verdict_means():
 
 def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch):
     """`questions.md` Q4: a value somebody waits on. The constant, the bound a
-    call with no `--timeout` actually gets, and the figure the crafter and the
+    call with no `--timeout` actually gets, and the figure the builder and the
     skill are told are one number, so moving one is seen in all three."""
     mc = module()
     seen = {}
@@ -113,8 +115,8 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert mc.main([str(target), "--replace", "1", "2", "--tests", "x"]) == 0
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
-    # The bound in seconds, which the crafter waits on for a run with no
+    # The bound in seconds, which the builder waits on for a run with no
     # `--timeout`.
-    assert f" {bound} s " in flat("agents", "crafter.md")
+    assert f" {bound} s " in flat("skills", "implement", "SKILL.md")
     # The same bound, which a reader of the command's section waits on.
     assert f" {bound} seconds " in flat("skills", "verify", "seal-mutate.md")
