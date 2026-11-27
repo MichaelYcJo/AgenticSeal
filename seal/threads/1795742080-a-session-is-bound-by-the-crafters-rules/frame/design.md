@@ -141,6 +141,20 @@ No schema, hook, configuration key or record field changes. The new units are th
   file: docs/running/what-a-script-gates.md
   section: The checks
   to: | `seal range` | the builder, after the last commit of a phase or of a fix pass | `git diff` from the commit it is given to HEAD, HEAD's text of each changed text file, and the work item's records that state the present, at HEAD or on disk where the root is local | names as not printed a binary path, a deleted path and a submodule's path, and as not read a tracked path with an uncommitted change; exits 2 and writes nothing where the commit is no ancestor of HEAD or the file cannot be written | whether a printed statement is one HEAD contradicts: the builder reading the file, and the round that follows |
+- change
+  file: docs/running/what-a-script-gates.md
+  section: Which gate a script holds
+  from: `argv` sets each key measured to do that with `-c`, which outranks
+    every configuration file. Its docstring names each key, what it changes
+    and the subcommands it changes, and a key or subcommand found later is
+    added there and nowhere else.
+  to: `argv` sets each key measured to do that with `-c`, which outranks
+    every configuration file. A setting measured to do it that no `-c` key
+    reaches, such as one a file of the repository carries, is held by a flag
+    on each command it reshapes. `lib/gitcmd.py`'s docstring names each key,
+    and each such setting with its flag, with what it changes and the
+    subcommands it changes, and one found later is added there and nowhere
+    else.
 
 ## Removes
 
