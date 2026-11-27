@@ -49,4 +49,4 @@ The release's other open items are #1624, #1628 and #1629, as `routing.md` *Why 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | Round 1's findings 4 and 5 are located in `frame/design.md` (S6 and S7) as well as in the build's files, so the framer folds the two frame lines first, narrowing them, and the crafter's fix pass then answers all five findings. Finding 3 stays the crafter's: it rewrites the exit-1 instruction of the preflight paragraph, a sentence the build wrote, and adds no unit | The frame lines are the framer's to write (`agents/crafter.md` *Before you hand back, your range and the work item's records are read whole against HEAD*), and the S6 cell's sentence came from the orchestrator's fold `7be8b7bfc` | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `skills/implement/fold-and-reframe.md` |
