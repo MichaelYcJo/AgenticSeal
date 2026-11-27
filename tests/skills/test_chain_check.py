@@ -4698,6 +4698,25 @@ class Test_main:
             later[:8] in why and "a verifying round is owed" in why for why in said
         )
 
+    @pytest.mark.rule("last-record-at-head")
+    def test_refuses_a_follow_up_row_after_the_last_record(self, branch, monkeypatch):
+        """#1630, *Scope* item 3: `seal/follow-up.md` stands outside the work
+        item's records, so a commit after the last record that adds a row to
+        it alone is refused, naming the commit, the path and the verifying
+        round owed. The drain commits such a row before the round that reads
+        it (`skills/implement/orchestration.md` *Orchestrator: drain the rows
+        before the broad run, and keep the records*)."""
+        root, _code = branch
+        write(root, "seal/follow-up.md", "# Follow-up\n\n| a row | a person |\n")
+        later = commit(root, "a follow-up row after the last round")
+        said = [why for _rel, _line, why in records_read(monkeypatch, root)]
+        assert any(
+            later[:8] in why
+            and "`seal/follow-up.md`" in why
+            and chain.VERIFYING_ROUND in why
+            for why in said
+        ), said
+
     def test_refuses_a_chain_with_no_record_and_prints_it_on_a_draft(
         self, branch, ready, capsys, monkeypatch
     ):
