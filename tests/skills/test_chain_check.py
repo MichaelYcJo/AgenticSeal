@@ -3055,6 +3055,23 @@ class Test_inspection:
             "the work item is not cleared: git carries no inspection file"
         ), why
 
+    def test_names_a_cleared_verdict_off_the_history_as_not_cleared(
+        self, _item_template, monkeypatch
+    ):
+        """`docs/forms/the-inspection.md` *The three states*: a `cleared`
+        naming a commit this repository cannot resolve is neither cleared nor
+        lapsed, and its one refusal says the work item is not cleared. Seen
+        red with the `NOT_CLEARED` prefix of that branch alone removed."""
+        root, _sha = _item_template
+        unseen = "f" * 40
+        text = inspection_record(unseen, "cleared")
+        [(path, line, why)] = inspection_read(monkeypatch, root, text)
+        assert (path, line) == (f"{ITEM}/inspection.md", 0)
+        assert why == (
+            f"the work item is not cleared: the inspection names `{unseen}`, "
+            "which this repository cannot resolve"
+        ), why
+
     def test_refuses_an_inspection_of_the_old_shape_naming_the_template(
         self, _item_template, monkeypatch
     ):
