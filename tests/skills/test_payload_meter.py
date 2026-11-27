@@ -433,9 +433,11 @@ class Test_measure:
         session_part = text[: text.index("## probe")]
         by_first = {cells[0]: cells for cells in rows_of(session_part)}
         note = by_first[f"`{HOOK_ROW}`"][4]
-        assert "one line naming the core's file and the closing line" in note, note
-        assert "The session opens the core itself, and this row does not count it" in (
-            note
+        assert note.endswith(
+            " — what the `SessionStart` hook prints where the whole output "
+            "would reach `lib/core.py#CAP`: one line naming the core's file "
+            "and the closing line. The session opens the core itself, and "
+            "this row does not count it"
         ), note
         assert "the core below its frontmatter" not in note, note
 
