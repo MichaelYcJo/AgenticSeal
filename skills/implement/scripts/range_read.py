@@ -51,8 +51,8 @@ Edge cases, stated here and held by no other text:
   hunk to its edges: the cost is a longer file, never a missed line.
 - A hunk that only deletes is bounded from the line of HEAD before the
   deletion, or from the file's first line where the deletion opens the
-  file. A `.md` path HEAD holds empty prints the hunks `-U0` gives, and
-  another path HEAD holds empty the hunks `-W` gives, as git prints them.
+  file. A path HEAD holds empty prints the hunks `-U0` gives, as git
+  prints them, which are the hunks `-W` gives too.
 - A `-U0` hunk that no `-W` hunk holds, where the two prints place a change
   differently, is widened to its paragraph alone.
 - A rename is read as git reads one with `--no-renames`: the old path
@@ -345,14 +345,13 @@ def _prose(root, start, head, path, unit=False):
     printed = _lines(
         _git(root, *DIFF, "-U0", "--inter-hunk-context=0", start, head, "--", path)
     )
-    wide = _lines(_git(root, *DIFF, "-W", start, head, "--", path)) if unit else []
     new = _lines(_git(root, "cat-file", "blob", f"{head}:{path}"))
     if not new:
-        return wide or printed
+        return printed
     header, hunks = _hunks(printed)
     if not unit:
         return header + _paragraphs(new, hunks)
-    header, units = _hunks(wide)
+    _header, units = _hunks(_lines(_git(root, *DIFF, "-W", start, head, "--", path)))
     return header + _paragraphs(new, hunks, units)
 
 

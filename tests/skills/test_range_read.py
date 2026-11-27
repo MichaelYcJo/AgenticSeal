@@ -222,8 +222,10 @@ class Test_main:
     ):
         """A path that is not a `.md` file is printed as `git diff -W`
         prints it, so a changed line deep in a function brings the whole
-        function, its `def` line among it."""
+        function, its `def` line among it, past the blank line the
+        function's body holds above the change."""
         body = [f"    step_{n} = {n}" for n in range(1, 12)]
+        body[3] = ""
         code_text = "def unit():\n" + "\n".join(body) + "\n    return step_1\n"
         repo, base = built(tmp_path, {"lib/unit.py": code_text})
         body[6] = "    step_7 = 70"
