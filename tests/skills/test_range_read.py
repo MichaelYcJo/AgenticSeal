@@ -239,6 +239,30 @@ class Test_main:
         whole = git(repo, "diff", *PLAIN, "-W", base, head, "--", "lib/unit.py").stdout
         assert whole in written(out)
 
+    def test_accepts_a_hunk_inside_a_docstring_widened_to_its_paragraph(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """S11: a line changed in the middle of the eleven-line paragraph of
+        a module's docstring, where every line opens with a letter and so
+        reads to `git diff -W` as a function line, prints the paragraph from
+        the blank line before it to the blank line after it, as
+        `git diff -U5` prints that one hunk. `git diff -W` alone prints from
+        the paragraph's third line, and fails here."""
+        path = "lib/module.py"
+
+        def module(middle):
+            return '"""A module.\n\n' + "\n".join(middle) + '\n\n"""\n\nimport os\n'
+
+        repo, base = built(tmp_path, {path: module(MIDDLE)})
+        changed = [*MIDDLE]
+        changed[5] = "Middle paragraph, line 6, rewritten."
+        write(repo, path, module(changed))
+        head = commit_everything(repo, "change")
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 0, said
+        assert hunks(repo, base, head, path, 5) in written(out)
+
     def test_accepts_the_records_whole_at_head_and_names_each_absent(
         self, tmp_path, monkeypatch, capsys
     ):

@@ -19,7 +19,14 @@ line naming it:
   command reads the hunks `-U0` prints and HEAD's text and draws the
   bound itself. Hunks whose paragraphs meet print as one, and each printed
   hunk carries a header in git's form with no function line after it;
-- every other text path as `git diff -W` prints it (`WHOLE_HEAD`);
+- every other text path as `git diff -W` prints it, each hunk widened on
+  either side to that same blank-line bound wherever `-W` stopped short of
+  it (`WHOLE_HEAD`). With no diff driver set, git takes a line that opens
+  with a letter, `_` or `$` as a unit's first line, so a hunk in a
+  docstring or a comment prints from the nearest such line and not from
+  its paragraph's start. A hunk `-W` printed to its paragraph prints as
+  git printed it; a widened one, or one joined to another, carries a header
+  in git's form with no function line after it;
 - a binary path and a deleted path named and not printed (`BINARY`,
   `DELETED`).
 
@@ -44,8 +51,10 @@ Edge cases, stated here and held by no other text:
   hunk to its edges: the cost is a longer file, never a missed line.
 - A hunk that only deletes is bounded from the line of HEAD before the
   deletion, or from the file's first line where the deletion opens the
-  file. A `.md` path HEAD holds empty prints the hunks `-U0` gives, as git
-  prints them.
+  file. A `.md` path HEAD holds empty prints the hunks `-U0` gives, and
+  another path HEAD holds empty the hunks `-W` gives, as git prints them.
+- A `-U0` hunk that no `-W` hunk holds, where the two prints place a change
+  differently, is widened to its paragraph alone.
 - A rename is read as git reads one with `--no-renames`: the old path
   deleted and the new one added, which prints whole.
 - In local mode the records stand under the common git directory, which no
@@ -106,7 +115,7 @@ RECORDS = (
     optin.CHANGELOG,
 )
 
-# The paths printed a paragraph at a time.
+# The paths printed a paragraph at a time, with no unit `git diff -W` gives.
 PROSE = ".md"
 
 # Every pathspec is a path, never a pattern.
@@ -120,7 +129,7 @@ HUNK = re.compile(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 RANGE_LINE = "range: {start}..{head}"
 PROSE_HEAD = "==> {path}: each hunk with its paragraph at HEAD <=="
-WHOLE_HEAD = "==> {path}: git diff -W <=="
+WHOLE_HEAD = "==> {path}: git diff -W, each hunk widened to its paragraph at HEAD <=="
 BINARY = "==> {path}: binary, not printed <=="
 DELETED = "==> {path}: deleted, not printed <=="
 RECORD = "==> {path}: whole at HEAD <=="
@@ -234,9 +243,10 @@ def _binary(root, start, head):
 
 
 def _hunks(lines):
-    """`(header, hunks)` of LINES, what `git diff -U0` printed for one
-    path: the lines before the first hunk, and each hunk as the list
-    `[old_start, old_count, new_start, new_count, body]`."""
+    """`(header, hunks)` of LINES, what `git diff` printed for one path: the
+    lines before the first hunk, and each hunk as the list
+    `[old_start, old_count, new_start, new_count, body, line]`, LINE the
+    hunk's header as git printed it."""
     header, hunks = [], []
     for line in lines:
         found = HUNK.match(line)
@@ -249,6 +259,7 @@ def _hunks(lines):
                     int(new),
                     1 if new_count is None else int(new_count),
                     [],
+                    line,
                 ]
             )
         elif hunks:
@@ -265,34 +276,60 @@ def _at(start, count):
     return str(start) if count == 1 else f"{start},{count}"
 
 
-def _paragraphs(new, hunks):
-    """The lines that print HUNKS, `_hunks`'s, against NEW, HEAD's lines of
-    the path: each hunk widened to the blank lines around it, hunks whose
-    paragraphs meet joined, each joined hunk under a header in git's form."""
-    count = len(new)
+def _anchor(hunk):
+    """`(first, last)`: the lines of HEAD a `-U0` hunk changes, or for a
+    hunk that only deletes, the line of HEAD before the deletion, or the
+    file's first line where the deletion opens the file."""
+    _old, _old_count, start, length = hunk[:4]
+    if length:
+        return start, start + length - 1
+    return max(start, 1), max(start, 1)
+
+
+def _bound(new, hunk):
+    """`(first, last)`: HUNK's lines of NEW, HEAD's lines of the path,
+    widened to the blank line, or the file's edge, on either side."""
+    first, last = _anchor(hunk)
+    while first > 1 and not _blank(new[first - 2]):
+        first -= 1
+    while last < len(new) and not _blank(new[last]):
+        last += 1
+    return first, last
+
+
+def _paragraphs(new, hunks, wide=()):
+    """The lines that print HUNKS, `_hunks`'s of `-U0`, against NEW, HEAD's
+    lines of the path: each hunk widened to the blank lines around it, and
+    to the hunk of WIDE, `_hunks`'s of `-W`, that holds it, hunks whose
+    spans meet joined, each joined hunk under a header in git's form. A
+    joined hunk that spans one hunk of WIDE exactly prints as git printed
+    that hunk."""
     spans = []
     for hunk in hunks:
-        _old, _old_count, start, length, _body = hunk
-        if length:
-            first, last = start, start + length - 1
-        else:
-            first = last = max(start, 1)
-        while first > 1 and not _blank(new[first - 2]):
-            first -= 1
-        while last < count and not _blank(new[last]):
-            last += 1
+        first, last = _bound(new, hunk)
+        at, _end = _anchor(hunk)
+        for _o, _oc, start, length, _b, _line in wide:
+            if start <= at <= start + length - 1:
+                first, last = min(first, start), max(last, start + length - 1)
+                break
         if spans and first <= spans[-1][1] + 1:
             spans[-1][1] = max(spans[-1][1], last)
             spans[-1][2].append(hunk)
         else:
             spans.append([first, last, [hunk]])
+    kept = {(hunk[2], hunk[2] + hunk[3] - 1): hunk for hunk in wide}
     printed, moved = [], 0
     for first, last, held in spans:
-        grown = sum(length - old_count for _o, old_count, _s, length, _b in held)
+        grown = sum(length - old_count for _o, old_count, _s, length, *_ in held)
+        if (first, last) in kept:
+            _o, _oc, _s, _n, body, line = kept[(first, last)]
+            printed += [line, *body]
+            moved += grown
+            continue
         size = last - first + 1
         printed.append(f"@@ -{_at(first - moved, size - grown)} +{_at(first, size)} @@")
         at = first
-        for _old, _old_count, start, length, body in held:
+        for _old, _old_count, start, length, body, *_ in held:
             upto = start - 1 if length else start
             printed += [" " + line for line in new[at - 1 : upto]]
             printed += body
@@ -302,21 +339,21 @@ def _paragraphs(new, hunks):
     return printed
 
 
-def _prose(root, start, head, path):
-    """The lines that print PATH's hunks, each with its paragraph at HEAD."""
+def _prose(root, start, head, path, unit=False):
+    """The lines that print PATH's hunks, each with its paragraph at HEAD,
+    and where UNIT holds, with the unit `git diff -W` gives it too."""
     printed = _lines(
         _git(root, *DIFF, "-U0", "--inter-hunk-context=0", start, head, "--", path)
     )
+    wide = _lines(_git(root, *DIFF, "-W", start, head, "--", path)) if unit else []
     new = _lines(_git(root, "cat-file", "blob", f"{head}:{path}"))
     if not new:
-        return printed
+        return wide or printed
     header, hunks = _hunks(printed)
-    return header + _paragraphs(new, hunks)
-
-
-def _diff(root, start, head, path, context):
-    """The lines `git diff CONTEXT` prints for PATH."""
-    return _lines(_git(root, *DIFF, context, start, head, "--", path))
+    if not unit:
+        return header + _paragraphs(new, hunks)
+    header, units = _hunks(wide)
+    return header + _paragraphs(new, hunks, units)
 
 
 def _records(root, head, item, rel):
@@ -382,7 +419,7 @@ def _read(item, start, cwd):
         else:
             lines += [
                 WHOLE_HEAD.format(path=path),
-                *_diff(root, start, head, path, "-W"),
+                *_prose(root, start, head, path, unit=True),
             ]
     records, absent = _records(root, head, full, rel)
     lines += records
