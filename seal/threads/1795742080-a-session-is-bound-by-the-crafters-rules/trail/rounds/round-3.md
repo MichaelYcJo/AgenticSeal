@@ -62,6 +62,11 @@ The comment in `_uncommitted` does the same:
 
 The edge case in the script's docstring at `:66-71` states what the command does and not why, so it stays. The paragraph crosses no OS boundary. Whether `tests/lib/test_gitcmd.py` should hold the paragraph is the fix pass's to weigh: that file holds the keys of `KEYS`, and the flag is no key.
 
+```seal
+verdict: fixed 89e4f4841
+answer: `lib/gitcmd.py`'s docstring gains the round's paragraph as given, after the sentence on `core.quotePath`. The comments on `DIFF` and in `_uncommitted` in `skills/implement/scripts/range_read.py` are replaced by the round's two comments, which cite the module and no longer give the reason. The finding's evidence search, run again, prints `lib/gitcmd.py:55`, `:58` and `:59`, and `range_read.py:131`, `:139`, `:416` and `:426`. `tests/lib/test_gitcmd.py` gains no case. Its cases hold each key of `KEYS` by a repository the key reshapes, and the flag is not a key and is not passed by `argv`. What the flag does is held by `test_accepts_a_submodule_by_name_and_does_not_print_it` and `test_accepts_an_uncommitted_submodule_named_as_not_read`, each seen red in round 2's pass with its flag removed. A case that reads the paragraph would pin wording. The commit changes a docstring and two comments and adds no behaviour, so it owes no `seal mutate` run. `docs/running/what-a-script-gates.md:24-40` still says the docstring names each key and that a key found later is added there. It does not say that a setting with no key is named there with its flag. That file is the policy root, which this pass does not write.
+```
+
 ## Confirmations
 
 ```seal
