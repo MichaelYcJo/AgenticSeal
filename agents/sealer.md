@@ -53,10 +53,16 @@ return.
 
 1. **Read the gate's record.** Open `trail/gate.md` in the work item's
    directory, take its newest run's commit, the first word of the `run:`
-   line in its last `seal` block, and run
-   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`; the
-   rule it applies is the one
-   `skills/code-review/scripts/chain_check.py#follows` reads.
+   line in its last `seal` block, and run the command below, whose flag
+   keeps a submodule's path in the listing whatever the repository's
+   settings say, as `lib/gitcmd.py#FLAGS` does for the scripts; the rule it
+   applies is the one `skills/code-review/scripts/chain_check.py#follows`
+   reads.
+
+   ```
+   git -C <root> log --ignore-submodules=none --no-merges --name-only <named>..HEAD ^<base>
+   ```
+
    - **At HEAD, or followed only by paths under `seal/threads/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
