@@ -89,6 +89,11 @@ The line replaces `repo, start = built(tmp_path, {})` at `:382`. `put` removes `
 
 The fix pass shows the case red with only the flag removed. With the flag replaced by the `KEYS` entry, the `.gitmodules` entry still hides the path, so the case stays red.
 
+```seal
+verdict: fixed f36001393
+answer: `DIFF` gains `--ignore-submodules=none` with the round's comment, and `HOSTILE` gains `("diff.ignoreSubmodules", "all")`. The submodule case's base gains the round's `.gitmodules` entry with `ignore = all`, and its docstring gains the round's sentence. `HOSTILE`'s comment was written in this pass's words: the oracle `PLAIN` does not switch the new key off, so the comment says it asks git with the switches that bear on a text path's print. `seal mutate` with only the flag removed read red under git 2.50.1 (`added`, `moved` and `deleted` failed). It also read red with git 2.39.3 first on the path. That is Apple Git-146, the oldest git on this machine; the tree states no oldest supported git (`git grep` over `docs`, `CONTRIBUTING.md`, `README.md`, `lib` and `.github` found none). Under git 2.39.3, the case's own `commit` refused the ignored gitlink as no change. 9f74539cf commits the index with `--allow-empty`, and the module then passed under both gits. The finding's evidence search, run again, prints only `range_read.py` and `HOSTILE`. The same class reached `_uncommitted`, whose `git status` hides a submodule whose checkout moved under either setting. 28b489c8f gives it the same flag. 8e21cf92d and 7df9e5da2 add `test_accepts_an_uncommitted_submodule_named_as_not_read`, which read red under both gits with only that flag removed. A staged gitlink stays named without the flag, so the case moves the checkout instead. 9199c7fe7 has the docstring's configuration edge case name the submodule setting.
+```
+
 ### 2. `frame/plan.md` row 22 says no case holds a file put in place of a submodule, and the fix pass's case holds it
 
 ```seal
@@ -109,6 +114,11 @@ The fix, the row's middle cell in place:
 ```
 
 The crafter's read of its range printed `frame/plan.md` whole, so its account would name this line for the orchestrator's fold. Whether it did is in the hand-back, and the orchestrator's fold `a1d478421` touched *Scope* item 8 alone. `## Not judged` holds that question.
+
+```seal
+verdict: fixed 70c693d38
+answer: The framer's fold at 70c693d38 rewrote row 22's middle cell. It now says git's print of a submodule replaced by a file was not run for the fold that wrote the row, and that the `a-file-in-its-place` case holds the limit and not that print. `git show 70c693d38 --stat` shows `frame/plan.md` alone, and the cell matches the case at `tests/skills/test_range_read.py` (read). The finding's search, run again, prints this finding's own lines and `frame/plan.md:81`. That line is the orchestrator's judgment row, which describes what the row said before the fold, so it stands. On the question `## Not judged` asks: the account in round 1's fix-pass hand-back did not name this line. That pass's read printed `frame/plan.md` whole, and the hand-back said the read found no statement HEAD contradicts in a file the pass writes, so it named only *Scope* item 8 for the fold.
+```
 
 ## Confirmations
 
