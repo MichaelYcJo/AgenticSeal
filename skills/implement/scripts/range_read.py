@@ -42,18 +42,20 @@ Edge cases, stated here and held by no other text:
   it holds nothing but spaces, tabs and a carriage return. A prose file
   with no blank line, one long table for instance, prints whole from the
   hunk to its edges: the cost is a longer file, never a missed line.
-- A hunk that only deletes is bounded from the two lines of HEAD around the
-  deletion. A `.md` path HEAD holds empty prints the hunks `-U0` gives, as
-  git prints them.
+- A hunk that only deletes is bounded from the line of HEAD before the
+  deletion, or from the file's first line where the deletion opens the
+  file. A `.md` path HEAD holds empty prints the hunks `-U0` gives, as git
+  prints them.
 - A rename is read as git reads one with `--no-renames`: the old path
   deleted and the new one added, which prints whole.
 - In local mode the records stand under the common git directory, which no
   commit holds, so they are read on disk and their line says so
   (`ON_DISK`, `ABSENT_ON_DISK`); the range itself is still read from git.
 - Each git command is built by `lib/gitcmd.py#argv`, a pathspec is read
-  literally, each path is taken from `-z` output, and `--ext-diff`,
-  `--textconv` and colour are switched off, so a configuration cannot put
-  text into what the command prints or reads. It writes nothing but
+  literally, each path is taken from `-z` output, and an external diff, a
+  textconv filter, colour and git's joining of nearby hunks are switched
+  off, so a configuration cannot put text into what the command prints or
+  reads. It writes nothing but
   `--out`, reads no transcript and reaches no network.
 
 Exit: 0 the file is written. 2 nothing is written: an argument is missing,
@@ -274,7 +276,7 @@ def _paragraphs(new, hunks):
         if length:
             first, last = start, start + length - 1
         else:
-            first, last = max(start, 1), min(start + 1, count)
+            first = last = max(start, 1)
         while first > 1 and not _blank(new[first - 2]):
             first -= 1
         while last < count and not _blank(new[last]):
@@ -302,14 +304,13 @@ def _paragraphs(new, hunks):
 
 def _prose(root, start, head, path):
     """The lines that print PATH's hunks, each with its paragraph at HEAD."""
-    header, hunks = _hunks(
-        _lines(
-            _git(root, *DIFF, "-U0", "--inter-hunk-context=0", start, head, "--", path)
-        )
+    printed = _lines(
+        _git(root, *DIFF, "-U0", "--inter-hunk-context=0", start, head, "--", path)
     )
     new = _lines(_git(root, "cat-file", "blob", f"{head}:{path}"))
     if not new:
-        return header + [line for hunk in hunks for line in hunk[4]]
+        return printed
+    header, hunks = _hunks(printed)
     return header + _paragraphs(new, hunks)
 
 

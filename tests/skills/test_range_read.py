@@ -32,6 +32,18 @@ RANGE = load_module(os.path.join(ROOT, *TARGET.split("/")), "range_read_under_te
 ITEM = "seal/threads/1700000000-a-work-item"
 DOC = "docs/a-document.md"
 
+# A configuration that would put text into what `git diff` prints: an
+# external diff and a textconv filter that each fail, colour on every
+# command, and nearby hunks joined. The command switches each off, and an
+# oracle below asks git with the same switches.
+HOSTILE = (
+    ("diff.external", "false"),
+    ("diff.hostile.textconv", "false"),
+    ("color.ui", "always"),
+    ("diff.interHunkContext", "20"),
+)
+PLAIN = ("--no-color", "--no-ext-diff", "--no-textconv", "--inter-hunk-context=0")
+
 # A document of three paragraphs: four lines from the file's start, eleven
 # in the middle, four to the file's end. Every line opens with a letter, so
 # git's own function context finds a function line on every line and
@@ -47,13 +59,17 @@ def document(first=FIRST, middle=MIDDLE, last=LAST):
 
 
 def built(tmp_path, files):
-    """A repository at TMP_PATH/repo with a marked root and FILES committed
-    as its base; the repository and the base commit."""
+    """A repository at TMP_PATH/repo under `HOSTILE`'s configuration, with
+    every path's diff driver the hostile one, a marked root and FILES
+    committed as its base; the repository and the base commit."""
     repo = tmp_path / "repo"
     repo.mkdir()
     git(repo, "init", "-q")
     git(repo, "config", "user.email", "t@t.example")
     git(repo, "config", "user.name", "t")
+    for key, value in HOSTILE:
+        git(repo, "config", key, value)
+    write(repo, ".gitattributes", "* diff=hostile\n")
     mark_root(repo / "seal")
     write(repo, f"{ITEM}/routing.md", "# Routing\n")
     for rel, text in files.items():
@@ -78,7 +94,7 @@ def written(path):
 def hunks(repo, start, head, path, context):
     """What `git diff -U<CONTEXT>` prints for PATH from its first hunk on,
     each hunk header without the function line git puts after it."""
-    out = git_out(repo, "diff", f"-U{context}", start, head, "--", path)
+    out = git_out(repo, "diff", *PLAIN, f"-U{context}", start, head, "--", path)
     body = out[out.index("\n@@") + 1 :]
     return re.sub(r"(?m)^(@@ [^@]* @@).*$", r"\1", body) + "\n"
 
@@ -128,27 +144,72 @@ class Test_main:
     def test_accepts_a_deleted_line_and_two_hunks_of_one_paragraph(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A line deleted from the middle paragraph prints what is left of
-        it whole, as `git diff -U5` prints the deletion; two changes in one
-        paragraph print it once, as one hunk, as `git diff -U3` prints the
-        pair."""
+        """A line deleted from the first paragraph prints what is left of
+        it whole, and the hunk of the last paragraph after it is numbered
+        for the line the deletion took, each as `git diff -U2` prints them;
+        two changes in one paragraph print it once, as one hunk, as
+        `git diff -U3` prints the pair."""
         repo, base = built(tmp_path, {DOC: document()})
-        write(repo, DOC, document(middle=MIDDLE[:5] + MIDDLE[6:]))
+        last = [*LAST]
+        last[2] = "Last paragraph, line 3, rewritten."
+        write(repo, DOC, document(first=FIRST[:1] + FIRST[2:], last=last))
         head = commit_everything(repo, "delete")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 0, said
-        assert hunks(repo, base, head, DOC, 5) in written(out)
+        assert hunks(repo, base, head, DOC, 2) in written(out)
         pair = [*MIDDLE]
         pair[3] = "Middle paragraph, line 4, rewritten."
         pair[7] = "Middle paragraph, line 8, rewritten."
-        write(repo, DOC, document(middle=pair))
+        write(repo, DOC, document(first=FIRST[:1] + FIRST[2:], middle=pair, last=last))
         again = commit_everything(repo, "pair")
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, head, out)
         assert code == 0, said
         text = written(out)
         assert hunks(repo, head, again, DOC, 3) in text
         assert text.count("\n@@ ") == 1
+
+    def test_accepts_a_one_line_paragraph_an_added_and_an_emptied_file(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A one-line paragraph prints as `git diff -U0` prints its hunk, an
+        added `.md` path prints whole as `git diff` prints its one hunk, and
+        a `.md` path emptied prints the hunk git gives."""
+        lone = "docs/lone.md"
+        repo, base = built(tmp_path, {lone: "Above.\n\nOnly line.\n\nBelow.\n"})
+        write(repo, lone, "Above.\n\nOnly line, rewritten.\n\nBelow.\n")
+        write(repo, DOC, document())
+        head = commit_everything(repo, "change")
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 0, said
+        text = written(out)
+        assert hunks(repo, base, head, lone, 0) in text
+        assert hunks(repo, base, head, DOC, 3) in text
+        write(repo, DOC, "")
+        emptied = commit_everything(repo, "empty")
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, head, out)
+        assert code == 0, said
+        assert hunks(repo, head, emptied, DOC, 0) in written(out)
+
+    def test_accepts_a_path_that_reads_as_a_pattern_as_that_path_alone(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A path whose name a pathspec would read as a pattern, here one
+        that matches a second changed path, prints its own hunks alone."""
+        pattern, other = "docs/a[1].md", "docs/a1.md"
+        repo, base = built(tmp_path, {pattern: "Pattern.\n", other: "Other.\n"})
+        write(repo, pattern, "Pattern, rewritten.\n")
+        write(repo, other, "Other, rewritten.\n")
+        commit_everything(repo, "change")
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 0, said
+        text = written(out)
+        own = text.split(RANGE.PROSE_HEAD.format(path=pattern), 1)[1]
+        own = own.split("==> ", 1)[0]
+        assert "Pattern, rewritten." in own
+        assert "Other" not in own
 
     def test_accepts_another_text_path_as_git_diff_W_prints_it(
         self, tmp_path, monkeypatch, capsys
@@ -169,7 +230,7 @@ class Test_main:
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 0, said
-        whole = git(repo, "diff", "-W", base, head, "--", "lib/unit.py").stdout
+        whole = git(repo, "diff", *PLAIN, "-W", base, head, "--", "lib/unit.py").stdout
         assert whole in written(out)
 
     def test_accepts_the_records_whole_at_head_and_names_each_absent(
