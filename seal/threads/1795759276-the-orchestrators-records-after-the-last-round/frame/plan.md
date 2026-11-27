@@ -56,4 +56,4 @@ The chain check and `seal gate` behave as before. An orchestrator reads the chan
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | Before the build, the orchestrator sent the framer the corrections of #1641's and #1639's bodies and the three commits that rewrote 0.39.2's lane B rows; the framer folded them at `dc13d16d7` | Frame sentences cited issue bodies the orchestrator had corrected the same day, and a reading the frame left unverified had commits to open | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** |
