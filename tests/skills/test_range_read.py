@@ -5,10 +5,9 @@ A case builds a repository of its own under its `tmp_path`, with a marked
 records root and one work item, commits a base and a change, and runs the
 command's `main` in that repository; the local-mode case keeps its root
 under the git directory, and the case of a missing argument builds none.
-Where a case holds a print
-against git's own, the oracle is `git diff` run in the same repository
-with a context that reaches the paragraph's edges exactly, so the case
-reads the bound and not a spelling this file chose.
+Where a case holds a print against git's own, the oracle is `git diff` run
+in the same repository with a context that reaches the paragraph's edges
+exactly, so the case reads the bound and not a spelling this file chose.
 """
 
 import os
