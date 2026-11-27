@@ -155,8 +155,8 @@ the broad gate again, commit its record, run `seal pr-body` on the body file
 again, and spawn the sealer. Your broad run
 asks the records arm after its suite, and that arm refuses a commit outside
 the work item after the last round's `target:` commit, so a run taken
-straight after the fix returns the same refusal. `undecided` is a question for the owner,
-put after the run rather than during it; write the answer below the newest
+straight after the fix returns the same refusal. `undecided` is a question
+for the owner, put after the run rather than during it; write the answer below the newest
 verdict block as `Answered <date> by <who>: <answer>`, commit, and spawn the
 sealer again.
 `withheld reason: the base <name> resolves to no commit here` needs no
@@ -180,8 +180,8 @@ return after that suite, arrives before it. The chain arm judges as at a
 ready pull request whatever the pull request's state, so a refusal on a
 record arm, a verifying round owed among them, fails the preflight before
 the pull request exists. The arms that read what is written after the gate,
-`trail/gate.md`, `guarantee.md` and the body, print and do not fail. Read its exit code directly and
-take the broad run only on 0. On 1 its `PREFLIGHT FAILED` lines name each
+`trail/gate.md`, `guarantee.md` and the body, print and do not fail. Read
+its exit code directly and take the broad run only on 0. On 1 its `PREFLIGHT FAILED` lines name each
 failing arm with its first lines and the file holding the rest: correct the
 record, commit, and run it again. On 2 it refused before anything ran, and
 a refusal about the key goes to a person, as
