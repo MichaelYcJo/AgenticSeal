@@ -1799,7 +1799,8 @@ class Test_rule_changes_read:
     ):
         """S5: in CI a draft annotates the same line as a notice and passes.
         S6: where no pull request is observed the check prints it and exits
-        0, and `--sealing` leaves it a refusal on a ready one."""
+        0. `--sealing`, the broad gate's run, reads no state, so it leaves
+        the line a refusal on a ready payload and with none (#1620)."""
         root, _code = branch
         text = spec_with(CONTINUED)
         put_spec(root, text)
@@ -1816,9 +1817,12 @@ class Test_rule_changes_read:
         assert code == 1, out
         assert spec_lines(out) == [refusal(root, text)], out
         monkeypatch.delenv("GITHUB_EVENT_PATH")
-        code, out = check(root, capsys, chain.SEALING)
+        code, out = check(root, capsys)
         assert code == 0, out
         assert chain.UNSEEN_SAYS in out
+        assert spec_lines(out) == [refusal(root, text)], out
+        code, out = check(root, capsys, chain.SEALING)
+        assert code == 1, out
         assert spec_lines(out) == [refusal(root, text)], out
 
     def test_refuses_the_spec_of_a_framer_drawn_frame_the_same_way(
@@ -4634,20 +4638,48 @@ class Test_main:
 
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
-    def test_refuses_a_last_records_code_finding_fixed_in_its_records_alone(
+    def test_passes_a_last_records_code_finding_fixed_in_its_records_alone(
         self, branch, monkeypatch
     ):
-        """S4 of #1148: a finding that names a path outside the records owes
-        the round, even where its `fixed` commit touched only the records,
-        since no round would read its code half."""
+        """#1632, *Scope* item 4: a finding of the last record that names a
+        path outside the records beside the work item's `gaps.md`, `fixed` by
+        a commit that touched `gaps.md` alone, owes no verifying round. Its
+        own block names a place in the records, so the core's row gives the
+        fix to the sealer, which reads what the finding asked of the path
+        outside them (`agents/sealer.md` step 4)."""
         root, code_sha = branch
         write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
         fix = commit(root, "the record half alone")
         located = f"`f.txt:1`, `{ITEM}/gaps.md`"
         last = record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)])
+        assert records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1]) == []
+
+    @pytest.mark.rule("run-ends-with-verifying-round")
+    @pytest.mark.rule("last-record-at-head")
+    def test_refuses_a_last_records_code_finding_its_close_places_in_the_records(
+        self, branch, monkeypatch
+    ):
+        """#1632, *Scope* item 4: a finding whose own block names `f.txt:1`
+        alone owes the round where its close block's `location:` names the
+        work item's `gaps.md` and its `fixed` commit touched `gaps.md` alone.
+        The round placed the finding wholly outside the records, and the
+        close block the fix pass wrote does not make the sealer its reader.
+        It is refused at the close's `verdict:` line, the finding's line."""
+        root, code_sha = branch
+        write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
+        fix = commit(root, "a row in the records for a finding in code")
+        verdict = f"fixed {fix[:8]}"
+        section = (
+            finding(1, "open", location="`f.txt:1`")
+            + "\n"
+            + close(verdict, location=f"`{ITEM}/gaps.md`")
+        )
+        last = record(code_sha, [section])
         found = records_read(monkeypatch, root, {ROUND_1: last}, [ROUND_1])
-        line = next(why for rel, _n, why in found if rel == ROUND_1 and "### 1." in why)
-        assert chain.VERIFYING_ROUND in line, line
+        assert [(rel, n) for rel, n, _why in found] == [
+            (ROUND_1, line_at(last, f"verdict: {verdict}"))
+        ], found
+        assert "### 1." in found[0][2] and chain.VERIFYING_ROUND in found[0][2], found
 
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_code_commit_after_the_last_record(self, branch, monkeypatch):
@@ -4678,6 +4710,48 @@ class Test_main:
         ready.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
         code, out = check(root, capsys)
         assert code == 0 and "holds no `round-N.md`" in out
+
+    @pytest.mark.parametrize("state", ["unseen", "draft"])
+    def test_refuses_a_verifying_round_owed_under_sealing_whatever_the_state(
+        self, branch, tmp_path, capsys, monkeypatch, state
+    ):
+        """#1620, S1, S3, S4 and S6: `--sealing`, the broad gate's run,
+        reads no pull request's state and judges as at a ready pull request.
+        A last record owing a verifying round fails it with no payload and
+        on a draft, and its first line says how the run is judged in place
+        of `UNSEEN_SAYS`. The state is never asked, so no `gh` starts.
+        Without the flag the same branch prints the same refusal and exits
+        0. Seen red against `chain_check.py` before #1620, where `--sealing`
+        read the state and exited 0 in both."""
+        root, _code = branch
+        git(root, "rm", "-q", ROUND_2)
+        commit(root, "the verifying round taken back")
+        if state == "draft":
+            event(tmp_path, monkeypatch, True)
+        asked, real = [], chain.pull_request_state
+        monkeypatch.setattr(
+            chain, "pull_request_state", lambda *a: asked.append(a) or real(*a)
+        )
+        code, out = check(root, capsys, chain.SEALING)
+        assert code == 1, out
+        lines = out.splitlines()
+        assert chain.UNSEEN_SAYS not in out
+        assert chain.SEALING_JUDGED_SAYS == (
+            "`--sealing`: the broad gate's own run, judged as a ready pull "
+            "request whatever the pull request's state, which it does not read"
+        )
+        assert lines[0] == f"chain-check: {chain.SEALING_JUDGED_SAYS}", out
+        refused = [
+            ln
+            for ln in lines
+            if ln.startswith(f"{ROUND_1}:") and chain.VERIFYING_ROUND in ln
+        ]
+        assert len(refused) == 1, out
+        assert asked == []
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert refused[0] in out.splitlines(), out
+        assert len(asked) == 1
 
     def test_names_a_line_it_did_not_read_as_a_notice_and_keeps_the_exit(
         self, _branch_template, ready, capsys, monkeypatch

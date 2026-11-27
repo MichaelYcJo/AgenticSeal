@@ -36,7 +36,9 @@ is a write you do not make.
    `frame/questions.md`, the earlier `trail/phases/`, `seal/follow-up.md`, and
    every coordinate the handoff names. Where `seal/parity.json` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything.
-3. Say whether the frame holds before you build to it.
+3. Say whether the frame holds before you build to it, as
+   `skills/implement/SKILL.md` *The frame is judged before it is built to*
+   states.
 4. Where `routing.md` declares a framer and no `frame/design.md` is there,
    stop and hand back that `routing.md` and the directory disagree. A
    missing `frame/design.md` is not evidence about the rung, so do not
@@ -49,7 +51,10 @@ is a write you do not make.
    case new for it: the existing cases that prove it at the new name or
    path, and the census that table's row asks for, go into
    `trail/phases/phase-N.md`'s `## What this phase found`.
-6. Commit, then run `seal mutate` over each unit that adds behaviour.
+6. Commit, then run `seal mutate` over each unit that adds behaviour, as
+   `skills/implement/SKILL.md` *Commit before you mutate, and restore from
+   `seal mutate`'s copy* and *Mutation-test every unit that adds behaviour,
+   one command each* state.
 7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
    cheap and often, broad and once* names, as one command through the
    repository's runner.
@@ -63,9 +68,12 @@ is a write you do not make.
    6 otherwise hold for each fix.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled as rule 4 asks and the suite as rule 2 asks, each
-    instruction you declined as rule 3 asks, the account the rule *Before
-    you hand back, your range and the work item's records are read whole
-    against HEAD* asks for, what this file does not let you record
+    instruction you declined as rule 3 asks, the account of the read
+    `skills/implement/SKILL.md` *Before the builder closes a phase or a fix
+    pass, its range and the work item's records are read whole against
+    HEAD* asks for, written as `skills/implement/SKILL.md` *The account of
+    that read quotes its commands and describes no read in other words*
+    states, what this file does not let you record
     yourself (a question only a person can answer, a leftover for
     `seal/follow-up.md`) with who answers each, and changed files by
     absolute path.
@@ -77,20 +85,11 @@ is a write you do not make.
 - Present approaches or wait for a go: the spawn is the gate, and you build
   to the approach `plan.md` chose.
 - Name any party as the runner of the broad gate.
-- Build beyond the request: no speculative feature, no drive-by refactor, no
-  TODO stub in a core path.
 - Restore a mutated file from HEAD.
 - Put an emoji in anything you write, or end the hand-back with a block of
   any kind, whoever asks for one: rule 4's labels carry the claims.
 
 ## Rules
-
-**The frame is judged before it is built to.** A `frame/design.md` and a `frame/plan.md`
-are a drawing another party made, and a drawing can be wrong about the tree:
-a path its row states, a list it hands you, a file it says exists. Check them
-after the requirements read, before anything is spent. A *no* goes to
-`trail/phases/phase-N.md`'s `## What this phase found` and to the hand-back, never
-back to the framer; build to the part that holds.
 
 **Your scratch is named for the work item and the phase.** Your scratch
 directory (rule 17) is `<scratchpad>/<work-item-id>/phase-<n>/`, where
@@ -103,71 +102,13 @@ open each coordinate your prompt carries, in the shape
 `docs/running/the-run.md` *The handoff* gives it. Where a claim flips on
 where it is measured, measure where the handoff says and say so.
 
-**A new test starts from its group.** Before writing a case, read the tests
-of the function it covers and any pair a duplicate check in the repository
-names, and add the case to that group; a case that covers nothing its group
-does not already cover is not added. In a repository whose test files
-declare `TARGET`, `seal layout --pairs` is that check.
-
-**Commit before you mutate, and restore from `seal mutate`'s copy.** A
-revert through `git checkout -- <file>` restores the committed state and
-takes every uncommitted fix in that file with it; `seal mutate` holds the
-bytes it read and compares the hash after the restore.
-
-**Mutation-test every unit that adds behaviour, one command each.** Break
-one unit, run the cases that cover it, and watch one go red; a unit that
-stays green while broken has nothing behind it. A unit only renamed or
-moved adds nothing to break, and owes no run (`skills/verify/SKILL.md`
-*The narrow command still has to be able to fail*).
-
-```
-seal mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
-```
-
-Each run is bounded at 300 s unless `--timeout` says otherwise, and a
-timed-out run is a result to report. Where the runner starts pytest-xdist
-workers by default, add `-p no:xdist` for a handful of cases.
-`skills/verify/seal-mutate.md` carries the verdicts and their exit codes.
-
 **A stop at three failed fixes is handed back.** The rule is
 `skills/implement/SKILL.md` *2. Implement test-first, and let each rule
 name its test*'s. Where it stops you, hand back the architecture question
 in place of a fourth fix.
-
-**Find the runner, and type the narrow form.** A wrapper in `bin/`, or
-whatever the contribution guide names first, is cheap on the second call;
-type step 7's one command, never the whole suite
-(`docs/running/the-run.md` *The handoff*).
-Asking whether the suite catches something is a coverage probe, a different
-act: run it over the module that should catch it and report it as a probe.
 
 **The broad gate is not yours, and its label is.** The run and the suite's
 label are rule 2's. When a broad gate failure is handed to you, act on
 the word beside each failing file: repair a `new` file, name a
 `failing on base too` file as a follow-up and do not chase it, and run a
 `new?` file at the base yourself before treating it as either.
-
-**Before you hand back, your range and the work item's records are read
-whole against HEAD.** In a phase and in a fix pass, after your last
-commit, read every hunk of your range's diff with the paragraph or unit
-around it, a case's name, docstring and comments among them. Read whole
-each file of `seal/threads/<work-item-id>/` that states the present:
-`routing.md`, the three frame files, `gaps.md` and `changelog.md`. A
-coordinate or a statement of the tree in a frame section dated to the
-commit the framer read states that commit, not the present, and a sentence
-there that says what the work does or concludes states the present
-(`skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes*). Fix in
-your range every statement HEAD contradicts in a file your *Job* lets you
-write. Name each one that stands in a file you do not write, `routing.md`
-or any line of the frame but your Status cell in `frame/plan.md`, in the
-hand-back with its coordinate and the fact HEAD gives, for the
-orchestrator to fold. That set is closed, and reading it whole is rule
-12's second method, so none of it is handed on as a sample. Then find the
-other places across the tree that state each rule your range reworded or
-removed, by `git grep` on its words
-and by its `check:` target, and correct each or say in the hand-back why it
-stands; that list is a sample, and the hand-back calls it one and says
-where the part it did not reach stands. What you did not finish goes to
-`gaps.md` `## Not done` with why. Neither that nor the part a sample did
-not reach is the proofer's share.

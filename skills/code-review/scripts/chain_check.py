@@ -50,9 +50,10 @@ judged (`carried_by`). The arms are nine:
                 line names; every `fixed` or `rejected` finding
                 is named by the next record's `confirms:`, `reopens:` or
                 `regression:` lines, and none stands in the last record but
-                a `fixed` finding located in the work item's own records
-                alone (`located_in_records`) whose commit touched them alone
-                (`records_only`), which the sealer reads; the
+                a `fixed` finding whose own `location:` names a place in the
+                work item's own records (`located_in_records`) and whose
+                commit touched them alone (`records_only`), which the
+                sealer reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
   original      where git carries `seal/parity.json` at HEAD and the pull
@@ -90,7 +91,9 @@ judged (`carried_by`). The arms are nine:
                 which holds one, name the body as not read (`body`)
 
 A ready pull request fails on any of them. A draft, or a run that observed no
-pull request, prints the same lines and exits 0.
+pull request, prints the same lines and exits 0. A run under `--sealing`
+reads no pull request's state and judges as at a ready pull request, but for
+the arms *Usage* names.
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states the rules these arms hold,
 and `docs/forms/the-round-record.md` *The round record* and
 `docs/forms/the-guarantee.md` *The guarantee* the records they read.
@@ -124,9 +127,12 @@ Usage:
 
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
-own run, before it writes `trail/gate.md` and the sealer `guarantee.md`: those
-two arms, the guarantee's `original:` line, and the body arm, whose seal mark
-stands on that guarantee, print and do not fail.
+own run, in the preflight and in the broad run, before it writes
+`trail/gate.md` and the sealer `guarantee.md`. Those two arms, the
+guarantee's `original:` line, and the body arm, whose seal mark stands on
+that guarantee, print and do not fail. The run asks neither the event payload
+nor `gh` for the pull request's state, and judges every other arm as at a
+ready pull request.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a reader that will not
@@ -190,7 +196,9 @@ ROUND_TEMPLATE = "templates/records/sdd-round.md"
 # and the paths of its finding's `location:` alone. `paths` is where the
 # defect shows and where the fix went, which the pull-request check reads;
 # `located` is where the defect shows, which a count of findings by place
-# reads (`.github/scripts/finding_counts.py`).
+# reads (`.github/scripts/finding_counts.py`), and which the records arm
+# reads for whether the sealer is a last `fixed`'s reader
+# (`located_in_records`).
 Finding = collections.namedtuple(
     "Finding",
     "line heading number verdict paths regression regression_line reopens "
@@ -305,6 +313,13 @@ SEALING_SAYS = (
     f"{SEALING}: `{OPTIN.GATE}` is the file this run writes and "
     f"`{OPTIN.GUARANTEE}` the one the sealer writes after it, so their arms "
     "print and do not fail"
+)
+# The first line of a `--sealing` run, printed in place of the state line:
+# the broad gate's run precedes the ready pull request CI judges, so it is
+# judged as one, and neither the payload nor `gh` is asked for the state.
+SEALING_JUDGED_SAYS = (
+    f"`{SEALING}`: the broad gate's own run, judged as a ready pull request "
+    "whatever the pull request's state, which it does not read"
 )
 
 # What the check prints of a file it did not read. `main` prints it as a
@@ -890,9 +905,9 @@ def channel(rounds, read_at_head=lambda finding: False):
     refused at its own heading. A `rejected` finding of the last record, and
     a `fixed` one `read_at_head` does not pass, is refused as owing a
     verifying round, since nothing after it read the fix or the rejection.
-    `records` passes it a `fixed` finding located in the work item's own
-    records alone whose commit touched them alone, which the sealer reads at
-    HEAD. A `deferred` finding owes
+    `records` passes it a `fixed` finding whose own `location:` names a
+    place in the work item's own records and whose commit touched them
+    alone, which the sealer reads at HEAD. A `deferred` finding owes
     nothing."""
     problems = []
     by_number = {r.number: r for r in rounds}
@@ -974,10 +989,11 @@ def under(path, located):
 
 
 def located_in_records(item, f):
-    """True where finding `f` names at least one path and every path its
-    `location:` names lies under `item/`, the work item's own records. A
-    finding located in code is read by a round whatever its fix touched."""
-    return bool(f.paths) and all(under(q, item) for q in f.paths)
+    """True where one or more paths of `f.located`, its finding block's
+    `location:`, lie under `item/`, the work item's own records; a path its
+    close block's `location:` names is not read. A finding whose own block
+    names no record is read by a round whatever its fix touched."""
+    return any(under(q, item) for q in f.located)
 
 
 def records_only(root, item, commit):
@@ -1459,8 +1475,9 @@ def records(routing, root, item, rel, base):
     close block; a `fixed` naming a commit HEAD does not descend from, or
     one that changed no path the finding's or its close's `location:` names
     or lies under; what `channel` names between the rounds, a `fixed` of the
-    last record located in the work item's own records alone, whose commit
-    touched them alone, passing as read at HEAD by the sealer; a last record
+    last record whose own `location:` names a place in the work item's own
+    records, and whose commit touched them alone, passing as read at HEAD by
+    the sealer; a last record
     behind HEAD. A finding is named by its line and its heading."""
     found = round_records(routing, root, item)
     if not found:
@@ -2222,15 +2239,19 @@ def _checked(args):
         said = PRINTED_TRAILERS if local else JUDGED_TRAILERS
         declarations, why = [], ROOT_LEFT_SAYS.format(home=home, trailers=said)
 
-    state, where = pull_request_state(root)
-    unseen = state == "unknown" and not event_payload_present()
-    strict = state != "draft" and not unseen
-    print(
-        f"chain-check: {UNSEEN_SAYS} ({where})"
-        if unseen
-        else f"chain-check: judged as a {'draft' if state == 'draft' else 'ready'} "
-        f"pull request ({where})"
-    )
+    if args.sealing:
+        strict = True
+        print(f"chain-check: {SEALING_JUDGED_SAYS}")
+    else:
+        state, where = pull_request_state(root)
+        unseen = state == "unknown" and not event_payload_present()
+        strict = state != "draft" and not unseen
+        print(
+            f"chain-check: {UNSEEN_SAYS} ({where})"
+            if unseen
+            else f"chain-check: judged as a "
+            f"{'draft' if state == 'draft' else 'ready'} pull request ({where})"
+        )
     if WORKTREE:
         print("chain-check: reading the working tree (--worktree); CI reads HEAD")
     for rel, line, message in carried:

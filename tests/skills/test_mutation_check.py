@@ -14,8 +14,8 @@ file, for every interpreter tag; runs the cases with
 compares the hash; and prints one verdict whose exit code says which of three
 things happened. Every fixture of those cases lives under `tmp_path`, and
 every process a case starts is reaped or proven dead before the case returns.
-The old file keeps the cases that read the crafter's definition and the verify
-skill.
+The old file keeps the cases that read the builder's rule in
+`skills/implement/SKILL.md` and the verify skill.
 """
 
 import __future__

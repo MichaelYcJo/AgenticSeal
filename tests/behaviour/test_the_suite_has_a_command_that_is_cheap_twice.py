@@ -257,20 +257,24 @@ def test_the_section_names_the_contract_and_the_narrow_form():
     )
 
 
-# The citation of *The handoff*, which both definitions' runner rules carry and
-# the agent resolves for the narrow form it is handed.
+# The citation of *The handoff*, which the builder's runner rule and the
+# proofer's carry and the party resolves for the narrow form it is handed.
 HANDOFF_LINK = "`docs/running/the-run.md` *The handoff*"
 
 
 def test_crafter_cites_the_handoff_for_the_narrow_form():
     """The prompt is what went missing (#156: the orchestrator typed the
     runner into every spawn prompt, and the segments it forgot rediscovered
-    one), so the fix cannot live in the prompt. `agents/crafter.md` reaches
-    every segment at startup with nobody typing anything. Its rule's
-    sentences are the proofer's to read; what is pinned is the link to the
-    one statement of the form."""
-    crafter = flat("agents", "crafter.md")
-    assert HANDOFF_LINK in crafter, (
+    one), so the fix cannot live in the prompt. The builder's runner rule
+    stands in `skills/implement/SKILL.md` since #1628 and #1629, which the
+    crafter opens at its first step with nobody typing anything and an
+    orchestrator that builds reads too. Its rule's sentences are the
+    proofer's to read; what is pinned is the link to the one statement of
+    the form, in the rule's own paragraph."""
+    text = read("skills", "implement", "SKILL.md")
+    lead = "**Find the runner, and type the narrow form.**"
+    rule = flattened(text[text.index(lead) :].split("\n\n", 1)[0])
+    assert HANDOFF_LINK in rule, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
     )
 
@@ -280,7 +284,7 @@ def test_proofer_cites_the_handoff_for_the_narrow_form():
     them. `agents/proofer.md` told a reviewer to build a `uv` venv in its clone
     and named no runner, so a review round paid for an environment the
     repository already had built -- the same cost, on the segment that runs
-    more cases than the crafter does. Both definitions ship to user
+    more cases than the crafter does. Both rules ship to user
     repositories, so neither may name a command that exists only here. The
     rule's sentences, its fallback among them, are the proofer's to read."""
     proofer = flat("agents", "proofer.md")

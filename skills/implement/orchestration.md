@@ -28,17 +28,24 @@ lifetimes* states (contract rule 11).
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
-   once. The orchestrator's own commands, its commits and the broad run
-   among them, follow contract rule 21. The text the orchestrator's commits
-   write, its record edits, its folds of what a crafter names, `pr.md`, the
-   rows of *Judgments of the run* and a merge's resolution among them,
-   follows contract rule 19. The orchestrator opens both rules once, in
-   `skills/agent-contract/SKILL.md` beside the core.
+   once. The orchestrator opens `skills/agent-contract/SKILL.md` once,
+   beside the core. In every route, the orchestrator's own commands, its
+   commits and the broad run among them, follow contract rule 21. The text
+   the orchestrator's commits write, its record edits, its folds of what a
+   crafter names, `pr.md`, the rows of *Judgments of the run* and a merge's
+   resolution among them, follows contract rule 19. By contract rule 4 and
+   contract rule 5, a fact that text states of a commit, a run or the tree
+   is one that a command the orchestrator ran printed or a file it opened
+   showed, and a fact it holds from its memory of the run it opens again
+   before it writes it. Where the orchestrator builds or fixes itself, every
+   rule of that file binds it as the builder `skills/implement/SKILL.md`
+   *The builder is the party that builds a phase or makes a fix pass* names.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
-   and spawns the crafter (*The frame is read against the issue at the
-   spawn* below). Once the build's last phase has closed, the orchestrator
-   writes and commits the work item's `pr.md`, the pull request body's
+   and spawns the crafter, or builds itself where `routing.md` answers
+   `Implementation` with `the session` (*The frame is read against the
+   issue at the spawn* below). Once the build's last phase has closed, the
+   orchestrator writes and commits the work item's `pr.md`, the pull request body's
    first part, with its `pr.<lang>.md` where the two language keys differ,
    before the first round. The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
@@ -178,11 +185,13 @@ records the home in a comment on the issue of the work item in progress.
 
 ### The frame is read against the issue at the spawn
 
-**Before the first crafter spawn, wherever a framer drew the frame, the
-orchestrator reads `frame/design.md` and `frame/plan.md` against the issue's
-decisions and its *Done when*, and settles what it finds with the framer in
-one exchange.** It looks for where the frame is weaker than the issue asks,
-departs from the issue's direction, or would grow the review load. Each
+**Wherever a framer drew the frame, the orchestrator reads
+`frame/design.md` and `frame/plan.md` against the issue's decisions and its
+*Done when* before the first crafter spawn, or before its own first edit
+of the build where it builds itself, and settles what it finds with the
+framer in one exchange.** It looks for where the frame is weaker than the
+issue asks, departs from the issue's direction, or would grow the review
+load. Each
 reading goes to the framer in one message, as a proposal with its grounds
 and coordinates and never as an instruction. The framer answers each with
 agree, agree with a change, or reject with grounds, folds what it agreed
