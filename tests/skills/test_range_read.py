@@ -466,37 +466,21 @@ class Test_main:
         `.gitmodules` entry each tell git to ignore the submodule."""
         gitmodules = '[submodule "sub"]\n\tpath = sub\n\turl = ./sub\n\tignore = all\n'
         repo, base = built(tmp_path, {".gitmodules": gitmodules})
+
+        def commit(where, message):
+            """An empty commit in WHERE, which writes the index as it stands:
+            git 2.39.3's `commit` reads an ignored gitlink as no change and
+            refuses without `--allow-empty`."""
+            ident = ("-c", "user.name=t", "-c", "user.email=t@t.example")
+            git(where, *ident, "commit", "-q", "--allow-empty", "-m", message)
+
         sub = repo / "sub"
         sub.mkdir()
         git(sub, "init", "-q")
-        git(
-            sub,
-            "-c",
-            "user.name=t",
-            "-c",
-            "user.email=t@t.example",
-            "commit",
-            "-q",
-            "--allow-empty",
-            "-m",
-            "first",
-        )
+        commit(sub, "first")
         git(repo, "add", "sub")
-        # git 2.39.3's `commit` reads the ignored gitlink as no change and
-        # refuses, so the commit writes the index as it stands.
-        git(repo, "commit", "-q", "--allow-empty", "-m", "a submodule")
-        git(
-            sub,
-            "-c",
-            "user.name=t",
-            "-c",
-            "user.email=t@t.example",
-            "commit",
-            "-q",
-            "--allow-empty",
-            "-m",
-            "second",
-        )
+        commit(repo, "a submodule")
+        commit(sub, "second")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 0, said
