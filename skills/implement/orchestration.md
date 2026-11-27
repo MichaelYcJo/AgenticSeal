@@ -132,7 +132,8 @@ and the document it judged against as one row of `frame/plan.md`
 *Judgments of the run* and leaves the row uncommitted, so the framer reads
 the row when it reads
 `plan.md` whole: the rewritten sentence keeps no reason for itself, and the
-settle reads the row. The row names a commit as a coordinate and states
+settle reads the row. A row of *Judgments of the run*, this one and every
+other the orchestrator writes, names a commit as a coordinate and states
 nothing of what the commit changed: no number of lines, no list of the
 sentences or items a fold rewrote and no word for the kind of change,
 because `git show <commit>` is that account. The orchestrator resumes the
@@ -561,8 +562,9 @@ for the sealer (`skills/code-review/gate-to-pull-request.md`
 *Orchestrator: from the preflight to the open pull request*).
 
 **A row that first arises once no round is to follow is weighed.** Its
-commit outside the work item's directory costs the verifying round that
-document names, and a home that needs no such commit costs none. The homes
+commit outside the work item's directory costs the verifying round
+`docs/checks/the-pull-request-check.md` *What the check reads at the pull
+request* names, and a home that needs no such commit costs none. The homes
 are those `docs/running/the-run.md` *The run* gives.
 
 A row is out when it stands at its destination below:
