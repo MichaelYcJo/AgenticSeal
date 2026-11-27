@@ -226,11 +226,15 @@ text states what the work item decided and names each thing by the role it
 plays, such as the release branch, the release's first pull request or the
 item that carries the version move, and where a reader needs the value, it
 names the file or the command that reads it at that time. A count, a
-universal or a value stated of a named commit, a release, a dated
-measurement, or a date or a cut the sentence names is a claim about that
-moment and stays. A line of the plugin's forms that a check reads by value
-keeps the value its form gives it: the `Branch` row of `routing.md`, and
-the `target:` line of a round record and of `guarantee.md`. The rule
+universal or a value stated of a named commit, a published release, a
+dated measurement, or a date or a cut the sentence names is a claim about
+that moment and stays, and a release still open is no such moment. A line
+of the plugin's forms that a check reads by value keeps the value its form
+gives it: the `Branch` row of `routing.md`, and the `target:` line of a
+round record and of `guarantee.md`. A value the work item's own commit
+writes is a state of its branch, not one outside it, and stays: the
+version that the work item carrying the move writes to the version file
+and states in its `changelog.md` is one. The rule
 reaches every text a change writes: a record, a document, a comment, a
 docstring, and a paste-ready fix written for another party to apply.
 
