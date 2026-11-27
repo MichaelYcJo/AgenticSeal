@@ -235,8 +235,9 @@ round record and of `guarantee.md`. A value whose source is a file the
 work item's own commit has written is a state of its branch, not one
 outside it, and a sentence that states it stays: the version that the work
 item carrying the move has written to the version file, and states in its
-`changelog.md`, is one. Before that commit, the number is a prediction,
-which this paragraph's first sentence holds. The rule reaches every text a
+`changelog.md`, is one. Before that commit, the number is a prediction of
+a state outside the branch, held as this paragraph holds every such
+prediction. The rule reaches every text a
 change writes: a record, a document, a comment, a docstring, and a
 paste-ready fix written for another party to apply.
 
