@@ -36,7 +36,7 @@ The tree as read at `82169bfcc`.
 
 In:
 
-1. `skills/agent-contract/SKILL.md` rule 19 keeps its number, takes the heading of *Data & interfaces*, and gains one paragraph after its second, holding clauses R1 to R5 of *Data & interfaces*. The sentence on a named moment is stated once for a count, a universal and a value alike, and the sentence on the rule's reach stays the rule's last.
+1. `skills/agent-contract/SKILL.md` rule 19 keeps its number, takes the heading of *Data & interfaces*, and gains one paragraph after its second, holding clauses R1 to R6 of *Data & interfaces*. The sentence on a named moment is stated once for a count, a universal and a value alike, and the sentence on the rule's reach stays the rule's last.
 2. `templates/records/sdd-routing.md`: the placeholder under `## Why this way` gains the sentence of *Data & interfaces*, which cites contract rule 19 for how the grounds name the base, the version move and the merge order.
 3. `templates/records/sdd-plan.md`: the placeholders of *Overlap with the release* and *Operational impact* are reworded as *Data & interfaces* states, each citing contract rule 19. The table headers and the order of the sections stay.
 4. `tests/text/test_the_rules_have_one_owner.py`: `RULES` gains a row, numbered after the highest key, whose owner is `skills/agent-contract/SKILL.md`, whose fact is the heading number `## 19 `, and whose carriers are the two templates of items 2 and 3, each linked by the citation `contract rule 19`. The row is seen red once per carrier with that carrier's citation removed (contract rule 15).
@@ -47,11 +47,11 @@ Out:
 
 - Rewriting the sentences of G6 and G7, or any other record under `seal/threads/`. Those work items are released, the settle removes their directories, and rule 19 binds what a change writes from here on.
 - A script, a hook, a `seal` subcommand, a workflow or an agent-definition field that reads a record for a branch name, a tag or a version. `frame/plan.md` *Alternatives considered* weighs each and rejects it here.
-- `skills/implement/fix-pass.md`, `skills/implement/fold-and-reframe.md` and `skills/code-review/orchestration.md`, whose citations name "a count or a universal contract rule 19 refuses". Each stays true, the party that reads it preloads or has opened the contract, and the work item for #1624, #1628 and #1629 changes those files (`frame/plan.md` *Overlap with the release*).
+- `skills/implement/fix-pass.md`, `skills/implement/fold-and-reframe.md` and `skills/code-review/orchestration.md`, whose citations name "a count or a universal contract rule 19 refuses". Each stays true, and the party that reads it preloads or has opened the contract. The frame of the work item for #1624, #1628 and #1629, committed at `762f284f7`, changes `skills/implement/fix-pass.md` and `skills/code-review/orchestration.md` (its *Scope* items 4 and 5), and does not name `skills/implement/fold-and-reframe.md`.
 - `skills/implement/orchestration.md`. Step 1 of *Orchestrator: the order inside a ticket* already binds the text the orchestrator's commits write to contract rule 19, and `routing.md` is such a text.
 - `skills/implement/SKILL.md` and a dated head line on *Overlap with the release*. `frame/plan.md` *Alternatives considered* holds why.
 - The `Branch` row of `routing.md` and the `target:` lines (G10), which clause R5 keeps as they are. The issue proposes that the routing template's Branch line state the base by role. In this tree that row states the work item's own branch and no base, and the base stands in *Why this way*, which item 2 reaches.
-- The fragment line "The version moves to" a number, in the `changelog.md` of a work item that carries the move. It states what its own commit writes to the version file, which is a state the work item's commits make.
+- The fragment line "The version moves to" a number, in the `changelog.md` of a work item that carries the move. It states what its own commit writes to the version file, which is a state the work item's commits make, and clause R6 keeps it.
 - `docs/releasing/branch-and-release.md`, which states where the version moves as a rule and names the branch by the pattern `release/vX.Y.Z`.
 - An edit of the policy root. Its account of the rule is the `add` of `## Rule changes`, which the settle writes.
 
@@ -62,11 +62,11 @@ Out:
 | A1. The orchestrator writes `routing.md` | Given a new work item, when the orchestrator fills `templates/records/sdd-routing.md`, then the placeholder under `## Why this way` tells it to name the base, the version move and the merge order as contract rule 19 states | the `RULES` row of *Scope* item 4, carrier `templates/records/sdd-routing.md`; `bin/test -q tests/behaviour/test_waiver_decided_at_start.py tests/lib/test_routing.py` stays green, so the template still parses as a declaration |
 | A2. A framer fills the plan | Given a release that holds other work items, when the framer fills *Overlap with the release* and *Operational impact*, then each placeholder tells it how a state of the release is stated and cites contract rule 19 | the `RULES` row, carrier `templates/records/sdd-plan.md`; `bin/test -q tests/behaviour/test_the_set_a_work_item_always_has.py` stays green |
 | A3. The two templates are the rule's carriers under `templates/records/` | Given the build, when a reader searches the record templates for the citation, then it stands in the two templates of *Scope* items 2 and 3 | `git grep -n -F 'contract rule 19' -- templates/records` prints lines of `templates/records/sdd-plan.md` and `templates/records/sdd-routing.md` and of no other file. At `82169bfcc` it prints nothing (G11) |
-| A4. Every agent receives the rule | Given any spawn, when the agent starts, then rule 19 with its new paragraph is in the contract its `skills:` list preloads | `bin/test -q tests/text/test_every_agent_reads_the_contract.py tests/text/test_the_agent_contract_holds_the_universal_rules.py`, both unchanged; the proofer reads rule 19's body against clauses R1 to R5 |
+| A4. Every agent receives the rule | Given any spawn, when the agent starts, then rule 19 with its new paragraph is in the contract its `skills:` list preloads | `bin/test -q tests/text/test_every_agent_reads_the_contract.py tests/text/test_the_agent_contract_holds_the_universal_rules.py`, both unchanged; the proofer reads rule 19's body against clauses R1 to R6 |
 | A5. A value stated of a named moment stays | Given a record that says a branch was cut from a named ref at a named commit on a named date, when the ref later moves or is renamed, then the sentence is not false and no round raises it | the proofer reads clause R4 in rule 19's body |
 | A6. A form line keeps its value | Given `routing.md`'s `Branch` row and a round record's `target:` line, when a party writes them under the new paragraph, then each holds the value its form gives it | the proofer reads clause R5; A1's two test files |
 | A7. The second *Done when* line has an answerer | Given the build, when a reader opens `seal/follow-up.md`, then one row names #1633, what is counted and the repository owner | `git grep -n -F '#1633' -- seal/follow-up.md` prints that one row. At `82169bfcc` it prints nothing (G23) |
-| A8. This work item's own records hold to the rule | Given the work item's records at the target, when the proofer reads them, then each sentence that names a release ref, a commit of the base or the version states it of a named commit or date, or names it by role | the proofer reads `routing.md`, the three frame files, `gaps.md` and `changelog.md` against clauses R1 to R5 |
+| A8. This work item's own records hold to the rule | Given the work item's records at the target, when the proofer reads them, then each sentence that names a release ref, a commit of the base or the version states it of a named commit or date, or names it by role | the proofer reads `routing.md`, the three frame files, `gaps.md` and `changelog.md` against clauses R1 to R6 |
 
 ## Data & interfaces
 
@@ -77,8 +77,9 @@ Rule 19's heading becomes `## 19 A change rewrites the text it amends in place, 
 - R1. What a change writes states no value of a state outside the work item's branch that a later act can make false without a commit on that branch. The name or the tip of a branch, the base a pull request merges into, a tag, the version a release carries, and what another work item has branched, framed or been ordered to do are examples of such a state, and the text says they are examples. A prediction of such a state after a later act is held the same way.
 - R2. The reason: a cut, a rename, another pull request's merge, a tag or a deleted branch changes the state and makes no commit on the work item's branch. So no change searches for the sentence as the rule's first paragraph asks, and no round is owed that would read it.
 - R3. In its place the text states what the work item decided and names each thing by the role it plays, such as the release branch, the release's first pull request, or the item that carries the version move. Where a reader needs the value, the text names the file or the command that reads it at that time.
-- R4. A value stated of a named moment is a claim about that moment and stays. The moments are the ones the rule's second paragraph names for a count and a universal, a named commit, a release and a dated measurement, with a date and a cut the sentence names. The sentence is stated once for the three.
+- R4. A value stated of a named moment is a claim about that moment and stays. The moments are the ones the rule's second paragraph names for a count and a universal, a named commit, a published release and a dated measurement, with a date and a cut the sentence names. A release still open is no moment. The sentence is stated once for the three.
 - R5. A line of the plugin's forms that a check reads by value keeps the value its form gives it. The `Branch` row of `routing.md` and the `target:` line of a round record and of `guarantee.md` are such lines.
+- R6. A value that the work item's own commit writes is a state of its branch and not one outside it, and stays. The example is the version that the work item carrying the move writes to the version file and states in its `changelog.md` (round 1, finding 2).
 
 The placeholder under `## Why this way` of `templates/records/sdd-routing.md` keeps its present sentence and gains one that says, in these or like words: the grounds name the base, the version move and the merge order by what was decided and by role, and state a branch name, a commit or a version number only of a named moment, as contract rule 19 states.
 
@@ -116,7 +117,9 @@ Where each party that writes a record receives the rule, the parties being the a
     The text states what the work item decided and names each thing by its
     role, names the file or the command that reads a value a reader needs,
     and may state a value of a named commit or date. A form line that a
-    check reads by value keeps its value. The placeholders of
+    check reads by value keeps its value, and so does a value the work
+    item's own commit writes, such as the version that the item carrying
+    the move writes to the version file. The placeholders of
     `templates/records/sdd-routing.md` and `templates/records/sdd-plan.md`
     cite the rule where the orchestrator and the framer write the release's
     state. Whether a sentence states today's state or a named moment's is
