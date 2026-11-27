@@ -243,16 +243,17 @@ class Test_rendered:
     ):
         """A clone's core is printed under the running plugin's version, and
         its closing line names the running plugin's root, the one place that
-        root stands in the output."""
+        root stands in the output. A plugin root holding no core of its own
+        cannot be compared with the clone's, and is named the same way."""
         core = core_module()
-        root = plugin(tmp_path / "plugin")
         tree = plugin(tmp_path / "tree", version="0.26.0", core="# tree core\n")
         path = os.path.join(tree, *CORE)
-        out = core.rendered(path, root)
-        assert out == (
-            core.header(path, "0.25.0") + "\n# tree core\n\n" + core.closing(root)
-        ), out
-        assert out.count(root) == 1, out
+        for root in (plugin(tmp_path / "plugin"), plugin(tmp_path / "bare", core=None)):
+            out = core.rendered(path, root)
+            assert out == (
+                core.header(path, "0.25.0") + "\n# tree core\n\n" + core.closing(root)
+            ), out
+            assert out.count(root) == 1, out
 
     def test_refuses_to_print_a_core_whose_whole_output_reaches_the_cap(self, tmp_path):
         """An output the harness would cut to a preview is not printed: one
