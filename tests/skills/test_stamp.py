@@ -2031,7 +2031,7 @@ class Test_drawings:
         self, opted, monkeypatch
     ):
         """Every file the module reads also draws, so the draw before the
-        claim is faked to fail for one file's rows, to remove that inspection
+        claim is faked to fail for one file's rows, to remove that guarantee
         (contract rule 13; #1017, round 3's s4). The file is the older one, so
         a message carrying one stamp would carry it. It is left pending, and
         the good one after it is drawn."""

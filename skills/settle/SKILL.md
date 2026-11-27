@@ -231,7 +231,8 @@ does not parse, an unordered pair and an open row are all shown.
    grounds its body gives. A commit of a release before the one that
    renamed the plugin IADD carries the trailer as `Seal-Routing: no work
    item`, and `git log --grep` on that spelling lists those. A settle's
-   commit carries that trailer with no route chosen and is not one.
+   commit carries `IADD-Routing: no work item` with no route chosen and is
+   not one.
    `git log --grep` on a
    commit's short hash lists the later commits that name it, which is where
    a defect such a route let through shows. Where one kind of route keeps
