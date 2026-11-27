@@ -33,15 +33,17 @@ RANGE = load_module(os.path.join(ROOT, *TARGET.split("/")), "range_read_under_te
 ITEM = "seal/threads/1700000000-a-work-item"
 DOC = "docs/a-document.md"
 
-# A configuration that would put text into what `git diff` prints: an
-# external diff and a textconv filter that each fail, colour on every
-# command, and nearby hunks joined. The command switches each off, and an
-# oracle below asks git with the same switches.
+# A configuration that would put text into what `git diff` prints, or take a
+# path out of it: an external diff and a textconv filter that each fail,
+# colour on every command, nearby hunks joined, and every submodule ignored.
+# The command switches each off, and an oracle below asks git with the
+# switches that bear on a text path's print.
 HOSTILE = (
     ("diff.external", "false"),
     ("diff.hostile.textconv", "false"),
     ("color.ui", "always"),
     ("diff.interHunkContext", "20"),
+    ("diff.ignoreSubmodules", "all"),
 )
 PLAIN = ("--no-color", "--no-ext-diff", "--no-textconv", "--inter-hunk-context=0")
 
@@ -363,7 +365,9 @@ class Test_main:
         commit before the range, after it or both is named in the file and
         in the summary, none of git's lines on it is printed, and the read
         goes on past it to the records. A submodule the range deletes is
-        named as deleted."""
+        named as deleted. The configuration and a `.gitmodules` entry each
+        tell git to ignore the submodule, and the path is named all the
+        same."""
         commits = {"link": "1" * 40, "moved": "2" * 40}
 
         def put(state):
@@ -379,7 +383,9 @@ class Test_main:
                 entry = f"{RANGE.GITLINK},{commits[state]},sub"
                 git(repo, "update-index", "--add", "--cacheinfo", entry)
 
-        repo, start = built(tmp_path, {})
+        # git leaves out a submodule this entry ignores, whatever `-c` says.
+        gitmodules = '[submodule "sub"]\n\tpath = sub\n\turl = ./sub\n\tignore = all\n'
+        repo, start = built(tmp_path, {".gitmodules": gitmodules})
         if before:
             put(before)
             git(repo, "commit", "-qm", "before")

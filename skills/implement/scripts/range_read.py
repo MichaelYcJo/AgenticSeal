@@ -127,8 +127,19 @@ GITLINK = "160000"
 # Every pathspec is a path, never a pattern.
 LITERAL = {"GIT_LITERAL_PATHSPECS": "1"}
 
-# The options of every `git diff` the command runs.
-DIFF = ("diff", "--no-color", "--no-ext-diff", "--no-textconv", "--no-renames")
+# The options of every `git diff` the command runs. `--ignore-submodules=none`
+# keeps a submodule's path in the listing where `diff.ignoreSubmodules` or a
+# `.gitmodules` entry's `ignore` would leave it out. It is a flag and not a
+# key of `lib/gitcmd.py#KEYS`, because `-c diff.ignoreSubmodules=none` does
+# not reach the `.gitmodules` entry.
+DIFF = (
+    "diff",
+    "--no-color",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--no-renames",
+    "--ignore-submodules=none",
+)
 
 # A hunk header as `git diff` prints it, the function line after it unread.
 HUNK = re.compile(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
