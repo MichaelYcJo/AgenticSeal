@@ -52,13 +52,34 @@ else. `core.quotePath` is not set: a script that takes a path out of output
 git quotes under it asks for the path with `-z`, which quotes none.
 
 A setting that no `-c` key holds is named here with the flag that holds
-it. `diff.ignoreSubmodules` and the `ignore` of a submodule's entry in
-`.gitmodules` take a submodule's path out of `diff`, and out of `status`
-where the submodule's checkout moved off the commit the index holds.
-`-c diff.ignoreSubmodules=none` does not reach the `.gitmodules` entry,
-so a script that lists those paths passes `--ignore-submodules=none` on
-each such command, as `skills/implement/scripts/range_read.py#DIFF` and
-`#_uncommitted` do.
+it, and `FLAGS` holds the flag for each subcommand the setting reshapes.
+`argv` puts a subcommand's flags directly after it, so each command `git`
+starts carries them and no script passes them. `diff.ignoreSubmodules`
+and the `ignore` of a submodule's entry in `.gitmodules` take a
+submodule's path out of `diff`, out of a `log` that lists paths, and out
+of `status` where the submodule's checkout moved off the commit the index
+holds; the `.gitmodules` entry takes it out of `diff-tree` too. `-c
+diff.ignoreSubmodules=none` does not reach the `.gitmodules` entry, so
+`FLAGS` holds `--ignore-submodules=none` for each of those subcommands. The
+subcommand is the first argument that opens with no `-`: `-C` and `-c`
+before it each take the next argument as their value, as git(1)'s synopsis
+spells them, and a caller writes any other option before it in one
+argument, as `--literal-pathspecs` or `--git-dir=<path>`.
+
+**`OLDEST` is the oldest git the scripts under `lib/`, `skills/` and
+`hooks/` are written for.** A person's machine runs them on the git it
+has. `OLDEST` is the version git's release notes give for the newest
+option those scripts pass: `rev-parse` learned `--end-of-options` in 2.30
+(`Documentation/RelNotes/2.30.0.txt`), and
+`skills/implement/scripts/range_read.py#_commit` passes it. The script
+whose command set that version asks `older` before its first command, so
+a person on an older git reads the cause, and not git's own refusal of
+the option mid-run. A change that adds a command only a newer git reads
+raises `OLDEST` in the same commit, names the option here, and moves the
+ask to its script. `older` reads the one line `git version` prints, and a
+line in another shape refuses nothing. The floor is not stated of
+`.github/scripts/` and `evals/scripts/`, which run on GitHub's runners or
+at the owner's machine.
 
 Three helpers read a path: `git_path` turns a path built by `os.path`
 into git's `/`-joined form, `under_root` turns a `/`-joined
@@ -96,12 +117,31 @@ KEYS = (
 TIMEOUT = 60
 
 
+# The options `argv` puts directly after each subcommand it names.
+FLAGS = {
+    "diff": ("--ignore-submodules=none",),
+    "diff-tree": ("--ignore-submodules=none",),
+    "log": ("--ignore-submodules=none",),
+    "status": ("--ignore-submodules=none",),
+}
+
+# The options before a subcommand that take the next argument as their
+# value, as git(1)'s synopsis spells them.
+VALUED = ("-C", "-c")
+
+
 def argv(*args):
     """`["git", "-c", "<key>=<value>", ..., *args]`, one `-c` for each of
-    `KEYS`."""
+    `KEYS`, with the options `FLAGS` holds for the subcommand put directly
+    after it."""
     held = []
     for key, value in KEYS:
         held += ["-c", f"{key}={value}"]
+    at = 0
+    while at < len(args) and args[at].startswith("-"):
+        at += 2 if args[at] in VALUED else 1
+    if at < len(args):
+        args = (*args[: at + 1], *FLAGS.get(args[at], ()), *args[at + 1 :])
     return ["git", *held, *args]
 
 
@@ -149,8 +189,8 @@ class Failed(SystemExit):
     """A git or `gh` command that gave no answer the caller can read. A
     `SystemExit` whose code is its one line, so an uncaught one ends the
     process with that line on stderr at exit 1. `command` is the program
-    and the arguments the caller passed, without `argv`'s `-c` pairs or
-    `-C <root>`."""
+    and the arguments the caller passed, without `argv`'s `-c` pairs, the
+    options of `FLAGS` or `-C <root>`."""
 
     def __init__(self, command, line):
         super().__init__(line)
@@ -341,3 +381,30 @@ def is_ancestor(root, commit, ref):
     """Whether COMMIT is REF or reachable from it: `merge-base
     --is-ancestor`'s exit 0. `Unrun` as `git` raises it."""
     return git(root, "merge-base", "--is-ancestor", commit, ref).returncode == 0
+
+
+# The oldest git the scripts under `lib/`, `skills/` and `hooks/` are
+# written for, as its major and minor numbers. The module docstring gives
+# the option it comes from.
+OLDEST = (2, 30)
+
+# The first line `git version` prints: the version, its major and minor
+# numbers first, then anything after a space.
+VERSION = re.compile(r"git version ((\d+)\.(\d+)\S*)(?: .*)?")
+
+
+def older(root):
+    """The line that says the git answering in ROOT is older than
+    `OLDEST`, naming the version it printed, or None. None also where git
+    exits non-zero or its first line is not one `VERSION` reads: that
+    line is not read, and refuses nothing. `Unrun` as `git` raises it."""
+    done = git(root, "version")
+    found = VERSION.fullmatch(done.stdout.split("\n", 1)[0])
+    if done.returncode or not found:
+        return None
+    if (int(found.group(2)), int(found.group(3))) >= OLDEST:
+        return None
+    return (
+        f"git {found.group(1)} answers here, and the plugin's scripts need git "
+        f"{OLDEST[0]}.{OLDEST[1]} or newer"
+    )

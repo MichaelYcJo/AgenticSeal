@@ -48,12 +48,12 @@ claude
 > /plugin install agentic@agenticseal
 ```
 
-You need `git`, and Python 3.12 or newer answering to `python3` on your PATH.
-The `seal` commands are Python scripts, and `python3` is the command they run
-with. Run `python3 -V` before you install: macOS ships 3.9 as
-`/usr/bin/python3`, and a version manager answers with whatever it was last
-told. On Windows, where the official installer creates no `python3`,
-`seal.cmd` runs `py -3`, and the plugin's hooks fall back to it.
+You need `git` 2.30 or newer, and Python 3.12 or newer answering to `python3`
+on your PATH. The `seal` commands are Python scripts that start `git`, and
+`python3` is the command they run with. Run `python3 -V` before you install:
+macOS ships 3.9 as `/usr/bin/python3`, and a version manager answers with
+whatever it was last told. On Windows, where the official installer creates
+no `python3`, `seal.cmd` runs `py -3`, and the plugin's hooks fall back to it.
 
 That is the whole install. Nothing is written into your `CLAUDE.md` or your
 settings, and the plugin's hooks come with it (*What runs on your
@@ -344,6 +344,9 @@ writes into your settings.**
   compaction, runs `hooks/core-start.py`. Where the session's repository
   holds a `seal/` root, it prints `skills/core/SKILL.md` into the session's
   context, under one line naming the plugin's version and above one line
+  naming where work starts. Where the plugin's root is long enough that the
+  output would pass the harness's limit on a hook's output, it prints one
+  line naming the core's file for the session to open, above the same line
   naming where work starts. Anywhere else it prints nothing.
 - **`Stop`**, at the end of each turn of the main session, runs
   `seal_stamp.py --stop`, which draws each stamp waiting in the clone the

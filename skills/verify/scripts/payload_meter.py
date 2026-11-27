@@ -14,7 +14,10 @@ written on every spawn. This reads the tree and says what that prefix is.
 A session pays for a prefix of its own, which `session_composition` lists in
 a table before the agents': the same `CLAUDE.md` pair with its imports, and
 the core the plugin's `SessionStart` hook prints, counted as
-`lib/core.py#rendered` for the measured tree's core. A probe of a plugin
+`lib/core.py#rendered` for the measured tree's core. Where the whole output
+would reach `lib/core.py#CAP`, the hook prints one line naming the core's
+file and the closing line instead, and the row counts those and says so; the
+session then opens the core itself, which no row counts. A probe of a plugin
 `SessionStart` hook shows its output reaching the session and no subagent,
 so no agent's table carries it.
 
@@ -378,7 +381,10 @@ def session_composition(root, home, user):
     returns), then `HOOK_ROW`, share `hook`, whose bytes and characters are
     `lib/core.py#rendered` for the core `lib/core.py#origin` names in ROOT,
     header and closing line included: what a session in ROOT receives where
-    ROOT holds a `seal/` root. Where ROOT
+    ROOT holds a `seal/` root. Where the whole output would reach
+    `lib/core.py#CAP`, `rendered` returns one line naming the core's file and
+    the closing line, the row counts those, and it carries `named`, true: the
+    session opens the core itself, and no row counts it. Where ROOT
     holds no core to print, as a release before the hook does, the row is 0
     bytes marked `missing`: the hook's one-line refusal is printed only by a
     tree that has the hook. Every token figure is `_estimated`'s."""
@@ -389,6 +395,11 @@ def session_composition(root, home, user):
     if os.path.isfile(path):
         printed = core.rendered(path, root)
         hook.update({"bytes": len(printed.encode("utf-8")), "chars": len(printed)})
+        # The hook names the core in place of printing it where the whole
+        # output would reach `lib/core.py#CAP`; the session then opens the
+        # file, which this row does not count.
+        if printed.startswith(core.TOO_LONG.format(path=path, cap=core.CAP)):
+            hook["named"] = True
     else:
         hook.update({"bytes": 0, "chars": 0, "missing": True})
     rows.append(hook)
@@ -512,6 +523,13 @@ def _session_lines(session):
         note = ""
         if "via" in row:
             note = f" — imported by `{row['via']}`"
+        elif row["share"] == "hook" and row.get("named"):
+            note = (
+                " — what the `SessionStart` hook prints where the whole output "
+                "would reach `lib/core.py#CAP`: one line naming the core's file "
+                "and the closing line. The session opens the core itself, and "
+                "this row does not count it"
+            )
         elif row["share"] == "hook":
             note = (
                 " — what the `SessionStart` hook prints: its first line, the "
