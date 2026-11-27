@@ -26,14 +26,15 @@ touches it.** Its coordinates are each place the defect shows, and the file
 its paste-ready fix changes where that is elsewhere, each path from the
 root. A line the check cannot read is refused whatever the verdict. A
 `fixed <commit>` changes at least one named path, or a path under one;
-whether a fix that touched one of three is complete is the verifying round's
-to judge. It errs where a commit touches a named path and fixes nothing,
-which the verifying round reads.
+whether a fix that touched one of three is complete is the verifying round's to judge, or the sealer's where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the fix to it. It errs where a commit touches a named path and fixes nothing, which that reader reads.
 check: location-touched-by-fix
 
 **A finding's `evidence:` line names what its claim rests on.** `executed`
 names each command the round ran for it, and `read` each `path:line` it
-opened, so a later reader repeats the act instead of trusting the prose. A
+opened, so a later reader repeats the act instead of trusting the prose.
+A finding that says a sentence states a fact wrongly names, as
+`executed`, the command that lists each place stating that fact, and its
+grounds say what it printed; a search on the fact's words is a sample. A
 claim resting on neither is no finding but a row of `## Not judged`. No
 script decides on the line: the check takes it in any words, or a finding
 without it, and `seal pr-body` copies it with its block.
@@ -47,12 +48,11 @@ claim is one of absence.
 
 **A later round re-runs an `executed` line rather than re-deriving the
 claim.** Where it weighs an earlier finding, it runs the commands the line
-names again. A probe the line names was deleted under the agent contract's
-probe rule, so the round writes it again from its `## Probes` row. The sealer weighs no finding: a finding's verdict is the
+names again. A probe the line names stands in the earlier round's scratch directory, or was deleted from a working tree under the agent contract's probe rule, so the round writes it again from its `## Probes` row. The sealer weighs no finding: a finding's verdict is the
 check's to read (`agents/sealer.md` step 3).
 check: tests/text/test_review_axes.py
 
-**The fix pass appends one close block per finding and edits nothing else in the file.** The block stands in the finding's section, after its paste-ready fix, and holds its `verdict:` line, with the commit for `fixed`, and its `answer:` line: what was done, why the finding does not hold, or where it went. Where its fix went to a path the finding's `location:` does not name, the close block carries a `location:` line naming it, and its answer says so. The finding's own block is the proofer's and is never edited.
+**The fix pass appends one close block per finding and edits nothing else in the file.** The block stands in the finding's section, after its paste-ready fix, and holds its `verdict:` line, with the commit for `fixed`, and its `answer:` line: what was done, why the finding does not hold, or where it went. Where the finding's `evidence:` line names a command that lists the places stating a fact, the fix pass runs it again after its fix, and `answer:` names each place it still prints and why that place stands. Where its fix went to a path the finding's `location:` does not name, the close block carries a `location:` line naming it, and its answer says so. The finding's own block is the proofer's and is never edited.
 A repair a commit made, a correction to a record among them, closes
 `fixed <commit>`, with the record's path on `location:`. A repair made
 outside the tree, an issue or a pull request body edited, makes no commit
@@ -97,11 +97,9 @@ check: tests/skills/test_chain_check.py
 its fix commits and the corrections its sweep made, because a `fixed`
 verdict names a commit that is already there, and it commits neither. The
 orchestrator takes the round record from the hand-back as it stands and
-commits it, once for the whole pass, before it spawns the verifying round,
-which can read only what a commit holds. It edits no line in that commit,
-and a close it doubts goes into that round's spawn prompt. A finding closed
+commits it, once for the whole pass, before it reads whether a round follows the pass, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states, since that round can read only what a commit holds. It edits no line in that commit, and a close it doubts goes into that round's spawn prompt, or into the sealer's where no round follows the pass. A finding closed
 with no fix pass, such as `deferred the frame` on the framer's route or a
 `deferred <home>` the orchestrator files at the cap, has the orchestrator
 as its writer, and the orchestrator writes and commits the close block of every finding it closes at that step together. A second hand on a close block gives a reader nothing: made before the orchestrator's commit it leaves no trace
 in the history, and made after it the round pays one more record commit.
-check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
+check: tests/text/test_the_rules_have_one_owner.py

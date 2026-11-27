@@ -3,11 +3,11 @@
 What `skills/verify/scripts/unverified_check.py` reads, for a person who
 changes it.
 
-**A pull request that declares nothing owes the unverified check
-nothing.** Handed a `seal/` root's own `threads` path, `seal unverified`
-exits 0 and names the state in two more cases beside the settled root:
-where no `seal/` directory is in the tree, and where `threads/` holds
-work items none of which carries a `gaps.md`. There is no row to read.
-Every other path holding no `gaps.md` is still exit 2, which keeps a
-misspelt path from passing in silence.
-check: nothing-declared-nothing-owed
+**Handed a `seal/` root's own `threads` path that holds no work item,
+`seal unverified` exits 0 and names the settled root.** That is the state
+a complete settle ends in, an empty directory on disk or none in a fresh
+checkout, and a session runs the command after the settle. Every other
+path holding no `gaps.md` is exit 2, a tree with no `seal/` root and work
+items none of which carries a `gaps.md` among them, which keeps a
+misspelt path from passing in silence. No workflow runs the command.
+check: tests/skills/test_unverified_check.py
