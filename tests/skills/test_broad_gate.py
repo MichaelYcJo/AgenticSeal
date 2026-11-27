@@ -1955,6 +1955,45 @@ class Test_gate:
         assert not (keep / "suite.txt").exists()
         assert (keep / "chain.txt").is_file()
 
+    def test_refuses_a_preflight_where_a_verifying_round_is_owed(
+        self, repo, tmp_path, capsys
+    ):
+        """#1620, S1 and S2: with no pull request, a branch whose last round
+        record closes a finding `fixed` that no later record names fails the
+        preflight, and the chain arm's quoted lines name the record and the
+        verifying round owed. The broad run builds the same arms and skips
+        only the command, so this case holds its chain arm too. Seen red
+        against `chain_check.py` before #1620, whose `--sealing` run judged
+        no pull request and exited 0, so the preflight passed."""
+        write(
+            repo,
+            f"{ITEM}/routing.md",
+            "| Axis | Answer |\n|---|---|\n"
+            "| Review | through the review chain |\n"
+            "| Destination | open the pull request |\n"
+            "| Planning | the session |\n"
+            "| Branch | feature |\n",
+        )
+        commit(repo, "routing")
+        write(repo, "a", "the fix\n")
+        fix = commit(repo, "the fix")
+        write(
+            repo,
+            f"{ITEM}/trail/rounds/round-1.md",
+            a_round(f"fixed {fix[:8]}").replace("abc1234", fix),
+        )
+        commit(repo, "the round that read the fix")
+        keep = tmp_path / "out"
+        assert gate.gate(namespace(repo, keep, preflight=True)) == 1
+        out = capsys.readouterr().out
+        assert out.startswith("PREFLIGHT FAILED   "), out
+        owed = [
+            ln
+            for ln in out.splitlines()
+            if f"{ITEM}/trail/rounds/round-1.md:" in ln and chain.VERIFYING_ROUND in ln
+        ]
+        assert len(owed) == 1, out
+
     def test_refuses_a_preflight_with_a_record(self, repo, tmp_path):
         with pytest.raises(gate.Refused) as said:
             gate.gate(

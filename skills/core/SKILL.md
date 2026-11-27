@@ -114,11 +114,13 @@ one of those protections, is guidance.
 | No seal without the broad run | the sealer guarantees a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the sealer reads at HEAD itself | `agents/sealer.md` step 1 and the same check's broad gate arm |
 | No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD or at a commit that only `trail/gate.md` and `guarantee.md` follow; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the seal mark among it |
 
-The check refuses only a ready pull request, where its GitHub Actions
-workflow is installed; before the pull request, and in local mode, the four
-rows are held by `agents/sealer.md` step 1 and by the orchestrator keeping
-`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*.
+The check refuses at a ready pull request, where its GitHub Actions workflow
+is installed, and in `seal gate`'s preflight and broad run whatever the pull
+request's state. Before the pull request the gate's run holds the first two
+rows and prints the last two, which `agents/sealer.md` step 1 and the
+orchestrator keeping `skills/code-review/orchestration.md` *Orchestrator:
+the pull request opens once the sealer seals* hold then. In local mode,
+where the check judges no work item, those two hold all four.
 
 ## The rule a mechanism is kept against
 
