@@ -1,7 +1,7 @@
 {
   "name": "iadd",
   "displayName": "IADD",
-  "version": "0.39.4",
+  "version": "0.40.0",
   "description": "IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and it ends in an inspection bound to a commit.",
   "author": {
     "name": "MichaelYcJo"
