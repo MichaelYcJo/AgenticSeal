@@ -345,6 +345,57 @@ class Test_main:
         assert "Binary files" not in text
         assert RANGE.NOT_PRINTED.format(path="image.bin", why="binary") in said
 
+    @pytest.mark.parametrize(
+        "before, after, header, why",
+        [
+            (None, "link", RANGE.SUBMODULE, "submodule"),
+            ("link", "moved", RANGE.SUBMODULE, "submodule"),
+            ("file", "link", RANGE.SUBMODULE, "submodule"),
+            ("link", "file", RANGE.SUBMODULE, "submodule"),
+            ("link", None, RANGE.DELETED, "deleted"),
+        ],
+        ids=["added", "moved", "in-place-of-a-file", "a-file-in-its-place", "deleted"],
+    )
+    def test_accepts_a_submodule_by_name_and_does_not_print_it(
+        self, tmp_path, monkeypatch, capsys, before, after, header, why
+    ):
+        """S6 and *Scope* item 11: a path whose entry holds a submodule's
+        commit before the range, after it or both is named in the file and
+        in the summary, none of git's lines on it is printed, and the read
+        goes on past it to the records. A submodule the range deletes is
+        named as deleted."""
+        commits = {"link": "1" * 40, "moved": "2" * 40}
+
+        def put(state):
+            """SUB in the index as STATE: a gitlink to a commit that need not
+            exist, since no command of the range reads it, or a file."""
+            git(repo, "rm", "-q", "--cached", "--ignore-unmatch", "sub")
+            if (repo / "sub").exists():
+                (repo / "sub").unlink()
+            if state == "file":
+                write(repo, "sub", "A file.\n")
+                git(repo, "add", "sub")
+            elif state:
+                entry = f"{RANGE.GITLINK},{commits[state]},sub"
+                git(repo, "update-index", "--add", "--cacheinfo", entry)
+
+        repo, start = built(tmp_path, {})
+        if before:
+            put(before)
+            git(repo, "commit", "-qm", "before")
+            start = git_out(repo, "rev-parse", "HEAD").strip()
+        put(after)
+        git(repo, "commit", "-qm", "after")
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, start, out)
+        assert code == 0, said
+        text = written(out)
+        assert header.format(path="sub") in text
+        assert "Subproject commit" not in text
+        assert "A file." not in text
+        assert RANGE.RECORD.format(path=f"{ITEM}/routing.md") in text
+        assert RANGE.NOT_PRINTED.format(path="sub", why=why) in said
+
     def test_accepts_a_renamed_path_as_one_deleted_and_one_added(
         self, tmp_path, monkeypatch, capsys
     ):

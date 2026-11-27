@@ -27,8 +27,11 @@ line naming it:
   its paragraph's start. A hunk `-W` printed to its paragraph prints as
   git printed it; a widened one, or one joined to another, carries a header
   in git's form with no function line after it;
-- a binary path and a deleted path named and not printed (`BINARY`,
-  `DELETED`).
+- a binary path, a deleted path and a path whose entry is a submodule's
+  commit on either side of the range named and not printed (`BINARY`,
+  `DELETED`, `SUBMODULE`). A submodule's entry holds a commit and no text,
+  so the path's text is in the file nowhere, a file put in place of a
+  submodule among them: the builder reads that file by hand.
 
 Then come the work item's records that state the present, `RECORDS`, each
 whole as HEAD holds it under a line naming its path (`RECORD`), and one HEAD
@@ -118,6 +121,9 @@ RECORDS = (
 # The paths printed a paragraph at a time, with no unit `git diff -W` gives.
 PROSE = ".md"
 
+# The mode git gives a submodule's entry, which holds a commit and no text.
+GITLINK = "160000"
+
 # Every pathspec is a path, never a pattern.
 LITERAL = {"GIT_LITERAL_PATHSPECS": "1"}
 
@@ -131,6 +137,7 @@ RANGE_LINE = "range: {start}..{head}"
 PROSE_HEAD = "==> {path}: each hunk with its paragraph at HEAD <=="
 WHOLE_HEAD = "==> {path}: git diff -W, each hunk widened to its paragraph at HEAD <=="
 BINARY = "==> {path}: binary, not printed <=="
+SUBMODULE = "==> {path}: submodule, not printed <=="
 DELETED = "==> {path}: deleted, not printed <=="
 RECORD = "==> {path}: whole at HEAD <=="
 ABSENT = "==> {path}: not at HEAD <=="
@@ -227,9 +234,18 @@ def _ancestor(root, start, head):
 
 
 def _changed(root, start, head):
-    """`[(path, status)]` of each path the range changes, in git's order."""
-    fields = _fields(_git(root, *DIFF, "--name-status", "-z", start, head))
-    return list(zip(fields[1::2], fields[0::2], strict=True))
+    """`[(path, status, gitlink)]` of each path the range changes, in git's
+    order; GITLINK holds where either side of the path is a submodule's
+    commit."""
+    fields = _fields(_git(root, *DIFF, "--raw", "-z", start, head))
+    changed = []
+    # `--raw -z` prints `:<old mode> <new mode> <old> <new> <status>`, then
+    # `<path>`, each ended by NUL: one path each, since DIFF holds
+    # `--no-renames`.
+    for meta, path in zip(fields[0::2], fields[1::2], strict=True):
+        old_mode, new_mode, _old, _new, status = meta.lstrip(":").split(" ")
+        changed.append((path, status, GITLINK in (old_mode, new_mode)))
+    return changed
 
 
 def _binary(root, start, head):
@@ -405,10 +421,13 @@ def _read(item, start, cwd):
     _ancestor(root, start, head)
     lines, summary = [RANGE_LINE.format(start=start, head=head)], []
     binary = _binary(root, start, head)
-    for path, status in _changed(root, start, head):
+    for path, status, gitlink in _changed(root, start, head):
         if status == "D":
             lines.append(DELETED.format(path=path))
             summary.append(NOT_PRINTED.format(path=path, why="deleted"))
+        elif gitlink:
+            lines.append(SUBMODULE.format(path=path))
+            summary.append(NOT_PRINTED.format(path=path, why="submodule"))
         elif path in binary:
             lines.append(BINARY.format(path=path))
             summary.append(NOT_PRINTED.format(path=path, why="binary"))
