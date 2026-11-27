@@ -393,6 +393,9 @@ class Test_measure:
         line = by_first[f"`{HOOK_ROW}`"]
         assert line[1:3] == [f"{raw:,}", f"{chars:,}"], line
         assert "what the `SessionStart` hook prints" in line[4], line
+        # A core that prints whole is counted as the core, with no mark.
+        assert "named" not in hooks[0], hooks[0]
+        assert "the core below its frontmatter" in line[4], line
         for row in data["session"]["files"][:-1]:
             name = f"`{row['path']}`"
             if "via" in row:
@@ -402,6 +405,37 @@ class Test_measure:
         assert "imported by `~/.claude/CLAUDE.md`" in imported[4], imported
         total = by_first["**total**"]
         assert total[1] == f"{data['session']['total']['bytes']:,}", total
+
+    def test_a_core_past_the_cap_is_a_hook_row_marked_as_naming_the_core(
+        self, meter, tmp_path
+    ):
+        """#1641, S8. Where the measured tree's whole output would reach
+        `lib/core.py#CAP`, the hook prints one line naming the core's file and
+        the closing line. The row counts what `lib/core.py#rendered` returned,
+        carries `named`, and its note says the session opens the core itself
+        and the row does not count it."""
+        root, home = a_tree(tmp_path)
+        a_core(root)
+        write(
+            str(root / "skills" / "core" / "SKILL.md"),
+            f"---\nname: core\n---\n\n# The core {ACCENT}\n\n" + "x" * 10_000 + "\n",
+        )
+        printed = hook_output(root)
+        assert printed.startswith("AgenticSeal core: printing "), printed[:200]
+        data = meter.measure(str(root), str(home))
+        (hook,) = [f for f in data["session"]["files"] if f["share"] == "hook"]
+        assert hook["named"] is True, hook
+        assert (hook["bytes"], hook["chars"]) == (
+            len(printed.encode("utf-8")),
+            len(printed),
+        ), hook
+        text = meter.render(data)
+        session_part = text[: text.index("## probe")]
+        by_first = {cells[0]: cells for cells in rows_of(session_part)}
+        note = by_first[f"`{HOOK_ROW}`"][4]
+        assert "one line naming the core's file and the closing line" in note, note
+        assert "this row does not count it" in note, note
+        assert "the core below its frontmatter" not in note, note
 
     def test_the_json_carries_the_session_as_an_object_of_its_own(
         self, meter, tmp_path
