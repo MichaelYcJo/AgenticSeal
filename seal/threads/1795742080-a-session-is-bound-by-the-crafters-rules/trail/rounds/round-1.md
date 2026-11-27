@@ -82,6 +82,12 @@ The docstring's list at `:30-31` gains the submodule beside `BINARY` and `DELETE
 
 The fix crosses no OS boundary. It reads only what git prints.
 
+```seal
+verdict: fixed 837a27a18
+location: `seal/threads/1795742080-a-session-is-bound-by-the-crafters-rules/changelog.md`
+answer: Built to `frame/design.md` *Scope* item 11, which the fold at 9f7f6e4d5 added. `_changed` reads each path's two modes from `git diff --raw -z`, and a path whose mode on either side is `GITLINK` is named under `SUBMODULE` in the file and as `not printed: <path>, submodule` in the summary. The branch stands after the deleted check, so a submodule the range deletes stays named as deleted, as the item says, and the docstring's list names the path with the item's limit, a file put in place of a submodule. The paste-ready `_changed` and `_read` were applied after reading them against the item. The case was written in this pass's words: `tests/skills/test_range_read.py#test_accepts_a_submodule_by_name_and_does_not_print_it` covers five cases, a submodule added, moved, put in place of a file, replaced by a file, and deleted, and also checks that the read goes on to the records. `seal mutate` with only the submodule branch removed, which is the old code's behaviour, read red. So did the reads of one side's mode alone, a wrong `GITLINK`, the branch moved before the deleted check, and a wrong summary word. `SUBMODULE = BINARY` survived until 1aa992343 pinned that the path is not called binary, and then read red. ed2a57793 adds to `changelog.md`'s `seal range` entry that a submodule's path is named and not printed, since the fragment lists what ships.
+```
+
 ### 2. No case holds **A new test starts from its group** where it now stands, and removing it leaves the suite green
 
 ```seal
@@ -115,6 +121,11 @@ BUILDERS_RULES = {
 }
 ```
 
+```seal
+verdict: fixed ffcb56f24
+answer: `BUILDERS_RULES` gains **A new test starts from its group.**, with `` `seal layout --pairs` `` as the fact its paragraph names. `test_the_crafters_rules_name_what_their_readers_resolve` already walks that dict in `skills/implement/SKILL.md` *Procedure*. The entry is the round's, and the comment above the dict was rewritten to name both rules it now holds. `seal mutate` removing from `skills/implement/SKILL.md` only the sentence that names `seal layout --pairs` read red, on the line "'A new test starts from its group.' lost '`seal layout --pairs`'". The evidence search, run again, prints the `MOVED_OUT_OF_CRAFTER` entry and the new entry. *Scope* item 8 does not yet name this case, so the hand-back names that frame line for the orchestrator.
+```
+
 ### 3. `skills/code-review/orchestration.md` still says a crafter's hand-back carries "the method of its read"
 
 ```seal
@@ -137,6 +148,11 @@ as contract rule 12 asks of the party that fixes. The
 round that follows reads that account as a claim. Where the hand-back names
 ```
 
+```seal
+verdict: fixed 780c45da1
+answer: The paste-ready lines were applied as given, after reading them against `skills/implement/SKILL.md` *The account of that read quotes its commands and describes no read in other words*. The sentence now has a crafter's hand-back carry the account that paragraph states, in place of "the method of its read". The evidence search, run again, prints `skills/agent-contract/SKILL.md:141` alone. That line stands, because it names the method of a class's enumeration under contract rule 12 and not the account of a read.
+```
+
 ### 4. `changelog.md` says `agents/crafter.md` cites each moved rule at the step that applies it, and it cites four of them
 
 ```seal
@@ -154,6 +170,11 @@ The grounds. The first command prints the citations step 3 (`:40`), step 6 (`:55
 ```
 
 The sentence replaces "`agents/crafter.md` cites each of them at the step that applies it." in `changelog.md:3`.
+
+```seal
+verdict: fixed ed2a57793
+answer: `changelog.md:3` takes the round's sentence. In this pass's words, it names `skills/implement/SKILL.md` in place of "the file", whose antecedent the line leaves open. The first evidence command, run again, prints `agents/crafter.md:40`, `:55`, `:56` and `:72`, which are the citations the sentence names; the account's citation at `:74` wraps across a line, so a search of its whole lead misses it. The second prints only the quotes in this finding of `trail/rounds/round-1.md`.
+```
 
 ### 5. The rule change's `to` repeats the opening of `skills/verify/seal-mutate.md`, so after the settle one fact stands in two files
 
@@ -176,6 +197,11 @@ its verdicts with their exit codes, and its bound.
 ```
 
 The fold's clause for *Scope* item 7: "`skills/verify/seal-mutate.md:3-5` cites the row of `seal mutate` in `docs/running/what-a-script-gates.md` *The checks* for who runs the command, in place of naming the crafter."
+
+```seal
+verdict: fixed 29d2888bc
+answer: Built to `frame/design.md` *Scope* item 7 as the fold at 9f7f6e4d5 rewrote it. The opening of `skills/verify/seal-mutate.md` cites the row of `seal mutate` in `docs/running/what-a-script-gates.md` *The checks* for who runs the command. In this pass's words, its last sentence opens "This file holds", since the paste-ready "It holds" would follow a sentence whose subject is the row. `chain_check.py --worktree`, run again with the evidence line's arguments, prints no repeat note for `frame/design.md`. The second evidence command prints `frame/design.md:134`, the rule change's `to`, which is the fact's home once the settle writes it, and the quotes in this finding. Until that settle, the row the citation names still says "the crafter", which is the interval *Scope* item 7 accepts.
+```
 
 ### 6. Both rows of *Judgments of the run* state what a fold commit changed, and `git show` of each commit says otherwise
 
@@ -203,6 +229,11 @@ The rows are the orchestrator's to write, so this finding goes to the orchestrat
 ```
 
 The angle-bracketed spans stand for the cells' text as it stands at `342a46f31`. The fix pass copies each one from `frame/plan.md:75-76` and replaces only the named sentence.
+
+```seal
+verdict: fixed 6a1347cc5
+answer: The orchestrator rewrote both rows in place, from the finding's snippets, and the framer, resumed for findings 1 and 5, ran `git show 53883c4e2 --format= -U0` and `git show f09656b7b --format= -U0` against them and named three further departures, which `6a1347cc5` also writes. Row 1 now names the exit line alone among the lines that record what phase 1 built, and says the output line of *Data & interfaces* holds the local-mode and rename clauses beside item 10's widening. Row 2 now also names *Scope* item 2's clause on a contract rule that withholds an act from every agent, *Scope* item 8's `MOVED_OUT_OF_CRAFTER` entry, and the sentences contract rule 19's merged paragraph refuses, which that fold rewrote. The orchestrator's row for round 1's fold, written before the fold and committed with it at `9f7f6e4d5`, said the fold narrowed only; finding 1's fold adds *Scope* item 11, and `6a1347cc5` says so. The commit touches `frame/plan.md` alone
+```
 
 ## Confirmations
 
