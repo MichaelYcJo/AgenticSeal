@@ -91,6 +91,42 @@ command. A prompt the work did not need costs the most expensive step
 orchestrator among them, cannot see that it caused one.
 check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
+**Contract rule 19 keeps a change from writing a count or a universal
+that a later change makes false, and nothing reads a sentence for one.**
+A count of files, rows or places, or a claim that every one, none or
+only one of them holds something, restates a list without the list's
+words, so the `git grep` the same rule asks of the next change does not
+find it, and the sentence stands false until a round reads it. In
+releases 0.0.2 to 0.0.4 of a repository that runs the chain, 14 of the 72
+defects that a commit after round 1 introduced were such a sentence
+(#1613). The rule binds every agent through the contract, and the
+orchestrator opens it at step 1 of
+`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*. Whether a sentence states what the tree holds or a rule that
+must hold is the reader's judgment, so no script reads for one.
+check: tests/text/test_the_rules_have_one_owner.py
+
+**Contract rule 19 keeps a change from writing, as a present fact, a
+state outside the work item's branch that a later act makes false, and
+nothing reads a sentence for one.** The name or the tip of a branch, the
+base a pull request merges into, a tag and the version a release carries
+change at a cut, a rename, another pull request's merge or a tag, and
+none of those acts is a commit on the work item's branch. So no change
+searches for the sentence and no round is owed that would read it, and
+it stands false until a later round or a later release meets it (#1633).
+The text states what the work item decided and names each thing by its
+role, names the file or the command that reads a value a reader needs,
+and may state a value of a named commit or date. A form line that a
+check reads by value keeps its value, and so does a value whose source
+is a file the work item's own commit has written, such as the version
+that the item carrying the move has written to the version file. The
+placeholders of
+`templates/records/sdd-routing.md` and `templates/records/sdd-plan.md`
+cite the rule where the orchestrator and the framer write the release's
+state. Whether a sentence states today's state or a named moment's is
+the reader's judgment, so no script reads for one.
+check: tests/text/test_the_rules_have_one_owner.py
+
 ## What each party writes, and when
 
 **A review round is one file the proofer writes, the fix pass writes two lines
@@ -141,9 +177,7 @@ of one session shares one scratchpad, and a name any parallel agent would
 also pick is a file somebody else can overwrite. So the proofer's clone is
 `<scratchpad>/<work-item-id>/round-<n>/clone` with every probe of the round
 beside it, and the orchestrator's `seal gate` log carries the work item id.
-The name lives in the definitions, where a rule arrives by mechanism, and one
-directory per work item and round is what lets the agent that made a leaving
-say every one of them is gone.
+The rule stands in contract rule 17, which every agent receives, and each definition names its own directory under it. No agent removes its directory or a file in it. The name already keeps two agents' files apart, the one removal on record took the whole scratchpad with every other agent's files (#1445), and a removal written with a variable in its path is a command Claude Code holds for a person (#1503). An agent that finds its directory standing leaves it and takes the next free name. The removal is the orchestrator's, in `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, because nothing clears a session's scratch when the session ends.
 check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **A judgment is written where its party writes, with its grounds and the document it
@@ -157,14 +191,38 @@ file a leftover, to fold a decision into the frame, would reach the next session
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
 which the settle reads (`docs/running/the-run.md` *The run*).
 
+**A fix that needs a unit the frame does not name waits for the framer's
+fold, which designs the unit before the fix pass builds it, and every other
+fold after a fix or a build only removes or narrows what HEAD contradicts.**
+The framer judges what the work should be, so it designs the unit, and the
+crafter builds it to that design. What a unit is, the fix pass's stop and
+its reason are `skills/implement/fix-pass.md` *A fix that needs a unit the
+frame does not name waits for the fold*. The order and the narrowing are
+`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*.
+check: tests/text/test_the_rules_have_one_owner.py
+
+**A round compares the work item's records with the code, with each
+other, with the other work items' frames and with their own figures,
+and the sealer reads a fix pass that touched the records alone over its
+diff, in place of a round.** In releases 0.0.2 to 0.0.4 of a repository
+that runs the chain, 8 of the 17 findings a first round missed compared
+a record with a fact or with another record, and 43 of the 72 defects a
+commit after round 1 made stood in records (#1615). The rows are
+`skills/code-review/SKILL.md` *Comparison axes*'s, and the sealer's read
+is `agents/sealer.md` step 4's. Whether a pass is the sealer's is the
+row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is
+not licence to skip a party*, which the orchestrator reads through the
+chain check's `--worktree` run, as `skills/code-review/orchestration.md`
+*Orchestrator: the run ends with a verifying round* states.
+check: tests/behaviour/test_the_sealer_guarantees.py
+
 ## What a spawn costs
 
 **A spawn's payload is measurable, and it is paid on every spawn.** An
 agent's definition, every skill its own list injects and the instruction
 files the harness adds are written into the context of every segment that
-agent runs, whether or not the segment has an act to apply them to. The meter
-resolves a definition's list to files and reports the composition per file
-and as a total, in bytes, characters and tokens, split at headings.
+agent runs, whether or not the segment has an act to apply them to. The meter resolves a definition's list to files and reports the composition per file and as a total, in bytes and characters, with tokens estimated from the bytes.
 
 **A section marked for one role reaches that role and no other.** An
 orchestrator's procedure preloaded into every implementer spawn is procedure

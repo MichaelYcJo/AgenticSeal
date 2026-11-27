@@ -26,7 +26,7 @@
 `seal settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만 읽고, 그
 안에는 아무것도 쓰지 않습니다. 세션이 칠 수 있는 경로로 루트가 어디
 있는지는 `skills/core/SKILL.md` 의 첫 문단 한 곳에 적혀 있습니다.
-check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
+check: tests/lib/test_optin.py
 
 ## 종속 규칙
 
@@ -139,10 +139,12 @@ check: tests/behaviour/test_first_setup_asks_once.py
 아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
 `seal pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
 그대로 둡니다. 검사가 설치되었는지를 말하는 설정 키는 없습니다. 파일이
-그것을 말하고, 두 번째 기록은 두 번째 답이 되기 때문입니다. 루트가 없는
-상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남아도 아무것도 보지
-않은 채 통과합니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py`
-하나뿐이고, 트리에서 루트를 찾지 못하니 선언된 것이 없어 0 으로 끝납니다.
+그것을 말하고, 두 번째 기록은 두 번째 답이 되기 때문입니다. 루트가 없는 상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남으면
+선언된 것이 없는 것으로 읽습니다. 그 워크플로가 돌리는 기록 검사는
+`chain_check.py` 하나뿐이고, 트리에서 루트를 찾지 못하니 커밋 트레일러만
+판단합니다. local 모드 세션이 쓴 커밋에는 `Seal-Routing` 트레일러가 없으니
+통과하고, 전환 전에 만든 커밋의 트레일러가 작업 항목을 가리키면 준비된 PR 을
+실패시킵니다.
 그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
 `seal mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
@@ -235,8 +237,8 @@ check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py test
 본문을 정합니다. 하나를 정해도 다른 하나가 따라가지 않습니다. 두 표면은 읽는
 사람이 다르기 때문입니다. PR 은 그것을 여는 사람이 읽고, 기록은 여섯 달 뒤에
 그 결정을 다시 보러 오는 사람이 읽습니다. 두 키가 서로 다른 언어를 가리키면 PR
-본문은 `pr.md` 의 인용을 팀의 언어로 옮긴 `pr.<lang>.md` 로 시작하고, 그 뒤에
-`pr.md` 가 옵니다. 그래서 기록은 한 언어로 남고, 팀은 PR 본문을 자기 언어로
+본문은 팀의 언어로 쓴 `pr.<lang>.md` 로 시작하고, 그 뒤에 `pr.md` 가
+옵니다. 그래서 기록은 한 언어로 남고, 팀은 PR 본문을 자기 언어로
 읽습니다.
 
 어느 키가 무엇을 말하든 **검사기가 맞춰 보는 이름은 영어로 남습니다.** 필드
@@ -251,10 +253,6 @@ check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 객체가 아닌 파일은 통째로 거절합니다. 두 번 적힌 키와 값이 문자열이 아닌 키는
 값이 없고, 나머지 키는 읽습니다. 값은 모두 `templates/setup/config.md` 가 그
 키에 정한 문법의 문자열이므로, 셸 명령은 파이프를 적힌 그대로 담습니다.
-`config.json` 없이 루트에 서 있는 `config.md` 는 읽지 못하는 파일을 거절하는
-읽는 쪽이 모두 거절하고 `Policy root` 와 `Reference specs` 를 읽는 쪽은 파일이
-없는 것으로 읽으며, `seal mode` 가 그 `| Item | Value |` 표에서 `config.json`
-을 쓰고 지웁니다.
 check: tests/lib/test_config.py tests/skills/test_seal.py
 
 **실패한 git 호출은 "없다" 고 답한 git 호출이 아닙니다.** 무엇이 없어서 출력이

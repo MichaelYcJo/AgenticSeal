@@ -53,7 +53,7 @@ it ran, the broad gate at a SHA against a base, and that is the broad run's
 record `straight to the PR` already owes. A change no work item owns
 writes no declaration: it takes question 1's last answer, `direct`, or
 is routed there under its answer `agentic`, in
-`skills/implement/orchestration.md` *Question 1*.
+`skills/implement/routing-question.md` *Question 1, the mode*.
 check: two-review-answers
 
 **There is no standing waiver: a declaration moves the review arm's check to
@@ -84,7 +84,7 @@ one it only renamed. The rename is how a root move renames every declaration
 at once, and the retirement is `seal settle --apply` removing a released work
 item's directory whole. A settle is what tells a retirement from a deletion,
 because both leave the file absent at `HEAD`: a declaration whose directory
-is gone is asked `unverified_check.py#settled` at the merge base, the
+is gone is asked `chain_check.py#settled` at the merge base, the
 predicate `docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion* states. Where it holds, the check prints `retired: a settle`;
 where it does not, the refusal stands, except where the tree the check reads

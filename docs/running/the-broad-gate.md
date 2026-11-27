@@ -30,7 +30,7 @@ no values file and no drawing. The verdict word `sealed` is the sealer's,
 and the stamp is queued from that verdict by the sealer, in either mode
 (`docs/checks/the-stamp.md` *The stamp*), so a green suite is never read as
 a sealed work item.
-check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/skills/test_broad_gate.py
 
 Where a rule every agent is bound by lives, and where one agent's own rule
 lives, is `docs/running/the-agent-set.md` *One contract every agent receives, and
@@ -104,6 +104,9 @@ copy ran with no invoked copy named to compare against (invoked directly, or
 redirected by an installed copy that names none), and the pull request asks
 the same scripts again. The row prints nowhere else, because over a tree
 whose gate the branch did not change it says nothing a reader acts on.
+check: tests/skills/test_broad_gate.py
+
+**Where the shell is `cmd.exe`, a command name that starts in a directory with `/` is refused, and the refusal names its `\` spelling.** The gate rewrites no part of the command. A value repaired on its way to the shell leaves the file still wrong, and a model of `cmd.exe`'s reading good enough to repair it is a second shell inside the gate. Why `cmd.exe` fails on such a name, which words the gate reads as command names, what it names as not read, and how a key that runs under both shells is spelt have one owner, `templates/setup/config.md` *Broad gate*.
 check: tests/skills/test_broad_gate.py
 
 ## What the runner owes the person who typed it

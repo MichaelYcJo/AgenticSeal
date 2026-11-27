@@ -36,7 +36,6 @@ repository's code depends on stays in that repository's own documents,
 because a pact that collects those sends every signer to re-read changes
 that were never theirs. `templates/setup/pact.md` states the rule where the file is
 begun.
-check: tests/behaviour/test_a_signer_declares_its_pact.py
 
 ## One routing answer, one id, every gated repository
 
@@ -98,23 +97,14 @@ another order or another width is another table. A second exact header is refuse
 second anchor table.
 check: tests/skills/test_pact_check.py
 
-**`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade
-and every `pact:` token in a signer's frame.** A row whose `Pact` cell is not
+**`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade, and reads nothing outside the table as an anchor.** A row whose `Pact` cell is not
 one remote URL names no pact anybody can tell, and a row naming this pact
 whose `Clause` cell does not open with a heading, or whose `Hash` cell is not
 eight lowercase hex digits, grades nothing; each is refused at its line. A
 row whose `Pact` cell names a pact the signer's `Pact` key does not declare,
 such as a remote one letter off the pact's, is refused at its line, because
 no `seal pact` grades it: another pact's reports the signer `ONE-SIDED` and
-reads none of its frames. A `pact:` token outside a fenced code block, in any
-case, is the inline anchor `seal pact` read through 0.23.x, and it is refused
-at its line with the row to write in its place. A token with a space beside
-its colon is not read: prose writes the word before a colon and a space, and
-no release read that spelling as an anchor. A frame leaves the tree at the
-settle after its release, so the rewrite is one row in a file that is leaving
-anyway, and a token passed over would read as a signer citing nothing. A text
-that shows the retired shape rather than citing a clause puts it in a fenced
-code block, which nothing reads.
+reads none of its frames.
 check: tests/skills/test_pact_check.py
 
 ## A signer's CI reads nothing of the pact

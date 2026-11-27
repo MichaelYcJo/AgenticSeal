@@ -26,7 +26,7 @@ opens a top-level `specs/` or `.specseal/` on its own. `seal settle --from`
 reads a directory only where a person names it at the settle, and writes
 nothing there. Where the root is, as a path a session can type, is stated
 once, in the opening paragraph of `skills/core/SKILL.md`.
-check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
+check: tests/lib/test_optin.py
 
 ## The dependency rule
 
@@ -146,10 +146,13 @@ answers, and the workflow file is the record of the second.** `seal mode` moves 
 release, and stages it. It refuses where `<repo>/seal/` is not a directory,
 because the checks read committed records. `seal pr-checks remove` takes out
 a workflow this plugin wrote and leaves any other file alone. No config key says whether the checks are installed: the file says it, and a second record
-would be a second answer. A workflow left behind in local mode and pinned to
-a release that has the no-root state passes having examined nothing:
-`chain_check.py`, the one record check it runs, finds no root in the tree,
-so nothing is declared, and exits 0. One pinned to an older release fails every pull request there until
+would be a second answer. A workflow left behind in local mode and pinned to a release that has
+the no-root state reads nothing as declared: `chain_check.py`, the one
+record check it runs, finds no root in the tree, so nothing is declared,
+and judges the commit trailers alone. It passes the commits a local-mode
+session writes, which carry no `Seal-Routing` trailer, and fails a ready
+pull request where a commit made before the switch carries a trailer
+naming a work item. One pinned to an older release fails every pull request there until
 its `--branch` line moves or `seal pr-checks remove` takes it out, and
 `seal mode local` names the pin when it leaves such a file.
 check: tests/skills/test_seal.py
@@ -248,8 +251,8 @@ commit subject and body and the pull request title and body, and
 Setting one does not carry the other, because the two surfaces have different
 audiences: a pull request is read by whoever opens it, and a record by whoever
 comes back to the decision six months later. Where the two keys differ, the
-pull request body opens with `pr.<lang>.md`, the quotes of `pr.md` rendered in
-the team's language, and `pr.md` follows it, so the records keep one language
+pull request body opens with `pr.<lang>.md`, written in the team's
+language, and `pr.md` follows it, so the records keep one language
 and the team reads the body in theirs.
 
 Whatever either key says, **the names a checker matches stay English**: the
@@ -265,11 +268,7 @@ disagree on was a defect of its own. A file that will not parse, or whose
 top level is not an object, is refused whole. A key written twice, or one
 whose value is not a string, has no value, and every other key is read.
 Each value is a string in the grammar `templates/setup/config.md` gives
-its key, so a shell command carries a pipe as written. A `config.md` that
-stands in the root without a `config.json` is refused by every reader that
-refuses a file it cannot read, and read as no file by the readers of
-`Policy root` and `Reference specs`, and `seal mode` writes `config.json`
-from its `| Item | Value |` table and removes it.
+its key, so a shell command carries a pipe as written.
 check: tests/lib/test_config.py tests/skills/test_seal.py
 
 **A git call that fails is not a git call that answered "nothing".** Empty

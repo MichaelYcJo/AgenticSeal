@@ -114,7 +114,7 @@ file answers.
 | `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 | `pr.md` | what the pull request body opens with, after `pr.<lang>.md` where the two language keys of `seal/config.json` differ: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
-| `pr.<lang>.md` | each quote of `pr.md` rendered in `Commit and pull request language`, with its coordinate, where that key and `Record language` name different languages; written and committed with `pr.md`, read by every round, and placed by `seal pr-body` as the body's first part |
+| `pr.<lang>.md` | the body's opening in `Commit and pull request language`, where that key and `Record language` name different languages; written and committed with `pr.md`, read by every round, and placed by `seal pr-body` as the body's first part |
 
 **The files keep these paths until the settle after their release, and
 leave together.** `routing.md`, the frame (`frame/design.md`,
@@ -125,9 +125,7 @@ where the two language keys differ) go with the directory, whole, when the
 settle removes it (`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*,
 and `docs/releasing/release-checklist.md` *Settle what earlier releases left
 behind*). A document that still cites a record of it writes the path a
-commit holds, as `<commit>:<path>`, which `git show` opens as written; in
-this repository `tests/censuses.py#HISTORY_PATH` is the one form
-`old_names` passes.
+commit holds, as `<commit>:<path>`, which `git show` opens as written.
 check: tests/skills/test_settle.py
 
 **A record a template starts carries no HTML comment.** Its template holds headings, table headers, placeholders, the `seal` blocks the record's grammar asks for and the foot line, and nothing else. The guidance for
@@ -144,7 +142,7 @@ refuses at its line a line outside every fence that begins with `<!--`.** A
 record carries no comment, so a comment state in its reader models nothing
 the record holds. The refusal stands where the reader reads:
 `chain_check.py` in a round record, a `guarantee.md` and a `trail/gate.md`,
-`unverified_check.py` in a `gaps.md`, and `rule_changes.py` in a
+`lib/gaps.py` in a `gaps.md`, and `rule_changes.py` in a
 `frame/design.md`'s `## Rule changes`. A `routing.md` is
 the exception: its reader, `lib/routing.py`, runs at the pull request
 (`docs/checks/the-routing-check.md`), where a refusal would fail the
@@ -152,7 +150,7 @@ pull request of a work item framed before its template lost its comments,
 so that reader keeps the comment walk of `lib/blocks.py`.
 check: record-comment-line-refused
 
-**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` and `pr.<lang>.md` are the one exception, because the pull request's reader meets them before the fold: `pr.md` holds the `Closes` lines and quotes of the other records, each standing word for word at the coordinate it names, `pr.<lang>.md` holds those quotes rendered in the pull request's language, and neither holds a fact of its own.
+**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` and `pr.<lang>.md` are the one exception, because the pull request's reader meets them before the fold: what each holds is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*, and neither holds a fact of its own. `changelog.md` is no part of the exception, because `seal pr-body` writes it before the fold whole.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
 **A cited commit is one that `main` or a release branch reaches: a

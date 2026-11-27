@@ -99,8 +99,7 @@ comment on the old log, the new log's body, and the job's output. The release
 ships anyway: the count is read off the list call the roll already makes, so a
 release is never held for bookkeeping about a release, and a count the
 listing could not answer rolls the log and says the count was unreadable.
-`skills/verify/orchestration.md` finds the log to post a segment's
-measurement to by that key. Reading `--label flow-measurement --state all`
+`skills/verify/orchestration.md` finds the log to post a run's measurement to by that key. Reading `--label flow-measurement --state all`
 finds the rolling logs and misses the open `flow-baseline` issue; reading
 `--label measurement` finds everything and answers no lookup.
 check: tests/github/test_roll_flow_measurement_issue.py

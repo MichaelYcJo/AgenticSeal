@@ -17,7 +17,7 @@ session writes each section in its own words, a reader could only guess at
 that from words, and the settle's pull request states each decision for the
 owner to review. A pull request that removes part of a directory, a
 `gaps.md` from a directory that stays, or a row from a table is still a
-deletion. `chain-check` asks one predicate, `unverified_check.py#settled`. A pull request outside a
+deletion. `chain-check` asks one predicate, `chain_check.py#settled`. A pull request outside a
 settle that removes a whole work item directory reads as a settle too; its
 diff shows the removal to its review.
 check: a-settle-is-no-deletion
@@ -112,11 +112,10 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
 - **A line that EXCUSES or DECLARES something, such as a `routing.md` row, is
 not taken on doubt, except where a declaring reader keeps an older reading
 that took it.**
-  `unverified_check.py#live_lines` parks a line inside any fence or comment,
+  `lib/lines.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
   `lib/tables.py#hidden_lines`, which hides lines for the table readers
-  of a record, a pact and the old `config.md` that `seal mode` converts,
-  keeps, wherever its walk is unsure, the fence-only
+of a record and a pact, keeps, wherever its walk is unsure, the fence-only
   reading it gave before the walk: a row below a fence nobody closed
   declares nothing, and a row below a comment opener nobody closed is not
   hidden, because that reading never hid one, and the walk may miss no row
@@ -132,7 +131,7 @@ that took it.**
   that says nothing, or a gate that asks.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 - **A line a record's rows are COUNTED on is blanked where a fence holds
-it.** `unverified_check.py#readable` blanks fenced lines with the indices
+it.** `lib/lines.py#readable` blanks fenced lines with the indices
 intact, and a fence nobody closed to the end of the file. It reads a
 comment as text, because a record carries none, and the reader that
 judges a record refuses a line that begins with `<!--`. So the readers
