@@ -41,6 +41,11 @@ The fix is a line the frame did not plan: *Scope* names no agent definition. The
         ), step
 ```
 
+```seal
+verdict: fixed a8e8087ea
+answer: Built to *Scope* item 8 of the fold at `e8f3dd853`. `agents/sealer.md` step 1 now types `git -C <root> log --ignore-submodules=none --no-merges --name-only <named>..HEAD ^<base>`, and the sentence that introduces the command says what the flag keeps. The paste-ready text was read before it was applied, and the step is written in my own words: its line holding the command inline runs past the 88 columns `tests/behaviour/test_docs_line_wrap.py#LIMIT` holds `agents/sealer.md` to, so the command stands in a fenced block directly below the sentence, which names it as "the command below". The step 1 case of `tests/behaviour/test_the_sealer_guarantees.py` pins the form with the flag as the round's snippet gives it, and was seen red against `agents/sealer.md` as `ba56de9e0` holds it (executed: `bin/test tests/behaviour/test_the_sealer_guarantees.py -q -p no:xdist -k test_step_1_reads_the_record_and_runs_nothing`, `1 failed` at `:167`, with `git diff --quiet ba56de9e0 -- agents/sealer.md` exiting 0). After the commit, `seal mutate agents/sealer.md --replace "log --ignore-submodules=none --no-merges" "log --no-merges" --tests "bin/test tests/behaviour/test_the_sealer_guarantees.py -q -p no:xdist -k test_step_1_reads_the_record_and_runs_nothing"` printed `red: the cases failed against the mutation (exit 1)` (executed). The evidence's two searches, run again after `a5688a103` (executed): `git grep -n -F 'log --no-merges --name-only' -- .` prints no line under `agents/` or `tests/`; it prints the `guarantee.md` and phase records of earlier work items, which state past runs and stand, and G16 and S9 of this work item's `frame/design.md` and this record, which quote the form `ba56de9e0` held and stand. The second search prints `agents/sealer.md:63`, the command with the flag, and `docs/releasing/release-checklist.md:211`, `docs/running/what-a-script-gates.md:35` and `skills/implement/SKILL.md:387`, the three lines the finding read as standing, for the grounds it gives.
+```
+
 ### 2. The changelog says `chain_check.py` missed a pointer-only commit under either setting, and it missed it under the `.gitmodules` entry alone
 
 ```seal
@@ -65,6 +70,11 @@ The `git grep` above, a search by the fact's words and so a sample under contrac
 - "For `chain_check.py` this refuses more: under the `.gitmodules` entry, a commit that moves the pointer after the last round, the gate or the seal is read as a change outside the work item's records." (`frame/plan.md` *Operational impact*)
 ```
 
+```seal
+verdict: fixed a5688a103
+answer: `changelog.md:3` is the round's paste-ready text, read against the fold at `e8f3dd853`: *Operational impact* (`frame/plan.md:64`), *Data & interfaces*' gate entry, and G3, G5, G6 and G16 of `frame/design.md`. Each of its clauses holds there. I added what the sealer's step 1 changed, because the fold's *Operational impact* states it, and a person whose repository ignores a submodule reads the release note to learn which reads of that submodule changed: one clause says that the `git log` listing step 1 types listed a pointer-only commit after the broad gate's run with no path under either setting, so step 1 did not withhold on it (G16), and one sentence says that step 1 types the flag directly after `log` and withholds on such a commit. The finding's `frame/plan.md:63`, now `:64`, was folded by the framer at `e8f3dd853`, and `pr.md:2` by the orchestrator at `a7086edde`; this pass changed neither. The evidence's `git grep -n -F -e 'touching no path' -e 'refuses more' -e 'ignored submodule' -e 'moves the pointer' -e 'moved only' -- seal/threads/1795759277-scripts-read-git-past-submodule-settings-and-a-floor lib/gitcmd.py`, run again after `a5688a103` with `trail/rounds` left out, prints `changelog.md:3`, `frame/design.md:13`, `frame/plan.md:31`, `:41`, `:64` and `:72`, and `pr.md:2` and `:4` (executed). Each names the `.gitmodules` entry where it speaks of the records arm, or states a mechanism and no setting, and stands.
+```
+
 ### 3. `frame/questions.md` says #1642 asks for 2.24, and the issue's body now says 2.30
 
 ```seal
@@ -81,6 +91,11 @@ Why it matters: the sealer reads every party's account against the issue. `frame
 
 ```markdown
 #1642 gave 2.24 and named `git diff` when this frame read it, and its body was corrected to 2.30 on 2026-11-27. The tree passes the option to `rev-parse` alone, which reads it from 2.30. The floor `seal range` sets is 2.30.
+```
+
+```seal
+verdict: fixed e8f3dd853
+answer: The framer's fold at `e8f3dd853` rewrote `frame/questions.md:7` and the right-hand cell of G9 at `frame/design.md:17`, files this pass does not write, and this pass changed no line for the finding. Read at HEAD, both date #1642's 2.24 to the frame's read and give the body's correction to 2.30 of 2026-11-27. The evidence's `git grep -n -F -e '2.24' -- seal/threads/1795759277-scripts-read-git-past-submodule-settings-and-a-floor lib/gitcmd.py README.md README.ko.md`, run again after `a5688a103`, prints those two lines and this record's, and no line of `changelog.md`, `gaps.md`, a phase record, `lib/gitcmd.py` or either README (executed). The pass's read of its range, after its last commit: `bin/seal range seal/threads/1795759277-scripts-read-git-past-submodule-settings-and-a-floor --from 851641519 --out <scratch>/fix-1/range.txt` printed `seal range: 85164151998c994c2931854700877a4b4a4e97e0..a5688a103fbcaec80d86151ff1f77b0a2b5fd791` and wrote 885 lines (executed; the `seal` on PATH is the installed 0.39.1 and has no `range`, so the tree's `bin/seal` ran it). I read each hunk of `agents/sealer.md`, `changelog.md`, `frame/design.md`, `frame/plan.md`, `frame/questions.md`, `pr.md`, this record and `tests/behaviour/test_the_sealer_guarantees.py` with its paragraph, and `routing.md`, the three frame files, `gaps.md` and `changelog.md` whole (read). It found no statement HEAD contradicts in a file this pass writes, and none in `routing.md` or the frame. The sample of the reworded command's other statements: `git grep -n -F -e 'ignore-submodules' -e 'ignoreSubmodules' -- . ':!seal/threads' ':!CHANGELOG.md'` prints `agents/sealer.md:63`, `lib/gitcmd.py:57`, `:62`, `:63` and `:122-125`, and lines of `tests/`; `lib/gitcmd.py:57`'s "no script passes them" stands, since `agents/sealer.md` is an agent definition and not a script (executed). It is a search by the flag's spelling, so a command spelt otherwise escapes it, and the typed reads it does not reach are those `frame/design.md` G17 lists.
 ```
 
 ## Confirmations
