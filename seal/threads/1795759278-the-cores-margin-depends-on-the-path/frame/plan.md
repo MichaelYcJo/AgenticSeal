@@ -55,4 +55,4 @@ The release's other open items are #1630 with #1639, and #1640 with #1642, as th
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | After phase 1 (`48f4fc57f`), the orchestrator sent the framer four frame lines the crafter's hand-back names: the home path in `frame/design.md` *Grounding*, Q2's status, the *Data & interfaces* bullet on `START`, and *Scope* items 6 and 8 against the two departures `trail/phases/phase-1.md` records. The orchestrator takes the crafter's reading of item 8: the fragment carries no `### Process changes` table | A frame line HEAD contradicts, or one a census refuses, is the framer's to fold; the departures are the crafter's, recorded with their grounds | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded**; `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* |
