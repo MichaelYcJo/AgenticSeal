@@ -76,6 +76,11 @@ For `frame/plan.md:66`, the routing row's grounds:
 The fix built *Scope* item 4 as written and the defect stands, the case the route table gives to the framer's route; the defect lies in how far the item's rule reached and not in the design *Alternatives considered* row 7 chose, so a redesign would rebuild the design the fold keeps, and the run's count is kept, not restarted
 ```
 
+```seal
+verdict: deferred the frame
+answer: Regression `round-2#2`, the second regression of `frame/design.md` *Scope* item 4 in this run, sent the work item back by the framer's route (`frame/plan.md` *Judgments of the run*, the row opening "Round 3's findings 1 and 2").
+```
+
 ### 2. `## Removes` says the work adds one rule sentence to a skill, where the fold's *Scope* item 4 and the prefix row now give it several
 
 ```seal
@@ -94,6 +99,12 @@ This is the count contract rule 19 refuses. It was stated of the diff, and a lat
 ```markdown
 The work adds no gate, check, hook, CI step, line grammar, label or mark, so it owes no removal in return. It adds to a skill the rule sentences of *Scope* item 4, and to the policy root the decision that kept the rows as text with a citation of them. What they remove is content: the inventory of a commit that a judgment row held.
 ```
+
+```seal
+verdict: deferred the frame
+answer: Regression `round-2#2`, the second regression of `frame/design.md` *Scope* item 4 in this run, sent the work item back by the framer's route (`frame/plan.md` *Judgments of the run*, the row opening "Round 3's findings 1 and 2").
+```
+
 
 ## Confirmations
 
