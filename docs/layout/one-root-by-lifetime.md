@@ -188,9 +188,10 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 
 **The product is AgenticSeal, and bare `seal` names the result inside it**:
 the root `seal/`, the `seal` command line, and "the seal" for the record.
-The plugin's `name` and the prefix of every agent and skill is `agentic`; the marketplace is `agenticseal`; the commit trailer is
-`Seal-Routing:`. Every identifier is lowercase with no separator, and
-`AgenticSeal` is written only where a person reads the brand.
+The plugin's `name` and the prefix of every agent and skill is `agentic`;
+the marketplace is `agenticseal`; the commit trailer is `Seal-Routing:`.
+Every identifier is lowercase with no separator, and `AgenticSeal` is
+written only where a person reads the brand.
 
 | Name | Its one sentence |
 |---|---|
