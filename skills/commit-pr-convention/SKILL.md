@@ -7,8 +7,6 @@ description: |
   repository's own history.
   Use when: writing a commit message, opening a pull request, naming a
   branch, or titling either.
-  NOT for: the prose and structure of a PR body or review comment
-  (writing-style).
 ---
 
 # commit-pr-convention, the format of commits, pull requests and branches
