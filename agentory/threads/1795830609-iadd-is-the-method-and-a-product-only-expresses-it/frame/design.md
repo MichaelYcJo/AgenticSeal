@@ -168,7 +168,7 @@ The lines that keep the old name are the lines of `frame/keep.txt`, and each bel
 | the method's name | `IADD` where a line names the method: *the IADD process*, its parties and agents, a repository that runs it, the definition's own sentences, and the reserved name of questions row Q2 | the method is IADD, by the three layers |
 | history | `agentory/follow-up.md` row 48 | it names `iadd range` as the spelling of #1656's records (G19) |
 
-Two more files carry the lines the later phases own. `frame/keep-4.txt` is `frame/keep.txt` with the lines phase 5 owns, #1656's `changelog.md` and `docs/method/iadd.md` *The names*. `frame/keep-3.txt` is `frame/keep-4.txt` with the lines phase 4 owns. So the lines a phase owns are the lines its keep file holds and the next one does not.
+Two more files carry the lines the later phases own: `frame/keep-3.txt` is the keep file at phase 3's close and `frame/keep-4.txt` at phase 4's. The lines a phase owns are the lines its keep file holds and the next one does not, #1656's `changelog.md` and `docs/method/iadd.md` *The names* among phase 5's. A later file also holds the kept-kind lines its own phase wrote or changed, which the earlier file lacks: at `a1fe2f7f`, `keep-4.txt` holds the 5 description lines phase 4 wrote and `keep.txt` the 10 lines phase 5 wrote and its changed `docs/README.md` line, each named in its phase record. So no keep file is the next one plus the lines a phase owns.
 
 The acceptance runs from the repository's root. `<keep>` is `keep-3.txt` at phase 3's close, `keep-4.txt` at phase 4's and `keep.txt` at phase 5's:
 
