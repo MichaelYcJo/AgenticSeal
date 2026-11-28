@@ -60,6 +60,12 @@ In `agents/framer.md`, at lines 183-184:
 the keep file of the phase whose search prints it, as `skills/verify/SKILL.md` *An absence claim is only
 ```
 
+```iadd
+verdict: fixed 6fb4f023
+location: `agentory/threads/1795841830-find-leftovers-before-a-round/changelog.md:3`
+answer: The pass built the fix as the fold of `3ddb9746` states it in `frame/design.md` *Data & interfaces* *The keep file*. That is wider than the paste-ready fix, so the words are the pass's own. In `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it*, the rule's first paragraph now says a phase has at most one content search that keeps lines, named by its *Verified by* cell, with several patterns joined into one `-P` pattern over the union of their pathspecs. It also says a search that is to print no line stays a search of its own with no keep file, and that a *Verifiable how* cell resting on such a search names the phase whose search it is and runs no search of its own. "A phase's own lines" now holds only "where an earlier phase runs the same search". The builder's paragraph writes a rewritten kept line into "the keep file of each later phase whose search prints it" (`d9895cc9`; `6fb4f023` named "the phase's close" where a sentence placed in between had left "that close" with no referent). The `agents/framer.md` snippet was not applied as written. At `d9895cc9` the account copied the keep file rule's sentence from `skills/verify/SKILL.md`, and `tests/text/test_no_passage_is_pasted_into_a_second_file.py` refused that copy. At `7c4d45a6` it says a kept line "is a line of a keep file" and cites the rule's home for which keep files hold each line. `changelog.md`'s first bullet comes along. Both listing commands of the `evidence:` line were run again at `6fb4f023`. `git grep -n -e "keep-<N>" -e "keep-N" -e "keep file" -- agents skills templates agentory/README.md docs lib` prints the lines the round listed, now at the rewritten paragraphs' new line numbers. Each other statement still names one search per phase: `agents/framer.md:41-42`, `:114`, `skills/implement/SKILL.md:354`, `templates/setup/agentory-README.md:94` and `agentory/README.md:94`, `lib/optin.py:55` and the `range_read.py` docstring, all true under one search per phase. `git grep -n -i -e "search of phase" -e "phase's search" -e "phase N's search" -e "a phase's search" -- .`, outside the work item's records, prints `agentory/README.md:95`, `templates/setup/agentory-README.md:95`, `skills/implement/SKILL.md:354` and `agents/framer.md:183`. The last is the new sentence "where an earlier phase's search prints it". The other three name one search, and stand.
+```
+
 ### 2. The framer's rule accounts for a line that a later phase removes only by a Scope item, so the framer leaves it out of the earlier phase's keep file and that phase's crafter reads it as a leftover
 
 ```iadd
@@ -77,6 +83,12 @@ account for each line it prints. A line the build removes, or changes so
 that the search no longer matches it, is named by a *Scope* item or a
 `## Removes` row, and it is also a line of the keep file of each phase that
 closes before the phase that removes it.
+```
+
+```iadd
+verdict: fixed 7c4d45a6
+location: `skills/verify/SKILL.md:74-78`, `agentory/threads/1795841830-find-leftovers-before-a-round/changelog.md:3`
+answer: The account in `agents/framer.md` *A search you write into a cell is run before the cell states its result* no longer reads "in one of two ways". A line the build removes, or changes so the search no longer matches it, is named by a *Scope* item or a `## Removes` row, "and where an earlier phase's search prints it, that phase's keep file holds it too" (`7c4d45a6`). The pass's sentence narrows the paste-ready fix's "each phase that closes before" to the earlier phases whose search prints the line, as the fold of `3ddb9746` states it. It is in the pass's own words because the passage check refused the first wording, a copy of the rule's sentence in `skills/verify/SKILL.md` (`d9895cc9`). The rule's home, `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it*, now says the keep file holds "the lines a later phase changes or removes, so a line a later phase removes is a line of the keep file of each phase whose search prints it and that closes before the phase that removes it". Its sentence on `frame/design.md` names the lines "a later phase changes or removes" by that phase's *Scope* items. `changelog.md`'s first bullet says the keep file holds "a line a later phase changes or removes".
 ```
 
 ### 3. A fix pass runs its set under "the commands the phase's *Verified by* cell names", but a fix pass has no phase, and the crafter's rule for a suite no cell names does not reach it
@@ -112,6 +124,12 @@ The builder types the commands the *Phase boundary* row of
 for a phase, and the commands `skills/implement/fix-pass.md` *The narrow
 set, then the read of the range* states for a fix pass, over the set that
 row or the *Review rounds 1..n* row names, never the
+```
+
+```iadd
+verdict: fixed 7c4d45a6
+location: `agentory/threads/1795841830-find-leftovers-before-a-round/changelog.md:8`
+answer: Both snippets are applied as written, `skills/implement/fix-pass.md` *The narrow set, then the read of the range* in `d9895cc9` and `skills/implement/SKILL.md` *Find the runner, and type the narrow form* in `d9895cc9`. `7c4d45a6` rewrapped the latter's paragraph, which the edit had joined past the wrap limit, and `tests/behaviour/test_docs_line_wrap.py` refused it at `d9895cc9`. The *Phase boundary* and *Review rounds 1..n* rows of `skills/verify/SKILL.md` keep their words, as the fold's *Scope* item 6 states. `changelog.md`'s bullet and process row on suites now say a fix pass takes its commands from the *Verified by* cells of the phases whose paths its fixes change. This pass is the first under the rule. Its fixes change `skills/verify/SKILL.md`, `agents/framer.md` and `skills/implement/SKILL.md`, which phases 1 and 2 changed, and `skills/implement/fix-pass.md` and `changelog.md`, which phase 2 changed. Both phases' *Verified by* cells name `bin/test`, and every file of the set belongs to it, so no suite goes unnamed. The set was `bin/test tests/text tests/behaviour tests/lib/test_gaps.py -q`, with `tests/lib/test_gaps.py` the other test file that opens `skills/implement/SKILL.md`, as phase 1 found. It printed `2 failed, 965 passed` at `d9895cc9`, the two refusals above, and `967 passed, 10 skipped, 1 warning`, exit 0, at `7c4d45a6` and at `6fb4f023`. `git grep -n -i "phase boundary" -- agents skills docs templates CONTRIBUTING.md`, run again at `6fb4f023`, prints `CONTRIBUTING.md:300`, `agents/crafter.md:61`, `skills/code-review/orchestration.md:27`, `skills/implement/SKILL.md:203`, `skills/implement/orchestration.md:503` and `skills/verify/SKILL.md:209`, `:211` and `:228`. `agents/crafter.md:61` is a phase's step 7 and names the row, which holds for a phase. Step 9 sends a fix pass to `fix-pass.md`, which now carries the commands and the rule for a missing suite. The others name the boundary without saying which commands run the set, and stand.
 ```
 
 ## Confirmations
