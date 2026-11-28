@@ -11,7 +11,7 @@ nothing.
 
 This runs from the same workflow, the same trigger, and the same checkout as
 `close_issues_on_release.py` (a push to `main` -- a release reaching the
-default branch). The release's first pull request moves
+default branch). The last pull request into `release/next` moves
 `.claude-plugin/plugin.json`'s version, and it reaches `main` in the same
 push as the rest of the release, so the checked-out tree carries the
 just-shipped version -- the fact everything below depends on
@@ -20,8 +20,8 @@ just-shipped version -- the fact everything below depends on
 **The log is named after the version it rolls FROM, and it rolls only when a
 new version has shipped since.** At the moment this runs, the tree names the
 version that push shipped, which is the one version that is certain; the
-next one is named only when the next release branch is cut, after this
-push.
+next one is read only when the next release is cut, from what merges
+after this push.
 
   chore: flow measurement — after 0.8.1     opened by the 0.8.1 release,
                                             closed by whatever ships next

@@ -1,6 +1,6 @@
 """Issue #359, the signal half: the workflow that runs
 `.github/scripts/label_merged_on_release_branch.py` on a squash into
-`release/vX.Y.Z`. These cases read the workflow.
+`release/next`. These cases read the workflow.
 
 The cases of the script's functions stand in
 `tests/github/test_label_merged_on_release_branch.py`.

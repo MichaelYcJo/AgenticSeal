@@ -57,8 +57,9 @@ on:
 # `gh release create` and a tag created through the API need. The workflow
 # writes five things under it: one tag and one release (`publish`), one asset
 # on that release and one edit of its note (`mark`), and one commit pushed to
-# `dist` (`dist`). `gh pr list` reads the pull requests' labels and head branches
-# under the same block, which is a read.
+# `dist` (`dist`). `gh pr list` reads the release pull request's body, and
+# `gh pr view` each pull request's labels and head branch, under the same
+# block, and both are reads.
 permissions:
   contents: write
 

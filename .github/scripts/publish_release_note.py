@@ -33,26 +33,32 @@ range added no fragment and every commit in it other than a merge removes
 whole a work item directory that stood at its parent, which
 `chain_check.py#settled` reads as `docs/checks/the-fold.md` *The fold, and
 what tells it from a deletion* states, the note's changes are the body of
-the pull request merged from `release/vX.Y.Z` into `main` whose merge
-commit is the tagged commit. The header, the theme, the folds, the thanks
-and the update section are any note's, so the mark finds its header.
+the pull request merged into `main` whose merge commit is the tagged
+commit. The header, the folds, the thanks and the update section are any
+note's, so the mark finds its header.
 
 **The note opens with a header of the release's counts**, one HTML
 paragraph on one line holding, parted by `<br>`, the pull requests merged,
 the issues they closed, and the outside contributors where there are any.
-**The release's theme follows it**, the first sentence of the description
-of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
+**The release's theme follows it**, the first sentence of the body of the
+release pull request, the one merged into `main` whose merge commit is the
+tagged commit. A note of settles alone carries none, since that body stands
+whole beneath it. No milestone is read: a release takes its number when it
+is cut, so no milestone names one (#1671).
 
 The fragments are also a page of reasoning per change, and a note that is
 only that reads as a wall of prose to somebody asking what changed. So
-the note says what the pull requests merged into `release/vX.Y.Z` already
-say -- the counts in its header, then one fold per conventional-commit type
-under its name and count holding one line per pull request with the issues
-its body closes, a credit for every outside contributor, how to
-update -- and keeps the fragments beneath, folded, or for a range of
-settles alone the release pull request's body. Nothing here composes
-prose: every line is a milestone's sentence, a pull request title, a
-number, a handle, a fragment, or a line of the release pull request's body.
+the note says what the release's pull requests already say -- the counts
+in its header, then one fold per conventional-commit type under its name
+and count holding one line per pull request with the issues its body
+closes, a credit for every outside contributor, how to update -- and keeps
+the fragments beneath, folded, or for a range of settles alone the release
+pull request's body. **The release's pull requests are the ones whose
+squash commits the tag's range holds**, each named by the `(#N)` its
+subject ends with, so the summary and the fragments read one range and no
+branch is named. Nothing here composes prose: every line is a sentence of
+the release pull request's body, a pull request title, a number, a handle,
+a fragment, or a line of that body.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/releasing/release-checklist.md`
@@ -71,9 +77,10 @@ nothing. The note may have been edited by hand after it was published, and
 overwriting that is the one way this could destroy something a person wrote.
 
 **It does not fail a release for a missing title line or theme.** No check
-holds the commit subject or the milestone's description, so a missing title
-line falls back to the tag name, and a milestone that cannot be listed, is
-not found or has an empty description leaves the note without a theme line.
+holds the commit subject, so a missing title line falls back to the tag
+name, and for a note of fragments a release pull request that cannot be
+listed, is not found or has an empty body leaves the note without a theme
+line.
 Either way the job log says which branch it took. A wrong title or a missing
 theme is visible on the releases page and fixable in one edit; a failed job
 at the tag is a release that stops after `main` has already moved.
@@ -93,11 +100,11 @@ one credited it only when somebody remembered to write a sentence about it.
 The set is read instead: the pull requests' authors, less the repository
 owner and any bot. A release with none gets no credit line and no count.
 
-**The summary adds no way to fail.** A `gh` call that cannot list the pull
-requests publishes the theme line and the fragments alone, or for a range
-of settles alone the theme line and the release pull request's body, and
-says so in the job log -- a plain note is fixable in one edit, and a failed
-job at the tag is not.
+**The summary adds no way to fail.** A `gh` call that cannot read one of
+the pull requests publishes the theme line and the fragments alone, or for
+a range of settles alone the release pull request's body, and says so in
+the job log -- a plain note is fixable in one edit, and a failed job at the
+tag is not.
 
 **It says whether it created the release.** `created=true` or
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
@@ -171,9 +178,11 @@ def fragment_re():
 # The shape of a fragment's process section, which the note lifts into one
 # table (`section`).
 PROCESS_TEMPLATE = os.path.join(ROOT, "templates", "records", "process.md")
-# The milestone a release's theme is read from, by its title.
-MILESTONE_TITLE = "release: {version}"
-PURPOSE_LABEL = "Purpose:"
+# How many of the pull requests merged into `main` `release_pull_body`
+# lists, newest first, to find the one whose merge commit is the tag. The
+# tag is pushed at its release's merge, so the release pull request is the
+# newest, and the bound reaches a tag pushed by hand for an older release.
+RELEASE_PULLS_LISTED = 100
 
 # `vX.Y.Z`. Anything else under `v*` -- `v1.2`, `vnext`, a typo -- is a shape
 # this cannot name a version for, and it says so rather than guessing one.
@@ -341,16 +350,19 @@ def settles(revisions):
     return held, unsettled
 
 
-def release_pull_body(repo, version, tag):
+def release_pull_body(repo, tag):
     """`(the body of the release pull request, where it came from)`, or
     `(None, why not)`.
 
-    The release pull request is the one merged from `release/v<version>`
-    into `main` whose merge commit is the commit `tag` names. `gh` that
-    fails or gave no answer, a list that is not JSON, no such pull request
-    and an empty body are each a sentence, and the caller fails the run on
-    it: a note of settles alone has no other text, so this read is one the
-    note cannot go without, unlike `merged_pulls`.
+    The release pull request is the one merged into `main` whose merge
+    commit is the commit `tag` names, found among the newest
+    `RELEASE_PULLS_LISTED` pull requests merged into `main`. No head branch
+    is named, so the read holds whatever the integration branch is called.
+    `gh` that fails or gave no answer, a list that is not JSON, no such pull
+    request and an empty body are each a sentence. For a range of settles
+    alone the caller fails the run on it, since such a note has no other
+    text; for a note of fragments the sentence is why the note has no
+    theme line.
     """
     try:
         out = gitcmd.gh(
@@ -360,10 +372,10 @@ def release_pull_body(repo, version, tag):
             repo,
             "--base",
             "main",
-            "--head",
-            f"release/v{version}",
             "--state",
             "merged",
+            "--limit",
+            str(RELEASE_PULLS_LISTED),
             "--json",
             "number,body,mergeCommit",
         )
@@ -391,8 +403,7 @@ def release_pull_body(repo, version, tag):
             return body, f"the body of the release pull request #{number}"
     return (
         None,
-        f"no pull request merged from release/v{version} into main has {tag}'s "
-        "commit as its merge commit",
+        f"no pull request merged into main has {tag}'s commit as its merge commit",
     )
 
 
@@ -471,49 +482,17 @@ def section(entries, repo):
     return "\n".join([heading, "", header, delimiter, *rows, "", fragments])
 
 
-def milestone_description(repo, version):
-    """`(the description of the milestone `release: <version>`, why not)`.
+def theme_of(body):
+    """The release's theme line from the release pull request's body.
 
-    The first element is "" where there is no description to read: the list
-    could not be read, no milestone carries the title, or its description is
-    empty. The second element says which, for the job log. `--paginate`
-    merges the pages into one list, as `release_completeness_check.py`'s
-    `milestone_titles` states. A `gh` that gave no answer is a list that
-    could not be read, said in the runner's line.
+    The sentence runs to the first `.` followed by whitespace or the end of
+    the text, or to the first line end where that comes first, so a version
+    such as `0.18.0` inside it does not end it. Its whitespace is collapsed
+    and its first letter upper-cased. The body is read as written: a
+    leading label, such as the `Purpose:` a milestone's description opened
+    with, stays in the line.
     """
-    try:
-        out = gitcmd.gh(
-            "api", "--paginate", f"repos/{repo}/milestones?state=all&per_page=100"
-        )
-    except gitcmd.Unrun as unrun:
-        return "", f"the milestones could not be listed: {unrun.line}"
-    title = MILESTONE_TITLE.format(version=version)
-    try:
-        listed = json.loads(out.stdout) if not out.returncode else None
-    except ValueError:
-        listed = None
-    if listed is None:
-        return "", f"the milestones could not be listed: {out.stderr.strip()}"
-    for entry in listed:
-        if entry.get("title") == title:
-            text = (entry.get("description") or "").strip()
-            if not text:
-                return "", f"the milestone `{title}` has no description"
-            return text, f"the milestone `{title}`"
-    return "", f"no milestone is titled `{title}`"
-
-
-def theme_of(description):
-    """The release's theme line from a milestone's description.
-
-    A leading `Purpose:` is left out. The sentence runs to the first `.`
-    followed by whitespace or the end of the text, or to the first line end
-    where that comes first, so a version such as `0.18.0` inside it does not
-    end it. Its whitespace is collapsed and its first letter upper-cased.
-    """
-    text = description.strip()
-    if text.startswith(PURPOSE_LABEL):
-        text = text[len(PURPOSE_LABEL) :].lstrip()
+    text = body.strip()
     line = gfm_lines(text)[0] if text else ""
     stop = re.search(r"\.(?=\s|$)", line)
     sentence = " ".join((line[: stop.end()] if stop else line).split())
@@ -550,7 +529,7 @@ def commit_message(tag):
     `%B` is the raw body, so the `release:` line reaches this whether it sits
     in the subject or below it. In this repository it is below: the tagged
     commit is the release merge, whose subject GitHub writes as
-    `Merge pull request #N from <owner>/release/vX.Y.Z`.
+    `Merge pull request #N from <owner>/<head branch>`.
     """
     return git("log", "-1", "--format=%B", tag)
 
@@ -602,53 +581,77 @@ OTHER = "📦 Other"
 TITLE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\([^)]*\))?!?:\s*(?P<text>.+)$", re.I)
 
 
-def merged_pulls(repo, version):
-    """The pull requests merged into `release/v<version>`, or None.
+# What the note is where one of the release's pull requests cannot be read.
+WITHOUT_SUMMARY = (
+    "so the note is the theme line and the fragments, or the release pull "
+    "request's body, with no summary of the pull requests"
+)
 
-    Each is `{"number", "title", "body", "author": {"login", "is_bot"}}` as
-    `gh pr list --json` prints it. None means the list could not be read, and
-    the caller publishes the theme line and the fragments alone, or for a
-    range of settles alone the theme line and the release pull request's
-    body, rather than failing the tag's job. A `gh` that gave no answer is
-    read the same way, and the line names it in the runner's words.
+
+def merged_pulls(repo, revisions):
+    """The pull requests whose squash commits `revisions` holds, in number
+    order, or None.
+
+    A squash commit's subject ends with the `(#N)` GitHub appends, read by
+    `lib/closing.py#MERGED_PR`, the last where a title ends with its issue.
+    The closer reads the same subjects with the same pattern when `main`
+    moves, so the note counts the pull requests whose keywords the closer
+    acts on. No branch is named: the range is the one the fragments are
+    read from. A subject with no `(#N)` names no pull request, and a merge
+    commit's subject ends with none.
+
+    Each number is asked of `gh pr view` once, for the fields
+    `gh pr list --json` gives, so each is `{"number", "title", "body",
+    "author": {"login", "is_bot"}, "labels", "headRefName"}`. `labels` and
+    `headRefName` are read by the mark, not here
+    (`.github/scripts/release_mark.py#chain_counts`): one read serves both,
+    so the two cannot disagree about the set. A call per number has no
+    bound a long release can pass, where one list call has its limit.
+
+    None means one of the pull requests could not be read, and the caller
+    publishes the theme line and the fragments alone, or for a range of
+    settles alone the release pull request's body, rather than failing the
+    tag's job: a summary short of one pull request would count wrong. A
+    `gh` that failed, gave no answer or printed no JSON is read that way,
+    and the line names it, a `gh` that gave no answer in the runner's
+    words. A `(#N)` written by hand that names an issue is such a failure,
+    since `gh pr view` finds no pull request at the number. A `git` that
+    fails stops the run, as `git` does.
     """
-    try:
-        out = gitcmd.gh(
-            "pr",
-            "list",
-            "--repo",
-            repo,
-            "--base",
-            f"release/v{version}",
-            "--state",
-            "merged",
-            "--limit",
-            "500",
-            "--json",
-            # `labels` and `headRefName` are read by the mark, not here
-            # (`.github/scripts/release_mark.py#chain_counts`): one call
-            # serves both, so the two cannot disagree about the set.
-            "number,title,author,body,labels,headRefName",
-        )
-    except gitcmd.Unrun as unrun:
-        said = unrun.line
-    else:
-        said = None if not out.returncode else out.stderr.strip()
-    if said is not None:
-        print(
-            "gh pr list failed, so the note is the theme line and the fragments "
-            f"or the release pull request's body alone: {said}"
-        )
-        return None
-    try:
-        return json.loads(out.stdout)
-    except ValueError:
-        print(
-            "gh pr list printed something that is not JSON, so the note is the "
-            "theme line and the fragments or the release pull request's body "
-            "alone"
-        )
-        return None
+    numbers = set()
+    # exempt from splitlines: git's log, one subject to a line
+    for subject in git("log", "--format=%s", revisions).splitlines():
+        found = closing.MERGED_PR.search(subject.strip())
+        if found:
+            numbers.add(int(found.group(1)))
+    pulls = []
+    for number in sorted(numbers):
+        try:
+            out = gitcmd.gh(
+                "pr",
+                "view",
+                str(number),
+                "--repo",
+                repo,
+                "--json",
+                "number,title,author,body,labels,headRefName",
+            )
+        except gitcmd.Unrun as unrun:
+            said = unrun.line
+        else:
+            said = None if not out.returncode else out.stderr.strip()
+        if said is not None:
+            print(f"gh pr view {number} failed, {WITHOUT_SUMMARY}: {said}")
+            return None
+        try:
+            pulls.append(json.loads(out.stdout))
+        except ValueError:
+            print(
+                f"gh pr view {number} printed something that is not JSON, "
+                f"{WITHOUT_SUMMARY}"
+            )
+            return None
+    return pulls
 
 
 def outside(pull, owner):
@@ -893,8 +896,8 @@ def release_body(theme, rendered, pulls, owner):
     `section` rendered, or for a range of settles alone the release pull
     request's body. It is the reasoning a reader wants for one change
     rather than the list they read for all of them. Every line is read from
-    the milestone, the pull requests and the history; nothing here writes a
-    sentence.
+    the release pull request's body, the pull requests and the history;
+    nothing here writes a sentence.
 
     Every fold's tags stand on lines of their own, with a blank line after
     the summary line and before the closing tag, so GitHub reads the lines
@@ -906,8 +909,8 @@ def release_body(theme, rendered, pulls, owner):
     request opens. Nor is a release pull request's body, which the owner
     reads before the release merges.
 
-    With no pull request to read -- the list failed, or a release was cut
-    with none -- the note has no header and is the theme line and
+    With no pull request to read -- one could not be read, or a release was
+    cut with none -- the note has no header and is the theme line and
     `rendered`, unfolded. With no theme, the line and the blank line beside
     it are left out.
     """
@@ -1028,27 +1031,31 @@ def main(argv=None):
         console.write_output("created", "false")
         return 0
 
+    pull_body, said = release_pull_body(repo, tag)
     if entries:
         rendered = section(entries, repo)
+        theme = theme_of(pull_body) if pull_body else ""
     else:
-        rendered, said = release_pull_body(repo, version, tag)
-        if rendered is None:
+        if pull_body is None:
             print(
                 f"{tag}'s range carries settles alone, so its note is the release "
                 f"pull request's body, and {said}. Nothing published."
             )
             return 1
         print(f"the note carries {said}")
+        rendered, theme = pull_body, ""
+        said = (
+            "a note of settles alone carries the release pull request's body "
+            "whole, so its first sentence is no line of its own"
+        )
 
     title, source = title_from(commit_message(tag), version, tag)
     print(f"title {title!r}, from {source}")
-    description, said = milestone_description(repo, version)
-    theme = theme_of(description)
     if theme:
         print(f"theme {theme!r}, from {said}")
     else:
         print(f"no theme line: {said}")
-    pulls = merged_pulls(repo, version)
+    pulls = merged_pulls(repo, revisions)
     body = release_body(theme, rendered, pulls, repo.split("/")[0])
     if pulls is not None and not thanks_section(pulls, repo.split("/")[0]):
         print("no outside contribution in this release, so no Thanks to section")

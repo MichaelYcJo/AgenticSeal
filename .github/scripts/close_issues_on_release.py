@@ -2,7 +2,7 @@
 """Close the issues a release's pull requests said they close.
 
 A closing keyword is read by GitHub only for a pull request whose base is the
-default branch. Everything here merges into `release/vX.Y.Z` first, so every
+default branch. Everything here merges into `release/next` first, so every
 keyword a feature pull request writes is inert -- of three merged that way,
 none fired. The answer is written down, and without this nothing acts on it.
 

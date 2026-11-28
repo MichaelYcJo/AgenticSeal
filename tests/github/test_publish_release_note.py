@@ -27,17 +27,19 @@ that ships a release fires, and a tag pushed by hand (#1117):
       be read (#1655)
 
 #1053 removed the gathered release files, so the fragments are read from the
-history at the tag (S1, S5, S6), and the note carries the release's theme,
-one sentence of its milestone's description (S2, S3, S4), under its header
-(#1153).
+history at the tag (S1, S5, S6), and the note carries the release's theme
+under its header (#1153). Since #1671 no milestone names a release, so the
+theme is the first sentence of the body of the release pull request whose
+merge commit the tag names, and a note of settles alone carries none (S10).
+The summary's pull requests are the ones whose `(#N)` ends a subject of the
+tag's range (S9).
 
 **Nothing here reaches GitHub.** `Releases` stands in for `subprocess.run`
 under `lib/gitcmd.py`, so every git and `gh` command the script starts
 reaches it with the argv the runner built, and `release_exists` is replaced
 by it too. It records the calls as argument tuples, in order, so a case can
-assert about a write that did NOT happen as well as one that did. It hands
-the milestone list to `Milestones`. The cases that read the history drive a
-real `git` repository in `tmp_path`.
+assert about a write that did NOT happen as well as one that did. The cases
+that read the history drive a real `git` repository in `tmp_path`.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
@@ -108,37 +110,15 @@ class Done:
         self.returncode, self.stdout, self.stderr = code, out, err
 
 
-class Milestones:
-    """The repository's milestones, answered where the script lists them.
-
-    `listed` is the list `gh api` prints, or None for a list that cannot be
-    read. `calls` holds each argument list the script passed, in order.
-    """
-
-    def __init__(self, listed):
-        self.listed = listed
-        self.calls = []
-
-    def __call__(self, args, **_):
-        self.calls.append(list(args))
-        assert list(args[:2]) == ["gh", "api"], f"unexpected command: {args}"
-        if self.listed is None:
-            return Done(1, err="HTTP 403: Resource not accessible by integration")
-        return Done(0, json.dumps(self.listed))
-
-
-def milestone(description, version=VERSION):
-    return {"title": f"release: {version}", "description": description}
-
-
 class Releases:
     """The releases a repository has, and every command the script ran.
 
     It stands in for `subprocess.run` under `lib/gitcmd.py`. `calls` holds
-    each command but the milestone list as the program and the arguments
-    the script passed, without `lib/gitcmd.py#argv`'s `-c` pairs and
-    `-C <root>` or the path `shutil.which` found for `gh`, in order, so a
-    case can ask about absence — which is what A2 is entirely about.
+    each command as the program and the arguments the script passed,
+    without `lib/gitcmd.py#argv`'s `-c` pairs and `-C <root>` or the path
+    `shutil.which` found for `gh`, in order, so a case can ask about
+    absence — which is what A2 is entirely about. A command it was not
+    built for, a milestone read among them, fails the case.
     """
 
     def __init__(self, existing=()):
@@ -154,8 +134,6 @@ class Releases:
             args = ("git", *held[held.index("-C") + 2 :])
         else:
             args = ("gh", *held[1:])
-            if args[:2] == ("gh", "api"):
-                return self.milestones(args)
         self.calls.append(args)
         if args[:3] == ("gh", "release", "create"):
             self.existing.add(args[3])
@@ -177,42 +155,40 @@ def wire(
     message="",
     existing=(),
     pulls=(),
-    milestones=(),
     settles=(False, ()),
     release_pull=(None, "no release pull request was read"),
     **env,
 ):
     """The script, with fixture fragments and no route to GitHub. `entries`
-    are the fragments the range added, read after `PREVIOUS`; `milestones` is
-    the milestone list, None for one that cannot be read. `settles` is what
-    `settles` reads of the range, and `release_pull` what
-    `release_pull_body` returns; `tracker.asked` holds each call of the two,
-    in order."""
+    are the fragments the range added, read after `PREVIOUS`; `pulls` is
+    what `merged_pulls` returns, and `tracker.listed` holds each range it
+    was asked for. `settles` is what `settles` reads of the range, and
+    `release_pull` what `release_pull_body` returns; `tracker.asked` holds
+    each call of the two, in order."""
     mod = publisher()
-    monkeypatch.setattr(
-        mod,
-        "merged_pulls",
-        lambda repo, version: None if pulls is None else list(pulls),
-    )
     tracker = Releases(existing)
     tracker.message = message
-    tracker.asked = []
+    tracker.asked, tracker.listed = [], []
+
+    def pulls_reading(repo, revisions):
+        tracker.listed.append((repo, revisions))
+        return None if pulls is None else list(pulls)
 
     def settle_reading(revisions):
         tracker.asked.append(("settles", revisions))
         return settles[0], list(settles[1])
 
-    def release_reading(repo, version, tag):
-        tracker.asked.append(("release_pull_body", repo, version, tag))
+    def release_reading(repo, tag):
+        tracker.asked.append(("release_pull_body", repo, tag))
         return release_pull
 
+    monkeypatch.setattr(mod, "merged_pulls", pulls_reading)
     monkeypatch.setattr(mod, "settles", settle_reading)
     monkeypatch.setattr(mod, "release_pull_body", release_reading)
     monkeypatch.setattr(mod, "ROOT", str(tmp_path))
     monkeypatch.setattr(mod, "release_exists", tracker.exists)
     monkeypatch.setattr(mod, "previous_tag", lambda tag: PREVIOUS)
     monkeypatch.setattr(mod, "fragments", lambda revisions: list(entries))
-    tracker.milestones = Milestones(None if milestones is None else list(milestones))
     monkeypatch.setattr(mod.gitcmd.subprocess, "run", tracker)
     monkeypatch.setenv("TAG", env.pop("TAG", TAG))
     monkeypatch.setenv("REPO", REPO)
@@ -441,8 +417,12 @@ class Test_main:
         assert "changelog/" not in body, "the note still names a gathered file"
         assert "published the release" in capsys.readouterr().out
         # S5 of #1655: a range that added a fragment is noted from it, and
-        # neither the settle reading nor the release pull request is asked.
-        assert tracker.asked == [], tracker.asked
+        # the settle reading is not asked. The release pull request is asked
+        # once, for the theme alone (S10 of #1671).
+        assert tracker.asked == [("release_pull_body", REPO, TAG)], tracker.asked
+        # S9 of #1671: the summary's pull requests are read from the range
+        # the fragments are read from.
+        assert tracker.listed == [(REPO, f"{PREVIOUS}..{TAG}")], tracker.listed
 
     def test_the_note_is_built_from_the_fragments_the_range_added(
         self, monkeypatch, tmp_path, capsys
@@ -479,10 +459,8 @@ class Test_main:
         monkeypatch.setattr(mod, "ROOT", str(repo))
         monkeypatch.chdir(repo)
         monkeypatch.setattr(mod, "release_exists", lambda repo, tag: False)
-        monkeypatch.setattr(mod, "merged_pulls", lambda repo, version: None)
-        monkeypatch.setattr(
-            mod, "milestone_description", lambda repo, version: ("", "none")
-        )
+        monkeypatch.setattr(mod, "merged_pulls", lambda repo, revisions: None)
+        monkeypatch.setattr(mod, "release_pull_body", lambda repo, tag: (None, "none"))
         monkeypatch.setenv("TAG", TAG)
         monkeypatch.setenv("REPO", REPO)
         monkeypatch.setenv("DRY_RUN", "1")
@@ -533,10 +511,8 @@ class Test_main:
         monkeypatch.setattr(mod, "ROOT", str(repo))
         monkeypatch.chdir(repo)
         monkeypatch.setattr(mod, "release_exists", lambda repo, tag: False)
-        monkeypatch.setattr(mod, "merged_pulls", lambda repo, version: None)
-        monkeypatch.setattr(
-            mod, "milestone_description", lambda repo, version: ("", "none")
-        )
+        monkeypatch.setattr(mod, "merged_pulls", lambda repo, revisions: None)
+        monkeypatch.setattr(mod, "release_pull_body", lambda repo, tag: (None, "none"))
         monkeypatch.setenv("TAG", TAG)
         monkeypatch.setenv("REPO", "o/r")
         monkeypatch.setenv("DRY_RUN", "1")
@@ -556,67 +532,63 @@ class Test_main:
         assert "<!-- specs/" not in note, note
 
     def test_the_theme_follows_the_notes_header(self, monkeypatch, tmp_path, capsys):
-        """S2 of #1053, and #1153 S2. The line under the note's header is the
-        first sentence of the description of the milestone `release: X.Y.Z`,
-        its `Purpose:` label left out, read from every milestone in every
-        state, and the first fold follows it."""
-        described = "Purpose: the notes come from the fragments. Order: S1, then S2."
+        """S10 of #1671, S2 of #1053, and #1153 S2. The line under the note's
+        header is the first sentence of the body of the release pull request
+        whose merge commit the tag names, the log says where it came from,
+        and the first fold follows it. No milestone is read: `Releases`
+        fails the case on a command it was not built for."""
+        opened = "Release 1.2.3 carries the notes from the fragments. Order: S1."
         mod, tracker = wire(
             monkeypatch,
             tmp_path,
             message=title_line(),
             pulls=RELEASE,
-            milestones=[
-                milestone("Purpose: an older one.", "1.2.2"),
-                milestone(described),
-            ],
+            release_pull=(f"{opened}\n\n## What changed\n", FROM_RELEASE_PULL),
             DRY_RUN="1",
         )
         assert mod.main() == 0
         out = capsys.readouterr().out
         note = out.split("characters of notes\n", 1)[1]
-        opening = f"{HEADER}\n\nThe notes come from the fragments.\n\n<details>\n"
-        assert note.startswith(opening), note[:300]
-        (args,) = tracker.milestones.calls
-        assert "--paginate" in args, args
-        assert args[-1].startswith(f"repos/{REPO}/milestones?state=all"), args
+        theme = "Release 1.2.3 carries the notes from the fragments."
+        assert note.startswith(f"{HEADER}\n\n{theme}\n\n<details>\n"), note[:300]
+        assert f"theme {theme!r}, from {FROM_RELEASE_PULL}" in out, out
+        assert tracker.asked == [("release_pull_body", REPO, TAG)], tracker.asked
 
     @pytest.mark.parametrize(
-        "milestones, said",
+        "said",
         [
-            pytest.param(None, "the milestones could not be listed", id="unread"),
             pytest.param(
-                [milestone("Purpose: another.", "1.2.2")],
-                f"no milestone is titled `release: {VERSION}`",
+                "the release pull request could not be listed: HTTP 502",
+                id="unread",
+            ),
+            pytest.param(
+                f"no pull request merged into main has {TAG}'s commit as its "
+                "merge commit",
                 id="not found",
             ),
-            pytest.param(
-                [milestone(" \n ")],
-                f"the milestone `release: {VERSION}` has no description",
-                id="empty",
-            ),
+            pytest.param("the release pull request #500 has an empty body", id="empty"),
         ],
     )
     def test_without_a_theme_the_note_has_no_theme_line_and_the_job_goes_on(
-        self, monkeypatch, tmp_path, capsys, milestones, said
+        self, monkeypatch, tmp_path, capsys, said
     ):
-        """S4 of #1053. A milestone that cannot be listed, is not found or has
-        an empty description leaves the note without a theme line, the job log
-        says which of the three it was, and the release is published as it would
-        have been with one."""
+        """S10 of #1671, and S4 of #1053. A release pull request that cannot
+        be listed, is not found or has an empty body leaves a note of
+        fragments without a theme line, the job log says which of the three
+        it was, and the release is published as it would have been with
+        one."""
         mod, tracker = wire(
             monkeypatch,
             tmp_path,
             message=title_line(),
             pulls=RELEASE,
-            milestones=milestones,
+            release_pull=(None, said),
         )
         assert mod.main() == 0
         assert len(tracker.creates()) == 1, tracker.calls
         body = body_of(tracker)
         assert body.startswith(f"{HEADER}\n\n<details>\n"), body[:200]
-        out = capsys.readouterr().out
-        assert said in out and "no theme line" in out, out
+        assert f"no theme line: {said}" in capsys.readouterr().out
 
     @pytest.mark.parametrize(
         "kw",
@@ -838,8 +810,8 @@ class Test_main:
         cell of one. Seen red against the note that opened with the theme
         and carried the glance table under it, and against the header that
         was a table of one cell."""
-        theme = [milestone("Purpose: a theme. And more.")]
-        _, body = published(monkeypatch, tmp_path, RELEASE, milestones=theme)
+        theme = ("A theme. And more.", FROM_RELEASE_PULL)
+        _, body = published(monkeypatch, tmp_path, RELEASE, release_pull=theme)
         assert body.startswith(f"{HEADER}\n\nA theme.\n\n{fold(*FOLDED[0])}\n\n"), body
         assert "At a glance" not in body, body
         assert "<table>" not in body, body[:400]
@@ -901,8 +873,8 @@ class Test_main:
         """A5 adds no way to fail the tag's job: a summary that cannot be built
         leaves the note the theme line and the fragments, unfolded, as the
         section alone was before #572."""
-        theme = [milestone("Purpose: a theme. And more.")]
-        _, body = published(monkeypatch, tmp_path, pulls, milestones=theme)
+        theme = ("A theme. And more.", FROM_RELEASE_PULL)
+        _, body = published(monkeypatch, tmp_path, pulls, release_pull=theme)
         assert body == f"A theme.\n\n{LINK}\n{NOTES}"
         if pulls is None:
             assert "no outside contribution" not in capsys.readouterr().out, (
@@ -958,8 +930,10 @@ class Test_main:
         alone carries the release pull request's body in the place the
         fragments take: the note opens with the header the mark finds,
         exactly once, and the body stands inside the fold that ends it. The
-        title, the release and `created=true` are any note's. Seen red against
-        the script before #1655, where `main` returned 1."""
+        title, the release and `created=true` are any note's. No theme line
+        stands above the folds, since the body below them is the note's
+        whole text (S10 of #1671). Seen red against the script before #1655,
+        where `main` returned 1."""
         out = tmp_path / "github_output"
         mod, tracker = wire(
             monkeypatch,
@@ -977,7 +951,7 @@ class Test_main:
         args = created[0]
         assert args[args.index("--title") + 1] == f"{VERSION} — {SYMPTOMS}"
         body = args[args.index("--notes") + 1]
-        assert body.startswith(HEADER + "\n"), body[:200]
+        assert body.startswith(f"{HEADER}\n\n<details>\n"), body[:200]
         assert body.count(HEADER) == 1, body
         assert body.endswith(
             f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>\n\n"
@@ -986,9 +960,11 @@ class Test_main:
         assert out.read_text(encoding="utf-8") == "created=true\n"
         assert tracker.asked == [
             ("settles", f"{PREVIOUS}..{TAG}"),
-            ("release_pull_body", REPO, VERSION, TAG),
+            ("release_pull_body", REPO, TAG),
         ], tracker.asked
-        assert FROM_RELEASE_PULL in capsys.readouterr().out
+        said = capsys.readouterr().out
+        assert f"the note carries {FROM_RELEASE_PULL}" in said, said
+        assert "no theme line: a note of settles alone" in said, said
 
     def test_a_range_of_settles_alone_with_no_release_pull_request_goes_red(
         self, monkeypatch, tmp_path, capsys
@@ -999,7 +975,7 @@ class Test_main:
         `created`. Seen red against the script before #1655 on that line,
         which it did not print."""
         out = tmp_path / "github_output"
-        said = "no pull request merged from release/v1.2.3 into main is the tag"
+        said = "no pull request merged into main is the tag"
         mod, tracker = wire(
             monkeypatch,
             tmp_path,
@@ -1035,52 +1011,76 @@ class Test_module:
             mod.title_from(line, VERSION, TAG)
         assert time.monotonic() - start < 5.0
 
-    def test_the_list_is_read_from_the_release_branch(self, monkeypatch, capsys):
-        """The set is the pull requests merged into `release/vX.Y.Z` — the base
-        every feature branch squashes into — and a failed `gh` call is None,
-        with the log saying what the note is instead (#1053: the theme line
-        and the fragments, or for a range of settles alone the release pull
-        request's body, #1655)."""
+    def test_the_list_is_the_pull_requests_the_range_names(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """S9 of #1671, on a real history. The set is the pull requests
+        whose `(#N)` ends a subject of the range, the last where a title
+        ends with its issue, each once, in number order: no branch is
+        named, so a pull request squashed before the range's lower tag is
+        not in it. Each is asked of `gh pr view` once, for the fields the
+        note and the mark read (#718: the mark reads the capped label and
+        the head branch from the same set). A failed call, and an answer
+        that is not JSON, make the set None, with the log saying what the
+        note is instead (#1053, #1655)."""
+        repo = git_repo(tmp_path / "repo")
+        write(repo, "a.txt", "a\n")
+        commit_everything(repo, "fix: before the range (#10)")
+        git_out(repo, "tag", PREVIOUS)
+        for n, subject in enumerate(
+            (
+                "feat: a change (#12)",
+                "fix: a title that ends with its issue (#7) (#11)",
+                "a commit pushed with no pull request",
+                "Merge pull request #500 from owner/release/next",
+                "Revert a change, named twice (#12)",
+            )
+        ):
+            write(repo, "a.txt", f"{n}\n")
+            commit_everything(repo, subject)
+        git_out(repo, "tag", TAG)
         mod = publisher()
-        seen = []
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        real, viewed = mod.gitcmd.subprocess.run, []
 
-        def fake(args, **_):
-            seen.append(args)
-            return Done(0, '[{"number": 1, "title": "t", "author": {"login": "x"}}]')
+        def answered(code=0, out=None):
+            def run(argv, *args, **kwargs):
+                if "-C" in list(argv):
+                    return real(argv, *args, **kwargs)
+                viewed.append(list(argv)[1:])
+                number = int(argv[3])
+                said = json.dumps({"number": number, "title": "t"})
+                return Done(code, said if out is None else out, "HTTP 502")
 
-        monkeypatch.setattr(mod.gitcmd.subprocess, "run", fake)
-        assert mod.merged_pulls(REPO, VERSION)[0]["number"] == 1
-        args = seen[0]
-        assert args[args.index("--base") + 1] == f"release/v{VERSION}"
-        assert "body" in args[args.index("--json") + 1].split(","), (
-            "the body is not fetched, so no line can say which issues it closed"
-        )
-        # #718: the mark reads the capped label and the head branch from the same
-        # call, so the list is fetched once for the note and the mark alike.
-        fields = args[args.index("--json") + 1].split(",")
-        assert "labels" in fields and "headRefName" in fields, fields
-        assert args[args.index("--state") + 1] == "merged"
+            monkeypatch.setattr(mod.gitcmd.subprocess, "run", run)
+
+        answered()
+        pulls = mod.merged_pulls(REPO, f"{PREVIOUS}..{TAG}")
+        assert [p["number"] for p in pulls] == [11, 12], pulls
+        assert [args[:3] for args in viewed] == [
+            ["pr", "view", "11"],
+            ["pr", "view", "12"],
+        ], viewed
+        args = viewed[0]
         assert args[args.index("--repo") + 1] == REPO
+        fields = args[args.index("--json") + 1].split(",")
+        assert fields == ["number", "title", "author", "body", "labels", "headRefName"]
+        assert "--base" not in args and "--head" not in args, args
 
-        monkeypatch.setattr(
-            mod.gitcmd.subprocess, "run", lambda args, **_: Done(1, err="HTTP 502")
-        )
-        assert mod.merged_pulls(REPO, VERSION) is None
-        out = capsys.readouterr().out
-        assert (
-            "the note is the theme line and the fragments or the release pull "
-            "request's body alone" in out
-        ), out
-        assert "gh pr list failed, so" in out and "alone: HTTP 502" in out, out
-
-        monkeypatch.setattr(
-            mod.gitcmd.subprocess, "run", lambda args, **_: Done(0, "not json")
-        )
-        assert mod.merged_pulls(REPO, VERSION) is None
+        answered(code=1)
+        assert mod.merged_pulls(REPO, f"{PREVIOUS}..{TAG}") is None
         assert capsys.readouterr().out == (
-            "gh pr list printed something that is not JSON, so the note is the "
-            "theme line and the fragments or the release pull request's body "
-            "alone\n"
+            "gh pr view 11 failed, so the note is the theme line and the "
+            "fragments, or the release pull request's body, with no summary of "
+            "the pull requests: HTTP 502\n"
+        )
+
+        answered(out="not json")
+        assert mod.merged_pulls(REPO, f"{PREVIOUS}..{TAG}") is None
+        assert capsys.readouterr().out == (
+            "gh pr view 11 printed something that is not JSON, so the note is "
+            "the theme line and the fragments, or the release pull request's "
+            "body, with no summary of the pull requests\n"
         )
 
     def test_a_create_gh_refuses_stops_the_run_in_the_runners_line(self, monkeypatch):
@@ -1100,25 +1100,24 @@ class Test_module:
         assert said.endswith("exited 1: HTTP 422: Validation Failed"), said
 
     def test_a_gh_that_gave_no_answer_is_read_as_each_read_reads_a_failure(
-        self, monkeypatch, capsys
+        self, tmp_path, monkeypatch, capsys
     ):
-        """#1573. A `gh` past `lib/gitcmd.py#TIMEOUT` leaves the theme out and
-        the summary out, each saying so in the runner's line, and stops the
-        run where it was asked whether the release exists, since a release
-        that cannot be looked up may be published twice."""
+        """#1573. A `gh` past `lib/gitcmd.py#TIMEOUT` leaves the summary
+        out, saying so in the runner's line, and stops the run where it was
+        asked whether the release exists, since a release that cannot be
+        looked up may be published twice. The theme's read is
+        `Test_release_pull_body`'s."""
+        repo = git_repo(tmp_path / "repo")
+        git_out(repo, "tag", PREVIOUS)
+        write(repo, "a.txt", "a\n")
+        commit_everything(repo, "fix: a change (#5)")
         mod = publisher()
-        unanswered(monkeypatch, "--paginate")
-        assert mod.milestone_description(REPO, VERSION) == (
-            "",
-            "the milestones could not be listed: `gh api --paginate "
-            f"repos/{REPO}/milestones?state=all&per_page=100` did not finish "
-            "within 60 seconds",
-        )
-        unanswered(monkeypatch, "pr", "list")
-        assert mod.merged_pulls(REPO, VERSION) is None
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        unanswered(monkeypatch, "pr", "view")
+        assert mod.merged_pulls(REPO, f"{PREVIOUS}..HEAD") is None
         out = capsys.readouterr().out
-        assert "gh pr list failed, so the note is the theme line and the " in out, out
-        assert "alone: `gh pr list --repo example/repo --base release/v1.2.3" in out
+        assert "gh pr view 5 failed, so the note is the theme line and the " in out
+        assert "pull requests: `gh pr view 5 --repo example/repo --json " in out, out
         unanswered(monkeypatch, f"repos/{REPO}/releases/tags/{TAG}")
         with pytest.raises(SystemExit) as stopped:
             mod.release_exists(REPO, TAG)
@@ -1316,42 +1315,49 @@ class Test_module:
         assert (colour, edge) == (colours[0], [colours[1]]), src
 
     @pytest.mark.parametrize(
-        "description, theme",
+        "body, theme",
         [
             pytest.param(
-                "Purpose: the notes come from the fragments. Order: x",
-                "The notes come from the fragments.",
-                id="the Purpose label left out",
+                "Release 1.2.3 carries two work items: a and b. Then x.",
+                "Release 1.2.3 carries two work items: a and b.",
+                id="a release pull request's opening",
             ),
             pytest.param(
                 "the notes come once. Then twice.",
                 "The notes come once.",
-                id="no label",
+                id="upper-cased",
             ),
             pytest.param(
-                "Purpose: a first line\nthat goes on. Then.",
+                "a first line\nthat goes on. Then.",
                 "A first line",
                 id="the line ends first",
             ),
             pytest.param(
-                "Purpose: what 0.18.0 left. Then.",
+                "what 0.18.0 left. Then.",
                 "What 0.18.0 left.",
                 id="a version inside the sentence",
             ),
             pytest.param(
-                "Purpose:   the  notes\tcome.",
+                "  the  notes\tcome.",
                 "The notes come.",
                 id="whitespace collapsed",
+            ),
+            pytest.param(
+                "Purpose: the notes come. Then.",
+                "Purpose: the notes come.",
+                id="a label is read as written",
             ),
             pytest.param("no full stop at all", "No full stop at all", id="no stop"),
         ],
     )
-    def test_the_theme_is_the_descriptions_first_sentence(self, description, theme):
-        """S3 of #1053. The sentence runs to the first `.` followed by
-        whitespace or the end, or to the first line end where that comes first;
-        a leading `Purpose:` is left out, the whitespace is collapsed and the
-        first letter is upper-cased."""
-        assert publisher().theme_of(description) == theme
+    def test_the_theme_is_the_bodys_first_sentence(self, body, theme):
+        """S10 of #1671, and S3 of #1053. The sentence runs to the first `.`
+        followed by whitespace or the end, or to the first line end where
+        that comes first; the whitespace is collapsed and the first letter
+        is upper-cased. A leading `Purpose:`, the label a milestone's
+        description opened with, is read as written, since the body is no
+        milestone's."""
+        assert publisher().theme_of(body) == theme
 
     def test_the_previous_tag_is_the_highest_version_on_the_first_parent(
         self, tmp_path, monkeypatch
@@ -1616,10 +1622,12 @@ def gh_pr_list_answers(monkeypatch, mod, returncode, stdout, stderr=""):
 
 
 class Test_release_pull_body:
-    """`release_pull_body` reads the body of the pull request merged from
-    `release/v<version>` into `main` whose merge commit is the tagged
-    commit, or says why there is none (A6, S4 of #1655). Seen red against
-    the script before #1655, where the reader did not exist."""
+    """`release_pull_body` reads the body of the pull request merged into
+    `main` whose merge commit is the tagged commit, by no head name, or says
+    why there is none (A6, S4 of #1655, S10 of #1671). Seen red against the
+    script before #1655, where the reader did not exist, and against the
+    one before #1671, which named the numbered release branch as the
+    head."""
 
     def tagged(self, tmp_path, monkeypatch):
         """The script at a repository whose `TAG` names a commit; the
@@ -1643,16 +1651,14 @@ class Test_release_pull_body:
             },
         ]
         asked = gh_pr_list_answers(monkeypatch, mod, 0, json.dumps(listed))
-        assert mod.release_pull_body(REPO, VERSION, TAG) == (
-            RELEASE_BODY,
-            FROM_RELEASE_PULL,
-        )
+        assert mod.release_pull_body(REPO, TAG) == (RELEASE_BODY, FROM_RELEASE_PULL)
         args = asked[0]
         assert args[1:3] == ["pr", "list"], args
         assert args[args.index("--repo") + 1] == REPO
         assert args[args.index("--base") + 1] == "main"
-        assert args[args.index("--head") + 1] == f"release/v{VERSION}"
+        assert "--head" not in args, args
         assert args[args.index("--state") + 1] == "merged"
+        assert args[args.index("--limit") + 1] == str(mod.RELEASE_PULLS_LISTED)
         fields = args[args.index("--json") + 1].split(",")
         assert "body" in fields and "mergeCommit" in fields, fields
 
@@ -1678,8 +1684,8 @@ class Test_release_pull_body:
                 0,
                 json.dumps([{"number": 499, "body": "x", "mergeCommit": {"oid": "0"}}]),
                 "",
-                f"no pull request merged from release/v{VERSION} into main has "
-                f"{TAG}'s commit as its merge commit",
+                f"no pull request merged into main has {TAG}'s commit as its "
+                "merge commit",
                 id="none merged at the tag",
             ),
             pytest.param(
@@ -1700,14 +1706,14 @@ class Test_release_pull_body:
                 [{"number": 500, "body": " \n", "mergeCommit": {"oid": commit}}]
             )
         gh_pr_list_answers(monkeypatch, mod, returncode, stdout, stderr)
-        assert mod.release_pull_body(REPO, VERSION, TAG) == (None, said)
+        assert mod.release_pull_body(REPO, TAG) == (None, said)
 
     def test_a_gh_that_gave_no_answer_is_a_list_that_could_not_be_read(
         self, tmp_path, monkeypatch
     ):
         mod, _ = self.tagged(tmp_path, monkeypatch)
         unanswered(monkeypatch, "pr", "list")
-        body, said = mod.release_pull_body(REPO, VERSION, TAG)
+        body, said = mod.release_pull_body(REPO, TAG)
         assert body is None
         assert said.startswith(
             "the release pull request could not be listed: `gh pr list --repo "

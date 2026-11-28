@@ -10,9 +10,10 @@ release, creates the tag where it did, and hands the tag to the note step of
 the same job, which publishes for it.
 
 **A push ships a release where it moved `.claude-plugin/plugin.json`'s
-version.** The version moves once per release, in the release's first pull
-request into `release/vX.Y.Z`, so on `main` it moves only at the release's
-merge. The version is read at the push's `before` and its `after` commit;
+version.** The version moves once per release, in the last pull request
+into `release/next` before the release pull request opens, to the number
+the release's commit subjects read, so on `main` it moves only at the
+release's merge. The version is read at the push's `before` and its `after` commit;
 where they differ and no `v<after>` tag exists, `v<after>` is created on the
 pushed commit through the GitHub API, a lightweight tag like every tag this
 repository holds, and then in the job's checkout so the note step finds it

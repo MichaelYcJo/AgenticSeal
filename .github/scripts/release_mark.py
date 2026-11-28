@@ -30,11 +30,12 @@ or `skills/` imports this file, and the gates stay stdlib-only
 **The rows are a fixed set, read from what the tag carries.** The suite's
 counts come from the record the broad gate's recorder wrote for the run at
 the tag, read by the broad gate's own reader and counter (`suite_counts`),
-the pull requests and their `chain: capped` labels from the one `gh pr list`
-call the note already makes, and the work items, rounds and deferred issues
-from the round records at the tag, through the readers the review chain's
-own gates use (`chain_counts`). A source that cannot be read says `not read`
-in its row.
+the pull requests and their `chain: capped` labels from the one read the
+note already makes, of the pull requests whose `(#N)` ends a subject of the
+tag's range (`publish_release_note.py#merged_pulls`), and the work items,
+rounds and deferred issues from the round records at the tag, through the
+readers the review chain's own gates use (`chain_counts`). A source that
+cannot be read says `not read` in its row.
 
 **Any failure leaves the note as it was published.** `.github/workflows/
 publish-release.yml` runs this in its `mark` job, after `publish` created
@@ -527,9 +528,9 @@ def mark_release(tag, repo, dry):
         )
     except (OSError, ValueError) as problem:
         raise Refused(f"the suite's counts cannot be read: {problem}") from problem
-    pulls = note.merged_pulls(repo, version)
+    pulls = note.merged_pulls(repo, note.commit_range(note.previous_tag(tag), tag))
     if pulls is None:
-        raise Refused("gh pr list could not list the release's pull requests")
+        raise Refused("the release's pull requests could not be read")
     work, closed, people = note.tally(pulls, repo.split("/")[0])
     chain = chain_counts(ROOT, work)
     rows = release_rows(version, tagged(tag), len(work), len(closed), suite, chain)

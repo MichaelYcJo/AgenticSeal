@@ -203,6 +203,9 @@ def pr(number, branch, *labels):
 
 REPO = "example/repo"
 TAG = "v1.2.3"
+# The version tag below `TAG` on its first parent, which the stand-in for
+# `publish_release_note.py#previous_tag` answers.
+PREVIOUS = "v1.2.2"
 SHA = "aaa11111bbbbccccddddeeeeffff000011112222"
 PUBLISHER = os.path.join(ROOT, ".github", "scripts", "publish_release_note.py")
 OWNER = REPO.split("/")[0]
@@ -354,7 +357,9 @@ def wired(
 ):
     """The mark with a fixture suite, a fixture tree whose `MARK_ROW` reads
     `mark` (`configured`), no route to GitHub, and `drawn` standing in for
-    `draw`, or the real `draw` where `stand_in` is False."""
+    `draw`, or the real `draw` where `stand_in` is False. The note's
+    `merged_pulls` answers `pulls`, and `hub.listed` holds each range it
+    was asked for."""
     mod = release_mark()
     hub = GitHub(mod, note(pulls) if body is None else body, fails)
     if stand_in:
@@ -364,11 +369,14 @@ def wired(
     monkeypatch.setattr(mod, "ROOT", tree(tmp_path, verdicts=[["deferred #12"]]))
     configured(tmp_path / "agentory", mark)
     publisher = mod.publisher()
-    monkeypatch.setattr(
-        publisher,
-        "merged_pulls",
-        lambda repo, version: None if pulls is None else pulls,
-    )
+    hub.listed = []
+
+    def listed(repo, revisions):
+        hub.listed.append((repo, revisions))
+        return None if pulls is None else pulls
+
+    monkeypatch.setattr(publisher, "merged_pulls", listed)
+    monkeypatch.setattr(publisher, "previous_tag", lambda tag: PREVIOUS)
     defaults = {"TAG": TAG, "REPO": REPO, "SUITE_OUTCOME": "success"}
     defaults.update(env)
     if "SUITE_RECORDS" not in defaults:
@@ -403,7 +411,7 @@ REASONS = {
         "signature and an IHDR chunk"
     ),
     "the PNG cannot be written": "the mark could not be written at",
-    "gh pr list fails": "gh pr list could not list",
+    "the pull requests cannot be read": "the release's pull requests could not be read",
     "gh release view fails": "gh release view failed",
     "gh release upload fails": "gh release upload failed",
     "the header is not there": "not in the note exactly once",
@@ -820,6 +828,9 @@ class Test_main:
             f"{cleared}\n\nA theme.\n\n<details>\n<summary>✨ Features (1)</summary>"
         ), body[:800]
         assert hub.calls.index(upload) < hub.calls.index(edit)
+        # S9 of #1671: the counts are the pull requests the tag's range names,
+        # the range the note's summary is read from.
+        assert hub.listed == [(REPO, f"{PREVIOUS}..{TAG}")], hub.listed
 
     @pytest.mark.parametrize(
         "mark, warned",
@@ -920,7 +931,7 @@ class Test_main:
             "the icon is not there",
             "the icon is not a PNG",
             "the PNG cannot be written",
-            "gh pr list fails",
+            "the pull requests cannot be read",
             "gh release view fails",
             "gh release upload fails",
             "the header is not there",
@@ -974,7 +985,7 @@ class Test_main:
             env["SUITE_RECORDS"] = recorded(tmp_path, {"passed": 10, "failed": 1})
         elif case == "the suite counts an error":
             env["SUITE_RECORDS"] = recorded(tmp_path, {"passed": 10, "error": 1})
-        elif case == "gh pr list fails":
+        elif case == "the pull requests cannot be read":
             pulls = None
         elif case == "gh release view fails":
             fails = ("view",)
