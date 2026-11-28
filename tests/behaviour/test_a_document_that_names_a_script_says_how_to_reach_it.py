@@ -153,8 +153,8 @@ def reachable(text, script):
     session working inside a clone with the plugin disabled can open.
     """
     command = command_name(script)
-    # `agentic` alone cannot be told from the plugin's name -- this repository's
-    # prose names the plugin, its agents and its skills with that word -- so
+    # `agentic` alone cannot be told from the routing question's first answer
+    # -- this repository's prose names that answer with the same word -- so
     # this reader does not take the bare command as a locator for `agentic.py`,
     # and the path is the form that counts.
     #
@@ -295,8 +295,9 @@ def test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(pair):
     # it leaves them red with nothing saying why -- #318's own shape,
     # reproduced inside #318's fix.
     forms = (
-        f"the path `{script}`. `agentic` alone is also the plugin's name, so this "
-        "rule does not read the bare command as a locator -- see `reachable`"
+        f"the path `{script}`. `agentic` alone is also the routing question's "
+        "first answer, so this rule does not read the bare command as a locator "
+        "-- see `reachable`"
         if command == "agentic"
         else f"either reachable form: the command `{command}`, shown in code, "
         f"or the path `{script}`"
@@ -369,7 +370,8 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
         "the message offers a repair the rule rejects: a reader who adds the "
         f"bare command is still red and learns nothing from it -- {message}"
     )
-    assert agentic in message and "also the plugin's name" in message, (
+    why = "also the routing question's first answer"
+    assert agentic in message and why in message, (
         f"the message does not name the form that works, or why -- {message}"
     )
 
@@ -404,12 +406,12 @@ def test_the_no_command_form_message_offers_every_repair_the_reader_accepts():
 
 
 def test_the_bare_command_is_not_a_locator():
-    """`agentic.py` answers to `agentic`, which is also the plugin's name, and the
-    documents name the plugin, its agents and its skills with that word. Read
+    """`agentic.py` answers to `agentic`, which is also the routing question's
+    first answer, and the documents name that answer with the same word. Read
     as a locator it makes the rule unfalsifiable for that script, which is the
     one thing Q1's general form was chosen to prevent."""
     agentic = "skills/implement/scripts/agentic.py"
-    assert not reachable("Install the agentic plugin before the rounds.", agentic)
+    assert not reachable("Route the work under agentic before the rounds.", agentic)
     assert not reachable("Run `agentic mode` first.", agentic)
     assert reachable("It lives at `skills/implement/scripts/agentic.py`.", agentic)
 
