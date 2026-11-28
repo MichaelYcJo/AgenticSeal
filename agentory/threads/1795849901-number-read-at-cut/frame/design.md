@@ -24,7 +24,7 @@ The tree as read at `9d7a8fe2`, which is `596c79a6` and this work item's
 | G14 `skills/settle/scripts/rules.py` lines 42 to 52 (read) | `agentic rules --check` excuses a refused check line inside a section that a pending `remove` with no `from` takes out, and nothing else. So the tests of `a-release-is-judged-under-its-two-names` can go in this change, and a marker that a pending `change` leaves its check line naming stays carried by a test until the settle |
 | G15 `templates/setup/hygiene.yml` line 75 (read) | A connected repository clones the plugin with `--branch v<version>`, a tag. Nothing there reads a release branch |
 | G16 The three searches of `frame/plan.md`'s *Verified by* cells, each run from the top level at `9d7a8fe2` as `git grep --no-color --no-line-number -P '<pattern>' -- . ':!agentory/threads/1795849901-number-read-at-cut' \| LC_ALL=C sort \| diff - <keep file>` (executed) | Phase 1's prints 29 lines opening `<` and none opening `>`, phase 2's 20 and none, phase 3's 56 and none: each line opening `<` is one a *Scope* item changes or removes, and every other line the search prints is in the keep file. So each search fails on the tree before the build, and passes only where the build has changed every line it names |
-| G17 `skills/settle/scripts/rule_changes.py#parse` and `#apply_op`, run by `test_tmp_rule_changes.py` in a `git clone --no-local` under the scratch directory, against this file as folded on 2026-11-28 after phase 3, in a clone at `d18253a2` (executed) | The section parses with no error and no unread line, and each operation is placed in its document in order, each `from` found once in its section |
+| G17 `skills/settle/scripts/rule_changes.py#parse` and `#apply_op`, run by `test_tmp_rule_changes_in_order.py` in a `git clone --no-local` at `6652be71` under the scratch directory, against this file as folded on 2026-11-28 after round 1, with `1795841828-settle-only-release-note`'s operations placed first, as the settle places them in merge order (executed) | Both sections parse with no error and no unread line, and every operation of both is placed in its document in order, each `from` found once in its section. After both, `docs/releasing/` holds none of the sentences "could not be listed", "always a hand-edit", "unless a hotfix" and "version and milestone steps", and the one "never fails the job" it holds is limited to a note of fragments |
 
 ### Readers of the number
 
@@ -43,7 +43,8 @@ Each reader G11 found, and what this work does with it.
 | `.github/workflows/test.yml` | stays: `pytest-wide`'s guard reads `startsWith(github.base_ref, 'release/')`, which `release/next` meets |
 | `.github/PULL_REQUEST_TEMPLATE.md`, `CONTRIBUTING.md`, `README.md`, `README.ko.md` | change: *Scope* item 7 |
 | `skills/commit-pr-convention/SKILL.md` *Branch names* | changes: *Scope* item 8 |
-| `skills/implement/orchestration.md` *Orchestrator: how the work is routed*, `skills/implement/merge-order.md` | stay: both state the convention of a repository that names the version when it cuts the branch and of one that moves it at the release. The version pull request belongs to no work item, so no routing rule there reaches it |
+| `skills/implement/orchestration.md` *Orchestrator: how the work is routed* | its version-move sentences stay: they state the convention of a repository that names the version when it cuts the branch and of one that moves it at the release, and the version pull request belongs to no work item, so no routing rule there reaches it. Its sentence that takes `main` for a pull request whose entries read as one release, or for a gate or a hook firing where it should not, changes: *Scope* item 12 |
+| `skills/implement/merge-order.md` | stays: it orders the work items of a release and names which carries the move where the repository names the version at the cut, and it routes no pull request into `main` |
 | `skills/verify/scripts/broad_gate.py:505` | stays: a docstring giving `release/vX.Y.Z` as one legal branch name that `git check-ref-format --branch` accepts; `release/next` is legal too |
 | `skills/code-review/scripts/pr_wait.py:79` | stays: it names the `release/*` trigger, which matches `release/next` |
 | `skills/settle/scripts/settle.py` | stays: it reads no `merged:` label. Its `merged:` strings are messages about the `gh pr list` it asks for the branch a `routing.md` names (lines 724 to 783, read). The issue lists it as a reader of `merged:`, and the tree does not bear that out |
@@ -96,10 +97,11 @@ Each reader G11 found, and what this work does with it.
    fragments are read from, with the same fields, and the same fallback
    where `gh` cannot answer. `release_pull_body` finds the release pull
    request by the merge commit the tag names, with no head name. The theme
-   line is the first sentence of that pull request's body; a note of
-   settles alone carries none, since that body stands whole beneath it, and
-   a body that cannot be read leaves the note without one and fails
-   nothing. `milestone_description`, `MILESTONE_TITLE` and `PURPOSE_LABEL`
+   line is the first sentence of that pull request's body. For a note of
+   fragments, a body that cannot be read leaves the note without one and
+   fails nothing. A note of settles alone carries none, since that body
+   stands whole beneath it, and still fails where that body cannot be
+   read. `milestone_description`, `MILESTONE_TITLE` and `PURPOSE_LABEL`
    go. `.github/scripts/release_mark.py` reads the same set through the
    changed call.
 6. **The release automation's prose names the integration branch.** The
@@ -120,7 +122,7 @@ Each reader G11 found, and what this work does with it.
    number, such as `release/next`, or `release/vX.Y.Z` where the repository
    names the version when it cuts the branch.
 9. **The cases follow.** Each test that pins a sentence, a name, an input
-   or an output that items 1 to 8 change is changed in the phase that
+   or an output that items 1 to 8 and 12 change is changed in the phase that
    changes it, and a case the change leaves standing on nothing goes
    (`## Removes`).
 10. **This release's own move.** This work item carries the version move of
@@ -144,6 +146,20 @@ Each reader G11 found, and what this work does with it.
     and no line of `docs/` names the file, so no rule change follows it,
     which is why `frame/plan.md` A10's ground for keeping the script's name
     does not reach it. Phase 3 builds it.
+12. **The routing rule offers `main` only where the repository's convention
+    does.** `skills/implement/orchestration.md` *Orchestrator: how the work
+    is routed* takes `main` "when the accumulated entries read as one
+    release, or when the change is a gate or a hook firing where it should
+    not". In this repository a gate firing where it should not is the
+    urgent fix the hotfix route carried, which `frame/questions.md` Q2's
+    answer (a) removed, and after the settle `docs/releasing/` says nothing
+    reaches `main` but the release pull request. The sentence is the
+    plugin's and serves repositories whose convention allows a pull request
+    other than the release into `main`, so it is limited, not removed: the
+    orchestrator takes `main` in those two cases only where the
+    repository's convention lets a pull request other than the release
+    reach `main`. Every phase had closed when this item was framed, so the
+    fix pass of round 1 builds it.
 
 **Out of scope.**
 
@@ -159,8 +175,9 @@ Each reader G11 found, and what this work does with it.
   owlery#279 weighs. A squash into `release/next` while the release pull
   request is open joins it, as a squash into a release branch does today,
   and the check reads the number again at that push.
-- `skills/implement/orchestration.md` and `skills/implement/merge-order.md`,
-  shown not to change in *Readers of the number*.
+- `skills/implement/merge-order.md`, and the version-move sentences of
+  `skills/implement/orchestration.md`, shown not to change in *Readers of
+  the number*.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -238,10 +255,10 @@ later phase changes: the `milestone_titles` line of
   section: Cutting a release
   from: The release's theme follows it, the first sentence of its milestone's description with a leading `Purpose:` left out; a milestone that cannot be read leaves the note without one and never fails the job. A summary read from the pull requests merged into `release/vX.Y.Z` follows:
   to: The release's theme follows it, the first sentence of the body of
-    the release pull request whose merge commit the tag names; a body that
-    cannot be read leaves the note without one and never fails the job,
-    and a note of settles alone, whose changes are that body, carries
-    none. A summary read from the pull requests whose squash commits the
+    the release pull request whose merge commit the tag names. For a note
+    of fragments, a body that cannot be read leaves the note without one
+    and never fails the job; a note of settles alone, whose changes are
+    that body, carries none. A summary read from the pull requests whose squash commits the
     tag's range holds, each named by the `(#N)` its subject ends with,
     follows:
 - change
@@ -447,6 +464,14 @@ later phase changes: the `milestone_titles` line of
     asks the labels,
 - change
   file: docs/releasing/issues-and-milestones.md
+  section: A label says a ticket is already in, before the release ships
+  from: a label naming a release the issue is not in **fails**, because that is always a hand-edit or a squash subject that lost its `(#N)` and one command repairs it,
+  to: a `merged: next` on an issue the release does not carry **fails**,
+    because that is a hand-edit, a squash subject that lost its `(#N)`, or
+    a label the last release's close did not take off, and one command
+    repairs each,
+- change
+  file: docs/releasing/issues-and-milestones.md
   section: An issue is titled like a commit
   from: Who retitles an issue whose pull request takes another prefix is `skills/commit-pr-convention/SKILL.md` *Commit messages*, and where a `feat:` filed into a milestone numbered as a patch moves is `docs/releasing/branch-and-release.md` *Work accumulates on a release branch*.
   to: Who retitles an issue whose pull request takes another prefix is
@@ -544,6 +569,15 @@ later phase changes: the `milestone_titles` line of
   from: the push did not move `plugin.json`'s version, which the release's first pull request owed,
   to: the push did not move `plugin.json`'s version, which the release's
     last pull request into `release/next` owed,
+- change
+  file: docs/releasing/release-checklist.md
+  section: After the merge
+  from: Where the job log says the pull requests could not be listed, the note went out as the theme line and the fragments alone, and for a range of settles alone as the theme line and the release pull request's body alone. One `gh release edit` repairs either.
+  to: Where the job log says one of the release's pull requests could not
+    be read, the note went out with no summary of the pull requests: the
+    theme line and the fragments, or for a range of settles alone the
+    release pull request's body with no theme line. One `gh release edit`
+    repairs either.
 - change
   file: docs/releasing/release-checklist.md
   section: After the merge

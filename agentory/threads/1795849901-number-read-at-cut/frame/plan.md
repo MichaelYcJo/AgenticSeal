@@ -94,11 +94,27 @@ their `routing.md` alone, and #1583's routes the rewrite of the paragraph of
 `skills/code-review/orchestration.md` on merging the base. This work does
 not change that paragraph.
 
+Read again at 2026-11-28, after round 1: pull request #1674, #1583's, into
+`release/v0.42.0` at `cee0dd0d`, changes `skills/code-review/orchestration.md`,
+`skills/code-review/gate-to-pull-request.md`, `skills/core/SKILL.md`,
+`skills/verify/SKILL.md`, `agentory/follow-up.md`, two tests and
+`.claude-plugin/plugin.json`, and its design holds one rule change, on the
+sentence of `docs/releasing/branch-and-release.md` *Work accumulates on a
+release branch* that opens "The merge still moves HEAD past the work item's
+broad run and inspection". `fix/1593-body-decision-with-its-question` at
+`ee0ebb72` changes `skills/code-review/orchestration.md`,
+`skills/code-review/scripts/pr_body.py`, `templates/records/sdd-plan.md`
+and `tests/skills/test_pr_body.py`, and its design states no rule change.
+Neither changes `skills/implement/orchestration.md`, the file *Scope* item
+12 changes. The released, unsettled `1795841828-settle-only-release-note`
+holds rule changes on two sections this design also changes.
+
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
 | #1648 | `.claude-plugin/plugin.json`'s version line | #1648 | its release ships first, so this branch merges `main` after it, and the conflict resolves to this release's version in that merge |
-| #1631 and #1583 | `.claude-plugin/plugin.json`'s version line; and `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* and `docs/releasing/release-checklist.md` *Before starting*, where that item's frame states rule changes there | #1583 | its release ships first. The rule changes here quote sentences of those sections that its routing does not name, so the settle applies both in merge order; where its frame quotes one of the same sentences, this design's `from` is history at the settle, and the settling session writes the section to the later decision |
+| #1631 and #1583 | `.claude-plugin/plugin.json`'s version line; and `docs/releasing/branch-and-release.md` *Work accumulates on a release branch*, where its one rule change rewrites a sentence no operation here quotes | #1583 | its release ships first. The settle places both in merge order, and neither `from` holds the other's sentence |
 | #1593 | `.claude-plugin/plugin.json` only where it carries a move, and its routing says #1648 does | #1593 | its release ships first |
+| `1795841828-settle-only-release-note` (#1667) | `docs/releasing/branch-and-release.md` *Cutting a release*, and `docs/releasing/release-checklist.md` *After the merge* and *The release pull request* | #1667, merged in 0.41.0 | it is released, so the settle places its operations before this item's. The operation here on *After the merge* that opens "Where the job log says the pull requests could not be listed" quotes that item's `to`, which is what the section holds when this operation is placed. Every other operation here quotes a sentence that item does not change. Placed in that order on `docs/` at the commit of round 1's record, every operation of both is found (design G17) |
 
 ## Operational impact
 
@@ -135,8 +151,12 @@ not change that paragraph.
   so their titles state shipped releases and none is renamed. The old
   numbered branches stay. None of these acts is a file.
 - No environment variable, dependency or migration. An installed plugin
-  meets one change, *Scope* item 8's sentence in
-  `skills/commit-pr-convention/SKILL.md`; the scripts and workflows run in
+  meets two changes: *Scope* item 8's sentence in
+  `skills/commit-pr-convention/SKILL.md`, and *Scope* item 12's in
+  `skills/implement/orchestration.md` *Orchestrator: how the work is
+  routed*, under which an orchestrator takes `main` for a gate or a hook
+  firing where it should not only where its repository's convention lets
+  a pull request other than the release reach `main`. The scripts and workflows run in
   this repository alone and do not ship to a connected repository
   (`templates/setup/hygiene.yml` clones a tag, design G15).
 
@@ -146,3 +166,4 @@ not change that paragraph.
 |---|---|---|---|
 | 2026-11-28 | Which prefix the pull request's title takes: `feat:`. | A contributor now bases every pull request on `release/next` instead of a numbered branch, and the release check reads the number instead of refusing one, so whoever works on a later change meets a new branch and a new check. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
 | 2026-11-28 | Which route the statements phase 3 named outside the frame's rule changes take: the framer folds them into `## Rule changes` and the frame before round 1. | `docs/releasing/release-checklist.md:150` and `:156` contradict Q2's answer and phase 1's check, and no operation of `## Rule changes` reaches them, so the settle would leave them standing. | `skills/implement/orchestration.md` *A decision made after the frame is committed is folded* |
+| 2026-11-28 | Which route round 1's findings take: the framer folds findings 1 to 3 into the frame and `## Rule changes`, and the fix pass that follows builds finding 1's changelog line, finding 3's skill sentence where the fold rewrites it, and finding 4. | Findings 1 and 2 are located in `## Rule changes` and the design, and finding 3 is a sentence of `skills/implement/orchestration.md` whose route Q2's answer removed, which the frame's *Readers of the number* did not weigh. | `skills/implement/orchestration.md` *A decision made after the frame is committed is folded* |
