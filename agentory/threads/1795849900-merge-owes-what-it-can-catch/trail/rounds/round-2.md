@@ -56,6 +56,11 @@ The docstring, `tests/text/test_the_rules_have_one_owner.py:611-614`, from "Roun
 The owner case holds the commands the orchestrator types, `git show --remerge-diff` and `gh pr checks <N>`, and the citation of that section in the `agentic pr-wait` table's exit 0 row, and not the act each one leads to;
 ```
 
+```iadd
+verdict: fixed f8ab0ed2
+answer: Applied the paste-ready fix to the pin: the owner case drops the string that held the exit 0 row's whole act, keeps the `gh pr checks <N>` entry, and after the loop cuts the steps between `| 0 |` and `| 1 |` and asserts the citation of `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* inside that cut. `gaps.md:8` takes the snippet's clause. The docstring takes the snippet with one change, in my own words: it names "The first review round of #1583 and #1631" where the snippet says "Round 1 of that work item", since the settle removes that work item's directory and this round's *Confirmations* names that gap. Shown red by contract rule 15 at `f8ab0ed2`: `agentic mutate skills/code-review/gate-to-pull-request.md` replacing the row's "where it first takes the conditions `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* gives that stand-in; under" with "where it first takes the conditions of that stand-in; under", which takes the citation out of the exit 0 row alone and leaves exit 6's citation outside the cut, printed `red: the cases failed against the mutation (exit 1)`, failing at "the exit 0 row no longer cites the section that gives the stand-in's conditions". The case no longer pins wording: the same command with the exception reworded and the citation kept, "but after a merge the pull request's checks stood in for, it first takes the conditions", printed `SURVIVED`. The evidence's `git grep -n -F -e "exit 0 row's exception" -e "exception of the"` over the work item's directory and `tests`, run again at `f8ab0ed2` outside the round records, prints nothing. The narrow set `bin/test tests/skills/test_chain_check.py tests/text tests/behaviour tests/lib/test_core.py tests/hooks/test_core_start.py tests/skills/test_pr_wait.py -q` printed 1217 passed, 10 skipped, and `uvx ruff check` and `uvx ruff format --check` over the test file are clean; every file of it is the `bin/test` suite's, which phase 1's *Verified by* cell names.
+```
+
 ### 2. `frame/plan.md` *Technical context* says the work amends two other statements of its rule, and the fold has since added the exit 0 row as a third
 
 ```iadd
@@ -76,6 +81,11 @@ The work rewrites one paragraph of `skills/code-review/orchestration.md` (lines 
 ```
 
 The count stands in the sentence that opens the list it counts, as contract rule 19 allows. Line 40 is the row's line at `0148aa63` and at the target alike (executed, `git show 0148aa63:skills/code-review/gate-to-pull-request.md`).
+
+```iadd
+verdict: fixed 83ee5ce1
+answer: The framer folded it: `83ee5ce1` replaced the opening sentence of `frame/plan.md` *Technical context* with the paste-ready fix's sentence, which names the exit 0 row by *Scope* item 9 as the third statement the work amends, and the same commit made *Scope* item 7 name item 9 beside items 1 to 3. The evidence's `git grep -n -F -e 'two other statements' -e 'other statements of its rule'` over the work item's directory, run again at `f8ab0ed2` outside the round records, prints `frame/plan.md:7` alone, which now reads "amends three other statements of its rule", the count standing in the sentence that opens its list. Read of the range: `agentic range agentory/threads/1795849900-merge-owes-what-it-can-catch --from 235195ca --out <scratchpad>/1795849900-merge-owes-what-it-can-catch/fix-2/range.txt` printed `agentic range: 235195caf4b115919497d4b8c5fa8bd1772134bd..f8ab0ed29d0480a3f125e46ee6b762e8195197d7` and wrote 558 lines, read to the last; it left no statement HEAD contradicts in a file this pass writes.
+```
 
 ## Confirmations
 
