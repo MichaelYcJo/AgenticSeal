@@ -27,7 +27,7 @@ The tree as read at `3729b409`, the routing commit on the release branch's tip `
 2. **A range of settles alone publishes from the release pull request's body.** The script lists the merged pull requests whose base is `main` and whose head is `release/v<version>`, with `gh pr list --json number,body,mergeCommit`, and takes the one whose `mergeCommit.oid` is the commit `git rev-parse <tag>^{commit}` names. Its body takes the place `section(entries, repo)` takes in `release_body`: the header, the theme, the folds by type, the thanks, the update section and the folded part are built as for any other note. The title comes from `title_from`, and the release is created and `created=true` written as for any other note. `release_exists` still runs first, so a release already at the tag is left as it is.
 3. **Every other range that added no fragment still fails, with exit 1.** That is a range with no commit other than merges, and a range with a commit that is no settle. The existing refusal line keeps its words, and the job log also names each commit of the range that is no settle, by its short hash and subject, so the person reading the log sees why the settle path was not taken.
 4. **A range of settles alone whose release pull request cannot be read fails, with exit 1, and creates nothing.** That is a `gh pr list` that fails or prints no JSON, no merged pull request whose merge commit is the tagged commit, and one whose body is empty after stripping. The line says which. A note cannot be built without that body, so this read is one the note cannot go without, as `create` is, and not one the summary may skip, as `merged_pulls` is.
-5. **The texts that state the old rule are rewritten in place.** They are the module docstring of `publish_release_note.py`, its paragraphs on what the body is built from, on the failure for a range that added no fragment and on exit codes; the header comment of `.github/workflows/publish-release.yml`, lines 17 to 21; the module docstring of `tests/github/test_publish_release_note.py`, its A3 line and a new line for the settle-only case.
+5. **The texts that state the old rule are rewritten in place.** They are the module docstring of `publish_release_note.py`, its paragraphs on what the body is built from, on the failure for a range that added no fragment and on exit codes; the header comment of `.github/workflows/publish-release.yml`, lines 17 to 21; the module docstring of `tests/github/test_publish_release_note.py`, its A3 line and a new line for the settle-only case. So are the texts that state the old fact that the note's folded text is the fragments, which round 1's finding 1 names: in `publish_release_note.py` the module docstring's paragraphs opening *The fragments are also a page of reasoning per change* and **The summary adds no way to fail**, the `merged_pulls` docstring and the two lines `merged_pulls` prints, with the case that pins those printed words, and the sentence of `docs/releasing/release-checklist.md` *After the merge* that rule change 5 below rewrites. A note built where `merged_pulls` fails is the theme line and the fragments, or for a range of settles alone the theme line and the release pull request's body.
 6. **`skills/settle/SKILL.md` *A settle is not a work item* states the settle-only release.** One or two sentences: a settle writes no changelog fragment, and where a release carries settles alone, this repository's release workflow, `.github/scripts/publish_release_note.py` named by path alone (G7), builds the note from the release pull request's body.
 7. **Cases in `tests/github/test_publish_release_note.py` pin each scenario below**, each shown red against the code at `3729b409` as contract rule 15 asks.
 
@@ -108,6 +108,14 @@ Out of scope:
     request's removed directories against the merge base, and the note
     asks it of each commit of a release's range against that commit's
     parent, where the range added no changelog fragment.
+- change
+  file: docs/releasing/release-checklist.md
+  section: After the merge
+  from: Where the job log says the pull requests could not be listed, the note went out as the theme line and the fragments alone, which one `gh release edit` repairs.
+  to: Where the job log says the pull requests could not be listed, the
+    note went out as the theme line and the fragments alone, and for a
+    range of settles alone as the theme line and the release pull
+    request's body alone. One `gh release edit` repairs either.
 
 ## Removes
 
@@ -117,6 +125,7 @@ Out of scope:
 | The exit-code sentence's list of exit 1 causes | `.github/scripts/publish_release_note.py#module docstring`, the paragraph opening `Exit codes:` | Rewritten in place with the two new causes of Scope item 4. |
 | The workflow header's sentence that the note is built from the fragments | `.github/workflows/publish-release.yml`, the header comment, lines 17 to 21 | Rewritten in place to name the release pull request's body as the source for a range of settles alone. |
 | The test module's A3 line, that a range with no fragment goes red | `tests/github/test_publish_release_note.py#module docstring` | Rewritten in place to a range with no fragment that carries more than settles, beside a new line for the settle-only case. |
+| The statements that a note built without its summary is the theme line and the fragments alone | `.github/scripts/publish_release_note.py#module docstring`, its paragraphs opening *The fragments are also a page of reasoning per change* and **The summary adds no way to fail**; `.github/scripts/publish_release_note.py#merged_pulls`, its docstring and its two printed lines; `docs/releasing/release-checklist.md` *After the merge* | Rewritten in place to name the release pull request's body for a range of settles alone (Scope item 5); the checklist sentence through rule change 5. |
 | The hand step that wrote a settle-only release's note, and the note's missing mark and badges | Outside the tree: the notes at `v0.39.4` and `v0.40.1`, and the `## Not verified` row of #1664's body (G14) | The publish workflow writes the note and the mark job draws on it (Scope item 2, G13). The work adds a path to an existing refusal and no new gate, check, hook, label or mark, so the hand step is what it takes out in return. |
 
 Framed 2026-11-28 by framer, before the build.
