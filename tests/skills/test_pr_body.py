@@ -560,6 +560,35 @@ class Test_compose:
             "",
         ]
 
+    def test_accepts_a_file_with_no_title_whole(self):
+        """S2 of #1593. The title left out is the first level 1 heading, so
+        a file that holds none is copied whole, its first heading one level
+        down. Seen red against `_questions` as 0.41.0 shipped it, which
+        copied only the lines of the table."""
+        questions = QUESTIONS.split("\n", 2)[2]
+        text = PR.compose(NAME, {"frame/questions.md": questions})
+        assert section_of(text, "## Questions") == [
+            "## Questions",
+            "",
+            "From `frame/questions.md`.",
+            "",
+            "### Rows",
+            "",
+            *questions.split("\n")[2:6],
+            "",
+        ]
+
+    def test_accepts_two_pipe_lines_with_no_delimiter_row_as_written(self):
+        """S3 of #1593. Two lines that open with a pipe and hold no
+        delimiter row are no table with an empty body, so they are copied
+        as written and `NO_QUESTION_ROW` does not stand for them. Green
+        against `_questions` as 0.41.0 shipped it, which copied every line
+        that opens with a pipe; seen red with the delimiter test of
+        `_rowless` removed."""
+        questions = "# Questions\n\n| a note |\n| another |\n"
+        text = PR.compose(NAME, {"frame/questions.md": questions})
+        assert section_of(text, "## Questions")[4:6] == ["| a note |", "| another |"]
+
     def test_accepts_a_missing_record_as_its_fixed_line(self):
         """S5. A record that is not there is named in its section, never
         skipped."""

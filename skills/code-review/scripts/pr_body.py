@@ -871,15 +871,18 @@ def _gaps(texts, heading, missing):
 def _rowless(seen, tables):
     """The first index of each table of SEEN, a record's `readable` lines,
     that holds a header row and a delimiter row and no row under them: a run
-    of two consecutive indexes of TABLES whose second line is a delimiter
-    row."""
+    of exactly two consecutive indexes of TABLES whose second line is a
+    delimiter row."""
+    runs = []
+    for i in sorted(tables):
+        if runs and runs[-1][-1] == i - 1:
+            runs[-1].append(i)
+        else:
+            runs.append([i])
     return {
-        i
-        for i in tables
-        if i + 1 in tables
-        and i - 1 not in tables
-        and i + 2 not in tables
-        and READER.is_separator(TABLES.table_cells(seen[i + 1]) or ())
+        run[0]
+        for run in runs
+        if len(run) == 2 and READER.is_separator(TABLES.table_cells(seen[run[1]]))
     }
 
 
