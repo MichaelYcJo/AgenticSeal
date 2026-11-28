@@ -51,6 +51,16 @@ ships, and the comment says that. It is a comment in a shipped file, so
 the module still imports: `tests/lib/test_closing.py` ran green at the phase
 boundary. Judged against contract rule 19.
 
+**Two removals of the label script that *Scope* item 3 does not name went
+with the mapping.** `label_name(version)` and `label_description(version)`
+built the label's name and description from a version. They are the
+constants `MERGED_LABEL` and `LABEL_DESCRIPTION` now, as `frame/design.md`
+*Data & interfaces* asks for one constant for the label, and
+`create_label` and `add_label` take no version. The case
+`test_a_minor_with_no_feat_ships_as_the_minor_it_was_named` went with
+`judge_feat`: it held the line that a minor named at its cut ships as that
+minor, and no release is named at its cut now.
+
 **The number's two edges were decided in the build.** *Scope* item 1 says a
 head "that moves the major, with minor and patch 0" is the owner's word.
 `judge_number` reads that as a major above the base's, so a lower major,
@@ -94,6 +104,7 @@ with ...`.
 
 The case that the check asks the tracker for no milestone,
 `Test_main::test_accepts_a_run_that_reads_no_milestone_and_no_head_name`,
+named `test_reads_no_milestone_and_needs_no_head_name` until `f3393b15`,
 was red at `ae7aca71` for its other half only, the skip. Run alone against
 the old script with `HEAD_BRANCH=release/v1.2.3` in the environment, it
 failed on `AssertionError: unexpected command: ('gh', 'api', '--paginate',
@@ -168,6 +179,15 @@ three more test files that load a path this phase changed:
 cell does not name the three. They belong to the cell's one suite, and
 they ran under it as
 `bin/test tests/github/test_release_mark.py tests/skills/test_chain_check.py tests/skills/test_pr_body.py -q`.
+
+**The read of the phase's range made the corrections below, in
+`0203c27a`.** The case that holds the hygiene step to its inputs said that
+two absences are silent, and with `HEAD_BRANCH` gone one is. A sentence of
+the check's input table lacked a possessive. The module docstring of
+`tests/github/test_close_issues_on_release.py`, the comment above
+`publish_release_note.py#TAG_RE` and the limits paragraph of
+`lib/closing.py` were rewrapped where this phase's edits had left a short
+or a long line.
 
 **`agentic rules --check` excuses one line, as `frame/design.md` G14
 says.** It printed `excused: docs/releasing/issues-and-milestones.md:239:
