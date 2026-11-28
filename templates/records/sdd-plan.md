@@ -32,7 +32,7 @@ The tree as read at `<commit>`.
 
 ## Judgments of the run
 
-<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame, why the pull request title takes its prefix, which `pr.md` quotes; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
+<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame, why the pull request title takes its prefix, which `pr.md` quotes; the `Judgment` cell names the question the judgment answers, then its answer, as "Which prefix the pull request's title takes: `fix:`." does, in every row, since `pr.md` may quote any of them; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|

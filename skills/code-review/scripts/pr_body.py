@@ -12,10 +12,13 @@ writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
 phase records' paths, each round record's `iadd` blocks and its findings'
 headings, the broad run's `iadd` blocks, `gaps.md`'s `## Not verified` and
-`## Not done` sections, and every table line of `frame/questions.md`. It
-copies lines and composes none: no count, no summary, no rewording. Each
-section opens with a line of `FIXED` naming its source, and a record that is
-not there is named by its own line of `FIXED`.
+`## Not done` sections, and every line of `frame/questions.md` but its
+title, each heading among them one level down. It copies lines and composes
+none: no count, no summary, no rewording. Each section opens with a line of
+`FIXED` naming its source, and a record that is not there is named by its
+own line of `FIXED`. So is a table of `frame/questions.md` that holds no
+row, in the table's place, and a `frame/questions.md` that holds no table
+line, after its copy.
 
 One fixed line depends on a record's verdict: the inspection mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
@@ -190,9 +193,10 @@ except ImportError:
 # whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `lib/config.py`, the one reader of an `agentory/config.json` key, and
+# `lib/config.py`, the one reader of an `agentory/config.json` key,
 # `lib/closing.py`, whose `keywords_in` is the one reader of a closing
-# keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
+# keyword, and `lib/tables.py`, whose `table_cells` splits a table row into
+# its cells. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
 # a command, a module that raises while it loads ends the run at exit 2;
 # imported, the error is raised to the importer.
 try:
@@ -201,6 +205,7 @@ try:
     ROUTING = sibling.load("lib/routing.py")
     CONFIG = sibling.load("lib/config.py")
     CLOSER = sibling.load("lib/closing.py")
+    TABLES = sibling.load("lib/tables.py")
 except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
@@ -331,6 +336,7 @@ NO_GATE_BLOCK = f"`{GATE}` holds no run block."
 NO_NOT_VERIFIED = f"`{GAPS}` has no `{NOT_VERIFIED}` section."
 NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
+NO_QUESTION_ROW = f"`{QUESTIONS}` holds a table with no row under its header."
 # The line a folded section holds under its heading for each record
 # `SECTIONS` names for it, in place of what it copies.
 FOLDED = (
@@ -413,6 +419,7 @@ FIXED = (
     NO_NOT_VERIFIED,
     NO_NOT_DONE,
     NO_QUESTION_TABLE,
+    NO_QUESTION_ROW,
     FOLDED,
 )
 
@@ -729,7 +736,11 @@ def inspection_mark(item, root, manifest=None, base=None):
 def _copied(rel, raw, first, stop):
     """The lines RAW holds from FIRST to STOP, each with its source `(REL,
     line)`, with blank lines at either end dropped."""
-    picked = [(raw[i], (rel, i + 1)) for i in range(first, stop)]
+    return _trimmed([(raw[i], (rel, i + 1)) for i in range(first, stop)])
+
+
+def _trimmed(picked):
+    """PICKED, `[(line, source)]`, with blank lines at either end dropped."""
     while picked and not picked[0][0].strip():
         picked.pop(0)
     while picked and not picked[-1][0].strip():
@@ -829,11 +840,6 @@ def _rounds(texts):
     return blocks
 
 
-def _tables(text):
-    """The indexes of TEXT's table lines, outside every fence."""
-    return [i for i, line in enumerate(READER.readable(text)) if line[:1] == TABLE]
-
-
 def _gate(texts):
     """The broad run's blocks, each copied whole through
     `lib/fields.py`, the reader the pull request's check reads them
@@ -862,18 +868,52 @@ def _gaps(texts, heading, missing):
     return [_fixed(heading), _fixed(FROM.format(path=GAPS)), _copied(GAPS, *found)]
 
 
+def _rowless(seen, tables):
+    """The first index of each table of SEEN, a record's `readable` lines,
+    that holds a header row and a delimiter row and no row under them: a run
+    of two consecutive indexes of TABLES whose second line is a delimiter
+    row."""
+    return {
+        i
+        for i in tables
+        if i + 1 in tables
+        and i - 1 not in tables
+        and i + 2 not in tables
+        and READER.is_separator(TABLES.table_cells(seen[i + 1]) or ())
+    }
+
+
 def _questions(texts):
+    """The section of `frame/questions.md`: `ASKED`, `FROM`, and every line
+    of the file but its title, the first line `readable` gives that is a
+    level 1 heading, with blank lines at either end dropped. A heading
+    among them is moved one level down, as `_round` moves a finding's, so
+    it nests under `ASKED`. A table that holds no row (`_rowless`) is
+    replaced by `NO_QUESTION_ROW`, and `NO_QUESTION_TABLE` follows the copy
+    where the file holds no table line."""
     if QUESTIONS not in texts:
         return [_fixed(ASKED), _fixed(ABSENT.format(path=QUESTIONS))]
-    tables = _tables(texts[QUESTIONS])
-    if not tables:
-        return [_fixed(ASKED), _fixed(NO_QUESTION_TABLE)]
+    seen = READER.readable(texts[QUESTIONS])
     raw = BLOCKS.gfm_lines(texts[QUESTIONS])
-    return [
-        _fixed(ASKED),
-        _fixed(FROM.format(path=QUESTIONS)),
-        [(raw[i], (QUESTIONS, i + 1)) for i in tables],
-    ]
+    title = next(
+        (i for i, line in enumerate(seen) if READER.heading_level(line) == 1), None
+    )
+    tables = {i for i, line in enumerate(seen) if line[:1] == TABLE}
+    rowless = _rowless(seen, tables)
+    picked = []
+    for i, line in enumerate(raw):
+        if i == title or i - 1 in rowless:
+            continue
+        if i in rowless:
+            picked.append((NO_QUESTION_ROW, None))
+        elif READER.heading_level(seen[i]) is not None:
+            picked.append(("#" + line.lstrip(" "), (QUESTIONS, i + 1)))
+        else:
+            picked.append((line, (QUESTIONS, i + 1)))
+    blocks = [_fixed(ASKED), _fixed(FROM.format(path=QUESTIONS)), _trimmed(picked)]
+    if not tables:
+        blocks.append(_fixed(NO_QUESTION_TABLE))
+    return blocks
 
 
 def _claims(rel, line, seen):

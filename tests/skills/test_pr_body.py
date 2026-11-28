@@ -241,6 +241,8 @@ nothing
 
 From `frame/questions.md`.
 
+### Rows
+
 | # | Question | Who can answer | Options | Default until answered | Status |
 |---|---|---|---|---|---|
 | Q1 | Which part first? | a person | (a) or (b) | (a) | open |
@@ -467,18 +469,96 @@ class Test_compose:
         )
         assert unsourced(text, texts) == []
 
-    def test_accepts_every_question_row_as_written(self):
-        """S4, the class of #1060's and #857's withheld bodies, each of which
-        left an `open` row out: every table line is copied with its `Status`
-        cell as written, whatever its language, and the prose around the
-        table is not."""
-        questions = QUESTIONS.replace("| open |", "| 열림 |") + "\nA closing note.\n"
+    def test_accepts_every_line_of_the_questions_file_but_its_title(self):
+        """S2 and S4 of #1593, and S4 of #1103, the class of #1060's and
+        #857's withheld bodies, each of which left an `open` row out. Every
+        line of `frame/questions.md` but its title is copied in the file's
+        order: the judgments the tree answered above the table, the `## Rows`
+        heading one level down, so it nests under `## Questions`, every row
+        with its `Status` cell as written, whatever its language, and the
+        line after the table. Seen red against `_questions` as 0.41.0
+        shipped it, which copied only the lines of the table."""
+        judged = "The tree answered these:\n\n- Which reader: `lib/lines.py`.\n\n"
+        questions = (
+            QUESTIONS.replace("| open |", "| 열림 |").replace(
+                "## Rows\n", judged + "## Rows\n"
+            )
+            + "\nA closing note.\n"
+        )
         text = PR.compose(NAME, {"frame/questions.md": questions})
-        part = text[text.index("## Questions") :]
-        rows = [line for line in questions.split("\n") if line.startswith("|")]
-        assert part.split("\n")[4:8] == rows
-        assert "A closing note." not in text
-        assert "## Rows" not in text
+        assert section_of(text, "## Questions") == [
+            "## Questions",
+            "",
+            "From `frame/questions.md`.",
+            "",
+            "The tree answered these:",
+            "",
+            "- Which reader: `lib/lines.py`.",
+            "",
+            "### Rows",
+            "",
+            "| # | Question | Who can answer | Options | Default until answered "
+            "| Status |",
+            "|---|---|---|---|---|---|",
+            "| Q1 | Which part first? | a person | (a) or (b) | (a) | 열림 |",
+            "| Q2 | Which heading? | a person | (a) or (b) | (a) "
+            "| answered 2026-10-28 by the owner |",
+            "",
+            "A closing note.",
+            "",
+        ]
+
+    def test_accepts_a_table_with_no_row_as_its_fixed_line(self):
+        """S3 of #1593. A table that holds its header and its delimiter row
+        and no row under them is not copied, and the fixed line
+        `NO_QUESTION_ROW` stands where it stood, between the lines around
+        it. Seen red against `_questions` as 0.41.0 shipped it, which copied
+        the two lines of the table and nothing around them."""
+        questions = (
+            "# Questions for the planner: 1799000000-a-body\n\n"
+            "The tree answered these:\n\n"
+            "- Which reader: `lib/lines.py`.\n\n"
+            "| # | Question | Who can answer | Default until answered | Status |\n"
+            "|---|---|---|---|---|\n\n"
+            "A closing note.\n"
+        )
+        text = PR.compose(NAME, {"frame/questions.md": questions})
+        assert section_of(text, "## Questions") == [
+            "## Questions",
+            "",
+            "From `frame/questions.md`.",
+            "",
+            "The tree answered these:",
+            "",
+            "- Which reader: `lib/lines.py`.",
+            "",
+            "`frame/questions.md` holds a table with no row under its header.",
+            "",
+            "A closing note.",
+            "",
+        ]
+
+    def test_accepts_a_file_with_no_table_and_names_it(self):
+        """S5 of #1593. A `frame/questions.md` with no table line is copied
+        below its title like any other, and the fixed line
+        `NO_QUESTION_TABLE` follows the copy. Seen red against `_questions`
+        as 0.41.0 shipped it, which wrote that line alone and dropped the
+        prose."""
+        questions = (
+            "# Questions for the planner: 1799000000-a-body\n\n"
+            "Nothing in this work needed a person.\n"
+        )
+        text = PR.compose(NAME, {"frame/questions.md": questions})
+        assert section_of(text, "## Questions") == [
+            "## Questions",
+            "",
+            "From `frame/questions.md`.",
+            "",
+            "Nothing in this work needed a person.",
+            "",
+            "`frame/questions.md` holds no table line.",
+            "",
+        ]
 
     def test_accepts_a_missing_record_as_its_fixed_line(self):
         """S5. A record that is not there is named in its section, never
@@ -563,6 +643,15 @@ class Test_compose:
                 3,
                 "#7",
             ),
+            (
+                "frame/questions.md",
+                QUESTIONS.replace(
+                    "## Rows\n",
+                    "- The tree answered it, which closes #97.\n\n## Rows\n",
+                ),
+                3,
+                "#97",
+            ),
             ("changelog.md", CHANGELOG + "a note <!-- x --> Closes #5\n", 3, "#5"),
             ("changelog.md", CHANGELOG + "text <!-- Closes #5\n", 3, "#5"),
             (
@@ -598,7 +687,11 @@ class Test_compose:
         `-->` closes on the line, at its start or behind a list marker, is
         refused for the opener, with a keyword after it or without one:
         GitHub hides the lines that follow it, the fold's end among them
-        (#1405, and #1408 behind a list marker)."""
+        (#1405, and #1408 behind a list marker). A line of
+        `frame/questions.md` outside its table is a copied line too, and is
+        refused the same way (S6 of #1593, seen red against `_questions` as
+        0.41.0 shipped it, which did not copy the line and refused
+        nothing)."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]

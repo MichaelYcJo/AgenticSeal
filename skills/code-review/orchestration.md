@@ -372,11 +372,20 @@ opens that record when it writes the quote. `pr.md` holds no sentence of
 the orchestrator's own account: no sentence frames a quote or joins two,
 and no heading or bold lead-in of the orchestrator's stands in it. What
 the owner must see before the fold is quoted from the record that holds
-it, such as a default taken where `routing.md` reads `Automation` `yes`,
-from its `frame/questions.md` row, the framer's judgment left after the
-exchange from its `frame/plan.md` *Alternatives considered* row, and why
-the title takes its prefix from the orchestrator's row of `frame/plan.md`
-*Judgments of the run*, which it writes before `pr.md`. The broad run's
+it, and a decision quoted from a table row is quoted with the cell of the
+same row that names what was decided: two quote lines, the naming cell's
+first and the decision's on the next line, with no sentence joining them.
+A default taken where `routing.md` reads `Automation` `yes` is quoted from
+its `frame/questions.md` row as the `Question` cell, then the `Default
+until answered` cell, or the `Status` cell once the row is answered. The
+framer's judgment left after the exchange is quoted from its
+`frame/plan.md` *Alternatives considered* row as the `Approach` cell, then
+the `Verdict` cell. Why the title takes its prefix is quoted from the
+orchestrator's row of `frame/plan.md` *Judgments of the run*, which it
+writes before `pr.md`, as the `Judgment` cell, then the `Grounds` cell.
+The orchestrator writes each row of *Judgments of the run* with a
+`Judgment` cell that names the question the judgment answers, then its
+answer, as `templates/records/sdd-plan.md` asks. The broad run's
 printed figures, a CI run taken after the rounds and the run's comparison
 table come after the last round, so none stands in `pr.md`: the copy
 carries `trail/gate.md`'s `run:` line, and the table goes to the flow log's
