@@ -35,8 +35,10 @@ reading could not settle it.
 
 ## Method
 
-Two clones of the plugin's tree at `fdb878b7`, `flag-off/` and `flag-on/`,
-each made with `git clone --no-local`. Four edits in each clone:
+Two clones of #1650's branch, `flag-off/` and `flag-on/`, each made with
+`git clone --no-local` at a commit whose `skills/`, `agents/` and
+`.claude-plugin/` are those of the `v0.40.1` tag. Four edits in each
+clone:
 
 - `.claude-plugin/plugin.json`'s `name` becomes `probe`, so the clone's
   skills and agents stand apart from the installed plugin.
