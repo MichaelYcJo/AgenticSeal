@@ -366,11 +366,12 @@ class Test_main:
         assert not [a for a in tracker.calls if a[:2] == ("gh", "api")], tracker.calls
 
     @pytest.mark.rule("a-patch-carries-no-feat")
-    def test_refuses_a_patch_moved_where_a_feat_reads_a_minor(
+    def test_refuses_a_patch_where_a_feat_reads_a_minor_on_one_read_of_the_subjects(
         self, monkeypatch, capsys
     ):
-        """S2 of #1671, through the wiring: the versions are read at the base
-        and at the head, and the subjects between them."""
+        """S2 of #1671, through the wiring: a release whose labels agree with
+        its range does not let a wrong number through, the head's version is
+        the one named, and the range is read once for both readings."""
         m = gate()
         tracker = Tracker(label=[88], subjects=[FEAT])
         tracker.versions["HEAD"] = PATCH
@@ -379,18 +380,6 @@ class Test_main:
         out = capsys.readouterr().out
         assert f"::error::the head moves plugin.json to {PATCH}" in out, out
         assert f"`{FEAT}`" in out, out
-
-    @pytest.mark.rule("a-patch-carries-no-feat")
-    def test_both_readings_run_on_one_read_of_the_subjects(self, monkeypatch, capsys):
-        """A release whose labels agree with its range does not let a wrong
-        number through, and the range is read once for both readings."""
-        m = gate()
-        tracker = Tracker(label=[88], subjects=[FEAT])
-        tracker.versions["HEAD"] = PATCH
-        wire(monkeypatch, m, tracker, {10: "Closes #88"})
-        assert m.main() == 1
-        out = capsys.readouterr().out
-        assert "::error::" in out and f"`{FEAT}`" in out, out
         assert "D (carried by this release): #88" in out, (
             "the label reading did not run beside the number reading"
         )
