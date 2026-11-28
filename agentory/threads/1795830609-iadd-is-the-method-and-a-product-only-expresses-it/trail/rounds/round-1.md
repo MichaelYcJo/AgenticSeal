@@ -76,6 +76,11 @@ it again with `agentic pr-checks remove` and then `agentic pr-checks install`,
 which pins the installed release. And a declaration
 ```
 
+```iadd
+verdict: fixed 9bc4b51f
+answer: Applied in `9bc4b51f` at each place the location names but `frame/plan.md:61`. #1656's fragment, line 7, now tells a repository to write `.github/workflows/hygiene.yml` again with `agentic pr-checks remove` and then `agentic pr-checks install` once the release that carries this change is installed, and says that a copy whose tag alone moves still runs `skills/implement/scripts/seal.py` in its mode step, which this release does not ship. The pass wrote that sentence in its own words: the command `agentic` and the install's pin to the installed release exist only once that release is installed, which the paste-ready text left unsaid. `frame/keep.txt` line 39 takes the new line, and the acceptance A of `frame/design.md` *The keep file* prints nothing. `skills/implement/scripts/agentic.py#left_workflow_line` now names `agentic pr-checks remove` first, and then the `--branch` line moved with the mode step pointed at `skills/implement/scripts/agentic.py`; `tests/skills/test_agentic.py` pins the new words, and three `bin/agentic mutate` runs, one taking `mode` out of the clause, one taking `step` out and one naming `seal.py`, each failed the case's three parameters. The two editions of `docs/layout/one-root-by-lifetime.md` take the paste-ready text, the Korean one rewrapped, and `docs/running/the-review-and-parity-arms.md` takes it with *that file* for *it*, whose antecedent could be read as the repository. `frame/plan.md:61` is not changed: `agents/crafter.md` *Job* gives the crafter no frame line but its phase's Status cell, so the hand-back gives the orchestrator the paste-ready text. The work item's own `changelog.md` names no step a repository takes, so it owes this fix nothing. The evidence's `git grep`, run again at `c7f5fe66`, prints `frame/plan.md:61`, left to the orchestrator; #1656's `frame/plan.md:72`, a record that `frame/design.md` *Scope*, *Out of scope*, keeps byte for byte; this record's own lines; and `docs/layout/one-root-by-lifetime.ko.md:146`, `docs/layout/one-root-by-lifetime.md:155`, `skills/implement/scripts/agentic.py:1735` and `tests/skills/test_agentic.py:2924`, each of which now names the mode step beside the `--branch` line. A sample beyond it, ``git grep -n -i -E -- '--branch|v<version>|the pin\b|the pin.s|pinned to|older release|tag .{0,30}pins|pins .{0,20}tag|move.{0,20}(the )?(tag|pin)|고정|태그' -- . ':!agentory/threads' ':!*.py'`` and ``git grep -n -i -E 'pr-checks (remove|install)|hygiene\.yml' -- . ':!agentory/threads' ':!tests'``, found no other sentence that tells a person to move the pin alone: `README.md:102-105` and `README.ko.md:107-110` already give the removal and then the install, and `templates/setup/hygiene.yml:11-12` and `:25-27` speak of a copy of this release's template, whose mode step runs `agentic.py`. A statement of the step in words none of these searches holds is outside the sample.
+```
+
 ### 2. The acceptance row for the root's discovery says the cases of `tests/lib/test_optin.py` verify that an `iadd/` is no root, and no case builds one
 
 ```iadd
@@ -90,6 +95,11 @@ Why it matters: the row's *Then* says that an `iadd/` whose README opens with `#
 | The root is found under its new name alone | Given a repository whose `agentory/README.md` opens with `# What IADD keeps in agentory/`. When `bin/agentic mode` runs. Then it names that directory as the root. An `iadd/` whose README opens with `# What IADD keeps in iadd/` is no root, and the root of that repository is the local one | the cases of `tests/lib/test_optin.py`, which build the root at `agentory/` alone; that an `iadd/` is no root is read from `lib/optin.py#home_paths`, which joins `HOME` and no other name, and no case builds one |
 ```
 
+```iadd
+verdict: fixed f968c0a9
+answer: The orchestrator applied the paste-ready row as given in `f968c0a9`, since a cell of `frame/design.md` is a frame statement the orchestrator narrows to HEAD. The row's *Verifiable how* now says the cases of `tests/lib/test_optin.py` build the root at `agentory/` alone, and that an `iadd/` is no root is read from `lib/optin.py#home_paths`, which joins `HOME` and no other name.
+```
+
 ### 3. `routing.md` says this tree holds `iadd/`
 
 ```iadd
@@ -102,6 +112,11 @@ Why it matters: the bullet *The parties' type* states in the present that this t
 
 ```markdown
 - **The parties' type.** The installed plugin is `agentic` 0.39.x, which reads a `seal/` root, and this tree held `iadd/` when the work was routed and holds `agentory/` from phase 1's commit. Neither is a root the installed plugin reads. As in #1656 after its phase 7, the framer, the crafter, the proofer and the inspector are spawned as `general-purpose` agents bound by this tree's `agents/<name>.md`, `skills/core/SKILL.md` and `skills/agent-contract/SKILL.md`, and every subcommand runs from this tree's `bin/`.
+```
+
+```iadd
+verdict: fixed f968c0a9
+answer: The orchestrator applied the paste-ready bullet as given in `f968c0a9`, since `routing.md` is the orchestrator's record. *The parties' type* now says the tree held `iadd/` when the work was routed and holds `agentory/` from phase 1's commit, and that neither is a root the installed plugin reads.
 ```
 
 ## Confirmations
