@@ -41,6 +41,11 @@ In `pr.md`, after line 6, after line 8 and after the line the fix of finding 2 a
 - "Whether `/plugin install agentic@agenticseal`, `/agentic:update` and the `agentic:` agent types work in a real session once the release that carries this work is installed." (`gaps.md` *Not verified*, the row the orchestrator answers after the release is installed)
 ```
 
+```iadd
+verdict: fixed d0811133
+answer: The orchestrator applied the finding's three paste-ready quote lines as given in `d0811133`: Q4's *Default until answered*, `frame/design.md` *Scope* item 6 on #1656's fragment, and the `gaps.md` *Not verified* row on the install path. `agentic pr-body` accepted every quote.
+```
+
 ### 2. Three quotes of `pr.md` carry a verdict or a warning and leave out what the record gives with it: the title's grounds, the fence's reason and the 0.39.x copy's repair
 
 ```iadd
@@ -71,6 +76,11 @@ Each line below was read in its record at `193aba58`, and `agentic pr-body` acce
 - "A 0.39.x copy whose tag alone moves still runs `skills/implement/scripts/seal.py` in its mode step, which this release does not ship." (`frame/plan.md` *Operational impact*, the bullet that opens *Each repository that runs the plugin moves*)
 ```
 
+```iadd
+verdict: fixed d0811133
+answer: The orchestrator applied the finding's paste-ready lines as given in `d0811133`: the title's *Grounds* beside its verdict, the fence row's *Failure scenario* with a coordinate that names its row, and the repair beside the 0.39.x copy's warning, from the same bullet. `agentic pr-body` accepted every quote.
+```
+
 ### 3. The plan's new row says a verifying round reads `pr.md` before the broad run is taken again, beside an older row that says the rounds end after round 2, and no broad run is owed
 
 ```iadd
@@ -92,6 +102,11 @@ In `frame/plan.md`, lines 74 and 75:
 ```markdown
 | 2026-11-28 | `pr.md` is committed after round 2, and round 3 reads it with the two rows its commit adds to this table | The orchestrator wrote no `pr.md` before round 1, which the rule asks for so that every round reads the body; a round over that commit gives it the read it missed. The commit changes only this work item's records, so the broad run at `7e36d5cf` stands and owes no second run | `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* |
 | 2026-11-28 | The rounds over the build end after round 2 | Round 2, the verifying round over round 1's fixes, confirmed all three closes and opened no finding. Round 3 reads `pr.md` and this table's rows on it, and no fix of the build | `skills/code-review/orchestration.md` *the run ends with a verifying round* |
+```
+
+```iadd
+verdict: fixed d0811133
+answer: The orchestrator replaced the two rows with the finding's paste-ready rows as given in `d0811133`: round 3 reads `pr.md` and the rows on it, the broad run at `7e36d5cf` stands because the commit changes only records, and the rounds over the build end after round 2.
 ```
 
 ## Confirmations
