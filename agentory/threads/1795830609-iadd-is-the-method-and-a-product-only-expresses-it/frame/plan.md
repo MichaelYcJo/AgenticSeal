@@ -67,4 +67,7 @@ The spawn names no other open work item of the release, so this work meets none.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-28 | Phases 3 to 5 close on an exact diff against a keep file, folded into the frame after phase 2 | The owner agreed in the session to apply #1659's first proposal to this work item by hand. Phases 1 and 2 found that the searches' filters hid lines of other senses (E1, K), and that D5 ran `grep -P`, which macOS `grep` refuses, so it printed nothing whatever the tree held | #1659 *Proposal* 1, and `agents/framer.md` *A search you write into a cell is run before the cell states its result* |
+| 2026-11-28 | Round 1's findings 2 and 3 were applied by the orchestrator as given, and finding 1 took an ordinary fix pass | Findings 2 and 3 were a cell of `frame/design.md` and a bullet of `routing.md`, each with paste-ready text: statements the orchestrator narrows to HEAD. Finding 1 changed code, a pin and documents | `skills/implement/SKILL.md` *Before the builder closes*, and `skills/implement/fix-pass.md` |
+| 2026-11-28 | Questions row Q3 takes its default (a) | The owner was asked in the session and gave no other answer before the pull request; the note's link opens this pull request, whose records cite #1656, and a hand edit stays available after publishing | `frame/questions.md` Q3 |
+| 2026-11-28 | The rounds end after round 2 | Round 2, the verifying round over round 1's fixes, confirmed all three closes and opened no finding | `skills/code-review/orchestration.md` *the run ends with a verifying round* |
