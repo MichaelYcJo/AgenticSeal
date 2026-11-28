@@ -9,14 +9,14 @@ a person who changes it; the inspector cites its code.
 section of each `frame/design.md` it parses, the records, the broad gate's
 file, the inspector's inspection, the pull request's body where the run's event
 payload holds it, the `IADD-Routing` trailers of the pull request's own
-commits and, where `iadd/parity.json` is declared, the
+commits and, where `agentory/parity.json` is declared, the
 migration config's `Baseline commit`, and, against a design's
 operations, the string constants of the test files under `tests/` and
 the rule documents, and nothing else of a round record.** It judges the
 `routing.md` naming the pull request's branch and every one its own commits
 add or change. A ready pull request fails on any refusal, each named
 `path:line  why`; a draft, or a run that observed no pull request,
-prints the same lines and exits 0. The run of `iadd gate` under
+prints the same lines and exits 0. The run of `agentic gate` under
 `--inspecting`, in the preflight and in the broad run alike, reads no
 pull request's state and judges as at a ready pull request, so a
 refusal the pull request would meet arrives before it opens. The arms
@@ -50,11 +50,11 @@ against the template and the next round's reading of the earlier records
 are there to catch.
 check: round-record-read-by-label
 
-**The last record is at HEAD, or only the work item's own records follow it, and none of its findings is `rejected`, nor `fixed` by a commit that touched a path beyond the work item's records, nor `fixed` where the finding's own `location:` names no path in them.** A commit after the last record's `target:` commit that touches a file outside `iadd/threads/<id>/` is a fix nobody reviewed, and the refusal names it and says a verifying round is owed. So is a `rejected` finding of the last record, a `fixed <commit>` whose commit touched any path outside `iadd/threads/<id>/`, and a `fixed` finding whose own block's `location:` names no path under `iadd/threads/<id>/`, whatever its commit touched and whatever its close block's `location:` names, since no round after it read the fix or the rejection, and a change to the records does not answer, unread by a round, a finding the round placed wholly outside them. A path outside `iadd/threads/<id>/` that the finding names beside a record owes no round: the inspector reads what the finding asked of that path (`agents/inspector.md` step 4). In this repository's round records up to 2026-11-27, 19 findings that named such a path were fixed by a commit that touched the records alone, and no round after one found a change that path was owed and did not get (#1632). A `fixed <commit>` finding passes where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives its fix to the inspector, which reads every record at HEAD (`agents/inspector.md` step 2). A last record whose findings all read `deferred <home>` or such a `fixed`, or that holds none, passes.
+**The last record is at HEAD, or only the work item's own records follow it, and none of its findings is `rejected`, nor `fixed` by a commit that touched a path beyond the work item's records, nor `fixed` where the finding's own `location:` names no path in them.** A commit after the last record's `target:` commit that touches a file outside `agentory/threads/<id>/` is a fix nobody reviewed, and the refusal names it and says a verifying round is owed. So is a `rejected` finding of the last record, a `fixed <commit>` whose commit touched any path outside `agentory/threads/<id>/`, and a `fixed` finding whose own block's `location:` names no path under `agentory/threads/<id>/`, whatever its commit touched and whatever its close block's `location:` names, since no round after it read the fix or the rejection, and a change to the records does not answer, unread by a round, a finding the round placed wholly outside them. A path outside `agentory/threads/<id>/` that the finding names beside a record owes no round: the inspector reads what the finding asked of that path (`agents/inspector.md` step 4). In this repository's round records up to 2026-11-27, 19 findings that named such a path were fixed by a commit that touched the records alone, and no round after one found a change that path was owed and did not get (#1632). A `fixed <commit>` finding passes where the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives its fix to the inspector, which reads every record at HEAD (`agents/inspector.md` step 2). A last record whose findings all read `deferred <home>` or such a `fixed`, or that holds none, passes.
 check: last-record-at-head
 
 **The broad run has one home, `trail/gate.md`, on either routing answer.**
-`iadd gate --record <item>` appends there, on a green run, an `iadd` block holding `run: <tree> against <base>`, below the block of every earlier run, and appends nothing where the last block names the same run. At a ready pull request its newest run, the last block, is HEAD, or only the work item's records follow it.
+`agentic gate --record <item>` appends there, on a green run, an `iadd` block holding `run: <tree> against <base>`, below the block of every earlier run, and appends nothing where the last block names the same run. At a ready pull request its newest run, the last block, is HEAD, or only the work item's records follow it.
 check: tests/skills/test_broad_gate.py tests/skills/test_chain_check.py
 
 **The check reads no record of the old table's shape.** It opens the
@@ -62,14 +62,14 @@ records of the work items this pull request's own commits declare or change
 and no other, so a record a merged pull request left behind is never judged
 at a pull request again, whatever its shape. One reader outside the check still opens merged records: the release
 workflow's `mark` job reads every record of a release with the
-`chain_check` of the tree it runs from. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `inspection.md` and `trail/gate.md` take a block below their old text when the inspector and `iadd gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
+`chain_check` of the tree it runs from. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `inspection.md` and `trail/gate.md` take a block below their old text when the inspector and `agentic gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
 it, and the lack is no finding for a later round.
 check: old-table-shape-refused
 
 **The check reads the diff as declarations, not as file identity.** It diffs
 without rename detection, so a deleted declaration beside a similar added one
 is two declarations and the deletion is judged, except where the tree the
-check reads has no top-level `iadd` entry. A deletion whose work item's
+check reads has no top-level `agentory` entry. A deletion whose work item's
 directory stood at the merge base and is gone whole reads as a settle and
 is accepted (`docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion*). A declaration moved with its
@@ -97,8 +97,8 @@ is left alone here, and the settle reads such a design whole. The refusal
 reads a fact from the file and puts no question to a person.
 check: rule-changes-read-at-the-pull-request
 
-**Where `iadd/parity.json` is declared and the change reaches outside
-`docs/` and `iadd/`, every round record of a work item declaring `through the review chain` carries one `original:` line in its round block naming the migration config's baseline.** The check reads `iadd/parity.json` at HEAD
+**Where `agentory/parity.json` is declared and the change reaches outside
+`docs/` and `agentory/`, every round record of a work item declaring `through the review chain` carries one `original:` line in its round block naming the migration config's baseline.** The check reads `agentory/parity.json` at HEAD
 and the paths the pull request changes against its base, through the
 parity arm's own rule for a change confined to the document roots. A
 diff it cannot read ends the check with exit 2 before any record is
@@ -114,8 +114,8 @@ cannot read is whether the comparison was a good one, which is the
 proofer's.
 check: parity-at-the-pull-request
 
-**Where `iadd/parity.json` is declared and the change reaches outside
-`docs/` and `iadd/`, the `inspection.md` of a work item declaring
+**Where `agentory/parity.json` is declared and the change reaches outside
+`docs/` and `agentory/`, the `inspection.md` of a work item declaring
 `straight to the PR` carries one `original:` line in its newest verdict block naming the migration config's baseline.** The inspector writes it after comparing the audited
 commit with the original through `legacy-parity`, and the check reads it by
 the rule a round record's line is read by: a ready pull request fails while
@@ -130,11 +130,11 @@ each of its own commits, as `docs/checks/the-routing-check.md` *At the pull
 request* states.**
 check: routing-trailer-at-the-pull-request
 
-**Where the tree the check reads has no top-level `iadd` entry, the
+**Where the tree the check reads has no top-level `agentory` entry, the
 check reads nothing as declared.** The tree is HEAD, and the working
 tree under `--worktree`. The pull request that moves a root to local
 mode deletes every `routing.md` with the root, and a deleted declaration
-is otherwise judged. With no `iadd` entry there is nothing to declare,
+is otherwise judged. With no `agentory` entry there is nothing to declare,
 so the check judges the trailers as for any pull request that declares
 nothing. Where git cannot say whether HEAD has the entry, the
 declarations stay judged.
@@ -142,10 +142,10 @@ check: nothing-declared-nothing-owed
 
 **Each check line inside an `add` or `change` `to` of a design whose
 `## Rule changes` the check parses is read by `skills/settle/scripts/rules.py`,
-the reader `iadd rules --check` uses, and a line that reader refuses is a
+the reader `agentic rules --check` uses, and a line that reader refuses is a
 refusal at its line in the design, carrying the reader's reason.** The
 settle writes each `to` into the policy root as it stands. Where that
-root is `docs`, `iadd rules --check` first reads the line there, and a
+root is `docs`, `agentic rules --check` first reads the line there, and a
 line refused there has no pull request left to fix it in. A line that
 opens like a check line and is not one is named at its line as not read
 and refuses nothing. A `from` is read for no check line,
@@ -174,16 +174,16 @@ suite at the settle's broad run.
 check: a-rule-change-names-the-pins-and-copies-it-breaks
 
 **Where the run's event payload holds the pull request's body, a ready
-pull request passes only where that body is what `iadd pr-body` composes
+pull request passes only where that body is what `agentic pr-body` composes
 at HEAD for the one judged work item the pull request carries: its
 `pr.md`, the heading, the inspection mark where the `Pull request inspection mark`
 key reads `yes` and the work item is cleared at HEAD, and the records'
-copy.** Where `iadd/config.json`'s two language keys differ, the body
+copy.** Where `agentory/config.json`'s two language keys differ, the body
 the check compares opens with the work item's `pr.<lang>.md` and then
-`pr.md`, as `iadd pr-body` composes it, and where either key is absent
-the check refuses on `iadd/config.json`, as `iadd pr-body` does. The
+`pr.md`, as `agentic pr-body` composes it, and where either key is absent
+the check refuses on `agentory/config.json`, as `agentic pr-body` does. The
 check reads the body from the file `GITHUB_EVENT_PATH` names, the file it reads the draft state from, and compares it through
-the function `iadd pr-body --check` compares with, so the inspector and the
+the function `agentic pr-body --check` compares with, so the inspector and the
 pull request read the body by one code path. Each differing line is
 refused on the work item's directory at line 0, since the body is no
 file of the checkout, and the refusal names the body's line and the
@@ -194,7 +194,7 @@ differs on the mark's line alone, and the refusal names that line. The
 mark's address carries no version, so the installed plugin and the copy
 the check runs compose one line whatever release each is. Where the
 payload holds no body, as a run outside CI, `--worktree` and the run of
-`iadd gate` under `--inspecting` do, the body is named as not read and
+`agentic gate` under `--inspecting` do, the body is named as not read and
 nothing is decided on it; under `--inspecting` a difference is a notice.
 Where the pull request carries more than one judged work item holding a
 `pr.md`, or several judged work items none of which holds one, the body
@@ -205,6 +205,6 @@ payload is not the body GitHub shows: a re-run of an old run replays the
 body the run began with, and an `edited` event on a merged pull request
 runs the check against a tree the branch's commits are not in, where the
 red gates nothing. In local mode nothing is declared, and the body is
-held by the inspector's `iadd pr-body --check` and by the orchestrator's run
+held by the inspector's `agentic pr-body --check` and by the orchestrator's run
 after the inspection.
 check: body-is-what-pr-body-composes

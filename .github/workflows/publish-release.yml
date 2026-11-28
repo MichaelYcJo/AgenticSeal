@@ -4,7 +4,7 @@ name: publish the release note
 # consecutive releases shipped without one (#386) — the run that measured it
 # was the one that would have made it four.
 #
-# The note is read: `/iadd:update` reads the GitHub Releases, each published
+# The note is read: `/agentic:update` reads the GitHub Releases, each published
 # at its tag (`skills/update/SKILL.md` step 3), so a release without its tag
 # and note is one an updating user is told nothing about.
 #
@@ -27,7 +27,7 @@ name: publish the release note
 # run replaced the header, so the second finds none to replace). It runs the
 # suite at the tag and rewrites the note's header with
 # `.github/scripts/release_mark.py`; what the header holds, and what
-# `iadd/config.json`'s `Release note inspection mark` key decides about the image,
+# `agentory/config.json`'s `Release note inspection mark` key decides about the image,
 # is `docs/releasing/branch-and-release.md` *Cutting a release*. Every
 # step of it is `continue-on-error`, and every failure the script meets is a
 # log line and a `::warning::` with an exit of 0: the note is already out,
@@ -147,13 +147,13 @@ jobs:
         shell: bash
         env:
           PYTHONPATH: ${{ github.workspace }}/skills/verify/scripts/pytest_record
-          PYTEST_ADDOPTS: -p iadd_pytest_record
-          IADD_RECORD_DIR: ${{ runner.temp }}/records
-          IADD_RECORD_KEY: mark-${{ github.run_id }}
+          PYTEST_ADDOPTS: -p agentic_pytest_record
+          AGENTIC_RECORD_DIR: ${{ runner.temp }}/records
+          AGENTIC_RECORD_KEY: mark-${{ github.run_id }}
         run: |
           git config --global user.email ci@ci
           git config --global user.name ci
-          mkdir -p "$IADD_RECORD_DIR"
+          mkdir -p "$AGENTIC_RECORD_DIR"
           pytest tests/ -q -n auto
       - name: draw the mark and put it in the note
         continue-on-error: true

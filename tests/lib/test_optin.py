@@ -1,8 +1,8 @@
-"""`lib/optin.py`: one opt-in signal, read one way, `iadd/` at the first of
+"""`lib/optin.py`: one opt-in signal, read one way, `agentory/` at the first of
 two places.
 
-`<repo>/iadd/` is what shared mode commits, and `<git-common-dir>/iadd/` is
-where local mode keeps it (#80), and where a repository whose own `iadd/`
+`<repo>/agentory/` is what shared mode commits, and `<git-common-dir>/agentory/` is
+where local mode keeps it (#80), and where a repository whose own `agentory/`
 stands keeps it (#1651). The root's presence is the whole declaration, and
 there is no config key. `.specseal/` and `_ai/` are not addresses at all, and
 the throwaway opt-out is a file under the git directory, where nothing can
@@ -42,7 +42,7 @@ STAMP_VALUES = {
     "tree": "aaa1111",
     "base": "bbb2222",
     "from": "origin/base",
-    "item": "/x/iadd/threads/1799000000-an-item",
+    "item": "/x/agentory/threads/1799000000-an-item",
     "scale": 0.9,
     "rows": [("CLEARED", ""), None, ("tree", "aaa1111")],
 }
@@ -50,7 +50,7 @@ STAMP_VALUES = {
 
 @pytest.fixture
 def optin():
-    return load_lib_module("optin.py", "iadd_optin")
+    return load_lib_module("optin.py", "agentic_optin")
 
 
 class Test_repo_root:
@@ -71,7 +71,7 @@ class Test_repo_root:
         substitution in this work item.
         """
         repo = git_repo(tmp_path / KOREAN / "repo")
-        mark_root(repo / "iadd")
+        mark_root(repo / "agentory")
         got = optin.repo_root(str(repo))
         assert got, "the root came back empty for a repository that is right there"
         assert os.path.isdir(got), (
@@ -268,15 +268,15 @@ class Test_git_common_dir:
 
 class Test_home_paths:
     def test_accepts_the_two_places_shared_first(self, optin, repo):
-        """#81. `iadd import --into shared|local` has to be able to CREATE the
+        """#81. `agentic import --into shared|local` has to be able to CREATE the
         root the user named, which `home_at` cannot answer: it reports where the
         root is, and the other mode's root is exactly the one that is not there.
 
         The pair is produced here so that command spells neither path itself.
         """
         shared, local = optin.home_paths(str(repo))
-        assert shared == os.path.join(str(repo), "iadd")
-        assert local == os.path.join(str(repo), ".git", "iadd")
+        assert shared == os.path.join(str(repo), "agentory")
+        assert local == os.path.join(str(repo), ".git", "agentory")
         assert not os.path.isdir(shared) and not os.path.isdir(local), (
             "home_paths answers where a root WOULD be; nothing here exists yet"
         )
@@ -301,7 +301,7 @@ class Test_home_paths:
         optin.gitcmd.subprocess.run, saved = refuse, optin.gitcmd.subprocess.run
         try:
             assert optin.home_paths(str(repo), common)[1] == os.path.join(
-                common, "iadd"
+                common, "agentory"
             )
         finally:
             optin.gitcmd.subprocess.run = saved
@@ -314,33 +314,33 @@ class Test_home_paths:
         row)."""
         common = str(tmp_path) + "/x/../.git"
         assert optin.home_paths(str(tmp_path), common)[1] == os.path.join(
-            str(tmp_path), ".git", "iadd"
+            str(tmp_path), ".git", "agentory"
         )
 
-    @pytest.mark.parametrize("iadd", ["marked", "foreign", "absent", "a file"])
-    def test_accepts_iadd_as_the_shared_place_whatever_stands_there(
-        self, optin, repo, iadd
+    @pytest.mark.parametrize("agentory", ["marked", "foreign", "absent", "a file"])
+    def test_accepts_agentory_as_the_shared_place_whatever_stands_there(
+        self, optin, repo, agentory
     ):
-        """The shared entry is `<repo>/iadd` and the local entry `iadd` under
+        """The shared entry is `<repo>/agentory` and the local entry `agentory` under
         the common directory, whatever stands at the shared one: a project's
-        own `iadd/` moves the shared root to no other name (#1651)."""
-        if iadd == "marked":
-            mark_root(repo / "iadd")
-        elif iadd == "foreign":
-            readme_at(repo / "iadd", FOREIGN)
-        elif iadd == "a file":
-            (repo / "iadd").write_text("", encoding="utf-8")
+        own `agentory/` moves the shared root to no other name (#1651)."""
+        if agentory == "marked":
+            mark_root(repo / "agentory")
+        elif agentory == "foreign":
+            readme_at(repo / "agentory", FOREIGN)
+        elif agentory == "a file":
+            (repo / "agentory").write_text("", encoding="utf-8")
         assert optin.home_paths(str(repo)) == (
-            os.path.join(str(repo), "iadd"),
-            os.path.join(str(repo), ".git", "iadd"),
+            os.path.join(str(repo), "agentory"),
+            os.path.join(str(repo), ".git", "agentory"),
         )
 
     def test_refuses_an_empty_root(self, optin):
         assert optin.home_paths("") == ("", "")
 
 
-# The README a project keeps in an `iadd/` of its own, which carries no marker.
-FOREIGN = "# iadd\n\nThis package's own notes.\n"
+# The README a project keeps in an `agentory/` of its own, which carries no marker.
+FOREIGN = "# agentory\n\nThis package's own notes.\n"
 
 
 def readme_at(root, data):
@@ -363,13 +363,13 @@ class Test_marked:
         """The marker is the first line with its line end stripped, so either
         line end and a file of that one line all carry it, and a byte below
         the line that does not decode does not take it away."""
-        readme_at(tmp_path / "iadd", optin.MARKER.encode("utf-8") + tail)
-        assert optin.marked(str(tmp_path / "iadd"))
+        readme_at(tmp_path / "agentory", optin.MARKER.encode("utf-8") + tail)
+        assert optin.marked(str(tmp_path / "agentory"))
 
     @pytest.mark.parametrize(
         "text",
         [
-            "# iadd\n\nThis package's own notes.\n",
+            "# agentory\n\nThis package's own notes.\n",
             "\n{marker}\n",
             "{marker} of a fork\n",
             "{marker} \n",
@@ -386,13 +386,13 @@ class Test_marked:
         ],
     )
     def test_refuses_a_readme_whose_first_line_is_another(self, optin, tmp_path, text):
-        """An `iadd/` a project or a package keeps for itself is not the
+        """An `agentory/` a project or a package keeps for itself is not the
         plugin's root, whatever it holds below its first line. The line is
         compared whole with its line end alone taken off, so a space after the
         marker, a byte order mark before it and a blank line above it each
-        make it another line, as `templates/setup/iadd-README.md` says."""
-        readme_at(tmp_path / "iadd", text.format(marker=optin.MARKER))
-        assert not optin.marked(str(tmp_path / "iadd"))
+        make it another line, as `templates/setup/agentory-README.md` says."""
+        readme_at(tmp_path / "agentory", text.format(marker=optin.MARKER))
+        assert not optin.marked(str(tmp_path / "agentory"))
 
     @pytest.mark.parametrize("shape", ["no README.md", "a directory", "not UTF-8"])
     def test_refuses_a_readme_there_is_no_first_line_to_read_in(
@@ -401,12 +401,12 @@ class Test_marked:
         """No file, a directory of that name, and a first line that does not
         decode are no marker, and nothing raises: the module fails toward
         "not opted in"."""
-        (tmp_path / "iadd").mkdir()
+        (tmp_path / "agentory").mkdir()
         if shape == "a directory":
-            (tmp_path / "iadd" / "README.md").mkdir()
+            (tmp_path / "agentory" / "README.md").mkdir()
         elif shape == "not UTF-8":
-            (tmp_path / "iadd" / "README.md").write_bytes(b"\xff\xfe# What\n")
-        assert not optin.marked(str(tmp_path / "iadd"))
+            (tmp_path / "agentory" / "README.md").write_bytes(b"\xff\xfe# What\n")
+        assert not optin.marked(str(tmp_path / "agentory"))
 
     def test_refuses_an_empty_path_wherever_the_process_stands(
         self, optin, tmp_path, monkeypatch
@@ -446,56 +446,56 @@ class Test_marked_home:
         home(repo)
         scratch(repo)
         assert optin.home_at(str(repo)) == ""
-        assert optin.marked_home(str(repo)) == os.path.join(str(repo), "iadd")
+        assert optin.marked_home(str(repo)) == os.path.join(str(repo), "agentory")
 
     def test_refuses_a_place_whose_readme_is_not_the_marker(self, optin, repo):
         """A directory at a place `home_paths` names, here the local one,
         whose README is not the marker is no root here either."""
-        readme_at(repo / ".git" / "iadd", FOREIGN)
+        readme_at(repo / ".git" / "agentory", FOREIGN)
         assert optin.marked_home(str(repo)) == ""
 
 
 class Test_home_at:
     def test_refuses_a_shared_root_without_the_marker(self, optin, repo):
-        """`<repo>/iadd/` holding a README of the project's own is not the
+        """`<repo>/agentory/` holding a README of the project's own is not the
         root, and with no other place holding one the repository is out."""
-        readme_at(repo / "iadd", "# iadd\n\nThis package's own notes.\n")
+        readme_at(repo / "agentory", "# agentory\n\nThis package's own notes.\n")
         assert optin.home_at(str(repo)) == ""
         assert not optin.opted_in(str(repo))
 
-    def test_accepts_the_local_root_beside_a_projects_own_iadd(self, optin, repo):
-        """A project's own `<repo>/iadd/` is passed over, and the local root
+    def test_accepts_the_local_root_beside_a_projects_own_agentory(self, optin, repo):
+        """A project's own `<repo>/agentory/` is passed over, and the local root
         under the common git directory is the answer."""
-        readme_at(repo / "iadd", "# iadd\n")
-        readme_at(repo / ".git" / "iadd", optin.MARKER + "\n")
-        assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "iadd")
+        readme_at(repo / "agentory", "# agentory\n")
+        readme_at(repo / ".git" / "agentory", optin.MARKER + "\n")
+        assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "agentory")
 
-    def test_accepts_a_marked_iadd_over_the_local_root(self, optin, repo):
-        """The two places in their order: a marked `iadd/`, then the local
+    def test_accepts_a_marked_agentory_over_the_local_root(self, optin, repo):
+        """The two places in their order: a marked `agentory/`, then the local
         root."""
-        mark_root(repo / "iadd")
+        mark_root(repo / "agentory")
         local_home(repo)
-        assert optin.home_at(str(repo)) == os.path.join(str(repo), "iadd")
+        assert optin.home_at(str(repo)) == os.path.join(str(repo), "agentory")
 
 
 class Test_home_name:
     def test_accepts_the_shared_root_in_force_by_its_name(self, optin, repo):
         """The name a reader classifying paths as git prints them takes:
-        `iadd`, where that directory carries the marker."""
-        mark_root(repo / "iadd")
+        `agentory`, where that directory carries the marker."""
+        mark_root(repo / "agentory")
         local_home(repo)
-        assert optin.home_name(str(repo)) == "iadd"
+        assert optin.home_name(str(repo)) == "agentory"
 
     @pytest.mark.parametrize("shape", ["local", "absent", "scratch"])
     def test_refuses_a_root_that_is_not_the_shared_one(self, optin, repo, shape):
-        """A local root beside a project's own `iadd/`, no root and a
+        """A local root beside a project's own `agentory/`, no root and a
         repository marked throwaway have no repository-relative name, so the
         answer is ""."""
         if shape == "local":
-            readme_at(repo / "iadd", FOREIGN)
+            readme_at(repo / "agentory", FOREIGN)
             local_home(repo)
         elif shape == "scratch":
-            mark_root(repo / "iadd")
+            mark_root(repo / "agentory")
             scratch(repo)
         assert optin.home_name(str(repo)) == ""
 
@@ -504,22 +504,22 @@ class Test_home:
     def test_accepts_the_shared_root_where_both_exist(self, optin, repo):
         home(repo)
         local_home(repo)
-        assert optin.home(str(repo)) == os.path.join(str(repo), "iadd")
+        assert optin.home(str(repo)) == os.path.join(str(repo), "agentory")
 
     def test_accepts_the_worktrees_own_shared_root_over_the_common_local_one(
         self, optin, repo, tmp_path
     ):
-        """S1's order, from a linked worktree: `<repo>/iadd/` is read first, and
+        """S1's order, from a linked worktree: `<repo>/agentory/` is read first, and
         the worktree's own tree is the repository here."""
         local_home(repo)
         other = linked_worktree(repo, tmp_path)
-        mark_root(other / "iadd")
-        assert os.path.samefile(optin.home(str(other)), other / "iadd")
+        mark_root(other / "agentory")
+        assert os.path.samefile(optin.home(str(other)), other / "agentory")
 
-    def test_refuses_a_file_named_iadd_under_the_git_directory(self, optin, repo):
+    def test_refuses_a_file_named_agentory_under_the_git_directory(self, optin, repo):
         """The signal is a DIRECTORY at either place. A file of that name under
         the common directory is not a home, and nothing raises over it."""
-        (repo / ".git" / "iadd").write_text("", encoding="utf-8")
+        (repo / ".git" / "agentory").write_text("", encoding="utf-8")
         assert not optin.opted_in(str(repo))
         assert optin.home(str(repo)) == ""
 
@@ -528,15 +528,15 @@ class Test_opted_in:
     def test_accepts_the_new_home(self, optin, repo):
         home(repo)
         assert optin.opted_in(str(repo))
-        assert optin.home(str(repo)) == os.path.join(str(repo), "iadd")
+        assert optin.home(str(repo)) == os.path.join(str(repo), "agentory")
 
     def test_accepts_the_git_directory_as_the_second_place(self, optin, repo):
-        """S2, Q3 (a). Nothing in 0.4.0 creates `.git/iadd/`; the scripts read it
+        """S2, Q3 (a). Nothing in 0.4.0 creates `.git/agentory/`; the scripts read it
         so that #80 changes where the folder is created and nothing that reads
         it."""
         local_home(repo)
         assert optin.opted_in(str(repo))
-        assert optin.home(str(repo)) == os.path.join(str(repo), ".git", "iadd")
+        assert optin.home(str(repo)) == os.path.join(str(repo), ".git", "agentory")
 
     def test_accepts_the_same_answer_from_a_subdirectory(self, optin, repo):
         home(repo)
@@ -547,13 +547,13 @@ class Test_opted_in:
     def test_accepts_a_linked_worktree_through_the_main_trees_common_root(
         self, optin, repo, tmp_path
     ):
-        """S2. `.git/iadd/` is under the COMMON git directory, so a linked
+        """S2. `.git/agentory/` is under the COMMON git directory, so a linked
         worktree, whose `.git` is a file, reads the main tree's root."""
         home = local_home(repo)
         other = linked_worktree(repo, tmp_path)
         assert optin.opted_in(str(other))
         assert os.path.samefile(optin.home(str(other)), home)
-        assert os.path.samefile(home, repo / ".git" / "iadd")
+        assert os.path.samefile(home, repo / ".git" / "agentory")
 
     def test_accepts_the_answer_it_always_gave_without_the_scratch_file(
         self, optin, repo
@@ -570,11 +570,11 @@ class Test_opted_in:
 
         A directory created where the marker used to live turned every gate off
         in every clone of the repository — a kill switch nobody typed. Both the
-        module's own docstring and `iadd/README.md` say "file"; this is the read
+        module's own docstring and `agentory/README.md` say "file"; this is the read
         catching up with them.
         """
         home(repo)
-        (repo / ".git" / "iadd-scratch").mkdir()
+        (repo / ".git" / "agentic-scratch").mkdir()
         assert optin.opted_in(str(repo))
 
     def test_accepts_the_old_scratch_file_as_an_ordinary_file(self, optin, repo):
@@ -582,7 +582,7 @@ class Test_opted_in:
         directory. A file of that name under the root is an ordinary file now,
         and nothing reads the old one."""
         home(repo)
-        (repo / "iadd" / "scratch").write_text("", encoding="utf-8")
+        (repo / "agentory" / "scratch").write_text("", encoding="utf-8")
         (repo / ".specseal").mkdir()
         (repo / ".specseal" / "scratch").write_text("", encoding="utf-8")
         assert optin.opted_in(str(repo))
@@ -612,22 +612,22 @@ class Test_opted_in:
         """S1. The place the root is at says both "on" and which mode; nothing
         else is read. Asked two ways: the module's source names no config key
         and no environment variable, and a repository carrying both a git config
-        answer and an environment variable, with `iadd/` at neither place, is
+        answer and an environment variable, with `agentory/` at neither place, is
         still out."""
         src = open(optin.__file__, encoding="utf-8").read()
         for word in ('"config"', "'config'", "environ", "getenv"):
             assert word not in src, f"optin.py reads a key: {word}"
         subprocess.run(
-            ["git", "-C", str(repo), "config", "iadd.mode", "local"],
+            ["git", "-C", str(repo), "config", "agentic.mode", "local"],
             check=True,
             capture_output=True,
         )
-        monkeypatch.setenv("IADD_MODE", "local")
+        monkeypatch.setenv("AGENTIC_MODE", "local")
         assert not optin.opted_in(str(repo))
         assert optin.home(str(repo)) == ""
 
     def test_refuses_a_repository_carrying_the_scratch_marker(self, optin, repo):
-        """S4. An `iadd/` directory is the whole opt-in signal, so a git
+        """S4. An `agentory/` directory is the whole opt-in signal, so a git
         repository that exists for thirty seconds as a fixture is indistinguishable
         from a repository under review — and reproducing a gate decision by hand,
         which is what developing these gates consists of, cost a waiver on every
@@ -661,7 +661,7 @@ class Test_opted_in:
             check=True,
             capture_output=True,
         )
-        mark_root(other / "iadd")
+        mark_root(other / "agentory")
         assert not optin.opted_in(str(other))
 
 
@@ -670,7 +670,8 @@ class Test_module:
         """The template is what first setup writes into a root, so its first
         line and the constant are one value, pinned here."""
         with open(
-            os.path.join(ROOT, "templates", "setup", "iadd-README.md"), encoding="utf-8"
+            os.path.join(ROOT, "templates", "setup", "agentory-README.md"),
+            encoding="utf-8",
         ) as f:
             assert f.readline().rstrip("\r\n") == optin.MARKER
 
@@ -708,14 +709,14 @@ class Test_module:
     def test_a_scratch_marker_under_the_common_directory_keeps_the_stamp_silent(
         self, local
     ):
-        """The stamp's drawer, `iadd stamp --stop`, asks `opted_in` before it
+        """The stamp's drawer, `agentic stamp --stop`, asks `opted_in` before it
         speaks. A stamp waits in the clone in local mode, and nothing is drawn
         while the scratch marker stands under the common directory; with the
         marker gone, the same `Stop` draws it."""
         repo, _home = local
         stamp = load_module(STAMP, "stamp_for_the_scratch_marker")
         stamp.write_values(str(repo / ".git"), STAMP_VALUES)
-        marker = repo / ".git" / "iadd-scratch"
+        marker = repo / ".git" / "agentic-scratch"
         marker.write_text("", encoding="utf-8")
         stop = json.dumps({"hook_event_name": "Stop", "cwd": str(repo)})
 

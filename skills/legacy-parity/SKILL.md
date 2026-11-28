@@ -4,7 +4,7 @@ description: |
   Behavior-equivalence methodology for legacy migrations: a three-way judgment
   between policy, the original code and the new code, with the original's
   behavior preserved by default.
-  Use when: a project declares a migration config (iadd/parity.json), porting or
+  Use when: a project declares a migration config (agentory/parity.json), porting or
   reviewing ported behavior, judging divergence from a legacy original.
   NOT for: greenfield work, which implement and code-review cover alone.
 ---
@@ -13,7 +13,7 @@ description: |
 
 Extends `implement` and `code-review` when the work is a migration, the same
 behavior rebuilt on different technology, in a repository that declares
-`iadd/parity.json`. A tracer reads the sections that find and trace the
+`agentory/parity.json`. A tracer reads the sections that find and trace the
 original: *The migration config*, *What the original sends* and *The
 original's coordinates*. The sections that judge and record are its caller's.
 
@@ -25,9 +25,9 @@ looks wrong is reported, and changing it is the planner's call.
 
 ## The migration config
 
-A migrating repository declares itself in `iadd/parity.json`, written from
+A migrating repository declares itself in `agentory/parity.json`, written from
 `templates/setup/parity.json`, which holds its keys, and commits it where the
-root is `<repo>/iadd/`; in local mode nothing under the root is committed.
+root is `<repo>/agentory/`; in local mode nothing under the root is committed.
 The file's presence is the declaration: it turns on the three-way judgment
 below and lets the tracer fetch what the original does, and deleting it
 makes the project greenfield again. A byte order mark an editor wrote at
@@ -48,7 +48,7 @@ later phase or behaviour left behind with the decision recorded under the
 policy root.
 
 A machine-local checkout path
-never goes in it: it lives in `~/.claude/iadd/parity-paths.json`, one JSON
+never goes in it: it lives in `~/.claude/agentic/parity-paths.json`, one JSON
 object from the origin remote URL to the checkout path, so worktrees and
 second checkouts resolve to one entry.
 
@@ -155,7 +155,7 @@ check: tests/text/test_review_axes.py
 The comparison is recorded in the tree, by the party that compared, once
 coordinates were opened, behavior read and verdicts given; the tracer and
 the crafter record none. Where the pull request changes a path outside `docs/`
-and `iadd/`, the record is an `original:` line naming the migration config's
+and `agentory/`, the record is an `original:` line naming the migration config's
 `Baseline commit`, and where it lands follows the routing answer:
 
 | The declaration says | Who writes the `original:` line, and where |

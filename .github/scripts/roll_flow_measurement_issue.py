@@ -169,7 +169,7 @@ import sibling  # noqa: E402
 
 gitcmd = sibling.load("lib/gitcmd.py")
 console = sibling.load("lib/console.py")
-# The rolling log's label, `iadd cost --post`'s default: one label for the
+# The rolling log's label, `agentic cost --post`'s default: one label for the
 # script that posts a reading and the one that rolls the log it goes to.
 LABEL = sibling.load("skills/verify/scripts/session_cost.py").ROLLING_LABEL
 BASELINE_LABEL = "flow-baseline"

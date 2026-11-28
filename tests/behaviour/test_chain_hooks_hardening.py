@@ -1,7 +1,7 @@
 """Hardening cases over what the plugin ships and the records it keeps: its
 packaging, the READMEs' account of it, the wording of its skills, of its
 agent definitions, of `CONTRIBUTING.md` and of `docs/running/the-run.md`,
-and the work item directories under `iadd/threads/`.
+and the work item directories under `agentory/threads/`.
 
 The module is named for the plugin's hooks, which #1376 removed and #1430
 brought back; #1608 added the `PreToolUse` hook and #1612 the
@@ -184,7 +184,7 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     in its plugin entry, and each copy must equal the source.
 
     #1102 S2: `README.md` carries it a third time, as the paragraph directly
-    under `# IADD`, because the page's first reader meets the plugin
+    under `# agentic`, because the page's first reader meets the plugin
     there and a link cannot stand in for the sentence. The paragraph is
     wrapped at the page's line limit, so it is read with its line breaks
     folded."""
@@ -204,7 +204,7 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     assert entries[0].get("description") == source, "marketplace.json, plugin entry"
     with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
         lines = f.read().splitlines()
-    under = lines[lines.index("# IADD") + 1 :]
+    under = lines[lines.index("# agentic") + 1 :]
     assert under[:1] == [""], "README.md: a line other than a blank follows the title"
     paragraph = under[1 : under.index("", 1)]
     assert " ".join(paragraph) == source, "README.md, the paragraph under the title"
@@ -215,13 +215,13 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # wrapper must resolve the script relative to itself, never the caller's
     # working directory. Windows can't run a POSIX shebang script directly,
     # so a .cmd sibling ships alongside it -- PATHEXT resolves a bare
-    # `iadd` to whichever one the platform can execute, and `iadd fold`
+    # `agentic` to whichever one the platform can execute, and `agentic fold`
     # hands its arguments to the checker.
-    posix_wrapper = os.path.join(ROOT, "bin", "iadd")
-    windows_wrapper = os.path.join(ROOT, "bin", "iadd.cmd")
-    assert os.path.isfile(posix_wrapper), "bin/iadd missing"
-    assert os.path.isfile(windows_wrapper), "bin/iadd.cmd missing"
-    assert os.access(posix_wrapper, os.X_OK), "bin/iadd not executable"
+    posix_wrapper = os.path.join(ROOT, "bin", "agentic")
+    windows_wrapper = os.path.join(ROOT, "bin", "agentic.cmd")
+    assert os.path.isfile(posix_wrapper), "bin/agentic missing"
+    assert os.path.isfile(windows_wrapper), "bin/agentic.cmd missing"
+    assert os.access(posix_wrapper, os.X_OK), "bin/agentic not executable"
     target = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
     assert os.path.isfile(target), "the subcommand points at a missing script"
     wrapper = windows_wrapper if sys.platform == "win32" else posix_wrapper
@@ -233,7 +233,7 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
         errors="replace",
     )
     assert r.returncode == 0, r.stderr
-    assert "usage: iadd fold" in r.stdout
+    assert "usage: agentic fold" in r.stdout
 
 
 def test_parity_declaration_is_bootstrappable_not_hand_written():
@@ -246,7 +246,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         members = json.load(handle, object_pairs_hook=list)
     # The keys of the declaration, which the person declaring parity fills
     # in, `chain_check.py` reads `Baseline commit` of, and agents read the
-    # rest of, in `iadd/parity.json`. Where the original's local path goes
+    # rest of, in `agentory/parity.json`. Where the original's local path goes
     # is `skills/legacy-parity/SKILL.md` *The migration config*'s, held by
     # `tests/text/test_review_axes.py`.
     assert [key for key, _value in members] == [
@@ -275,7 +275,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         "the bootstrap's yes never reaches the parity-setup procedure"
     )
     # The path of the root's README, which the orchestrator writes there.
-    assert "iadd/README.md" in bootstrap
+    assert "agentory/README.md" in bootstrap
 
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")
     assert os.path.isfile(setup), "no command for declaring parity later"
@@ -419,25 +419,25 @@ def test_the_core_row_names_the_core_file():
 
 
 # The name each place that reaches the network carries in the READMEs' passage,
-# spelt alike in both editions: `/iadd:update`, `iadd cost --post`,
+# spelt alike in both editions: `/agentic:update`, `agentic cost --post`,
 # `chain_check.py` run without `--inspecting`, found by `--inspecting`, which the
-# row held before #1620 did not carry, `iadd settle`, the IADD
+# row held before #1620 did not carry, `agentic settle`, the IADD
 # process's own steps (which open the pull request with `gh pr create`), and
-# the checks `iadd pr-checks install` writes.
+# the checks `agentic pr-checks install` writes.
 NETWORK_PLACES = (
-    "/iadd:update",
+    "/agentic:update",
     "--post",
     "--inspecting",
-    "iadd settle",
+    "agentic settle",
     "gh pr create",
-    "iadd pr-checks install",
+    "agentic pr-checks install",
 )
 
 
 def network_passage(path, said):
     """PATH's text from the sentence SAID to the next heading, as one line.
-    The commands table elsewhere in each README names `/iadd:update` and
-    `iadd settle` too, so a search over the whole file would pass with the
+    The commands table elsewhere in each README names `/agentic:update` and
+    `agentic settle` too, so a search over the whole file would pass with the
     passage's row gone."""
     from conftest import flattened, read
 
@@ -510,9 +510,9 @@ def test_every_shipped_skill_is_named_in_both_readmes():
                 )
                 continue
             if user_invoked:
-                # The command `/iadd:<name>` a person types: a skill nobody
+                # The command `/agentic:<name>` a person types: a skill nobody
                 # can trigger is reachable only as a typed command.
-                assert f"/iadd:{name}" in text, (
+                assert f"/agentic:{name}" in text, (
                     f"{edition} never shows `{name}` in the form a person types"
                 )
                 continue
@@ -622,7 +622,7 @@ def test_the_frame_rule_names_the_phase_record_section_a_no_goes_to():
 
 def test_spec_directories_carry_the_timestamp_prefix():
     # implement/SKILL.md: "A work item's directory is
-    # iadd/threads/<unix-epoch-seconds>-<slug>/ ... keeps directories in
+    # agentory/threads/<unix-epoch-seconds>-<slug>/ ... keeps directories in
     # creation order and collision-free without a registry". Two were written
     # without
     # it and nothing noticed — the drift this plugin exists to catch, in its
@@ -630,7 +630,7 @@ def test_spec_directories_carry_the_timestamp_prefix():
     # commit that introduced each, so a plain listing now reads in order.
     import re
 
-    specs = os.path.join(ROOT, "iadd", "threads")
+    specs = os.path.join(ROOT, "agentory", "threads")
     # Absent after a complete fold (#517); an absent directory holds no
     # offender, and the rule is the same at any size.
     offenders = [
@@ -664,7 +664,7 @@ def test_every_spec_directory_that_reached_the_ladder_has_an_overview():
     one a plan row asked for was written by no phase of five 0.24.0 work
     items whose rows did not ask.
     """
-    specs = os.path.join(ROOT, "iadd", "threads")
+    specs = os.path.join(ROOT, "agentory", "threads")
     missing = []
     # Absent after a complete fold (#517), which is no directory missing a memo.
     for n in sorted(os.listdir(specs) if os.path.isdir(specs) else []):

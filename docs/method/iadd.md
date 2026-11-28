@@ -1,9 +1,9 @@
 # The IADD definition
 
 This document defines IADD: what it is, the principles it stands on, the
-names of its parts, and the document that owns the form of each record.
-It governs nothing itself. Each principle names the file that states it,
-and that file is the rule.
+names of its three layers and of its parts, and the document that owns the
+form of each record. It governs nothing itself. Each principle names the
+file that states it, and that file is the rule.
 
 ## What IADD is
 
@@ -64,24 +64,25 @@ merges it.
 
 ## The names
 
-**The product is IADD, and `iadd` is the name of each of its parts**:
-the root `iadd/`, the command line, the plugin's `name`, the prefix of
-every agent and skill, and the marketplace. Every identifier is lowercase
-with no separator, and `IADD` is written only where a person reads the
-brand.
+**IADD is the method, and a product only expresses it.** No IADD name is
+chosen to pair with a product, and no product takes the method's name. The
+names fall into three layers, the method, the product and the place, and
+the first three rows give one name of each with its one sentence.
 
 | Name | Its one sentence |
 |---|---|
-| IADD | the plugin, whose one sentence is the first line of `README.md` under its title, and the `description` of `.claude-plugin/plugin.json`; *the IADD process* is what it does with one issue, from the routing question to the final inspector's verdict |
-| `iadd` | the command line, the plugin's `name`, the prefix `iadd:` of every agent and skill, and the marketplace's name |
-| `iadd/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open; where it stands in each mode is the opening paragraph of `skills/core/SKILL.md` |
+| IADD | the method this document defines; *the IADD process* is what a product does with one issue, from the routing question to the final inspector's verdict |
+| `agentic` | this plugin, one product that expresses IADD: its `name`, the prefix `agentic:` of every agent and skill, the command line `agentic` and the variables `AGENTIC_*`; its marketplace is `agenticseal` and its repository `MichaelYcJo/AgenticSeal` |
+| `agentory/` | the place: the records root, visible beside `docs/`, and under the common git directory in local mode; where it stands in each mode is the opening paragraph of `skills/core/SKILL.md`. It is formed like *directory* and *repository*, the place where an agent's work is kept |
 | the thread | one work item: one issue, one branch and one pull request, with one directory that holds its records until the settle after its release |
-| `iadd/threads/<id>/` | a thread's directory, with `frame/` for the design before the build, `trail/` for what passed between the parties, and the other records at its top, each placed by what it is and never by which agent wrote it |
+| `agentory/threads/<id>/` | a thread's directory, with `frame/` for the design before the build, `trail/` for what passed between the parties, and the other records at its top, each placed by what it is and never by which agent wrote it |
 | framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 | the inspection | the inspector's verdict on the work at one commit, and its record `inspection.md`; the stamp and the inspection mark are drawings of it |
 | cleared, lapsed, not cleared | the three states of a work item's inspection, which `docs/forms/the-inspection.md` *The three states* defines |
 | the settle | the step after a release that writes the released work items' decisions into the policy root, decides every open row of their records, and removes their directories (`skills/settle/SKILL.md`) |
 | `IADD-Routing:` | the trailer of a session's commit where the root is shared, naming its work item or reading `no work item` (`skills/commit-pr-convention/SKILL.md`) |
+| the `iadd` block | a fenced block whose info string is `iadd`, the form of every block a script reads fields in; a record form, and so the method's (`docs/forms/the-round-record.md` *The round record*) |
+| the answer `agentic` | the routing question's first answer, which leaves each item's route to the orchestrator (`skills/implement/routing-question.md`); it shares the product's word, so a sentence that names both says *the answer `agentic`* for the route and *the plugin `agentic`* or *the command `agentic`* for the product |
 
 A directory and an agent say what each is to whoever meets it first, so
 neither is named for a metaphor. Every shipped artifact is written in
@@ -101,11 +102,11 @@ English.
 ## The record forms
 
 Each record of a work item has one document that owns its form.
-`docs/layout/the-record-layout.md` *iadd/threads/<work-item-id>/* lists
+`docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/* lists
 every file of a work item's directory and the question each answers.
 
 | Record | The document that owns its form |
 |---|---|
 | `trail/rounds/round-N.md` | `docs/forms/the-round-record.md` *The round record* |
 | `inspection.md` | `docs/forms/the-inspection.md` *The inspection* |
-| each other file of a work item's directory | `docs/layout/the-record-layout.md` *iadd/threads/<work-item-id>/* |
+| each other file of a work item's directory | `docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/* |

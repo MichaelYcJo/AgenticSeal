@@ -11,11 +11,11 @@ the reader the pull-request check holds a record to, and nothing here reads
 the record's text by a pattern of its own. A finding is a `### <n>.
 <symptom>` section that holds a finding block; its regression is that
 block's `regression:` or `reopens:` line; and it is in records alone where
-every path that block's `location:` names lies under `iadd/threads/`
+every path that block's `location:` names lies under `agentory/threads/`
 (`Finding.located`). A close block's `location:` names where the fix went,
 not where the defect shows, so the count does not read it.
 
-**The rows are the work items `iadd settle` treats as released**: those
+**The rows are the work items `agentic settle` treats as released**: those
 whose directory is present at `--released-at`
 (`skills/settle/scripts/settle.py#released`, default `origin/main` as the
 settle defaults it), that the tree still holds, and whose `routing.md`
@@ -131,7 +131,7 @@ def item_counts(root, where, routing, chain, records_at):
     """`(cells, unread)` for the work item at `where`: its four cells, each a
     number or `NOT_READ`, and one line per record or directory not read. A
     finding is in records alone where every path its finding block's
-    `location:` names lies under `records_at`, `iadd/threads` under the
+    `location:` names lies under `records_at`, `agentory/threads` under the
     root's own name (`threads_at`)."""
 
     def rel(path):
@@ -200,7 +200,7 @@ def main(argv=None):
     for name in sorted(released):
         where = os.path.join(root, *specs.split("/"), name)
         if not os.path.isdir(where):
-            # Released and since removed from the tree: `iadd settle` lists
+            # Released and since removed from the tree: `agentic settle` lists
             # it nowhere either, so it is no row and no line.
             continue
         through, why = chained(routing, where)

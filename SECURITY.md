@@ -14,16 +14,16 @@ credit line in the advisory unless you ask for none.
 
 ## What this project is, and where its risk actually sits
 
-IADD is a Claude Code plugin. What ships is Python that runs in two places
+agentic is a Claude Code plugin. What ships is Python that runs in two places
 a reader should keep separate:
 
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
-  (`iadd fold`, `iadd unverified`, `iadd pact` and the rest), which read a
+  (`agentic fold`, `agentic unverified`, `agentic pact` and the rest), which read a
   repository's records and the files those records name.
 - **The plugin's hooks** — the scripts that run without anybody
   asking: the stamp's `Stop` hook at the end of each turn, the
   `SessionStart` hook, which prints the core at a session's start where its
-  repository holds an `iadd/` root, the `PreToolUse` hook, which reads
+  repository holds an `agentory/` root, the `PreToolUse` hook, which reads
   the work items open in the session's repository before each
   `AskUserQuestion` call and may refuse that call, and the `PostToolUse`
   hook, which reads a work item's records after each `Edit` call of one of
@@ -64,7 +64,7 @@ follows a link or changes a mode the user did not choose.
 Findings that require the reporter to already control the repository under
 review, unless they reach one of the two situations above. Denial of service
 against a checker whose whole runtime is measured in milliseconds. Anything
-in `iadd/`, which holds records rather than code.
+in `agentory/`, which holds records rather than code.
 
 ## Supported versions
 

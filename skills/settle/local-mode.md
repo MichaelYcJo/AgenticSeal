@@ -2,23 +2,23 @@
 
 The settling session opens this file before the dry run, step 2 of
 `skills/settle/SKILL.md` *The settling session's procedure*, where the
-`iadd/` root is under the common git directory.
+`agentory/` root is under the common git directory.
 
 ## In local mode
 
-**In local mode `iadd settle` reads the work items under the common git
+**In local mode `agentic settle` reads the work items under the common git
 directory, and a work item is released when the pull request from the
 branch its `routing.md` names has merged, its merge commit reachable from
 `--released-at`.** No ref holds a local work item's directory, so presence
 at a ref cannot say that it shipped. What reaches the ref is its pull
 request's merge commit, whatever the merge method was.
 
-- **Where it reads.** Every `iadd/threads/<id>/` path is read and removed
+- **Where it reads.** Every `agentory/threads/<id>/` path is read and removed
   under `$(git rev-parse --git-common-dir)`, so a work item's directory is
-  `<git-common-dir>/iadd/threads/<id>/`, and it is printed as
-  `iadd/threads/<id>/`. The policy root, the tracked files the citations are
+  `<git-common-dir>/agentory/threads/<id>/`, and it is printed as
+  `agentory/threads/<id>/`. The policy root, the tracked files the citations are
   read from, and `tests/` are read from the repository's top.
-- **What released means.** `iadd settle` reads the `Branch` row of each work
+- **What released means.** `agentic settle` reads the `Branch` row of each work
   item's `routing.md` and asks
   `gh pr list --head <branch> --state merged --json number,mergeCommit`
   from the repository's top, once per branch. A work item is unreleased,
@@ -30,7 +30,7 @@ request's merge commit, whatever the merge method was.
   would remove gets as far as a version tag (`skills/settle/SKILL.md` *What
   `--apply` does*).
 - **A `gh` that cannot be asked stops the run.** Where `gh` is not on
-  `PATH` or its query fails, `iadd settle` exits 2 with one sentence naming `gh`
+  `PATH` or its query fails, `agentic settle` exits 2 with one sentence naming `gh`
   and what it said, and reads and removes nothing. Every work item would
   otherwise read as unreleased, and the run would say there is nothing to
   settle.
@@ -42,13 +42,13 @@ request's merge commit, whatever the merge method was.
 - **The judgments earlier settles removed.** `--apply` removes a local
   directory from the git directory, and no commit holds it, so the history
   holds an earlier plan only where the repository once committed its
-  `iadd/` root. Where none did, the section is not printed.
+  `agentory/` root. Where none did, the section is not printed.
 - **What the dry run adds.** Its first line names the root's path and says
   it is local mode. Each released work item is listed with its pull
   request's number and its merge commit, for the settle's pull request body
   to cite, and each unreleased one with which of the three states holds.
   The heading of what `--apply` removes says that no commit holds those
-  directories, and that `iadd export` takes a copy for whoever wants one.
+  directories, and that `agentic export` takes a copy for whoever wants one.
 - **What `--apply` does.** It removes each released local directory whose
   record holds no open row, from the git directory, and keeps and names one
   that holds a row, with the exit codes `skills/settle/SKILL.md` *What

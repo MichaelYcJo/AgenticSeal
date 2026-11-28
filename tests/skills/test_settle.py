@@ -82,7 +82,7 @@ settle = load_module(SCRIPT, "settle")
 plain = test_unverified_check.plain
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "iadd_rule_changes",
+    "agentic_rule_changes",
 )
 # The runner every git and `gh` command of `settle` starts through, the one
 # instance `lib/sibling.py#load` hands both scripts.
@@ -90,7 +90,7 @@ gitcmd = settle.sibling.load("lib/gitcmd.py")
 
 
 def item(repo, name, changes):
-    path = repo / "iadd" / "threads" / name
+    path = repo / "agentory" / "threads" / name
     (path / "frame").mkdir(parents=True, exist_ok=True)
     (path / "frame" / "design.md").write_text(spec(changes), encoding="utf-8")
 
@@ -128,10 +128,10 @@ def started(repo):
 
 
 def shared_files(repo):
-    """REPO holding `docs/a.md` and the marked `iadd/` root, the files of
+    """REPO holding `docs/a.md` and the marked `agentory/` root, the files of
     `shared_repo` and of `drawn`; REPO."""
     write(repo, "docs/a.md", DOC)
-    mark_root(repo / "iadd")
+    mark_root(repo / "agentory")
     return repo
 
 
@@ -143,7 +143,7 @@ def _shared_world(tmp_path_factory):
 @pytest.fixture
 def shared_repo(tmp_path, _shared_world):
     """A repository on `main` whose one commit holds `docs/a.md` and the
-    `iadd/` root, marked, with no work item."""
+    `agentory/` root, marked, with no work item."""
     return a_copy(_shared_world, tmp_path)
 
 
@@ -227,7 +227,7 @@ def past_the_bound(held):
 
 
 def specs_dir(repo, name):
-    return repo / "iadd" / "threads" / name
+    return repo / "agentory" / "threads" / name
 
 
 def group_text(text, n=1):
@@ -242,7 +242,7 @@ OPEN = (
 
 
 def configure(repo, *rows):
-    (repo / "iadd" / "config.json").write_text(config_json(*rows), encoding="utf-8")
+    (repo / "agentory" / "config.json").write_text(config_json(*rows), encoding="utf-8")
 
 
 # --- the drawn worlds: a case of what `settle` makes of its input (#1581) ---
@@ -371,7 +371,7 @@ def answered(monkeypatch, repo, real=(), unreleased=(), merged=()):
 @pytest.fixture
 def drawn(tmp_path, monkeypatch):
     """`shared_repo` drawn on disk with no history, its readers `answered`:
-    `docs/a.md`, the marked `iadd/` root, and an empty `.git/`, which
+    `docs/a.md`, the marked `agentory/` root, and an empty `.git/`, which
     `lib/optin.py#git_common_dir` reads as the git directory without a
     process."""
     repo = shared_files(tmp_path / "repo")
@@ -410,13 +410,13 @@ def answered_tree(tmp_path, monkeypatch, _tree_world):
 def no_rule(repo, work_item_id):
     """Give a released spec a `## Rule changes` that changes nothing, and
     commit it."""
-    path = repo / "iadd" / "threads" / work_item_id / "frame" / "design.md"
+    path = repo / "agentory" / "threads" / work_item_id / "frame" / "design.md"
     path.write_text(
         path.read_text(encoding="utf-8")
         + "\n## Rule changes\n\n- nothing\n  why: a moment.\n",
         encoding="utf-8",
     )
-    recorded(repo, f"iadd/threads/{work_item_id}", f"{work_item_id} states no rule")
+    recorded(repo, f"agentory/threads/{work_item_id}", f"{work_item_id} states no rule")
 
 
 def run(repo, *args):
@@ -458,22 +458,22 @@ def moment(repo, name=MOMENT, overview=None):
     """A released work item below the SDD ladder: a routing declaration and
     perhaps a memo, and no `frame/design.md`. Committed on its own path, so the
     unreleased `delta` the fixture leaves on disk stays unreleased."""
-    item = repo / "iadd" / "threads" / name
+    item = repo / "agentory" / "threads" / name
     item.mkdir(parents=True)
     (item / "routing.md").write_text(f"# {name} — routing\n", encoding="utf-8")
     if overview is not None:
         (item / "gaps.md").write_text(overview, encoding="utf-8")
-    recorded(repo, f"iadd/threads/{name}", f"released {name}")
+    recorded(repo, f"agentory/threads/{name}", f"released {name}")
     return item
 
 
 def released_item(repo, name, held):
     """A released work item holding HELD, `{path in its directory: text}`,
     committed on its own path like `moment`."""
-    path = repo / "iadd" / "threads" / name
+    path = repo / "agentory" / "threads" / name
     for rel, text in held.items():
         write(path, rel, text)
-    recorded(repo, f"iadd/threads/{name}", f"released {name}")
+    recorded(repo, f"agentory/threads/{name}", f"released {name}")
     return path
 
 
@@ -565,7 +565,7 @@ def removed_plan(repo, name, plan, added, removed, tag=None):
     one `git log` reads their ids: the second commit's tree is the first's
     parent's, so the working tree and the index stand as they did, where
     committing through them takes six processes, seven with a tag."""
-    branch, path = branch_of(repo), f"iadd/threads/{name}"
+    branch, path = branch_of(repo), f"agentory/threads/{name}"
     imported(
         repo,
         [
@@ -599,7 +599,7 @@ def three_removals(repo):
         printed.insert(
             0,
             f"    {name}  released in v0.{n}.0; removed by {short} (#{n + 10})\n"
-            f"        {short}^:iadd/threads/{name}/frame/plan.md:7  "
+            f"        {short}^:agentory/threads/{name}/frame/plan.md:7  "
             f"2026-10-0{n}  judged {n}\n"
             "            grounds: y\n",
         )
@@ -668,7 +668,9 @@ def earlier_block(text):
 def not_read(name, rel, place):
     """The line naming a misplaced record file, as the dry run and `--apply`
     print it."""
-    return f"iadd/threads/{name}/{rel}, named like `{place}` and away from its place"
+    return (
+        f"agentory/threads/{name}/{rel}, named like `{place}` and away from its place"
+    )
 
 
 def docs_text(repo):
@@ -711,7 +713,7 @@ BASE = "release-target"
 def at(repo, ref, *args):
     """`(exit code, what a person reads)` for `survey` at `ref`, the way
     `main` reaches it with `--released-at ref` at the top of REPO, the
-    `iadd/` root resolved as `main` resolves it and `--all-earlier` among
+    `agentory/` root resolved as `main` resolves it and `--all-earlier` among
     ARGS."""
     out = io.StringIO()
     optin = settle.sibling.load(settle.OPTIN)
@@ -731,10 +733,10 @@ def closed_after_base(repo):
     reached the release branch and not `main`."""
     moment(repo, overview=OVERVIEW_OPEN)
     git_out(repo, "branch", BASE)
-    (repo / "iadd" / "threads" / MOMENT / "gaps.md").write_text(
+    (repo / "agentory" / "threads" / MOMENT / "gaps.md").write_text(
         OVERVIEW_CLOSED, encoding="utf-8"
     )
-    git_out(repo, "add", "--", f"iadd/threads/{MOMENT}")
+    git_out(repo, "add", "--", f"agentory/threads/{MOMENT}")
     git_out(repo, "commit", "-qm", "close the row")
 
 
@@ -763,7 +765,7 @@ def answer_of(answers, args):
     return 0, json.dumps(answers.get("branches", {}).get(branch, [])) + "\n", ""
 
 
-GH_HOME = "IADD_SETTLE_GH_STUB_HOME"
+GH_HOME = "AGENTIC_SETTLE_GH_STUB_HOME"
 
 GH_STUB = (
     "import json, os, sys\n\n"
@@ -905,19 +907,19 @@ def _local_world(tmp_path_factory):
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "a.md").write_text(DOC, encoding="utf-8")
     started(repo)
-    (mark_root(repo / ".git" / "iadd") / "threads").mkdir()
+    (mark_root(repo / ".git" / "agentory") / "threads").mkdir()
     return repo
 
 
 @pytest.fixture
 def local_repo(tmp_path, _local_world):
-    """A repository whose `iadd/` root is under its git directory, with
+    """A repository whose `agentory/` root is under its git directory, with
     `docs/a.md` committed on `main` and no work item yet."""
     return a_copy(_local_world, tmp_path)
 
 
 def local_dir(repo, name):
-    return repo / ".git" / "iadd" / "threads" / name
+    return repo / ".git" / "agentory" / "threads" / name
 
 
 def local_item(repo, name, branch=None, changes=None, overview=None):
@@ -997,8 +999,8 @@ class Test_tracked_text:
         """The citations are read from what git tracks, so a file nobody
         committed is no reader and cites nothing."""
         (shared_repo / "notes.txt").write_text("untracked\n", encoding="utf-8")
-        tracked = ("docs/a.md", "iadd/README.md")
-        assert dict(settle.tracked_text(str(shared_repo), "iadd/threads")) == {
+        tracked = ("docs/a.md", "agentory/README.md")
+        assert dict(settle.tracked_text(str(shared_repo), "agentory/threads")) == {
             rel: (shared_repo / rel).read_bytes().decode("utf-8") for rel in tracked
         }
 
@@ -1010,24 +1012,26 @@ class Test_tracked_text:
         (shared_repo / "b.bin").write_bytes(b"a\0b")
         commit_everything(shared_repo, "a work item and a binary file")
         assert [
-            rel for rel, _ in settle.tracked_text(str(shared_repo), "iadd/threads")
+            rel for rel, _ in settle.tracked_text(str(shared_repo), "agentory/threads")
         ] == [
+            "agentory/README.md",
             "docs/a.md",
-            "iadd/README.md",
         ]
 
 
 class Test_citations:
     def test_accepts_a_line_citing_a_work_item_twice_as_one_citation(self, drawn):
-        """A `tests/` file that reads `iadd/threads` is a reader, and its line
+        """A `tests/` file that reads `agentory/threads` is a reader, and its line
         citing a work item twice is one citation."""
         (drawn / "tests").mkdir()
         (drawn / "tests" / "test_reads.py").write_text(
-            'SPECS = "iadd/threads"\n'
-            'A = "iadd/threads/1700000001-alpha/frame/design.md iadd/threads/1700000001-alpha/plan.md"\n',
+            'SPECS = "agentory/threads"\n'
+            'A = "agentory/threads/1700000001-alpha/frame/design.md agentory/threads/1700000001-alpha/plan.md"\n',
             encoding="utf-8",
         )
-        assert settle.citations(str(drawn), ["1700000001-alpha"], "iadd/threads") == (
+        assert settle.citations(
+            str(drawn), ["1700000001-alpha"], "agentory/threads"
+        ) == (
             {"1700000001-alpha": ["tests/test_reads.py:2"]},
             ["tests/test_reads.py"],
         )
@@ -1040,7 +1044,9 @@ class Test_citations:
         (drawn / "tests" / "test_team.py").write_text(
             'TEAM = "specs"\n', encoding="utf-8"
         )
-        assert settle.citations(str(drawn), ["1700000001-alpha"], "iadd/threads") == (
+        assert settle.citations(
+            str(drawn), ["1700000001-alpha"], "agentory/threads"
+        ) == (
             {"1700000001-alpha": []},
             [],
         )
@@ -1056,7 +1062,7 @@ class Test_report:
         assert code == 0, text
         listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-            where = f"iadd/threads/{name}/frame/design.md"
+            where = f"agentory/threads/{name}/frame/design.md"
             assert f"    {name}  {where}  {settle.NO_SECTION}\n" in listed, text
         assert "released at HEAD: 3 work items; 1 unreleased and untouched\n" in (
             text
@@ -1067,7 +1073,7 @@ class Test_report:
         an open row are shown at exit 0, and the tree is left as it was."""
         (
             answered_tree
-            / "iadd"
+            / "agentory"
             / "threads"
             / "1700000001-alpha"
             / "frame"
@@ -1114,13 +1120,13 @@ class Test_report:
         }
         for name, text in designs.items():
             (
-                answered_tree / "iadd" / "threads" / name / "frame" / "design.md"
+                answered_tree / "agentory" / "threads" / name / "frame" / "design.md"
             ).write_text(text, encoding="utf-8")
         code, text = run(answered_tree)
         assert code == 0, text
         listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
         for name, design in designs.items():
-            where = f"iadd/threads/{name}/frame/design.md:"
+            where = f"agentory/threads/{name}/frame/design.md:"
             where += str(line_of(design, "## Rule Changes"))
             said = "`## Rule Changes` opens like `## Rule changes` and is not it"
             assert f"    {name}  {where}  {said}" in listed, text
@@ -1172,7 +1178,7 @@ class Test_report:
             "`tests/x.py::Test_y`, per `questions.md`, `one-root.md` and `cmd.exe`"
         )
         moment(tree_copy, overview=OVERVIEW_OPEN.replace("a claim nobody ran", row))
-        (tree_copy / "iadd" / "threads" / MOMENT / "questions.md").write_text(
+        (tree_copy / "agentory" / "threads" / MOMENT / "questions.md").write_text(
             "# q\n", encoding="utf-8"
         )
         code, text = run(tree_copy)
@@ -1191,28 +1197,32 @@ class Test_report:
 
     def test_the_report_lists_what_an_apply_would_remove(self, answered_tree):
         """D1's table: the command reports by itself the paths outside
-        `iadd/threads/` that cite into what `--apply` would remove, and the
-        `tests/` files that read `iadd/threads` — what #514's frame found by
+        `agentory/threads/` that cite into what `--apply` would remove, and the
+        `tests/` files that read `agentory/threads` — what #514's frame found by
         hand. A directory still holding a row is listed with when it goes."""
         no_rule(answered_tree, "1700000001-alpha")
         moment(answered_tree, overview=OVERVIEW_OPEN)
         (answered_tree / "docs" / "cites.md").write_text(
-            "See `iadd/threads/1700000001-alpha/frame/design.md` for the decision.\n"
-            f"And `iadd/threads/{MOMENT[:11]}…/routing.md` for the moment.\n"
+            "See `agentory/threads/1700000001-alpha/frame/design.md` for the decision.\n"
+            f"And `agentory/threads/{MOMENT[:11]}…/routing.md` for the moment.\n"
             "A marker <!-- specs/1700000002-beta --> and a bare 1700000002-beta.\n",
             encoding="utf-8",
         )
         (answered_tree / "tests").mkdir()
         (answered_tree / "tests" / "test_reads.py").write_text(
-            'SPECS = "iadd/threads"\n', encoding="utf-8"
+            'SPECS = "agentory/threads"\n', encoding="utf-8"
         )
         _, text = run(answered_tree)
         takes = text.split(settle.REMOVES_HEADING)[1]
-        assert "    iadd/threads/1700000001-alpha/  now\n" in takes, text
-        assert f"    iadd/threads/{MOMENT}/  once its 1 open row close\n" in takes, text
+        assert "    agentory/threads/1700000001-alpha/  now\n" in takes, text
+        assert (
+            f"    agentory/threads/{MOMENT}/  once its 1 open row close\n" in takes
+        ), text
         assert "docs/cites.md:1" in takes, text
         assert "docs/cites.md:2" in takes, "an abbreviated path is a citation too"
-        beta = takes.split("iadd/threads/1700000002-beta/")[1].split("iadd/threads/")[0]
+        beta = takes.split("agentory/threads/1700000002-beta/")[1].split(
+            "agentory/threads/"
+        )[0]
         assert "cited from" not in beta, "a marker or a bare id is not a path"
         assert "tests/test_reads.py" in text.split("checks that read")[1], text
         # Contract rule 14: the heading a person reads names the section that
@@ -1232,7 +1242,7 @@ class Test_report:
         name = "1700000007-trail"
         released_item(answered_tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
         code, text = run(answered_tree)
-        assert f"iadd/threads/{name}/trail/gaps.md" in text, text
+        assert f"agentory/threads/{name}/trail/gaps.md" in text, text
         assert code == 0, text
         section = text.split(f"\n{settle.MISPLACED_HEADING}\n")[1].split("\n\n")[0]
         assert section == f"    {not_read(name, 'trail/gaps.md', 'gaps.md')}", text
@@ -1267,7 +1277,7 @@ class Test_report:
             {"frame/plan.md": "# a plan\n", "trail/plan.md": "# a plan\n"},
         )
         code, text = run(answered_tree)
-        assert f"iadd/threads/{top}/design.md" in text, text
+        assert f"agentory/threads/{top}/design.md" in text, text
         assert code == 0, text
         section = text.split(f"\n{settle.MISPLACED_HEADING}\n")[1].split("\n\n")[0]
         assert section == (
@@ -1401,7 +1411,7 @@ class Test_report:
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
         assert block.startswith(
-            "    1700000001-a  iadd/threads/1700000001-a/frame/plan.md  not read: "
+            "    1700000001-a  agentory/threads/1700000001-a/frame/plan.md  not read: "
             "holds no `| Date | Judgment | Grounds | Judged against |` table\n"
         ), block
         assert "judged against:" not in block, block
@@ -1480,7 +1490,7 @@ class Test_report:
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
         assert block.startswith(
-            "    1700000001-a  iadd/threads/1700000001-a/frame/plan.md  not read: "
+            "    1700000001-a  agentory/threads/1700000001-a/frame/plan.md  not read: "
             f"line 3: `{heading}` opens like `## Judgments of the run` and is "
             "not it, so none of its rows were read\n"
         ), block
@@ -1530,7 +1540,7 @@ class Test_report:
         assert code == 0, text
         block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
         assert block.startswith(
-            "    1700000001-a  iadd/threads/1700000001-a/frame/plan.md  not read: "
+            "    1700000001-a  agentory/threads/1700000001-a/frame/plan.md  not read: "
             "line 3: `## Judgments Of The Run` opens like `## Judgments of the "
             "run` and is not it, so none of its rows were read\n"
         ), block
@@ -1545,7 +1555,7 @@ class Test_report:
         not read and the section is not printed. Seen red with the exclusion
         of `work_items(records)` alone removed."""
         name = "1700000001-a"
-        held = f"iadd/threads/{name}"
+        held = f"agentory/threads/{name}"
         plan = judgments_plan([("2026-10-01", "x", "y", "z")])
         committed(
             shared_repo,
@@ -1570,8 +1580,8 @@ class Test_report:
         the work items of one cell come in the order of their removing
         commits, newest first, whatever their ids' order. Seen red with the
         once-only check removed, and with the deletions taken oldest first."""
-        old, older = "1700000001-old", "iadd/threads/1700000000-older"
-        held = f"iadd/threads/{old}"
+        old, older = "1700000001-old", "agentory/threads/1700000000-older"
+        held = f"agentory/threads/{old}"
         ids = committed(
             shared_repo,
             (
@@ -1619,7 +1629,7 @@ class Test_report:
             block
         )
         assert (
-            f"; removed by {short} (#7)\n        {short}^:iadd/threads/{old}/"
+            f"; removed by {short} (#7)\n        {short}^:agentory/threads/{old}/"
             f"frame/plan.md:7  2026-10-02  second\n"
         ) in block, block
 
@@ -1634,10 +1644,10 @@ class Test_report:
             shared_repo,
             (
                 "the old work item (#3)",
-                {f"iadd/threads/{old}/frame/plan.md": plan},
+                {f"agentory/threads/{old}/frame/plan.md": plan},
                 None,
             ),
-            ("settle 0.1.0 (#7)", {f"iadd/threads/{old}": None}, None),
+            ("settle 0.1.0 (#7)", {f"agentory/threads/{old}": None}, None),
         )
         standing(shared_repo, "1700000002-new")
         answered(monkeypatch, shared_repo, real={"earlier_judgments"})
@@ -1659,14 +1669,14 @@ class Test_report:
             shared_repo,
             (
                 "the old work item (#3)",
-                {f"iadd/threads/{old}/frame/plan.md": plan},
+                {f"agentory/threads/{old}/frame/plan.md": plan},
                 None,
             ),
             (
                 "settle 0.1.0 and frame the new one (#7)",
                 {
-                    f"iadd/threads/{old}": None,
-                    f"iadd/threads/{new}/frame/plan.md": plan,
+                    f"agentory/threads/{old}": None,
+                    f"agentory/threads/{new}/frame/plan.md": plan,
                 },
                 None,
             ),
@@ -1680,7 +1690,7 @@ class Test_report:
         self, shared_repo, monkeypatch
     ):
         """#1481, design *Scope* item 4. The adding commits are read in one
-        `git log` over `iadd/threads`, so a commit that deletes one plan and
+        `git log` over `agentory/threads`, so a commit that deletes one plan and
         adds another from the same text is read as the add it is, and the
         second plan's line names the release that holds it. Seen red with
         `--no-renames` alone removed from `adding_commits`."""
@@ -1691,18 +1701,18 @@ class Test_report:
             shared_repo,
             (
                 "the old work item (#3)",
-                {f"iadd/threads/{old}/frame/plan.md": plan},
+                {f"agentory/threads/{old}/frame/plan.md": plan},
                 None,
             ),
             (
                 "settle 0.1.0 and frame the new one (#7)",
                 {
-                    f"iadd/threads/{old}": None,
-                    f"iadd/threads/{new}/frame/plan.md": plan,
+                    f"agentory/threads/{old}": None,
+                    f"agentory/threads/{new}/frame/plan.md": plan,
                 },
                 "v0.2.0",
             ),
-            ("settle 0.2.0 (#9)", {f"iadd/threads/{new}": None}, None),
+            ("settle 0.2.0 (#9)", {f"agentory/threads/{new}": None}, None),
         )
         standing(shared_repo, "1700000003-next")
         answered(monkeypatch, shared_repo, real={"earlier_judgments"})
@@ -1769,7 +1779,7 @@ class Test_report:
             f"\n\n{settle.REMOVES_HEADING}"
         )[0]
         assert block == (
-            f"    {old}  {short}^:iadd/threads/{old}/frame/plan.md  not read: "
+            f"    {old}  {short}^:agentory/threads/{old}/frame/plan.md  not read: "
             "line 3: `## Judgments Of The Run` opens like `## Judgments of the "
             "run` and is not it, so none of its rows were read"
         ), block
@@ -1853,7 +1863,7 @@ class Test_report:
             "v0.2.0",
         )
         blob = git_out(
-            shared_repo, "rev-parse", f"{adding}:iadd/threads/{old}/frame/plan.md"
+            shared_repo, "rev-parse", f"{adding}:agentory/threads/{old}/frame/plan.md"
         )
         loose = shared_repo / ".git" / "objects" / blob[:2] / blob[2:]
         # Git writes a loose object read-only, and Windows refuses to unlink
@@ -1868,7 +1878,7 @@ class Test_report:
             f"\n\n{settle.REMOVES_HEADING}"
         )[0]
         assert (
-            f"    {old}  {short}^:iadd/threads/{old}/frame/plan.md  not read: "
+            f"    {old}  {short}^:agentory/threads/{old}/frame/plan.md  not read: "
             "`git cat-file --batch` answered `missing`, so none of its rows "
             "were read"
         ) in block, block
@@ -1897,7 +1907,7 @@ class Test_report:
                 capture_output=True,
                 encoding="utf-8",
             ).stdout.strip()
-            path = f"iadd/threads/{name}/frame/plan.md"
+            path = f"agentory/threads/{name}/frame/plan.md"
             added = subprocess.run(
                 [
                     "git",
@@ -1922,7 +1932,7 @@ class Test_report:
                 )
             assert added.returncode == 0, added.stderr
         git_out(shared_repo, "commit", "-qm", "the two work items (#3)")
-        git_out(shared_repo, "rm", "-r", "-q", "--cached", "--", "iadd/threads")
+        git_out(shared_repo, "rm", "-r", "-q", "--cached", "--", "agentory/threads")
         git_out(shared_repo, "commit", "-qm", "settle 0.1.0 (#7)")
         short = git_out(shared_repo, "rev-parse", "--short", "HEAD")
         standing(shared_repo, "1700000009-new")
@@ -1931,7 +1941,7 @@ class Test_report:
         assert code == 0, text
         block = earlier_block(text)
         assert (
-            f"    {odd}  {short}^:iadd/threads/{odd}/frame/plan.md  not read: "
+            f"    {odd}  {short}^:agentory/threads/{odd}/frame/plan.md  not read: "
             "its path holds a newline, which `git cat-file --batch` reads as "
             "two names, so none of its rows were read"
         ) in block, block
@@ -1945,7 +1955,7 @@ class Test_report:
         the dry run prints the rows of the two newest commits' plans, none
         of the oldest's, and ends the section with the line counting the
         one older removing commit it did not read and naming
-        `iadd settle --all-earlier`. Seen red with the bound alone
+        `agentic settle --all-earlier`. Seen red with the bound alone
         removed."""
         shared_repo, (newest, middle, _oldest) = removals
         code, text = at(shared_repo, "main")
@@ -1955,7 +1965,7 @@ class Test_report:
             + newest
             + middle
             + "\n1 older commit removed plans this section did not read; "
-            "`iadd settle --all-earlier` reads them"
+            "`agentic settle --all-earlier` reads them"
         ), earlier_block(text)
 
     def test_a_removing_commit_that_deleted_two_plans_is_one_commit_of_the_window(
@@ -1968,7 +1978,7 @@ class Test_report:
         the removing commits listed once per plan."""
         plans = {
             name: {
-                f"iadd/threads/{name}/frame/plan.md": judgments_plan(
+                f"agentory/threads/{name}/frame/plan.md": judgments_plan(
                     [("2026-10-0" + name[9], judged, "y", "z")]
                 )
             }
@@ -1982,15 +1992,15 @@ class Test_report:
         committed(
             shared_repo,
             ("the oldest work item (#1)", plans["1700000001-oldest"], None),
-            ("settle 0.1.0 (#11)", {"iadd/threads/1700000001-oldest": None}, None),
+            ("settle 0.1.0 (#11)", {"agentory/threads/1700000001-oldest": None}, None),
             (
                 "the two work items (#2)",
                 {**plans["1700000002-a"], **plans["1700000003-b"]},
                 None,
             ),
-            ("settle 0.2.0 (#12)", {"iadd/threads": None}, None),
+            ("settle 0.2.0 (#12)", {"agentory/threads": None}, None),
             ("the newest work item (#4)", plans["1700000004-newest"], None),
-            ("settle 0.3.0 (#14)", {"iadd/threads/1700000004-newest": None}, None),
+            ("settle 0.3.0 (#14)", {"agentory/threads/1700000004-newest": None}, None),
         )
         standing(shared_repo, "1700000009-new")
         answered(monkeypatch, shared_repo, real={"earlier_judgments"})
@@ -2002,7 +2012,7 @@ class Test_report:
         assert "  oldest\n" not in block, block
         assert block.endswith(
             "\n\n1 older commit removed plans this section did not read; "
-            "`iadd settle --all-earlier` reads them"
+            "`agentic settle --all-earlier` reads them"
         ), block
 
     def test_prints_the_section_where_it_holds_only_the_line_of_older_commits(
@@ -2013,7 +2023,10 @@ class Test_report:
         that counts the older removing commits, so the settling session
         learns that rows stand past the window. Seen red with that line
         alone left out of what prints the section."""
-        old, bare = "iadd/threads/1700000001-old", "iadd/threads/170000000{}-bare"
+        old, bare = (
+            "agentory/threads/1700000001-old",
+            "agentory/threads/170000000{}-bare",
+        )
         committed(
             shared_repo,
             (
@@ -2047,7 +2060,7 @@ class Test_report:
         assert code == 0, text
         assert earlier_block(text) == (
             "\n1 older commit removed plans this section did not read; "
-            "`iadd settle --all-earlier` reads them"
+            "`agentic settle --all-earlier` reads them"
         ), text
 
     def test_a_batched_read_that_fails_keeps_the_line_of_older_commits(
@@ -2071,7 +2084,7 @@ class Test_report:
         assert code == 0, text
         assert earlier_block(text) == (
             "    not read: git said no\n\n1 older commit removed plans this "
-            "section did not read; `iadd settle --all-earlier` reads them"
+            "section did not read; `agentic settle --all-earlier` reads them"
         ), earlier_block(text)
 
     def test_a_spec_no_commit_adds_is_marked_unordered(self, drawn, monkeypatch):
@@ -2113,7 +2126,7 @@ class Test_report:
         `_ancestor`'s answer of neither way. The other readers are
         `answered`."""
         a, b = (
-            f"iadd/threads/{name}/frame/design.md"
+            f"agentory/threads/{name}/frame/design.md"
             for name in ("1700000001-a", "1700000002-b")
         )
         merged_history(
@@ -2156,7 +2169,7 @@ class Test_report:
 def records_in_place(tmp_path, name):
     """A work item directory under TMP_PATH holding the three records the
     settle reads, each at its place."""
-    top = tmp_path / "iadd" / "threads" / name
+    top = tmp_path / "agentory" / "threads" / name
     for rel in ("gaps.md", "frame/design.md", "frame/plan.md"):
         write(top, rel, "# x\n")
     return top
@@ -2173,7 +2186,7 @@ class Test_misplaced:
         (top / "x" / "design.md").write_text("# x\n", encoding="utf-8")
         (top / "trail").mkdir()
         symlink_or_skip(top / "gaps.md", top / "trail" / "gaps.md")
-        assert settle.misplaced(str(tmp_path), "1700000001-a", "iadd/threads") == [
+        assert settle.misplaced(str(tmp_path), "1700000001-a", "agentory/threads") == [
             ("trail/gaps.md", "gaps.md"),
             ("x/design.md", "frame/design.md"),
         ]
@@ -2194,7 +2207,7 @@ class Test_misplaced:
         (elsewhere / "gaps.md").write_text("# x\n", encoding="utf-8")
         symlink_or_skip(elsewhere, top / "linked", directory=True)
         symlink_or_skip(tmp_path / "nowhere", top / "notes" / "plan.md")
-        assert settle.misplaced(str(tmp_path), "1700000001-a", "iadd/threads") == []
+        assert settle.misplaced(str(tmp_path), "1700000001-a", "agentory/threads") == []
 
 
 class Test_apply:
@@ -2205,9 +2218,11 @@ class Test_apply:
         code, text = run(answered_tree, "--apply")
         assert code == 0, text
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-            assert not (answered_tree / "iadd" / "threads" / name).exists(), text
-            assert f"removed iadd/threads/{name}/\n" in text, text
-        assert (answered_tree / "iadd" / "threads" / "1700000004-delta").exists(), text
+            assert not (answered_tree / "agentory" / "threads" / name).exists(), text
+            assert f"removed agentory/threads/{name}/\n" in text, text
+        assert (answered_tree / "agentory" / "threads" / "1700000004-delta").exists(), (
+            text
+        )
         assert text.endswith(
             "\nremoved 3 directories; kept 0 with a row to close and 0 whose note "
             "lacks its entry\n"
@@ -2216,7 +2231,7 @@ class Test_apply:
     def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, answered_tree):
         """#688 D3. A project's own `specs/` is read as history and never taken,
         even where a team directory carries the removed work item's very id: the
-        removal is `iadd/threads/` whatever else the tree holds (`threads`)."""
+        removal is `agentory/threads/` whatever else the tree holds (`threads`)."""
         team = answered_tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
@@ -2224,7 +2239,9 @@ class Test_apply:
         no_rule(answered_tree, "1700000001-alpha")
         code, text = run(answered_tree, "--apply")
         assert code == 0, text
-        assert not (answered_tree / "iadd" / "threads" / "1700000001-alpha").exists()
+        assert not (
+            answered_tree / "agentory" / "threads" / "1700000001-alpha"
+        ).exists()
         assert (team / "design.md").read_text(
             encoding="utf-8"
         ) == "# the team's design\n"
@@ -2239,10 +2256,10 @@ class Test_apply:
         before = docs_text(answered_tree)
         code, text = run(answered_tree, "--apply")
         assert code == 0, text
-        assert not (answered_tree / "iadd" / "threads" / MOMENT).exists(), text
+        assert not (answered_tree / "agentory" / "threads" / MOMENT).exists(), text
         assert docs_text(answered_tree) == before, "the apply wrote into docs/"
         assert (
-            f"removed iadd/threads/{MOMENT}/\n"
+            f"removed agentory/threads/{MOMENT}/\n"
             "    no note read: HEAD holds no `changelog.md` in its directory\n"
             "    closed in gaps.md: a claim\n"
             "        what closed it: run on 2026-01-01\n"
@@ -2262,8 +2279,8 @@ class Test_apply:
         assert code == 1, text
         assert specs_dir(drawn, "1700000001-a").exists(), text
         assert (
-            "kept iadd/threads/1700000001-a/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
+            "kept agentory/threads/1700000001-a/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `agentic settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         overview.write_text(OVERVIEW_CLOSED, encoding="utf-8")
@@ -2282,21 +2299,21 @@ class Test_apply:
         closed_after_base(tree_copy)
         code, text = at(tree_copy, BASE, "--apply")
         assert code == 0, text
-        assert not (tree_copy / "iadd" / "threads" / MOMENT).exists(), text
-        assert f"removed iadd/threads/{MOMENT}/\n" in text, text
+        assert not (tree_copy / "agentory" / "threads" / MOMENT).exists(), text
+        assert f"removed agentory/threads/{MOMENT}/\n" in text, text
 
     def test_refuses_an_unreadable_memo_and_keeps_its_directory(self, answered_tree):
         """A section this cannot read is a count it does not know, never zero."""
         moment(answered_tree, overview="# x — overview\n\n## Not checked\n")
         code, text = run(answered_tree, "--apply")
         assert code == 1, text
-        assert (answered_tree / "iadd" / "threads" / MOMENT).exists(), text
+        assert (answered_tree / "agentory" / "threads" / MOMENT).exists(), text
         assert "cannot be read" in text, text
 
     def test_an_unreleased_spec_less_directory_is_not_a_candidate(
         self, answered_tree, monkeypatch
     ):
-        item = answered_tree / "iadd" / "threads" / MOMENT
+        item = answered_tree / "agentory" / "threads" / MOMENT
         item.mkdir()
         (item / "routing.md").write_text("# routing\n", encoding="utf-8")
         answered(monkeypatch, answered_tree, unreleased={"1700000004-delta", MOMENT})
@@ -2314,11 +2331,11 @@ class Test_apply:
         name = "1700000007-trail"
         path = released_item(answered_tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
         code, text = run(answered_tree, "--apply")
-        assert f"not read: iadd/threads/{name}/trail/gaps.md" in text, text
+        assert f"not read: agentory/threads/{name}/trail/gaps.md" in text, text
         assert code == 0, text
         assert not path.exists(), text
         assert (
-            f"removed iadd/threads/{name}/\n"
+            f"removed agentory/threads/{name}/\n"
             "    no note read: HEAD holds no `changelog.md` in its directory\n"
             f"    not read: {not_read(name, 'trail/gaps.md', 'gaps.md')}\n"
         ) in text, text
@@ -2340,15 +2357,15 @@ class Test_apply:
             {"gaps.md": OVERVIEW_OPEN, "frame/gaps.md": OVERVIEW_CLOSED},
         )
         _, report = run(answered_tree)
-        assert f"iadd/threads/{name}/frame/gaps.md" in report, report
+        assert f"agentory/threads/{name}/frame/gaps.md" in report, report
         rows = report.index(f"\n{settle.ROWS_HEADING}\n")
         assert rows < report.index(f"\n{settle.MISPLACED_HEADING}\n"), report
         code, text = run(answered_tree, "--apply")
         assert code == 1, text
         assert path.exists(), text
         assert (
-            f"kept iadd/threads/{name}/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
+            f"kept agentory/threads/{name}/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `agentic settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
             f"    not read: {not_read(name, 'frame/gaps.md', 'gaps.md')}\n"
         ) in text, text
@@ -2397,11 +2414,11 @@ class Test_apply:
         whole = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0]
         line = line_of(spec(bad), "- rename")
         assert (
-            f"    1700000001-a  iadd/threads/1700000001-a/frame/design.md:{line}  `rename` "
+            f"    1700000001-a  agentory/threads/1700000001-a/frame/design.md:{line}  `rename` "
             "is not one of"
         ) in whole, text
         assert (
-            f"    1700000002-old  iadd/threads/1700000002-old/frame/design.md  {settle.NO_SECTION}"
+            f"    1700000002-old  agentory/threads/1700000002-old/frame/design.md  {settle.NO_SECTION}"
         ) in whole, text
         code, text = at(drawn, "main", "--apply")
         assert code == 0, text
@@ -2445,7 +2462,7 @@ class Test_apply:
         code, text = at(noted, "main", "--apply")
         assert code == 0, text
         assert not path.exists(), text
-        assert "removed iadd/threads/1700000001-a/\n" in text, text
+        assert "removed agentory/threads/1700000001-a/\n" in text, text
         # The note was read and carried the entry: no reason for not reading it.
         assert "no note read" not in text, text
         assert text.endswith(
@@ -2474,10 +2491,10 @@ class Test_apply:
         assert code == 1, text
         assert path.exists(), text
         assert (
-            "kept iadd/threads/1700000001-a/: v1.2.3 has no published GitHub "
+            "kept agentory/threads/1700000001-a/: v1.2.3 has no published GitHub "
             "Release, so no note carries its entry, a link to pull request #42; "
-            f"publish one from `git show {tip}:iadd/threads/1700000001-a/"
-            "changelog.md` and run `iadd settle --apply` again\n"
+            f"publish one from `git show {tip}:agentory/threads/1700000001-a/"
+            "changelog.md` and run `agentic settle --apply` again\n"
         ) in text, text
 
     @pytest.mark.parametrize("listed", ["none", "a draft"])
@@ -2494,7 +2511,7 @@ class Test_apply:
         assert code == 0, text
         assert not path.exists(), text
         assert (
-            "removed iadd/threads/1700000001-a/\n"
+            "removed agentory/threads/1700000001-a/\n"
             "    no note read: this repository has published no GitHub Release, "
             "so v1.2.3 has no note\n"
         ) in text, text
@@ -2528,7 +2545,7 @@ class Test_apply:
         assert code == 0, text
         assert not path.exists(), text
         assert (
-            "removed iadd/threads/1700000001-a/\n"
+            "removed agentory/threads/1700000001-a/\n"
             "    no note read: no published release of this repository opens an "
             "entry with a `[#N](https://github.com/<owner>/<name>/pull/N)` line "
             "or the old marker, so its notes are not built from the fragments\n"
@@ -2552,7 +2569,7 @@ class Test_apply:
         assert code == 0, text
         assert not path.exists(), text
         assert (
-            "removed iadd/threads/1700000001-a/\n"
+            "removed agentory/threads/1700000001-a/\n"
             "    no note read: its `changelog.md` at main holds no text, and the "
             "release note gives an empty fragment no entry\n"
         ) in text, text
@@ -2572,8 +2589,8 @@ class Test_apply:
         assert code == 1, text
         assert path.exists(), text
         assert (
-            "kept iadd/threads/1700000001-a/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
+            "kept agentory/threads/1700000001-a/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `agentic settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         assert text.endswith(
@@ -2612,16 +2629,16 @@ class Test_apply:
         assert code == 0, text
         assert not bare.exists(), text
         assert (
-            f"removed iadd/threads/{MOMENT}/\n"
+            f"removed agentory/threads/{MOMENT}/\n"
             "    no note read: main holds no `changelog.md` in its directory\n"
         ) in text, text
         assert (
-            "removed iadd/threads/1700000001-a/\n"
+            "removed agentory/threads/1700000001-a/\n"
             f"    no note read: {unnumbered}, the commit that added its "
             "`changelog.md`, names no pull request\n"
         ) in text, text
         assert (
-            "removed iadd/threads/1700000002-b/\n"
+            "removed agentory/threads/1700000002-b/\n"
             f"    no note read: no `vX.Y.Z` tag holds {untagged}, the commit "
             "that added its `changelog.md`\n"
         ) in text, text
@@ -2657,9 +2674,9 @@ class Test_main:
         line = line_of(spec(op("change", "S", "y.", "z.")), "- change")
         assert group_text(text) == (
             "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
-            f"    1. change  1700000009-a  iadd/threads/1700000009-a/frame/design.md:{line}"
+            f"    1. change  1700000009-a  agentory/threads/1700000009-a/frame/design.md:{line}"
             "  from not found, to found\n"
-            f"    2. change  1700000001-b  iadd/threads/1700000001-b/frame/design.md:{line}"
+            f"    2. change  1700000001-b  agentory/threads/1700000001-b/frame/design.md:{line}"
             "  from found, to not found"
         ), text
         assert "\ngroup 2\n" not in text, text
@@ -2712,7 +2729,7 @@ class Test_main:
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
             f"\n\n{settle.REMOVES_HEADING}"
         )[0]
-        where = f"{short}^:iadd/threads/{old}/frame/plan.md"
+        where = f"{short}^:agentory/threads/{old}/frame/plan.md"
         a, b = (line_of(plan, f"| {' | '.join(row)} |") for row in rows)
         assert block == (
             f"\njudged against: {run_doc}\n"
@@ -2792,12 +2809,12 @@ class Test_main:
         oid = merge(local_repo, "feat/1-a")
         gh_on_path.merged("feat/1-a", (11, oid))
         before = files(local_repo)
-        records = sorted(p for p in (local_repo / ".git" / "iadd").rglob("*"))
+        records = sorted(p for p in (local_repo / ".git" / "agentory").rglob("*"))
         code, text = dry_run(local_repo, capfd)
         assert code == 0, text
-        home = os.path.join(str(local_repo), ".git", "iadd")
+        home = os.path.join(str(local_repo), ".git", "agentory")
         assert text.split("\n")[0] == (
-            f"local mode: the iadd/ root is {home}, under the git directory"
+            f"local mode: the agentory/ root is {home}, under the git directory"
         ), text
         assert "released at main: 1 work item; 1 unreleased and untouched\n" in text
         released = text.split(settle.MERGED_HEADING + "\n")[1].split("\n\n")[0]
@@ -2806,16 +2823,19 @@ class Test_main:
         assert unreleased == (
             "    1700000002-b  no pull request from `feat/2-b` has merged"
         ), text
-        assert "1. add  1700000001-a  iadd/threads/1700000001-a/frame/design.md:" in (
-            group_text(text)
+        assert (
+            "1. add  1700000001-a  agentory/threads/1700000001-a/frame/design.md:"
+            in (group_text(text))
         ), text
         assert "1700000002-b" not in group_text(text), text
         assert "\ngroup 2\n" not in text, text
         assert settle.REMOVES_HEADING_LOCAL in text, text
-        assert "    iadd/threads/1700000001-a/  now\n" in text, text
+        assert "    agentory/threads/1700000001-a/  now\n" in text, text
         assert "has nothing to settle" not in text, text
         assert files(local_repo) == before, "the dry run wrote to the tree"
-        assert sorted(p for p in (local_repo / ".git" / "iadd").rglob("*")) == records
+        assert (
+            sorted(p for p in (local_repo / ".git" / "agentory").rglob("*")) == records
+        )
         query = ["pr", "list", "--head", "{}", "--state", "merged"]
         query += ["--json", "number,mergeCommit"]
         assert gh_on_path.calls() == [
@@ -2883,7 +2903,7 @@ class Test_main:
         assert "In local mode no commit holds these directories" in removes
         # The heading the local dry run prints, with the command the settling
         # session runs to keep a copy.
-        assert "`iadd export` takes a copy for whoever wants one" in removes
+        assert "`agentic export` takes a copy for whoever wants one" in removes
         assert "no ancestry orders their pull requests' merge commits" in flat(
             settle.UNORDERED_LOCAL
         )
@@ -2974,10 +2994,10 @@ class Test_main:
         assert not local_dir(local_repo, "1700000001-a").exists(), text
         assert local_dir(local_repo, "1700000002-b").exists(), text
         assert local_dir(local_repo, "1700000003-c").exists(), text
-        assert "removed iadd/threads/1700000001-a/\n" in text, text
+        assert "removed agentory/threads/1700000001-a/\n" in text, text
         assert (
-            "kept iadd/threads/1700000003-c/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `iadd settle --apply` again\n"
+            "kept agentory/threads/1700000003-c/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `agentic settle --apply` again\n"
             "    open in gaps.md: a claim about `questions.md`\n"
         ) in text, text
         assert files(local_repo) == before, "the apply wrote or removed in the tree"
@@ -3009,7 +3029,7 @@ class Test_main:
         code, text = apply(local_repo, capfd)
         assert code == 0, text
         assert not path.exists(), text
-        assert f"removed iadd/threads/{name}/\n    not read: {line}\n" in text, text
+        assert f"removed agentory/threads/{name}/\n    not read: {line}\n" in text, text
 
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
     @pytest.mark.parametrize("state", ["absent", "fails", "garbled", "entry"])
@@ -3205,8 +3225,8 @@ class Test_main:
         assert repeated(asked) == [], repeated(asked)
         (code, text), asked = asks(monkeypatch, lambda: apply(shared_repo, capfd))
         assert code == 1, text
-        assert "kept iadd/threads/1700000002-a/" in text, text
-        assert "removed iadd/threads/1700000003-b/\n" in text, text
+        assert "kept agentory/threads/1700000002-a/" in text, text
+        assert "removed agentory/threads/1700000003-b/\n" in text, text
         assert repeated(asked) == [], repeated(asked)
 
     def test_a_released_at_given_as_the_merge_commit_reaches_it(
@@ -3295,12 +3315,12 @@ class Test_main:
         assert kept.exists(), text
         assert not specs_dir(shared_repo, "1700000002-b").exists(), text
         assert (
-            "kept iadd/threads/1700000001-a/: the published note of v1.2.3 does "
+            "kept agentory/threads/1700000001-a/: the published note of v1.2.3 does "
             "not carry its entry, a link to pull request #42; repair the note "
-            f"from `git show {at}:iadd/threads/1700000001-a/changelog.md` and "
-            "run `iadd settle --apply` again\n"
+            f"from `git show {at}:agentory/threads/1700000001-a/changelog.md` and "
+            "run `agentic settle --apply` again\n"
         ) in text, text
-        assert "removed iadd/threads/1700000002-b/\n" in text, text
+        assert "removed agentory/threads/1700000002-b/\n" in text, text
         assert text.endswith(
             "\nremoved 1 directory; kept 0 with a row to close and 1 whose note "
             "lacks its entry\n"
@@ -3458,10 +3478,10 @@ class Test_main:
         repo = tmp_path / "repo"
         (repo / "docs").mkdir(parents=True)
         git_out(repo, "init", "-q")
-        item = repo / "iadd" / "threads" / "1700000001-alpha"
+        item = repo / "agentory" / "threads" / "1700000001-alpha"
         (item / "frame").mkdir(parents=True)
         (item / "frame" / "design.md").write_text("# a\n", encoding="utf-8")
-        (repo / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
+        (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
@@ -3469,7 +3489,7 @@ class Test_main:
         )
         assert r.returncode == 2, r.stdout + r.stderr
         assert "has opted out" in r.stderr, r.stderr
-        assert "iadd-scratch" in r.stderr, r.stderr
+        assert "agentic-scratch" in r.stderr, r.stderr
         assert "has nothing to settle" not in r.stderr, (
             "a repository holding a work item is still being told it has none"
         )
@@ -3485,14 +3505,14 @@ class Test_main:
         repo = tmp_path / "repo"
         repo.mkdir()
         git_out(repo, "init", "-q")
-        (repo / ".git" / "iadd-scratch").mkdir()
+        (repo / ".git" / "agentic-scratch").mkdir()
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
             encoding="utf-8",
         )
         assert r.returncode == 2, r.stdout + r.stderr
-        assert "has no iadd/threads/ at either place" in r.stderr, r.stderr
+        assert "has no agentory/threads/ at either place" in r.stderr, r.stderr
         assert "has opted out" not in r.stderr, (
             "a directory of the marker's name is read as the opt-out, which is the "
             "reading `lib/optin.py` rejected by name"
@@ -3537,11 +3557,11 @@ class Test_main:
         for a different failure and could not fire in the case it described:
         local mode returns before `survey` is ever called."""
         repo = tmp_path / "repo"
-        (mark_root(repo / "iadd") / "threads" / "1700000001-alpha" / "frame").mkdir(
+        (mark_root(repo / "agentory") / "threads" / "1700000001-alpha" / "frame").mkdir(
             parents=True
         )
         (
-            repo / "iadd" / "threads" / "1700000001-alpha" / "frame" / "design.md"
+            repo / "agentory" / "threads" / "1700000001-alpha" / "frame" / "design.md"
         ).write_text("# a\n", encoding="utf-8")
         git_out(repo, "init", "-q")
         r = subprocess.run(
@@ -3570,13 +3590,13 @@ class Test_main:
     def test_accepts_a_settled_root_and_says_so(
         self, shared_repo, capfd, keep_empty_dir, flags
     ):
-        """G7. After the last settle a fresh checkout has no `iadd/threads/` at
+        """G7. After the last settle a fresh checkout has no `agentory/threads/` at
         all and the tree that ran `--apply` has an empty one. Both are the state
         a complete settle reaches, and `settle` used to refuse the first at exit
         2 — so the command could not run on its own finished work. `--draft`
         there has no operation to write, and writes nothing (#1217)."""
         if keep_empty_dir:
-            (shared_repo / "iadd" / "threads").mkdir()
+            (shared_repo / "agentory" / "threads").mkdir()
         before = files(shared_repo)
         code = settle.main(
             ["--root", str(shared_repo), "--released-at", "HEAD", *flags]
@@ -3595,9 +3615,9 @@ class Test_main:
         about a fresh checkout, which carries no local root."""
         code, text = dry_run(local_repo, capfd, *(["--apply"] if arm else []))
         assert code == 0, text
-        home = os.path.join(str(local_repo), ".git", "iadd")
+        home = os.path.join(str(local_repo), ".git", "agentory")
         assert text == (
-            f"settle: {home} is the iadd/ root, in local mode, and its threads/ "
+            f"settle: {home} is the agentory/ root, in local mode, and its threads/ "
             "holds no work item — nothing to show and nothing to remove. A "
             "complete settle ends here.\n"
         ), text
@@ -3828,8 +3848,8 @@ class Test_main:
             ("docs", "adr", "names no directory"),
             (".", "{outside}", "is outside the repository"),
             (".", "../elsewhere", "is outside the repository"),
-            (".", "iadd", "is the iadd/ root or under it"),
-            (".", "iadd/threads", "is the iadd/ root or under it"),
+            (".", "agentory", "is the agentory/ root or under it"),
+            (".", "agentory/threads", "is the agentory/ root or under it"),
         ],
         ids=[
             "missing",
@@ -3845,7 +3865,7 @@ class Test_main:
         self, shared_repo, capfd, monkeypatch, tmp_path, where, given, said
     ):
         """#1054 A4: a path that is no directory of the working tree, one
-        outside the repository, and the `iadd/` root or a path under it, whose
+        outside the repository, and the `agentory/` root or a path under it, whose
         records the settle already reads, each exit 2 with one sentence naming
         the path, and nothing is read or removed. The sentence names the path
         as it was read, from the directory the command runs in, so `--from
@@ -3866,7 +3886,7 @@ class Test_main:
         assert files(shared_repo) == before
 
     def test_refuses_from_beside_apply_and_removes_nothing(self, drawn, capfd):
-        """#1054 A4: `--apply` removes only under `iadd/threads/`, so a
+        """#1054 A4: `--apply` removes only under `agentory/threads/`, so a
         `--from` it accepted would read as one it acted on. The pair exits 2
         with one sentence naming both, and the released directory stays."""
         write(drawn, "adr/0001.md", "a decision\n")
@@ -3888,7 +3908,7 @@ class Test_main:
         repository whose HEAD has no commit, every document is one no commit
         adds."""
         repo = tmp_path / "repo"
-        mark_root(repo / "iadd")
+        mark_root(repo / "agentory")
         write(repo, "adr/0001.md", "a decision\n")
         git_out(repo, "init", "-q")
         git_out(repo, "config", "user.email", "x@example.com")
@@ -3910,7 +3930,7 @@ class Test_main:
             f"{settle.DOCUMENTS_HEADING}\n"
             "\nfrom adr/: 1 document\n"
             f"    adr/0001.md  {listed}\n\n"
-            "settle: iadd/threads/ in "
+            "settle: agentory/threads/ in "
         ), text
         assert "holds no work item" in text and "A complete settle ends here" in text
         assert text.count("\n") == settle.DOCUMENTS_HEADING.count("\n") + 6, text
@@ -3965,13 +3985,15 @@ class Test_main:
         commit_everything(shared_repo, "c")
         item(shared_repo, "1700000002-d", op("add", "U", new="Rule."))
         commit_everything(shared_repo, "d")
-        records = {k: v for k, v in files(shared_repo).items() if k.startswith("iadd")}
+        records = {
+            k: v for k, v in files(shared_repo).items() if k.startswith("agentory")
+        }
         code, text = dry_run(shared_repo, capfd, "--draft")
         assert code == 0, text
         line = line_of(spec(missed), "- change")
         assert text == (
             "not placed  change  1700000005-c  "
-            f"iadd/threads/1700000005-c/frame/design.md:{line}  "
+            f"agentory/threads/1700000005-c/frame/design.md:{line}  "
             "the `from` text is not in section `T` of docs/a.md\n"
             "placed 4 of 5 operations in docs/\n"
             f"{settle.DRAFTED}"
@@ -3983,7 +4005,7 @@ class Test_main:
         )
         assert git(shared_repo, "status", "--porcelain").stdout == " M docs/a.md\n"
         assert {
-            k: v for k, v in files(shared_repo).items() if k.startswith("iadd")
+            k: v for k, v in files(shared_repo).items() if k.startswith("agentory")
         } == (records)
 
     def test_draft_creates_and_deletes_whole_documents(
@@ -4052,14 +4074,16 @@ class Test_main:
         directory, and the draft writes the repository's policy root."""
         local_item(local_repo, "1700000001-a", "feat/1-a", op("add", "U", new="Rule."))
         answered(monkeypatch, local_repo)
-        records = sorted(p for p in (local_repo / ".git" / "iadd").rglob("*"))
+        records = sorted(p for p in (local_repo / ".git" / "agentory").rglob("*"))
         code, text = dry_run(local_repo, capfd, "--draft")
         assert code == 0, text
         assert text.startswith("placed 1 of 1 operation in docs/\n"), text
         assert (local_repo / "docs" / "a.md").read_text(encoding="utf-8") == (
             DOC.replace("Last.\n", "Last.\n\nRule.\n")
         )
-        assert sorted(p for p in (local_repo / ".git" / "iadd").rglob("*")) == records
+        assert (
+            sorted(p for p in (local_repo / ".git" / "agentory").rglob("*")) == records
+        )
 
 
 class Test_adding_commit:
@@ -4070,8 +4094,8 @@ class Test_adding_commit:
         `log.showRoot` would change of this reading is held by
         `lib/gitcmd.py`, whose cases are `tests/lib/test_gitcmd.py`."""
         repo = tmp_path / "repo"
-        first = "iadd/threads/1700000001-first/changelog.md"
-        second = "iadd/threads/1700000002-second/changelog.md"
+        first = "agentory/threads/1700000001-first/changelog.md"
+        second = "agentory/threads/1700000002-second/changelog.md"
         write(repo, first, "- the same text\n")
         git_out(repo, "init", "-q", "-b", "main")
         git_out(repo, "config", "user.email", "x@example.com")
@@ -4092,11 +4116,11 @@ class Test_adding_commit:
         release note's job stops rather than writing an entry with no link.
         Seen red with the subject's end anchor taken out, and with the check
         of `git`'s exit taken out."""
-        path = "iadd/threads/1700000001-a/changelog.md"
+        path = "agentory/threads/1700000001-a/changelog.md"
         write(shared_repo, path, "- a\n")
         added = commit_everything(shared_repo, "fix: (#7) is not where the title ends")
         assert settle.adding_commit(str(shared_repo), "HEAD", path) == (added, None)
-        missing = "iadd/threads/1700000002-none/changelog.md"
+        missing = "agentory/threads/1700000002-none/changelog.md"
         assert settle.adding_commit(str(shared_repo), "HEAD", missing) == (None, None)
         with pytest.raises(RuntimeError, match="nosuch"):
             settle.adding_commit(str(shared_repo), "nosuch", path)
@@ -4204,7 +4228,7 @@ class Test_module:
         commit_everything(shared_repo, "a is framed")
         ids = ["1700000001-a", "1700000002-b"]
         found = [
-            i for i, _ in rules.order(str(shared_repo), "HEAD", ids, "iadd/threads")
+            i for i, _ in rules.order(str(shared_repo), "HEAD", ids, "agentory/threads")
         ]
         assert found == ["1700000002-b", "1700000001-a"], found
 
@@ -4220,7 +4244,7 @@ class Test_module:
         item(shared_repo, "1700000002-b", op("add", "U", new="B."))
         commit_everything(shared_repo, "b is framed")
         ids = ["1700000001-정렬", "1700000002-b"]
-        found = rules.order(str(shared_repo), "HEAD", ids, "iadd/threads")
+        found = rules.order(str(shared_repo), "HEAD", ids, "agentory/threads")
         assert found[0] == ("1700000001-정렬", added), found
         assert [i for i, _ in found] == ids, found
 
@@ -4250,7 +4274,7 @@ class Test_module:
         commit_everything(shared_repo, "a is framed")
         with pytest.raises(gitcmd.Exited, match="no/such/ref"):
             rules.order(
-                str(shared_repo), "no/such/ref", ["1700000001-a"], "iadd/threads"
+                str(shared_repo), "no/such/ref", ["1700000001-a"], "agentory/threads"
             )
 
     def test_merge_order_of_local_specs_refuses_a_history_git_did_not_print(
@@ -4327,8 +4351,8 @@ class Test_module:
         `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`'s;
         this is the instance, asked here so a missing twin
         names this work item rather than a parametrisation. Since #1051 the
-        name is `iadd settle`, run here the way a person types it."""
-        wrapper = os.path.join(ROOT, "bin", "iadd")
+        name is `agentic settle`, run here the way a person types it."""
+        wrapper = os.path.join(ROOT, "bin", "agentic")
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
             if os.name == "nt"
@@ -4342,7 +4366,7 @@ class Test_module:
             timeout=120,
         )
         assert done.returncode == 0, done.stderr
-        assert done.stdout.startswith("usage: iadd settle"), done.stdout
+        assert done.stdout.startswith("usage: agentic settle"), done.stdout
 
     def test_surveys_docstring_does_not_invite_the_mutation_that_reopens_finding_4(
         self,
@@ -4410,14 +4434,14 @@ class Test_module:
         git_out(
             shared_repo,
             "mv",
-            "iadd/threads/1700000001-old",
-            "iadd/threads/1700000002-new",
+            "agentory/threads/1700000001-old",
+            "agentory/threads/1700000002-new",
         )
         moved = commit_everything(shared_repo, "renamed")
         item(shared_repo, "1700000003-b", op("add", "U", new="B."))
         b = commit_everything(shared_repo, "b")
         ids = ["1700000003-b", "1700000002-new"]
-        found = rules.order(str(shared_repo), "HEAD", ids, "iadd/threads")
+        found = rules.order(str(shared_repo), "HEAD", ids, "agentory/threads")
         assert found == [("1700000002-new", moved), ("1700000003-b", b)], found
 
 
@@ -4428,36 +4452,36 @@ class Test_threads:
         `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""
-        assert settle.threads(str(tmp_path / "iadd")) == "iadd/threads"
+        assert settle.threads(str(tmp_path / "agentory")) == "agentory/threads"
 
     def test_refuses_the_directory_holding_the_root_as_its_name(self, tmp_path):
-        """A local root is named by its own directory, `iadd`, and not by
+        """A local root is named by its own directory, `agentory`, and not by
         the common git directory holding it, under which its threads are
         read (`records_of`)."""
-        local = tmp_path / ".git" / "iadd"
-        assert settle.threads(str(local)) == "iadd/threads"
+        local = tmp_path / ".git" / "agentory"
+        assert settle.threads(str(local)) == "agentory/threads"
 
 
 class Test_policy_root:
     def test_accepts_the_row_a_config_writes(self, tmp_path):
         d = _committed(
-            tmp_path, {"iadd/config.json": config_json(("Policy root", "rules"))}
+            tmp_path, {"agentory/config.json": config_json(("Policy root", "rules"))}
         )
         assert settle.policy_root(str(d)) == "rules"
 
     def test_refuses_to_read_anything_but_docs_with_no_row(self, tmp_path):
-        d = _committed(tmp_path, {"iadd/config.json": config_json()})
+        d = _committed(tmp_path, {"agentory/config.json": config_json()})
         assert settle.policy_root(str(d)) == "docs"
 
 
 class Test_show:
     def test_accepts_a_path_at_a_ref(self, plain):
-        assert settle.show(str(plain), "HEAD", f"iadd/threads/{WORK}/gaps.md") == memo(
-            CANONICAL
-        )
+        assert settle.show(
+            str(plain), "HEAD", f"agentory/threads/{WORK}/gaps.md"
+        ) == memo(CANONICAL)
 
     def test_refuses_a_path_the_ref_does_not_hold(self, plain):
-        assert settle.show(str(plain), "HEAD", "iadd/threads/none/gaps.md") is None
+        assert settle.show(str(plain), "HEAD", "agentory/threads/none/gaps.md") is None
 
     def test_refuses_to_raise_on_a_byte_that_is_not_utf8(self, tmp_path):
         """#19: a revision read at a ref decodes as `check_file` decodes the

@@ -106,16 +106,16 @@ one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most.
 
-## 11 Where the plugin's paths and the `iadd/` root resolve, and the record language
+## 11 Where the plugin's paths and the `agentory/` root resolve, and the record language
 
 Every `skills/`, `templates/`, `docs/` and `agents/` path here and in your
 definition is the plugin's, at the root two directories above the base
 directory the harness printed with this file; the repository you work in may
 hold other files at those paths.
 
-Every `iadd/…` path here and in the skills means the records root, the
+Every `agentory/…` path here and in the skills means the records root, the
 first of the places the opening paragraph of `skills/core/SKILL.md` names
-that holds the marker. That paragraph also defines `iadd/` as the root's
+that holds the marker. That paragraph also defines `agentory/` as the root's
 name. The prose in the records follows `Record language` in `config.json`
 under that root: `templates/setup/config.md` *Record language* lists the
 records, and `templates/setup/config.md` *An absent language key is a

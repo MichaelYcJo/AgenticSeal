@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Write'
-input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!iadd\/threads\/1790000022-keep-trailing-space\/)'
+input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!agentory\/threads\/1790000022-keep-trailing-space\/)'
 max: 0
 min: 0
 ---

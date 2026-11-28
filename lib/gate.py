@@ -2,7 +2,7 @@
 asks at the pull request.
 
 The rule is `docs/running/the-review-and-parity-arms.md` *Parity arm*: a change
-confined to `docs/` and `iadd/` owes no comparison with an original, because
+confined to `docs/` and `agentory/` owes no comparison with an original, because
 nothing there can be compared against one. `skills/code-review/scripts/
 chain_check.py#originals_of` loads this file through `lib/sibling.py` and
 asks `touches_code` of the paths the pull request changes, with the name of

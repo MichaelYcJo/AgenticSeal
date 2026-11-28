@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Bash'
-input_match: 'iadd\s+gate\s+--base'
+input_match: 'agentic\s+gate\s+--base'
 max: 0
 min: 0
 ---

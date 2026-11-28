@@ -1,4 +1,4 @@
-"""`hooks/core-start.py`: a session whose repository holds an `iadd/` root
+"""`hooks/core-start.py`: a session whose repository holds an `agentory/` root
 receives the core once, and any other session receives nothing.
 
 The hook prints `lib/core.py#output` as plain text, and `hooks/hooks.json`
@@ -66,7 +66,7 @@ def plugin(where, core="# scratch core\n\nA value — kept.\n"):
     with open(
         os.path.join(where, ".claude-plugin", "plugin.json"), "w", encoding="utf-8"
     ) as f:
-        json.dump({"name": "iadd", "version": "0.25.0"}, f)
+        json.dump({"name": "agentic", "version": "0.25.0"}, f)
     os.makedirs(os.path.join(where, "skills", "core"))
     with open(
         os.path.join(where, "skills", "core", "SKILL.md"),
@@ -85,9 +85,9 @@ def printed(cwd, root):
 
 
 def marked_repo(where):
-    """A scratch repository at WHERE holding a marked `iadd/` root."""
+    """A scratch repository at WHERE holding a marked `agentory/` root."""
     repo = git_repo(where)
-    mark_root(repo / "iadd")
+    mark_root(repo / "agentory")
     return repo
 
 
@@ -131,7 +131,7 @@ class Test_main:
         assert out.endswith("\n" + core.closing(root) + "\n"), out[-400:]
 
     def test_refuses_to_print_into_a_repository_with_no_root(self, tmp_path):
-        """#1430. A session in a repository with no marked `iadd/` root, or
+        """#1430. A session in a repository with no marked `agentory/` root, or
         in a directory outside git, is doing other work and receives
         nothing."""
         root = plugin(tmp_path / "plugin")

@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'iadd/threads/1790000030-inspection-no-gate/inspection.md'}
+target: {source: 'file', path: 'agentory/threads/1790000030-inspection-no-gate/inspection.md'}
 pattern: '^```iadd\n(?:[^`\n][^\n]*\n)*?Verdict: withheld reason: \S'
 flags: 'm'
 ---

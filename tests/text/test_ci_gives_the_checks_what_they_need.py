@@ -45,7 +45,7 @@ not answer them (#1221). Each leg that runs the suite therefore passes
 replaces pytest's default `fE` rather than adding to it, so a leg passing
 `-rs` would also stop naming the cases that failed.
 
-**The workflow the plugin ships.** `iadd pr-checks install` writes
+**The workflow the plugin ships.** `agentic pr-checks install` writes
 `templates/setup/hygiene.yml` into a user's repository, where it runs on
 `pull_request` as this repository's own workflows do, so the draft events and
 the cancelling are asked of it too. It also states its token's scope, and it
@@ -82,7 +82,7 @@ DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
 DRAFT_READER = "chain_check.py"
 # The event that carries a body edited after the pull request opened, which
 # no commit follows: `chain_check.py` reads the body from the payload against
-# what `iadd pr-body` composes at HEAD (#1452), so a workflow that runs it
+# what `agentic pr-body` composes at HEAD (#1452), so a workflow that runs it
 # runs on this event too.
 BODY_EVENT = "edited"
 
@@ -93,7 +93,7 @@ CANCEL_ON_PULL_REQUEST = "${{ github.event_name == 'pull_request' }}"
 # The workflow the plugin ships, by its repository path, and the prefix its
 # steps put before a script of the plugin's clone.
 TEMPLATE = "templates/setup/hygiene.yml"
-CLONE = '"$RUNNER_TEMP/iadd/'
+CLONE = '"$RUNNER_TEMP/agentic/'
 
 
 def loaded():
@@ -237,7 +237,7 @@ def test_the_edited_event_runs_wherever_the_body_is_read():
     the next push.
 
     `chain_check.py` refuses a ready pull request whose body is not what
-    `iadd pr-body` composes at HEAD, reading the body from the event payload.
+    `agentic pr-body` composes at HEAD, reading the body from the event payload.
     Rewriting the body makes no commit, so no `synchronize` fires, and the
     `edited` payload is the one that carries the new body. Another step may
     read the body too, as this repository's issue-claims step does, so the

@@ -91,7 +91,7 @@ ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / TARGET
 READER = ROOT / "lib" / "lines.py"
 TABLES = ROOT / "lib" / "tables.py"
-ITEM = "iadd/threads/1791999999-a-work-item"
+ITEM = "agentory/threads/1791999999-a-work-item"
 # The pictographs and symbols a mark is drawn from: the colour circles and
 # squares, the check and cross marks, the question mark ornament and the
 # variation selector that follows them.
@@ -217,7 +217,7 @@ OLD_RECORD = (
     "|---|---|---|---|---|\n"
     "| 🔴 1 | wrong | `f.txt:1` | open | g |\n"
 )
-MERGED_ITEM = "iadd/threads/1788999999-a-merged-item"
+MERGED_ITEM = "agentory/threads/1788999999-a-merged-item"
 
 
 # The base commit a fixture's run names; no arm reads it.
@@ -226,7 +226,7 @@ GATE_BASE = "fedcba9"
 
 def gate_file(*runs):
     """A `trail/gate.md` holding one run block per commit of RUNS, in the
-    order `iadd gate --record` appends them, the last the newest."""
+    order `agentic gate --record` appends them, the last the newest."""
     blocks = "\n".join(
         f"```iadd\nrun: {sha} against {GATE_BASE}\n```\n" for sha in runs
     )
@@ -337,7 +337,7 @@ def _branch_template(tmp_path_factory):
             "base",
             {
                 "f.txt": "one\n",
-                "iadd/README.md": conftest.ROOT_MARKER + "\n",
+                "agentory/README.md": conftest.ROOT_MARKER + "\n",
                 f"{MERGED_ITEM}/routing.md": merged,
                 f"{MERGED_ITEM}/trail/rounds/round-1.md": OLD_RECORD,
             },
@@ -491,7 +491,7 @@ def _two_declarations(tmp_path_factory):
     d = tmp_path_factory.mktemp("chain-two") / "c"
     init(d)
     old = ROUTING.format(review="straight to the PR", planning="the session")
-    write(d, "iadd/threads/1788000000-old/routing.md", old)
+    write(d, "agentory/threads/1788000000-old/routing.md", old)
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/y")
     return d, old
@@ -514,11 +514,12 @@ class Test_changed:
         it."""
         d, _old = two_declarations
         moved = {
-            "iadd/threads/1788000000-old/routing.md",
-            "iadd/threads/1788000000-moved/routing.md",
+            "agentory/threads/1788000000-old/routing.md",
+            "agentory/threads/1788000000-moved/routing.md",
         }
         os.rename(
-            d / "iadd/threads/1788000000-old", d / "iadd/threads/1788000000-moved"
+            d / "agentory/threads/1788000000-old",
+            d / "agentory/threads/1788000000-moved",
         )
         monkeypatch.setattr(chain, "WORKTREE", True)
         assert chain.changed(str(d), "main")[1] == moved
@@ -531,37 +532,37 @@ class Test_changed:
         git's rename detection pairs. The check reads declarations, not file
         identity, so the deletion is seen."""
         d, old = two_declarations
-        git(d, "rm", "-q", "iadd/threads/1788000000-old/routing.md")
+        git(d, "rm", "-q", "agentory/threads/1788000000-old/routing.md")
         write(
             d,
-            "iadd/threads/1791999999-new/routing.md",
+            "agentory/threads/1791999999-new/routing.md",
             old.replace("feature/x", "feature/y"),
         )
         commit(d, "one leaves, one arrives")
         paths, renamed = chain.changed(str(d), "main")
         assert renamed == set()
         assert sorted(paths) == [
-            "iadd/threads/1788000000-old/routing.md",
-            "iadd/threads/1791999999-new/routing.md",
+            "agentory/threads/1788000000-old/routing.md",
+            "agentory/threads/1791999999-new/routing.md",
         ]
 
 
 class Test_changed_routing:
     def test_accepts_every_declaration_added_changed_or_deleted(self):
         paths = [
-            "iadd/threads/1/routing.md",
-            "iadd/threads/2/routing.md",
-            "iadd/threads/2/frame/design.md",
+            "agentory/threads/1/routing.md",
+            "agentory/threads/2/routing.md",
+            "agentory/threads/2/frame/design.md",
             "docs/routing.md",
         ]
-        assert chain.changed_routing(paths, set(), "iadd/threads") == [
-            "iadd/threads/1/routing.md",
-            "iadd/threads/2/routing.md",
+        assert chain.changed_routing(paths, set(), "agentory/threads") == [
+            "agentory/threads/1/routing.md",
+            "agentory/threads/2/routing.md",
         ]
 
     def test_refuses_a_declaration_the_pull_request_only_moved(self):
-        moved = {"iadd/threads/1/routing.md", "iadd/threads/3/routing.md"}
-        assert chain.changed_routing(sorted(moved), moved, "iadd/threads") == []
+        moved = {"agentory/threads/1/routing.md", "agentory/threads/3/routing.md"}
+        assert chain.changed_routing(sorted(moved), moved, "agentory/threads") == []
 
 
 # --- carried_by -------------------------------------------------------------------
@@ -628,7 +629,8 @@ class Test_carried_by:
         squash(root, "feature/x", "feat: a work item (#7), edited")
         assert chain.carried_by(str(root), "main", rel) is None
         assert (
-            chain.carried_by(str(root), "main", "iadd/threads/none/routing.md") is None
+            chain.carried_by(str(root), "main", "agentory/threads/none/routing.md")
+            is None
         )
 
 
@@ -908,17 +910,22 @@ class Test_record_findings:
         text = record(
             "abc1234",
             [
-                finding(1, "open", location="`iadd/threads/1-x/frame/design.md:3`")
+                finding(1, "open", location="`agentory/threads/1-x/frame/design.md:3`")
                 + "\n"
-                + close("fixed abc1234", location="`iadd/threads/1-x/frame/plan.md`")
+                + close(
+                    "fixed abc1234", location="`agentory/threads/1-x/frame/plan.md`"
+                )
             ],
         )
         found, errors = chain.record_findings(text, "r.md")
         assert errors == []
         assert [(f.located, f.paths) for f in found] == [
             (
-                ["iadd/threads/1-x/frame/design.md"],
-                ["iadd/threads/1-x/frame/design.md", "iadd/threads/1-x/frame/plan.md"],
+                ["agentory/threads/1-x/frame/design.md"],
+                [
+                    "agentory/threads/1-x/frame/design.md",
+                    "agentory/threads/1-x/frame/plan.md",
+                ],
             )
         ]
 
@@ -1531,7 +1538,7 @@ class Test_follows:
 
     def test_refuses_another_items_records_and_a_commit_off_the_branch(self, branch):
         root, code = branch
-        write(root, "iadd/threads/1791999998-another-item/routing.md", "x\n")
+        write(root, "agentory/threads/1791999998-another-item/routing.md", "x\n")
         later = commit(root, "another work item's file")
         assert chain.follows(str(root), code, "main", ITEM)[:2] == ("after", later)
         git(root, "switch", "-q", "main")
@@ -1855,7 +1862,7 @@ class Test_rule_changes_read:
         code, out = check(root, capsys)
         assert code == 0, out
         assert spec_lines(out) == [] and spec_lines(out, MERGED_ITEM) == [], out
-        own = "iadd/threads/1792000000-the-release"
+        own = "agentory/threads/1792000000-the-release"
         write(
             root,
             f"{own}/routing.md",
@@ -1974,7 +1981,10 @@ class Test_rule_changes_read:
         (`Test_changed` holds that reading of git); the one design the
         branch edits is the one the arm reads."""
         monkeypatch.setattr(chain, "carried_by", lambda *_args: None)
-        old, new = "iadd/threads/1788000001-old", "iadd/threads/1788000001-moved"
+        old, new = (
+            "agentory/threads/1788000001-old",
+            "agentory/threads/1788000001-moved",
+        )
         moved = {f"{old}/frame/design.md", f"{new}/frame/design.md"}
         paths = [
             *sorted(moved),
@@ -1982,7 +1992,7 @@ class Test_rule_changes_read:
             f"{MERGED_ITEM}/notes/frame/design.md",
             f"{ITEM}/frame/design.md",
         ]
-        edited = chain.edited_work_items(".", "main", paths, moved, "iadd/threads")
+        edited = chain.edited_work_items(".", "main", paths, moved, "agentory/threads")
         assert edited == [ITEM], edited
 
 
@@ -1991,7 +2001,7 @@ class Test_rule_changes_read:
 # The refusal's text around `rules.py`'s reason, pinned here so an edit to
 # `chain.CHECK_LINE_SAYS` meets a case.
 CHECK_LINE_SAYS = (
-    "`skills/settle/scripts/rules.py`, the reader `iadd rules --check` uses, "
+    "`skills/settle/scripts/rules.py`, the reader `agentic rules --check` uses, "
     "refuses this check line, which the settle writes into `{file}` as it "
     "stands: {why}"
 )
@@ -2505,8 +2515,8 @@ class Test_pins_and_copies_in:
 
 # --- the parity arm at the pull request (#988) -------------------------------------
 
-PARITY = "iadd/parity.json"
-routing_module = load(chain.ROUTING, "iadd_routing_for_chain_tests")
+PARITY = "agentory/parity.json"
+routing_module = load(chain.ROUTING, "agentic_routing_for_chain_tests")
 
 
 def with_original(text, said):
@@ -2536,7 +2546,7 @@ def originals_read(monkeypatch, root, originals, sha=BASELINE, paths=("f.txt",))
     found = chain.originals_of(
         routing_module,
         str(root),
-        "iadd",
+        "agentory",
         None if paths is None else list(paths),
         [ITEM],
     )
@@ -2548,7 +2558,7 @@ class Test_originals_of:
     def test_refuses_a_record_with_no_original_line_on_a_ready_pull_request(
         self, branch, ready, capsys, monkeypatch
     ):
-        """S4: in a repository declaring `iadd/parity.json`, a chain-declared
+        """S4: in a repository declaring `agentory/parity.json`, a chain-declared
         pull request changing code fails while a round record holds no
         `original:` line, each record named with the baseline it owes, and a
         draft prints the same lines and exits 0. The branch commits the
@@ -2606,7 +2616,7 @@ class Test_originals_of:
         self, _branch_template, monkeypatch
     ):
         """S10: the template's placeholder is refused naming
-        `iadd/parity.json`, and no record is compared with nothing."""
+        `agentory/parity.json`, and no record is compared with nothing."""
         root, _code = _branch_template
         found, _texts = originals_read(monkeypatch, root, (BASELINE, BASELINE), None)
         ((path, line, why),) = found
@@ -2616,7 +2626,7 @@ class Test_originals_of:
     def test_accepts_a_change_confined_to_the_document_roots(
         self, _branch_template, monkeypatch
     ):
-        """S7 and S11: a change confined to `docs/` and `iadd/` owes no line,
+        """S7 and S11: a change confined to `docs/` and `agentory/` owes no line,
         one path outside them owes it, and paths git could not list owe it
         too, as `lib/gate.py#touches_code` reads them."""
         root, _code = _branch_template
@@ -2733,7 +2743,7 @@ class Test_originals_of:
     def test_a_direct_inspection_owes_nothing_for_the_document_roots_alone(
         self, _item_template, monkeypatch
     ):
-        """S12: a change confined to `docs/` and `iadd/` has no original to
+        """S12: a change confined to `docs/` and `agentory/` has no original to
         compare with, and a repository declaring no migration owes nothing."""
         root, audited = _item_template
         inside = ["docs/a.md", f"{ITEM}/routing.md", f"{ITEM}/inspection.md"]
@@ -2823,7 +2833,7 @@ class Test_parity_readers:
             "m = importlib.util.module_from_spec(s)\n"
             "s.loader.exec_module(m)\n"
             "config, gate = m.parity_readers()\n"
-            "print(gate.touches_code(['f.txt'], 'iadd'), config.BASELINE_KEY)\n"
+            "print(gate.touches_code(['f.txt'], 'agentory'), config.BASELINE_KEY)\n"
         )
         done = subprocess.run(
             [sys.executable, "-I", "-c", code],
@@ -2942,7 +2952,7 @@ def direct_originals(
         config = parity_file(BASELINE)
     reading(monkeypatch, {PARITY: config, f"{ITEM}/inspection.md": text})
     return chain.originals_of(
-        routing_module, str(root), "iadd", list(paths), [], [ITEM]
+        routing_module, str(root), "agentory", list(paths), [], [ITEM]
     )
 
 
@@ -3295,7 +3305,7 @@ class Test_broad_gate:
     def test_accepts_the_last_run_block_as_the_newest(
         self, _item_template, monkeypatch
     ):
-        """#1198, *Scope* item 2: `iadd gate --record` appends a block per
+        """#1198, *Scope* item 2: `agentic gate --record` appends a block per
         run, so the last block is the newest run, and an earlier block naming
         a commit nobody can see decides nothing; the same blocks the other
         way round are a stale run. Seen red against the reader that took the
@@ -3358,7 +3368,7 @@ class Test_broad_gate:
         assert gate_read(monkeypatch, root, text) == [(rel, 0, chain.NO_RUN_BLOCK)]
         # The command the refusal names, which the orchestrator runs to append
         # a run block.
-        assert "`iadd gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
+        assert "`agentic gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
         assert "since #1198" in chain.NO_RUN_BLOCK
 
     def test_refuses_a_run_block_that_does_not_parse_at_its_line(
@@ -3396,11 +3406,11 @@ PR_BODY = load(
     str(ROOT / "skills" / "code-review" / "scripts" / "pr_body.py"),
     "pr_body_for_chain_tests",
 )
-# The inspection mark both `iadd pr-body` and the arm build from the plugin's
+# The inspection mark both `agentic pr-body` and the arm build from the plugin's
 # manifest, the one beside `pr_body.py`.
 MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
-SECOND_ITEM = "iadd/threads/1791999998-another-work-item"
+SECOND_ITEM = "agentory/threads/1791999998-another-work-item"
 # #1453: the two language keys of `config.json` the body's first part is
 # composed from; a case adds the mark key after them.
 LANGUAGES = [
@@ -3411,7 +3421,7 @@ MARK_ON = ("Pull request inspection mark", "yes")
 
 
 def composed_body(root, item=ITEM):
-    """The body `iadd pr-body` writes for ITEM in ROOT as it stands: the
+    """The body `agentic pr-body` writes for ITEM in ROOT as it stands: the
     first part the language keys ask for, the heading, the mark where the
     item is cleared at HEAD, and the copy."""
     path = str(root / item)
@@ -3444,14 +3454,14 @@ def _bodied_template(tmp_path_factory):
     """A branch that went straight to the pull request with a `pr.md` and a
     changelog, in a shared root whose two language keys read `English` and
     whose `Pull request inspection mark` key reads `yes`, cleared at HEAD, built
-    once for the module. Returns `(root, early, late)`: the body `iadd
+    once for the module. Returns `(root, early, late)`: the body `agentic
     pr-body` wrote before the inspection was committed, and the one it wrote
     after."""
     d = tmp_path_factory.mktemp("chain-bodied") / "b"
     born(d, "feature/g")
     work = {
-        "iadd/README.md": conftest.ROOT_MARKER + "\n",
-        "iadd/config.json": config_json(*LANGUAGES, MARK_ON),
+        "agentory/README.md": conftest.ROOT_MARKER + "\n",
+        "agentory/config.json": config_json(*LANGUAGES, MARK_ON),
         f"{ITEM}/routing.md": CLEARED_ROUTING,
         f"{ITEM}/pr.md": "Closes #1.\n",
         f"{ITEM}/changelog.md": CHANGED_LINE + "\n",
@@ -3507,7 +3517,7 @@ def body_read(monkeypatch, root, text, why=None, items=(ITEM,), texts=None):
 
 
 # #1559: a `gaps.md` whose `## Not verified` table passes GitHub's limit on
-# a pull request body, so `iadd pr-body` folds that section.
+# a pull request body, so `agentic pr-body` folds that section.
 LONG_GAPS = (
     "# Closing memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
     + "".join(f"| item {n} {'x' * 90} | the orchestrator |\n" for n in range(700))
@@ -3520,7 +3530,7 @@ class Test_body:
     def test_refuses_a_body_sent_before_the_inspection_at_the_mark(
         self, _bodied_template, tmp_path, monkeypatch, capsys
     ):
-        """S1. The body `iadd pr-body` wrote before the inspection was
+        """S1. The body `agentic pr-body` wrote before the inspection was
         committed lacks the mark and the blank line under it, and a ready
         pull request fails on one refusal naming both at the body's line,
         on the work item's directory. Nothing else is refused. Seen red with
@@ -3552,7 +3562,7 @@ class Test_body:
         inspection's base as a SHA, and CI checks out the pull request's
         merge commit, which reaches a commit another pull request landed on
         the base after the inspection. The mark is read against the base the check
-        runs against, as the inspection arm reads it, so the body `iadd
+        runs against, as the inspection arm reads it, so the body `agentic
         pr-body` wrote at the branch head passes. Seen red with `body`
         calling `compared` with no base, where the composition held no mark
         and the body's mark run was refused."""
@@ -3595,10 +3605,10 @@ class Test_body:
         """S6. Where the row is absent or reads other than `yes`, the
         composition holds no mark, so a body carrying one is refused at the
         mark's run as lines the records do not give, and a row other than
-        `yes` is named on a notice in `iadd pr-body`'s words. The key is
+        `yes` is named on a notice in `agentic pr-body`'s words. The key is
         changed in the copy's working tree, which `compared` reads."""
         root, _early, _late = bodied
-        write(root, "iadd/config.json", config_json(*LANGUAGES, *row))
+        write(root, "agentory/config.json", config_json(*LANGUAGES, *row))
         plain = composed_body(root)
         heading = f"{PR_BODY.HEADING}\n\n"
         assert MARK not in plain
@@ -3614,7 +3624,7 @@ class Test_body:
         assert body_read(monkeypatch, root, plain) == ([], notice)
 
     def test_accepts_a_folded_body_naming_the_fold(self, bodied, monkeypatch):
-        """S7 of #1559. A body that is the composition `iadd pr-body`
+        """S7 of #1559. A body that is the composition `agentic pr-body`
         folded, its `## Not verified` section past GitHub's limit, is
         refused nothing, and the arm names the fold's sentence as a notice;
         the same records composed with no fold are refused. The long
@@ -3713,7 +3723,7 @@ class Test_body:
     def test_names_the_body_as_not_read_with_no_payload(
         self, _bodied_template, monkeypatch
     ):
-        """S5, a run outside CI, which `iadd gate` under `--inspecting` shares:
+        """S5, a run outside CI, which `agentic gate` under `--inspecting` shares:
         `pull_request_body` reads no payload, the same under either flag.
         Seen red with the arm absent."""
         root, _early, _late = _bodied_template
@@ -3823,7 +3833,7 @@ class Test_body:
     ):
         """A5 of #1612. A ready pull request whose work item's `pr.md`
         quotes words its `changelog.md` does not hold is refused at
-        `pr.md`'s line, with the cause `iadd pr-body` gives, since the arm
+        `pr.md`'s line, with the cause `agentic pr-body` gives, since the arm
         reads the body through `compared`. Seen red against `first_part` as
         0.38.8 shipped it, where the arm named the body's first line
         and not the quote."""
@@ -3847,17 +3857,17 @@ class Test_body:
     def test_refuses_a_repository_without_a_language_row_at_its_config(
         self, bodied, monkeypatch
     ):
-        """#1453, *Scope* item 3: `iadd pr-body` composes no body for a
+        """#1453, *Scope* item 3: `agentic pr-body` composes no body for a
         repository whose `config.json` lacks a language key, so the arm,
         which reads the body through the same function, refuses at the
         root's `config.json`, as it refuses a record `compared` places at a
         path. Seen red with `compared` reading `pr.md` alone, where no line
         named the config."""
         root, _early, late = bodied
-        write(root, "iadd/config.json", config_json(LANGUAGES[0], MARK_ON))
+        write(root, "agentory/config.json", config_json(LANGUAGES[0], MARK_ON))
         problems, _notices = body_read(monkeypatch, root, late)
         assert (
-            "iadd/config.json",
+            "agentory/config.json",
             0,
             "names no language in a `Record language` key; "
             "`templates/setup/config.md` *Record language* says what the key "
@@ -3866,19 +3876,19 @@ class Test_body:
 
     def test_reads_the_translation_as_the_bodys_first_lines(self, bodied, monkeypatch):
         """#1453, *Scope* item 3, the scenario *The pull request's arm passes
-        the composed body*. Where the keys differ, the body `iadd pr-body`
+        the composed body*. Where the keys differ, the body `agentic pr-body`
         composes opens with the work item's `pr.<lang>.md`, and the arm
         passes it; a body whose first part is `pr.md` alone is refused at its
         first line, naming the translation. Seen red with `compared` reading
         `pr.md` alone, where the composed body was refused at its first
         line. The lines are compared without their ends and the translation
         is taken out as the first line the body holds, because `write` ends
-        each line with CRLF on Windows and `iadd pr-body` copies the files'
+        each line with CRLF on Windows and `agentic pr-body` copies the files'
         line ends as they stand."""
         root, _early, _late = bodied
         write(
             root,
-            "iadd/config.json",
+            "agentory/config.json",
             config_json((LANGUAGES[0][0], "Korean"), *LANGUAGES[1:], MARK_ON),
         )
         write(root, f"{ITEM}/pr.ko.md", "닫는다 #1.\n")
@@ -3934,7 +3944,9 @@ def common_dir(where):
 
 def local_item(repo, item=ITEM_ID, branch="feature"):
     """A work item under the LOCAL root, with a declaration naming `branch`."""
-    d = os.path.join(mark_root(os.path.join(common_dir(repo), "iadd")), "threads", item)
+    d = os.path.join(
+        mark_root(os.path.join(common_dir(repo), "agentory")), "threads", item
+    )
     os.makedirs(os.path.join(d, "trail", "rounds"), exist_ok=True)
     with open(os.path.join(d, "routing.md"), "w", encoding="utf-8") as f:
         f.write(
@@ -3957,9 +3969,9 @@ def run_check(repo, capsys, monkeypatch):
     return code, out + err
 
 
-ADD_THE_FILE = "Add iadd/threads/<work-item>/routing.md to declare"
+ADD_THE_FILE = "Add agentory/threads/<work-item>/routing.md to declare"
 # The directory of the work items `main` passes, under `lib/optin.py#HOME`.
-WORK = "iadd/threads"
+WORK = "agentory/threads"
 # A shared-mode declaration naming the `repo` fixture's branch.
 DECLARES_FEATURE = ROUTING.format(
     review="through the review chain", planning="the session"
@@ -4051,8 +4063,8 @@ class Test_declared_for_this_branch:
         assert code == 0, out
         assert ADD_THE_FILE not in out, out
         assert "local mode" in out, out
-        assert os.path.normpath(os.path.join(common_dir(repo), "iadd")) in out, out
-        assert "iadd mode shared" in out, out
+        assert os.path.normpath(os.path.join(common_dir(repo), "agentory")) in out, out
+        assert "agentic mode shared" in out, out
 
     def test_local_mode_says_the_check_judged_nothing(self, repo):
         """Naming the root does not turn an untracked declaration into a checked
@@ -4076,17 +4088,17 @@ class Test_declared_for_this_branch:
         The prefix and the branch are what make the sentence checkable, and
         the trailers are what the check judged where nothing declares the
         branch."""
-        (repo / "iadd" / "threads").mkdir(parents=True)
+        (repo / "agentory" / "threads").mkdir(parents=True)
         own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert ADD_THE_FILE in why and "local mode" not in why, why
-        assert "under `iadd/threads/`" in why, why
+        assert "under `agentory/threads/`" in why, why
         assert "declares `feature`" in why, why
         assert "judged the commit trailers and nothing else" in why, why
         assert "examined nothing" not in why, why
 
     def test_a_repository_with_no_root_is_told_to_add_the_file(self, repo, monkeypatch):
-        """With no root to name, the file to write under `iadd/threads/` is
+        """With no root to name, the file to write under `agentory/threads/` is
         the answer. The working tree is read, as `main` reads it under
         `--worktree`."""
         monkeypatch.setattr(chain, "WORKTREE", True)
@@ -4098,18 +4110,18 @@ class Test_declared_for_this_branch:
         "decoy",
         [
             "specs/1799000002-a-team-item/routing.md",
-            "iadd/threads/1799000001-an-item/notes.md",
+            "agentory/threads/1799000001-an-item/notes.md",
         ],
         ids=["a-routing-md-outside-the-work-items", "another-file-of-a-work-item"],
     )
     def test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy(
         self, repo, decoy
     ):
-        """Guards c3 and c4 of #1017: only a `routing.md` under `iadd/threads/`
+        """Guards c3 and c4 of #1017: only a `routing.md` under `agentory/threads/`
         is a declaration. A team's own `specs/` holding one, or a work item's
         other file holding a declaration's text, leaves the branch one
         declaration, which is taken."""
-        declared = "iadd/threads/1799000001-an-item/routing.md"
+        declared = "agentory/threads/1799000001-an-item/routing.md"
         write(repo, declared, DECLARES_FEATURE)
         write(repo, decoy, DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration and a decoy")
@@ -4123,7 +4135,9 @@ class Test_declared_for_this_branch:
         are not one answer, so neither is taken."""
         for n in (1, 2):
             write(
-                repo, f"iadd/threads/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
+                repo,
+                f"agentory/threads/179900000{n}-item-{n}/routing.md",
+                DECLARES_FEATURE,
             )
         commit_everything_as_e(repo, "two declarations")
         own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
@@ -4135,7 +4149,7 @@ class Test_declared_for_this_branch:
         names no branch, so no declaration is matched, even at a commit that
         declares the branch it left, and the why says the branch could not be
         read rather than that nothing declared it."""
-        write(repo, "iadd/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
+        write(repo, "agentory/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration")
         git(repo, "switch", "-q", "--detach")
         own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
@@ -4295,7 +4309,7 @@ class Test_routing_trailers:
         root = undeclared
         os.makedirs(
             os.path.join(
-                mark_root(os.path.join(root, ".git", "iadd")), "threads", ROUTED
+                mark_root(os.path.join(root, ".git", "agentory")), "threads", ROUTED
             )
         )
         write(root, "a.txt", "a\n")
@@ -4392,7 +4406,7 @@ class Test_main:
         """#1603, design S1. On a ready pull request, every reader real,
         a run starts no git command twice with the same input: over
         `branch`, whose round records the records arm and `unread` each
-        read, and over `bodied` with the body `iadd pr-body` wrote after
+        read, and over `bodied` with the body `agentic pr-body` wrote after
         the inspection in its payload, whose inspection's target the inspection arm
         and the body arm each ask `follows` of. Seen red against
         `chain_check.py` before #1603, where the round records' `show` and
@@ -4709,19 +4723,19 @@ class Test_main:
 
     @pytest.mark.rule("last-record-at-head")
     def test_refuses_a_follow_up_row_after_the_last_record(self, branch, monkeypatch):
-        """#1630, *Scope* item 3: `iadd/follow-up.md` stands outside the work
+        """#1630, *Scope* item 3: `agentory/follow-up.md` stands outside the work
         item's records, so a commit after the last record that adds a row to
         it alone is refused, naming the commit, the path and the verifying
         round owed. The drain commits such a row before the round that reads
         it (`skills/implement/orchestration.md` *Orchestrator: drain the rows
         before the broad run, and keep the records*)."""
         root, _code = branch
-        write(root, "iadd/follow-up.md", "# Follow-up\n\n| a row | a person |\n")
+        write(root, "agentory/follow-up.md", "# Follow-up\n\n| a row | a person |\n")
         later = commit(root, "a follow-up row after the last round")
         said = [why for _rel, _line, why in records_read(monkeypatch, root)]
         assert any(
             later[:8] in why
-            and "`iadd/follow-up.md`" in why
+            and "`agentory/follow-up.md`" in why
             and chain.VERIFYING_ROUND in why
             for why in said
         ), said
@@ -4978,7 +4992,7 @@ class Test_main:
 
 # --- retired ------------------------------------------------------------------------
 
-OLD_ITEM = "iadd/threads/1788000000-an-earlier-item"
+OLD_ITEM = "agentory/threads/1788000000-an-earlier-item"
 
 
 def remove_an_earlier_item(root, applied, whole=True, open_row=False):
@@ -5103,28 +5117,28 @@ class Test_retired:
     def test_accepts_every_declaration_leaving_with_the_root(
         self, branch, ready, capsys, monkeypatch
     ):
-        """Round 1 of #952, finding 1: the pull request that takes `iadd/`
+        """Round 1 of #952, finding 1: the pull request that takes `agentory/`
         out of the tree deletes every declaration with it, and with no
-        `iadd` at HEAD nothing is declared. Where git cannot say whether HEAD
+        `agentory` at HEAD nothing is declared. Where git cannot say whether HEAD
         has it, the declarations stay judged, and since #1033 each one whose
         directory stood at the merge base and is gone whole reads as a
         settle."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
-        git(root, "rm", "-rq", "iadd")
+        git(root, "rm", "-rq", "agentory")
         commit(root, "the root leaves the tree")
         answered(monkeypatch)
         code, out = check(root, capsys)
         assert code == 0, out
         assert (
-            "the tree the check reads has no top-level `iadd` entry, so nothing "
+            "the tree the check reads has no top-level `agentory` entry, so nothing "
             "is declared: the routing declarations this pull request deletes "
             "left the tree with the root, and the review-chain check judged the "
             "commit trailers and nothing else"
         ) in out
         assert "does not carry this file at HEAD" not in out
         real = chain.git
-        unanswered = ("ls-tree", "HEAD", "--", "iadd")
+        unanswered = ("ls-tree", "HEAD", "--", "agentory")
         monkeypatch.setattr(
             chain, "git", lambda r, *a: None if a == unanswered else real(r, *a)
         )
@@ -5135,20 +5149,20 @@ class Test_retired:
     def test_a_root_that_left_for_a_local_root_says_the_check_judged_nothing(
         self, branch, ready, capsys, monkeypatch
     ):
-        """The same pull request, read by the session that ran `iadd mode
+        """The same pull request, read by the session that ran `agentic mode
         local`: the root now stands under the common git directory, where
         each trailer is printed, not judged, so the notice says the check
         judged nothing."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
-        git(root, "rm", "-rq", "iadd")
+        git(root, "rm", "-rq", "agentory")
         commit(root, "the root leaves the tree")
-        mark_root(os.path.join(common_dir(root), "iadd"))
+        mark_root(os.path.join(common_dir(root), "agentory"))
         answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
         assert (
-            "the tree the check reads has no top-level `iadd` entry, so nothing "
+            "the tree the check reads has no top-level `agentory` entry, so nothing "
             "is declared: the routing declarations this pull request deletes "
             "left the tree with the root, and the review-chain check judged "
             "nothing: at a local root each commit's `IADD-Routing` trailer is "
@@ -5161,12 +5175,12 @@ class Test_retired:
         self, branch, ready, capsys, tmp_path, monkeypatch
     ):
         """Round 3 of #952, finding 2: a switch to local mode, run and not
-        committed, leaves no `iadd` in the working tree, so under `--worktree`
+        committed, leaves no `agentory` in the working tree, so under `--worktree`
         nothing is declared, as CI reads the same change once it is committed."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
-        shutil.move(str(root / "iadd"), str(tmp_path / "moved-iadd"))
-        git(root, "add", "-A", "iadd")
+        shutil.move(str(root / "agentory"), str(tmp_path / "moved-agentory"))
+        git(root, "add", "-A", "agentory")
         answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
@@ -5182,7 +5196,7 @@ class Test_retired:
         reads is the working tree, so a root it holds and HEAD does not is a
         root, and the declaration naming the branch in it is judged."""
         root, _code = branch
-        git(root, "rm", "-rq", "--cached", "iadd")
+        git(root, "rm", "-rq", "--cached", "agentory")
         git(root, "commit", "-qm", "the root leaves HEAD and stays on disk")
         answered(monkeypatch, real=("follows",))
         code, out = check(root, capsys, "--worktree")
@@ -5191,15 +5205,15 @@ class Test_retired:
             code == 1 and f"{ITEM}/inspection.md:0  the inspection has lapsed: " in out
         )
 
-    def test_judges_the_declarations_where_the_working_tree_has_iadd_as_a_file(
+    def test_judges_the_declarations_where_the_working_tree_has_agentory_as_a_file(
         self, branch, ready, capsys, monkeypatch
     ):
-        """Round 2 of #952, finding 3: an `iadd` that is not a directory is
+        """Round 2 of #952, finding 3: an `agentory` that is not a directory is
         still an entry, so under `--worktree` the declarations it replaced
         stay judged."""
         root, _code = branch
-        shutil.rmtree(root / "iadd")
-        write(root, "iadd", "not a root\n")
+        shutil.rmtree(root / "agentory")
+        write(root, "agentory", "not a root\n")
         answered(monkeypatch)
         code, out = check(root, capsys, "--worktree")
         assert "so nothing is declared" not in out, out
@@ -5363,7 +5377,7 @@ class Test_policy_root:
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "iadd/config.json",
+            "agentory/config.json",
             config_json(("Policy root", "rules")),
         )
         assert chain.policy_root(str(d)) == "rules"

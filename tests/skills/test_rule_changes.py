@@ -22,7 +22,7 @@ TARGET = "skills/settle/scripts/rule_changes.py"
 
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "iadd_rule_changes",
+    "agentic_rule_changes",
 )
 
 
@@ -861,7 +861,7 @@ class Test_copies:
         texts = {
             "docs/a.md": f"Here {run_of(WINDOW)} stands.\n",
             "skills/b/SKILL.md": f"Its own words, then {run_of(WINDOW + 1)} and on.\n",
-            "iadd/x.md": f"{run_of(WINDOW + 1)} and on\n",
+            "agentory/x.md": f"{run_of(WINDOW + 1)} and on\n",
         }
         o = one_op("change", "S", "old words.", f"New {run_of(WINDOW + 1)} rule.")
         assert rules.copies(o, texts) == [

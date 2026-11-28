@@ -26,7 +26,9 @@ RULE = "rule-proofer-one-finding"
 
 # The two ways an inspector case's scaffold leaves a file: a heredoc writes it,
 # and a `sed` fills a placeholder of a file already written.
-WRITTEN = re.compile(r"^cat > '([^']+)' <<'IADD_EOF'\n(.*?)\nIADD_EOF$", re.M | re.S)
+WRITTEN = re.compile(
+    r"^cat > '([^']+)' <<'AGENTIC_EOF'\n(.*?)\nAGENTIC_EOF$", re.M | re.S
+)
 FILLED = re.compile(
     r"^sed \"([^\"]+)\" '([^']+)' > record\.tmp && mv record\.tmp '\2'$", re.M
 )
@@ -88,9 +90,9 @@ class Test_main:
     ):
         """Guards #1044 S14 and #1148 S6: each inspector case's pull request
         body, its placeholders filled as its scaffold fills its records, is
-        what `iadd pr-body --check` accepts over the records that scaffold
+        what `agentic pr-body --check` accepts over the records that scaffold
         writes, its `pr.md` among them, in a repository holding the
-        scaffold's `iadd/` root, whose `config.json` gives the language keys
+        scaffold's `agentory/` root, whose `config.json` gives the language keys
         the first part is composed from (#1453); the part above `HEADING`
         ends with `Closes #101.` and holds the README sentence the tree
         lacks in the untrue-body case alone."""
@@ -98,14 +100,14 @@ class Test_main:
         assert inspector
         for name, case in inspector:
             files = scaffold_files(case["scaffold"])
-            folder = next(p for p in files if p.startswith("iadd/threads/"))
+            folder = next(p for p in files if p.startswith("agentory/threads/"))
             folder = "/".join(folder.split("/")[:3])
             work_item = folder.split("/")[-1]
             body = files[RC.EVIDENCE.format(item=work_item) + "/pr-body.md"]
             subprocess.run(["git", "init", "-q", str(tmp_path / name)], check=True)
             item = tmp_path / name / folder
             for path, text in files.items():
-                if path.startswith("iadd/"):
+                if path.startswith("agentory/"):
                     record = tmp_path / name / path
                     record.parent.mkdir(parents=True, exist_ok=True)
                     record.write_text(text, encoding="utf-8")

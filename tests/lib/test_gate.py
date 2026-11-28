@@ -23,19 +23,23 @@ class Test_touches_code:
     def test_accepts_a_path_outside_the_document_roots_or_no_list_as_code(self, paths):
         """A change git could not list is not one confined to the roots
         (#868), and a root is matched with its slash."""
-        assert gate.touches_code(paths, "iadd") is True
+        assert gate.touches_code(paths, "agentory") is True
 
     @pytest.mark.parametrize(
         "paths",
-        [[], ["docs/a.md"], ["iadd/threads/x/trail/rounds/round-1.md", "docs/b.md"]],
+        [
+            [],
+            ["docs/a.md"],
+            ["agentory/threads/x/trail/rounds/round-1.md", "docs/b.md"],
+        ],
     )
-    def test_refuses_a_change_confined_to_docs_and_iadd_as_code(self, paths):
-        assert gate.touches_code(paths, "iadd") is False
+    def test_refuses_a_change_confined_to_docs_and_agentory_as_code(self, paths):
+        assert gate.touches_code(paths, "agentory") is False
 
     @pytest.mark.parametrize(
         "home, paths, code",
         [
-            ("", ["iadd/threads/x/routing.md"], True),
+            ("", ["agentory/threads/x/routing.md"], True),
             ("", ["docs/a.md"], False),
         ],
         ids=["no root", "no root, docs"],

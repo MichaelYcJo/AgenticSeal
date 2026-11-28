@@ -16,7 +16,7 @@ needs both, or the people already running the plugin are never told of it.
    what `claude plugin update` installs from the marketplace clone.
 2. **A `vX.Y.Z` git tag on the release commit**, which
    `.github/workflows/publish-release.yml` creates when the release reaches
-   `main`. `/iadd:update` reads the GitHub Releases, each published at
+   `main`. `/agentic:update` reads the GitHub Releases, each published at
    its tag (`skills/update/SKILL.md` step 3), so an untagged release carries
    no note there, and a user who updates is told nothing of what it brings.
 
@@ -108,7 +108,7 @@ hand fires the publish workflow too.
   and every other value is blue. A badge's alt text is that label and value
   in words. So a reader whose client draws no image, or who opens the note
   while the service does not answer, still has every result. Where
-  `iadd/config.json`'s `Release note inspection mark` key reads `yes` at the tag,
+  `agentory/config.json`'s `Release note inspection mark` key reads `yes` at the tag,
   the job first attaches the page form of the stamp's mark, the PNG that
   `.claude-plugin/plugin.json` names as its `icon`, as `mark.png`, and the
   header opens with that image at its display width, floated left so that
@@ -179,7 +179,7 @@ nothing here to see it. `.github/` leaves whole, by one line: it holds this
 repository's workflows and the release automation they run, and no file
 `dist` holds loads one of them. A module a shipped file loads stands under a
 directory `dist` holds, so a change to it alone moves the version: the
-closing-keyword readers are `lib/closing.py`, and `iadd rules` runs
+closing-keyword readers are `lib/closing.py`, and `agentic rules` runs
 `skills/settle/scripts/rules.py`. `bin/test` runs `tests/run_tests.py`, the
 runner of this repository's suite, which leaves with `tests/`, so the
 `bin/test` that `dist` holds answers with its sentence that no runner stands
@@ -322,7 +322,7 @@ them.
   carries them is open, and no step fetches a ref the checkout lacks. The
   checks ship to user repositories as `templates/setup/hygiene.yml`, run from a
   clone of this repository at the release installed when
-  `iadd pr-checks install` wrote the file, at first setup or later; it
+  `agentic pr-checks install` wrote the file, at first setup or later; it
   refuses in local mode, because the checks read committed files and local
   mode commits none.
 
@@ -335,7 +335,7 @@ them.
   rather than by anybody's hand; the paragraphs below say how, and what a
   feature pull request writes so it has something to read.
 - Feature pull requests write their entry to
-  `iadd/threads/<work-item-id>/changelog.md` and leave `plugin.json` alone,
+  `agentory/threads/<work-item-id>/changelog.md` and leave `plugin.json` alone,
   except the release's first, which moves it. The hygiene workflow asks for
   the moved version only when the base is `main`, where it holds a release
   whose first pull request did not move it.
@@ -349,7 +349,7 @@ previous version tag does not already hold, and writes each under a link to
 the pull request that added it. The commit of the range that adds a fragment
 is its pull request's squash commit, whose subject ends with `(#N)`, so the
 number is read once, at the tag, from the history. The pull request's body
-holds the records' text (`iadd pr-body`), so one click leads from an entry to
+holds the records' text (`agentic pr-body`), so one click leads from an entry to
 the reasons behind it. A fragment whose adding commit names no pull request is
 written with no link. `DRY_RUN=1` prints the note and writes nothing.
 check: tests/github/test_publish_release_note.py

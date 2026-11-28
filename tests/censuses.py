@@ -986,7 +986,7 @@ def floor_syntax(rel, root=None):
 SIGN = "\N{SECTION SIGN}"
 # The records of a moment keep what they said when they were written, and
 # `evals/behaviour/`'s cases are generated from records.
-RECORDS = ("iadd/threads/", "evals/behaviour/")
+RECORDS = ("agentory/threads/", "evals/behaviour/")
 
 
 def section_sign(rel, root=None):
@@ -1147,7 +1147,7 @@ COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
 # The records of a moment, which keep the paths they were written under. A
 # thread is read against the commits it names until the settle after its
 # release removes it.
-THREAD_RECORDS = ("iadd/threads/",)
+THREAD_RECORDS = ("agentory/threads/",)
 # A replayed or seeded eval case holds a run at a recorded commit, so its
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
@@ -1331,7 +1331,7 @@ def slash_in_join(rel, root=None):
 # f-string's first line.
 #
 # What the walk cannot see, and passes: a name built from other strings, and
-# a name a pattern spells after another character, such as `^iadd/`.
+# a name a pattern spells after another character, such as `^agentory/`.
 
 ROOT_NAME_HOME = "lib/optin.py"
 ROOT_NAME_SKIPPED = ("tests/", "evals/")
@@ -1345,7 +1345,7 @@ def _root_names():
     if not _names_read:
         here = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(here, *ROOT_NAME_HOME.split("/"))
-        spec = importlib.util.spec_from_file_location("iadd_optin_for_census", path)
+        spec = importlib.util.spec_from_file_location("agentic_optin_for_census", path)
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)
         _names_read.append(optin.HOME)

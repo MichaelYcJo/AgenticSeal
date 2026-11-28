@@ -2,7 +2,7 @@
 """Generate the fixture cases: a fixture repository per case, graded on
 outcome only.
 
-Each case is a small stdlib Python project opted into IADD (`iadd/`
+Each case is a small stdlib Python project opted into IADD (`agentory/`
 with its marker and a routing declaration), built by its scaffold, and a session that
 spawns one agent through the `Agent` tool the way production does. The
 graders read files and tool calls, never a judge, and each one asks
@@ -15,7 +15,7 @@ whether a sentence of today's definition was followed:
   crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
-           `iadd mutate` run, and the phase record naming that case
+           `agentic mutate` run, and the phase record naming that case
   framer   six issues to frame, each handed whole with a line naming its
            comments: the three documents with the mark and a Phases table
            carrying `Verified by`, nothing written outside the work item;
@@ -61,7 +61,7 @@ optin = sibling.load("lib/optin.py")
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
 
-# `iadd pr-body`'s module: its `compose` writes the part of an inspector case's
+# `agentic pr-body`'s module: its `compose` writes the part of an inspector case's
 # pull request body that the case's records hold.
 pr_body = sibling.load("skills/code-review/scripts/pr_body.py")
 
@@ -108,7 +108,7 @@ CONFIG = """{
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 """
-# An inspector case's config: the two language keys `iadd pr-body` refuses a
+# An inspector case's config: the two language keys `agentic pr-body` refuses a
 # body without (#1453), naming one language, so the body's first part is
 # the case's `pr.md` alone.
 INSPECTOR_CONFIG = """{
@@ -169,7 +169,7 @@ def routing(item, branch, planning, implementation):
 
 def write(path, text):
     """A scaffold line that writes TEXT to PATH, its directory made first."""
-    delimiter = "IADD_EOF"
+    delimiter = "AGENTIC_EOF"
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
     return f"mkdir -p \"$(dirname '{path}')\"\ncat > '{path}' <<'{delimiter}'\n{text.rstrip()}\n{delimiter}"
@@ -195,10 +195,10 @@ def base_project(item, branch, planning, implementation, extra_files=None):
         ),
         "README.md": "# textutil\n\nSmall text helpers.\n",
         "CONTRIBUTING.md": CONTRIBUTING,
-        # The marker is what makes `iadd/` the plugin's root to every gate.
-        "iadd/README.md": optin.MARKER + "\n",
-        "iadd/config.json": CONFIG,
-        f"iadd/threads/{item}/routing.md": routing(
+        # The marker is what makes `agentory/` the plugin's root to every gate.
+        "agentory/README.md": optin.MARKER + "\n",
+        "agentory/config.json": CONFIG,
+        f"agentory/threads/{item}/routing.md": routing(
             item, branch, planning, implementation
         ),
         **(extra_files or {}),
@@ -215,7 +215,7 @@ def base_project(item, branch, planning, implementation, extra_files=None):
 
 def orchestrate(agent, spawn, then):
     """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
-    return f"""You are the orchestrator of this repository. Spawn exactly one `iadd:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
+    return f"""You are the orchestrator of this repository. Spawn exactly one `agentic:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
 
@@ -276,9 +276,9 @@ def proofer_case():
 """
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"iadd/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
         write(
-            f"iadd/threads/{item}/frame/plan.md",
+            f"agentory/threads/{item}/frame/plan.md",
             one_phase_plan("shout_twice", "`shout_twice(text)` in `src/textutil.py`"),
         ),
         "git add -A",
@@ -292,7 +292,7 @@ def proofer_case():
         "git add -A",
         f"{BY} 'feat: shout_twice'",
     ]
-    report = f"iadd/threads/{item}/trail/rounds/round-1.md"
+    report = f"agentory/threads/{item}/trail/rounds/round-1.md"
     spawn = (
         f"Review round 1 of work item `{item}`. The clone is the current directory, on branch "
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
@@ -376,8 +376,8 @@ def crafter_case(index, slug, signature, rule, example):
     plan = one_phase_plan(name, f"`{signature}` in `src/textutil.py` and its case")
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"iadd/threads/{item}/frame/design.md", spec + MARK),
-        write(f"iadd/threads/{item}/frame/plan.md", plan),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"{BY} 'frame: {name}'",
     ]
@@ -423,7 +423,7 @@ def crafter_closing(item):
             "phase-record",
             "The phase closes with its `trail/phases/phase-1.md`, which the next phase reads.",
             type="file_exists",
-            path=f"iadd/threads/{item}/trail/phases/phase-1.md",
+            path=f"agentory/threads/{item}/trail/phases/phase-1.md",
         ),
         shape_tool(
             "committed",
@@ -460,7 +460,7 @@ RENAMED = {
 def crafter_rename_case():
     """One one-phase rename of `shout` to `exclaim`, which adds no behaviour:
     the case `tests/test_textutil.py` already holds proves it at the new name,
-    so the phase writes no case new and runs no `iadd mutate`."""
+    so the phase writes no case new and runs no `agentic mutate`."""
     item, branch = RENAME_ITEM, "refactor/exclaim"
     spec = """# Design: shout is renamed exclaim
 
@@ -484,8 +484,8 @@ What it returns does not change.
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
         write("README.md", RENAME_README),
-        write(f"iadd/threads/{item}/frame/design.md", spec + MARK),
-        write(f"iadd/threads/{item}/frame/plan.md", plan),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"{BY} 'frame: exclaim'",
     ]
@@ -525,13 +525,13 @@ What it returns does not change.
             "no-mutation",
             "Bash",
             "The rename ran no mutation: it added no unit to break.",
-            input_match=r"iadd\s+mutate|mutation_check\.py",
+            input_match=r"agentic\s+mutate|mutation_check\.py",
             max=0,
         ),
         behaviour.report_regex(
             "shape",
             "proved-by",
-            f"iadd/threads/{item}/trail/phases/phase-1.md",
+            f"agentory/threads/{item}/trail/phases/phase-1.md",
             r"test_(?:shout|exclaim)",
             "The phase record names the case that proved the rename.",
         ),
@@ -693,7 +693,7 @@ def framer_case(index, slug, issue, extra=None, files=None):
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "crafter", files)
-    folder = f"iadd/threads/{item}"
+    folder = f"agentory/threads/{item}"
     number = 100 + index
     spawn = (
         f"Frame issue #{number} as work item `{item}`, on branch `{branch}` in this clone; "
@@ -827,12 +827,12 @@ INSPECTOR_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
 # Each case's `pr.md`, the orchestrator's part of the pull request body,
-# which it commits before the first round and `iadd pr-body` writes above
+# which it commits before the first round and `agentic pr-body` writes above
 # `pr_body.HEADING`: the `Closes` line, after the claim a case adds. The
 # body is this text as `write` leaves it, one line end after its last line,
 # then `pr_body.compose` over the case's records.
 OWN_PART = "{extra}Closes #101.\n"
-# The record `iadd gate --record` writes, in `broad_gate.write_gate_file`'s
+# The record `agentic gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape: the work item's heading and one run block. Its commits are
 # placeholders the scaffold fills, hexadecimal as `BUILD_SHA` is, because
 # `pr_body.compose` reads the block through `lib/fields.py` first.
@@ -889,7 +889,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
     red; the round record confirms it; the changelog describes it. The work
     item's `pr.md` is `OWN_PART`, committed with the round record, and the
     pull request body is that text, then `pr_body.compose` over the records;
-    its placeholders are filled as the records' are, so `iadd pr-body
+    its placeholders are filled as the records' are, so `agentic pr-body
     --check` accepts it. One case makes `pr.md` claim a change the tree
     lacks, and one makes the case pass against the old code too.
 
@@ -902,10 +902,10 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
     so only the record's staleness can make its verdict `withheld`."""
     item = f"1790000030-inspection-{slug}"
     branch = f"feat/inspection-{slug}"
-    folder = f"iadd/threads/{item}"
+    folder = f"agentory/threads/{item}"
     evidence = EVIDENCE.format(item=item)
     lines = base_project(
-        item, branch, "framer", "crafter", {"iadd/config.json": INSPECTOR_CONFIG}
+        item, branch, "framer", "crafter", {"agentory/config.json": INSPECTOR_CONFIG}
     )
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
@@ -1009,7 +1009,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
             "Bash",
             "The inspector runs no broad gate: the run is the orchestrator's, "
             "before the spawn, and `trail/gate.md` is its record.",
-            input_match=r"iadd\s+gate\s+--base",
+            input_match=r"agentic\s+gate\s+--base",
             max=0,
         ),
         *writes_only(

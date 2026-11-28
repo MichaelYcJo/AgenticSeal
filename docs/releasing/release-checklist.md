@@ -38,15 +38,15 @@ running.
 whose owner has not called the settle skips this step.
 
 ```bash
-iadd settle
-iadd settle --apply
-iadd fold
+agentic settle
+agentic settle --apply
+agentic fold
 ```
 
 The first prints each group of released designs whose rule changes name one
 section, in merge order, and every open row of every released record.
 Before the first, the session running the settle asks the person whether
-any directory besides `iadd/` holds decisions to fold, and passes each one
+any directory besides `agentory/` holds decisions to fold, and passes each one
 named to the first as `--from <dir>`. Where the first lists a document of
 one, the session proposes each document as promote or skip, and the person
 marks the rows in a second question, before the session's first edit.
@@ -60,27 +60,28 @@ record holds no open row and whose version's published note carries its
 entry where the repository's notes are built from the fragments, and names
 any it keeps with why. The settle's pull request body names each directory
 kept for its note, and the owner repairs that note before a later `--apply`
-removes it. `iadd fold` then reads the documents the settle wrote, and names
+removes it. `agentic fold` then reads the documents the settle wrote, and names
 each one past its ceiling as one to split (`skills/settle/SKILL.md` *A
 document past its ceiling is split, never trimmed*). The settle's pull
 request body states each decision with its grounds and lists the defaults
 it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `iadd/threads/`, and each of its commits
+it opens no directory under `agentory/threads/`, and each of its commits
 carries the trailer `IADD-Routing: no work item`, the
 recorded form of the routing question's `direct` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
-in this repository carrying a population floor over `iadd/threads/`.
+in this repository carrying a population floor over `agentory/threads/`.
 
-**Before `iadd settle --apply`, the settling session counts, for each released work item
-routed through the review chain, the findings, the findings that carry a `regression:`
-or `reopens:` line, the findings whose finding block names only paths under
-`iadd/threads/` on its `location:` line, and the rounds, and posts the four numbers as a
-comment on the open `flow-baseline` issue.** `python3 .github/scripts/finding_counts.py`
-prints the four as the table the comment carries, one row per such work item. It reads
-each round record through `skills/code-review/scripts/chain_check.py#record_findings`,
-the reader the pull-request check holds a record to. So a finding is counted once: by
+**Before `agentic settle --apply`, the settling session counts, for each released work
+item routed through the review chain, the findings, the findings that carry a
+`regression:` or `reopens:` line, the findings whose finding block names only paths
+under `agentory/threads/` on its `location:` line, and the rounds, and posts the four
+numbers as a comment on the open `flow-baseline` issue.**
+`python3 .github/scripts/finding_counts.py` prints the four as the table the
+comment carries, one row per such work item. It reads each round record through
+`skills/code-review/scripts/chain_check.py#record_findings`, the reader the
+pull-request check holds a record to. So a finding is counted once: by
 its `### <n>. <symptom>` section that holds a finding block, by that block's
 `regression:` or `reopens:` line, and by that block's `location:` line alone. A close
 block's `location:` names where the fix went, not where the defect shows, and the count
@@ -106,13 +107,14 @@ take it, because the reader of the four numbers is this repository's owner and m
 installed repositories keep no `flow-baseline` log.
 check: tests/github/test_finding_counts.py
 
-**What `iadd settle --apply` removed is committed before anything switches that checkout
-to another branch.** `--apply` deletes each directory from the working tree and stages
-nothing, and `git switch` exits 0 over an unstaged deletion while it restores every
-deleted file that differs between the two branches, saying nothing about it. A
+**What `agentic settle --apply` removed is committed before anything switches that
+checkout to another branch.** `--apply` deletes each directory from the working tree
+and stages nothing, and `git switch` exits 0 over an unstaged deletion while it
+restores every deleted file that differs between the two branches, saying nothing
+about it. A
 comparison with another ref runs in a `git worktree` of that ref.
 
-**Before `iadd settle --apply`, the settling session reads the dry run's
+**Before `agentic settle --apply`, the settling session reads the dry run's
 *The judgments* and *The judgments earlier settles removed*, and
 rewrites a section where the same kind of judgment came back, within
 this release or over several, or cost rounds each time it was made.**
@@ -120,7 +122,7 @@ this release or over several, or cost rounds each time it was made.**
 `frame/plan.md`. *The judgments earlier settles removed* holds the rows
 of the plans the two newest removing commits deleted, read from the
 history with the release each shipped in, and
-`iadd settle --all-earlier` reads the older ones
+`agentic settle --all-earlier` reads the older ones
 (`skills/settle/SKILL.md` *What the dry run shows*). Both are grouped by
 the document each row stands on. The pull request body names each kind
 that recurred across releases with the releases it recurred in. The rows
@@ -195,7 +197,7 @@ check: tests/github/test_release_report.py tests/text/test_the_release_table_rea
 **Each release clears what grew.** The test file rows are a report and never
 a ceiling: a heavily exercised module needs the cases it needs. The owner
 reads the rows whose seconds or cases grew most since the tag and sweeps each
-such module with one `bin/iadd mutate` call carrying a mutant per class,
+such module with one `bin/agentic mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
@@ -208,11 +210,11 @@ branch adds after the newest tag `main` holds:
 ```bash
 git diff --name-only --diff-filter=A \
   "$(git describe --tags --abbrev=0 origin/main)..origin/release/vX.Y.Z" \
-  -- 'iadd/threads/*/routing.md'
+  -- 'agentory/threads/*/routing.md'
 ```
 
 For each directory listed, it runs
-`iadd cost --work-item <that directory> --post --says <file>`. The file
+`agentic cost --work-item <that directory> --post --says <file>`. The file
 holds its sentence on what that work item's readings say, read against the
 work item's records. The command leaves out each segment a comment on the
 open `flow-measurement` log already names, the run's own comment among
@@ -298,14 +300,14 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       or the header was not in the note as generated: edited before the job
       reached it, already replaced by an earlier run of the job, published
       without one, or the pull requests moved between the two lists. A
-      value of `iadd/config.json`'s `Release note inspection mark` key other than
+      value of `agentory/config.json`'s `Release note inspection mark` key other than
       `yes` is named on a `::warning::` line of its own, and the results go
       in without the image. That job never fails the release. To mark one
       by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
-      `PYTEST_ADDOPTS='-p iadd_pytest_record'`, and
-      `IADD_RECORD_DIR` and `IADD_RECORD_KEY` naming a directory
+      `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
+      `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
       that exists and a key you choose), then run
       `DRY_RUN=1 python3 .github/scripts/release_mark.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)
@@ -337,7 +339,7 @@ disk is not an update that is in force until the session reloads, and
 reloading is the expensive part, not the install. Every place this repository
 tells a user what to do after an update names the reload command, says what a
 reload was measured to do, and says what nobody has measured about it.
-`/iadd:update` runs inside the session it updates and cannot type into
+`/agentic:update` runs inside the session it updates and cannot type into
 it, so it prints the reload for the user to type, and a notice that leaves
 the cost out reads as though there were none.
 check: tests/behaviour/test_release_hygiene.py

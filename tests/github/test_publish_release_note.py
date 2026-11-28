@@ -88,7 +88,7 @@ def module(path, name):
 
 
 def publisher():
-    return module(SCRIPT, "iadd_publish_release_note_for_tests")
+    return module(SCRIPT, "agentic_publish_release_note_for_tests")
 
 
 class Done:
@@ -341,12 +341,12 @@ def fold(summary, lines):
 PR_1293 = pull(
     1293,
     OWNER,
-    "fix: iadd pr-body refused only an exact <details> or </details> line, "
+    "fix: agentic pr-body refused only an exact <details> or </details> line, "
     "and GitHub ends the fold at one inside a sentence, indented or in "
     "capitals, and nests a second at <details open>",
 )
 TEXT_1293 = (
-    "Iadd pr-body refused only an exact <details> or </details> line, and "
+    "Agentic pr-body refused only an exact <details> or </details> line, and "
     "GitHub ends the fold at one inside a sentence, indented or in capitals, "
     "and nests a second at <details open> (#1293)"
 )
@@ -425,7 +425,7 @@ class Test_main:
         read as its rename, an empty fragment gives no entry, and no
         `changelog/` path is named. Driven through a real `git` history."""
         repo = git_repo(tmp_path / "repo")
-        thread = "iadd/threads/{}/changelog.md"
+        thread = "agentory/threads/{}/changelog.md"
         write(repo, thread.format("1700000000-older"), "- older entry\n")
         commit_everything(repo, "the release before")
         git_out(repo, "tag", PREVIOUS)
@@ -436,8 +436,8 @@ class Test_main:
         write(repo, thread.format("1700000001-first"), "- first entry, revised\n")
         write(repo, thread.format("1700000000-older"), "- older entry, edited\n")
         commit_everything(repo, "a fix brings its fragment along")
-        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000001-first")
-        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000000-older")
+        git_out(repo, "rm", "-q", "-r", "agentory/threads/1700000001-first")
+        git_out(repo, "rm", "-q", "-r", "agentory/threads/1700000000-older")
         # Added in the settle's own commit with the removed fragment's text,
         # so only `--no-renames` keeps it from reading as a rename.
         write(repo, thread.format("1700000003-third"), "- first entry, revised\n")
@@ -483,13 +483,13 @@ class Test_main:
         text alone, and no entry carries the hidden work-item marker. Driven
         through a real `git` history."""
         repo = git_repo(tmp_path / "repo")
-        thread = "iadd/threads/{}/changelog.md"
+        thread = "agentory/threads/{}/changelog.md"
         git_out(repo, "tag", PREVIOUS)
         write(repo, thread.format("1700000001-linked"), "- linked entry\n")
         commit_everything(repo, "feat: a change (#42)")
         write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
         commit_everything(repo, "fix: a later edit (#43)")
-        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000001-linked")
+        git_out(repo, "rm", "-q", "-r", "agentory/threads/1700000001-linked")
         commit_everything(repo, "chore: removed by mistake (#45)")
         write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
         commit_everything(repo, "chore: restored (#46)")
@@ -805,7 +805,7 @@ class Test_main:
             f"{LINK}\n{NOTES}\n\n- b\n\n</details>"
         ), fold
         assert body.index(mod.UPDATE_HEADING) < opens
-        assert "/iadd:update" in body
+        assert "/agentic:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
         self, monkeypatch, tmp_path
@@ -1267,15 +1267,15 @@ class Test_module:
         (0.15.3). Round 1 of #1053, finding 1. The pull request its adding
         commit names is read through the same merge (#1139)."""
         repo = git_repo(tmp_path / "repo")
-        thread = "iadd/threads/{}/changelog.md"
+        thread = "agentory/threads/{}/changelog.md"
         write(repo, thread.format("1700000000-older"), "- older entry\n")
         commit_everything(repo, "the release before")
         git_out(repo, "tag", PREVIOUS)
         git_out(repo, "switch", "-q", "-c", "release")
         write(repo, thread.format("1700000001-first"), "- first entry\n")
         commit_everything(repo, "the work item (#5)")
-        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000001-first")
-        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000000-older")
+        git_out(repo, "rm", "-q", "-r", "agentory/threads/1700000001-first")
+        git_out(repo, "rm", "-q", "-r", "agentory/threads/1700000000-older")
         commit_everything(repo, "the settle")
         write(repo, thread.format("1700000000-older"), "- older entry\n")
         commit_everything(repo, "a directory restored")
@@ -1295,7 +1295,7 @@ class Test_module:
         too, is read as it is and not left out. Seen red against the reading
         without `-z`, which returned the ASCII fragment alone."""
         repo = git_repo(tmp_path / "repo")
-        thread = "iadd/threads/{}/changelog.md"
+        thread = "agentory/threads/{}/changelog.md"
         git_out(repo, "tag", PREVIOUS)
         write(repo, thread.format("1700000001-정렬"), "- sorted entry\n")
         commit_everything(repo, "the work item (#5)")

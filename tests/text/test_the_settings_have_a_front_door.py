@@ -1,4 +1,4 @@
-"""`/iadd:config` — the door to `iadd/config.json`.
+"""`/agentic:config` — the door to `agentory/config.json`.
 
 Issue #105. Three settings existed when this module was written (#113), and
 the only way to see them was to open a file nobody had a reason to open. The
@@ -10,7 +10,7 @@ core's opening paragraph's since #1578, and
 it. Whether its sentences say the rest is the proofer's to read.
 
 **The skill routes rather than reimplements.** A key that moves files is
-`iadd mode`'s work, and a second implementation inside a skill is one
+`agentic mode`'s work, and a second implementation inside a skill is one
 nothing can mutation-test.
 """
 
@@ -30,14 +30,14 @@ ROWS = (
     "Record language",
     "Mode",
     "Broad gate",
-    # The fold's values, read by `iadd fold` (#566, #953).
+    # The fold's values, read by `agentic fold` (#566, #953).
     "Document token ceiling",
     "Policy root",
     # The reference roots (#688), missing from the skill until #647 counted
     # the table, and the row a signer declares its pact in (#647).
     "Reference specs",
     "Pact",
-    # The inspection mark on a pull request body, read by `iadd pr-body`, and on
+    # The inspection mark on a pull request body, read by `agentic pr-body`, and on
     # the release note, read by this repository's `mark` job (#1204).
     "Pull request inspection mark",
     "Release note inspection mark",
@@ -55,30 +55,30 @@ def test_the_skill_names_every_row_the_template_ships(row):
     assert row in flat(*TEMPLATE), f"the template no longer ships `{row}`"
 
 
-def test_the_mode_row_is_routed_to_iadd_mode():
-    """S2 and S3. `iadd mode` is what the pull-request checks run, so the
+def test_the_mode_row_is_routed_to_agentic_mode():
+    """S2 and S3. `agentic mode` is what the pull-request checks run, so the
     skill hands the move to it."""
     text = flat(*SKILL)
     # The two commands the session runs to move the root, the code spans of
     # the sentence.
-    assert "Run `iadd mode local` or `iadd mode shared`" in text, (
+    assert "Run `agentic mode local` or `agentic mode shared`" in text, (
         "the skill does not hand the move to the command that owns it"
     )
 
 
 def test_the_way_back_from_shared_is_spelled():
     """S5. Until the commit, a switch to shared is walked back by unstaging
-    the root before `iadd mode local`, so the skill spells that command."""
+    the root before `agentic mode local`, so the skill spells that command."""
     text = flat(*SKILL)
     # The command a person types first to walk a switch to shared back.
-    assert "git reset -- :/iadd" in text, "the way back is not spelled"
+    assert "git reset -- :/agentory" in text, "the way back is not spelled"
 
 
 def test_the_bootstrap_names_the_way_back_to_its_own_questions():
     """S7. A person who answers a question in a batch has no reason to expect
     a way back to it, so the batch has to say there is one."""
     # The command a person types to change an answer later.
-    assert "/iadd:config" in flat(*BOOTSTRAP), (
+    assert "/agentic:config" in flat(*BOOTSTRAP), (
         "first setup asks three questions and names nothing that changes the "
         "answers later"
     )
@@ -103,4 +103,4 @@ def test_the_skill_says_how_a_quote_or_a_backslash_is_written():
 def test_both_readmes_list_it(parts):
     """A door nobody is told about is the file all over again."""
     # The command a reader of the README types.
-    assert "/iadd:config" in read(*parts), f"{parts[0]} does not list it"
+    assert "/agentic:config" in read(*parts), f"{parts[0]} does not list it"

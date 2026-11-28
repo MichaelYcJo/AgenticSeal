@@ -1,7 +1,7 @@
 """`skills/settle/scripts/fold_check.py`, one class per function.
 
 A document fits one read, and the policy root has one index (#953).
-`iadd fold` reports each document of the policy root or of one of its groups whose
+`agentic fold` reports each document of the policy root or of one of its groups whose
 estimate is past the `Document token ceiling` key as one to split by who
 opens each section and at which step, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
@@ -30,11 +30,11 @@ TARGET = "skills/settle/scripts/fold_check.py"
 
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 
-fold_check = load_module(SCRIPT, "iadd_fold_check")
+fold_check = load_module(SCRIPT, "agentic_fold_check")
 
 
 def command(*args):
-    """`iadd fold` as a person types it, run on this interpreter."""
+    """`agentic fold` as a person types it, run on this interpreter."""
     done = subprocess.run(
         [sys.executable, SCRIPT, *args],
         capture_output=True,
@@ -56,12 +56,14 @@ INDEX = "| File | The question it answers |\n|---|---|\n"
 
 
 def config_root(tmp_path, rows, policy="docs"):
-    """A planted repository whose `iadd/config.json` holds `rows` as its
+    """A planted repository whose `agentory/config.json` holds `rows` as its
     keys, with one short document under the policy root."""
     (tmp_path / policy).mkdir()
     (tmp_path / policy / "a.md").write_text("# A\n", encoding="utf-8")
-    mark_root(tmp_path / "iadd")
-    (tmp_path / "iadd" / "config.json").write_text(config_json(*rows), encoding="utf-8")
+    mark_root(tmp_path / "agentory")
+    (tmp_path / "agentory" / "config.json").write_text(
+        config_json(*rows), encoding="utf-8"
+    )
     return str(tmp_path)
 
 
@@ -77,7 +79,7 @@ class Test_main:
         code, out, err = command("--root", root, "--ceiling", "25000")
         assert code == 0, (code, out, err)
         assert (
-            "iadd fold: docs/big.md is about 25001 tokens, past the ceiling of "
+            "agentic fold: docs/big.md is about 25001 tokens, past the ceiling of "
             "25000: split it by who opens each section and at which step\n"
         ) in out, out
         assert "docs/at.md is about" not in out, out
@@ -128,7 +130,7 @@ class Test_main:
         root = tree(tmp_path, {**files, "README.md": INDEX + rows})
         code, out, err = command("--root", root)
         assert code == 0, (code, out, err)
-        assert "iadd fold: the index docs/README.md names every document\n" in out
+        assert "agentic fold: the index docs/README.md names every document\n" in out
 
     def test_a_group_the_index_names_is_read_and_no_other_directory_is(self, tmp_path):
         """#1312 S6: a directory of the policy root that the index names a
@@ -153,7 +155,9 @@ class Test_main:
         assert (
             "held 4 documents under docs/ to 25000 estimated tokens, 1 past it\n"
         ) in out, out
-        assert "iadd fold: docs/g/x.md is about 25001 tokens, past the ceiling" in out
+        assert (
+            "agentic fold: docs/g/x.md is about 25001 tokens, past the ceiling" in out
+        )
         assert "docs/README.md has no row naming docs/g/y.md\n" in out, out
         assert "docs/README.md:5 names no document of docs/\n" in out, out
         assert "deep" not in out and "experiments" not in out, out
@@ -165,7 +169,9 @@ class Test_main:
         root = tree(tmp_path, {"a.md": "# A\n"})
         code, out, _ = command("--root", root, "--ceiling", "10")
         assert code == 0, out
-        assert "iadd fold: there is no docs/README.md, so no index was checked\n" in out
+        assert (
+            "agentic fold: there is no docs/README.md, so no index was checked\n" in out
+        )
 
     def test_a_root_that_declares_no_ceiling_and_has_no_index_checks_nothing(
         self, tmp_path
@@ -174,10 +180,10 @@ class Test_main:
         names the row and the file it was looked for in (contract rule 14)."""
         root = config_root(tmp_path, [("Mode", "shared")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 0, (out, err)
         assert out == (
-            f"iadd fold: `Document token ceiling` is not declared in {config}, and "
+            f"agentic fold: `Document token ceiling` is not declared in {config}, and "
             "there is no docs/README.md, so nothing was checked\n"
         ), out
 
@@ -199,12 +205,12 @@ class Test_main:
             f"{INDEX}| `docs/a.md` | a |\n", encoding="utf-8"
         )
         code, out, _ = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 0, out
         assert out == (
-            f"iadd fold: `Document token ceiling` is not declared in {config}, so "
+            f"agentic fold: `Document token ceiling` is not declared in {config}, so "
             "no document's length was checked\n"
-            "iadd fold: the index docs/README.md names every document\n"
+            "agentic fold: the index docs/README.md names every document\n"
         ), out
 
     def test_the_policy_root_row_moves_every_check_there(self, tmp_path):
@@ -239,21 +245,21 @@ class Test_main:
         """S5, its message pinned (contract rule 14)."""
         root = config_root(tmp_path, [(row, value)])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 2 and not out, (out, err)
-        assert err == f"iadd fold: in {config}, {says} — nothing was checked\n", err
+        assert err == f"agentic fold: in {config}, {says} — nothing was checked\n", err
 
     @pytest.mark.parametrize("row", ["Document token ceiling", "Policy root"])
     def test_a_row_written_twice_is_refused_and_nothing_is_checked(self, tmp_path, row):
-        """S1 of #867, `iadd fold`'s half. A key written twice has no value, by
+        """S1 of #867, `agentic fold`'s half. A key written twice has no value, by
         `lib/config.py#config_value`'s rule: the run exits 2 naming the key and
         the count, and nothing is checked."""
         root = config_root(tmp_path, [(row, "10"), (row, "20")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 2 and not out, (out, err)
         assert err == (
-            f"iadd fold: in {config}, `{row}` appears 2 times — one value — nothing "
+            f"agentic fold: in {config}, `{row}` appears 2 times — one value — nothing "
             "was checked\n"
         ), err
 
@@ -268,11 +274,11 @@ class Test_main:
     def test_an_unreadable_config_is_refused_not_read_as_no_row(
         self, tmp_path, shape, said
     ):
-        """S3 of #867 and S2 of #1454, `iadd fold`'s half. A `config.json`
+        """S3 of #867 and S2 of #1454, `agentic fold`'s half. A `config.json`
         that is there and will not read or parse is refused at exit 2 naming
         the path, never read as no key, and nothing is checked."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
-        config = tmp_path / "iadd" / "config.json"
+        config = tmp_path / "agentory" / "config.json"
         config.unlink()
         if shape == "directory":
             config.mkdir()
@@ -292,9 +298,9 @@ class Test_main:
         assert code == 0 and "docs/long.md is about 11 tokens" in out, out
         code, out, _ = command("--root", root, "--ceiling", "11")
         assert code == 0 and "docs/long.md is about" not in out, out
-        assert (tmp_path / "iadd" / "config.json").read_text(encoding="utf-8").count(
-            '"Document token ceiling": "10"'
-        ) == 1
+        assert (tmp_path / "agentory" / "config.json").read_text(
+            encoding="utf-8"
+        ).count('"Document token ceiling": "10"') == 1
 
     def test_the_command_typed_in_a_subdirectory_reads_the_repository(self, tmp_path):
         """Round 1, finding 1: typed in `docs/`, the rows and the documents are the
@@ -313,17 +319,17 @@ class Test_main:
         assert "docs/long.md is about 11 tokens, past the ceiling of 10" in done.stdout
 
     def test_an_opted_out_repository_is_told_it_opted_out(self, tmp_path):
-        """Round 1, finding 3: it has a root, so "no iadd/ root" would be false.
+        """Round 1, finding 3: it has a root, so "no agentory/ root" would be false.
         Both of the states `home_at` answers "" for are pinned whole (contract rule 14)."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         git_init(root)
-        (tmp_path / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
+        (tmp_path / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         code, out, err = command("--root", root)
         assert code == 0, (out, err)
         assert out == (
-            f"iadd fold: `Document token ceiling` is not declared in {root}, which "
-            "has opted out — `iadd-scratch` is under its git directory, so its "
-            "iadd/config.json is not read, and there is no docs/README.md, so nothing "
+            f"agentic fold: `Document token ceiling` is not declared in {root}, which "
+            "has opted out — `agentic-scratch` is under its git directory, so its "
+            "agentory/config.json is not read, and there is no docs/README.md, so nothing "
             "was checked\n"
         ), out
 
@@ -333,8 +339,8 @@ class Test_main:
         code, out, err = command("--root", str(tmp_path))
         assert code == 0, (out, err)
         assert out == (
-            f"iadd fold: `Document token ceiling` is not declared in {tmp_path}, "
-            "which has no iadd/ root at either place, and there is no "
+            f"agentic fold: `Document token ceiling` is not declared in {tmp_path}, "
+            "which has no agentory/ root at either place, and there is no "
             "docs/README.md, so nothing was checked\n"
         ), out
 

@@ -1,4 +1,4 @@
-You are the review orchestrator of this repository. Spawn exactly one `iadd:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/threads/1793457435-replay-targets-reads-both-layouts/trail/rounds/round-3.md` once and reply with the report's path.
+You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/threads/1793457435-replay-targets-reads-both-layouts/trail/rounds/round-3.md` once and reply with the report's path.
 
 BEGIN PROMPT
 

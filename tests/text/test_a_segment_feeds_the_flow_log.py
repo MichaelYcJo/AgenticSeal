@@ -34,7 +34,7 @@ because a row nobody can reproduce is a row the next run fills in by feel.
 
 Issue #1479 ends the per-segment post. The section is *Measure the run, and
 feed the flow log*: the orchestrator posts once when a work item's run ends,
-with `iadd cost --work-item`, the command the release already ran for what
+with `agentic cost --work-item`, the command the release already ran for what
 no session posted, after reading the same command without `--post`, and the
 run's table goes into that one comment. The
 by-hand lookups and post leave the section, because the command takes each
@@ -109,7 +109,7 @@ def test_the_section_says_what_each_exit_of_the_command_means():
     next. Whether each code's sentence states the outcomes the command
     gives it is the proofer's to read."""
     body = flattened(section(read(SKILL), SECTION_HEADING))
-    # The three exit codes of `iadd cost --work-item --post`: 0 posted or
+    # The three exit codes of `agentic cost --work-item --post`: 0 posted or
     # nothing due, 1 nothing posted and named, 2 the command line refused.
     for code in ("Exit 0", "Exit 1", "Exit 2"):
         assert code in body, (
@@ -127,11 +127,11 @@ def test_the_section_says_the_release_posts_what_no_session_posted():
     work item whose run posted."""
     body = flattened(section(read(SKILL), SECTION_HEADING))
     # The command the orchestrator and the release run.
-    assert "iadd cost --work-item" in body, (
-        "the section never names `iadd cost --work-item`, so a run's reading "
+    assert "agentic cost --work-item" in body, (
+        "the section never names `agentic cost --work-item`, so a run's reading "
         "has no way onto the log"
     )
-    # The line's spelling, which `iadd cost --work-item` reads on the log.
+    # The line's spelling, which `agentic cost --work-item` reads on the log.
     assert "`# <file name>`" in body, (
         "the section never says `--work-item` reads the `# <file name>` line "
         "inside a comment's fence, which is how it leaves out what a session "
@@ -198,7 +198,7 @@ def labelled(fragment):
 
 def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     """Round 1's finding 3. The row split `ledger` from `record` and the share
-    row counted only `iadd/threads/**`, where the review chain's own definition
+    row counted only `agentory/threads/**`, where the review chain's own definition
     puts a work item's documents, the ledger and its fragments in ONE bucket:
     a finding in any of them is about the run's paperwork rather than about
     the tool. Two definitions of one word made the same run's share row read
@@ -212,7 +212,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     _label, source = labelled("Findings by `Location`")
     # The path the row names as a record path, which the orchestrator sorts
     # each finding's `Location` by.
-    for path in ("`iadd/threads/`",):
+    for path in ("`agentory/threads/`",):
         assert path in source, (
             f"the `Location` row no longer names {path} as a record path, so "
             "a finding about the run's own paperwork lands in the code bucket"
@@ -234,7 +234,7 @@ def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
 
 
 def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
-    """#343, and #1479. The reading a run ends with, `iadd cost
+    """#343, and #1479. The reading a run ends with, `agentic cost
     --work-item`, prints the `Contract rule 6` line for a segment that
     spawned an agent, as `--segments` does, and the section is where the
     orchestrator learns what the line means and where it goes.
@@ -252,7 +252,7 @@ def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
     )
     # The read the orchestrator runs before it posts, a fenced line of its
     # own with no `--post` on it.
-    assert "iadd cost --work-item <the work item's directory>" in (
+    assert "agentic cost --work-item <the work item's directory>" in (
         section(read(SKILL), SECTION_HEADING).splitlines()
     ), (
         "the section states only the posting command, whose terminal shows a "

@@ -1,4 +1,4 @@
-You are the orchestrator of this repository. Spawn exactly one `iadd:crafter` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.
+You are the orchestrator of this repository. Spawn exactly one `agentic:crafter` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. When it returns, reply with the word DONE.
 
 BEGIN PROMPT
 

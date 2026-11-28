@@ -59,7 +59,7 @@ NAME = "examplekit"
 
 def checker():
     spec = importlib.util.spec_from_file_location(
-        "iadd_plugin_directory_check_for_tests", SCRIPT
+        "agentic_plugin_directory_check_for_tests", SCRIPT
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -287,7 +287,7 @@ class Test_main:
         monkeypatch.setattr(mod, "fetch", lambda url: outcome)
         assert mod.main(["--root", ROOT]) == 0
         out = capsys.readouterr().out
-        assert "iadd" in out, "the run does not say which plugin it asked about"
+        assert "agentic" in out, "the run does not say which plugin it asked about"
         assert out.count("official") and out.count("community"), (
             "a marketplace file is missing from the report"
         )
@@ -495,10 +495,10 @@ class Test_module:
         installed under it. A rename then shows up as *not an entry* rather than
         as a check grading a name nobody uses."""
         mod = checker()
-        assert mod.plugin_name(ROOT) == "iadd"
+        assert mod.plugin_name(ROOT) == "agentic"
         source = open(SCRIPT, encoding="utf-8").read()
         body = source.split('"""', 2)[2]
-        assert '"iadd"' not in body and "'iadd'" not in body, (
+        assert '"agentic"' not in body and "'agentic'" not in body, (
             "the plugin's name is written into the script as a literal"
         )
 

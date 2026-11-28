@@ -1,10 +1,10 @@
 @echo off
-rem Windows counterpart to bin/iadd: cmd.exe/PowerShell resolve a bare `iadd`
+rem Windows counterpart to bin/agentic: cmd.exe/PowerShell resolve a bare `agentic`
 rem to this file via PATHEXT, the same way POSIX shells resolve the
 rem extensionless sibling. Kept in lockstep with it.
 setlocal
 set "here=%~dp0"
-set "script=%here%..\skills\implement\scripts\iadd.py"
+set "script=%here%..\skills\implement\scripts\agentic.py"
 
 set "launch=%here%..\lib\launch.py"
 

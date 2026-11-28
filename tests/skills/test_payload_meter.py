@@ -114,7 +114,7 @@ def a_core(root):
     a frontmatter the hook leaves out and one accent so bytes ≠ chars."""
     write(
         str(root / ".claude-plugin" / "plugin.json"),
-        '{"name": "iadd", "version": "9.9.9"}\n',
+        '{"name": "agentic", "version": "9.9.9"}\n',
     )
     write(
         str(root / "skills" / "core" / "SKILL.md"),
@@ -215,7 +215,7 @@ class Test_measure:
         assert meter.measure(str(root), str(home))["agents"] == {}
         done = run(["--root", str(root)], home, cwd=str(tmp_path))
         assert done.returncode == 1, (done.returncode, done.stderr)
-        assert done.stderr == f"iadd payload: no agents/*.md under {root}\n", (
+        assert done.stderr == f"agentic payload: no agents/*.md under {root}\n", (
             done.stderr
         )
         assert done.stdout == "", done.stdout
@@ -1099,9 +1099,9 @@ class Test_module:
 
     def test_the_command_a_person_types_runs_the_meter(self):
         """`bin/` is on the Bash tool's PATH while the plugin is enabled, and
-        cmd.exe resolves `bin/iadd.cmd` through PATHEXT; `iadd payload` hands
+        cmd.exe resolves `bin/agentic.cmd` through PATHEXT; `agentic payload` hands
         its arguments to THIS script, whose help names what it measures."""
-        wrapper = os.path.join(BIN, "iadd")
+        wrapper = os.path.join(BIN, "agentic")
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
             if os.name == "nt"

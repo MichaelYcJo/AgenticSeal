@@ -45,7 +45,7 @@ LIMIT = 88
 
 def _rules():
     path = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("iadd_rules_wrap", path)
+    spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -53,12 +53,12 @@ def _rules():
 
 # The check lines are asked of their reader rather than spelled a second time
 # here: a skip wider than the reader leaves unwrapped lines nobody checks.
-# `iadd rules --check` reads every such line a rule file shows (#957).
+# `agentic rules --check` reads every such line a rule file shows (#957).
 rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `iadd rules --check` reads RELATIVE's check lines: a file a
+    """Whether `agentic rules --check` reads RELATIVE's check lines: a file a
     `RULE_FILES` glob names, or a document of this tree's policy root
     (`rules.py#policy_documents`)."""
     return relative in POLICY_DOCUMENTS or any(
@@ -71,7 +71,7 @@ POLICY_DOCUMENTS = set(rules.policy_documents(ROOT))
 
 def _fence_reader():
     path = os.path.join(ROOT, "lib", "blocks.py")
-    spec = importlib.util.spec_from_file_location("iadd_fence_rule_wrap", path)
+    spec = importlib.util.spec_from_file_location("agentic_fence_rule_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -337,7 +337,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     (#957).
 
     An agent definition closes each rule a case holds with one such line, and
-    `iadd rules --check` reads every one in a rule file, so a wrapped line is a
+    `agentic rules --check` reads every one in a rule file, so a wrapped line is a
     broken target. The skip is that reader's: `rules.py#check_lines` read by
     `rules.py#parse`, in a file `RULE_FILES` names. Outside a rule file the
     line is still held, which the case below keeps."""
@@ -354,7 +354,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
 
 
 def test_a_line_the_reader_refuses_is_still_prose():
-    """S8. The skip is no wider than the reader: a spelling `iadd rules --check`
+    """S8. The skip is no wider than the reader: a spelling `agentic rules --check`
     refuses stays under the limit in a rule file."""
     for label in ("Enforced by:", "Check:", "check: one.py,"):
         text = f"# D\n\n{label} {WIDE_TARGET}\n"

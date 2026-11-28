@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'iadd/threads/1790000024-document-helpers/frame/plan.md'}
+target: {source: 'file', path: 'agentory/threads/1790000024-document-helpers/frame/plan.md'}
 pattern: '^\| Phase \| Delivers \| Verified by \| Status \|'
 flags: 'm'
 ---

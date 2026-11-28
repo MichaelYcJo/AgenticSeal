@@ -19,7 +19,7 @@ names none of them, so the list has one home. Each act is one row of
 re-judge the design or the code's quality.
 check: tests/behaviour/test_the_inspector_inspects.py
 
-**The pull request body opens with the orchestrator's part, the work item's `pr.md`, and the records' copy follows it, the changelog fragment first and the rest in one fold; the inspector reads only the orchestrator's part.** `iadd pr-body` writes above the line `skills/code-review/scripts/pr_body.py#HEADING` holds the work item's `pr.<lang>.md`, where `iadd/config.json`'s `Commit and pull request language` and `Record language` keys name different languages, and then `pr.md`, each as its bytes stand; where the two keys name one language, `pr.md` comes first and any `pr.<lang>.md` follows it. Below that line it writes the copy of the work item's records: the changelog fragment first, whole and outside any fold, and then the rest inside one `<details>` block whose `<summary>` names the copy and is followed by a blank line, with nothing inside it folded again. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared*, and neither holds a sentence of the orchestrator's own account. The orchestrator commits them before the first round, so every round reads them. `iadd pr-body` refuses where either language key is absent, so a body is composed only for a repository that declared its languages. A reader who stops after the first screen has the orchestrator's part, and the squash commit keeps the block's tags as text. The inspector runs `iadd pr-body --check` on the body file before it compares the parties, and withholds where the part above the line is not what `pr.md` and, where the keys differ, `pr.<lang>.md` give, or the part below it is not what the records give. The copy then gives it nothing to compare: the records it copies are what the inspector audits.
+**The pull request body opens with the orchestrator's part, the work item's `pr.md`, and the records' copy follows it, the changelog fragment first and the rest in one fold; the inspector reads only the orchestrator's part.** `agentic pr-body` writes above the line `skills/code-review/scripts/pr_body.py#HEADING` holds the work item's `pr.<lang>.md`, where `agentory/config.json`'s `Commit and pull request language` and `Record language` keys name different languages, and then `pr.md`, each as its bytes stand; where the two keys name one language, `pr.md` comes first and any `pr.<lang>.md` follows it. Below that line it writes the copy of the work item's records: the changelog fragment first, whole and outside any fold, and then the rest inside one `<details>` block whose `<summary>` names the copy and is followed by a blank line, with nothing inside it folded again. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared*, and neither holds a sentence of the orchestrator's own account. The orchestrator commits them before the first round, so every round reads them. `agentic pr-body` refuses where either language key is absent, so a body is composed only for a repository that declared its languages. A reader who stops after the first screen has the orchestrator's part, and the squash commit keeps the block's tags as text. The inspector runs `agentic pr-body --check` on the body file before it compares the parties, and withholds where the part above the line is not what `pr.md` and, where the keys differ, `pr.<lang>.md` give, or the part below it is not what the records give. The copy then gives it nothing to compare: the records it copies are what the inspector audits.
 check: tests/skills/test_pr_body.py tests/behaviour/test_the_inspector_inspects.py
 
 **Its verdict is `inspection.md`, from `templates/records/sdd-inspection.md`**: the claims re-run and the parties compared, in tables for people, and one `iadd` block per run of the inspector, appended below the blocks of earlier runs and never edited after its run. A verdict block holds `target: <sha> against <base>`, each one word, the `original:` line where `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* owes one, and one `Verdict:` line, `cleared`, `withheld reason: <the claim, its party, its coordinate>` or `undecided question: <the question, for the owner>`, written exactly so. The last block is the newest run and the others are the earlier runs, which the stamp reads. An inspection with no verdict block, or with a line of a block that does not parse, is refused naming the file and the line. An undecided question is the owner's: the answer goes on a line below the newest block, and the inspector runs again at the new HEAD and appends its block.
@@ -37,10 +37,10 @@ is missed.
 
 **A pull request body carries the inspection mark only where the
 repository turns it on and the work item is cleared at HEAD.**
-`iadd pr-body` writes the mark, the plugin's icon at the default
+`agentic pr-body` writes the mark, the plugin's icon at the default
 branch of the plugin's repository, as the first line under the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds. It writes it
-where `iadd/config.json`'s `Pull request inspection mark` key reads `yes` and
+where `agentory/config.json`'s `Pull request inspection mark` key reads `yes` and
 the newest verdict block of `inspection.md` reads `cleared` at a commit
 that only the closing records follow, so the mark means what the stamp
 means (`docs/checks/the-stamp.md` *The stamp*). It reads the row and HEAD in the work item's own
@@ -51,17 +51,17 @@ hold, put no mark either, and are named, since whether the inspection has lapsed
 cannot then be read. The key's other
 values, and what the mark's address ties a body to, are
 `templates/setup/config.md` *The inspection mark*'s. The inspector's
-`iadd pr-body --check` runs before its own verdict exists, so the copy
+`agentic pr-body --check` runs before its own verdict exists, so the copy
 it checks carries no mark from that run. The orchestrator runs
-`iadd pr-body` once more after it commits a `cleared` inspection, and that
+`agentic pr-body` once more after it commits a `cleared` inspection, and that
 run changes no copied line, because the copy reads no `inspection.md`. The
-pull request's check reads the body against what `iadd pr-body` composes
+pull request's check reads the body against what `agentic pr-body` composes
 at HEAD, so a body sent before that run fails a ready pull request on the
 mark's line (`docs/checks/the-pull-request-check.md` *What the check reads
 at the pull request*).
 check: tests/skills/test_pr_body.py
 
-**Where the body `iadd pr-body` composes, counted in UTF-16 code units
+**Where the body `agentic pr-body` composes, counted in UTF-16 code units
 with room for the inspection mark's line, would pass GitHub's limit of 65,536
 characters, the sections of the records' copy after the
 changelog's are folded, the longest first, until the body fits.** A folded
@@ -73,7 +73,7 @@ other section folded is refused, with nothing written, so `pr.md` or
 mark's line whether or not the mark is written, so the run after a
 `cleared` inspection folds what the inspector's check folded and changes no
 copied line. GitHub refuses a longer body, and the pull request's check
-reads the body as `iadd pr-body` composes it, so without the fold a work
+reads the body as `agentic pr-body` composes it, so without the fold a work
 item whose records pass the limit has no body both accept (#1559).
 check: tests/skills/test_pr_body.py
 

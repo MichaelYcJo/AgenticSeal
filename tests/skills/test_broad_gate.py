@@ -54,7 +54,7 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "lib" / "lines.py"
-ITEM = "iadd/threads/1799000001-a-gated-work-item"
+ITEM = "agentory/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
 RECORD_REL = os.path.join(*ITEM.split("/"), "trail", "gate.md")
@@ -69,7 +69,7 @@ STAMP = str(ROOT / "skills" / "verify" / "scripts" / "stamp.py")
 
 def gate_module():
     """A fresh load of the gate, for the cases that load their own."""
-    return load_module(GATE, "iadd_broad_gate_for_cmd")
+    return load_module(GATE, "agentic_broad_gate_for_cmd")
 
 
 PASSING_TEST = "def test_one():\n    assert True\n"
@@ -86,7 +86,7 @@ AMBIENT = ("CLAUDE_CODE_SESSION_ID",)
 
 
 def config_of(row=SUITE_ROW, *more):
-    """An `iadd/config.json` with the `Broad gate` key ROW, or none where ROW
+    """An `agentory/config.json` with the `Broad gate` key ROW, or none where ROW
     is None, after `Mode` and before each pair of MORE."""
     pairs = [("Mode", "shared")]
     if row is not None:
@@ -95,9 +95,9 @@ def config_of(row=SUITE_ROW, *more):
 
 
 def home_with(tmp_path, text, name="config.json"):
-    """An `iadd/` root holding TEXT as its config NAME; its path."""
-    write(tmp_path, f"iadd/{name}", text)
-    return str(mark_root(tmp_path / "iadd"))
+    """An `agentory/` root holding TEXT as its config NAME; its path."""
+    write(tmp_path, f"agentory/{name}", text)
+    return str(mark_root(tmp_path / "agentory"))
 
 
 def a_record(**fields):
@@ -384,7 +384,7 @@ class Test_moved_line:
         )
         line = gate.moved_line(root, base)
         assert line == (
-            f"iadd gate: --base solo is {base.given_commit} in this checkout; CI "
+            f"agentic gate: --base solo is {base.given_commit} in this checkout; CI "
             f"reads origin/solo, which is {base.commit} — origin/solo is 1 ahead "
             "and 0 behind solo. Every check below was asked about origin/solo."
         )
@@ -402,7 +402,7 @@ class Test_moved_line:
         root, _first, _second = refs
         base = gate.Base("gone", None, "origin/gone", short(root, "origin/gone"))
         assert gate.moved_line(root, base).startswith(
-            "iadd gate: --base gone names no commit in this checkout; CI reads"
+            "agentic gate: --base gone names no commit in this checkout; CI reads"
         )
 
     def test_accepts_a_spelling_no_runner_could_hold_without_naming_one(self, refs):
@@ -478,29 +478,29 @@ class Test_resolve_base:
 # --- the row ------------------------------------------------------------------------
 
 
-class Test_iadd_home:
+class Test_agentory_home:
     def test_accepts_the_shared_root_and_then_the_local_one(self, tmp_path):
-        mark_root(tmp_path / "shared" / "iadd")
-        assert gate.iadd_home(str(tmp_path / "shared")) == str(
-            tmp_path / "shared" / "iadd"
+        mark_root(tmp_path / "shared" / "agentory")
+        assert gate.agentory_home(str(tmp_path / "shared")) == str(
+            tmp_path / "shared" / "agentory"
         )
         local = tmp_path / "local"
         local.mkdir()
         git(local, "init", "-q")
-        (local / "iadd").mkdir()
-        mark_root(local / ".git" / "iadd")
-        assert gate.iadd_home(str(local)) == os.path.normpath(
-            str(local / ".git" / "iadd")
+        (local / "agentory").mkdir()
+        mark_root(local / ".git" / "agentory")
+        assert gate.agentory_home(str(local)) == os.path.normpath(
+            str(local / ".git" / "agentory")
         )
 
     def test_refuses_a_repository_with_neither(self, tmp_path):
-        """No `iadd/` at all, and an `iadd/` the project keeps for itself,
+        """No `agentory/` at all, and an `agentory/` the project keeps for itself,
         whose README does not open with the marker, are no root to read a
         command from."""
         git(tmp_path, "init", "-q")
-        assert gate.iadd_home(str(tmp_path)) is None
-        write(tmp_path, "iadd/config.json", config_of("bin/test -q"))
-        assert gate.iadd_home(str(tmp_path)) is None
+        assert gate.agentory_home(str(tmp_path)) is None
+        write(tmp_path, "agentory/config.json", config_of("bin/test -q"))
+        assert gate.agentory_home(str(tmp_path)) is None
 
 
 class Test_broad_command:
@@ -528,7 +528,7 @@ class Test_broad_command:
         with pytest.raises(gate.Refused, match="Nothing ran") as refused:
             gate.broad_command(home)
         assert str(refused.value).startswith(
-            f"iadd gate: {os.path.join(home, 'config.json')}: {said}"
+            f"agentic gate: {os.path.join(home, 'config.json')}: {said}"
         ), refused.value
 
     @pytest.mark.parametrize(
@@ -543,12 +543,12 @@ class Test_broad_command:
         """S2. A file the reader refuses is refused for the gate, in the
         reader's sentence opening with the `config.json` path, so the gate
         exits 2 with nothing run."""
-        mark_root(tmp_path / "iadd")
-        (tmp_path / "iadd" / name).write_bytes(data)
-        path = os.path.join(str(tmp_path / "iadd"), "config.json")
+        mark_root(tmp_path / "agentory")
+        (tmp_path / "agentory" / name).write_bytes(data)
+        path = os.path.join(str(tmp_path / "agentory"), "config.json")
         with pytest.raises(gate.Refused, match=r"Nothing ran$") as refused:
-            gate.broad_command(str(tmp_path / "iadd"))
-        assert str(refused.value).startswith(f"iadd gate: {path} "), refused.value
+            gate.broad_command(str(tmp_path / "agentory"))
+        assert str(refused.value).startswith(f"agentic gate: {path} "), refused.value
         assert said in str(refused.value), refused.value
 
 
@@ -569,10 +569,10 @@ def missing_row_text():
     import importlib.util
 
     path = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
-    spec = importlib.util.spec_from_file_location("iadd_broad_gate_text", path)
+    spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return unquoted_flat(module.missing_row("/iadd"))
+    return unquoted_flat(module.missing_row("/agentory"))
 
 
 class Test_missing_row:
@@ -590,7 +590,7 @@ class Test_missing_row:
         opens to add the key."""
         home = home_with(tmp_path, config_of(None))
         said = gate.missing_row(home)
-        assert f"iadd gate: {os.path.join(home, 'config.json')} has no" in said
+        assert f"agentic gate: {os.path.join(home, 'config.json')} has no" in said
 
     def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered(
         self,
@@ -604,7 +604,7 @@ class Test_missing_row:
         said = missing_row_text()
         assert "not this session's to do" in said
         assert "the key is a thing a person wrote" in said
-        assert "/iadd:config" in said
+        assert "/agentic:config" in said
         assert "it shows every key and adds this one —" in said
         assert "with its section" not in said
         assert (
@@ -631,7 +631,7 @@ class Test_wholly_substituted:
 CMD = r"C:\Windows\System32\cmd.exe"
 # The key as #448 measured it, with its suite command after a separator.
 OLD_KEY = "uvx ruff check . && bin/test -q"
-# The `iadd/` root a refusal names, which no case opens.
+# The `agentory/` root a refusal names, which no case opens.
 HOME = "home"
 CONFIG_PATH = os.path.join(HOME, "config.json")
 
@@ -655,7 +655,7 @@ def not_read_line(char, *words):
     """The line naming WORDS as not read past the first CHAR."""
     listed = " and ".join(f"`{word}`" for word in words)
     return (
-        f"iadd gate: the gate stopped reading the `{ROW}` key in {CONFIG_PATH} "
+        f"agentic gate: the gate stopped reading the `{ROW}` key in {CONFIG_PATH} "
         f"at its first `{char}`, which can move where cmd.exe ends a command, "
         f"so it did not read {listed}. Read as a command name, each starts in a "
         "directory, and cmd.exe would read its `/` as the start of a switch."
@@ -718,7 +718,7 @@ class Test_not_as_written:
         key as meant."""
         said = on_cmd_exe(OLD_KEY, a_root(tmp_path, "bin"))
         assert said == (
-            f"iadd gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
+            f"agentic gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
             "in a directory with `/`: `bin/test`, and the shell here is cmd.exe, "
             "which reads a `/` in a command name as the start of a switch, so it "
             "runs the part before the `/` as the command, which fails before any "
@@ -733,7 +733,7 @@ class Test_not_as_written:
             "write, and a value quietly fixed here would leave the file still "
             "wrong. `templates/setup/config.md` *Broad gate* lists what is "
             "refused and what stays allowed, with the reason for each, and "
-            "`/iadd:config` is the door to the key."
+            "`/agentic:config` is the door to the key."
         )
 
     @pytest.mark.parametrize(
@@ -838,7 +838,7 @@ class Test_not_as_written:
     def test_a_refusal_carries_what_it_did_not_read(self, tmp_path, capsys):
         said = on_cmd_exe('bin/test "a b" && bin/x', a_root(tmp_path, "bin"))
         assert said.startswith(
-            f"iadd gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
+            f"agentic gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
             "in a directory with `/`: `bin/test`, and"
         ), said
         assert said.endswith("door to the key.\n" + not_read_line('"', "bin/x")), said
@@ -1500,7 +1500,7 @@ NO_RECORD_HERE = (
     "no pytest the command ran here left a record of the gate's recorder (the "
     "command started no pytest, because a part before its runner failed or it has none; "
     "none it started loaded the recorder; or the one that did could not write "
-    "its record and warned 'iadd_pytest_record: no record written' in "
+    "its record and warned 'agentic_pytest_record: no record written' in "
     "suite.txt), so this exit code is not a count of failing tests"
 )
 
@@ -1683,8 +1683,8 @@ def _repo_template(tmp_path_factory):
             None,
             {
                 "tests/test_one.py": PASSING_TEST,
-                "iadd/config.json": config_of(),
-                "iadd/README.md": conftest.ROOT_MARKER + "\n",
+                "agentory/config.json": config_of(),
+                "agentory/README.md": conftest.ROOT_MARKER + "\n",
                 f"{ITEM}/gaps.md": OVERVIEW,
             },
         ),
@@ -1793,7 +1793,7 @@ class Test_compare_at_base:
         (held,) = asked
         scratch = held[-1]
         assert capsys.readouterr().err == (
-            f"iadd gate: the scratch worktree {scratch} was not removed: "
+            f"agentic gate: the scratch worktree {scratch} was not removed: "
             f"{past_the_bound(held)}\n"
         )
         shutil.rmtree(scratch, ignore_errors=True)
@@ -1869,10 +1869,10 @@ class Test_gate:
         # check for (#1575).
         assert chain_kept.splitlines()[0].endswith(f" {chain.INSPECTING}")
         # The gate draws nothing and queues no stamp (#975).
-        assert not (repo / ".git" / "iadd-stamp").exists()
+        assert not (repo / ".git" / "agentic-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
         assert f"```iadd\nrun: {tree} against {base}\n```\n" in record
-        assert f"iadd gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
+        assert f"agentic gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
     def test_refuses_a_failing_test_the_base_lacks_as_new(
         self, repo, tmp_path, monkeypatch, capsys
@@ -1923,7 +1923,7 @@ class Test_gate:
         `Test_read_record::test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0`."""
         suite_alone(monkeypatch)
         failing_here(repo)
-        write(repo, "iadd/config.json", config_of(ROW_OR_INTERPRETER))
+        write(repo, "agentory/config.json", config_of(ROW_OR_INTERPRETER))
         keep = tmp_path / "out"
         ran = namespace(repo, keep, base="red-base", record=str(repo / ITEM))
         assert gate.gate(ran) == 1
@@ -2023,7 +2023,7 @@ class Test_gate:
             monkeypatch.setattr(gate, "cmd_exe_reads", lambda *_: True)
             (repo / "bin").mkdir(exist_ok=True)
             monkeypatch.chdir(tmp_path)
-        write(repo, "iadd/config.json", config)
+        write(repo, "agentory/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(repo, keep))
@@ -2054,16 +2054,16 @@ class Test_gate:
         # repository git resolves, the shared one and then the local one.
         top = os.path.realpath(str(tmp_path))
         said = re.escape(
-            "has no iadd/ root at either place a root lives "
-            f"(`{os.path.join(top, 'iadd')}`, "
-            f"`{os.path.join(top, '.git', 'iadd')}`, its "
+            "has no agentory/ root at either place a root lives "
+            f"(`{os.path.join(top, 'agentory')}`, "
+            f"`{os.path.join(top, '.git', 'agentory')}`, its "
             "README.md opening with the marker)"
         )
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
-        # An `iadd/` with no marker is the project's own and no root, and the
+        # An `agentory/` with no marker is the project's own and no root, and the
         # refusal names the same two places (#1651).
-        write(tmp_path, "iadd/config.json", config_of("bin/test -q"))
+        write(tmp_path, "agentory/config.json", config_of("bin/test -q"))
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
@@ -2085,8 +2085,8 @@ def _clearable_template(tmp_path_factory):
             None,
             {
                 "src/service.py": "def handler(x):\n    return x + 1\n",
-                "iadd/config.json": CONFIG,
-                "iadd/README.md": conftest.ROOT_MARKER + "\n",
+                "agentory/config.json": CONFIG,
+                "agentory/README.md": conftest.ROOT_MARKER + "\n",
                 f"{ITEM}/gaps.md": OVERVIEW,
             },
         ),
@@ -2178,7 +2178,7 @@ def with_workflow(repo):
 # row's exit code from `row` to the row under `suite` — which this fixture's
 # empty output, carrying no pytest counts, does not have. No row here is
 # about a workflow: #1483 took the `CI also` row off with the gate's copy of
-# IADD's `release` steps, and the gate reads no workflow. #717 took
+# the plugin's `release` steps, and the gate reads no workflow. #717 took
 # `chain` off, because a drawn panel is green by construction and its title
 # already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
 # put it back with a `✓`, and the base's ref beside its commit on one row.
@@ -2206,7 +2206,7 @@ class Test_main:
         )
         assert out.returncode == 3
         assert "STUB GATE RAN" in out.stdout and "'--x'" in out.stdout
-        assert f"iadd gate: {repo} ships its own gate; running" in out.stderr
+        assert f"agentic gate: {repo} ships its own gate; running" in out.stderr
 
     def test_refuses_to_leave_the_invoked_path_for_a_check_to_read(
         self, tmp_path, monkeypatch, capsys
@@ -2216,7 +2216,7 @@ class Test_main:
         assert gate.main(["--base", "base", "--root", str(tmp_path)]) == 2
         assert gate.INVOKED_AS_VAR not in os.environ
         err = capsys.readouterr().err
-        assert f"iadd gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
+        assert f"agentic gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
 
     @pytest.mark.parametrize(
         "words",
@@ -2238,7 +2238,7 @@ class Test_main:
         asked = unanswered(monkeypatch, *words)
         assert gate.main(args_for(repo, tmp_path / "out")) == 2
         err = capsys.readouterr().err
-        assert err.endswith(f"iadd gate: {past_the_bound(asked[0])}\n"), err
+        assert err.endswith(f"agentic gate: {past_the_bound(asked[0])}\n"), err
         assert len(asked) == 1 and "not in a git repository" not in err
 
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
@@ -2302,7 +2302,7 @@ class Test_main:
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_accepts_the_command_a_person_types(self):
-        wrapper = ROOT / "bin" / "iadd"
+        wrapper = ROOT / "bin" / "agentic"
         command = (
             [
                 os.environ.get("COMSPEC", "cmd.exe"),
@@ -2322,7 +2322,7 @@ class Test_main:
             timeout=120,
         )
         assert out.returncode == 0, out.stderr
-        assert out.stdout.startswith("usage: iadd gate")
+        assert out.stdout.startswith("usage: agentic gate")
 
     def test_the_fixture_branch_passes(self, a_cleared_run):
         """The other cases' starting point: every arm passes on the fixture, so a
@@ -2359,7 +2359,7 @@ class Test_main:
     def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(
         self, clearable, tmp_path, monkeypatch, capsys
     ):
-        """A3's behavioural half for the other arm #468 added. `iadd/config.json`
+        """A3's behavioural half for the other arm #468 added. `agentory/config.json`
         says the root lives under the git directory and the root is committed in
         the tree, which is the one direction of that disagreement CI can ever
         reach — and the gate said nothing about it until this arm existed. The
@@ -2370,7 +2370,7 @@ class Test_main:
         arms_answered(monkeypatch, gate.CHAIN_NAME)
         write(
             clearable,
-            "iadd/config.json",
+            "agentory/config.json",
             CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
         code, out, err = gated(clearable, tmp_path / "out", capsys)
@@ -2388,7 +2388,7 @@ class Test_main:
         gated as one with none: its report carries `HISTORICAL_ROWS` and its
         stderr names neither the workflow, nor the job, nor a step of it.
 
-        Seen red against the gate that kept a copy of IADD's `release`
+        Seen red against the gate that kept a copy of the plugin's `release`
         steps, which printed a `CI also` row and a line counting the steps for
         this fixture. The searched names are the job as that line spelled it,
         the workflow's path and the fixture's step names, never a bare

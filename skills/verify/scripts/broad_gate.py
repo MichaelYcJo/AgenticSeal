@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""iadd gate — the one broad run, taken once after the rounds settle.
+"""agentic gate — the one broad run, taken once after the rounds settle.
 
 Contract rule 2 and `docs/running/the-broad-gate.md` say the full suite,
 the repository-wide lint and the typecheck run once, after the review rounds
@@ -12,7 +12,7 @@ one context a release cannot replace.
 What it does, in order, from the repository root:
 
   1. the repository's own broad command — the `Broad gate` key of
-     `iadd/config.json`, one shell command line the repository wrote for
+     `agentory/config.json`, one shell command line the repository wrote for
      itself. **The key is refused three ways, and all three are exit 2 with
      nothing run**: no key at all, because a run over a command nobody
      chose is the counterfeit `verify` names; a config that will not read,
@@ -28,7 +28,7 @@ What it does, in order, from the repository root:
      not read under the flag, with `trail/gate.md`, which this run is about
      to write, and `inspection.md`, which the inspector writes after it, printed
      rather than judged
-  3. `iadd.py mode --check`            the `Mode` key and the folder agree
+  3. `agentic.py mode --check`            the `Mode` key and the folder agree
 
 **`<base>` above is a resolved commit, never the ref as typed.** `--base` is
 resolved once before anything runs, to the ref CI will read: the given ref's
@@ -105,15 +105,15 @@ in the failure form's own words.
 not the broad gate and replaces no part of the orchestrator's broad run.
 
 Usage:
-  iadd gate --base <ref> [--root DIR] [--record <item>] [--shape]
+  agentic gate --base <ref> [--root DIR] [--record <item>] [--shape]
             [--keep-output DIR]
-  iadd gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
+  agentic gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
 
 Exit codes: 0 passed · 1 failed · 2 refused — no key, no repository, a
 base that does not resolve, a copy of the plugin that lacks a module it
 loads, a `trail/gate.md` that could not be written, or a git command that
 did not start or did not finish within `lib/gitcmd.py#TIMEOUT`, whose one
-line, `iadd gate: ` and the command, is the refusal; nothing ran on 2
+line, `agentic gate: ` and the command, is the refusal; nothing ran on 2
 except where the refusal names what ran, or where git stopped answering
 after the checks ran.
 Under `--preflight`: 0 every record arm passed · 1 an arm failed · 2
@@ -137,13 +137,13 @@ import tempfile
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
 # loaded through `lib/sibling.py` the way `chain_check.py` loads
-# `lib/routing.py`: it is the one reader of `iadd/config.json`, and a second
+# `lib/routing.py`: it is the one reader of `agentory/config.json`, and a second
 # reader would answer a different question about the same file. The modules
 # loaded are named as `lib/sibling.py#load` names them.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = "skills/verify/scripts/stamp.py"
-IADD_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "iadd.py")
+AGENTIC_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "agentic.py")
 # The chain arm runs the check as a process, and passes the check's own
 # `INSPECTING`, read from the module `main` loads before any arm runs.
 CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
@@ -234,7 +234,7 @@ def git(root, *args):
 
 # --- which copy of the gate runs, and the stamp says which ------------------
 #
-# `iadd gate` on the Bash tool's PATH is the installed plugin's, and this
+# `agentic gate` on the Bash tool's PATH is the installed plugin's, and this
 # script resolves every arm relative to itself (`PLUGIN`, above). So a branch
 # that changes the gate would be measured by the copy that predates the
 # change: an installed copy can run fewer arms than the tree holds, and refuse
@@ -352,13 +352,13 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
 def running_line(root):
     """The one stderr line every run carries once the root has resolved:
     the running copy's absolute path and which copy it is."""
-    return f"iadd gate: gate {os.path.realpath(__file__)} ({copy_origin(root)})"
+    return f"agentic gate: gate {os.path.realpath(__file__)} ({copy_origin(root)})"
 
 
 def redirect_line(root, shipped):
     """What `main` writes before handing the run to the tree's own copy."""
     return (
-        f"iadd gate: {root} ships its own gate; running {shipped} "
+        f"agentic gate: {root} ships its own gate; running {shipped} "
         f"(tree {plugin_version(root)}) in place of "
         f"{os.path.realpath(__file__)} (plugin {plugin_version(PLUGIN)})"
     )
@@ -465,7 +465,7 @@ def moved_line(root, base):
         )
     if base.given_commit is None:
         return (
-            f"iadd gate: --base {base.given} names no commit in this "
+            f"agentic gate: --base {base.given} names no commit in this "
             f"checkout; {reads}. Every check below was asked about {base.ref}."
         )
     # `--left-right` counts each side of the symmetric difference: what the
@@ -478,7 +478,7 @@ def moved_line(root, base):
         behind, ahead = counts.split()
         apart = f" — {base.ref} is {ahead} ahead and {behind} behind {base.given}"
     return (
-        f"iadd gate: --base {base.given} is {base.given_commit} in this "
+        f"agentic gate: --base {base.given} is {base.given_commit} in this "
         f"checkout; {reads}{apart}. Every check below was asked about "
         f"{base.ref}."
     )
@@ -582,11 +582,11 @@ def resolve_base(root, given):
     return Base(given, given_commit, given, given_commit)
 
 
-def iadd_home(root):
+def agentory_home(root):
     """The shared place `optin.home_paths` gives where it is the root, else
-    `<git-common-dir>/iadd/`, else None — the places every `iadd/…` path in
+    `<git-common-dir>/agentory/`, else None — the places every `agentory/…` path in
     this plugin resolves to (contract rule 11), read in that order. Each is
-    the root only where `lib/optin.py#marked` finds the marker, so an `iadd/`
+    the root only where `lib/optin.py#marked` finds the marker, so an `agentory/`
     the project keeps for itself is never read for a command. The answer is
     `lib/optin.py#marked_home`'s; the scratch opt-out is not read here,
     because a throwaway repository still runs its broad command when
@@ -608,10 +608,12 @@ def broad_command(home):
     config = sibling.load(CONFIG_READER)
     pairs, refused = config.config_pairs(home)
     if refused is not None:
-        raise Refused(f"iadd gate: {refused}. Nothing ran")
+        raise Refused(f"agentic gate: {refused}. Nothing ran")
     value, refused = config.config_value(pairs, KEY)
     if refused is not None:
-        raise Refused(f"iadd gate: {config.config_path(home)}: {refused}. Nothing ran")
+        raise Refused(
+            f"agentic gate: {config.config_path(home)}: {refused}. Nothing ran"
+        )
     return value or None
 
 
@@ -626,14 +628,14 @@ def missing_row(home):
     afterwards. The message says whose the key is and where they answer
     it."""
     return (
-        f"iadd gate: {sibling.load(CONFIG_READER).config_path(home)} has no "
+        f"agentic gate: {sibling.load(CONFIG_READER).config_path(home)} has no "
         f"`{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` *The Inspection Test*): a session that picks a "
         "command here checks its own choice.\n"
-        "Take it to whoever owns the repository. `/iadd:config` is where "
+        "Take it to whoever owns the repository. `/agentic:config` is where "
         "they answer it — it shows every key and adds this one — and "
         "`templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
@@ -784,7 +786,7 @@ def not_read_line(config, value, not_read):
     if not not_read:
         return ""
     return (
-        f"iadd gate: the gate stopped reading the `{KEY}` key in {config} at its "
+        f"agentic gate: the gate stopped reading the `{KEY}` key in {config} at its "
         f"first `{value[cmd_cut(value)]}`, which can move where cmd.exe ends a "
         f"command, so it did not read {listed(dict.fromkeys(not_read))}. Read as "
         "a command name, each starts in a directory, and cmd.exe would read its "
@@ -894,14 +896,14 @@ def not_as_written(home, command, root, windows=None, comspec=None):
             "and hands a script's path to an interpreter as an argument"
         )
     return (
-        f"iadd gate: the `{KEY}` key in {config} {form}, {does}.\n"
+        f"agentic gate: the `{KEY}` key in {config} {form}, {does}.\n"
         f"    as written: {json.dumps({KEY: value}, ensure_ascii=False)[1:-1]}\n"
         f"    as meant:   {json.dumps({KEY: meant}, ensure_ascii=False)[1:-1]}\n"
         "Nothing ran, and nothing was repaired: the key is a person's to "
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
-        "`/iadd:config` is the door to the key."
+        "`/agentic:config` is the door to the key."
     ) + (f"\n{unread}" if unread else "")
 
 
@@ -965,13 +967,13 @@ def run(name, command, root, keep, shell=False, env=None):
 # `PYTHONPATH`. Beside this file, so a tree that ships its own gate ships its
 # own recorder with it (`gate_copy`).
 RECORDER_DIR = os.path.join(HERE, "pytest_record")
-RECORDER = "iadd_pytest_record"
+RECORDER = "agentic_pytest_record"
 # The four variables a measured run is handed, and the directory under the
 # kept output the records go in. The two the recorder reads are its own
 # module's names, written again here rather than imported, because the
 # recorder runs in the command's interpreter and this file is never loaded there.
-RECORD_KEY_VARIABLE = "IADD_RECORD_KEY"
-RECORD_DIR_VARIABLE = "IADD_RECORD_DIR"
+RECORD_KEY_VARIABLE = "AGENTIC_RECORD_KEY"
+RECORD_DIR_VARIABLE = "AGENTIC_RECORD_DIR"
 RECORDS = "records"
 # The kept name of the command's one run at the base.
 BASE_RUN = "suite-at-base"
@@ -995,7 +997,7 @@ def records_dir(keep):
 def recording_env(keep, key):
     """The environment a run the gate measures is handed: this
     process's own, with the recorder's directory first on `PYTHONPATH`,
-    ` -p iadd_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
+    ` -p agentic_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
     and the recorder's two variables set — the records directory, made here,
     and `key`.
 
@@ -1278,11 +1280,11 @@ EARNS_THE_WORD = (
 # pytest -- a part before its runner failed, the module's case A5, or a
 # command with no runner at all -- prints no pytest output; a pytest that
 # loaded no recorder prints its own; and the recorder's warning is
-# `iadd_pytest_record: no record written: <error>`.
+# `agentic_pytest_record: no record written: <error>`.
 NO_RECORD_CAUSES = (
     "the command started no pytest, because a part before its runner failed or "
     "it has none; none it started loaded the recorder; or the one that did "
-    "could not write its record and warned 'iadd_pytest_record: no record "
+    "could not write its record and warned 'agentic_pytest_record: no record "
     "written' in {kept}"
 )
 # Where the command's run at `HEAD` left no record carrying its key: the files
@@ -1439,7 +1441,7 @@ def compare_at_base(root, base, command, files, keep):
     run: the shell sites are `gate` and this function, and a case holds
     that.
     """
-    scratch = tempfile.mkdtemp(prefix="iadd-gate-base-")
+    scratch = tempfile.mkdtemp(prefix="agentic-gate-base-")
     added = git(root, "worktree", "add", "--detach", scratch, base)
     if added is None:
         # The worktree that was not added still leaves the directory
@@ -1465,7 +1467,7 @@ def compare_at_base(root, base, command, files, keep):
             git(root, "worktree", "remove", "--force", scratch)
         except gitcmd_module().Failed as unanswered:
             sys.stderr.write(
-                f"iadd gate: the scratch worktree {scratch} was not removed: "
+                f"agentic gate: the scratch worktree {scratch} was not removed: "
                 f"{unanswered.line}\n"
             )
 
@@ -1526,13 +1528,13 @@ def write_gate_file(item, tree, base):
         name = os.path.basename(os.path.normpath(item))
         held = f"# {name} {chr(0x2014)} broad gate\n"
     except (OSError, UnicodeDecodeError) as exc:
-        raise Refused(f"iadd gate: {path} could not be read ({exc})") from exc
+        raise Refused(f"agentic gate: {path} could not be read ({exc})") from exc
     fields = sibling.load(FIELDS_READER)
     value = f"{tree} against {base}"
     try:
         block = fields.assemble([(fields.RUN, value)], fields.GATE)
     except ValueError as exc:
-        raise Refused(f"iadd gate: {path} was not written: {exc}") from exc
+        raise Refused(f"agentic gate: {path} was not written: {exc}") from exc
     runs = fields.read(held, fields.GATE).blocks
     same = bool(runs) and runs[-1].fields[fields.RUN].value == value
     text = held if same else held.rstrip("\n") + "\n\n" + block
@@ -1544,10 +1546,10 @@ def write_gate_file(item, tree, base):
     after = fields.read(text, fields.GATE)
     if after.refusals:
         line, why = after.refusals[0]
-        raise Refused(f"iadd gate: {path} was not written: line {line}: {why}")
+        raise Refused(f"agentic gate: {path} was not written: line {line}: {why}")
     if not after.blocks or after.blocks[-1].fields[fields.RUN].value != value:
         raise Refused(
-            f"iadd gate: {path} was not written: the reader reads no run block "
+            f"agentic gate: {path} was not written: the reader reads no run block "
             "at its end, since a fence above the block hides it"
         )
     if same:
@@ -1560,7 +1562,7 @@ def write_gate_file(item, tree, base):
         with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
     except OSError as exc:
-        raise Refused(f"iadd gate: {path} could not be written ({exc})") from exc
+        raise Refused(f"agentic gate: {path} could not be written ({exc})") from exc
     return path
 
 
@@ -1924,9 +1926,9 @@ PREFLIGHT_TAIL = (
 # shell.
 ROW_NOT_RUN = " — read, and not run: this is a preflight"
 PREFLIGHT_RECORD = (
-    "iadd gate: --preflight and --record were both given, and a preflight "
+    "agentic gate: --preflight and --record were both given, and a preflight "
     "writes nothing — nothing ran. `trail/gate.md` is written by a full run: "
-    "`iadd gate --base <base> --record <item>`. Drop `--record`"
+    "`agentic gate --base <base> --record <item>`. Drop `--record`"
 )
 
 
@@ -1946,16 +1948,16 @@ def gate(args, ascii_marks=False):
     root = sibling.load(OPTIN).toplevel(os.path.abspath(args.root or os.getcwd()))
     if not root:
         raise Refused(
-            f"iadd gate: {args.root or os.getcwd()} is not in a git repository — "
+            f"agentic gate: {args.root or os.getcwd()} is not in a git repository — "
             "nothing ran"
         )
-    home = iadd_home(root)
+    home = agentory_home(root)
     if home is None:
-        # The two places as `optin.home_paths` gives them, as `iadd mode`
+        # The two places as `optin.home_paths` gives them, as `agentic mode`
         # prints them.
         shared, local = sibling.load(OPTIN).home_paths(root)
         raise Refused(
-            f"iadd gate: {root} has no iadd/ root at either place a root lives "
+            f"agentic gate: {root} has no agentory/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
             "this repository is not opted in, and there is no config to read a "
             "command from. Nothing ran"
@@ -1974,7 +1976,7 @@ def gate(args, ascii_marks=False):
         raise Refused(unrunnable)
     head = git(root, "rev-parse", "--short", "HEAD")
     if head is None:
-        raise Refused(f"iadd gate: {root} has no HEAD to run over — nothing ran")
+        raise Refused(f"agentic gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
     # without that case going red. Every check below asks `base.commit`,
@@ -1986,7 +1988,7 @@ def gate(args, ascii_marks=False):
     base = resolve_base(root, args.base)
     if base.commit is None:
         raise Refused(
-            f"iadd gate: --base {base.given} does not resolve in {root} — nothing "
+            f"agentic gate: --base {base.given} does not resolve in {root} — nothing "
             "ran. A base that cannot be checked out is a base nothing can be "
             "compared against"
         )
@@ -2003,8 +2005,8 @@ def gate(args, ascii_marks=False):
             raise Refused(PREFLIGHT_RECORD)
         item = os.path.abspath(args.record)
         if not os.path.isdir(item):
-            raise Refused(f"iadd gate: --record {args.record} is not a directory")
-    keep = args.keep_output or tempfile.mkdtemp(prefix="iadd-gate-")
+            raise Refused(f"agentic gate: --record {args.record} is not a directory")
+    keep = args.keep_output or tempfile.mkdtemp(prefix="agentic-gate-")
     os.makedirs(keep, exist_ok=True)
     py = sys.executable
     checks = {}
@@ -2018,7 +2020,7 @@ def gate(args, ascii_marks=False):
     if said:
         sys.stderr.write(said + "\n")
     sys.stderr.write(
-        f"iadd gate: `{KEY}` says: {command}"
+        f"agentic gate: `{KEY}` says: {command}"
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )
@@ -2049,9 +2051,11 @@ def gate(args, ascii_marks=False):
         root,
         keep,
     )
-    # No `--root`: `iadd.py mode` resolves the repository from the working
+    # No `--root`: `agentic.py mode` resolves the repository from the working
     # directory, which `run` already sets to the tree being gated.
-    checks[MODE_NAME] = run(MODE_NAME, [py, IADD_SCRIPT, "mode", "--check"], root, keep)
+    checks[MODE_NAME] = run(
+        MODE_NAME, [py, AGENTIC_SCRIPT, "mode", "--check"], root, keep
+    )
 
     failures = []
     for name, check in checks.items():
@@ -2085,7 +2089,7 @@ def gate(args, ascii_marks=False):
             else:
                 verdicts = {f: NO_RECORD_AT_HEAD for f in failing_files(check.text)}
         failures.append((name, failure_lines(check, verdicts, record)))
-    sys.stderr.write(f"iadd gate: outputs kept under {keep}\n")
+    sys.stderr.write(f"agentic gate: outputs kept under {keep}\n")
     if failures:
         form = failed_form(tree, base.commit, failures, branch, base.ref)
         if args.preflight:
@@ -2130,12 +2134,12 @@ def gate(args, ascii_marks=False):
 # files' bytes to decide whether the panel's `gate` row says anything.
 # Absent, the running copy was invoked directly, or redirected by an installed
 # copy that sets no such variable.
-INVOKED_AS_VAR = "IADD_GATE_INVOKED_AS"
+INVOKED_AS_VAR = "AGENTIC_GATE_INVOKED_AS"
 
 # The last line of a recorded run that passed: the gate writes
 # `trail/gate.md` into the working tree and commits nothing, and CI reads HEAD.
 CELL_UNCOMMITTED = (
-    "iadd gate: the run is written to {path} and not committed. CI reads "
+    "agentic gate: the run is written to {path} and not committed. CI reads "
     "HEAD, so commit it before you push"
 )
 
@@ -2164,7 +2168,7 @@ def main(argv=None, console_wants_ascii=False):
     found it, negated — `__main__` asks before it reconfigures the
     streams. A caller in process names it, or gets the owner's marks."""
     parser = argparse.ArgumentParser(
-        prog="iadd gate",
+        prog="agentic gate",
         description="The one broad run, after the rounds settle: the "
         "repository's command and the plugin's checks, then a report that "
         "says whether they passed. It judges nothing and draws nothing.",
@@ -2240,7 +2244,7 @@ def main(argv=None, console_wants_ascii=False):
         sys.stderr.write(str(exc) + "\n")
         return 2
     except failed as unanswered:
-        sys.stderr.write(f"iadd gate: {unanswered.line}\n")
+        sys.stderr.write(f"agentic gate: {unanswered.line}\n")
         return 2
 
 

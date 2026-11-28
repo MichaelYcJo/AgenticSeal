@@ -43,7 +43,7 @@ this module does not read.
 Standard library only; it imports `blocks` beside it. `chain_check.py`
 and `broad_gate.py` load it through `lib/sibling.py`, as they load
 `lib/routing.py`; `lib/gaps.py` imports it beside it; `stamp.py`, which
-`iadd stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
+`agentic stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
 import collections
@@ -65,7 +65,6 @@ except ImportError as missing:
     ) from missing
 
 # The info string, and the one line that opens a block.
-# exempt from root_name: a fenced block's info string, which names no directory
 INFO = "iadd"
 FENCE = "`" * 3
 OPENER = FENCE + INFO
@@ -123,7 +122,7 @@ class Kind:
 # The kinds. `verdict:` takes no `open`: a finding with no close block is
 # open. A finding's `severity:` and `evidence:` and a close's `answer:` take
 # any text, and the last two may be left out: no script decides on their
-# values, and `iadd pr-body` copies each block whole.
+# values, and `agentic pr-body` copies each block whole.
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,

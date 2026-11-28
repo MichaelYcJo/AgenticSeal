@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""iadd unverified — read what a closing memo recorded as unverified, and fail
+"""agentic unverified — read what a closing memo recorded as unverified, and fail
 on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
@@ -13,7 +13,7 @@ So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Many are open at any time, and
 a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
-is what `iadd unverified iadd/threads/` is for; no number is repeated in prose here,
+is what `agentic unverified agentory/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
 It fails for what the author can always fix: a section that cannot be read.
@@ -26,14 +26,14 @@ the proofer reads it in the closing memo's diff (`skills/implement/SKILL.md`
 *4. The closing memo*).
 
 The reader is `lib/gaps.py`, which states how a row closes and which
-`iadd settle` reads a memo through as well; this command walks a tree for every `gaps.md`, reads each through it,
+`agentic settle` reads a memo through as well; this command walks a tree for every `gaps.md`, reads each through it,
 and prints what it found. Deliberately a text scan of markdown, not a parser
 library: the gates here are stdlib-only, and the format it accepts is one
 line long. That format is strict on purpose — see `lib/gaps.py#check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read · 2 the path or arguments were unusable, which
-includes a scan that found no closing memo at all. One state of an `iadd/`
+includes a scan that found no closing memo at all. One state of an `agentory/`
 root's own `threads` path is exit 0 instead, and says so: the path holding no
 work item, empty or absent, which is the state a complete settle ends in
 (`settled_root`).
@@ -56,7 +56,7 @@ import sibling  # noqa: E402
 GAPS = sibling.load("lib/gaps.py")
 console = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
-# `lib/optin.py`, whose `WORK_ITEMS` names the directory under an `iadd/`
+# `lib/optin.py`, whose `WORK_ITEMS` names the directory under an `agentory/`
 # root that holds the threads, and whose `GAPS` names a thread's closing
 # memo.
 OPTIN = sibling.load("lib/optin.py")
@@ -102,7 +102,7 @@ def overviews(paths):
 
 
 def config_at(top):
-    """`(lib/config.py, the iadd/ root, its name in the tree)` for the
+    """`(lib/config.py, the agentory/ root, its name in the tree)` for the
     repository at `top`: the root as `lib/optin.py#home_at` resolves it, and
     the name `lib/optin.py#home_name` gives, "" where the root is local or
     absent."""
@@ -180,7 +180,7 @@ def display_path(path, start):
 
     `os.path.relpath` raises `ValueError` on Windows when the two are on
     different drives, and this is the reporting footing for every line the
-    tool prints. Running `iadd unverified D:\repo\specs` from `C:\` is
+    tool prints. Running `agentic unverified D:\repo\specs` from `C:\` is
     an ordinary thing to do, and unguarded it dies with a traceback before
     printing a single row. The absolute path is a worse answer than a
     relative one and a far better one than no output at all.
@@ -209,13 +209,13 @@ def named_root(parent):
 
 
 def settled_root(path):
-    """Whether `path` is an `iadd/` root's own `threads` directory with no work
+    """Whether `path` is an `agentory/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
     That is the state a complete settle reaches, and it is two states: the
-    tree that ran `iadd settle --apply` holds an empty `iadd/threads/`, and a
+    tree that ran `agentic settle --apply` holds an empty `agentory/threads/`, and a
     fresh checkout of the commit holds none, because git keeps no empty
-    directory. A person who runs `iadd unverified iadd/threads/`
+    directory. A person who runs `agentic unverified agentory/threads/`
     after the settle hands this tool that path, and reading it as a typo would
     refuse a finished settle. Only this one path is settled: any other path
     that is missing is still refused, which is what keeps `threads/ thraeds/`
@@ -233,14 +233,14 @@ def settled_root(path):
 
 
 SETTLED = (
-    "iadd unverified: {path} holds no work item and its `iadd/` root is "
+    "agentic unverified: {path} holds no work item and its `agentory/` root is "
     "there — the state a complete settle ends in, so there is nothing to read"
 )
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="iadd unverified",
+        prog="agentic unverified",
         description="Report open `## Not verified` items; fail on a record "
         "that cannot be read.",
     )
@@ -249,7 +249,7 @@ def main(argv=None):
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing:
-        print(f"iadd unverified: no such path: {missing[0]}", file=sys.stderr)
+        print(f"agentic unverified: no such path: {missing[0]}", file=sys.stderr)
         return 2
 
     files = overviews(args.path)
@@ -273,7 +273,7 @@ def main(argv=None):
             print(SETTLED.format(path=", ".join(args.path)))
             return 0
         print(
-            f"iadd unverified: no {OPTIN.GAPS} found under "
+            f"agentic unverified: no {OPTIN.GAPS} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )

@@ -1,7 +1,7 @@
 """`lib/routing.py`: the routing answer is recorded where its readers read
 it, so nothing re-derives it.
 
-A declaration at `iadd/threads/<work-item-id>/routing.md` is what the pull
+A declaration at `agentory/threads/<work-item-id>/routing.md` is what the pull
 request's check reads, through `routing.declarations`. Failure direction: a declaration
 that cannot be read is not a declaration, and an optional row that cannot be
 read is unanswered while the declaration stands. What a reader does with an
@@ -45,7 +45,7 @@ from test_tables import leaves_both
 
 TARGET = "lib/routing.py"
 
-routing = load_lib_module("routing.py", "iadd_routing")
+routing = load_lib_module("routing.py", "agentic_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
@@ -455,7 +455,7 @@ class Test_parse:
         """#151's lesson on this row, asserted rather than only written down.
 
         A chosen `no` says a person was asked and said the run may stop. An absent
-        row says nobody was ever asked. Collapsing them is what made an `iadd/` root
+        row says nobody was ever asked. Collapsing them is what made an `agentory/` root
         somebody chose byte-identical to one a preset produced, and it is the whole
         reason the unchecked half of the box writes a VALUE.
 
@@ -512,7 +512,7 @@ class Test_current_branch:
 class Test_declarations:
     def test_accepts_a_declaration_under_the_repositorys_root(self, tmp_path):
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        item = repo / "iadd" / "threads" / "1780000000-work"
+        item = repo / "agentory" / "threads" / "1780000000-work"
         item.mkdir(parents=True)
         (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
         found = routing.declarations(str(repo))
@@ -545,7 +545,7 @@ class Test_open_declarations:
         answered whatever its `Automation` row reads, here `no`."""
         repo = git_repo(tmp_path / "repo")
         git(repo, "checkout", "-q", "-b", "feature/x")
-        path = declare_automation(repo / "iadd", "no", "feature/x")
+        path = declare_automation(repo / "agentory", "no", "feature/x")
         found = routing.open_declarations(str(repo))
         assert [(p, d["automation"]) for p, d in found] == [(str(path), "no")]
 
@@ -559,7 +559,7 @@ class Test_open_declarations:
         every platform, and the pair still answers the native spelling."""
         repo = git_repo(tmp_path / "repo")
         git(repo, "checkout", "-q", "-b", "feature/x")
-        path = declare_automation(repo / "iadd", "yes", "feature/x")
+        path = declare_automation(repo / "agentory", "yes", "feature/x")
         real = routing.gitcmd.git
 
         def spelt_otherwise(cwd, *args, **kwargs):
@@ -582,7 +582,7 @@ class Test_open_declarations:
         `Automation` row reads."""
         repo = git_repo(tmp_path / "repo")
         git(repo, "checkout", "-q", "-b", "feature/x")
-        declare_automation(repo / "iadd", "yes", "feature/released")
+        declare_automation(repo / "agentory", "yes", "feature/released")
         assert routing.open_declarations(str(repo)) == []
 
     def test_refuses_a_repository_with_no_root_and_a_directory_outside_git(
@@ -604,7 +604,7 @@ class Test_open_declarations:
         declaration names, and the work item's declaration stands in the
         root of a linked worktree on `feature/x`: it is open, once."""
         other = linked_worktree(repo, tmp_path)
-        path = declare_automation(other / "iadd", "yes", "feature/x")
+        path = declare_automation(other / "agentory", "yes", "feature/x")
         found = routing.open_declarations(str(repo))
         assert [os.path.realpath(p) for p, _ in found] == [os.path.realpath(path)]
 
@@ -624,7 +624,7 @@ class Test_open_declarations:
         `SystemExit`, and `open_declarations` answers `[]` in its place."""
         repo = git_repo(tmp_path / "repo")
         git(repo, "checkout", "-q", "-b", "feature/x")
-        declare_automation(repo / "iadd", "yes", "feature/x")
+        declare_automation(repo / "agentory", "yes", "feature/x")
         empty = tmp_path / "no-git"
         empty.mkdir()
         monkeypatch.setenv("PATH", str(empty))
@@ -640,7 +640,7 @@ class Test_open_declarations:
             pytest.skip("the stub `git` is a sh script, which Windows does not start")
         repo = git_repo(tmp_path / "repo")
         git(repo, "checkout", "-q", "-b", "feature/x")
-        declare_automation(repo / "iadd", "yes", "feature/x")
+        declare_automation(repo / "agentory", "yes", "feature/x")
         stub = tmp_path / "stub"
         stub.mkdir()
         (stub / "git").write_text(
@@ -742,7 +742,7 @@ class Test_module:
         import routing
 
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        item = repo / "iadd" / "threads" / "1780000000-work"
+        item = repo / "agentory" / "threads" / "1780000000-work"
         item.mkdir(parents=True)
         # Valid UTF-16, which is not valid UTF-8 anywhere in it.
         (item / "routing.md").write_bytes(
@@ -755,7 +755,7 @@ class Test_module:
         list holds only what `parse` read; the readable one beside it stays.
         This case asks the reader."""
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        specs = repo / "iadd" / "threads"
+        specs = repo / "agentory" / "threads"
         (specs / "1780000000-prose").mkdir(parents=True)
         (specs / "1780000000-prose" / "routing.md").write_text(
             "we decided to go through the review chain.\n", encoding="utf-8"

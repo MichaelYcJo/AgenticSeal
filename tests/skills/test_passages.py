@@ -20,7 +20,7 @@ TARGET = "skills/settle/scripts/passages.py"
 
 passages = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
-    "iadd_passages",
+    "agentic_passages",
 )
 WINDOW = passages.WINDOW
 
@@ -73,7 +73,7 @@ class Test_in_corpus:
             # sample of the directories outside the list.
             "tests/README.md",
             "hooks/notes.md",
-            "iadd/threads/1-x/frame/design.md",
+            "agentory/threads/1-x/frame/design.md",
         ],
         ids=[
             "the-md-suffix",

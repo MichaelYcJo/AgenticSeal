@@ -246,7 +246,7 @@ def test_the_gates_own_docstring_says_the_base_is_resolved():
 WORKFLOW_SHAPES = [
     (
         {
-            "run": 'python3 x.py \\\n  --baseline "origin/${{ github.base_ref }}" iadd/threads/\n'
+            "run": 'python3 x.py \\\n  --baseline "origin/${{ github.base_ref }}" agentory/threads/\n'
         },
         "origin/${{ github.base_ref }}",
     ),

@@ -10,7 +10,7 @@ the script's other cases from
 keeps the cases that read the tests workflow's job.
 
 Seen red before they were committed (contract rule 15): three cases failed
-against the script that printed no test-file rows, and `iadd mutate`
+against the script that printed no test-file rows, and `agentic mutate`
 turned the fourth, the exit on an unreadable tree, red by letting `main` go
 on past the tree it could not read.
 """
@@ -27,7 +27,7 @@ from conftest import ROOT, census_case
 TARGET = ".github/scripts/release_report.py"
 
 _SPEC = importlib.util.spec_from_file_location(
-    "iadd_release_report_under_layout", os.path.join(ROOT, *TARGET.split("/"))
+    "agentic_release_report_under_layout", os.path.join(ROOT, *TARGET.split("/"))
 )
 report = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(report)

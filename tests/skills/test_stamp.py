@@ -42,7 +42,7 @@ ROOT = pathlib.Path(conftest.ROOT)
 INSPECTION_TEMPLATE = ROOT / "templates" / "records" / "sdd-inspection.md"
 ITEM_NAME = "1799000000-an-item"
 ITEM_ID = "1799000000"
-INSPECTION = f"iadd/threads/{ITEM_NAME}/inspection.md"
+INSPECTION = f"agentory/threads/{ITEM_NAME}/inspection.md"
 SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
 
 stamp = load_module(ROOT / TARGET, "stamp_under_test")
@@ -357,7 +357,7 @@ def values(**changed):
         "from": "origin/base",
         "branch": "feat/x",
         "pr": "#12",
-        "item": f"/x/iadd/threads/{ITEM_NAME}",
+        "item": f"/x/agentory/threads/{ITEM_NAME}",
         "rows": SMALL_ROWS,
     }
     return {**written, **changed}
@@ -413,7 +413,7 @@ class Test_module:
         assert not hasattr(stamp, "MESSAGE_BUDGET")
 
     def test_the_sample_carries_every_row_a_cleared_inspection_draws(self):
-        """`iadd stamp` with no arguments shows what a stamp draws, so its
+        """`agentic stamp` with no arguments shows what a stamp draws, so its
         labels are `inspection_rows`' with every conditional row present, in
         order, and each value in the shape that function writes it."""
         rows = stamp.inspection_rows("c46fd2db", "feature", "1e2bed90", "1", "c46", 3)
@@ -438,9 +438,9 @@ class Test_module:
                 assert row[1].startswith("✓ ") == given[1].startswith("✓ ")
 
     def test_accepts_the_command_a_person_types_on_a_pipe(self):
-        """`bin/iadd stamp` with stdout a pipe draws the twin: the form is
+        """`bin/agentic stamp` with stdout a pipe draws the twin: the form is
         asked of the stream before `__main__` reconfigures it."""
-        wrapper = ROOT / "bin" / "iadd"
+        wrapper = ROOT / "bin" / "agentic"
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd", "stamp"]
             if os.name == "nt"
@@ -521,7 +521,7 @@ class Test_read_sprite:
         with pytest.raises(ValueError) as refused:
             stamp.read_sprite(str(broken))
         assert str(refused.value) == (
-            f"iadd stamp: the disc's mark sprite {broken} is not 16 lines of 16 "
+            f"agentic stamp: the disc's mark sprite {broken} is not 16 lines of 16 "
             "characters over `.KPRLWY` with every drawn cell and its shadow "
             f"inside the disc's field ({fault}). Nothing was drawn."
         )
@@ -723,7 +723,7 @@ class Test_item_value:
             stamp.item_value(str(tmp_path / "1790815615-the-inspection"))
             == "1790815615"
         )
-        assert stamp.item_value("iadd/threads/1-a-b/") == "1"
+        assert stamp.item_value("agentory/threads/1-a-b/") == "1"
 
     def test_refuses_to_cut_a_name_with_no_dash(self):
         assert stamp.item_value("plain") == "plain"
@@ -1060,7 +1060,7 @@ class Test_values_dir:
         """#1376: the queue is keyed by the clone and by nothing else, so the
         function takes the common dir alone and names no level below it."""
         common = str(tmp_path)
-        assert stamp.values_dir(common) == os.path.join(common, "iadd-stamp")
+        assert stamp.values_dir(common) == os.path.join(common, "agentic-stamp")
 
     def test_refuses_to_read_a_session_id_from_the_environment(self):
         """Nothing in the file reads an environment variable, the read the
@@ -1093,7 +1093,7 @@ class Test_drawn_path:
 class Test_write_values:
     def test_accepts_the_values_under_a_name_that_sorts_oldest_first(self, tmp_path):
         path = stamp.write_values(str(tmp_path), values(), now=7, key="9-abc")
-        assert path == str(tmp_path / "iadd-stamp" / "7-9-abc.json")
+        assert path == str(tmp_path / "agentic-stamp" / "7-9-abc.json")
         assert json.loads(pathlib.Path(path).read_text(encoding="utf-8")) == json.loads(
             json.dumps(values())
         )
@@ -1101,7 +1101,7 @@ class Test_write_values:
 
     def test_refuses_a_name_without_the_tree_where_no_key_is_given(self, tmp_path):
         path = stamp.write_values(str(tmp_path), values(tree="a/b"), now=3)
-        assert path == str(tmp_path / "iadd-stamp" / "3-b.json")
+        assert path == str(tmp_path / "agentic-stamp" / "3-b.json")
         later = os.path.basename(stamp.write_values(str(tmp_path), {}))
         moment, _, tail = later.partition("-")
         assert tail == "tree.json" and int(moment) > 10**18, later
@@ -1137,14 +1137,16 @@ class Test_read_values:
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(path))
         said = str(refused.value)
-        assert said.startswith(f"iadd stamp: {path} is not a stamp's values file: ")
+        assert said.startswith(f"agentic stamp: {path} is not a stamp's values file: ")
         assert why in said and said.endswith("Nothing was drawn."), said
 
     def test_refuses_a_file_that_cannot_be_read(self, tmp_path):
         missing = tmp_path / "gone.json"
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(missing))
-        assert str(refused.value).startswith(f"iadd stamp: {missing} cannot be read (")
+        assert str(refused.value).startswith(
+            f"agentic stamp: {missing} cannot be read ("
+        )
 
 
 class Test_pending:
@@ -1229,8 +1231,8 @@ class Test_already_queued:
         assert not stamp.already_queued(str(tmp_path), "7")
         stamp.write_values(str(tmp_path), {}, now=1, key="8-abc")
         stamp.write_values(str(tmp_path), {"tree": "7"}, now=2)
-        write(tmp_path / "iadd-stamp", "a-file", "")
-        write(tmp_path / "iadd-stamp" / "s-1", "3-7-abc.json", "{}")
+        write(tmp_path / "agentic-stamp", "a-file", "")
+        write(tmp_path / "agentic-stamp" / "s-1", "3-7-abc.json", "{}")
         assert not stamp.already_queued(str(tmp_path), "7")
 
 
@@ -1266,7 +1268,7 @@ class Test_inspection_rows:
 class Test_record_refusal:
     def test_accepts_an_empty_file_named_by_the_id_and_the_target(self, tmp_path):
         stamp.record_refusal(str(tmp_path), "1799", "deadbee")
-        recorded = tmp_path / "iadd-stamp-refused" / "1799-deadbee"
+        recorded = tmp_path / "agentic-stamp-refused" / "1799-deadbee"
         assert recorded.read_text(encoding="utf-8") == ""
 
     def test_refuses_to_raise_where_the_record_cannot_be_written(self, tmp_path):
@@ -1347,8 +1349,8 @@ def _shared(tmp_path_factory):
     d = tmp_path_factory.mktemp("shared") / "repo"
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
-    write(d, "iadd/config.json", "{}\n")
-    mark_root(d / "iadd")
+    write(d, "agentory/config.json", "{}\n")
+    mark_root(d / "agentory")
     commit(d, "x")
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
@@ -1357,7 +1359,7 @@ def _shared(tmp_path_factory):
         git_out(d, "rev-parse", "--short", "HEAD"),
         git_out(d, "rev-parse", "--short", "main"),
     )
-    closing_records(d / "iadd" / "threads" / ITEM_NAME, target, base)
+    closing_records(d / "agentory" / "threads" / ITEM_NAME, target, base)
     commit(d, "the closing records")
     return d, target, base
 
@@ -1389,7 +1391,7 @@ def amended(item, text):
 def queued(common):
     """Every values file under COMMON, drawn or not."""
     found = []
-    for directory, _dirs, names in os.walk(pathlib.Path(common) / "iadd-stamp"):
+    for directory, _dirs, names in os.walk(pathlib.Path(common) / "agentic-stamp"):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
@@ -1456,7 +1458,7 @@ def _local(tmp_path_factory):
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
     target, base = commit(d, "the work")[:7], git_out(d, "rev-parse", "--short", "main")
-    item = mark_root(d / ".git" / "iadd") / "threads" / ITEM_NAME
+    item = mark_root(d / ".git" / "agentory") / "threads" / ITEM_NAME
     closing_records(item, target, base)
     write(item, "routing.md", routing_text())
     return d, target, base
@@ -1471,7 +1473,7 @@ def local(tmp_path, _local):
 
 
 def item_dir(item):
-    return pathlib.Path(item.common) / "iadd" / "threads" / ITEM_NAME
+    return pathlib.Path(item.common) / "agentory" / "threads" / ITEM_NAME
 
 
 def queue_local(item, name="inspection.md"):
@@ -1488,9 +1490,9 @@ def uncommitted(item):
     """The shared repository with its closing records' commit undone and the
     records left on disk, the work item's `routing.md` naming `feat/x` beside
     them: the moment the inspector has written the inspection and runs
-    `iadd stamp --inspection`, before anything commits it."""
+    `agentic stamp --inspection`, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
-    write(item.repo, f"iadd/threads/{ITEM_NAME}/routing.md", routing_text())
+    write(item.repo, f"agentory/threads/{ITEM_NAME}/routing.md", routing_text())
     return item
 
 
@@ -1588,10 +1590,10 @@ class Test_queue_for_written_inspection:
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_root_in_an_opted_out_repository_queues_nothing(self, shared):
-        """`iadd/` under a worktree is the root only while the repository
+        """`agentory/` under a worktree is the root only while the repository
         runs the IADD process; the throwaway marker takes it back."""
         uncommitted(shared)
-        write(shared.common, "iadd-scratch", "")
+        write(shared.common, "agentic-scratch", "")
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
@@ -1599,7 +1601,7 @@ class Test_queue_for_written_inspection:
         """#1027 S13: a `cleared` HEAD's history carries was stamped where it
         was made, so a write of the inspection over it queues nothing, even in
         a clone holding no values file."""
-        write(shared.repo, f"iadd/threads/{ITEM_NAME}/routing.md", routing_text())
+        write(shared.repo, f"agentory/threads/{ITEM_NAME}/routing.md", routing_text())
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("refused-cleared-leaves-a-record")
@@ -1614,11 +1616,11 @@ class Test_queue_for_written_inspection:
         off = off_branch_commit(shared.repo)
         write(shared.repo, INSPECTION, inspection_text(off, shared.base))
         assert queue_written(shared) == [
-            f"iadd: no stamp was queued for {ITEM_ID}: the work item is not "
+            f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
             f"cleared on feat/x, since its inspection.md names {off}, which "
             "feat/x does not hold; a new inspection at the head of feat/x draws it"
         ]
-        refused = pathlib.Path(shared.common) / "iadd-stamp-refused"
+        refused = pathlib.Path(shared.common) / "agentic-stamp-refused"
         assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
         assert queued(shared.common) == []
         commit(shared.repo, "the stale row")
@@ -1796,10 +1798,10 @@ class Test_queue_for_written_inspection:
         named = given(local)
         said = queue_local(local)
         assert queued(local.common) == []
-        refused = pathlib.Path(local.common) / "iadd-stamp-refused"
+        refused = pathlib.Path(local.common) / "agentic-stamp-refused"
         if named:
             assert said == [
-                f"iadd: no stamp was queued for {ITEM_ID}: the work item is not "
+                f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
                 f"cleared on feat/x, since its inspection.md names {named}, which "
                 "feat/x does not hold; a new inspection at the head of feat/x "
                 "draws it"
@@ -1852,20 +1854,20 @@ class Test_queue_for_written_inspection:
         self, local
     ):
         """1792363231 S5, the writer's half: an `inspection.md` under the common
-        dir of a repository that also has `<repo>/iadd/` is under no root in
+        dir of a repository that also has `<repo>/agentory/` is under no root in
         force; the same text in another file of a local work item, or a work
-        item's copy outside `iadd/threads/`, is no inspection."""
+        item's copy outside `agentory/threads/`, is no inspection."""
         notes = item_dir(local) / "notes.md"
         notes.write_text(
             (item_dir(local) / "inspection.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         assert queue_local(local, name="notes.md") == []
-        elsewhere = pathlib.Path(local.common) / "iadd" / "notes" / ITEM_NAME
+        elsewhere = pathlib.Path(local.common) / "agentory" / "notes" / ITEM_NAME
         shutil.copytree(item_dir(local), elsewhere)
         inspection = str(elsewhere / "inspection.md")
         assert stamp.queue_for_written_inspection(inspection) == []
-        mark_root(local.repo / "iadd")
+        mark_root(local.repo / "agentory")
         assert queue_local(local) == []
         assert queued(local.common) == []
 
@@ -1918,7 +1920,7 @@ def full_values(tree="aaa1111a"):
         rows=FULL_ROWS,
         tree=tree,
         base="bbb2222b",
-        item=f"/x/iadd/threads/1799000000-{name}",
+        item=f"/x/agentory/threads/1799000000-{name}",
         branch=f"feat/12-{name}",
         **{"from": "origin/release/v1.2.3"},
     )
@@ -1926,12 +1928,12 @@ def full_values(tree="aaa1111a"):
 
 @pytest.fixture(scope="module")
 def _opted_in(tmp_path_factory):
-    """A repository with `iadd/` at its root and one commit, built once."""
+    """A repository with `agentory/` at its root and one commit, built once."""
     repo = tmp_path_factory.mktemp("stop-world") / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    write(repo, "iadd/config.json", "{}\n")
-    mark_root(repo / "iadd")
+    write(repo, "agentory/config.json", "{}\n")
+    mark_root(repo / "agentory")
     commit(repo, "x")
     return repo
 
@@ -1989,7 +1991,7 @@ class Test_toplevel:
 
 class Test_drawings:
     def test_accepts_the_oldest_file_first_and_claims_what_it_draws(self, opted):
-        second = waiting(opted, now=2, item="/x/iadd/threads/1799000001-another")
+        second = waiting(opted, now=2, item="/x/agentory/threads/1799000001-another")
         first = waiting(opted, now=1)
         directory = os.path.dirname(first)
         labels = []
@@ -2091,7 +2093,7 @@ class Test_drawn_at_stop:
         assert said.startswith(WAITING)
         tree = tmp_path / "tree"
         git(opted, "worktree", "add", "-q", str(tree))
-        waiting(opted, item="/x/iadd/threads/1799000001-another")
+        waiting(opted, item="/x/agentory/threads/1799000001-another")
         said = stamp.drawn_at_stop(stop_payload(tree))
         assert said.split("\n", 1)[0].endswith("1799000001-another")
 
@@ -2114,7 +2116,7 @@ class Test_drawn_at_stop:
     @pytest.mark.parametrize(
         "payload",
         [
-            {"agent_id": "a-1", "agent_type": "iadd:inspector"},
+            {"agent_id": "a-1", "agent_type": "agentic:inspector"},
             {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
             {"hook_event_name": "SubagentStop"},
         ],
@@ -2150,7 +2152,7 @@ class Test_drawn_at_stop:
         assert stamp.pending(os.path.dirname(path)) == [path]
 
     def test_refuses_a_repository_that_never_opted_in(self, opted):
-        shutil.rmtree(opted / "iadd")
+        shutil.rmtree(opted / "agentory")
         path = waiting(opted)
         assert stamp.drawn_at_stop(stop_payload(opted)) is None
         assert os.path.exists(path), "a file was taken in a repository not opted in"
@@ -2330,9 +2332,9 @@ class Test_main:
         (written,) = queued(item.common)
         real = os.path.realpath(written)
         line = (
-            f"iadd: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
+            f"agentic: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
             "`Stop` hook draws it at the end of the turn, and where none appears, "
-            f"`iadd stamp --from {stamp.quote(real)}` draws it"
+            f"`agentic stamp --from {stamp.quote(real)}` draws it"
         )
         assert capsys.readouterr().out == line + "\n"
         assert os.path.dirname(real) == os.path.realpath(stamp.values_dir(item.common))
@@ -2348,7 +2350,7 @@ class Test_main:
         inspection.unlink()
         assert stamp.main(["--inspection", str(inspection)]) == 2
         out, err = capsys.readouterr()
-        assert out == "" and err.startswith(f"iadd stamp: {inspection}: "), err
+        assert out == "" and err.startswith(f"agentic stamp: {inspection}: "), err
         assert queued(local.common) == []
 
     @pytest.mark.parametrize(
@@ -2378,9 +2380,9 @@ class Test_main:
         assert stamp.main(["--inspection", str(inspection)]) == 2
         out, err = capsys.readouterr()
         assert out == "", out
-        assert err == f"iadd stamp: {inspection}: {past_the_bound(asked[0])}\n", err
+        assert err == f"agentic stamp: {inspection}: {past_the_bound(asked[0])}\n", err
         assert queued(item.common) == []
-        assert not (pathlib.Path(item.common) / "iadd-stamp-refused").exists()
+        assert not (pathlib.Path(item.common) / "agentic-stamp-refused").exists()
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_stop_draws_the_payloads_clone_once_and_exits_0(
@@ -2429,7 +2431,7 @@ class Test_main:
     ):
         """#1582 S2. `--stop` skips a stamp whose disc does not draw, so it
         exits 0, prints no `systemMessage`, and leaves the file pending for
-        `iadd stamp --from`, which names the sprite's fault."""
+        `agentic stamp --from`, which names the sprite's fault."""
         path = waiting(opted)
         a_malformed_sprite(tmp_path, monkeypatch)
         monkeypatch.setattr(sys, "stdin", io.StringIO(stop_payload(opted)))

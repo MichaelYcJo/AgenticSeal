@@ -172,7 +172,7 @@ def test_the_orchestrators_one_removal_names_the_work_items_directory():
 def test_the_gates_capture_file_carries_the_work_item_id():
     """A13, moved by #969 with the run. Where the orchestrator redirects the
     gate's output to a file to read, the file is named for the work item; and
-    the gate's own `outputs kept under iadd-gate-<random>/` line is quoted,
+    the gate's own `outputs kept under agentic-gate-<random>/` line is quoted,
     so a capture that was overwritten can still be told apart — which is how
     the 0.15.0 runs were not misread. Two work items run in parallel by one
     session would otherwise write one log over each other. The inspector keeps

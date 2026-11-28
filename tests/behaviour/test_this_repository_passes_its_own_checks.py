@@ -2,8 +2,8 @@
 tree, refuses nothing.
 
 The cases here run a shipped command over the tree itself rather than over a
-fixture: `iadd rules --check`, `iadd layout --check`, `iadd fold`,
-`iadd unverified` and `lib/routing.py`'s reader of the routing declarations.
+fixture: `agentic rules --check`, `agentic layout --check`, `agentic fold`,
+`agentic unverified` and `lib/routing.py`'s reader of the routing declarations.
 Each reads files beyond its script, so it stands in a file that declares no
 `TARGET` (`CONTRIBUTING.md` *The test layout*). Each script's own file
 keeps the cases over fixtures and the helpers these cases call.
@@ -31,14 +31,14 @@ POLICY_DOCUMENTS = "the policy root"
 
 
 def declared():
-    """`(ceiling, policy root)` as this repository's `iadd/config.json` states
+    """`(ceiling, policy root)` as this repository's `agentory/config.json` states
     them, read by the shipped command's own reader."""
-    return fold_check.declared(fold_check.iadd_home(ROOT))
+    return fold_check.declared(fold_check.agentory_home(ROOT))
 
 
-class Test_iadd_rules:
+class Test_agentic_rules:
     def test_every_check_line_in_the_tree_holds(self, tmp_path, capsys):
-        """The fact read on every pull request: `iadd rules --check` over this tree is
+        """The fact read on every pull request: `agentic rules --check` over this tree is
         exit 0. On a scratch copy of what the check reads (the rule files, the
         files their targets name and the tests carrying their markers) one target
         renamed is exit 1 naming its line, and so is a check line naming a gone
@@ -51,12 +51,14 @@ class Test_iadd_rules:
         capsys.readouterr()
         files = rules.rule_files(ROOT)
         carriers = rules.markers(ROOT)
-        designs = glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "frame", "*.md"))
+        designs = glob.glob(
+            os.path.join(ROOT, "agentory", "threads", "*", "frame", "*.md")
+        )
         for path in designs:
             destination = tmp_path / os.path.relpath(path, ROOT)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, destination)
-        home = os.path.join(ROOT, "iadd")
+        home = os.path.join(ROOT, "agentory")
         policy = rules.sibling("config").policy_root(home)
         pending = rules.sibling("rule_changes").pending(home, policy)
         removing = {o.file for o, _ in pending if o.kind == "remove"}
@@ -105,17 +107,17 @@ class Test_iadd_rules:
         assert rules.main(["--check", "--root", str(tmp_path)]) == 1
         out = capsys.readouterr().out
         assert re.search(
-            rf"^iadd rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
+            rf"^agentic rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
         )
         for rel in named.values():
-            assert re.search(rf"^iadd rules: {re.escape(rel)}:\d+: ", out, re.M), (
+            assert re.search(rf"^agentic rules: {re.escape(rel)}:\d+: ", out, re.M), (
                 rel,
                 out,
             )
-        assert f"iadd rules: {len(named)} refused in " in out, out
+        assert f"agentic rules: {len(named)} refused in " in out, out
 
 
-class Test_iadd_layout:
+class Test_agentic_layout:
     def test_accepts_this_repositorys_tests(self, capsys):
         assert layout.main(["--check", os.path.join(ROOT, "tests")]) == 0
         out = capsys.readouterr().out
@@ -124,9 +126,9 @@ class Test_iadd_layout:
         assert "declare no TARGET" in out.splitlines()[-1]
 
 
-class Test_iadd_fold:
+class Test_agentic_fold:
     def test_accepts_this_repository_with_no_flags(self):
-        """S1 and S13: the values come from `iadd/config.json`, every check runs,
+        """S1 and S13: the values come from `agentory/config.json`, every check runs,
         and a document past the ceiling is named and does not fail the run."""
         code, out, err = command("--root", ROOT)
         assert code == 0, (out, err)
@@ -134,14 +136,14 @@ class Test_iadd_fold:
         assert f" under {policy}/ to {ceiling} estimated tokens" in out, out
         for rel, tokens in fold_check.past_ceiling(ROOT, policy, ceiling):
             assert f"{rel} is about {tokens} tokens, past the ceiling" in out, out
-        assert f"iadd fold: the index {policy}/README.md names every document" in out
+        assert f"agentic fold: the index {policy}/README.md names every document" in out
 
 
-class Test_iadd_unverified:
+class Test_agentic_unverified:
     def test_this_repositorys_own_overviews_are_all_readable(self):
         """The corpus is the real test, and it states the rule for new work:
         a work item that writes an overview writes this section in it."""
-        assert run([os.path.join(ROOT, "iadd", "threads")]) == 0
+        assert run([os.path.join(ROOT, "agentory", "threads")]) == 0
 
 
 class Test_routing_declarations:
@@ -171,7 +173,7 @@ class Test_routing_declarations:
         import glob
 
         found = sorted(
-            glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "routing.md"))
+            glob.glob(os.path.join(ROOT, "agentory", "threads", "*", "routing.md"))
         )
         # `assert found` and the vacuity guard over `omitted` stood here, and both
         # were floors a fold turns red (#517). The first asked whether the glob
@@ -181,7 +183,7 @@ class Test_routing_declarations:
         # optional row, which is a question about what the repository happens to
         # hold, and it moves to
         # `test_an_absent_optional_row_reads_as_nothing_over_a_built_declaration`.
-        specs = os.path.join(ROOT, "iadd", "threads")
+        specs = os.path.join(ROOT, "agentory", "threads")
         listed = sorted(
             os.path.join(specs, n, "routing.md")
             for n in (os.listdir(specs) if os.path.isdir(specs) else [])

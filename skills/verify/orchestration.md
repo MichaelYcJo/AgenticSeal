@@ -29,13 +29,13 @@ has to guess, and one who reaches for the record does not.
 
 **It belongs to the orchestrator, and the four conditions of
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
-`iadd gate --base <base> --record <item>` is the command the orchestrator
+`agentic gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and
 `skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
 preflight to the open pull request* owns when, before the inspector is
 spawned. The run judges no failure and fixes none; the
 inspector reads its record, and what it inspects after it
-is `docs/forms/the-inspection.md` *The inspection*. `iadd gate --preflight`,
+is `docs/forms/the-inspection.md` *The inspection*. `agentic gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
 
@@ -123,7 +123,7 @@ and the gate is paid for again.
 ## Measure the run, and feed the flow log
 
 When a work item's run ends, the orchestrator measures it once with
-`skills/verify/scripts/session_cost.py`, typed as `iadd cost`, and posts the
+`skills/verify/scripts/session_cost.py`, typed as `agentic cost`, and posts the
 numbers, and what they say, as one comment on one of this repository's two
 measurement logs. Which of the two is not a filing detail: one of them is
 deleted at every release, so a reading put in the wrong one is a reading
@@ -149,7 +149,7 @@ inspector's where one runs. The orchestrator first reads the run, and the read
 posts nothing:
 
 ```
-iadd cost --work-item <the work item's directory>
+agentic cost --work-item <the work item's directory>
 ```
 
 It prints the rows the post will carry, any `Contract rule 6` line below
@@ -157,7 +157,7 @@ them, and the log's state. The orchestrator writes the `--says` file from
 that reading, then posts it with the same command:
 
 ```
-iadd cost --work-item <the work item's directory> --post --says <file>
+agentic cost --work-item <the work item's directory> --post --says <file>
 ```
 
 The read comes first because the posting form sends the reading into the
@@ -235,7 +235,7 @@ commits between them, and no segment's numbers say what the run cost.
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the `severity:` line of each finding block in the round records |
-| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `iadd/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `iadd/`: every file the root holds outside `threads/`, each named in `docs/layout/the-record-layout.md` *iadd/*, is the repository's own and belongs under `docs` |
+| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `agentory/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `agentory/`: every file the root holds outside `threads/`, each named in `docs/layout/the-record-layout.md` *agentory/*, is the repository's own and belongs under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript, the `*.jsonl` directly under the project directory and never one under a `<session-id>/subagents/`, given by path |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |

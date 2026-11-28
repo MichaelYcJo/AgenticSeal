@@ -1,4 +1,4 @@
-"""iadd deferrals: which CI and hook lines match a runner word for the
+"""agentic deferrals: which CI and hook lines match a runner word for the
 check being deferred?
 
 The failure this exists for: a session narrowed its run to one domain and
@@ -338,12 +338,12 @@ class Test_main:
 
 class Test_module:
     @pytest.mark.skipif(
-        os.name == "nt", reason="the POSIX command; bin/iadd.cmd is its Windows twin"
+        os.name == "nt", reason="the POSIX command; bin/agentic.cmd is its Windows twin"
     )
     def test_the_command_is_present_and_runs_the_script(self):
-        wrapper = os.path.join(ROOT, "bin", "iadd")
-        assert os.path.isfile(wrapper), "bin/iadd missing"
-        assert os.access(wrapper, os.X_OK), "bin/iadd not executable"
+        wrapper = os.path.join(ROOT, "bin", "agentic")
+        assert os.path.isfile(wrapper), "bin/agentic missing"
+        assert os.access(wrapper, os.X_OK), "bin/agentic not executable"
         done = subprocess.run(
             [wrapper, "deferrals", "--help"],
             capture_output=True,
@@ -351,7 +351,7 @@ class Test_module:
             errors="replace",
         )
         assert done.returncode == 0, done.stderr
-        assert done.stdout.startswith("usage: iadd deferrals"), done.stdout
+        assert done.stdout.startswith("usage: agentic deferrals"), done.stdout
 
 
 test_census = census_case(TARGET)

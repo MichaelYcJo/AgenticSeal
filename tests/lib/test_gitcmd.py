@@ -315,12 +315,12 @@ class Test_under_root:
 
 
 class Test_inside:
-    """`inside` came here from `iadd.py`, `settle.py` and `broad_gate.py`
+    """`inside` came here from `agentic.py`, `settle.py` and `broad_gate.py`
     (#1575), each of which answered it by `commonpath`."""
 
     def test_accepts_the_top_itself_and_a_path_under_it(self, tmp_path, monkeypatch):
         """A relative path is read from the directory this runs in, as
-        `iadd.py`'s `display` hands one over."""
+        `agentic.py`'s `display` hands one over."""
         top = tmp_path / "repo"
         top.mkdir()
         assert gitcmd.inside(str(top), str(top))
@@ -399,17 +399,17 @@ class Test_git:
         assert done.stdout == f"{sha}\n".encode()
         held = {
             "GIT_CONFIG_COUNT": "1",
-            "GIT_CONFIG_KEY_0": "iadd.probe",
+            "GIT_CONFIG_KEY_0": "agentic.probe",
             "GIT_CONFIG_VALUE_0": "seen",
         }
-        done = gitcmd.git(str(repo), "config", "--get", "iadd.probe", env=held)
+        done = gitcmd.git(str(repo), "config", "--get", "agentic.probe", env=held)
         assert done.stdout == "seen\n"
-        monkeypatch.setenv("IADD_INHERITED", "kept")
+        monkeypatch.setenv("AGENTIC_INHERITED", "kept")
         calls = starts(monkeypatch, (0, b"", b""))
         gitcmd.git(str(repo), "status", binary=True, env={"A": "1"})
         [(_, kwargs)] = calls
         assert kwargs["env"]["A"] == "1"
-        assert kwargs["env"]["IADD_INHERITED"] == "kept"
+        assert kwargs["env"]["AGENTIC_INHERITED"] == "kept"
         assert (kwargs["encoding"], kwargs["errors"]) == (None, None)
 
     def test_accepts_a_non_zero_exit_as_the_callers_to_read(self, tmp_path):
@@ -417,7 +417,7 @@ class Test_git:
         and `rev-parse --verify --quiet`, exit 1 is an answer, so without
         `check` the exit code is returned and nothing is raised."""
         repo = new_repo(tmp_path)
-        done = gitcmd.git(str(repo), "config", "--get", "iadd.absent")
+        done = gitcmd.git(str(repo), "config", "--get", "agentic.absent")
         assert done.returncode == 1
         assert done.stdout == ""
 
@@ -427,10 +427,10 @@ class Test_git:
         the bound, and none of `argv`'s `-c` pairs or the `-C <root>`."""
         starts(monkeypatch, subprocess.TimeoutExpired(["git"], gitcmd.TIMEOUT))
         with pytest.raises(gitcmd.Unrun) as raised:
-            gitcmd.git("/r", "rm", "-r", "--cached", ":/iadd")
-        assert raised.value.command == ["git", "rm", "-r", "--cached", ":/iadd"]
+            gitcmd.git("/r", "rm", "-r", "--cached", ":/agentory")
+        assert raised.value.command == ["git", "rm", "-r", "--cached", ":/agentory"]
         assert str(raised.value) == (
-            f"`git rm -r --cached :/iadd` did not finish within "
+            f"`git rm -r --cached :/agentory` did not finish within "
             f"{gitcmd.TIMEOUT} seconds"
         )
         assert raised.value.code == str(raised.value)

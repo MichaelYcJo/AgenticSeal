@@ -538,7 +538,7 @@ def main(argv=None):
     root = repo_root()
     if not (root / "tests").is_dir():
         print(
-            "bin/test runs IADD's own test suite, and there is no tests "
+            "bin/test runs the plugin's own test suite, and there is no tests "
             f"directory at {root}. Run it from a clone of "
             "MichaelYcJo/AgenticSeal.",
             file=sys.stderr,

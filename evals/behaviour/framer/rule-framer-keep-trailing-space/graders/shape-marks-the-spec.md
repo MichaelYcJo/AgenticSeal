@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'iadd/threads/1790000022-keep-trailing-space/frame/design.md'}
+target: {source: 'file', path: 'agentory/threads/1790000022-keep-trailing-space/frame/design.md'}
 pattern: '^Framed \d{4}-\d{2}-\d{2} by framer'
 flags: 'm'
 ---

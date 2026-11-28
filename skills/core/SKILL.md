@@ -5,7 +5,7 @@ description: |
   kept against. Not a command to run: every agent receives it at startup
   through the `skills:` list in its definition, before `agent-contract`, and
   a session receives it from the plugin's `SessionStart` hook where its
-  repository holds an `iadd/` root.
+  repository holds an `agentory/` root.
   Use when: two designs break no rule either way and one has to be chosen,
   or a mechanism's keep is in question.
   NOT for: a rule true of every agent (`agent-contract`), one agent's own
@@ -20,17 +20,17 @@ plugin does with one issue from the routing question to the final
 inspector's verdict; a session doing other work is not bound by it to start the
 process. Each path this file cites is relative to the plugin's root, the
 directory holding this file's `skills/`, never to the session's repository,
-except `iadd/`, the records root. The root is looked for at two places,
-in the order `lib/optin.py#home_at` reads them: `<repo>/iadd/`, then
-`$(git rev-parse --git-common-dir)/iadd/`, where local mode keeps it and
-where a repository whose own `iadd/` belongs to something else keeps it.
+except `agentory/`, the records root. The root is looked for at two places,
+in the order `lib/optin.py#home_at` reads them: `<repo>/agentory/`, then
+`$(git rev-parse --git-common-dir)/agentory/`, where local mode keeps it and
+where a repository whose own `agentory/` belongs to something else keeps it.
 The first of them that is a directory whose `README.md` opens with the
 marker `lib/optin.py#MARKER` is the root. `skills/implement/SKILL.md`
 *Document layout — two roots, three lifetimes* says how the root is laid
-out. `iadd/`
+out. `agentory/`
 is that root's name in every text this plugin ships, except where a text
-says an `iadd/` is the project's own or that its `README.md` does not open
-with the marker: that is the directory named `iadd`.
+says an `agentory/` is the project's own or that its `README.md` does not open
+with the marker: that is the directory named `agentory`.
 
 ## The first value: efficient development through the IADD process
 
@@ -86,7 +86,7 @@ The source documents are this file and the ones that outrank the code, in
 the order `skills/implement/SKILL.md` *1. Read the documents that outrank
 the code first* gives. Whoever judges, the orchestrator or an agent, writes
 the decision, its grounds and the document it judged against into the work
-item's records under `iadd/threads/`, where the next session reads it and
+item's records under `agentory/threads/`, where the next session reads it and
 nothing else has to remember it. The guidance improves from that record,
 not from memory: the settle, or a command run by the owner of the
 repository whose release made the judgments, reads them against what they
@@ -111,11 +111,11 @@ one of those protections, is guidance.
 |---|---|---|
 | No review without a build | a round reads a committed tree and its record names the commit | `skills/code-review/scripts/chain_check.py`'s records arm: every record carries one `target:` line, and HEAD descends from the last record's commit and from every `fixed` commit |
 | No fix that no round reads | every change after the last round is read by a round, or by the inspector where it touched the work item's records alone and each finding it closed names a place in those records on its own `location:` line | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
-| No inspection without the broad run | the inspector clears a tree the command in the repository's `Broad gate` key of `iadd/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the inspector reads at HEAD itself | `agents/inspector.md` step 1 and the same check's broad gate arm |
-| No pull request without a cleared inspection | nothing reaches the base that the last independent party did not clear | the same check's inspection arm: a ready pull request fails without `Verdict: cleared` at HEAD or at a commit that only `trail/gate.md` and `inspection.md` follow; and its body arm: a ready pull request fails where its body is not what `iadd pr-body` composes at HEAD, the inspection mark among it |
+| No inspection without the broad run | the inspector clears a tree the command in the repository's `Broad gate` key of `agentory/config.json` passed at HEAD, or at a commit that only the work item's records follow, which the inspector reads at HEAD itself | `agents/inspector.md` step 1 and the same check's broad gate arm |
+| No pull request without a cleared inspection | nothing reaches the base that the last independent party did not clear | the same check's inspection arm: a ready pull request fails without `Verdict: cleared` at HEAD or at a commit that only `trail/gate.md` and `inspection.md` follow; and its body arm: a ready pull request fails where its body is not what `agentic pr-body` composes at HEAD, the inspection mark among it |
 
 The check refuses at a ready pull request, where its GitHub Actions workflow
-is installed, and in `iadd gate`'s preflight and broad run whatever the pull
+is installed, and in `agentic gate`'s preflight and broad run whatever the pull
 request's state. Before the pull request the gate's run holds the first two
 rows and prints the last two, which `agents/inspector.md` step 1 and the
 orchestrator keeping `skills/code-review/orchestration.md` *Orchestrator:

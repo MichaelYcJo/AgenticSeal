@@ -78,7 +78,7 @@ LOADED = (
 #
 # `\w` — a preceding word character makes the token part of a DIFFERENT
 # identifier rather than another spelling of this one. `py3.13.9` names
-# CPython, and no release of IADD makes that number wrong. That is the
+# CPython, and no release of agentic makes that number wrong. That is the
 # asymmetry with the trailing side, where `rc1` is a prerelease of the SAME
 # version and so is a timer: what precedes a version renames it, what follows
 # it qualifies it.
@@ -121,23 +121,23 @@ RECORDS_OF_A_MOMENT = (
 
 # A version that belongs to somebody else's product is above this plugin's
 # running version by accident of arithmetic, and it is not a timer: no release
-# of IADD makes it wrong. Pinned to the file it is written in, so the
+# of agentic makes it wrong. Pinned to the file it is written in, so the
 # exemption stays a fact about one comment rather than a hole the token can
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
     # The policy states which gits a git-side decision was measured to hold
-    # on, and that is the class the `iadd.py` row for `2.50.1` and the
+    # on, and that is the class the `agentic.py` row for `2.50.1` and the
     # `broad_gate.py` row below name: a property read off an unnamed git is
     # not a measurement.
-    ("skills/implement/scripts/iadd.py", "4.4.17"): (
+    ("skills/implement/scripts/agentic.py", "4.4.17"): (
         "the zip specification's, APPNOTE's section number that `unsafe`'s "
         "docstring cites for a zip's `/`-separated names. It is no version, "
-        "and no release of IADD makes the number wrong"
+        "and no release of agentic makes the number wrong"
     ),
-    ("skills/implement/scripts/iadd.py", "2.50.1"): (
+    ("skills/implement/scripts/agentic.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
         "codes were measured. An exit code read off an unnamed git is not a "
-        "measurement, and no release of IADD makes the number wrong (#111)"
+        "measurement, and no release of agentic makes the number wrong (#111)"
     ),
     ("skills/verify/scripts/broad_gate.py", "2.54.0"): (
         "git's, named in `names_a_branch`'s docstring as the build on which "
@@ -154,7 +154,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "`pkg/cmd/pr/checks/aggregate.go` puts `CANCELLED` in the `cancel` "
         "bucket, the grounds for reading a cancelled check as not passed. The "
         "class is the `broad_gate.py` row's: a loaded file naming the tool "
-        "build a reading was taken on, and no release of IADD makes "
+        "build a reading was taken on, and no release of agentic makes "
         "the number wrong"
     ),
     # A pytest build and a pytest-xdist build had rows here, keyed on
@@ -166,7 +166,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/verify/scripts/payload_meter.py", "2.1.318"): (
         "Claude Code's, named in `imports_of`'s docstring as the build whose "
         "import reader was read for #1185, the source of each shape the meter "
-        "names as one it does not model. No release of IADD makes the "
+        "names as one it does not model. No release of agentic makes the "
         "number wrong"
     ),
     ("skills/verify/scripts/stamp.py", "2.1.287"): (
@@ -175,7 +175,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "(#717). The class is the git rows' above, a loaded file naming the "
         "tool build a measurement was taken on: the limit is the harness's to "
         "move, and the comment says the same probe at two sizes is the whole "
-        "re-measurement; no release of IADD makes the number wrong"
+        "re-measurement; no release of agentic makes the number wrong"
     ),
 }
 
@@ -576,7 +576,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
     Three exemptions, each argued where it is declared rather than here:
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
-      `iadd/threads/` is outside the scanned set entirely.
+      `agentory/threads/` is outside the scanned set entirely.
       `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
@@ -858,7 +858,7 @@ def test_the_declared_token_is_the_one_the_refusal_printed():
     finally:
         del VERSIONS_OF_ANOTHER_PRODUCT[(rel, "v9.9.9")]
     # And the BARE spelling keeps working, which is what the live entry uses.
-    # Neither arm is pinned by that entry: `iadd.py` writes `4.4.17` with no
+    # Neither arm is pinned by that entry: `agentic.py` writes `4.4.17` with no
     # `v`, so the printed and the bare token are the same string there and
     # dropping either arm leaves the tree green — measured.
     VERSIONS_OF_ANOTHER_PRODUCT[(rel, "9.9.9")] = "bash's, declared bare"
@@ -877,7 +877,7 @@ def test_another_products_version_is_allowed_only_in_the_file_that_declares_it()
     """
     text = "bash 4.4.17 changed how the glob answers"
     assert (
-        timers_in("skills/implement/scripts/iadd.py", text, RUNNING_IN_THE_FIXTURES)
+        timers_in("skills/implement/scripts/agentic.py", text, RUNNING_IN_THE_FIXTURES)
         == []
     )
     assert timers_in("docs/somewhere-else.md", text, RUNNING_IN_THE_FIXTURES) == [
@@ -1117,7 +1117,7 @@ def test_update_shows_what_changed_from_the_github_releases():
         # The git command the session runs for the repository.
         ("remote get-url origin", "where the repository is taken from"),
         # The path of the clone whose `origin` the command reads.
-        ("marketplaces/iadd", "the clone whose origin it is"),
+        ("marketplaces/agenticseal", "the clone whose origin it is"),
     ):
         assert needed in flat, f"step 3 does not carry {needed!r}: {why}"
     # `skills/update/SKILL.md` *3. Name what changed.* reads the releases
@@ -1175,7 +1175,7 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
     import glob
 
     for path in sorted(
-        glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "pr.ko.md"))
+        glob.glob(os.path.join(ROOT, "agentory", "threads", "*", "pr.ko.md"))
     ):
         text = open(path, encoding="utf-8").read()
         # `docs/layout/the-record-layout.md` *A fact of a work item has one
@@ -1252,7 +1252,7 @@ RULES_COMMAND = "python3 skills/settle/scripts/rules.py --check"
 
 @pytest.mark.skipif(os.name == "nt", reason="the step runs under bash on Linux")
 def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
-    """Round 6 of #1167, finding 3: `iadd rules --check` gates inside the
+    """Round 6 of #1167, finding 3: `agentic rules --check` gates inside the
     suite, whose capture keeps its output, so the hygiene step is where a
     line it names as not read reaches the pull request: the step's own shell,
     run over a tree holding one, prints it as a notice annotation at its
@@ -1321,10 +1321,10 @@ LEDGER_PATHS = ("ledger.md", "ledger", "releases")
 
 
 def ledger_leftovers(records_root):
-    """Each ledger path under the `iadd/` root RECORDS_ROOT that exists, as
-    `iadd/<name>`, in `LEDGER_PATHS` order."""
+    """Each ledger path under the `agentory/` root RECORDS_ROOT that exists, as
+    `agentory/<name>`, in `LEDGER_PATHS` order."""
     return [
-        f"iadd/{name}"
+        f"agentory/{name}"
         for name in LEDGER_PATHS
         if os.path.exists(os.path.join(records_root, name))
     ]
@@ -1335,9 +1335,9 @@ def test_a_planted_ledger_file_is_named(tmp_path):
     back to, so the tree case below cannot pass by reading nothing."""
     assert ledger_leftovers(str(tmp_path)) == []
     for rel, named in (
-        (("ledger", "x.md"), "iadd/ledger"),
-        (("ledger.md",), "iadd/ledger.md"),
-        (("releases", "x.md"), "iadd/releases"),
+        (("ledger", "x.md"), "agentory/ledger"),
+        (("ledger.md",), "agentory/ledger.md"),
+        (("releases", "x.md"), "agentory/releases"),
     ):
         records_root = tmp_path / named.replace("/", "_")
         path = records_root.joinpath(*rel)
@@ -1355,7 +1355,7 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
 
     S7 of #944: the evidence ledger does not come back. A rule is held by the
     test its `check:` line names, and nothing reads a ledger file."""
-    records_root = os.path.join(ROOT, "iadd")
+    records_root = os.path.join(ROOT, "agentory")
     for rel in ("README.md", "follow-up.md"):
         assert os.path.isfile(os.path.join(records_root, rel)), rel
     leftovers = ledger_leftovers(records_root)
@@ -1363,10 +1363,10 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
         f"the ledger is back at {', '.join(leftovers)}. It left the tree in "
         "#944 and nothing reads it; a rule names the test that holds it instead"
     )
-    # `iadd/threads/` is absent after a complete fold, because git keeps no
+    # `agentory/threads/` is absent after a complete fold, because git keeps no
     # empty directory, and that is the laid-out state. `assert items` stood here — some work item carries a routing.md
     # — and it was a floor of one (#517); what it was about holds at any
-    # size and is stronger: every entry under `iadd/threads/` is a work item,
+    # size and is stronger: every entry under `agentory/threads/` is a work item,
     # whole, which starts with the declaration written before its first edit.
     specs = os.path.join(records_root, "threads")
     if os.path.isdir(specs):
@@ -1376,11 +1376,11 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
             if not os.path.isfile(os.path.join(specs, n, "routing.md"))
         ]
         assert not loose, (
-            f"iadd/threads/ holds something that is not a work item: {loose}"
+            f"agentory/threads/ holds something that is not a work item: {loose}"
         )
     for old in (".specseal", "specs"):
         assert not os.path.exists(os.path.join(ROOT, old)), (
-            f"{old}/ is back. Nothing reads it since 0.4.0; move it into iadd/"
+            f"{old}/ is back. Nothing reads it since 0.4.0; move it into agentory/"
         )
 
 

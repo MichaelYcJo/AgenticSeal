@@ -82,7 +82,7 @@ def read_text(*parts):
 
 def load(name, filename):
     spec = importlib.util.spec_from_file_location(
-        f"iadd_{name}_for_label_tests", os.path.join(SCRIPTS, filename)
+        f"agentic_{name}_for_label_tests", os.path.join(SCRIPTS, filename)
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

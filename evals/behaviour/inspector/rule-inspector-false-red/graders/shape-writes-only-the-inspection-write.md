@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Write'
-input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!iadd\/threads\/1790000030-inspection-false-red\/inspection\.md)'
+input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!agentory\/threads\/1790000030-inspection-false-red\/inspection\.md)'
 max: 0
 min: 0
 ---

@@ -175,7 +175,7 @@ serves, so two agents alive at once cannot pick the same name.** Every agent
 of one session shares one scratchpad, and a name any parallel agent would
 also pick is a file somebody else can overwrite. So the proofer's clone is
 `<scratchpad>/<work-item-id>/round-<n>/clone` with every probe of the round
-beside it, and the orchestrator's `iadd gate` log carries the work item id.
+beside it, and the orchestrator's `agentic gate` log carries the work item id.
 The rule stands in contract rule 17, which every agent receives, and each
 definition names its own directory under it. No agent removes its directory
 or a file in it. The name already keeps two agents' files apart, the one

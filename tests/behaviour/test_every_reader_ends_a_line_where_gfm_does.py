@@ -47,7 +47,7 @@ def _load(name, path):
     return module
 
 
-reader = _load("iadd_reader_for_gfm_lines", READER)
+reader = _load("agentic_reader_for_gfm_lines", READER)
 
 
 # --- S17: one splitter, and its copies agree ---------------------------------
@@ -57,7 +57,7 @@ def test_every_copy_of_the_splitter_is_the_readers():
     """S17. The reader's split is `lib/blocks.py`'s, which it imports since
     #1005, and the coordinate kernel asks the reader itself. Both are one
     rule, held equal here."""
-    checker = _load("iadd_checker_for_gfm_lines", CHECKER)
+    checker = _load("agentic_checker_for_gfm_lines", CHECKER)
     for text in texts():
         want = reader.gfm_lines(text)
         assert checker.gfm_lines(text) == want, repr(text)

@@ -115,7 +115,7 @@ except ImportError:
     )
     raise SystemExit(2) from None
 
-# The runner words of each kind of check, the one list `iadd deferrals`
+# The runner words of each kind of check, the one list `agentic deferrals`
 # reads too.
 RUNNERS = sibling.load("skills/verify/scripts/deferral_check.py").RUNNERS
 # `lib/console.py`, whose `to_utf8` the `__main__` block opens with. It
@@ -138,7 +138,7 @@ def projects_dir():
 # Command families, in priority order — the first match wins, so a compound
 # `ruff … && pytest …` is charged to the test run that dominates it.
 #
-# **`test` and `lint/type` are built from `RUNNERS`, the runner words `iadd
+# **`test` and `lint/type` are built from `RUNNERS`, the runner words `agentic
 # deferrals` reads**, so a runner either reader names, both read. A
 # repository's own runner is named by PATH there. A project that ships
 # `bin/test` has said what its test command is, in the filesystem, and a
@@ -2739,7 +2739,7 @@ def newest(directory):
     # `os.sep` alone is right on POSIX by coincidence and wrong on Windows,
     # where a drive letter keeps its colon: `C:\GitHub\project` would
     # become `C:-GitHub-project` where the real directory is
-    # `C--GitHub-project`, and `iadd cost --latest .` would report "no
+    # `C--GitHub-project`, and `agentic cost --latest .` would report "no
     # transcript found" for a directory that is right there.
     slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
     root = os.path.join(projects_dir(), slug)

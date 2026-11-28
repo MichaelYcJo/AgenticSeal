@@ -21,12 +21,12 @@ from conftest import ROOT, load_module
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 RECORDER_SOURCE = os.path.join(
-    ROOT, "skills", "verify", "scripts", "pytest_record", "iadd_pytest_record.py"
+    ROOT, "skills", "verify", "scripts", "pytest_record", "agentic_pytest_record.py"
 )
 
 
 def gate_module():
-    return load_module(GATE, "iadd_broad_gate_for_tests")
+    return load_module(GATE, "agentic_broad_gate_for_tests")
 
 
 # =============================================================================
@@ -45,7 +45,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     """A11. The file this work item is about is in this repository, and every
     sentence above is a sentence about somebody else's file.
 
-    `iadd/config.json` here carries a `Mode` key and a `Broad gate` key and
+    `agentory/config.json` here carries a `Mode` key and a `Broad gate` key and
     nothing the reader will not take, so all three answers are the ones it
     had before: the mode, the command as the key wrote it, and no refusal.
     The refusal is asked of this machine's shell and of `cmd.exe`, so the
@@ -54,7 +54,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     """
     module = gate_module()
     config = module.sibling.load(module.CONFIG_READER)
-    home = os.path.join(ROOT, "iadd")
+    home = os.path.join(ROOT, "agentory")
 
     assert config.declared_mode(home) == ("mode", "shared"), config.declared_mode(home)
     pairs, refusal = config.config_pairs(home)
@@ -119,7 +119,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     causes = (
         "the command started no pytest, because a part before its runner failed "
         "or it has none; none it started loaded the recorder; or the one that "
-        "did could not write its record and warned 'iadd_pytest_record: no "
+        "did could not write its record and warned 'agentic_pytest_record: no "
         "record written' in "
     )
     assert (
@@ -191,7 +191,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # The warning the recorder prints where it writes no record, which the
     # reasons above quote and a reader finds on `suite.txt`.
     with open(RECORDER_SOURCE, encoding="utf-8") as handle:
-        assert "iadd_pytest_record: no record written" in handle.read()
+        assert "agentic_pytest_record: no record written" in handle.read()
     assert gate.NOT_REACHED.format(code=2) == (
         "new? not measured: the command ran once at the base and exited 2, and no "
         "pytest it ran there collected this file, so the run may have ended "
@@ -262,7 +262,7 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         # The plugin flag the gate appends to `PYTEST_ADDOPTS`, and the two
         # variables it hands the command, which a person writing the key
         # keeps.
-        "`-p iadd_pytest_record`",
+        "`-p agentic_pytest_record`",
         "`PYTEST_ADDOPTS`",
         "`PYTHONPATH`",
         # The words `broad_gate.py` prints beside a failing file, which a
@@ -402,7 +402,7 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
 
     Since the inspector became the final party (#923) its one write in the tree
     is `inspection.md`, and `trail/gate.md` is the gate's, through its
-    command. Since #1376 the stamp's values file its `iadd stamp --inspection`
+    command. Since #1376 the stamp's values file its `agentic stamp --inspection`
     queues is named beside it. How the definition ends the list is the
     proofer's to read."""
     text = " ".join(inspector_text().split())
@@ -411,9 +411,9 @@ def test_the_inspector_names_the_one_write_its_definition_is_allowed():
     assert "rule 6" in text, (
         "the inspector cannot reach the rule that names its one write"
     )
-    # The command `iadd gate --record`, which writes `trail/gate.md` and which
+    # The command `agentic gate --record`, which writes `trail/gate.md` and which
     # the inspector reads to tell that file from its own write.
-    assert "through `iadd gate --record`" in text, (
+    assert "through `agentic gate --record`" in text, (
         "the gate's file does not name the command that makes it, so the "
         "inspector cannot tell its own write from the gate's"
     )

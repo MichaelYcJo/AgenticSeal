@@ -55,7 +55,9 @@ MANIFEST = ".claude-plugin/plugin.json"
 
 
 def tagger():
-    spec = importlib.util.spec_from_file_location("iadd_tag_release_for_tests", SCRIPT)
+    spec = importlib.util.spec_from_file_location(
+        "agentic_tag_release_for_tests", SCRIPT
+    )
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
     return loaded

@@ -12,7 +12,7 @@ its home had not.
 **What is read.** Every tracked `*.md` under `docs/`, `skills/`, `agents/` and
 `templates/`, with `CLAUDE.md`, `CONTRIBUTING.md` and `README.md`. Left out:
 every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
-words; and everything under `iadd/`, which is records.
+words; and everything under `agentory/`, which is records.
 
 **How a file is normalised.** Each file is read whole, and no region of
 one is sanctioned. Fenced code blocks and heading lines are dropped. A quoted
@@ -64,7 +64,7 @@ from conftest import ROOT, git_listing, load_module, on_disk
 
 passages = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
-    "iadd_passages_for_the_paste_check",
+    "agentic_passages_for_the_paste_check",
 )
 WINDOW, TOP_FILES = passages.WINDOW, passages.TOP_FILES
 in_corpus, words, windows = passages.in_corpus, passages.words, passages.windows

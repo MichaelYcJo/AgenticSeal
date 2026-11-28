@@ -14,7 +14,7 @@ records and the findings format. The orchestrator reads both. The proofer
 opens that one at its first step and never opens this one.
 
 A session orchestrating a review run holds the core once, from the plugin's
-`SessionStart` hook where its repository holds an `iadd/` root, and opens
+`SessionStart` hook where its repository holds an `agentory/` root, and opens
 `skills/core/SKILL.md` once where no output opening `IADD core from`
 stands in its context.
 
@@ -43,7 +43,7 @@ otherwise.** The implementer is the orchestrator where `routing.md` answers
 that made the work item's last build phase or fix pass, also where a fix
 the orchestrator wrote after the last round came later. Before the fix
 pass, the orchestrator runs
-`iadd cost --segments <the implementer's agent-*.jsonl>` on the
+`agentic cost --segments <the implementer's agent-*.jsonl>` on the
 implementer's own transcript, the file the harness's task output named, and
 reads the largest value of its `context` column. Below the threshold, the
 orchestrator resumes the implementer, whose context already holds the files
@@ -198,7 +198,7 @@ other finding takes a home that costs no round: rung 2, 3 or 4 of the homes
 `deferred <home>` and spawn no fix pass for it, or a fix that the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
 to skip a party* gives to the inspector. Rung 3 is such a home as a new issue,
-and as an `iadd/follow-up.md` row only where a round is still to come after
+and as an `agentory/follow-up.md` row only where a round is still to come after
 the row's commit, because its commit after the last round costs a round
 (`skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records*). A later row spends no round on
@@ -316,13 +316,13 @@ check lists the branch's commits with `--no-merges` and reads no merge commit
 (`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
 past `trail/gate.md` and `inspection.md`, so after the merge, and after that
 verifying round's record is committed where one is owed, the orchestrator
-runs the broad gate again, commits its record, runs `iadd pr-body` on the
+runs the broad gate again, commits its record, runs `agentic pr-body` on the
 body file again and spawns the inspector again.
 
 **A commit after the newest broad run that changes only files under
-`iadd/threads/<work-item-id>/` owes no broad run.** Where such a commit
+`agentory/threads/<work-item-id>/` owes no broad run.** Where such a commit
 changes a record other than `trail/gate.md` and `inspection.md` after the
-inspector has written its verdict, it owes `iadd pr-body` on the body file
+inspector has written its verdict, it owes `agentic pr-body` on the body file
 again and the inspector again, and the inspector reads every record at HEAD.
 Those two files may follow the verdict's commit, as the inspection arm
 reads it (`skills/code-review/scripts/chain_check.py#CLOSING_RECORDS`), so
@@ -358,13 +358,13 @@ Where no round runs, the orchestrator writes it before the broad run.
 Every round reads `pr.md` at its target, so no sentence of the body
 reaches the inspector unread. `pr.md` holds the `Closes` and `Part of` lines,
 quotes of the work item's records, and the attribution line. `pr.md` quotes
-no sentence of `changelog.md`, because `iadd pr-body` writes the fragment
+no sentence of `changelog.md`, because `agentic pr-body` writes the fragment
 whole under the line `skills/code-review/scripts/pr_body.py#HEADING` holds,
 above the fold, so the reader meets it there and a fix to a changelog
 sentence touches no `pr.md`. A quote is one line in one spelling,
 ``- "<the sentence>" (`<path>` <coordinate>)``, where `<path>` is the
 record's path under the work item's directory and `<coordinate>` the
-heading, row, finding or line that holds the sentence, and `iadd pr-body`
+heading, row, finding or line that holds the sentence, and `agentic pr-body`
 refuses a quote whose words, with runs of whitespace collapsed, do not
 stand in the file its path names
 (`skills/code-review/scripts/pr_body.py#first_part`). The orchestrator
@@ -396,7 +396,7 @@ language` under the line `skills/code-review/scripts/pr_body.py#HEADING`
 holds, above the fold. It holds no `Closes`, `Part of` or attribution line,
 which `pr.md` already holds in that language, and no sentence of the
 orchestrator's own. `<lang>` is the orchestrator's spelling for the file's
-own language, the commit language, such as `ko`. `iadd pr-body` writes it
+own language, the commit language, such as `ko`. `agentic pr-body` writes it
 above `pr.md`, so the body opens in the team's language, and every round
 reads it whole beside `pr.md`. Where the two keys name one language, no
 `pr.<lang>.md` is written.
@@ -404,7 +404,7 @@ reads it whole beside `pr.md`. Where the two keys name one language, no
 **Where a fix pass or a fold changes a sentence that `pr.<lang>.md`
 renders, the orchestrator rewrites each rendering that stood on it, and
 commits them before it spawns the next round.** A quote of `pr.md` whose
-sentence changed is rewritten where `iadd pr-body` refuses it, or earlier
+sentence changed is rewritten where `agentic pr-body` refuses it, or earlier
 where a hand-back names it or the plugin's `PostToolUse` hook,
 `hooks/edit-leaves-copies.py`, names it after the edit of its source. A
 round finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's

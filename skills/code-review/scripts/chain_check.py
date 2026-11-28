@@ -3,7 +3,7 @@
 are in the tree and agree with HEAD.
 
 Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
-the `iadd/threads/<id>/routing.md` naming the pull request's branch and every
+the `agentory/threads/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
 judged (`carried_by`). The arms are nine:
@@ -34,7 +34,7 @@ judged (`carried_by`). The arms are nine:
                 heading near `## Rule changes` outside the section is another
                 section; in a section that parses, each `check:` line inside
                 an `add` or `change` `to` is read by
-                `skills/settle/scripts/rules.py`, the reader `iadd rules
+                `skills/settle/scripts/rules.py`, the reader `agentic rules
                 --check` uses, and a line it refuses is refused at its line in
                 the design (`check_lines_in`); a `from` is read for no check
                 line; and against each operation, the
@@ -56,7 +56,7 @@ judged (`carried_by`). The arms are nine:
                 inspector reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      where git carries `iadd/parity.json` at HEAD and the pull
+  original      where git carries `agentory/parity.json` at HEAD and the pull
                 request changes a path outside the document roots
                 `lib/gate.py#touches_code` reads: the config's `Baseline
                 commit` key names a SHA (`lib/config.py#baseline_commit`),
@@ -75,13 +75,13 @@ judged (`carried_by`). The arms are nine:
                 and its `Verdict:` reads `cleared`; an inspection with no
                 verdict block, or with a line the reader refuses, fails
   body          where the event payload holds `pull_request.body`, that
-                body is what `iadd pr-body` composes at HEAD for the one
+                body is what `agentic pr-body` composes at HEAD for the one
                 judged work item that is not retired: its first part, the
                 `pr.<lang>.md` and `pr.md` the two language keys ask for,
                 the heading, the inspection mark where the `Pull request inspection mark`
                 key and the inspection, read against `--baseline` as the
                 inspection arm reads it, give one, and the records' copy,
-                compared through `pr_body.py#compared`, the function `iadd
+                compared through `pr_body.py#compared`, the function `agentic
                 pr-body --check` calls; each differing line is refused on
                 the work item's directory naming the body's line, and a
                 record that function refuses at its line, the root's
@@ -175,7 +175,7 @@ ROUTING = "lib/routing.py"
 FIELDS_READER = "lib/fields.py"
 RULE_CHANGES_READER = "skills/settle/scripts/rule_changes.py"
 # `skills/settle/scripts/rules.py`, the one reader of a `check:` line, which
-# `iadd rules --check` runs over the rule files. A user's CI clones the plugin
+# `agentic rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
 CHECK_LINES_READER = "skills/settle/scripts/rules.py"
 
@@ -291,7 +291,7 @@ try:
     # `lib/gitcmd.py`, which starts every git and `gh` command this check
     # runs and spells a path as git does.
     GITCMD = sibling.load("lib/gitcmd.py")
-    # `lib/optin.py`, which finds the repository and its `iadd/` root.
+    # `lib/optin.py`, which finds the repository and its `agentory/` root.
     OPTIN = sibling.load("lib/optin.py")
     # `lib/console.py`, whose `annotate` prints a line about a file.
     CONSOLE = sibling.load("lib/console.py")
@@ -1108,7 +1108,7 @@ RULE_CHANGES_SAYS = (
 RULE_CHANGES_UNREAD = "not read: {why}"
 # A check line inside an `add` or `change` `to` that `rules.py` refuses.
 CHECK_LINE_SAYS = (
-    "`skills/settle/scripts/rules.py`, the reader `iadd rules --check` uses, "
+    "`skills/settle/scripts/rules.py`, the reader `agentic rules --check` uses, "
     "refuses this check line, which the settle writes into `{file}` as it "
     "stands: {why}"
 )
@@ -1351,7 +1351,7 @@ def rule_changes_reader():
 
 def policy_root(root):
     """The policy root of the repository at ROOT: `lib/config.py#policy_root`
-    of the `iadd/` root `lib/optin.py#home_at` resolves there."""
+    of the `agentory/` root `lib/optin.py#home_at` resolves there."""
     config = sibling.load("lib/config.py")
     return config.policy_root(OPTIN.home_at(root, OPTIN.git_common_dir(root)))
 
@@ -1654,7 +1654,7 @@ def originals_of(routing, root, home, paths, items, direct=()):
 # outside any block, or one nobody wrote a run into.
 NO_RUN_BLOCK = (
     "no run block: since #1198 the run stands in an `iadd` block holding "
-    "`run: <tree> against <base commit>`, which `iadd gate --base <base> "
+    "`run: <tree> against <base commit>`, which `agentic gate --base <base> "
     "--record <item>` appends below the text already there on a green run"
 )
 
@@ -1681,7 +1681,7 @@ def broad_gate(root, item, base, notices=None):
                 rel,
                 0,
                 "git carries no gate record: the orchestrator runs "
-                "`iadd gate --base <base> --record <item>` before it spawns "
+                "`agentic gate --base <base> --record <item>` before it spawns "
                 "the inspector, and the run writes it on a green run",
             )
         ]
@@ -1790,7 +1790,7 @@ def inspection(root, item, base, notices=None):
 
 
 # The pull request's body, read from the event payload, against what
-# `iadd pr-body` composes at HEAD for the one judged work item it carries.
+# `agentic pr-body` composes at HEAD for the one judged work item it carries.
 # `pr_body.py` loads this module at its own import, so the arm loads it
 # inside `pr_body_reader` and never at module level.
 PR_BODY = "skills/code-review/scripts/pr_body.py"
@@ -1832,9 +1832,9 @@ def pr_body_reader():
 
 def body(root, items, text, why, base=None):
     """`(problems, notices)` of the pull request's body TEXT, against what
-    `iadd pr-body` composes at HEAD for the work item of ITEMS, the judged
+    `agentic pr-body` composes at HEAD for the work item of ITEMS, the judged
     work item directories that are not retired, compared through
-    `pr_body.py#compared`, the function `iadd pr-body --check` calls. The
+    `pr_body.py#compared`, the function `agentic pr-body --check` calls. The
     inspection mark is read against BASE, the base the inspection arm reads, so
     the two arms ask one question at the merge commit CI checks out. Where
     TEXT is None the body is named as not read for WHY. The work item is
@@ -1847,7 +1847,7 @@ def body(root, items, text, why, base=None):
     item's directory, which names the root's `config.json` for a language
     key; `compared`'s note, `inspection_mark`'s sentence, the sentence naming the
     lines of `pr.md` not read as a quote and the sentence naming the
-    sections `iadd pr-body` folded, is a notice. Unreadable where
+    sections `agentic pr-body` folded, is a notice. Unreadable where
     `pr_body.py` will not load."""
     if text is None:
         return [], [("", 0, BODY_UNREAD.format(why=why))]
@@ -1967,7 +1967,7 @@ def declared_for_this_branch(root, routing, work_items):
                 f"this repository keeps its root at {home} — local mode, where "
                 "nothing under the root is committed. So no routing declaration "
                 f"for `{branch}` can be read from what git carries, and the "
-                f"review-chain check {PRINTED_TRAILERS}. `iadd mode shared` "
+                f"review-chain check {PRINTED_TRAILERS}. `agentic mode shared` "
                 "moves the root into the tree and gets the declarations judged."
             )
         return [], (

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""iadd pr-body: a pull request body, the work item's first part, its
+"""agentic pr-body: a pull request body, the work item's first part, its
 `pr.<lang>.md` where the two language keys differ and its `pr.md`, and then
 the part its other records hold, copied from them.
 
-  iadd pr-body <item> --body <file>           write the body
-  iadd pr-body <item> --body <file> --check   say whether it is still theirs
+  agentic pr-body <item> --body <file>           write the body
+  agentic pr-body <item> --body <file> --check   say whether it is still theirs
 
 A body written by hand restates the records, and most of the inspector's
 withheld verdicts are over a sentence of it that restates one wrongly. This
@@ -19,7 +19,7 @@ not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict: the inspection mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
-between `HEADING` and the changelog's section where `iadd/config.json`'s
+between `HEADING` and the changelog's section where `agentory/config.json`'s
 `Pull request inspection mark` key reads `yes` and the work item's `inspection.md`
 reads `cleared` at HEAD, as `inspection_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
@@ -30,11 +30,11 @@ that run. The key and HEAD are read in the work item's own checkout, and in
 the working directory's where the item sits under the common git directory.
 A value other than `yes`, an inspection that checkout cannot read, and
 a manifest the address cannot be built from are named on one line opening
-`iadd pr-body:` and change no exit code.
+`agentic pr-body:` and change no exit code.
 
 The body opens with the orchestrator's part, its files written as their
 bytes stand, and `HEADING` follows it on its own line. The part is
-composed from `iadd/config.json`'s `Commit and pull request language` and
+composed from `agentory/config.json`'s `Commit and pull request language` and
 `Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
 one file matching `pr.*.md` beside `pr.md`, its renderings in the commit
@@ -59,7 +59,7 @@ where the path names no file of the work item's directory, one outside it
 among them, and where the file's text, with each run of whitespace made
 one space, does not hold the quote read the same way. A line that holds
 `" (` before a backtick outside the form is named, on the line opening
-`iadd pr-body:`, as a line not read, and decides nothing.
+`agentic pr-body:`, as a line not read, and decides nothing.
 
 Below the line `HEADING` holds, the changelog fragment stands
 first, whole and outside any fold, so the pull request's reader meets it
@@ -89,7 +89,7 @@ names for it, a directory named once. The changelog's section never folds.
 The body is measured with room for the inspection mark's line whether or not the
 mark is written, so the run after the inspection folds what the inspector's check
 folded. Both forms name the folded sections on one line opening
-`iadd pr-body:`, and both refuse on the work item's directory where the
+`agentic pr-body:`, and both refuse on the work item's directory where the
 body passes `LIMIT` with every section folded that a fold shortens,
 naming the length of the first part's files and of the changelog. Every
 copied line is refused or passed before any fold, so a line's refusal
@@ -137,7 +137,7 @@ Exit: 0 written, or under `--check` the part above the heading is the lines
 of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
 opens with `refused:` naming the body file by its name, or a record, the
-work item's directory or `config.json` by its path under the `iadd/`
+work item's directory or `config.json` by its path under the `agentory/`
 root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
@@ -190,7 +190,7 @@ except ImportError:
 # whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `lib/config.py`, the one reader of an `iadd/config.json` key, and
+# `lib/config.py`, the one reader of an `agentory/config.json` key, and
 # `lib/closing.py`, whose `keywords_in` is the one reader of a closing
 # keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
 # a command, a module that raises while it loads ends the run at exit 2;
@@ -205,7 +205,7 @@ except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
     print(
-        f"iadd pr-body: a reader of the records would not load ({_exc})",
+        f"agentic pr-body: a reader of the records would not load ({_exc})",
         file=sys.stderr,
     )
     raise SystemExit(2) from None
@@ -311,7 +311,7 @@ TABLE = "|"
 # path under it, and `{home}` the root's name, `lib/optin.py#HOME`.
 SUMMARY = (
     f"<summary>Copied from the records in {{home}}/{OPTIN.WORK_ITEMS}/{{name}}/ "
-    "by iadd pr-body.</summary>"
+    "by agentic pr-body.</summary>"
 )
 CHANGED = "## What changed"
 BUILT = "## How it was built"
@@ -337,7 +337,7 @@ FOLDED = (
     f"Not copied here, so the body stays within GitHub's {LIMIT:,} characters: "
     "`{path}` holds what this section copies."
 )
-# What `iadd pr-body` says where it folded a section, after `iadd pr-body: `,
+# What `agentic pr-body` says where it folded a section, after `agentic pr-body: `,
 # and `compared`'s note beside `inspection_mark`'s sentence.
 FOLD_NOTE = (
     f"folded {{headings}} so the body stays within GitHub's {LIMIT:,} "
@@ -351,11 +351,11 @@ TOO_LONG = (
     "the body, counted with room for the inspection mark's line whether or not it "
     "is written, would be {length:,} characters with every section after "
     f"`{CHANGED}` folded that a fold shortens, past GitHub's {LIMIT:,}; "
-    "{files}, so {which} is shortened before `iadd pr-body` runs again"
+    "{files}, so {which} is shortened before `agentic pr-body` runs again"
 )
 
 # The inspection mark, one fixed line between `HEADING`'s blank line and
-# `FOLD`, written where `iadd/config.json`'s `MARK_KEY` turns it on
+# `FOLD`, written where `agentory/config.json`'s `MARK_KEY` turns it on
 # (`lib/config.py#switch`) and the work item is cleared at HEAD
 # (`inspection_mark`). Its address is built from the plugin's manifest, which
 # stands three levels above HERE, at the plugin's root, and which this reads
@@ -369,7 +369,7 @@ MARK_ALT = "Cleared"
 MARK_WIDTH = 128
 # What `inspection_mark` says where the mark is not written and nothing else
 # names why, and the words that close the switch's sentence on `MARK_KEY`;
-# printed after `iadd pr-body: `.
+# printed after `agentic pr-body: `.
 NO_MARK = "the body carries no inspection mark"
 BASE_UNSEEN = (
     "the inspection names the base `{base}`, which this repository cannot "
@@ -705,7 +705,7 @@ def _mark_line(manifest):
 def inspection_mark(item, root, manifest=None, base=None):
     """`(line, note)` for the work item's directory ITEM in the repository
     at ROOT: the mark `_unfolded` writes under `HEADING`, or None, and the
-    one sentence `iadd pr-body` prints about it, or None.
+    one sentence `agentic pr-body` prints about it, or None.
 
     The mark is written where `MARK_KEY` in the root's `config.json` turns
     it on, as `lib/config.py#switch` reads it, and the work item is cleared
@@ -1122,7 +1122,7 @@ def split(body):
                 None,
                 0,
                 f"no line reads `{HEADING}`, so the body is not one this command "
-                "wrote: run `iadd pr-body <item> --body <file>`, which writes it "
+                "wrote: run `agentic pr-body <item> --body <file>`, which writes it "
                 "whole, and check it again",
             )
         ]
@@ -1199,7 +1199,13 @@ def _check(below, body, parts):
     lines."""
     if body is None:
         raise Refused(
-            [(None, 0, "is not there; `iadd pr-body <item> --body <file>` writes it")]
+            [
+                (
+                    None,
+                    0,
+                    "is not there; `agentic pr-body <item> --body <file>` writes it",
+                )
+            ]
         )
     head, generated = split(body)
     said = BLOCKS.gfm_lines(generated)
@@ -1225,7 +1231,7 @@ def _check(below, body, parts):
 
 def compared(item, body, root, manifest=None, base=None):
     """`(note, causes)` for BODY, a pull request body's text or None where
-    there is none, against what `iadd pr-body` composes for the work item's
+    there is none, against what `agentic pr-body` composes for the work item's
     directory ITEM in the repository at ROOT: the first part `first_part`
     gives from the two language keys, `HEADING`, the inspection mark `inspection_mark`
     gives from MANIFEST or the plugin's own, read against BASE where it is
@@ -1270,7 +1276,7 @@ def _place(where, line, item, body, home):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="iadd pr-body",
+        prog="agentic pr-body",
         description="Write a pull request body: the work item's `pr.<lang>.md` "
         f"where the two language keys differ, its `{OWN_PART}`, the line "
         f"`{HEADING}`, and the part its other records hold; or check it.",
@@ -1286,7 +1292,7 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     if not os.path.isdir(args.item):
-        print(f"iadd pr-body: {args.item} is not a directory", file=sys.stderr)
+        print(f"agentic pr-body: {args.item} is not a directory", file=sys.stderr)
         return 2
     name = os.path.basename(os.path.normpath(os.path.abspath(args.item)))
     # The mark is read in the work item's own checkout, so a run from
@@ -1308,7 +1314,7 @@ def main(argv=None):
             print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         if causes:
             return 1
-        said = f"iadd pr-body: {note}\n" if note else ""
+        said = f"agentic pr-body: {note}\n" if note else ""
         print(
             f"{said}matches: {args.body} is {_names(parts)} above `{HEADING}` "
             "and the records' text below it"
@@ -1335,7 +1341,7 @@ def main(argv=None):
             print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         return 1
     note = _noted(note, headings, parts)
-    said = f"iadd pr-body: {note}\n" if note else ""
+    said = f"agentic pr-body: {note}\n" if note else ""
     print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0
 

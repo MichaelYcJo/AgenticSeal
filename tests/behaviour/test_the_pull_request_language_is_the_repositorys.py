@@ -1,4 +1,4 @@
-"""The pull request language is the repository's, stated in `iadd/config.json`.
+"""The pull request language is the repository's, stated in `agentory/config.json`.
 
 `skills/commit-pr-convention/SKILL.md` required English at five places, and a
 repository whose team writes another language had nowhere to say otherwise.
@@ -97,7 +97,7 @@ def test_the_mirror_is_named_for_its_own_language():
     a rule, and an example is what a session copies literally."""
     text = flat(*SKILL)
     # The mirror's file name, and its two instances, which a session writes
-    # and `iadd pr-body` reads.
+    # and `agentic pr-body` reads.
     assert "pr.<lang>.md" in text, "the mirror's name is still fixed to one language"
     assert "pr.ko.md" in text and "pr.en.md" in text, (
         "only one direction is given, so the rule reads as an example"
@@ -119,7 +119,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
 
     mirrors = sorted(
         os.path.basename(p)
-        for p in glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "pr.*.md"))
+        for p in glob.glob(os.path.join(ROOT, "agentory", "threads", "*", "pr.*.md"))
     )
     # `assert mirrors, "... this case is blind"` stood here, and every mirror
     # lives in a directory the next fold retires (#517). Blindness is asked
@@ -128,7 +128,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
     # `test_a_mirror_named_for_a_country_is_refused_by_the_same_rule`.
     # `pr.md` is a file of the body's first part, not a mirror, and the glob
     # does not match it, so the listing leaves it out too (#1415).
-    threads = os.path.join(ROOT, "iadd", "threads")
+    threads = os.path.join(ROOT, "agentory", "threads")
     listed = sorted(
         name
         for d in (os.listdir(threads) if os.path.isdir(threads) else [])
@@ -199,7 +199,7 @@ def test_a_config_holding_the_templates_default_row_reads_as_english(tmp_path):
     must not be the file that breaks the check. Its two language keys both
     read English, so they name one language and no mirror is asked for. The
     template's example object is written as the file."""
-    home = tmp_path / "iadd"
+    home = tmp_path / "agentory"
     home.mkdir()
     (home / "config.json").write_text(
         config_json(*items(read(*TEMPLATE))), encoding="utf-8"
@@ -229,7 +229,7 @@ def test_rows_that_differ_name_the_mirror_for_the_commit_language(
     not the file's presence. Where they differ, the mirror is written in the
     commit language, so it is named for that language, and a file named for
     the records' language is no mirror."""
-    home = tmp_path / "iadd"
+    home = tmp_path / "agentory"
     home.mkdir()
     (home / "config.json").write_text(
         config_json((COMMIT_ROW, commit), (RECORD_ROW, record)), encoding="utf-8"
@@ -259,7 +259,7 @@ def _config_reader():
     import importlib.util
 
     path = os.path.join(ROOT, *CONFIG_READER)
-    spec = importlib.util.spec_from_file_location("iadd_config_for_pr_lang", path)
+    spec = importlib.util.spec_from_file_location("agentic_config_for_pr_lang", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -340,18 +340,18 @@ def the_mirror(commit, record):
 def config_homes(root):
     """The two places the root can be, in the order the skill reads them.
 
-    `<repo>/iadd/` first, then `$(git rev-parse --git-common-dir)/iadd/`,
+    `<repo>/agentory/` first, then `$(git rev-parse --git-common-dir)/agentory/`,
     which is where local mode keeps it (#80). Round 2 🟡 2: this reader
     joined the first and stopped, which is the very defect round 1 fixed in
-    the prose — a Korean row under `.git/iadd/` read back as English.
+    the prose — a Korean row under `.git/agentory/` read back as English.
 
-    git is asked rather than `.git/iadd` spelled, because in a linked
+    git is asked rather than `.git/agentory` spelled, because in a linked
     worktree `.git` is a FILE and the root belongs to the main tree's common
     directory. A path that is not a repository answers nothing and leaves
     the one home, which is what a `tmp_path` fixture is.
     """
     base = str(root or ROOT)
-    homes = [os.path.join(base, "iadd")]
+    homes = [os.path.join(base, "agentory")]
     try:
         common = subprocess.run(
             ["git", "-C", base, "rev-parse", "--git-common-dir"],
@@ -364,7 +364,7 @@ def config_homes(root):
         common = ""
     common = (common or "").strip()
     if common:
-        homes.append(os.path.join(base, common, "iadd"))
+        homes.append(os.path.join(base, common, "agentory"))
     return homes
 
 
@@ -416,7 +416,7 @@ def test_every_way_of_not_naming_a_language_lands_on_english(what, body, tmp_pat
     """🟡 3, run rather than only asserted in prose. A session that meets one
     of these and stops, asks, or guesses is the failure; all five answer the
     same."""
-    home = tmp_path / "iadd"
+    home = tmp_path / "agentory"
     home.mkdir()
     if body is not None:
         (home / "config.json").write_text(body, encoding="utf-8")
@@ -477,7 +477,7 @@ def test_the_reader_finds_a_config_under_the_git_directory(repo):
     """tests-todo row 6, from round 2 🟡 2.
 
     The prose was fixed in round 1 and the reader shipped in the same commit
-    joined `<root>/iadd/` and stopped, so a local-mode repository's config
+    joined `<root>/agentory/` and stopped, so a local-mode repository's config
     was invisible to the one executable model of a session's reading this
     branch ships. `local_home` asks git for the common directory, the way
     the scripts do.
@@ -501,7 +501,7 @@ def test_the_tree_root_still_wins_over_the_git_directory(repo):
     (local / "config.json").write_text(
         config_json((COMMIT_ROW, "Korean")), encoding="utf-8"
     )
-    shared = repo / "iadd"
+    shared = repo / "agentory"
     shared.mkdir(parents=True, exist_ok=True)
     (shared / "config.json").write_text(
         config_json((COMMIT_ROW, "Japanese")), encoding="utf-8"
@@ -532,7 +532,7 @@ def test_an_unreadable_config_lands_on_english_too(tmp_path):
     """The fifth way, which needs a filesystem rather than a string: a
     `config.json` that is a DIRECTORY, which the reader refuses as a file
     that will not read, so a permission error lands the same way."""
-    (tmp_path / "iadd" / "config.json").mkdir(parents=True)
+    (tmp_path / "agentory" / "config.json").mkdir(parents=True)
     assert configured_language(tmp_path) == "English"
 
 
@@ -558,8 +558,8 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it(tmp_path):
     the production reader right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
-    `tests/skills/test_iadd.py#Test_module::test_the_command_and_the_gate_read_one_parser`
-    already asserts it for `iadd.py`: this file loads that module under a
+    `tests/skills/test_agentic.py#Test_module::test_the_command_and_the_gate_read_one_parser`
+    already asserts it for `agentic.py`: this file loads that module under a
     name of its own, so the two module objects differ while the
     implementation behind them must not. An `import` check alone would not
     see a copy return — a reimplementation loaded under the same name passes
@@ -570,7 +570,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it(tmp_path):
     assert where.endswith(owner), f"`declared_value` is compiled from {where}"
     # And it is the reader that sees a key written twice, not something that
     # merely lives at that path: `json.loads` alone would take the last.
-    home = tmp_path / "iadd"
+    home = tmp_path / "agentory"
     home.mkdir()
     (home / "config.json").write_text(
         config_json((COMMIT_ROW, "Korean"), (COMMIT_ROW, "English")),
@@ -676,7 +676,7 @@ def test_every_template_is_named_by_a_document_that_ships():
     """tests-todo row 4, from round 1 🟡 1.
 
     The finding was that `templates/setup/config.md` was named by nothing except a
-    line-width list, so a session told to write `iadd/config.md` had no
+    line-width list, so a session told to write `agentory/config.md` had no
     source for it. That is a property of the DIRECTORY rather than of the one
     file it was found on: any template no document names is a file a session
     cannot find, and it writes one from scratch instead.
@@ -717,7 +717,7 @@ def test_every_template_is_named_by_a_document_that_ships():
             "README.ko.md",
             "CONTRIBUTING.md",
             "CLAUDE.md",
-            "iadd/README.md",
+            "agentory/README.md",
         ],
         cwd=ROOT,
         capture_output=True,
@@ -841,7 +841,7 @@ def _round_record_grammar():
 def _round_record_fields():
     """What a round record carries: its grammar. Two lines are owed only
     where their condition holds, `original:` in a repository that declares
-    `iadd/parity.json` and `reopens:` on a finding that raises an earlier
+    `agentory/parity.json` and `reopens:` on a finding that raises an earlier
     close, so the template's one finding shows the other relation,
     `regression:`, and neither of these. The headings only the parties read
     are the proofer's to read (#1319)."""
@@ -932,15 +932,15 @@ def test_the_template_names_the_rows_an_absent_one_is_refused_for():
 @pytest.mark.parametrize(
     "parts",
     [
-        ("templates", "setup", "iadd-README.md"),
-        ("iadd", "README.md"),
+        ("templates", "setup", "agentory-README.md"),
+        ("agentory", "README.md"),
         ("README.md",),
         ("README.ko.md",),
     ],
 )
 def test_the_layout_lists_the_config(parts):
     """S9. Four documents draw the root's contents and a file in none of them
-    is a file nobody finds. `iadd/README.md` is written from the template, so
+    is a file nobody finds. `agentory/README.md` is written from the template, so
     the two move as one edit."""
     # The file name of the config, which a reader of the root's layout opens.
     assert "config.json" in read(*parts), (

@@ -146,7 +146,7 @@ def eval_side(tmp_path, name, rev, tree):
     it; the path it is written to."""
     run = {
         "graders": [{"name": "shape-x", "passed": True}],
-        "iadd": {"cost": None, "tool_calls": None},
+        "agentic": {"cost": None, "tool_calls": None},
     }
     case = {
         "name": "c1",
@@ -162,7 +162,7 @@ def eval_side(tmp_path, name, rev, tree):
     }
     path = tmp_path / f"{name}.json"
     path.write_text(
-        json.dumps({"startedAt": name, "cases": [case], "iadd": meta}),
+        json.dumps({"startedAt": name, "cases": [case], "agentic": meta}),
         encoding="utf-8",
     )
     return str(path)
@@ -175,7 +175,7 @@ def read_before_986(path):
         result = json.load(f)
     for case in result["cases"]:
         for run in NI.case_runs(case):
-            run["iadd"] = {"report_rows": ["location: `src/a.py:40`"]}
+            run["agentic"] = {"report_rows": ["location: `src/a.py:40`"]}
     with open(path, "w", encoding="utf-8") as f:
         json.dump(result, f)
 
@@ -765,13 +765,13 @@ class Test_annotate:
         `<out>.raw/`."""
         events = [assistant([use("Bash", "a"), use("Read", "r")]), RESULT]
         result = NI.annotate(saved_side(tmp_path, [(events, None)]))
-        assert result["cases"][0]["arms"]["with"][0]["iadd"] == {
+        assert result["cases"][0]["arms"]["with"][0]["agentic"] == {
             "cost": {
                 k: RESULT[k] for k in ("total_cost_usd", "duration_ms", "modelUsage")
             },
             "tool_calls": 2,
         }
-        assert result["iadd"] == {
+        assert result["agentic"] == {
             "agent": "proofer",
             "preload": {"agents/proofer.md": "a" * 64},
             "preload_bytes": 10,
@@ -794,9 +794,9 @@ class Test_annotate:
         self, tmp_path, runs, partial, cut
     ):
         result = NI.annotate(saved_side(tmp_path, runs, partial=partial))
-        assert result["iadd"]["cut_short"] is cut
+        assert result["agentic"]["cut_short"] is cut
         if runs[0][0] is None:
-            run = result["cases"][0]["arms"]["with"][0]["iadd"]
+            run = result["cases"][0]["arms"]["with"][0]["agentic"]
             assert run == {"cost": None, "tool_calls": None}
 
     def test_refuses_a_machine_path_as_the_sides_rev(self, tmp_path):
@@ -805,7 +805,7 @@ class Test_annotate:
         result = NI.annotate(
             saved_side(tmp_path, [(None, None)], rev=str(tmp_path / "t"))
         )
-        assert result["iadd"]["rev"] == "tree"
+        assert result["agentic"]["rev"] == "tree"
 
 
 class Test_write_side:
@@ -856,13 +856,16 @@ class Test_run_side:
         data, plugin, kept = run_one_side(
             tmp_path, monkeypatch, [{"type": "system"}, sub, RESULT]
         )
-        run = data["cases"][0]["arms"]["with"][0]["iadd"]
+        run = data["cases"][0]["arms"]["with"][0]["agentic"]
         assert run["cost"]["total_cost_usd"] == 2.5
-        assert data["iadd"]["preload"] == NI.preload_hashes(str(plugin), "proofer")
-        assert data["iadd"]["preload_bytes"] == NI.preload_bytes(str(plugin), "proofer")
-        assert data["iadd"]["rev"] == "tree"
+        assert data["agentic"]["preload"] == NI.preload_hashes(str(plugin), "proofer")
+        assert data["agentic"]["preload_bytes"] == NI.preload_bytes(
+            str(plugin), "proofer"
+        )
+        assert data["agentic"]["rev"] == "tree"
         assert (
-            data["iadd"]["suite_rev"] == git(ROOT, "rev-parse", "HEAD").stdout.strip()
+            data["agentic"]["suite_rev"]
+            == git(ROOT, "rev-parse", "HEAD").stdout.strip()
         )
         assert not kept.exists(), "the kept run was left behind"
         saved = tmp_path / "side.raw"
@@ -892,7 +895,7 @@ class Test_run_side:
         monkeypatch.setattr(NI, "annotate", real)
         assert NI.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
         data = json.loads(out.read_text(encoding="utf-8"))
-        assert data["cases"][0]["arms"]["with"][0]["iadd"] == {
+        assert data["cases"][0]["arms"]["with"][0]["agentic"] == {
             "cost": None,
             "tool_calls": 1,
         }
@@ -956,7 +959,10 @@ RECORD_TRUTH = {
     "type": "regex",
     "weight": 1,
     "config": {
-        "target": {"source": "file", "path": "iadd/threads/i/trail/rounds/round-1.md"},
+        "target": {
+            "source": "file",
+            "path": "agentory/threads/i/trail/rounds/round-1.md",
+        },
         "pattern": TRUTH,
         "flags": "m",
         "match": "contains",
@@ -974,7 +980,7 @@ class Test_side_numbers:
                 {"name": "shape-x", "passed": True},
                 {"name": "note", "passed": True},
             ],
-            "iadd": {
+            "agentic": {
                 "cost": {
                     k: RESULT[k]
                     for k in ("total_cost_usd", "duration_ms", "modelUsage")
@@ -986,7 +992,7 @@ class Test_side_numbers:
         result = one_case_side([run], [RECORD_TRUTH, shape])
         result.update(
             startedAt="t0",
-            iadd={
+            agentic={
                 "cut_short": False,
                 "suite_rev": "s",
                 "suite_tree": "t",
@@ -1021,7 +1027,7 @@ class Test_side_numbers:
         not read again."""
         run = {
             "graders": [{"name": "truth-1", "passed": True}],
-            "iadd": {"report_text": ""},
+            "agentic": {"report_text": ""},
         }
         got = NI.side_numbers(one_case_side([run], [RECORD_TRUTH]))
         assert got["graders"] == {("c1", "truth-1"): ["truth", 1, 1]}
@@ -1033,7 +1039,7 @@ class Test_side_numbers:
             "modelUsage": RESULT["modelUsage"],
         }
         result = one_case_side(
-            [{"graders": [], "iadd": {"cost": cost}}, {"graders": []}]
+            [{"graders": [], "agentic": {"cost": cost}}, {"graders": []}]
         )
         result["partial"] = True
         got = NI.side_numbers(result)

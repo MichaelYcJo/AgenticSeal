@@ -1,4 +1,4 @@
-"""`lib/config.py`, the shared reader of `iadd/config.json`, one class per
+"""`lib/config.py`, the shared reader of `agentory/config.json`, one class per
 function its cases reach.
 
 #1454 moved the settings out of a markdown table, so the cases that pinned
@@ -16,8 +16,8 @@ normaliser's from `tests/text/test_the_records_can_be_carried_out_and_in.py`, th
 from `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`,
 the reader's cases of
 `tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
-`tests/skills/test_iadd.py`, the pact readers' of `tests/behaviour/test_a_signer_declares_its_pact.py`, and the
-cases `tests/skills/test_pact_check.py` left for this module that run `iadd
+`tests/skills/test_agentic.py`, the pact readers' of `tests/behaviour/test_a_signer_declares_its_pact.py`, and the
+cases `tests/skills/test_pact_check.py` left for this module that run `agentic
 pact` over the pact's world in `tests/conftest.py`; one of them stands, and
 the rest left with the `| Signer |` table's reader. Each case keeps
 its body; a name its old file defined for it is defined here, and a fixture
@@ -67,9 +67,9 @@ NO_SIGNER = (
     "separated by `;`"
 )
 
-# `iadd.py`, which re-exports `normalise_remote`: the normaliser's cases ask
-# it by that name, through the `iadd` fixture below.
-SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py")
+# `agentic.py`, which re-exports `normalise_remote`: the normaliser's cases ask
+# it by that name, through the `agentic` fixture below.
+SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py")
 
 # The `Baseline commit` case asks the reader `chain_check.py` loads for the
 # parity arm, as the command reaches it.
@@ -80,8 +80,8 @@ chain = load_module(
 
 
 @pytest.fixture
-def iadd():
-    spec = importlib.util.spec_from_file_location("iadd_command", SCRIPT)
+def agentic():
+    spec = importlib.util.spec_from_file_location("agentic_command", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -90,14 +90,14 @@ def iadd():
 class Test_reference_roots:
     def test_accepts_a_row_naming_its_prefixes_with_or_without_a_slash(self, tmp_path):
         """Present: the prefixes it names, normalised, and nothing else."""
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(
             home,
             table(
                 ("Reference specs", "specs/, docs/adr ,./design/, specs, tools\\notes")
             ),
         )
-        roots = config.reference_roots(home, "iadd")
+        roots = config.reference_roots(home, "agentory")
         assert roots == ("specs", "docs/adr", "design", "tools/notes"), roots
         for rel in (
             "specs/x/design.md",
@@ -107,19 +107,19 @@ class Test_reference_roots:
             "./specs/x.md",
             "tools/notes/n.md",
         ):
-            assert config.under_reference_root(rel, roots, "iadd"), rel
+            assert config.under_reference_root(rel, roots, "agentory"), rel
         for rel in ("docs/adrs/0001.md", "docs/specs/x.md", "src/specs.py", "spec/x"):
-            assert not config.under_reference_root(rel, roots, "iadd"), rel
+            assert not config.under_reference_root(rel, roots, "agentory"), rel
 
     def test_no_row_means_every_specs_directory_outside_the_root(
         self, tmp_path, monkeypatch
     ):
         """Absent, empty or unreadable: the ticket's default, at any depth."""
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         for body in (None, table(("Mode", "shared")), table(("Reference specs", ""))):
             if body is not None:
                 write_config(home, body)
-            roots = config.reference_roots(home, "iadd")
+            roots = config.reference_roots(home, "agentory")
             assert roots is None, (body, roots)
             for rel in (
                 "specs/x/design.md",
@@ -127,13 +127,13 @@ class Test_reference_roots:
                 "a/b/specs/c/d.md",
                 "specs\\x\\design.md",
             ):
-                assert config.under_reference_root(rel, roots, "iadd"), rel
+                assert config.under_reference_root(rel, roots, "agentory"), rel
             for rel in (
-                "iadd/threads/1790000000-x/design.md",
+                "agentory/threads/1790000000-x/design.md",
                 "docs/design.md",
                 "specsheet/a",
             ):
-                assert not config.under_reference_root(rel, roots, "iadd"), rel
+                assert not config.under_reference_root(rel, roots, "agentory"), rel
         # No root at either place is the default too (#1576, design S12), and
         # never a `config.json` found relative to wherever the process happens
         # to stand.
@@ -149,28 +149,28 @@ class Test_reference_roots:
         first. A file that is there and will not read is the default too, as it
         was, and the reader no longer opens the file itself to find out. Seen red
         against the first-wins reader: `('docs/adr',)`."""
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(
             home, table(("Reference specs", "docs/adr"), ("Reference specs", "none"))
         )
-        assert config.reference_roots(home, "iadd") is None
+        assert config.reference_roots(home, "agentory") is None
         os.remove(os.path.join(home, "config.json"))
         os.mkdir(os.path.join(home, "config.json"))
-        assert config.reference_roots(home, "iadd") is None
+        assert config.reference_roots(home, "agentory") is None
 
     def test_none_declares_no_reference_root(self, tmp_path):
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(home, table(("Reference specs", "None")))
-        roots = config.reference_roots(home, "iadd")
+        roots = config.reference_roots(home, "agentory")
         assert roots == (), roots
-        assert not config.under_reference_root("specs/x/design.md", roots, "iadd")
+        assert not config.under_reference_root("specs/x/design.md", roots, "agentory")
 
     def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
         """A reference root is outside the root by definition; a prefix naming
         the root, by the name its caller reads from `lib/optin.py`, or
         anything under it is dropped, and the default never reaches its
         `threads/` either."""
-        name = "iadd"
+        name = "agentory"
         home = str(tmp_path / name)
         write_config(home, table(("Reference specs", f"{name}/threads, {name}, specs")))
         roots = config.reference_roots(home, name)
@@ -181,42 +181,44 @@ class Test_reference_roots:
         assert not config.under_reference_root(
             f"{name}/threads/1790000000-x/design.md", None, name
         )
-        assert not config.under_reference_root("iadd/vendor/specs/x.md", None, name)
+        assert not config.under_reference_root("agentory/vendor/specs/x.md", None, name)
 
     def test_local_mode_reads_the_key_under_the_git_directory(self, tmp_path):
         """In local mode the root sits under the common git directory and nothing
         of it is in the tree, so its name in the tree is "", with no key every
-        tree `specs` is a reference root, an `iadd/vendor/specs/` among them,
+        tree `specs` is a reference root, an `agentory/vendor/specs/` among them,
         and a key there is read like any other."""
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
         optin = load_lib_module("optin.py", "optin_for_reference_roots")
         common = optin.git_common_dir(str(repo))
-        home = os.path.join(common, "iadd")
+        home = os.path.join(common, "agentory")
         mark_root(home)
         assert optin.home_at(str(repo), common) == home, "the fixture is not local mode"
         assert config.reference_roots(home, "") is None
         assert config.under_reference_root("specs/x/design.md", None, "")
-        assert config.under_reference_root("iadd/vendor/specs/x.md", None, "")
-        write_config(home, table(("Reference specs", "docs/adr, iadd/vendor/specs")))
-        assert config.reference_roots(home, "") == ("docs/adr", "iadd/vendor/specs")
+        assert config.under_reference_root("agentory/vendor/specs/x.md", None, "")
+        write_config(
+            home, table(("Reference specs", "docs/adr, agentory/vendor/specs"))
+        )
+        assert config.reference_roots(home, "") == ("docs/adr", "agentory/vendor/specs")
 
 
 class Test_declared_policy_root:
     def test_accepts_the_value_normalised_with_no_refusal(self, tmp_path):
         """Whitespace, `\\`, a leading `./` and a trailing `/` are taken off
         the way `Reference specs` takes them off; no root is `docs`."""
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(home, table(("Policy root", " .\\policy\\ ")))
         assert config.declared_policy_root(home) == ("policy", None)
         assert config.declared_policy_root("") == ("docs", None)
 
     def test_refuses_a_key_written_twice_beside_docs(self, tmp_path):
-        """The refusal comes back beside `docs`, so `iadd fold`, which stops
+        """The refusal comes back beside `docs`, so `agentic fold`, which stops
         on it, and `policy_root`, which reads it as the default, read one
         answer."""
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(home, table(("Policy root", "a"), ("Policy root", "b")))
         assert config.declared_policy_root(home) == (
             "docs",
@@ -261,7 +263,7 @@ class Test_policy_group:
 
 class Test_switch:
     def test_accepts_yes_exactly_as_on_and_says_nothing(self, tmp_path):
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(home, table(("A switch", "yes")))
         assert config.switch(home, "A switch", "nothing is drawn") == (True, None)
 
@@ -271,7 +273,7 @@ class Test_switch:
         ids=["no file", "no key", "empty"],
     )
     def test_refuses_no_root_no_key_and_an_empty_key_in_silence(self, tmp_path, text):
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         if text is not None:
             write_config(home, text)
         assert config.switch(home, "A switch", "nothing is drawn") == (False, None)
@@ -303,7 +305,7 @@ class Test_switch:
     ):
         """OFF, the caller's words for what stays off, closes each
         sentence."""
-        home = str(tmp_path / "iadd")
+        home = str(tmp_path / "agentory")
         write_config(home, text)
         assert config.switch(home, "A switch", "nothing is drawn") == (False, said)
 
@@ -318,26 +320,26 @@ class Test_normalise_remote:
         ],
     )
     def test_accepts_remote_urls_that_reduce_to_one_host_and_path(
-        self, iadd, left, right
+        self, agentic, left, right
     ):
-        assert iadd.normalise_remote(left) == iadd.normalise_remote(right)
+        assert agentic.normalise_remote(left) == agentic.normalise_remote(right)
 
-    def test_a_port_is_not_read_as_an_scp_separator(self, iadd):
+    def test_a_port_is_not_read_as_an_scp_separator(self, agentic):
         """The colon becomes `/` only where there was no scheme. Otherwise
         `https://example.com:8443/x` reduces to `example.com/8443/x`, and two
         ports of one host stop comparing equal to themselves."""
-        assert iadd.normalise_remote("https://example.com:8443/org/repo") == (
+        assert agentic.normalise_remote("https://example.com:8443/org/repo") == (
             "example.com:8443/org/repo"
         )
 
-    def test_refuses_to_reduce_two_different_repositories_to_one(self, iadd):
+    def test_refuses_to_reduce_two_different_repositories_to_one(self, agentic):
         """The direction the normalisation must not be wrong in."""
-        assert iadd.normalise_remote(
+        assert agentic.normalise_remote(
             "git@example.com:org/a.git"
-        ) != iadd.normalise_remote("git@example.com:org/b.git")
-        assert iadd.normalise_remote("git@example.com:org/a") != iadd.normalise_remote(
-            "git@other.example:org/a"
-        )
+        ) != agentic.normalise_remote("git@example.com:org/b.git")
+        assert agentic.normalise_remote(
+            "git@example.com:org/a"
+        ) != agentic.normalise_remote("git@other.example:org/a")
 
 
 class Test_config_pairs:
@@ -403,7 +405,7 @@ class Test_config_pairs:
         `config.json`. No reader opens that table, so the root declares
         nothing, as a root holding no file does: no key, and no refusal
         naming the old file or a command that converts it. Seen red against
-        the reader that refused the root naming `iadd mode`."""
+        the reader that refused the root naming `agentic mode`."""
         (tmp_path / "config.md").write_text(
             "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
             encoding="utf-8",
@@ -415,13 +417,13 @@ class Test_config_pairs:
 class Test_unreadable_config:
     def test_accepts_a_decode_error_in_its_own_words(self, config):
         exc = UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
-        said = config.unreadable_config(os.path.join("iadd", "config.json"), exc)
+        said = config.unreadable_config(os.path.join("agentory", "config.json"), exc)
         assert f"({exc})" in said, said
 
     def test_refuses_the_error_numbers_wording_and_names_the_reason_alone(self, config):
         """An `OSError` is named by its reason, `Permission denied`, and not by
         the `[Errno 13] …: path` its own text wraps the reason in."""
-        path = os.path.join("iadd", "config.json")
+        path = os.path.join("agentory", "config.json")
         said = config.unreadable_config(path, OSError(13, "Permission denied", path))
         assert "(Permission denied)" in said, said
         assert "Errno" not in said, said
@@ -492,7 +494,7 @@ class Test_declared_mode:
     def test_the_four_spellings_of_undeclared_are_one_answer(
         self, config, repo, text, expected
     ):
-        """The same four `iadd.py#declared` already had, because it is the same
+        """The same four `agentic.py#declared` already had, because it is the same
         reader — moved, not rewritten. A key that names no mode is told apart from
         no key, because a claim nobody can act on is not the same as no claim."""
         home = opt_in_shared(repo)
@@ -603,7 +605,7 @@ class Test_pact_declaration:
         """`lib/config.py#pact_declaration`: a `Pact notify` key left in the
         config is read by nobody, with a `Pact` key or without one, so neither
         a value outside the vocabulary it once had nor the key written twice is
-        refused. Seen red by `iadd mutate` against a reader that refused the
+        refused. Seen red by `agentic mutate` against a reader that refused the
         row (phase 8 of 1791940762)."""
         assert config.pact_declaration([("Pact", URL), *rows]) == (ORDERS, [])
         assert config.pact_declaration(rows) == ([], [])
@@ -635,12 +637,12 @@ class Test_pact_declaration:
 
 class Test_declared_pacts:
     def test_an_unreadable_config_is_no_declaration(self, tmp_path):
-        """`declared_pacts` is what `iadd pact` reads a signer's key
+        """`declared_pacts` is what `agentic pact` reads a signer's key
         through. No file is no key; a file that is there and will not read is
         None, which the caller refuses, because a written key read as absent is
         the silence the reader exists to end."""
         assert config.declared_pacts(str(tmp_path / "missing")) == ([], [])
-        home = tmp_path / "iadd"
+        home = tmp_path / "agentory"
         (home / "config.json").mkdir(parents=True)
         assert config.declared_pacts(str(home)) is None
         (home / "config.json").rmdir()
@@ -649,16 +651,16 @@ class Test_declared_pacts:
         assert pacts == ORDERS and refusals == []
 
     def test_refuses_a_signer_config_that_will_not_parse_with_exit_2(self, world):
-        """S2 at `iadd pact`: a signer's config that will not parse is refused
+        """S2 at `agentic pact`: a signer's config that will not parse is refused
         as `UNREADABLE`, in the reader's sentence after the path the command
         shows, and the run exits 2. Seen red against the sentence the command
         printed before #1454, `could not be read`, which named no cause."""
-        write(world.web, "iadd/config.json", '{"Pact": "x",}\n')
+        write(world.web, "agentory/config.json", '{"Pact": "x",}\n')
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
         assert f"UNREADABLE {SIGNER_URL} " in out, out
-        assert "iadd/config.json — does not parse as JSON" in out, out
+        assert "agentory/config.json — does not parse as JSON" in out, out
 
     @pytest.mark.parametrize(
         "rows",
@@ -673,7 +675,9 @@ class Test_declared_pacts:
     ):
         """`lib/config.py#pact_declaration`: a `Pact notify` key left in a
         signer's config is read by nobody."""
-        write(world.web, "iadd/config.json", signer_config(("Pact", PACT_URL), *rows))
+        write(
+            world.web, "agentory/config.json", signer_config(("Pact", PACT_URL), *rows)
+        )
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 0, out
@@ -841,7 +845,7 @@ class Test_baseline_commit:
         no SHA and a why naming it, which reads after the file's name."""
         sha, said = config.baseline_commit(text)
         assert sha is None and why in said, (said, text)
-        assert not said.startswith(("iadd/", "parity")), said
+        assert not said.startswith(("agentory/", "parity")), said
 
 
 class Test_module:
@@ -859,9 +863,9 @@ class Test_module:
         self, tmp_path, value, root
     ):
         """`lib/config.py#policy_root`, which reads through
-        `declared_policy_root` as `iadd fold` does: an empty value and one
+        `declared_policy_root` as `agentic fold` does: an empty value and one
         that leaves the repository read as `docs`."""
-        config = load_lib_module("config.py", "iadd_config_for_policy_root")
+        config = load_lib_module("config.py", "agentic_config_for_policy_root")
         (tmp_path / "config.json").write_text(
             table(("Policy root", value)), encoding="utf-8"
         )

@@ -1,11 +1,11 @@
 """`skills/settle/scripts/rules.py`, one class per function.
 
-`iadd rules <doc>` prints each section with what its tests say they guard, and
-`iadd rules --check` fails where a check line is refused. A rule's text lives
+`agentic rules <doc>` prints each section with what its tests say they guard, and
+`agentic rules --check` fails where a check line is refused. A rule's text lives
 once, as the first sentence of the docstring of the test that holds it, and
 a rule file lists its tests by `check:` line, in the grammar
-`skills/settle/rule-changes.md` *A rule has one shape* states. `iadd rules <doc>` never
-fails for what it finds; `iadd rules --check` reads every rule file and is exit 1
+`skills/settle/rule-changes.md` *A rule has one shape* states. `agentic rules <doc>` never
+fails for what it finds; `agentic rules --check` reads every rule file and is exit 1
 where a line is out of grammar or a target is gone, and one case of
 `tests/behaviour/test_this_repository_passes_its_own_checks.py` runs it over
 the tree, so the suite is where the fact is read.
@@ -30,7 +30,7 @@ SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
 
 
 def _load():
-    spec = importlib.util.spec_from_file_location("iadd_rules", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_rules", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -118,7 +118,7 @@ def doc(*paragraphs):
 
 
 def checked(tmp_path, files, capsys):
-    """`(exit, stdout)` of `iadd rules --check` over a tree holding the test module
+    """`(exit, stdout)` of `agentic rules --check` over a tree holding the test module
     and `files`, each `{path: text}`."""
     for rel, text in {HELD: TESTS, **files}.items():
         path = tmp_path / rel
@@ -209,7 +209,7 @@ class Test_main:
     def test_with_no_root_the_targets_resolve_where_the_command_runs(
         self, tmp_path, capsys, monkeypatch, where
     ):
-        """`iadd rules <doc>` with no `--root` resolves in the repository it is typed
+        """`agentic rules <doc>` with no `--root` resolves in the repository it is typed
         in, from its top or a subdirectory, not in the tree the script ships in."""
         root = tree(tmp_path, "## A\n\n**Held.** Why.\ncheck: held-rule\n")
         doc = "docs/a.md"
@@ -226,7 +226,7 @@ class Test_main:
         )
 
     def test_a_refused_line_is_printed_with_why(self, tmp_path, capsys):
-        """`iadd rules <doc>` prints a line out of grammar under its section with the
+        """`agentic rules <doc>` prints a line out of grammar under its section with the
         reason `--check` refuses it, and still exits 0."""
         root = tree(tmp_path, "## One\n\ncheck: tests/test_x.py, tests/test_x.py\n")
         code, out, _ = run(root, capsys)
@@ -239,7 +239,7 @@ class Test_main:
     def test_a_line_not_read_is_printed_as_one_and_holds_nothing(
         self, tmp_path, capsys
     ):
-        """#1167, *Scope* item 8: `iadd rules <doc>` prints a line that opens
+        """#1167, *Scope* item 8: `agentic rules <doc>` prints a line that opens
         like a check line and is not one as not read, with the reason
         `--check` names it, and the section it stands in holds no check line.
         Seen red against the line printed as refused."""
@@ -335,7 +335,7 @@ class Test_main:
         code = rules.main([str(tmp_path / "missing.md"), "--root", str(tmp_path)])
         captured = capsys.readouterr()
         assert code == 2
-        assert "iadd rules: cannot read" in captured.err
+        assert "agentic rules: cannot read" in captured.err
         assert captured.out == ""
 
     def test_a_policy_index_that_cannot_be_read_is_exit_2(self, tmp_path, capsys):
@@ -353,12 +353,18 @@ class Test_main:
     @pytest.mark.parametrize(
         "line, said",
         [
-            (f"check: {HELD}", "iadd rules: all 1 check lines in 1 rule files hold."),
+            (
+                f"check: {HELD}",
+                "agentic rules: all 1 check lines in 1 rule files hold.",
+            ),
             (
                 f"check: {HELD} held-rule",
-                "iadd rules: all 1 check lines in 1 rule files hold.",
+                "agentic rules: all 1 check lines in 1 rule files hold.",
             ),
-            (f"  check: {HELD}", "iadd rules: all 1 check lines in 1 rule files hold."),
+            (
+                f"  check: {HELD}",
+                "agentic rules: all 1 check lines in 1 rule files hold.",
+            ),
         ],
         ids=["a file", "S2 two targets", "indented under a list item"],
     )
@@ -401,8 +407,8 @@ class Test_main:
         not resolve."""
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
         assert code == 1, out
-        assert f"iadd rules: docs/a.md:6: The heading: {why}\n" in out, out
-        assert "iadd rules: 1 refused in 1 check lines of 1 rule files." in out, out
+        assert f"agentic rules: docs/a.md:6: The heading: {why}\n" in out, out
+        assert "agentic rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
     @pytest.mark.parametrize(
         "line",
@@ -450,10 +456,10 @@ class Test_main:
         heading = line[3:] if line.startswith("## ") else "The heading"
         assert code == 0, out
         assert out == (
-            f"iadd rules: not read: docs/a.md:6: {heading}: `{line}` opens like "
+            f"agentic rules: not read: docs/a.md:6: {heading}: `{line}` opens like "
             "a check line and is not one, so it was not read: write "
             "`check: <targets>`\n"
-            "iadd rules: all 0 check lines in 1 rule files hold.\n"
+            "agentic rules: all 0 check lines in 1 rule files hold.\n"
         ), out
 
     @pytest.mark.parametrize(
@@ -466,7 +472,7 @@ class Test_main:
         label, is prose: neither read nor named."""
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
         assert code == 0, out
-        assert out == "iadd rules: all 0 check lines in 1 rule files hold.\n", out
+        assert out == "agentic rules: all 0 check lines in 1 rule files hold.\n", out
 
     def test_names_a_line_beside_a_refusal_and_keeps_the_refusal(
         self, tmp_path, capsys
@@ -477,10 +483,11 @@ class Test_main:
         code, out = checked(tmp_path, {"docs/a.md": text}, capsys)
         assert code == 1, out
         assert (
-            "iadd rules: docs/a.md:9: The heading: tests/test_gone.py does not" in out
+            "agentic rules: docs/a.md:9: The heading: tests/test_gone.py does not"
+            in out
         )
-        assert "iadd rules: not read: docs/a.md:6: The heading: `Check: " in out, out
-        assert "iadd rules: 1 refused in 1 check lines of 1 rule files." in out, out
+        assert "agentic rules: not read: docs/a.md:6: The heading: `Check: " in out, out
+        assert "agentic rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
     @pytest.mark.parametrize(
         "target, why",
@@ -526,7 +533,7 @@ class Test_main:
         code, out = checked(tmp_path, {"agents/proofer.md": text}, capsys)
         assert code == 1, out
         assert (
-            "iadd rules: agents/proofer.md:6: The heading: tests/test_gone_a.py does not exist"
+            "agentic rules: agents/proofer.md:6: The heading: tests/test_gone_a.py does not exist"
             in out
         ), out
 
@@ -537,7 +544,7 @@ class Test_main:
         code, out = checked(tmp_path, {"skills/x/supporting.md": text}, capsys)
         assert code == 1, out
         assert (
-            "iadd rules: skills/x/supporting.md:6: The heading: "
+            "agentic rules: skills/x/supporting.md:6: The heading: "
             "tests/test_gone_s.py does not exist" in out
         ), out
 
@@ -556,7 +563,7 @@ class Test_main:
         code, out = checked(tmp_path, files, capsys)
         assert code == 1, out
         assert (
-            "iadd rules: docs/g/a.md:6: The heading: tests/test_gone_g.py does not exist"
+            "agentic rules: docs/g/a.md:6: The heading: tests/test_gone_g.py does not exist"
             in out
         ), out
         assert "experiments" not in out, out
@@ -564,7 +571,7 @@ class Test_main:
     @pytest.mark.parametrize(
         "files, verdict, said",
         [
-            ({"case.yaml": "name: a\n"}, 0, "iadd rules: all 1 check lines"),
+            ({"case.yaml": "name: a\n"}, 0, "agentic rules: all 1 check lines"),
             ({"prompt.md": "Review.\n"}, 1, "holds no case.yaml"),
         ],
         ids=["with its case.yaml", "without"],
@@ -602,17 +609,17 @@ class Test_main:
         with a `from` that takes out a text and leaves the section, excuse
         nothing."""
         gone = doc(rule("check: tests/test_gone.py"))
-        design = "iadd/threads/1-a/frame/design.md"
+        design = "agentory/threads/1-a/frame/design.md"
         removal = "# Design\n\n## Rule changes\n\n- remove\n  file: docs/a.md\n"
         written = {"docs/a.md": gone, design: removal + "  section: The heading\n"}
         code, out = checked(tmp_path, written, capsys)
         assert code == 0, out
         assert (
-            "iadd rules: excused: docs/a.md:6: The heading: tests/test_gone.py does "
-            "not exist; iadd/threads/1-a/ removes this section at the settle\n"
+            "agentic rules: excused: docs/a.md:6: The heading: tests/test_gone.py does "
+            "not exist; agentory/threads/1-a/ removes this section at the settle\n"
         ) in out, out
         assert (
-            "iadd rules: 1 excused in 1 check lines of 1 rule files, and every other "
+            "agentic rules: 1 excused in 1 check lines of 1 rule files, and every other "
             "line holds.\n"
         ) in out, out
         for kept in (
@@ -634,7 +641,9 @@ class Test_main:
         assert rules.main(["--root", str(root)]) == 2
         captured = capsys.readouterr()
         assert captured.out == "", captured.out
-        assert "iadd rules: name a document, or --check, and not both." in captured.err
+        assert (
+            "agentic rules: name a document, or --check, and not both." in captured.err
+        )
 
 
 class Test_refused_lines:

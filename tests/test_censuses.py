@@ -16,7 +16,7 @@ The cases came from the modules that held each census whole:
 names every old case and where it went.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without `tests/censuses.py`, and `iadd mutate` broke each
+against the tree without `tests/censuses.py`, and `agentic mutate` broke each
 census's refusal in turn and watched a case of its class fail.
 `vacated_paths` (#1060) failed its cases before the census existed, and was
 seen red over the tree after `templates/` moved and before its citations were
@@ -802,12 +802,12 @@ class Test_floor_syntax:
 
 class Test_section_sign:
     def test_accepts_a_record_a_clean_file_and_one_that_is_not_text(self, tmp_path):
-        plant(tmp_path, "iadd/threads/1-x/frame/design.md", f"see {SIGN}3\n")
+        plant(tmp_path, "agentory/threads/1-x/frame/design.md", f"see {SIGN}3\n")
         plant(tmp_path, "evals/behaviour/c.md", f"see {SIGN}3\n")
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff")
         root = plant(tmp_path, "hooks/b.py", "# clean\n")
         for rel in (
-            "iadd/threads/1-x/frame/design.md",
+            "agentory/threads/1-x/frame/design.md",
             "evals/behaviour/c.md",
             "x.png",
             "hooks/b.py",
@@ -815,9 +815,9 @@ class Test_section_sign:
             assert censuses.section_sign(rel, root) == [], rel
 
     def test_refuses_the_sign_at_its_line(self, tmp_path):
-        root = plant(tmp_path, "iadd/follow-up.md", f"clean\nsee {SIGN}3\n")
-        assert censuses.section_sign("iadd/follow-up.md", root) == [
-            "iadd/follow-up.md:2: section_sign: a living file writes the section "
+        root = plant(tmp_path, "agentory/follow-up.md", f"clean\nsee {SIGN}3\n")
+        assert censuses.section_sign("agentory/follow-up.md", root) == [
+            "agentory/follow-up.md:2: section_sign: a living file writes the section "
             "sign. Cite a contract rule as `contract rule <N>`, and another "
             "file's section by its path and its heading text in italics"
         ]
@@ -958,7 +958,7 @@ class Test_vacated_paths:
     def test_accepts_the_records_and_a_recorded_case(self, tmp_path):
         root = plant_moved(tmp_path)
         records = (
-            "iadd/threads/1-x/frame/design.md",
+            "agentory/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
         )
         for rel in records:
@@ -1082,22 +1082,25 @@ def spelled(value):
 # Each source spells a name of the root on its second line, in a shape a
 # reader of the records takes it.
 ROOT_SPELLED = {
-    "the-name-as-a-path-part": ('import os\nos.path.join(r, "iadd")\n', "iadd"),
-    "a-path-under-the-root": ('X = 1\nTHREADS = "iadd/threads"\n', "iadd/threads"),
-    "an-f-strings-literal-part": ('X = 1\nshown = f"iadd/{name}"\n', "iadd/"),
+    "the-name-as-a-path-part": ('import os\nos.path.join(r, "agentory")\n', "agentory"),
+    "a-path-under-the-root": (
+        'X = 1\nTHREADS = "agentory/threads"\n',
+        "agentory/threads",
+    ),
+    "an-f-strings-literal-part": ('X = 1\nshown = f"agentory/{name}"\n', "agentory/"),
     "a-basename-compared": (
-        'import os\nif os.path.basename(p) == "iadd":\n    pass\n',
-        "iadd",
+        'import os\nif os.path.basename(p) == "agentory":\n    pass\n',
+        "agentory",
     ),
 }
 # Each source names the root only in text a person reads, or spells
 # something else that opens with the same letters.
 ROOT_NOT_SPELLED = {
-    "a-docstring": '"""Reads `iadd/threads/`."""\n\n\ndef f():\n    """iadd"""\n',
-    "a-comment": "# under iadd/threads/\nX = 1\n",
-    "a-message": 'X = "no iadd/ root here"\nY = "the `iadd/` root"\n',
-    "a-subcommand": 'X = "iadd mode"\nY = "iadd-scratch"\nZ = "iadds/x"\n',
-    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no iadd/threads/"\n',
+    "a-docstring": '"""Reads `agentory/threads/`."""\n\n\ndef f():\n    """agentory"""\n',
+    "a-comment": "# under agentory/threads/\nX = 1\n",
+    "a-message": 'X = "no agentory/ root here"\nY = "the `agentory/` root"\n',
+    "a-longer-word": 'X = "agentory mode"\nY = "agentory-scratch"\nZ = "agentorys/x"\n',
+    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no agentory/threads/"\n',
 }
 
 
@@ -1124,17 +1127,17 @@ class Test_root_name:
     ):
         """`lib/optin.py` is where the names live, `tests/` and `evals/`
         build roots by name, and a document names the root in text."""
-        root = plant(tmp_path, rel, 'HOME = "iadd"\n')
+        root = plant(tmp_path, rel, 'HOME = "agentory"\n')
         assert censuses.root_name(rel, root) == []
 
     def test_accepts_a_line_an_exemption_excuses_and_refuses_one_that_excuses_nothing(
         self, tmp_path
     ):
         source = (
-            "# exempt from root_name: a fenced block's info string\n"
-            'INFO = "iadd"\n'
+            "# exempt from root_name: a value that names no directory\n"
+            'NAME = "agentory"\n'
             "# exempt from root_name: nothing here\n"
-            'OTHER = "iadd-scratch"\n'
+            'OTHER = "agentory-scratch"\n'
         )
         root = plant(tmp_path, ".github/scripts/x.py", source)
         assert lines_of(censuses.root_name(".github/scripts/x.py", root)) == [

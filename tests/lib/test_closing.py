@@ -24,7 +24,7 @@ def _closer():
     import importlib.util
 
     path = os.path.join(ROOT, "lib", "closing.py")
-    spec = importlib.util.spec_from_file_location("iadd_closing_for_tests", path)
+    spec = importlib.util.spec_from_file_location("agentic_closing_for_tests", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod

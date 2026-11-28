@@ -18,7 +18,7 @@ source.
 
 | File | The question it answers |
 |---|---|
-| `docs/method/iadd.md` | what IADD is, the principles it stands on and the source of each, the names of its parts, and which document owns the form of each record of a work item |
+| `docs/method/iadd.md` | what IADD is, the principles it stands on and the source of each, the names of its three layers and of its parts, and which document owns the form of each record of a work item |
 
 ## docs/forms/
 
@@ -65,7 +65,7 @@ and the citation gives the reason.
 |---|---|
 | `docs/checks/the-pull-request-check.md` | what `chain_check.py` reads at a pull request, for a person who changes it |
 | `docs/checks/the-stamp.md` | what `stamp.py` queues and draws, and the `Stop` hook that draws it |
-| `docs/checks/the-fold.md` | what `iadd settle` and `iadd fold` read to tell a settle from a deletion |
+| `docs/checks/the-fold.md` | what `agentic settle` and `agentic fold` read to tell a settle from a deletion |
 | `docs/checks/the-unverified-record.md` | what `unverified_check.py` reads, and the states in which it reads no row |
 | `docs/checks/the-routing-check.md` | where a session's routing is checked, at the pull request alone, and the session it does not catch |
 
