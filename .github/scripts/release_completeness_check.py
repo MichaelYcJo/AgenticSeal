@@ -61,8 +61,8 @@ reads -- `GH_TOKEN` reaches this through `gh` and is an input all the same.
 What each entry's absence does:
 
     `REPO`      exit 1   `KeyError: 'REPO'` -- loud
-    `HEAD_SHA`  exit 0   the commit the range is measured TO, and the head
-                         `plugin.json` is read at, falls back to `HEAD`,
+    `HEAD_SHA`  exit 0   the commit the range is measured TO, and the
+                         head's `plugin.json` is read at, falls back to `HEAD`,
                          which in CI is the merge ref; nothing printed says
                          so, and `merge_base` below carries what that costs
                          on a `pull_request` event

@@ -91,8 +91,8 @@ def test_every_input_the_script_reads_is_handed_to_it_by_the_step():
         # The environment key the runner hands the script.
         assert name in env, (
             f"the gate step no longer passes {name}. Every one of these is "
-            "an input of `release_completeness_check.py`, and two absences "
-            "are silent"
+            "an input of `release_completeness_check.py`, and the absence "
+            "of HEAD_SHA is silent"
         )
     # The value the runner binds `HEAD_SHA` to.
     assert "github.event.pull_request.head.sha" in env["HEAD_SHA"], (

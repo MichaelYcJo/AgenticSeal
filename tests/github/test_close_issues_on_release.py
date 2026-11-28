@@ -3,11 +3,10 @@
 The closer runs when a release reaches `main`. It closes each issue a
 shipped pull request claimed with a closing keyword, and takes `size: now`
 (#450) and `merged: next` (#1671) off each issue it closes. One issue the
-tracker refuses to close does
-not leave the rest open (#536): a refusal on `gh issue close` takes the REST
-route, a PATCH and then the same comment through `gh api ../comments`, and a
-refusal on both routes is named with both errors at the end, after every
-other issue was attempted.
+tracker refuses to close does not leave the rest open (#536): a refusal on
+`gh issue close` takes the REST route, a PATCH and then the same comment
+through `gh api ../comments`, and a refusal on both routes is named with
+both errors at the end, after every other issue was attempted.
 
 The labels the cases' docstrings carry:
 
