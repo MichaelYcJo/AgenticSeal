@@ -13,19 +13,10 @@
 
 ## Not done
 
-The test file `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`
-keeps its name, though its step no longer reads a milestone. Its docstring
-now says what the step holds. A rename moves a test file, which
-`CONTRIBUTING.md` *The test layout* holds to its move check, and the name is
-cited in the docstrings of `.github/scripts/release_completeness_check.py`,
-`tests/github/test_release_completeness_check.py` and
-`tests/behaviour/test_the_release_check_watches_what_ships.py`
-(`git grep -n test_a_release_cannot_ship_an_untrue_milestone`, executed at
-`98bf50d8`). `frame/plan.md` A10's ground for keeping the script's name does
-not reach the test file: no `check:` line and no line of `docs/` names the
-file, so `agentic rules --check` reads no citation of it. What keeps the
-name is that no *Scope* item names the move, and phase 3 builds to its
-*Delivers* cell, so the move is left to the framer's judgment.
+The release check's step test is no longer left under a name that states a
+milestone. `frame/design.md` *Scope* item 11 moves it to
+`tests/text/test_the_release_check_runs_from_its_step.py`, and phase 3
+built the move, so nothing of it stays undone.
 
 The fixture workflow `FIXTURE_WORKFLOW` of `tests/skills/test_broad_gate.py`
 keeps the old step name, `the milestone this release claims is the work it

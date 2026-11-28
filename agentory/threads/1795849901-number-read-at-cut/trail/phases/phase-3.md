@@ -41,11 +41,11 @@ convention sentence that holds `release/vX.Y.Z`,
 `frame/design.md` *Kept lines of the searches* keeps as "the convention
 line *Scope* item 8 writes". The second is the entry of
 `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#BRANCH_SHAPES`
-that pins that sentence whole. The row of that kind does not name a pin.
-The entry is the same sentence, and it names `release/vX.Y.Z` as one shape
-a repository may use, which is the reason the row gives. So it is kept
-under that row, and the framer may name the pin in it. No kept line was
-changed or removed.
+that pins that sentence whole. When the phase first closed, the row of that
+kind named no pin. The entry is the same sentence, and it names
+`release/vX.Y.Z` as one shape a repository may use, which is the reason the
+row gives, so it was kept under that row. The fold `72844ffd` names the pin
+in the row. No kept line was changed or removed.
 
 **The two refusals of a numbered branch on the contributor surfaces read
 the module's own pattern.** `test_the_section_names_the_integration_branch_and_no_numbered_one`
@@ -63,11 +63,43 @@ is now `test_the_section_names_the_integration_branch_and_no_numbered_one`,
 since the section names one branch and no convention. `git grep` of the
 old name printed nothing outside this record at `98bf50d8` (executed).
 
-**The test file whose name no longer fits keeps it.** The weighing is in
-`gaps.md` *Not done*, rewritten in this phase. `frame/plan.md` A10's ground
-does not reach `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`,
-since no `check:` line and no line of `docs/` names it. No *Scope* item names
-the move, so this phase leaves it to the framer.
+**The step's test file moved in `ccd4fd68`, after the phase first closed.**
+The framer's fold `72844ffd` added *Scope* item 11, and the orchestrator
+gave its build to this phase before round 1. `frame/design.md` *Scope* item
+11 ends by giving the build to round 1's fix pass, which this order
+replaces. `git mv` took `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`
+to `tests/text/test_the_release_check_runs_from_its_step.py` with its bytes
+unchanged. The three citations `git grep` found were rewritten: the
+docstring of `release_completeness_check.py`, the module docstring of
+`tests/github/test_release_completeness_check.py` and a case docstring of
+`tests/behaviour/test_the_release_check_watches_what_ships.py`. The second
+says that #942's phase 6 placed its cases from the step's test file, so it
+names the file by that role and then by its new path, and the sentence stays
+true of #942. The move adds no behaviour, so no case was written new and no
+mutant was run (`skills/verify/SKILL.md` *The narrow command still has to be
+able to fail*, the row for names or places only). It was proved by these
+runs at `ccd4fd68` (all executed):
+
+- `bin/agentic layout --moved HEAD --from tests/text/test_a_release_cannot_ship_an_untrue_milestone.py --to tests/text/test_the_release_check_runs_from_its_step.py`,
+  run before the commit with HEAD at `72844ffd`, printed `agentic layout:
+  moved: 3 old cases, 3 items against 3 at 72844ffdf64a, 0 failed` and
+  exited 0.
+- `bin/agentic layout --check` on the new file printed `1 files read, 0
+  refused`.
+- The census of the old spelling,
+  `git grep -n -i 'a_release_cannot_ship\|cannot_ship_an\|untrue milestone\|untrue_milestone' -- . ':!agentory/threads/1795849901-number-read-at-cut'`,
+  printed nothing and exited 1.
+- The cell's command printed `949 passed, 10 skipped`, the count it printed
+  before the move. The test files whose scripts load
+  `release_completeness_check.py`, run as
+  `bin/test tests/github/test_release_completeness_check.py tests/github/test_label_merged_on_release_branch.py tests/github/test_close_issues_on_release.py -q`,
+  printed `117 passed`.
+- The keep search of the cell printed nothing, and
+  `bin/agentic rules --check` printed `1 excused in 187 check lines`.
+
+`frame/design.md` *Removes* names a case of the old file by the old path,
+`#test_the_head_shape_reaches_the_script_rather_than_the_guard`. That case
+went in phase 1, so the row names where it stood.
 
 **The fragment carries no `### Process changes` table.**
 `docs/layout/the-record-layout.md` *A change writes fragments, never a
@@ -141,11 +173,12 @@ docstrings of `test_release_hygiene.py`, those of `shipped_tags` and
 rewrapped where this phase's edits had left a long or a short line.
 
 **Two sentences of `docs/releasing/release-checklist.md` *The release pull
-request* state the old rule, and no `## Rule changes` operation reaches
-them.** Line 150 says `main` stays "where the release branch was cut unless
-a hotfix moves it", and line 156 names "the `hygiene` workflow's version
-and milestone steps". `frame/questions.md` Q2's answer removes the hotfix
-route, `release/next` is cut once, and phase 1 took the milestone out of
-the second step. The text of `docs/releasing/` is out of this work item's
-scope (`frame/design.md` *Scope*), so both are left for the framer to fold
-into `## Rule changes`.
+request* stated the old rule, and when the phase first closed no `## Rule
+changes` operation reached them.** Line 150 says `main` stays "where the
+release branch was cut unless a hotfix moves it", and line 156 names "the
+`hygiene` workflow's version and milestone steps". `frame/questions.md`
+Q2's answer removes the hotfix route, `release/next` is cut once, and phase
+1 took the milestone out of the second step. The text of `docs/releasing/`
+is out of this work item's scope (`frame/design.md` *Scope*), so this phase
+left both to the framer. The fold `72844ffd` adds a `change` operation for
+each.
