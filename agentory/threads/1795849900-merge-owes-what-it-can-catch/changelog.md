@@ -8,5 +8,5 @@
 
 | Date | Change | Why | Source |
 |---|---|---|---|
-| 2026-11-28 | The orchestrator reads what a merge of the base resolved with `git show --remerge-diff` on the merge commit, and spawns a verifying round only where it names a path outside the work item's records | Whether a resolution touched a file outside the records was a judgment with no reading that a later reader could repeat | https://github.com/MichaelYcJo/AgenticSeal/issues/1583 |
+| 2026-11-28 | The orchestrator reads what a merge of the base resolved with `git show --remerge-diff` on the merge commit, and spawns a verifying round where it names a path outside the work item's records or does not run | Whether a resolution touched a file outside the records was a judgment with no reading that a later reader could repeat | https://github.com/MichaelYcJo/AgenticSeal/issues/1583 |
 | 2026-11-28 | After a merge past the newest broad run, the open pull request's checks at HEAD stand in for the local broad run where its `pull_request` run reads the `Broad gate` command's checks, while the base's tip is in HEAD at the hand-over; each such merge gets a row of *Judgments of the run* | The local run read the same checks over the same merged tree that the pull request's run reads, at the cost of a broad run per merge | https://github.com/MichaelYcJo/AgenticSeal/issues/1631 |
