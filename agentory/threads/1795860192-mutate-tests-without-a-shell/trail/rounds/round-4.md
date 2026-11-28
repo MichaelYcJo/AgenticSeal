@@ -30,6 +30,11 @@ The two searches each printed `frame/plan.md:35` alone, and `pr.md` quotes only 
 | 2026-11-28 | Whether a round follows round 3's fix pass: yes, round 4, a verifying round on that fix. | Round 3's one finding carries `regression: round-2#1`, and a regression's fix pass is followed by one verifying round whatever the count. Round 3 is the third finding round, and the counts weighed are five, three and one findings: the count falls, while each finding of rounds 2 and 3 is a regression, a signal that the run is not converging. The fix pass changes one test case and no code, so the round it is owed is bounded to that case. That fix is outside the records, and the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives it to a round. | `docs/running/the-run.md` *The run*, `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* |
 ```
 
+```iadd
+verdict: fixed 1c9f74a4
+answer: `frame/plan.md` *Judgments of the run*'s row on round 4 now reads as the round's paste-ready row, word for word. It names the rule that owed round 4, a regression's fix pass followed by one verifying round whatever the count, and it reads the regressions as the signal they are. A new last row records that round 4's fix, located in that row alone, goes to the inspector.
+```
+
 ## Confirmations
 
 ```iadd
