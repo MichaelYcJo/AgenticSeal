@@ -9,7 +9,7 @@ The tree as read at `5c18f931`.
 | `skills/core/SKILL.md`, its opening paragraph | the core governs work run through the IADD process, and a session doing other work is not bound by it |
 | `skills/implement/routing-question.md` *Question 1, the mode* | the answer `direct` names every party and record that does not run |
 | `skills/implement/orchestration.md` *Under agentic* | the orchestrator that takes `direct` under `agentic` writes one sentence of grounds into the commit |
-| `docs/checks/the-routing-check.md` *At the pull request* | a commit of no work item carries `IADD-Routing: no work item`, and the check prints it |
+| `docs/checks/the-routing-check.md` *At the pull request* | where the root is shared, a commit of no work item carries `IADD-Routing: no work item`, and the check prints it |
 | `docs/forms/the-inspection.md` *The inspection* | an inspection and its mark stand on a work item |
 | `docs/method/iadd.md` *The principles* | each principle names the file that states it, and that file is the rule |
 
