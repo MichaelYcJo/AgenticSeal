@@ -43,6 +43,11 @@ In `frame/plan.md`, replace the row at line 33 with this row. The row at line 73
 | A sentence that says which lines a keep file holds states the home's fact, and no sentence claims what every other sentence does (round 3). The README line and the `## Rule changes` `to:` lines take the home's words, "is to print at that phase's close"; a sentence that states the same fact in its own words stays, as the orchestrator's row of round 3 in *Judgments of the run* decides | a later change to what a keep file holds lists the statements with `git grep` on the home's words, as contract rule 19 asks, and that search is a sample, since a statement in other words escapes it | chosen, by the fold of round 3 |
 ```
 
+```iadd
+verdict: fixed b158f08b
+answer: The finding holds. The framer rewrote the chosen row at `frame/plan.md` *Alternatives considered* line 33 in `b158f08b`, the orchestrator's fix after the last round: the row now records round 3's decision as made, that the README line and the `## Rule changes` `to:` lines take the home's words and a sentence that states the same fact in its own words stays, and its failure cell names the search on the home's words as a sample, since the home wraps the phrase across two lines. The approach cell and the verdict are round 4's paste-ready text. The change touches the work item's records alone, so the inspector reads it (`skills/core/SKILL.md` *Judgment is not licence to skip a party*, row *No fix that no round reads*), as round 3's row of `frame/plan.md` *Judgments of the run* states for every finding after the run's last round.
+```
+
 ## Confirmations
 
 ```iadd
