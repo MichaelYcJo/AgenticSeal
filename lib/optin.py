@@ -33,6 +33,7 @@ started by `lib/gitcmd.py#git`.
 """
 
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -51,6 +52,11 @@ TRAIL = "trail"
 DESIGN = f"{FRAME}/design.md"
 PLAN = f"{FRAME}/plan.md"
 QUESTIONS = f"{FRAME}/questions.md"
+# A keep file of phase N, `frame/keep-<N>.txt` or `frame/keep-<N>-paths.txt`,
+# matched whole against a path relative to the thread's directory
+# (`skills/verify/SKILL.md` *An absence claim is only as good as the search
+# behind it*).
+KEEP = re.compile(rf"{FRAME}/keep-[0-9]+(?:-paths)?\.txt")
 PHASES = f"{TRAIL}/phases"
 ROUNDS = f"{TRAIL}/rounds"
 GATE = f"{TRAIL}/gate.md"

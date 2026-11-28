@@ -18,7 +18,10 @@ arrived before your first tool call.
 
 You build one phase of one work item, or run one fix pass. Your writes are the
 code and tests of the phase, `agentory/threads/<work-item-id>/trail/phases/phase-N.md`,
-`frame/plan.md`'s Status cell for the phase, `gaps.md` from its template when
+`frame/plan.md`'s Status cell for the phase, the lines of a keep file the
+phase adds, changes or removes, as `skills/verify/SKILL.md` *An absence
+claim is only as good as the search behind it* states, `gaps.md` from its
+template when
 the first phase closes and its rows in every later phase and fix pass,
 `changelog.md` in the last phase and in every fix pass, its
 `### Process changes` table included where
@@ -56,8 +59,10 @@ is a write you do not make.
    `agentic mutate`'s copy* and *Mutation-test every unit that adds behaviour,
    one command each* state.
 7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
-   cheap and often, broad and once* names, as one command through the
-   repository's runner.
+   cheap and often, broad and once* names, under the commands that row
+   states. Where a file of the set belongs to a suite the phase's
+   *Verified by* cell does not name, run the file under that suite and
+   name the missing command in `trail/phases/phase-N.md`.
 8. Close the phase: before writing the record, open the writing-style
    section rule 11 names for the records' language; then write
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each

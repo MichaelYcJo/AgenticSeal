@@ -282,6 +282,53 @@ class Test_main:
         assert code == 0, said
         assert hunks(repo, base, head, path, 5) in written(out)
 
+    def test_accepts_a_keep_file_of_the_work_item_at_its_own_lines(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A keep file holds no blank line, so widened to its paragraph a
+        hunk of it would print the whole file. A line changed in the middle
+        of the work item's `frame/keep-2.txt`, and one in its
+        `frame/keep-2-paths.txt`, each print under the keep file's head line
+        as `git diff -U0` prints the hunk, the function line after its
+        header left out, and no other line of the file. Another work item's
+        keep file, its directory's name as long as this one's, and a file of
+        this work item whose name holds no phase's number, are other text
+        paths, and print widened."""
+        lines = [f"docs/file-{n}.md:a kept line {n}" for n in range(1, 41)]
+        keep, paths = f"{ITEM}/frame/keep-2.txt", f"{ITEM}/frame/keep-2-paths.txt"
+        other = "agentory/threads/1700000001-b-work-item/frame/keep-1.txt"
+        unnumbered = f"{ITEM}/frame/keep-notes.txt"
+        repo, base = built(
+            tmp_path,
+            {
+                keep: "\n".join(lines) + "\n",
+                paths: "\n".join(lines[:20]) + "\n",
+                other: "\n".join(lines) + "\n",
+                unnumbered: "\n".join(lines) + "\n",
+            },
+        )
+        changed = [*lines]
+        changed[19] = "docs/file-20.md:a kept line 20, rewritten"
+        write(repo, keep, "\n".join(changed) + "\n")
+        write(repo, paths, "\n".join(changed[:20]) + "\n")
+        write(repo, other, "\n".join(changed) + "\n")
+        write(repo, unnumbered, "\n".join(changed) + "\n")
+        head = commit_everything(repo, "change")
+        out = tmp_path / "read.txt"
+        code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
+        assert code == 0, said
+        text = written(out)
+        for path in (keep, paths):
+            body = text.split(f"==> {path}: ", 1)[1].split("\n", 1)[1]
+            own = ("\n" + body).split("\n==> ", 1)[0][1:] + "\n"
+            for line in lines[:19] + lines[20:]:
+                assert line + "\n" not in own
+            assert f"==> {path}: keep file, each hunk at its own lines <==\n" in text
+            assert own.endswith(hunks(repo, base, head, path, 0))
+        for path in (other, unnumbered):
+            whole = text.split(RANGE.WHOLE_HEAD.format(path=path), 1)[1]
+            assert lines[0] in whole.split("\n==> ", 1)[0]
+
     def test_accepts_the_records_whole_at_head_and_names_each_absent(
         self, tmp_path, monkeypatch, capsys
     ):
@@ -316,7 +363,9 @@ class Test_main:
         line naming each, or names one that is not there. A record whose
         lines end in CRLF on disk, as a text-mode write leaves them on
         Windows, prints each line ended by LF alone, as a record git holds
-        prints."""
+        prints. A path the range changes prints as another text path, since
+        no keep file of a work item under a local root stands in the
+        tree."""
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
@@ -324,6 +373,8 @@ class Test_main:
         git(repo, "config", "user.name", "t")
         write(repo, "f.txt", "one\n")
         base = commit_everything(repo, "base")
+        write(repo, "f.txt", "two\n")
+        commit_everything(repo, "change")
         item = local_home(repo) / "threads" / "1700000000-a-work-item"
         item.mkdir(parents=True)
         (item / "routing.md").write_bytes(b"# Routing, local\r\nSecond line.\r\n")
@@ -331,6 +382,7 @@ class Test_main:
         code, said, _err = ran(monkeypatch, capsys, repo, item, base, out)
         assert code == 0, said
         text = written(out)
+        assert RANGE.WHOLE_HEAD.format(path="f.txt") + "\n" in text
         name = os.path.relpath(item / "routing.md", repo).replace(os.sep, "/")
         record = "\n# Routing, local\nSecond line.\n"
         assert RANGE.ON_DISK.format(path=name) + record in text

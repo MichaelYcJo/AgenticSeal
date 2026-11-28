@@ -196,12 +196,14 @@ drive-by refactor and no TODO stub in a core path.
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call.
-The builder types the one command the *Phase boundary* row or the *Review
-rounds 1..n* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad
-and once* names, never the whole suite (`docs/running/the-run.md` *The
-handoff*). Asking whether the suite catches something is a coverage probe,
-a different act: the builder runs it over the module that should catch it
-and reports it as a probe.
+The builder types the commands the *Phase boundary* row of
+`skills/verify/SKILL.md` *Scope: cheap and often, broad and once* states
+for a phase, and the commands `skills/implement/fix-pass.md` *The narrow
+set, then the read of the range* states for a fix pass, over the set that
+row or the *Review rounds 1..n* row names, never the whole suite
+(`docs/running/the-run.md` *The handoff*). Asking whether the suite
+catches something is a coverage probe, a different act: the builder runs
+it over the module that should catch it and reports it as a probe.
 
 **Commit at the smallest step that stands on its own.** No gate stops a
 commit: the routing is checked at the pull request
@@ -271,9 +273,11 @@ after, HEAD as the phase began or the commit
 names for a pass, and `<file>` stands under the builder's scratch directory
 (contract rule 17). The builder reads that file to its last line. It holds
 every hunk of the range with the paragraph or unit around it, a case's
-name, docstring and comments among them, and then each file of
+name, docstring and comments among them, a keep file's hunk alone at its
+own lines, and then each file of
 `agentory/threads/<work-item-id>/` that states the present, whole: `routing.md`,
-the three frame files, `gaps.md` and `changelog.md`. A coordinate or a
+`frame/design.md`, `frame/plan.md`, `frame/questions.md`, `gaps.md` and
+`changelog.md`. A coordinate or a
 statement of the tree in a frame section dated to the commit the framer
 read states that commit, not the present, and a sentence there that says
 what the work does or concludes states the present (*Document layout — two
@@ -343,6 +347,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule and spells the line) | before implementing |
 | `frame/plan.md` | `templates/records/sdd-plan.md` | the framer; the orchestrator adds the rows of `## Judgments of the run` | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it. Its last section holds the orchestrator's judgments of the run, each with its grounds and the document it stands on, which `agentic settle`'s dry run reads | before implementing (gated work); a judgment's row when it is made |
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
+| `frame/keep-<N>.txt`, and `frame/keep-<N>-paths.txt` where a path holds the old spelling | no template: `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it* gives the form | the framer; the builder keeps it in step with the kinds the design keeps, as that section states | the lines, and the paths, the search of phase `<N>` prints at that phase's close | before implementing, for each phase whose search keeps a line |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
 | `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame names as `docs/running/the-agent-set.md` *What each party writes, and when* says, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
 | `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `agentic pr-body` writes above the records' copy. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ |
