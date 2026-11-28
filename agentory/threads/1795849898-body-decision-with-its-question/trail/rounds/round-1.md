@@ -55,6 +55,12 @@ The class, listed from what produces it: every pair in `_unfolded`'s `copied` (`
 
 The fix pass also owes two more things. First, the refusal in the module docstring's paragraph opening "Below the line `HEADING` holds" and in `_unfolded`'s docstring. Second, a row of `Test_compose#test_refuses_a_record_it_cannot_copy_faithfully` for `frame/questions.md` and one for `changelog.md`, each seen red without the new branch (contract rules 14 and 15).
 
+```iadd
+verdict: fixed 46f97246
+location: `agentory/threads/1795849898-body-decision-with-its-question/changelog.md`
+answer: built `frame/design.md` *Scope* item 6, which the fold at `7a5135eb` added, as its *Data & interfaces* gives it: `_unfolded` reads each record's fences through `READER.fence_spans(BLOCKS.gfm_lines(text))` and refuses, at the record's path and line, a copied line that opens a fence whose `last` is None, with the sentence "opens a fence that no line of the record closes, and GitHub shows every line after it as code, the fold's end `</details>` among them; close the fence". The module docstring's paragraph opening "Below the line `HEADING` holds" and `_unfolded`'s docstring name the refusal, and the work item's `changelog.md` says what it refuses, which is why that path stands on this block's `location:`. `test_refuses_a_record_it_cannot_copy_faithfully` gains the two rows of S9, at `frame/questions.md` line 10 and `changelog.md` line 3, each pinned to the sentence through the constant `UNCLOSED`. Both rows were seen red at `7a5135eb`, which holds no such branch, each failing on `DID NOT RAISE Refused`, and `agentic mutate` over the branch replaced by `elif False:`, the opener set built from closed fences in place of unclosed ones, and the sentence's words changed printed 3 mutants, 3 red. The commands of `frame/plan.md` *Phases* row 1 passed at `46f97246`: the four named files 778 passed, `tests/text tests/behaviour` 891 passed and 10 skipped, ruff check and format exit 0, and the search of design G12 printed nothing. How GitHub renders such a body was not rendered, the row of this record's *Not judged*; the shape is now refused before any body is written.
+```
+
 ### 2. The rewritten sentence puts the decision's cell on the second line, and its own *Judgments of the run* case puts the decision on the first
 
 ```iadd
@@ -78,6 +84,11 @@ and its answer, then the `Grounds` cell.
 
 In `changelog.md:3`: "Where `pr.md` quotes a decision from a table row, the orchestrator quotes it with the cell of the same row that names what was decided, that cell first, and no sentence joins the two." In `changelog.md:10`: "The orchestrator quotes each decision `pr.md` takes from a table row with the cell of the same row that names what was decided, that cell first, and writes every *Judgments of the run* row's `Judgment` cell as the question it answers, then its answer".
 
+```iadd
+verdict: fixed 46f97246
+answer: applied the paste-ready fix after reading it against `frame/design.md` *Scope* item 1, which says "the naming cell first" and no more: `skills/code-review/orchestration.md` now reads "two quote lines from that row, the naming cell's first, with no sentence joining them" and "as the `Judgment` cell, which names the question and its answer, then the `Grounds` cell", and `changelog.md` lines 3 and 10 read "that cell first" in place of "on the line before it". Run again at `ec0ac7af`, `grep -rn -F "on the line before it" agentory/threads/1795849898-body-decision-with-its-question` prints this record's evidence line and its *Why it matters* paragraph, which quote the old words, and `frame/design.md` S1, which stands because a `frame/questions.md` row's `Question` cell and its `Default until answered` cell are two cells, the question on the line before. `grep -rn -F "naming cell" agentory/threads/1795849898-body-decision-with-its-question skills/code-review/orchestration.md` prints the same two places of this record and its paste-ready fix, the rewritten sentence at `skills/code-review/orchestration.md:377`, and `frame/design.md` *Scope* item 1 and `frame/plan.md` A1, which say "the naming cell first" and stand, as the finding says.
+```
+
 ### 3. The prefix's grounds say the change states the rule its new refusal enforces, and the base already stated it
 
 ```iadd
@@ -95,6 +106,11 @@ Why it matters: the prefix row's `Grounds` cell (`plan.md:65`) claims the copy n
 
 `pr.md:4` and `pr.md:6` then quote the two rewritten `Grounds` cells word for word, since `agentic pr-body` refuses a quote its file does not hold.
 
+```iadd
+verdict: fixed 7a5135eb
+answer: repaired in `7a5135eb` by the orchestrator, not by this fix pass: it rewrote the `Grounds` cells of its two rows of `frame/plan.md` *Judgments of the run* as the paste-ready fix gives them, the release row's to open "The build adds a record format" and the prefix row's to "Every *Judgments of the run* row's `Judgment` cell takes a new form, a record format a party now writes, and a closing keyword above or below the questions table now meets the refusal a table line met before.", and requoted both cells word for word in `pr.md`. Run again at `ec0ac7af`, `grep -rn -F "rule the change" agentory/threads/1795849898-body-decision-with-its-question` prints only this record's evidence line and *Why it matters* paragraph, which quote the old words. Since round 1's fix of finding 1 the build does add a refusal of its own, *Scope* item 6's; the prefix row's grounds stay true without naming it, and whether they name it is the orchestrator's to write.
+```
+
 ### 4. A planned milestone's name and another item's frame are stated as values of releases still open
 
 ```iadd
@@ -110,6 +126,11 @@ Why it matters: the release row's `Judgment` cell (`plan.md:64`) names the relea
 ```
 
 `pr.md:5` then quotes that cell word for word. In `plan.md:54`, the last sentence reads: "Where the version moves at the end of the release in a pull request of its own, this item moves none."
+
+```iadd
+verdict: fixed 7a5135eb
+answer: repaired in `7a5135eb`, not by this fix pass: the orchestrator rewrote its release row's `Judgment` cell in `frame/plan.md` *Judgments of the run* to "Which release ships this work item: a minor of its own, the planned minor after the one that carries #1671, not the patch it was routed into." and requoted it in `pr.md` line 5, and the framer cut "as #1671's frame proposes" from the version-move sentence of `frame/plan.md` *Operational impact*, which now ends "Where the version moves at the end of the release in a pull request of its own, this item moves none." Run again at `ec0ac7af`, the finding's search prints, outside this record, no planned milestone's name and no other item's frame stated without a date. Each line it prints stands: `pr.md` lines 5 and 6 and the release row name the release by its role; `routing.md` lines 16 and 24 are dated 2026-11-28, and `frame/plan.md` *Overlap with the release* is read on that date at named commits; `frame/design.md`'s lines name published tags such as `v0.23.1` or the released plans; the lines of `changelog.md`, `gaps.md`, `trail/phases/phase-1.md`, `frame/questions.md` and the rest of `frame/plan.md` and `frame/design.md` match on "release", "released" or "branch" in senses that state no value of a release still open; and this record's own lines quote the finding.
+```
 
 ## Confirmations
 
