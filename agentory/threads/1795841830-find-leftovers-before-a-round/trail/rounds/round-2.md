@@ -45,6 +45,12 @@ In `frame/design.md` *Data & interfaces* *The keep file*, line 91, which is the 
 it writes the line into the keep file of each phase whose search prints it, from its own phase on, in the same commit
 ```
 
+```iadd
+verdict: fixed d5880bac
+location: `skills/verify/SKILL.md:72-78`, `agents/framer.md:181-187`, `agentory/README.md:94-95`, `templates/setup/agentory-README.md:94-95`
+answer: The paste-ready snippet was not applied as written. The orchestrator's last row of `frame/plan.md` *Judgments of the run*, and the fold `597e88cc`, decide that which keep files hold a line is stated once and cited everywhere else, so the pass made the fix that way. In `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it*, the sentence that says what a keep file holds ("The keep file holds each line the search is to print at the phase's close …") is now named as that one statement. The restatement after it, which carried the condition, now says that by it the lines the design keeps and the lines a later phase changes or removes "stand in a keep file alike". The builder's sentence writes a rewritten kept line "into each keep file of its own phase or a later one that holds the line by the statement of what a keep file holds, above". That covers its own phase only where its own search prints the line, as the fold's *Data & interfaces* *The keep file* line 91 now says. In `agents/framer.md` *A search you write into a cell is run before the cell states its result*, the clause "and where an earlier phase's search prints it, that phase's keep file holds it too" is gone. The next sentence says which keep files hold "either line, a line a later phase removes among them", and cites the home. In `agentory/README.md` and `templates/setup/agentory-README.md`, line 95 read "the lines and paths phase N's search keeps", which can be read as the kept lines alone. It now reads "phase N's search is to print, compared by diff", and `diff` of the two files prints nothing. `changelog.md` holds no sentence that states which keep files hold a line under a condition, so it is unchanged. The `evidence:` searches were run again at `d5880bac`. `git grep -n -F "into that phase's" -- .` and `git grep -n -F "into its own keep file" -- .` now print lines of `trail/rounds/round-1.md` and `trail/rounds/round-2.md` alone, which stand as those rounds' records. `git grep -n -e 'whose search prints it' -e "earlier phase's search prints" -e 'closes before the phase' -- agents skills docs templates agentory/README.md` prints nothing, so no built file restates the condition any longer. The set, from the *Verified by* cells of phases 1 and 2, whose paths the fix changes, was `bin/test tests/text tests/behaviour tests/lib/test_optin.py tests/skills/test_agentic.py -q`. `tests/lib/test_optin.py` and `tests/skills/test_agentic.py` open `templates/setup/agentory-README.md`, as phase 2 found. It printed `1341 passed, 10 skipped, 1 warning`, exit 0, at `d5880bac`. Both cells name `bin/test`, and every file of the set belongs to it, so no suite goes unnamed.
+```
+
 ### 2. Scope item 2 of the frame puts a line a later phase removes in the keep file of every earlier phase, where the rule it builds puts it only in those whose search prints it
 
 ```iadd
@@ -64,6 +70,12 @@ In `frame/design.md` *Scope* item 2, line 40, replace "and is also a line of the
 
 ```markdown
 and is also a line of the keep file of each phase whose search prints it and that closes before the phase that removes it
+```
+
+```iadd
+verdict: fixed 597e88cc
+location: `agents/framer.md:181-187`
+answer: The framer's fold `597e88cc` took the orchestrator's route from the last row of `frame/plan.md` *Judgments of the run*. *Scope* item 2 of `frame/design.md` no longer restates the condition. A line the build removes is named by a *Scope* item or a `## Removes` row, a line the design keeps is a line of a keep file, and "which keep files hold either line, a line a later phase removes among them, the rule cites from Scope item 1's home and does not restate". The built sentence it describes matches since `d5880bac`. `agents/framer.md` *A search you write into a cell is run before the cell states its result* dropped its own restatement and cites `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it*, the fix of finding 1 above. `git grep -n -F "each phase that closes before" -- .`, run again at `d5880bac`, prints `trail/rounds/round-1.md:91` and lines of `trail/rounds/round-2.md` alone. Each stands as that round's record, and `frame/design.md:40` is no longer among them.
 ```
 
 ## Confirmations
