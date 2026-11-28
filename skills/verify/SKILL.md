@@ -79,7 +79,7 @@ line. `frame/design.md` gives the reason for each kind of kept line, as a
 table of kinds where many lines share one, and names the lines a later
 phase changes by that phase's *Scope* items. It does not copy the lines.
 
-Both commands run from the repository's top level, because `git grep` run
+The commands below run from the repository's top level, because `git grep` run
 from a subdirectory searches that subdirectory alone and prints paths
 relative to it. `--no-color --no-line-number` keep a person's git
 configuration from adding colour and line numbers to what `diff` compares.
