@@ -250,6 +250,48 @@ def command_words(text, windows=None):
     return list(lexer)
 
 
+OPERATOR_CHARACTERS = ";&|<>"
+
+
+def shell_operators(text, windows=None):
+    """The operators a POSIX shell would read in the command line `text`,
+    each run of `OPERATOR_CHARACTERS` once, in order.
+
+    `--tests` is split by `command_words` and run with no shell, so an
+    operator reaches the first program as its argument: `a && b` runs `a`
+    with `&&` and `b`, and where `a` ignores them the cases never run and
+    every mutant reads `SURVIVED` (#1677). This reads the shell's quoting to
+    find them: nothing inside single quotes, nothing inside double quotes,
+    and, where `windows` is false, not the character after a backslash
+    outside single quotes. On Windows a backslash is a path's separator, as
+    `command_words` reads it. `windows` defaults to this machine's.
+    """
+    if windows is None:
+        windows = os.name == "nt"
+    found, run, quote, i = [], "", None, 0
+    while i < len(text):
+        char = text[i]
+        if quote == "'":
+            quote = None if char == "'" else quote
+        elif char == "\\" and not windows:
+            i += 1
+        elif quote == '"':
+            quote = None if char == '"' else quote
+        elif char in "'\"":
+            quote = char
+        elif char in OPERATOR_CHARACTERS:
+            run += char
+            i += 1
+            continue
+        if run:
+            found.append(run)
+            run = ""
+        i += 1
+    if run:
+        found.append(run)
+    return found
+
+
 class Refused(Exception):
     """The mutation was not written, and why."""
 
@@ -688,6 +730,16 @@ def main(argv=None) -> int:
     command = command_words(args.tests)
     if not command:
         parser.error("--tests names no command")
+    operators = shell_operators(args.tests)
+    if operators:
+        named = ", ".join(f"`{op}`" for op in dict.fromkeys(operators))
+        parser.error(
+            f"--tests holds {named} outside quotes, and --tests runs with no "
+            "shell, so the first program would get it as an argument and the "
+            "cases after it would never run. Pass one command, or give the "
+            "shell the line on purpose: --tests \"sh -c '<command>'\". Nothing "
+            "was written."
+        )
 
     started = time.monotonic()
     try:

@@ -1,0 +1,3 @@
+### Fixed
+
+- **`agentic mutate` refuses a `--tests` that a shell would read as more than one command (#1677).** `--tests` is split into words and run with no shell. A line such as `pnpm --dir site run build && pnpm --dir site exec playwright test` ran `pnpm` with `&&` and the second command as its arguments. Where the first program ignored them, the baseline passed, the cases that watch the unit never ran, and each mutant read `SURVIVED`. A `--tests` holding `;`, `&`, `|`, `<` or `>` outside quotes, and on POSIX not after a backslash, is now refused with exit 2 before anything is written. The message names each operator and the form `--tests "sh -c '<command>'"`. `skills/verify/agentic-mutate.md` says how `--tests` is read.

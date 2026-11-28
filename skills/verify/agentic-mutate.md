@@ -20,6 +20,18 @@ agentic mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>
 is written; `<new>` may be empty, which deletes. Any UTF-8 text file can be
 the target.
 
+**`--tests` is one command, split into words and run with no shell.** A
+quote groups a word, and on POSIX a backslash escapes the next character;
+on Windows it is a path's separator. Nothing else a shell does happens: no
+operator, redirect or expansion. So a `--tests` holding `;`, `&`, `|`, `<`
+or `>` outside quotes, and on POSIX not after a backslash, is refused with
+exit 2 and nothing written. The message names each operator. Run as
+written, the first program would get the operator as its argument, and the
+cases after it would never run, so each mutant would read `SURVIVED` for a
+run that measured nothing. A line that needs a shell is passed to one on
+purpose, as `--tests "sh -c '<command>'"`, where a POSIX shell is there to
+run it.
+
 **A `.py` mutant that does not compile is refused before anything is written
 or run.** Cases that load the module fail on the syntax error whatever the
 unit does, and that red would read as a case noticing the break. For a target
