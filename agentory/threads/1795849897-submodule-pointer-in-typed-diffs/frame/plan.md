@@ -35,3 +35,4 @@ This pull request carries the release's version move: phase 1's commit that adds
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-28 | The pull request's title takes `fix:`. | The three reads were wrong against the rule `lib/gitcmd.py#FLAGS` and `agents/inspector.md` step 1 already stated, that a git read showing a party paths carries `--ignore-submodules=none`; the change adds nothing a user types, installs or keeps. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
