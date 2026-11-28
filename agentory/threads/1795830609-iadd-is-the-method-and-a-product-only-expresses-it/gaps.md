@@ -9,6 +9,7 @@
 | The broad gate over phase 3's commits. The crafter ran the phase-boundary set, every test file `git ls-files 'tests/*test_*.py'` lists, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
 | The broad gate over phase 4's commits. The crafter ran the phase-boundary set, every test file `git ls-files 'tests/*test_*.py'` lists, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
 | The broad gate over phase 5's commits. The crafter ran the phase-boundary set `trail/phases/phase-5.md` names, `bin/agentic fold` and the acceptance of `frame/design.md` *The keep file*; the phase changed no Python file | the orchestrator, at the broad run |
+| The broad gate over the fix pass of round 1, `9bc4b51f`. The crafter ran the review-round set, `tests/text`, `tests/behaviour` and the test files that load the dispatcher or read the fragments, `bin/agentic fold` and the acceptance of `frame/design.md` *The keep file*, and linted and formatted the two Python files it changed | the orchestrator, at the broad run |
 | Whether `/plugin install agentic@agenticseal`, `/agentic:update` and the `agentic:` agent types work in a real session once the release that carries this work is installed. No case runs the harness against the renamed manifest and marketplace | the orchestrator, after the release is installed |
 
 ## Not done
