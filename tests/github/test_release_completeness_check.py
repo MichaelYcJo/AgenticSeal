@@ -256,14 +256,22 @@ class Test_judge_number:
         ) in lines, lines
 
     @pytest.mark.rule("a-patch-carries-no-feat")
-    @pytest.mark.parametrize("head", ["1.0.1", "1.1.0", "0.7.0"])
-    def test_refuses_a_major_that_is_not_its_first_release(self, head):
+    @pytest.mark.parametrize(
+        "base, head, number",
+        [
+            (BASE_VERSION, "1.0.1", MINOR),
+            (BASE_VERSION, "1.1.0", MINOR),
+            (BASE_VERSION, "0.7.0", MINOR),
+            ("1.2.3", "0.0.0", "1.3.0"),
+        ],
+    )
+    def test_refuses_a_major_that_is_not_its_first_release(self, base, head, number):
         """A version that moves the major with a minor or a patch above 0, or
-        one below the base, is no major the owner named, so it is read as
-        every other move is."""
-        lines, failed = number_verdict(head, [FEAT])
+        one below the base, a lower major among them, is no major the owner
+        named, so it is read as every other move is."""
+        lines, failed = number_verdict(head, [FEAT], base=base)
         assert failed, lines
-        assert f"the subjects read {MINOR}" in lines[0], lines
+        assert f"the subjects read {number}" in lines[0], lines
 
     @pytest.mark.rule("a-patch-carries-no-feat")
     def test_a_head_that_leaves_the_version_prints_the_number_and_refuses_nothing(
