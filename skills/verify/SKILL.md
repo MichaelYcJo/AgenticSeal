@@ -72,11 +72,9 @@ cell in `frame/design.md` that rests on a search that keeps lines names
 the phase whose search it is, and runs no search of its own. The keep
 file holds each line the search is to print at the phase's close, written as
 `git grep` prints it with no line number, `path:content`, and sorted under
-`LC_ALL=C sort`. That sentence is the one statement of which keep files
-hold a line, and every other sentence that says so cites it. By it, the
-lines the design keeps and the lines a later phase changes or removes
-stand in a keep file alike. Where an earlier phase runs the
-same search, a phase's own lines are the lines its keep file lacks and
+`LC_ALL=C sort`. Those lines are the lines the design keeps and the lines
+a later phase changes or removes. Where an earlier phase runs the same
+search, a phase's own lines are the lines its keep file lacks and
 the earlier phase's keep file holds. Where the old spelling stands in a
 path, `frame/keep-<N>-paths.txt` holds, the same way, each path the path
 search is to print. A keep file names each line it keeps, so a second
