@@ -10,7 +10,7 @@ The tree as read at `4a63fef1`.
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| A case that greps every backticked `git diff`/`log`/`show` in `agents/` for the flag | it refuses reads whose paths name no submodule, such as step 3's records-only diff, and guesses a command from prose | rejected |
+| A case that greps every backticked `git diff`/`log`/`show` in `agents/` for the flag | it refuses reads whose paths name no submodule, such as the inspector's step 4 records-only diff, and guesses a command from prose | rejected |
 | One sentence in each agent saying every typed git read carries the flag | the command as typed still omits it, and the agent types what it reads | rejected |
 
 ## Phases

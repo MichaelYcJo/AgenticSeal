@@ -16,7 +16,7 @@ Probe, `executed` in a scratch repository on 2026-11-28 with `diff.ignoreSubmodu
 
 In: the three git reads an agent types by hand to see the diff it judges, the inspector's `git diff <base>...HEAD` and the proofer's `git log … -p` and `git show <merge>`, each carrying `--ignore-submodules=none`, with a case that pins each command's form.
 
-Out: reads that do not show a party the diff it judges. `agents/inspector.md` step 3's `git -C <root> diff <the last record's target>..HEAD -- agentory/threads/<item>/` names only the work item's records, where no submodule stands. The other `git log` and `git show <commit>:<path>` reads in `skills/` read history or a file's text, not a diff a party judges. Scripts already carry the flag through `lib/gitcmd.py#argv`.
+Out: reads that do not show a party the diff it judges. `agents/inspector.md` step 4's `git -C <root> diff <the last record's target>..HEAD -- agentory/threads/<item>/` names only the work item's records, where no submodule stands. The other `git log` and `git show <commit>:<path>` reads in `skills/` read history or a file's text, not a diff a party judges. Scripts already carry the flag through `lib/gitcmd.py#argv`.
 
 ## User scenarios & acceptance *(mandatory)*
 
